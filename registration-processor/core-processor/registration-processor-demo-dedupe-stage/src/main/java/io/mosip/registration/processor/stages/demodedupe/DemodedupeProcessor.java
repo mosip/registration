@@ -242,6 +242,20 @@ public class DemodedupeProcessor {
 						? JsonUtil.getJsonValues(jsonObject,
 								JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.GENDER), MappingJsonConstants.VALUE))
 						: demographicData.getGender());
+				demoDedupeData.setPhone(demographicData.getPhone() == null
+						? JsonUtil.getJSONValue(jsonObject,
+								regProcessorIdentityJson.getIdentity().getPhone().getValue())
+						: demographicData.getPhone());
+
+				demoDedupeData.setEmail(demographicData.getEmail() == null
+						? JsonUtil.getJSONValue(jsonObject,
+								regProcessorIdentityJson.getIdentity().getEmail().getValue())
+						: demographicData.getEmail());
+
+				demoDedupeData.setPostalCode(demographicData.getPostalCode() == null
+						? JsonUtil.getJSONValue(jsonObject,
+								regProcessorIdentityJson.getIdentity().getPostalCode().getValue())
+						: demographicData.getPostalCode());
 				packetInfoManager.saveIndividualDemographicDedupeUpdatePacket(demoDedupeData, registrationId, moduleId,
 						moduleName);
 				object.setIsValid(Boolean.TRUE);

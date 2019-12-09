@@ -213,7 +213,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 					jsonValueList.add(nameArray);
 			}
 			demographicData.setName(jsonValueList.isEmpty() ? null : jsonValueList);
-			
+
 			demographicData.setDateOfBirth((String) JsonUtil.getJSONValue(demographicIdentity,
 					JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "dob"), "value")));
 			demographicData.setGender(JsonUtil.getJsonValues(demographicIdentity,
