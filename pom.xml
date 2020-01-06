@@ -3,21 +3,15 @@
 	
 	<modelVersion>4.0.0</modelVersion>	
 	<groupId>io.mosip</groupId>
-	<artifactId>mosip-parent</artifactId>
+	<artifactId>registration</artifactId>
 	<version>1.0.5</version>
 	<packaging>pom</packaging>	
 	
-	<name>MOSIP Project Parent POM</name>	
+	<name>MOSIP Registration Parent POM</name>	
 
 	<modules>
-		<module>kernel</module>
-		<module>pre-registration</module>
 		<module>registration</module>
 		<module>registration-processor</module>
-		<module>authentication</module>
-		<module>id-repository</module>
-		<module>admin</module>
-		<module>resident</module>
-		</modules>
+	</modules>
 
 </project>

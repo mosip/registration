@@ -6,7 +6,7 @@
 
 	<parent>
 		<groupId>io.mosip</groupId>
-		<artifactId>mosip-parent</artifactId>
+		<artifactId>registration</artifactId>
 		<version>1.0.5</version>
 	</parent>
 
@@ -15,6 +15,7 @@
 	<artifactId>registration-parent</artifactId>
 	<packaging>pom</packaging>
 	<name>registration</name>
+	
 	<description>Parent project of MOSIP Registration</description>
 
 	<properties>
