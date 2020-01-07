@@ -10,4 +10,5 @@
 
 \c mosip_regprc sysadmin
 
+ALTER TABLE regprc.abis_request DROP CONSTRAINT IF EXISTS uk_abisreq;
 ----------------------------------------------------------------------------------------------------

@@ -32,7 +32,6 @@ CREATE TABLE regprc.abis_request(
 	is_deleted boolean,
 	del_dtimes timestamp,
 	CONSTRAINT pk_abisreq PRIMARY KEY (id),
-	CONSTRAINT uk_abisreq UNIQUE (abis_app_code,request_type,request_dtimes),
 	CONSTRAINT uk_abisreq_ref UNIQUE (req_batch_id,abis_app_code)
 
 );
