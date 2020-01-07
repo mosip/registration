@@ -33,6 +33,7 @@ ENV is_glowroot_env=${is_glowroot}
 # environment variable to pass artifactory url, at docker runtime
 ENV artifactory_url_env=${artifactory_url}
 
+
 # change volume to whichever storage directory you want to use for this container.
 VOLUME /home/logs
 
