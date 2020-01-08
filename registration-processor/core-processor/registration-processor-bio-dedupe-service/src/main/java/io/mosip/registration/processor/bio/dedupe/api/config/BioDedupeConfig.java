@@ -29,9 +29,4 @@ public class BioDedupeConfig {
 				.paths(PathSelectors.ant("/biometricfile/*")).build();
 	}
 	
-        @Bean
-	public JSONParser getJsonParser() {
-		return new JSONParser();
-	}
-	
 }

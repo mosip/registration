@@ -25,9 +25,5 @@ public class PrintApiConfig {
 				.apis(RequestHandlerSelectors.basePackage("io.mosip.registration.processor.printing.api.controller"))
 				.paths(PathSelectors.ant("/*")).build();
 	}
-	@Bean
-	public JSONParser getJsonParser() {
-		return new JSONParser();
-	}
 
 }

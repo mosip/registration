@@ -49,11 +49,6 @@ public class PacketStorageBeanConfig {
 	}
 
 	@Bean
-	public JSONParser getJsonParser() {
-		return new JSONParser();
-	}
-
-	@Bean
 	public ABISHandlerUtil getABISHandlerUtil() {
 		return new ABISHandlerUtil();
 	}

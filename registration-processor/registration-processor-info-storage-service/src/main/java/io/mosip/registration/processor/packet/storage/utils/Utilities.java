@@ -100,9 +100,6 @@ public class Utilities {
 	@Autowired
 	private ObjectMapper objMapper;
 
-	@Autowired
-	private JSONParser jsonParser;
-
 	/** The adapter. */
 	@Autowired
 	private PacketManager adapter;
@@ -316,7 +313,7 @@ public class Utilities {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 					"Utilities::retrieveIdrepoJson():: IDREPOGETIDBYUIN GET service call ended Successfully");
 			try {
-				return (JSONObject) jsonParser.parse(response);
+				return (JSONObject) new JSONParser().parse(response);
 			} catch (org.json.simple.parser.ParseException e) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 						ExceptionUtils.getStackTrace(e));
@@ -573,7 +570,7 @@ public class Utilities {
 			}
 			String response = objMapper.writeValueAsString(idResponseDto.getResponse().getIdentity());
 			try {
-				return (JSONObject) jsonParser.parse(response);
+				return (JSONObject) new JSONParser().parse(response);
 			} catch (org.json.simple.parser.ParseException e) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 						ExceptionUtils.getStackTrace(e));
