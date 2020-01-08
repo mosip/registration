@@ -57,11 +57,13 @@ import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.print.service.PrintService;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.spi.uincardgenerator.UinCardGenerator;
+import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
 import io.mosip.registration.processor.message.sender.template.TemplateGenerator;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.exception.VidCreationException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.print.service.exception.PDFSignatureException;
 import io.mosip.registration.processor.print.service.impl.PrintServiceImpl;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 
@@ -94,7 +96,7 @@ public class PrintServiceImplTest {
 
 	/** The uin card generator. */
 	@Mock
-	private UinCardGenerator<ByteArrayOutputStream> uinCardGenerator;
+	private UinCardGenerator<byte[]> uinCardGenerator;
 
 	/** The utility. */
 	@Mock
@@ -115,6 +117,9 @@ public class PrintServiceImplTest {
 	@Mock
 	private Environment env;
 
+	@Mock
+	private DigitalSignatureUtility digitalSignatureUtility;
+
 	/**
 	 * Setup.
 	 *
@@ -124,13 +129,14 @@ public class PrintServiceImplTest {
 	@SuppressWarnings("unchecked")
 	@Before
 	public void setup() throws Exception {
-		when(env.getProperty("mosip.reigstration.processor.print.service.uincard.password")).thenReturn("postalCode");
+		when(env.getProperty("mosip.registration.processor.print.service.uincard.password")).thenReturn("postalCode");
 		when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		ReflectionTestUtils.setField(printService, "primaryLang", "eng");
 		ReflectionTestUtils.setField(printService, "secondaryLang", "ara");
 		ReflectionTestUtils.setField(printService, "unMaskedLength", 4);
 		ReflectionTestUtils.setField(printService, "uinLength", 10);
+		Mockito.when(digitalSignatureUtility.getDigitalSignature(any())).thenReturn("abc");
 
 		Map<String, String> map1 = new HashMap<>();
 		map1.put("UIN", "4238135072");
@@ -203,7 +209,7 @@ public class PrintServiceImplTest {
 			outputStream.write(buffer, 0, bytesRead);
 		}
 
-		Mockito.when(uinCardGenerator.generateUinCard(any(), any(), any())).thenReturn(outputStream);
+		Mockito.when(uinCardGenerator.generateUinCard(any(), any(), any())).thenReturn(outputStream.toByteArray());
 
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
 		PowerMockito.mockStatic(Utilities.class);
@@ -214,7 +220,7 @@ public class PrintServiceImplTest {
 		File mappingFile = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
 		String mappingFileJson = FileUtils.readFileToString(mappingFile, StandardCharsets.UTF_8);
 		String printTextFileJson = FileUtils.readFileToString(printTextFile, StandardCharsets.UTF_8);
-		//PowerMockito.when(Utilities.class, "getJson", "", any()).thenReturn(value);
+		// PowerMockito.when(Utilities.class, "getJson", "", any()).thenReturn(value);
 		PowerMockito.when(utility.getConfigServerFileStorageURL()).thenReturn("configUrl");
 		PowerMockito.when(utility.getGetRegProcessorIdentityJson()).thenReturn("mappingJson");
 		PowerMockito.when(utility.getRegistrationProcessorPrintTextFile()).thenReturn("printFile");
@@ -224,7 +230,6 @@ public class PrintServiceImplTest {
 		PowerMockito.when(Utilities.class, "getJson", utility.getConfigServerFileStorageURL(),
 				utility.getGetRegProcessorIdentityJson()).thenReturn(mappingFileJson);
 
-		
 	}
 
 	@Test
@@ -417,7 +422,7 @@ public class PrintServiceImplTest {
 			throws IdRepoAppException, ApisResourceAccessException, IOException, VidCreationException {
 		List<Long> uinList = new ArrayList<>();
 		uinList.add(2046958192L);
-		Map<String, Long> map1 = new HashMap<>();
+		Map<String, Long> map1 = new HashMap<>(); 
 		map1.put("UIN", 2046958192L);
 		JSONObject jsonObject = new JSONObject(map1);
 		Mockito.when(utility.retrieveUIN(any())).thenReturn(jsonObject);
@@ -489,4 +494,20 @@ public class PrintServiceImplTest {
 		byte[] result = printService.getDocuments(IdType.UIN, uin, CardType.MASKED_UIN.toString(), false).get("uinPdf");
 		assertArrayEquals(expected, result);
 	}
+
+	@Test(expected = PDFSignatureException.class)
+	public void testPDFSignatureException() throws IdRepoAppException, ApisResourceAccessException, IOException
+	{
+		PDFSignatureException e = new PDFSignatureException(null, null);
+		Mockito.doThrow(e).when(uinCardGenerator).generateUinCard(any(), any(), any());
+
+		List<String> uinList = new ArrayList<>();
+		uinList.add("2046958192");
+		Map<String, String> map1 = new HashMap<>();
+		map1.put("UIN", "2046958192");
+		JSONObject jsonObject = new JSONObject(map1);
+		Mockito.when(utility.retrieveUIN(any())).thenReturn(jsonObject);
+		printService.getDocuments(IdType.UIN, uinList.get(0), CardType.UIN.toString(), false);
+	}
+
 }

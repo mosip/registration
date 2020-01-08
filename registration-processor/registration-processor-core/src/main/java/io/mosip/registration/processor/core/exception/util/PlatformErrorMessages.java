@@ -847,6 +847,9 @@ public enum PlatformErrorMessages {
 
 	RPR_PRT_VID_CREATION_ERROR(PlatformConstants.RPR_PRINTING_MODULE + "023", "Error while creating VID"),
 
+
+	RPR_PRT_PDF_SIGNATURE_EXCEPTION(PlatformConstants.RPR_PRINTING_MODULE + "024", "PDF Signature error"),
+	
 	/** The rpr rgs registration connector not accessible. */
 	RPR_RGS_REGISTRATION_CONNECTOR_NOT_ACCESSIBLE("", "Registration connector stage is not accessible "),
 

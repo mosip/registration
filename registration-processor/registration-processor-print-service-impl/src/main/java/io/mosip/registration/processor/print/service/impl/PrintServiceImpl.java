@@ -1,7 +1,6 @@
 package io.mosip.registration.processor.print.service.impl;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -68,6 +67,7 @@ import io.mosip.registration.processor.core.spi.print.service.PrintService;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.spi.uincardgenerator.UinCardGenerator;
 import io.mosip.registration.processor.core.util.CbeffToBiometricUtil;
+import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.message.sender.template.TemplateGenerator;
 import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
@@ -75,8 +75,8 @@ import io.mosip.registration.processor.packet.storage.exception.IdentityNotFound
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.exception.VidCreationException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import io.mosip.registration.processor.print.service.dto.PrintTextFileDto;
 import io.mosip.registration.processor.print.service.exception.IDRepoResponseNull;
+import io.mosip.registration.processor.print.service.exception.PDFSignatureException;
 import io.mosip.registration.processor.print.service.exception.UINNotFoundInDatabase;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -138,7 +138,7 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 	private static final String QRCODE = "QrCode";
 
 	/** The Constant UINCARDPASSWORD. */
-	private static final String UINCARDPASSWORD = "mosip.reigstration.processor.print.service.uincard.password";
+	private static final String UINCARDPASSWORD = "mosip.registration.processor.print.service.uincard.password";
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(PrintServiceImpl.class);
@@ -157,7 +157,7 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 
 	/** The uin card generator. */
 	@Autowired
-	private UinCardGenerator<ByteArrayOutputStream> uinCardGenerator;
+	private UinCardGenerator<byte[]> uinCardGenerator;
 
 	/** The rest client service. */
 	@Autowired
@@ -192,6 +192,9 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 	/** The env. */
 	@Autowired
 	private Environment env;
+
+	@Autowired
+	private DigitalSignatureUtility digitalSignatureUtility;
 
 	/*
 	 * (non-Javadoc)
@@ -284,8 +287,8 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 			}
 
 			// generating pdf
-			ByteArrayOutputStream pdf = uinCardGenerator.generateUinCard(uinArtifact, UinCardType.PDF, password);
-			byte[] pdfbytes = pdf.toByteArray();
+			byte[] pdfbytes = uinCardGenerator.generateUinCard(uinArtifact, UinCardType.PDF, password);
+		
 			byteMap.put(UIN_CARD_PDF, pdfbytes);
 
 			byte[] uinbyte = attributes.get(IdType.UIN.toString()).toString().getBytes();
@@ -340,6 +343,15 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 					PlatformErrorMessages.RPR_PRT_PDF_NOT_GENERATED.name() + ExceptionUtils.getStackTrace(e));
 			throw new PDFGeneratorException(PDFGeneratorExceptionCodeConstant.PDF_EXCEPTION.getErrorCode(),
 					e.getErrorText());
+
+		} catch (PDFSignatureException e) {
+			description.setMessage(PlatformErrorMessages.RPR_PRT_PDF_SIGNATURE_EXCEPTION.getMessage());
+			description.setCode(PlatformErrorMessages.RPR_PRT_PDF_SIGNATURE_EXCEPTION.getCode());
+
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					idType.toString(),
+					PlatformErrorMessages.RPR_PRT_PDF_SIGNATURE_EXCEPTION.name() + ExceptionUtils.getStackTrace(e));
+			throw new PDFSignatureException(PlatformErrorMessages.RPR_PRT_PDF_SIGNATURE_EXCEPTION.getMessage());
 
 		} catch (ApisResourceAccessException | IOException | ParseException
 				| io.mosip.kernel.core.exception.IOException e) {
@@ -437,10 +449,6 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 	 *             Signals that an I/O exception has occurred.
 	 */
 	private byte[] createTextFile(String jsonString) throws IOException {
-		PrintTextFileDto printTextFileDto = new PrintTextFileDto();
-		printTextFileDto.setId("mosip.registration.print.send");
-		printTextFileDto.setVersion("1.0");
-		printTextFileDto.setRequestTime(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
 
 		LinkedHashMap<String, String> printTextFileMap = new LinkedHashMap<>();
 		JSONObject demographicIdentity = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
@@ -476,9 +484,9 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 			}
 
 		}
-		printTextFileDto.setRequest(printTextFileMap);
+
 		Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
-		String printTextFileString = gson.toJson(printTextFileDto);
+		String printTextFileString = gson.toJson(printTextFileMap);
 		return printTextFileString.getBytes();
 	}
 
@@ -499,7 +507,14 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 			throws QrcodeGenerationException, IOException {
 		String qrString = new String(textFileByte);
 		boolean isQRCodeSet = false;
-		byte[] qrCodeBytes = qrCodeGenerator.generateQrCode(qrString, QrVersion.V30);
+		String digitalSignaturedQrData = digitalSignatureUtility.getDigitalSignature(qrString);
+		JSONObject textFileJson = JsonUtil.objectMapperReadValue(qrString, JSONObject.class);
+		textFileJson.put("digitalSignature", digitalSignaturedQrData);
+
+		Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
+		String printTextFileString = gson.toJson(textFileJson);
+
+		byte[] qrCodeBytes = qrCodeGenerator.generateQrCode(printTextFileString, QrVersion.V30);
 		if (qrCodeBytes != null) {
 			String imageString = CryptoUtil.encodeBase64String(qrCodeBytes);
 			attributes.put(QRCODE, "data:image/png;base64," + imageString);

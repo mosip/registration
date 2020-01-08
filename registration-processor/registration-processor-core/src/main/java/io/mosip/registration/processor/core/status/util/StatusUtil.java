@@ -79,6 +79,7 @@ public enum StatusUtil {
 	TEMPLATE_PROCESSING_FAILED(StatusConstants.PRINT_STAGE_MODULE_SUCCESS + "005","Pdf Generation failed for "),
 	QUEUE_CONNECTION_NOT_FOUND(StatusConstants.PRINT_STAGE_MODULE_SUCCESS + "006","Queue Connection not found "),
 	QUEUE_CONNECTION_UNAVAILABLE(StatusConstants.PRINT_STAGE_MODULE_SUCCESS + "007","Queue Connection unavailable for "),
+	PDF_SIGNTURED_FAILED(StatusConstants.PRINT_STAGE_MODULE_SUCCESS + "008", "Pdf Signature failed "),
 
 	// Abis middleware stage
 	INSERT_IDENTIFY_REQUEST_SUCCESS(StatusConstants.ABIS_MIDDLEWARE_MODULE_SUCCESS + "001","Insert or Identify Request sent to ABIS Queue is succesful"),

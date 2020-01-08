@@ -144,10 +144,14 @@ public class JsonUtil {
 	 * @return the JSON object
 	 */
 	public static JSONObject getJSONObjectFromArray(JSONArray jsonObject, int key) {
-		LinkedHashMap identity = (LinkedHashMap) jsonObject.get(key);
-		return identity != null ? new JSONObject(identity) : null;
+		Object object = jsonObject.get(key);
+		if(object instanceof LinkedHashMap) {
+			LinkedHashMap identity = (LinkedHashMap) jsonObject.get(key);
+			return identity != null ? new JSONObject(identity) : null;
+		}else {
+			return (JSONObject)object;
+		}
 	}
-
 	/**
 	 * Object mapper read value. This method maps the jsonString to particular type
 	 * 

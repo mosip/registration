@@ -28,6 +28,7 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.token.validation.exception.AccessDeniedException;
 import io.mosip.registration.processor.core.token.validation.exception.InvalidTokenException;
+import io.mosip.registration.processor.print.service.exception.PDFSignatureException;
 import io.mosip.registration.processor.print.service.exception.RegPrintAppException;
 import io.mosip.registration.processor.printing.api.controller.PrintApiController;
 import io.mosip.registration.processor.printing.api.dto.PrintResponse;
@@ -141,6 +142,10 @@ public class PrintExceptionHandler {
 		return buildPrintApiExceptionResponse((Exception) e);
 	}
 
+	@ExceptionHandler(PDFSignatureException.class)
+	public ResponseEntity<PrintResponse> pdfSignatureException(PDFSignatureException e) {
+		return buildPrintApiExceptionResponse((Exception) e);
+	}
 	/**
 	 * Builds the reg status exception response.
 	 *

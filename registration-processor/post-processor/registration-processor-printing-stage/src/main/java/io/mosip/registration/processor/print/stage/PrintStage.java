@@ -59,6 +59,7 @@ import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.print.exception.PrintGlobalExceptionHandler;
 import io.mosip.registration.processor.print.exception.QueueConnectionNotFound;
 import io.mosip.registration.processor.print.service.dto.PrintQueueDTO;
+import io.mosip.registration.processor.print.service.exception.PDFSignatureException;
 import io.mosip.registration.processor.print.service.impl.PrintPostServiceImpl;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -326,6 +327,18 @@ public class PrintStage extends MosipVerticleAPIManager {
 			registrationStatusDto.setSubStatusCode(StatusUtil.PDF_GENERATION_FAILED.getCode());
 			description.setMessage(PlatformErrorMessages.RPR_PRT_PDF_GENERATION_FAILED.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_PRT_PDF_GENERATION_FAILED.getCode());
+			object.setInternalError(Boolean.TRUE);
+		}
+
+		catch (PDFSignatureException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId, PlatformErrorMessages.RPR_PRT_PDF_GENERATION_FAILED.name() + e.getMessage()
+							+ ExceptionUtils.getStackTrace(e));
+			registrationStatusDto.setStatusComment(trimeExpMessage.trimExceptionMessage(
+					StatusUtil.PDF_SIGNTURED_FAILED.getMessage() + regId + SEPERATOR + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.PDF_SIGNTURED_FAILED.getCode());
+			description.setMessage(PlatformErrorMessages.RPR_PRT_PDF_SIGNATURE_EXCEPTION.getMessage());
+			description.setCode(PlatformErrorMessages.RPR_PRT_PDF_SIGNATURE_EXCEPTION.getCode());
 			object.setInternalError(Boolean.TRUE);
 		} catch (TemplateProcessingFailureException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),

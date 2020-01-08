@@ -99,7 +99,7 @@ public class PrintServiceConfig {
 	 */
 	@Bean
 	@Primary
-	public UinCardGenerator<ByteArrayOutputStream> getUinCardGeneratorImpl() {
+	public UinCardGenerator<byte[]> getUinCardGeneratorImpl() {
 		return new UinCardGeneratorImpl();
 	}
 
