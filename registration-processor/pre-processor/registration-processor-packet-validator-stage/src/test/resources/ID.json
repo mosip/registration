@@ -2,112 +2,95 @@
   "identity" : {
     "fullName" : [ {
       "language" : "eng",
-      "value" : "Taleev Aalam"
+      "value" : "ghjghj"
     }, {
-      "language" : "arb",
-      "value" : "محدوة محدوة"
+      "language" : "ara",
+      "value" : "لع"
     } ],
-    "dateOfBirth" : "2016/01/01",
-    "age" : 3,
+    "dateOfBirth" : "1987/01/01",
+    "age" : 32,
     "gender" : [ {
       "language" : "eng",
-      "value" : "MALE"
+      "value" : "Male"
     }, {
-      "language" : "arb",
-      "value" : "محدوة"
+      "language" : "ara",
+      "value" : "الذكر"
+    } ],
+    "residenceStatus" : [ {
+      "language" : "eng",
+      "value" : "Non-Foreigner"
+    }, {
+      "language" : "ara",
+      "value" : "غير أجنبي"
     } ],
     "addressLine1" : [ {
       "language" : "eng",
-      "value" : "Mind Tree Ltd"
+      "value" : "hjgj"
     }, {
-      "language" : "arb",
-      "value" : "محدوة"
+      "language" : "ara",
+      "value" : "hjgj"
     } ],
     "addressLine2" : [ {
       "language" : "eng",
-      "value" : "RamanuJan It park"
+      "value" : "ghjg"
     }, {
-      "language" : "arb",
-      "value" : "محدوة"
+      "language" : "ara",
+      "value" : "ghjg"
     } ],
     "addressLine3" : [ {
       "language" : "eng",
-      "value" : "Taramani"
+      "value" : "hj"
     }, {
-      "language" : "arb",
-      "value" : "محدوة"
+      "language" : "ara",
+      "value" : "hj"
     } ],
     "region" : [ {
       "language" : "eng",
-      "value" : "Taramani"
+      "value" : "Rabat Sale Kenitra"
     }, {
-      "language" : "arb",
-      "value" : "محدوة"
+      "language" : "ara",
+      "value" : "جهة الرباط سلا القنيطرة"
     } ],
     "province" : [ {
       "language" : "eng",
-      "value" : "Tamilnadu"
+      "value" : "Kenitra"
     }, {
-      "language" : "arb",
-      "value" : "محدوة"
+      "language" : "ara",
+      "value" : "القنيطرة"
     } ],
     "city" : [ {
       "language" : "eng",
-      "value" : "Chennai"
+      "value" : "Kenitra"
     }, {
-      "language" : "arb",
-      "value" : "محدوة"
+      "language" : "ara",
+      "value" : "القنيطرة"
     } ],
-    "postalCode" : "60011",
-    "phone" : "866769383",
-    "email" : "taleev.aalam@mindtree.com",
-    "localAdministrativeAuthority" : [ {
+    "postalCode" : "14022",
+    "phone" : "9788978676",
+    "email" : "girish.yarru@mindtree.com",
+    "referenceIdentityNumber" : "9878978978",
+    "zone" : [ {
       "language" : "eng",
-      "value" : "MindTree"
+      "value" : "Ben Mansour"
     }, {
-      "language" : "arb",
-      "value" : "محدوة"
-    } ],
-    "parentOrGuardianRIDOrUIN" : 426789089018,
-    "parentOrGuardianName" : [ {
-      "language" : "eng",
-      "value" : "Mohammad Naib"
-    }, {
-      "language" : "arb",
-      "value" : "محدوة محدوة"
+      "language" : "ara",
+      "value" : "بن منصور"
     } ],
     "proofOfAddress" : {
-      "value" : "POA_Passport",
-      "format" : "jpg",
-      "type" : "DOC001"
+      "value" : "POA_Driving licence of the applicant",
+      "type" : "DOC005",
+      "format" : "jpg"
     },
     "proofOfIdentity" : {
-      "value" : "POI_Passport",
-      "format" : "jpg",
-      "type" : "DOC001"
-    },
-    "proofOfRelationship" : {
-      "value" : "POR_Passport",
-      "format" : "jpg",
-      "type" : "DOC001"
-    },
-    "proofOfDateOfBirth" : {
-      "value" : "POB_Passport",
-      "format" : "jpg",
-      "type" : "Passport"
+      "value" : "POI_Driving licence of the applicant",
+      "type" : "DOC005",
+      "format" : "jpg"
     },
     "individualBiometrics" : {
       "format" : "cbeff",
       "version" : 1.0,
       "value" : "applicant_bio_CBEFF"
     },
-    "parentOrGuardianBiometrics" : {
-      "format" : "cbeff",
-      "version" : 1.0,
-      "value" : "introducer_bio_CBEFF"
-    },
-    "IDSchemaVersion" : 1.0,
-    "UIN" : null,
-    "CNIENumber" : 1234567890
+    "IDSchemaVersion" : 1.0
   }
 }

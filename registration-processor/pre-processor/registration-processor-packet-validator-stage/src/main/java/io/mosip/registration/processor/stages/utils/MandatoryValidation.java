@@ -3,17 +3,14 @@ package io.mosip.registration.processor.stages.utils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.simple.JSONObject;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
@@ -22,7 +19,6 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.RegistrationProcessorIdentity;
 import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
@@ -55,43 +51,23 @@ public class MandatoryValidation {
 		this.utility = utility;
 	}
 
-	public boolean mandatoryFieldValidation(String regId) throws IOException, JSONException, PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException {
+	public boolean mandatoryFieldValidation(String regId) throws IOException, JSONException,
+			PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"MandatoryValidation::mandatoryFieldValidation()::entry");
-		io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.Identity identiy = getMappeedJSONIdentity()
-				.getIdentity();
+		JSONObject mapperIdentity = utility.getRegistrationProcessorIdentityJson();
 		JSONObject idJsonObj = getDemoIdentity(regId);
-		Map<String, Boolean> fieldValidationMap = new HashMap<>();
-		Arrays.stream(identiy.getName().getValue().split(",")).forEach(name->fieldValidationMap.put(name, identiy.getName().getIsMandatory()));
-		fieldValidationMap.put(identiy.getDob().getValue(), identiy.getDob().getIsMandatory());
-		fieldValidationMap.put(identiy.getGender().getValue(), identiy.getGender().getIsMandatory());
-		fieldValidationMap.put(identiy.getParentOrGuardianRID().getValue(),
-				identiy.getParentOrGuardianRID().getIsMandatory());
-		fieldValidationMap.put(identiy.getParentOrGuardianUIN().getValue(),
-				identiy.getParentOrGuardianUIN().getIsMandatory());
-		fieldValidationMap.put(identiy.getParentOrGuardianName().getValue(),
-				identiy.getParentOrGuardianName().getIsMandatory());
-		fieldValidationMap.put(identiy.getPoa().getValue(), identiy.getPoa().getIsMandatory());
-		fieldValidationMap.put(identiy.getPoi().getValue(), identiy.getPoi().getIsMandatory());
-		fieldValidationMap.put(identiy.getPor().getValue(), identiy.getPor().getIsMandatory());
-		fieldValidationMap.put(identiy.getPob().getValue(), identiy.getPob().getIsMandatory());
-		fieldValidationMap.put(identiy.getIndividualBiometrics().getValue(),
-				identiy.getIndividualBiometrics().getIsMandatory());
-		fieldValidationMap.put(identiy.getAge().getValue(), identiy.getAge().getIsMandatory());
-		Arrays.stream(identiy.getAddress().getValue().split(",")).forEach(address->fieldValidationMap.put(address, identiy.getAddress().getIsMandatory()));
-		fieldValidationMap.put(identiy.getRegion().getValue(), identiy.getRegion().getIsMandatory());
-		fieldValidationMap.put(identiy.getProvince().getValue(), identiy.getProvince().getIsMandatory());
-		fieldValidationMap.put(identiy.getPostalCode().getValue(), identiy.getPostalCode().getIsMandatory());
-		fieldValidationMap.put(identiy.getPhone().getValue(), identiy.getPhone().getIsMandatory());
-		fieldValidationMap.put(identiy.getEmail().getValue(), identiy.getEmail().getIsMandatory());
-		fieldValidationMap.put(identiy.getLocalAdministrativeAuthority().getValue(),
-				identiy.getLocalAdministrativeAuthority().getIsMandatory());
-		fieldValidationMap.put(identiy.getIdschemaversion().getValue(), identiy.getIdschemaversion().getIsMandatory());
-		fieldValidationMap.put(identiy.getCnienumber().getValue(), identiy.getCnienumber().getIsMandatory());
-		fieldValidationMap.put(identiy.getCity().getValue(), identiy.getCity().getIsMandatory());
+		List<String> list = new ArrayList<>();
+		for (Object key : mapperIdentity.keySet()) {
+			LinkedHashMap<String, Object> jsonObject = JsonUtil.getJSONValue(mapperIdentity, (String) key);
+			String values = (String) jsonObject.get("value");
+			Boolean isMandatory = (Boolean) jsonObject.get("isMandatory");
+			for (String value : values.split(",")) {
+				if (isMandatory != null && isMandatory == Boolean.TRUE)
+					list.add(value);
+			}
 
-		List<String> list = fieldValidationMap.entrySet().stream().filter(map -> map.getValue() == Boolean.TRUE)
-				.map(map -> map.getKey()).collect(Collectors.toList());
+		}
 
 		for (String keyLabel : list) {
 			if (JsonUtil.getJSONValue(idJsonObj, keyLabel) == null
@@ -123,14 +99,8 @@ public class MandatoryValidation {
 		return false;
 	}
 
-	private RegistrationProcessorIdentity getMappeedJSONIdentity() throws IOException {
-		String getIdentityJsonString = Utilities.getJson(utility.getConfigServerFileStorageURL(),
-				utility.getGetRegProcessorIdentityJson());
-		ObjectMapper mapIdentityJsonStringToObject = new ObjectMapper();
-		return mapIdentityJsonStringToObject.readValue(getIdentityJsonString, RegistrationProcessorIdentity.class);
-	}
-
-	private JSONObject getDemoIdentity(String registrationId) throws IOException, PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException {
+	private JSONObject getDemoIdentity(String registrationId) throws IOException, PacketDecryptionFailureException,
+			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException {
 		InputStream documentInfoStream = adapter.getFile(registrationId,
 				PacketFiles.DEMOGRAPHIC.name() + FILE_SEPARATOR + PacketFiles.ID.name());
 

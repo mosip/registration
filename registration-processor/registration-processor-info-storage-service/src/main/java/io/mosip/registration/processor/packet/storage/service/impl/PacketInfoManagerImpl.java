@@ -14,8 +14,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.code.ApiName;
@@ -41,7 +39,6 @@ import io.mosip.registration.processor.core.packet.dto.abis.RegDemoDedupeListDto
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.DemographicInfoDto;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.IndividualDemographicDedupe;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.JsonValue;
-import io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.RegistrationProcessorIdentity;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
@@ -132,10 +129,6 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	@Autowired
 	private Utilities utility;
 
-	/** The reg processor identity json. */
-	@Autowired
-	private RegistrationProcessorIdentity regProcessorIdentityJson;
-
 	@Value("${registration.processor.demodedupe.manualverification.status}")
 	private String manualVerificationStatus;
 
@@ -194,8 +187,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	/**
 	 * Gets the identity keys and fetch values from JSON.
 	 *
-	 * @param demographicJsonString
-	 *            the demographic json string
+	 * @param demographicJsonString the demographic json string
 	 * @return the identity keys and fetch values from JSON
 	 */
 	@Override
@@ -205,18 +197,15 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 				"PacketInfoManagerImpl::getIdentityKeysAndFetchValuesFromJSON()::entry");
 		try {
 			// Get Identity Json from config server and map keys to Java Object
-			String getIdentityJsonString = Utilities.getJson(utility.getConfigServerFileStorageURL(),
-					utility.getGetRegProcessorIdentityJson());
-			ObjectMapper mapIdentityJsonStringToObject = new ObjectMapper();
-			regProcessorIdentityJson = mapIdentityJsonStringToObject.readValue(getIdentityJsonString,
-					RegistrationProcessorIdentity.class);
+			JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
 			JSONObject demographicJson = (JSONObject) JsonUtil.objectMapperReadValue(demographicJsonString,
 					JSONObject.class);
 			JSONObject demographicIdentity = JsonUtil.getJSONObject(demographicJson,
 					utility.getGetRegProcessorDemographicIdentity());
 			if (demographicIdentity == null)
 				throw new IdentityNotFoundException(PlatformErrorMessages.RPR_PIS_IDENTITY_NOT_FOUND.getMessage());
-			String[] names = regProcessorIdentityJson.getIdentity().getName().getValue().split(",");
+			String[] names = ((String) JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "name"),
+					"value")).split(",");
 			List<JsonValue[]> jsonValueList = new ArrayList<>();
 			for (String name : names) {
 				JsonValue[] nameArray = JsonUtil.getJsonValues(demographicIdentity, name);
@@ -224,10 +213,11 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 					jsonValueList.add(nameArray);
 			}
 			demographicData.setName(jsonValueList.isEmpty() ? null : jsonValueList);
+			
 			demographicData.setDateOfBirth((String) JsonUtil.getJSONValue(demographicIdentity,
-					regProcessorIdentityJson.getIdentity().getDob().getValue()));
+					JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "dob"), "value")));
 			demographicData.setGender(JsonUtil.getJsonValues(demographicIdentity,
-					regProcessorIdentityJson.getIdentity().getGender().getValue()));
+					JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "gender"), "value")));
 		} catch (IOException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
@@ -250,8 +240,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	/**
 	 * Gets the registration id.
 	 *
-	 * @param metaData
-	 *            the meta data
+	 * @param metaData the meta data
 	 * @return the registration id
 	 */
 	private void getRegistrationId(List<FieldValue> metaData) {
@@ -267,8 +256,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	/**
 	 * Save individual demographic dedupe.
 	 *
-	 * @param demographicJsonBytes
-	 *            the demographic json bytes
+	 * @param demographicJsonBytes the demographic json bytes
 	 * @param description
 	 */
 	private void saveIndividualDemographicDedupe(byte[] demographicJsonBytes, String regId, LogDescription description,

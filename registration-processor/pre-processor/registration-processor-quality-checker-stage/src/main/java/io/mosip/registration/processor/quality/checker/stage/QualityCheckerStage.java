@@ -211,7 +211,10 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 			JSONObject idJsonObject = JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class);
 			JSONObject identity = JsonUtil.getJSONObject(idJsonObject,
 					utilities.getGetRegProcessorDemographicIdentity());
-			JSONObject individualBiometricsObject = JsonUtil.getJSONObject(identity, INDIVIDUAL_BIOMETRICS);
+			JSONObject mappingJson = utilities.getRegistrationProcessorIdentityJson();
+			String individualBiometrics = JsonUtil
+					.getJSONValue(JsonUtil.getJSONObject(mappingJson, INDIVIDUAL_BIOMETRICS), "value");
+			JSONObject individualBiometricsObject = JsonUtil.getJSONObject(identity, individualBiometrics);
 			if (individualBiometricsObject == null) {
 				description.setCode(PlatformErrorMessages.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getCode());
 				description.setMessage(PlatformErrorMessages.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getMessage());
@@ -391,10 +394,8 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 	/**
 	 * Gets the threshold based on type.
 	 *
-	 * @param singleType
-	 *            the single type
-	 * @param subtype
-	 *            the subtype
+	 * @param singleType the single type
+	 * @param subtype    the subtype
 	 * @return the threshold based on type
 	 */
 	private Integer getThresholdBasedOnType(SingleType singleType, List<String> subtype) {

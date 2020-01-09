@@ -6,33 +6,29 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.mosip.kernel.core.exception.ExceptionUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
 
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.RegistrationProcessorIdentity;
 import io.mosip.registration.processor.core.queue.factory.MosipQueueConnectionFactoryImpl;
 import io.mosip.registration.processor.core.queue.impl.MosipActiveMqImpl;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import io.mosip.registration.processor.core.token.validation.TokenValidator;
+import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
+import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.vertx.config.ConfigRetriever;
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
-import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
-
-import org.springframework.context.annotation.Primary;
 
 @PropertySource("classpath:bootstrap.properties")
 @Configuration
@@ -62,12 +58,15 @@ public class CoreConfigBean {
 			List<String> configUrls = CoreConfigBean.getUrls(environment);
 			configUrls.forEach(url -> {
 				if (url.startsWith(HttpConstants.HTTP.getUrl()))
-						configStores.add(new ConfigStoreOptions().setType(ConfigurationUtil.CONFIG_SERVER_TYPE).setConfig(new JsonObject().put("url", url)
-								.put("timeout", Long.parseLong(ConfigurationUtil.CONFIG_SERVER_TIME_OUT))));
+					configStores.add(new ConfigStoreOptions().setType(ConfigurationUtil.CONFIG_SERVER_TYPE)
+							.setConfig(new JsonObject().put("url", url).put("timeout",
+									Long.parseLong(ConfigurationUtil.CONFIG_SERVER_TIME_OUT))));
 				else
-						configStores.add(new ConfigStoreOptions().setType(ConfigurationUtil.CONFIG_SERVER_TYPE).setConfig(new JsonObject().put("url", url)
-								.put("timeout", Long.parseLong(ConfigurationUtil.CONFIG_SERVER_TIME_OUT))
-								.put("httpClientConfiguration", new JsonObject().put("trustAll", true).put("ssl", true))));
+					configStores.add(new ConfigStoreOptions().setType(ConfigurationUtil.CONFIG_SERVER_TYPE)
+							.setConfig(new JsonObject().put("url", url)
+									.put("timeout", Long.parseLong(ConfigurationUtil.CONFIG_SERVER_TIME_OUT))
+									.put("httpClientConfiguration",
+											new JsonObject().put("trustAll", true).put("ssl", true))));
 			});
 			ConfigRetrieverOptions configRetrieverOptions = new ConfigRetrieverOptions();
 			configStores.forEach(configRetrieverOptions::addStore);
@@ -125,12 +124,6 @@ public class CoreConfigBean {
 		appNames.forEach(appName -> {
 		});
 		return configUrls;
-	}
-
-	@Bean
-	@Primary
-	public RegistrationProcessorIdentity getRegProcessorIdentityJson() {
-		return new RegistrationProcessorIdentity();
 	}
 
 	@Bean

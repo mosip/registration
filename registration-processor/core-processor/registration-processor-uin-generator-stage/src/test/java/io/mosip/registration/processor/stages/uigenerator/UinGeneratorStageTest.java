@@ -61,7 +61,6 @@ import io.mosip.registration.processor.core.idrepo.dto.Documents;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.packet.dto.ApplicantDocument;
 import io.mosip.registration.processor.core.packet.dto.Identity;
-import io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.RegistrationProcessorIdentity;
 import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
@@ -158,9 +157,6 @@ public class UinGeneratorStageTest {
 	private IdRepoService idRepoService;
 
 	@Mock
-	private RegistrationProcessorIdentity regProcessorIdentityJson;
-
-	@Mock
 	private BasePacketRepository<RegLostUinDetEntity, String> regLostUinDetEntity;
 
 	/** The identitydemoinfo. */
@@ -240,6 +236,11 @@ public class UinGeneratorStageTest {
 		demographicIdentity.put("UIN", Long.parseLong("9403107397"));
 		Number uin = new Long("9403107397");
 		Mockito.when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn(uin);
+		File file = new File(classLoader.getResource("ID.json").getFile());
+		inputStream = new FileInputStream(file);
+		String mappingJson = IOUtils.toString(inputStream,"UTF-8");
+		JSONObject mappingJsonObject = JsonUtil.objectMapperReadValue(mappingJson, JSONObject.class);
+		Mockito.when(utility.getRegistrationProcessorIdentityJson()).thenReturn(mappingJsonObject);
 
 	}
 

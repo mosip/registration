@@ -30,21 +30,11 @@
 		"postalCode": {
 			"documentCategory" : "proofOfAddress"
 		},
-
 		"localAdministrativeAuthority": {
 			"documentCategory" : "proofOfAddress"
 		},
-		"IDSchemaVersion": {
-			"documentCategory" : ""
-		},
-		"cnienumber": {
-			"documentCategory" : ""
-		},
 		"city": {
 			"documentCategory" : "proofOfAddress"
-		},
-		"residenceStatus": {
-			"documentCategory" : ""
 		}
 	}
 } 

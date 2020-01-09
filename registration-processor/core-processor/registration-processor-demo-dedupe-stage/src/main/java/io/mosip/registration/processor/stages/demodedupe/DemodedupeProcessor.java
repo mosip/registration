@@ -29,6 +29,7 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCo
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.AbisConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
@@ -44,7 +45,6 @@ import io.mosip.registration.processor.core.packet.dto.abis.RegDemoDedupeListDto
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.DemographicInfoDto;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.IndividualDemographicDedupe;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.JsonValue;
-import io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.RegistrationProcessorIdentity;
 import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
@@ -106,10 +106,6 @@ public class DemodedupeProcessor {
 	/** The registration status dao. */
 	@Autowired
 	private RegistrationStatusDao registrationStatusDao;
-
-	/** The reg processor identity json. */
-	@Autowired
-	private RegistrationProcessorIdentity regProcessorIdentityJson;
 
 	/** The abis handler util. */
 	@Autowired
@@ -216,7 +212,7 @@ public class DemodedupeProcessor {
 				String demographicJsonString = new String(bytesArray);
 				IndividualDemographicDedupe demographicData = packetInfoManager
 						.getIdentityKeysAndFetchValuesFromJSON(demographicJsonString);
-				regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
+				JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
 				Long uinFieldCheck = utility.getUIn(registrationId);
 				JSONObject jsonObject = utility.retrieveIdrepoJson(uinFieldCheck);
 				if (jsonObject == null) {
@@ -227,7 +223,8 @@ public class DemodedupeProcessor {
 				}
 				List<JsonValue[]> jsonValueList = new ArrayList<>();
 				if (demographicData.getName() == null || demographicData.getName().isEmpty()) {
-					Arrays.stream(regProcessorIdentityJson.getIdentity().getName().getValue().split(","))
+					String names = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.NAME), MappingJsonConstants.VALUE);
+					Arrays.stream(names.split(","))
 							.forEach(name -> {
 								JsonValue[] nameArray = JsonUtil.getJsonValues(jsonObject, name);
 								if (nameArray != null)
@@ -239,11 +236,11 @@ public class DemodedupeProcessor {
 				else
 					demoDedupeData.setName(demographicData.getName());
 				demoDedupeData.setDateOfBirth(demographicData.getDateOfBirth() == null
-						? JsonUtil.getJSONValue(jsonObject, regProcessorIdentityJson.getIdentity().getDob().getValue())
+						? JsonUtil.getJSONValue(jsonObject, JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.DOB), MappingJsonConstants.VALUE))
 						: demographicData.getDateOfBirth());
 				demoDedupeData.setGender(demographicData.getGender() == null
 						? JsonUtil.getJsonValues(jsonObject,
-								regProcessorIdentityJson.getIdentity().getGender().getValue())
+								JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.GENDER), MappingJsonConstants.VALUE))
 						: demographicData.getGender());
 				packetInfoManager.saveIndividualDemographicDedupeUpdatePacket(demoDedupeData, registrationId, moduleId,
 						moduleName);

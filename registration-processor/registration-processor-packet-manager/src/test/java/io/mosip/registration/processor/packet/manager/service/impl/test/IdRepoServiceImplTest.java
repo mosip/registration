@@ -20,7 +20,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
 import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
-import io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.Identity;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.IdentityJsonValues;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
@@ -52,18 +51,8 @@ public class IdRepoServiceImplTest {
 
 		IdentityJsonValues jv = new IdentityJsonValues();
 		jv.setValue("1");
-
-		Identity identity = new Identity();
-		identity.setAge(jv);
-
-		ResponseDTO rdto = new ResponseDTO();
-		rdto.setIdentity(identity);
-
 		IdResponseDTO dto = new IdResponseDTO();
-		dto.setResponse(rdto);
-
 		ResponseWrapper<IdResponseDTO> response = new ResponseWrapper();
-
 		response.setId("1");
 		response.setResponse(dto);
 		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(response);

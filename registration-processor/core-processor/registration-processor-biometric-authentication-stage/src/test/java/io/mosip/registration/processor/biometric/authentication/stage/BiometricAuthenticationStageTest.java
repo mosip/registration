@@ -56,7 +56,6 @@ import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
-import io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.RegistrationProcessorIdentity;
 import io.mosip.registration.processor.core.packet.dto.masterdata.StatusResponseDto;
 import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
@@ -141,7 +140,6 @@ public class BiometricAuthenticationStageTest {
 	/** The identity. */
 	Identity identity = new Identity();
 
-	io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.Identity identityDemo = new io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.Identity();
 
 	/** The dto. */
 	InternalRegistrationStatusDto statusDto;
@@ -159,9 +157,6 @@ public class BiometricAuthenticationStageTest {
 
 	@Mock
 	ObjectMapper mapIdentityJsonStringToObject;
-
-	@Mock
-	private RegistrationProcessorIdentity regProcessorIdentityJson;
 
 	@Mock
 	private RegistrationRepositary<SyncRegistrationEntity, String> registrationRepositary;

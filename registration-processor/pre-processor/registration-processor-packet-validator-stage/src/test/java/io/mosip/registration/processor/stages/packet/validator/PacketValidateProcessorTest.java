@@ -60,7 +60,6 @@ import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.FieldValueArray;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
-import io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.RegistrationProcessorIdentity;
 import io.mosip.registration.processor.core.packet.dto.idjson.Document;
 import io.mosip.registration.processor.core.packet.dto.masterdata.StatusResponseDto;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.ExceptionJSONInfoDTO;
@@ -148,8 +147,6 @@ public class PacketValidateProcessorTest {
 	/** The identity. */
 	Identity identity = new Identity();
 
-	io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.Identity identityDemo = new io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.Identity();
-
 	/** The dto. */
 	InternalRegistrationStatusDto statusDto;
 	/** The list. */
@@ -182,9 +179,6 @@ public class PacketValidateProcessorTest {
 
 	@Mock
 	ObjectMapper mapIdentityJsonStringToObject;
-
-	@Mock
-	private RegistrationProcessorIdentity regProcessorIdentityJson;
 
 	@Mock
 	private RegistrationRepositary<SyncRegistrationEntity, String> registrationRepositary;

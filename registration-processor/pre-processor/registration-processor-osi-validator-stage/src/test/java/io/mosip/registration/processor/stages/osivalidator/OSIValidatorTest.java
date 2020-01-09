@@ -3,18 +3,17 @@ package io.mosip.registration.processor.stages.osivalidator;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -37,17 +36,16 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.xml.sax.SAXException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import io.mosip.registration.processor.core.auth.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.JsonConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.BioTypeException;
-import io.mosip.registration.processor.core.exception.ParentOnHoldException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
+import io.mosip.registration.processor.core.exception.ParentOnHoldException;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
 import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -59,7 +57,6 @@ import io.mosip.registration.processor.core.packet.dto.RegOsiDto;
 import io.mosip.registration.processor.core.packet.dto.RidDto;
 import io.mosip.registration.processor.core.packet.dto.ServerError;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.DemographicInfoDto;
-import io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.RegistrationProcessorIdentity;
 import io.mosip.registration.processor.core.packet.dto.masterdata.UserDetailsDto;
 import io.mosip.registration.processor.core.packet.dto.masterdata.UserDetailsResponseDto;
 import io.mosip.registration.processor.core.packet.dto.masterdata.UserResponseDto;
@@ -85,7 +82,7 @@ import io.mosip.registration.processor.status.service.TransactionService;
  * @author M1022006
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ Utilities.class, IOUtils.class, JsonUtil.class })
+@PrepareForTest({ Utilities.class, IOUtils.class })
 @PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
 public class OSIValidatorTest {
 
@@ -124,9 +121,6 @@ public class OSIValidatorTest {
 	Environment env;
 
 	@Mock
-	RegistrationProcessorIdentity registrationProcessorIdentity = new RegistrationProcessorIdentity();
-
-	@Mock
 	private OSIUtils osiUtils;
 
 	/** The data. */
@@ -160,6 +154,8 @@ public class OSIValidatorTest {
 	/** The identity. */
 	private Identity identity = new Identity();
 
+	private String childMappingJson;
+
 	private JSONObject demoJson = new JSONObject();
 	private UserResponseDto userResponseDto = new UserResponseDto();
 	private RidDto ridDto = new RidDto();
@@ -171,60 +167,40 @@ public class OSIValidatorTest {
 
 	@Mock
 	LogDescription description;
+	private ClassLoader classLoader;
 
 	/**
 	 * Sets the up.
 	 *
-	 * @throws Exception
-	 *             the exception
+	 * @throws Exception the exception
 	 */
 	@Before
 	public void setUp() throws Exception {
+		classLoader = getClass().getClassLoader();
+		File childFile = new File(classLoader.getResource("Child_ID.json").getFile());
+		InputStream is = new FileInputStream(childFile);
+		childMappingJson = IOUtils.toString(is, "UTF-8");
+
 		ReflectionTestUtils.setField(osiValidator, "ageLimit", "5");
 		ReflectionTestUtils.setField(osiValidator, "dobFormat", "yyyy/MM/dd");
 		ReflectionTestUtils.setField(osiValidator, "introducerValidation", true);
+		File idJson = new File(classLoader.getResource("ID.json").getFile());
+		InputStream ip = new FileInputStream(idJson);
+		String idJsonString = IOUtils.toString(ip, "UTF-8");
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(JsonUtil.getJSONObject(
+				JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class), MappingJsonConstants.IDENTITY));
 
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
-		String value = "{\r\n" + "	\"identity\": {\r\n" + "		\"name\": {\r\n"
-				+ "			\"value\": \"fullName\",\r\n" + "			\"isMandatory\" : true\r\n" + "		},\r\n"
-				+ "		\"gender\": {\r\n" + "			\"value\": \"gender\",\r\n"
-				+ "			\"isMandatory\" : true\r\n" + "		},\r\n" + "		\"dob\": {\r\n"
-				+ "			\"value\": \"dateOfBirth\",\r\n" + "			\"isMandatory\" : true\r\n" + "		},\r\n"
-				+ "		\"parentOrGuardianRID\": {\r\n" + "			\"value\" : \"parentOrGuardianRID\"\r\n"
-				+ "		},\r\n" + "		\"parentOrGuardianUIN\": {\r\n"
-				+ "			\"value\" : \"parentOrGuardianUIN\"\r\n" + "		},\r\n"
-				+ "		\"parentOrGuardianName\": {\r\n" + "			\"value\" : \"parentOrGuardianName\"\r\n"
-				+ "		},\r\n" + "		\"poa\": {\r\n" + "			\"value\" : \"proofOfAddress\"\r\n" + "		},\r\n"
-				+ "		\"poi\": {\r\n" + "			\"value\" : \"proofOfIdentity\"\r\n" + "		},\r\n"
-				+ "		\"por\": {\r\n" + "			\"value\" : \"proofOfRelationship\"\r\n" + "		},\r\n"
-				+ "		\"pob\": {\r\n" + "			\"value\" : \"proofOfDateOfBirth\"\r\n" + "		},\r\n"
-				+ "		\"individualBiometrics\": {\r\n" + "			\"value\" : \"individualBiometrics\"\r\n"
-				+ "		},\r\n" + "		\"age\": {\r\n" + "			\"value\" : \"age\"\r\n" + "		},\r\n"
-				+ "		\"address\": {\r\n" + "			\"value\" : \"addressLine1,addressLine2,addressLine3\"\r\n"
-				+ "		},\r\n" + "		\"region\": {\r\n" + "			\"value\" : \"region\"\r\n" + "		},\r\n"
-				+ "		\"province\": {\r\n" + "			\"value\" : \"province\"\r\n" + "		},\r\n"
-				+ "		\"postalCode\": {\r\n" + "			\"value\" : \"postalCode\"\r\n" + "		},\r\n"
-				+ "		\"phone\": {\r\n" + "			\"value\" : \"phone\"\r\n" + "		},\r\n"
-				+ "		\"email\": {\r\n" + "			\"value\" : \"email\"\r\n" + "		},\r\n"
-				+ "		\"localAdministrativeAuthority\": {\r\n"
-				+ "			\"value\" : \"localAdministrativeAuthority\"\r\n" + "		},\r\n"
-				+ "		\"idschemaversion\": {\r\n" + "			\"value\" : \"IDSchemaVersion\"\r\n" + "		},\r\n"
-				+ "		\"cnienumber\": {\r\n" + "			\"value\" : \"CNIENumber\"\r\n" + "		},\r\n"
-				+ "		\"city\": {\r\n" + "			\"value\" : \"city\"\r\n" + "		},\r\n"
-				+ "		\"parentOrGuardianBiometrics\": {\r\n"
-				+ "			\"value\" : \"parentOrGuardianBiometrics\"\r\n" + "		}\r\n" + "	}\r\n" + "}";
+		File file = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
+		InputStream inputStream = new FileInputStream(file);
+		String mappingJson = IOUtils.toString(inputStream);
+		JSONObject mappingJSONObject = JsonUtil.objectMapperReadValue(mappingJson, JSONObject.class);
+		Mockito.when(utility.getRegistrationProcessorIdentityJson())
+				.thenReturn(JsonUtil.getJSONObject(mappingJSONObject, MappingJsonConstants.IDENTITY));
 		PowerMockito.mockStatic(Utilities.class);
-		PowerMockito.when(Utilities.class, "getJson", anyString(), anyString()).thenReturn(value);
+		PowerMockito.when(Utilities.class, "getJson", anyString(), anyString()).thenReturn(mappingJson);
 		Mockito.doNothing().when(description).setMessage(any());
 		Mockito.when(registrationExceptionMapperUtil.getStatusCode(any())).thenReturn("ERROR");
-
-		ObjectMapper mapIdentityJsonStringToObject = new ObjectMapper();
-		RegistrationProcessorIdentity val = mapIdentityJsonStringToObject.readValue(value,
-				RegistrationProcessorIdentity.class);
-
-		Mockito.when(utility.getRegistrationProcessorIdentityJson()).thenReturn(val);
-
-		// osiValidator.registrationStatusDto = registrationStatusDto;
 		regOsiDto.setOfficerId("O1234");
 		regOsiDto.setOfficerHashedPin("officerHashedPin");
 		regOsiDto.setSupervisorId("S1234");
@@ -309,16 +285,6 @@ public class OSIValidatorTest {
 		String identityJson = "{\"UIN\":\"123456\"}";
 		responseDTO1.setIdentity(identityJson);
 		idResponseDTO.setResponse(responseDTO1);
-
-		PowerMockito.mockStatic(JsonUtil.class);
-		PowerMockito.when(JsonUtil.class, "objectMapperReadValue", anyString(), anyObject()).thenReturn(demoJson);
-		PowerMockito.when(JsonUtil.class, "getJSONObject", anyObject(), anyString()).thenReturn(demoJson);
-
-		Map<String, String> map = new LinkedHashMap<>();
-		map.put("value", "biometreics");
-
-		PowerMockito.when(JsonUtil.class, "getJSONValue", anyObject(), anyString()).thenReturn(null)
-				.thenReturn(123456789).thenReturn(map);
 		regOsiDto.setSupervisorHashedPwd("true");
 		regOsiDto.setOfficerHashedPwd("true");
 		Mockito.when(osiUtils.getIdentity(anyString())).thenReturn(identity);
@@ -332,8 +298,7 @@ public class OSIValidatorTest {
 	/**
 	 * Testis valid OSI success.
 	 *
-	 * @throws Exception
-	 *             the exception
+	 * @throws Exception the exception
 	 */
 	@Test
 	public void testisValidOSISuccess() throws Exception {
@@ -462,8 +427,7 @@ public class OSIValidatorTest {
 	/**
 	 * Test officer details null.
 	 *
-	 * @throws Exception
-	 *             the exception
+	 * @throws Exception the exception
 	 */
 	@Test
 	public void testOfficerDetailsNull() throws Exception {
@@ -477,13 +441,10 @@ public class OSIValidatorTest {
 	/**
 	 * Test introducer details null.
 	 *
-	 * @throws Exception
-	 *             the exception
+	 * @throws Exception the exception
 	 */
 	@Test
 	public void testIntroducerDetailsNull() throws Exception {
-		PowerMockito.when(JsonUtil.class, "getJSONValue", anyObject(), anyString()).thenReturn("2015/01/01")
-				.thenReturn(null).thenReturn(null);
 		boolean isValid = osiValidator.isValidOSI("reg1234", registrationStatusDto);
 		assertFalse(isValid);
 	}
@@ -498,10 +459,9 @@ public class OSIValidatorTest {
 	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeySpecException
 	 * @throws NumberFormatException
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @throws ApisResourceAccessException  the apis resource access exception
+	 * @throws IOException                  Signals that an I/O exception has
+	 *                                      occurred.
 	 */
 	@Test(expected = ParentOnHoldException.class)
 	public void testIntroducerRIDFailedOnHold() throws ApisResourceAccessException, IOException, Exception {
@@ -512,10 +472,10 @@ public class OSIValidatorTest {
 	}
 
 	@Test(expected = ParentOnHoldException.class)
-	public void testIntroducerRIDProcessingOnHold()
-			throws NumberFormatException, ApisResourceAccessException, InvalidKeySpecException,
-			NoSuchAlgorithmException, BiometricException, BioTypeException, IOException, ParserConfigurationException,
-			SAXException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ParentOnHoldException {
+	public void testIntroducerRIDProcessingOnHold() throws NumberFormatException, ApisResourceAccessException,
+			InvalidKeySpecException, NoSuchAlgorithmException, BiometricException, BioTypeException, IOException,
+			ParserConfigurationException, SAXException, PacketDecryptionFailureException,
+			io.mosip.kernel.core.exception.IOException, ParentOnHoldException {
 		Mockito.when(osiUtils.getMetaDataValue(anyString(), any())).thenReturn("2015/01/01");
 		InternalRegistrationStatusDto introducerRegistrationStatusDto = new InternalRegistrationStatusDto();
 
@@ -538,9 +498,6 @@ public class OSIValidatorTest {
 	@Test(expected = ParentOnHoldException.class)
 	public void testIntroducerUINAndRIDNull() throws Exception {
 		Mockito.when(osiUtils.getMetaDataValue(anyString(), any())).thenReturn("2015/01/01");
-		PowerMockito.when(JsonUtil.class, "getJSONValue", anyObject(), anyString()).thenReturn(null).thenReturn(null)
-				.thenReturn(null);
-
 		osiValidator.isValidOSI("reg1234", registrationStatusDto);
 
 	}
@@ -548,24 +505,19 @@ public class OSIValidatorTest {
 	@Test(expected = ParentOnHoldException.class)
 	public void testIntroducerBioFileNull() throws Exception {
 		Mockito.when(osiUtils.getMetaDataValue(anyString(), any())).thenReturn("2015/01/01");
-		PowerMockito.when(JsonUtil.class, "getJSONValue", anyObject(), anyString()).thenReturn(123456);
 		osiValidator.isValidOSI("reg1234", registrationStatusDto);
 	}
 
 	@Test
 	public void testIntroducerBioFileNotNull() throws Exception {
 		Mockito.when(osiUtils.getMetaDataValue(anyString(), any())).thenReturn("2015/01/01");
-		Map<String, String> map = new LinkedHashMap<>();
-		map.put("value", "biometreics");
-		PowerMockito.when(JsonUtil.class, "getJSONValue", anyObject(), anyString()).thenReturn(123456)
-				.thenReturn(123456).thenReturn(map).thenReturn(map);
 		demoJson.put("value", "biometreics");
-		PowerMockito.when(JsonUtil.class, "getJSONObject", anyObject(), anyString()).thenReturn(demoJson);
-
 		authResponseDTO.setErrors(null);
 		io.mosip.registration.processor.core.auth.dto.ResponseDTO responseDTO = new io.mosip.registration.processor.core.auth.dto.ResponseDTO();
 		responseDTO.setAuthStatus(true);
 		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(
+				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
 
 		boolean isValid = osiValidator.isValidOSI("reg1234", registrationStatusDto);
 
@@ -575,12 +527,7 @@ public class OSIValidatorTest {
 	@Test
 	public void testIntroducerErrorTrue() throws Exception {
 		Mockito.when(osiUtils.getMetaDataValue(anyString(), any())).thenReturn("2015/01/01");
-		Map<String, String> map = new LinkedHashMap<>();
-		map.put("value", "biometreics");
-		PowerMockito.when(JsonUtil.class, "getJSONValue", anyObject(), anyString()).thenReturn(123456)
-				.thenReturn(123456).thenReturn(map).thenReturn(map);
 		demoJson.put("value", "biometreics");
-		PowerMockito.when(JsonUtil.class, "getJSONObject", anyObject(), anyString()).thenReturn(demoJson);
 		ErrorDTO errordto = new ErrorDTO();
 		errordto.setErrorCode("true");
 		List errorDtoList = new ArrayList<>();
@@ -589,22 +536,15 @@ public class OSIValidatorTest {
 		io.mosip.registration.processor.core.auth.dto.ResponseDTO responseDTO = new io.mosip.registration.processor.core.auth.dto.ResponseDTO();
 		responseDTO.setAuthStatus(true);
 		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
-
 		boolean isValid = osiValidator.isValidOSI("reg1234", registrationStatusDto);
-
 		assertFalse(isValid);
 	}
 
 	@Test
 	public void testIntroducerAuthFalse() throws Exception {
 		Mockito.when(osiUtils.getMetaDataValue(anyString(), any())).thenReturn("2015/01/01");
-		Map<String, String> map = new LinkedHashMap<>();
-		map.put("value", "biometreics");
-		PowerMockito.when(JsonUtil.class, "getJSONValue", anyObject(), anyString()).thenReturn(123456)
-				.thenReturn(123456).thenReturn(map).thenReturn(map);
-		demoJson.put("value", "biometreics");
-		PowerMockito.when(JsonUtil.class, "getJSONObject", anyObject(), anyString()).thenReturn(demoJson);
-
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(
+				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
 		AuthResponseDTO authResponseDTO1 = new AuthResponseDTO();
 		authResponseDTO1.setErrors(null);
 		io.mosip.registration.processor.core.auth.dto.ResponseDTO responseDTO = new io.mosip.registration.processor.core.auth.dto.ResponseDTO();
@@ -621,15 +561,10 @@ public class OSIValidatorTest {
 	@Test(expected = ParentOnHoldException.class)
 	public void testIntroducerUINNull() throws ApisResourceAccessException, IOException, Exception {
 		Mockito.when(osiUtils.getMetaDataValue(anyString(), any())).thenReturn("2015/01/01");
-
 		InternalRegistrationStatusDto introducerRegistrationStatusDto = new InternalRegistrationStatusDto();
-
 		introducerRegistrationStatusDto.setStatusCode((RegistrationStatusCode.PROCESSED.toString()));
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
 				.thenReturn(introducerRegistrationStatusDto);
-
-		PowerMockito.when(JsonUtil.class, "getJSONValue", anyObject(), anyString()).thenReturn(null).thenReturn(12345);// .thenReturn(map);
-
 		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn(null);
 		osiValidator.isValidOSI("reg1234", registrationStatusDto);
 	}

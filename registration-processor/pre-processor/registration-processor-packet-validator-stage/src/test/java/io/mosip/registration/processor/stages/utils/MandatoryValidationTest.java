@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
+import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,6 +24,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
@@ -72,6 +74,8 @@ public class MandatoryValidationTest {
 
 		mandatoryValidation = new MandatoryValidation(adapter, registrationStatusDto, utility);
 
+		Mockito.when(utility.getRegistrationProcessorIdentityJson()).thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(mappingJsonString, JSONObject.class), MappingJsonConstants.IDENTITY));
+		
 		Mockito.when(adapter.getFile(any(), any())).thenReturn(inputStream);
 
 		PowerMockito.mockStatic(IOUtils.class);

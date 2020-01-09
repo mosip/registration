@@ -44,8 +44,7 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
-import io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.Identity;
-import io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.RegistrationProcessorIdentity;
+import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.spi.biodedupe.BioDedupeService;
 import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
@@ -150,10 +149,6 @@ public class BioDedupeProcessorTest {
 	@Mock
 	private ABISHandlerUtil abisHandlerUtil;
 
-	/** The reg processor identity json. */
-	@Mock
-	RegistrationProcessorIdentity regProcessorIdentityJson = new RegistrationProcessorIdentity();
-
 	/** The map identity json string to object. */
 	@Mock
 	ObjectMapper mapIdentityJsonStringToObject;
@@ -192,9 +187,6 @@ public class BioDedupeProcessorTest {
 		Mockito.when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn(ERROR);
 		Mockito.doNothing().when(packetInfoManager).saveManualAdjudicationData(any(), any(), any(), any(), any());
 		Mockito.doNothing().when(packetInfoManager).saveRegLostUinDet(any(), any(), any(), any());
-
-		Identity identity = new Identity();
-		regProcessorIdentityJson.setIdentity(identity);
 
 		String identityMappingjsonString = "";
 		ClassLoader classLoader = getClass().getClassLoader();

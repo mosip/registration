@@ -22,12 +22,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
-import io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.Identity;
-import io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.RegistrationProcessorIdentity;
 import io.mosip.registration.processor.core.packet.dto.masterdata.StatusResponseDto;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
@@ -40,9 +36,6 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 public class MasterDataValidationTest {
 
 	@Mock
-	RegistrationProcessorIdentity regProcessorIdentityJson;
-
-	@Mock
 	private Environment env;
 
 	@Mock
@@ -53,14 +46,6 @@ public class MasterDataValidationTest {
 
 	@Mock
 	InternalRegistrationStatusDto registrationStatusDto;
-
-	@Mock
-	RegistrationProcessorIdentity registrationProcessorIdentity;
-
-	@Mock
-	ObjectMapper mapIdentityJsonStringToObject;
-
-	Identity identityDemo = new Identity();
 
 	StatusResponseDto statusResponseDto;
 
@@ -87,10 +72,6 @@ public class MasterDataValidationTest {
 		PowerMockito.mockStatic(Utilities.class);
 
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
-
-		Mockito.when(mapIdentityJsonStringToObject.readValue(anyString(), Mockito.any(Class.class)))
-				.thenReturn(registrationProcessorIdentity);
-
 		when(env.getProperty(anyString())).thenReturn("gender");
 		when(env.getProperty(PRIMARY_LANGUAGE)).thenReturn("eng");
 		when(env.getProperty(SECONDARY_LANGUAGE)).thenReturn("ara");

@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.constant.IdType;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
@@ -49,6 +50,7 @@ import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager
 import io.mosip.registration.processor.core.spi.message.sender.MessageNotificationService;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.message.sender.exception.EmailIdNotFoundException;
 import io.mosip.registration.processor.message.sender.exception.IDRepoResponseNull;
 import io.mosip.registration.processor.message.sender.exception.PhoneNumberNotFoundException;
@@ -151,8 +153,7 @@ public class MessageNotificationServiceImplTest {
 	/**
 	 * Setup.
 	 *
-	 * @throws Exception
-	 *             the exception
+	 * @throws Exception the exception
 	 */
 	@SuppressWarnings("unchecked")
 	@Before
@@ -166,84 +167,11 @@ public class MessageNotificationServiceImplTest {
 		File demographicJsonFile = new File(classLoader.getResource("ID.json").getFile());
 		InputStream inputStream = new FileInputStream(demographicJsonFile);
 		Mockito.when(adapter.getFile(any(), any())).thenReturn(inputStream);
-
-		String value = "{\r\n" + 
-				"	\"identity\": {\r\n" + 
-				"		\"name\": {\r\n" + 
-				"			\"value\": \"fullName\",\r\n" + 
-				"			\"isMandatory\" : true\r\n" + 
-				"		},\r\n" + 
-				"		\"gender\": {\r\n" + 
-				"			\"value\": \"gender\",\r\n" + 
-				"			\"isMandatory\" : true\r\n" + 
-				"		},\r\n" + 
-				"		\"dob\": {\r\n" + 
-				"			\"value\": \"dateOfBirth\",\r\n" + 
-				"			\"isMandatory\" : true\r\n" + 
-				"		},\r\n" + 
-				"		\"parentOrGuardianRID\": {\r\n" + 
-				"			\"value\" : \"parentOrGuardianRID\"\r\n" + 
-				"		},\r\n" + 
-				"		\"parentOrGuardianUIN\": {\r\n" + 
-				"			\"value\" : \"parentOrGuardianUIN\"\r\n" + 
-				"		},\r\n" + 
-				"		\"parentOrGuardianName\": {\r\n" + 
-				"			\"value\" : \"parentOrGuardianName\"\r\n" + 
-				"		},\r\n" + 
-				"		\"poa\": {\r\n" + 
-				"			\"value\" : \"proofOfAddress\"\r\n" + 
-				"		},\r\n" + 
-				"		\"poi\": {\r\n" + 
-				"			\"value\" : \"proofOfIdentity\"\r\n" + 
-				"		},\r\n" + 
-				"		\"por\": {\r\n" + 
-				"			\"value\" : \"proofOfRelationship\"\r\n" + 
-				"		},\r\n" + 
-				"		\"pob\": {\r\n" + 
-				"			\"value\" : \"proofOfDateOfBirth\"\r\n" + 
-				"		},\r\n" + 
-				"		\"individualBiometrics\": {\r\n" + 
-				"			\"value\" : \"individualBiometrics\"\r\n" + 
-				"		},\r\n" + 
-				"		\"age\": {\r\n" + 
-				"			\"value\" : \"age\"\r\n" + 
-				"		},\r\n" + 
-				"		\"address\": {\r\n" + 
-				"			\"value\" : \"addressLine1,addressLine2,addressLine3\"\r\n" + 
-				"		},\r\n" + 
-				"		\"region\": {\r\n" + 
-				"			\"value\" : \"region\"\r\n" + 
-				"		},\r\n" + 
-				"		\"province\": {\r\n" + 
-				"			\"value\" : \"province\"\r\n" + 
-				"		},\r\n" + 
-				"		\"postalCode\": {\r\n" + 
-				"			\"value\" : \"postalCode\"\r\n" + 
-				"		},\r\n" + 
-				"		\"phone\": {\r\n" + 
-				"			\"value\" : \"phone\"\r\n" + 
-				"		},\r\n" + 
-				"		\"email\": {\r\n" + 
-				"			\"value\" : \"email\"\r\n" + 
-				"		},\r\n" + 
-				"		\"localAdministrativeAuthority\": {\r\n" + 
-				"			\"value\" : \"localAdministrativeAuthority\"\r\n" + 
-				"		},\r\n" + 
-				"		\"idschemaversion\": {\r\n" + 
-				"			\"value\" : \"IDSchemaVersion\"\r\n" + 
-				"		},\r\n" + 
-				"		\"cnienumber\": {\r\n" + 
-				"			\"value\" : \"CNIENumber\"\r\n" + 
-				"		},\r\n" + 
-				"		\"city\": {\r\n" + 
-				"			\"value\" : \"city\"\r\n" + 
-				"		},\r\n" + 
-				"		\"parentOrGuardianBiometrics\": {\r\n" + 
-				"			\"value\" : \"parentOrGuardianBiometrics\"\r\n" + 
-				"		}\r\n" + 
-				"	}\r\n" + 
-				"}  ";
-
+		File mappingJsonFile = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
+		InputStream is = new FileInputStream(mappingJsonFile);
+		String value = IOUtils.toString(is);
+		Mockito.when(utility.getRegistrationProcessorIdentityJson())
+				.thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(value, JSONObject.class),MappingJsonConstants.IDENTITY));
 		PowerMockito.mockStatic(Utilities.class);
 		PowerMockito.when(Utilities.class, "getJson", anyString(), anyString()).thenReturn(value);
 		Map<String, Long> map1 = new HashMap<>();
@@ -298,16 +226,16 @@ public class MessageNotificationServiceImplTest {
 	/**
 	 * Test send sms notification success.
 	 *
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws io.mosip.kernel.core.exception.IOException 
-	 * @throws PacketDecryptionFailureException 
+	 * @throws ApisResourceAccessException      the apis resource access exception
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
+	 * @throws                                  io.mosip.kernel.core.exception.IOException
+	 * @throws PacketDecryptionFailureException
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testSendSmsNotificationSuccess() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException {
+	public void testSendSmsNotificationSuccess() throws ApisResourceAccessException, IOException,
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException {
 		ResponseWrapper<SmsResponseDto> wrapper = new ResponseWrapper<>();
 		smsResponseDto = new SmsResponseDto();
 		smsResponseDto.setMessage("Success");
@@ -326,7 +254,8 @@ public class MessageNotificationServiceImplTest {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testUINTypeMessage() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException {
+	public void testUINTypeMessage() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
+			io.mosip.kernel.core.exception.IOException {
 		ResponseWrapper<SmsResponseDto> wrapper = new ResponseWrapper<>();
 		smsResponseDto = new SmsResponseDto();
 		smsResponseDto.setMessage("Success");
@@ -351,8 +280,7 @@ public class MessageNotificationServiceImplTest {
 	/**
 	 * Test send email notification success.
 	 *
-	 * @throws Exception
-	 *             the exception
+	 * @throws Exception the exception
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
@@ -375,15 +303,15 @@ public class MessageNotificationServiceImplTest {
 	/**
 	 * Test phone number not found exception.
 	 *
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws io.mosip.kernel.core.exception.IOException 
-	 * @throws PacketDecryptionFailureException 
+	 * @throws ApisResourceAccessException      the apis resource access exception
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
+	 * @throws                                  io.mosip.kernel.core.exception.IOException
+	 * @throws PacketDecryptionFailureException
 	 */
 	@Test(expected = PhoneNumberNotFoundException.class)
-	public void testPhoneNumberNotFoundException() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException {
+	public void testPhoneNumberNotFoundException() throws ApisResourceAccessException, IOException,
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException {
 		ClassLoader classLoader = getClass().getClassLoader();
 		File demographicJsonFile = new File(classLoader.getResource("ID2.json").getFile());
 		InputStream inputStream = new FileInputStream(demographicJsonFile);
@@ -397,8 +325,7 @@ public class MessageNotificationServiceImplTest {
 	/**
 	 * Test email ID not found exception.
 	 *
-	 * @throws Exception
-	 *             the exception
+	 * @throws Exception the exception
 	 */
 	@Test(expected = EmailIdNotFoundException.class)
 	public void testEmailIDNotFoundException() throws Exception {
@@ -414,15 +341,15 @@ public class MessageNotificationServiceImplTest {
 	/**
 	 * Test template generation failed exception.
 	 *
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws io.mosip.kernel.core.exception.IOException 
-	 * @throws PacketDecryptionFailureException 
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
+	 * @throws ApisResourceAccessException      the apis resource access exception
+	 * @throws                                  io.mosip.kernel.core.exception.IOException
+	 * @throws PacketDecryptionFailureException
 	 */
 	@Test(expected = TemplateGenerationFailedException.class)
-	public void testTemplateGenerationFailedException() throws IOException, ApisResourceAccessException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException {
+	public void testTemplateGenerationFailedException() throws IOException, ApisResourceAccessException,
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException {
 		Mockito.when(templateGenerator.getTemplate("RPR_UIN_GEN_SMS", attributes, "eng"))
 				.thenThrow(new TemplateNotFoundException());
 
@@ -433,8 +360,7 @@ public class MessageNotificationServiceImplTest {
 	/**
 	 * Test template processing failure exception.
 	 *
-	 * @throws Exception
-	 *             the exception
+	 * @throws Exception the exception
 	 */
 	@Test(expected = TemplateGenerationFailedException.class)
 	public void testTemplateProcessingFailureException() throws Exception {
