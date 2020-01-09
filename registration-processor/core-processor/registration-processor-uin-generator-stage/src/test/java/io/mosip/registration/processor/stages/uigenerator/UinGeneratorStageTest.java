@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
+import org.assertj.core.util.Lists;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -1429,6 +1430,66 @@ public class UinGeneratorStageTest {
 				.thenReturn(responsedto);
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getIsValid());
+	}
+
+	@Test
+	public void testUinAlreadyExists() throws Exception {
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.NEW);
+		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
+		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
+
+		Mockito.when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any())).thenReturn(str);
+		Mockito.when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(response);
+
+		ClassLoader classLoader = getClass().getClassLoader();
+		File idJsonFile = new File(classLoader.getResource("ID.json").getFile());
+		InputStream idJsonStream = new FileInputStream(idJsonFile);
+		File idJsonFile2 = new File(classLoader.getResource("ID.json").getFile());
+		InputStream idJsonStream2 = new FileInputStream(idJsonFile2);
+
+		ClassLoader classLoader1 = getClass().getClassLoader();
+		File idJsonFile1 = new File(classLoader1.getResource("packet_meta_info.json").getFile());
+		InputStream idJsonStream1 = new FileInputStream(idJsonFile1);
+
+		Mockito.when(adapter.getFile("27847657360002520181210094052",
+				PacketFiles.DEMOGRAPHIC.name() + "\\" + PacketFiles.ID.name())).thenReturn(idJsonStream)
+				.thenReturn(idJsonStream2);
+
+		Mockito.when(adapter.getFile("27847657360002520181210094052", PacketFiles.PACKET_META_INFO.name()))
+				.thenReturn(idJsonStream1);
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.create");
+		ErrorDTO errorDTO = new ErrorDTO("IDR-IDC-012", "Record already exists in DB");
+		idResponseDTO.setErrors(Lists.newArrayList(errorDTO));
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		ResponseWrapper<VidResponseDto> responseVid = new ResponseWrapper<VidResponseDto>();
+		List<ErrorDTO> errors = new ArrayList<>();
+		responseVid.setErrors(errors);
+		responseVid.setVersion("v1");
+		responseVid.setMetadata(null);
+		DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		LocalDateTime localdatetime = LocalDateTime
+				.parse(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"), format);
+		responseVid.setResponsetime(localdatetime);
+		VidResponseDto vidResponseDto = new VidResponseDto();
+		vidResponseDto.setVID("123456");
+		vidResponseDto.setVidStatus("ACTIVE");
+		vidResponseDto.setRestoredVid(null);
+		vidResponseDto.setUIN(null);
+		responseVid.setResponse(vidResponseDto);
+		Mockito.when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
+				.thenReturn(idResponseDTO).thenReturn(responseVid);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertTrue(result.getIsValid());
+
 	}
 
 }

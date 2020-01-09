@@ -97,6 +97,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(UinGeneratorStage.class);
+	private static final String RECORD_ALREADY_EXISTS_ERROR = "IDR-IDC-012";
 
 	@Autowired
 	private Environment env;
@@ -226,12 +227,16 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 					idResponseDTO = sendIdRepoWithUin(registrationId, demographicIdentity,
 							uinResponseDto.getResponse().getUin(), description);
-					if (isIdResponseNotNull(idResponseDTO)) {
-						generateVid(registrationId, uinResponseDto.getResponse().getUin());
+
+					boolean isUinAlreadyPresent = isUinAlreadyPresent(idResponseDTO, registrationId);
+
+					if (isIdResponseNotNull(idResponseDTO) || isUinAlreadyPresent) {
+						generateVid(registrationId, uinResponseDto.getResponse().getUin(), isUinAlreadyPresent);
 						registrationStatusDto.setStatusComment(StatusUtil.UIN_GENERATED_SUCCESS.getMessage());
 						registrationStatusDto.setSubStatusCode(StatusUtil.UIN_GENERATED_SUCCESS.getCode());
+						String uinStatus = isUinAlreadyPresent ? UINConstants.UIN_UNASSIGNED : UINConstants.UIN_ASSIGNED;
 						sendResponseToUinGenerator(registrationId, uinResponseDto.getResponse().getUin(),
-								UINConstants.UIN_ASSIGNED);
+								uinStatus);
 						isTransactionSuccessful = true;
 						registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSED.toString());
 						description.setMessage(PlatformSuccessMessages.RPR_UIN_GENERATOR_STAGE_SUCCESS.getMessage());
@@ -705,6 +710,20 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		return result != null && result.getResponse() != null;
 	}
 
+	private boolean isUinAlreadyPresent(IdResponseDTO result, String rid) {
+		if  (result != null && result.getErrors() != null && result.getErrors().size() > 0
+				&& result.getErrors().get(0).getErrorCode().equalsIgnoreCase(RECORD_ALREADY_EXISTS_ERROR)) {
+			ErrorDTO errorDTO = result.getErrors().get(0);
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.REGISTRATIONID.toString() + rid,
+					"Record is already present in IDREPO. Error message received : " + errorDTO.getMessage(),
+					"The stage will ignore this error and try to generate vid for the existing UIN now. " +
+							"This is to make sure if the packet processing fails while generating VID then re-processor can process the packet again");
+			return true;
+		}
+		return false;
+	}
+
 	/**
 	 * Deactivate uin.
 	 *
@@ -933,14 +952,19 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void generateVid(String registrationId, String UIN)
+	private void generateVid(String registrationId, String UIN, boolean isUinAlreadyPresent)
 			throws ApisResourceAccessException, IOException, VidCreationException {
 		VidRequestDto vidRequestDto = new VidRequestDto();
 		RequestWrapper<VidRequestDto> request = new RequestWrapper<>();
 		ResponseWrapper<VidResponseDto> response;
-		try {
 
-			vidRequestDto.setUIN(UIN);
+		try {
+			if (isUinAlreadyPresent) {
+				Number number = idRepoService.getUinByRid(registrationId, utility.getGetRegProcessorDemographicIdentity());
+				vidRequestDto.setUIN(number.toString());
+			} else {
+				vidRequestDto.setUIN(UIN);
+			}
 			vidRequestDto.setVidType(vidType);
 			request.setId(env.getProperty(UINConstants.VID_CREATE_ID));
 			request.setRequest(vidRequestDto);
