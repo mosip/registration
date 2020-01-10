@@ -120,7 +120,6 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 	@Autowired
 	private RegisteredDeviceDAO registeredDeviceDAO;
 
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -220,10 +219,32 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 			// Fetch unsync'ed audit logs from DB
 			List<Audit> audits = auditDAO.getAudits(auditLogControlDAO.getLatestRegistrationAuditDates());
 
+			List<AuditRequestDto> auditRequests = new ArrayList<>();
+			for (Audit audit : audits) {
+				AuditRequestDto auditRequest = new AuditRequestDto();
+				auditRequest.setActionTimeStamp(audit.getActionTimeStamp());
+				auditRequest.setApplicationId(audit.getApplicationId());
+				auditRequest.setApplicationName(audit.getApplicationName());
+				auditRequest.setCreatedBy(audit.getCreatedBy());
+				auditRequest.setDescription(audit.getDescription());
+				auditRequest.setEventId(audit.getEventId());
+				auditRequest.setEventName(audit.getEventName());
+				auditRequest.setEventType(audit.getEventType());
+				auditRequest.setHostIp(audit.getHostIp());
+				auditRequest.setHostName(audit.getHostName());
+				auditRequest.setId(audit.getId());
+				auditRequest.setIdType(audit.getIdType());
+				auditRequest.setModuleId(audit.getModuleId());
+				auditRequest.setModuleName(audit.getModuleName());
+				auditRequest.setSessionUserId(audit.getSessionUserId());
+				auditRequest.setSessionUserName(audit.getSessionUserName());
+				auditRequests.add(auditRequest);
+			}
+
 			registrationDTO.setAuditLogStartTime(Timestamp.valueOf(audits.get(0).getCreatedAt()));
 			registrationDTO.setAuditLogEndTime(Timestamp.valueOf(audits.get(audits.size() - 1).getCreatedAt()));
 			filesGeneratedForPacket.put(RegistrationConstants.AUDIT_JSON_FILE,
-					javaObjectToJsonString(audits).getBytes());
+					javaObjectToJsonString(auditRequests).getBytes());
 
 			LOGGER.info(LOG_PKT_CREATION, APPLICATION_NAME, APPLICATION_ID,
 					String.format(loggerMessageForCBEFF, RegistrationConstants.AUDIT_JSON_FILE));
@@ -561,20 +582,20 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 		List<RegisteredDevice> capturedRegisteredDevices = new ArrayList<>();
 
 		MosipBioDeviceManager.getDeviceRegistry().forEach((deviceName, device) -> {
-				RegisteredDevice registerdDevice = new RegisteredDevice();
-				registerdDevice.setDeviceCode(device.getDeviceId());
-				registerdDevice.setDeviceServiceVersion(device.getSerialVersion());
-				DigitalId digitalId = new DigitalId();
-				digitalId.setSerialNo(device.getDeviceId());
-				digitalId.setMake(device.getDeviceMake());
-				digitalId.setType(device.getDeviceType());
-				digitalId.setSubType(device.getDeviceSubType());
-				digitalId.setModel(device.getDeviceModel());
-				digitalId.setDp(device.getDeviceProviderName());
-				digitalId.setDpId(device.getDeviceProviderId());
-				digitalId.setDateTime(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).toString());
-				registerdDevice.setDigitalId(digitalId);
-				capturedRegisteredDevices.add(registerdDevice);
+			RegisteredDevice registerdDevice = new RegisteredDevice();
+			registerdDevice.setDeviceCode(device.getDeviceId());
+			registerdDevice.setDeviceServiceVersion(device.getSerialVersion());
+			DigitalId digitalId = new DigitalId();
+			digitalId.setSerialNo(device.getDeviceId());
+			digitalId.setMake(device.getDeviceMake());
+			digitalId.setType(device.getDeviceType());
+			digitalId.setSubType(device.getDeviceSubType());
+			digitalId.setModel(device.getDeviceModel());
+			digitalId.setDp(device.getDeviceProviderName());
+			digitalId.setDpId(device.getDeviceProviderId());
+			digitalId.setDateTime(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).toString());
+			registerdDevice.setDigitalId(digitalId);
+			capturedRegisteredDevices.add(registerdDevice);
 		});
 
 		return capturedRegisteredDevices;
