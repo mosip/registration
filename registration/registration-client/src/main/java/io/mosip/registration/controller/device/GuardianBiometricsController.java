@@ -570,18 +570,6 @@ public class GuardianBiometricsController extends BaseController implements Init
 			detailsDTO.getIrises().forEach((iris) -> {
 
 				if (irisType.toLowerCase().contains(iris.getIrisType().split(" ")[0].toLowerCase())) {
-					if (iris.getIrisType().equals(RegistrationConstants.RIGHT.concat(RegistrationConstants.EYE))) {
-						leftIrisCount++;
-						retries = leftIrisCount;
-					} else {
-						rightIrisCount++;
-						retries = rightIrisCount;
-					}
-					scanPopUpViewController.getScanImage().setImage(convertBytesToImage(iris.getIris()));
-					biometricImage.setImage(convertBytesToImage(iris.getIris()));
-					generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.IRIS_SUCCESS_MSG);
-					setCapturedValues(iris.getQualityScore(), retries, thresholdValue);
-					iris.setNumOfIrisRetry(retries);
 
 				if (iris.getIrisType().contains(RegistrationConstants.RIGHT)) {
 					rightIrisCount++;
@@ -629,11 +617,12 @@ public class GuardianBiometricsController extends BaseController implements Init
 			}
 			if(dedupeMessage!=null)
 				dedupeMessage.setVisible(false);
-		} else
+		} else {
 			if(dedupeMessage!=null)
 				dedupeMessage.setVisible(false);
 		{
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.IRIS_SCANNING_ERROR);
+		}
 		}
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Iris scanning is completed");
