@@ -29,3 +29,4 @@ local.properties
 /PreRegPacketStore/*
 stylesheet.css
 *.js
+*.dat
