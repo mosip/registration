@@ -10,5 +10,12 @@
 
 \c mosip_regprc sysadmin
 
+ALTER TABLE regprc.individual_demographic_dedup ADD COLUMN mobile_number character varying(64);
+
+ALTER TABLE regprc.individual_demographic_dedup ADD COLUMN email character varying(512);
+
+ALTER TABLE regprc.individual_demographic_dedup ADD COLUMN pincode character varying(64);
+
+
 ALTER TABLE regprc.abis_request DROP CONSTRAINT IF EXISTS uk_abisreq;
 ----------------------------------------------------------------------------------------------------

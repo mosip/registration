@@ -10,4 +10,10 @@
 
 \c mosip_regprc sysadmin
 
+ALTER TABLE regprc.individual_demographic_dedup DROP COLUMN mobile_number;
+
+ALTER TABLE regprc.individual_demographic_dedup DROP COLUMN email;
+
+ALTER TABLE regprc.individual_demographic_dedup DROP COLUMN pincode;
+
 ----------------------------------------------------------------------------------------------------
