@@ -100,8 +100,8 @@ public class MosipBioDeviceManager {
 	 * @throws RegBaseCheckedException - generalised exception with errorCode and
 	 *                                 errorMessage
 	 */
-	@SuppressWarnings("unchecked")
 	@PostConstruct
+	@SuppressWarnings("unchecked")
 	public void init() throws RegBaseCheckedException {
 		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
 				"Entering init method for preparing device registry");
@@ -112,8 +112,8 @@ public class MosipBioDeviceManager {
 				initByPort(port);
 			} catch (RegBaseCheckedException exception) {
 				LOGGER.error(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_GET, APPLICATION_NAME, APPLICATION_ID,
-						"Exception while mapping the response : "+
-								exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+						String.format("Exception while mapping the response",
+								exception.getMessage() + ExceptionUtils.getStackTrace(exception)));
 			}
 
 		}
@@ -153,7 +153,6 @@ public class MosipBioDeviceManager {
 				
 				LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
 						"Device Info Response : "+response);
-				
 				try {
 					deviceInfoResponseDtos = mapper.readValue(response, List.class);
 				} catch (IOException exception) {
@@ -259,6 +258,7 @@ public class MosipBioDeviceManager {
 	 */
 	private void creationOfBioDeviceObject(DeviceInfoResponseData deviceInfoResponse, int port) {
 
+
 		if (deviceInfoResponse != null) {
 			DeviceInfo deviceInfo = deviceInfoResponse.getDeviceInfoDecoded();
 			BioDevice bioDevice = new BioDevice();
@@ -297,7 +297,6 @@ public class MosipBioDeviceManager {
 			
 			LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
 					"Adding Device to Registry : "+bioDevice.toString());
-			
 			deviceRegistry.put(bioDevice.getDeviceType().toUpperCase() + RegistrationConstants.UNDER_SCORE
 					+ bioDevice.getDeviceSubType().toUpperCase(), bioDevice);
 		}
@@ -372,7 +371,6 @@ public class MosipBioDeviceManager {
 	public CaptureResponseDto authScan(RequestDetail requestDetail) throws RegBaseCheckedException, IOException {
 		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
 				"Entering into Auth Scan Method..."+ System.currentTimeMillis());	
-
 		BioDevice bioDevice = findDeviceToScan(requestDetail.getType());
 		InputStream streaming = stream(requestDetail.getType());
 		if (bioDevice != null) {
