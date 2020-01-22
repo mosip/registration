@@ -48,7 +48,7 @@ public class Streamer {
 
 	// Last streaming image
 	private static Image streamImage;
-
+	
 	private static StreamingRequestDetail streamRequest;
 
 	// Image View, which UI need to be shown
@@ -81,12 +81,12 @@ public class Streamer {
 				"Completed Set Stream image of : " + bioType + " for attempt : " + attempt);
 
 	}
-
+	
 	public void startStream(String type, ImageView streamImage, ImageView scanImage) {
   
 		
-	LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-			"Streamer Thread initiation started for : " + System.currentTimeMillis() + type);
+		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
+				"Streamer Thread initiation started for : " + System.currentTimeMillis() + type);
 
 		streamer_thread = new Thread(new Runnable() {
 
@@ -289,5 +289,6 @@ public class Streamer {
 		scanPopUpViewController.setScanningMsg(message);
 		this.isRunning = isRunning;
 	}
-
+	
+	
 }
