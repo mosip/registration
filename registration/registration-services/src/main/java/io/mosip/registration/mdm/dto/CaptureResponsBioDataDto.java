@@ -1,5 +1,8 @@
 package io.mosip.registration.mdm.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import io.mosip.registration.dto.json.metadata.DigitalId;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,19 +14,18 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-
 public class CaptureResponsBioDataDto {
+	@JsonIgnore
+	private DigitalId digitalIdDecoded;
+	private String digitalId;
 	private String deviceCode;
-	private String deviceProviderID;
-	private String deviceServiceID;
 	private String deviceServiceVersion;
-	private String bioType;
 	private String bioSubType;
-	private String mosipProcess;
+	private String purpose;
 	private String env;
-	private byte[] bioValue;
+	private String bioValue;
 	private String bioExtract;
-	private String registrationID;
+	private String transactionId;
 	private String timestamp;
 	private String requestedScore;
 	private String qualityScore;

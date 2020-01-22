@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.crypto.jce.util.JWSValidation;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.AuditEvent;
@@ -57,6 +58,9 @@ public class MosipBioDeviceIntegratorImpl implements IMosipBioDeviceIntegrator {
 
 	@Autowired
 	protected ServiceDelegateUtil serviceDelegateUtil;
+	
+	@Autowired
+	private JWSValidation jwsValidation;
 
 	/*
 	 * (non-Javadoc)
@@ -183,8 +187,7 @@ public class MosipBioDeviceIntegratorImpl implements IMosipBioDeviceIntegrator {
 								if (null != captureResponsBioDataDto.getBioExtract())
 									captureResponsBioDataDto.setBioExtract(captureResponsBioDataDto.getBioExtract());
 								if (null != captureResponsBioDataDto.getBioValue())
-									captureResponsBioDataDto.setBioValue(
-											Base64.getDecoder().decode(captureResponsBioDataDto.getBioValue()));
+									captureResponsBioDataDto.setBioValue(captureResponsBioDataDto.getBioValue());
 								captureResponseBioDto.setCaptureResponseData(captureResponsBioDataDto);
 							}
 
@@ -230,5 +233,11 @@ public class MosipBioDeviceIntegratorImpl implements IMosipBioDeviceIntegrator {
 	public CaptureResponseDto responseParsing() {
 		return null;
 
+	}
+
+	@Override
+	public boolean jwsValidation(String jwsResponse) {
+
+		return jwsValidation.verifySignature(jwsResponse);
 	}
 }

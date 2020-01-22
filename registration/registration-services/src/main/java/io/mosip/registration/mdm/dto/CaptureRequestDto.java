@@ -19,11 +19,11 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class CaptureRequestDto {
+public class CaptureRequestDto implements BioRequest{
 
 	private String env;
-	private String mosipProcess;
-	private String version;
+	private String purpose;
+	private String specVersion;
 	private int timeout;
 	@JsonIgnore
 	private String captureTime;

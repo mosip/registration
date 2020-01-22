@@ -263,12 +263,9 @@ public class FaceCaptureController extends BaseController implements Initializab
 				RegistrationConstants.APPLICATION_ID, "Opening WebCamera to capture photograph");
 		if (bioService.isMdmEnabled()) {
 			openWebCam(imageType);
-			streamer.startStream(new RequestDetail(RegistrationConstants.FACE_FULLFACE,
-					getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 1, 
-					getValueFromApplicationContext(RegistrationConstants.FACE_THRESHOLD), null), webCameraController.camImageView, null);
+			streamer.startStream(RegistrationConstants.FACE_FULLFACE, webCameraController.camImageView, null);
 			return;
-		}
-		else if (!webCameraController.isWebcamPluggedIn()) 
+		}	else if (!webCameraController.isWebcamPluggedIn()) 
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.WEBCAM_ALERT_CONTEXT);
 
 		openWebCam(imageType);
@@ -404,7 +401,6 @@ public class FaceCaptureController extends BaseController implements Initializab
 			}
 		}
 	}
-	
 	/**
 	 * 
 	 * To set the captured image to the imageView in the Applicant Biometrics page
@@ -605,7 +601,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 			if (exceptionImage != null)
 				exceptionImage.setImage(defaultExceptionImage);
 			BiometricInfoDTO applicantBiometricDTO = getFaceDetailsDTO();
-			if(getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {
+			if (getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {
 				applicantBiometricDTO = getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO();
 			}
 			applicantBiometricDTO.getBiometricExceptionDTO().removeIf((v)->!v.isMarkedAsException());

@@ -350,9 +350,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 			}
 			scanPopUpViewController.init(this, headerText);
 			if (bioService.isMdmEnabled())
-				streamer.startStream(new RequestDetail(bioType,
-						getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 1, "40",
-						fingerException), scanPopUpViewController.getScanImage(), biometricImage);
+				streamer.startStream(bioType, scanPopUpViewController.getScanImage(), biometricImage);
 		}
 
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,

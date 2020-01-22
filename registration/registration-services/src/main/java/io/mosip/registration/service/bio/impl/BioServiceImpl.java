@@ -1,12 +1,10 @@
 package io.mosip.registration.service.bio.impl;
 
+import static io.mosip.registration.constants.LoggerConstants.BIO_SERVICE;
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_FINGERPRINT_FACADE;
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_IRIS_FACADE;
-import static io.mosip.registration.constants.LoggerConstants.BIO_SERVICE;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
-
-import static io.mosip.registration.constants.LoggerConstants.BIO_SERVICE;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -149,16 +147,14 @@ public class BioServiceImpl extends BaseService implements BioService {
 			captureResponseDto = mosipBioDeviceManager.authScan(requestDetail);
 			if (captureResponseDto == null)
 				throw new RegBaseCheckedException("202", "Decice is not available");
-			if (captureResponseDto.getError().getErrorCode().matches("101|202|403|404|409"))
+			if (captureResponseDto.getError().getErrorCode().matches("102|101|202|403|404|409"))
 				throw new RegBaseCheckedException(captureResponseDto.getError().getErrorCode(),
 						captureResponseDto.getError().getErrorInfo());
-			
-			
 			
 			captureResponseDto.getMosipBioDeviceDataResponses().forEach(auth -> {
 				FingerprintDetailsDTO fingerprintDetailsDTO = new FingerprintDetailsDTO();
 				fingerprintDetailsDTO.setFingerPrintISOImage(
-						Base64.getDecoder().decode(auth.getCaptureResponseData().getBioExtract()));
+						Base64.getUrlDecoder().decode(auth.getCaptureResponseData().getBioExtract()));
 				fingerprintDetailsDTO.setFingerType(auth.getCaptureResponseData().getBioSubType());
 				fingerprintDetailsDTO.setForceCaptured(true);
 				fingerprintDetailsDTOs.add(fingerprintDetailsDTO);
@@ -169,7 +165,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 			authenticationValidatorDTO = new AuthenticationValidatorDTO();
 			authenticationValidatorDTO.setFingerPrintDetails(fingerprintDetailsDTOs);
 			authenticationValidatorDTO.setUserId(userId);
-			authenticationValidatorDTO.setAuthValidationType(RegistrationConstants.SINGLE);
+			authenticationValidatorDTO.setAuthValidationType(RegistrationConstants.MULTIPLE);
 			authenticationValidatorDTO.setAuthValidationFlag(true);
 			validateFingerPrint(authenticationValidatorDTO);
 			
@@ -278,10 +274,12 @@ public class BioServiceImpl extends BaseService implements BioService {
 			int attempt) throws RegBaseCheckedException, IOException {
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 				"Entering into getFingerPrintImageAsDTOWithMdm method..");
-		CaptureResponseDto captureResponseDto = mosipBioDeviceManager.scan(requestDetail);
+
+
+		CaptureResponseDto captureResponseDto = mosipBioDeviceManager.regScan(requestDetail);
 		if (captureResponseDto == null)
 			throw new RegBaseCheckedException("202", "Decice is not available");
-		if (captureResponseDto.getError().getErrorCode().matches("101|202|403|404|409"))
+		if (captureResponseDto.getError().getErrorCode().matches("102|101|202|403|404|409"))
 			throw new RegBaseCheckedException(captureResponseDto.getError().getErrorCode(),
 					captureResponseDto.getError().getErrorInfo());
 		fpDetailsDTO.setSegmentedFingerprints(new ArrayList<FingerprintDetailsDTO>());
@@ -299,9 +297,9 @@ public class BioServiceImpl extends BaseService implements BioService {
 			// Get Best Capture
 			captureRespoonse = getBestCapture(captureRespoonse);
 
-			fingerPrintDetail.setFingerPrintISOImage(Base64.getDecoder().decode(captureRespoonse.getBioExtract()));
+			fingerPrintDetail.setFingerPrintISOImage(Base64.getUrlDecoder().decode(captureRespoonse.getBioExtract()));
 			fingerPrintDetail.setFingerType(captureRespoonse.getBioSubType());
-			fingerPrintDetail.setFingerPrint(captureRespoonse.getBioValue());
+			fingerPrintDetail.setFingerPrint(Base64.getUrlDecoder().decode(captureRespoonse.getBioValue()));
 			fingerPrintDetail.setQualityScore(Integer.parseInt(captureRespoonse.getQualityScore()));
 			fingerPrintDetail.setFingerprintImageName("FingerPrint " + captureRespoonse.getBioSubType());
 			fpDetailsDTO.getSegmentedFingerprints().add(fingerPrintDetail);
@@ -439,10 +437,6 @@ public class BioServiceImpl extends BaseService implements BioService {
 	public void getFingerPrintImageAsDTO(FingerprintDetailsDTO fpDetailsDTO, RequestDetail requestDetail, int attempt)
 			throws RegBaseCheckedException, IOException {
 		LOGGER.info(LOG_REG_FINGERPRINT_FACADE, APPLICATION_NAME, APPLICATION_ID, "Entering into BioServiceImpl-FingerPrintImageAsDTO");
-		if (isNull(requestDetail.getType()))
-			throwRegBaseCheckedException(
-					RegistrationExceptionConstants.REG_MASTER_BIO_SERVICE_IMPL_FINGERPRINT_IMAGE_TYPE);
-
 		if (isMdmEnabled())
 			getFingerPrintImageAsDTOWithMdm(fpDetailsDTO, requestDetail, attempt);
 		else
@@ -605,12 +599,12 @@ public class BioServiceImpl extends BaseService implements BioService {
 			CaptureResponseDto captureResponseDto = mosipBioDeviceManager.authScan(requestDetail);
 			if (captureResponseDto == null)
 				throw new RegBaseCheckedException("202", "Decice is not available");
-			if (captureResponseDto.getError().getErrorCode().matches("101|202|403|404|409"))
+			if (captureResponseDto.getError().getErrorCode().matches("102|101|202|403|404|409"))
 				throw new RegBaseCheckedException(captureResponseDto.getError().getErrorCode(),
 						captureResponseDto.getError().getErrorInfo());
-			capturedByte = mosipBioDeviceManager.getSingleBiometricIsoTemplate(captureResponseDto);
-			IrisDetailsDTO.setIrisType(captureResponseDto.getMosipBioDeviceDataResponses().get(0)
-					.getCaptureResponseData().getBioSubType());
+			capturedByte = Base64.getDecoder().decode(captureResponseDto.getMosipBioDeviceDataResponses().get(0).getCaptureResponseData().getBioExtract());
+			IrisDetailsDTO.setIrisType(
+					captureResponseDto.getMosipBioDeviceDataResponses().get(0).getCaptureResponseData().getBioSubType());
 			IrisDetailsDTO.setIrisIso(capturedByte);
 		} else {
 			bufferedImage = ImageIO.read(this.getClass().getResourceAsStream(RegistrationConstants.IRIS_IMAGE_LOCAL));
@@ -642,10 +636,10 @@ public class BioServiceImpl extends BaseService implements BioService {
 		AuthenticationValidatorDTO authenticationValidatorDTO = new AuthenticationValidatorDTO();
 		FaceDetailsDTO faceDetailsDTO = new FaceDetailsDTO();
 		CaptureResponseDto captureResponseDto = null;
-		captureResponseDto = mosipBioDeviceManager.scan(requestDetail);
+		captureResponseDto = mosipBioDeviceManager.regScan(requestDetail);
 		if (captureResponseDto == null)
 			throw new RegBaseCheckedException("202", "Decice is not available");
-		if (captureResponseDto.getError().getErrorCode().matches("101|202|403|404|409"))
+		if (captureResponseDto.getError().getErrorCode().matches("102|101|202|403|404|409"))
 			throw new RegBaseCheckedException(captureResponseDto.getError().getErrorCode(),
 					captureResponseDto.getError().getErrorInfo());
 
@@ -696,10 +690,10 @@ public class BioServiceImpl extends BaseService implements BioService {
 		if (isNull(requestDetail.getType()))
 			throwRegBaseCheckedException(RegistrationExceptionConstants.REG_MASTER_BIO_SERVICE_IMPL_IRIS_IMAGE);
 		requestDetail.setType(RegistrationConstants.IRIS_DOUBLE);
-		CaptureResponseDto captureResponseDto = mosipBioDeviceManager.scan(requestDetail);
+		CaptureResponseDto captureResponseDto = mosipBioDeviceManager.regScan(requestDetail);
 		if (captureResponseDto == null)
 			throw new RegBaseCheckedException("202", "Device is not available");
-		if (captureResponseDto.getError().getErrorCode().matches("101|202|403|404|409"))
+		if (captureResponseDto.getError().getErrorCode().matches("102|101|202|403|404|409"))
 			throw new RegBaseCheckedException(captureResponseDto.getError().getErrorCode(),
 					captureResponseDto.getError().getErrorInfo());
 
@@ -714,14 +708,14 @@ public class BioServiceImpl extends BaseService implements BioService {
 					: rightEyeAttempt;
 
 			setBioQualityScores(captureRespoonse.getBioSubType(), attempt, Integer.parseInt(captureRespoonse.getQualityScore()));
-			setBioStreamImages(convertBytesToImage(captureRespoonse.getBioValue()), captureRespoonse.getBioSubType(), attempt);
+			setBioStreamImages(convertBytesToImage(Base64.getDecoder().decode(captureRespoonse.getBioValue())), captureRespoonse.getBioSubType(), attempt);
 		
 			// Get Best Capture
 			captureRespoonse = getBestCapture(captureRespoonse);
 
 			irisDetails.setIrisIso((Base64.getDecoder().decode(captureRespoonse.getBioExtract())));
 			irisDetails.setIrisImageName(captureRespoonse.getBioSubType());
-			irisDetails.setIris((captureRespoonse.getBioValue()));
+			irisDetails.setIris(Base64.getDecoder().decode(captureRespoonse.getBioValue()));
 			irisDetails.setQualityScore(Integer.parseInt(captureRespoonse.getQualityScore()));
 			irisDetails.setIrisType(captureRespoonse.getBioSubType());
 			irisDetails.setCaptured(true);
@@ -856,20 +850,14 @@ public class BioServiceImpl extends BaseService implements BioService {
 	 * Capture Face
 	 * 
 	 * @return byte[] of captured Face
+	 * @throws IOException 
+	 * @throws RegBaseCheckedException 
 	 */
 	@Override
-	public CaptureResponseDto captureFace(RequestDetail requestDetail) {
+	public CaptureResponseDto captureFace(RequestDetail requestDetail) throws RegBaseCheckedException, IOException {
 
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID, "Entering Capture Face Method");
-		CaptureResponseDto captureResponseDto = null;
-		try {
-			captureResponseDto = mosipBioDeviceManager.scan(requestDetail);
-		} catch (RegBaseCheckedException | RuntimeException | IOException exception) {
-			exception.printStackTrace();
-
-		}
-		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID, "Leaving Capture Face Method");
-		return captureResponseDto;
+		return  mosipBioDeviceManager.regScan(requestDetail);
 	}
 
 	@Override

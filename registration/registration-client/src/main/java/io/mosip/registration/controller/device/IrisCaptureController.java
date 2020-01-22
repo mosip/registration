@@ -561,10 +561,7 @@ public class IrisCaptureController extends BaseController {
 				scanPopUpViewController.init(this, RegistrationUIConstants.IRIS_SCAN);
 
 				if (bioservice.isMdmEnabled()) {
-					streamer.startStream(new RequestDetail(RegistrationConstants.IRIS_DOUBLE,
-							getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 2,
-							getValueFromApplicationContext(RegistrationConstants.IRIS_THRESHOLD), irisException),
-							scanPopUpViewController.getScanImage(), irisClickedImage);
+					streamer.startStream(RegistrationConstants.IRIS_DOUBLE, scanPopUpViewController.getScanImage(), irisClickedImage);
 				}
 			}
 			// Disable the scan button

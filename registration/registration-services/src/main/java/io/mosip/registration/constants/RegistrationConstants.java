@@ -182,7 +182,7 @@ public class RegistrationConstants {
 	public static final String FACE_STUB = "face";
 	public static final String SUPERVISOR_AUTH = "supervisor";
 	public static final String OFFICER_AUTH = "officer";
-
+	
 	// Authentication Methods
 	public static final String PWORD = "PWD";
 	public static final String OTP = "OTP";
@@ -335,6 +335,7 @@ public class RegistrationConstants {
 	public static final String UIN_UPDATE_GENDER_LBL = "Gender";
 	public static final String MALE_CODE = "MLE";
 	public static final String FEMALE_CODE = "FLE";
+	public static final String STREAMER_THREAD= "STREAMER_THREAD";
 
 	public static final String UIN_UPDATE_PARENT_DETAILS_LBL = "Parent/Guardian details";
 	public static final String UIN_UPDATE_CNIE_NUMBER_LBL = "CNIE/PIN/Residence Card Number";
@@ -1148,6 +1149,7 @@ public class RegistrationConstants {
 	public static final String POSTAL_CODE_REGEX_INITIAL = "\\d{1,5}";
 	public static final String REGEX_ANY = ".*";
 	public static final String ONE = "1";
+	public static final String BIOMETRIC_SEPERATOR = "(?<=\\.)(.*)(?=\\.)";
 
 	// master sync
 	public static final String MASTER_SYNC_SUCESS_MSG_CODE = "REG-MDS‌-001";

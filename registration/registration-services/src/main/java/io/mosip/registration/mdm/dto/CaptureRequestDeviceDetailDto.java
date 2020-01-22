@@ -18,7 +18,7 @@ public class CaptureRequestDeviceDetailDto {
 	private String[] exception;
 	private int requestedScore;
 	private String deviceId;
-	private int deviceSubId;
+	private String deviceSubId;
 	private String previousHash;
 
 }

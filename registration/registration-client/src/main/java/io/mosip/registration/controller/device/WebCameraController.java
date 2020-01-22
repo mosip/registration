@@ -132,7 +132,7 @@ public class WebCameraController extends BaseController implements Initializable
 	}
 
 	@FXML
-	public void captureImage(ActionEvent event) {
+	public void captureImage(ActionEvent event) throws RegBaseCheckedException, IOException {
 		LOGGER.info("REGISTRATION - UI - WEB_CAMERA_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 				"capturing the image from webcam");
 		if (capturedImage != null) {

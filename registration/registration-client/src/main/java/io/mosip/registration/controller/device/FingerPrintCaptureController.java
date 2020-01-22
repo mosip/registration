@@ -950,12 +950,10 @@ public class FingerPrintCaptureController extends BaseController implements Init
 					requestedScore = getValueFromApplicationContext(RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD);
 				}
 				scanPopUpViewController.init(this, RegistrationUIConstants.FINGERPRINT);
-				if (bioService.isMdmEnabled()) {
+				if(bioService.isMdmEnabled()) {
 					LOGGER.info(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 							"Starting the stream....");
-					streamer.startStream(new RequestDetail(findFingerPrintType(FingerType),
-							getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 1, requestedScore,
-							exception), scanPopUpViewController.getScanImage(), imageView);
+					streamer.startStream(findFingerPrintType(FingerType), scanPopUpViewController.getScanImage(),imageView );
 				}
 			}
 
