@@ -21,8 +21,11 @@ import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.core.packet.dto.applicantcategory.ApplicantTypeDocument;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
+import io.mosip.registration.processor.stages.helper.RestHelper;
+import io.mosip.registration.processor.stages.helper.RestHelperImpl;
 import io.mosip.registration.processor.stages.packet.validator.PacketValidateProcessor;
 import io.mosip.registration.processor.stages.packet.validator.PacketValidatorStage;
+import io.mosip.registration.processor.stages.utils.AuditUtility;
 import io.mosip.registration.processor.stages.utils.DocumentUtility;
 import io.mosip.registration.processor.stages.utils.IdObjectsSchemaValidationOperationMapper;
 import io.mosip.registration.processor.stages.utils.RestTemplateInterceptor;
@@ -73,6 +76,16 @@ public class ValidatorConfig {
 		RestTemplate restTemplate = new RestTemplate();
 		restTemplate.setInterceptors(Collections.singletonList(new RestTemplateInterceptor(restApiClient)));
 		return restTemplate;
+	}
+	
+	@Bean
+	public RestHelper getRestHelper() {
+		return new RestHelperImpl();
+	}
+	
+	@Bean
+	public AuditUtility getAuditUtility() {
+		return new AuditUtility();
 	}
 
 	@PostConstruct
