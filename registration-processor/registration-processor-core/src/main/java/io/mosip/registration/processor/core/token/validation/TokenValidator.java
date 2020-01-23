@@ -18,6 +18,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.constant.APIAuthorityList;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.token.validation.dto.TokenResponseDTO;
 import io.mosip.registration.processor.core.token.validation.exception.AccessDeniedException;
@@ -53,7 +54,7 @@ public class TokenValidator {
 			HttpsURLConnection con = (HttpsURLConnection) urlConnection;
 
 			con.setRequestProperty("Cookie", token);
-			con.setRequestMethod("POST");
+			con.setRequestMethod("GET");
 
 			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
 			String inputLine;
@@ -85,6 +86,7 @@ public class TokenValidator {
 		} catch (IOException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new InvalidTokenException(PlatformErrorMessages.RPR_AUT_INVALID_TOKEN.getCode(),e.getMessage());
 		}
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
@@ -132,17 +134,17 @@ public class TokenValidator {
 			}
 		} else if (url.contains("abis")) {
 			for (String assignedRole : APIAuthorityList.ABIS.getList()) {
-				if (role.compareToIgnoreCase(assignedRole) == 0)
+				if (role.contains(assignedRole))
 					return true;
 			}
 		} else if (url.contains("bio")) {
 			for (String assignedRole : APIAuthorityList.BIO.getList()) {
-				if (role.compareToIgnoreCase(assignedRole) == 0)
+				if (role.contains(assignedRole))
 					return true;
 			}
 		} else if (url.contains("uploader")) {
 			for (String assignedRole : APIAuthorityList.PACKETUPLOADER.getList()) {
-				if (role.compareToIgnoreCase(assignedRole) == 0)
+				if (role.contains(assignedRole))
 					return true;
 			}
 		} else if (url.contains("requesthandler")) {
