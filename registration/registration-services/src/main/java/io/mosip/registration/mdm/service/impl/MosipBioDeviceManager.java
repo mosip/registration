@@ -1,6 +1,7 @@
 
 package io.mosip.registration.mdm.service.impl;
 
+import static io.mosip.registration.constants.LoggerConstants.BIO_SERVICE;
 import static io.mosip.registration.constants.LoggerConstants.MOSIP_BIO_DEVICE_MANAGER;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
@@ -277,6 +278,8 @@ public class MosipBioDeviceManager {
 	 */
 	public CaptureResponseDto scan(RequestDetail requestDetail) throws RegBaseCheckedException, IOException {
 
+		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
+				"scan method calling...");
 		BioDevice bioDevice = findDeviceToScan(requestDetail.getType());
 		
 		if (bioDevice != null) {
@@ -286,6 +289,7 @@ public class MosipBioDeviceManager {
 				LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
 					"Device found in the device registery");
 				return bioDevice.capture(requestDetail);
+				
 //			}
 //			throw new RegBaseCheckedException("101", "");
 		} else {
@@ -330,7 +334,7 @@ public class MosipBioDeviceManager {
 	}
 
 	private BioDevice findDeviceToScan(String deviceType) throws RegBaseCheckedException {
-		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID, "Enter scan method");
+		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID, "Entering findDeviceToScan method....");
 
 		/*
 		 * fetch and store the bio device list from MDM if the device registry does not
@@ -357,6 +361,7 @@ public class MosipBioDeviceManager {
 								: deviceId;
 
 		bioDevice.buildDeviceSubId(deviceId);
+		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID, "Leaving findDeviceToScan method....");
 		return bioDevice;
 	}
 

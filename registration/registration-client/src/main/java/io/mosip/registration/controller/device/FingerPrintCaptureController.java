@@ -946,6 +946,8 @@ public class FingerPrintCaptureController extends BaseController implements Init
 				}
 				scanPopUpViewController.init(this, RegistrationUIConstants.FINGERPRINT);
 				if (bioService.isMdmEnabled()) {
+					LOGGER.info(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+							"Starting the stream....");
 					streamer.startStream(new RequestDetail(findFingerPrintType(FingerType),
 							getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 1, requestedScore,
 							exception), scanPopUpViewController.getScanImage(), imageView);
@@ -1002,7 +1004,9 @@ public class FingerPrintCaptureController extends BaseController implements Init
 	 */
 	private void operatorBiometricScan(Stage popupStage) {
 		try {
-
+			LOGGER.info(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+					"Entering into operator Biometric Scan");
+			
 			FingerprintDetailsDTO detailsDTO = null;
 
 			List<FingerprintDetailsDTO> fingerprintDetailsDTOs = getBiometricDTOFromSession().getOperatorBiometricDTO()
@@ -1191,6 +1195,9 @@ public class FingerPrintCaptureController extends BaseController implements Init
 			Stage popupStage, GridPane parentPane, Double thresholdValue, Label attemptSlap)
 			throws RegBaseCheckedException {
 
+		LOGGER.info(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+				"Entering Scan Fingers method");
+		
 		ImageView imageView = fingerImageView;
 		Label qualityScoreLabel = scoreLabel;
 		int attempt = 0;
@@ -1237,7 +1244,8 @@ public class FingerPrintCaptureController extends BaseController implements Init
 
 			// passing the object with details like type, count, exception, requestedScore,
 			// timout,
-
+			LOGGER.info(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+					"Calling FingerPrint ImageAs DTO");
 			bioService.getFingerPrintImageAsDTO(detailsDTO,
 					new RequestDetail(findFingerPrintType(fingerType),
 							getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 1, requestedScore,
