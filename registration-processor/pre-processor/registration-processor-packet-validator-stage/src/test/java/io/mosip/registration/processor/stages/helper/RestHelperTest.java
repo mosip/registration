@@ -51,7 +51,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import io.mosip.registration.processor.stages.dto.RestRequestDTO;
+import io.mosip.registration.processor.stages.dto.AsyncRequestDTO;
 import io.mosip.registration.processor.stages.exception.RestServiceException;
 import io.mosip.registration.processor.stages.utils.AuditUtility;
 import io.netty.handler.ssl.SslContext;
@@ -178,7 +178,7 @@ public class RestHelperTest {
 		//PowerMockito.when(requestHeadersSpec.exchange()).thenReturn(Mono.just(clientResponse));
 		String response = "{\"response\":{\"status\":\"success\"}}";
 		//Mono<? extends ObjectNode> monoResponse= Mono.just(mapper.readValue(response.getBytes(), ObjectNode.class));
-		RestRequestDTO restReqDTO=new RestRequestDTO();
+		AsyncRequestDTO restReqDTO=new AsyncRequestDTO();
 		Map<String, String> pathVariables=new HashMap<>();;
 		restReqDTO.setPathVariables(pathVariables);
 		//restReqDTO.setResponseType(Mockito.any(Class.class));
@@ -209,7 +209,7 @@ public class RestHelperTest {
 		//PowerMockito.when(requestHeadersSpec.exchange()).thenReturn(Mono.just(clientResponse));
 		String response = "{\"response\":{\"status\":\"success\"}}";
 		//Mono<? extends ObjectNode> monoResponse= Mono.just(mapper.readValue(response.getBytes(), ObjectNode.class));
-		RestRequestDTO restReqDTO=new RestRequestDTO();
+		AsyncRequestDTO restReqDTO=new AsyncRequestDTO();
 		Map<String, String> pathVariables=new HashMap<>();;
 		restReqDTO.setPathVariables(pathVariables);
 		HttpHeaders headers = new HttpHeaders();
@@ -243,7 +243,7 @@ public class RestHelperTest {
 		//PowerMockito.when(requestHeadersSpec.exchange()).thenReturn(Mono.just(clientResponse));
 		String response = "{\"response\":{\"status\":\"success\"}}";
 		//Mono<? extends ObjectNode> monoResponse= Mono.just(mapper.readValue(response.getBytes(), ObjectNode.class));
-		RestRequestDTO restReqDTO=new RestRequestDTO();
+		AsyncRequestDTO restReqDTO=new AsyncRequestDTO();
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		restReqDTO.setHeaders(headers);
@@ -284,7 +284,7 @@ public class RestHelperTest {
 		PowerMockito.when(sslContextBuilder.trustManager(Mockito.any(TrustManagerFactory.class)))
 				.thenReturn(sslContextBuilder);
 		PowerMockito.when(sslContextBuilder.build()).thenThrow(new SSLException(""));
-		Object object = restHelper.requestAsync(new RestRequestDTO()).get();
+		Object object = restHelper.requestAsync(new AsyncRequestDTO()).get();
 		if(object instanceof RestServiceException) {
 			RestServiceException restServiceException = (RestServiceException) object;
 			throw restServiceException;

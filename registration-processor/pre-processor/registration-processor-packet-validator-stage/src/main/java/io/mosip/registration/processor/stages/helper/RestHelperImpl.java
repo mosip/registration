@@ -1,11 +1,18 @@
 package io.mosip.registration.processor.stages.helper;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.function.Supplier;
 
+import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLException;
 import javax.validation.Valid;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
@@ -28,7 +35,9 @@ import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.EmptyCheckUtils;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.stages.dto.RestRequestDTO;
+import io.mosip.registration.processor.core.token.validation.dto.TokenResponseDTO;
+import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.stages.dto.AsyncRequestDTO;
 import io.mosip.registration.processor.stages.exception.RestServiceException;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
@@ -43,19 +52,22 @@ public class RestHelperImpl implements RestHelper {
 	private static Logger mosipLogger = RegProcessorLogger.getLogger(RestHelperImpl.class);
 
 	private String authToken;
+
 	@Autowired
 	private Environment env;
+
 	@Autowired
 	private ObjectMapper mapper;
 
 	@Override
-	public Supplier<Object> requestAsync(@Valid RestRequestDTO request) {
+	public Supplier<Object> requestAsync(@Valid AsyncRequestDTO request) {
 		try {
 			Mono<?> sendRequest = request(request, getSslContext());
 			sendRequest.subscribe();
 			return () -> sendRequest.block();
-		} catch (RestServiceException e) {
-			System.out.println(ExceptionUtils.getStackTrace(e));
+		} catch (RestServiceException | IOException e) {
+			mosipLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+					"RestHelperImpl::SslContext()::error");
 			return () -> new RestServiceException("UNABLE_TO_PROCESS", e);
 		}
 	}
@@ -64,12 +76,13 @@ public class RestHelperImpl implements RestHelper {
 		try {
 			return SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build();
 		} catch (SSLException e) {
-			System.out.println(ExceptionUtils.getStackTrace(e));
+			mosipLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+					"RestHelperImpl::SslContext()::error");
 			throw new RestServiceException("UNKNOWN_ERROR", e);
 		}
 	}
 
-	private Mono<?> request(RestRequestDTO request, SslContext sslContext) {
+	private Mono<?> request(AsyncRequestDTO request, SslContext sslContext) throws IOException {
 		WebClient webClient;
 		Mono<?> monoResponse;
 		RequestBodySpec uri;
@@ -109,16 +122,50 @@ public class RestHelperImpl implements RestHelper {
 		return monoResponse;
 	}
 
-	private String getAuthToken() {
+	private String getAuthToken() throws IOException {
 		if (EmptyCheckUtils.isNullEmpty(authToken)) {
-			generateAuthToken();
-			return authToken;
+			String existingToken = System.getProperty("test");
+			String token = validate(existingToken) ? existingToken : generateAuthToken();
+			return token;
 		} else {
 			return authToken;
 		}
 	}
 
-	private void generateAuthToken() {
+	public boolean validate(String token) throws IOException {
+
+		if (token == null)
+			return false;
+		URL obj = new URL(env.getProperty("TOKENVALIDATE"));
+		URLConnection urlConnection = obj.openConnection();
+		HttpsURLConnection con = (HttpsURLConnection) urlConnection;
+
+		con.setRequestProperty("Cookie", token);
+		con.setRequestMethod("POST");
+
+		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+		String inputLine;
+		StringBuffer response = new StringBuffer();
+
+		while ((inputLine = in.readLine()) != null) {
+			response.append(inputLine);
+		}
+		in.close();
+
+		InputStream responseStream = new ByteArrayInputStream(response.toString().getBytes());
+		TokenResponseDTO tokenResponseDTO = (TokenResponseDTO) JsonUtil.inputStreamtoJavaObject(responseStream,
+				TokenResponseDTO.class);
+		if (tokenResponseDTO == null)
+			return false;
+
+		if (tokenResponseDTO.getErrors() != null)
+			return false;
+		return true;
+
+	}
+
+	private String generateAuthToken() {
+
 		ObjectNode requestBody = mapper.createObjectNode();
 		requestBody.put("clientId", env.getProperty("token.request.clientId"));
 		requestBody.put("secretKey", env.getProperty("token.request.secretKey"));
@@ -134,7 +181,7 @@ public class RestHelperImpl implements RestHelper {
 					&& responseBody.get("response").get("status").asText().equalsIgnoreCase("success")) {
 				ResponseCookie responseCookie = response.cookies().get("Authorization").get(0);
 				authToken = responseCookie.getValue();
-
+				return authToken;
 			} else {
 				mosipLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 						"", "Auth token generation failed: " + response);
@@ -144,6 +191,7 @@ public class RestHelperImpl implements RestHelper {
 					"AuthResponse : status-" + response.statusCode() + " :\n"
 							+ response.toEntity(String.class).block().getBody());
 		}
+		return authToken;
 	}
 
 }

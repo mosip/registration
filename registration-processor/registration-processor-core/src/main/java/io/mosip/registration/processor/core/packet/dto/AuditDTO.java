@@ -2,6 +2,7 @@ package io.mosip.registration.processor.core.packet.dto;
 
 import java.time.LocalDateTime;
 
+import io.mosip.kernel.core.http.RequestWrapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -15,10 +16,9 @@ import lombok.NoArgsConstructor;
  *
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuditDTO extends BaseDTO {
+public class AuditDTO {
 	protected String uuid;
 	protected LocalDateTime createdAt;
 	protected String eventId;

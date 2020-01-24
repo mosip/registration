@@ -2,7 +2,7 @@ package io.mosip.registration.processor.stages.helper;
 
 import java.util.function.Supplier;
 
-import io.mosip.registration.processor.stages.dto.RestRequestDTO;
+import io.mosip.registration.processor.stages.dto.AsyncRequestDTO;
 
 /*
  * The class RestHelper
@@ -17,5 +17,5 @@ public interface RestHelper {
 	 * @return the supplier
 	 */
 
-	Supplier<Object> requestAsync(RestRequestDTO request);
+	Supplier<Object> requestAsync(AsyncRequestDTO request);
 }

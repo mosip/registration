@@ -12,7 +12,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.util.MultiValueMap;
 
 @Data
-public class RestRequestDTO {
+public class AsyncRequestDTO {
 
 	@Pattern(regexp = "<\\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]>", message = "{mosip.rest.request.uri.message}")
 	@NotNull

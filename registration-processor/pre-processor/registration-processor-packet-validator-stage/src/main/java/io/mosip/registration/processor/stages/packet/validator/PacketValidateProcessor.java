@@ -209,7 +209,7 @@ public class PacketValidateProcessor {
 			Boolean isValid = validate(registrationStatusDto, packetMetaInfo, object, identityIteratorUtil,
 					packetValidationDto);
 			if (isValid) {
-
+			
 				// save audit details
 				Runnable r = () -> {
 					try {
