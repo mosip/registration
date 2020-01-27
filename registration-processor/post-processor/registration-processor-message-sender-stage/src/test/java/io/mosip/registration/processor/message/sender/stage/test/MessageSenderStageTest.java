@@ -47,6 +47,8 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.message.sender.dto.MessageSenderDto;
+import io.mosip.registration.processor.message.sender.exception.EmailIdNotFoundException;
+import io.mosip.registration.processor.message.sender.exception.PhoneNumberNotFoundException;
 import io.mosip.registration.processor.message.sender.stage.MessageSenderStage;
 import io.mosip.registration.processor.message.sender.utility.NotificationTemplateCode;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -347,7 +349,7 @@ public class MessageSenderStageTest {
 
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
 		// Mockito.when(registrationStatusDto.getStatusCode()).thenReturn(RegistrationStatusCode.PACKET_UIN_UPDATION_SUCCESS.name());
-		Mockito.when(registrationStatusDto.getRegistrationType()).thenReturn("UPDATE");
+		Mockito.when(registrationStatusDto.getRegistrationType()).thenReturn("DEACTIVATED");
 		Mockito.when(registrationStatusDto.getStatusCode()).thenReturn(RegistrationStatusCode.PROCESSED.name());
 		Mockito.when(registrationStatusDto.getLatestTransactionTypeCode())
 				.thenReturn(RegistrationTransactionTypeCode.UIN_GENERATOR.name());
@@ -832,5 +834,86 @@ public class MessageSenderStageTest {
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getIsValid());
 	}
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testMessageUpdateEmailIdNotFoundException() throws Exception {
+		ResponseWrapper<TemplateResponseDto> responseWrapper = new ResponseWrapper<>();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
 
+		TemplateDto templateDto = new TemplateDto();
+		TemplateDto templateDto1 = new TemplateDto();
+		Mockito.doReturn(NotificationTemplateCode.RPR_LOST_UIN_EMAIL).when(messageSenderDto).getEmailTemplateCode();
+		Mockito.doReturn(NotificationTemplateCode.RPR_LOST_UIN_SMS).when(messageSenderDto).getSmsTemplateCode();
+		Mockito.when(messageSenderDto.getIdType()).thenReturn(IdType.UIN);
+		Mockito.when(messageSenderDto.getSubject()).thenReturn("");
+		Mockito.when(messageSenderDto.isTemplateAvailable()).thenReturn(Boolean.TRUE);
+		templateDto.setTemplateTypeCode("RPR_LOST_UIN_SMS");
+		List<TemplateDto> list = new ArrayList<TemplateDto>();
+		list.add(templateDto);
+		templateDto1.setTemplateTypeCode("RPR_LOST_UIN_EMAIL");
+		list.add(templateDto1);
+		templateResponseDto.setTemplates(list);
+		String s = templateResponseDto.toString();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(responseWrapper);
+		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
+		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusDto.getStatusCode()).thenReturn(RegistrationStatusCode.PROCESSED.name());
+		Mockito.when(registrationStatusDto.getLatestTransactionTypeCode())
+				.thenReturn(RegistrationTransactionTypeCode.UIN_GENERATOR.name());
+		Mockito.when(registrationStatusDto.getRegistrationType()).thenReturn("LOST");
+		Mockito.when(registrationStatusDto.getLatestTransactionStatusCode())
+				.thenReturn(RegistrationTransactionStatusCode.PROCESSED.name());
+		EmailIdNotFoundException e = new EmailIdNotFoundException();
+		Mockito.doReturn("success").when(smsResponseDto).getStatus();
+		Mockito.doReturn("success").when(responseDto).getStatus();
+		Mockito.doThrow(e).when(service).sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any());
+
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("85425022110000120190117110505");
+		MessageDTO result = stage.process(dto);
+		assertFalse(result.getIsValid());
+	}
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testMessageUpdatePhoneNumberNotFoundException() throws Exception {
+		ResponseWrapper<TemplateResponseDto> responseWrapper = new ResponseWrapper<>();
+		TemplateResponseDto templateResponseDto = new TemplateResponseDto();
+
+		TemplateDto templateDto = new TemplateDto();
+		TemplateDto templateDto1 = new TemplateDto();
+		Mockito.doReturn(NotificationTemplateCode.RPR_LOST_UIN_EMAIL).when(messageSenderDto).getEmailTemplateCode();
+		Mockito.doReturn(NotificationTemplateCode.RPR_LOST_UIN_SMS).when(messageSenderDto).getSmsTemplateCode();
+		Mockito.when(messageSenderDto.getIdType()).thenReturn(IdType.UIN);
+		Mockito.when(messageSenderDto.getSubject()).thenReturn("");
+		Mockito.when(messageSenderDto.isTemplateAvailable()).thenReturn(Boolean.TRUE);
+		templateDto.setTemplateTypeCode("RPR_LOST_UIN_SMS");
+		List<TemplateDto> list = new ArrayList<TemplateDto>();
+		list.add(templateDto);
+		templateDto1.setTemplateTypeCode("RPR_LOST_UIN_EMAIL");
+		list.add(templateDto1);
+		templateResponseDto.setTemplates(list);
+		String s = templateResponseDto.toString();
+		responseWrapper.setResponse(templateResponseDto);
+		responseWrapper.setErrors(null);
+		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(responseWrapper);
+		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
+		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusDto.getStatusCode()).thenReturn(RegistrationStatusCode.PROCESSED.name());
+		Mockito.when(registrationStatusDto.getLatestTransactionTypeCode())
+				.thenReturn(RegistrationTransactionTypeCode.UIN_GENERATOR.name());
+		Mockito.when(registrationStatusDto.getRegistrationType()).thenReturn("LOST");
+		Mockito.when(registrationStatusDto.getLatestTransactionStatusCode())
+				.thenReturn(RegistrationTransactionStatusCode.PROCESSED.name());
+		PhoneNumberNotFoundException e = new PhoneNumberNotFoundException();
+		Mockito.doThrow(e).when(service).sendSmsNotification(any(), any(), any(), any(), any());
+
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("85425022110000120190117110505");
+		MessageDTO result = stage.process(dto);
+		assertFalse(result.getIsValid());
+	}
 }

@@ -64,6 +64,7 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.print.exception.QueueConnectionNotFound;
+import io.mosip.registration.processor.print.service.exception.PDFSignatureException;
 import io.mosip.registration.processor.print.service.impl.PrintPostServiceImpl;
 import io.mosip.registration.processor.print.stage.PrintStage;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -715,5 +716,20 @@ public class PrintStageTest {
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getIsValid());
 	}
+	@Test
+	public void testPDFSignatureException() {
 
+		PDFSignatureException e = new PDFSignatureException(null, null);
+		Mockito.doThrow(e).when(printService).getDocuments(any(), anyString(), anyString(), anyBoolean());
+
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890987654321");
+		dto.setReg_type(RegistrationType.NEW);
+		List<String> uinList = new ArrayList<>();
+		uinList.add("3051738163");
+		// Mockito.when(packetInfoManager.getUINByRid("1234567890987654321")).thenReturn(uinList);
+		doNothing().when(printPostService).generatePrintandPostal(any(), any(), any());
+		MessageDTO result = stage.process(dto);
+		assertTrue(result.getInternalError());
+	}
 }
