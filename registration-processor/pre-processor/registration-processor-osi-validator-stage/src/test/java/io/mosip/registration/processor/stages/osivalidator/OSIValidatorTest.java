@@ -468,6 +468,8 @@ public class OSIValidatorTest {
 		Mockito.when(osiUtils.getMetaDataValue(anyString(), any())).thenReturn("2015/01/01");
 		registrationStatusDto.setStatusCode("FAILED");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(
+				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
 		osiValidator.isValidOSI("reg1234", registrationStatusDto);
 	}
 
@@ -482,6 +484,8 @@ public class OSIValidatorTest {
 		introducerRegistrationStatusDto.setStatusCode((RegistrationStatusCode.PROCESSING.toString()));
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
 				.thenReturn(introducerRegistrationStatusDto);
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(
+				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
 		osiValidator.isValidOSI("reg1234", registrationStatusDto);
 	}
 
@@ -491,7 +495,9 @@ public class OSIValidatorTest {
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
 		registrationStatusDto.setRegistrationType("NEW");
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(
+				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
 		osiValidator.isValidOSI("reg1234", registrationStatusDto);
 	}
 
@@ -518,7 +524,9 @@ public class OSIValidatorTest {
 		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
 		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(
 				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
-
+		registrationStatusDto.setStatusCode("PROCESSED");
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn(123456789);
 		boolean isValid = osiValidator.isValidOSI("reg1234", registrationStatusDto);
 
 		assertTrue(isValid);
@@ -542,6 +550,8 @@ public class OSIValidatorTest {
 
 	@Test
 	public void testIntroducerAuthFalse() throws Exception {
+		registrationStatusDto.setStatusCode("PROCESSED");
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.when(osiUtils.getMetaDataValue(anyString(), any())).thenReturn("2015/01/01");
 		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(
 				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
@@ -552,7 +562,7 @@ public class OSIValidatorTest {
 		authResponseDTO1.setResponse(responseDTO);
 		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO)
 				.thenReturn(authResponseDTO1);
-
+		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn(123456789);
 		boolean isValid = osiValidator.isValidOSI("reg1234", registrationStatusDto);
 
 		assertFalse(isValid);
@@ -565,6 +575,8 @@ public class OSIValidatorTest {
 		introducerRegistrationStatusDto.setStatusCode((RegistrationStatusCode.PROCESSED.toString()));
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
 				.thenReturn(introducerRegistrationStatusDto);
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(
+				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
 		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn(null);
 		osiValidator.isValidOSI("reg1234", registrationStatusDto);
 	}

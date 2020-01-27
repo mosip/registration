@@ -293,5 +293,15 @@ public class QualityCheckerStageTest {
 		}
 		return birList;
 	}
+	@Test
+	public void testQualityCheckfailureException() throws BiometricException, PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException {
+		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		Mockito.when(adapter.getFile(any(), any())).thenReturn(null);
 
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890");
+		MessageDTO result = qualityCheckerStage.process(dto);
+
+		assertTrue(result.getInternalError());
+	}
 }
