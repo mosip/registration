@@ -76,7 +76,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 		} catch (UnknownHostException e1) {
 			throw new DeploymentFailureException(PlatformErrorMessages.RPR_CMB_MALFORMED_URL_EXCEPTION.getMessage());
 		}
-		VertxOptions options = new VertxOptions().setClustered(true).setClusterManager(clusterManager)
+		VertxOptions options = new VertxOptions().setBlockedThreadCheckInterval(10000000000l).setWarningExceptionTime(20000000000l).setClustered(true).setClusterManager(clusterManager)
 				.setHAEnabled(false).setWorkerPoolSize(instanceNumber)
 				.setEventBusOptions(new EventBusOptions().setPort(getEventBusPort()).setHost(address));
 		Vertx.clusteredVertx(options, result -> {
