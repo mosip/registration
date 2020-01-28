@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.crypto.jce.core.CryptoCore;
 import io.mosip.kernel.crypto.jce.util.JWSValidation;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
@@ -60,7 +61,7 @@ public class MosipBioDeviceIntegratorImpl implements IMosipBioDeviceIntegrator {
 	protected ServiceDelegateUtil serviceDelegateUtil;
 	
 	@Autowired
-	private JWSValidation jwsValidation;
+	private CryptoCore jwsValidation;
 
 	/*
 	 * (non-Javadoc)
@@ -237,7 +238,6 @@ public class MosipBioDeviceIntegratorImpl implements IMosipBioDeviceIntegrator {
 
 	@Override
 	public boolean jwsValidation(String jwsResponse) {
-
 		return jwsValidation.verifySignature(jwsResponse);
 	}
 }
