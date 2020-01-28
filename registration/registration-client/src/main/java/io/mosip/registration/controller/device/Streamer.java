@@ -113,7 +113,8 @@ public class Streamer {
 					}
 
 					setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_PREP_MESSAGE, false);
-
+					LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
+							"Constructing Stream URL Started");
 					urlStream = mosipBioDeviceManager.stream(requestDetail);
 					if (urlStream == null) {
 

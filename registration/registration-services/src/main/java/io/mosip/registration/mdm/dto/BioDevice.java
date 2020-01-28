@@ -24,12 +24,18 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.constants.MosipBioDeviceConstants;
 import io.mosip.registration.mdm.integrator.IMosipBioDeviceIntegrator;
+import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
 import io.mosip.registration.mdm.util.MdmRequestResponseBuilder;
 import lombok.Getter;
 import lombok.Setter;
+
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 /**
  * Holds the Biometric Device details
@@ -74,10 +80,11 @@ public class BioDevice {
 		}
 	};
 
+	private static final Logger LOGGER = AppConfig.getLogger(BioDevice.class);
 	private IMosipBioDeviceIntegrator mosipBioDeviceIntegrator;
 
 	public CaptureResponseDto capture(RequestDetail requestDetail) throws RegBaseCheckedException, IOException {
-
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Entering into Capture method.....");
 		String url = runningUrl + ":" + runningPort + "/" + MosipBioDeviceConstants.CAPTURE_ENDPOINT;
 
 		CaptureResponseDto captureResponse = null;
@@ -89,18 +96,23 @@ public class BioDevice {
 		requestBody = mapper.writeValueAsString(mosipBioCaptureRequestDto);
 		CloseableHttpClient client = HttpClients.createDefault();
 		StringEntity requestEntity = new StringEntity(requestBody, ContentType.create("Content-Type", Consts.UTF_8));
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Bulding capture url....");
 		HttpUriRequest request = RequestBuilder.create(requestDetail.getMosipProcess().equals("Registration")?"RCAPTURE":"CAPTURE").setUri(url).setEntity(requestEntity).build();
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Requesting capture url....");
 		CloseableHttpResponse response = client.execute(request);
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Request completed.... ");
 		captureResponse = mapper.readValue(EntityUtils.toString(response.getEntity()).getBytes(StandardCharsets.UTF_8),
 				CaptureResponseDto.class);
-
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Response Recived.... ");
 		decode(captureResponse);
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Response Decode and leaving the method.... ");
 		return captureResponse;
 
 	}
 
 	private void decode(CaptureResponseDto mosipBioCaptureResponseDto)
 			throws IOException, JsonParseException, JsonMappingException {
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Entering into Decode Method.... ");
 		ObjectMapper mapper = new ObjectMapper();
 		if (null != mosipBioCaptureResponseDto && null != mosipBioCaptureResponseDto.getMosipBioDeviceDataResponses()) {
 			for (CaptureResponseBioDto captureResponseBioDto : mosipBioCaptureResponseDto
@@ -115,6 +127,7 @@ public class BioDevice {
 				}
 			}
 		}
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Leaving into Decode Method.... ");
 	}
 
 	public InputStream stream(RequestDetail requestDetail) throws IOException {

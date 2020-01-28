@@ -276,7 +276,8 @@ public class BioServiceImpl extends BaseService implements BioService {
 	 */
 	public void getFingerPrintImageAsDTOWithMdm(FingerprintDetailsDTO fpDetailsDTO, RequestDetail requestDetail,
 			int attempt) throws RegBaseCheckedException, IOException {
-
+		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+				"Entering into getFingerPrintImageAsDTOWithMdm method..");
 		CaptureResponseDto captureResponseDto = mosipBioDeviceManager.scan(requestDetail);
 		if (captureResponseDto == null)
 			throw new RegBaseCheckedException("202", "Decice is not available");
@@ -315,6 +316,8 @@ public class BioServiceImpl extends BaseService implements BioService {
 		fpDetailsDTO.setCaptured(true);
 		fpDetailsDTO.setFingerType(requestDetail.getType());
 		fpDetailsDTO.setQualityScore(slapQuality);
+		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+				"Leaving getFingerPrintImageAsDTOWithMdm..");
 	}
 
 	/**
@@ -435,6 +438,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	 */
 	public void getFingerPrintImageAsDTO(FingerprintDetailsDTO fpDetailsDTO, RequestDetail requestDetail, int attempt)
 			throws RegBaseCheckedException, IOException {
+		LOGGER.info(LOG_REG_FINGERPRINT_FACADE, APPLICATION_NAME, APPLICATION_ID, "Entering into BioServiceImpl-FingerPrintImageAsDTO");
 		if (isNull(requestDetail.getType()))
 			throwRegBaseCheckedException(
 					RegistrationExceptionConstants.REG_MASTER_BIO_SERVICE_IMPL_FINGERPRINT_IMAGE_TYPE);
@@ -443,6 +447,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 			getFingerPrintImageAsDTOWithMdm(fpDetailsDTO, requestDetail, attempt);
 		else
 			getFingerPrintImageAsDTONonMdm(fpDetailsDTO, requestDetail);
+		LOGGER.info(LOG_REG_FINGERPRINT_FACADE, APPLICATION_NAME, APPLICATION_ID, "Leaving BioServiceImpl-FingerPrintImageAsDTO");
 	}
 
 	/**
@@ -686,7 +691,8 @@ public class BioServiceImpl extends BaseService implements BioService {
 	 */
 	private void getIrisImageAsDTOWithMdm(IrisDetailsDTO detailsDTO, RequestDetail requestDetail, int leftEyeAttempt,
 			int rightEyeAttempt) throws RegBaseCheckedException, IOException {
-
+		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+				"Entering into getIrisImageAsDTOWithMdm method..");
 		if (isNull(requestDetail.getType()))
 			throwRegBaseCheckedException(RegistrationExceptionConstants.REG_MASTER_BIO_SERVICE_IMPL_IRIS_IMAGE);
 		requestDetail.setType(RegistrationConstants.IRIS_DOUBLE);
@@ -724,6 +730,8 @@ public class BioServiceImpl extends BaseService implements BioService {
 			
 		});
 		detailsDTO.setCaptured(true);
+		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+				"Leaving into getIrisImageAsDTOWithMdm method..");
 	}
 
 	/**
@@ -852,7 +860,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	@Override
 	public CaptureResponseDto captureFace(RequestDetail requestDetail) {
 
-		LOGGER.info(LOG_REG_IRIS_FACADE, APPLICATION_NAME, APPLICATION_ID, "Stub data for Face");
+		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID, "Entering Capture Face Method");
 		CaptureResponseDto captureResponseDto = null;
 		try {
 			captureResponseDto = mosipBioDeviceManager.scan(requestDetail);
@@ -860,6 +868,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 			exception.printStackTrace();
 
 		}
+		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID, "Leaving Capture Face Method");
 		return captureResponseDto;
 	}
 
