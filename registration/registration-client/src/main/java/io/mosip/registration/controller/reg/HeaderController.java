@@ -28,6 +28,7 @@ import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.RestartController;
 import io.mosip.registration.controller.auth.LoginController;
+import io.mosip.registration.controller.device.Streamer;
 import io.mosip.registration.controller.device.WebCameraController;
 import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dto.ErrorResponseDTO;
@@ -144,6 +145,9 @@ public class HeaderController extends BaseController {
 
 	@Autowired
 	private WebCameraController webCameraController;
+	
+	@Autowired
+	private Streamer streamer;
 
 	/**
 	 * Mapping Registration Officer details
@@ -186,6 +190,7 @@ public class HeaderController extends BaseController {
 	 *            logout event
 	 */
 	public void logout(ActionEvent event) {
+		streamer.stop();
 		if (pageNavigantionAlert()) {
 			auditFactory.audit(AuditEvent.LOGOUT_USER, Components.NAVIGATION, SessionContext.userContext().getUserId(),
 					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
