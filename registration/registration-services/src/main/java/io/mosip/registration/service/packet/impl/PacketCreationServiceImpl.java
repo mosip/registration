@@ -752,7 +752,7 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 	}
 
 	private boolean validateFace(FaceDetailsDTO face) {
-		return face == null || face.getFace() == null;
+		return face == null || face.getFaceISO() == null;
 	}
 
 	private boolean isBiometricCaptured(BiometricInfoDTO biometrics) {
