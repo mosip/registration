@@ -1043,7 +1043,9 @@ public static void clearBIOStreamImagesByBioType(List<String> captures) {
 				"Get Stream  Quality Score of : " + bioType + " for attempt : " + attempt);
 
 		if (BIO_STREAM_IMAGES.get(bioType) != null) {
-			return BIO_STREAM_IMAGES.get(bioType).get(attempt);
+			if(!(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER))
+				return BIO_STREAM_IMAGES.get(bioType).get(attempt);
+			return BIO_STREAM_IMAGES.get(bioType).get(1);
 		}
 
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
