@@ -626,7 +626,7 @@ public class UMCValidator {
 				} else {
 					isDeviceValid = false;
 					List<ErrorDTO> error = responseWrapper.getErrors();
-					registrationStatusDto.setStatusComment(error.get(0).getMessage());
+					registrationStatusDto.setStatusComment(error.get(0).getMessage()+ " " +"for" +" " +deviceDetails.getDigitalId().getType());
 					registrationStatusDto.setSubStatusCode(StatusUtil.DEVICE_VALIDATION_FAILED.getCode());
 					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
