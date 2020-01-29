@@ -111,6 +111,7 @@ public class OSIValidatorStageTest {
 
 		ReflectionTestUtils.setField(osiValidatorStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(osiValidatorStage, "clusterManagerUrl", "/dummyPath");
+		ReflectionTestUtils.setField(osiValidatorStage, "validateUMC", true);
 
 		@SuppressWarnings("unchecked")
 		RegistrationProcessorRestClientService<Object> mockObj = Mockito
@@ -280,6 +281,22 @@ public class OSIValidatorStageTest {
 
 		registrationStatusDto.setRetryCount(1);
 		Mockito.when(oSIValidator.isValidOSI(anyString(), any(InternalRegistrationStatusDto.class))).thenReturn(Boolean.FALSE);
+
+		MessageDTO messageDto = osiValidatorStage.process(dto);
+
+		assertFalse(messageDto.getIsValid());
+	}
+	/**
+	 * Testis valid OSI failure.
+	 *
+	 * @throws Exception
+	 *             the exception
+	 */
+	@Test
+	public void testisValidUMCFailureWithRetryCount() throws Exception {
+
+		registrationStatusDto.setRetryCount(1);
+		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class))).thenReturn(Boolean.FALSE);
 
 		MessageDTO messageDto = osiValidatorStage.process(dto);
 
