@@ -279,7 +279,9 @@ public class MosipBioDeviceManager {
 	public CaptureResponseDto scan(RequestDetail requestDetail) throws RegBaseCheckedException, IOException {
 
 		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
-				"scan method calling...");
+				"scan method calling..."+  System.currentTimeMillis());
+		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
+				"Finding the device from device Registry Started..."+  System.currentTimeMillis());
 		BioDevice bioDevice = findDeviceToScan(requestDetail.getType());
 		
 		if (bioDevice != null) {
@@ -287,14 +289,16 @@ public class MosipBioDeviceManager {
 //			if(registeredDeviceDAO.getRegisteredDevices(bioDevice.getDeviceId()).size()>0) {
 			
 				LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
-					"Device found in the device registery");
+					"Device found in the device registery..."+  System.currentTimeMillis());
+				LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
+						"If Device Found next capture is being called..."+  System.currentTimeMillis());
 				return bioDevice.capture(requestDetail);
 				
 //			}
 //			throw new RegBaseCheckedException("101", "");
 		} else {
 			LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
-					"Device not found in the device registery");
+					"Device not found in the device registery - scan"+  System.currentTimeMillis());
 			return null;
 		}
 
@@ -312,7 +316,8 @@ public class MosipBioDeviceManager {
 	 * @throws IOException
 	 */
 	public CaptureResponseDto authScan(RequestDetail requestDetail) throws RegBaseCheckedException, IOException {
-
+		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
+				"Entering into Auth Scan Method..."+ System.currentTimeMillis());	
 		BioDevice bioDevice = findDeviceToScan(requestDetail.getType());
 		InputStream streaming =  stream(requestDetail);
 		if (bioDevice != null) {
@@ -323,18 +328,20 @@ public class MosipBioDeviceManager {
 				streaming.close();	
 
 			}
+			LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
+					"Leaving Auth Scan Method..."+ System.currentTimeMillis());
 			return captureResponse;
 
 		} else {
 			LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
-					"Device not found in the device registery");
+					"Device not found in the device registery - authScan" + System.currentTimeMillis());
 			return null;
 		}
 
 	}
 
 	private BioDevice findDeviceToScan(String deviceType) throws RegBaseCheckedException {
-		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID, "Entering findDeviceToScan method....");
+		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID, "Entering findDeviceToScan method...." + System.currentTimeMillis());
 
 		/*
 		 * fetch and store the bio device list from MDM if the device registry does not
@@ -361,7 +368,7 @@ public class MosipBioDeviceManager {
 								: deviceId;
 
 		bioDevice.buildDeviceSubId(deviceId);
-		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID, "Leaving findDeviceToScan method....");
+		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID, "Leaving findDeviceToScan method...." + System.currentTimeMillis());
 		return bioDevice;
 	}
 
