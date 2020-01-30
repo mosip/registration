@@ -211,7 +211,7 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 		 * final clean up if no packets are pending to be sent and processed by reg
 		 * processor
 		 */
-		if (!isPacketsPendingForProcessing()) {
+		if (!isPacketsPendingForProcessing() && !isPacketsPendingForReRegister()) {
 			/* clean up all the pre reg data and previous center data */
 			cleanUpRemappedMachineData();
 			LOGGER.info("REGISTRATION CENTER MACHINE REMAP : ", APPLICATION_NAME, APPLICATION_ID,
@@ -222,7 +222,7 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 			 * enabling all the jobs after all the clean up activities for the previous
 			 * center
 			 */
-			if (!isPacketsPendingForProcessing()) {
+			if (!isPacketsPendingForProcessing() && !isPacketsPendingForReRegister()) {
 				/* enable intial set up flag */
 				globalParamService.update(RegistrationConstants.INITIAL_SETUP, RegistrationConstants.ENABLE);
 				/* disable the remap flag after completing the remap process */
