@@ -1529,8 +1529,8 @@ public class RegistrationConstants {
 			put("Right Middle", "Right MiddleFinger");
 			put("Right Ring", "Right RingFinger");
 			put("Right Thumb", "Right Thumb");
-			put("Left Iris", "Left Iris");
-			put("Right Iris", "Right Iris");
+			put("Left Iris", "Left");
+			put("Right Iris", "Right");
 
 		}
 
