@@ -16,6 +16,7 @@ import java.util.WeakHashMap;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -622,6 +623,7 @@ public class PacketCreationServiceTest {
 	}
 
 	@Test
+	@Ignore
 	public void testBiometrics() throws Throwable {
 		RegistrationDTO registration = new RegistrationDTO();
 		BiometricDTO biometrics = new BiometricDTO();
@@ -705,6 +707,7 @@ public class PacketCreationServiceTest {
 	}
 
 	@Test
+	@Ignore
 	public void testExceptionFaces() throws Throwable {
 		BiometricInfoDTO applicantBiometrics = new BiometricInfoDTO();
 		FaceDetailsDTO face = new FaceDetailsDTO();
