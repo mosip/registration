@@ -495,8 +495,8 @@
                               </GridPane>
                               <GridPane GridPane.rowIndex="2">
                                  <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="70.0" prefWidth="100.0" />
-                                    <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" percentWidth="30.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="80.0" prefWidth="100.0" />
+                                    <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" percentWidth="20.0" prefWidth="100.0" />
                                  </columnConstraints>
                                  <rowConstraints>
                                     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
@@ -538,7 +538,7 @@
                                     </GridPane>
                                     <GridPane>
                                       <columnConstraints>
-                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="40.0" prefWidth="100.0" />
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="20.0" prefWidth="100.0" />
                                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="80.0" prefWidth="100.0" />
                                       </columnConstraints>
                                       <rowConstraints>
@@ -559,8 +559,9 @@
                                           <GridPane fx:id="parentProgressPane" GridPane.columnIndex="1">
                                             <columnConstraints>
                                               <ColumnConstraints hgrow="SOMETIMES" percentWidth="20.0" />
-                                              <ColumnConstraints hgrow="SOMETIMES" percentWidth="60.0" />
-                                                <ColumnConstraints hgrow="SOMETIMES" percentWidth="20.0" />
+                                              <ColumnConstraints hgrow="SOMETIMES" percentWidth="50.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="10.0" prefWidth="100.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" percentWidth="30.0" />
                                             </columnConstraints>
                                             <rowConstraints>
                                                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
@@ -586,6 +587,8 @@
                                                       <AnchorPane fx:id="thresholdBar" prefHeight="200.0" prefWidth="200.0" />
                                                    </children>
                                                 </GridPane>
+                                                <Label fx:id="captureTimeLabel" alignment="CENTER" contentDisplay="CENTER" prefHeight="26.0" prefWidth="111.0" styleClass="qualityBoxLabel" text="%captureTime" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                                                <Label fx:id="captureTimeValue" alignment="CENTER" contentDisplay="CENTER" prefHeight="28.0" prefWidth="92.0" styleClass="qualityBoxLabel" text="" GridPane.columnIndex="3" GridPane.rowIndex="2" />
                                              </children>
                                           </GridPane>
                                        </children>
@@ -598,7 +601,7 @@
                                        <GridPane.margin>
                                           <Insets />
                                        </GridPane.margin></Label>
-                                    <Label fx:id="dedupeMessage"  alignment="CENTER" contentDisplay="CENTER" styleClass="paneHeader" text="%dedupeMessage" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.valignment="CENTER" visible="false">
+                                    <Label fx:id="dedupeMessage" alignment="CENTER" contentDisplay="CENTER" styleClass="paneHeader" text="%dedupeMessage" visible="false" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.valignment="CENTER">
                                        <GridPane.margin>
                                           <Insets />
                                        </GridPane.margin></Label>

@@ -1,12 +1,12 @@
 package io.mosip.registration.controller.device;
 
-import static io.mosip.registration.constants.LoggerConstants.LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER;
-import static io.mosip.registration.constants.LoggerConstants.LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER;
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_IRIS_CAPTURE_CONTROLLER;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -37,7 +37,6 @@ import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.mdm.dto.RequestDetail;
 import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
 import io.mosip.registration.service.bio.BioService;
-import io.mosip.registration.service.bio.impl.BioServiceImpl;
 import io.mosip.registration.service.security.AuthenticationService;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -146,6 +145,9 @@ public class IrisCaptureController extends BaseController {
 	private ImageView startOverImageView;
 	@FXML
 	private Button startOverBtn;
+	@FXML
+	private Label captureTimeValue;
+
 
 	private int leftIrisCount;
 
@@ -580,6 +582,7 @@ public class IrisCaptureController extends BaseController {
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_IRIS_SCAN_POPUP);
 		}
 	}
+	
 
 	@Override
 	public void scan(Stage popupStage) {
@@ -611,13 +614,16 @@ public class IrisCaptureController extends BaseController {
 
 			int leftEyeAttempt = leftTempIrisDetail != null ? leftTempIrisDetail.getNumOfIrisRetry() + 1 : 1;
 			int rightEyeAttempt = rightTempIrisDetail != null ? rightTempIrisDetail.getNumOfIrisRetry() + 1 : 1;
-
+			Instant start = null;
+			Instant end = null;
 			try {
+				start = Instant.now();
 				bioservice.getIrisImageAsDTO(irisDetailsDTO,
 						new RequestDetail(irisType.concat(RegistrationConstants.EYE),
 								getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 2,
 								getValueFromApplicationContext(RegistrationConstants.IRIS_THRESHOLD), irisException),
 						leftEyeAttempt, rightEyeAttempt);
+				end = Instant.now();
 				streamer.stop();
 			} catch (RegBaseCheckedException | IOException runtimeException) {
 				streamer.stop();
@@ -637,7 +643,7 @@ public class IrisCaptureController extends BaseController {
 			}
 
 			if (irisDetailsDTO.isCaptured()) {
-
+				captureTimeValue.setText(Duration.between(start, end).toString().replace("PT",""));
 				// Display the Scanned Iris Image in the Scan pop-up screen
 				if (!bioservice.isMdmEnabled()) {
 
