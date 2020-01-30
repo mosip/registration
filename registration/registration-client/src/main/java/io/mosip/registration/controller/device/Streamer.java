@@ -92,14 +92,14 @@ public class Streamer {
 	public void startStream(RequestDetail requestDetail, ImageView streamImage, ImageView scanImage) {
 
 		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-				"Streamer Thread initiation started for : " + requestDetail.getType());
+				"Streamer Thread initiation started for : " + System.currentTimeMillis() + requestDetail.getType());
 
 		streamer_thread = new Thread(new Runnable() {
 
 			public void run() {
 
 				LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-						"Streamer Thread started for : " + requestDetail.getType());
+						"Streamer Thread started for : " + System.currentTimeMillis() + requestDetail.getType());
 
 				// Disable Auto-Logout
 				SessionContext.setAutoLogout(false);
@@ -114,12 +114,12 @@ public class Streamer {
 
 					setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_PREP_MESSAGE, false);
 					LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-							"Constructing Stream URL Started");
+							"Constructing Stream URL Started" + System.currentTimeMillis());
 					urlStream = mosipBioDeviceManager.stream(requestDetail);
 					if (urlStream == null) {
 
 						LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-								"URL Stream was null for : " + requestDetail.getType());
+								"URL Stream was null for : "+ System.currentTimeMillis() + requestDetail.getType());
 
 						setPopViewControllerMessage(true,
 								RegistrationUIConstants.getMessageLanguageSpecific("202_MESSAGE"), false);
@@ -143,7 +143,7 @@ public class Streamer {
 						if (urlStream == null) {
 
 							LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-									"URL Stream was null for : " + requestDetail.getType());
+									"URL Stream was null for : "+ System.currentTimeMillis() + requestDetail.getType());
 
 							setPopViewControllerMessage(true,
 									RegistrationUIConstants.getMessageLanguageSpecific("202_MESSAGE"), false);
@@ -207,7 +207,7 @@ public class Streamer {
 		streamer_thread.start();
 
 		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-				"Streamer Thread initiated completed for : " + requestDetail.getType());
+				"Streamer Thread initiated completed for : "+ System.currentTimeMillis() + requestDetail.getType());
 
 	}
 
