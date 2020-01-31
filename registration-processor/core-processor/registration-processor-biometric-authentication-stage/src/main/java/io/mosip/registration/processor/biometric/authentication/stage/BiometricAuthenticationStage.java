@@ -128,17 +128,18 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 		object.setMessageBusAddress(MessageBusAddress.BIOMETRIC_AUTHENTICATION_BUS_IN);
 		object.setIsValid(Boolean.FALSE);
 		object.setInternalError(Boolean.FALSE);
-		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
-				.getRegistrationStatus(registrationId);
-
-		registrationStatusDto
-				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.BIOMETRIC_AUTHENTICATION.toString());
-		registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
+		InternalRegistrationStatusDto registrationStatusDto=null;
 		String description = "";
 		String code = "";
 		boolean isTransactionSuccessful = false;
 
 		try {
+	        registrationStatusDto = registrationStatusService
+					.getRegistrationStatus(registrationId);
+
+			registrationStatusDto
+					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.BIOMETRIC_AUTHENTICATION.toString());
+			registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
 			PacketMetaInfo packetMetaInfo = utility.getPacketMetaInfo(registrationId);
 			List<FieldValue> metadata = packetMetaInfo.getIdentity().getMetaData();
 			IdentityIteratorUtil identityIterator = new IdentityIteratorUtil();

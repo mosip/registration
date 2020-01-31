@@ -581,5 +581,24 @@ public class OSIValidatorTest {
 		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn(null);
 		osiValidator.isValidOSI("reg1234", registrationStatusDto);
 	}
-
+	@Test(expected=AuthSystemException.class)
+	public void testoperatorAuthSystemException() throws Exception {
+		io.mosip.registration.processor.core.auth.dto.ResponseDTO responseDTO = new io.mosip.registration.processor.core.auth.dto.ResponseDTO();
+		responseDTO.setAuthStatus(false);
+		authResponseDTO.setResponse(responseDTO);
+		ErrorDTO errorDTO = new ErrorDTO();
+		errorDTO.setErrorCode("IDA-MLC-007");
+		errorDTO.setErrorMessage("system exception");
+		List<ErrorDTO> errors = new ArrayList<>();
+		errors.add(errorDTO);
+		authResponseDTO.setErrors(errors);
+		Mockito.when(restClientService.postApi(any(), anyString(), anyString(), anyString(), any()))
+				.thenReturn(authResponseDTO);
+		Mockito.when(osiUtils.getMetaDataValue(anyString(), any()))
+				.thenReturn(identity.getMetaData().get(0).getValue());
+		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		registrationStatusDto.setRegistrationType("ACTIVATED");
+        osiValidator.isValidOSI("reg1234", registrationStatusDto);
+		
+	}
 }
