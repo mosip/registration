@@ -128,18 +128,18 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 		object.setMessageBusAddress(MessageBusAddress.BIOMETRIC_AUTHENTICATION_BUS_IN);
 		object.setIsValid(Boolean.FALSE);
 		object.setInternalError(Boolean.FALSE);
-		InternalRegistrationStatusDto registrationStatusDto=null;
+		InternalRegistrationStatusDto registrationStatusDto=registrationStatusService
+				.getRegistrationStatus(registrationId);
+
+		registrationStatusDto
+				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.BIOMETRIC_AUTHENTICATION.toString());
+		registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
 		String description = "";
 		String code = "";
 		boolean isTransactionSuccessful = false;
 
 		try {
-	        registrationStatusDto = registrationStatusService
-					.getRegistrationStatus(registrationId);
-
-			registrationStatusDto
-					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.BIOMETRIC_AUTHENTICATION.toString());
-			registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
+	       
 			PacketMetaInfo packetMetaInfo = utility.getPacketMetaInfo(registrationId);
 			List<FieldValue> metadata = packetMetaInfo.getIdentity().getMetaData();
 			IdentityIteratorUtil identityIterator = new IdentityIteratorUtil();
@@ -257,20 +257,6 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 			object.setInternalError(Boolean.TRUE);
 			object.setIsValid(Boolean.FALSE);
 			
-		} 
-		catch (TablenotAccessibleException e) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-			registrationStatusDto.setStatusComment(trimExceptionMessage
-					.trimExceptionMessage(StatusUtil.DB_NOT_ACCESSIBLE.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.DB_NOT_ACCESSIBLE.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.TABLE_NOT_ACCESSIBLE_EXCEPTION));
-			code = PlatformErrorMessages.BIOMETRIC_AUTHENTICATION_TABLE_NOT_ACCESSIBLE.getCode();
-			description = PlatformErrorMessages.BIOMETRIC_AUTHENTICATION_TABLE_NOT_ACCESSIBLE.getMessage();
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), code, registrationId,
-					description + e.getMessage() + ExceptionUtils.getStackTrace(e));
-			object.setInternalError(Boolean.TRUE);
-			object.setIsValid(Boolean.FALSE);
 		} 
 		catch (Exception ex) {
 			registrationStatusDto.setSubStatusCode(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getCode());
