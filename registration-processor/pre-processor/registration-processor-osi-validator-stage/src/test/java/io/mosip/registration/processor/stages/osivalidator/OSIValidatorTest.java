@@ -43,6 +43,7 @@ import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.AuthSystemException;
 import io.mosip.registration.processor.core.exception.BioTypeException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.ParentOnHoldException;
@@ -477,7 +478,7 @@ public class OSIValidatorTest {
 	public void testIntroducerRIDProcessingOnHold() throws NumberFormatException, ApisResourceAccessException,
 			InvalidKeySpecException, NoSuchAlgorithmException, BiometricException, BioTypeException, IOException,
 			ParserConfigurationException, SAXException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, ParentOnHoldException {
+			io.mosip.kernel.core.exception.IOException, ParentOnHoldException, AuthSystemException {
 		Mockito.when(osiUtils.getMetaDataValue(anyString(), any())).thenReturn("2015/01/01");
 		InternalRegistrationStatusDto introducerRegistrationStatusDto = new InternalRegistrationStatusDto();
 

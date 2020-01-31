@@ -362,6 +362,8 @@ public enum PlatformErrorMessages {
 			"Unable to Access API Resource"),
 
 	OSI_VALIDATION_BIO_TYPE_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "007", "Bio Type Exception"),
+	
+	OSI_VALIDATION_AUTH_SYSTEM_EXCEPTION(PlatformConstants.RPR_OSI_VALIDATOR_MODULE + "008", "Request could not be processed. Please try again"),
 
 	/** The packet demo dedupe failed. */
 	// Stages - Demo-Dedupe error code and message
@@ -437,6 +439,12 @@ public enum PlatformErrorMessages {
 	/** The Biometric-Authentication api resource exception. */
 	BIOMETRIC_AUTHENTICATION_API_RESOURCE_EXCEPTION(PlatformConstants.RPR_BIOMETRIC_AUTHENTICATION_MODULE + "002",
 			"Unable to Access API Resource"),
+	
+	BIOMETRIC_AUTHENTICATION_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_BIOMETRIC_AUTHENTICATION_MODULE + "004",
+			"Unable to Access Registration Table"),
+	
+	BIOMETRIC_AUTHENTICATION_AUTH_SYSTEM_EXCEPTION(PlatformConstants.RPR_BIOMETRIC_AUTHENTICATION_MODULE + "003",
+			"Request could not be processed. Please try again"),
 
 	/** The rpr psj Packet Store not accessible. */
 	// Packet scanner job Exception error code and message
@@ -996,11 +1004,13 @@ public enum PlatformErrorMessages {
 			"Internal Error occured in Abis Handler identify request"),
 
 	RPR_DEMO_SENDING_FOR_MANUAL(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "001",
-			"ABIS response Details found. Hence sending to manual adjudication");
+			"ABIS response Details found. Hence sending to manual adjudication"),
+	
+	RPR_AUTH_SYSTEM_EXCEPTION(PlatformConstants.RPR_AUTHENTICATION + "03", "Request could not be processed. Please try again");
 	;
 
 	/** The error message. */
-	private final String errorMessage;
+	private final String errorMessage; 
 
 	/** The error code. */
 	private final String errorCode;
