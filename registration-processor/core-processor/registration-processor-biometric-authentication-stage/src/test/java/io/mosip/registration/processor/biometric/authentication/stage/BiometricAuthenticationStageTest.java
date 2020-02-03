@@ -42,6 +42,7 @@ import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
+import io.mosip.registration.processor.core.auth.dto.ErrorDTO;
 import io.mosip.registration.processor.core.auth.dto.ResponseDTO;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.EventId;
@@ -71,6 +72,7 @@ import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
+import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.vertx.core.Vertx;
@@ -442,6 +444,45 @@ public class BiometricAuthenticationStageTest {
 	public void deployVerticle() {
 
 		biometricAuthenticationStage.deployVerticle();
-		;
+	}
+	@Test
+	public void testAuthSystemException() throws ApisResourceAccessException, IOException,
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, InvalidKeySpecException, NoSuchAlgorithmException, BiometricException, BioTypeException, ParserConfigurationException, SAXException {
+		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
+		ErrorDTO error=new ErrorDTO();
+		error.setErrorCode("IDA-MLC-007");
+		error.setErrorMessage("system error from ida");
+	
+		List<ErrorDTO> errors=new ArrayList<ErrorDTO>();
+		errors.add(error);
+		authResponseDTO.setErrors(errors);
+		Mockito.when(authUtil.authByIdAuthentication(any(), any(), any())).thenReturn(authResponseDTO);
+		HashMap<String, String> hashMap = new HashMap<String, String>();
+		hashMap.put("value", "testFile");
+		JSONObject jSONObject = new JSONObject(hashMap);
+		Mockito.when(utility.getDemographicIdentityJSONObject(any())).thenReturn(jSONObject);
+		PowerMockito.when(JsonUtil.getJSONObject(jSONObject, "individualBiometrics")).thenReturn(null);
+		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
+		assertTrue(messageDto.getInternalError());
+	}
+	@Test
+	public void testAuthFailed() throws ApisResourceAccessException, IOException,
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, InvalidKeySpecException, NoSuchAlgorithmException, BiometricException, BioTypeException, ParserConfigurationException, SAXException {
+		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
+		ErrorDTO error=new ErrorDTO();
+		error.setErrorCode("IDA-MLC-008");
+		error.setErrorMessage("biometric didnt match");
+	
+		List<ErrorDTO> errors=new ArrayList<ErrorDTO>();
+		errors.add(error);
+		authResponseDTO.setErrors(errors);
+		Mockito.when(authUtil.authByIdAuthentication(any(), any(), any())).thenReturn(authResponseDTO);
+		HashMap<String, String> hashMap = new HashMap<String, String>();
+		hashMap.put("value", "testFile");
+		JSONObject jSONObject = new JSONObject(hashMap);
+		Mockito.when(utility.getDemographicIdentityJSONObject(any())).thenReturn(jSONObject);
+		PowerMockito.when(JsonUtil.getJSONObject(jSONObject, "individualBiometrics")).thenReturn(null);
+		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
+		assertFalse(messageDto.getIsValid());
 	}
 }

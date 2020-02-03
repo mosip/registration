@@ -152,6 +152,9 @@ public class RegistrationExceptionMapperUtil {
 				RegistrationTransactionStatusCode.REPROCESS);
 		statusMap.put(RegistrationExceptionTypeCode.BIOMETRIC_TYPE_EXCEPTION,
 				RegistrationTransactionStatusCode.REPROCESS);
+		statusMap.put(RegistrationExceptionTypeCode.AUTH_SYSTEM_EXCEPTION,
+				RegistrationTransactionStatusCode.REPROCESS);
+		
 		return unmodifiableMap;
 
 	}
