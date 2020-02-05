@@ -1,7 +1,6 @@
 
 package io.mosip.registration.mdm.service.impl;
 
-import static io.mosip.registration.constants.LoggerConstants.BIO_SERVICE;
 import static io.mosip.registration.constants.LoggerConstants.MOSIP_BIO_DEVICE_MANAGER;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
@@ -13,6 +12,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -90,7 +91,7 @@ public class MosipBioDeviceManager {
 	 * @throws RegBaseCheckedException
 	 *             - generalised exception with errorCode and errorMessage
 	 */
-	@SuppressWarnings("unchecked")
+	@PostConstruct
 	public void init() {
 
 		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
@@ -102,8 +103,8 @@ public class MosipBioDeviceManager {
 				initByPort(port);
 			} catch (RegBaseCheckedException exception) {
 				LOGGER.error(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_GET, APPLICATION_NAME, APPLICATION_ID,
-						String.format("Exception while mapping the response",
-								exception.getMessage() + ExceptionUtils.getStackTrace(exception)));
+						"Exception while mapping the response : " +
+								exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 			}
 
 		}
@@ -202,7 +203,7 @@ public class MosipBioDeviceManager {
 
 			}
 
-			creationOfBioDeviceObject(deviceInfoResponse, port, deviceType);
+			creationOfBioDeviceObject(deviceInfoResponse, port);
 		}
 		return deviceInfoResponse;
 	}
@@ -215,12 +216,9 @@ public class MosipBioDeviceManager {
 	 * @param port
 	 *            the port number
 	 */
-	private void creationOfBioDeviceObject(DeviceInfoResponseData deviceInfoResponse, int port, String deviceType) {
+	private void creationOfBioDeviceObject(DeviceInfoResponseData deviceInfoResponse, int port) {
 
-		if ((deviceType == null || (null != deviceInfoResponse && deviceType
-				.equals((deviceInfoResponse.getType().toUpperCase() + RegistrationConstants.UNDER_SCORE
-						+ deviceInfoResponse.getSubType().toUpperCase()))
-				 && StringUtils.isNotEmpty(deviceInfoResponse.getType())))) {
+		if (null != deviceInfoResponse && StringUtils.isNotEmpty(deviceInfoResponse.getType())) {
 
 			/*
 			 * Creating new bio device object for each device from service

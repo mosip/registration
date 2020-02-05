@@ -112,9 +112,11 @@ public class Streamer {
 						urlStream = null;
 					}
 
-					setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_PREP_MESSAGE, false);
 					LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
 							"Constructing Stream URL Started" + System.currentTimeMillis());
+					
+					setPopViewControllerMessage(true, RegistrationUIConstants.SEARCHING_DEVICE, false);
+					
 					urlStream = mosipBioDeviceManager.stream(requestDetail);
 					if (urlStream == null) {
 
@@ -127,6 +129,8 @@ public class Streamer {
 						return;
 					}
 
+					setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_PREP_MESSAGE, false);
+					
 					setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_INIT_MESSAGE, true);
 
 				} catch (RegBaseCheckedException | IOException | NullPointerException exception) {

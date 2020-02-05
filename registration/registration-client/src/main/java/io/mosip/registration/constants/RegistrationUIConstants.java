@@ -393,5 +393,8 @@ public static final String FINGERPRINT_SELECTION_PANE_ALERT = bundle.getString("
 
 	// Unable to get Auth Token
 	public static final String ALERT_AUTH_TOKEN_NOT_FOUND = bundle.getString("AUTH_TOKEN_NOT_FOUND");
+	
+	//Device Searching to start stream
+	public static final String SEARCHING_DEVICE = bundle.getString("SEARCHING_DEVICE");
 
 }
