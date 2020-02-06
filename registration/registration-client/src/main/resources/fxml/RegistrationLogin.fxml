@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.jfoenix.controls.*?>
 <?import javafx.scene.image.*?>
 <?import java.lang.*?>
 <?import javafx.geometry.*?>
@@ -114,6 +115,9 @@
 		<HBox id="footer-section">
 			<children>
 				<Label text="%mosip.io" />
+            <Label text="  " />
+            <Label text="%regClientVersion" />
+            <Label fx:id="versionValueLabel" />
 			</children>
 		</HBox>
 	</bottom>
