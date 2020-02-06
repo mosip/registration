@@ -78,7 +78,7 @@ public class SessionContext {
 	private static UserContext userContext;
 	private static SecurityContext securityContext;
 
-	private static boolean isAutoLogout=true;
+	private static boolean isAutoLogout = true;
 	private Date loginTime;
 	private long refreshedLoginTime;
 	private long timeoutInterval;
@@ -162,10 +162,12 @@ public class SessionContext {
 			if (isInitialSetUp) {
 				return validateInitialLogin(userDTO, loginMethod);
 			} else {
-				return validateAuthMethods(userDTO, loginMethod, authenticationValidatorDTO);
+				return validateAuthMethods(userDTO, loginMethod, authenticationValidatorDTO,
+						isUserNewToMachine);
 			}
 		} else {
-			return validateAuthMethods(userDTO, loginMethod, authenticationValidatorDTO);
+			return validateAuthMethods(userDTO, loginMethod, authenticationValidatorDTO,
+					isInitialSetUp || isUserNewToMachine);
 		}
 	}
 
@@ -188,7 +190,7 @@ public class SessionContext {
 				createSessionContext();
 				sessionContext.authTokenDTO = authTknDTO;
 				validAuthModes.add(loginMethod);
-				createSecurityContext(userDTO);
+				createSecurityContext(userDTO, false);
 				return true;
 			} else {
 				validAuthModes.remove(loginMethod);
@@ -213,16 +215,19 @@ public class SessionContext {
 	 *            - mode of login
 	 * @param authenticationValidatorDTO
 	 *            - Authentication validator should contain user id, pwd, otp
+	 * @param skipAuthModes
+	 *            To skip Auth modes validation
 	 * 
 	 * @return boolean
 	 * @throws IOException
 	 * @throws RegBaseCheckedException
 	 */
 	private static boolean validateAuthMethods(UserDTO userDTO, String loginMethod,
-			AuthenticationValidatorDTO authenticationValidatorDTO) throws RegBaseCheckedException, IOException {
+			AuthenticationValidatorDTO authenticationValidatorDTO, boolean skipAuthModes)
+			throws RegBaseCheckedException, IOException {
 		switch (loginMethod) {
 		case RegistrationConstants.PWORD:
-			return validatePword(loginMethod, userDTO, authenticationValidatorDTO);
+			return validatePword(loginMethod, userDTO, authenticationValidatorDTO, skipAuthModes);
 		case RegistrationConstants.OTP:
 			return validateOTP(loginMethod, userDTO, authenticationValidatorDTO);
 		case RegistrationConstants.FINGERPRINT_UPPERCASE:
@@ -246,18 +251,20 @@ public class SessionContext {
 	 *            - mode of login
 	 * @param authenticationValidatorDTO
 	 *            - Authentication validator should contain user id, pwd
+	 * @param skipAuthModes
+	 *            To Skip Auth Modes validation
 	 * 
 	 * @return boolean
 	 */
 	private static boolean validatePword(String loginMethod, UserDTO userDTO,
-			AuthenticationValidatorDTO authenticationValidatorDTO) {
+			AuthenticationValidatorDTO authenticationValidatorDTO, boolean skipAuthModes) {
 		AuthenticationService authenticationService = applicationContext.getBean(AuthenticationService.class);
 		if (authenticationValidatorDTO != null && authenticationService.validatePassword(authenticationValidatorDTO)
 				.equalsIgnoreCase(RegistrationConstants.PWD_MATCH)) {
 			createSessionContext();
 			SessionContext.authTokenDTO().setLoginMode(loginMethod);
 			validAuthModes.add(loginMethod);
-			createSecurityContext(userDTO);
+			createSecurityContext(userDTO, skipAuthModes);
 			return true;
 		} else {
 			validAuthModes.remove(loginMethod);
@@ -288,7 +295,7 @@ public class SessionContext {
 			createSessionContext();
 			sessionContext.authTokenDTO = authTknDTO;
 			validAuthModes.add(loginMethod);
-			createSecurityContext(userDTO);
+			createSecurityContext(userDTO, false);
 			return true;
 		} else {
 			validAuthModes.remove(loginMethod);
@@ -316,16 +323,19 @@ public class SessionContext {
 			AuthenticationValidatorDTO authenticationValidatorDTO) throws RegBaseCheckedException, IOException {
 		BioService bioService = applicationContext.getBean(BioService.class);
 		if (bioService
-				.validateFingerPrint(bioService.getFingerPrintAuthenticationDto(authenticationValidatorDTO.getUserId(),
-						new RequestDetail("Staging", "Registration", RegistrationConstants.FINGERPRINT_SLAB_LEFT,
-								(String) io.mosip.registration.context.ApplicationContext.map()
-										.get(RegistrationConstants.CAPTURE_TIME_OUT),
-								1, "60", null)))) {
+				.validateFingerPrint(
+						bioService
+								.getFingerPrintAuthenticationDto(authenticationValidatorDTO.getUserId(),
+										new RequestDetail("Staging", "Registration",
+												RegistrationConstants.FINGERPRINT_SLAB_LEFT,
+												(String) io.mosip.registration.context.ApplicationContext.map()
+														.get(RegistrationConstants.CAPTURE_TIME_OUT),
+												1, "60", null)))) {
 			createSessionContext();
 			SessionContext.authTokenDTO().setLoginMode(loginMethod);
-			
+
 			validAuthModes.add(loginMethod);
-			createSecurityContext(userDTO);
+			createSecurityContext(userDTO, false);
 			return true;
 		} else {
 			validAuthModes.remove(loginMethod);
@@ -362,7 +372,7 @@ public class SessionContext {
 			createSessionContext();
 			SessionContext.authTokenDTO().setLoginMode(loginMethod);
 			validAuthModes.add(loginMethod);
-			createSecurityContext(userDTO);
+			createSecurityContext(userDTO, false);
 			return true;
 		} else {
 			validAuthModes.remove(loginMethod);
@@ -400,7 +410,7 @@ public class SessionContext {
 			createSessionContext();
 			SessionContext.authTokenDTO().setLoginMode(loginMethod);
 			validAuthModes.add(loginMethod);
-			createSecurityContext(userDTO);
+			createSecurityContext(userDTO, false);
 			return true;
 		} else {
 			validAuthModes.remove(loginMethod);
@@ -424,9 +434,14 @@ public class SessionContext {
 
 	/**
 	 * Creating Security Context
+	 * 
+	 * @param skipAuthModes
+	 *            To Skip Auth Modes validation
 	 */
-	private static void createSecurityContext(UserDTO userDTO) {
-		if (null != authModes && null != validAuthModes && authModes.containsAll(validAuthModes)) {
+	private static void createSecurityContext(UserDTO userDTO, boolean skipAuthModes) {
+		LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+				"Started Creating Security Session Context with auth modes skip : " + skipAuthModes);
+		if (skipAuthModes || (null != authModes && null != validAuthModes && authModes.containsAll(validAuthModes))) {
 			userContext = sessionContext.new UserContext();
 			if (userDTO != null) {
 				List<String> roleList = new ArrayList<>();

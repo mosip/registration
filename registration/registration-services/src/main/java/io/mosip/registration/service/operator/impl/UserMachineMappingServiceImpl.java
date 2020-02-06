@@ -112,7 +112,6 @@ public class UserMachineMappingServiceImpl extends BaseService implements UserMa
 						"sync user details is ended");
 			} catch (HttpClientErrorException | ResourceAccessException | SocketTimeoutException
 					| RegBaseCheckedException | RegBaseUncheckedException exception) {
-				exception.printStackTrace();
 				LOGGER.error("REGISTRATION-CENTER-USER-MACHINE-MAPPING-DETAILS- SYNC", APPLICATION_NAME, APPLICATION_ID,
 						exception.getMessage());
 				responseDTO = buildErrorRespone(responseDTO, RegistrationConstants.POLICY_SYNC_ERROR_CODE,
