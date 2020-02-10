@@ -274,8 +274,6 @@ public class BioServiceImpl extends BaseService implements BioService {
 			int attempt) throws RegBaseCheckedException, IOException {
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 				"Entering into getFingerPrintImageAsDTOWithMdm method..");
-
-
 		CaptureResponseDto captureResponseDto = mosipBioDeviceManager.regScan(requestDetail);
 		if (captureResponseDto == null)
 			throw new RegBaseCheckedException("202", "Decice is not available");
@@ -857,7 +855,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	public CaptureResponseDto captureFace(RequestDetail requestDetail) throws RegBaseCheckedException, IOException {
 
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID, "Entering Capture Face Method");
-		return  mosipBioDeviceManager.regScan(requestDetail);
+			return  mosipBioDeviceManager.regScan(requestDetail);
 	}
 
 	@Override

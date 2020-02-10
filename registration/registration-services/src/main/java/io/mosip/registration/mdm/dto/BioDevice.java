@@ -1,5 +1,8 @@
 package io.mosip.registration.mdm.dto;
 
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,13 +38,9 @@ import io.mosip.registration.dto.json.metadata.DigitalId;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.constants.MosipBioDeviceConstants;
 import io.mosip.registration.mdm.integrator.IMosipBioDeviceIntegrator;
-import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
 import io.mosip.registration.mdm.util.MdmRequestResponseBuilder;
 import lombok.Getter;
 import lombok.Setter;
-
-import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
-import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 /**
  * Holds the Biometric Device details
