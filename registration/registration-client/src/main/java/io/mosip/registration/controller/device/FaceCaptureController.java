@@ -411,22 +411,11 @@ public class FaceCaptureController extends BaseController implements Initializab
 	 */
 	@Override
 	public void saveApplicantPhoto(BufferedImage capturedImage, String photoType,
-			CaptureResponseDto captureResponseDto, String reponseTime) {
+			CaptureResponseDto captureResponseDto, String reponseTime, boolean isDuplicate) {
 		captureTimeValue.setText(reponseTime);
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Opening WebCamera to capture photograph");
 		byte[] isoBytes = bioService.getSingleBiometricIsoTemplate(captureResponseDto);
-		AuthenticationValidatorDTO authenticationValidatorDTO = new AuthenticationValidatorDTO();
-		authenticationValidatorDTO.setUserId(SessionContext.userContext().getUserId());
-		FaceDetailsDTO faceDetail = new FaceDetailsDTO();
-		faceDetail.setFaceISO(isoBytes);
-		authenticationValidatorDTO.setFaceDetail(faceDetail);
-		if(dedupeMessage!=null)
-			dedupeMessage.setVisible(true);
-		if((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER) || !bioService.validateFace(authenticationValidatorDTO)) {
-		if(dedupeMessage!=null)
-			dedupeMessage.setVisible(false);
-
 		if (photoType.equals(RegistrationConstants.APPLICANT_IMAGE) && capturedImage != null) {
 			
 			Image capture = SwingFXUtils.toFXImage(capturedImage, null);
@@ -507,11 +496,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 			exceptionFaceTrackerImg.setVisible(true);
 			saveBiometricDetailsBtn.setDisable(false);
 		}
-		}else {
-			if(dedupeMessage!=null)
-				dedupeMessage.setVisible(false);
-			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.FACE_DUPLICATE_ERROR);
-		}
+		
 	}
 
 	@Override

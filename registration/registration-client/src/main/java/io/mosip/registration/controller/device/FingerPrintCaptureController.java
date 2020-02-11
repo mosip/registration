@@ -1316,7 +1316,7 @@ public class FingerPrintCaptureController extends BaseController implements Init
 				detailsDTO.setNumRetry(retries);
 
 			}
-			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.FP_CAPTURE_SUCCESS);
+			boolean isVlalid = generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.FP_CAPTURE_SUCCESS, ()->{return validateFingerPrints();}, scanPopUpViewController);
 			popupStage.close();
 			parentPane.getStyleClass().add(RegistrationConstants.FINGERPRINT_PANES_SELECTED);
 
@@ -1344,7 +1344,7 @@ public class FingerPrintCaptureController extends BaseController implements Init
 			}
 			scanBtn.setDisable(true);
 
-			if (validateFingerPrints()) {
+			if (isVlalid) {
 				continueBtn.setDisable(false);
 			}
 		} else {

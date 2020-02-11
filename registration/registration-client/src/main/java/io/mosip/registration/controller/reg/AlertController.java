@@ -40,7 +40,7 @@ public class AlertController extends BaseController implements Initializable {
 	@FXML
 	private Label context;
 	@FXML
-	private Hyperlink exit;
+	public Hyperlink exit;
 	@FXML
 	private HBox alertHbox;
 	@FXML

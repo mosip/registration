@@ -586,7 +586,7 @@ public class IrisCaptureController extends BaseController {
 
 		IrisDetailsDTO leftTempIrisDetail = null;
 		IrisDetailsDTO rightTempIrisDetail = null;
-
+		boolean isDuplicateFound=false;
 		try {
 			LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					"Scanning of iris details for user registration");
@@ -638,7 +638,7 @@ public class IrisCaptureController extends BaseController {
 								+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
 				return;
 			}
-
+			
 			if (irisDetailsDTO.isCaptured()) {
 				captureTimeValue.setText(Duration.between(start, end).toString().replace("PT",""));
 				// Display the Scanned Iris Image in the Scan pop-up screen
@@ -652,7 +652,7 @@ public class IrisCaptureController extends BaseController {
 					scanPopUpViewController.getScanImage()
 							.setImage(convertBytesToImage(irisDetailsDTO.getIrises().get(0).getIris()));
 				}
-				generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.IRIS_SUCCESS_MSG);
+				 
 				irisDetailsDTO.getIrises().forEach((iris) -> {
 					if (!bioservice.isMdmEnabled()) {
 						scanPopUpViewController.getScanImage().setImage(convertBytesToImage(iris.getIris()));
@@ -710,15 +710,17 @@ public class IrisCaptureController extends BaseController {
 						}
 					}
 					getIrises().add(iris);
-					popupStage.close();
 				});
+				isDuplicateFound = generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.IRIS_SUCCESS_MSG, ()->{return validateIrisLocalDedup(getIrises());}, scanPopUpViewController);
+				popupStage.close();
+				
 				if (validateIris()) {
 					continueBtn.setDisable(false);
 				} else {
 					continueBtn.setDisable(true);
 					if(dedupeMessage!=null)
 						dedupeMessage.setVisible(true);
-					if (validateIrisLocalDedup(getIrises()))
+					if (isDuplicateFound)
 						generateAlert(RegistrationConstants.ALERT_INFORMATION,
 								RegistrationConstants.DUPLICATE + " "
 										+ (String) SessionContext.map().get(RegistrationConstants.DUPLICATE_IRIS) + " "
