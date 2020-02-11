@@ -152,6 +152,12 @@ public class WebCameraController extends BaseController implements Initializable
 		if (bioService.isMdmEnabled()) {
 			start = Instant.now();
 			end = start;
+			captureResponseDto = bioService
+					.captureFace(new RequestDetail(RegistrationConstants.FACE_FULLFACE,
+							getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 1,
+							getValueFromApplicationContext(RegistrationConstants.FACE_THRESHOLD), null));
+			end = Instant.now();
+
 			try {
 				captureResponseDto = bioService
 						.captureFace(new RequestDetail(RegistrationConstants.FACE_FULLFACE,
