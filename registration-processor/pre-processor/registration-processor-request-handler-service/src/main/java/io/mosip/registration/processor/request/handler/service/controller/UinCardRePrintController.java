@@ -12,7 +12,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,7 +20,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.token.validation.TokenValidator;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
@@ -29,7 +27,6 @@ import io.mosip.registration.processor.request.handler.service.dto.PacketGenerat
 import io.mosip.registration.processor.request.handler.service.dto.PacketGeneratorResponseDto;
 import io.mosip.registration.processor.request.handler.service.dto.UinCardRePrintRequestDto;
 import io.mosip.registration.processor.request.handler.service.exception.RegBaseCheckedException;
-import io.mosip.registration.processor.request.handler.service.exception.RequestHandlerValidationException;
 import io.mosip.registration.processor.request.handler.service.impl.UinCardRePrintServiceImpl;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -93,7 +90,7 @@ public class UinCardRePrintController {
 			}
 
 			return ResponseEntity.ok().body(buildPacketGeneratorResponse(packetGeneratorResDto));
-		} catch (RequestHandlerValidationException e) {
+		} catch (RegBaseCheckedException | IOException e) {
 			if (e instanceof RegBaseCheckedException) {
 				throw e;
 			}
