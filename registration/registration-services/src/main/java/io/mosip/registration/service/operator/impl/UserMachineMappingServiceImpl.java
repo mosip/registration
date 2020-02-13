@@ -5,9 +5,11 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,8 +18,11 @@ import org.springframework.web.client.ResourceAccessException;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.dao.MachineMappingDAO;
 import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.RegCenterMachineUserReqDto;
@@ -52,6 +57,7 @@ public class UserMachineMappingServiceImpl extends BaseService implements UserMa
 	 * @see io.mosip.registration.service.operator.UserMachineMappingService#syncUserDetails()
 	 * 
 	 */
+	@SuppressWarnings("unchecked")
 	public ResponseDTO syncUserDetails() {
 		LOGGER.info("REGISTRATION-CENTER-USER-MACHINE-MAPPING-DETAILS- SYNC", APPLICATION_NAME, APPLICATION_ID,
 				"sync user details is started");
@@ -59,11 +65,11 @@ public class UserMachineMappingServiceImpl extends BaseService implements UserMa
 		String machineId = null;
 		String centerId = null;
 		List<UserMachineMapping> userMachineMappingList = null;
-		List<RegistrationCenterUserMachineMappingDto> list = new ArrayList<>();
+		List<Map<String, Object>> list = new ArrayList<>();
 		ResponseDTO responseDTO = new ResponseDTO();
 
 		if (!RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
-			responseDTO = buildErrorRespone(responseDTO, RegistrationConstants.POLICY_SYNC_CLIENT_NOT_ONLINE_ERROR_CODE,
+			buildErrorRespone(responseDTO, RegistrationConstants.POLICY_SYNC_CLIENT_NOT_ONLINE_ERROR_CODE,
 					RegistrationConstants.POLICY_SYNC_CLIENT_NOT_ONLINE_ERROR_MESSAGE);
 		} else {
 
@@ -72,38 +78,39 @@ public class UserMachineMappingServiceImpl extends BaseService implements UserMa
 				machineId = baseService.getStationId(systemMacId);
 				centerId = baseService.getCenterId(machineId);
 				userMachineMappingList = machineMappingDAO.getUserMappingDetails(machineId);
-				RegCenterMachineUserReqDto<RegistrationCenterUserMachineMappingDto> regCenterMachineUserReqDto = new RegCenterMachineUserReqDto<>();
-				regCenterMachineUserReqDto.setId("REGISTRATION");
-				regCenterMachineUserReqDto.setRequesttime(DateUtils.getUTCCurrentDateTime());
+				Map<String, Object> requestMap = new LinkedHashMap<>();
+				requestMap.put(RegistrationConstants.ID, RegistrationConstants.APPLICATION_NAME);
+				requestMap.put(RegistrationConstants.REQ_TIME, DateUtils.getUTCCurrentDateTimeString());
+				requestMap.put("metadata", new HashMap<>());
+
 				for (UserMachineMapping userMachineMapping : userMachineMappingList) {
-					RegistrationCenterUserMachineMappingDto registrationCenterUserMachineMappingDto = new RegistrationCenterUserMachineMappingDto();
-					registrationCenterUserMachineMappingDto.setCntrId(centerId);
-					registrationCenterUserMachineMappingDto.setMachineId(machineId);
-					registrationCenterUserMachineMappingDto.setActive(true);
-					registrationCenterUserMachineMappingDto.setLangCode("eng");
-					registrationCenterUserMachineMappingDto.setUsrId(userMachineMapping.getUserDetail().getId());
-					list.add(registrationCenterUserMachineMappingDto);
+					Map<String, Object> userMap = new HashMap<>();
+					userMap.put("cntrId", centerId);
+					userMap.put("machineId", machineId);
+					userMap.put("isActive", true);
+					userMap.put("langCode", ApplicationContext.applicationLanguage());
+					userMap.put("usrId", userMachineMapping.getUserDetail().getId());
+					list.add(userMap);
 				}
+				requestMap.put("request", list);
 
-				regCenterMachineUserReqDto.setRequest(list);
-
-				LinkedHashMap<String, Object> masterSyncResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil
-						.post("user_machine_mapping", regCenterMachineUserReqDto,
-								RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
-				if (null != masterSyncResponse.get(RegistrationConstants.RESPONSE)) {
+				@SuppressWarnings("unchecked")
+				LinkedHashMap<String, Object> userMachineMappingSyncResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil
+						.post("user_machine_mapping", requestMap, RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
+				if (null != userMachineMappingSyncResponse.get(RegistrationConstants.RESPONSE)) {
 					LOGGER.info("REGISTRATION-CENTER-USER-MACHINE-MAPPING-DETAILS- SYNC", APPLICATION_NAME,
 							APPLICATION_ID, RegistrationConstants.SUCCESS);
 					setSuccessResponse(responseDTO, RegistrationConstants.SUCCESS, null);
 				} else {
 					LOGGER.info("REGISTRATION-CENTER-USER-MACHINE-MAPPING-DETAILS- SYNC", APPLICATION_NAME,
 							APPLICATION_ID,
-							masterSyncResponse.size() > 0
-									? ((List<LinkedHashMap<String, String>>) masterSyncResponse
+							userMachineMappingSyncResponse.size() > 0
+									? ((List<LinkedHashMap<String, String>>) userMachineMappingSyncResponse
 											.get(RegistrationConstants.ERRORS)).get(0)
 													.get(RegistrationConstants.ERROR_MSG)
 									: "sync user details Restful service error");
-					setErrorResponse(responseDTO, masterSyncResponse.size() > 0
-							? ((List<LinkedHashMap<String, String>>) masterSyncResponse
+					setErrorResponse(responseDTO, userMachineMappingSyncResponse.size() > 0
+							? ((List<LinkedHashMap<String, String>>) userMachineMappingSyncResponse
 									.get(RegistrationConstants.ERRORS)).get(0).get(RegistrationConstants.ERROR_MSG)
 							: "sync user details Restful service error", null);
 				}
@@ -112,7 +119,6 @@ public class UserMachineMappingServiceImpl extends BaseService implements UserMa
 						"sync user details is ended");
 			} catch (HttpClientErrorException | ResourceAccessException | SocketTimeoutException
 					| RegBaseCheckedException | RegBaseUncheckedException exception) {
-				exception.printStackTrace();
 				LOGGER.error("REGISTRATION-CENTER-USER-MACHINE-MAPPING-DETAILS- SYNC", APPLICATION_NAME, APPLICATION_ID,
 						exception.getMessage());
 				responseDTO = buildErrorRespone(responseDTO, RegistrationConstants.POLICY_SYNC_ERROR_CODE,
