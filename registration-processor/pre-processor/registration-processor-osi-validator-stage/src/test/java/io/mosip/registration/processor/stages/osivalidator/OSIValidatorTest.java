@@ -366,6 +366,7 @@ public class OSIValidatorTest {
 		responseDTO.setAuthStatus(false);
 		authResponseDTO.setResponse(responseDTO);
 		ErrorDTO errorDTO = new ErrorDTO();
+		errorDTO.setErrorCode("IDA-MLC-008");
 		errorDTO.setErrorMessage("authentication failed");
 		List<ErrorDTO> errors = new ArrayList<>();
 		errors.add(errorDTO);

@@ -30,8 +30,8 @@ import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.AuthSystemException;
 import io.mosip.registration.processor.core.exception.BioTypeException;
-import io.mosip.registration.processor.core.exception.ParentOnHoldException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
+import io.mosip.registration.processor.core.exception.ParentOnHoldException;
 import io.mosip.registration.processor.core.exception.util.PacketStructure;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -620,7 +620,7 @@ public class OSIValidator {
 
 		} else {
 			List<io.mosip.registration.processor.core.auth.dto.ErrorDTO> errors = authResponseDTO.getErrors();
-			if (errors.stream().anyMatch(error -> error.getErrorCode() == "IDA-MLC-007")) {
+			if (errors.stream().anyMatch(error -> error.getErrorCode().equalsIgnoreCase("IDA-MLC-007"))) {
 				throw new AuthSystemException(PlatformErrorMessages.RPR_AUTH_SYSTEM_EXCEPTION.getMessage());
 			} else {
 				registrationStatusDto.setLatestTransactionStatusCode(
