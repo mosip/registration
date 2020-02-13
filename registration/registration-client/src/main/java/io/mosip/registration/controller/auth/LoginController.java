@@ -537,7 +537,7 @@ public class LoginController extends BaseController implements Initializable {
 				authenticationValidatorDTO.setPassword(password.getText());
 
 				try {
-					if (SessionContext.create(userDTO, RegistrationConstants.PWORD, false, false,
+					if (SessionContext.create(userDTO, RegistrationConstants.PWORD, isInitialSetUp, isUserNewToMachine,
 							authenticationValidatorDTO)) {
 						pwdValidationStatus = validateInvalidLogin(userDTO, "");
 					} else {
