@@ -42,6 +42,6 @@ public class DocumentCategoryDAOImpl implements DocumentCategoryDAO {
 		LOGGER.info("REGISTRATION-PACKET_CREATION-DOCUMENTCATEGORY", APPLICATION_NAME, APPLICATION_ID,
 				"fetching the document categories by lang code");
 
-		return documentCategoryRepository.findByLangCode(langCode);
+		return documentCategoryRepository.findByIsActiveTrueAndLangCode(langCode);
 	}
 }
