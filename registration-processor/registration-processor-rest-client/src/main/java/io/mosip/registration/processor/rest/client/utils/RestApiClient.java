@@ -74,6 +74,8 @@ public class RestApiClient {
 	@Autowired
 	Environment environment;
 
+	private static final String AUTHORIZATION = "Authorization=";
+
 	/**
 	 * Gets the api.
 	 *
@@ -327,7 +329,7 @@ public class RestApiClient {
 			throw e;
 			}
 		}
-		return token;
+		return AUTHORIZATION + token;
 	}
 
 	private SecretKeyRequest setSecretKeyRequestDTO() {
