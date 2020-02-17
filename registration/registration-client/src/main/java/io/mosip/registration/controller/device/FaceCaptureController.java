@@ -8,6 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -145,6 +146,11 @@ public class FaceCaptureController extends BaseController implements Initializab
 	private Button startOverBtn;
 	@FXML
 	private Label exceptionImageLabel;
+	@FXML
+	private Button captureTimeLabel;
+	@FXML
+	private Label captureTimeValue;
+
 
 	private BufferedImage applicantBufferedImage;
 	private byte[] applicantImageIso;
@@ -409,10 +415,10 @@ public class FaceCaptureController extends BaseController implements Initializab
 	 */
 	@Override
 	public void saveApplicantPhoto(BufferedImage capturedImage, String photoType,
-			CaptureResponseDto captureResponseDto) {
+			CaptureResponseDto captureResponseDto, String reponseTime) {
+		captureTimeValue.setText(reponseTime);
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Opening WebCamera to capture photograph");
-
 		byte[] isoBytes = bioService.getSingleBiometricIsoTemplate(captureResponseDto);
 		AuthenticationValidatorDTO authenticationValidatorDTO = new AuthenticationValidatorDTO();
 		authenticationValidatorDTO.setUserId(SessionContext.userContext().getUserId());

@@ -9,6 +9,8 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -249,6 +251,9 @@ public class FingerPrintCaptureController extends BaseController implements Init
 	private ImageView backImageView;
 	@FXML
 	private Label dedupeMessage;
+	@FXML
+	private Label captureTimeValue;
+
 
 	/** The left slap count. */
 	private int leftSlapCount;
@@ -1201,6 +1206,8 @@ public class FingerPrintCaptureController extends BaseController implements Init
 		ImageView imageView = fingerImageView;
 		Label qualityScoreLabel = scoreLabel;
 		int attempt = 0;
+		Instant start = null;
+		Instant end = null;
 
 		List<FingerprintDetailsDTO> tempSegmentedFpDetailsDtos = new LinkedList<>();
 
@@ -1246,11 +1253,13 @@ public class FingerPrintCaptureController extends BaseController implements Init
 			// timout,
 			LOGGER.info(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					"Calling FingerPrint ImageAs DTO");
+			start = Instant.now();
 			bioService.getFingerPrintImageAsDTO(detailsDTO,
 					new RequestDetail(findFingerPrintType(fingerType),
 							getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 1, requestedScore,
 							exception),
 					attempt);
+			end = Instant.now();
 			streamer.stop();
 			bioService.segmentFingerPrintImage(detailsDTO, segmentedFingersPath, fingerType);
 		} catch (RegBaseCheckedException | IOException exception) {
@@ -1275,7 +1284,7 @@ public class FingerPrintCaptureController extends BaseController implements Init
 		}
 
 		if (detailsDTO.isCaptured()) {
-
+			captureTimeValue.setText(Duration.between(start, end).toString().replace("PT",""));
 			int retries = detailsDTO.getFingerType().equals(RegistrationConstants.FINGERPRINT_SLAB_LEFT)
 					? ++leftSlapCount
 					: detailsDTO.getFingerType().equals(RegistrationConstants.FINGERPRINT_SLAB_RIGHT) ? ++rightSlapCount

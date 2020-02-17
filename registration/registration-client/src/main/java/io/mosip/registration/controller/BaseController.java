@@ -673,7 +673,7 @@ public class BaseController {
 	 * @param imageType
 	 *            Type of image that is to be saved
 	 */
-	public void saveApplicantPhoto(BufferedImage capturedImage, String imageType,CaptureResponseDto captureResponseDto) {
+	public void saveApplicantPhoto(BufferedImage capturedImage, String imageType,CaptureResponseDto captureResponseDto, String reponseTime) {
 		// will be implemented in the derived class.
 	}
 
