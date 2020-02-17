@@ -20,7 +20,7 @@
 		<dependency>
 			<groupId>io.mosip.registration</groupId>
 			<artifactId>registration-services</artifactId>
-			<version>${project.version}</version>
+			<version>1.0.7-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
