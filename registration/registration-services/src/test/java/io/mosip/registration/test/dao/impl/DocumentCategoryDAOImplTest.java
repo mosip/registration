@@ -52,7 +52,7 @@ public class DocumentCategoryDAOImplTest {
 
 	@Test
 	public void getDocumentCategoriesByLangCodeTest() {
-		Mockito.when(registrationDocumentCategoryRepository.findByLangCode("eng")).thenReturn(new ArrayList<>());
+		Mockito.when(registrationDocumentCategoryRepository.findByIsActiveTrueAndLangCode("eng")).thenReturn(new ArrayList<>());
 
 		assertNotNull(registrationDocumentCategoryDAOImpl.getDocumentCategoriesByLangCode("eng"));
 
