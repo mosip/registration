@@ -261,9 +261,9 @@ public class DocumentScanController extends BaseController {
 				pobCategory = documentCategory;
 			}
 		}
-		if (pobCategory.getCode() != null) {
-			documentCategories.remove(pobCategory);
-		}
+//		if (pobCategory.getCode() != null) {
+//			documentCategories.remove(pobCategory);
+//		}
 
 		docScanVbox.setSpacing(5);
 		if (documentCategories != null && !documentCategories.isEmpty())

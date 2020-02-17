@@ -342,6 +342,13 @@ public class Validations extends BaseController {
 			if (getRegistrationDTOFromSession().getSelectionListDTO() == null
 					&& id.matches(RegistrationConstants.POR_DOCUMENT) && !isChild)
 				return true;
+			
+			if (id.matches(RegistrationConstants.DOB_DOCUMENT))
+				return true;
+			
+			if (id.matches(RegistrationConstants.POE_DOCUMENT))
+				return true;
+
 			if (node.isDisabled())
 				return true;
 			if (isLostUIN)
