@@ -27,10 +27,10 @@ import io.mosip.registration.processor.core.exception.PacketDecryptionFailureExc
 import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.packet.dto.RegisteredDevice;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.RegOsiDto;
+import io.mosip.registration.processor.core.packet.dto.RegisteredDevice;
 import io.mosip.registration.processor.core.packet.dto.RegistrationCenterMachineDto;
 import io.mosip.registration.processor.core.packet.dto.regcentermachine.DeviceValidateHistoryRequest;
 import io.mosip.registration.processor.core.packet.dto.regcentermachine.DeviceValidateHistoryResponse;
@@ -526,7 +526,8 @@ public class UMCValidator {
 							LoggerFileConstant.REGISTRATIONID.toString(), registrationStatusDto.getRegistrationId(),
 							"UMCValidator::isDeviceMappedWithCenter()::CenterUserMachineHistory service ended with response data : "
 									+ error.get(0).getMessage());
-					registrationStatusDto.setStatusComment(error.get(0).getMessage());
+					registrationStatusDto.setStatusComment(
+							error.get(0).getMessage() + " " + "for" + " " + deviceDetails.getDigitalId().getType());
 					registrationStatusDto.setSubStatusCode(StatusUtil.CENTER_DEVICE_MAPPING_NOT_FOUND.getCode());
 					break;
 				}
