@@ -1,5 +1,7 @@
 package io.mosip.registration.config;
 
+import java.io.File;
+import java.lang.reflect.Constructor;
 import java.security.NoSuchAlgorithmException;
 
 import javax.sql.DataSource;
@@ -111,7 +113,13 @@ public class AppConfig {
 			throws NoSuchAlgorithmException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 		IBioApi iBioApi = null;
 		try {
-			iBioApi = (IBioApi) Class.forName(faceSdk).newInstance();
+			String dllPath = new File(new File(System.getProperty("user.dir")).getAbsolutePath()+"./sdkDependeny").getAbsolutePath();
+
+			Constructor<IBioApi> constructor =
+					(Constructor<IBioApi>) Class.forName(fingerSdk).getConstructor(new Class[]{String.class, String.class,String.class});
+			iBioApi = constructor.newInstance(dllPath+"\\dlls", new File(dllPath+"\\iris-extractor.lic").getAbsolutePath(), new File(dllPath+"\\iris-matcher.lic").getAbsolutePath());
+			
+			
 		} catch (Exception e) {
 			iBioApi = disableIdentitySdk();
 		}
@@ -123,14 +131,7 @@ public class AppConfig {
 	public IBioApi fingerApi()
 			throws NoSuchAlgorithmException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 
-		IBioApi iBioApi = null;
-		try {
-			iBioApi = (IBioApi) Class.forName(fingerSdk).newInstance();
-		} catch (Exception e) {
-			iBioApi = disableIdentitySdk();
-		}
-
-		return iBioApi;
+		return faceApi();
 	}
 
 
@@ -138,14 +139,7 @@ public class AppConfig {
 	public IBioApi irisApi()
 			throws NoSuchAlgorithmException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 
-		IBioApi iBioApi = null;
-		try {
-			iBioApi = (IBioApi) Class.forName(irisSdk).newInstance();
-		} catch (Exception e) {
-			iBioApi = disableIdentitySdk();
-		}
-
-		return iBioApi;
+		return faceApi();
 	}
 	
 	private IBioApi disableIdentitySdk() {

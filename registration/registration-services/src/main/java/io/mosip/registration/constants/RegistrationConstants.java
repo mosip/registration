@@ -249,6 +249,9 @@ public class RegistrationConstants {
 	public static final String IS_BLOCKED_WORD = "IS_BLOCKED_WORD";
 	public static final String BLACKLISTED_1 = "BLACKLISTED_1";
 	public static final String BLACKLISTED_2 = "BLACKLISTED_2";
+	public static final String BLACKLISTED_ARE = "BLACKLISTED_ARE";
+	public static final String BLACKLISTED_IS = "BLACKLISTED_IS";
+
 	public static final String REG_DDC_004 = "REG_DDC_004";
 	public static final String AGE_FIELD = "ageField";
 	public static final String MOBILE_NUMBER = "mobileNo";

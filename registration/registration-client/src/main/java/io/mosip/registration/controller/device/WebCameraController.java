@@ -168,7 +168,11 @@ public class WebCameraController extends BaseController implements Initializable
 				FaceDetailsDTO faceDetail = new FaceDetailsDTO();
 				faceDetail.setFaceISO(bioService.getSingleBiometricIsoTemplate(captureResponseDto));
 				authenticationValidatorDTO.setFaceDetail(faceDetail);
-				isDuplicateFound = generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.FACE_CAPTURE_SUCCESS, ()->{return !bioService.validateFace(authenticationValidatorDTO);}, this);
+				isDuplicateFound = generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.FACE_CAPTURE_SUCCESS, ()->{
+						if((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER))
+							return true;
+						return !bioService.validateFace(authenticationValidatorDTO);
+					}, this);
 			} catch (RegBaseCheckedException | IOException exception) {
 				generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)+RegistrationConstants.UNDER_SCORE+RegistrationConstants.MESSAGE.toUpperCase()));
 				streamer.stop();
