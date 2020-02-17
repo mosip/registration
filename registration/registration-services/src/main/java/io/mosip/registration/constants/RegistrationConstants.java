@@ -952,6 +952,7 @@ public class RegistrationConstants {
 	public static final String POI_DOCUMENT = "POI";
 	public static final String POR_DOCUMENT = "POR";
 	public static final String DOB_DOCUMENT = "POB";
+	public static final String POE_DOCUMENT = "POE";
 	public static final String SERVER_STATUS_RESEND = "RESEND";
 	public static final String CLIENT_STATUS_APPROVED = "APPROVED";
 	public static final String SYNCED_STATUS = "SYNCED";
