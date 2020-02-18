@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,10 +30,12 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.registration.audit.AuditManagerService;
+import io.mosip.registration.dto.json.metadata.DigitalId;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.BioDevice;
 import io.mosip.registration.mdm.dto.CaptureResponsBioDataDto;
@@ -43,7 +47,7 @@ import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ RegistrationAppHealthCheckUtil.class })
+@PrepareForTest({ RegistrationAppHealthCheckUtil.class , Base64.class})
 public class MosipBioDeviceManagerTest {
 	public MockitoRule mockitoRule = MockitoJUnit.rule();
 	@InjectMocks
@@ -263,12 +267,12 @@ public class MosipBioDeviceManagerTest {
 
 	}
 
-	@Test(expected = NullPointerException.class)
+	@Test(expected = RegBaseCheckedException.class)
 	public void scan() throws RegBaseCheckedException, IOException {
 		Map<String, BioDevice> deviceRegistry = new HashMap<>();
 		deviceRegistry.put("deviceType", new BioDevice());
 		ReflectionTestUtils.setField(MosipBioDeviceManager.class, "deviceRegistry", deviceRegistry);
-		mosipBioDeviceManager.scan(new RequestDetail("deviceType", "", 1, "", null));
+		mosipBioDeviceManager.regScan(new RequestDetail("deviceType", "", 1, "", null));
 	}
 
 
@@ -278,6 +282,7 @@ public class MosipBioDeviceManagerTest {
 		CaptureResponseBioDto captureResponseBioDto = new CaptureResponseBioDto();
 		captureResponseBioDto.setCaptureResponseData(new CaptureResponsBioDataDto());
 		captureResponseDto.setMosipBioDeviceDataResponses(Arrays.asList(captureResponseBioDto));
+		captureResponseBioDto.getCaptureResponseData().setBioValue(Base64.getUrlEncoder().encodeToString("sfdfs".getBytes()));
 		mosipBioDeviceManager.getSingleBioValue(captureResponseDto);
 	}
 
@@ -299,23 +304,50 @@ public class MosipBioDeviceManagerTest {
 		return captureResponse;
 	}
 	
+
 	private static void decode(CaptureResponseDto mosipBioCaptureResponseDto)
 			throws IOException, JsonParseException, JsonMappingException {
 		ObjectMapper mapper = new ObjectMapper();
 		if (null != mosipBioCaptureResponseDto && null != mosipBioCaptureResponseDto.getMosipBioDeviceDataResponses()) {
 			for (CaptureResponseBioDto captureResponseBioDto : mosipBioCaptureResponseDto
 					.getMosipBioDeviceDataResponses()) {
+				//
 				if (null != captureResponseBioDto) {
-					String bioJson = new String(Base64.getDecoder().decode(captureResponseBioDto.getCaptureBioData()));
+					String bioJson = captureResponseBioDto.getCaptureBioData();
 					if (null != bioJson) {
-						CaptureResponsBioDataDto captureResponsBioDataDto = mapper.readValue(bioJson.getBytes(),
-								CaptureResponsBioDataDto.class);
+						CaptureResponsBioDataDto captureResponsBioDataDto = getCaptureResponsBioDataDecoded(bioJson,
+								mapper);
+						captureResponsBioDataDto.setDigitalIdDecoded(mapper.readValue(
+								new String(Base64.getDecoder().decode(captureResponsBioDataDto.getDigitalId()))
+										.getBytes(),
+								DigitalId.class));
 						captureResponseBioDto.setCaptureResponseData(captureResponsBioDataDto);
 					}
 				}
 			}
 		}
 	}
+	
+	private static CaptureResponsBioDataDto getCaptureResponsBioDataDecoded(String capturedData, ObjectMapper mapper) {
+		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+		Pattern pattern = Pattern.compile("(?<=\\.)(.*)(?=\\.)");
+		Matcher matcher = pattern.matcher(capturedData);
+		String afterMatch = null;
+		if (matcher.find()) {
+			afterMatch = matcher.group(1);
+		}
+
+		try {
+			String result = new String(Base64.getDecoder().decode(afterMatch));
+			return (CaptureResponsBioDataDto) (mapper.readValue(result.getBytes(), CaptureResponsBioDataDto.class));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return null;
+
+	}
+
 	
 	@Test
 	public void extractSingleBiometricIsoTemplate() throws IOException {

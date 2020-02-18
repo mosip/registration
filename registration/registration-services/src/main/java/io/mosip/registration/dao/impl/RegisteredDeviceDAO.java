@@ -18,7 +18,7 @@ public interface RegisteredDeviceDAO {
 	 * 
 	 * @return List of Registered device
 	 */
-	List<RegisteredDeviceMaster> getRegisteredDevices(String deviceCode);
+	List<RegisteredDeviceMaster> getRegisteredDevices(String deviceCode, String serialNumber);
 	
 	
 

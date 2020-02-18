@@ -110,7 +110,7 @@
                                           <GridPane fx:id="ContentHeader">
                                              <children>
                                                 <Label alignment="CENTER" contentDisplay="CENTER" styleClass="paneHeader" text="%guardianBiometric" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.valignment="CENTER" />
-                                                <Label fx:id="dedupeMessage" alignment="CENTER" contentDisplay="CENTER" styleClass="paneHeader" text="%dedupeMessage" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.valignment="CENTER" visible="false" />
+                                                <Label fx:id="dedupeMessage" alignment="CENTER" contentDisplay="CENTER" styleClass="paneHeader" text="%dedupeMessage" visible="false" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.valignment="CENTER" />
                                                 <ComboBox fx:id="biometricTypecombo" onAction="#displayBiometric" prefWidth="150.0" promptText="%select" styleClass="demographicCombobox" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="TOP" />
                                              </children>
                                              <columnConstraints>
@@ -249,7 +249,7 @@
                                           <ProgressBar fx:id="bioProgress" prefWidth="${parentProgressPane.width}" progress="0.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                           <Label styleClass="attemptsLabel" text="%attempts" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
                                           <HBox fx:id="bioRetryBox" prefHeight="100.0" prefWidth="200.0" spacing="30.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                                          <Label fx:id="qualityText" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                                          <Label fx:id="qualityText" alignment="CENTER" prefHeight="12.0" prefWidth="60.0" GridPane.columnIndex="2" GridPane.rowIndex="1" />
                                           <Label fx:id="thresholdLabel" prefWidth="${parentProgressPane.width}" text="threshold" GridPane.columnIndex="1" />
                                           <GridPane prefWidth="${parentProgressPane.width}" GridPane.columnIndex="1" GridPane.rowIndex="1">
                                              <children>
@@ -263,10 +263,13 @@
                                                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                              </rowConstraints>
                                           </GridPane>
+                                          <Label fx:id="captureTimeLabel" alignment="CENTER" contentDisplay="CENTER" prefHeight="26.0" prefWidth="111.0" styleClass="qualityBoxLabel" text="%captureTime" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                                          <Label fx:id="captureTimeValue" alignment="CENTER" contentDisplay="CENTER" prefHeight="28.0" prefWidth="92.0" styleClass="qualityBoxLabel" text="" GridPane.columnIndex="3" GridPane.rowIndex="2" />
                                        </children>
                                        <columnConstraints>
-                                          <ColumnConstraints hgrow="SOMETIMES" percentWidth="25.0" />
-                                          <ColumnConstraints hgrow="SOMETIMES" percentWidth="60.0" />
+                                          <ColumnConstraints hgrow="SOMETIMES" percentWidth="20.0" />
+                                          <ColumnConstraints hgrow="SOMETIMES" percentWidth="50.0" />
+                                          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="15.0" prefWidth="100.0" />
                                           <ColumnConstraints hgrow="SOMETIMES" percentWidth="15.0" />
                                        </columnConstraints>
                                        <rowConstraints>
@@ -277,9 +280,9 @@
                                     </GridPane>
                                  </children>
                                  <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="25.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="25.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="75.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="15.0" prefWidth="100.0" />
                                  </columnConstraints>
                                  <rowConstraints>
                                     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />

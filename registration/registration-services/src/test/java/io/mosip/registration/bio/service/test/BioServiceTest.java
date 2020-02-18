@@ -18,6 +18,8 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 
@@ -39,6 +41,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.machinezoo.sourceafis.FingerprintTemplate;
@@ -54,6 +57,7 @@ import io.mosip.registration.dto.biometric.BiometricInfoDTO;
 import io.mosip.registration.dto.biometric.FaceDetailsDTO;
 import io.mosip.registration.dto.biometric.FingerprintDetailsDTO;
 import io.mosip.registration.dto.biometric.IrisDetailsDTO;
+import io.mosip.registration.dto.json.metadata.DigitalId;
 import io.mosip.registration.entity.UserBiometric;
 import io.mosip.registration.entity.id.UserBiometricId;
 import io.mosip.registration.exception.RegBaseCheckedException;
@@ -164,15 +168,39 @@ public class BioServiceTest {
 			for (CaptureResponseBioDto captureResponseBioDto : mosipBioCaptureResponseDto
 					.getMosipBioDeviceDataResponses()) {
 				if (null != captureResponseBioDto) {
-					String bioJson = new String(Base64.getDecoder().decode(captureResponseBioDto.getCaptureBioData()));
+					String bioJson = captureResponseBioDto.getCaptureBioData();
 					if (null != bioJson) {
-						CaptureResponsBioDataDto captureResponsBioDataDto = mapper.readValue(bioJson.getBytes(),
-								CaptureResponsBioDataDto.class);
+						CaptureResponsBioDataDto captureResponsBioDataDto = getCaptureResponsBioDataDecoded(bioJson,
+								mapper);
+						captureResponsBioDataDto.setDigitalIdDecoded(mapper.readValue(
+								new String(Base64.getDecoder().decode(captureResponsBioDataDto.getDigitalId()))
+										.getBytes(),
+								DigitalId.class));
 						captureResponseBioDto.setCaptureResponseData(captureResponsBioDataDto);
 					}
 				}
 			}
 		}
+	}
+	
+	private static CaptureResponsBioDataDto getCaptureResponsBioDataDecoded(String capturedData, ObjectMapper mapper) {
+		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+		Pattern pattern = Pattern.compile("(?<=\\.)(.*)(?=\\.)");
+		Matcher matcher = pattern.matcher(capturedData);
+		String afterMatch = null;
+		if (matcher.find()) {
+			afterMatch = matcher.group(1);
+		}
+
+		try {
+			String result = new String(Base64.getDecoder().decode(afterMatch));
+			return (CaptureResponsBioDataDto) (mapper.readValue(result.getBytes(), CaptureResponsBioDataDto.class));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return null;
+
 	}
 	
 	private BiometricInfoDTO createBiometricInfoDTO() {
@@ -331,7 +359,7 @@ public class BioServiceTest {
 
 		captureResponseDto.setMosipBioDeviceDataResponses(Arrays.asList(captureResponseBioDto));
 		requestDetail.setType("leftslap");
-		Mockito.when(mosipBioDeviceManager.scan(requestDetail)).thenReturn(captureResponseDto);
+		Mockito.when(mosipBioDeviceManager.regScan(requestDetail)).thenReturn(captureResponseDto);
 		// Mockito.when(mosipBioDeviceManager.scan("leftslap")).thenReturn(value)
 		bioService.segmentFingerPrintImage(fingerprintDTO, LEFTHAND_SEGMNTD_FILE_PATHS, "leftslap");
 
@@ -359,7 +387,7 @@ public class BioServiceTest {
 	public void testGetIrisImageAsDTOWithMdm() throws RegBaseCheckedException, IOException {
 		CaptureResponseDto captureResponse = getIrisCaptureResponse();
 		PowerMockito.mockStatic(ImageIO.class);
-		Mockito.when(mosipBioDeviceManager.scan(Mockito.anyObject())).thenReturn(captureResponse);
+		Mockito.when(mosipBioDeviceManager.regScan(Mockito.anyObject())).thenReturn(captureResponse);
 		requestDetail.setType("LEFT_EYE");
 		bioService.getIrisImageAsDTO(new IrisDetailsDTO(), requestDetail,2,2);
 	}
@@ -460,14 +488,14 @@ public class BioServiceTest {
 	@Test
 	public void validateFaceTest1() throws RegBaseCheckedException, IOException {
 		requestDetail.setType(RegistrationConstants.FACE_FULLFACE);
-		Mockito.when(mosipBioDeviceManager.scan(Mockito.any())).thenReturn(getFingerPritnCaptureResponse());
+		Mockito.when(mosipBioDeviceManager.regScan(Mockito.any())).thenReturn(getFingerPritnCaptureResponse());
 		bioService.validateFace(bioService.getFaceAuthenticationDto("userId",requestDetail));
 	}
 
 	@Test
 	public void validateFaceTest2() throws RegBaseCheckedException, IOException {
 		ApplicationContext.getInstance().getApplicationMap().put("mosip.mdm.enabled", "N");
-		Mockito.when(mosipBioDeviceManager.scan(Mockito.any())).thenReturn(getFingerPritnCaptureResponse());
+		Mockito.when(mosipBioDeviceManager.regScan(Mockito.any())).thenReturn(getFingerPritnCaptureResponse());
 		requestDetail.setType(RegistrationConstants.FACE_FULLFACE);
 		bioService.validateFace(bioService.getFaceAuthenticationDto("userId",requestDetail));
 	}
@@ -484,7 +512,7 @@ public class BioServiceTest {
 	@Test
 	public void getFingerPrintImageAsDTOWithMdmTest() throws RegBaseCheckedException, IOException {
 		CaptureResponseDto captureResponseDto = getFingerPritnCaptureResponse();
-		Mockito.when(mosipBioDeviceManager.scan(Mockito.anyObject())).thenReturn(captureResponseDto);
+		Mockito.when(mosipBioDeviceManager.regScan(Mockito.anyObject())).thenReturn(captureResponseDto);
 		Mockito.when(mosipBioDeviceManager.getSingleBiometricIsoTemplate(captureResponseDto))
 				.thenReturn("value".getBytes());
 		requestDetail.setType("thumbs");
@@ -547,7 +575,7 @@ public class BioServiceTest {
 
 	@Test
 	public void validateIrisTest1() throws RegBaseCheckedException, IOException {
-		CaptureResponseDto captureResponseDto = getFingerPritnCaptureResponse();
+		CaptureResponseDto captureResponseDto = getIrisCaptureResponse();
 		Mockito.when(mosipBioDeviceManager.authScan(Mockito.anyObject())).thenReturn(captureResponseDto);
 		Mockito.when(mosipBioDeviceManager.getSingleBiometricIsoTemplate(captureResponseDto))
 				.thenReturn("value".getBytes());

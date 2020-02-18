@@ -44,7 +44,6 @@ import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.UserDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
-import io.mosip.registration.mdm.dto.RequestDetail;
 import io.mosip.registration.scheduler.SchedulerUtil;
 import io.mosip.registration.service.config.JobConfigurationService;
 import io.mosip.registration.service.login.LoginService;
@@ -651,9 +650,7 @@ public class LoginController extends BaseController implements Initializable {
 	Streamer streamer;
 	
 	public void streamFace() {
-		streamer.startStream(new RequestDetail(RegistrationConstants.FACE_FULLFACE,
-				getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 1, 
-				getValueFromApplicationContext(RegistrationConstants.FACE_THRESHOLD), null), faceImage, null);
+		streamer.startStream(RegistrationConstants.FACE_FULLFACE, faceImage, null);
 	}
 
 	/**

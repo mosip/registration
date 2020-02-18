@@ -4,6 +4,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.net.SocketTimeoutException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -82,7 +83,9 @@ public class UserMachineMappingServiceImpl extends BaseService implements UserMa
 				requestMap.put(RegistrationConstants.ID, RegistrationConstants.APPLICATION_NAME);
 				requestMap.put(RegistrationConstants.REQ_TIME, DateUtils.getUTCCurrentDateTimeString());
 				requestMap.put("metadata", new HashMap<>());
-
+				RegCenterMachineUserReqDto<RegistrationCenterUserMachineMappingDto> regCenterMachineUserReqDto = new RegCenterMachineUserReqDto<>();
+				regCenterMachineUserReqDto.setId("REGISTRATION");
+				regCenterMachineUserReqDto.setRequesttime(DateUtils.formatToISOString(LocalDateTime.now()));
 				for (UserMachineMapping userMachineMapping : userMachineMappingList) {
 					Map<String, Object> userMap = new HashMap<>();
 					userMap.put("cntrId", centerId);
