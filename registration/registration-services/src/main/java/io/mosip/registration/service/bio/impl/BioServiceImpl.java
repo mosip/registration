@@ -921,12 +921,18 @@ public class BioServiceImpl extends BaseService implements BioService {
 	}
 
 	@Override
-	public double getHighQualityScoreByBioType(String bioType) {
+	public Double getHighQualityScoreByBioType(String bioType, Double qualityScore) {
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 				"Getting highest quality score for : " + bioType );
 		
-		return BIO_QUALITY_SCORE.get(bioType).entrySet().stream().max(Comparator.comparing(Map.Entry::getValue)).get()
+		try {
+		qualityScore = BIO_QUALITY_SCORE.get(bioType).entrySet().stream().max(Comparator.comparing(Map.Entry::getValue)).get()
 				.getValue();
+		}catch(Exception e) {
+			return qualityScore;
+		}
+		
+		return qualityScore;
 
 	}
 
@@ -955,7 +961,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 
 	}
 
-	public double getBioQualityScores(String bioType, int attempt) {
+	public Double getBioQualityScores(String bioType, int attempt) {
 
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 				"Get Stream  Quality Score of : " + bioType + " for attempt : " + attempt);
@@ -967,7 +973,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 				"NOT FOUND : Stream image of : " + bioType + " for attempt : " + attempt);
 
-		return (Double) null;
+		return null;
 
 	}
 

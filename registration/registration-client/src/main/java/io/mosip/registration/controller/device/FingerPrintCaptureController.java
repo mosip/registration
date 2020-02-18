@@ -488,8 +488,7 @@ public class FingerPrintCaptureController extends BaseController implements Init
 
 						if (fpDetailsDTO != null) {
 
-							double qualityScore= bioService.isMdmEnabled() ? bioService.getBioQualityScores(fpDetailsDTO.getFingerType(),
-										fpDetailsDTO.getNumRetry()) : fpDetailsDTO.getQualityScore();
+							double qualityScore= findQualityScore(fpDetailsDTO);
 							
 							fpProgress.setProgress(fpDetailsDTO != null ? qualityScore / 100 : 0);
 
@@ -547,6 +546,29 @@ public class FingerPrintCaptureController extends BaseController implements Init
 		}
 	}
 
+	private double findQualityScore(FingerprintDetailsDTO fpDetailsDTO) {
+		if(bioService.isMdmEnabled()) {
+			if(bioService.getBioQualityScores(fpDetailsDTO.getFingerType(),
+					fpDetailsDTO.getNumRetry())!=null)
+				return bioService.getBioQualityScores(fpDetailsDTO.getFingerType(),
+						fpDetailsDTO.getNumRetry());
+			return fpDetailsDTO.getQualityScore();
+		}
+		return fpDetailsDTO.getQualityScore();
+	}
+
+	private double findQualityScore(FingerprintDetailsDTO fpDetailsDTO, int attempt) {
+		if(bioService.isMdmEnabled()) {
+			if(bioService.getBioQualityScores(fpDetailsDTO.getFingerType(),
+					attempt)!=null)
+				return bioService.getBioQualityScores(fpDetailsDTO.getFingerType(),
+						attempt);
+			return fpDetailsDTO.getQualityScore();
+		}
+		return fpDetailsDTO.getQualityScore();
+	}
+
+	
 	private void setImagesOnHover() {
 		Image backInWhite = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK_FOCUSED));
 		Image backImage = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK));
@@ -598,7 +620,7 @@ public class FingerPrintCaptureController extends BaseController implements Init
 		int retries = fpDetailsDTO.getNumRetry();
 
 		for (int attempt = 1; attempt <= retries; attempt++) {
-			if ((bioService.isMdmEnabled() ? bioService.getBioQualityScores(fpDetailsDTO.getFingerType(), attempt) : fpDetailsDTO.getQualityScore()) >= threshold) {
+			if (findQualityScore(fpDetailsDTO, attempt) >= threshold) {
 				clearAttemptsBox(RegistrationConstants.QUALITY_LABEL_GREEN, attempt);
 				fpProgress.getStyleClass().removeAll(RegistrationConstants.PROGRESS_BAR_RED);
 				fpProgress.getStyleClass().add(RegistrationConstants.PROGRESS_BAR_GREEN);
@@ -1322,7 +1344,7 @@ public class FingerPrintCaptureController extends BaseController implements Init
 
 			if (!(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
 
-				double qualityScore= bioService.isMdmEnabled() ? bioService.getBioQualityScores(fingerType, attempt) : detailsDTO.getQualityScore();
+				double qualityScore= findQualityScore(detailsDTO);
 	
 				fpProgress.setProgress(qualityScore/100);
 				qualityText.setText(getQualityScore(qualityScore));
@@ -1667,7 +1689,7 @@ public class FingerPrintCaptureController extends BaseController implements Init
 		if (!bioService.isMdmEnabled()) {
 			qualityScore = fingerprintDetailsDTO.getQualityScore();
 		} else {
-			qualityScore = bioService.getHighQualityScoreByBioType(fingerprintDetailsDTO.getFingerType());
+			qualityScore = bioService.getHighQualityScoreByBioType(fingerprintDetailsDTO.getFingerType(), fingerprintDetailsDTO.getQualityScore());
 		}
 		return qualityScore >= Double.parseDouble(getValueFromApplicationContext(handThreshold))
 				|| (qualityScore < Double.parseDouble(getValueFromApplicationContext(handThreshold))

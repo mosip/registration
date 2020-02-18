@@ -147,8 +147,6 @@ public class FaceCaptureController extends BaseController implements Initializab
 	@FXML
 	private Label exceptionImageLabel;
 	@FXML
-	private Button captureTimeLabel;
-	@FXML
 	private Label captureTimeValue;
 
 
@@ -415,6 +413,11 @@ public class FaceCaptureController extends BaseController implements Initializab
 		captureTimeValue.setText(reponseTime);
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Opening WebCamera to capture photograph");
+		if(!isDuplicate) {
+			saveBiometricDetailsBtn.setDisable(true);
+			return;
+		}
+
 		byte[] isoBytes = bioService.getSingleBiometricIsoTemplate(captureResponseDto);
 		if (photoType.equals(RegistrationConstants.APPLICANT_IMAGE) && capturedImage != null) {
 			

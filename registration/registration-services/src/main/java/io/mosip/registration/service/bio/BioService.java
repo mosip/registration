@@ -223,14 +223,14 @@ public interface BioService {
 	 *            attemptNumber
 	 * @return QualityScore
 	 */
-	public double getBioQualityScores(String bioType, int attempt);
+	public Double getBioQualityScores(String bioType, int attempt);
 
 	/**
 	 * @param bioType
 	 *            biometricType
 	 * @return quality score
 	 */
-	public double getHighQualityScoreByBioType(String bioType);
+	public Double getHighQualityScoreByBioType(String bioType, Double qualityScore);
 	
 	/**
 	 * @param bioType  biometricType

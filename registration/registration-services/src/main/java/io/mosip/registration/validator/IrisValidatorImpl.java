@@ -146,15 +146,24 @@ public class IrisValidatorImpl extends AuthenticationBaseValidator {
 		}
 		try {
 			scores = ibioApi.match(capturedBir, registeredBir, null);
-			int reqScore = 60;
+			int reqScore = 80;
 			for (Score score : scores) {
 				if (score.getScaleScore() >= reqScore) {
 					flag = true;
+					break;
 				}
 			}
 		} catch (BiometricException exception) {
 			LOGGER.error(LOG_REG_FINGERPRINT_FACADE, APPLICATION_NAME, APPLICATION_ID,
 					String.format("Exception while validating the iris with bio api: %s caused by %s",
+							exception.getMessage(), exception.getCause()));
+			ApplicationContext.map().put("IDENTY_SDK", "FAILED");
+			return false;
+
+		}
+		catch (RuntimeException exception) {
+			LOGGER.error(LOG_REG_FINGERPRINT_FACADE, APPLICATION_NAME, APPLICATION_ID,
+					String.format("Exception while validating the iris with bio api: %s caused by %s, Runtime",
 							exception.getMessage(), exception.getCause()));
 			ApplicationContext.map().put("IDENTY_SDK", "FAILED");
 			return false;
