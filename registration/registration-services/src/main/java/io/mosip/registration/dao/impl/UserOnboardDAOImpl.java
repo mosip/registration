@@ -294,7 +294,7 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 		try {
 			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
 					"fetching userMachineMapping details from repository....");
-			UserMachineMapping userMachineMapping = machineMappingRepository.findByUserMachineMappingIdUserID(usrId);
+			UserMachineMapping userMachineMapping = machineMappingRepository.findByUserMachineMappingIdUserIDIgnoreCase(usrId);
 			return userMachineMapping != null ? userMachineMapping.getCrDtime() : null;
 		} catch (RuntimeException runtimeException) {
 			
