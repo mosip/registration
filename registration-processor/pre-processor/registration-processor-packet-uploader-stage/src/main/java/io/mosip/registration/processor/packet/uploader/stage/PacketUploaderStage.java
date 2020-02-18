@@ -154,9 +154,4 @@ public class PacketUploaderStage extends MosipVerticleAPIManager {
 		this.send(this.mosipEventBus, MessageBusAddress.PACKET_UPLOADER_OUT, messageDTO);
 	}
 
-	@Override
-	public void stop() {
-		packetUploaderService.disconnectSftpConnection();
-	}
-
 }

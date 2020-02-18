@@ -163,9 +163,4 @@ public interface FileManager<D, F> {
 	 */
 	public boolean cleanUp(String fileName, D sourceWorkingDirectory, D destinationWorkingDirectory, SftpJschConnectionDto sftpConnectionDto) throws IOException, JschConnectionException, SftpFileOperationException ;
 
-	/**
-	 * Disconnect the sftp connection used to get file from LANDING_ZONE.
-	 */
-	public void disconnectSftp();
-
 }
