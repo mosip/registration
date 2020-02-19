@@ -29,6 +29,7 @@ import io.mosip.registration.constants.Components;
 import io.mosip.registration.constants.RegistrationClientStatusCode;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
+import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.dao.GlobalParamDAO;
 import io.mosip.registration.dao.PreRegistrationDataSyncDAO;
 import io.mosip.registration.dao.RegistrationDAO;
@@ -222,7 +223,6 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 			 * enabling all the jobs after all the clean up activities for the previous
 			 * center
 			 */
-			if (!isPacketsPendingForProcessing() && !isPacketsPendingForReRegister()) {
 				/* enable intial set up flag */
 				globalParamService.update(RegistrationConstants.INITIAL_SETUP, RegistrationConstants.ENABLE);
 				/* disable the remap flag after completing the remap process */
@@ -232,9 +232,11 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 					globalParamDAO.saveAll(Arrays.asList(globalParam));
 				}
 
+				SessionContext.map().put(RegistrationConstants.RE_MAP_SUCCESS, RegistrationConstants.ENABLE);
+				
 				LOGGER.info("REGISTRATION CENTER MACHINE REMAP : ", APPLICATION_NAME, APPLICATION_ID,
 						"cleanUpCenterSpecificData remap successfully completed");
-			}
+			
 		}
 	}
 
@@ -248,7 +250,7 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 	public boolean isPacketsPendingForProcessing() {
 		List<Registration> registrations = registrationDAO
 				.findByServerStatusCodeNotIn(RegistrationConstants.PACKET_STATUS_CODES_FOR_REMAPDELETE);
-		return isNotNullNotEmpty(registrations);
+		return registrations == null || registrations.isEmpty();
 	}
 
 	/*
@@ -266,7 +268,8 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 	@Override
 	public boolean isPacketsPendingForReRegister() {
 
-		return isNotNullNotEmpty(registrationDAO.fetchReRegisterPendingPackets());
+		return (registrationDAO.fetchReRegisterPendingPackets() != null
+				&& registrationDAO.fetchReRegisterPendingPackets().size() > 0) ? true : false;
 	}
 
 	/**
