@@ -1,5 +1,7 @@
 package io.mosip.registration.mdm.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,18 +15,9 @@ import lombok.Setter;
 @Setter
 public class DeviceInfoResponseData {
 
-	/* type - “Fingerprint” “Face”, ,”Iris”, “Vein”  */
-	private String type;
-	/*
-	 * subType-(Fingerprint-“Slab”,“Single”,“Touchless”) (Iris-“Single”,“Double”)
-	 */
-	private String subType;
-	private String status;
-	private DeviceInfo deviceInfo;
-	private String deviceInfoSignature;
-	private String serviceVersion;
-	private String[] deviceSubId;
+	@JsonIgnore
+	private DeviceInfo deviceInfoDecoded;
+	private String deviceInfo;
 	private Error error;
-	private String callbackId;
 
 }

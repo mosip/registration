@@ -67,26 +67,20 @@ public class MosipBioDeviceIntegratorTest {
 		CaptureResponseBioDto captureResponseBioDto = new CaptureResponseBioDto();
 
 		captureResponseBioDto.setHash("hash");
-		captureResponseBioDto.setSessionKey("sessionKey");
-		captureResponseBioDto.setSignature("signature");
 
 		CaptureResponsBioDataDto captureResponsBioDataDto = new CaptureResponsBioDataDto();
 		captureResponsBioDataDto.setBioExtract(
 				"ExtractbioExtractbioExtractctbioExtractctbExtractioExtractbioExtractbioExtractctbioExtractctbioExtract"
 						);
 		captureResponsBioDataDto.setBioSubType("bioSubType");
-		captureResponsBioDataDto.setBioType("bioType");
-		captureResponsBioDataDto.setBioValue("bio".getBytes());
+		captureResponsBioDataDto.setBioValue("bio");
 		captureResponsBioDataDto.setDeviceCode("deviceCode");
-		captureResponsBioDataDto.setDeviceProviderID("deviceProviderID");
-		captureResponsBioDataDto.setDeviceServiceID("deviceServiceID");
 		captureResponsBioDataDto.setDeviceServiceVersion("deviceServiceVersion");
 		captureResponsBioDataDto.setEnv("env");
-		captureResponsBioDataDto.setMosipProcess("mosipProcess");
 		captureResponsBioDataDto.setQualityScore("qualityScore");
 		captureResponsBioDataDto.setRequestedScore("requestedScore");
 		captureResponsBioDataDto.setTimestamp("timestamp");
-		captureResponsBioDataDto.setRegistrationID("transactionID");
+		captureResponsBioDataDto.setTransactionId("transactionID");
 
 		ObjectMapper objectMapper = new ObjectMapper();
 
@@ -131,24 +125,18 @@ public class MosipBioDeviceIntegratorTest {
 		CaptureResponseBioDto captureResponseBioDto = new CaptureResponseBioDto();
 
 		captureResponseBioDto.setHash("hash");
-		captureResponseBioDto.setSessionKey("sessionKey");
-		captureResponseBioDto.setSignature("signature");
 
 		CaptureResponsBioDataDto captureResponsBioDataDto = new CaptureResponsBioDataDto();
 		captureResponsBioDataDto.setBioExtract("Extract");
 		captureResponsBioDataDto.setBioSubType("bioSubType");
-		captureResponsBioDataDto.setBioType("bioType");
-		captureResponsBioDataDto.setBioValue("bio".getBytes());
+		captureResponsBioDataDto.setBioValue("bio");
 		captureResponsBioDataDto.setDeviceCode("deviceCode");
-		captureResponsBioDataDto.setDeviceProviderID("deviceProviderID");
-		captureResponsBioDataDto.setDeviceServiceID("deviceServiceID");
 		captureResponsBioDataDto.setDeviceServiceVersion("deviceServiceVersion");
 		captureResponsBioDataDto.setEnv("env");
-		captureResponsBioDataDto.setMosipProcess("mosipProcess");
 		captureResponsBioDataDto.setQualityScore("qualityScore");
 		captureResponsBioDataDto.setRequestedScore("requestedScore");
 		captureResponsBioDataDto.setTimestamp("timestamp");
-		captureResponsBioDataDto.setRegistrationID("transactionID");
+		captureResponsBioDataDto.setTransactionId("transactionID");
 
 		ObjectMapper objectMapper = new ObjectMapper();
 

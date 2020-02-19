@@ -5,7 +5,6 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -447,9 +446,7 @@ public class AuthenticationController extends BaseController implements Initiali
 	@FXML
 	private void startStream() {
 		faceImage.setImage(null);
-		streamer.startStream(new RequestDetail(RegistrationConstants.FACE_FULLFACE,
-				getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 1,
-				getValueFromApplicationContext(RegistrationConstants.FACE_THRESHOLD), null), faceImage, null);
+		streamer.startStream(RegistrationConstants.FACE_FULLFACE, faceImage, null);
 	}
 
 	/**

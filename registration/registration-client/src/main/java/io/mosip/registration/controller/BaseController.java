@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Timer;
+import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -72,12 +73,14 @@ import io.mosip.registration.service.template.TemplateService;
 import io.mosip.registration.util.acktemplate.TemplateGenerator;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 import javafx.animation.PauseTransition;
+import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.event.EventType;
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
@@ -98,6 +101,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -182,8 +186,20 @@ public class BaseController {
 
 	@Autowired
 	private RegistrationApprovalController registrationApprovalController;
+	
+	@FXML
+	public Text scanningMsg;
+  
 
 	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
+
+	public Text getScanningMsg() {
+		return scanningMsg;
+	}
+
+	public void setScanningMsg(String message) {
+		scanningMsg.setText(message);
+	}
 
 	protected Scene scene;
 
@@ -336,6 +352,42 @@ public class BaseController {
 		}
 	}
 
+	/**
+	 * /* Alert creation with specified title, header, and context.
+	 *
+	 * @param title
+	 *            alert title
+	 * @param context
+	 *            alert context
+	 */
+	protected boolean generateAlert(String title, String context, ToRun<Boolean> run, BaseController controller) {
+		boolean isValid=false;
+		try {
+			closeAlreadyExistedAlert();
+			alertStage = new Stage();
+			Pane authRoot = BaseController.load(getClass().getResource(RegistrationConstants.ALERT_GENERATION));
+			Scene scene = new Scene(authRoot);
+			scene.getStylesheets().add(ClassLoader.getSystemClassLoader()
+					.getResource(RegistrationConstants.CSS_FILE_PATH).toExternalForm());
+			alertStage.initStyle(StageStyle.UNDECORATED);
+			alertStage.setScene(scene);
+			alertStage.initModality(Modality.WINDOW_MODAL);
+			
+			alertController.getAlertGridPane().setPrefHeight(context.length() / 2 + 110);
+			controller.setScanningMsg(RegistrationUIConstants.VALIDATION_MESSAGE);
+			alertTypeCheck(title, context, alertStage);
+			isValid=run.toRun();
+		} catch (IOException ioException) {
+			LOGGER.error("REGISTRATION - ALERT - BASE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+					ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
+		} catch (RuntimeException runtimeException) {
+			LOGGER.error("REGISTRATION - ALERT - BASE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
+		}
+		return isValid;
+	}
+
+	
 	private void alertTypeCheck(String title, String context, Stage alertStage) {
 		if (context.contains(RegistrationConstants.INFO) || (!context.contains(RegistrationConstants.INFO)
 				&& !context.contains(RegistrationConstants.SUCCESS.toUpperCase())
@@ -673,7 +725,7 @@ public class BaseController {
 	 * @param imageType
 	 *            Type of image that is to be saved
 	 */
-	public void saveApplicantPhoto(BufferedImage capturedImage, String imageType,CaptureResponseDto captureResponseDto, String reponseTime) {
+	public void saveApplicantPhoto(BufferedImage capturedImage, String imageType,CaptureResponseDto captureResponseDto, String reponseTime,boolean isDuplicateFound) {
 		// will be implemented in the derived class.
 	}
 
@@ -1127,7 +1179,7 @@ public class BaseController {
 		disableHomePage(false);
 		packetHandlerController.getProgressIndicator().setVisible(false);
 
-		if (!centerMachineReMapService.isPacketsPendingForProcessing()) {
+		if (RegistrationConstants.ENABLE.equals(SessionContext.map().get(RegistrationConstants.RE_MAP_SUCCESS))) {
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.REMAP_PROCESS_SUCCESS);
 			headerController.logoutCleanUp();
 		} else {
@@ -1505,5 +1557,8 @@ public class BaseController {
 										: RegistrationConstants.EMPTY;
 	}
 	
+	public interface ToRun <T>{
+		public T toRun();
+	}
 
 }

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.List;
 
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
-import io.mosip.registration.dto.biometric.FaceDetailsDTO;
 import io.mosip.registration.dto.biometric.FingerprintDetailsDTO;
 import io.mosip.registration.dto.biometric.IrisDetailsDTO;
 import io.mosip.registration.entity.UserBiometric;
@@ -196,7 +195,7 @@ public interface BioService {
 	 * 
 	 * @return CaptureResponseDto
 	 */
-	CaptureResponseDto captureFace(RequestDetail requestDetail);
+	CaptureResponseDto captureFace(RequestDetail requestDetail) throws RegBaseCheckedException, IOException;
 
 	/**
 	 * Returns single biometric bio value
@@ -224,14 +223,14 @@ public interface BioService {
 	 *            attemptNumber
 	 * @return QualityScore
 	 */
-	public double getBioQualityScores(String bioType, int attempt);
+	public Double getBioQualityScores(String bioType, int attempt);
 
 	/**
 	 * @param bioType
 	 *            biometricType
 	 * @return quality score
 	 */
-	public double getHighQualityScoreByBioType(String bioType);
+	public Double getHighQualityScoreByBioType(String bioType, Double qualityScore);
 	
 	/**
 	 * @param bioType  biometricType
