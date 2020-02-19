@@ -321,14 +321,16 @@ public class ClientJarDecryption extends Application {
 
 										updateMessage(LAUNCHING_CLIENT);
 
-										String libPath = "\"" + new File("lib").getAbsolutePath() + "\"";
+//										String libPath = "\"" + new File("lib").getAbsolutePath() + "\"";
+										
+										FileUtils.copyDirectory(new File("lib"), new File(tempPath));
 
 										LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION,
 												LoggerConstants.APPLICATION_NAME, LoggerConstants.APPLICATION_ID,
 												"Preparing command to launch the reg-client");
 
 										String cmd = "java" + " -Dfile.encoding=UTF-8" + " -cp " + tempPath + "/*;"
-												+ libPath + "/* io.mosip.registration.controller.Initialization";
+												 + "/* io.mosip.registration.controller.Initialization";
 
 										Process process = Runtime.getRuntime().exec(cmd);
 
