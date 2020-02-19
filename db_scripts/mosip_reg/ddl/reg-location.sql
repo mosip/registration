@@ -18,7 +18,7 @@ CREATE TABLE reg.location(
 	name character varying(128) NOT NULL,
 	hierarchy_level smallint NOT NULL,
 	hierarchy_level_name character varying(64) NOT NULL,
-	parent_loc_code character varying(32),
+	parent_loc_code character varying(36),
 	lang_code character varying(3) NOT NULL,
 	is_active boolean NOT NULL,
 	cr_by character varying(256) NOT NULL,

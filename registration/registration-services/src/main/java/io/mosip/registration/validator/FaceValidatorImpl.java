@@ -160,7 +160,15 @@ public class FaceValidatorImpl extends AuthenticationBaseValidator {
 			ApplicationContext.map().put("IDENTY_SDK", "FAILED");
 			return false;
 
+		}catch (RuntimeException exception) {
+			LOGGER.error(LOG_REG_FINGERPRINT_FACADE, APPLICATION_NAME, APPLICATION_ID, String.format(
+					"Exception while validating the face with bio api: %s caused by %s Runtime",
+					exception.getMessage(), exception.getCause()));
+			ApplicationContext.map().put("IDENTY_SDK", "FAILED");
+			return false;
+
 		}
+		
 		return flag;
 		
 	}

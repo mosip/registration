@@ -182,7 +182,7 @@ public class RegistrationConstants {
 	public static final String FACE_STUB = "face";
 	public static final String SUPERVISOR_AUTH = "supervisor";
 	public static final String OFFICER_AUTH = "officer";
-
+	
 	// Authentication Methods
 	public static final String PWORD = "PWD";
 	public static final String OTP = "OTP";
@@ -249,6 +249,9 @@ public class RegistrationConstants {
 	public static final String IS_BLOCKED_WORD = "IS_BLOCKED_WORD";
 	public static final String BLACKLISTED_1 = "BLACKLISTED_1";
 	public static final String BLACKLISTED_2 = "BLACKLISTED_2";
+	public static final String BLACKLISTED_ARE = "BLACKLISTED_ARE";
+	public static final String BLACKLISTED_IS = "BLACKLISTED_IS";
+
 	public static final String REG_DDC_004 = "REG_DDC_004";
 	public static final String AGE_FIELD = "ageField";
 	public static final String MOBILE_NUMBER = "mobileNo";
@@ -335,6 +338,7 @@ public class RegistrationConstants {
 	public static final String UIN_UPDATE_GENDER_LBL = "Gender";
 	public static final String MALE_CODE = "MLE";
 	public static final String FEMALE_CODE = "FLE";
+	public static final String STREAMER_THREAD= "STREAMER_THREAD";
 
 	public static final String UIN_UPDATE_PARENT_DETAILS_LBL = "Parent/Guardian details";
 	public static final String UIN_UPDATE_CNIE_NUMBER_LBL = "CNIE/PIN/Residence Card Number";
@@ -952,6 +956,7 @@ public class RegistrationConstants {
 	public static final String POI_DOCUMENT = "POI";
 	public static final String POR_DOCUMENT = "POR";
 	public static final String DOB_DOCUMENT = "POB";
+	public static final String POE_DOCUMENT = "POE";
 	public static final String SERVER_STATUS_RESEND = "RESEND";
 	public static final String CLIENT_STATUS_APPROVED = "APPROVED";
 	public static final String SYNCED_STATUS = "SYNCED";
@@ -1147,6 +1152,7 @@ public class RegistrationConstants {
 	public static final String POSTAL_CODE_REGEX_INITIAL = "\\d{1,5}";
 	public static final String REGEX_ANY = ".*";
 	public static final String ONE = "1";
+	public static final String BIOMETRIC_SEPERATOR = "(?<=\\.)(.*)(?=\\.)";
 
 	// master sync
 	public static final String MASTER_SYNC_SUCESS_MSG_CODE = "REG-MDS‌-001";
@@ -1580,4 +1586,5 @@ public class RegistrationConstants {
 	public static String DEDUPLICATION_FINGERPRINT_ENABLE_FLAG = "mosip.registration.mds.fingerprint.dedup.enable.flag";
 	public static String DEDUPLICATION_IRIS_ENABLE_FLAG = "mosip.registration.mds.iris.dedup.enable.flag";
 	public static String DEDUPLICATION_FACE_ENABLE_FLAG = "mosip.registration.mds.face.dedup.enable.flag";
+	public static String RE_MAP_SUCCESS="rempaSucess";
 }

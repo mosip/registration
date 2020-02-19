@@ -110,5 +110,7 @@ public enum PacketFiles {
 	/** The packetOsiHash. */
 	PACKET_OSI_HASH,
 	/** The otherFiles. */
-	OTHERFILES
+	OTHERFILES,
+	/**Audit Files */
+	AUDIT
 }

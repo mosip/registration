@@ -86,7 +86,7 @@
                                     <Text fx:id="totalScannedPages" strokeType="OUTSIDE" strokeWidth="0.0" text="0" />
                                     <Button fx:id="saveBtn" mnemonicParsing="false" onAction="#save" styleClass="scanButton" text="%save">
                                     </Button>
-                                    <Button mnemonicParsing="false" onAction="#scan" styleClass="scanButton" text="%capture">
+                                    <Button fx:id="captureBtn" mnemonicParsing="false" onAction="#scan" styleClass="scanButton" text="%capture">
                                     </Button>
                                  </children>
                               </VBox>

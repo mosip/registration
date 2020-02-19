@@ -139,7 +139,7 @@ public class UserClientMachineMappingDAOTest {
 	public void isExistsNullTest() {
 		UserMachineMapping machineMapping = null;
 		Mockito.when(
-				machineMappingRepository.findByUserMachineMappingIdUserID(RegistrationConstants.JOB_TRIGGER_POINT_USER))
+				machineMappingRepository.findByUserMachineMappingIdUserIDIgnoreCase(RegistrationConstants.JOB_TRIGGER_POINT_USER))
 				.thenReturn(machineMapping);
 		Assert.assertFalse(machineMappingDAOImpl.isExists(RegistrationConstants.JOB_TRIGGER_POINT_USER));
 	}
@@ -153,7 +153,7 @@ public class UserClientMachineMappingDAOTest {
 		List<UserMachineMapping> deviceList = new ArrayList<>();
 		deviceList.add(machineMapping);
 		Mockito.when(
-				machineMappingRepository.findByUserMachineMappingIdUserID(RegistrationConstants.JOB_TRIGGER_POINT_USER))
+				machineMappingRepository.findByUserMachineMappingIdUserIDIgnoreCase(RegistrationConstants.JOB_TRIGGER_POINT_USER))
 				.thenReturn(machineMapping);
 		Assert.assertTrue(machineMappingDAOImpl.isExists(RegistrationConstants.JOB_TRIGGER_POINT_USER));
 	}

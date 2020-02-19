@@ -451,13 +451,24 @@ public class PacketUploadController extends BaseController implements Initializa
 				}));
 		list.addListener(new ListChangeListener<PacketStatusVO>() {
 			@Override
-			public void onChanged(Change<? extends PacketStatusVO> c) {
-				while (c.next()) {
-					if (c.wasUpdated()) {
-						if (!selectedPackets.contains(table.getItems().get(c.getFrom()))) {
-							selectedPackets.add(table.getItems().get(c.getFrom()));
+			public void onChanged(Change<? extends PacketStatusVO> displayData) {
+				while (displayData.next()) {
+
+					boolean isAdded = false;
+
+					for (PacketStatusVO packet : selectedPackets) {
+
+						if (packet.getFileName().equals(table.getItems().get(displayData.getFrom()).getFileName())) {
+							isAdded = true;
+						}
+					}
+
+					if (displayData.wasUpdated()) {
+
+						if (!isAdded) {
+							selectedPackets.add(table.getItems().get(displayData.getFrom()));
 						} else {
-							selectedPackets.remove(table.getItems().get(c.getFrom()));
+							selectedPackets.remove(table.getItems().get(displayData.getFrom()));
 						}
 						saveToDevice.setDisable(!selectedPackets.isEmpty());
 					}

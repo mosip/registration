@@ -136,7 +136,7 @@ public class MachineMappingDAOImpl implements MachineMappingDAO {
 	public boolean isExists(String userId) {
 		LOGGER.info(MACHINE_MAPPING_LOGGER_TITLE, APPLICATION_NAME, APPLICATION_ID, "checking exists or not");
 
-		return machineMappingRepository.findByUserMachineMappingIdUserID(userId) != null;
+		return machineMappingRepository.findByUserMachineMappingIdUserIDIgnoreCase(userId) != null;
 	}
 
 	/*

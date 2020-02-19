@@ -44,7 +44,6 @@ import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.UserDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
-import io.mosip.registration.mdm.dto.RequestDetail;
 import io.mosip.registration.scheduler.SchedulerUtil;
 import io.mosip.registration.service.config.JobConfigurationService;
 import io.mosip.registration.service.login.LoginService;
@@ -132,10 +131,10 @@ public class LoginController extends BaseController implements Initializable {
 
 	@FXML
 	private Label otpValidity;
-	
+
 	@FXML
 	private Hyperlink forgotUsrnme;
-	
+
 	@FXML
 	private Hyperlink resetPword;
 
@@ -271,7 +270,6 @@ public class LoginController extends BaseController implements Initializable {
 			primaryStage.getIcons().add(new Image(getClass().getResource(RegistrationConstants.LOGO).toExternalForm()));
 			primaryStage.show();
 
-
 			org.apache.log4j.Logger.getLogger(Initialization.class).info("Mosip client Screen loaded");
 
 			// Execute SQL file (Script files on update)
@@ -390,9 +388,13 @@ public class LoginController extends BaseController implements Initializable {
 							errorResponseDTOList.get(0).getMessage());
 				} else {
 
-					if (validateInvalidLogin((UserDTO) responseDTO.getSuccessResponseDTO().getOtherAttributes()
-							.get(RegistrationConstants.USER_DTO), "")) {
-						isUserNewToMachine = machineMappingService.isUserNewToMachine(userId.getText())
+					UserDTO userDTO = (UserDTO) responseDTO.getSuccessResponseDTO().getOtherAttributes()
+							.get(RegistrationConstants.USER_DTO);
+
+					userId.setText(userDTO.getId());
+
+					if (validateInvalidLogin(userDTO, "")) {
+						isUserNewToMachine = machineMappingService.isUserNewToMachine(userDTO.getId())
 								.getErrorResponseDTOs() != null;
 						if (isUserNewToMachine) {
 							initialSetUpOrNewUserLaunch();
@@ -538,18 +540,20 @@ public class LoginController extends BaseController implements Initializable {
 			if (userDTO != null) {
 
 				AuthenticationValidatorDTO authenticationValidatorDTO = new AuthenticationValidatorDTO();
-				authenticationValidatorDTO.setUserId(userId.getText());
+				authenticationValidatorDTO.setUserId(userDTO.getId());
 				authenticationValidatorDTO.setPassword(password.getText());
 
 				try {
-					if (SessionContext.create(userDTO, RegistrationConstants.PWORD, false, false,
+					if (SessionContext.create(userDTO, RegistrationConstants.PWORD, isInitialSetUp, isUserNewToMachine,
 							authenticationValidatorDTO)) {
 						pwdValidationStatus = validateInvalidLogin(userDTO, "");
 					} else {
 						pwdValidationStatus = validateInvalidLogin(userDTO, RegistrationUIConstants.INCORRECT_PWORD);
 					}
 				} catch (RegBaseCheckedException | IOException exception) {
-					generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)+RegistrationConstants.UNDER_SCORE+RegistrationConstants.MESSAGE.toUpperCase()));
+					generateAlert(RegistrationConstants.ALERT_INFORMATION,
+							RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)
+									+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
 				}
 
 				if (pwdValidationStatus) {
@@ -625,13 +629,17 @@ public class LoginController extends BaseController implements Initializable {
 			authenticationValidatorDTO.setOtp(otp.getText());
 
 			try {
-				if (SessionContext.create(userDTO, RegistrationConstants.OTP, false, false, authenticationValidatorDTO)) {
+				if (SessionContext.create(userDTO, RegistrationConstants.OTP, false, false,
+						authenticationValidatorDTO)) {
 					otpLoginStatus = validateInvalidLogin(userDTO, "");
 				} else {
-					otpLoginStatus = validateInvalidLogin(userDTO, RegistrationUIConstants.OTP_VALIDATION_ERROR_MESSAGE);
+					otpLoginStatus = validateInvalidLogin(userDTO,
+							RegistrationUIConstants.OTP_VALIDATION_ERROR_MESSAGE);
 				}
 			} catch (RegBaseCheckedException | IOException exception) {
-				generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)+RegistrationConstants.UNDER_SCORE+RegistrationConstants.MESSAGE.toUpperCase()));
+				generateAlert(RegistrationConstants.ALERT_INFORMATION,
+						RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)
+								+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
 			}
 			if (otpLoginStatus) {
 				otpPane.setVisible(false);
@@ -648,17 +656,15 @@ public class LoginController extends BaseController implements Initializable {
 
 		}
 	}
-	
+
 	@FXML
 	private ImageView faceImage;
-	
+
 	@Autowired
 	Streamer streamer;
-	
+
 	public void streamFace() {
-		streamer.startStream(new RequestDetail(RegistrationConstants.FACE_FULLFACE,
-				getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 1, 
-				getValueFromApplicationContext(RegistrationConstants.FACE_THRESHOLD), null), faceImage, null);
+		streamer.startStream(RegistrationConstants.FACE_FULLFACE, faceImage, null);
 	}
 
 	/**
@@ -690,7 +696,9 @@ public class LoginController extends BaseController implements Initializable {
 				bioLoginStatus = validateInvalidLogin(userDTO, RegistrationUIConstants.FINGER_PRINT_MATCH);
 			}
 		} catch (RegBaseCheckedException | IOException exception) {
-			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)+RegistrationConstants.UNDER_SCORE+RegistrationConstants.MESSAGE.toUpperCase()));
+			generateAlert(RegistrationConstants.ALERT_INFORMATION,
+					RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)
+							+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
 		}
 
 		if (bioLoginStatus) {
@@ -735,7 +743,9 @@ public class LoginController extends BaseController implements Initializable {
 				irisLoginStatus = validateInvalidLogin(userDTO, RegistrationUIConstants.IRIS_MATCH);
 			}
 		} catch (RegBaseCheckedException | IOException exception) {
-			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)+RegistrationConstants.UNDER_SCORE+RegistrationConstants.MESSAGE.toUpperCase()));
+			generateAlert(RegistrationConstants.ALERT_INFORMATION,
+					RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)
+							+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
 		}
 		if (irisLoginStatus) {
 			LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, "Iris validation success");
@@ -774,7 +784,9 @@ public class LoginController extends BaseController implements Initializable {
 				faceLoginStatus = validateInvalidLogin(userDTO, RegistrationUIConstants.FACE_MATCH);
 			}
 		} catch (RegBaseCheckedException | IOException exception) {
-			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)+RegistrationConstants.UNDER_SCORE+RegistrationConstants.MESSAGE.toUpperCase()));
+			generateAlert(RegistrationConstants.ALERT_INFORMATION,
+					RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)
+							+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
 		}
 
 		if (faceLoginStatus) {
@@ -831,7 +843,7 @@ public class LoginController extends BaseController implements Initializable {
 			loginList.remove(RegistrationConstants.PARAM_ZERO);
 		}
 	}
-	
+
 	/**
 	 * Redirects to mosip.io in case of user forgot user name
 	 * 
@@ -840,18 +852,17 @@ public class LoginController extends BaseController implements Initializable {
 	 */
 	public void forgotUsrname(ActionEvent event) {
 		forgotUsrnme.setOnAction(e -> {
-		    if(Desktop.isDesktopSupported())
-		    {
-		        try {
-		            Desktop.getDesktop().browse(new URI(RegistrationConstants.MOSIP_URL));
-		        } catch (IOException ioException) {
-		        	LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+			if (Desktop.isDesktopSupported()) {
+				try {
+					Desktop.getDesktop().browse(new URI(RegistrationConstants.MOSIP_URL));
+				} catch (IOException ioException) {
+					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 							ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
-		        } catch (URISyntaxException uriSyntaxException) {
-		        	LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-		        			uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
-		        }
-		    }
+				} catch (URISyntaxException uriSyntaxException) {
+					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+							uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
+				}
+			}
 		});
 	}
 
@@ -863,18 +874,17 @@ public class LoginController extends BaseController implements Initializable {
 	 */
 	public void resetPwd(ActionEvent event) {
 		resetPword.setOnAction(e -> {
-		    if(Desktop.isDesktopSupported())
-		    {
-		        try {
-		            Desktop.getDesktop().browse(new URI(RegistrationConstants.MOSIP_URL));
-		        } catch (IOException ioException) {
-		        	LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+			if (Desktop.isDesktopSupported()) {
+				try {
+					Desktop.getDesktop().browse(new URI(RegistrationConstants.MOSIP_URL));
+				} catch (IOException ioException) {
+					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 							ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
-		        } catch (URISyntaxException uriSyntaxException) {
-		        	LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-		        			uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
-		        }
-		    }
+				} catch (URISyntaxException uriSyntaxException) {
+					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+							uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
+				}
+			}
 		});
 	}
 
@@ -969,8 +979,8 @@ public class LoginController extends BaseController implements Initializable {
 					@Override
 					protected List<String> call() {
 
-						LOGGER.info("REGISTRATION - INITIAL_SYNC - LOGIN_CONTROLLER",
-								APPLICATION_NAME, APPLICATION_ID, "Handling all the sync activities before login");
+						LOGGER.info("REGISTRATION - INITIAL_SYNC - LOGIN_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+								"Handling all the sync activities before login");
 
 						return loginService.initialSync();
 					}

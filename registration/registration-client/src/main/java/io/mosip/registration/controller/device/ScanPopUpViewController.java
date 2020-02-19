@@ -81,6 +81,9 @@ public class ScanPopUpViewController extends BaseController {
 
 	private Stage popupStage;
 
+	@FXML
+	private Button captureBtn;
+
 	/**
 	 * @return the popupStage
 	 */
@@ -89,7 +92,8 @@ public class ScanPopUpViewController extends BaseController {
 	}
 
 	/**
-	 * @param popupStage the popupStage to set
+	 * @param popupStage
+	 *            the popupStage to set
 	 */
 	public void setPopupStage(Stage popupStage) {
 		this.popupStage = popupStage;

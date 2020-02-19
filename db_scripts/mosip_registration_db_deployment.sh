@@ -13,7 +13,7 @@ echo "`date` : You logged on to DB deplyment server as : `whoami`"
 echo "`date` : MOSIP Database objects deployment started...."
 
 echo "=============================================================================================================="
-bash ./mosip_idmap/mosip_regprc_db_deploy.sh ./mosip_idmap/mosip_regprc_deploy.properties
+bash ./mosip_regprc/mosip_regprc_db_deploy.sh ./mosip_regprc/mosip_regprc_deploy.properties
 echo "=============================================================================================================="
 
 echo "`date` : MOSIP DB Deployment for registration module databases is completed, Please check the logs at respective logs directory for more information"

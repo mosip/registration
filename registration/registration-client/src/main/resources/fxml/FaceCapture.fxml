@@ -283,8 +283,8 @@
                                  </columnConstraints>
                                  <rowConstraints>
                                     <RowConstraints minHeight="10.0" percentHeight="50.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                    <RowConstraints minHeight="10.0" percentHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                    <RowConstraints minHeight="10.0" percentHeight="40.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" percentHeight="20.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" percentHeight="30.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                  </rowConstraints>
                               </GridPane>
                               <GridPane GridPane.rowIndex="2">
@@ -352,12 +352,54 @@
                                           </GridPane>
                                        </children>
                                     </GridPane>
+                                    <GridPane>
+                                       <children>
+                                          <GridPane GridPane.columnIndex="1">
+                                             <children>
+                                                <GridPane fx:id="takePhotoPane1" GridPane.rowIndex="1">
+                                                   <children>
+                                                      <HBox prefHeight="100.0" prefWidth="200.0" spacing="20.0">
+                                                         <children>
+                                                            <Button fx:id="captureTimeLabel" mnemonicParsing="false" styleClass="onboardScanBtn" text="%captureTime">
+                                                            </Button>
+                                                            <Label fx:id="captureTimeValue" mnemonicParsing="false" styleClass="qualityBoxLabel" text="">
+                                                            </Label>
+                                                         </children>
+                                                      </HBox>
+                                                   </children>
+                                                   <columnConstraints>
+                                                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="90.0" prefWidth="100.0" />
+                                                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="10.0" prefWidth="100.0" />
+                                                   </columnConstraints>
+                                                   <rowConstraints>
+                                                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                   </rowConstraints>
+                                                </GridPane>
+                                             </children>
+                                             <columnConstraints>
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                             </columnConstraints>
+                                             <rowConstraints>
+                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                             </rowConstraints>
+                                          </GridPane>
+                                       </children>
+                                       <columnConstraints>
+                                          <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" percentWidth="20.0" prefWidth="100.0" />
+                                          <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" percentWidth="40.0" prefWidth="100.0" />
+                                          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="50.0" prefWidth="100.0" />
+                                       </columnConstraints>
+                                       <rowConstraints>
+                                          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                       </rowConstraints>
+                                    </GridPane>
                                  </children>
                               </GridPane>
                               <GridPane fx:id="ContentHeader">
                                  <children>
                                     <Label alignment="CENTER" contentDisplay="CENTER" styleClass="paneHeader" text="%image" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.valignment="CENTER" />
-                                    <Label  fx:id="dedupeMessage" alignment="CENTER" contentDisplay="CENTER" styleClass="paneHeader" text="%dedupeMessage" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.valignment="CENTER" visible="false"/>
+                                    <Label fx:id="dedupeMessage" alignment="CENTER" contentDisplay="CENTER" styleClass="paneHeader" text="%dedupeMessage" visible="false" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.valignment="CENTER" />
                                  </children>
                                  <columnConstraints>
                                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="5.0" prefWidth="100.0" />

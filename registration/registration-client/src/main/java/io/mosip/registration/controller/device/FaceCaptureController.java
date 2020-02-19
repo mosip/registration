@@ -8,6 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -145,6 +146,9 @@ public class FaceCaptureController extends BaseController implements Initializab
 	private Button startOverBtn;
 	@FXML
 	private Label exceptionImageLabel;
+	@FXML
+	private Label captureTimeValue;
+
 
 	private BufferedImage applicantBufferedImage;
 	private byte[] applicantImageIso;
@@ -257,12 +261,9 @@ public class FaceCaptureController extends BaseController implements Initializab
 				RegistrationConstants.APPLICATION_ID, "Opening WebCamera to capture photograph");
 		if (bioService.isMdmEnabled()) {
 			openWebCam(imageType);
-			streamer.startStream(new RequestDetail(RegistrationConstants.FACE_FULLFACE,
-					getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 1, 
-					getValueFromApplicationContext(RegistrationConstants.FACE_THRESHOLD), null), webCameraController.camImageView, null);
+			streamer.startStream(RegistrationConstants.FACE_FULLFACE, webCameraController.camImageView, null);
 			return;
-		}
-		else if (!webCameraController.isWebcamPluggedIn()) 
+		}	else if (!webCameraController.isWebcamPluggedIn()) 
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.WEBCAM_ALERT_CONTEXT);
 
 		openWebCam(imageType);
@@ -398,7 +399,6 @@ public class FaceCaptureController extends BaseController implements Initializab
 			}
 		}
 	}
-	
 	/**
 	 * 
 	 * To set the captured image to the imageView in the Applicant Biometrics page
@@ -409,22 +409,16 @@ public class FaceCaptureController extends BaseController implements Initializab
 	 */
 	@Override
 	public void saveApplicantPhoto(BufferedImage capturedImage, String photoType,
-			CaptureResponseDto captureResponseDto) {
+			CaptureResponseDto captureResponseDto, String reponseTime, boolean isDuplicate) {
+		captureTimeValue.setText(reponseTime);
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Opening WebCamera to capture photograph");
+		if(!isDuplicate) {
+			saveBiometricDetailsBtn.setDisable(true);
+			return;
+		}
 
 		byte[] isoBytes = bioService.getSingleBiometricIsoTemplate(captureResponseDto);
-		AuthenticationValidatorDTO authenticationValidatorDTO = new AuthenticationValidatorDTO();
-		authenticationValidatorDTO.setUserId(SessionContext.userContext().getUserId());
-		FaceDetailsDTO faceDetail = new FaceDetailsDTO();
-		faceDetail.setFaceISO(isoBytes);
-		authenticationValidatorDTO.setFaceDetail(faceDetail);
-		if(dedupeMessage!=null)
-			dedupeMessage.setVisible(true);
-		if((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER) || !bioService.validateFace(authenticationValidatorDTO)) {
-		if(dedupeMessage!=null)
-			dedupeMessage.setVisible(false);
-
 		if (photoType.equals(RegistrationConstants.APPLICANT_IMAGE) && capturedImage != null) {
 			
 			Image capture = SwingFXUtils.toFXImage(capturedImage, null);
@@ -505,11 +499,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 			exceptionFaceTrackerImg.setVisible(true);
 			saveBiometricDetailsBtn.setDisable(false);
 		}
-		}else {
-			if(dedupeMessage!=null)
-				dedupeMessage.setVisible(false);
-			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.FACE_DUPLICATE_ERROR);
-		}
+		
 	}
 
 	@Override
@@ -599,7 +589,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 			if (exceptionImage != null)
 				exceptionImage.setImage(defaultExceptionImage);
 			BiometricInfoDTO applicantBiometricDTO = getFaceDetailsDTO();
-			if(getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {
+			if (getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {
 				applicantBiometricDTO = getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO();
 			}
 			applicantBiometricDTO.getBiometricExceptionDTO().removeIf((v)->!v.isMarkedAsException());

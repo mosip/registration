@@ -12,7 +12,6 @@ import java.security.SecureRandom;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -57,7 +56,6 @@ import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.dao.AuditDAO;
 import io.mosip.registration.dao.AuditLogControlDAO;
 import io.mosip.registration.dao.DocumentTypeDAO;
-import io.mosip.registration.dao.MachineMappingDAO;
 import io.mosip.registration.dao.impl.RegisteredDeviceDAO;
 import io.mosip.registration.dto.BaseDTO;
 import io.mosip.registration.dto.OSIDataDTO;
@@ -72,7 +70,6 @@ import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
 import io.mosip.registration.dto.demographic.IndividualIdentity;
 import io.mosip.registration.dto.json.metadata.BiometricSequence;
 import io.mosip.registration.dto.json.metadata.DemographicSequence;
-import io.mosip.registration.dto.json.metadata.DigitalId;
 import io.mosip.registration.dto.json.metadata.FieldValueArray;
 import io.mosip.registration.dto.json.metadata.HashSequence;
 import io.mosip.registration.dto.json.metadata.PacketMetaInfo;
@@ -583,18 +580,9 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 
 		MosipBioDeviceManager.getDeviceRegistry().forEach((deviceName, device) -> {
 			RegisteredDevice registerdDevice = new RegisteredDevice();
-			registerdDevice.setDeviceCode(device.getDeviceId());
 			registerdDevice.setDeviceServiceVersion(device.getSerialVersion());
-			DigitalId digitalId = new DigitalId();
-			digitalId.setSerialNo(device.getDeviceId());
-			digitalId.setMake(device.getDeviceMake());
-			digitalId.setType(device.getDeviceType());
-			digitalId.setSubType(device.getDeviceSubType());
-			digitalId.setModel(device.getDeviceModel());
-			digitalId.setDp(device.getDeviceProviderName());
-			digitalId.setDpId(device.getDeviceProviderId());
-			digitalId.setDateTime(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).toString());
-			registerdDevice.setDigitalId(digitalId);
+			registerdDevice.setDeviceCode(device.getDeviceCode());
+			registerdDevice.setDigitalId(device.getDigitalId());
 			capturedRegisteredDevices.add(registerdDevice);
 		});
 

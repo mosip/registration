@@ -7,6 +7,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ResourceBundle;
 
 import javax.imageio.ImageIO;
@@ -19,9 +21,14 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.constants.RegistrationUIConstants;
+import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.device.webcam.IMosipWebcamService;
 import io.mosip.registration.device.webcam.PhotoCaptureFacade;
+import io.mosip.registration.dto.AuthenticationValidatorDTO;
+import io.mosip.registration.dto.biometric.FaceDetailsDTO;
+import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
 import io.mosip.registration.mdm.dto.RequestDetail;
 import io.mosip.registration.service.bio.BioService;
@@ -31,6 +38,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
@@ -59,12 +67,15 @@ public class WebCameraController extends BaseController implements Initializable
 
 	@FXML
 	private Button clear;
-	
+
 	@FXML
 	protected ImageView camImageView;
 
 	@FXML
 	private Button close;
+	
+	@FXML
+	public Label message;
 
 	private BaseController parentController = null;
 
@@ -128,19 +139,41 @@ public class WebCameraController extends BaseController implements Initializable
 	}
 
 	@FXML
-	public void captureImage(ActionEvent event) {
+	public void captureImage(ActionEvent event) throws RegBaseCheckedException, IOException {
 		LOGGER.info("REGISTRATION - UI - WEB_CAMERA_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 				"capturing the image from webcam");
+		boolean isDuplicateFound=false;
 		if (capturedImage != null) {
 			capturedImage.flush();
 		}
 		CaptureResponseDto captureResponseDto =null;
+		Instant start = Instant.now();
+		Instant end = Instant.now();
 		if (bioService.isMdmEnabled()) {
-
-			captureResponseDto = bioService.captureFace(new RequestDetail(RegistrationConstants.FACE_FULLFACE,
-					getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 1, 
-					getValueFromApplicationContext(RegistrationConstants.FACE_THRESHOLD), null));
-			if (null != captureResponseDto && null!=captureResponseDto.getMosipBioDeviceDataResponses()) {
+			start = Instant.now();
+			end = start;
+			try {
+				captureResponseDto = bioService
+						.captureFace(new RequestDetail(RegistrationConstants.FACE_FULLFACE,
+								getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 1,
+								getValueFromApplicationContext(RegistrationConstants.FACE_THRESHOLD), null));
+				end = Instant.now();
+				AuthenticationValidatorDTO authenticationValidatorDTO = new AuthenticationValidatorDTO();
+				authenticationValidatorDTO.setUserId(SessionContext.userContext().getUserId());
+				FaceDetailsDTO faceDetail = new FaceDetailsDTO();
+				faceDetail.setFaceISO(bioService.getSingleBiometricIsoTemplate(captureResponseDto));
+				authenticationValidatorDTO.setFaceDetail(faceDetail);
+				isDuplicateFound = generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.FACE_CAPTURE_SUCCESS, ()->{
+						if((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER))
+							return true;
+						return !bioService.validateFace(authenticationValidatorDTO);
+					}, this);
+			} catch (RegBaseCheckedException | IOException exception) {
+				generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)+RegistrationConstants.UNDER_SCORE+RegistrationConstants.MESSAGE.toUpperCase()));
+				streamer.stop();
+				return;
+			}
+			if (null != captureResponseDto && null != captureResponseDto.getMosipBioDeviceDataResponses()) {
 				try {
 					capturedImage = ImageIO.read(new ByteArrayInputStream(bioService.getSingleBioValue(captureResponseDto)));
 				} catch (IOException exception) {
@@ -153,7 +186,10 @@ public class WebCameraController extends BaseController implements Initializable
 		} else {
 			capturedImage = photoProvider.captureImage();
 		}
-		parentController.saveApplicantPhoto(capturedImage, imageType,captureResponseDto);
+		parentController.saveApplicantPhoto(capturedImage, imageType,captureResponseDto, Duration.between(start, end).toString().replace("PT", ""), isDuplicateFound);
+		setScanningMsg(RegistrationUIConstants.FACE_CAPTURE_SUCCESS_MSG);
+		if(!isDuplicateFound)
+			setScanningMsg(RegistrationUIConstants.FACE_DUPLICATE_ERROR);	
 		parentController.calculateRecaptureTime(imageType);
 		capture.setDisable(true);
 

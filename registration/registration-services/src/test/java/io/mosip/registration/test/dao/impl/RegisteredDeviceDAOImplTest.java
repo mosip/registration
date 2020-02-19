@@ -53,9 +53,9 @@ public class RegisteredDeviceDAOImplTest {
 		List<RegisteredDeviceMaster> list = new ArrayList<>();
 		list.add(registerdDeviceMaster);
 		
-		Mockito.when(registeredDeviceRepository.findAllByIsActiveTrueAndDeviceId(Mockito.anyString())).thenReturn(list);
+		Mockito.when(registeredDeviceRepository.findAllByIsActiveTrueAndDeviceIdAndSerialNumber(Mockito.anyString(),Mockito.anyString())).thenReturn(list);
 		
-		assertEquals(list, registeredDeviceDAOImpl.getRegisteredDevices(Mockito.anyString()));
+		assertEquals(list, registeredDeviceDAOImpl.getRegisteredDevices(Mockito.anyString(),Mockito.anyString()));
 	}
 
 }

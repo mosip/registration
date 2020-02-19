@@ -115,9 +115,10 @@
 		<HBox id="footer-section">
 			<children>
 				<Label text="%mosip.io" />
-            <Label text="  " />
-            <Label text="%regClientVersion" />
-            <Label fx:id="versionValueLabel" />
+				<Label text="  " />
+				<Label text="%regClientVersion" />
+				<Label text=" : " />
+				<Label fx:id="versionValueLabel" />
 			</children>
 		</HBox>
 	</bottom>
