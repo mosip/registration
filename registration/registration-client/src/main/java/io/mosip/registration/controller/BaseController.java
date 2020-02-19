@@ -1179,7 +1179,7 @@ public class BaseController {
 		disableHomePage(false);
 		packetHandlerController.getProgressIndicator().setVisible(false);
 
-		if (!centerMachineReMapService.isPacketsPendingForProcessing()) {
+		if (RegistrationConstants.ENABLE.equals(SessionContext.map().get(RegistrationConstants.RE_MAP_SUCCESS))) {
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.REMAP_PROCESS_SUCCESS);
 			headerController.logoutCleanUp();
 		} else {

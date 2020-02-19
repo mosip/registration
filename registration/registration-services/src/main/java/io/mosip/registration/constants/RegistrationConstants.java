@@ -1586,4 +1586,5 @@ public class RegistrationConstants {
 	public static String DEDUPLICATION_FINGERPRINT_ENABLE_FLAG = "mosip.registration.mds.fingerprint.dedup.enable.flag";
 	public static String DEDUPLICATION_IRIS_ENABLE_FLAG = "mosip.registration.mds.iris.dedup.enable.flag";
 	public static String DEDUPLICATION_FACE_ENABLE_FLAG = "mosip.registration.mds.face.dedup.enable.flag";
+	public static String RE_MAP_SUCCESS="rempaSucess";
 }
