@@ -182,10 +182,15 @@ public class LoginController extends BaseController implements Initializable {
 
 	@Autowired
 	private HeaderController headerController;
+	
+	@FXML
+	private Label versionValueLabel;
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
 
+		versionValueLabel.setText(softwareUpdateHandler.getCurrentVersion());
+		
 		if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
 
 			// Check for updates

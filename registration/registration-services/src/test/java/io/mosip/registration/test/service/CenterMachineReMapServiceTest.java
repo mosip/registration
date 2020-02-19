@@ -32,6 +32,7 @@ import io.mosip.kernel.core.exception.IOException;
 import io.mosip.kernel.core.util.FileUtils;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.context.ApplicationContext;
+import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.dao.GlobalParamDAO;
 import io.mosip.registration.dao.PreRegistrationDataSyncDAO;
 import io.mosip.registration.dao.RegistrationDAO;
@@ -48,7 +49,7 @@ import io.mosip.registration.service.sync.PacketSynchService;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ RegistrationAppHealthCheckUtil.class, FileUtils.class, ScriptUtils.class })
+@PrepareForTest({ RegistrationAppHealthCheckUtil.class, FileUtils.class, ScriptUtils.class,SessionContext.class })
 public class CenterMachineReMapServiceTest {
 	@Rule
 	public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -116,7 +117,8 @@ public class CenterMachineReMapServiceTest {
 		List<PreRegistrationList> preRegistrationList = new ArrayList<>();
 		Mockito.when(preRegistrationDataSyncDAO.getAllPreRegPackets()).thenReturn(preRegistrationList);
 
-		PowerMockito.doNothing().when(FileUtils.class, "deleteDirectory", Mockito.any(File.class));
+		PowerMockito.mockStatic(SessionContext.class);
+		PowerMockito.when(SessionContext.map()).thenReturn(new HashMap<>());		PowerMockito.doNothing().when(FileUtils.class, "deleteDirectory", Mockito.any(File.class));
 
 		for (int i = 1; i < 5; i++) {
 			centerMachineReMapServiceImpl.handleReMapProcess(i);
