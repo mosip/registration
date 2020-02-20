@@ -413,7 +413,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 		captureTimeValue.setText(reponseTime);
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Opening WebCamera to capture photograph");
-		if(!isDuplicate) {
+		if(isDuplicate) {
 			saveBiometricDetailsBtn.setDisable(true);
 			return;
 		}
@@ -500,6 +500,11 @@ public class FaceCaptureController extends BaseController implements Initializab
 			saveBiometricDetailsBtn.setDisable(false);
 		}
 		
+		//Success Alert
+		generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.FACE_CAPTURE_SUCCESS);
+		
+		//Closing Capture screen
+		webCameraController.getWebCameraStage().close();
 	}
 
 	@Override

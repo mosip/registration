@@ -166,7 +166,7 @@ public class WebCameraController extends BaseController implements Initializable
 				isDuplicateFound = generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.FACE_CAPTURE_SUCCESS, ()->{
 						if((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER))
 							return true;
-						return !bioService.validateFace(authenticationValidatorDTO);
+						return bioService.validateFace(authenticationValidatorDTO);
 					}, this);
 			} catch (RegBaseCheckedException | IOException exception) {
 				generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)+RegistrationConstants.UNDER_SCORE+RegistrationConstants.MESSAGE.toUpperCase()));

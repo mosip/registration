@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -99,6 +101,7 @@ public class MosipBioDeviceManager {
 	 *                                 errorMessage
 	 */
 	@SuppressWarnings("unchecked")
+	@PostConstruct
 	public void init() throws RegBaseCheckedException {
 		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
 				"Entering init method for preparing device registry");
@@ -109,8 +112,8 @@ public class MosipBioDeviceManager {
 				initByPort(port);
 			} catch (RegBaseCheckedException exception) {
 				LOGGER.error(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_GET, APPLICATION_NAME, APPLICATION_ID,
-						String.format("Exception while mapping the response",
-								exception.getMessage() + ExceptionUtils.getStackTrace(exception)));
+						"Exception while mapping the response : "+
+								exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 			}
 
 		}
@@ -121,6 +124,7 @@ public class MosipBioDeviceManager {
 	private void initByPort(int port) throws RegBaseCheckedException {
 		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID, "Initializing on port : " + port);
 
+		initByPortAndDeviceType(port, null);
 	}
 
 	private void initByDeviceType(String constructedDeviceType) throws RegBaseCheckedException {
@@ -158,7 +162,7 @@ public class MosipBioDeviceManager {
 
 				if (MosioBioDeviceHelperUtil.isListNotEmpty(deviceInfoResponseDtos)) {
 
-					getDeviceInfoResponse(mapper, availablePort, deviceInfoResponseDtos, deviceType);
+					getDeviceInfoResponse(mapper, availablePort, deviceInfoResponseDtos);
 				}
 			} else {
 				LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
@@ -208,7 +212,7 @@ public class MosipBioDeviceManager {
 	 * @throws RegBaseCheckedException 
 	 */
 	private DeviceInfoResponseData getDeviceInfoResponse(ObjectMapper mapper, int port,
-			List<LinkedHashMap<String, String>> deviceInfoResponseDtos, String deviceType) throws RegBaseCheckedException {
+			List<LinkedHashMap<String, String>> deviceInfoResponseDtos) throws RegBaseCheckedException {
 		DeviceInfoResponseData deviceInfoResponse = null;
 		for (LinkedHashMap<String, String> deviceInfoResponseHash : deviceInfoResponseDtos) {
 
@@ -242,7 +246,7 @@ public class MosipBioDeviceManager {
 
 			}
 
-			creationOfBioDeviceObject(deviceInfoResponse, port, deviceType);
+			creationOfBioDeviceObject(deviceInfoResponse, port);
 		}
 		return deviceInfoResponse;
 	}
@@ -253,9 +257,9 @@ public class MosipBioDeviceManager {
 	 * @param deviceInfoResponse the device info response
 	 * @param port               the port number
 	 */
-	private void creationOfBioDeviceObject(DeviceInfoResponseData deviceInfoResponse, int port, String deviceType) {
+	private void creationOfBioDeviceObject(DeviceInfoResponseData deviceInfoResponse, int port) {
 
-		if (deviceInfoResponse != null && deviceType != null) {
+		if (deviceInfoResponse != null) {
 			DeviceInfo deviceInfo = deviceInfoResponse.getDeviceInfoDecoded();
 			BioDevice bioDevice = new BioDevice();
 			bioDevice.setRunningPort(port);
@@ -562,7 +566,7 @@ public class MosipBioDeviceManager {
 		BioDevice bioDevice = deviceRegistry.get(constructDeviceType(deviceType));
 
 		if (bioDevice != null) {
-			initByPortAndDeviceType(bioDevice.getRunningPort(), deviceType);
+			initByPort(bioDevice.getRunningPort());
 		}
 
 	}
