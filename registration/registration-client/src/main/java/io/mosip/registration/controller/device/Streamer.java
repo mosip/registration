@@ -1,6 +1,5 @@
 package io.mosip.registration.controller.device;
 
-import static io.mosip.registration.constants.LoggerConstants.BIO_SERVICE;
 import static io.mosip.registration.constants.LoggerConstants.STREAMER;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
@@ -54,7 +53,6 @@ public class Streamer {
 
 	// Image View, which UI need to be shown
 	private static ImageView imageView;
-
 	// Set Streaming image
 	public void setStreamImage(Image streamImage) {
 		this.streamImage = streamImage;

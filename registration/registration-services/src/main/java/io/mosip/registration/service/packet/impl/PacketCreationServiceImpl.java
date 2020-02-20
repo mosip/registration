@@ -581,7 +581,7 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 		MosipBioDeviceManager.getDeviceRegistry().forEach((deviceName, device) -> {
 			RegisteredDevice registerdDevice = new RegisteredDevice();
 			registerdDevice.setDeviceServiceVersion(device.getSerialVersion());
-			registerdDevice.setDeviceCode(device.getDeviceCode());
+			registerdDevice.setDeviceCode(device.getDigitalId().getSerialNo());
 			registerdDevice.setDigitalId(device.getDigitalId());
 			capturedRegisteredDevices.add(registerdDevice);
 		});

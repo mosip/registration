@@ -36,6 +36,7 @@ import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.dao.impl.RegisteredDeviceDAO;
 import io.mosip.registration.dto.json.metadata.DigitalId;
+import io.mosip.registration.entity.RegisteredDeviceMaster;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.constants.MosipBioDeviceConstants;
 import io.mosip.registration.mdm.dto.BioDevice;
@@ -100,8 +101,8 @@ public class MosipBioDeviceManager {
 	 * @throws RegBaseCheckedException - generalised exception with errorCode and
 	 *                                 errorMessage
 	 */
-	@SuppressWarnings("unchecked")
 	@PostConstruct
+	@SuppressWarnings("unchecked")
 	public void init() throws RegBaseCheckedException {
 		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
 				"Entering init method for preparing device registry");
@@ -112,8 +113,8 @@ public class MosipBioDeviceManager {
 				initByPort(port);
 			} catch (RegBaseCheckedException exception) {
 				LOGGER.error(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_GET, APPLICATION_NAME, APPLICATION_ID,
-						"Exception while mapping the response : "+
-								exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+						String.format("Exception while mapping the response",
+								exception.getMessage() + ExceptionUtils.getStackTrace(exception)));
 			}
 
 		}
@@ -153,7 +154,6 @@ public class MosipBioDeviceManager {
 				
 				LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
 						"Device Info Response : "+response);
-				
 				try {
 					deviceInfoResponseDtos = mapper.readValue(response, List.class);
 				} catch (IOException exception) {
@@ -259,6 +259,7 @@ public class MosipBioDeviceManager {
 	 */
 	private void creationOfBioDeviceObject(DeviceInfoResponseData deviceInfoResponse, int port) {
 
+
 		if (deviceInfoResponse != null) {
 			DeviceInfo deviceInfo = deviceInfoResponse.getDeviceInfoDecoded();
 			BioDevice bioDevice = new BioDevice();
@@ -287,17 +288,16 @@ public class MosipBioDeviceManager {
 
 			}
 			
-			bioDevice.setRegistered(registeredDeviceDAO.getRegisteredDevices(deviceInfo.getDeviceCode(),digitalId.getSerialNo()).size()==1?true:false);
+			List<RegisteredDeviceMaster> registeredDevice = registeredDeviceDAO.getRegisteredDevices(digitalId.getSerialNo(),digitalId.getSerialNo()); 
+			bioDevice.setRegistered(registeredDevice!=null?registeredDevice.size()==1?true:false:false);
 			String isDeviceValidationEnabled = ((String)ApplicationContext.getInstance().map().get("isDeviceValidationEnabled"));
 			if(isDeviceValidationEnabled==null)
 				bioDevice.setRegistered(true);
 			else
-				bioDevice.setRegistered("".equals("NO")?true:bioDevice.isRegistered());
+				bioDevice.setRegistered(isDeviceValidationEnabled.equals("NO")?true:bioDevice.isRegistered());
 			bioDevice.checkForSpec();
-			
 			LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
 					"Adding Device to Registry : "+bioDevice.toString());
-			
 			deviceRegistry.put(bioDevice.getDeviceType().toUpperCase() + RegistrationConstants.UNDER_SCORE
 					+ bioDevice.getDeviceSubType().toUpperCase(), bioDevice);
 		}
