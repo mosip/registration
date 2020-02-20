@@ -294,16 +294,10 @@ public class MosipBioDeviceManager {
 			if(isDeviceValidationEnabled==null)
 				bioDevice.setRegistered(true);
 			else
-<<<<<<< Updated upstream
-				bioDevice.setRegistered("".equals("NO")?true:bioDevice.isRegistered());
-			bioDevice.checkForSpec();
-			
-			LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
-					"Adding Device to Registry : "+bioDevice.toString());
-=======
 				bioDevice.setRegistered(isDeviceValidationEnabled.equals("NO")?true:bioDevice.isRegistered());
 			bioDevice.checkForSpec();
->>>>>>> Stashed changes
+			LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
+					"Adding Device to Registry : "+bioDevice.toString());
 			deviceRegistry.put(bioDevice.getDeviceType().toUpperCase() + RegistrationConstants.UNDER_SCORE
 					+ bioDevice.getDeviceSubType().toUpperCase(), bioDevice);
 		}
