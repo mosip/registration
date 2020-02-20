@@ -354,7 +354,6 @@ public class RestApiClient {
 		try {
 			DecodedJWT decodedJWT = JWT.decode(accessToken);
 			Map<String, Claim> claims = decodedJWT.getClaims();
-			System.out.println(DateUtils.getUTCTimeFromDate(decodedJWT.getExpiresAt()));
 			LocalDateTime expiryTime = DateUtils
 					.convertUTCToLocalDateTime(DateUtils.getUTCTimeFromDate(decodedJWT.getExpiresAt()));
 
