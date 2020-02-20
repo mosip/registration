@@ -146,6 +146,10 @@ public class MosipBioDeviceManager {
 			if (RegistrationAppHealthCheckUtil.checkServiceAvailability(url)) {
 				List<LinkedHashMap<String, String>> deviceInfoResponseDtos = null;
 				String response = (String) mosipBioDeviceIntegrator.getDeviceInfo(url, Object[].class);
+				
+				LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
+						"Device Info Response : "+response);
+				
 				try {
 					deviceInfoResponseDtos = mapper.readValue(response, List.class);
 				} catch (IOException exception) {
@@ -286,6 +290,10 @@ public class MosipBioDeviceManager {
 			else
 				bioDevice.setRegistered("".equals("NO")?true:bioDevice.isRegistered());
 			bioDevice.checkForSpec();
+			
+			LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
+					"Adding Device to Registry : "+bioDevice.toString());
+			
 			deviceRegistry.put(bioDevice.getDeviceType().toUpperCase() + RegistrationConstants.UNDER_SCORE
 					+ bioDevice.getDeviceSubType().toUpperCase(), bioDevice);
 		}

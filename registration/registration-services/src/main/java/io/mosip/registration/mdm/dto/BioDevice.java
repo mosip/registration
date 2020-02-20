@@ -197,6 +197,11 @@ public class BioDevice {
 
 		con.setDoOutput(true);
 		DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+		
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Stream Request Started : "+ System.currentTimeMillis());
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Stream Request : "+ streamRequest.toString());
+		
+		
 		wr.writeBytes(request);
 		wr.flush();
 		wr.close();
