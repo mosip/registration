@@ -26,6 +26,7 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.repositories.UserDetailRepository;
 import io.mosip.registration.service.BaseService;
+import io.mosip.registration.service.operator.UserOnboardService;
 import io.mosip.registration.service.operator.UserSaltDetailsService;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 
@@ -34,6 +35,7 @@ public class UserSaltDetailsServiceImpl extends BaseService implements UserSaltD
 
 	@Autowired
 	private UserDetailRepository userDetailRepository;
+	
 
 	/** Object for Logger. */
 	private static final Logger LOGGER = AppConfig.getLogger(UserSaltDetailsServiceImpl.class);
@@ -137,11 +139,11 @@ public class UserSaltDetailsServiceImpl extends BaseService implements UserSaltD
 	@SuppressWarnings("unchecked")
 
 	private Map<String, Object> saltService(String trigger) throws RegBaseCheckedException {
-
+		
 		ResponseDTO responseDTO = new ResponseDTO();
 		LinkedHashMap<String, Object> userSaltDetailsSyncResponse = null;
 		Map<String, String> requestParamMap = new LinkedHashMap<>();
-		requestParamMap.put("appid", "registrationclient");
+		requestParamMap.put(RegistrationConstants.REG_ID,getCenterId());
 
 		try {
 
