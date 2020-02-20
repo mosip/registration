@@ -304,7 +304,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 		}
 
 		setBioQualityScores(requestDetail.getType(), attempt,
-				currentCaptureQualityScore / mosipBioDeviceDataResponses.size());
+				currentCaptureQualityScore / (double)mosipBioDeviceDataResponses.size());
 
 		double slapQuality = (fpDetailsDTO.getSegmentedFingerprints().stream()
 				.mapToDouble(finger -> finger.getQualityScore()).sum())
