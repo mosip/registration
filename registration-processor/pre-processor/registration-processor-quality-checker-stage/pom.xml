@@ -70,7 +70,7 @@
         <dependency>
             <groupId>io.mosip.kernel</groupId>
             <artifactId>kernel-core</artifactId>
-            <version>1.0.5</version>
+			<version>${kernel.core.version}</version>
         </dependency>
         <dependency>
             <groupId>io.mosip.kernel</groupId>
@@ -80,7 +80,7 @@
         <dependency>
             <groupId>io.mosip.kernel</groupId>
             <artifactId>kernel-cbeffutil-api</artifactId>
-            <version>1.0.5</version>
+         <version>${kernel.cbeffutil.version}</version>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>

@@ -10,7 +10,7 @@
 		<version>1.0.6</version>
 	</parent>
 	<artifactId>registration-processor-core</artifactId>
-
+<version>1.1.0-SNAPSHOT</version>
 	<dependencies>
 		<dependency>
 			<groupId>org.mockito</groupId>
@@ -108,7 +108,7 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idvalidator-rid</artifactId>
-			<version>${kernel.core.version}</version>
+			<version>${kernel.idvalidator.version}</version>
 		</dependency>
 
 		<!-- Kernel Logback Impl -->
@@ -120,7 +120,7 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-fsadapter-hdfs</artifactId>
-			<version>${kernel.core.version}</version>
+			<version>${kernel.fsadapter.hdfs.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
@@ -130,12 +130,12 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-cbeffutil-api</artifactId>
-			<version>${kernel.core.version}</version>
+			<version>${kernel.cbeffutil.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-bioapi-provider</artifactId>
-			<version>${kernel.core.version}</version>
+			<version>${kernel.bioapi.provider.version}</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
 		<dependency>
