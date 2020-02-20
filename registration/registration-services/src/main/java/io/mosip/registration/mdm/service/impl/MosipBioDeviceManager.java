@@ -36,6 +36,7 @@ import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.dao.impl.RegisteredDeviceDAO;
 import io.mosip.registration.dto.json.metadata.DigitalId;
+import io.mosip.registration.entity.RegisteredDeviceMaster;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.constants.MosipBioDeviceConstants;
 import io.mosip.registration.mdm.dto.BioDevice;
@@ -287,16 +288,22 @@ public class MosipBioDeviceManager {
 
 			}
 			
-			bioDevice.setRegistered(registeredDeviceDAO.getRegisteredDevices(deviceInfo.getDeviceCode(),digitalId.getSerialNo()).size()==1?true:false);
+			List<RegisteredDeviceMaster> registeredDevice = registeredDeviceDAO.getRegisteredDevices(digitalId.getSerialNo(),digitalId.getSerialNo()); 
+			bioDevice.setRegistered(registeredDevice!=null?registeredDevice.size()==1?true:false:false);
 			String isDeviceValidationEnabled = ((String)ApplicationContext.getInstance().map().get("isDeviceValidationEnabled"));
 			if(isDeviceValidationEnabled==null)
 				bioDevice.setRegistered(true);
 			else
+<<<<<<< Updated upstream
 				bioDevice.setRegistered("".equals("NO")?true:bioDevice.isRegistered());
 			bioDevice.checkForSpec();
 			
 			LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
 					"Adding Device to Registry : "+bioDevice.toString());
+=======
+				bioDevice.setRegistered(isDeviceValidationEnabled.equals("NO")?true:bioDevice.isRegistered());
+			bioDevice.checkForSpec();
+>>>>>>> Stashed changes
 			deviceRegistry.put(bioDevice.getDeviceType().toUpperCase() + RegistrationConstants.UNDER_SCORE
 					+ bioDevice.getDeviceSubType().toUpperCase(), bioDevice);
 		}
