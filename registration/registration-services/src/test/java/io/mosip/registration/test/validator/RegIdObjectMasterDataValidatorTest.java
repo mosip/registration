@@ -71,7 +71,7 @@ public class RegIdObjectMasterDataValidatorTest {
 		location.setHierarchyLevel(0);
 		location.setHierarchyName("Country");
 		location.setLangCode("eng");
-		location.setName("Morocco");
+		location.setName("MyCountry");
 		location.setCode("MOR");
 		locationList.add(location);
 		Mockito.when(masterSyncDao.getActiveLanguages()).thenReturn(langList);
