@@ -86,6 +86,6 @@ public interface IMosipBioDeviceIntegrator {
 	 */
 	CaptureResponseDto responseParsing();
 	
-	boolean jwsValidation(String jwsResponse);
+	boolean jwsValidation(String jwsResponse) throws RegBaseCheckedException;
 
 }

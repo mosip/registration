@@ -165,7 +165,7 @@ public class WebCameraController extends BaseController implements Initializable
 				authenticationValidatorDTO.setFaceDetail(faceDetail);
 				isDuplicateFound = generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.FACE_CAPTURE_SUCCESS, ()->{
 						if((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER))
-							return true;
+							return false;
 						return bioService.validateFace(authenticationValidatorDTO);
 					}, this);
 			} catch (RegBaseCheckedException | IOException exception) {
@@ -188,7 +188,7 @@ public class WebCameraController extends BaseController implements Initializable
 		}
 		parentController.saveApplicantPhoto(capturedImage, imageType,captureResponseDto, Duration.between(start, end).toString().replace("PT", ""), isDuplicateFound);
 		setScanningMsg(RegistrationUIConstants.FACE_CAPTURE_SUCCESS_MSG);
-		if(!isDuplicateFound)
+		if(isDuplicateFound)
 			setScanningMsg(RegistrationUIConstants.FACE_DUPLICATE_ERROR);	
 		parentController.calculateRecaptureTime(imageType);
 		capture.setDisable(true);

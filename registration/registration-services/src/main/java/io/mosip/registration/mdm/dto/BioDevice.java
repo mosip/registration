@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
@@ -94,17 +95,17 @@ public class BioDevice {
 
 	private static final Logger LOGGER = AppConfig.getLogger(BioDevice.class);
 	private IMosipBioDeviceIntegrator mosipBioDeviceIntegrator;
-	
-	
+
 	public void checkForSpec() {
-		if(specVersion[0].equals((String) ApplicationContext.getInstance().map().get("current_mdm_spec")))
-				isSpecVersionValid=true;
+		if (specVersion[0].equals((String) ApplicationContext.getInstance().map().get("current_mdm_spec")))
+			isSpecVersionValid = true;
 		else
-			isSpecVersionValid=false;
+			isSpecVersionValid = false;
 	}
 
-		public CaptureResponseDto regCapture(RequestDetail requestDetail) throws RegBaseCheckedException, IOException {
-			LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Entering into Capture method....."+ System.currentTimeMillis());
+	public CaptureResponseDto regCapture(RequestDetail requestDetail) throws RegBaseCheckedException, IOException {
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
+				"Entering into Capture method....." + System.currentTimeMillis());
 
 		String url = runningUrl + ":" + runningPort + "/" + MosipBioDeviceConstants.CAPTURE_ENDPOINT;
 
@@ -118,23 +119,31 @@ public class BioDevice {
 		requestBody = mapper.writeValueAsString(mosipBioCaptureRequestDto);
 		CloseableHttpClient client = HttpClients.createDefault();
 		StringEntity requestEntity = new StringEntity(requestBody, ContentType.create("Content-Type", Consts.UTF_8));
-		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Bulding capture url...."+ System.currentTimeMillis());
-		HttpUriRequest request = RequestBuilder.create(requestDetail.getMosipProcess().equals("Registration")?"RCAPTURE":"CAPTURE").setUri(url).setEntity(requestEntity).build();
-		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Requesting capture url...."+ System.currentTimeMillis());
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
+				"Bulding capture url...." + System.currentTimeMillis());
+		HttpUriRequest request = RequestBuilder
+				.create(requestDetail.getMosipProcess().equals("Registration") ? "RCAPTURE" : "CAPTURE").setUri(url)
+				.setEntity(requestEntity).build();
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
+				"Requesting capture url...." + System.currentTimeMillis());
 		CloseableHttpResponse response = client.execute(request);
-		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Request completed.... "+ System.currentTimeMillis());
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
+				"Request completed.... " + System.currentTimeMillis());
 		captureResponse = mapper.readValue(EntityUtils.toString(response.getEntity()).getBytes(StandardCharsets.UTF_8),
 				CaptureResponseDto.class);
-		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Response Recived.... "+ System.currentTimeMillis());
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
+				"Response Recived.... " + System.currentTimeMillis());
 		decode(captureResponse);
-		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Response Decode and leaving the method.... "+ System.currentTimeMillis());
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
+				"Response Decode and leaving the method.... " + System.currentTimeMillis());
 		return captureResponse;
 
 	}
 
 	private void decode(CaptureResponseDto mosipBioCaptureResponseDto)
-		throws IOException, JsonParseException, JsonMappingException, RegBaseCheckedException {
-		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Entering into Decode Method.... "+ System.currentTimeMillis());
+			throws IOException, JsonParseException, JsonMappingException, RegBaseCheckedException {
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
+				"Entering into Decode Method.... " + System.currentTimeMillis());
 		ObjectMapper mapper = new ObjectMapper();
 		if (null != mosipBioCaptureResponseDto && null != mosipBioCaptureResponseDto.getMosipBioDeviceDataResponses()) {
 			for (CaptureResponseBioDto captureResponseBioDto : mosipBioCaptureResponseDto
@@ -154,32 +163,43 @@ public class BioDevice {
 				}
 			}
 		}
-		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Leaving into Decode Method.... "+ System.currentTimeMillis());
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
+				"Leaving into Decode Method.... " + System.currentTimeMillis());
 	}
 
-	private CaptureResponsBioDataDto getCaptureResponsBioDataDecoded(String capturedData, ObjectMapper mapper) throws RegBaseCheckedException {
-		
-		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Entering into Stream Method.... "+ System.currentTimeMillis());
-		
-		if (mosipBioDeviceIntegrator.jwsValidation(capturedData)) {
-			mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-			Pattern pattern = Pattern.compile(RegistrationConstants.BIOMETRIC_SEPERATOR);
-			Matcher matcher = pattern.matcher(capturedData);
-			String afterMatch = null;
-			if (matcher.find()) {
-				afterMatch = matcher.group(1);
-			}
+	private CaptureResponsBioDataDto getCaptureResponsBioDataDecoded(String capturedData, ObjectMapper mapper) throws RegBaseCheckedException
+			 {
 
-			String result = new String(Base64.getUrlDecoder().decode(afterMatch));
-			try {
-				return (CaptureResponsBioDataDto) (mapper.readValue(result.getBytes(), CaptureResponsBioDataDto.class));
-			} catch (Exception exception) {
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
+				"Entering into Stream Method.... " + System.currentTimeMillis());
+
+		try {
+
+			if (mosipBioDeviceIntegrator.jwsValidation(capturedData)) {
+				mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+				Pattern pattern = Pattern.compile(RegistrationConstants.BIOMETRIC_SEPERATOR);
+				Matcher matcher = pattern.matcher(capturedData);
+				String afterMatch = null;
+				if (matcher.find()) {
+					afterMatch = matcher.group(1);
+				}
+
+				String result = new String(Base64.getUrlDecoder().decode(afterMatch));
+				try {
+					return (CaptureResponsBioDataDto) (mapper.readValue(result.getBytes(),
+							CaptureResponsBioDataDto.class));
+				} catch (Exception exception) {
+					throw new RegBaseCheckedException();
+				}
+			} else {
 				throw new RegBaseCheckedException();
 			}
-		} else {
-			throw new RegBaseCheckedException();
+		} catch (RegBaseCheckedException excption) {
+			
+			LOGGER.error("BioDevice", APPLICATION_NAME, APPLICATION_ID,
+					"JWT verification is not working" + System.currentTimeMillis()+ " \n"+excption.getMessage() + ExceptionUtils.getStackTrace(excption));
+			throw new RegBaseCheckedException("403", "");
 		}
-
 	}
 
 	public InputStream stream() throws IOException {
@@ -197,18 +217,19 @@ public class BioDevice {
 
 		con.setDoOutput(true);
 		DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-		
-		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Stream Request Started : "+ System.currentTimeMillis());
-		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Stream Request : "+ streamRequest.toString());
-		
-		
+
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
+				"Stream Request Started : " + System.currentTimeMillis());
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Stream Request : " + streamRequest.toString());
+
 		wr.writeBytes(request);
 		wr.flush();
 		wr.close();
 		con.setReadTimeout(5000);
 		con.connect();
 		InputStream urlStream = con.getInputStream();
-		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Leaving into Stream Method.... "+ System.currentTimeMillis());
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
+				"Leaving into Stream Method.... " + System.currentTimeMillis());
 		return urlStream;
 
 	}
