@@ -2,7 +2,6 @@ package io.mosip.registration.controller.device;
 
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER;
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER;
-import static io.mosip.registration.constants.LoggerConstants.LOG_REG_IRIS_CAPTURE_CONTROLLER;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
@@ -12,7 +11,6 @@ import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,7 +44,6 @@ import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.mdm.dto.RequestDetail;
 import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
 import io.mosip.registration.service.bio.BioService;
-import io.mosip.registration.service.bio.impl.BioServiceImpl;
 import io.mosip.registration.service.security.AuthenticationService;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -1234,7 +1231,7 @@ public class FingerPrintCaptureController extends BaseController implements Init
 		if (fingerprintDetailsDTOs != null) {
 
 			for (FingerprintDetailsDTO fingerprintDetailsDTO : fingerprintDetailsDTOs) {
-				if (fingerprintDetailsDTO.getFingerType() != null
+				if (fingerprintDetailsDTO.getFingerType() != null && fingerprintDetailsDTO.getSegmentedFingerprints()!=null
 						&& fingerprintDetailsDTO.getFingerType().equals(fingerType)) {
 					detailsDTO = fingerprintDetailsDTO;
 
@@ -1285,21 +1282,22 @@ public class FingerPrintCaptureController extends BaseController implements Init
 		} catch (RegBaseCheckedException | IOException exception) {
 			streamer.stop();
 
-			// fingerprintDetailsDTOs.remove(detailsDTO);
-			for (FingerprintDetailsDTO fingerprintDetailsDTO : fingerprintDetailsDTOs) {
-				if (fingerType.equals(fingerprintDetailsDTO.getFingerType())) {
-					fingerprintDetailsDTO.getSegmentedFingerprints().addAll(tempSegmentedFpDetailsDtos);
-				}
-
-			}
-
-			LOGGER.error(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-					String.format("%s Exception while getting the scanned finger details for user registration: %s ",
-							exception.getMessage(), ExceptionUtils.getStackTrace(exception)));
 
 			generateAlert(RegistrationConstants.ALERT_INFORMATION,
 					RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)
 							+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
+
+			// fingerprintDetailsDTOs.remove(detailsDTO);
+//			for (FingerprintDetailsDTO fingerprintDetailsDTO : fingerprintDetailsDTOs) {
+//				if (fingerType.equals(fingerprintDetailsDTO.getFingerType())) {
+//					fingerprintDetailsDTO.getSegmentedFingerprints().addAll(tempSegmentedFpDetailsDtos);
+//				}
+//
+//			}
+
+			LOGGER.error(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+					String.format("%s Exception while getting the scanned finger details for user registration: %s ",
+							exception.getMessage(), ExceptionUtils.getStackTrace(exception)));
 			return;
 		}
 

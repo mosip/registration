@@ -277,6 +277,7 @@ public class MosipBioDeviceManager {
 			bioDevice.setDigitalId(deviceInfo.getDigitalIdDecoded());
 			DigitalId digitalId = deviceInfo.getDigitalIdDecoded();
 
+			List<RegisteredDeviceMaster> registeredDevice = null;
 			if (digitalId != null) {
 				bioDevice.setDeviceSubType(digitalId.getSubType());
 				bioDevice.setDeviceType(digitalId.getType());
@@ -285,17 +286,15 @@ public class MosipBioDeviceManager {
 				bioDevice.setDeviceProviderId(digitalId.getDeviceProviderId());
 				bioDevice.setDeviceModel(digitalId.getModel());
 				bioDevice.setDeviceMake(digitalId.getMake());
-
+				registeredDevice = registeredDeviceDAO.getRegisteredDevices(digitalId.getSerialNo(),digitalId.getSerialNo());
 			}
-			
-			List<RegisteredDeviceMaster> registeredDevice = registeredDeviceDAO.getRegisteredDevices(digitalId.getSerialNo(),digitalId.getSerialNo()); 
+			  
 			bioDevice.setRegistered(registeredDevice!=null?registeredDevice.size()==1?true:false:false);
 			String isDeviceValidationEnabled = ((String)ApplicationContext.getInstance().map().get("isDeviceValidationEnabled"));
 			if(isDeviceValidationEnabled==null)
 				bioDevice.setRegistered(true);
 			else
 				bioDevice.setRegistered(isDeviceValidationEnabled.equals("NO")?true:bioDevice.isRegistered());
-			bioDevice.checkForSpec();
 			LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
 					"Adding Device to Registry : "+bioDevice.toString());
 			deviceRegistry.put(bioDevice.getDeviceType().toUpperCase() + RegistrationConstants.UNDER_SCORE
@@ -341,7 +340,7 @@ public class MosipBioDeviceManager {
 		if (bioDevice != null) {
 			LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
 					"Device found in the device registery..."+  System.currentTimeMillis());
-			
+			bioDevice.checkForSpec();
 			if (bioDevice.isSpecVersionValid()) {
 				
 				LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,

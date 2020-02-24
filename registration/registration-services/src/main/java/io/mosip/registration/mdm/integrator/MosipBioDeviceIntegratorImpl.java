@@ -236,7 +236,7 @@ public class MosipBioDeviceIntegratorImpl implements IMosipBioDeviceIntegrator {
 	}
 
 	@Override
-	public boolean jwsValidation(String jwsResponse) {
+	public boolean jwsValidation(String jwsResponse) throws RegBaseCheckedException {
 		return jwsValidation.verifySignature(jwsResponse);
 	}
 }

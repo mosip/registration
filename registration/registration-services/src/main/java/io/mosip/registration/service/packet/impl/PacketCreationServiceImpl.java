@@ -114,8 +114,6 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 	private AuditDAO auditDAO;
 	@Autowired
 	private DocumentTypeDAO documentTypeDAO;
-	@Autowired
-	private RegisteredDeviceDAO registeredDeviceDAO;
 
 	/*
 	 * (non-Javadoc)
