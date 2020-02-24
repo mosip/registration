@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -35,6 +36,8 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.registration.audit.AuditManagerService;
+import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.dto.json.metadata.DigitalId;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.BioDevice;
@@ -56,6 +59,20 @@ public class MosipBioDeviceManagerTest {
 	private IMosipBioDeviceIntegrator mosipBioDeviceIntegrator;
 	@Mock
 	private AuditManagerService auditManagerService;
+	
+	private BioDevice device=null;
+	
+	@Before
+	public void beforeClass() {
+		Map<String, Object> appMap = new HashMap<>();
+		appMap.put(RegistrationConstants.FINGER_PRINT_SCORE, 100);
+		appMap.put("mosip.mdm.enabled", "Y");
+		appMap.put("current_mdm_spec","0.9.2");
+		ApplicationContext.getInstance().setApplicationMap(appMap);
+
+		device =   new BioDevice();
+		device.setSpecVersion(new String[] {"0.9.2"});
+	}
 
 	@Test
 	public void init() throws RegBaseCheckedException {
@@ -270,7 +287,7 @@ public class MosipBioDeviceManagerTest {
 	@Test(expected = RegBaseCheckedException.class)
 	public void scan() throws RegBaseCheckedException, IOException {
 		Map<String, BioDevice> deviceRegistry = new HashMap<>();
-		deviceRegistry.put("deviceType", new BioDevice());
+		deviceRegistry.put("deviceType", device);
 		ReflectionTestUtils.setField(MosipBioDeviceManager.class, "deviceRegistry", deviceRegistry);
 		mosipBioDeviceManager.regScan(new RequestDetail("deviceType", "", 1, "", null));
 	}
