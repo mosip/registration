@@ -19,6 +19,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.web.client.HttpClientErrorException;
 
+import io.mosip.registration.dao.UserOnboardDAO;
 import io.mosip.registration.entity.UserDetail;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.repositories.UserDetailRepository;
@@ -37,6 +38,8 @@ public class UserSaltSyncServiceTest {
 
 	@Mock
 	private UserDetailRepository userDetailRepository;
+	@Mock
+	private UserOnboardDAO userOnboardDAO;
 	@InjectMocks
 	private UserSaltDetailsServiceImpl userSaltDetailsServiceImpl;
 
@@ -70,6 +73,7 @@ public class UserSaltSyncServiceTest {
 				.thenReturn(mainMap);
 
 		Mockito.when(userDetailRepository.findByIsActiveTrue()).thenReturn(userList);
+		Mockito.when(userOnboardDAO.getStationID(Mockito.anyString())).thenReturn("110024");
 
 		Mockito.when(userDetailRepository.saveAll(Mockito.anyCollection())).thenReturn(userList);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
@@ -103,7 +107,7 @@ public class UserSaltSyncServiceTest {
 				.thenReturn(mainMap);
 
 		Mockito.when(userDetailRepository.findByIsActiveTrue()).thenReturn(userList);
-
+		Mockito.when(userOnboardDAO.getStationID(Mockito.anyString())).thenReturn("110024");
 		Mockito.when(userDetailRepository.saveAll(Mockito.anyCollection())).thenReturn(userList);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
 
@@ -115,7 +119,7 @@ public class UserSaltSyncServiceTest {
 			throws HttpClientErrorException, SocketTimeoutException, RegBaseCheckedException {
 
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
-
+		Mockito.when(userOnboardDAO.getStationID(Mockito.anyString())).thenReturn("110024");
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(false);
 
 		userSaltDetailsServiceImpl.getUserSaltDetails("System");
@@ -145,7 +149,7 @@ public class UserSaltSyncServiceTest {
 		Mockito.when(
 				serviceDelegateUtil.get(Mockito.anyString(), Mockito.any(), Mockito.anyBoolean(), Mockito.anyString()))
 				.thenReturn(mainMap);
-
+		Mockito.when(userOnboardDAO.getStationID(Mockito.anyString())).thenReturn("110024");
 		Mockito.when(userDetailRepository.findByIsActiveTrue()).thenReturn(userList);
 
 		Mockito.when(userDetailRepository.saveAll(Mockito.anyCollection())).thenReturn(userList);
@@ -183,7 +187,7 @@ public class UserSaltSyncServiceTest {
 		Mockito.when(
 				serviceDelegateUtil.get(Mockito.anyString(), Mockito.any(), Mockito.anyBoolean(), Mockito.anyString()))
 				.thenThrow(new RegBaseCheckedException("errorCode", "errorMessage"));
-
+		Mockito.when(userOnboardDAO.getStationID(Mockito.anyString())).thenReturn("110024");
 		Mockito.when(userDetailRepository.findByIsActiveTrue()).thenThrow(RegBaseCheckedException.class);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
 
@@ -215,7 +219,7 @@ public class UserSaltSyncServiceTest {
 		users.setId("110024");
 		users.setIsActive(true);
 		userList.add(users);
-
+		Mockito.when(userOnboardDAO.getStationID(Mockito.anyString())).thenReturn("110024");
 		Mockito.when(
 				serviceDelegateUtil.get(Mockito.anyString(), Mockito.any(), Mockito.anyBoolean(), Mockito.anyString()))
 				.thenThrow(HttpClientErrorException.class);
