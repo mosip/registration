@@ -10,6 +10,12 @@ public class SftpJschConnectionDto implements Serializable{
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 7536756021050950998L;
+
+	/** The dmz server password*/
+	String dmzServerPwd;
+
+	/** The dmz server ppk file */
+	String regProcPPK;
 	
 	/** The host. */
 	private String host;
@@ -116,8 +122,36 @@ public class SftpJschConnectionDto implements Serializable{
 	public void setProtocal(String protocal) {
 		this.protocal = protocal;
 	}
-	
-	
 
+	/**
+	 * Get the dmz server password
+	 * @return dmzServerPwd
+	 */
+	public String getDmzServerPwd() {
+		return dmzServerPwd;
+	}
 
+	/**
+	 * Set the dmz server password
+	 * @param dmzServerPwd
+	 */
+	public void setDmzServerPwd(String dmzServerPwd) {
+		this.dmzServerPwd = dmzServerPwd;
+	}
+
+	/**
+	 * Get dmz ppk file
+	 * @return regProcPPK
+	 */
+	public String getRegProcPPK() {
+		return regProcPPK;
+	}
+
+	/**
+	 * Set dmz ppk file path
+	 * @param regProcPPK
+	 */
+	public void setRegProcPPK(String regProcPPK) {
+		this.regProcPPK = regProcPPK;
+	}
 }
