@@ -62,6 +62,7 @@
 
 		<!--For Security -->
 		<bouncycastle.version>1.60</bouncycastle.version>
+		<commons.pool>1.6</commons.pool>
 
 		<!-- Support tools & utilities -->
 		<commons-math3>3.6.1</commons-math3>
