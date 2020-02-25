@@ -557,7 +557,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 		try {
 			detailsDTO = new IrisDetailsDTO();
 			start = Instant.now();
-			bioService.getIrisImageAsDTO(detailsDTO,
+			bioService.getIrisImageAsDTO(
 					new RequestDetail(irisType, getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT),
 							2, String.valueOf(thresholdValue), null),
 					attempt, attempt);
