@@ -500,9 +500,6 @@ public class FaceCaptureController extends BaseController implements Initializab
 			saveBiometricDetailsBtn.setDisable(false);
 		}
 		
-		//Success Alert
-		generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.FACE_CAPTURE_SUCCESS);
-		
 		//Closing Capture screen
 		webCameraController.getWebCameraStage().close();
 	}
