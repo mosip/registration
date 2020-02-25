@@ -1906,9 +1906,10 @@ public class DemographicDetailController extends BaseController {
 			if (individualIdentity.getDateOfBirth() != null) {
 				String[] date = individualIdentity.getDateOfBirth().split("/");
 				if (date.length == 3) {
+					dd.setText(" ");
+					dd.setText(date[2]);
 					yyyy.setText(date[0]);
 					mm.setText(date[1]);
-					dd.setText(date[2]);
 				}
 			}
 
