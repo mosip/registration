@@ -1437,6 +1437,7 @@ public class DemographicDetailController extends BaseController {
 				LocationDto lC = new LocationDto();
 				lC.setCode(RegistrationConstants.AUDIT_DEFAULT_USER);
 				lC.setName(RegistrationConstants.AUDIT_DEFAULT_USER);
+				lC.setCode(ApplicationContext.applicationLanguage());
 				region.getItems().add(lC);
 			} else {
 				region.getItems().addAll(locations);
@@ -1446,9 +1447,10 @@ public class DemographicDetailController extends BaseController {
 				LocationDto lC = new LocationDto();
 				lC.setCode(RegistrationConstants.AUDIT_DEFAULT_USER);
 				lC.setName(RegistrationConstants.AUDIT_DEFAULT_USER);
+				lC.setCode(ApplicationContext.localLanguage());
 				regionLocalLanguage.getItems().add(lC);
 			} else {
-				regionLocalLanguage.getItems().addAll(locations);
+				regionLocalLanguage.getItems().addAll(locationsSecondary);
 			}
 		} catch (RuntimeException | RegBaseCheckedException runtimeException) {
 			LOGGER.error("REGISTRATION - LOADING FAILED FOR REGION SELECTION LIST ", APPLICATION_NAME,
@@ -1521,11 +1523,16 @@ public class DemographicDetailController extends BaseController {
 			LocationDto locationDTO = localAdminAuthority.getSelectionModel().getSelectedItem();
 
 			if (null != locationDTO) {
+				if(locationDTO.getCode().equalsIgnoreCase(RegistrationConstants.AUDIT_DEFAULT_USER)) {
+					postalCode.setText(RegistrationConstants.AUDIT_DEFAULT_USER);
+					postalCodeLocalLanguage.setText(RegistrationConstants.AUDIT_DEFAULT_USER);
+				}else {
 				List<LocationDto> locationDtos = masterSync.findProvianceByHierarchyCode(locationDTO.getCode(),
 						locationDTO.getLangCode());
 
 				postalCode.setText(locationDtos.get(0).getName());
 				postalCodeLocalLanguage.setText(locationDtos.get(0).getName());
+			}
 			}
 
 		} catch (RuntimeException | RegBaseCheckedException runtimeException) {
@@ -2405,6 +2412,7 @@ public class DemographicDetailController extends BaseController {
 						LocationDto lC = new LocationDto();
 						lC.setCode(RegistrationConstants.AUDIT_DEFAULT_USER);
 						lC.setName(RegistrationConstants.AUDIT_DEFAULT_USER);
+						lC.setCode(ApplicationContext.applicationLanguage());
 						destLocationHierarchy.getItems().add(lC);
 					} else {
 						destLocationHierarchy.getItems().addAll(locations);
@@ -2414,6 +2422,7 @@ public class DemographicDetailController extends BaseController {
 						LocationDto lC = new LocationDto();
 						lC.setCode(RegistrationConstants.AUDIT_DEFAULT_USER);
 						lC.setName(RegistrationConstants.AUDIT_DEFAULT_USER);
+						lC.setCode(ApplicationContext.localLanguage());
 						destLocationHierarchyInLocal.getItems().add(lC);
 					} else {
 						destLocationHierarchyInLocal.getItems().addAll(locationsSecondary);
