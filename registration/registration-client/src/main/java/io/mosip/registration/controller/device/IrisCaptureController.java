@@ -478,8 +478,7 @@ public class IrisCaptureController extends BaseController {
 			int retries = 0;
 			double qualityScore = 0;
 			if (irisDetailsDTO != null) {
-				retries = irisDetailsDTO.getIrisType().contains(RegistrationConstants.LEFT) ? leftIrisCount
-						: rightIrisCount;
+				retries = irisDetailsDTO.getNumOfIrisRetry();
 				qualityScore = findQualityScore(irisDetailsDTO);
 			}
 			if (!isExceptionIris && (irisDetailsDTO == null
@@ -624,8 +623,8 @@ public class IrisCaptureController extends BaseController {
 			int rightEyeAttempt = rightTempIrisDetail != null ? rightTempIrisDetail.getNumOfIrisRetry() + 1 : 1;
 			Instant start = null;
 			Instant end = null;
-			
-			IrisDetailsDTO irisDetailsDTO =null;
+
+			IrisDetailsDTO irisDetailsDTO = null;
 			try {
 				start = Instant.now();
 				irisDetailsDTO = bioservice.getIrisImageAsDTO(
@@ -637,9 +636,6 @@ public class IrisCaptureController extends BaseController {
 				streamer.stop();
 			} catch (RegBaseCheckedException | IOException runtimeException) {
 				streamer.stop();
-
-				// getIrises().add(leftTempIrisDetail);
-				// getIrises().add(rightTempIrisDetail);
 
 				LOGGER.error(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, String.format(
 						"%s Exception while getting the scanned iris details for user registration: %s caused by %s",
@@ -657,18 +653,12 @@ public class IrisCaptureController extends BaseController {
 				// Display the Scanned Iris Image in the Scan pop-up screen
 				if (!bioservice.isMdmEnabled()) {
 
-					// if (irisType.contains(RegistrationConstants.LEFT) && rightTempIrisDetail !=
-					// null) {
-					// getIrises().add(rightTempIrisDetail);
-					// } else if (leftTempIrisDetail != null) {
-					// getIrises().add(leftTempIrisDetail);
-					// }
 					scanPopUpViewController.getScanImage()
 							.setImage(convertBytesToImage(irisDetailsDTO.getIrises().get(0).getIris()));
 				}
 
-				final List<IrisDetailsDTO> irisList =irisDetailsDTO.getIrises();
-				
+				final List<IrisDetailsDTO> irisList = irisDetailsDTO.getIrises();
+
 				isDuplicateFound = generateAlert(RegistrationConstants.ALERT_INFORMATION,
 						RegistrationUIConstants.IRIS_SUCCESS_MSG, () -> {
 							return validateIrisLocalDedup(irisList);
@@ -676,93 +666,120 @@ public class IrisCaptureController extends BaseController {
 
 				popupStage.close();
 
-				// TO-DO Duplication should be implemented
-				if (validateIris(irisDetailsDTO.getIrises()) && !isDuplicateFound) {
+				if (!isDuplicateFound) {
 
-					for (IrisDetailsDTO irisDetailsDTO2 : irisDetailsDTO.getIrises()) {
+					// If Right Eye is not a exception, and right eye captured, save to getIrises
+					if (!isRightEyeException(getIrisExceptions())
+							&& isValidRightEyeCaptured(irisDetailsDTO.getIrises())) {
+						for (IrisDetailsDTO irisDetailsDTO2 : irisDetailsDTO.getIrises()) {
 
-						if (irisDetailsDTO2.getIrisType().contains(RegistrationConstants.LEFT)) {
-							getIrises().remove(getLeftIrisDetailDTO(getIrises()));
-						} else {
-							getIrises().remove(getRightIrisDetailDTO(getIrises()));
+							if (irisDetailsDTO2.getIrisType().contains(RegistrationConstants.RIGHT)) {
+								getIrises().remove(getRightIrisDetailDTO(getIrises()));
+								getIrises().add(getRightIrisDetailDTO(irisDetailsDTO.getIrises()));
+								break;
+							}
+						}
+					}
+					// If Left is not a exception, and left eye captures, save to getIrises
+					if (!isLeftEyeException(getIrisExceptions())
+							&& isValidLeftEyeCaptured(irisDetailsDTO.getIrises())) {
+						for (IrisDetailsDTO irisDetailsDTO2 : irisDetailsDTO.getIrises()) {
 
+							if (irisDetailsDTO2.getIrisType().contains(RegistrationConstants.LEFT)) {
+								getIrises().remove(getLeftIrisDetailDTO(getIrises()));
+								getIrises().add(getLeftIrisDetailDTO(irisDetailsDTO.getIrises()));
+								break;
+							}
 						}
 					}
 
-					getIrises().addAll(irisDetailsDTO.getIrises());
+					if (validateIris(getIrises()) && !isDuplicateFound) {
+						continueBtn.setDisable(false);
 
-					continueBtn.setDisable(false);
+					} else {
+						continueBtn.setDisable(true);
+						if (isDuplicateFound) {
+							generateAlert(RegistrationConstants.ALERT_INFORMATION,
+									RegistrationConstants.DUPLICATE + " "
+											+ (String) SessionContext.map().get(RegistrationConstants.DUPLICATE_IRIS)
+											+ " " + RegistrationConstants.FOUND);
+							return;
+						}
 
-				} else {
-					continueBtn.setDisable(true);
-					if (isDuplicateFound) {
-						generateAlert(RegistrationConstants.ALERT_INFORMATION,
-								RegistrationConstants.DUPLICATE + " "
-										+ (String) SessionContext.map().get(RegistrationConstants.DUPLICATE_IRIS) + " "
-										+ RegistrationConstants.FOUND);
 					}
-					return;
 				}
 
-				// TODO Validate IRIS
 				captureTimeValue.setText(Duration.between(start, end).toString().replace("PT", ""));
 
-				irisDetailsDTO.getIrises().forEach((iris) -> {
+				getIrises().forEach((iris) -> {
 					if (!bioservice.isMdmEnabled()) {
 						scanPopUpViewController.getScanImage().setImage(convertBytesToImage(iris.getIris()));
 					}
 					String typeIris = iris.getIrisType();
-					int attempt = typeIris.equals(RegistrationConstants.LEFT_EYE) ? leftEyeAttempt : rightEyeAttempt;
 
-					// // Add Bio Stream image
-					// streamer.setBioStreamImages(convertBytesToImage(iris.getIris()),
-					// iris.getIrisType(), attempt);
+					if (typeIris
+							.contains(StringUtils.containsIgnoreCase(selectedIris.getId(), RegistrationConstants.LEFT)
+									? RegistrationConstants.LEFT
+									: RegistrationConstants.RIGHT)) {
+						int attempt = typeIris.equals(RegistrationConstants.LEFT_EYE) ? leftEyeAttempt
+								: rightEyeAttempt;
 
-					double qualityScore = findQualityScore(iris, attempt);
-					if (typeIris.contains(RegistrationConstants.LEFT)) {
-						leftIrisCount++;
-						iris.setNumOfIrisRetry(leftIrisCount);
-						leftIrisImage.setImage(
-								bioservice.isMdmEnabled() ? bioservice.getBioStreamImage(iris.getIrisType(), attempt)
-										: convertBytesToImage(iris.getIris()));
-						leftIrisPane.getStyleClass().add(RegistrationConstants.IRIS_PANES_SELECTED);
-						leftIrisQualityScore.setText(getQualityScore(qualityScore));
-						leftIrisAttempts.setText(String.valueOf(iris.getNumOfIrisRetry()));
+						// // Add Bio Stream image
+						// streamer.setBioStreamImages(convertBytesToImage(iris.getIris()),
+						// iris.getIrisType(), attempt);
 
-					} else {
-						rightIrisCount++;
-						iris.setNumOfIrisRetry(rightIrisCount);
-						rightIrisImage.setImage(
-								bioservice.isMdmEnabled() ? bioservice.getBioStreamImage(iris.getIrisType(), attempt)
-										: convertBytesToImage(iris.getIris()));
-						rightIrisPane.getStyleClass().add(RegistrationConstants.IRIS_PANES_SELECTED);
-						rightIrisQualityScore.setText(getQualityScore(qualityScore));
-						rightIrisAttempts.setText(String.valueOf(iris.getNumOfIrisRetry()));
+						double qualityScore = findQualityScore(iris, attempt);
+						
+						/*** Update Left Iris UI */
+						if (typeIris.contains(RegistrationConstants.LEFT)) {
+							// leftIrisCount++;
+							// iris.setNumOfIrisRetry(leftIrisCount);
+							leftIrisImage.setImage(bioservice.isMdmEnabled()
+									? bioservice.getBioStreamImage(iris.getIrisType(), attempt)
+									: convertBytesToImage(iris.getIris()));
+							leftIrisPane.getStyleClass().add(RegistrationConstants.IRIS_PANES_SELECTED);
+							leftIrisQualityScore.setText(getQualityScore(qualityScore));
+							leftIrisAttempts.setText(String.valueOf(iris.getNumOfIrisRetry()));
 
-					}
-
-					if (!(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
-						irisProgress.setProgress(
-								Double.valueOf(getQualityScore(qualityScore).split(RegistrationConstants.PERCENTAGE)[0])
-										/ 100);
-						irisQuality.setText(getQualityScore(qualityScore));
-						if (Double.valueOf(
-								getQualityScore(qualityScore).split(RegistrationConstants.PERCENTAGE)[0]) >= Double
-										.valueOf(
-												getValueFromApplicationContext(RegistrationConstants.IRIS_THRESHOLD))) {
-							clearAttemptsBox(RegistrationConstants.QUALITY_LABEL_GREEN, iris.getNumOfIrisRetry());
-							irisProgress.getStyleClass().removeAll(RegistrationConstants.PROGRESS_BAR_RED);
-							irisProgress.getStyleClass().add(RegistrationConstants.PROGRESS_BAR_GREEN);
-							irisQuality.getStyleClass().removeAll(RegistrationConstants.LABEL_RED);
-							irisQuality.getStyleClass().add(RegistrationConstants.LABEL_GREEN);
 						} else {
-							clearAttemptsBox(RegistrationConstants.QUALITY_LABEL_RED, iris.getNumOfIrisRetry());
-							irisProgress.getStyleClass().removeAll(RegistrationConstants.PROGRESS_BAR_GREEN);
-							irisProgress.getStyleClass().add(RegistrationConstants.PROGRESS_BAR_RED);
-							irisQuality.getStyleClass().removeAll(RegistrationConstants.LABEL_GREEN);
-							irisQuality.getStyleClass().add(RegistrationConstants.LABEL_RED);
+							
+							/*** Update Right Iris UI */
+							// rightIrisCount++;
+							// iris.setNumOfIrisRetry(rightIrisCount);
+							rightIrisImage.setImage(bioservice.isMdmEnabled()
+									? bioservice.getBioStreamImage(iris.getIrisType(), attempt)
+									: convertBytesToImage(iris.getIris()));
+							rightIrisPane.getStyleClass().add(RegistrationConstants.IRIS_PANES_SELECTED);
+							rightIrisQualityScore.setText(getQualityScore(qualityScore));
+							rightIrisAttempts.setText(String.valueOf(iris.getNumOfIrisRetry()));
+
+						}
+
+						/*** Update Iris UI progress bar and attempt slap*/
+						if (!(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
+							irisProgress.setProgress(Double.valueOf(
+									getQualityScore(qualityScore).split(RegistrationConstants.PERCENTAGE)[0]) / 100);
+							irisQuality.setText(getQualityScore(qualityScore));
+							if (Double.valueOf(
+									getQualityScore(qualityScore).split(RegistrationConstants.PERCENTAGE)[0]) >= Double
+											.valueOf(getValueFromApplicationContext(
+													RegistrationConstants.IRIS_THRESHOLD))) {
+
+								clearAttemptsBox(RegistrationConstants.QUALITY_LABEL_GREEN, iris.getNumOfIrisRetry());
+								irisProgress.getStyleClass().removeAll(RegistrationConstants.PROGRESS_BAR_RED);
+								irisProgress.getStyleClass().add(RegistrationConstants.PROGRESS_BAR_GREEN);
+								irisQuality.getStyleClass().removeAll(RegistrationConstants.LABEL_RED);
+								irisQuality.getStyleClass().add(RegistrationConstants.LABEL_GREEN);
+							} else {
+								clearAttemptsBox(RegistrationConstants.QUALITY_LABEL_RED, iris.getNumOfIrisRetry());
+								irisProgress.getStyleClass().removeAll(RegistrationConstants.PROGRESS_BAR_GREEN);
+								irisProgress.getStyleClass().add(RegistrationConstants.PROGRESS_BAR_RED);
+								irisQuality.getStyleClass().removeAll(RegistrationConstants.LABEL_GREEN);
+								irisQuality.getStyleClass().add(RegistrationConstants.LABEL_RED);
+							}
 						}
 					}
+
 				});
 
 			} else {
@@ -919,28 +936,15 @@ public class IrisCaptureController extends BaseController {
 
 			boolean isValid = false;
 
-			boolean isLeftEyeException = isLeftEyeException(getIrisExceptions());
+			boolean isRightEyeCaptured = !isRightEyeException(getIrisExceptions())
+					? isValidRightEyeCaptured(irisDetailsDTOs)
+					: true;
 
-			boolean isRightEyeException = isRightEyeException(getIrisExceptions());
+			boolean isLeftEyeCaptured = !isLeftEyeException(getIrisExceptions())
+					? isValidLeftEyeCaptured(irisDetailsDTOs)
+					: true;
 
-			boolean isRightEyeCaptured = isValidRightEyeCaptured(irisDetailsDTOs);
-
-			boolean isLeftEyeCaptured = isValidLeftEyeCaptured(irisDetailsDTOs);
-
-			boolean isLeftSelected = false;
-			boolean isRightSelected = false;
-
-			for (IrisDetailsDTO irisDetailsDTO2 : irisDetailsDTOs) {
-
-				if (irisDetailsDTO2.getIrisType().contains(RegistrationConstants.LEFT)) {
-					isLeftSelected = true;
-				} else {
-					isRightSelected = true;
-				}
-			}
-
-			isValid = (!isRightSelected ? true : isRightEyeCaptured)
-					&& (!isLeftEyeException ? true : isLeftEyeCaptured);
+			isValid = isRightAndLeftBioValid(isRightEyeCaptured, isLeftEyeCaptured);
 
 			LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					"Validating the captured iris of individual is completed");
@@ -988,7 +992,7 @@ public class IrisCaptureController extends BaseController {
 		}
 	}
 
-	private List<IrisDetailsDTO> getIrises() {
+	List<IrisDetailsDTO> getIrises() {
 		if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
 			return getBiometricDTOFromSession().getOperatorBiometricDTO().getIrisDetailsDTO();
 		} else if (getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {
@@ -1157,8 +1161,10 @@ public class IrisCaptureController extends BaseController {
 	}
 
 	private void clearAttemptsBox(String styleClass, int retries) {
+
 		irisRetryBox.lookup(RegistrationConstants.RETRY_ATTEMPT + (retries)).getStyleClass().clear();
 		irisRetryBox.lookup(RegistrationConstants.RETRY_ATTEMPT + (retries)).getStyleClass().add(styleClass);
+
 	}
 
 	private boolean isValidLeftEyeCaptured(List<IrisDetailsDTO> irisDetailsDTOs) {
@@ -1209,12 +1215,12 @@ public class IrisCaptureController extends BaseController {
 		return isException;
 	}
 
-	private IrisDetailsDTO getRightIrisDetailDTO(List<IrisDetailsDTO> irisDetailsDTOs) {
+	IrisDetailsDTO getRightIrisDetailDTO(List<IrisDetailsDTO> irisDetailsDTOs) {
 		return irisDetailsDTOs.stream().filter((iris) -> iris.getIrisType().contains(RegistrationConstants.RIGHT))
 				.findFirst().orElse(null);
 	}
 
-	private IrisDetailsDTO getLeftIrisDetailDTO(List<IrisDetailsDTO> irisDetailsDTOs) {
+	IrisDetailsDTO getLeftIrisDetailDTO(List<IrisDetailsDTO> irisDetailsDTOs) {
 		return irisDetailsDTOs.stream().filter((iris) -> iris.getIrisType().contains(RegistrationConstants.LEFT))
 				.findFirst().orElse(null);
 	}
@@ -1222,5 +1228,22 @@ public class IrisCaptureController extends BaseController {
 	private boolean isIrisValid(IrisDetailsDTO detailsDTO) {
 		return (validateIrisCapture(detailsDTO)
 				|| (boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER));
+	}
+
+	private boolean isRightAndLeftBioValid(boolean isRightEyeCaptured, boolean isLeftEyeCaptured) {
+
+		boolean isValid = false;
+		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getSelectionListDTO() != null
+				&& !getRegistrationDTOFromSession().getSelectionListDTO().isBiometrics()) {
+			if (isLeftEyeCaptured || isRightEyeCaptured) {
+				isValid = true;
+			}
+		} else {
+			if (isLeftEyeCaptured && isRightEyeCaptured) {
+				isValid = true;
+			}
+		}
+
+		return isValid;
 	}
 }

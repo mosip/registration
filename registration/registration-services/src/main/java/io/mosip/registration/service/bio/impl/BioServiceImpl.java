@@ -674,7 +674,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 			requestDetail.setType(RegistrationConstants.IRIS_DOUBLE);
 			return getIrisImageAsDTOWithMdm(requestDetail, leftEyeAttempt, rightEyeAttempt);
 		} else {
-			return getIrisImageAsDTONonMdm(requestDetail.getType());
+			return getIrisImageAsDTONonMdm(requestDetail.getType(), leftEyeAttempt, rightEyeAttempt);
 		}
 
 	}
@@ -726,6 +726,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 			irisDetails.setQualityScore(Integer.parseInt(captureRespoonse.getQualityScore()));
 			irisDetails.setIrisType(captureRespoonse.getBioSubType());
 			irisDetails.setCaptured(true);
+			irisDetails.setNumOfIrisRetry(attempt);
 			detailsDTO.getIrises().add(irisDetails);
 
 		});
@@ -761,7 +762,8 @@ public class BioServiceImpl extends BaseService implements BioService {
 	 * @throws RegBaseCheckedException
 	 *             the reg base checked exception
 	 */
-	private IrisDetailsDTO getIrisImageAsDTONonMdm(String irisType) throws RegBaseCheckedException {
+	private IrisDetailsDTO getIrisImageAsDTONonMdm(String irisType, int leftEyeAttempt, int rightEyeAttempt)
+			throws RegBaseCheckedException {
 		try {
 			LOGGER.info(LOG_REG_IRIS_FACADE, APPLICATION_NAME, APPLICATION_ID,
 					"Stubbing iris details for user registration");
@@ -787,10 +789,17 @@ public class BioServiceImpl extends BaseService implements BioService {
 				irisDetailsDTO.setIrisImageName(irisType.concat(RegistrationConstants.DOT)
 						.concat((String) scannedIrisMap.get(RegistrationConstants.IMAGE_FORMAT_KEY)));
 				irisDetailsDTO.setIrisType(irisType);
+				int attempt;
+				if (irisType.contains(RegistrationConstants.LEFT)) {
+					attempt = leftEyeAttempt;
+				} else {
+					attempt = rightEyeAttempt;
+				}
 				if (!(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
 					irisDetailsDTO.setQualityScore(qualityScore);
 				}
 				irisDetailsDTO.setQualityScore(91.0);
+				irisDetailsDTO.setNumOfIrisRetry(attempt);
 				irisDetails.setIrises(new ArrayList<IrisDetailsDTO>());
 				irisDetails.getIrises().add(irisDetailsDTO);
 				irisDetails.setCaptured(true);

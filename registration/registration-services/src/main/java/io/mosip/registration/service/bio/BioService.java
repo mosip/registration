@@ -237,5 +237,7 @@ public interface BioService {
 	 * @return
 	 */
 	public Image getBioStreamImage(String bioType, int attempt);
+	
+	
 
 }
