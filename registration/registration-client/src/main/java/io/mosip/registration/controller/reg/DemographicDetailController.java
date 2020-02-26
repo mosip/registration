@@ -1435,8 +1435,8 @@ public class DemographicDetailController extends BaseController {
 
 			if (locations.isEmpty()) {
 				LocationDto lC = new LocationDto();
-				lC.setCode("NA");
-				lC.setName("NA");
+				lC.setCode(RegistrationConstants.AUDIT_DEFAULT_USER);
+				lC.setName(RegistrationConstants.AUDIT_DEFAULT_USER);
 				region.getItems().add(lC);
 			} else {
 				region.getItems().addAll(locations);
@@ -1444,8 +1444,8 @@ public class DemographicDetailController extends BaseController {
 
 			if (locationsSecondary.isEmpty()) {
 				LocationDto lC = new LocationDto();
-				lC.setCode("NA");
-				lC.setName("NA");
+				lC.setCode(RegistrationConstants.AUDIT_DEFAULT_USER);
+				lC.setName(RegistrationConstants.AUDIT_DEFAULT_USER);
 				regionLocalLanguage.getItems().add(lC);
 			} else {
 				regionLocalLanguage.getItems().addAll(locations);
@@ -2391,7 +2391,7 @@ public class DemographicDetailController extends BaseController {
 				destLocationHierarchy.getItems().clear();
 				destLocationHierarchyInLocal.getItems().clear();
 
-				if (selectedLocationHierarchy.getCode().equalsIgnoreCase("NA")) {
+				if (selectedLocationHierarchy.getCode().equalsIgnoreCase(RegistrationConstants.AUDIT_DEFAULT_USER)) {
 					destLocationHierarchy.getItems().add(selectedLocationHierarchy);
 					destLocationHierarchyInLocal.getItems().add(selectedLocationHierarchy);
 				} else {
@@ -2403,8 +2403,8 @@ public class DemographicDetailController extends BaseController {
 
 					if (locations.isEmpty()) {
 						LocationDto lC = new LocationDto();
-						lC.setCode("NA");
-						lC.setName("NA");
+						lC.setCode(RegistrationConstants.AUDIT_DEFAULT_USER);
+						lC.setName(RegistrationConstants.AUDIT_DEFAULT_USER);
 						destLocationHierarchy.getItems().add(lC);
 					} else {
 						destLocationHierarchy.getItems().addAll(locations);
@@ -2412,8 +2412,8 @@ public class DemographicDetailController extends BaseController {
 
 					if (locationsSecondary.isEmpty()) {
 						LocationDto lC = new LocationDto();
-						lC.setCode("NA");
-						lC.setName("NA");
+						lC.setCode(RegistrationConstants.AUDIT_DEFAULT_USER);
+						lC.setName(RegistrationConstants.AUDIT_DEFAULT_USER);
 						destLocationHierarchyInLocal.getItems().add(lC);
 					} else {
 						destLocationHierarchyInLocal.getItems().addAll(locationsSecondary);
