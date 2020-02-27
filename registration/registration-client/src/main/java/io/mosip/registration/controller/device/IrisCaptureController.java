@@ -1092,7 +1092,7 @@ public class IrisCaptureController extends BaseController {
 
 	private void singleBiometricCaptureCheck() {
 
-		if (!(validateIris() && validateIrisLocalDedup(getIrises()))) {
+		if (!(validateIris())) {
 			continueBtn.setDisable(true);
 		}
 
