@@ -166,16 +166,15 @@ public interface BioService {
 	/**
 	 * Gets the iris stub image as DTO.
 	 *
-	 * @param irisDetailsDTO
-	 *            the iris details DTO
 	 * @param requestDetail details of iris request
 	 * @param leftEyeAttempt leftEye attempt number
 	 * @param rightEyeAttempt right eye attempt number
 	 * @throws IOException  the IO exception
 	 * @throws RegBaseCheckedException
 	 *             the reg base checked exception
+	 * @return Captured Iris Details DTO
 	 */
-	void getIrisImageAsDTO(IrisDetailsDTO irisDetailsDTO, RequestDetail requestDetail, int leftEyeAttempt,
+	IrisDetailsDTO getIrisImageAsDTO(RequestDetail requestDetail, int leftEyeAttempt,
 			int rightEyeAttempt) throws RegBaseCheckedException, IOException;
 
 	/**
@@ -238,5 +237,7 @@ public interface BioService {
 	 * @return
 	 */
 	public Image getBioStreamImage(String bioType, int attempt);
+	
+	
 
 }

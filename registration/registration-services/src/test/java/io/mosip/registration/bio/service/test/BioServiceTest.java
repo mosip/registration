@@ -372,7 +372,7 @@ public class BioServiceTest {
 		ApplicationContext.getInstance().getApplicationMap().put("mosip.mdm.enabled", "N");
 		IrisDetailsDTO detailsDTO = new IrisDetailsDTO();
 		requestDetail.setType("LeftEye");
-		bioService.getIrisImageAsDTO(detailsDTO, requestDetail,2,2);
+		bioService.getIrisImageAsDTO(requestDetail,2,2);
 		IrisDetailsDTO irisDetail = detailsDTO.getIrises().get(0);
 		assertNotNull(irisDetail.getIris());
 		assertEquals("LeftEye.png", irisDetail.getIrisImageName());
@@ -389,7 +389,7 @@ public class BioServiceTest {
 		PowerMockito.mockStatic(ImageIO.class);
 		Mockito.when(mosipBioDeviceManager.regScan(Mockito.anyObject())).thenReturn(captureResponse);
 		requestDetail.setType("LEFT_EYE");
-		bioService.getIrisImageAsDTO(new IrisDetailsDTO(), requestDetail,2,2);
+		bioService.getIrisImageAsDTO(requestDetail,2,2);
 	}
 
 	
@@ -399,7 +399,7 @@ public class BioServiceTest {
 		PowerMockito.mockStatic(ImageIO.class);
 		when(ImageIO.read(Mockito.any(InputStream.class))).thenThrow(new RuntimeException("Invalid"));
 		requestDetail.setType("LeftEye");
-		bioService.getIrisImageAsDTO(null, requestDetail,2,2);
+		bioService.getIrisImageAsDTO(requestDetail,2,2);
 	}
 
 
@@ -506,7 +506,7 @@ public class BioServiceTest {
 		PowerMockito.mockStatic(IOUtils.class);
 		Mockito.when(IOUtils.resourceToByteArray(Mockito.any())).thenReturn("image".getBytes());
 		requestDetail.setType("LeftEye");
-		bioService.getIrisImageAsDTO(new IrisDetailsDTO(), requestDetail,2,2);
+		bioService.getIrisImageAsDTO(requestDetail,2,2);
 	}
 
 	@Test
