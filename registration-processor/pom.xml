@@ -106,8 +106,8 @@
 		<registration.status.service.version>1.0.6</registration.status.service.version>
 		<registration.processor.core.version>1.1.0-SNAPSHOT</registration.processor.core.version>
 		<filesystem.adapter.ceph.version>1.0.6</filesystem.adapter.ceph.version>
-		<packet.manager.version>1.0.6</packet.manager.version>
-		<registration.processor.rest.client.version>1.0.6</registration.processor.rest.client.version>
+		<packet.manager.version>1.0.7-SNAPSHOT</packet.manager.version>
+		<registration.processor.rest.client.version>1.0.7-SNAPSHOT</registration.processor.rest.client.version>
 		<registration.processor.abis.handler.stage.version>1.0.6</registration.processor.abis.handler.stage.version>
 		<packet.info.storage.service.version>1.0.6</packet.info.storage.service.version>
 		<packet.bio.dedupe.service.impl.version>1.0.6</packet.bio.dedupe.service.impl.version>

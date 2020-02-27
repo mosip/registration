@@ -324,6 +324,7 @@ public static final String FINGERPRINT_SELECTION_PANE_ALERT = bundle.getString("
 	public static final String VIRUS_SCAN_SUCCESS = bundle.getString("VIRUS_SCAN_SUCCESS");
 
 	public static final String INVALID_KEY = bundle.getString("INVALID_KEY");
+	public static final String CENTER_MACHINE_INACTIVE = bundle.getString("CENTER_MACHINE_INACTIVE");
 
 	public static final String RESTART_APPLICATION = bundle.getString("RESTART_APPLICATION");
 
