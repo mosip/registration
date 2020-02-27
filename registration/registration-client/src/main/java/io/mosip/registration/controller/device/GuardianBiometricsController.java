@@ -264,6 +264,8 @@ public class GuardianBiometricsController extends BaseController implements Init
 						&& !previousValue.getName().equalsIgnoreCase(currentValue.getName())) {
 					continueBtn.setDisable(true);
 				}
+				
+			
 
 			}
 		});
@@ -560,8 +562,9 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		int attempt = 0;
 
-		irisDetailsDTO = getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
-				.getIrisDetailsDTO().get(0);
+		List<IrisDetailsDTO> guardianIris = getRegistrationDTOFromSession().getBiometricDTO()
+				.getIntroducerBiometricDTO().getIrisDetailsDTO();
+		irisDetailsDTO = guardianIris.isEmpty() ? null : guardianIris.get(0);
 		attempt = irisDetailsDTO != null ? irisDetailsDTO.getNumOfIrisRetry() + 1 : 1;
 
 		try {
@@ -607,34 +610,16 @@ public class GuardianBiometricsController extends BaseController implements Init
 				getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().getIrisDetailsDTO()
 						.forEach((iris) -> {
 
-							if (irisType.toLowerCase().contains(iris.getIrisType().split(" ")[0].toLowerCase())) {
+							
+							scanPopUpViewController.getScanImage().setImage(convertBytesToImage(iris.getIris()));
+							biometricImage.setImage(bioService.isMdmEnabled()
+									? bioService.getBioStreamImage(iris.getIrisType(), iris.getNumOfIrisRetry())
+									: convertBytesToImage(iris.getIris()));
 
-								// streamer.setBioStreamImages(convertBytesToImage(iris.getIris()),
-								// iris.getIrisType(), attempt);
+							setCapturedValues(bioService.isMdmEnabled()
+									? bioService.getBioQualityScores(iris.getIrisType(), iris.getNumOfIrisRetry())
+									: iris.getQualityScore(), iris.getNumOfIrisRetry(), thresholdValue);
 
-								scanPopUpViewController.getScanImage().setImage(convertBytesToImage(iris.getIris()));
-								biometricImage.setImage(bioService.isMdmEnabled()
-										? bioService.getBioStreamImage(iris.getIrisType(), iris.getNumOfIrisRetry())
-										: convertBytesToImage(iris.getIris()));
-
-								setCapturedValues(bioService.isMdmEnabled()
-										? bioService.getBioQualityScores(iris.getIrisType(), iris.getNumOfIrisRetry())
-										: iris.getQualityScore(), iris.getNumOfIrisRetry(), thresholdValue);
-
-								// iris.setNumOfIrisRetry(retries);
-
-								// if (validateIrisQulaity(iris, new Double(thresholdValue))) {
-								// if (retries == Integer
-								// .parseInt(getValueFromApplicationContext(RegistrationConstants.IRIS_RETRY_COUNT)))
-								// scanBtn.setDisable(true);
-								// continueBtn.setDisable(false);
-								// } else {
-								// scanBtn.setDisable(false);
-								// continueBtn.setDisable(true);
-								// }
-								// irisDetailsDTOs.add(iris);
-
-							}
 						});
 
 			} else if (isDuplicate) {
@@ -887,7 +872,13 @@ public class GuardianBiometricsController extends BaseController implements Init
 					}
 					try {
 
-						updateByAttempt(bioType, Character.getNumericValue(eventString.charAt(index)), biometricImage,
+						List<IrisDetailsDTO> guardianIris = getRegistrationDTOFromSession().getBiometricDTO()
+								.getIntroducerBiometricDTO().getIrisDetailsDTO();
+						IrisDetailsDTO irisDetailsDTO = guardianIris.isEmpty() ? null : guardianIris.get(0);
+						String modality = irisDetailsDTO != null ? irisDetailsDTO.getIrisType()  : null;
+						
+						
+						updateByAttempt(modality, Character.getNumericValue(eventString.charAt(index)), biometricImage,
 								qualityText, bioProgress, qualityScore);
 
 						LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,

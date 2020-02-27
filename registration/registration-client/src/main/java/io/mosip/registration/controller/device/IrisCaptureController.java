@@ -717,10 +717,7 @@ public class IrisCaptureController extends BaseController {
 					}
 					String typeIris = iris.getIrisType();
 
-					if (typeIris
-							.contains(StringUtils.containsIgnoreCase(selectedIris.getId(), RegistrationConstants.LEFT)
-									? RegistrationConstants.LEFT
-									: RegistrationConstants.RIGHT)) {
+					
 						int attempt = typeIris.equals(RegistrationConstants.LEFT_EYE) ? leftEyeAttempt
 								: rightEyeAttempt;
 
@@ -755,6 +752,10 @@ public class IrisCaptureController extends BaseController {
 
 						}
 
+						if (typeIris
+								.contains(StringUtils.containsIgnoreCase(selectedIris.getId(), RegistrationConstants.LEFT)
+										? RegistrationConstants.LEFT
+										: RegistrationConstants.RIGHT)) {
 						/*** Update Iris UI progress bar and attempt slap*/
 						if (!(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
 							irisProgress.setProgress(Double.valueOf(
