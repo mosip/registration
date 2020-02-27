@@ -104,7 +104,7 @@ public class RegistrationApprovalServiceImpl extends BaseService implements Regi
 	 */
 	@Override
 	@PreAuthorizeUserId(roles = { AuthenticationAdvice.OFFICER_ROLE, AuthenticationAdvice.SUPERVISOR_ROLE,
-			AuthenticationAdvice.ADMIN_ROLE })
+			AuthenticationAdvice.ADMIN_ROLE,AuthenticationAdvice.DEFAULT_ROLE })
 	public Registration updateRegistration(String registrationID, String statusComments, String clientStatusCode)
 			throws RegBaseCheckedException {
 

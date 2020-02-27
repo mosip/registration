@@ -828,7 +828,7 @@ public class AuthenticationController extends BaseController implements Initiali
 		if (userDTO != null) {
 			return userDTO.getUserRole().stream()
 					.anyMatch(userRole -> userRole.getRoleCode().equalsIgnoreCase(RegistrationConstants.SUPERVISOR)
-							|| userRole.getRoleCode().equalsIgnoreCase(RegistrationConstants.ADMIN_ROLE));
+							|| userRole.getRoleCode().equalsIgnoreCase(RegistrationConstants.ADMIN_ROLE) || userRole.getRoleCode().equalsIgnoreCase(RegistrationConstants.ROLE_DEFAULT));
 		}
 		return false;
 	}

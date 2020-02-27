@@ -290,7 +290,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 			setImagesOnHover();
 
 			if (!SessionContext.userContext().getRoles().contains(RegistrationConstants.SUPERVISOR)
-					&& !SessionContext.userContext().getRoles().contains(RegistrationConstants.ADMIN_ROLE)) {
+					&& !SessionContext.userContext().getRoles().contains(RegistrationConstants.ADMIN_ROLE)
+					&& !SessionContext.userContext().getRoles().contains(RegistrationConstants.ROLE_DEFAULT)) {
 				eodProcessGridPane.setVisible(false);
 				eodLabel.setVisible(false);
 			}

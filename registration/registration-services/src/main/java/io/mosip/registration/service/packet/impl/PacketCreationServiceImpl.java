@@ -124,7 +124,7 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 	@SuppressWarnings("unchecked")
 	@Override
 	@PreAuthorizeUserId(roles = { AuthenticationAdvice.OFFICER_ROLE, AuthenticationAdvice.SUPERVISOR_ROLE,
-			AuthenticationAdvice.ADMIN_ROLE })
+			AuthenticationAdvice.ADMIN_ROLE,AuthenticationAdvice.DEFAULT_ROLE})
 	public byte[] create(final RegistrationDTO registrationDTO) throws RegBaseCheckedException {
 		LOGGER.info(LOG_PKT_CREATION, APPLICATION_NAME, APPLICATION_ID, "Registration Creation had been called");
 		try {
