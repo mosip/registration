@@ -709,8 +709,8 @@ public class BioServiceImpl extends BaseService implements BioService {
 			IrisDetailsDTO irisDetails = new IrisDetailsDTO();
 			CaptureResponsBioDataDto captureRespoonse = captured.getCaptureResponseData();
 
-			int attempt = captureRespoonse.getBioSubType().equals(RegistrationConstants.LEFT_EYE) ? leftEyeAttempt
-					: rightEyeAttempt;
+			int attempt = captureRespoonse.getBioSubType().toLowerCase()
+					.contains(RegistrationConstants.LEFT.toLowerCase()) ? leftEyeAttempt : rightEyeAttempt;
 
 			setBioQualityScores(captureRespoonse.getBioSubType(), attempt,
 					Integer.parseInt(captureRespoonse.getQualityScore()));
