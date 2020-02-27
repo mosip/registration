@@ -1437,7 +1437,7 @@ public class DemographicDetailController extends BaseController {
 				LocationDto lC = new LocationDto();
 				lC.setCode(RegistrationConstants.AUDIT_DEFAULT_USER);
 				lC.setName(RegistrationConstants.AUDIT_DEFAULT_USER);
-				lC.setCode(ApplicationContext.applicationLanguage());
+				lC.setLangCode(ApplicationContext.applicationLanguage());
 				region.getItems().add(lC);
 			} else {
 				region.getItems().addAll(locations);
@@ -1447,7 +1447,7 @@ public class DemographicDetailController extends BaseController {
 				LocationDto lC = new LocationDto();
 				lC.setCode(RegistrationConstants.AUDIT_DEFAULT_USER);
 				lC.setName(RegistrationConstants.AUDIT_DEFAULT_USER);
-				lC.setCode(ApplicationContext.localLanguage());
+				lC.setLangCode(ApplicationContext.localLanguage());
 				regionLocalLanguage.getItems().add(lC);
 			} else {
 				regionLocalLanguage.getItems().addAll(locationsSecondary);
@@ -2412,8 +2412,9 @@ public class DemographicDetailController extends BaseController {
 						LocationDto lC = new LocationDto();
 						lC.setCode(RegistrationConstants.AUDIT_DEFAULT_USER);
 						lC.setName(RegistrationConstants.AUDIT_DEFAULT_USER);
-						lC.setCode(ApplicationContext.applicationLanguage());
+						lC.setLangCode(ApplicationContext.applicationLanguage());
 						destLocationHierarchy.getItems().add(lC);
+						destLocationHierarchyInLocal.getItems().add(lC);
 					} else {
 						destLocationHierarchy.getItems().addAll(locations);
 					}
@@ -2422,7 +2423,7 @@ public class DemographicDetailController extends BaseController {
 						LocationDto lC = new LocationDto();
 						lC.setCode(RegistrationConstants.AUDIT_DEFAULT_USER);
 						lC.setName(RegistrationConstants.AUDIT_DEFAULT_USER);
-						lC.setCode(ApplicationContext.localLanguage());
+						lC.setLangCode(ApplicationContext.localLanguage());
 						destLocationHierarchyInLocal.getItems().add(lC);
 					} else {
 						destLocationHierarchyInLocal.getItems().addAll(locationsSecondary);
