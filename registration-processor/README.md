@@ -7,37 +7,51 @@ Registration Processor services' dependencies are mentioned below.  For all Kern
 * registration-processor-packet-receiver-stage
     * kernel-cryptomanager-service
     * kernel-auditmanager-service
+    * kernel-auth-service
+    * kernel-config-service
 
 * registration-processor-packet-uploader-stage
     * kernel-cryptomanager-service
     * kernel-auditmanager-service
+    * kernel-auth-service
+    * kernel-config-service
 
 * registration-processor-packet-validator-stage
     * kernel-masterdata-service
     * id-repository-identity-service
     * kernel-auditmanager-service
     * pre-registration-datasync-service
+    * kernel-auth-service
+    * kernel-config-service
 
 * registration-processor-osi-validator-stage
     * kernel-masterdata-service
     * kernel-auditmanager-service
     * authentication-internal-service
     * id-repository-identity-service
+    * kernel-auth-service
+    * kernel-config-service
 
 * registration-processor-manual-verification-stage
     * kernel-masterdata-service
     * kernel-signature-service
+    * kernel-auth-service
+    * kernel-config-service
 
 * registration-processor-biometric-authentication-stage
     * kernel-auditmanager-service
     * authentication-internal-service
     * id-repository-identity-service
+    * kernel-auth-service
+    * kernel-config-service
 
 * registration-processor-uin-generator-stage
     * kernel-uingenerator-service
     * kernel-auditmanager-service
     * id-repository-identity-service
     * id-repository-vid-service
+    * kernel-auth-service
+    * kernel-config-service
 
 * registration-processor-message-sender-stage
     * kernel-masterdata-service
@@ -45,14 +59,20 @@ Registration Processor services' dependencies are mentioned below.  For all Kern
     * kernel-emailnotification-service
     * kernel-auditmanager-service
     * id-repository-identity-service
+    * kernel-auth-service
+    * kernel-config-service
 
 * registration-processor-printing-stage
    * kernel-auditmanager-service
    * id-repository-identity-service
+    * kernel-auth-service
+    * kernel-config-service
 
 * registration-processor-registration-status-service
     * kernel-cryptomanager-service
     * kernel-signature-service
+    * kernel-auth-service
+    * kernel-config-service
 
 * registration-processor-request-handler-service
     * kernel-signature-service
@@ -61,17 +81,25 @@ Registration Processor services' dependencies are mentioned below.  For all Kern
     * id-repository-identity-service
     * kernel-keymanager-service
     * id-repository-vid-service
+    * kernel-auth-service
+    * kernel-config-service
 
 * registration-processor-bio-dedupe-service
     * kernel-signature-service
+    * kernel-auth-service
+    * kernel-config-service
 
 * registration-processor-print-service
    * kernel-signature-service
    * id-repository-identity-service
    * id-repository-vid-service
+    * kernel-auth-service
+    * kernel-config-service
 
 * registration-processor-demo-dedupe-stage
     * id-repository-identity-service
+    * kernel-auth-service
+    * kernel-config-service
 
 # Build
 The project requires JDK 1.8. 
