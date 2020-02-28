@@ -1,18 +1,17 @@
-### registration-processor-bio-dedupe-service
+# registration-processor-bio-dedupe-service
 
+This service provides applicant biometric CBEFF file for a ABIS Reference ID. Based on ABIS Reference ID it will fetch Registration ID from Database.
 
-[Background & design](https://github.com/mosip/mosip/wiki/Registration-Processor)
+## Design
 
-[Process Flow for Registration-Processor](https://github.com/mosip/mosip/blob/master/docs/requirements/FinalProcessFlows/MOSIP_Process%20Flow%201.19%20Reg%20Processor.pdf)
+[Design - Approach for Bio Dedupe](https://github.com/mosip/registration/blob/master/design/registration-processor/Approach_for_bio_dedupe.md)
 
-This service provides applicantbiometric CBEFF file for a abis reference id.Based on abis reference id it will fetch registration id from Database.
-
-##### Default Context Path and Port
+## Default Context Path and Port
 ```
 server.port=9097
 server.servlet.path=/registrationprocessor/v1/bio-dedupe
 ```
-##### Configurable Properties from Config Server
+## Configurable Properties from Config Server
 ```
 registration.processor.signature.isEnabled=true
 ```

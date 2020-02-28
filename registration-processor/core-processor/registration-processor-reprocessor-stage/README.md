@@ -1,15 +1,16 @@
-### registration-processor-reprocessor-stage
-[Background & design]()
+# registration-processor-reprocessor-stage
 
-[Detailed Process flow]()
+This stage reprocesses the packets which are stuck in Registration-processor due to failures.
 
-This stage reprocesses the packets which are stuck in Registration-processor due to failures based on the ''.
+## Design
 
-##### Default Port and Context-Path
+[Design - Approach for Re-Processor Stage](https://github.com/mosip/registration/blob/master/design/registration-processor/Approach_for_reprocess.md)
+
+## Port and Context-Path
 ```
 eventbus.port=5750
 ```
-##### Configurable properties from Configuration Server
+## Configurable properties from Configuration Server
 ```
 registration.processor.reprocess.fetchsize=100
 registration.processor.reprocess.elapse.time=600
