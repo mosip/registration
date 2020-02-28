@@ -719,7 +719,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 		boolean isDuplicate = false;
 		try {
 			start = Instant.now();
-			bioService.getFingerPrintImageAsDTO(detailsDTO,
+			bioService.getFingerPrintImageAsDTO(
 					new RequestDetail(fingerType,
 							getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 1,
 							String.valueOf(thresholdValue), fingerException),

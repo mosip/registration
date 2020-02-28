@@ -111,7 +111,7 @@ public class MosipBioDeviceManager {
 
 			try {
 				initByPort(port);
-			} catch (RegBaseCheckedException exception) {
+			} catch (RuntimeException exception) {
 				LOGGER.error(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_GET, APPLICATION_NAME, APPLICATION_ID,
 						String.format("Exception while mapping the response",
 								exception.getMessage() + ExceptionUtils.getStackTrace(exception)));

@@ -105,13 +105,14 @@ public interface BioService {
 	 *            FP Request Detail
 	 * @param attempt
 	 *            attempt number
+	 * @return FingerPrint Details
 	 * @throws RegBaseCheckedException
 	 *             the reg base checked exception
 	 * @throws IOException
 	 *             the IOexception
 	 */
-	void getFingerPrintImageAsDTO(FingerprintDetailsDTO fpDetailsDTO, RequestDetail requestDetail, int attempt)
-			throws RegBaseCheckedException, IOException;
+	FingerprintDetailsDTO getFingerPrintImageAsDTO(RequestDetail requestDetail,
+			int attempt) throws RegBaseCheckedException, IOException;
 
 	/**
 	 * checks if the MDM service is enabled
@@ -166,16 +167,20 @@ public interface BioService {
 	/**
 	 * Gets the iris stub image as DTO.
 	 *
-	 * @param requestDetail details of iris request
-	 * @param leftEyeAttempt leftEye attempt number
-	 * @param rightEyeAttempt right eye attempt number
-	 * @throws IOException  the IO exception
+	 * @param requestDetail
+	 *            details of iris request
+	 * @param leftEyeAttempt
+	 *            leftEye attempt number
+	 * @param rightEyeAttempt
+	 *            right eye attempt number
+	 * @throws IOException
+	 *             the IO exception
 	 * @throws RegBaseCheckedException
 	 *             the reg base checked exception
 	 * @return Captured Iris Details DTO
 	 */
-	IrisDetailsDTO getIrisImageAsDTO(RequestDetail requestDetail, int leftEyeAttempt,
-			int rightEyeAttempt) throws RegBaseCheckedException, IOException;
+	IrisDetailsDTO getIrisImageAsDTO(RequestDetail requestDetail, int leftEyeAttempt, int rightEyeAttempt)
+			throws RegBaseCheckedException, IOException;
 
 	/**
 	 * Validate the Input Finger with the finger that is fetched from the Database.
@@ -230,14 +235,14 @@ public interface BioService {
 	 * @return quality score
 	 */
 	public Double getHighQualityScoreByBioType(String bioType, Double qualityScore);
-	
+
 	/**
-	 * @param bioType  biometricType
-	 * @param attempt attempt number
+	 * @param bioType
+	 *            biometricType
+	 * @param attempt
+	 *            attempt number
 	 * @return
 	 */
 	public Image getBioStreamImage(String bioType, int attempt);
-	
-	
 
 }
