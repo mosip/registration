@@ -237,15 +237,15 @@ public class BioServiceTest {
 		bioService.segmentFingerPrintImage(fingerprintDTO, LEFTHAND_SEGMNTD_FILE_PATHS, "leftSlap");
 
 		assertEquals("image", new String(fingerprintDTO.getSegmentedFingerprints().get(0).getFingerPrint()));
-		assertEquals("leftIndex", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerprintImageName());
-		assertEquals("leftIndex", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerType());
+		assertEquals("Left Index", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerprintImageName());
+		assertEquals("Left Index", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerType());
 		assertEquals(0, fingerprintDTO.getSegmentedFingerprints().get(0).getNumRetry());
 		assertEquals(90.0, fingerprintDTO.getSegmentedFingerprints().get(0).getQualityScore(), 0.1);
 		assertEquals(false, fingerprintDTO.isForceCaptured());
 
 		assertEquals("image", new String(fingerprintDTO.getSegmentedFingerprints().get(1).getFingerPrint()));
-		assertEquals("leftLittle", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerprintImageName());
-		assertEquals("leftLittle", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerType());
+		assertEquals("Left Little", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerprintImageName());
+		assertEquals("Left Little", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerType());
 		assertEquals(0, fingerprintDTO.getSegmentedFingerprints().get(1).getNumRetry());
 		assertEquals(90.0, fingerprintDTO.getSegmentedFingerprints().get(1).getQualityScore(), 0.1);
 		assertEquals(false, fingerprintDTO.isForceCaptured());
@@ -275,15 +275,15 @@ public class BioServiceTest {
 		bioService.segmentFingerPrintImage(fingerprintDTO, LEFTHAND_SEGMNTD_FILE_PATHS, "leftSlap");
 
 		assertEquals("image", new String(fingerprintDTO.getSegmentedFingerprints().get(0).getFingerPrint()));
-		assertEquals("leftIndex", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerprintImageName());
-		assertEquals("leftIndex", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerType());
+		assertEquals("Left Index", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerprintImageName());
+		assertEquals("Left Index", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerType());
 		assertEquals(0, fingerprintDTO.getSegmentedFingerprints().get(0).getNumRetry());
 		assertEquals(90.0, fingerprintDTO.getSegmentedFingerprints().get(0).getQualityScore(), 0.1);
 		assertEquals(false, fingerprintDTO.isForceCaptured());
 
 		assertEquals("image", new String(fingerprintDTO.getSegmentedFingerprints().get(1).getFingerPrint()));
-		assertEquals("leftLittle", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerprintImageName());
-		assertEquals("leftLittle", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerType());
+		assertEquals("Left Little", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerprintImageName());
+		assertEquals("Left Little", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerType());
 		assertEquals(0, fingerprintDTO.getSegmentedFingerprints().get(1).getNumRetry());
 		assertEquals(90.0, fingerprintDTO.getSegmentedFingerprints().get(1).getQualityScore(), 0.1);
 		assertEquals(false, fingerprintDTO.isForceCaptured());
@@ -315,15 +315,15 @@ public class BioServiceTest {
 		bioService.segmentFingerPrintImage(fingerprintDTO, LEFTHAND_SEGMNTD_FILE_PATHS, "leftSlap");
 
 		assertEquals("image", new String(fingerprintDTO.getSegmentedFingerprints().get(0).getFingerPrint()));
-		assertEquals("leftIndex", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerprintImageName());
-		assertEquals("leftIndex", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerType());
+		assertEquals("Left Index", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerprintImageName());
+		assertEquals("Left Index", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerType());
 		assertEquals(0, fingerprintDTO.getSegmentedFingerprints().get(0).getNumRetry());
 		assertEquals(90.0, fingerprintDTO.getSegmentedFingerprints().get(0).getQualityScore(), 0.1);
 		assertEquals(false, fingerprintDTO.isForceCaptured());
 
 		assertEquals("image", new String(fingerprintDTO.getSegmentedFingerprints().get(1).getFingerPrint()));
-		assertEquals("leftLittle", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerprintImageName());
-		assertEquals("leftLittle", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerType());
+		assertEquals("Left Little", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerprintImageName());
+		assertEquals("Left Little", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerType());
 		assertEquals(0, fingerprintDTO.getSegmentedFingerprints().get(1).getNumRetry());
 		assertEquals(90.0, fingerprintDTO.getSegmentedFingerprints().get(1).getQualityScore(), 0.1);
 		assertEquals(false, fingerprintDTO.isForceCaptured());
