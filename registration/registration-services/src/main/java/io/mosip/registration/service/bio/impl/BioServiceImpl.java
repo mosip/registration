@@ -1098,6 +1098,13 @@ public class BioServiceImpl extends BaseService implements BioService {
 
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * io.mosip.registration.service.bio.BioService#isValidFingerPrints(io.mosip.
+	 * registration.dto.biometric.FingerprintDetailsDTO)
+	 */
 	public boolean isValidFingerPrints(FingerprintDetailsDTO fingerprintDetailsDTO) {
 
 		boolean isValid = false;
@@ -1114,7 +1121,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 		return isValid;
 	}
 
-	public List<String> getExceptionFingersByBioType(String bioSubType) {
+	private List<String> getExceptionFingersByBioType(String bioSubType) {
 
 		List<String> exceptionBiometrics = new LinkedList<>();
 
@@ -1146,12 +1153,14 @@ public class BioServiceImpl extends BaseService implements BioService {
 		List<BiometricExceptionDTO> biometricExceptionDTOs;
 		if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
 			biometricExceptionDTOs = getBiometricDTOFromSession().getOperatorBiometricDTO().getBiometricExceptionDTO();
-		} else if (getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {
+		} else {
 			biometricExceptionDTOs = getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
 					.getBiometricExceptionDTO();
-		} else {
-			biometricExceptionDTOs = getRegistrationDTOFromSession().getBiometricDTO().getApplicantBiometricDTO()
-					.getBiometricExceptionDTO();
+
+			if (biometricExceptionDTOs == null) {
+				biometricExceptionDTOs = getRegistrationDTOFromSession().getBiometricDTO().getApplicantBiometricDTO()
+						.getBiometricExceptionDTO();
+			}
 		}
 
 		List<String> exceptionBiometrics = null;
@@ -1230,6 +1239,12 @@ public class BioServiceImpl extends BaseService implements BioService {
 
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * io.mosip.registration.service.bio.BioService#validateBioDeDup(java.util.List)
+	 */
 	public boolean validateBioDeDup(List<FingerprintDetailsDTO> fingerprintDetailsDTOs) {
 		AuthenticationValidatorDTO authenticationValidatorDTO = new AuthenticationValidatorDTO();
 		authenticationValidatorDTO.setUserId(SessionContext.userContext().getUserId());
@@ -1300,6 +1315,12 @@ public class BioServiceImpl extends BaseService implements BioService {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see io.mosip.registration.service.bio.BioService#
+	 * isAllNonExceptionFingerprintsCaptured()
+	 */
 	public boolean isAllNonExceptionFingerprintsCaptured() {
 		List<FingerprintDetailsDTO> fingerprintDetailsDTOs;
 		if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {

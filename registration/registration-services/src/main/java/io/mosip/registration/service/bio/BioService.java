@@ -111,8 +111,8 @@ public interface BioService {
 	 * @throws IOException
 	 *             the IOexception
 	 */
-	FingerprintDetailsDTO getFingerPrintImageAsDTO(RequestDetail requestDetail,
-			int attempt) throws RegBaseCheckedException, IOException;
+	FingerprintDetailsDTO getFingerPrintImageAsDTO(RequestDetail requestDetail, int attempt)
+			throws RegBaseCheckedException, IOException;
 
 	/**
 	 * checks if the MDM service is enabled
@@ -244,5 +244,24 @@ public interface BioService {
 	 * @return
 	 */
 	public Image getBioStreamImage(String bioType, int attempt);
+
+	/**
+	 * @param detailsDTO
+	 *            Captured Fingerprint Details
+	 * @return whether captured fingerprints were valid or not
+	 */
+	public boolean isValidFingerPrints(FingerprintDetailsDTO detailsDTO);
+
+	/**
+	 * @param segmentedFingerprints
+	 *            captured segmented fingerprints
+	 * @return whether captured segmentedFingerprints were duplicated or not
+	 */
+	public boolean validateBioDeDup(List<FingerprintDetailsDTO> segmentedFingerprints);
+
+	/**
+	 * @return whether All non exception fingers were captured or not
+	 */
+	public boolean isAllNonExceptionFingerprintsCaptured();
 
 }
