@@ -1,18 +1,18 @@
-### registration-processor-printing-stage
+# registration-processor-printing-stage
 
-[Background & design](https://github.com/mosip/mosip/wiki/Registration-Processor)
+This stage creates a pdf format UIN card and a text format acknowledgement, send it to MOSIP queues where consumers (Printing & Postal Service Provider) can consume them for their uses.
 
-[Process Flow for Registration-Processor](https://github.com/mosip/mosip/blob/master/docs/requirements/FinalProcessFlows/MOSIP_Process%20Flow%201.19%20Reg%20Processor.pdf)
+## Design
 
-This stage creates a pdf format uin card and a text format acknowledgement, send it to mosip queues where consumers can consume them for their uses.
+[Design - Approach for Printing Stage](https://github.com/mosip/registration/blob/master/design/registration-processor/Approach_for_printing_stage.md)
 
-##### Default Context Path and Port
+## Default Context Path and Port
 ```
 server.port=8099
 eventbus.port=5722
 server.servlet.path=/registrationprocessor/v1/print-stage
 ```
-##### Configurable Properties from Config Server
+## Configurable Properties from Config Server
 ```
 registration.processor.queue.username=admin
 registration.processor.queue.password={cipher}AQAczQ4nzjbawBHSaJ+JfiYvObIPCGKgOFv571lM8Gd8d68istG+xvtnfWHGiEjO30+QJ8F5qqMIrwXru0OO/wc/WRIaGbzLZMMtird1BtUts9OceZFHG50DZYAsKwqCvtPpgEkS5dUhEjaZXtnMiysJlyTSQHYLIpC3TUjGC2v1wi9Tc6oEMH99gSNG719kSucq77IKD5lUnwdPBBBaqQ2ExzS40ZJppo7RgvVj0YZ1zoJcIyihRsSEUr3GZmcBtyUxJENQbbPNFfFBzPvUmtPw1kkrnYt6KJDeBQNhA5klYmcBzBoWErc0Qq5xraNrgfLjQGbZPCMsRGgvcwEJ1hO6nkq8fBYB1TvX+owCbBKJ+zX6sqn3CnDUY6W3ocdofN8=
@@ -21,7 +21,7 @@ registration.processor.queue.typeOfQueue=ACTIVEMQ
 registration.processor.queue.address = print-service-dev-int
 registration.processor.queue.printpostaladdress = postal-service-dev-int
 ```
-#### Information related to uin card template and placeholders
+## Information related to uin card template and placeholders
 We need to store templates in master table.
 The parameter FileText for a template will be sent as a message in sms or email.
 

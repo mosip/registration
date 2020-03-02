@@ -1,17 +1,17 @@
-### registration-processor-message-sender-stage
-
-[Background & design](https://github.com/mosip/mosip/wiki/Registration-Processor)
-
-[Process Flow for Registration-Processor](https://github.com/mosip/mosip/blob/master/docs/requirements/FinalProcessFlows/MOSIP_Process%20Flow%201.19%20Reg%20Processor.pdf)
+# registration-processor-message-sender-stage
 
 This stage sends sms and email notification for different packets based on their trasaction type + transaction status code.
 
-##### Default Context Path and Port
+## Design
+
+[Design - Approach for Message Sender Stage]()
+
+## Default Context Path and Port
 ```
 server.port=8088
 eventbus.port=5721
 ```
-##### Configurable Properties from Config Server
+## Configurable Properties from Config Server
 ```
 registration.processor.identityjson=RegistrationProcessorIdentity.json
 registration.processor.demographic.identity=identity
@@ -23,7 +23,7 @@ registration.processor.uin.activated.subject=Uin is activated successfully
 registration.processor.uin.deactivated.subject=Uin is deactivated
 registration.processor.updated.subject=UIN Details Updated
 ```
-### Information related to putting placeholders in notification template
+## Information related to putting placeholders in notification template
 We need to store templates in master table.
 The parameter FileText for a template will be sent as a message in sms or email.
 
@@ -76,5 +76,3 @@ eg: FileText for UIN Generation SMS notification
 	Your UIN for the Registration $RID has been successfully generated and will reach soon at your Postal Address."
 	
 Here $name_eng will be replaced with actual english name, and $RID will be replaced with actual registration id.
-
-

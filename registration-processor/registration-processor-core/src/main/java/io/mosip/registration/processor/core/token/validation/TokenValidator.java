@@ -5,6 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -51,8 +52,12 @@ public class TokenValidator {
 		try {
 			URL obj = new URL(env.getProperty("TOKENVALIDATE"));
 			URLConnection urlConnection = obj.openConnection();
-			HttpsURLConnection con = (HttpsURLConnection) urlConnection;
-
+			HttpURLConnection con;
+			if (urlConnection instanceof HttpsURLConnection) {
+				con = (HttpsURLConnection) urlConnection;
+			} else {
+				con = (HttpURLConnection) urlConnection;
+			}
 			con.setRequestProperty("Cookie", token);
 			con.setRequestMethod("GET");
 

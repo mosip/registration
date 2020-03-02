@@ -1,17 +1,17 @@
-### registration-processor-uin-generator-stage
+# registration-processor-uin-generator-stage
 
-[Background & design](https://github.com/mosip/mosip/wiki/Registration-Processor)
+This stage is to generate uin and mapping the generated uin to the applicant registration Id and store the applicant details in ID Repository.
 
-[Process Flow for Registration-Processor](https://github.com/mosip/mosip/blob/master/docs/requirements/FinalProcessFlows/MOSIP_Process%20Flow%201.19%20Reg%20Processor.pdf)
+## Design
 
-This stage is to generate uin and mapping the generated uin to the applicant registration Id and store the applicant details in IDA.
+[Design - Approach for UIN Generator Stage](https://github.com/mosip/registration/blob/master/design/registration-processor/Approach_for_uin_generator.md)
 
-##### Default Context Path and Port
+## Default Context Path and Port
 ```
 server.port=8099
 eventbus.port=5719
 ```
-##### Configurable Properties from Config Server
+## Configurable Properties from Config Server
 ```
 IDREPOSITORY=${mosip.base.url}/idrepository/v1/identity/
 IDREPOGETIDBYUIN=${mosip.base.url}/idrepository/v1/identity/uin

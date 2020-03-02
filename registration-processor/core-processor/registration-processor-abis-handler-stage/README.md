@@ -1,9 +1,9 @@
-### registration-processor-abis-handler-stage
+# registration-processor-abis-handler-stage
+
+This stage takes the count of abis and creates that many insert and identify request, saving them in the AbisRequest table for abis middleware to use.
 
 ## Design
-[Design](https://github.com/mosip/mosip/wiki/Registration-Processor)
-
-This stage takes the count of abis devices and creates that many insert and identify request, saving them in the AbisRequest table for abis middleware to use.
+[Design - Approach for ABIS Integration](https://github.com/mosip/registration/blob/master/design/registration-processor/Approach_for_ABIS_Integration.md)
 
 ## Default Context Path and Port
 ```
