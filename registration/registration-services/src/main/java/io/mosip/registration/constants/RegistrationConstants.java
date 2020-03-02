@@ -1558,13 +1558,26 @@ public class RegistrationConstants {
 	public static final String CODE_AND_LANG_CODE_MANDATORY = "code and language code is mandatory...";
 	public static final String TRIGGER_POINT_MSG = "trigger point is mandatory...";
 
+	public static final String LeftIndex = "Left Index";
+	public static final String LeftMiddle = "Left Middle";
+	public static final String LeftRing = "Left Ring";
+	public static final String LeftLittle = "Left Little";
+	public static final String RightIndex = "Right Index";
+	public static final String RightMiddle = "Right Middle";
+	public static final String RightRing = "Right Ring";
+	public static final String RightLittle = "Right Little";
+	public static final String LeftThumb = "Left Thumb";
+	public static final String RightThumb = "Right Thumb";
+	
+	
 	// bio-devices bio-types
-	public static final List<String> LEFT_SLAP = Arrays.asList("Left Index", "Left Middle", "Left Ring", "Left Little");
+	public static final List<String> LEFT_SLAP = Arrays.asList(LeftIndex, LeftMiddle, LeftRing, LeftLittle);
 
-	public static final List<String> RIGHT_SLAP = Arrays.asList("Right Index", "Right Middle", "Right Ring",
-			"Right Little");
+	public static final List<String> RIGHT_SLAP = Arrays.asList(RightIndex, RightMiddle, RightRing,
+			RightLittle);
 
-	public static final List<String> TWO_THUMBS = Arrays.asList("Left Thumb", "Right Thumb");
+	public static final List<String> TWO_THUMBS = Arrays.asList(LeftThumb, RightThumb);
+	
 	public static final String LEFT_EYE = "Left Iris";
 	public static final String RIGHT_EYE = "Right Iris";
 	

@@ -11,7 +11,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -22,7 +21,6 @@ import org.springframework.stereotype.Controller;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.transliteration.spi.Transliteration;
-import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
@@ -40,7 +38,7 @@ import io.mosip.registration.dto.mastersync.BiometricAttributeDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.mdm.dto.RequestDetail;
-import io.mosip.registration.service.bio.impl.BioServiceImpl;
+import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.security.AuthenticationService;
 import io.mosip.registration.service.sync.MasterSyncService;
 import javafx.beans.value.ChangeListener;
@@ -165,7 +163,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 	/** The iris facade. */
 	@Autowired
-	private BioServiceImpl bioService;
+	private BioService bioService;
 
 	@Autowired
 	private Transliteration<String> transliteration;
@@ -264,8 +262,6 @@ public class GuardianBiometricsController extends BaseController implements Init
 						&& !previousValue.getName().equalsIgnoreCase(currentValue.getName())) {
 					continueBtn.setDisable(true);
 				}
-				
-			
 
 			}
 		});
@@ -610,7 +606,6 @@ public class GuardianBiometricsController extends BaseController implements Init
 				getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().getIrisDetailsDTO()
 						.forEach((iris) -> {
 
-							
 							scanPopUpViewController.getScanImage().setImage(convertBytesToImage(iris.getIris()));
 							biometricImage.setImage(bioService.isMdmEnabled()
 									? bioService.getBioStreamImage(iris.getIrisType(), iris.getNumOfIrisRetry())
@@ -680,50 +675,31 @@ public class GuardianBiometricsController extends BaseController implements Init
 		List<FingerprintDetailsDTO> fingerprintDetailsDTOs = getRegistrationDTOFromSession().getBiometricDTO()
 				.getIntroducerBiometricDTO().getFingerprintDetailsDTO();
 
-		if (fingerprintDetailsDTOs == null || fingerprintDetailsDTOs.isEmpty()) {
-			fingerprintDetailsDTOs = new ArrayList<>(1);
-			getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
-					.setFingerprintDetailsDTO(fingerprintDetailsDTOs);
-		}
-
 		if (fingerprintDetailsDTOs != null) {
 
 			for (FingerprintDetailsDTO fingerprintDetailsDTO : fingerprintDetailsDTOs) {
-				if (fingerprintDetailsDTO.getFingerType().equals(fingerType)) {
-					detailsDTO = fingerprintDetailsDTO;
+				if (fingerprintDetailsDTO.getFingerType() != null
+						&& fingerprintDetailsDTO.getSegmentedFingerprints() != null
+						&& fingerprintDetailsDTO.getFingerType().equals(fingerType)) {
+					attempt = fingerprintDetailsDTO.getNumRetry();
 
-					for (String segmentedFingerPath : segmentedFingersPath) {
-						String[] path = segmentedFingerPath.split("/");
-						for (FingerprintDetailsDTO segmentedfpDetailsDTO : fingerprintDetailsDTO
-								.getSegmentedFingerprints()) {
-							if (segmentedfpDetailsDTO.getFingerType().equals(path[3])) {
-								fingerprintDetailsDTO.getSegmentedFingerprints().remove(segmentedfpDetailsDTO);
-								break;
-							}
-						}
-					}
-					detailsDTO.setNumRetry(fingerprintDetailsDTO.getNumRetry() + 1);
 					break;
 				}
 			}
-			if (detailsDTO == null) {
-				detailsDTO = new FingerprintDetailsDTO();
-				detailsDTO.setNumRetry(detailsDTO.getNumRetry() + 1);
-				detailsDTO.setFingerType(fingerType);
-				fingerprintDetailsDTOs.add(detailsDTO);
 
-			}
-
-			attempt = detailsDTO.getNumRetry();
 		}
+
+		attempt = attempt != 0 ? attempt + 1 : 1;
+
 		boolean isDuplicate = false;
 		try {
 			start = Instant.now();
-			bioService.getFingerPrintImageAsDTO(detailsDTO,
-					new RequestDetail(fingerType,
-							getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 1,
-							String.valueOf(thresholdValue), fingerException),
-					attempt);
+
+			LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+					"Capturing Fingerprints for attempt : " + attempt);
+			detailsDTO = bioService.getFingerPrintImageAsDTO(new RequestDetail(fingerType,
+					getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 1,
+					String.valueOf(thresholdValue), fingerException), attempt);
 			end = Instant.now();
 			streamer.stop();
 			bioService.segmentFingerPrintImage(detailsDTO, segmentedFingersPath, fingerType);
@@ -732,60 +708,96 @@ public class GuardianBiometricsController extends BaseController implements Init
 			LOGGER.error(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					String.format("%s Exception while getting the scanned finger details for user registration: %s ",
 							exception.getMessage(), ExceptionUtils.getStackTrace(exception)));
-			fingerprintDetailsDTOs.remove(detailsDTO);
 			return;
 		}
 
-		if (detailsDTO.isCaptured()) {
+		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+				"Validating Captured FingerPrints");
+		if (detailsDTO.isCaptured() && bioService.isValidFingerPrints(detailsDTO)) {
+
+			boolean isNotMatched = true;
+
+			if (!(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
+				LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+						"Verifying Local Deduplication check of captured fingerprints against Operator Biometrics");
+				isNotMatched = bioService.validateBioDeDup(detailsDTO.getSegmentedFingerprints());
+			}
+			popupStage.close();
+			if (!isNotMatched) {
+
+				LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+						"Failure :Local Deduplication found on captured fingerprints against Operator Biometrics");
+				generateAlert(RegistrationConstants.ALERT_INFORMATION,
+						RegistrationUIConstants.FINGERPRINT_DUPLICATION_ALERT);
+				return;
+			}
+
+			LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+					"Updating captured fingerprints in session");
+			updateFingerBiometricsSession(fingerprintDetailsDTOs, detailsDTO);
+
+			continueBtn.setDisable(false);
+
 			captureTimeValue.setText(Duration.between(start, end).toString().replace("PT", ""));
 			if (fingerType.equals(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)) {
-				rightSlapCount++;
+				rightSlapCount = detailsDTO.getNumRetry();
 				retries = rightSlapCount;
 			} else if (fingerType.equals(RegistrationConstants.FINGERPRINT_SLAB_LEFT)) {
 
-				leftSlapCount++;
+				leftSlapCount = detailsDTO.getNumRetry();
 				retries = leftSlapCount;
 
 			} else {
-				thumbCount++;
+				thumbCount = detailsDTO.getNumRetry();
 				retries = thumbCount;
 			}
 			streamer.setBioStreamImages(null, detailsDTO.getFingerType(), detailsDTO.getNumRetry());
 
-			detailsDTO.setNumRetry(retries);
 			if (!bioService.isMdmEnabled())
 				scanPopUpViewController.getScanImage().setImage(convertBytesToImage(detailsDTO.getFingerPrint()));
-			else
+			else {
 				detailsDTO.setFingerPrint(streamer.imageBytes);
-			biometricImage.setImage(
-					bioService.isMdmEnabled() ? bioService.getBioStreamImage(detailsDTO.getFingerType(), retries)
-							: convertBytesToImage(detailsDTO.getFingerPrint()));
-			final List<FingerprintDetailsDTO> fingerprintDetailsDTOsTest = fingerprintDetailsDTOs;
-			isDuplicate = generateAlert(RegistrationConstants.ALERT_INFORMATION,
-					RegistrationUIConstants.FP_CAPTURE_SUCCESS, () -> {
-						return fingerdeduplicationCheck(fingerprintDetailsDTOsTest);
-					}, scanPopUpViewController);
+			}
+			biometricImage.setImage(bioService.isMdmEnabled()
+					? bioService.getBioStreamImage(detailsDTO.getFingerType(), detailsDTO.getNumRetry())
+					: convertBytesToImage(detailsDTO.getFingerPrint()));
 
+			LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+					"Updating progress Bar,Text and attempts Box in UI");
 			setCapturedValues(bioService.isMdmEnabled()
 					? bioService.getBioQualityScores(detailsDTO.getFingerType(), detailsDTO.getNumRetry())
 					: detailsDTO.getQualityScore(), detailsDTO.getNumRetry(), thresholdValue);
 
-			popupStage.close();
-			if (validateFingerPrintQulaity(detailsDTO, new Double(thresholdValue)) && isDuplicate) {
-				continueBtn.setDisable(false);
-				if (retries == Integer
-						.parseInt(getValueFromApplicationContext(RegistrationConstants.FINGERPRINT_RETRIES_COUNT))) {
-					scanBtn.setDisable(true);
-				}
-			}
+		}
 
-		} else {
-			fingerprintDetailsDTOs.remove(detailsDTO);
+		else {
+			LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+					"Validating Captured FingerPrints Failed");
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.FP_DEVICE_ERROR);
 		}
 
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Fingerprints Scanning is completed");
+
+	}
+
+	private void updateFingerBiometricsSession(List<FingerprintDetailsDTO> fingerprintDetailsDTOs,
+			FingerprintDetailsDTO detailsDTO) {
+		FingerprintDetailsDTO fingerprintDetails = null;
+		for (FingerprintDetailsDTO fingerprintDetailsDTO : fingerprintDetailsDTOs) {
+			if (fingerprintDetailsDTO.getFingerType() != null
+
+					&& fingerprintDetailsDTO.getFingerType().equals(detailsDTO.getFingerType())) {
+
+				fingerprintDetails = fingerprintDetailsDTO;
+				break;
+			}
+		}
+
+		if (fingerprintDetails != null) {
+			fingerprintDetailsDTOs.remove(fingerprintDetails);
+		}
+		fingerprintDetailsDTOs.add(detailsDTO);
 
 	}
 
@@ -830,10 +842,8 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		if (retry == Integer.parseInt(getValueFromApplicationContext(RegistrationConstants.IRIS_RETRY_COUNT))) {
 			scanBtn.setDisable(true);
-			continueBtn.setDisable(false);
 		} else {
 			scanBtn.setDisable(false);
-			continueBtn.setDisable(true);
 		}
 
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
@@ -872,12 +882,22 @@ public class GuardianBiometricsController extends BaseController implements Init
 					}
 					try {
 
-						List<IrisDetailsDTO> guardianIris = getRegistrationDTOFromSession().getBiometricDTO()
-								.getIntroducerBiometricDTO().getIrisDetailsDTO();
-						IrisDetailsDTO irisDetailsDTO = guardianIris.isEmpty() ? null : guardianIris.get(0);
-						String modality = irisDetailsDTO != null ? irisDetailsDTO.getIrisType()  : null;
-						
-						
+						String modality;
+						if (bioType.contains("Iris")) {
+							List<IrisDetailsDTO> guardianIris = getRegistrationDTOFromSession().getBiometricDTO()
+									.getIntroducerBiometricDTO().getIrisDetailsDTO();
+							IrisDetailsDTO irisDetailsDTO = guardianIris.isEmpty() ? null : guardianIris.get(0);
+							modality = irisDetailsDTO != null ? irisDetailsDTO.getIrisType() : null;
+						} else {
+							List<FingerprintDetailsDTO> gurdianFingerPrints = getRegistrationDTOFromSession()
+									.getBiometricDTO().getIntroducerBiometricDTO().getFingerprintDetailsDTO();
+							FingerprintDetailsDTO fingerprintDetailsDTO = gurdianFingerPrints.isEmpty() ? null
+									: gurdianFingerPrints.get(0);
+							modality = fingerprintDetailsDTO != null ? fingerprintDetailsDTO.getFingerType() : null;
+						}
+
+						System.out.println(modality);
+
 						updateByAttempt(modality, Character.getNumericValue(eventString.charAt(index)), biometricImage,
 								qualityText, bioProgress, qualityScore);
 
