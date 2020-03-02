@@ -27,7 +27,6 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.itextpdf.tool.xml.html.head.Link;
 import com.machinezoo.sourceafis.FingerprintTemplate;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -276,7 +275,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	 *             the reg base checked exception
 	 * @throws IOException
 	 */
-	public FingerprintDetailsDTO getFingerPrintImageAsDTOWithMdm(FingerprintDetailsDTO fpDetailsDTO,
+	public FingerprintDetailsDTO getFingerPrintImageAsDTOWithMdm(
 			RequestDetail requestDetail, int attempt) throws RegBaseCheckedException, IOException {
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 				"Entering into getFingerPrintImageAsDTOWithMdm method..");
@@ -286,6 +285,8 @@ public class BioServiceImpl extends BaseService implements BioService {
 		if (captureResponseDto.getError().getErrorCode().matches("102|101|202|403|404|409"))
 			throw new RegBaseCheckedException(captureResponseDto.getError().getErrorCode(),
 					captureResponseDto.getError().getErrorInfo());
+		
+		FingerprintDetailsDTO fpDetailsDTO = new FingerprintDetailsDTO();
 		fpDetailsDTO.setSegmentedFingerprints(new ArrayList<FingerprintDetailsDTO>());
 		List<CaptureResponseBioDto> mosipBioDeviceDataResponses = captureResponseDto.getMosipBioDeviceDataResponses();
 
@@ -296,6 +297,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 			FingerprintDetailsDTO fingerPrintDetail = new FingerprintDetailsDTO();
 			CaptureResponsBioDataDto captureRespoonse = captured.getCaptureResponseData();
 
+			if(captureRespoonse!=null) {
 			currentCaptureQualityScore += Integer.parseInt(captureRespoonse.getQualityScore());
 
 			// Get Best Capture
@@ -307,6 +309,10 @@ public class BioServiceImpl extends BaseService implements BioService {
 			fingerPrintDetail.setQualityScore(Integer.parseInt(captureRespoonse.getQualityScore()));
 			fingerPrintDetail.setFingerprintImageName("FingerPrint " + captureRespoonse.getBioSubType());
 			fpDetailsDTO.getSegmentedFingerprints().add(fingerPrintDetail);
+			} else {
+				fpDetailsDTO.setCaptured(false);
+				return fpDetailsDTO;
+			}
 		}
 
 		setBioQualityScores(requestDetail.getType(), attempt,
@@ -318,6 +324,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 
 		fpDetailsDTO.setCaptured(true);
 		fpDetailsDTO.setFingerType(requestDetail.getType());
+		fpDetailsDTO.setNumRetry(attempt);
 		fpDetailsDTO.setQualityScore(slapQuality);
 
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID, "Leaving getFingerPrintImageAsDTOWithMdm..");
@@ -442,10 +449,10 @@ public class BioServiceImpl extends BaseService implements BioService {
 		LOGGER.info(LOG_REG_FINGERPRINT_FACADE, APPLICATION_NAME, APPLICATION_ID,
 				"Entering into BioServiceImpl-FingerPrintImageAsDTO");
 		if (isMdmEnabled())
-			// return getFingerPrintImageAsDTOWithMdm(fpDetailsDTO, requestDetail, attempt);
-			return null;
-		else
-			return getFingerPrintImageAsDTONonMdm(requestDetail, attempt);
+			 return getFingerPrintImageAsDTOWithMdm(requestDetail, attempt);
+			
+		else {
+			return getFingerPrintImageAsDTONonMdm(requestDetail, attempt);}
 
 	}
 

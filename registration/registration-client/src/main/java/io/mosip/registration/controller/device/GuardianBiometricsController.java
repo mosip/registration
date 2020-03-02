@@ -882,10 +882,21 @@ public class GuardianBiometricsController extends BaseController implements Init
 					}
 					try {
 
-						List<IrisDetailsDTO> guardianIris = getRegistrationDTOFromSession().getBiometricDTO()
-								.getIntroducerBiometricDTO().getIrisDetailsDTO();
-						IrisDetailsDTO irisDetailsDTO = guardianIris.isEmpty() ? null : guardianIris.get(0);
-						String modality = irisDetailsDTO != null ? irisDetailsDTO.getIrisType() : null;
+						String modality;
+						if (bioType.contains("Iris")) {
+							List<IrisDetailsDTO> guardianIris = getRegistrationDTOFromSession().getBiometricDTO()
+									.getIntroducerBiometricDTO().getIrisDetailsDTO();
+							IrisDetailsDTO irisDetailsDTO = guardianIris.isEmpty() ? null : guardianIris.get(0);
+							modality = irisDetailsDTO != null ? irisDetailsDTO.getIrisType() : null;
+						} else {
+							List<FingerprintDetailsDTO> gurdianFingerPrints = getRegistrationDTOFromSession()
+									.getBiometricDTO().getIntroducerBiometricDTO().getFingerprintDetailsDTO();
+							FingerprintDetailsDTO fingerprintDetailsDTO = gurdianFingerPrints.isEmpty() ? null
+									: gurdianFingerPrints.get(0);
+							modality = fingerprintDetailsDTO != null ? fingerprintDetailsDTO.getFingerType() : null;
+						}
+
+						System.out.println(modality);
 
 						updateByAttempt(modality, Character.getNumericValue(eventString.charAt(index)), biometricImage,
 								qualityText, bioProgress, qualityScore);

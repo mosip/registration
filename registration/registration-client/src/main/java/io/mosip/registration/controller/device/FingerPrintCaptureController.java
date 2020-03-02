@@ -1361,6 +1361,7 @@ public class FingerPrintCaptureController extends BaseController implements Init
 				continueBtn.setDisable(true);
 			}
 
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.FP_CAPTURE_SUCCESS);
 		} else {
 
 			LOGGER.info(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
