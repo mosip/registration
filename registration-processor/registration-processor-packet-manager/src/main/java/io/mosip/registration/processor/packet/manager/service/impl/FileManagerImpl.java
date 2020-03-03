@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import io.mosip.registration.processor.packet.manager.utils.SftpSessionPool;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +33,7 @@ import io.mosip.registration.processor.packet.manager.dto.DirectoryPathDto;
 import io.mosip.registration.processor.packet.manager.exception.FileNotFoundInDestinationException;
 import io.mosip.registration.processor.packet.manager.exception.FileNotFoundInSourceException;
 import io.mosip.registration.processor.packet.manager.exception.FilePathNotAccessibleException;
+import io.mosip.registration.processor.packet.manager.utils.SftpSessionPool;
 
 /**
  * The implementation Class for FileManager.
@@ -368,8 +368,11 @@ public class FileManagerImpl implements FileManager<DirectoryPathDto, InputStrea
 
 	public Session getSession(SftpJschConnectionDto sftpConnectionDto) throws IOException {
 		Session session = null;
-		sftpConnectionDto.setRegProcPPK(getPPKPath());
 		sftpConnectionDto.setDmzServerPwd(env.getProperty(DMZ_SERVER_PASSWORD));
+		if (sftpConnectionDto.getDmzServerPwd() == null) {
+			sftpConnectionDto.setRegProcPPK(getPPKPath());
+		}
+
 		String maxSession = env.getProperty(SFTP_CONNECTION_POOL_MAX_SESSION);
 		try {
 			session = SftpSessionPool.getInstance(Integer.valueOf(maxSession)).getPool()
