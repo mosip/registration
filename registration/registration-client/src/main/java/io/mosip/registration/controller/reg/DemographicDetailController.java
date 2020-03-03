@@ -990,7 +990,8 @@ public class DemographicDetailController extends BaseController {
 	/**
 	 * method action when national button is pressed
 	 * 
-	 * @param ActionEvent the action event
+	 * @param ActionEvent
+	 *            the action event
 	 */
 	@FXML
 	private void national(ActionEvent event) {
@@ -1021,7 +1022,8 @@ public class DemographicDetailController extends BaseController {
 	/**
 	 * method action when mail button is pressed
 	 * 
-	 * @param ActionEvent the action event
+	 * @param ActionEvent
+	 *            the action event
 	 */
 	@FXML
 	private void male(ActionEvent event) {
@@ -1050,7 +1052,8 @@ public class DemographicDetailController extends BaseController {
 	/**
 	 * method action when foriegner button is pressed
 	 * 
-	 * @param ActionEvent the action event
+	 * @param ActionEvent
+	 *            the action event
 	 */
 	@FXML
 	private void foreigner(ActionEvent event) {
@@ -1079,7 +1082,8 @@ public class DemographicDetailController extends BaseController {
 	/**
 	 * method action when female button is pressed
 	 * 
-	 * @param ActionEvent the action event
+	 * @param ActionEvent
+	 *            the action event
 	 */
 	@FXML
 	private void female(ActionEvent event) {
@@ -1124,7 +1128,7 @@ public class DemographicDetailController extends BaseController {
 				if (maxAge >= Integer.parseInt(ageField.getText())) {
 					age = Integer.parseInt(ageField.getText());
 
-					// Not to recalulate DOB and populate DD, MM and YYYY UI fields based on Age,
+					// Not to re-calulate DOB and populate DD, MM and YYYY UI fields based on Age,
 					// since Age was calculated based on DOB entered by the user. Calculate DOB and
 					// populate DD, MM and YYYY UI fields based on user entered Age.
 					if (!getRegistrationDTOFromSession().isAgeCalculatedByDOB()) {
@@ -1140,6 +1144,11 @@ public class DemographicDetailController extends BaseController {
 					}
 
 					if (age <= minAge) {
+
+						if (!isChild == true) {
+							clearAllValues();
+							clearAllBiometrics();
+						}
 						if (RegistrationConstants.DISABLE.equalsIgnoreCase(
 								getValueFromApplicationContext(RegistrationConstants.FINGERPRINT_DISABLE_FLAG))
 								&& RegistrationConstants.DISABLE.equalsIgnoreCase(
@@ -1173,6 +1182,11 @@ public class DemographicDetailController extends BaseController {
 							}
 						}
 					} else {
+
+						if (!isChild == false) {
+							clearAllValues();
+							clearAllBiometrics();
+						}
 						if (getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO() != null) {
 
 							getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
@@ -1523,16 +1537,16 @@ public class DemographicDetailController extends BaseController {
 			LocationDto locationDTO = localAdminAuthority.getSelectionModel().getSelectedItem();
 
 			if (null != locationDTO) {
-				if(locationDTO.getCode().equalsIgnoreCase(RegistrationConstants.AUDIT_DEFAULT_USER)) {
+				if (locationDTO.getCode().equalsIgnoreCase(RegistrationConstants.AUDIT_DEFAULT_USER)) {
 					postalCode.setText(RegistrationConstants.AUDIT_DEFAULT_USER);
 					postalCodeLocalLanguage.setText(RegistrationConstants.AUDIT_DEFAULT_USER);
-				}else {
-				List<LocationDto> locationDtos = masterSync.findProvianceByHierarchyCode(locationDTO.getCode(),
-						locationDTO.getLangCode());
+				} else {
+					List<LocationDto> locationDtos = masterSync.findProvianceByHierarchyCode(locationDTO.getCode(),
+							locationDTO.getLangCode());
 
-				postalCode.setText(locationDtos.get(0).getName());
-				postalCodeLocalLanguage.setText(locationDtos.get(0).getName());
-			}
+					postalCode.setText(locationDtos.get(0).getName());
+					postalCodeLocalLanguage.setText(locationDtos.get(0).getName());
+				}
 			}
 
 		} catch (RuntimeException | RegBaseCheckedException runtimeException) {

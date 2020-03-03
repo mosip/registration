@@ -565,6 +565,10 @@ public class BiometricExceptionController extends BaseController implements Init
 		SessionContext.map().put(RegistrationConstants.OLD_BIOMETRIC_EXCEPTION, new ArrayList<>());
 		SessionContext.map().put(RegistrationConstants.NEW_BIOMETRIC_EXCEPTION, new ArrayList<>());
 		setExceptionImage();
+		
+
+		fingerException();
+		clearIrisException();
 	}
 
 	private void loadPage(String page) {
