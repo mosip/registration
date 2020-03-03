@@ -1162,7 +1162,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 			biometricExceptionDTOs = getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
 					.getBiometricExceptionDTO();
 
-			if (biometricExceptionDTOs == null) {
+			if (biometricExceptionDTOs == null || biometricExceptionDTOs.isEmpty()) {
 				biometricExceptionDTOs = getRegistrationDTOFromSession().getBiometricDTO().getApplicantBiometricDTO()
 						.getBiometricExceptionDTO();
 			}
