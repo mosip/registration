@@ -685,9 +685,9 @@ public class AuthenticationController extends BaseController implements Initiali
 		faceBasedLogin.setVisible(false);
 		errorPane.setVisible(true);
 		errorPane.setDisable(false);
-		errorText1.setText(RegistrationUIConstants.BIOMETRIC_DISABLE_SCREEN_1);
+		errorText1.setText(RegistrationUIConstants.BIOMETRIC_DISABLE_SCREEN_4);
 		errorText1.setVisible(true);
-		errorText2.setText(RegistrationUIConstants.BIOMETRIC_DISABLE_SCREEN_2);
+		errorText2.setText(RegistrationUIConstants.BIOMETRIC_DISABLE_SCREEN_3);
 		errorText1.setVisible(true);
 
 		if (isSupervisor) {

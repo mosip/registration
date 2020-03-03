@@ -48,6 +48,8 @@ public class RegistrationUIConstants {
 	public static final String UNABLE_LOAD_LOGIN_SCREEN = bundle.getString("UNABLE_LOAD_LOGIN_SCREEN");
 	public static final String BIOMETRIC_DISABLE_SCREEN_1 = bundle.getString("BIOMETRIC_DISABLE_SCREEN_1");
 	public static final String BIOMETRIC_DISABLE_SCREEN_2 = bundle.getString("BIOMETRIC_DISABLE_SCREEN_2");
+	public static final String BIOMETRIC_DISABLE_SCREEN_3 = bundle.getString("BIOMETRIC_DISABLE_SCREEN_3");
+	public static final String BIOMETRIC_DISABLE_SCREEN_4 = bundle.getString("BIOMETRIC_DISABLE_SCREEN_4");
 	public static final String MISSING_MANDATOTY_FIELDS = bundle.getString("MISSING_MANDATOTY_FIELDS");
 	public static final String CREDENTIALS_FIELD_EMPTY = bundle.getString("CREDENTIALS_FIELD_EMPTY");
 	public static final String USERNAME_FIELD_EMPTY = bundle.getString("USERNAME_FIELD_EMPTY");
