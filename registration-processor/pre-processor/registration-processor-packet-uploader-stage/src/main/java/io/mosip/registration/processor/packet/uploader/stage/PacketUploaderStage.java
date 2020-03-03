@@ -110,7 +110,7 @@ public class PacketUploaderStage extends MosipVerticleAPIManager {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setMessageBusAddress(MessageBusAddress.PACKET_UPLOADER_IN);
 		messageDTO.setInternalError(Boolean.FALSE);
-		messageDTO.setIsValid(obj.getBoolean("isValid"));
+		messageDTO.setIsValid(Boolean.FALSE);
 		messageDTO.setRid(obj.getString("rid"));
 		messageDTO = packetUploaderService.validateAndUploadPacket(messageDTO.getRid(),
 				this.getClass().getSimpleName());
@@ -152,11 +152,6 @@ public class PacketUploaderStage extends MosipVerticleAPIManager {
 	 */
 	public void sendMessage(MessageDTO messageDTO) {
 		this.send(this.mosipEventBus, MessageBusAddress.PACKET_UPLOADER_OUT, messageDTO);
-	}
-
-	@Override
-	public void stop() {
-		packetUploaderService.disconnectSftpConnection();
 	}
 
 }

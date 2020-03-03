@@ -94,6 +94,7 @@ public class PacketMetaInfoConverter extends CustomConverter<RegistrationDTO, Pa
 				for (FingerprintDetailsDTO fingerprintDetailsDTO : fingerprintDetailsDTOs) {
 					for (FingerprintDetailsDTO segmentedFingerprint : fingerprintDetailsDTO
 							.getSegmentedFingerprints()) {
+						segmentedFingerprint.setNumRetry(fingerprintDetailsDTO.getNumRetry());
 						fingerprintMap.put(segmentedFingerprint.getFingerType().toUpperCase(), segmentedFingerprint);
 					}
 				}
@@ -360,7 +361,7 @@ public class PacketMetaInfoConverter extends CustomConverter<RegistrationDTO, Pa
 
 		// Add reg client version
 		metaData.add(
-				buildFieldValue("regClientVersionNumber", String.valueOf(metaDataDTO.getRegClientVersionNumber())));
+				buildFieldValue("Registration Client Version Number", String.valueOf(metaDataDTO.getRegClientVersionNumber())));
 		// Add Geo-location Latitude
 		metaData.add(buildFieldValue("geoLocLatitude", String.valueOf(metaDataDTO.getGeoLatitudeLoc())));
 		// Add Geo-location Longitude

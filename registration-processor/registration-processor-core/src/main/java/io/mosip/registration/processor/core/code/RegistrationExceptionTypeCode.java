@@ -249,6 +249,8 @@ public enum RegistrationExceptionTypeCode {
 	/** The biometric exception. */
 	BIOMETRIC_EXCEPTION,
 
-	BIOMETRIC_TYPE_EXCEPTION
+	BIOMETRIC_TYPE_EXCEPTION,
+	
+	AUTH_SYSTEM_EXCEPTION
 
 }

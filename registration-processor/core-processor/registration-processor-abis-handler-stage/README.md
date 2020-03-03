@@ -1,20 +1,18 @@
-### registration-processor-abis-handler-stage
+# registration-processor-abis-handler-stage
 
-[Background & design](https://github.com/mosip/mosip/wiki/Registration-Processor)
+This stage takes the count of abis and creates that many insert and identify request, saving them in the AbisRequest table for abis middleware to use.
 
-[Process Flow for Registration-Processor](https://github.com/mosip/mosip/blob/master/docs/requirements/FinalProcessFlows/MOSIP_Process%20Flow%201.19%20Reg%20Processor.pdf)
+## Design
+[Design - Approach for ABIS Integration](https://github.com/mosip/registration/blob/master/design/registration-processor/Approach_for_ABIS_Integration.md)
 
-This stage takes the count of abis devices and creates that many insert and identify request, saving them in the AbisRequest table for abis middleware to use.
-
-##### Default Context Path and Port
+## Default Context Path and Port
 ```
 server.port=9071
 eventbus.port=5726
 ```
-##### Configurable Properties from Config Server
+## Configurable Properties from Config Server
 ```
 registration.processor.biometric.reference.url=${mosip.base.url}/registrationprocessor/v1/bio-dedupe/biometricfile
 registration.processor.abis.maxResults=30
 registration.processor.abis.targetFPIR=30
 ```
-

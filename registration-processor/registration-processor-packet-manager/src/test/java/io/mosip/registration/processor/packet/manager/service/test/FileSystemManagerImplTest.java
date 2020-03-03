@@ -144,5 +144,11 @@ public class FileSystemManagerImplTest {
 				.thenThrow(FSAdapterException.class);
 		packetManager.storePacket("12345678901234567890", inputStream);
 	}
-
+	@Test
+	public void testIsPacketPresent() throws IOException {
+		
+		when(fsAdapter.isPacketPresent(Mockito.anyString())).thenReturn(true);
+		boolean result = packetManager.isPacketPresent("12345678901234567890");
+		assertTrue(result);
+	}
 }

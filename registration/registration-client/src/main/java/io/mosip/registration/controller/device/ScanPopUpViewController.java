@@ -81,6 +81,9 @@ public class ScanPopUpViewController extends BaseController {
 
 	private Stage popupStage;
 
+	@FXML
+	private Button captureBtn;
+
 	/**
 	 * @return the popupStage
 	 */
@@ -89,7 +92,8 @@ public class ScanPopUpViewController extends BaseController {
 	}
 
 	/**
-	 * @param popupStage the popupStage to set
+	 * @param popupStage
+	 *            the popupStage to set
 	 */
 	public void setPopupStage(Stage popupStage) {
 		this.popupStage = popupStage;
@@ -131,17 +135,21 @@ public class ScanPopUpViewController extends BaseController {
 			
 			scanningMsg.textProperty().addListener((observable, oldValue, newValue) -> {
 			 
-			    if(RegistrationUIConstants.NO_DEVICE_FOUND.contains(newValue)) {
-			 
-			        Platform.runLater( () -> {
-			        	
-			        	generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_DEVICE_FOUND);
-			        	
-			        });
+				Platform.runLater(() -> {
+					if (RegistrationUIConstants.NO_DEVICE_FOUND.contains(newValue)) {
 
-				  
-			 
-			    }
+						captureBtn.setDisable(false);
+						
+						generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_DEVICE_FOUND);
+
+					} else if(RegistrationUIConstants.STREAMING_INIT_MESSAGE.contains(newValue)) {
+						captureBtn.setDisable(false);
+					}
+					else if(RegistrationUIConstants.STREAMING_PREP_MESSAGE.contains(newValue)) {
+						captureBtn.setDisable(true);
+					}
+				});
+
 			});
 			
 			

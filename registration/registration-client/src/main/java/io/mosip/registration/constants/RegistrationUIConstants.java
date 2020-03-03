@@ -99,8 +99,10 @@ public class RegistrationUIConstants {
 	public static final String EXCEPTION_PHOTO_CAPTURE_ERROR = bundle.getString("EXCEPTION_PHOTO_CAPTURE_ERROR");
 	public static final String PARENT_FACE_CAPTURE_ERROR = bundle.getString("PARENT_FACE_CAPTURE_ERROR");
 	public static final String FACE_SCANNING_ERROR = bundle.getString("FACE_SCANNING_ERROR");
-	public static final String FACE_DUPLICATE_ERROR = bundle.getString("FACE_SCANNING_ERROR");
+	public static final String FACE_DUPLICATE_ERROR = bundle.getString("FACE_DUPLICATE_ERROR");
 	public static final String DEVICE_ONBOARD_NOTIFICATION = bundle.getString("DEVICE_ONBOARD_NOTIFICATION");
+	public static final String FACE_CAPTURE_SUCCESS = bundle.getString("FACE_CAPTURE_SUCCESS");
+	public static final String FACE_CAPTURE_SUCCESS_MSG = bundle.getString("FACE_CAPTURE_SUCCESS_MSG");
 
 	// LOCK ACCOUNT
 	public static final String USER_ACCOUNT_LOCK_MESSAGE_NUMBER = bundle.getString("USER_ACCOUNT_LOCK_MESSAGE_NUMBER");
@@ -324,6 +326,7 @@ public static final String FINGERPRINT_SELECTION_PANE_ALERT = bundle.getString("
 	public static final String VIRUS_SCAN_SUCCESS = bundle.getString("VIRUS_SCAN_SUCCESS");
 
 	public static final String INVALID_KEY = bundle.getString("INVALID_KEY");
+	public static final String CENTER_MACHINE_INACTIVE = bundle.getString("CENTER_MACHINE_INACTIVE");
 
 	public static final String RESTART_APPLICATION = bundle.getString("RESTART_APPLICATION");
 
@@ -395,5 +398,9 @@ public static final String FINGERPRINT_SELECTION_PANE_ALERT = bundle.getString("
 
 	// Unable to get Auth Token
 	public static final String ALERT_AUTH_TOKEN_NOT_FOUND = bundle.getString("AUTH_TOKEN_NOT_FOUND");
+	
+	//Device Searching to start stream
+	public static final String SEARCHING_DEVICE = bundle.getString("SEARCHING_DEVICE");
+	public static final String VALIDATION_MESSAGE = bundle.getString("VALIDATION_MESSAGE");
 
 }

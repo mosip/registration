@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.List;
 
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
-import io.mosip.registration.dto.biometric.FaceDetailsDTO;
 import io.mosip.registration.dto.biometric.FingerprintDetailsDTO;
 import io.mosip.registration.dto.biometric.IrisDetailsDTO;
 import io.mosip.registration.entity.UserBiometric;
@@ -106,12 +105,13 @@ public interface BioService {
 	 *            FP Request Detail
 	 * @param attempt
 	 *            attempt number
+	 * @return FingerPrint Details
 	 * @throws RegBaseCheckedException
 	 *             the reg base checked exception
 	 * @throws IOException
 	 *             the IOexception
 	 */
-	void getFingerPrintImageAsDTO(FingerprintDetailsDTO fpDetailsDTO, RequestDetail requestDetail, int attempt)
+	FingerprintDetailsDTO getFingerPrintImageAsDTO(RequestDetail requestDetail, int attempt)
 			throws RegBaseCheckedException, IOException;
 
 	/**
@@ -167,17 +167,20 @@ public interface BioService {
 	/**
 	 * Gets the iris stub image as DTO.
 	 *
-	 * @param irisDetailsDTO
-	 *            the iris details DTO
-	 * @param requestDetail details of iris request
-	 * @param leftEyeAttempt leftEye attempt number
-	 * @param rightEyeAttempt right eye attempt number
-	 * @throws IOException  the IO exception
+	 * @param requestDetail
+	 *            details of iris request
+	 * @param leftEyeAttempt
+	 *            leftEye attempt number
+	 * @param rightEyeAttempt
+	 *            right eye attempt number
+	 * @throws IOException
+	 *             the IO exception
 	 * @throws RegBaseCheckedException
 	 *             the reg base checked exception
+	 * @return Captured Iris Details DTO
 	 */
-	void getIrisImageAsDTO(IrisDetailsDTO irisDetailsDTO, RequestDetail requestDetail, int leftEyeAttempt,
-			int rightEyeAttempt) throws RegBaseCheckedException, IOException;
+	IrisDetailsDTO getIrisImageAsDTO(RequestDetail requestDetail, int leftEyeAttempt, int rightEyeAttempt)
+			throws RegBaseCheckedException, IOException;
 
 	/**
 	 * Validate the Input Finger with the finger that is fetched from the Database.
@@ -196,7 +199,7 @@ public interface BioService {
 	 * 
 	 * @return CaptureResponseDto
 	 */
-	CaptureResponseDto captureFace(RequestDetail requestDetail);
+	CaptureResponseDto captureFace(RequestDetail requestDetail) throws RegBaseCheckedException, IOException;
 
 	/**
 	 * Returns single biometric bio value
@@ -224,20 +227,41 @@ public interface BioService {
 	 *            attemptNumber
 	 * @return QualityScore
 	 */
-	public double getBioQualityScores(String bioType, int attempt);
+	public Double getBioQualityScores(String bioType, int attempt);
 
 	/**
 	 * @param bioType
 	 *            biometricType
 	 * @return quality score
 	 */
-	public double getHighQualityScoreByBioType(String bioType);
-	
+	public Double getHighQualityScoreByBioType(String bioType, Double qualityScore);
+
 	/**
-	 * @param bioType  biometricType
-	 * @param attempt attempt number
+	 * @param bioType
+	 *            biometricType
+	 * @param attempt
+	 *            attempt number
 	 * @return
 	 */
 	public Image getBioStreamImage(String bioType, int attempt);
+
+	/**
+	 * @param detailsDTO
+	 *            Captured Fingerprint Details
+	 * @return whether captured fingerprints were valid or not
+	 */
+	public boolean isValidFingerPrints(FingerprintDetailsDTO detailsDTO);
+
+	/**
+	 * @param segmentedFingerprints
+	 *            captured segmented fingerprints
+	 * @return whether captured segmentedFingerprints were duplicated or not
+	 */
+	public boolean validateBioDeDup(List<FingerprintDetailsDTO> segmentedFingerprints);
+
+	/**
+	 * @return whether All non exception fingers were captured or not
+	 */
+	public boolean isAllNonExceptionFingerprintsCaptured();
 
 }

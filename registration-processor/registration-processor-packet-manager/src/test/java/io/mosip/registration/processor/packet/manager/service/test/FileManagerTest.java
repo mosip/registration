@@ -81,9 +81,13 @@ public class FileManagerTest {
 	@InjectMocks
 	private FileManager<DirectoryPathDto, InputStream> impl = new FileManagerImpl() {
 		@Override
-		public ChannelSftp getSftpConnection(SftpJschConnectionDto sftpConnectionDto) throws JschConnectionException {
+		public ChannelSftp getSftpConnection(SftpJschConnectionDto sftpConnectionDto, Session session) {
 			return sftp;
 
+		}
+		@Override
+		public Session getSession(SftpJschConnectionDto sftpConnectionDto) throws IOException {
+			return session;
 		}
 	};
 

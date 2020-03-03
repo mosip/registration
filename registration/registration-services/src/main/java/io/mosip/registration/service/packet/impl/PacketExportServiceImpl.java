@@ -70,7 +70,7 @@ public class PacketExportServiceImpl implements PacketExportService {
 	 * updateRegistrationStatus(java.util.List)
 	 */
 	@Override
-	@PreAuthorizeUserId(roles= {AuthenticationAdvice.OFFICER_ROLE,AuthenticationAdvice.SUPERVISOR_ROLE, AuthenticationAdvice.ADMIN_ROLE})
+	@PreAuthorizeUserId(roles= {AuthenticationAdvice.OFFICER_ROLE,AuthenticationAdvice.SUPERVISOR_ROLE, AuthenticationAdvice.ADMIN_ROLE,AuthenticationAdvice.DEFAULT_ROLE})
 	public ResponseDTO updateRegistrationStatus(List<PacketStatusDTO> exportedPackets) throws RegBaseCheckedException{
 
 		LOGGER.debug("REGISTRATION - UPDATE_EXPORTED_PACKETS - PACKET_EXPORT_SERVICE", APPLICATION_NAME, APPLICATION_ID,

@@ -141,8 +141,14 @@ public class RegPacketStatusServiceImpl extends BaseService implements RegPacket
 		if (registrations != null && !registrations.isEmpty()) {
 
 			for (Registration registration : registrations) {
-
-				delete(registration);
+				if (RegistrationConstants.PACKET_STATUS_CODE_REREGISTER
+						.equalsIgnoreCase(registration.getServerStatusCode())) {
+					if (RegistrationClientStatusCode.RE_REGISTER.getCode()
+							.equalsIgnoreCase(registration.getClientStatusCode()))
+						delete(registration);
+				} else {
+					delete(registration);
+				}
 			}
 		}
 

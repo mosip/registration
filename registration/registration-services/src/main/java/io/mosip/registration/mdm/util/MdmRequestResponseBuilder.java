@@ -4,20 +4,24 @@ import static io.mosip.registration.constants.LoggerConstants.MDM_REQUEST_RESPON
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
-import io.mosip.registration.context.ApplicationContext;
-import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.mdm.dto.BioDevice;
 import io.mosip.registration.mdm.dto.CaptureRequestDeviceDetailDto;
 import io.mosip.registration.mdm.dto.CaptureRequestDto;
@@ -53,12 +57,13 @@ public class MdmRequestResponseBuilder {
 
 		LOGGER.info(MDM_REQUEST_RESPONSE_BUILDER, APPLICATION_NAME, APPLICATION_ID, "Building the request dto");
 
+		
 		CaptureRequestDto bioCaptureRequestDto = new CaptureRequestDto();
 
 		bioCaptureRequestDto.setEnv(requestDetail.getEnv());
-		bioCaptureRequestDto.setMosipProcess(requestDetail.getMosipProcess());
+		bioCaptureRequestDto.setPurpose(bioDevice.getPurpose());
+		bioCaptureRequestDto.setSpecVersion(bioDevice.getSpecVersion()[0]);
 		bioCaptureRequestDto.setTimeout(Integer.parseInt(requestDetail.getTimeout()));
-		bioCaptureRequestDto.setVersion(RegistrationConstants.MDM_VERSION);
 		bioCaptureRequestDto.setRegistrationID(String.valueOf(generateID()));
 
 		CaptureRequestDeviceDetailDto mosipBioRequest = new CaptureRequestDeviceDetailDto();
@@ -145,13 +150,13 @@ public class MdmRequestResponseBuilder {
 				// TODO - have to clarify how the array of bio data response handled
 				// TODO- clarify how the segmented values handled
 				if (mosipBioCaptureResponse.getCaptureResponseData() != null) {
-					String capturedType = mosipBioCaptureResponse.getCaptureResponseData().getBioType();
+					String capturedType = mosipBioCaptureResponse.getCaptureResponseData().getDigitalIdDecoded().getType();
 					if (mosipBioCaptureResponse.getCaptureResponseData().getBioSubType() != null
 							|| !mosipBioCaptureResponse.getCaptureResponseData().getBioSubType().isEmpty()) {
 						capturedType = capturedType + "_"
 								+ mosipBioCaptureResponse.getCaptureResponseData().getBioSubType();
 					}
-					responseBioData.put(capturedType, mosipBioCaptureResponse.getCaptureResponseData().getBioValue());
+					responseBioData.put(capturedType, Base64.getUrlDecoder().decode(mosipBioCaptureResponse.getCaptureResponseData().getBioValue()));
 				}
 
 			}

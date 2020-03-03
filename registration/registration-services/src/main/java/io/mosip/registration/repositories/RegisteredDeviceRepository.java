@@ -10,5 +10,5 @@ import io.mosip.registration.entity.RegisteredDeviceMaster;
 @Repository
 public interface RegisteredDeviceRepository extends BaseRepository<RegisteredDeviceMaster, String> {
 
-	List<RegisteredDeviceMaster> findAllByIsActiveTrueAndDeviceId(String deviceId);
+	List<RegisteredDeviceMaster> findAllByIsActiveTrueAndDeviceIdAndSerialNumber(String deviceId, String serialNumber);
 }

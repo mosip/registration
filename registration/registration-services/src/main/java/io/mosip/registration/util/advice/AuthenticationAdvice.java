@@ -37,6 +37,7 @@ public class AuthenticationAdvice {
 	public static final String OFFICER_ROLE = "REGISTRATION_OFFICER";
 	public static final String SUPERVISOR_ROLE = "REGISTRATION_SUPERVISOR";
 	public static final String ADMIN_ROLE = "REGISTRATION_ADMIN";
+	public static final String DEFAULT_ROLE = "DEFAULT";
 
 	@Autowired
 	private LoginService loginService;

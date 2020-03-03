@@ -23,8 +23,4 @@ public interface PacketUploaderService<U> {
 	 */
 	public U validateAndUploadPacket(String regId,String stageName);
 
-	/**
-	 * Disconnect the sftp connection used to get packet from LANDING_ZONE.
-	 */
-	void disconnectSftpConnection();
 }

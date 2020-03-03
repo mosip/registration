@@ -25,6 +25,6 @@ public class PacketValidatorApplication {
 				"io.mosip.registration.processor.core.kernel.beans");
 		ctx.refresh();
 		PacketValidatorStage packetValidatorStage = ctx.getBean(PacketValidatorStage.class);
-		packetValidatorStage.deployVerticle();
+		packetValidatorStage.deployVerticle();	
 	}
 }

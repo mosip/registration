@@ -290,7 +290,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 			setImagesOnHover();
 
 			if (!SessionContext.userContext().getRoles().contains(RegistrationConstants.SUPERVISOR)
-					&& !SessionContext.userContext().getRoles().contains(RegistrationConstants.ADMIN_ROLE)) {
+					&& !SessionContext.userContext().getRoles().contains(RegistrationConstants.ADMIN_ROLE)
+					&& !SessionContext.userContext().getRoles().contains(RegistrationConstants.ROLE_DEFAULT)) {
 				eodProcessGridPane.setVisible(false);
 				eodLabel.setVisible(false);
 			}
@@ -429,15 +430,17 @@ public class PacketHandlerController extends BaseController implements Initializ
 	 */
 	public void createPacket() {
 
-		BioServiceImpl.clearAllCaptures();
-		
+		if (getCenterAndMachineActiveStatus()) {
+
+			BioServiceImpl.clearAllCaptures();
+
 			if (isPrimaryOrSecondaryLanguageEmpty()) {
 				generateAlert(RegistrationConstants.ERROR,
 						RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
 				return;
 			}
 			if (isMachineRemapProcessStarted()) {
-	
+
 				LOGGER.info("REGISTRATION - CREATE_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
 						APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
 				return;
@@ -471,8 +474,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 							generateAlert(RegistrationConstants.ERROR, errorMessage.toString().trim());
 						} else {
 							getScene(createRoot).setRoot(createRoot);
-							
-							//SessionContext.setAutoLogout(false);
 						}
 					}
 
@@ -486,27 +487,32 @@ public class PacketHandlerController extends BaseController implements Initializ
 				generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.INVALID_KEY);
 			}
 			LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Creation of Registration ended.");
-		} 
+		}else {
+		generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.CENTER_MACHINE_INACTIVE);
+		}
+	}
 
 	/**
 	 * Validating screen authorization and Creating Packet in case of Lost UIN
 	 */
 	public void lostUIN() {
 
-		BioServiceImpl.clearAllCaptures();
+		if (getCenterAndMachineActiveStatus()) {
 
-		if (isPrimaryOrSecondaryLanguageEmpty()) {
-			generateAlert(RegistrationConstants.ERROR,
-					RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
-			return;
-		}
+			BioServiceImpl.clearAllCaptures();
 
-		if (isMachineRemapProcessStarted()) {
+			if (isPrimaryOrSecondaryLanguageEmpty()) {
+				generateAlert(RegistrationConstants.ERROR,
+						RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
+				return;
+			}
 
-			LOGGER.info("REGISTRATION - lost UIN - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
-					APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
-			return;
-		}
+			if (isMachineRemapProcessStarted()) {
+
+				LOGGER.info("REGISTRATION - lost UIN - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
+						APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
+				return;
+			}
 			String fingerPrintDisableFlag = getValueFromApplicationContext(
 					RegistrationConstants.FINGERPRINT_DISABLE_FLAG);
 			String irisDisableFlag = getValueFromApplicationContext(RegistrationConstants.IRIS_DISABLE_FLAG);
@@ -556,8 +562,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 							} else {
 								getScene(createRoot).setRoot(createRoot);
 								demographicDetailController.lostUIN();
-								
-								//SessionContext.setAutoLogout(false);
 							}
 						}
 					} catch (IOException ioException) {
@@ -573,6 +577,9 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 			LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID,
 					"Creating of Registration for lost UIN ended.");
+		} else {
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.CENTER_MACHINE_INACTIVE);
+		}
 	}
 
 	public void showReciept() {
@@ -732,16 +739,17 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 	public void updateUIN() {
 
-		BioServiceImpl.clearAllCaptures();
-		
+		if (getCenterAndMachineActiveStatus()) {
+			BioServiceImpl.clearAllCaptures();
+
 			if (isPrimaryOrSecondaryLanguageEmpty()) {
 				generateAlert(RegistrationConstants.ERROR,
 						RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
 				return;
 			}
-	
+
 			if (isMachineRemapProcessStarted()) {
-	
+
 				LOGGER.info("REGISTRATION - update UIN - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
 						APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
 				return;
@@ -785,8 +793,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 							} else {
 								getScene(root);
-								
-								//SessionContext.setAutoLogout(false);
 							}
 						}
 					}
@@ -794,9 +800,12 @@ public class PacketHandlerController extends BaseController implements Initializ
 					LOGGER.error("REGISTRATION - UI- UIN Update", APPLICATION_NAME, APPLICATION_ID,
 							ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
 				}
-			LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Loading Update UIN screen ended.");
+				LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Loading Update UIN screen ended.");
+			} else {
+				generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.INVALID_KEY);
+			}
 		} else {
-			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.INVALID_KEY);
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.CENTER_MACHINE_INACTIVE);
 		}
 	}
 
@@ -1202,5 +1211,18 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 			}
 		}
+	}
+	
+	/**
+	 * Gets the center and machine active status.
+	 *
+	 * @return the center and machine active status
+	 */
+	private boolean getCenterAndMachineActiveStatus() {
+
+		return (null != userOnboardService.getMachineCenterId().get(RegistrationConstants.USER_STATION_ID)
+				|| null != userOnboardService.getMachineCenterId().get(RegistrationConstants.USER_CENTER_ID)) ? true
+						: false;
+
 	}
 }

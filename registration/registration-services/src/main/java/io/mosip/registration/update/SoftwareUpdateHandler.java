@@ -350,7 +350,7 @@ public class SoftwareUpdateHandler extends BaseService {
 
 	}
 
-	private void checkJars(String version, List<String> checkableJars) throws IOException {
+	private void checkJars(String version, List<String> checkableJars) throws IOException, io.mosip.kernel.core.exception.IOException {
 
 		LOGGER.info(LoggerConstants.LOG_REG_UPDATE, APPLICATION_NAME, APPLICATION_ID, "Checking of jars started");
 		for (String jarFile : checkableJars) {
@@ -359,15 +359,24 @@ public class SoftwareUpdateHandler extends BaseService {
 
 			File jarInFolder = new File(folder + jarFile);
 
-			if (!jarInFolder.exists()
-					|| (!isCheckSumValid(jarInFolder, (currentVersion.equals(version)) ? localManifest : serverManifest)
-							&& FileUtils.deleteQuietly(jarInFolder))) {
+			if (!jarInFolder.exists()) {
 
 				LOGGER.info(LoggerConstants.LOG_REG_UPDATE, APPLICATION_NAME, APPLICATION_ID,
 						"Downloading jar : " + jarFile + " started");
 				// Download Jar
 				Files.copy(getInputStreamOfJar(version, jarFile), jarInFolder.toPath());
 
+			} else if ((!isCheckSumValid(jarInFolder,
+					(currentVersion.equals(version)) ? localManifest : serverManifest))) {
+
+			
+				FileUtils.forceDelete(jarInFolder);
+
+				LOGGER.info(LoggerConstants.LOG_REG_UPDATE, APPLICATION_NAME, APPLICATION_ID,
+						"Downloading jar : " + jarFile + " started");
+
+				// Download Jar
+				Files.copy(getInputStreamOfJar(version, jarFile), jarInFolder.toPath());
 			}
 
 		}

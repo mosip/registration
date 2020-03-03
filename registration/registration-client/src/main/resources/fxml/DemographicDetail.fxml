@@ -803,7 +803,7 @@
                                                                                     <Label fx:id="emailIdMessage" styleClass="demoGraphicFieldMessageLabel" text="emaild Id Message" visible="false" />
                                                                                  </children>
                                                                               </VBox>
-                                                                              <VBox fx:id="applicationCniOrPinNumberPane" spacing="5.0" GridPane.columnIndex="2">
+                                                                              <VBox fx:id="applicationCniOrPinNumberPane" spacing="1.0" GridPane.columnIndex="2">
                                                                                  <children>
                                                                                     <Label fx:id="cniOrPinNumberLabel" styleClass="demoGraphicFieldLabel" text="%cniOrPinNumber" visible="false" />
                                                                                     <TextField fx:id="cniOrPinNumber" prefHeight="35.0" prefWidth="161.0" promptText="%cniOrPinNumber" styleClass="demoGraphicTextField" />
@@ -947,7 +947,7 @@
                                                                                     <Label fx:id="emailIdLocalLanguageMessage" styleClass="demoGraphicFieldMessageLabel" text="emaidl id message" visible="false" />
                                                                                  </children>
                                                                               </VBox>
-                                                                              <VBox fx:id="localCniOrPinPane" spacing="5.0" GridPane.columnIndex="2">
+                                                                              <VBox fx:id="localCniOrPinPane" spacing="1.0" GridPane.columnIndex="2">
                                                                                  <children>
                                                                                     <Label fx:id="cniOrPinNumberLocalLanguageLabel" styleClass="demoGraphicFieldLabel" text="%cniOrPinNumber" visible="false" />
                                                                                     <TextField fx:id="cniOrPinNumberLocalLanguage" prefHeight="35.0" prefWidth="161.0" promptText="%cniOrPinNumber" styleClass="demoGraphicTextField" />

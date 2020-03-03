@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -74,6 +76,7 @@ import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.stages.dto.PacketValidationDto;
 import io.mosip.registration.processor.stages.utils.ApplicantDocumentValidation;
+import io.mosip.registration.processor.stages.utils.AuditUtility;
 import io.mosip.registration.processor.stages.utils.CheckSumValidation;
 import io.mosip.registration.processor.stages.utils.DocumentUtility;
 import io.mosip.registration.processor.stages.utils.FilesValidation;
@@ -149,6 +152,9 @@ public class PacketValidateProcessor {
 	@Autowired
 	private IdRepoService idRepoService;
 
+	@Autowired
+	private AuditUtility auditUtility;
+
 	private static final String INDIVIDUALBIOMETRICS = "individualBiometrics";
 
 	private static final String VALUE = "value";
@@ -169,6 +175,8 @@ public class PacketValidateProcessor {
 	private static final String VERSION = "1.0";
 	private static final String CREATED_BY = "MOSIP_SYSTEM";
 
+	String registrationId = null;
+
 	@Autowired
 	RegistrationExceptionMapperUtil registrationStatusMapperUtil;
 
@@ -177,7 +185,7 @@ public class PacketValidateProcessor {
 		LogDescription description = new LogDescription();
 		PacketValidationDto packetValidationDto = new PacketValidationDto();
 		String preRegId = null;
-		String registrationId = null;
+
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 		try {
 
@@ -201,6 +209,21 @@ public class PacketValidateProcessor {
 			Boolean isValid = validate(registrationStatusDto, packetMetaInfo, object, identityIteratorUtil,
 					packetValidationDto);
 			if (isValid) {
+			
+				// save audit details
+				Runnable r = () -> {
+					try {
+						auditUtility.saveAuditDetails(registrationId);
+					} catch (Exception e) {
+						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+								LoggerFileConstant.REGISTRATIONID.toString(),
+								description.getCode() + " Inside Runnable ", "");
+
+					}
+				};
+				ExecutorService es = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+				es.submit(r);
+				es.shutdown();
 				registrationStatusDto
 						.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 				object.setIsValid(Boolean.TRUE);

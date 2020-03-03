@@ -35,10 +35,12 @@ import io.mosip.kernel.core.idobjectvalidator.constant.IdObjectValidatorSupporte
 import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectIOException;
 import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectValidationFailedException;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.IdObjectReferenceValidatorDocumentMapping;
 import io.mosip.registration.constants.IdObjectReferenceValidatorLocationMapping;
 import io.mosip.registration.constants.IdObjectValidatorConstant;
+import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.entity.DocumentCategory;
 import io.mosip.registration.entity.DocumentType;
@@ -257,6 +259,10 @@ public class RegIdObjectMasterDataValidator {
 				locationList.forEach(location -> {
 					if (location.getHierarchyName().equalsIgnoreCase(hierarchyName)) {
 						locations.put(location.getLangCode(), location.getName());
+					}
+					if (StringUtils.isNotBlank(RegistrationConstants.AUDIT_DEFAULT_USER)) {
+						locations.put(location.getLangCode(),
+								StringUtils.trim(RegistrationConstants.AUDIT_DEFAULT_USER));
 					}
 				});
 				locationDetails.put(hierarchyName, locations);

@@ -34,6 +34,7 @@ import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.AuthSystemException;
 import io.mosip.registration.processor.core.exception.ParentOnHoldException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
@@ -111,6 +112,7 @@ public class OSIValidatorStageTest {
 
 		ReflectionTestUtils.setField(osiValidatorStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(osiValidatorStage, "clusterManagerUrl", "/dummyPath");
+		ReflectionTestUtils.setField(osiValidatorStage, "validateUMC", true);
 
 		@SuppressWarnings("unchecked")
 		RegistrationProcessorRestClientService<Object> mockObj = Mockito
@@ -285,5 +287,36 @@ public class OSIValidatorStageTest {
 
 		assertFalse(messageDto.getIsValid());
 	}
+	/**
+	 * Testis valid OSI failure.
+	 *
+	 * @throws Exception
+	 *             the exception
+	 */
+	@Test
+	public void testisValidUMCFailureWithRetryCount() throws Exception {
 
+		registrationStatusDto.setRetryCount(1);
+		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class))).thenReturn(Boolean.FALSE);
+
+		MessageDTO messageDto = osiValidatorStage.process(dto);
+
+		assertFalse(messageDto.getIsValid());
+	}
+	@Test
+	public void testAuthSystemException() throws Exception {
+		InternalRegistrationStatusDto regStatusDto = new InternalRegistrationStatusDto();
+		regStatusDto.setStatusCode(StatusUtil.AUTH_SYSTEM_EXCEPTION.getCode());
+		regStatusDto.setStatusComment("Auth system exception");
+		regStatusDto.setSubStatusCode(StatusUtil.AUTH_SYSTEM_EXCEPTION.getCode());
+		
+		
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(regStatusDto);
+		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class))).thenReturn(Boolean.TRUE);
+		Mockito.when(oSIValidator.isValidOSI(anyString(), any(InternalRegistrationStatusDto.class))).thenThrow(new AuthSystemException(StatusUtil.AUTH_SYSTEM_EXCEPTION.getMessage()));
+
+		MessageDTO messageDto = osiValidatorStage.process(dto);
+		assertEquals(true, messageDto.getInternalError());
+
+	}
 }

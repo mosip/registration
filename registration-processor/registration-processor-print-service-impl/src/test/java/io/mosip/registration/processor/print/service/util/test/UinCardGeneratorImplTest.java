@@ -10,6 +10,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -24,11 +26,13 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.kernel.core.pdfgenerator.exception.PDFGeneratorException;
 import io.mosip.kernel.core.pdfgenerator.spi.PDFGenerator;
+import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.UinCardType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.print.service.dto.SignatureResponseDto;
+import io.mosip.registration.processor.print.service.exception.PDFSignatureException;
 import io.mosip.registration.processor.print.service.utility.UinCardGeneratorImpl;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -107,6 +111,50 @@ public class UinCardGeneratorImplTest {
 		cardGeneratorImpl.generateUinCard(inputStream, UinCardType.PDF, null);
 	}
 
+	@Test(expected = PDFSignatureException.class)
+	public void testPDFSignatureException() throws IOException, ApisResourceAccessException {
+		ClassLoader classLoader = getClass().getClassLoader();
+		String inputFile = classLoader.getResource("csshtml.html").getFile();
+		InputStream is = new FileInputStream(inputFile);
+
+		byte[] buffer = new byte[8192];
+		int bytesRead;
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		while ((bytesRead = is.read(buffer)) != -1) {
+			outputStream.write(buffer, 0, bytesRead);
+		}
+		ApisResourceAccessException e = new ApisResourceAccessException(null, null);
+		Mockito.doThrow(e).when(restClientService).postApi(any(), any(), any(), any(), any(),any(MediaType.class));
+		
+		Mockito.when(pdfGenerator.generate(is)).thenReturn(outputStream);
+		
+		
+		cardGeneratorImpl.generateUinCard(is, UinCardType.PDF, null);
+	}
+	@Test(expected = PDFSignatureException.class)
+	public void testCardGenerationFailure() throws IOException, ApisResourceAccessException {
+		ClassLoader classLoader = getClass().getClassLoader();
+		String inputFile = classLoader.getResource("csshtml.html").getFile();
+		InputStream is = new FileInputStream(inputFile);
+
+		byte[] buffer = new byte[8192];
+		int bytesRead;
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		while ((bytesRead = is.read(buffer)) != -1) {
+			outputStream.write(buffer, 0, bytesRead);
+		}
+
+		Mockito.when(pdfGenerator.generate(is)).thenReturn(outputStream);
+		ResponseWrapper<SignatureResponseDto> responseWrapper=new ResponseWrapper<>();
+		List<ErrorDTO> errors=new ArrayList<ErrorDTO>();
+		ErrorDTO error=new ErrorDTO();
+		error.setErrorCode("KER-001");
+		error.setMessage("error in digital signature");
+		errors.add(error);
+		responseWrapper.setErrors(errors);
 	
-	
+		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any(),any(MediaType.class)))
+		.thenReturn(responseWrapper);
+		cardGeneratorImpl.generateUinCard(is, UinCardType.PDF, null);
+	}
 }

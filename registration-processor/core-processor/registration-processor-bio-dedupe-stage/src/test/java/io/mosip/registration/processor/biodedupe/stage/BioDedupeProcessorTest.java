@@ -630,4 +630,17 @@ public class BioDedupeProcessorTest {
 		assertTrue(messageDto.getMessageBusAddress().toString()
 				.equalsIgnoreCase(MessageBusAddress.ABIS_HANDLER_BUS_IN.toString()));
 	}
+	
+	@Test
+	public void testApisResourceAccessException() throws Exception {
+		Mockito.when(bioDedupeService.getFileByRegId(anyString())).thenReturn(null);
+		ApisResourceAccessException e=new ApisResourceAccessException();
+	
+		
+		Mockito.doThrow(e).when(utility).getApplicantAge(any());
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
+
+		assertFalse(messageDto.getIsValid());
+
+	}
 }

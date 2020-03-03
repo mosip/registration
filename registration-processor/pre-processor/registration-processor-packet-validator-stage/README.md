@@ -1,18 +1,18 @@
-### registration-processor-packet-validator-stage
-
-[Background & design](https://github.com/mosip/mosip/wiki/Registration-Processor)
-
-[Process Flow for Registration-Processor](https://github.com/mosip/mosip/blob/master/docs/requirements/FinalProcessFlows/MOSIP_Process%20Flow%201.19%20Reg%20Processor.pdf)
+# registration-processor-packet-validator-stage
 
 This stage validates the essentials of a packet before sending the packet for further processing.
 
-##### Default Context Path and Port
+## Design
+
+[Design - Approach for Packet Uploader Stage](https://github.com/mosip/registration/blob/master/design/registration-processor/Approach_for_packet_validator.md)
+
+## Default Context Path and Port
 ```
 server.port=8088
 eventbus.port=5715
 server.servlet.path=/registrationprocessor/v1/packetvalidator
 ```
-##### Configurable Properties from Config Server
+## Configurable Properties from Config Server
 ```
 registration.processor.masterdata.validation.attributes = gender,region,province,city
 registration.processor.validateSchema=true
@@ -24,7 +24,7 @@ registration-processor.validatemandotary=true
 registration.processor.document.category=IDObject_DocumentCategory_Mapping.json
 registration.processor.applicant.type=ApplicantType_Document_Mapping.json
 ```
-##### Validations in Packet Validator
+## Validations in Packet Validator
 1. Validation of ID Schema : ID Json Validation
 2. Validation of Master Data : Based on the key 'registration.processor.validateMasterData' in configuration, the values present in 'registration.processor.masterdata.validation.attributes' are validated against the Master data.
 3. Validation of Files : Checking of all files present in hashsequence of packet_meta_info to be actually present inside the packet.

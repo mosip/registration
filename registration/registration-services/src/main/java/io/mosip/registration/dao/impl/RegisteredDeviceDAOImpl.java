@@ -33,12 +33,12 @@ public class RegisteredDeviceDAOImpl implements RegisteredDeviceDAO {
 	}
 
 	@Override
-	public List<RegisteredDeviceMaster> getRegisteredDevices(String deviceCode) {
+	public List<RegisteredDeviceMaster> getRegisteredDevices(String deviceId, String serialNumber) {
 		
 		LOGGER.info("REGISTRATION-PACKET_DEVICE_VALIDATION", APPLICATION_NAME, APPLICATION_ID,
-				"fetching the device with device code : "+ deviceCode);
+				"fetching the device with device code : "+ deviceId);
 
-		return registeredDeviceRepository.findAllByIsActiveTrueAndDeviceId(deviceCode);
+		return registeredDeviceRepository.findAllByIsActiveTrueAndDeviceIdAndSerialNumber(deviceId, serialNumber);
 	}
 
 }

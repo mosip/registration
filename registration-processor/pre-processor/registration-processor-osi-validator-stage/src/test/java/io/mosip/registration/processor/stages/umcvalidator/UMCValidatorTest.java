@@ -33,10 +33,11 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
-import io.mosip.registration.processor.core.packet.dto.RegisteredDevice;
+import io.mosip.registration.processor.core.packet.dto.DigitalId;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.RegOsiDto;
+import io.mosip.registration.processor.core.packet.dto.RegisteredDevice;
 import io.mosip.registration.processor.core.packet.dto.RegistrationCenterMachineDto;
 import io.mosip.registration.processor.core.packet.dto.regcentermachine.DeviceValidateHistoryRequest;
 import io.mosip.registration.processor.core.packet.dto.regcentermachine.DeviceValidateHistoryResponse;
@@ -1410,7 +1411,9 @@ public class UMCValidatorTest {
 		List<RegisteredDevice> capturedRegisteredDevices = new ArrayList<RegisteredDevice>();
 		RegisteredDevice deviceDetails = new RegisteredDevice();
 		deviceDetails.setDeviceCode("3000111");
-
+		DigitalId digitalid = new DigitalId();
+		digitalid.setType("FACE");
+		deviceDetails.setDigitalId(digitalid);
 		capturedRegisteredDevices.add(deviceDetails);
 
 		identity.setCapturedRegisteredDevices(capturedRegisteredDevices);
@@ -1597,7 +1600,9 @@ public class UMCValidatorTest {
 		List<RegisteredDevice> capturedRegisteredDevices = new ArrayList<RegisteredDevice>();
 		RegisteredDevice deviceDetails = new RegisteredDevice();
 		deviceDetails.setDeviceCode("3000111");
-
+        DigitalId digitalid=new DigitalId();
+        digitalid.setType("FACE");
+        deviceDetails.setDigitalId(digitalid);
 		capturedRegisteredDevices.add(deviceDetails);
 		// fv1 = new FieldValue();
 		// fv1.setLabel("Document Scanner");
@@ -1701,6 +1706,7 @@ public class UMCValidatorTest {
 
 		DeviceValidateHistoryRequest deviceValidateHistoryRequest = new DeviceValidateHistoryRequest();
 		deviceValidateHistoryRequest.setDeviceCode(deviceDetails.getDeviceCode());
+		deviceValidateHistoryRequest.setDigitalId(digitalid);
 
 		RequestWrapper<DeviceValidateHistoryRequest> request = new RequestWrapper<>();
 

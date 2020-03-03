@@ -10,13 +10,11 @@ import lombok.Setter;
 @Setter
 public class CaptureResponseBioDto {
 
+	
+	private String specVersion;
 	@JsonIgnore
 	private CaptureResponsBioDataDto captureResponseData;
-
 	@JsonProperty("data")
 	private String captureBioData;
 	private String hash;
-	private String sessionKey;
-	private String signature;
-
 }

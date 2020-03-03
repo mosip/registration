@@ -161,6 +161,7 @@ public enum StatusUtil {
 
 	UNKNOWN_EXCEPTION_OCCURED(StatusConstants.SYSTEM_EXCEPTION_CODE,"Unknown exception occured "), 
 	API_RESOUCE_ACCESS_FAILED(StatusConstants.SYSTEM_EXCEPTION_CODE,"Unable to access API resource"),
+	AUTH_SYSTEM_EXCEPTION(StatusConstants.SYSTEM_EXCEPTION_CODE,"Auth System Exception"),
 	JSON_PARSING_EXCEPTION(StatusConstants.SYSTEM_EXCEPTION_CODE,"Error Occurred while Parsing JSON"),
 	BASE_CHECKED_EXCEPTION(StatusConstants.SYSTEM_EXCEPTION_CODE,"Packet validation failed "),
 	BASE_UNCHECKED_EXCEPTION(StatusConstants.SYSTEM_EXCEPTION_CODE, "Packet validation failed "),

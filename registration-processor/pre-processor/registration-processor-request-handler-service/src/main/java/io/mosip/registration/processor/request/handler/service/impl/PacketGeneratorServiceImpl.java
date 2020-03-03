@@ -44,7 +44,7 @@ import io.mosip.registration.processor.request.handler.service.dto.RegistrationD
 import io.mosip.registration.processor.request.handler.service.dto.RegistrationMetaDataDTO;
 import io.mosip.registration.processor.request.handler.service.dto.demographic.DemographicDTO;
 import io.mosip.registration.processor.request.handler.service.dto.demographic.DemographicInfoDTO;
-import io.mosip.registration.processor.request.handler.service.dto.demographic.MoroccoIdentity;
+import io.mosip.registration.processor.request.handler.service.dto.demographic.MyCountryIdentity;
 import io.mosip.registration.processor.request.handler.service.exception.RegBaseCheckedException;
 import io.mosip.registration.processor.request.handler.upload.SyncUploadEncryptionService;
 import io.mosip.registration.processor.request.handler.upload.validator.RequestHandlerRequestValidator;
@@ -184,7 +184,7 @@ public class PacketGeneratorServiceImpl implements PacketGeneratorService<Packet
 	private DemographicDTO getDemographicDTO(String uin) {
 		DemographicDTO demographicDTO = new DemographicDTO();
 		DemographicInfoDTO demographicInfoDTO = new DemographicInfoDTO();
-		MoroccoIdentity identity = new MoroccoIdentity();
+		MyCountryIdentity identity = new MyCountryIdentity();
 		identity.setIdSchemaVersion(1.0);
 		identity.setUin(new BigInteger(uin));
 		demographicInfoDTO.setIdentity(identity);

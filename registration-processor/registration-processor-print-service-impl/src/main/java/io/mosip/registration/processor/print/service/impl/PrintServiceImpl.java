@@ -418,9 +418,9 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 	private IdResponseDTO1 getIdRepoResponse(String idType, String idValue) throws ApisResourceAccessException {
 		List<String> pathsegments = new ArrayList<>();
 		pathsegments.add(idValue);
-
 		String queryParamName = "type";
 		String queryParamValue = "all";
+		
 		IdResponseDTO1 response;
 		if (idType.equalsIgnoreCase(IdType.UIN.toString())) {
 			response = (IdResponseDTO1) restClientService.getApi(ApiName.IDREPOGETIDBYUIN, pathsegments, queryParamName,

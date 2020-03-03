@@ -113,4 +113,14 @@ public class RegistrationTransactionControllerTest {
 				.andExpect(status().isOk()).andExpect(jsonPath("$.errors[0].errorCode", is("RPR-RTS-003")));
 		;
 	}
+	@WithUserDetails("reg-admin")
+	@Test
+	public void testUnknownException() throws Exception {
+
+		Mockito.doThrow(new NullPointerException()).when(transactionService)
+				.getTransactionByRegId(ArgumentMatchers.any(), ArgumentMatchers.any());
+		this.mockMvc.perform(get("/search/eng/27847657360002520190320095010").accept(MediaType.APPLICATION_JSON_VALUE))
+				.andExpect(status().isOk());
+	}
+	
 }

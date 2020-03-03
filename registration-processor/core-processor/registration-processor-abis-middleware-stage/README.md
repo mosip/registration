@@ -1,21 +1,21 @@
-### registration-processor-abis-middleware-stage
+# registration-processor-abis-middleware-stage
 
-[Background & Design](https://github.com/mosip/mosip/wiki/Registration-Processor)
+## Design
 
-[Detailed Process flow](https://github.com/mosip/mosip/blob/master/docs/requirements/FinalProcessFlows/MOSIP_Process%20Flow%201.19%20Reg%20Processor.pdf)
+[Design - Approach for ABIS Integration](https://github.com/mosip/registration/blob/master/design/registration-processor/Approach_for_ABIS_Integration.md)
 
 This stage gets insert/identify request created by ABIS Handler and sends them to ABIS Inbound Queues. It also consumes the response from ABIS outbound queues.
 
-##### Defualt context-path and Ports
+## Defualt context-path and Ports
 ```
 server.port=8091
 eventbus.port=5888
 ```
-##### Configurable properties from Configuration-server
+## Configurable properties from Configuration-server
 ```
 registration.processor.abis.json=RegistrationProcessorAbis+{<profile>}.json
 ```
-##### Example of RegistrationProcessorAbis_qa.json
+## Example of RegistrationProcessorAbis.json
 ```
 {
 	"abis": [{

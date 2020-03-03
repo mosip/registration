@@ -43,6 +43,7 @@ import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.AuthSystemException;
 import io.mosip.registration.processor.core.exception.BioTypeException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.ParentOnHoldException;
@@ -365,6 +366,7 @@ public class OSIValidatorTest {
 		responseDTO.setAuthStatus(false);
 		authResponseDTO.setResponse(responseDTO);
 		ErrorDTO errorDTO = new ErrorDTO();
+		errorDTO.setErrorCode("IDA-MLC-008");
 		errorDTO.setErrorMessage("authentication failed");
 		List<ErrorDTO> errors = new ArrayList<>();
 		errors.add(errorDTO);
@@ -468,6 +470,8 @@ public class OSIValidatorTest {
 		Mockito.when(osiUtils.getMetaDataValue(anyString(), any())).thenReturn("2015/01/01");
 		registrationStatusDto.setStatusCode("FAILED");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(
+				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
 		osiValidator.isValidOSI("reg1234", registrationStatusDto);
 	}
 
@@ -475,13 +479,15 @@ public class OSIValidatorTest {
 	public void testIntroducerRIDProcessingOnHold() throws NumberFormatException, ApisResourceAccessException,
 			InvalidKeySpecException, NoSuchAlgorithmException, BiometricException, BioTypeException, IOException,
 			ParserConfigurationException, SAXException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, ParentOnHoldException {
+			io.mosip.kernel.core.exception.IOException, ParentOnHoldException, AuthSystemException {
 		Mockito.when(osiUtils.getMetaDataValue(anyString(), any())).thenReturn("2015/01/01");
 		InternalRegistrationStatusDto introducerRegistrationStatusDto = new InternalRegistrationStatusDto();
 
 		introducerRegistrationStatusDto.setStatusCode((RegistrationStatusCode.PROCESSING.toString()));
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
 				.thenReturn(introducerRegistrationStatusDto);
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(
+				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
 		osiValidator.isValidOSI("reg1234", registrationStatusDto);
 	}
 
@@ -491,7 +497,9 @@ public class OSIValidatorTest {
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
 		registrationStatusDto.setRegistrationType("NEW");
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(
+				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
 		osiValidator.isValidOSI("reg1234", registrationStatusDto);
 	}
 
@@ -518,7 +526,9 @@ public class OSIValidatorTest {
 		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
 		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(
 				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
-
+		registrationStatusDto.setStatusCode("PROCESSED");
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn(123456789);
 		boolean isValid = osiValidator.isValidOSI("reg1234", registrationStatusDto);
 
 		assertTrue(isValid);
@@ -542,6 +552,8 @@ public class OSIValidatorTest {
 
 	@Test
 	public void testIntroducerAuthFalse() throws Exception {
+		registrationStatusDto.setStatusCode("PROCESSED");
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.when(osiUtils.getMetaDataValue(anyString(), any())).thenReturn("2015/01/01");
 		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(
 				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
@@ -552,7 +564,7 @@ public class OSIValidatorTest {
 		authResponseDTO1.setResponse(responseDTO);
 		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO)
 				.thenReturn(authResponseDTO1);
-
+		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn(123456789);
 		boolean isValid = osiValidator.isValidOSI("reg1234", registrationStatusDto);
 
 		assertFalse(isValid);
@@ -565,8 +577,29 @@ public class OSIValidatorTest {
 		introducerRegistrationStatusDto.setStatusCode((RegistrationStatusCode.PROCESSED.toString()));
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
 				.thenReturn(introducerRegistrationStatusDto);
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(
+				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
 		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn(null);
 		osiValidator.isValidOSI("reg1234", registrationStatusDto);
 	}
-
+	@Test(expected=AuthSystemException.class)
+	public void testoperatorAuthSystemException() throws Exception {
+		io.mosip.registration.processor.core.auth.dto.ResponseDTO responseDTO = new io.mosip.registration.processor.core.auth.dto.ResponseDTO();
+		responseDTO.setAuthStatus(false);
+		authResponseDTO.setResponse(responseDTO);
+		ErrorDTO errorDTO = new ErrorDTO();
+		errorDTO.setErrorCode("IDA-MLC-007");
+		errorDTO.setErrorMessage("system exception");
+		List<ErrorDTO> errors = new ArrayList<>();
+		errors.add(errorDTO);
+		authResponseDTO.setErrors(errors);
+		Mockito.when(restClientService.postApi(any(), anyString(), anyString(), anyString(), any()))
+				.thenReturn(authResponseDTO);
+		Mockito.when(osiUtils.getMetaDataValue(anyString(), any()))
+				.thenReturn(identity.getMetaData().get(0).getValue());
+		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		registrationStatusDto.setRegistrationType("ACTIVATED");
+        osiValidator.isValidOSI("reg1234", registrationStatusDto);
+		
+	}
 }

@@ -5,8 +5,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Properties;
 
+import io.mosip.registration.processor.packet.manager.utils.SftpSessionPool;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +18,6 @@ import org.springframework.web.client.RestTemplate;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpException;
 
@@ -64,18 +62,16 @@ public class FileManagerImpl implements FileManager<DirectoryPathDto, InputStrea
 	@Autowired
 	private Environment env;
 
-	Session session = null;
-	Channel channel = null;
-	ChannelSftp channelSftp = null;
-
 	private String DMZ_SERVER_PASSWORD = "registration.processor.dmz.server.password";
 
+	private String SFTP_CONNECTION_POOL_MAX_SESSION = "registration.processor.sftp.connection.pool.max.session";
+
 	private String REGPROC_PPK = "registration.processor.vm.ppk";
-	
+
 	private final String CREATING_NEW_CONNECTION = "creating new channelSftp connection";
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * io.mosip.id.issuance.file.system.connector.service.FileManager#get(java.lang
 	 * .Object, java.lang.Object)
@@ -83,7 +79,7 @@ public class FileManagerImpl implements FileManager<DirectoryPathDto, InputStrea
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * io.mosip.id.issuance.file.system.connector.service.FileManager#put(java.lang
 	 * .Object, java.lang.Object)
@@ -102,7 +98,7 @@ public class FileManagerImpl implements FileManager<DirectoryPathDto, InputStrea
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see io.mosip.id.issuance.file.system.connector.service.FileManager#
 	 * checkIfFileExists(java.lang.Object, java.lang.String)
 	 */
@@ -119,7 +115,7 @@ public class FileManagerImpl implements FileManager<DirectoryPathDto, InputStrea
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * io.mosip.id.issuance.file.system.connector.service.FileManager#cleanUpFile(
 	 * java.lang.Object, java.lang.Object, java.lang.String)
@@ -192,7 +188,7 @@ public class FileManagerImpl implements FileManager<DirectoryPathDto, InputStrea
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * io.mosip.registration.processor.core.spi.filesystem.manager.FileManager#copy(
 	 * java.lang.String, java.lang.Object, java.lang.Object)
@@ -219,14 +215,14 @@ public class FileManagerImpl implements FileManager<DirectoryPathDto, InputStrea
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * io.mosip.idissuance.packet.manager.service.FileManager#getCurrentDirectory()
 	 */
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * io.mosip.idissuance.packet.manager.service.FileManager#cleanUpFile(java.lang.
 	 * Object, java.lang.Object, java.lang.String, java.lang.String)
@@ -272,7 +268,7 @@ public class FileManagerImpl implements FileManager<DirectoryPathDto, InputStrea
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see io.mosip.registration.processor.core.spi.filesystem.manager.FileManager#
 	 * deletePacket(java.lang.Object, java.lang.String)
 	 */
@@ -294,7 +290,7 @@ public class FileManagerImpl implements FileManager<DirectoryPathDto, InputStrea
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see io.mosip.registration.processor.core.spi.filesystem.manager.FileManager#
 	 * deleteFolder(java.lang.Object, java.lang.String)
 	 */
@@ -316,7 +312,7 @@ public class FileManagerImpl implements FileManager<DirectoryPathDto, InputStrea
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see io.mosip.registration.processor.core.spi.filesystem.manager.FileManager#
 	 * getFile(java.lang.Object, java.lang.String)
 	 */
@@ -341,11 +337,14 @@ public class FileManagerImpl implements FileManager<DirectoryPathDto, InputStrea
 
 		byte[] bytedata = null;
 		try {
-			channelSftp = getSftpConnection(sftpConnectionDto);
+			Session session = getSession(sftpConnectionDto);
+			ChannelSftp channelSftp = getSftpConnection(sftpConnectionDto, session);
 			try (InputStream is = channelSftp
 					.get(env.getProperty(workingDirectory.toString()) + "/" + getFileName(fileName))) {
 				bytedata = IOUtils.toByteArray(is);
 			}
+
+			disconnectConnection(channelSftp, session, sftpConnectionDto);
 
 		} catch (SftpException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -367,57 +366,34 @@ public class FileManagerImpl implements FileManager<DirectoryPathDto, InputStrea
 
 	}
 
-	public ChannelSftp getSftpConnection(SftpJschConnectionDto sftpConnectionDto) throws JschConnectionException {
-
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"FileManagerImpl::getSftpConnection()::entry");
-		synchronized (this) {
-			if (channelSftp != null && channelSftp.isConnected() && !channelSftp.isClosed()) {
-				try {
-					if (channelSftp.pwd().length() > 0) {
-						return channelSftp;
-					}
-				} catch (SftpException e) {
-					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-							"", "FileManagerImpl::getSftpConnection()::" + CREATING_NEW_CONNECTION);
-				}
-			}
-		}
-		String dmzServerPwd = env.getProperty(DMZ_SERVER_PASSWORD);
-		String regProcPPK = env.getProperty(REGPROC_PPK);
+	public Session getSession(SftpJschConnectionDto sftpConnectionDto) throws IOException {
+		Session session = null;
+		sftpConnectionDto.setRegProcPPK(getPPKPath());
+		sftpConnectionDto.setDmzServerPwd(env.getProperty(DMZ_SERVER_PASSWORD));
+		String maxSession = env.getProperty(SFTP_CONNECTION_POOL_MAX_SESSION);
 		try {
+			session = SftpSessionPool.getInstance(Integer.valueOf(maxSession)).getPool()
+					.borrowObject(sftpConnectionDto);
+		} catch (Exception e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"Failed to get session from sftp connection pool. Will retry.", e.getMessage() + ExceptionUtils.getStackTrace(e));
+			getSession(sftpConnectionDto);
+		}
+		return session;
+	}
 
-			if (dmzServerPwd == null && regProcPPK == null) {
-				throw new JschConnectionException(PlatformErrorMessages.RPR_PKM_PWD_PPK_NOT_PRESENT.getCode(),
-						PlatformErrorMessages.RPR_PKM_PWD_PPK_NOT_PRESENT.getMessage());
-			}
-			JSch jsch = new JSch();
-			session = jsch.getSession(sftpConnectionDto.getUser(), sftpConnectionDto.getHost(),
-					sftpConnectionDto.getPort());
-			if (dmzServerPwd != null && !dmzServerPwd.isEmpty()) {
-				session.setPassword(dmzServerPwd);
-			} else {
-				jsch.addIdentity(getPPKPath());
-			}
-			Properties config = new Properties();
-			config.put("StrictHostKeyChecking", "no");
-			session.setConfig(config);
-			session.connect();
-			channel = session.openChannel(sftpConnectionDto.getProtocal());
+	public ChannelSftp getSftpConnection(SftpJschConnectionDto sftpConnectionDto, Session session) throws JschConnectionException {
+		ChannelSftp channelSftp = null;
+		try {
+			Channel channel = session.openChannel(sftpConnectionDto.getProtocal());
 			channel.connect();
 			channelSftp = (ChannelSftp) channel;
-
-		} catch (JSchException | IOException e) {
+		} catch (Exception e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
-
-			throw new JschConnectionException(PlatformErrorMessages.RPR_PKM_JSCH_NOT_CONNECTED.getMessage());
+					"Failed in getSftpConnection method", e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new JschConnectionException(e.getMessage());
 		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"FileManagerImpl::getSftpConnection()::exit");
-
 		return channelSftp;
-
 	}
 
 	@Override
@@ -434,8 +410,8 @@ public class FileManagerImpl implements FileManager<DirectoryPathDto, InputStrea
 		String destinationFilePath = env.getProperty(destinationWorkingDirectory.toString()) + "/"
 				+ getFileName(fileName);
 		try {
-
-			channelSftp = getSftpConnection(sftpConnectionDto);
+			Session session = getSession(sftpConnectionDto);
+			ChannelSftp channelSftp = getSftpConnection(sftpConnectionDto, session);
 
 			try (InputStream is = channelSftp.get(sourceFilePath)) {
 				bytedata = IOUtils.toByteArray(is);
@@ -446,6 +422,8 @@ public class FileManagerImpl implements FileManager<DirectoryPathDto, InputStrea
 			if (channelSftp.get(destinationFilePath) != null) {
 				status = true;
 			}
+
+			disconnectConnection(channelSftp, session, sftpConnectionDto);
 
 		} catch (SftpException e) {
 
@@ -486,8 +464,8 @@ public class FileManagerImpl implements FileManager<DirectoryPathDto, InputStrea
 		String destinationFilePath = env.getProperty(destinationWorkingDirectory.toString()) + "/"
 				+ getFileName(fileName);
 		try {
-
-			channelSftp = getSftpConnection(sftpConnectionDto);
+			Session session = getSession(sftpConnectionDto);
+			ChannelSftp channelSftp = getSftpConnection(sftpConnectionDto, session);
 			if (channelSftp.get(destinationFilePath) != null) {
 
 				if (channelSftp.get(sourceFilePath) != null) {
@@ -496,6 +474,8 @@ public class FileManagerImpl implements FileManager<DirectoryPathDto, InputStrea
 				}
 
 			}
+
+			disconnectConnection(channelSftp, session, sftpConnectionDto);
 
 		} catch (SftpException e) {
 
@@ -524,13 +504,19 @@ public class FileManagerImpl implements FileManager<DirectoryPathDto, InputStrea
 		return status;
 	}
 
-	@Override
-	public void disconnectSftp() {
-		if (channelSftp != null && channelSftp.isConnected()) {
-			channelSftp.disconnect();
+	public void disconnectConnection(ChannelSftp channel, Session session, SftpJschConnectionDto sftpConnectionDto) {
+		String maxSession = env.getProperty(SFTP_CONNECTION_POOL_MAX_SESSION);
+		if (null != channel && channel.isConnected()) {
+			channel.disconnect();
 		}
-		if (session != null) {
-			session.disconnect();
+		if (null != session) {
+			try {
+				SftpSessionPool.getInstance(Integer.valueOf(maxSession)).getPool()
+						.returnObject(sftpConnectionDto, session);
+			} catch (Exception e) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						"Failed to disconnect sftp channel", e.getMessage() + ExceptionUtils.getStackTrace(e));
+			}
 		}
 	}
 

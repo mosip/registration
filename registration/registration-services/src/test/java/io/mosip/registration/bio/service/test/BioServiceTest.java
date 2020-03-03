@@ -18,6 +18,8 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 
@@ -39,6 +41,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.machinezoo.sourceafis.FingerprintTemplate;
@@ -54,6 +57,7 @@ import io.mosip.registration.dto.biometric.BiometricInfoDTO;
 import io.mosip.registration.dto.biometric.FaceDetailsDTO;
 import io.mosip.registration.dto.biometric.FingerprintDetailsDTO;
 import io.mosip.registration.dto.biometric.IrisDetailsDTO;
+import io.mosip.registration.dto.json.metadata.DigitalId;
 import io.mosip.registration.entity.UserBiometric;
 import io.mosip.registration.entity.id.UserBiometricId;
 import io.mosip.registration.exception.RegBaseCheckedException;
@@ -164,15 +168,39 @@ public class BioServiceTest {
 			for (CaptureResponseBioDto captureResponseBioDto : mosipBioCaptureResponseDto
 					.getMosipBioDeviceDataResponses()) {
 				if (null != captureResponseBioDto) {
-					String bioJson = new String(Base64.getDecoder().decode(captureResponseBioDto.getCaptureBioData()));
+					String bioJson = captureResponseBioDto.getCaptureBioData();
 					if (null != bioJson) {
-						CaptureResponsBioDataDto captureResponsBioDataDto = mapper.readValue(bioJson.getBytes(),
-								CaptureResponsBioDataDto.class);
+						CaptureResponsBioDataDto captureResponsBioDataDto = getCaptureResponsBioDataDecoded(bioJson,
+								mapper);
+						captureResponsBioDataDto.setDigitalIdDecoded(mapper.readValue(
+								new String(Base64.getDecoder().decode(captureResponsBioDataDto.getDigitalId()))
+										.getBytes(),
+								DigitalId.class));
 						captureResponseBioDto.setCaptureResponseData(captureResponsBioDataDto);
 					}
 				}
 			}
 		}
+	}
+	
+	private static CaptureResponsBioDataDto getCaptureResponsBioDataDecoded(String capturedData, ObjectMapper mapper) {
+		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+		Pattern pattern = Pattern.compile("(?<=\\.)(.*)(?=\\.)");
+		Matcher matcher = pattern.matcher(capturedData);
+		String afterMatch = null;
+		if (matcher.find()) {
+			afterMatch = matcher.group(1);
+		}
+
+		try {
+			String result = new String(Base64.getDecoder().decode(afterMatch));
+			return (CaptureResponsBioDataDto) (mapper.readValue(result.getBytes(), CaptureResponsBioDataDto.class));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return null;
+
 	}
 	
 	private BiometricInfoDTO createBiometricInfoDTO() {
@@ -209,15 +237,15 @@ public class BioServiceTest {
 		bioService.segmentFingerPrintImage(fingerprintDTO, LEFTHAND_SEGMNTD_FILE_PATHS, "leftSlap");
 
 		assertEquals("image", new String(fingerprintDTO.getSegmentedFingerprints().get(0).getFingerPrint()));
-		assertEquals("leftIndex", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerprintImageName());
-		assertEquals("leftIndex", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerType());
+		assertEquals("Left Index", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerprintImageName());
+		assertEquals("Left Index", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerType());
 		assertEquals(0, fingerprintDTO.getSegmentedFingerprints().get(0).getNumRetry());
 		assertEquals(90.0, fingerprintDTO.getSegmentedFingerprints().get(0).getQualityScore(), 0.1);
 		assertEquals(false, fingerprintDTO.isForceCaptured());
 
 		assertEquals("image", new String(fingerprintDTO.getSegmentedFingerprints().get(1).getFingerPrint()));
-		assertEquals("leftLittle", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerprintImageName());
-		assertEquals("leftLittle", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerType());
+		assertEquals("Left Little", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerprintImageName());
+		assertEquals("Left Little", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerType());
 		assertEquals(0, fingerprintDTO.getSegmentedFingerprints().get(1).getNumRetry());
 		assertEquals(90.0, fingerprintDTO.getSegmentedFingerprints().get(1).getQualityScore(), 0.1);
 		assertEquals(false, fingerprintDTO.isForceCaptured());
@@ -247,15 +275,15 @@ public class BioServiceTest {
 		bioService.segmentFingerPrintImage(fingerprintDTO, LEFTHAND_SEGMNTD_FILE_PATHS, "leftSlap");
 
 		assertEquals("image", new String(fingerprintDTO.getSegmentedFingerprints().get(0).getFingerPrint()));
-		assertEquals("leftIndex", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerprintImageName());
-		assertEquals("leftIndex", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerType());
+		assertEquals("Left Index", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerprintImageName());
+		assertEquals("Left Index", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerType());
 		assertEquals(0, fingerprintDTO.getSegmentedFingerprints().get(0).getNumRetry());
 		assertEquals(90.0, fingerprintDTO.getSegmentedFingerprints().get(0).getQualityScore(), 0.1);
 		assertEquals(false, fingerprintDTO.isForceCaptured());
 
 		assertEquals("image", new String(fingerprintDTO.getSegmentedFingerprints().get(1).getFingerPrint()));
-		assertEquals("leftLittle", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerprintImageName());
-		assertEquals("leftLittle", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerType());
+		assertEquals("Left Little", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerprintImageName());
+		assertEquals("Left Little", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerType());
 		assertEquals(0, fingerprintDTO.getSegmentedFingerprints().get(1).getNumRetry());
 		assertEquals(90.0, fingerprintDTO.getSegmentedFingerprints().get(1).getQualityScore(), 0.1);
 		assertEquals(false, fingerprintDTO.isForceCaptured());
@@ -287,15 +315,15 @@ public class BioServiceTest {
 		bioService.segmentFingerPrintImage(fingerprintDTO, LEFTHAND_SEGMNTD_FILE_PATHS, "leftSlap");
 
 		assertEquals("image", new String(fingerprintDTO.getSegmentedFingerprints().get(0).getFingerPrint()));
-		assertEquals("leftIndex", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerprintImageName());
-		assertEquals("leftIndex", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerType());
+		assertEquals("Left Index", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerprintImageName());
+		assertEquals("Left Index", fingerprintDTO.getSegmentedFingerprints().get(0).getFingerType());
 		assertEquals(0, fingerprintDTO.getSegmentedFingerprints().get(0).getNumRetry());
 		assertEquals(90.0, fingerprintDTO.getSegmentedFingerprints().get(0).getQualityScore(), 0.1);
 		assertEquals(false, fingerprintDTO.isForceCaptured());
 
 		assertEquals("image", new String(fingerprintDTO.getSegmentedFingerprints().get(1).getFingerPrint()));
-		assertEquals("leftLittle", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerprintImageName());
-		assertEquals("leftLittle", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerType());
+		assertEquals("Left Little", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerprintImageName());
+		assertEquals("Left Little", fingerprintDTO.getSegmentedFingerprints().get(1).getFingerType());
 		assertEquals(0, fingerprintDTO.getSegmentedFingerprints().get(1).getNumRetry());
 		assertEquals(90.0, fingerprintDTO.getSegmentedFingerprints().get(1).getQualityScore(), 0.1);
 		assertEquals(false, fingerprintDTO.isForceCaptured());
@@ -331,7 +359,7 @@ public class BioServiceTest {
 
 		captureResponseDto.setMosipBioDeviceDataResponses(Arrays.asList(captureResponseBioDto));
 		requestDetail.setType("leftslap");
-		Mockito.when(mosipBioDeviceManager.scan(requestDetail)).thenReturn(captureResponseDto);
+		Mockito.when(mosipBioDeviceManager.regScan(requestDetail)).thenReturn(captureResponseDto);
 		// Mockito.when(mosipBioDeviceManager.scan("leftslap")).thenReturn(value)
 		bioService.segmentFingerPrintImage(fingerprintDTO, LEFTHAND_SEGMNTD_FILE_PATHS, "leftslap");
 
@@ -344,7 +372,7 @@ public class BioServiceTest {
 		ApplicationContext.getInstance().getApplicationMap().put("mosip.mdm.enabled", "N");
 		IrisDetailsDTO detailsDTO = new IrisDetailsDTO();
 		requestDetail.setType("LeftEye");
-		bioService.getIrisImageAsDTO(detailsDTO, requestDetail,2,2);
+		bioService.getIrisImageAsDTO(requestDetail,2,2);
 		IrisDetailsDTO irisDetail = detailsDTO.getIrises().get(0);
 		assertNotNull(irisDetail.getIris());
 		assertEquals("LeftEye.png", irisDetail.getIrisImageName());
@@ -359,9 +387,9 @@ public class BioServiceTest {
 	public void testGetIrisImageAsDTOWithMdm() throws RegBaseCheckedException, IOException {
 		CaptureResponseDto captureResponse = getIrisCaptureResponse();
 		PowerMockito.mockStatic(ImageIO.class);
-		Mockito.when(mosipBioDeviceManager.scan(Mockito.anyObject())).thenReturn(captureResponse);
+		Mockito.when(mosipBioDeviceManager.regScan(Mockito.anyObject())).thenReturn(captureResponse);
 		requestDetail.setType("LEFT_EYE");
-		bioService.getIrisImageAsDTO(new IrisDetailsDTO(), requestDetail,2,2);
+		bioService.getIrisImageAsDTO(requestDetail,2,2);
 	}
 
 	
@@ -371,7 +399,7 @@ public class BioServiceTest {
 		PowerMockito.mockStatic(ImageIO.class);
 		when(ImageIO.read(Mockito.any(InputStream.class))).thenThrow(new RuntimeException("Invalid"));
 		requestDetail.setType("LeftEye");
-		bioService.getIrisImageAsDTO(null, requestDetail,2,2);
+		bioService.getIrisImageAsDTO(requestDetail,2,2);
 	}
 
 
@@ -460,14 +488,14 @@ public class BioServiceTest {
 	@Test
 	public void validateFaceTest1() throws RegBaseCheckedException, IOException {
 		requestDetail.setType(RegistrationConstants.FACE_FULLFACE);
-		Mockito.when(mosipBioDeviceManager.scan(Mockito.any())).thenReturn(getFingerPritnCaptureResponse());
+		Mockito.when(mosipBioDeviceManager.regScan(Mockito.any())).thenReturn(getFingerPritnCaptureResponse());
 		bioService.validateFace(bioService.getFaceAuthenticationDto("userId",requestDetail));
 	}
 
 	@Test
 	public void validateFaceTest2() throws RegBaseCheckedException, IOException {
 		ApplicationContext.getInstance().getApplicationMap().put("mosip.mdm.enabled", "N");
-		Mockito.when(mosipBioDeviceManager.scan(Mockito.any())).thenReturn(getFingerPritnCaptureResponse());
+		Mockito.when(mosipBioDeviceManager.regScan(Mockito.any())).thenReturn(getFingerPritnCaptureResponse());
 		requestDetail.setType(RegistrationConstants.FACE_FULLFACE);
 		bioService.validateFace(bioService.getFaceAuthenticationDto("userId",requestDetail));
 	}
@@ -478,17 +506,17 @@ public class BioServiceTest {
 		PowerMockito.mockStatic(IOUtils.class);
 		Mockito.when(IOUtils.resourceToByteArray(Mockito.any())).thenReturn("image".getBytes());
 		requestDetail.setType("LeftEye");
-		bioService.getIrisImageAsDTO(new IrisDetailsDTO(), requestDetail,2,2);
+		bioService.getIrisImageAsDTO(requestDetail,2,2);
 	}
 
 	@Test
 	public void getFingerPrintImageAsDTOWithMdmTest() throws RegBaseCheckedException, IOException {
 		CaptureResponseDto captureResponseDto = getFingerPritnCaptureResponse();
-		Mockito.when(mosipBioDeviceManager.scan(Mockito.anyObject())).thenReturn(captureResponseDto);
+		Mockito.when(mosipBioDeviceManager.regScan(Mockito.anyObject())).thenReturn(captureResponseDto);
 		Mockito.when(mosipBioDeviceManager.getSingleBiometricIsoTemplate(captureResponseDto))
 				.thenReturn("value".getBytes());
 		requestDetail.setType("thumbs");
-		bioService.getFingerPrintImageAsDTO(new FingerprintDetailsDTO(), requestDetail,2);
+		bioService.getFingerPrintImageAsDTO(requestDetail,2);
 
 	}
 	
@@ -496,11 +524,11 @@ public class BioServiceTest {
 	public void getFingerPrintImageAsDTONonMDMTest() throws RegBaseCheckedException, IOException {
 		ApplicationContext.getInstance().getApplicationMap().put("mosip.mdm.enabled", "N");
 		requestDetail.setType(RegistrationConstants.FINGERPRINT_SLAB_LEFT);
-		bioService.getFingerPrintImageAsDTO(new FingerprintDetailsDTO(), requestDetail,2);
+		bioService.getFingerPrintImageAsDTO(requestDetail,2);
 		requestDetail.setType(RegistrationConstants.FINGERPRINT_SLAB_RIGHT);
-		bioService.getFingerPrintImageAsDTO(new FingerprintDetailsDTO(), requestDetail,2);
+		bioService.getFingerPrintImageAsDTO(requestDetail,2);
 		requestDetail.setType(RegistrationConstants.FINGERPRINT_SLAB_THUMBS);
-		bioService.getFingerPrintImageAsDTO(new FingerprintDetailsDTO(), requestDetail,2);
+		bioService.getFingerPrintImageAsDTO(requestDetail,2);
 	}
 	
 	@Test(expected = RegBaseCheckedException.class)
@@ -508,7 +536,7 @@ public class BioServiceTest {
 		ApplicationContext.getInstance().getApplicationMap().put("mosip.mdm.enabled", "N");
 		Mockito.when(SessionContext.map().get(RegistrationConstants.ONBOARD_USER)).thenThrow(Exception.class);
 		requestDetail.setType(RegistrationConstants.FINGERPRINT_SLAB_LEFT);
-		bioService.getFingerPrintImageAsDTO(new FingerprintDetailsDTO(), requestDetail,2);
+		bioService.getFingerPrintImageAsDTO(requestDetail,2);
 	}
 
 	@Test
@@ -547,7 +575,7 @@ public class BioServiceTest {
 
 	@Test
 	public void validateIrisTest1() throws RegBaseCheckedException, IOException {
-		CaptureResponseDto captureResponseDto = getFingerPritnCaptureResponse();
+		CaptureResponseDto captureResponseDto = getIrisCaptureResponse();
 		Mockito.when(mosipBioDeviceManager.authScan(Mockito.anyObject())).thenReturn(captureResponseDto);
 		Mockito.when(mosipBioDeviceManager.getSingleBiometricIsoTemplate(captureResponseDto))
 				.thenReturn("value".getBytes());

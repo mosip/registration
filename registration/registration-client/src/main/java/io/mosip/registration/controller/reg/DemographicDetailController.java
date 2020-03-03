@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 
+import org.assertj.core.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
@@ -61,6 +62,7 @@ import io.mosip.registration.dto.demographic.IndividualIdentity;
 import io.mosip.registration.dto.demographic.LocationDTO;
 import io.mosip.registration.dto.demographic.ValuesDTO;
 import io.mosip.registration.dto.mastersync.LocationDto;
+import io.mosip.registration.entity.Location;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.service.sync.MasterSyncService;
@@ -898,17 +900,17 @@ public class DemographicDetailController extends BaseController {
 		localUinIdPane.setDisable(true);
 		localRidPane.setDisable(true);
 		localRidOrUinToggle.setDisable(true);
-		
+
 		disableLocalFieldOnSameLanguage();
 	}
 
 	private void disableLocalFieldOnSameLanguage() {
-		//if primary and secondary language is same
-		if(applicationContext.getApplicationLanguage().equals(applicationContext.getLocalLanguage())) {
+		// if primary and secondary language is same
+		if (applicationContext.getApplicationLanguage().equals(applicationContext.getLocalLanguage())) {
 			localFullNameBox.setDisable(true);
 			localAddressPane.setDisable(true);
 			localLanguageParentDetailPane.setDisable(true);
-			
+
 		}
 	}
 
@@ -1231,7 +1233,7 @@ public class DemographicDetailController extends BaseController {
 				parentName.clear();
 				parentNameLocalLanguage.clear();
 				parentRegId.clear();
-				isChild=false;
+				isChild = false;
 			}
 		} else {
 			ageField.setText(RegistrationConstants.EMPTY);
@@ -1278,20 +1280,14 @@ public class DemographicDetailController extends BaseController {
 					hasToBeTransliterated);
 			fxUtils.validateOnFocusOut(parentFlowPane, parentName, validation, parentNameLocalLanguage,
 					hasToBeTransliterated);
-			fxUtils.validateOnFocusOut(parentFlowPane, parentRegId, validation, parentRegIdLocalLanguage,
-					false);
-			fxUtils.validateOnFocusOut(parentFlowPane, parentUinId, validation, parentUinIdLocalLanguage,
-					false);
+			fxUtils.validateOnFocusOut(parentFlowPane, parentRegId, validation, parentRegIdLocalLanguage, false);
+			fxUtils.validateOnFocusOut(parentFlowPane, parentUinId, validation, parentUinIdLocalLanguage, false);
 
-			fxUtils.validateOnFocusOut(parentFlowPane, mobileNo, validation, mobileNoLocalLanguage,
-					false);
+			fxUtils.validateOnFocusOut(parentFlowPane, mobileNo, validation, mobileNoLocalLanguage, false);
 			fxUtils.validateOnType(parentFlowPane, ageField, validation, ageFieldLocalLanguage, false);
-			fxUtils.validateOnFocusOut(parentFlowPane, postalCode, validation, postalCodeLocalLanguage,
-					false);
-			fxUtils.validateOnFocusOut(parentFlowPane, emailId, validation, emailIdLocalLanguage,
-					false);
-			fxUtils.validateOnFocusOut(parentFlowPane, cniOrPinNumber, validation, cniOrPinNumberLocalLanguage,
-					false);
+			fxUtils.validateOnFocusOut(parentFlowPane, postalCode, validation, postalCodeLocalLanguage, false);
+			fxUtils.validateOnFocusOut(parentFlowPane, emailId, validation, emailIdLocalLanguage, false);
+			fxUtils.validateOnFocusOut(parentFlowPane, cniOrPinNumber, validation, cniOrPinNumberLocalLanguage, false);
 
 			fxUtils.focusedAction(parentFlowPane, dd);
 			fxUtils.focusedAction(parentFlowPane, mm);
@@ -1429,14 +1425,33 @@ public class DemographicDetailController extends BaseController {
 			postalCode.setText(RegistrationConstants.EMPTY);
 			postalCodeLocalLanguage.setText(RegistrationConstants.EMPTY);
 
-			region.getItems()
-					.addAll(masterSync.findLocationByHierarchyCode(
-							ApplicationContext.applicationLanguageBundle().getString(region.getId()),
-							ApplicationContext.applicationLanguage()));
-			regionLocalLanguage.getItems()
-					.addAll(masterSync.findLocationByHierarchyCode(
-							ApplicationContext.localLanguageBundle().getString(region.getId()),
-							ApplicationContext.localLanguage()));
+			List<LocationDto> locations = masterSync.findLocationByHierarchyCode(
+					ApplicationContext.applicationLanguageBundle().getString(region.getId()),
+					ApplicationContext.applicationLanguage());
+
+			List<LocationDto> locationsSecondary = masterSync.findLocationByHierarchyCode(
+					ApplicationContext.localLanguageBundle().getString(region.getId()),
+					ApplicationContext.localLanguage());
+
+			if (locations.isEmpty()) {
+				LocationDto lC = new LocationDto();
+				lC.setCode(RegistrationConstants.AUDIT_DEFAULT_USER);
+				lC.setName(RegistrationConstants.AUDIT_DEFAULT_USER);
+				lC.setLangCode(ApplicationContext.applicationLanguage());
+				region.getItems().add(lC);
+			} else {
+				region.getItems().addAll(locations);
+			}
+
+			if (locationsSecondary.isEmpty()) {
+				LocationDto lC = new LocationDto();
+				lC.setCode(RegistrationConstants.AUDIT_DEFAULT_USER);
+				lC.setName(RegistrationConstants.AUDIT_DEFAULT_USER);
+				lC.setLangCode(ApplicationContext.localLanguage());
+				regionLocalLanguage.getItems().add(lC);
+			} else {
+				regionLocalLanguage.getItems().addAll(locationsSecondary);
+			}
 		} catch (RuntimeException | RegBaseCheckedException runtimeException) {
 			LOGGER.error("REGISTRATION - LOADING FAILED FOR REGION SELECTION LIST ", APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID,
@@ -1508,11 +1523,16 @@ public class DemographicDetailController extends BaseController {
 			LocationDto locationDTO = localAdminAuthority.getSelectionModel().getSelectedItem();
 
 			if (null != locationDTO) {
+				if(locationDTO.getCode().equalsIgnoreCase(RegistrationConstants.AUDIT_DEFAULT_USER)) {
+					postalCode.setText(RegistrationConstants.AUDIT_DEFAULT_USER);
+					postalCodeLocalLanguage.setText(RegistrationConstants.AUDIT_DEFAULT_USER);
+				}else {
 				List<LocationDto> locationDtos = masterSync.findProvianceByHierarchyCode(locationDTO.getCode(),
 						locationDTO.getLangCode());
 
 				postalCode.setText(locationDtos.get(0).getName());
 				postalCodeLocalLanguage.setText(locationDtos.get(0).getName());
+			}
 			}
 
 		} catch (RuntimeException | RegBaseCheckedException runtimeException) {
@@ -1536,7 +1556,7 @@ public class DemographicDetailController extends BaseController {
 
 			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 			DemographicInfoDTO demographicInfoDTO;
-			if(preRegistrationId.getText().isEmpty()) {
+			if (preRegistrationId.getText().isEmpty()) {
 				registrationDTO.setPreRegistrationId("");
 			}
 			OSIDataDTO osiDataDTO = registrationDTO.getOsiDataDTO();
@@ -1906,9 +1926,10 @@ public class DemographicDetailController extends BaseController {
 			if (individualIdentity.getDateOfBirth() != null) {
 				String[] date = individualIdentity.getDateOfBirth().split("/");
 				if (date.length == 3) {
+					dd.setText(" ");
+					dd.setText(date[2]);
 					yyyy.setText(date[0]);
 					mm.setText(date[1]);
-					dd.setText(date[2]);
 				}
 			}
 
@@ -2162,8 +2183,8 @@ public class DemographicDetailController extends BaseController {
 	 */
 	@FXML
 	private void next() throws InvalidApplicantArgumentException, ParseException {
-		
-		if(preRegistrationId.getText().isEmpty()) {
+
+		if (preRegistrationId.getText().isEmpty()) {
 			preRegistrationId.clear();
 		}
 
@@ -2371,15 +2392,43 @@ public class DemographicDetailController extends BaseController {
 				"Retrieving and populating of location by selected hirerachy started");
 
 		try {
-			LocationDto selectedLocationHierarchy = srcLocationHierarchy.getSelectionModel().getSelectedItem();
-			destLocationHierarchy.getItems().clear();
-			destLocationHierarchyInLocal.getItems().clear();
 
+			LocationDto selectedLocationHierarchy = srcLocationHierarchy.getSelectionModel().getSelectedItem();
 			if (selectedLocationHierarchy != null) {
-				destLocationHierarchy.getItems().addAll(masterSync.findProvianceByHierarchyCode(
-						selectedLocationHierarchy.getCode(), selectedLocationHierarchy.getLangCode()));
-				destLocationHierarchyInLocal.getItems().addAll(masterSync.findProvianceByHierarchyCode(
-						selectedLocationHierarchy.getCode(), ApplicationContext.localLanguage()));
+				destLocationHierarchy.getItems().clear();
+				destLocationHierarchyInLocal.getItems().clear();
+
+				if (selectedLocationHierarchy.getCode().equalsIgnoreCase(RegistrationConstants.AUDIT_DEFAULT_USER)) {
+					destLocationHierarchy.getItems().add(selectedLocationHierarchy);
+					destLocationHierarchyInLocal.getItems().add(selectedLocationHierarchy);
+				} else {
+					List<LocationDto> locations = masterSync.findLocationByHierarchyCode(
+							selectedLocationHierarchy.getCode(), selectedLocationHierarchy.getLangCode());
+
+					List<LocationDto> locationsSecondary = masterSync.findProvianceByHierarchyCode(
+							selectedLocationHierarchy.getCode(), ApplicationContext.localLanguage());
+
+					if (locations.isEmpty()) {
+						LocationDto lC = new LocationDto();
+						lC.setCode(RegistrationConstants.AUDIT_DEFAULT_USER);
+						lC.setName(RegistrationConstants.AUDIT_DEFAULT_USER);
+						lC.setLangCode(ApplicationContext.applicationLanguage());
+						destLocationHierarchy.getItems().add(lC);
+						destLocationHierarchyInLocal.getItems().add(lC);
+					} else {
+						destLocationHierarchy.getItems().addAll(locations);
+					}
+
+					if (locationsSecondary.isEmpty()) {
+						LocationDto lC = new LocationDto();
+						lC.setCode(RegistrationConstants.AUDIT_DEFAULT_USER);
+						lC.setName(RegistrationConstants.AUDIT_DEFAULT_USER);
+						lC.setLangCode(ApplicationContext.localLanguage());
+						destLocationHierarchyInLocal.getItems().add(lC);
+					} else {
+						destLocationHierarchyInLocal.getItems().addAll(locationsSecondary);
+					}
+				}
 			}
 		} catch (RuntimeException | RegBaseCheckedException runtimeException) {
 			LOGGER.error("REGISTRATION - INDIVIDUAL_REGISTRATION - RETRIEVE_AND_POPULATE_LOCATION_BY_HIERARCHY",
