@@ -121,6 +121,7 @@ public class BioServiceTest {
 		Map<String, Object> appMap = new HashMap<>();
 		appMap.put(RegistrationConstants.FINGER_PRINT_SCORE, 100);
 		appMap.put("mosip.mdm.enabled", "Y");
+		appMap.put(RegistrationConstants.FINGERPRINT_AUTHENTICATION_THRESHHOLD, "40");
 		ApplicationContext.getInstance().setApplicationMap(appMap);
 	}
 
