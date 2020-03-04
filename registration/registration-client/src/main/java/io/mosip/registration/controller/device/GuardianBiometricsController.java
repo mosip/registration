@@ -131,6 +131,17 @@ public class GuardianBiometricsController extends BaseController implements Init
 	private Label duplicateCheckLbl;
 
 	@FXML
+	private Label guardianBiometricsLabel;
+	
+	public Label getGuardianBiometricsLabel() {
+		return guardianBiometricsLabel;
+	}
+
+	public void setGuardianBiometricsLabel(Label guardianBiometricsLabel) {
+		this.guardianBiometricsLabel = guardianBiometricsLabel;
+	}
+
+	@FXML
 	private GridPane thresholdBox;
 
 	@FXML
@@ -463,7 +474,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		webCameraController.closeWebcam();
 
-		if (isChild()) {
+		if (isChild() || getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_PARENTGUARDIAN_DETAILS, false);
 			if (!RegistrationConstants.DISABLE
 					.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.FACE_DISABLE_FLAG))) {
@@ -558,8 +569,16 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		int attempt = 0;
 
-		List<IrisDetailsDTO> guardianIris = getRegistrationDTOFromSession().getBiometricDTO()
-				.getIntroducerBiometricDTO().getIrisDetailsDTO();
+		List<IrisDetailsDTO> guardianIris;
+
+		if (getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {
+			guardianIris = getRegistrationDTOFromSession().getBiometricDTO().getApplicantBiometricDTO()
+					.getIrisDetailsDTO();
+		} else {
+			guardianIris = getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
+					.getIrisDetailsDTO();
+		}
+
 		irisDetailsDTO = guardianIris.isEmpty() ? null : guardianIris.get(0);
 		attempt = irisDetailsDTO != null ? irisDetailsDTO.getNumOfIrisRetry() + 1 : 1;
 
@@ -671,9 +690,14 @@ public class GuardianBiometricsController extends BaseController implements Init
 		int attempt = 0;
 		Instant start = null;
 		Instant end = null;
-
-		List<FingerprintDetailsDTO> fingerprintDetailsDTOs = getRegistrationDTOFromSession().getBiometricDTO()
-				.getIntroducerBiometricDTO().getFingerprintDetailsDTO();
+		List<FingerprintDetailsDTO> fingerprintDetailsDTOs;
+		if (getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {
+			fingerprintDetailsDTOs = getRegistrationDTOFromSession().getBiometricDTO().getApplicantBiometricDTO()
+					.getFingerprintDetailsDTO();
+		} else {
+			fingerprintDetailsDTOs = getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
+					.getFingerprintDetailsDTO();
+		}
 
 		if (fingerprintDetailsDTOs != null) {
 
@@ -691,7 +715,6 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		attempt = attempt != 0 ? attempt + 1 : 1;
 
-		boolean isDuplicate = false;
 		try {
 			start = Instant.now();
 

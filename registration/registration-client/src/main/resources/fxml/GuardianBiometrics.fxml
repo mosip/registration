@@ -109,7 +109,7 @@
                                        <children>
                                           <GridPane fx:id="ContentHeader">
                                              <children>
-                                                <Label alignment="CENTER" contentDisplay="CENTER" styleClass="paneHeader" text="%guardianBiometric" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.valignment="CENTER" />
+                                                <Label fx:id="guardianBiometricsLabel" alignment="CENTER" contentDisplay="CENTER" styleClass="paneHeader" text="%guardianBiometric" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.valignment="CENTER" />
                                                 <Label fx:id="dedupeMessage" alignment="CENTER" contentDisplay="CENTER" styleClass="paneHeader" text="%dedupeMessage" visible="false" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.valignment="CENTER" />
                                                 <ComboBox fx:id="biometricTypecombo" onAction="#displayBiometric" prefWidth="150.0" promptText="%select" styleClass="demographicCombobox" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="TOP" />
                                              </children>
