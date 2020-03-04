@@ -69,6 +69,7 @@ import io.mosip.registration.dto.biometric.IrisDetailsDTO;
 import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
 import io.mosip.registration.dto.demographic.IndividualIdentity;
 import io.mosip.registration.dto.json.metadata.BiometricSequence;
+import io.mosip.registration.dto.json.metadata.CustomDigitalId;
 import io.mosip.registration.dto.json.metadata.DemographicSequence;
 import io.mosip.registration.dto.json.metadata.FieldValueArray;
 import io.mosip.registration.dto.json.metadata.HashSequence;
@@ -580,7 +581,16 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 			RegisteredDevice registerdDevice = new RegisteredDevice();
 			registerdDevice.setDeviceServiceVersion(device.getSerialVersion());
 			registerdDevice.setDeviceCode(device.getDigitalId().getSerialNo());
-			registerdDevice.setDigitalId(device.getDigitalId());
+			CustomDigitalId digitalId = new CustomDigitalId();
+			digitalId.setDateTime(device.getDigitalId().getDateTime());
+			digitalId.setDp(device.getDigitalId().getDeviceProvider());
+			digitalId.setDpId(device.getDigitalId().getDeviceProviderId());
+			digitalId.setMake(device.getDigitalId().getMake());
+			digitalId.setModel(device.getDigitalId().getModel());
+			digitalId.setSerialNo(device.getDigitalId().getSerialNo());
+			digitalId.setSubType(device.getDigitalId().getSubType());
+			digitalId.setType(device.getDigitalId().getType());
+			registerdDevice.setDigitalId(digitalId);
 			capturedRegisteredDevices.add(registerdDevice);
 		});
 

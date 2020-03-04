@@ -164,7 +164,15 @@ public class BioServiceImpl extends BaseService implements BioService {
 						Base64.getUrlDecoder().decode(auth.getCaptureResponseData().getBioExtract()));
 				fingerprintDetailsDTO.setFingerType(auth.getCaptureResponseData().getBioSubType());
 				fingerprintDetailsDTO.setForceCaptured(true);
-				fingerprintDetailsDTOs.add(fingerprintDetailsDTO);
+				int qualityScore = 0;
+				try {
+					qualityScore = Integer.parseInt(auth.getCaptureResponseData().getQualityScore());
+				}catch(Exception exception) {
+					LOGGER.info(LoggerConstants.BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+							"Did not recieve quality for the segment, hence setting the minimum quality");
+				}
+				if(qualityScore>Integer.parseInt((String) ApplicationContext.map().get(RegistrationConstants.FINGERPRINT_AUTHENTICATION_THRESHHOLD)))
+					fingerprintDetailsDTOs.add(fingerprintDetailsDTO);
 			});
 
 			LOGGER.info(LoggerConstants.BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
