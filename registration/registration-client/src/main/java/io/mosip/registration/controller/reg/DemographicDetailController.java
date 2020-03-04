@@ -45,6 +45,7 @@ import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.FXUtils;
 import io.mosip.registration.controller.VirtualKeyboard;
 import io.mosip.registration.controller.device.FaceCaptureController;
+import io.mosip.registration.controller.device.GuardianBiometricsController;
 import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.IndividualTypeDto;
 import io.mosip.registration.dto.OSIDataDTO;
@@ -660,6 +661,8 @@ public class DemographicDetailController extends BaseController {
 	@Autowired
 	private Transliteration<String> transliteration;
 
+	@Autowired
+	private GuardianBiometricsController guardianBiometricsController;
 	private FXUtils fxUtils;
 	private Date dateOfBirth;
 	private int minAge;
@@ -1844,11 +1847,22 @@ public class DemographicDetailController extends BaseController {
 
 			isChild = getRegistrationDTOFromSession().getSelectionListDTO().isParentOrGuardianDetails();
 
+			ResourceBundle localProperties = applicationContext.getApplicationLanguageBundle();
+			Label label = guardianBiometricsController.getGuardianBiometricsLabel();
+
+			if (!isChild) {
+				label.setText(localProperties.getString("applicantbiometrics"));
+			} else {
+				label.setText(localProperties.getString("guardianBiometric"));
+			}
+			
 			if (SessionContext.map().get(RegistrationConstants.IS_Child) != null) {
 				isChild = (boolean) SessionContext.map().get(RegistrationConstants.IS_Child);
 				parentDetailPane.setDisable(!isChild);
 				parentDetailPane.setVisible(isChild);
 				parentNameKeyboardImage.setDisable(!isChild);
+
+				
 			}
 
 			enableParentUIN();

@@ -405,16 +405,17 @@ public class BiometricExceptionController extends BaseController implements Init
 
 				SessionContext.map().put(RegistrationConstants.UIN_UPDATE_BIOMETRICEXCEPTION, false);
 
-				if (RegistrationConstants.ENABLE.equalsIgnoreCase(
+				if (isChild() || getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {
+					SessionContext.map().put(RegistrationConstants.UIN_UPDATE_PARENTGUARDIAN_DETAILS, true);
+				}
+				else if (RegistrationConstants.ENABLE.equalsIgnoreCase(
 						getValueFromApplicationContext(RegistrationConstants.FINGERPRINT_DISABLE_FLAG)) && !isChild()) {
 					SessionContext.map().put(RegistrationConstants.UIN_UPDATE_FINGERPRINTCAPTURE, true);
 
 				} else if (RegistrationConstants.ENABLE.equalsIgnoreCase(
 						getValueFromApplicationContext(RegistrationConstants.IRIS_DISABLE_FLAG)) && !isChild()) {
 					SessionContext.map().put(RegistrationConstants.UIN_UPDATE_IRISCAPTURE, true);
-				} else if (isChild()) {
-					SessionContext.map().put(RegistrationConstants.UIN_UPDATE_PARENTGUARDIAN_DETAILS, true);
-				}
+				} 
 				registrationController.showUINUpdateCurrentPage();
 			} else {
 				registrationController.showCurrentPage(RegistrationConstants.BIOMETRIC_EXCEPTION, getPageDetails(
@@ -462,8 +463,7 @@ public class BiometricExceptionController extends BaseController implements Init
 					|| (boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER_UPDATE)) {
 				((BiometricDTO) SessionContext.map().get(RegistrationConstants.USER_ONBOARD_DATA))
 						.getOperatorBiometricDTO().setBiometricExceptionDTO(biometricExceptionList);
-			} else if (getRegistrationDTOFromSession().isUpdateUINNonBiometric()
-					|| (boolean) SessionContext.map().get(RegistrationConstants.IS_Child)) {
+			} else if ((boolean) SessionContext.map().get(RegistrationConstants.IS_Child)) {
 				((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA)).getBiometricDTO()
 						.getIntroducerBiometricDTO().setBiometricExceptionDTO(biometricExceptionList);
 			} else {

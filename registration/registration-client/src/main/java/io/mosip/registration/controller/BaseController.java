@@ -186,10 +186,9 @@ public class BaseController {
 
 	@Autowired
 	private RegistrationApprovalController registrationApprovalController;
-	
+
 	@FXML
 	public Text scanningMsg;
-  
 
 	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
 
@@ -361,7 +360,7 @@ public class BaseController {
 	 *            alert context
 	 */
 	protected boolean generateAlert(String title, String context, ToRun<Boolean> run, BaseController controller) {
-		boolean isValid=false;
+		boolean isValid = false;
 		try {
 			closeAlreadyExistedAlert();
 			alertStage = new Stage();
@@ -372,11 +371,11 @@ public class BaseController {
 			alertStage.initStyle(StageStyle.UNDECORATED);
 			alertStage.setScene(scene);
 			alertStage.initModality(Modality.WINDOW_MODAL);
-			
+
 			alertController.getAlertGridPane().setPrefHeight(context.length() / 2 + 110);
 			controller.setScanningMsg(RegistrationUIConstants.VALIDATION_MESSAGE);
 			alertTypeCheck(title, context, alertStage);
-			isValid=run.toRun();
+			isValid = run.toRun();
 		} catch (IOException ioException) {
 			LOGGER.error("REGISTRATION - ALERT - BASE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 					ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
@@ -387,7 +386,6 @@ public class BaseController {
 		return isValid;
 	}
 
-	
 	private void alertTypeCheck(String title, String context, Stage alertStage) {
 		if (context.contains(RegistrationConstants.INFO) || (!context.contains(RegistrationConstants.INFO)
 				&& !context.contains(RegistrationConstants.SUCCESS.toUpperCase())
@@ -462,7 +460,7 @@ public class BaseController {
 	 *            alert context
 	 */
 	protected void generateAlert(Pane parentPane, String id, String context) {
-		String type="#TYPE#";
+		String type = "#TYPE#";
 		if (id.contains(RegistrationConstants.ONTYPE)) {
 			id = id.replaceAll(RegistrationConstants.UNDER_SCORE + RegistrationConstants.ONTYPE,
 					RegistrationConstants.EMPTY);
@@ -477,7 +475,7 @@ public class BaseController {
 			label.setText(split[0]);
 		}
 
-		Tooltip tool = new Tooltip(context.contains(type)? context.split(type)[0] : context);
+		Tooltip tool = new Tooltip(context.contains(type) ? context.split(type)[0] : context);
 		tool.getStyleClass().add(RegistrationConstants.TOOLTIP);
 		label.setTooltip(tool);
 		label.setVisible(true);
@@ -725,7 +723,8 @@ public class BaseController {
 	 * @param imageType
 	 *            Type of image that is to be saved
 	 */
-	public void saveApplicantPhoto(BufferedImage capturedImage, String imageType,CaptureResponseDto captureResponseDto, String reponseTime,boolean isDuplicateFound) {
+	public void saveApplicantPhoto(BufferedImage capturedImage, String imageType, CaptureResponseDto captureResponseDto,
+			String reponseTime, boolean isDuplicateFound) {
 		// will be implemented in the derived class.
 	}
 
@@ -1208,7 +1207,7 @@ public class BaseController {
 
 		return isPacketsPendingForEOD() || isPacketsPendingForReRegister();
 	}
-	
+
 	/**
 	 * Checks if is packets pending for ReRegister.
 	 *
@@ -1291,6 +1290,16 @@ public class BaseController {
 		if ((Boolean) SessionContext.userContext().getUserMap()
 				.get(RegistrationConstants.TOGGLE_BIO_METRIC_EXCEPTION)) {
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_BIOMETRICEXCEPTION, true);
+			return;
+		}
+		if (getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {
+			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_PARENTGUARDIAN_DETAILS, true);
+//
+//			Label guardianBiometricsLabel = guardianBiometricsController.getGuardianBiometricsLabel();
+//			guardianBiometricsLabel.setText("Biometrics");
+//
+//			guardianBiometricsController.setGuardianBiometricsLabel(guardianBiometricsLabel);
+
 		} else if (updateUINNextPage(RegistrationConstants.FINGERPRINT_DISABLE_FLAG) && !isChild()) {
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_FINGERPRINTCAPTURE, true);
 		} else if (updateUINNextPage(RegistrationConstants.IRIS_DISABLE_FLAG) && !isChild()) {
@@ -1395,7 +1404,6 @@ public class BaseController {
 
 	}
 
-	
 	protected List<BiometricExceptionDTO> getIrisExceptions() {
 		if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
 			return getBiometricDTOFromSession().getOperatorBiometricDTO().getBiometricExceptionDTO();
@@ -1421,10 +1429,9 @@ public class BaseController {
 		return getIrisExceptions().stream().anyMatch(exceptionIris -> exceptionIris.isMarkedAsException() && StringUtils
 				.containsIgnoreCase(exceptionIris.getMissingBiometric(), (iris).concat(RegistrationConstants.EYE)));
 	}
-	
 
 	public void getExceptionIdentifier(List<String> exception, String exceptionType) {
-			exception.add(RegistrationConstants.userOnBoardMap.get(exceptionType));
+		exception.add(RegistrationConstants.userOnBoardMap.get(exceptionType));
 	}
 
 	/**
@@ -1454,13 +1461,13 @@ public class BaseController {
 			});
 		}
 	}
-	
+
 	public void closeAlreadyExistedAlert() {
 		if (SessionContext.isSessionContextAvailable() && SessionContext.map() != null
 				&& SessionContext.map().get(ALERT_STAGE) != null) {
 			Stage alertStageFromSession = (Stage) SessionContext.map().get(ALERT_STAGE);
 			alertStageFromSession.close();
-			
+
 		}
 	}
 
@@ -1517,8 +1524,7 @@ public class BaseController {
 			progressBar.setProgress(qualityScoreValue / 100);
 
 			// Progress Bar Quality Score
-			progressQualityScore
-					.setText(qualityScore);
+			progressQualityScore.setText(qualityScore);
 
 			if (qualityScoreValue >= Double
 					.parseDouble(getValueFromApplicationContext(getThresholdKeyByBioType(bioType)))) {
@@ -1545,7 +1551,7 @@ public class BaseController {
 		}
 		return false;
 	}
-	
+
 	protected String getThresholdKeyByBioType(String bioType) {
 		return bioType.equals(RegistrationConstants.FINGERPRINT_SLAB_LEFT)
 				? RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD
@@ -1553,11 +1559,12 @@ public class BaseController {
 						? RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD
 						: bioType.equals(RegistrationConstants.FINGERPRINT_SLAB_THUMBS)
 								? RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD
-								: bioType.toLowerCase().contains(RegistrationConstants.IRIS.toLowerCase()) ? RegistrationConstants.IRIS_THRESHOLD
+								: bioType.toLowerCase().contains(RegistrationConstants.IRIS.toLowerCase())
+										? RegistrationConstants.IRIS_THRESHOLD
 										: RegistrationConstants.EMPTY;
 	}
-	
-	public interface ToRun <T>{
+
+	public interface ToRun<T> {
 		public T toRun();
 	}
 

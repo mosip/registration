@@ -131,6 +131,17 @@ public class GuardianBiometricsController extends BaseController implements Init
 	private Label duplicateCheckLbl;
 
 	@FXML
+	private Label guardianBiometricsLabel;
+
+	public Label getGuardianBiometricsLabel() {
+		return guardianBiometricsLabel;
+	}
+
+	public void setGuardianBiometricsLabel(Label guardianBiometricsLabel) {
+		this.guardianBiometricsLabel = guardianBiometricsLabel;
+	}
+
+	@FXML
 	private GridPane thresholdBox;
 
 	@FXML
@@ -261,6 +272,16 @@ public class GuardianBiometricsController extends BaseController implements Init
 				if (null != previousValue && null != currentValue
 						&& !previousValue.getName().equalsIgnoreCase(currentValue.getName())) {
 					continueBtn.setDisable(true);
+
+					getRegistrationDTOFromSession().getBiometricDTO().getApplicantBiometricDTO()
+							.getFingerprintDetailsDTO().clear();
+					getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
+							.getFingerprintDetailsDTO().clear();
+
+					getRegistrationDTOFromSession().getBiometricDTO().getApplicantBiometricDTO().getIrisDetailsDTO()
+							.clear();
+					getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().getIrisDetailsDTO()
+							.clear();
 				}
 
 			}
@@ -463,7 +484,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		webCameraController.closeWebcam();
 
-		if (isChild()) {
+		if (isChild() || getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_PARENTGUARDIAN_DETAILS, false);
 			if (!RegistrationConstants.DISABLE
 					.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.FACE_DISABLE_FLAG))) {
@@ -558,8 +579,16 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		int attempt = 0;
 
-		List<IrisDetailsDTO> guardianIris = getRegistrationDTOFromSession().getBiometricDTO()
-				.getIntroducerBiometricDTO().getIrisDetailsDTO();
+		List<IrisDetailsDTO> guardianIris = null;
+
+		if (getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {
+			guardianIris = getRegistrationDTOFromSession().getBiometricDTO().getApplicantBiometricDTO()
+					.getIrisDetailsDTO();
+		} else if((boolean) SessionContext.map().get(RegistrationConstants.IS_Child)){
+			guardianIris = getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
+					.getIrisDetailsDTO();
+		}
+
 		irisDetailsDTO = guardianIris.isEmpty() ? null : guardianIris.get(0);
 		attempt = irisDetailsDTO != null ? irisDetailsDTO.getNumOfIrisRetry() + 1 : 1;
 
@@ -595,27 +624,26 @@ public class GuardianBiometricsController extends BaseController implements Init
 			// If Iris is valid
 			if (!isDuplicate && validateIrisQulaity(detailsDTO.getIrises().get(0), new Double(thresholdValue))) {
 
-				if (!getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().getIrisDetailsDTO()
-						.isEmpty()) {
-					getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().getIrisDetailsDTO()
-							.remove(0);
+				if (!guardianIris.isEmpty()) {
+					guardianIris.clear();
+
 				}
-				getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().getIrisDetailsDTO()
-						.add(detailsDTO.getIrises().get(0));
+				guardianIris.add(detailsDTO.getIrises().get(0));
 
-				getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().getIrisDetailsDTO()
-						.forEach((iris) -> {
+				guardianIris.forEach((iris) -> {
 
-							scanPopUpViewController.getScanImage().setImage(convertBytesToImage(iris.getIris()));
-							biometricImage.setImage(bioService.isMdmEnabled()
-									? bioService.getBioStreamImage(iris.getIrisType(), iris.getNumOfIrisRetry())
-									: convertBytesToImage(iris.getIris()));
+					scanPopUpViewController.getScanImage().setImage(convertBytesToImage(iris.getIris()));
+					biometricImage.setImage(bioService.isMdmEnabled()
+							? bioService.getBioStreamImage(iris.getIrisType(), iris.getNumOfIrisRetry())
+							: convertBytesToImage(iris.getIris()));
 
-							setCapturedValues(bioService.isMdmEnabled()
-									? bioService.getBioQualityScores(iris.getIrisType(), iris.getNumOfIrisRetry())
-									: iris.getQualityScore(), iris.getNumOfIrisRetry(), thresholdValue);
+					setCapturedValues(bioService.isMdmEnabled()
+							? bioService.getBioQualityScores(iris.getIrisType(), iris.getNumOfIrisRetry())
+							: iris.getQualityScore(), iris.getNumOfIrisRetry(), thresholdValue);
 
-						});
+					continueBtn.setDisable(false);
+
+				});
 
 			} else if (isDuplicate) {
 				continueBtn.setDisable(true);
@@ -671,9 +699,14 @@ public class GuardianBiometricsController extends BaseController implements Init
 		int attempt = 0;
 		Instant start = null;
 		Instant end = null;
-
-		List<FingerprintDetailsDTO> fingerprintDetailsDTOs = getRegistrationDTOFromSession().getBiometricDTO()
-				.getIntroducerBiometricDTO().getFingerprintDetailsDTO();
+		List<FingerprintDetailsDTO> fingerprintDetailsDTOs = null;
+		if (getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {
+			fingerprintDetailsDTOs = getRegistrationDTOFromSession().getBiometricDTO().getApplicantBiometricDTO()
+					.getFingerprintDetailsDTO();
+		} else if((boolean) SessionContext.map().get(RegistrationConstants.IS_Child)){
+			fingerprintDetailsDTOs = getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
+					.getFingerprintDetailsDTO();
+		}
 
 		if (fingerprintDetailsDTOs != null) {
 
@@ -691,7 +724,6 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		attempt = attempt != 0 ? attempt + 1 : 1;
 
-		boolean isDuplicate = false;
 		try {
 			start = Instant.now();
 

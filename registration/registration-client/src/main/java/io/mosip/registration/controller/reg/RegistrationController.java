@@ -466,11 +466,16 @@ public class RegistrationController extends BaseController {
 	public void showUINUpdateCurrentPage() {
 		demographicDetail.setVisible(getVisiblity(RegistrationConstants.UIN_UPDATE_DEMOGRAPHICDETAIL));
 		documentScan.setVisible(getVisiblity(RegistrationConstants.UIN_UPDATE_DOCUMENTSCAN));
-		fingerPrintCapture.setVisible(getVisiblity(RegistrationConstants.UIN_UPDATE_FINGERPRINTCAPTURE));
+		
+		if(!getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {
+			fingerPrintCapture.setVisible(getVisiblity(RegistrationConstants.UIN_UPDATE_FINGERPRINTCAPTURE));
+			irisCapture.setVisible(getVisiblity(RegistrationConstants.UIN_UPDATE_IRISCAPTURE));
+			
+		}
+		
 		biometricException.setVisible(getVisiblity(RegistrationConstants.UIN_UPDATE_BIOMETRICEXCEPTION));
 		guardianBiometric.setVisible(getVisiblity(RegistrationConstants.UIN_UPDATE_PARENTGUARDIAN_DETAILS));
 		faceCapture.setVisible(getVisiblity(RegistrationConstants.UIN_UPDATE_FACECAPTURE));
-		irisCapture.setVisible(getVisiblity(RegistrationConstants.UIN_UPDATE_IRISCAPTURE));
 		registrationPreview.setVisible(getVisiblity(RegistrationConstants.UIN_UPDATE_REGISTRATIONPREVIEW));
 		operatorAuthenticationPane
 				.setVisible(getVisiblity(RegistrationConstants.UIN_UPDATE_OPERATORAUTHENTICATIONPANE));
