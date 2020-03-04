@@ -330,7 +330,8 @@ public class SessionContext {
 												RegistrationConstants.FINGERPRINT_SLAB_LEFT,
 												(String) io.mosip.registration.context.ApplicationContext.map()
 														.get(RegistrationConstants.CAPTURE_TIME_OUT),
-												1, "60", null)))) {
+												1, (String) io.mosip.registration.context.ApplicationContext.map()
+												.get(RegistrationConstants.FINGERPRINT_AUTHENTICATION_THRESHHOLD), null)))) {
 			createSessionContext();
 			SessionContext.authTokenDTO().setLoginMode(loginMethod);
 

@@ -873,6 +873,8 @@ public class RegistrationConstants {
 	public static final String APP_ID = "mosip.registration.audit_application_id";
 	public static final String SUPERVISOR_AUTH_CONFIG = "mosip.registration.supervisor_authentication_configuration";
 	public static final String QUALITY_SCORE = "mosip.registration.quality_score";
+	public static final String FINGERPRINT_AUTHENTICATION_THRESHHOLD = "mosip.fingerprint_authentication.quality_score";
+	public static final String IRIS_AUTHENTICATION_THRESHHOLD = "mosip.iris_authentication.quality_score";
 	public static final String CAPTURE_TIME_OUT = "mosip.registration.capture_time_out";
 	public static final String FINGER_PRINT_SCORE = "mosip.registration.finger_print_score";
 	public static final String INVALID_LOGIN_COUNT = "mosip.registration.invalid_login_count";

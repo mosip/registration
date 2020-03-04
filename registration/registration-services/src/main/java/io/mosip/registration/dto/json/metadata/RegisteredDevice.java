@@ -14,5 +14,5 @@ public class RegisteredDevice {
 
 	private String deviceCode;
 	private String deviceServiceVersion;
-	private DigitalId digitalId;
+	private CustomDigitalId digitalId;
 }
