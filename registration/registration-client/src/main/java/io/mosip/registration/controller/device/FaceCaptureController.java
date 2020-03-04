@@ -456,6 +456,14 @@ public class FaceCaptureController extends BaseController implements Initializab
 			exceptionImage.setImage(capture);
 			exceptionImagePane.getStyleClass().add(RegistrationConstants.PHOTO_CAPTUREPANES_SELECTED);
 			exceptionBufferedImage = capturedImage;
+			if (!bioService.isMdmEnabled())
+				try {
+					isoBytes = IOUtils.resourceToByteArray(RegistrationConstants.FACE_ISO);
+					exceptionImageIso = isoBytes;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			if (null != captureResponseDto && null != isoBytes) {
 				exceptionImageIso = isoBytes;
 			}

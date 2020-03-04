@@ -463,8 +463,7 @@ public class BiometricExceptionController extends BaseController implements Init
 					|| (boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER_UPDATE)) {
 				((BiometricDTO) SessionContext.map().get(RegistrationConstants.USER_ONBOARD_DATA))
 						.getOperatorBiometricDTO().setBiometricExceptionDTO(biometricExceptionList);
-			} else if (getRegistrationDTOFromSession().isUpdateUINNonBiometric()
-					|| (boolean) SessionContext.map().get(RegistrationConstants.IS_Child)) {
+			} else if ((boolean) SessionContext.map().get(RegistrationConstants.IS_Child)) {
 				((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA)).getBiometricDTO()
 						.getIntroducerBiometricDTO().setBiometricExceptionDTO(biometricExceptionList);
 			} else {

@@ -124,7 +124,7 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 	@SuppressWarnings("unchecked")
 	@Override
 	@PreAuthorizeUserId(roles = { AuthenticationAdvice.OFFICER_ROLE, AuthenticationAdvice.SUPERVISOR_ROLE,
-			AuthenticationAdvice.ADMIN_ROLE,AuthenticationAdvice.DEFAULT_ROLE})
+			AuthenticationAdvice.ADMIN_ROLE, AuthenticationAdvice.DEFAULT_ROLE })
 	public byte[] create(final RegistrationDTO registrationDTO) throws RegBaseCheckedException {
 		LOGGER.info(LOG_PKT_CREATION, APPLICATION_NAME, APPLICATION_ID, "Registration Creation had been called");
 		try {
@@ -724,7 +724,9 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 						RegistrationExceptionConstants.REG_PKT_APPLICANT_BIO_INVALID_FACE_EXCEPTION);
 			}
 
-			if (hasApplicantBiometricException && validateFace(applicantBiometrics.getExceptionFace())) {
+			if (!((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA))
+					.isUpdateUINNonBiometric() && hasApplicantBiometricException
+					&& validateFace(applicantBiometrics.getExceptionFace())) {
 				throwRegBaseCheckedException(
 						RegistrationExceptionConstants.REG_PKT_APPLICANT_BIO_INVALID_EXCEPTION_FACE_EXCEPTION);
 			}
