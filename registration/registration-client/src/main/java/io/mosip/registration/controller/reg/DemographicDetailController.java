@@ -1847,14 +1847,24 @@ public class DemographicDetailController extends BaseController {
 
 			isChild = getRegistrationDTOFromSession().getSelectionListDTO().isParentOrGuardianDetails();
 
+			ResourceBundle localProperties = applicationContext.getApplicationLanguageBundle();
+			Label label = guardianBiometricsController.getGuardianBiometricsLabel();
+
+			if (!isChild) {
+				label.setText(localProperties.getString("applicantbiometrics"));
+			} else {
+				label.setText(localProperties.getString("guardianBiometric"));
+			}
+			
 			if (SessionContext.map().get(RegistrationConstants.IS_Child) != null) {
 				isChild = (boolean) SessionContext.map().get(RegistrationConstants.IS_Child);
 				parentDetailPane.setDisable(!isChild);
 				parentDetailPane.setVisible(isChild);
 				parentNameKeyboardImage.setDisable(!isChild);
+
+				
 			}
 
-			
 			enableParentUIN();
 			disableLocalFieldOnSameLanguage();
 		}

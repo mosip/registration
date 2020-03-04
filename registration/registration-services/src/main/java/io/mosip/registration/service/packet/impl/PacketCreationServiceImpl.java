@@ -724,7 +724,7 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 						RegistrationExceptionConstants.REG_PKT_APPLICANT_BIO_INVALID_FACE_EXCEPTION);
 			}
 
-			if (!((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA))
+			if ((boolean) SessionContext.map().get(RegistrationConstants.IS_Child) && !((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA))
 					.isUpdateUINNonBiometric() && hasApplicantBiometricException
 					&& validateFace(applicantBiometrics.getExceptionFace())) {
 				throwRegBaseCheckedException(

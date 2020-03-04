@@ -460,9 +460,10 @@ public class FaceCaptureController extends BaseController implements Initializab
 				try {
 					isoBytes = IOUtils.resourceToByteArray(RegistrationConstants.FACE_ISO);
 					exceptionImageIso = isoBytes;
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				} catch (IOException ioException) {
+					LOGGER.error(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
+							RegistrationConstants.APPLICATION_ID,
+							ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
 				}
 			if (null != captureResponseDto && null != isoBytes) {
 				exceptionImageIso = isoBytes;
