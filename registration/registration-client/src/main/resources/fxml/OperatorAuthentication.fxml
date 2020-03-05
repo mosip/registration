@@ -404,7 +404,7 @@
 						<RowConstraints minHeight="10.0" percentHeight="90.0" prefHeight="30.0" vgrow="SOMETIMES" />
 					</rowConstraints>
 				</GridPane>
-				<GridPane fx:id="fingerprintBasedLogin" disable="false" styleClass="subMainComponent" visible="false" GridPane.columnIndex="1">
+				<GridPane fx:id="fingerprintBasedLogin" disable="false" styleClass="subMainComponent" visible="true" GridPane.columnIndex="1">
 					<columnConstraints>
 						<ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
 					</columnConstraints>
@@ -537,7 +537,7 @@
 														<VBox prefHeight="200.0" prefWidth="100.0" spacing="5.0">
 															<children>
 																<Label styleClass="attempts" text="%attempts" />
-																<Label styleClass="attempts" text="_" />
+																<Label fx:id="authCounter" styleClass="attempts" />
 															</children>
 														</VBox>
 													</children>
@@ -874,7 +874,7 @@
 				</GridPane>
 				
 				<!-- face capture pane starts here -->
-				<GridPane fx:id="faceBasedLogin" disable="false" styleClass="subMainComponent" visible="true" GridPane.columnIndex="1">
+				<GridPane fx:id="faceBasedLogin" disable="false" styleClass="subMainComponent" visible="false" GridPane.columnIndex="1">
 					<columnConstraints>
 						<ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
 					</columnConstraints>

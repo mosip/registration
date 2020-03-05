@@ -182,6 +182,13 @@ public class AuthenticationController extends BaseController implements Initiali
 
 	@Autowired
 	private BioService bioService;
+	
+	private int fingerPrintAuthCount;
+	private int irisPrintAuthCount;
+	private int facePrintAuthCount;
+	
+	@FXML
+	private Label authCounter;
 
 	/**
 	 * to generate OTP in case of OTP based authentication
@@ -385,6 +392,7 @@ public class AuthenticationController extends BaseController implements Initiali
 								+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
 			}
 		}
+		authCounter.setText(++fingerPrintAuthCount+"");
 	}
 
 	/**
@@ -435,6 +443,7 @@ public class AuthenticationController extends BaseController implements Initiali
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_DEVICE_FOUND);
 			}
 		}
+		authCounter.setText(++irisPrintAuthCount+"");
 	}
 
 	@FXML
@@ -497,6 +506,8 @@ public class AuthenticationController extends BaseController implements Initiali
 					RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)
 							+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
 		}
+		
+		authCounter.setText(++facePrintAuthCount+"");
 
 	}
 
@@ -992,6 +1003,10 @@ public class AuthenticationController extends BaseController implements Initiali
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 
+		int FingerPrintAuthCount=0;
+		int IrisPrintAuthCount=0;
+		int FacePrintAuthCount=0;
+		
 		setImageOnHover();
 
 		irisImageView.setImage(
