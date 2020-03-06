@@ -1278,7 +1278,7 @@ public class FingerPrintCaptureController extends BaseController implements Init
 
 				LOGGER.info(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 						"Verifying Local Deduplication check of captured fingerprints against Operator Biometrics");
-				isNotMatched = bioService.validateBioDeDup(detailsDTO.getSegmentedFingerprints());
+				isNotMatched = generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.FP_CAPTURE_SUCCESS, ()->{return bioService.validateBioDeDup(detailsDTO.getSegmentedFingerprints());}, scanPopUpViewController);
 			}
 
 			popupStage.close();
@@ -1360,8 +1360,7 @@ public class FingerPrintCaptureController extends BaseController implements Init
 						"Verifying whether all Non Exception FingerPrints Captured or Not :  Failure");
 				continueBtn.setDisable(true);
 			}
-
-			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.FP_CAPTURE_SUCCESS);
+			
 		} else {
 
 			LOGGER.info(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
