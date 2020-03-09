@@ -64,16 +64,6 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-emailnotification-service</artifactId>
-			<version>${kernel.emailnotification.service.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-smsnotification-service</artifactId>
-			<version>${kernel.smsnotification.service.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>io.mosip.registrationprocessor</groupId>
 			<artifactId>registration-processor-registration-status-service-impl</artifactId>
 			<version>${registration.status.service.version}</version>
