@@ -120,8 +120,6 @@
 		<kernel.core.version>1.0.7-SNAPSHOT</kernel.core.version>
 		<kernel.dataaccess.hibernate.version>1.0.6</kernel.dataaccess.hibernate.version>
 		<kernel.templatemanager.velocity.version>1.0.6</kernel.templatemanager.velocity.version>
-		<kernel.emailnotification.service.version>1.0.6</kernel.emailnotification.service.version>
-		<kernel.smsnotification.service.version>1.0.6</kernel.smsnotification.service.version>
 		<kernel.idvalidator.version>1.0.6</kernel.idvalidator.version>
 		<kernel.clamav.version>1.0.6</kernel.clamav.version>
 		<kernel.idgenerator.rid.version>1.0.6</kernel.idgenerator.rid.version>

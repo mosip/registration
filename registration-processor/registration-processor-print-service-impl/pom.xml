@@ -80,7 +80,7 @@
 		<dependency>
 			<groupId>io.mosip.registrationprocessor</groupId>
 			<artifactId>registration-processor-message-sender-impl</artifactId>
-			<version>${registration.status.service.version}</version>
+			<version>${registration.processor.message.sender.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>io.mosip.kernel</groupId>
