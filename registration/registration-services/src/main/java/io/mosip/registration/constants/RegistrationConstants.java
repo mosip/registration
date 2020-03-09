@@ -1595,6 +1595,7 @@ public class RegistrationConstants {
 	public static final String REQ_TIME="requesttime";
 	public static final String AP_ID="applicationId";
 	public static final String AP_IDA="IDA";
+	public static final int MAX_BIO_QUALITY_SCORE = 100;
 	
 	public static String DEDUPLICATION_ENABLE_FLAG = "mosip.registration.mds.deduplication.enable.flag";
 
