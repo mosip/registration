@@ -159,20 +159,23 @@ public class BioServiceImpl extends BaseService implements BioService {
 						captureResponseDto.getError().getErrorInfo());
 
 			captureResponseDto.getMosipBioDeviceDataResponses().forEach(auth -> {
-				FingerprintDetailsDTO fingerprintDetailsDTO = new FingerprintDetailsDTO();
-				fingerprintDetailsDTO.setFingerPrintISOImage(
-						Base64.getUrlDecoder().decode(auth.getCaptureResponseData().getBioExtract()));
-				fingerprintDetailsDTO.setFingerType(auth.getCaptureResponseData().getBioSubType());
-				fingerprintDetailsDTO.setForceCaptured(true);
-				int qualityScore = 0;
-				try {
-					qualityScore = Integer.parseInt(auth.getCaptureResponseData().getQualityScore());
-				}catch(Exception exception) {
-					LOGGER.info(LoggerConstants.BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
-							"Did not recieve quality for the segment, hence setting the minimum quality");
+				if (isQualityScoreMaxInclusive(auth.getCaptureResponseData().getQualityScore())) {
+					FingerprintDetailsDTO fingerprintDetailsDTO = new FingerprintDetailsDTO();
+					fingerprintDetailsDTO.setFingerPrintISOImage(
+							Base64.getUrlDecoder().decode(auth.getCaptureResponseData().getBioExtract()));
+					fingerprintDetailsDTO.setFingerType(auth.getCaptureResponseData().getBioSubType());
+					fingerprintDetailsDTO.setForceCaptured(true);
+					int qualityScore = 0;
+					try {
+						qualityScore = Integer.parseInt(auth.getCaptureResponseData().getQualityScore());
+					} catch (Exception exception) {
+						LOGGER.info(LoggerConstants.BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+								"Did not recieve quality for the segment, hence setting the minimum quality");
+					}
+					if (qualityScore > Integer.parseInt((String) ApplicationContext.map()
+							.get(RegistrationConstants.FINGERPRINT_AUTHENTICATION_THRESHHOLD)))
+						fingerprintDetailsDTOs.add(fingerprintDetailsDTO);
 				}
-				if(qualityScore>Integer.parseInt((String) ApplicationContext.map().get(RegistrationConstants.FINGERPRINT_AUTHENTICATION_THRESHHOLD)))
-					fingerprintDetailsDTOs.add(fingerprintDetailsDTO);
 			});
 
 			LOGGER.info(LoggerConstants.BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
@@ -192,6 +195,16 @@ public class BioServiceImpl extends BaseService implements BioService {
 		LOGGER.info(LoggerConstants.BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID, "End FingerPrint validator");
 
 		return authenticationValidatorDTO;
+	}
+
+	private boolean isQualityScoreMaxInclusive(String qualityScore) {
+		LOGGER.info(LoggerConstants.BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+				"Checking for max inclusive quality score");
+
+		if (qualityScore == null) {
+			return false;
+		}
+		return Integer.parseInt(qualityScore) <= RegistrationConstants.MAX_BIO_QUALITY_SCORE;
 	}
 
 	/**
@@ -304,20 +317,20 @@ public class BioServiceImpl extends BaseService implements BioService {
 		for (CaptureResponseBioDto captured : mosipBioDeviceDataResponses) {
 
 			FingerprintDetailsDTO fingerPrintDetail = new FingerprintDetailsDTO();
-			CaptureResponsBioDataDto captureRespoonse = captured.getCaptureResponseData();
+			CaptureResponsBioDataDto captureResponse = captured.getCaptureResponseData();
 
-			if (captureRespoonse != null) {
-				currentCaptureQualityScore += Integer.parseInt(captureRespoonse.getQualityScore());
+			if (captureResponse != null && isQualityScoreMaxInclusive(captureResponse.getQualityScore())) {
+				currentCaptureQualityScore += Integer.parseInt(captureResponse.getQualityScore());
 
 				// Get Best Capture
-				captureRespoonse = getBestCapture(captureRespoonse);
+				captureResponse = getBestCapture(captureResponse);
 
 				fingerPrintDetail
-						.setFingerPrintISOImage(Base64.getUrlDecoder().decode(captureRespoonse.getBioExtract()));
-				fingerPrintDetail.setFingerType(captureRespoonse.getBioSubType());
-				fingerPrintDetail.setFingerPrint(Base64.getUrlDecoder().decode(captureRespoonse.getBioValue()));
-				fingerPrintDetail.setQualityScore(Integer.parseInt(captureRespoonse.getQualityScore()));
-				fingerPrintDetail.setFingerprintImageName("FingerPrint " + captureRespoonse.getBioSubType());
+						.setFingerPrintISOImage(Base64.getUrlDecoder().decode(captureResponse.getBioExtract()));
+				fingerPrintDetail.setFingerType(captureResponse.getBioSubType());
+				fingerPrintDetail.setFingerPrint(Base64.getUrlDecoder().decode(captureResponse.getBioValue()));
+				fingerPrintDetail.setQualityScore(Integer.parseInt(captureResponse.getQualityScore()));
+				fingerPrintDetail.setFingerprintImageName("FingerPrint " + captureResponse.getBioSubType());
 				fpDetailsDTO.getSegmentedFingerprints().add(fingerPrintDetail);
 			} else {
 				fpDetailsDTO.setCaptured(false);
@@ -635,7 +648,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	 * @return byte[] of captured Iris
 	 * @throws IOException
 	 */
-	private void captureIris(IrisDetailsDTO IrisDetailsDTO, RequestDetail requestDetail)
+	private void captureIris(IrisDetailsDTO irisDetailsDTO, RequestDetail requestDetail)
 			throws RegBaseCheckedException, IOException {
 
 		LOGGER.info(LOG_REG_IRIS_FACADE, APPLICATION_NAME, APPLICATION_ID, "Stub data for Iris");
@@ -652,16 +665,20 @@ public class BioServiceImpl extends BaseService implements BioService {
 						captureResponseDto.getError().getErrorInfo());
 			capturedByte = Base64.getDecoder().decode(captureResponseDto.getMosipBioDeviceDataResponses().get(0)
 					.getCaptureResponseData().getBioExtract());
-			IrisDetailsDTO.setIrisType(captureResponseDto.getMosipBioDeviceDataResponses().get(0)
-					.getCaptureResponseData().getBioSubType());
-			IrisDetailsDTO.setIrisIso(capturedByte);
+			CaptureResponsBioDataDto captureResponsBioDataDto = captureResponseDto.getMosipBioDeviceDataResponses()
+					.get(0).getCaptureResponseData();
+			if (isQualityScoreMaxInclusive(captureResponsBioDataDto.getQualityScore())) {
+				irisDetailsDTO.setIrisType(captureResponseDto.getMosipBioDeviceDataResponses().get(0)
+						.getCaptureResponseData().getBioSubType());
+				irisDetailsDTO.setIrisIso(capturedByte);
+			}
 		} else {
 			bufferedImage = ImageIO.read(this.getClass().getResourceAsStream(RegistrationConstants.IRIS_IMAGE_LOCAL));
 			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 			ImageIO.write(bufferedImage, RegistrationConstants.IMAGE_FORMAT_PNG, byteArrayOutputStream);
 			capturedByte = byteArrayOutputStream.toByteArray();
-			IrisDetailsDTO.setIrisIso(capturedByte);
-			IrisDetailsDTO.setIrisType("Left Eye");
+			irisDetailsDTO.setIrisIso(capturedByte);
+			irisDetailsDTO.setIrisType("Left Eye");
 		}
 
 	}
@@ -754,27 +771,29 @@ public class BioServiceImpl extends BaseService implements BioService {
 		List<CaptureResponseBioDto> mosipBioDeviceDataResponses = captureResponseDto.getMosipBioDeviceDataResponses();
 		mosipBioDeviceDataResponses.forEach(captured -> {
 			IrisDetailsDTO irisDetails = new IrisDetailsDTO();
-			CaptureResponsBioDataDto captureRespoonse = captured.getCaptureResponseData();
+			CaptureResponsBioDataDto captureResponse = captured.getCaptureResponseData();
 
-			int attempt = captureRespoonse.getBioSubType().toLowerCase()
-					.contains(RegistrationConstants.LEFT.toLowerCase()) ? leftEyeAttempt : rightEyeAttempt;
+			if (captureResponse != null && isQualityScoreMaxInclusive(captureResponse.getQualityScore())) {
+				int attempt = captureResponse.getBioSubType().toLowerCase()
+						.contains(RegistrationConstants.LEFT.toLowerCase()) ? leftEyeAttempt : rightEyeAttempt;
 
-			setBioQualityScores(captureRespoonse.getBioSubType(), attempt,
-					Integer.parseInt(captureRespoonse.getQualityScore()));
-			setBioStreamImages(convertBytesToImage(Base64.getDecoder().decode(captureRespoonse.getBioValue())),
-					captureRespoonse.getBioSubType(), attempt);
+				setBioQualityScores(captureResponse.getBioSubType(), attempt,
+						Integer.parseInt(captureResponse.getQualityScore()));
+				setBioStreamImages(convertBytesToImage(Base64.getDecoder().decode(captureResponse.getBioValue())),
+						captureResponse.getBioSubType(), attempt);
 
-			// Get Best Capture
-			captureRespoonse = getBestCapture(captureRespoonse);
+				// Get Best Capture
+				captureResponse = getBestCapture(captureResponse);
 
-			irisDetails.setIrisIso((Base64.getDecoder().decode(captureRespoonse.getBioExtract())));
-			irisDetails.setIrisImageName(captureRespoonse.getBioSubType());
-			irisDetails.setIris(Base64.getDecoder().decode(captureRespoonse.getBioValue()));
-			irisDetails.setQualityScore(Integer.parseInt(captureRespoonse.getQualityScore()));
-			irisDetails.setIrisType(captureRespoonse.getBioSubType());
-			irisDetails.setCaptured(true);
-			irisDetails.setNumOfIrisRetry(attempt);
-			detailsDTO.getIrises().add(irisDetails);
+				irisDetails.setIrisIso((Base64.getDecoder().decode(captureResponse.getBioExtract())));
+				irisDetails.setIrisImageName(captureResponse.getBioSubType());
+				irisDetails.setIris(Base64.getDecoder().decode(captureResponse.getBioValue()));
+				irisDetails.setQualityScore(Integer.parseInt(captureResponse.getQualityScore()));
+				irisDetails.setIrisType(captureResponse.getBioSubType());
+				irisDetails.setCaptured(true);
+				irisDetails.setNumOfIrisRetry(attempt);
+				detailsDTO.getIrises().add(irisDetails);
+			}
 
 		});
 		detailsDTO.setCaptured(true);
