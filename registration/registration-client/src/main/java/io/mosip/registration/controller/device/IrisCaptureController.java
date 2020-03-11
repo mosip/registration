@@ -836,6 +836,7 @@ public class IrisCaptureController extends BaseController {
 				if (validateIris(getIrises())) {
 					userOnboardParentController.showCurrentPage(RegistrationConstants.IRIS_CAPTURE,
 							getOnboardPageDetails(RegistrationConstants.IRIS_CAPTURE, RegistrationConstants.NEXT));
+					
 				}
 			} else {
 				faceCaptureController.disableNextButton();
@@ -858,10 +859,13 @@ public class IrisCaptureController extends BaseController {
 					}
 					faceCaptureController.checkForException();
 					registrationController.showUINUpdateCurrentPage();
+					faceCaptureController.isExceptionPhotoMandatory();
+					
 				} else {
 					faceCaptureController.checkForException();
 					registrationController.showCurrentPage(RegistrationConstants.IRIS_CAPTURE,
 							getPageDetails(RegistrationConstants.IRIS_CAPTURE, RegistrationConstants.NEXT));
+					faceCaptureController.isExceptionPhotoMandatory();
 				}
 			}
 

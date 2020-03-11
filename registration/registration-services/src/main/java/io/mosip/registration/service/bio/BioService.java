@@ -2,6 +2,7 @@ package io.mosip.registration.service.bio;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
 import io.mosip.registration.dto.biometric.FingerprintDetailsDTO;
@@ -250,7 +251,7 @@ public interface BioService {
 	 *            Captured Fingerprint Details
 	 * @return whether captured fingerprints were valid or not
 	 */
-	public boolean isValidFingerPrints(FingerprintDetailsDTO detailsDTO);
+	public boolean isValidFingerPrints(FingerprintDetailsDTO detailsDTO,boolean isAuth);
 
 	/**
 	 * @param segmentedFingerprints
@@ -263,5 +264,13 @@ public interface BioService {
 	 * @return whether All non exception fingers were captured or not
 	 */
 	public boolean isAllNonExceptionFingerprintsCaptured();
+
+	public Map<String, List<String>> getLowQualityBiometrics();
+	
+	public boolean hasBiometricExceptionToggleEnabled() ;
+	
+//	public void remove
+	
+
 
 }

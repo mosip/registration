@@ -31,6 +31,7 @@ import io.mosip.registration.dao.MachineMappingDAO;
 import io.mosip.registration.dao.UserOnboardDAO;
 import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.PacketStatusDTO;
+import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.SuccessResponseDTO;
 import io.mosip.registration.entity.Registration;
@@ -461,6 +462,31 @@ public class BaseService {
 		}
 
 		return isAuthTokenEmptyError;
+	}
+	
+	
+
+	public static boolean isChild() {
+		
+		return (boolean) SessionContext.map().get(RegistrationConstants.IS_Child);
+	}
+	
+	/**
+	 * Gets the registration DTO from session.
+	 *
+	 * @return the registration DTO from session
+	 */
+	protected RegistrationDTO getRegistrationDTOFromSession() {
+		return (RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA);
+	}
+	
+	/**
+	 * Check of update UIN whether only demo update or bio includes.
+	 *
+	 * @return true or false of biometric update
+	 */
+	protected boolean isUpdateUinNonBioMetric() {
+		return getRegistrationDTOFromSession().isUpdateUINNonBiometric();
 	}
 
 }

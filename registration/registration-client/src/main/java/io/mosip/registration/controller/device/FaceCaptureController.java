@@ -50,6 +50,7 @@ import io.mosip.registration.dto.biometric.IrisDetailsDTO;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
 import io.mosip.registration.mdm.dto.RequestDetail;
 import io.mosip.registration.service.bio.BioService;
+import io.mosip.registration.service.bio.impl.BioServiceImpl;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -162,8 +163,6 @@ public class FaceCaptureController extends BaseController implements Initializab
 
 	private boolean hasLowBiometrics;
 
-	private Map<String, List<String>> lowQualityBiometrics = new HashMap<>();
-
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		LOGGER.info("REGISTRATION - UI - FACE_CAPTURE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
@@ -201,7 +200,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 			}
 		} else {
 			hasLowBiometrics = false;
-			hasBiometricException = false;
+			hasBiometricException = bioService.hasBiometricExceptionToggleEnabled();
 
 			defaultExceptionImage = new Image(
 					getClass().getResourceAsStream(RegistrationConstants.DEFAULT_EXCEPTION_IMAGE_PATH));
@@ -512,6 +511,15 @@ public class FaceCaptureController extends BaseController implements Initializab
 
 		// Closing Capture screen
 		webCameraController.getWebCameraStage().close();
+
+	}
+
+	public void isExceptionPhotoMandatory() {
+		if (bioService.hasBiometricExceptionToggleEnabled() && !exceptionImageCaptured) {
+
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.EXCEPTION_PHOTO_MANDATORY);
+
+		}
 	}
 
 	@Override
@@ -578,17 +586,13 @@ public class FaceCaptureController extends BaseController implements Initializab
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "validating applicant biometrics");
 
-		boolean imageCaptured = false;
-		if (applicantImageCaptured && hasBiometricException) {
-			if (exceptionImageCaptured) {
-				imageCaptured = true;
-			}
-		} else {
-			if (applicantImageCaptured) {
-				imageCaptured = true;
-			}
-		}
-		return imageCaptured;
+		return applicantImageCaptured
+				? ((bioService.hasBiometricExceptionToggleEnabled() && !BioServiceImpl.isChild()
+						&& !getRegistrationDTOFromSession().isUpdateUINNonBiometric())
+								? (exceptionImageCaptured ? true : false)
+								: true)
+				: false;
+
 	}
 
 	private boolean validateOperatorPhoto() {
@@ -648,7 +652,9 @@ public class FaceCaptureController extends BaseController implements Initializab
 				takePhoto.setDisable(false);
 				photoAlert.setVisible(false);
 			}
-		} else if (selectedPhoto.getId().equals(RegistrationConstants.EXCEPTION_PHOTO_PANE) && hasBiometricException
+		} else if ((!BioServiceImpl.isChild() && !getRegistrationDTOFromSession().isUpdateUINNonBiometric())
+				&& selectedPhoto.getId().equals(RegistrationConstants.EXCEPTION_PHOTO_PANE)
+				&& bioService.hasBiometricExceptionToggleEnabled()
 				&& validatePhotoTimer(lastExceptionPhotoCaptured,
 						Integer.parseInt(getValueFromApplicationContext(RegistrationConstants.FACE_RECAPTURE_TIME)),
 						photoAlert, RegistrationConstants.EXCEPTION_IMAGE)) {
@@ -664,18 +670,19 @@ public class FaceCaptureController extends BaseController implements Initializab
 		 * check if the applicant has biometric exception
 		 */
 		if (!(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
-			hasBiometricException = false;
 
-			boolean hasMissingBiometrics = (Boolean) SessionContext.userContext().getUserMap()
-					.get(RegistrationConstants.TOGGLE_BIO_METRIC_EXCEPTION);
+			boolean hasBiometricException = bioService.hasBiometricExceptionToggleEnabled();
 
 			hasLowBiometrics = validateBiometrics(hasBiometricException);
 
-			hasMissingBiometrics = getRegistrationDTOFromSession().isUpdateUINNonBiometric() ? false : hasMissingBiometrics;
-			
+			hasBiometricException = getRegistrationDTOFromSession().isUpdateUINNonBiometric() ? false
+					: hasBiometricException;
+
 			/* if there is no missing biometric, check for low quality of biometrics */
-			hasBiometricException = hasMissingBiometrics || hasLowBiometrics;
-			SessionContext.userMap().put(RegistrationConstants.IS_LOW_QUALITY_BIOMETRICS, hasBiometricException);
+			// hasBiometricException = hasMissingBiometrics || hasLowBiometrics;
+
+			SessionContext.userMap().put(RegistrationConstants.IS_LOW_QUALITY_BIOMETRICS, hasLowBiometrics);
+
 			disableNextButton();
 		}
 	}
@@ -691,7 +698,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 	 *         to know whether exception photo should be enabled or not
 	 */
 	private boolean validateBiometrics(boolean hasBiometricException) {
-		lowQualityBiometrics.clear();
+		bioService.getLowQualityBiometrics().clear();
 		RegistrationDTO registration = getRegistrationDTOFromSession();
 		List<FingerprintDetailsDTO> capturedFingers = null;
 		List<IrisDetailsDTO> capturedIrises = null;
@@ -699,14 +706,14 @@ public class FaceCaptureController extends BaseController implements Initializab
 		if ((boolean) SessionContext.map().get(RegistrationConstants.IS_Child)) {
 			capturedFingers = registration.getBiometricDTO().getIntroducerBiometricDTO().getFingerprintDetailsDTO();
 			capturedIrises = registration.getBiometricDTO().getIntroducerBiometricDTO().getIrisDetailsDTO();
-		} else if (getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {
+		} else {
 			capturedFingers = registration.getBiometricDTO().getApplicantBiometricDTO().getFingerprintDetailsDTO();
 			capturedIrises = registration.getBiometricDTO().getApplicantBiometricDTO().getIrisDetailsDTO();
 		}
 		hasBiometricException = markReasonForFingerprintException(capturedFingers, hasBiometricException);
 		hasBiometricException = markReasonForIrisException(capturedIrises, hasBiometricException);
 
-		if (!lowQualityBiometrics.isEmpty()) {
+		if (!bioService.getLowQualityBiometrics().isEmpty()) {
 			markReasonForException();
 		}
 
@@ -741,7 +748,8 @@ public class FaceCaptureController extends BaseController implements Initializab
 				}
 			}
 			if (!missingFingerTypes.isEmpty()) {
-				lowQualityBiometrics.put(RegistrationConstants.FINGERPRINT.toLowerCase(), missingFingerTypes);
+				bioService.getLowQualityBiometrics().put(RegistrationConstants.FINGERPRINT.toLowerCase(),
+						missingFingerTypes);
 			}
 		}
 		return hasBiometricException;
@@ -765,7 +773,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 				}
 			}
 			if (!missingIrisTypes.isEmpty()) {
-				lowQualityBiometrics.put(RegistrationConstants.IRIS.toLowerCase(), missingIrisTypes);
+				bioService.getLowQualityBiometrics().put(RegistrationConstants.IRIS.toLowerCase(), missingIrisTypes);
 			}
 		}
 		return hasBiometricException;
@@ -797,7 +805,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 			capturedExceptions = new ArrayList<>();
 		}
 
-		for (Entry<String, List<String>> entry : lowQualityBiometrics.entrySet()) {
+		for (Entry<String, List<String>> entry : bioService.getLowQualityBiometrics().entrySet()) {
 			List<String> missingBiometricTypes = entry.getValue();
 			for (String missingBiometricType : missingBiometricTypes) {
 				BiometricExceptionDTO biometricExceptionDTO = new BiometricExceptionDTO();

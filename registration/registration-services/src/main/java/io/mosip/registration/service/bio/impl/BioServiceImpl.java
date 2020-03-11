@@ -95,6 +95,12 @@ public class BioServiceImpl extends BaseService implements BioService {
 
 	private static Map<String, Map<Integer, Image>> BIO_STREAM_IMAGES = new HashMap<String, Map<Integer, Image>>();
 
+	private static Map<String, List<String>> lowQualityBiometrics = new HashMap<>();
+
+	public Map<String, List<String>> getLowQualityBiometrics() {
+		return lowQualityBiometrics;
+	}
+
 	public static HashMap<String, CaptureResponsBioDataDto> getBestCaptures() {
 		return BEST_CAPTURES;
 	}
@@ -489,7 +495,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	@Override
 	public boolean isMdmEnabled() {
 
-		return RegistrationConstants.ENABLE
+		return !RegistrationConstants.ENABLE
 				.equalsIgnoreCase(((String) ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
 	}
 
@@ -611,6 +617,10 @@ public class BioServiceImpl extends BaseService implements BioService {
 				segmentedDetailsDTO.setNumRetry(fingerprintDetailsDTO.getNumRetry());
 				segmentedDetailsDTO.setForceCaptured(false);
 				segmentedDetailsDTO.setQualityScore(90);
+
+				if (fingerprintImageName.equals("Left Index")) {
+					segmentedDetailsDTO.setQualityScore(20);
+				}
 
 				if (fingerprintDetailsDTO.getSegmentedFingerprints() == null) {
 					List<FingerprintDetailsDTO> segmentedFingerprints = new ArrayList<>(5);
@@ -1139,11 +1149,24 @@ public class BioServiceImpl extends BaseService implements BioService {
 	 * io.mosip.registration.service.bio.BioService#isValidFingerPrints(io.mosip.
 	 * registration.dto.biometric.FingerprintDetailsDTO)
 	 */
-	public boolean isValidFingerPrints(FingerprintDetailsDTO fingerprintDetailsDTO) {
+	public boolean isValidFingerPrints(FingerprintDetailsDTO fingerprintDetailsDTO, boolean isAuth) {
 
 		boolean isValid = false;
 
-		if (isAllNonExceptionBiometricsCaptured(fingerprintDetailsDTO.getSegmentedFingerprints(),
+		if (isAuth) {
+
+			String threshold = getThresholdKey(fingerprintDetailsDTO.getFingerType());
+
+			List<FingerprintDetailsDTO> lowQualityBiometrics = new ArrayList<>();
+			for (FingerprintDetailsDTO detailsDTO : fingerprintDetailsDTO.getSegmentedFingerprints()) {
+				if (detailsDTO.getQualityScore() < Double.valueOf(getGlobalConfigValueOf(threshold))) {
+					lowQualityBiometrics.add(detailsDTO);
+				}
+			}
+
+			fingerprintDetailsDTO.getSegmentedFingerprints().removeAll(lowQualityBiometrics);
+			return !fingerprintDetailsDTO.getSegmentedFingerprints().isEmpty();
+		} else if (isAllNonExceptionBiometricsCaptured(fingerprintDetailsDTO.getSegmentedFingerprints(),
 				fingerprintDetailsDTO.getFingerType(),
 				getExceptionFingersByBioType(fingerprintDetailsDTO.getFingerType()))) {
 
@@ -1153,6 +1176,26 @@ public class BioServiceImpl extends BaseService implements BioService {
 			}
 		}
 		return isValid;
+	}
+
+	private String getThresholdKey(String fingerType) {
+		String threshold = null;
+		if (fingerType == null) {
+			return threshold;
+		}
+
+		if (fingerType.equals(RegistrationConstants.FINGERPRINT_SLAB_LEFT)) {
+			threshold = RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD;
+		} else if (fingerType.equals(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)) {
+			threshold = RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD;
+		} else if (fingerType.equals(RegistrationConstants.FINGERPRINT_SLAB_THUMBS)) {
+			threshold = RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD;
+		}
+		return threshold;
+	}
+
+	private void removeBelowThresholdBiometrics(FingerprintDetailsDTO fingerprintDetailsDTO) {
+
 	}
 
 	private List<String> getExceptionFingersByBioType(String bioSubType) {
@@ -1381,4 +1424,10 @@ public class BioServiceImpl extends BaseService implements BioService {
 		}
 		return true;
 	}
+
+	public boolean hasBiometricExceptionToggleEnabled() {
+		return (Boolean) SessionContext.userContext().getUserMap()
+				.get(RegistrationConstants.TOGGLE_BIO_METRIC_EXCEPTION);
+	}
+
 }
