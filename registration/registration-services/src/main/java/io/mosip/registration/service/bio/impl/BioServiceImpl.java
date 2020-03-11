@@ -495,7 +495,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	@Override
 	public boolean isMdmEnabled() {
 
-		return !RegistrationConstants.ENABLE
+		return RegistrationConstants.ENABLE
 				.equalsIgnoreCase(((String) ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
 	}
 
@@ -618,9 +618,9 @@ public class BioServiceImpl extends BaseService implements BioService {
 				segmentedDetailsDTO.setForceCaptured(false);
 				segmentedDetailsDTO.setQualityScore(90);
 
-				if (fingerprintImageName.equals("Left Index")) {
-					segmentedDetailsDTO.setQualityScore(20);
-				}
+//				if (fingerprintImageName.equals("Left Index")) {
+//					segmentedDetailsDTO.setQualityScore(20);
+//				}
 
 				if (fingerprintDetailsDTO.getSegmentedFingerprints() == null) {
 					List<FingerprintDetailsDTO> segmentedFingerprints = new ArrayList<>(5);
