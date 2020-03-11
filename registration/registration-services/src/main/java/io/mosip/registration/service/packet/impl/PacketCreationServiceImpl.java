@@ -68,6 +68,7 @@ import io.mosip.registration.dto.biometric.FingerprintDetailsDTO;
 import io.mosip.registration.dto.biometric.IrisDetailsDTO;
 import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
 import io.mosip.registration.dto.demographic.IndividualIdentity;
+import io.mosip.registration.dto.json.metadata.BiometricException;
 import io.mosip.registration.dto.json.metadata.BiometricSequence;
 import io.mosip.registration.dto.json.metadata.CustomDigitalId;
 import io.mosip.registration.dto.json.metadata.DemographicSequence;
@@ -81,6 +82,8 @@ import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
 import io.mosip.registration.service.BaseService;
+import io.mosip.registration.service.bio.BioService;
+import io.mosip.registration.service.bio.impl.BioServiceImpl;
 import io.mosip.registration.service.external.ZipCreationService;
 import io.mosip.registration.service.packet.PacketCreationService;
 import io.mosip.registration.util.advice.AuthenticationAdvice;
@@ -115,6 +118,9 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 	private AuditDAO auditDAO;
 	@Autowired
 	private DocumentTypeDAO documentTypeDAO;
+
+	@Autowired
+	private BioService bioService;
 
 	/*
 	 * (non-Javadoc)
@@ -734,15 +740,16 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 						RegistrationExceptionConstants.REG_PKT_APPLICANT_BIO_INVALID_FACE_EXCEPTION);
 			}
 
-			if ((boolean) SessionContext.map().get(RegistrationConstants.IS_Child) && !((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA))
-					.isUpdateUINNonBiometric() && hasApplicantBiometricException
-					&& validateFace(applicantBiometrics.getExceptionFace())) {
+			if ((boolean) SessionContext.map().get(RegistrationConstants.IS_Child)
+					&& !((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA))
+							.isUpdateUINNonBiometric()
+					&& hasApplicantBiometricException && validateFace(applicantBiometrics.getExceptionFace())) {
 				throwRegBaseCheckedException(
 						RegistrationExceptionConstants.REG_PKT_APPLICANT_BIO_INVALID_EXCEPTION_FACE_EXCEPTION);
 			}
 
-			if (hasAuthenticationBiometricException && authenticationBiometrics != null
-					&& validateFace(authenticationBiometrics.getExceptionFace())) {
+			if (!isChild() && !isUpdateUinNonBioMetric() && hasAuthenticationBiometricException
+					&& authenticationBiometrics != null && validateFace(authenticationBiometrics.getExceptionFace())) {
 				throwRegBaseCheckedException(
 						RegistrationExceptionConstants.REG_PKT_AUTHENTICATION_BIO_INVALID_EXCEPTION_FACE_EXCEPTION);
 			}

@@ -419,7 +419,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 			}
 
 		} catch (RuntimeException runtimeException) {
-			LOGGER.error(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+ 			LOGGER.error(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					String.format(
 							"Exception while getting the scanned biometrics for user registration: %s caused by %s",
 							runtimeException.getMessage(),
@@ -495,10 +495,12 @@ public class GuardianBiometricsController extends BaseController implements Init
 						true);
 				registrationPreviewController.setUpPreviewContent();
 			}
+			faceCaptureController.checkForException();
 			registrationController.showUINUpdateCurrentPage();
 		} else {
 			registrationController.showCurrentPage(RegistrationConstants.GUARDIAN_BIOMETRIC,
 					getPageDetails(RegistrationConstants.GUARDIAN_BIOMETRIC, RegistrationConstants.NEXT));
+			faceCaptureController.checkForException();
 		}
 	}
 
@@ -745,7 +747,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Validating Captured FingerPrints");
-		if (detailsDTO.isCaptured() && bioService.isValidFingerPrints(detailsDTO)) {
+		if (detailsDTO.isCaptured() && bioService.isValidFingerPrints(detailsDTO,true)) {
 
 			boolean isNotMatched = true;
 
