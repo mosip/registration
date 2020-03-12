@@ -271,6 +271,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 		return masterSyncResponse;
 	}
 
+	/*
 	private Map<String, String> getRequestParams(String masterSyncDtls, String keyIndex) {
 		Map<String, String> requestParamMap = new HashMap<>();
 
@@ -300,6 +301,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 
 		return requestParamMap;
 	}
+	*/
 
 	/**
 	 * Find location or region by hierarchy code.
@@ -733,8 +735,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	 * @throws RegBaseCheckedException
 	 */
 	private Map<String, String> getRequestParamsForClientSettingsSync(String masterSyncDtls, String keyIndex) throws RegBaseCheckedException  {
-		Map<String, String> requestParamMap = new HashMap<>();	
-		
+		Map<String, String> requestParamMap = new HashMap<String, String>();			
 		String machineName = null;
 		try {
 			machineName = InetAddress.getLocalHost().getHostName();
