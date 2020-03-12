@@ -108,13 +108,21 @@ public class MosipBioDeviceManager {
 
 		for (int port = portFrom; port <= portTo; port++) {
 
-			try {
-				initByPort(port);
-			} catch (RuntimeException | RegBaseCheckedException exception) {
-				LOGGER.error(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_GET, APPLICATION_NAME, APPLICATION_ID,
-						"Exception while mapping the response : " + exception.getMessage()
-								+ ExceptionUtils.getStackTrace(exception));
-			}
+			
+				final int currentPort =port;
+				
+				/* An A-sync task to complete MDS initialization */
+				new Thread(() -> {
+					try {
+						initByPort(currentPort);
+					} catch (RuntimeException | RegBaseCheckedException exception) {
+						LOGGER.error(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_GET, APPLICATION_NAME, APPLICATION_ID,
+								"Exception while mapping the response : " + exception.getMessage()
+										+ ExceptionUtils.getStackTrace(exception));
+					}
+				}).start();
+				
+			
 
 		}
 		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
