@@ -8,11 +8,15 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 
+import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
@@ -21,6 +25,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.entity.RegistrationCommonFields;
 import io.mosip.registration.exception.RegBaseUncheckedException;
+
 
 /**
  * MapperUtils class provides methods to map or copy values from source object
@@ -37,6 +42,8 @@ public class MapperUtils {
 
 	/** Object for Logger. */
 	private static final Logger LOGGER = AppConfig.getLogger(MapperUtils.class);
+	
+	private static final String FIELD_MISSING_ERROR_MESSAGE = "Field %s not found in data";
 
 	private MapperUtils() {
 		super();
@@ -78,6 +85,9 @@ public class MapperUtils {
 		MapperUtils.mapNullValues = mapNullValues;
 		return map(source, destination);
 	}
+	
+	
+
 
 	/**
 	 * This method map the values from <code>source</code> to
@@ -110,7 +120,14 @@ public class MapperUtils {
 		}
 		return destination;
 	}
-
+	
+	
+	/*
+	 * public static <S, D> D mapLTE(final List<String> source, D destination) {
+	 * Objects.requireNonNull(source, SOURCE_NULL_MESSAGE);
+	 * Objects.requireNonNull(destination, DESTINATION_NULL_MESSAGE);
+	 * mapJsonListToEntity(source, destination); return destination; }
+	 */
 	/**
 	 * This method takes <code>source</code> and <code>destinationClass</code>, take
 	 * all values from source and create an object of <code>destinationClass</code>
@@ -144,6 +161,8 @@ public class MapperUtils {
 		}
 		return (D) map(source, destination);
 	}
+	
+	
 
 	/**
 	 * This method map values of <code>source</code> object to
@@ -198,6 +217,9 @@ public class MapperUtils {
 		}
 	}
 
+		 
+	
+
 	/**
 	 * This method map source DTO to a class object which extends {@link BaseEntity}
 	 * 
@@ -224,6 +246,20 @@ public class MapperUtils {
 				break;
 			}
 		}
+	}
+	
+	
+	
+	private static boolean isIgnoreField(Field dfield) {
+		return (Modifier.isStatic(dfield.getModifiers()) 
+				|| Modifier.isFinal(dfield.getModifiers()) 
+				|| dfield.isAnnotationPresent(ManyToMany.class)
+				|| dfield.isAnnotationPresent(ManyToOne.class)
+				|| dfield.getName().equals("crBy")
+				|| dfield.getName().equals("crDtime")
+				|| dfield.getName().equals("updBy")
+				|| dfield.getName().equals("updDtimes")) ?
+						true : false;		
 	}
 
 	/**
@@ -291,6 +327,32 @@ public class MapperUtils {
 		}
 
 	}
+	
+	
+	
+	
+	private static <S, D> void setBaseFieldValue(List<String> source, D destination) {
+
+		String sourceSupername = source.getClass().getSuperclass().getName();// super class of source object
+		String destinationSupername = destination.getClass().getSuperclass().getName();// super class of destination
+																						// object
+		String baseEntityClassName = RegistrationCommonFields.class.getName();// base entity fully qualified name
+
+		// if source is an entity
+		if (sourceSupername.equals(baseEntityClassName)) {
+			Field[] sourceFields = source.getClass().getSuperclass().getDeclaredFields();
+			Field[] destinationFields = destination.getClass().getDeclaredFields();
+			mapFieldValues(source, destination, sourceFields, destinationFields);
+			return;
+		}
+		// if destination is an entity
+		if (destinationSupername.equals(baseEntityClassName)) {
+			Field[] sourceFields = source.getClass().getDeclaredFields();
+			Field[] destinationFields = destination.getClass().getSuperclass().getDeclaredFields();
+			mapFieldValues(source, destination, sourceFields, destinationFields);
+		}
+
+	}
 
 	/**
 	 * Map values from source field to destination.
@@ -334,6 +396,42 @@ public class MapperUtils {
 					exIllegalAccessException.getMessage() + ExceptionUtils.getStackTrace(exIllegalAccessException));
 		}
 	}
+	 
+		private static <D, S> void mapFieldValuesClient(S source, D destination, Field[] sourceFields,
+				Field[] destinationFields) {
+			try {
+				for (Field sfield : sourceFields) {
+					// Do not set values either static or final
+					if (Modifier.isStatic(sfield.getModifiers()) || Modifier.isFinal(sfield.getModifiers())) {
+						continue;
+					}
+
+					// make field accessible possibly private
+					sfield.setAccessible(true);
+
+					for (Field dfield : destinationFields) {
+
+						Class<?> sourceType = sfield.getType();
+						Class<?> destinationType = dfield.getType();
+
+						// map only those field whose name and type is same
+						if (sfield.getName().equals(dfield.getName()) && sourceType.equals(destinationType)) {
+
+							// for normal field values
+							dfield.setAccessible(true);
+							setFieldValue(source, destination, sfield, dfield);
+							break;
+						}
+					}
+				}
+			} catch (IllegalAccessException exIllegalAccessException) {
+				LOGGER.error(MAPPER_UTILL, APPLICATION_NAME, APPLICATION_ID, "Exception raised while mapping values form "
+						+ source.getClass().getName() + " to " + destination.getClass().getName());
+				throw new RegBaseUncheckedException("MapperUtils",
+						exIllegalAccessException.getMessage() + ExceptionUtils.getStackTrace(exIllegalAccessException));
+			}
+		}
+
 
 	/**
 	 * Take value from source field and insert value into destination field.
@@ -353,6 +451,74 @@ public class MapperUtils {
 		dtf.set(destination, sf.get(source));
 		dtf.setAccessible(false);
 		sf.setAccessible(false);
+	}
+	
+	/**
+	 * Map values from {@link BaseEntity} class source object to destination or vice
+	 * versa.
+	 * 
+	 * @param jsonObject      which value is going to be mapped
+	 * @param destination where values is going to be mapped
+	 */
+	public static <D> D mapJSONObjectToEntity(final JSONObject jsonObject, Class<?> entityClass) throws IllegalAccessException, InstantiationException {
+		Objects.requireNonNull(jsonObject, SOURCE_NULL_MESSAGE);
+		Objects.requireNonNull(entityClass, "destination class should not be null");
+		Object destination = null;
+		try {
+			destination = entityClass.newInstance();
+		} catch (InstantiationException | IllegalAccessException exOperationException) {
+			LOGGER.error(MAPPER_UTILL, APPLICATION_NAME, APPLICATION_ID, "Exception in mapping vlaues from source : "
+					+ jsonObject.getClass().getName() + " to destination : " + entityClass.getClass().getName());
+			throw new RegBaseUncheckedException(MAPPER_UTILL,
+					exOperationException.getMessage() + ExceptionUtils.getStackTrace(exOperationException));
+		}
+		Objects.requireNonNull(destination, DESTINATION_NULL_MESSAGE);
+		setBaseFieldValueFromJsonObject(jsonObject, destination);// map super class values
+		mapJsonToEntity(jsonObject, destination, destination.getClass().getDeclaredFields());
+		return (D) destination;
+	}
+	
+	
+	/**
+	 * Take value from source field and insert value into destination field.
+	 * 
+	 * @param jsonObject      which value is going to be mapped
+	 * @param destination where values is going to be mapped
+	 * @param fields         destination fields
+	 * @throws IllegalAccessException if provided fields are not accessible
+	 */
+	private static <D> D mapJsonToEntity(JSONObject jsonObject, D destination, Field[] fields)
+			throws InstantiationException, IllegalAccessException {
+		for (Field dfield : fields) {
+			if (isIgnoreField(dfield)) {
+				continue;
+			}
+			if (dfield.isAnnotationPresent(EmbeddedId.class)) {
+				Object id = dfield.getType().newInstance();
+				mapJsonToEntity(jsonObject, id, id.getClass().getDeclaredFields());
+				dfield.setAccessible(true);
+				dfield.set(destination, id);
+				dfield.setAccessible(false);
+				continue;
+			}			
+			if(!jsonObject.has(dfield.getName()))
+				throw new RegBaseUncheckedException(MAPPER_UTILL, String.format(FIELD_MISSING_ERROR_MESSAGE, dfield.getName()));
+			dfield.setAccessible(true);
+			dfield.set(destination, jsonObject.get(dfield.getName()));
+		}
+		return destination;
+	}
+	
+	
+	private static <D> void setBaseFieldValueFromJsonObject(JSONObject source, D destination) throws InstantiationException, IllegalAccessException {
+
+		String destinationSupername = destination.getClass().getSuperclass().getName();// super class of destination object
+		String baseEntityClassName = RegistrationCommonFields.class.getName();// base entity fully qualified name
+		// if destination is an entity
+		if (destinationSupername.equals(baseEntityClassName)) {
+			Field[] destinationFields = destination.getClass().getSuperclass().getDeclaredFields();
+			mapJsonToEntity(source, destination, destinationFields);
+		}
 	}
 
 }

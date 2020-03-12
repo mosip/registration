@@ -3,6 +3,7 @@ package io.mosip.registration.dao;
 import java.util.List;
 
 import io.mosip.registration.dto.mastersync.MasterDataResponseDto;
+import io.mosip.registration.dto.response.SyncDataResponseDto;
 import io.mosip.registration.entity.BiometricAttribute;
 import io.mosip.registration.entity.BlacklistedWords;
 import io.mosip.registration.entity.DocumentCategory;
@@ -16,6 +17,7 @@ import io.mosip.registration.entity.ReasonList;
 import io.mosip.registration.entity.SyncControl;
 import io.mosip.registration.entity.SyncJobDef;
 import io.mosip.registration.entity.ValidDocument;
+
 
 /**
  * This class is used to store the master data details like Location, gender,Registration center, 
@@ -35,17 +37,6 @@ public interface MasterSyncDao {
 	 * @return the master sync status
 	 */
 	public SyncControl syncJobDetails(String synccontrol);
-
-	/**
-	 * All the master data such as Location, gender,Registration center, Document types,category etc., 
-	 * will be saved in the DB(These details will be getting from the MasterSync service)
-	 *
-	 * @param masterSyncDto
-	 *            All the master details will be available in the {@link MasterDataResponseDto}
-	 * @return the string
-	 * 			- Returns the Success or Error response
-	 */
-	public String save(MasterDataResponseDto masterSyncDto);
 
 	/**
 	 * Find location by lang code.
@@ -180,6 +171,19 @@ public interface MasterSyncDao {
 	 * @return list of active {@link Location}
 	 */
 	List<Location> getLocationDetails();
+
+	
+	/**
+	 * This new method is replacement to save method.
+	 * enhanced to handle dynamic entity data sync along with client settings from syncdata-service
+	 * 
+	 * @param syncDataResponseDto
+	 * @return 
+	 */
+	public String saveSyncData(SyncDataResponseDto syncDataResponseDto);
+
+
+
 	
 
 }

@@ -2,8 +2,17 @@ package io.mosip.registration.test.jobs;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.times;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Date;
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,11 +35,16 @@ import org.quartz.JobExecutionContext;
 import org.quartz.Trigger;
 import org.springframework.context.ApplicationContext;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dao.MachineMappingDAO;
 import io.mosip.registration.dao.SyncJobControlDAO;
 import io.mosip.registration.dao.SyncTransactionDAO;
 import io.mosip.registration.dao.UserOnboardDAO;
+import io.mosip.registration.dto.response.SyncDataResponseDto;
 import io.mosip.registration.entity.SyncControl;
 import io.mosip.registration.entity.SyncJobDef;
 import io.mosip.registration.entity.SyncTransaction;
@@ -173,6 +187,19 @@ public class SyncManagerTest {
 		Mockito.when(syncJobDAO.update(Mockito.any(SyncControl.class))).thenReturn(syncControl);
 		assertNotNull(syncTransactionManagerImpl.createSyncControlTransaction(syncTransaction));
 	}
+	
+	@Test
+	public void updateClientSettingLastSyncTimeTest() throws ParseException {
+		SyncDataResponseDto syncDataResponseDto=getSyncDataResponseDto("responseJson.json");
+		SyncTransaction syncTransaction = prepareSyncTransaction();
+		DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		Date date = formatter.parse(syncDataResponseDto.getLastSyncTime());
+		Timestamp timestamp = new Timestamp(date.getTime());
+		SyncControl syncControl = new SyncControl();
+		Mockito.when(syncJobDAO.findBySyncJobId(Mockito.anyString())).thenReturn(syncControl);
+		Mockito.when(syncJobDAO.update(Mockito.any(SyncControl.class))).thenReturn(syncControl);
+		assertNotNull(syncTransactionManagerImpl.updateClientSettingLastSyncTime(syncTransaction, timestamp));
+	}
 
 	@Ignore
 	@Test(expected = RegBaseUncheckedException.class)
@@ -194,6 +221,27 @@ public class SyncManagerTest {
 		syncControl.setId(syncTransaction.getId());
 		Mockito.when(syncJobDAO.save(Mockito.any(SyncControl.class))).thenReturn(syncControl);
 		assertNotNull(syncTransactionManagerImpl.createSyncControlTransaction(syncTransaction));
+	}
+	private SyncDataResponseDto getSyncDataResponseDto(String fileName) {
+		
+		ObjectMapper mapper = new ObjectMapper();
+        SyncDataResponseDto syncDataResponseDto = null;
+		
+			try {
+				syncDataResponseDto = mapper.readValue(
+						new File(getClass().getClassLoader().getResource(fileName).getFile()),SyncDataResponseDto.class);
+			} catch (JsonParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
+		return syncDataResponseDto;
 	}
 
 }

@@ -73,5 +73,12 @@ public interface MachineMappingDAO {
 	 * @return the key index of the machine
 	 */
 	String getKeyIndexByMacId(String macId);
+	
+	/**
+	 * This method is used to get the key index of the Machine based on MachineName
+	 * @param machineName aka host name
+	 * @return
+	 */
+	String getKeyIndexByMachineName(String machineName);
 
 }

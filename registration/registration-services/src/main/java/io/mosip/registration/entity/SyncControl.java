@@ -91,10 +91,10 @@ public class SyncControl extends RegistrationCommonFields {
 		return lastSyncDtimes;
 	}
 	/**
-	 * @param lastSyncDtimes the lastSyncDtimes to set
+	 * @param object the lastSyncDtimes to set
 	 */
-	public void setLastSyncDtimes(Timestamp lastSyncDtimes) {
-		this.lastSyncDtimes = Timestamp.valueOf(DateUtils.getUTCCurrentDateTime());
+	public void setLastSyncDtimes(Timestamp timestamp) {
+		this.lastSyncDtimes = timestamp;
 	}
 	/**
 	 * @return the synctrnId
@@ -144,4 +144,5 @@ public class SyncControl extends RegistrationCommonFields {
 	public void setDelDtime(Timestamp delDtime) {
 		this.delDtime = Timestamp.valueOf(DateUtils.getUTCCurrentDateTime());
 	}
+
 }
