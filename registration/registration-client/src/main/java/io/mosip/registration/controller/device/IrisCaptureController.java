@@ -477,8 +477,7 @@ public class IrisCaptureController extends BaseController {
 			int retries = 0;
 			double qualityScore = 0;
 			if (irisDetailsDTO != null) {
-				retries = irisDetailsDTO.getIrisType().contains(RegistrationConstants.LEFT) ? leftIrisCount
-						: rightIrisCount;
+				retries = irisDetailsDTO.getNumOfIrisRetry();
 				qualityScore = findQualityScore(irisDetailsDTO);
 			}
 			if (!isExceptionIris && (irisDetailsDTO == null
