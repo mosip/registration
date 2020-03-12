@@ -618,9 +618,9 @@ public class BioServiceImpl extends BaseService implements BioService {
 				segmentedDetailsDTO.setForceCaptured(false);
 				segmentedDetailsDTO.setQualityScore(90);
 
-//				if (fingerprintImageName.equals("Left Index")) {
-//					segmentedDetailsDTO.setQualityScore(20);
-//				}
+				// if (fingerprintImageName.equals("Left Index")) {
+				// segmentedDetailsDTO.setQualityScore(20);
+				// }
 
 				if (fingerprintDetailsDTO.getSegmentedFingerprints() == null) {
 					List<FingerprintDetailsDTO> segmentedFingerprints = new ArrayList<>(5);
@@ -1158,13 +1158,24 @@ public class BioServiceImpl extends BaseService implements BioService {
 			String threshold = getThresholdKey(fingerprintDetailsDTO.getFingerType());
 
 			List<FingerprintDetailsDTO> lowQualityBiometrics = new ArrayList<>();
+
+			double qualityScore = 0;
 			for (FingerprintDetailsDTO detailsDTO : fingerprintDetailsDTO.getSegmentedFingerprints()) {
+
+				
 				if (detailsDTO.getQualityScore() < Double.valueOf(getGlobalConfigValueOf(threshold))) {
 					lowQualityBiometrics.add(detailsDTO);
+					
+				} else {
+					qualityScore += fingerprintDetailsDTO.getQualityScore();
 				}
 			}
 
 			fingerprintDetailsDTO.getSegmentedFingerprints().removeAll(lowQualityBiometrics);
+
+			setBioQualityScores(fingerprintDetailsDTO.getFingerType(), fingerprintDetailsDTO.getNumRetry(),
+					qualityScore / (double) fingerprintDetailsDTO.getSegmentedFingerprints().size());
+
 			return !fingerprintDetailsDTO.getSegmentedFingerprints().isEmpty();
 		} else if (isAllNonExceptionBiometricsCaptured(fingerprintDetailsDTO.getSegmentedFingerprints(),
 				fingerprintDetailsDTO.getFingerType(),
