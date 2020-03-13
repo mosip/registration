@@ -23,14 +23,7 @@ import io.mosip.registration.entity.SyncJobDef;
  */
 public interface JobManager {
 
-	/**
-	 * To get the job by using jobContext
-	 * 
-	 * @param context
-	 *            is a job information
-	 * @return SyncJob the entity
-	 */
-	public Map<String, SyncJobDef> getChildJobs(JobExecutionContext context);
+
 
 	/**
 	 * To get JobId using Job Execution Context

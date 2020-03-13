@@ -68,12 +68,12 @@ public class KeyPolicySyncJob extends BaseJob {
 			this.jobId = loadContext(context);
 			policySyncService = applicationContext.getBean(PolicySyncService.class);
 
-			// Run the Parent JOB always first
-			this.responseDTO = policySyncService.fetchPolicy();
+			// Execute Parent Job
+			this.responseDTO = executeParentJob(jobId);
 
-			// To run the child jobs after the parent job Success
+			// Execute Current Job
 			if (responseDTO.getSuccessResponseDTO() != null) {
-				executeChildJob(jobId, jobMap);
+				this.responseDTO = policySyncService.fetchPolicy();
 			}
 
 			syncTransactionUpdate(responseDTO, triggerPoint, jobId);
@@ -83,7 +83,7 @@ public class KeyPolicySyncJob extends BaseJob {
 					RegistrationConstants.APPLICATION_ID, baseUncheckedException.getMessage());
 			throw baseUncheckedException;
 		} catch (RegBaseCheckedException checkedException) {
-			
+
 			LOGGER.error(LoggerConstants.KEY_POLICY_SYNC_JOB_TITLE, APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(checkedException));
 		}
@@ -105,10 +105,15 @@ public class KeyPolicySyncJob extends BaseJob {
 		LOGGER.info(LoggerConstants.KEY_POLICY_SYNC_JOB_TITLE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "execute Job started");
 
-		try {
-			this.responseDTO = policySyncService.fetchPolicy();
+		try {// Execute Parent Job
+			this.responseDTO = executeParentJob(jobId);
+
+			// Execute Current Job
+			if (responseDTO.getSuccessResponseDTO() != null) {
+				this.responseDTO = policySyncService.fetchPolicy();
+			}
 		} catch (RegBaseCheckedException checkedException) {
-			
+
 			LOGGER.error(LoggerConstants.KEY_POLICY_SYNC_JOB_TITLE, APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(checkedException));
 		}

@@ -42,8 +42,6 @@ public class RegistrationPacketUploadJob extends BaseJob {
 	@Autowired
 	private PacketUploadService packetUploadService;
 
-	
-
 	/**
 	 * LOGGER for logging
 	 */
@@ -67,14 +65,15 @@ public class RegistrationPacketUploadJob extends BaseJob {
 			this.jobId = loadContext(context);
 			packetUploadService = applicationContext.getBean(PacketUploadService.class);
 
-			this.responseDTO = packetUploadService.uploadAllSyncedPackets();
-
-			// To run the child jobs after the parent job Success
-			if (responseDTO.getSuccessResponseDTO() != null && context != null) {
-				executeChildJob(jobId, jobMap);
+			// Execute Parent Job
+			this.responseDTO = executeParentJob(jobId);
+			
+			// Execute Current Job
+			if (responseDTO.getSuccessResponseDTO() != null) {
+				this.responseDTO = packetUploadService.uploadAllSyncedPackets();
 			}
-
 			syncTransactionUpdate(responseDTO, triggerPoint, jobId);
+
 
 		} catch (RegBaseUncheckedException baseUncheckedException) {
 			LOGGER.error(LoggerConstants.REG_PACKET_SYNC_STATUS_JOB, RegistrationConstants.APPLICATION_NAME,
@@ -99,7 +98,13 @@ public class RegistrationPacketUploadJob extends BaseJob {
 		LOGGER.debug(LoggerConstants.REG_PACKET_SYNC_STATUS_JOB, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "execute Job started");
 
-		this.responseDTO = packetUploadService.uploadAllSyncedPackets();
+		// Execute Parent Job
+		this.responseDTO = executeParentJob(jobId);
+
+		// Execute Current Job
+		if (responseDTO.getSuccessResponseDTO() != null) {
+			this.responseDTO = packetUploadService.uploadAllSyncedPackets();
+		}
 		syncTransactionUpdate(responseDTO, triggerPoint, jobId);
 
 		LOGGER.debug(LoggerConstants.REG_PACKET_SYNC_STATUS_JOB, RegistrationConstants.APPLICATION_NAME,

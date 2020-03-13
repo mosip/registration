@@ -67,13 +67,13 @@ public class PreRegistrationDataSyncJob extends BaseJob {
 			this.jobId = loadContext(context);
 			preRegistrationDataSyncService = applicationContext.getBean(PreRegistrationDataSyncService.class);
 
-			// Run the Parent JOB always first
-			this.responseDTO = preRegistrationDataSyncService
-					.getPreRegistrationIds(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
+			// Execute Parent Job
+			this.responseDTO = executeParentJob(jobId);
 
-			// To run the child jobs after the parent job Success
-			if (responseDTO.getSuccessResponseDTO() != null && context != null) {
-				executeChildJob(jobId, jobMap);
+			// Execute Current Job
+			if (responseDTO.getSuccessResponseDTO() != null) {
+				this.responseDTO = preRegistrationDataSyncService
+						.getPreRegistrationIds(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
 			}
 
 			syncTransactionUpdate(responseDTO, triggerPoint, jobId);
@@ -102,7 +102,13 @@ public class PreRegistrationDataSyncJob extends BaseJob {
 		LOGGER.info(LoggerConstants.PRE_REG_DATA_SYNC_JOB_LOGGER_TITLE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "execute Job started");
 
-		this.responseDTO = preRegistrationDataSyncService.getPreRegistrationIds(triggerPoint);
+		// Execute Parent Job
+		this.responseDTO = executeParentJob(jobId);
+
+		// Execute Current Job
+		if (responseDTO.getSuccessResponseDTO() != null) {
+			this.responseDTO = preRegistrationDataSyncService.getPreRegistrationIds(triggerPoint);
+		}
 		syncTransactionUpdate(responseDTO, triggerPoint, jobId);
 
 		LOGGER.info(LoggerConstants.PRE_REG_DATA_SYNC_JOB_LOGGER_TITLE, RegistrationConstants.APPLICATION_NAME,

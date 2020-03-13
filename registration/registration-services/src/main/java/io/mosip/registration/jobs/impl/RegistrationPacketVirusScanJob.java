@@ -64,12 +64,13 @@ public class RegistrationPacketVirusScanJob extends BaseJob {
 			this.jobId = loadContext(context);
 			packetVirusScanService = applicationContext.getBean(RegistrationPacketVirusScanService.class);
 
-			// Run the Parent JOB always first
-			this.responseDTO = packetVirusScanService.scanPacket();
+			// Execute Parent Job
+			this.responseDTO = executeParentJob(jobId);
 
-			// To run the child jobs after the parent job Success
-			if (responseDTO.getSuccessResponseDTO() != null && context != null) {
-				executeChildJob(jobId, jobMap);
+			// Execute Current Job
+			if (responseDTO.getSuccessResponseDTO() != null) {
+				this.responseDTO = packetVirusScanService.scanPacket();
+
 			}
 
 			syncTransactionUpdate(responseDTO, triggerPoint, jobId);
@@ -97,7 +98,13 @@ public class RegistrationPacketVirusScanJob extends BaseJob {
 		LOGGER.debug(LoggerConstants.REG_PACKET_VIRUS_SCAN, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "execute Job started");
 
-		this.responseDTO = packetVirusScanService.scanPacket();
+		// Execute Parent Job
+		this.responseDTO = executeParentJob(jobId);
+
+		// Execute Current Job
+		if (responseDTO.getSuccessResponseDTO() != null) {
+			this.responseDTO = packetVirusScanService.scanPacket();
+		}
 		syncTransactionUpdate(responseDTO, triggerPoint, jobId);
 
 		LOGGER.debug(LoggerConstants.REG_PACKET_VIRUS_SCAN, RegistrationConstants.APPLICATION_NAME,

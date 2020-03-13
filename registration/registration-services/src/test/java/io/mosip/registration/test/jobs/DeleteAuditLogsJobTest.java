@@ -7,11 +7,15 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -30,13 +34,15 @@ import io.mosip.registration.jobs.BaseJob;
 import io.mosip.registration.jobs.JobManager;
 import io.mosip.registration.jobs.SyncManager;
 import io.mosip.registration.jobs.impl.DeleteAuditLogsJob;
-
+import io.mosip.registration.service.config.impl.JobConfigurationServiceImpl;
 
 /**
  * @author Sreekar Chukka
  *
  * @since 1.0.0
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ JobConfigurationServiceImpl.class })
 public class DeleteAuditLogsJobTest {
 
 	@Mock
@@ -89,7 +95,11 @@ public class DeleteAuditLogsJobTest {
 			jobMap.put(job.getId(), job);
 		});
 		Mockito.when(jobConfigDAO.getActiveJobs()).thenReturn(syncJobList);
-		
+		PowerMockito.mockStatic(JobConfigurationServiceImpl.class);
+
+		Map<String, SyncJobDef> parentJobMap = new HashMap<>();
+		parentJobMap.put("1", syncJob);
+		Mockito.when(JobConfigurationServiceImpl.getParentJobMap()).thenReturn(parentJobMap);
 	}
 
 	@Test
@@ -97,19 +107,18 @@ public class DeleteAuditLogsJobTest {
 
 		SyncJobDef syncJob = new SyncJobDef();
 		syncJob.setId("1");
-		
-		Map<String, SyncJobDef> jobMap=new HashMap<>();
-		
+
+		Map<String, SyncJobDef> jobMap = new HashMap<>();
+
 		jobMap.put(syncJob.getId(), syncJob);
-		
+
 		syncJob.setId("2");
 		syncJob.setParentSyncJobId("1");
-		
-		
+
 		jobMap.put("2", syncJob);
-		
+
 		ResponseDTO responseDTO = new ResponseDTO();
-		SuccessResponseDTO successResponseDTO=new SuccessResponseDTO();
+		SuccessResponseDTO successResponseDTO = new SuccessResponseDTO();
 		responseDTO.setSuccessResponseDTO(successResponseDTO);
 
 		Mockito.when(context.getJobDetail()).thenReturn(jobDetail);
@@ -118,72 +127,64 @@ public class DeleteAuditLogsJobTest {
 		Mockito.when(applicationContext.getBean(SyncManager.class)).thenReturn(syncManager);
 		Mockito.when(applicationContext.getBean(JobManager.class)).thenReturn(jobManager);
 		Mockito.when(applicationContext.getBean(AuditManagerSerivceImpl.class)).thenReturn(auditServiceImpl);
-		
-		Mockito.when(jobManager.getChildJobs(Mockito.any())).thenReturn(jobMap);
+
+		// Mockito.when(jobManager.getChildJobs(Mockito.any())).thenReturn(jobMap);
 		Mockito.when(jobManager.getJobId(Mockito.any(JobExecutionContext.class))).thenReturn("1");
-		
-		
-		
+
 		Mockito.when(applicationContext.getBean(Mockito.anyString())).thenReturn(deleteAuditLogsJob);
-	
+
 		Mockito.when(applicationContext.getBean(AuditManagerService.class)).thenReturn(auditServiceImpl);
-		
+
 		Mockito.when(auditServiceImpl.deleteAuditLogs()).thenReturn(responseDTO);
 
-	
 		deleteAuditLogsJob.executeInternal(context);
 		deleteAuditLogsJob.executeJob("User", "1");
 
 	}
-	
 
-
-	
-	
 	@Test(expected = RegBaseUncheckedException.class)
 	public void executejobNoSuchBeanDefinitionExceptionTest() {
-		ResponseDTO responseDTO=new ResponseDTO();
-		SuccessResponseDTO successResponseDTO=new SuccessResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		SuccessResponseDTO successResponseDTO = new SuccessResponseDTO();
 		responseDTO.setSuccessResponseDTO(successResponseDTO);
-//		Mockito.when(applicationContext.getBean(SyncManager.class)).thenThrow(NoSuchBeanDefinitionException.class);
-//				preRegistrationDataSyncJob.executeJob("User");
-//				
+		// Mockito.when(applicationContext.getBean(SyncManager.class)).thenThrow(NoSuchBeanDefinitionException.class);
+		// preRegistrationDataSyncJob.executeJob("User");
+		//
 		Mockito.when(context.getJobDetail()).thenThrow(NoSuchBeanDefinitionException.class);
 		deleteAuditLogsJob.executeInternal(context);
 	}
-	
+
 	@Test(expected = RegBaseUncheckedException.class)
 	public void executejobNullPointerExceptionTest() {
-		ResponseDTO responseDTO=new ResponseDTO();
-		SuccessResponseDTO successResponseDTO=new SuccessResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		SuccessResponseDTO successResponseDTO = new SuccessResponseDTO();
 		responseDTO.setSuccessResponseDTO(successResponseDTO);
 		Mockito.when(context.getJobDetail()).thenThrow(NullPointerException.class);
-		
+
 		deleteAuditLogsJob.executeInternal(context);
 	}
-	
+
 	@Test(expected = RegBaseUncheckedException.class)
 	public void executeChildJobsTest() throws JobExecutionException {
 		SyncJobDef syncJob = new SyncJobDef();
 		syncJob.setId("1");
-		
-		Map<String, SyncJobDef> jobMap=new HashMap<>();
-		
+
+		Map<String, SyncJobDef> jobMap = new HashMap<>();
+
 		jobMap.put(syncJob.getId(), syncJob);
-		
+
 		syncJob.setId("2");
 		syncJob.setParentSyncJobId("1");
-		
-		
+
 		jobMap.put("2", syncJob);
-		
+
 		ResponseDTO responseDTO = new ResponseDTO();
-		SuccessResponseDTO successResponseDTO=new SuccessResponseDTO();
+		SuccessResponseDTO successResponseDTO = new SuccessResponseDTO();
 		responseDTO.setSuccessResponseDTO(successResponseDTO);
 
 		Mockito.when(applicationContext.getBean(Mockito.anyString())).thenThrow(NoSuchBeanDefinitionException.class);
-		
-		deleteAuditLogsJob.executeChildJob("1", jobMap);
+
+		deleteAuditLogsJob.executeParentJob("1");
 
 	}
 

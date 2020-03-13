@@ -7,11 +7,15 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -29,9 +33,12 @@ import io.mosip.registration.jobs.BaseJob;
 import io.mosip.registration.jobs.JobManager;
 import io.mosip.registration.jobs.SyncManager;
 import io.mosip.registration.jobs.impl.UserDetailServiceJob;
+import io.mosip.registration.service.config.impl.JobConfigurationServiceImpl;
 import io.mosip.registration.service.operator.UserDetailService;
 import io.mosip.registration.service.operator.impl.UserDetailServiceImpl;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ JobConfigurationServiceImpl.class })
 public class UserDetailServiceJobTest {
 
 	@Mock
@@ -84,6 +91,11 @@ public class UserDetailServiceJobTest {
 			jobMap.put(job.getId(), job);
 		});
 		Mockito.when(jobConfigDAO.getActiveJobs()).thenReturn(syncJobList);
+		PowerMockito.mockStatic(JobConfigurationServiceImpl.class);
+
+		Map<String, SyncJobDef> parentJobMap = new HashMap<>();
+		parentJobMap.put("1", syncJob);
+		Mockito.when(JobConfigurationServiceImpl.getParentJobMap()).thenReturn(parentJobMap);
 
 	}
 
@@ -113,7 +125,7 @@ public class UserDetailServiceJobTest {
 		Mockito.when(applicationContext.getBean(JobManager.class)).thenReturn(jobManager);
 		Mockito.when(applicationContext.getBean(UserDetailServiceImpl.class)).thenReturn(userDetailService);
 
-		Mockito.when(jobManager.getChildJobs(Mockito.any())).thenReturn(jobMap);
+//		Mockito.when(jobManager.getChildJobs(Mockito.any())).thenReturn(jobMap);
 		Mockito.when(jobManager.getJobId(Mockito.any(JobExecutionContext.class))).thenReturn("1");
 
 		Mockito.when(applicationContext.getBean(Mockito.anyString())).thenReturn(userDetailServcieJob);
@@ -169,7 +181,7 @@ public class UserDetailServiceJobTest {
 
 		Mockito.when(applicationContext.getBean(Mockito.anyString())).thenThrow(NoSuchBeanDefinitionException.class);
 
-		userDetailServcieJob.executeChildJob("1", jobMap);
+		userDetailServcieJob.executeParentJob("1");
 
 	}
 

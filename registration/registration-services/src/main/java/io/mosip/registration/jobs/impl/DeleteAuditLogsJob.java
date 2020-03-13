@@ -82,12 +82,12 @@ public class DeleteAuditLogsJob extends BaseJob {
 			this.jobId = loadContext(context);
 			auditService = applicationContext.getBean(AuditManagerService.class);
 
-			/* Run the Parent JOB always first */
-			this.responseDTO = auditService.deleteAuditLogs();
+			// Execute Parent Job
+			this.responseDTO = executeParentJob(jobId);
 
-			/* To run the child jobs after the parent job Success */
+			// Execute Current Job
 			if (responseDTO.getSuccessResponseDTO() != null) {
-				executeChildJob(jobId, jobMap);
+				this.responseDTO = auditService.deleteAuditLogs();
 			}
 
 			syncTransactionUpdate(responseDTO, triggerPoint, jobId);
@@ -115,7 +115,14 @@ public class DeleteAuditLogsJob extends BaseJob {
 
 		LOGGER.debug(LoggerConstants.DELETE_AUDIT_LOGS_JOB, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "execute Job started");
-		this.responseDTO = auditService.deleteAuditLogs();
+
+		// Execute Parent Job
+		this.responseDTO = executeParentJob(jobId);
+
+		// Execute Current Job
+		if (responseDTO.getSuccessResponseDTO() != null) {
+			this.responseDTO = auditService.deleteAuditLogs();
+		}
 		syncTransactionUpdate(responseDTO, triggerPoint, jobId);
 
 		LOGGER.debug(LoggerConstants.DELETE_AUDIT_LOGS_JOB, RegistrationConstants.APPLICATION_NAME,

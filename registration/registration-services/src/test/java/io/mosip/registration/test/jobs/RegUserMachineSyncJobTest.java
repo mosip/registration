@@ -35,10 +35,11 @@ import io.mosip.registration.jobs.BaseJob;
 import io.mosip.registration.jobs.JobManager;
 import io.mosip.registration.jobs.SyncManager;
 import io.mosip.registration.jobs.impl.RegUserMappingSyncJob;
+import io.mosip.registration.service.config.impl.JobConfigurationServiceImpl;
 import io.mosip.registration.service.operator.impl.UserMachineMappingServiceImpl;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ SessionContext.class })
+@PrepareForTest({ SessionContext.class,JobConfigurationServiceImpl.class })
 public class RegUserMachineSyncJobTest {
 	@InjectMocks
 	private RegUserMappingSyncJob keyPolicySyncJob;
@@ -104,6 +105,11 @@ public class RegUserMachineSyncJobTest {
 		PowerMockito.doReturn(userContext).when(SessionContext.class, "userContext");
 		PowerMockito.when(SessionContext.userContext().getRegistrationCenterDetailDTO()).thenReturn(centerDetailDTO);
 
+		PowerMockito.mockStatic(JobConfigurationServiceImpl.class);
+
+		Map<String, SyncJobDef> parentJobMap = new HashMap<>();
+		parentJobMap.put("1", syncJob);
+		Mockito.when(JobConfigurationServiceImpl.getParentJobMap()).thenReturn(parentJobMap);
 	}
 
 	@Test
@@ -136,7 +142,7 @@ public class RegUserMachineSyncJobTest {
 		Mockito.when(applicationContext.getBean(JobManager.class)).thenReturn(jobManager);
 		Mockito.when(applicationContext.getBean(UserMachineMappingServiceImpl.class)).thenReturn(policySyncService);
 
-		Mockito.when(jobManager.getChildJobs(Mockito.any())).thenReturn(jobMap);
+//		Mockito.when(jobManager.getChildJobs(Mockito.any())).thenReturn(jobMap);
 		Mockito.when(jobManager.getJobId(Mockito.any(JobExecutionContext.class))).thenReturn("1");
 
 		Mockito.when(applicationContext.getBean(Mockito.anyString())).thenReturn(keyPolicySyncJob);
@@ -168,7 +174,7 @@ public class RegUserMachineSyncJobTest {
 
 		Mockito.when(applicationContext.getBean(Mockito.anyString())).thenThrow(NoSuchBeanDefinitionException.class);
 
-		keyPolicySyncJob.executeChildJob("1", jobMap);
+		keyPolicySyncJob.executeParentJob("1");
 
 	}
 

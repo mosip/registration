@@ -74,12 +74,12 @@ public class PacketSyncStatusJob extends BaseJob {
 			this.jobId = loadContext(context);
 			packetStatusService = applicationContext.getBean(RegPacketStatusService.class);
 
-			// Run the Parent JOB always first
-			this.responseDTO = packetStatusService.packetSyncStatus(triggerPoint);
+			// Execute Parent Job
+			this.responseDTO = executeParentJob(jobId);
 
-			// To run the child jobs after the parent job Success
-			if (responseDTO.getSuccessResponseDTO() != null && context != null) {
-				executeChildJob(jobId, jobMap);
+			// Execute Current Job
+			if (responseDTO.getSuccessResponseDTO() != null) {
+				this.responseDTO = packetStatusService.packetSyncStatus(triggerPoint);
 			}
 
 			syncTransactionUpdate(responseDTO, triggerPoint, jobId);
@@ -111,11 +111,17 @@ public class PacketSyncStatusJob extends BaseJob {
 		LOGGER.info(LoggerConstants.PACKET_SYNC_STATUS_JOB_TITLE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "execute Job started");
 		try {
-			this.responseDTO = packetStatusService.packetSyncStatus(triggerPoint);
+			// Execute Parent Job
+			this.responseDTO = executeParentJob(jobId);
+
+			// Execute Current Job
+			if (responseDTO.getSuccessResponseDTO() != null) {
+				this.responseDTO = packetStatusService.packetSyncStatus(triggerPoint);
+			}
 			syncTransactionUpdate(responseDTO, triggerPoint, jobId);
 
 			LOGGER.info(LoggerConstants.PACKET_SYNC_STATUS_JOB_TITLE, RegistrationConstants.APPLICATION_NAME,
-					RegistrationConstants.APPLICATION_ID, "execute job ended");			
+					RegistrationConstants.APPLICATION_ID, "execute job ended");
 		} catch (RegBaseCheckedException regBaseCheckedException) {
 			LOGGER.error(LoggerConstants.PACKET_SYNC_STATUS_JOB_TITLE, APPLICATION_NAME, APPLICATION_ID,
 					regBaseCheckedException.getMessage() + ExceptionUtils.getStackTrace(regBaseCheckedException));

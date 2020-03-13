@@ -63,12 +63,13 @@ public class RegistrationDeletionJob extends BaseJob {
 			this.jobId = loadContext(context);
 			packetStatusService = applicationContext.getBean(RegPacketStatusService.class);
 
-			// Run the Parent JOB always first
-			this.responseDTO = packetStatusService.deleteRegistrationPackets();
+			// Execute Parent Job
+			this.responseDTO = executeParentJob(jobId);
 
-			// To run the child jobs after the parent job Success
-			if (responseDTO.getSuccessResponseDTO() != null && context != null) {
-				executeChildJob(jobId, jobMap);
+			// Execute Current Job
+			if (responseDTO.getSuccessResponseDTO() != null) {
+				this.responseDTO = packetStatusService.deleteRegistrationPackets();
+
 			}
 
 			syncTransactionUpdate(responseDTO, triggerPoint, jobId);
@@ -97,8 +98,13 @@ public class RegistrationDeletionJob extends BaseJob {
 		LOGGER.info(LoggerConstants.REGISTRATION_DELETION_JOB_LOGGER_TITLE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "execute Job started");
 
-		this.responseDTO = packetStatusService.deleteRegistrationPackets();
+		// Execute Parent Job
+		this.responseDTO = executeParentJob(jobId);
 
+		// Execute Current Job
+		if (responseDTO.getSuccessResponseDTO() != null) {
+			this.responseDTO = packetStatusService.deleteRegistrationPackets();
+		}
 		syncTransactionUpdate(responseDTO, triggerPoint, jobId);
 
 		LOGGER.info(LoggerConstants.REGISTRATION_DELETION_JOB_LOGGER_TITLE, RegistrationConstants.APPLICATION_NAME,

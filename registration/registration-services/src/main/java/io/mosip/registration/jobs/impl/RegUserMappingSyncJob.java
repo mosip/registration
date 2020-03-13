@@ -45,7 +45,13 @@ public class RegUserMappingSyncJob extends BaseJob {
 	public ResponseDTO executeJob(String triggerPoint, String jobId) {
 		LOGGER.debug(RegistrationConstants.REG_USER_MAPPING_SYNC_JOB_TITLE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "execute Job started");
-		this.responseDTO = userMachineMappingService.syncUserDetails();
+		// Execute Parent Job
+		this.responseDTO = executeParentJob(jobId);
+
+		// Execute Current Job
+		if (responseDTO.getSuccessResponseDTO() != null) {
+			this.responseDTO = userMachineMappingService.syncUserDetails();
+		}
 		syncTransactionUpdate(responseDTO, triggerPoint, jobId);
 
 		LOGGER.debug(RegistrationConstants.REG_USER_MAPPING_SYNC_JOB_TITLE, RegistrationConstants.APPLICATION_NAME,
@@ -66,10 +72,13 @@ public class RegUserMappingSyncJob extends BaseJob {
 
 			UserMachineMappingService userMachineMappingService = applicationContext
 					.getBean(UserMachineMappingServiceImpl.class);
-			this.responseDTO = userMachineMappingService.syncUserDetails();
 
+			// Execute Parent Job
+			this.responseDTO = executeParentJob(jobId);
+
+			// Execute Current Job
 			if (responseDTO.getSuccessResponseDTO() != null) {
-				executeChildJob(jobId, jobMap);
+				this.responseDTO = userMachineMappingService.syncUserDetails();
 			}
 
 			syncTransactionUpdate(responseDTO, triggerPoint, jobId);
