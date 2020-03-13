@@ -7,11 +7,15 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -30,10 +34,17 @@ import io.mosip.registration.jobs.BaseJob;
 import io.mosip.registration.jobs.JobManager;
 import io.mosip.registration.jobs.SyncManager;
 import io.mosip.registration.jobs.impl.PacketSyncStatusJob;
+import io.mosip.registration.service.config.impl.JobConfigurationServiceImpl;
 import io.mosip.registration.service.packet.RegPacketStatusService;
+import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ JobConfigurationServiceImpl.class})
 public class BaseJobTest {
 
+	@Mock
+	private JobConfigurationServiceImpl jobConfigurationServiceImpl;
+	
 	@Mock
 	private ApplicationContext applicationContext;
 
@@ -85,6 +96,13 @@ public class BaseJobTest {
 		});
 		Mockito.when(jobConfigDAO.getActiveJobs()).thenReturn(syncJobList);
 		
+		PowerMockito.mockStatic(JobConfigurationServiceImpl.class);
+		
+		Map<String, SyncJobDef> parentJobMap = new HashMap<>();
+		parentJobMap.put("1", syncJob);
+		Mockito.when(JobConfigurationServiceImpl.getParentJobMap()).thenReturn(parentJobMap);
+		
+		
 	}
 
 	@Test
@@ -114,7 +132,6 @@ public class BaseJobTest {
 		Mockito.when(applicationContext.getBean(JobManager.class)).thenReturn(jobManager);
 		Mockito.when(applicationContext.getBean(RegPacketStatusService.class)).thenReturn(packetStatusService);
 		
-		Mockito.when(jobManager.getChildJobs(Mockito.any())).thenReturn(jobMap);
 		Mockito.when(jobManager.getJobId(Mockito.any(JobExecutionContext.class))).thenReturn("1");
 		
 		
@@ -179,7 +196,7 @@ public class BaseJobTest {
 
 		Mockito.when(applicationContext.getBean(Mockito.anyString())).thenThrow(NoSuchBeanDefinitionException.class);
 		
-		packetSyncStatusJob.executeChildJob("1", jobMap);
+		packetSyncStatusJob.executeParentJob("1");
 
 	}
 	
@@ -208,7 +225,6 @@ public class BaseJobTest {
 		Mockito.when(applicationContext.getBean(JobManager.class)).thenReturn(jobManager);
 		Mockito.when(applicationContext.getBean(RegPacketStatusService.class)).thenReturn(packetStatusService);
 		
-		Mockito.when(jobManager.getChildJobs(Mockito.any())).thenReturn(jobMap);
 		Mockito.when(jobManager.getJobId(Mockito.any(JobExecutionContext.class))).thenReturn("1");
 		
 		
@@ -219,7 +235,7 @@ public class BaseJobTest {
 
 		Mockito.when(applicationContext.getBean(Mockito.anyString())).thenReturn(packetSyncStatusJob);		
 		
-		packetSyncStatusJob.executeChildJob("1", jobMap);
+		packetSyncStatusJob.executeParentJob("1");
 
 	}
 
@@ -238,11 +254,11 @@ public class BaseJobTest {
 		Mockito.when(syncManager.createSyncTransaction(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any())).thenThrow(RegBaseUncheckedException.class);
 		
 		Mockito.when(packetStatusService.packetSyncStatus("System")).thenReturn(responseDTO);
-		packetSyncStatusJob.executeJob("User","1");
+		packetSyncStatusJob.executeJob("User","2");
 	}
 	
 	@Test
-	public void executejobExceptionTest() throws RegBaseCheckedException {
+	public void executejobExceptionTest() throws Exception {
 		ResponseDTO responseDTO=new ResponseDTO();
 		ErrorResponseDTO errorResponseDTO=new ErrorResponseDTO();
 		LinkedList<ErrorResponseDTO> list=new LinkedList<>();
@@ -255,7 +271,7 @@ public class BaseJobTest {
 		Mockito.when(syncManager.createSyncTransaction(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any())).thenThrow(RegBaseUncheckedException.class);
 		
 		Mockito.when(packetStatusService.packetSyncStatus("System")).thenReturn(responseDTO);
-		packetSyncStatusJob.executeJob("User","1");
+		packetSyncStatusJob.executeJob("User","2");
 		
 	}
 	

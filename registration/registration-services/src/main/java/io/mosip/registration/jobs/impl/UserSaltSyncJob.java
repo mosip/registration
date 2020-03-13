@@ -52,7 +52,8 @@ public class UserSaltSyncJob extends BaseJob {
 	/**
 	 * Execute internal.
 	 *
-	 * @param context the context
+	 * @param context
+	 *            the context
 	 */
 	/*
 	 * (non-Javadoc)
@@ -71,12 +72,13 @@ public class UserSaltSyncJob extends BaseJob {
 			this.jobId = loadContext(context);
 			userSaltDetailsService = applicationContext.getBean(UserSaltDetailsService.class);
 
-			// Run the Parent JOB always first
-			this.responseDTO = userSaltDetailsService.getUserSaltDetails(triggerPoint);
+			// Execute Parent Job
+			this.responseDTO = executeParentJob(jobId);
 
-			// To run the child jobs after the parent job Success
+			// Execute Current Job
 			if (responseDTO.getSuccessResponseDTO() != null) {
-				executeChildJob(jobId, jobMap);
+				this.responseDTO = userSaltDetailsService.getUserSaltDetails(triggerPoint);
+
 			}
 
 			syncTransactionUpdate(responseDTO, triggerPoint, jobId);
@@ -100,12 +102,17 @@ public class UserSaltSyncJob extends BaseJob {
 
 		LOGGER.info(LoggerConstants.USER_SALT_SYNC_STATUS_JOB_TITLE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "execute Job started");
+		// Execute Parent Job
+		this.responseDTO = executeParentJob(jobId);
 
-		try {
-			this.responseDTO = userSaltDetailsService.getUserSaltDetails(triggerPoint);
-		} catch (RegBaseCheckedException checkedException) {
-			LOGGER.error(LoggerConstants.USER_SALT_SYNC_STATUS_JOB_TITLE, APPLICATION_NAME, APPLICATION_ID,
-					ExceptionUtils.getStackTrace(checkedException));
+		// Execute Current Job
+		if (responseDTO.getSuccessResponseDTO() != null) {
+			try {
+				this.responseDTO = userSaltDetailsService.getUserSaltDetails(triggerPoint);
+			} catch (RegBaseCheckedException checkedException) {
+				LOGGER.error(LoggerConstants.USER_SALT_SYNC_STATUS_JOB_TITLE, APPLICATION_NAME, APPLICATION_ID,
+						ExceptionUtils.getStackTrace(checkedException));
+			}
 		}
 		syncTransactionUpdate(responseDTO, triggerPoint, jobId);
 

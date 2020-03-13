@@ -5,35 +5,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import com.esotericsoftware.kryo.Registration;
-
-import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dto.ResponseDTO;
-import io.mosip.registration.entity.RegistrationTransaction;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.jobs.BaseJob;
+import io.mosip.registration.service.packet.PacketUploadService;
 
 /**
- * The {@code DeleteAuditLogsJob} is a job to delete audit logs which extends
- * {@code BaseJob}
- * 
- * <p>
- * The Audit logs deletion was dependent on audit_deletion_configured_days.
- * configuration parameter, and Audit logs deletion was internally deletes the
- * registration packets in local and {@link Registration} and
- * {@link RegistrationTransaction} in database.
- * </p>
- * 
- * <p>
- * If audit_deletion_configured_days=10, then all audit logs before 10 days from
- * now where eligible to delete, and it has a internal check as the registration
- * associated with audit has to be processed, then delete.
- * </p>
+ * The {@code RegistrationPacketSyncJob} is a job to upload the synched packets
+ * which extends {@code BaseJob}
  * 
  * <p>
  * This Job will be automatically triggered based on sync_frequency which has in
@@ -42,27 +25,27 @@ import io.mosip.registration.jobs.BaseJob;
  * 
  * <p>
  * If Sync_frequency = "0 0 11 * * ?" this job will be triggered everyday 11:00
- * AM, if it was missed on 11:00 AM, trigger on immediate application launch.
+ * AM, if it was missed on 11:00 AM, trigger on immediate application launch
  * </p>
- * 
  * 
  * @author Yaswanth S
  * @since 1.0.0
  *
  */
-@Component(value = "deleteAuditLogsJob")
-public class DeleteAuditLogsJob extends BaseJob {
+@Component(value = "registrationPacketUploadJob")
+public class RegistrationPacketUploadJob extends BaseJob {
 
 	/**
-	 * The RegPacketStatusServiceImpl
+	 * The PacketUploadService
 	 */
+
 	@Autowired
-	private AuditManagerService auditService;
+	private PacketUploadService packetUploadService;
 
 	/**
 	 * LOGGER for logging
 	 */
-	private static final Logger LOGGER = AppConfig.getLogger(DeleteAuditLogsJob.class);
+	private static final Logger LOGGER = AppConfig.getLogger(RegistrationPacketSyncJob.class);
 
 	/*
 	 * (non-Javadoc)
@@ -73,33 +56,32 @@ public class DeleteAuditLogsJob extends BaseJob {
 	@Async
 	@Override
 	public void executeInternal(JobExecutionContext context) {
-		LOGGER.debug(LoggerConstants.DELETE_AUDIT_LOGS_JOB, RegistrationConstants.APPLICATION_NAME,
+		LOGGER.debug(LoggerConstants.REG_PACKET_SYNC_STATUS_JOB, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "job execute internal started");
 		this.responseDTO = new ResponseDTO();
 
 		try {
 
 			this.jobId = loadContext(context);
-			auditService = applicationContext.getBean(AuditManagerService.class);
+			packetUploadService = applicationContext.getBean(PacketUploadService.class);
 
 			// Execute Parent Job
 			this.responseDTO = executeParentJob(jobId);
-
+			
 			// Execute Current Job
 			if (responseDTO.getSuccessResponseDTO() != null) {
-				this.responseDTO = auditService.deleteAuditLogs();
+				this.responseDTO = packetUploadService.uploadAllSyncedPackets();
 			}
-
 			syncTransactionUpdate(responseDTO, triggerPoint, jobId);
 
+
 		} catch (RegBaseUncheckedException baseUncheckedException) {
-			LOGGER.error(LoggerConstants.DELETE_AUDIT_LOGS_JOB, RegistrationConstants.APPLICATION_NAME,
-					RegistrationConstants.APPLICATION_ID,
-					baseUncheckedException.getMessage() + ExceptionUtils.getStackTrace(baseUncheckedException));
+			LOGGER.error(LoggerConstants.REG_PACKET_SYNC_STATUS_JOB, RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, baseUncheckedException.getMessage());
 			throw baseUncheckedException;
 		}
 
-		LOGGER.debug(LoggerConstants.DELETE_AUDIT_LOGS_JOB, RegistrationConstants.APPLICATION_NAME,
+		LOGGER.debug(LoggerConstants.REG_PACKET_SYNC_STATUS_JOB, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "job execute internal Ended");
 
 	}
@@ -113,7 +95,7 @@ public class DeleteAuditLogsJob extends BaseJob {
 	@Override
 	public ResponseDTO executeJob(String triggerPoint, String jobId) {
 
-		LOGGER.debug(LoggerConstants.DELETE_AUDIT_LOGS_JOB, RegistrationConstants.APPLICATION_NAME,
+		LOGGER.debug(LoggerConstants.REG_PACKET_SYNC_STATUS_JOB, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "execute Job started");
 
 		// Execute Parent Job
@@ -121,11 +103,11 @@ public class DeleteAuditLogsJob extends BaseJob {
 
 		// Execute Current Job
 		if (responseDTO.getSuccessResponseDTO() != null) {
-			this.responseDTO = auditService.deleteAuditLogs();
+			this.responseDTO = packetUploadService.uploadAllSyncedPackets();
 		}
 		syncTransactionUpdate(responseDTO, triggerPoint, jobId);
 
-		LOGGER.debug(LoggerConstants.DELETE_AUDIT_LOGS_JOB, RegistrationConstants.APPLICATION_NAME,
+		LOGGER.debug(LoggerConstants.REG_PACKET_SYNC_STATUS_JOB, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "execute job ended");
 
 		return responseDTO;

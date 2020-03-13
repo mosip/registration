@@ -116,6 +116,10 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 	@Autowired
 	private ApplicationContext applicationContext;
 
+	public ApplicationContext getApplicationContext() {
+		return applicationContext;
+	}
+
 	/**
 	 * To load in JobDetail
 	 */
@@ -142,6 +146,12 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 			Arrays.asList("DEL_J00013", "RDJ_J00010", "ADJ_J00012", "PVS_J00015"));
 
 	private List<String> unTaggedJobs = new LinkedList<>(Arrays.asList("PDS_J00003"));
+
+	private static Map<String, SyncJobDef> parentJobMap = new HashMap<>();
+
+	public static Map<String, SyncJobDef> getParentJobMap() {
+		return parentJobMap;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -201,6 +211,8 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 				executeMissedTriggers(syncActiveJobMap);
 
 				schedulerFactoryBean = getSchedulerFactoryBean(String.valueOf(syncActiveJobMap.size()));
+
+				startScheduler();
 
 			}
 
@@ -275,8 +287,7 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 				LOGGER.info(LoggerConstants.BATCH_JOBS_CONFIG_LOGGER_TITLE, RegistrationConstants.APPLICATION_NAME,
 						RegistrationConstants.APPLICATION_ID, "Checking the Job to load in scheduler : " + jobId);
 
-				if (isNull(syncJob.getParentSyncJobId()) && !isNull(syncJob.getApiName())
-						&& responseDTO.getErrorResponseDTOs() == null && isSchedulerRunning()
+				if (!isNull(syncJob.getApiName()) && responseDTO.getErrorResponseDTOs() == null && isSchedulerRunning()
 						&& !schedulerFactoryBean.getScheduler().checkExists(new JobKey(jobId))) {
 
 					// Get Job instance through application context
@@ -453,7 +464,23 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 		ResponseDTO responseDTO = new ResponseDTO();
 		if (jobId != null && triggerPoint != null) {
 			try {
-				responseDTO = findAndExecuteJob(jobId,responseDTO,triggerPoint);
+				SyncJobDef syncJobDef = syncActiveJobMap.get(jobId);
+
+				if (syncJobDef != null && !isNull(syncJobDef.getApiName())) {
+					// Get Job using application context and api name
+					baseJob = (BaseJob) applicationContext.getBean(syncJobDef.getApiName());
+
+					BaseJob.removeCompletedJobInMap(jobId);
+
+					baseJob.setApplicationContext(applicationContext);
+
+					// Job Invocation
+					responseDTO = baseJob.executeJob(triggerPoint, jobId);
+
+				} else {
+					setErrorResponse(responseDTO, RegistrationConstants.EXECUTE_JOB_ERROR_MESSAGE, null);
+				}
+				return responseDTO;
 
 			} catch (RuntimeException runtimeException) {
 				LOGGER.error(LoggerConstants.BATCH_JOBS_CONFIG_LOGGER_TITLE, RegistrationConstants.APPLICATION_NAME,
@@ -475,39 +502,6 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 		LOGGER.info(LoggerConstants.BATCH_JOBS_CONFIG_LOGGER_TITLE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Execute job ended : " + jobId);
 
-		return responseDTO;
-	}
-	
-	
-	private ResponseDTO findAndExecuteJob(final String jobId,ResponseDTO responseDTO,String triggerPoint) {
-		SyncJobDef syncJobDef = syncActiveJobMap.get(jobId);
-
-		if (syncJobDef != null && !isNull(syncJobDef.getApiName())) {
-			// Get Job using application context and api name
-			baseJob = (BaseJob) applicationContext.getBean(syncJobDef.getApiName());
-
-			BaseJob.removeCompletedJobInMap(jobId);
-
-			// Job Invocation
-			responseDTO = baseJob.executeJob(triggerPoint, jobId);
-
-			if (responseDTO != null && responseDTO.getSuccessResponseDTO() != null) {
-				baseJob.setApplicationContext(applicationContext);
-
-				/* Execute all its child jobs */
-				baseJob.executeChildJob(jobId, syncJobMap);
-			} else {
-				/* Child Job's check */
-				syncJobMap.forEach((jobIdForChild, childJob) -> {
-					if (!isNull(childJob.getParentSyncJobId()) && childJob.getParentSyncJobId().equals(jobId)) {
-						baseJob.addToCompletedJobMap(jobIdForChild,
-								RegistrationConstants.JOB_EXECUTION_FAILURE);
-					}
-				});
-			}
-		} else {
-			setErrorResponse(responseDTO, RegistrationConstants.EXECUTE_JOB_ERROR_MESSAGE, null);
-		}
 		return responseDTO;
 	}
 
@@ -651,6 +645,9 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 			if (syncJob.getIsActive()) {
 				syncActiveJobMap.put(syncJob.getId(), syncJob);
 			}
+			if (!isNull(syncJob.getParentSyncJobId())) {
+				parentJobMap.put(syncJob.getId(), syncActiveJobMap.get(syncJob.getParentSyncJobId()));
+			}
 		});
 	}
 
@@ -735,7 +732,7 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 				RegistrationConstants.APPLICATION_ID, "Started invoking Missed Trigger Jobs");
 
 		map.forEach((jobId, syncJob) -> {
-			if (isNull(syncJob.getParentSyncJobId()) && !isNull(syncJob.getSyncFrequency())
+			if (!isNull(syncJob.getSyncFrequency())
 					&& !isNull(syncJob.getApiName())) {
 				/* An A-sync task to complete missed trigger */
 				new Thread(() -> executeMissedTrigger(jobId, syncJob.getSyncFrequency())).start();
@@ -769,12 +766,13 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 					RegistrationConstants.APPLICATION_ID, "Validating job to execute : " + syncJob.getKey());
 
 			if ((!offlineJobs.contains(syncJob.getKey()) && !unTaggedJobs.contains(syncJob.getKey()))
-					&& (isNull(syncJob.getValue().getParentSyncJobId()) && !isNull(syncJob.getValue().getApiName()))) {
+					&& !isNull(syncJob.getValue().getApiName())) {
 
 				String triggerPoint = getUserIdFromSession().equals(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM)
 						? RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM
 						: RegistrationConstants.JOB_TRIGGER_POINT_USER;
 
+				System.out.println(syncJob.getKey());
 				executeJob(syncJob.getKey(), triggerPoint);
 
 			}
@@ -898,7 +896,7 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 	public List<String> getUnTaggedJobs() {
 		return unTaggedJobs;
 	}
-	
+
 	@Override
 	public SyncControl getSyncControlOfJob(String syncJobId) {
 
@@ -907,7 +905,7 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 
 		SyncControl syncControl = null;
 		if (syncJobId != null) {
-			syncControl =  syncJobDAO.findBySyncJobId(syncJobId);
+			syncControl = syncJobDAO.findBySyncJobId(syncJobId);
 		}
 		LOGGER.info(LoggerConstants.BATCH_JOBS_CONFIG_LOGGER_TITLE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Getting Job info in sync control Completed");

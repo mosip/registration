@@ -51,6 +51,8 @@ public class JobManagerTest {
 		Mockito.when(jobDetail.getKey()).thenReturn(jobKey);
 		Mockito.when(trigger.getJobDataMap()).thenReturn(jobDataMap);
 		Mockito.when(jobDataMap.get(Mockito.any())).thenReturn(jobDetail);
+		
+		
 	}
 	
 	@Test
@@ -61,18 +63,6 @@ public class JobManagerTest {
 
 	}
 	
-	@Test
-	public void getChildJobsTest() {
-		SyncJobDef syncJobDef=new SyncJobDef();
-		syncJobDef.setId("1");
-		Map<String, SyncJobDef> jobMap=new HashMap<>();
-		jobMap.put(syncJobDef.getId(), syncJobDef);
-		
-		JobDataMap jobDataMap1=new JobDataMap(jobMap);
-
-		Mockito.when(jobDetail.getJobDataMap()).thenReturn(jobDataMap1);
-		
-		jobManagerImpl.getChildJobs(jobExecutionContext);
-	}
+	
 
 }
