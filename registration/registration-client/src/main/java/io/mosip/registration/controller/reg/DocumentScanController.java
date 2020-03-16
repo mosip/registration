@@ -508,12 +508,14 @@ public class DocumentScanController extends BaseController {
 	private void scanFromStubbed(Stage popupStage) throws IOException {
 		byte[] byteArray = documentScanFacade.getScannedDocument();
 		String documentSize = getValueFromApplicationContext(RegistrationConstants.DOC_SIZE);
+		int docSize=Integer.parseInt(documentSize) / 1000;
 		
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Converting byte array to image");
 
-		if (byteArray.length > Double.parseDouble(documentSize) * 1024 * 1024) {
-			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOC_SIZE.replace("1", documentSize));
+		if (docSize <= (byteArray.length / (1024 * 1024))) {
+			generateAlert(RegistrationConstants.ERROR,
+					RegistrationUIConstants.SCAN_DOC_SIZE.replace("1", Integer.toString(docSize)));
 		} else {
 			if (selectedDocument != null) {
 
