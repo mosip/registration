@@ -771,8 +771,7 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 				String triggerPoint = getUserIdFromSession().equals(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM)
 						? RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM
 						: RegistrationConstants.JOB_TRIGGER_POINT_USER;
-
-				System.out.println(syncJob.getKey());
+				
 				executeJob(syncJob.getKey(), triggerPoint);
 
 			}
