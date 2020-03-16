@@ -1,10 +1,13 @@
 package io.mosip.registration.test.service;
 
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -24,6 +27,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.io.ClassPathResource;
@@ -38,6 +42,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
+import io.mosip.registration.dao.impl.RegisteredDeviceDAO;
 import io.mosip.registration.dto.json.metadata.DigitalId;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.BioDevice;
@@ -50,7 +55,8 @@ import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ RegistrationAppHealthCheckUtil.class , Base64.class})
+@PrepareForTest({ RegistrationAppHealthCheckUtil.class, Base64.class})
+@PowerMockIgnore("javax.net.ssl.*")
 public class MosipBioDeviceManagerTest {
 	public MockitoRule mockitoRule = MockitoJUnit.rule();
 	@InjectMocks
@@ -59,6 +65,8 @@ public class MosipBioDeviceManagerTest {
 	private IMosipBioDeviceIntegrator mosipBioDeviceIntegrator;
 	@Mock
 	private AuditManagerService auditManagerService;
+	@Mock
+	private RegisteredDeviceDAO registeredDeviceDAO;
 	
 	private BioDevice device=null;
 	
@@ -69,19 +77,19 @@ public class MosipBioDeviceManagerTest {
 		appMap.put("mosip.mdm.enabled", "Y");
 		appMap.put("current_mdm_spec","0.9.2");
 		ApplicationContext.getInstance().setApplicationMap(appMap);
-
-		device =   new BioDevice();
+		mosipBioDeviceManager = PowerMockito.spy(mosipBioDeviceManager);
+		device =  PowerMockito.spy( new BioDevice() );
 		device.setSpecVersion(new String[] {"0.9.2"});
 	}
 
 	@Test
-	public void init() throws RegBaseCheckedException {
+	public void init() throws RegBaseCheckedException, IOException {
 		ReflectionTestUtils.setField(mosipBioDeviceManager, "host", "127.0.0.1");
 		ReflectionTestUtils.setField(mosipBioDeviceManager, "hostProtocol", "http");
 		ReflectionTestUtils.setField(mosipBioDeviceManager, "portFrom", 8080);
 		ReflectionTestUtils.setField(mosipBioDeviceManager, "portTo", 8090);
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
-		PowerMockito.when(RegistrationAppHealthCheckUtil.checkServiceAvailability("http://127.0.0.1:8080/deviceInfo"))
+		PowerMockito.when(RegistrationAppHealthCheckUtil.checkServiceAvailability("http://127.0.0.1:8080/info"))
 				.thenReturn(true);
 		List<LinkedHashMap<String, Object>> deviceInfoResponseDtos = new ArrayList<>();
 
@@ -96,8 +104,14 @@ public class MosipBioDeviceManagerTest {
 		map.put("deviceSubId", null);
 
 		deviceInfoResponseDtos.add(map);
-		Mockito.when(mosipBioDeviceIntegrator.getDeviceInfo("http://127.0.0.1:8080/deviceInfo", Object[].class))
-				.thenReturn(deviceInfoResponseDtos);
+		
+		Resource resource = new ClassPathResource("deviceInfo.txt");
+		File file = resource.getFile();
+		
+		String response = new String(Files.readAllBytes(Paths.get(file.getAbsolutePath())));
+		
+		Mockito.when(mosipBioDeviceIntegrator.getDeviceInfo("http://127.0.0.1:8080/info", Object[].class))
+				.thenReturn(response);
 		mosipBioDeviceManager.init();
 
 	}
@@ -292,14 +306,27 @@ public class MosipBioDeviceManagerTest {
 		mosipBioDeviceManager.regScan(new RequestDetail("deviceType", "", 1, "", null));
 	}
 
+	@Test
+	public void authScan() throws Exception {
 
+		RequestDetail request = new RequestDetail("deviceType", "5000", 1, "60", null);
+		Map<String, BioDevice> deviceRegistry = new HashMap<>();
+		deviceRegistry.put("deviceType", device);
+		ReflectionTestUtils.setField(MosipBioDeviceManager.class, "deviceRegistry", deviceRegistry);
+		PowerMockito.doReturn(getFingerPritnCaptureResponse()).when(device, "regCapture", request);
+		PowerMockito.doReturn(null).when(mosipBioDeviceManager, "stream", Mockito.anyString());
+		mosipBioDeviceManager.authScan(request);
+	}
+ 
+	
 	@Test
 	public void getSingleBioExtract() {
 		CaptureResponseDto captureResponseDto = new CaptureResponseDto();
 		CaptureResponseBioDto captureResponseBioDto = new CaptureResponseBioDto();
 		captureResponseBioDto.setCaptureResponseData(new CaptureResponsBioDataDto());
 		captureResponseDto.setMosipBioDeviceDataResponses(Arrays.asList(captureResponseBioDto));
-		captureResponseBioDto.getCaptureResponseData().setBioValue(Base64.getUrlEncoder().encodeToString("sfdfs".getBytes()));
+		captureResponseBioDto.getCaptureResponseData()
+				.setBioValue(Base64.getUrlEncoder().encodeToString("sfdfs".getBytes()));
 		mosipBioDeviceManager.getSingleBioValue(captureResponseDto);
 	}
 
@@ -308,19 +335,18 @@ public class MosipBioDeviceManagerTest {
 		StringBuffer sBuffer = new StringBuffer();
 		Resource resource = new ClassPathResource("fingersData.txt");
 		File file = resource.getFile();
-		BufferedReader  bR = new BufferedReader(new FileReader(file));
+		BufferedReader bR = new BufferedReader(new FileReader(file));
 		String s;
-		while((s=bR.readLine())!=null) {
+		while ((s = bR.readLine()) != null) {
 			sBuffer.append(s);
 		}
 		bR.close();
 		CaptureResponseDto captureResponse = mapper.readValue(sBuffer.toString().getBytes(StandardCharsets.UTF_8),
 				CaptureResponseDto.class);
 		decode(captureResponse);
-		
+
 		return captureResponse;
 	}
-	
 
 	private static void decode(CaptureResponseDto mosipBioCaptureResponseDto)
 			throws IOException, JsonParseException, JsonMappingException {
@@ -344,7 +370,7 @@ public class MosipBioDeviceManagerTest {
 			}
 		}
 	}
-	
+
 	private static CaptureResponsBioDataDto getCaptureResponsBioDataDecoded(String capturedData, ObjectMapper mapper) {
 		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 		Pattern pattern = Pattern.compile("(?<=\\.)(.*)(?=\\.)");
@@ -365,7 +391,6 @@ public class MosipBioDeviceManagerTest {
 
 	}
 
-	
 	@Test
 	public void extractSingleBiometricIsoTemplate() throws IOException {
 		CaptureResponseDto captureResponseDto = getFingerPritnCaptureResponse();
@@ -387,6 +412,19 @@ public class MosipBioDeviceManagerTest {
 	@Test
 	public void registerTest() {
 		mosipBioDeviceManager.register();
+	}
+
+	@Test
+	public void refreshBioDeviceByDeviceTypeTest() throws RegBaseCheckedException {
+		Map<String, BioDevice> deviceRegistry = new HashMap<>();
+		deviceRegistry.put("deviceType", device);
+		ReflectionTestUtils.setField(MosipBioDeviceManager.class, "deviceRegistry", deviceRegistry);
+		mosipBioDeviceManager.refreshBioDeviceByDeviceType("deviceType");
+	}
+
+	@Test
+	public void streamTest() throws Exception {
+		mosipBioDeviceManager.stream(Mockito.anyString());
 	}
 
 }

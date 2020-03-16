@@ -31,7 +31,7 @@ public class RegisteredDeviceMasterDto extends MasterSyncBaseDto {
 	private Timestamp expiryDate;
 	private String certificationLevel;
 	private String foundationalTrustSignature;
-	private Blob foundationalTrustCertificate;
+	private byte[] foundationalTrustCertificate;
 	private String dproviderSignature;
 	private Boolean isActive;
 	private String crBy;

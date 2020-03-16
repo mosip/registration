@@ -657,19 +657,18 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 			List<SyncJobDef> masterSyncControlList = MetaDataUtils.setCreateMetaData(syncJobDefList, SyncJobDef.class);
 			syncJobDefRepository.saveAll(masterSyncControlList);
 			
-			List<RegisteredDeviceMaster> registeredDeviceList = MetaDataUtils.setCreateMetaData(registeredDeviceDetails, RegisteredDeviceMaster.class);
-			registeredDeviceRepository.saveAll(registeredDeviceList);
-			
 			List<RegisteredDeviceType> registeredDeviceTypeList = MetaDataUtils.setCreateMetaData(registeredDeviceTypes, RegisteredDeviceType.class);
 			registeredDeviceTypeRepository.saveAll(registeredDeviceTypeList);
 			
 			List<RegisteredSubDeviceType> registeredSubDeviceTypeList = MetaDataUtils.setCreateMetaData(registeredSubDeviceTypes, RegisteredSubDeviceType.class);
 			registeredSubDeviceTypeRepository.saveAll(registeredSubDeviceTypeList);
-			
-//			List<MosipDeviceService> mosipDeviceServiceList = MetaDataUtils.setCreateMetaData(mosipDeviceServices, MosipDeviceService.class);
-//			mosipDeviceServiceRepository.saveAll(mosipDeviceServiceList);
+
+//			List<RegisteredDeviceMaster> registeredDeviceList = MetaDataUtils.setCreateMetaData(registeredDeviceDetails, RegisteredDeviceMaster.class);
+//			registeredDeviceRepository.saveAll(registeredDeviceList);
 			
 			mosipDeviceServiceSnc(mosipDeviceServices);
+			
+			registrationDeviceMasterSync(registeredDeviceDetails);
 			
 			List<FoundationalTrustProvider> foundationalTrustProviderList = MetaDataUtils.setCreateMetaData(foundationalTrustProviders, FoundationalTrustProvider.class);
 			foundationalTrustProviderRepository.saveAll(foundationalTrustProviderList);
@@ -913,6 +912,57 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 			mosipDeviceServiceRepository.saveAll(mosipDeviceServiceList);
 		}
 	}
+
+	
+	/**
+	 * Device service Sync.
+	 *
+	 * @param mosipDeviceServiceDto 
+	 * 				the device service DTO
+	 */
+	private void registrationDeviceMasterSync(List<RegisteredDeviceMasterDto> registeredDeviceMasterDtos) {
+		LOGGER.info(RegistrationConstants.MASTER_SYNC_JOD_DETAILS, APPLICATION_NAME, APPLICATION_ID,
+				"Template Type details syncing....");
+		 if (null != registeredDeviceMasterDtos && !registeredDeviceMasterDtos.isEmpty()) {
+			List<RegisteredDeviceMaster> registeredDeviceMasterList = new ArrayList<>();
+			registeredDeviceMasterDtos.forEach(serviceDto -> {
+				RegisteredDeviceMaster registeredDeviceMaster = new RegisteredDeviceMaster();
+				registeredDeviceMaster.setCertificationLevel(serviceDto.getCertificationLevel());
+				registeredDeviceMaster.setCode(serviceDto.getCode());
+				registeredDeviceMaster.setCrDtime(serviceDto.getCrDtime());
+				registeredDeviceMaster.setDelDTimes(serviceDto.getDelDTimes());
+				registeredDeviceMaster.setIsDeleted(serviceDto.getIsDeleted());
+				registeredDeviceMaster.setDeviceId(serviceDto.getDeviceId());
+				registeredDeviceMaster.setDeviceSubId(serviceDto.getDeviceSubId());
+				registeredDeviceMaster.setDigitalId(serviceDto.getDigitalId());
+				registeredDeviceMaster.setDproviderSignature(serviceDto.getDproviderSignature());
+				registeredDeviceMaster.setDsTypeCode(serviceDto.getDsTypeCode());
+				registeredDeviceMaster.setDtypeCode(serviceDto.getDtypeCode());
+				registeredDeviceMaster.setExpiryDate(serviceDto.getExpiryDate());
+				registeredDeviceMaster.setFirmware(serviceDto.getFirmware());
+				registeredDeviceMaster.setFoundationalTrustCertificate(serviceDto.getFoundationalTrustCertificate());
+				registeredDeviceMaster.setFoundationalTrustSignature(serviceDto.getFoundationalTrustSignature());
+				registeredDeviceMaster.setIsActive(serviceDto.getIsActive());
+				registeredDeviceMaster.setMake(serviceDto.getMake());
+				registeredDeviceMaster.setModel(serviceDto.getModel());
+				registeredDeviceMaster.setProviderId(serviceDto.getProviderId());
+				registeredDeviceMaster.setProviderName(serviceDto.getProviderName());
+				registeredDeviceMaster.setPurpose(serviceDto.getPurpose());
+				registeredDeviceMaster.setSerialNumber(serviceDto.getSerialNumber());
+				registeredDeviceMaster.setStatusCode(serviceDto.getStatusCode());
+				registeredDeviceMaster.setUpdBy(serviceDto.getUpdatedBy());
+				registeredDeviceMaster.setUpdDtimes(serviceDto.getUpdatedDateTimes());
+				if (SessionContext.isSessionContextAvailable()) {
+					registeredDeviceMaster.setCrBy(SessionContext.userContext().getUserId());
+				} else {
+					registeredDeviceMaster.setCrBy(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
+				}
+			});
+
+			registeredDeviceRepository.saveAll(registeredDeviceMasterList);
+		}
+	}
+
 
 	
 	/**
