@@ -1,6 +1,5 @@
 package io.mosip.registration.entity;
 
-import java.sql.Blob;
 import java.sql.Timestamp;
 
 import javax.persistence.Column;
@@ -74,10 +73,14 @@ public class RegisteredDeviceMaster extends RegistrationCommonFields {
 	@Column(name="certification_level",length=3)
 	private String certificationLevel;
 	
+
+	@Column(name="foundational_trust_provider_id",length=36)
+	private String foundationalTPId;
+	
 	@Column(name="foundational_trust_signature",length=512)
 	private String foundationalTrustSignature;
 	
-	@Column(name="foundational_trust_certificate",length=128)
+	@Column(name="foundational_trust_certificate")
 	private byte[] foundationalTrustCertificate;
 	
 	@Column(name="dprovider_signature",length=512)
