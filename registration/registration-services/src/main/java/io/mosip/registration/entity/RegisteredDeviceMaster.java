@@ -8,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
@@ -18,7 +19,7 @@ import lombok.EqualsAndHashCode;
  * @version 1.0
  */
 
-
+@Data
 @EqualsAndHashCode(callSuper = false)
 @Entity
 @Table(name = "registered_device_master", schema = "reg")
@@ -77,13 +78,13 @@ public class RegisteredDeviceMaster extends RegistrationCommonFields {
 	private String foundationalTrustSignature;
 	
 	@Column(name="foundational_trust_certificate",length=128)
-	private Blob foundationalTrustCertificate;
+	private byte[] foundationalTrustCertificate;
 	
 	@Column(name="dprovider_signature",length=512)
 	private String dproviderSignature;
 
 	@Column(name="is_deleted")
-	private boolean isDeleted;
+	private Boolean isDeleted;
 
 	@Column(name="del_dtimes")
 	private Timestamp delDTimes;
