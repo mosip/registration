@@ -940,6 +940,7 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 				registeredDeviceMaster.setDtypeCode(serviceDto.getDtypeCode());
 				registeredDeviceMaster.setExpiryDate(serviceDto.getExpiryDate());
 				registeredDeviceMaster.setFirmware(serviceDto.getFirmware());
+				registeredDeviceMaster.setFoundationalTPId(serviceDto.getFoundationalTPId());
 				registeredDeviceMaster.setFoundationalTrustCertificate(serviceDto.getFoundationalTrustCertificate());
 				registeredDeviceMaster.setFoundationalTrustSignature(serviceDto.getFoundationalTrustSignature());
 				registeredDeviceMaster.setIsActive(serviceDto.getIsActive());
@@ -957,6 +958,7 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 				} else {
 					registeredDeviceMaster.setCrBy(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
 				}
+				registeredDeviceMasterList.add(registeredDeviceMaster);
 			});
 
 			registeredDeviceRepository.saveAll(registeredDeviceMasterList);
