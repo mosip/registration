@@ -522,31 +522,6 @@ public class FaceCaptureController extends BaseController implements Initializab
 		}
 	}
 
-	@Override
-	public void calculateRecaptureTime(String photoType) {
-		int configuredSeconds = Integer
-				.parseInt(getValueFromApplicationContext(RegistrationConstants.FACE_RECAPTURE_TIME));
-
-		if (photoType.equals(RegistrationConstants.GUARDIAN_IMAGE)) {
-			Timestamp lastGuardianPhotoCaptured = getCurrentTimestamp();
-			if (!validatePhotoTimer(lastGuardianPhotoCaptured, configuredSeconds,
-					guardianBiometricsController.getPhotoAlert(), photoType)) {
-				guardianBiometricsController.getScanBtn().setDisable(true);
-			}
-		} else if (photoType.equals(RegistrationConstants.APPLICANT_IMAGE)) {
-			/* Set Time which last photo was captured */
-			lastPhotoCaptured = getCurrentTimestamp();
-			if (!validatePhotoTimer(lastPhotoCaptured, configuredSeconds, photoAlert, photoType)) {
-				takePhoto.setDisable(true);
-			}
-		} else if (photoType.equals(RegistrationConstants.EXCEPTION_IMAGE)) {
-			/* Set Time which last Exception photo was captured */
-			lastExceptionPhotoCaptured = getCurrentTimestamp();
-			if (!validatePhotoTimer(lastExceptionPhotoCaptured, configuredSeconds, photoAlert, photoType)) {
-				takePhoto.setDisable(true);
-			}
-		}
-	}
 
 	/**
 	 * 
