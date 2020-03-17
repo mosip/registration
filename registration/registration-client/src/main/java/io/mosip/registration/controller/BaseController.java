@@ -1098,15 +1098,7 @@ public class BaseController {
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID, "Navigated to next page");
 	}
 
-	/**
-	 * to calculate the time for re-capture since last capture time.
-	 *
-	 * @param imageType
-	 *            the type of image that is selected to capture
-	 */
-	public void calculateRecaptureTime(String imageType) {
-		// will be implemented in the derived class.
-	}
+
 
 	/**
 	 * Checks if the machine is remapped to another center and starts the subsequent

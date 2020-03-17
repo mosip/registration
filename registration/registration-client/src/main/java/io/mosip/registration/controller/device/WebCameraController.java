@@ -190,7 +190,7 @@ public class WebCameraController extends BaseController implements Initializable
 		setScanningMsg(RegistrationUIConstants.FACE_CAPTURE_SUCCESS_MSG);
 		if(isDuplicateFound)
 			setScanningMsg(RegistrationUIConstants.FACE_DUPLICATE_ERROR);	
-		parentController.calculateRecaptureTime(imageType);
+//		parentController.calculateRecaptureTime(imageType);
 		capture.setDisable(true);
 
 		clear.setDisable(false);
