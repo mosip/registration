@@ -25,6 +25,7 @@ import javax.imageio.ImageIO;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -401,6 +402,7 @@ public class BioServiceTest {
 		assertEquals(false, irisDetail.isForceCaptured());
 	}
 
+	@Ignore
 	@Test
 	public void testGetIrisImageAsDTOWithMdm() throws RegBaseCheckedException, IOException {
 		CaptureResponseDto captureResponse = getIrisCaptureResponse();
