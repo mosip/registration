@@ -314,6 +314,13 @@
 			<groupId>com.cronutils</groupId>
 			<artifactId>cron-utils</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.oracle</groupId>
+			<artifactId>javafx</artifactId>
+			<version>${javafx.version}</version>
+			<systemPath>${project.basedir}/../lib/jfxrt.jar</systemPath>
+			<scope>system</scope>
+		</dependency>
 
 		<!-- __https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
 		<dependency>
