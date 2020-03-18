@@ -120,7 +120,8 @@
 		<kernel.core.version>1.0.7-SNAPSHOT</kernel.core.version>
 		<kernel.dataaccess.hibernate.version>1.0.6</kernel.dataaccess.hibernate.version>
 		<kernel.templatemanager.velocity.version>1.0.6</kernel.templatemanager.velocity.version>
-		<kernel.idvalidator.version>1.0.6</kernel.idvalidator.version>
+		<kernel.idvalidator.uin.version>1.0.6</kernel.idvalidator.uin.version>
+		<kernel.idvalidator.rid.version>1.0.6</kernel.idvalidator.rid.version>
 		<kernel.clamav.version>1.0.6</kernel.clamav.version>
 		<kernel.idgenerator.rid.version>1.0.6</kernel.idgenerator.rid.version>
 		<kernel.cbeffutil.version>1.1.0-SNAPSHOT</kernel.cbeffutil.version>
@@ -131,6 +132,10 @@
         <kernel.auth.adapter.version>1.0.6</kernel.auth.adapter.version>
         <kernel.pdfgenerator.itext.version>1.0.6</kernel.pdfgenerator.itext.version>
 		<kernel.qrcodegenerator.zxing.version>1.0.6</kernel.qrcodegenerator.zxing.version>
+		<kernel.logger.logback.version>1.0.6</kernel.logger.logback.version>
+		<kernel.auth.adapter.version>1.0.6</kernel.auth.adapter.version>
+		<kernel.idvalidator.vid.version>1.0.6</kernel.idvalidator.vid.version>
+		<kernel.idobjectvalidator.version>1.0.7-SNAPSHOT</kernel.idobjectvalidator.version>
 			<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,

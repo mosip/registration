@@ -94,7 +94,7 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idvalidator-uin</artifactId>
-			<version>${project.version}</version>
+			<version>${kernel.idvalidator.uin.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>

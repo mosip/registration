@@ -89,7 +89,7 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idobjectvalidator</artifactId>
-			<version>${kernel.core.version}</version>
+			<version>${kernel.idobjectvalidator.version}</version>
 		</dependency>
 
 		<dependency>
@@ -112,13 +112,13 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idvalidator-uin</artifactId>
-			<version>${kernel.idvalidator.version}</version>
+			<version>${kernel.idvalidator.uin.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idvalidator-vid</artifactId>
-			<version>${kernel.idvalidator.version}</version>
+			<version>${kernel.idvalidator.vid.version}</version>
 		</dependency>
    	
 			<dependency>
@@ -144,7 +144,7 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-auth-adapter</artifactId>
-			<version>${kernel.core.version}</version>
+			<version>${kernel.auth.adapter.version}</version>
 		</dependency>
 	</dependencies>
 	<build>
