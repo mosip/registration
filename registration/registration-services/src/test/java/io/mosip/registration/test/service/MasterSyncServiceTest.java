@@ -10,6 +10,7 @@ import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -55,6 +56,7 @@ import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.SuccessResponseDTO;
 import io.mosip.registration.dto.mastersync.BiometricAttributeDto;
 import io.mosip.registration.dto.mastersync.MasterDataResponseDto;
+import io.mosip.registration.dto.response.SyncDataResponseDto;
 import io.mosip.registration.entity.BiometricAttribute;
 import io.mosip.registration.entity.BlacklistedWords;
 import io.mosip.registration.entity.DocumentType;
@@ -223,8 +225,7 @@ public class MasterSyncServiceTest {
 
 		Mockito.when(objectMapper.readValue(masterJson, MasterDataResponseDto.class)).thenReturn(masterSyncDto);
 
-		Mockito.when(masterSyncDao.save(Mockito.any(MasterDataResponseDto.class)))
-				.thenReturn(RegistrationConstants.SUCCESS);
+		Mockito.when(masterSyncDao.saveSyncData(Mockito.any(SyncDataResponseDto.class))).thenReturn(RegistrationConstants.SUCCESS);
 		Mockito.when(machineMappingDAO.getKeyIndexByMacId(Mockito.anyString()))
 		.thenReturn("keyIndex");
 
@@ -307,7 +308,7 @@ public class MasterSyncServiceTest {
 		Mockito.when(objectMapper.readValue(masterSyncJson.toString(), MasterDataResponseDto.class))
 				.thenReturn(masterSyncDto);
 
-		Mockito.when(masterSyncDao.save(Mockito.any(MasterDataResponseDto.class)))
+		Mockito.when(masterSyncDao.saveSyncData(Mockito.any(SyncDataResponseDto.class)))
 				.thenThrow(IOException.class);
 		Mockito.when(machineMappingDAO.getKeyIndexByMacId(Mockito.anyString()))
 		.thenReturn("keyIndex");
@@ -356,7 +357,7 @@ public class MasterSyncServiceTest {
 		Mockito.when(objectMapper.readValue(masterSyncJson.toString(), MasterDataResponseDto.class))
 				.thenReturn(masterSyncDto);
 
-		Mockito.when(masterSyncDao.save(Mockito.any(MasterDataResponseDto.class)))
+		Mockito.when(masterSyncDao.saveSyncData(Mockito.any(SyncDataResponseDto.class)))
 				.thenReturn(RegistrationConstants.SUCCESS);
 		Mockito.when(machineMappingDAO.getKeyIndexByMacId(Mockito.anyString()))
 		.thenReturn("keyIndex");
@@ -403,7 +404,7 @@ public class MasterSyncServiceTest {
 
 		Mockito.when(objectMapper.readValue(masterJson, MasterDataResponseDto.class)).thenReturn(masterSyncDto);
 
-		Mockito.when(masterSyncDao.save(Mockito.any(MasterDataResponseDto.class)))
+		Mockito.when(masterSyncDao.saveSyncData(Mockito.any(SyncDataResponseDto.class)))
 				.thenReturn(RegistrationConstants.SUCCESS);
 		when(masterSyncDao.syncJobDetails(Mockito.anyString())).thenReturn(null);
 		Mockito.when(machineMappingDAO.getKeyIndexByMacId(Mockito.anyString()))
@@ -452,7 +453,7 @@ public class MasterSyncServiceTest {
 
 		Mockito.when(objectMapper.readValue(masterJson, MasterDataResponseDto.class)).thenReturn(masterSyncDto);
 
-		Mockito.when(masterSyncDao.save(Mockito.any(MasterDataResponseDto.class)))
+		Mockito.when(masterSyncDao.saveSyncData(Mockito.any(SyncDataResponseDto.class)))
 				.thenReturn(RegistrationConstants.SUCCESS);
 		Mockito.when(machineMappingDAO.getKeyIndexByMacId(Mockito.anyString()))
 		.thenReturn("keyIndex");
@@ -490,7 +491,7 @@ public class MasterSyncServiceTest {
 
 		Mockito.when(objectMapper.readValue(masterJson, MasterDataResponseDto.class)).thenReturn(masterSyncDto);
 
-		Mockito.when(masterSyncDao.save(Mockito.any(MasterDataResponseDto.class)))
+		Mockito.when(masterSyncDao.saveSyncData(Mockito.any(SyncDataResponseDto.class)))
 				.thenReturn(RegistrationConstants.SUCCESS);
 		when(masterSyncDao.syncJobDetails(Mockito.anyString())).thenReturn(null);
 		Mockito.when(machineMappingDAO.getKeyIndexByMacId(Mockito.anyString()))
@@ -572,7 +573,7 @@ public class MasterSyncServiceTest {
 		Mockito.when(objectMapper.readValue(masterSyncJson.toString(), MasterDataResponseDto.class))
 				.thenReturn(masterSyncDt);
 
-		Mockito.when(masterSyncDao.save(Mockito.any(MasterDataResponseDto.class)))
+		Mockito.when(masterSyncDao.saveSyncData(Mockito.any(SyncDataResponseDto.class)))
 				.thenReturn(RegistrationConstants.SUCCESS);
 		Mockito.when(machineMappingDAO.getKeyIndexByMacId(Mockito.anyString()))
 		.thenReturn("keyIndex");
@@ -648,7 +649,7 @@ public class MasterSyncServiceTest {
 		Mockito.when(objectMapper.readValue(masterSyncJson.toString(), MasterDataResponseDto.class))
 				.thenReturn(masterSyncDt);
 
-		Mockito.when(masterSyncDao.save(Mockito.any(MasterDataResponseDto.class)))
+		Mockito.when(masterSyncDao.saveSyncData(Mockito.any(SyncDataResponseDto.class)))
 				.thenReturn(RegistrationConstants.SUCCESS);
 
 		sucessResponse.setCode(RegistrationConstants.MASTER_SYNC_SUCESS_MSG_CODE);
@@ -719,7 +720,7 @@ public class MasterSyncServiceTest {
 		Mockito.when(objectMapper.readValue(masterSyncJson.toString(), MasterDataResponseDto.class))
 				.thenReturn(masterSyncDt);
 
-		Mockito.when(masterSyncDao.save(Mockito.any(MasterDataResponseDto.class)))
+		Mockito.when(masterSyncDao.saveSyncData(Mockito.any(SyncDataResponseDto.class)))
 				.thenReturn(RegistrationConstants.SUCCESS);
 		Mockito.when(machineMappingDAO.getKeyIndexByMacId(Mockito.anyString()))
 		.thenReturn("keyIndex");
@@ -940,7 +941,7 @@ public class MasterSyncServiceTest {
 
 		Mockito.when(objectMapper.readValue(masterJson, MasterDataResponseDto.class)).thenReturn(masterSyncDto);
 
-		Mockito.when(masterSyncDao.save(Mockito.any(MasterDataResponseDto.class)))
+		Mockito.when(masterSyncDao.saveSyncData(Mockito.any(SyncDataResponseDto.class)))
 				.thenReturn(RegistrationConstants.SUCCESS);
 		Mockito.when(machineMappingDAO.getKeyIndexByMacId(Mockito.anyString()))
 		.thenReturn("keyIndex");
@@ -1026,7 +1027,7 @@ public class MasterSyncServiceTest {
 
 		Mockito.when(objectMapper.readValue(masterJson, MasterDataResponseDto.class)).thenReturn(masterSyncDto);
 
-		Mockito.when(masterSyncDao.save(Mockito.any(MasterDataResponseDto.class)))
+		Mockito.when(masterSyncDao.saveSyncData(Mockito.any(SyncDataResponseDto.class)))
 				.thenReturn(RegistrationConstants.FAILURE);
 		Mockito.when(machineMappingDAO.getKeyIndexByMacId(Mockito.anyString()))
 		.thenReturn("keyIndex");
@@ -1177,14 +1178,14 @@ public class MasterSyncServiceTest {
 	public void getRequestParamsOnlyMacIdTest() {
 		PowerMockito.mockStatic(ApplicationContext.class);
 
-		Mockito.when(machineMappingDAO.getKeyIndexByMacId(Mockito.anyString())).thenReturn(null);
+		Mockito.when(machineMappingDAO.getKeyIndexByMachineName(Mockito.anyString())).thenReturn(null);
 		Mockito.when(masterSyncDao.syncJobDetails(Mockito.anyString())).thenReturn(null);
 
-		Map<String, String> requestParams = ReflectionTestUtils.invokeMethod(masterSyncServiceImpl, "getRequestParams",
+		Map<String, String> requestParams = ReflectionTestUtils.invokeMethod(masterSyncServiceImpl, "getRequestParamsForClientSettingsSync",
 				"macId", null);
 
-		Assert.assertTrue(requestParams.containsKey(RegistrationConstants.MAC_ADDRESS));
-		Assert.assertEquals(1, requestParams.size());
+		//Assert.assertTrue(requestParams.containsKey(RegistrationConstants.MAC_ADDRESS));
+		Assert.assertEquals(0, requestParams.size());
 	}
 
 	@Test
@@ -1196,11 +1197,11 @@ public class MasterSyncServiceTest {
 		PowerMockito.doReturn(applicationContext).when(ApplicationContext.class, "map");
 		PowerMockito.when(masterSyncDao.syncJobDetails(Mockito.anyString())).thenReturn(null);
 
-		Map<String, String> requestParams = ReflectionTestUtils.invokeMethod(masterSyncServiceImpl, "getRequestParams",
+		Map<String, String> requestParams = ReflectionTestUtils.invokeMethod(masterSyncServiceImpl, "getRequestParamsForClientSettingsSync",
 				"macId", "keyIndex");
 
 		Assert.assertTrue(requestParams.containsKey(RegistrationConstants.KEY_INDEX.toLowerCase()));
-		Assert.assertEquals(2, requestParams.size());
+		Assert.assertEquals(1, requestParams.size());
 
 	}
 
@@ -1210,15 +1211,18 @@ public class MasterSyncServiceTest {
 		Map<String, Object> applicationContext = new HashMap<>();
 		MachineMaster machineMaster = new MachineMaster();
 		machineMaster.setKeyIndex("keyIndex");
+		SyncControl syncControl = new SyncControl();
+		syncControl.setLastSyncDtimes(Timestamp.valueOf(LocalDateTime.now()));
 
 		PowerMockito.doReturn(applicationContext).when(ApplicationContext.class, "map");
-		Mockito.when(machineMappingDAO.getKeyIndexByMacId(Mockito.anyString()))
-		.thenReturn("keyIndex");
+		Mockito.when(machineMappingDAO.getKeyIndexByMachineName(Mockito.anyString())).thenReturn("keyIndex");
+		PowerMockito.when(masterSyncDao.syncJobDetails(Mockito.anyString())).thenReturn(syncControl);
 
-		Map<String, String> requestParams = ReflectionTestUtils.invokeMethod(masterSyncServiceImpl, "getRequestParams",
-				"masterSync", null);
+		Map<String, String> requestParams = ReflectionTestUtils.invokeMethod(masterSyncServiceImpl, "getRequestParamsForClientSettingsSync",
+				"masterSync", "keyIndex");
 
 		Assert.assertTrue(requestParams.containsKey(RegistrationConstants.KEY_INDEX.toLowerCase()));
+		Assert.assertTrue(requestParams.containsKey(RegistrationConstants.MASTER_DATA_LASTUPDTAE));
 		Assert.assertEquals(2, requestParams.size());
 
 	}
@@ -1231,19 +1235,18 @@ public class MasterSyncServiceTest {
 		MachineMaster machineMaster = new MachineMaster();
 		machineMaster.setKeyIndex("keyIndex");
 		SyncControl syncControl = new SyncControl();
-		syncControl.setLastSyncDtimes(Mockito.mock(Timestamp.class));
+		syncControl.setLastSyncDtimes(Timestamp.valueOf(LocalDateTime.now()));
 
 		PowerMockito.doReturn(applicationContext).when(ApplicationContext.class, "map");
-		Mockito.when(machineMappingDAO.getKeyIndexByMacId(Mockito.anyString()))
-		.thenReturn("keyIndex");
+		Mockito.when(machineMappingDAO.getKeyIndexByMachineName(Mockito.anyString())).thenReturn("keyIndex");
 		PowerMockito.when(masterSyncDao.syncJobDetails(Mockito.anyString())).thenReturn(syncControl);
 
-		Map<String, String> requestParams = ReflectionTestUtils.invokeMethod(masterSyncServiceImpl, "getRequestParams",
-				null, null);
+		Map<String, String> requestParams = ReflectionTestUtils.invokeMethod(masterSyncServiceImpl, "getRequestParamsForClientSettingsSync",
+				"machine", "keyIndex");
 
 		Assert.assertTrue(requestParams.containsKey(RegistrationConstants.KEY_INDEX.toLowerCase()));
 		Assert.assertTrue(requestParams.containsKey(RegistrationConstants.MASTER_DATA_LASTUPDTAE));
-		Assert.assertEquals(3, requestParams.size());
+		Assert.assertEquals(2, requestParams.size());
 
 	}
 
@@ -1333,7 +1336,7 @@ public class MasterSyncServiceTest {
 		Mockito.when(objectMapper.readValue(masterSyncJson.toString(), MasterDataResponseDto.class))
 				.thenReturn(masterSyncDt);
 
-		Mockito.when(masterSyncDao.save(Mockito.any(MasterDataResponseDto.class)))
+		Mockito.when(masterSyncDao.saveSyncData(Mockito.any(SyncDataResponseDto.class)))
 				.thenReturn(RegistrationConstants.SUCCESS);
 		Mockito.when(machineMappingDAO.getKeyIndexByMacId(Mockito.anyString()))
 		.thenReturn("keyIndex");

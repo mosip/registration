@@ -152,4 +152,47 @@ public class SyncManagerImpl extends BaseService implements SyncManager {
 		return syncTransaction;
 	}
 
+	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * io.mosip.registration.jobs.SyncManager#updateClientSettingLastSyncTime(io.mosip.
+	 * registration.entity.SyncTransaction,  java.sql.Timestamp)
+	 */
+	@Override
+	public SyncControl updateClientSettingLastSyncTime(SyncTransaction syncTransaction, Timestamp lastSyncTime) {
+
+		SyncControl syncControl = syncJobDAO.findBySyncJobId(syncTransaction.getSyncJobId());
+
+		boolean isNotCreated = syncControl == null;
+		if (isNotCreated) {
+			syncControl = new SyncControl();
+			syncControl.setId(UUID.randomUUID().toString());
+			syncControl.setSyncJobId(syncTransaction.getSyncJobId());
+			syncControl.setIsActive(true);
+			syncControl.setMachineId(syncTransaction.getMachmId());
+
+			syncControl.setRegcntrId(syncTransaction.getCntrId());
+			syncControl.setLangCode(RegistrationConstants.APPLICATION_LANUAGE);
+
+			syncControl.setCrBy(syncTransaction.getCrBy());
+			syncControl.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
+
+		} else {
+			syncControl.setUpdBy(syncTransaction.getCrBy());
+			syncControl.setUpdDtimes(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
+
+		}
+		syncControl.setSynctrnId(syncTransaction.getId());
+		syncControl.setLastSyncDtimes(lastSyncTime);
+
+		if (isNotCreated) {
+			syncControl = syncJobDAO.save(syncControl);
+		} else {
+			syncControl = syncJobDAO.update(syncControl);
+		}
+		return syncControl;
+	}
+
 }

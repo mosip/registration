@@ -2,6 +2,7 @@ package io.mosip.registration.test.dao.impl;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +16,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -29,12 +32,19 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.DataAccessException;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+import com.ibm.icu.impl.Assert;
 
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.constants.RegistrationConstants;
@@ -83,6 +93,8 @@ import io.mosip.registration.dto.mastersync.TemplateDto;
 import io.mosip.registration.dto.mastersync.TemplateFileFormatDto;
 import io.mosip.registration.dto.mastersync.TemplateTypeDto;
 import io.mosip.registration.dto.mastersync.TitleDto;
+import io.mosip.registration.dto.response.SyncDataBaseDto;
+import io.mosip.registration.dto.response.SyncDataResponseDto;
 import io.mosip.registration.entity.AppAuthenticationMethod;
 import io.mosip.registration.entity.AppDetail;
 import io.mosip.registration.entity.AppRolePriority;
@@ -174,6 +186,9 @@ import io.mosip.registration.repositories.TitleRepository;
 import io.mosip.registration.repositories.UserMachineMappingRepository;
 import io.mosip.registration.repositories.ValidDocumentRepository;
 import io.mosip.registration.service.sync.impl.MasterSyncServiceImpl;
+import io.mosip.registration.util.mastersync.ClientSettingSyncHelper;
+
+import io.mosip.registration.util.mastersync.MapperUtils;
 import io.mosip.registration.util.mastersync.MetaDataUtils;
 
 /**
@@ -182,7 +197,8 @@ import io.mosip.registration.util.mastersync.MetaDataUtils;
  * @since 1.0.0
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ MetaDataUtils.class, RegBaseUncheckedException.class, SessionContext.class })
+@SpringBootTest
+@PrepareForTest({ MetaDataUtils.class, RegBaseUncheckedException.class, SessionContext.class, BiometricAttributeRepository.class })
 public class MasterSyncDaoImplTest {
 
 	// private MapperFacade mapperFacade = CustomObjectMapper.MAPPER_FACADE;
@@ -316,10 +332,19 @@ public class MasterSyncDaoImplTest {
 
 	@Mock
 	private MasterSyncDao masterSyncDao;
-
+	
+	@Mock
+	private MetaDataUtils metaDataUtils;
+	
+	@Mock
+	private MapperUtils mapperUtils;
+	
 	@InjectMocks
 	private MasterSyncServiceImpl masterSyncServiceImpl;
-
+	
+	@Mock
+	private ClientSettingSyncHelper clientSettingSyncHelper;
+	
 	@InjectMocks
 	private MasterSyncDaoImpl masterSyncDaoImpl;
 	
@@ -368,777 +393,6 @@ public class MasterSyncDaoImplTest {
 			Mockito.when(masterSyncDaoImpl.syncJobDetails(Mockito.anyString()))
 					.thenThrow(RegBaseUncheckedException.class);
 			masterSyncDaoImpl.syncJobDetails("MDS_J00001");
-		} catch (Exception exception) {
-
-		}
-	}
-
-	@Test
-	public void testMasterSyncDao() throws RegBaseCheckedException, IOException {
-		PowerMockito.mockStatic(MetaDataUtils.class);
-		Resource resource = new ClassPathResource("masterSync.txt");
-		File file = resource.getFile();
-		Gson gson = new Gson();
-		String jsonString = new String(Files.readAllBytes(Paths.get(file.getAbsolutePath())));
-		MasterDataResponseDto masterSyncDtos  = null;
-		try {
-			masterSyncDtos = gson.fromJson(jsonString, MasterDataResponseDto.class);
-		}catch(Exception exception) {
-			exception.printStackTrace();
-		}
-		masterSyncDaoImpl.save(masterSyncDtos);
-
-	}
-	
-	@JsonIgnoreProperties(ignoreUnknown = true)
-	class TestMe{
-		List<String> name;
-		public TestMe() {
-			
-		}
-		public List<String> getName() {
-			return name;
-		}
-		public void setName(List<String> name) {
-			this.name = name;
-		}
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testMasterSyncException() throws RegBaseUncheckedException {
-		PowerMockito.mockStatic(RegBaseUncheckedException.class);
-		MasterDataResponseDto masterSyncDto = new MasterDataResponseDto();
-
-		List<ApplicationDto> application = new ArrayList<>();
-		masterSyncDto.setApplications(application);
-
-		List<DeviceTypeDto> masterDeviceTypeDto = new ArrayList<>();
-
-		masterSyncDto.setDeviceTypes(masterDeviceTypeDto);
-
-		List<DeviceSpecificationDto> masterDeviceSpecificDtoEntity = new ArrayList<>();
-		masterSyncDto.setDeviceSpecifications(masterDeviceSpecificDtoEntity);
-
-		List<DeviceDto> masterDeviceDto = new ArrayList<>();
-
-		masterSyncDto.setDevices(masterDeviceDto);
-
-		List<HolidayDto> masterHolidaysDto = new ArrayList<>();
-		masterSyncDto.setHolidays(masterHolidaysDto);
-
-		List<MachineDto> masterMachineDto = new ArrayList<>();
-		masterSyncDto.setMachineDetails(masterMachineDto);
-
-		List<MachineSpecificationDto> masterMachineSpecDto = new ArrayList<>();
-		masterSyncDto.setMachineSpecification(masterMachineSpecDto);
-
-		List<MachineTypeDto> masterMachineTypeDto = new ArrayList<>();
-		masterSyncDto.setMachineDetails(masterMachineDto);
-
-		List<ApplicantValidDocumentDto> masterValidDocumnetsDto = new ArrayList<>();
-		masterSyncDto.setApplicantValidDocuments(masterValidDocumnetsDto);
-
-		List<TemplateDto> masterTemplateDto = new ArrayList<>();
-		masterSyncDto.setTemplates(masterTemplateDto);
-
-		List<TemplateTypeDto> masterTemplateTypeDto = new ArrayList<>();
-		masterSyncDto.setTemplatesTypes(masterTemplateTypeDto);
-
-		List<TemplateFileFormatDto> masterTemplateFileDto = new ArrayList<>();
-		masterSyncDto.setTemplateFileFormat(masterTemplateFileDto);
-
-		List<RegistrationCenterDto> regCenter = new ArrayList<>();
-		masterSyncDto.setRegistrationCenter(regCenter);
-
-		List<MachineTypeDto> masterMachineType = new ArrayList<>();
-		masterSyncDto.setMachineType(masterMachineType);
-
-		List<RegistrationCommonFields> baseEnity = new ArrayList<>();
-		// Language
-		List<LanguageDto> language = new ArrayList<>();
-		LanguageDto lanugageRespDto = new LanguageDto();
-		lanugageRespDto.setName("ENG");
-		lanugageRespDto.setCode("1001");
-		lanugageRespDto.setFamily("english");
-		lanugageRespDto.setNativeName("eng");
-		language.add(lanugageRespDto);
-		masterSyncDto.setLanguages(language);
-		// BiometricType
-		List<BiometricTypeDto> biometrictype = new ArrayList<>();
-		BiometricTypeDto biometricTypeDto = new BiometricTypeDto();
-		biometricTypeDto.setCode("1");
-		biometricTypeDto.setDescription("FigerPrint..");
-		biometricTypeDto.setLangCode("eng");
-		biometricTypeDto.setName("FigerPrint");
-		biometrictype.add(biometricTypeDto);
-		masterSyncDto.setBiometricTypes(biometrictype);
-		// Biometric
-		List<BiometricAttributeDto> biometricattribute = new ArrayList<>();
-		BiometricAttributeDto biometricAttriDto = new BiometricAttributeDto();
-		biometricAttriDto.setCode("1");
-		biometricAttriDto.setDescription("FigerPrint..");
-		biometricAttriDto.setLangCode("eng");
-		biometricAttriDto.setName("FigerPrint");
-		biometricattribute.add(biometricAttriDto);
-		masterSyncDto.setBiometricattributes(biometricattribute);
-		// BlacklistedWords
-		List<BlacklistedWordsDto> masterBlackListedWordsDto = new ArrayList<>();
-		BlacklistedWordsDto blacklistedWordsDto = new BlacklistedWordsDto();
-		blacklistedWordsDto.setWord("agshasa");
-		blacklistedWordsDto.setDescription("FigerPrint..");
-		blacklistedWordsDto.setLangCode("eng");
-		masterBlackListedWordsDto.add(blacklistedWordsDto);
-		masterSyncDto.setBlackListedWords(masterBlackListedWordsDto);
-		// gender
-		List<GenderDto> gender = new ArrayList<>();
-		GenderDto genderTypeDto = new GenderDto();
-		genderTypeDto.setCode("G101");
-		genderTypeDto.setGenderName("Male");
-		genderTypeDto.setLangCode("eng");
-		gender.add(genderTypeDto);
-		masterSyncDto.setGenders(gender);
-		// title
-		List<TitleDto> title = new ArrayList<>();
-		TitleDto titleTypeDto = new TitleDto();
-		// titleTypeDto.setTitleCode("1");
-		// titleTypeDto.setTitleDescription("dsddsd");
-		// titleTypeDto.setTitleName("admin");
-		titleTypeDto.setIsActive(true);
-		title.add(titleTypeDto);
-		masterSyncDto.setTitles(title);
-		// idType
-		IdTypeDto idTypeResponseDto = new IdTypeDto();
-		idTypeResponseDto.setCode("1");
-		idTypeResponseDto.setLangCode("eng");
-		List<IdTypeDto> idTypeList = new ArrayList<>();
-		idTypeList.add(idTypeResponseDto);
-		masterSyncDto.setIdTypes(idTypeList);
-		// Document Category
-		DocumentCategoryDto titleResponseDto1 = new DocumentCategoryDto();
-		titleResponseDto1.setCode("1");
-		titleResponseDto1.setName("POA");
-		titleResponseDto1.setDescription("ajkskjska");
-		titleResponseDto1.setLangCode("eng");
-		List<DocumentCategoryDto> listDocCat = new ArrayList<>();
-		listDocCat.add(titleResponseDto1);
-		masterSyncDto.setDocumentCategories(listDocCat);
-		//
-		DocumentTypeDto titleDocumentTypeDto = new DocumentTypeDto();
-		titleDocumentTypeDto.setCode("1");
-		titleDocumentTypeDto.setName("Passport");
-		titleDocumentTypeDto.setDescription("ajkskjska");
-		titleDocumentTypeDto.setLangCode("eng");
-		List<DocumentTypeDto> listDocType = new ArrayList<>();
-		listDocType.add(titleDocumentTypeDto);
-		masterSyncDto.setDocumentTypes(listDocType);
-		//
-		List<LocationDto> listLocation = new ArrayList<>();
-		LocationDto locationDto = new LocationDto();
-		locationDto.setCode("1");
-		locationDto.setName("english");
-		locationDto.setLangCode("eng");
-		locationDto.setHierarchyLevel(1);
-		locationDto.setHierarchyName("english");
-		locationDto.setParentLocCode("english");
-		listLocation.add(locationDto);
-		masterSyncDto.setLocationHierarchy(listLocation);
-		//
-		List<ReasonListDto> categorieList = new ArrayList<>();
-		ReasonListDto reasonListDto = new ReasonListDto();
-		reasonListDto.setCode("1");
-		reasonListDto.setLangCode("eng");
-		reasonListDto.setDescription("asas");
-		reasonListDto.setName("sdjsd");
-		reasonListDto.setRsnCatCode("RS1001");
-		categorieList.add(reasonListDto);
-		masterSyncDto.setReasonList(categorieList);
-		//
-		List<PostReasonCategoryDto> categorie = new ArrayList<>();
-		PostReasonCategoryDto reasonCategoryDto = new PostReasonCategoryDto();
-		reasonCategoryDto.setCode("1");
-		reasonCategoryDto.setLangCode("eng");
-		reasonCategoryDto.setDescription("asbasna");
-		reasonCategoryDto.setName("RC1001");
-		categorie.add(reasonCategoryDto);
-		masterSyncDto.setReasonCategory(categorie);
-
-		// Machine
-		List<MachineMaster> machines = new ArrayList<>();
-		MachineMaster machine = new MachineMaster();
-		RegMachineSpecId specId = new RegMachineSpecId();
-		specId.setId("100131");
-		specId.setLangCode("eng");
-		machine.setRegMachineSpecId(specId);
-		machine.setIpAddress("172.12.01.128");
-		machine.setMacAddress("21:21:21:12");
-		machine.setMachineSpecId("9876427");
-		machine.setMachineSpecId("1001");
-		machine.setName("Laptop");
-		machines.add(machine);
-		List<Gender> masterApplicationDtoEntity = new ArrayList<>();
-		try {
-			Mockito.when(masterSyncGenderTypeRepository.saveAll(masterApplicationDtoEntity))
-					.thenThrow(new RuntimeException().getClass());
-			masterSyncDaoImpl.save(masterSyncDto);
-
-		} catch (Exception exception) {
-
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testMasterSyncNullException() {
-		PowerMockito.mockStatic(RegBaseUncheckedException.class);
-		MasterDataResponseDto masterSyncDto = new MasterDataResponseDto();
-
-		List<ApplicationDto> application = new ArrayList<>();
-		masterSyncDto.setApplications(application);
-
-		List<DeviceTypeDto> masterDeviceTypeDto = new ArrayList<>();
-
-		masterSyncDto.setDeviceTypes(masterDeviceTypeDto);
-
-		List<DeviceSpecificationDto> masterDeviceSpecificDtoEntity = new ArrayList<>();
-		masterSyncDto.setDeviceSpecifications(masterDeviceSpecificDtoEntity);
-
-		List<DeviceDto> masterDeviceDto = new ArrayList<>();
-
-		masterSyncDto.setDevices(masterDeviceDto);
-
-		List<HolidayDto> masterHolidaysDto = new ArrayList<>();
-		masterSyncDto.setHolidays(masterHolidaysDto);
-
-		List<MachineDto> masterMachineDto = new ArrayList<>();
-		masterSyncDto.setMachineDetails(masterMachineDto);
-
-		List<MachineSpecificationDto> masterMachineSpecDto = new ArrayList<>();
-		masterSyncDto.setMachineSpecification(masterMachineSpecDto);
-
-		List<MachineTypeDto> masterMachineTypeDto = new ArrayList<>();
-		masterSyncDto.setMachineDetails(masterMachineDto);
-
-		List<ApplicantValidDocumentDto> masterValidDocumnetsDto = new ArrayList<>();
-		masterSyncDto.setApplicantValidDocuments(masterValidDocumnetsDto);
-
-		List<TemplateDto> masterTemplateDto = new ArrayList<>();
-		masterSyncDto.setTemplates(masterTemplateDto);
-
-		List<TemplateTypeDto> masterTemplateTypeDto = new ArrayList<>();
-		masterSyncDto.setTemplatesTypes(masterTemplateTypeDto);
-
-		List<TemplateFileFormatDto> masterTemplateFileDto = new ArrayList<>();
-		masterSyncDto.setTemplateFileFormat(masterTemplateFileDto);
-
-		List<RegistrationCenterDto> regCenter = new ArrayList<>();
-		masterSyncDto.setRegistrationCenter(regCenter);
-
-		List<MachineTypeDto> masterMachineType = new ArrayList<>();
-		masterSyncDto.setMachineType(masterMachineType);
-
-		List<RegistrationCommonFields> baseEnity = new ArrayList<>();
-		// Language
-		List<LanguageDto> language = new ArrayList<>();
-		LanguageDto lanugageRespDto = new LanguageDto();
-		lanugageRespDto.setName("ENG");
-		lanugageRespDto.setCode("1001");
-		lanugageRespDto.setFamily("english");
-		lanugageRespDto.setNativeName("eng");
-		language.add(lanugageRespDto);
-		masterSyncDto.setLanguages(language);
-		// BiometricType
-		List<BiometricTypeDto> biometrictype = new ArrayList<>();
-		BiometricTypeDto biometricTypeDto = new BiometricTypeDto();
-		biometricTypeDto.setCode("1");
-		biometricTypeDto.setDescription("FigerPrint..");
-		biometricTypeDto.setLangCode("eng");
-		biometricTypeDto.setName("FigerPrint");
-		biometrictype.add(biometricTypeDto);
-		masterSyncDto.setBiometricTypes(biometrictype);
-		// Biometric
-		List<BiometricAttributeDto> biometricattribute = new ArrayList<>();
-		BiometricAttributeDto biometricAttriDto = new BiometricAttributeDto();
-		biometricAttriDto.setCode("1");
-		biometricAttriDto.setDescription("FigerPrint..");
-		biometricAttriDto.setLangCode("eng");
-		biometricAttriDto.setName("FigerPrint");
-		biometricattribute.add(biometricAttriDto);
-		masterSyncDto.setBiometricattributes(biometricattribute);
-		// BlacklistedWords
-		List<BlacklistedWordsDto> masterBlackListedWordsDto = new ArrayList<>();
-		BlacklistedWordsDto blacklistedWordsDto = new BlacklistedWordsDto();
-		blacklistedWordsDto.setWord("agshasa");
-		blacklistedWordsDto.setDescription("FigerPrint..");
-		blacklistedWordsDto.setLangCode("eng");
-		masterBlackListedWordsDto.add(blacklistedWordsDto);
-		masterSyncDto.setBlackListedWords(masterBlackListedWordsDto);
-		// gender
-		List<GenderDto> gender = new ArrayList<>();
-		GenderDto genderTypeDto = new GenderDto();
-		genderTypeDto.setCode("G101");
-		genderTypeDto.setGenderName("Male");
-		genderTypeDto.setLangCode("eng");
-		gender.add(genderTypeDto);
-		masterSyncDto.setGenders(gender);
-		// title
-		List<TitleDto> title = new ArrayList<>();
-		TitleDto titleTypeDto = new TitleDto();
-		// titleTypeDto.setTitleCode("1");
-		// titleTypeDto.setTitleDescription("dsddsd");
-		// titleTypeDto.setTitleName("admin");
-		titleTypeDto.setIsActive(true);
-		title.add(titleTypeDto);
-		masterSyncDto.setTitles(title);
-		// idType
-		IdTypeDto idTypeResponseDto = new IdTypeDto();
-		idTypeResponseDto.setCode("1");
-		idTypeResponseDto.setLangCode("eng");
-		List<IdTypeDto> idTypeList = new ArrayList<>();
-		idTypeList.add(idTypeResponseDto);
-		masterSyncDto.setIdTypes(idTypeList);
-		// Document Category
-		DocumentCategoryDto titleResponseDto1 = new DocumentCategoryDto();
-		titleResponseDto1.setCode("1");
-		titleResponseDto1.setName("POA");
-		titleResponseDto1.setDescription("ajkskjska");
-		titleResponseDto1.setLangCode("eng");
-		List<DocumentCategoryDto> listDocCat = new ArrayList<>();
-		listDocCat.add(titleResponseDto1);
-		masterSyncDto.setDocumentCategories(listDocCat);
-		//
-		DocumentTypeDto titleDocumentTypeDto = new DocumentTypeDto();
-		titleDocumentTypeDto.setCode("1");
-		titleDocumentTypeDto.setName("Passport");
-		titleDocumentTypeDto.setDescription("ajkskjska");
-		titleDocumentTypeDto.setLangCode("eng");
-		List<DocumentTypeDto> listDocType = new ArrayList<>();
-		listDocType.add(titleDocumentTypeDto);
-		masterSyncDto.setDocumentTypes(listDocType);
-		//
-		List<LocationDto> listLocation = new ArrayList<>();
-		LocationDto locationDto = new LocationDto();
-		locationDto.setCode("1");
-		locationDto.setName("english");
-		locationDto.setLangCode("eng");
-		locationDto.setHierarchyLevel(1);
-		locationDto.setHierarchyName("english");
-		locationDto.setParentLocCode("english");
-		listLocation.add(locationDto);
-		masterSyncDto.setLocationHierarchy(listLocation);
-		//
-		List<ReasonListDto> categorieList = new ArrayList<>();
-		ReasonListDto reasonListDto = new ReasonListDto();
-		reasonListDto.setCode("1");
-		reasonListDto.setLangCode("eng");
-		reasonListDto.setDescription("asas");
-		reasonListDto.setName("sdjsd");
-		reasonListDto.setRsnCatCode("RS1001");
-		categorieList.add(reasonListDto);
-		masterSyncDto.setReasonList(categorieList);
-		//
-		List<PostReasonCategoryDto> categorie = new ArrayList<>();
-		PostReasonCategoryDto reasonCategoryDto = new PostReasonCategoryDto();
-		reasonCategoryDto.setCode("1");
-		reasonCategoryDto.setLangCode("eng");
-		reasonCategoryDto.setDescription("asbasna");
-		reasonCategoryDto.setName("RC1001");
-		categorie.add(reasonCategoryDto);
-		masterSyncDto.setReasonCategory(categorie);
-
-		// Machine
-		List<MachineMaster> machines = new ArrayList<>();
-		MachineMaster machine = new MachineMaster();
-		RegMachineSpecId specId = new RegMachineSpecId();
-		specId.setId("100131");
-		specId.setLangCode("eng");
-		machine.setRegMachineSpecId(specId);
-		machine.setIpAddress("172.12.01.128");
-		machine.setMacAddress("21:21:21:12");
-		machine.setMachineSpecId("9876427");
-		machine.setMachineSpecId("1001");
-		machine.setName("Laptop");
-		machines.add(machine);
-		List<Gender> masterApplicationDtoEntity = new ArrayList<>();
-		try {
-			Mockito.when(masterSyncGenderTypeRepository.saveAll(masterApplicationDtoEntity))
-					.thenThrow(new DataAccessException("...") {
-					});
-			masterSyncDaoImpl.save(masterSyncDto);
-
-		} catch (Exception exception) {
-
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testMasterSyncDataException() {
-		PowerMockito.mockStatic(RegBaseUncheckedException.class);
-		MasterDataResponseDto masterSyncDto = new MasterDataResponseDto();
-
-		List<ApplicationDto> application = new ArrayList<>();
-		masterSyncDto.setApplications(application);
-
-		List<DeviceTypeDto> masterDeviceTypeDto = new ArrayList<>();
-
-		masterSyncDto.setDeviceTypes(masterDeviceTypeDto);
-
-		List<DeviceSpecificationDto> masterDeviceSpecificDtoEntity = new ArrayList<>();
-		masterSyncDto.setDeviceSpecifications(masterDeviceSpecificDtoEntity);
-
-		List<DeviceDto> masterDeviceDto = new ArrayList<>();
-
-		masterSyncDto.setDevices(masterDeviceDto);
-
-		List<HolidayDto> masterHolidaysDto = new ArrayList<>();
-		masterSyncDto.setHolidays(masterHolidaysDto);
-
-		List<MachineDto> masterMachineDto = new ArrayList<>();
-		masterSyncDto.setMachineDetails(masterMachineDto);
-
-		List<MachineSpecificationDto> masterMachineSpecDto = new ArrayList<>();
-		masterSyncDto.setMachineSpecification(masterMachineSpecDto);
-
-		List<MachineTypeDto> masterMachineTypeDto = new ArrayList<>();
-		masterSyncDto.setMachineDetails(masterMachineDto);
-
-		List<ApplicantValidDocumentDto> masterValidDocumnetsDto = new ArrayList<>();
-		masterSyncDto.setApplicantValidDocuments(masterValidDocumnetsDto);
-
-		List<TemplateDto> masterTemplateDto = new ArrayList<>();
-		masterSyncDto.setTemplates(masterTemplateDto);
-
-		List<TemplateTypeDto> masterTemplateTypeDto = new ArrayList<>();
-		masterSyncDto.setTemplatesTypes(masterTemplateTypeDto);
-
-		List<TemplateFileFormatDto> masterTemplateFileDto = new ArrayList<>();
-		masterSyncDto.setTemplateFileFormat(masterTemplateFileDto);
-
-		List<RegistrationCenterDto> regCenter = new ArrayList<>();
-		masterSyncDto.setRegistrationCenter(regCenter);
-
-		List<MachineTypeDto> masterMachineType = new ArrayList<>();
-		masterSyncDto.setMachineType(masterMachineType);
-
-		List<RegistrationCommonFields> baseEnity = new ArrayList<>();
-		// Language
-		List<LanguageDto> language = new ArrayList<>();
-		LanguageDto lanugageRespDto = new LanguageDto();
-		lanugageRespDto.setName("ENG");
-		lanugageRespDto.setCode("1001");
-		lanugageRespDto.setFamily("english");
-		lanugageRespDto.setNativeName("eng");
-		language.add(lanugageRespDto);
-		masterSyncDto.setLanguages(language);
-		// BiometricType
-		List<BiometricTypeDto> biometrictype = new ArrayList<>();
-		BiometricTypeDto biometricTypeDto = new BiometricTypeDto();
-		biometricTypeDto.setCode("1");
-		biometricTypeDto.setDescription("FigerPrint..");
-		biometricTypeDto.setLangCode("eng");
-		biometricTypeDto.setName("FigerPrint");
-		biometrictype.add(biometricTypeDto);
-		masterSyncDto.setBiometricTypes(biometrictype);
-		// Biometric
-		List<BiometricAttributeDto> biometricattribute = new ArrayList<>();
-		BiometricAttributeDto biometricAttriDto = new BiometricAttributeDto();
-		biometricAttriDto.setCode("1");
-		biometricAttriDto.setDescription("FigerPrint..");
-		biometricAttriDto.setLangCode("eng");
-		biometricAttriDto.setName("FigerPrint");
-		biometricattribute.add(biometricAttriDto);
-		masterSyncDto.setBiometricattributes(biometricattribute);
-		// BlacklistedWords
-		List<BlacklistedWordsDto> masterBlackListedWordsDto = new ArrayList<>();
-		BlacklistedWordsDto blacklistedWordsDto = new BlacklistedWordsDto();
-		blacklistedWordsDto.setWord("agshasa");
-		blacklistedWordsDto.setDescription("FigerPrint..");
-		blacklistedWordsDto.setLangCode("eng");
-		masterBlackListedWordsDto.add(blacklistedWordsDto);
-		masterSyncDto.setBlackListedWords(masterBlackListedWordsDto);
-		// gender
-		List<GenderDto> gender = new ArrayList<>();
-		GenderDto genderTypeDto = new GenderDto();
-		genderTypeDto.setCode("G101");
-		genderTypeDto.setGenderName("Male");
-		genderTypeDto.setLangCode("eng");
-		gender.add(genderTypeDto);
-		masterSyncDto.setGenders(gender);
-		// title
-		List<TitleDto> title = new ArrayList<>();
-		TitleDto titleTypeDto = new TitleDto();
-		// titleTypeDto.setTitleCode("1");
-		// titleTypeDto.setTitleDescription("dsddsd");
-		// titleTypeDto.setTitleName("admin");
-		titleTypeDto.setIsActive(true);
-		title.add(titleTypeDto);
-		masterSyncDto.setTitles(title);
-		// idType
-		IdTypeDto idTypeResponseDto = new IdTypeDto();
-		idTypeResponseDto.setCode("1");
-		idTypeResponseDto.setLangCode("eng");
-		List<IdTypeDto> idTypeList = new ArrayList<>();
-		idTypeList.add(idTypeResponseDto);
-		masterSyncDto.setIdTypes(idTypeList);
-		// Document Category
-		DocumentCategoryDto titleResponseDto1 = new DocumentCategoryDto();
-		titleResponseDto1.setCode("1");
-		titleResponseDto1.setName("POA");
-		titleResponseDto1.setDescription("ajkskjska");
-		titleResponseDto1.setLangCode("eng");
-		List<DocumentCategoryDto> listDocCat = new ArrayList<>();
-		listDocCat.add(titleResponseDto1);
-		masterSyncDto.setDocumentCategories(listDocCat);
-		//
-		DocumentTypeDto titleDocumentTypeDto = new DocumentTypeDto();
-		titleDocumentTypeDto.setCode("1");
-		titleDocumentTypeDto.setName("Passport");
-		titleDocumentTypeDto.setDescription("ajkskjska");
-		titleDocumentTypeDto.setLangCode("eng");
-		List<DocumentTypeDto> listDocType = new ArrayList<>();
-		listDocType.add(titleDocumentTypeDto);
-		masterSyncDto.setDocumentTypes(listDocType);
-		//
-		List<LocationDto> listLocation = new ArrayList<>();
-		LocationDto locationDto = new LocationDto();
-		locationDto.setCode("1");
-		locationDto.setName("english");
-		locationDto.setLangCode("eng");
-		locationDto.setHierarchyLevel(1);
-		locationDto.setHierarchyName("english");
-		locationDto.setParentLocCode("english");
-		listLocation.add(locationDto);
-		masterSyncDto.setLocationHierarchy(listLocation);
-		//
-		List<ReasonListDto> categorieList = new ArrayList<>();
-		ReasonListDto reasonListDto = new ReasonListDto();
-		reasonListDto.setCode("1");
-		reasonListDto.setLangCode("eng");
-		reasonListDto.setDescription("asas");
-		reasonListDto.setName("sdjsd");
-		reasonListDto.setRsnCatCode("RS1001");
-		categorieList.add(reasonListDto);
-		masterSyncDto.setReasonList(categorieList);
-		//
-		List<PostReasonCategoryDto> categorie = new ArrayList<>();
-		PostReasonCategoryDto reasonCategoryDto = new PostReasonCategoryDto();
-		reasonCategoryDto.setCode("1");
-		reasonCategoryDto.setLangCode("eng");
-		reasonCategoryDto.setDescription("asbasna");
-		reasonCategoryDto.setName("RC1001");
-		categorie.add(reasonCategoryDto);
-		masterSyncDto.setReasonCategory(categorie);
-
-		// Machine
-		List<MachineMaster> machines = new ArrayList<>();
-		MachineMaster machine = new MachineMaster();
-		RegMachineSpecId specId = new RegMachineSpecId();
-		specId.setId("100131");
-		specId.setLangCode("eng");
-		machine.setRegMachineSpecId(specId);
-		machine.setIpAddress("172.12.01.128");
-		machine.setMacAddress("21:21:21:12");
-		machine.setMachineSpecId("9876427");
-		machine.setMachineSpecId("1001");
-		machine.setName("Laptop");
-		machines.add(machine);
-		List<Gender> masterApplicationDtoEntity = new ArrayList<>();
-		try {
-			Mockito.when(masterSyncGenderTypeRepository.saveAll(masterApplicationDtoEntity))
-					.thenThrow(new NullPointerException("...") {
-					});
-			masterSyncDaoImpl.save(masterSyncDto);
-
-		} catch (Exception exception) {
-
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testMasterSyncRegException() {
-		PowerMockito.mockStatic(RegBaseUncheckedException.class);
-		MasterDataResponseDto masterSyncDto = new MasterDataResponseDto();
-
-		List<ApplicationDto> application = new ArrayList<>();
-		masterSyncDto.setApplications(application);
-
-		List<DeviceTypeDto> masterDeviceTypeDto = new ArrayList<>();
-
-		masterSyncDto.setDeviceTypes(masterDeviceTypeDto);
-
-		List<DeviceSpecificationDto> masterDeviceSpecificDtoEntity = new ArrayList<>();
-		masterSyncDto.setDeviceSpecifications(masterDeviceSpecificDtoEntity);
-
-		List<DeviceDto> masterDeviceDto = new ArrayList<>();
-
-		masterSyncDto.setDevices(masterDeviceDto);
-
-		List<HolidayDto> masterHolidaysDto = new ArrayList<>();
-		masterSyncDto.setHolidays(masterHolidaysDto);
-
-		List<MachineDto> masterMachineDto = new ArrayList<>();
-		masterSyncDto.setMachineDetails(masterMachineDto);
-
-		List<MachineSpecificationDto> masterMachineSpecDto = new ArrayList<>();
-		masterSyncDto.setMachineSpecification(masterMachineSpecDto);
-
-		List<MachineTypeDto> masterMachineTypeDto = new ArrayList<>();
-		masterSyncDto.setMachineDetails(masterMachineDto);
-
-		List<ApplicantValidDocumentDto> masterValidDocumnetsDto = new ArrayList<>();
-		masterSyncDto.setApplicantValidDocuments(masterValidDocumnetsDto);
-
-		List<TemplateDto> masterTemplateDto = new ArrayList<>();
-		masterSyncDto.setTemplates(masterTemplateDto);
-
-		List<TemplateTypeDto> masterTemplateTypeDto = new ArrayList<>();
-		masterSyncDto.setTemplatesTypes(masterTemplateTypeDto);
-
-		List<TemplateFileFormatDto> masterTemplateFileDto = new ArrayList<>();
-		TemplateFileFormatDto tem = new TemplateFileFormatDto();
-		tem.setCode("1001");
-		tem.setDescription("text");
-		tem.setIsActive(true);
-		tem.setIsDeleted(false);
-		masterTemplateFileDto.add(tem);
-		masterSyncDto.setTemplateFileFormat(masterTemplateFileDto);
-
-		List<RegistrationCenterDto> regCenter = new ArrayList<>();
-		masterSyncDto.setRegistrationCenter(regCenter);
-
-		List<MachineTypeDto> masterMachineType = new ArrayList<>();
-		masterSyncDto.setMachineType(masterMachineType);
-
-		List<RegistrationCommonFields> baseEnity = new ArrayList<>();
-		// Language
-		List<LanguageDto> language = new ArrayList<>();
-		LanguageDto lanugageRespDto = new LanguageDto();
-		lanugageRespDto.setName("ENG");
-		lanugageRespDto.setCode("1001");
-		lanugageRespDto.setFamily("english");
-		lanugageRespDto.setNativeName("eng");
-		language.add(lanugageRespDto);
-		masterSyncDto.setLanguages(language);
-		// BiometricType
-		List<BiometricTypeDto> biometrictype = new ArrayList<>();
-		BiometricTypeDto biometricTypeDto = new BiometricTypeDto();
-		biometricTypeDto.setCode("1");
-		biometricTypeDto.setDescription("FigerPrint..");
-		biometricTypeDto.setLangCode("eng");
-		biometricTypeDto.setName("FigerPrint");
-		biometrictype.add(biometricTypeDto);
-		masterSyncDto.setBiometricTypes(biometrictype);
-		// Biometric
-		List<BiometricAttributeDto> biometricattribute = new ArrayList<>();
-		BiometricAttributeDto biometricAttriDto = new BiometricAttributeDto();
-		biometricAttriDto.setCode("1");
-		biometricAttriDto.setDescription("FigerPrint..");
-		biometricAttriDto.setLangCode("eng");
-		biometricAttriDto.setName("FigerPrint");
-		biometricattribute.add(biometricAttriDto);
-		masterSyncDto.setBiometricattributes(biometricattribute);
-		// BlacklistedWords
-		List<BlacklistedWordsDto> masterBlackListedWordsDto = new ArrayList<>();
-		BlacklistedWordsDto blacklistedWordsDto = new BlacklistedWordsDto();
-		blacklistedWordsDto.setWord("agshasa");
-		blacklistedWordsDto.setDescription("FigerPrint..");
-		blacklistedWordsDto.setLangCode("eng");
-		masterBlackListedWordsDto.add(blacklistedWordsDto);
-		masterSyncDto.setBlackListedWords(masterBlackListedWordsDto);
-		// gender
-		List<GenderDto> gender = new ArrayList<>();
-		GenderDto genderTypeDto = new GenderDto();
-		genderTypeDto.setCode("G101");
-		genderTypeDto.setGenderName("Male");
-		genderTypeDto.setLangCode("eng");
-		gender.add(genderTypeDto);
-		masterSyncDto.setGenders(gender);
-		// title
-		List<TitleDto> title = new ArrayList<>();
-		TitleDto titleTypeDto = new TitleDto();
-		// titleTypeDto.setTitleCode("1");
-		// titleTypeDto.setTitleDescription("dsddsd");
-		// titleTypeDto.setTitleName("admin");
-		titleTypeDto.setIsActive(true);
-		title.add(titleTypeDto);
-		masterSyncDto.setTitles(title);
-		// idType
-		IdTypeDto idTypeResponseDto = new IdTypeDto();
-		idTypeResponseDto.setCode("1");
-		idTypeResponseDto.setLangCode("eng");
-		List<IdTypeDto> idTypeList = new ArrayList<>();
-		idTypeList.add(idTypeResponseDto);
-		masterSyncDto.setIdTypes(idTypeList);
-		// Document Category
-		DocumentCategoryDto titleResponseDto1 = new DocumentCategoryDto();
-		titleResponseDto1.setCode("1");
-		titleResponseDto1.setName("POA");
-		titleResponseDto1.setDescription("ajkskjska");
-		titleResponseDto1.setLangCode("eng");
-		List<DocumentCategoryDto> listDocCat = new ArrayList<>();
-		listDocCat.add(titleResponseDto1);
-		masterSyncDto.setDocumentCategories(listDocCat);
-		//
-		DocumentTypeDto titleDocumentTypeDto = new DocumentTypeDto();
-		titleDocumentTypeDto.setCode("1");
-		titleDocumentTypeDto.setName("Passport");
-		titleDocumentTypeDto.setDescription("ajkskjska");
-		titleDocumentTypeDto.setLangCode("eng");
-		List<DocumentTypeDto> listDocType = new ArrayList<>();
-		listDocType.add(titleDocumentTypeDto);
-		masterSyncDto.setDocumentTypes(listDocType);
-		//
-		List<LocationDto> listLocation = new ArrayList<>();
-		LocationDto locationDto = new LocationDto();
-		locationDto.setCode("1");
-		locationDto.setName("english");
-		locationDto.setLangCode("eng");
-		locationDto.setHierarchyLevel(1);
-		locationDto.setHierarchyName("english");
-		locationDto.setParentLocCode("english");
-		listLocation.add(locationDto);
-		masterSyncDto.setLocationHierarchy(listLocation);
-		//
-		List<ReasonListDto> categorieList = new ArrayList<>();
-		ReasonListDto reasonListDto = new ReasonListDto();
-		reasonListDto.setCode("1");
-		reasonListDto.setLangCode("eng");
-		reasonListDto.setDescription("asas");
-		reasonListDto.setName("sdjsd");
-		reasonListDto.setRsnCatCode("RS1001");
-		categorieList.add(reasonListDto);
-		masterSyncDto.setReasonList(categorieList);
-		//
-		List<PostReasonCategoryDto> categorie = new ArrayList<>();
-		PostReasonCategoryDto reasonCategoryDto = new PostReasonCategoryDto();
-		reasonCategoryDto.setCode("1");
-		reasonCategoryDto.setLangCode("eng");
-		reasonCategoryDto.setDescription("asbasna");
-		reasonCategoryDto.setName("RC1001");
-		categorie.add(reasonCategoryDto);
-		masterSyncDto.setReasonCategory(categorie);
-
-		// Machine
-		List<MachineMaster> machines = new ArrayList<>();
-		MachineMaster machine = new MachineMaster();
-		RegMachineSpecId specId = new RegMachineSpecId();
-		specId.setId("100131");
-		specId.setLangCode("eng");
-		machine.setRegMachineSpecId(specId);
-		machine.setIpAddress("172.12.01.128");
-		machine.setMacAddress("21:21:21:12");
-		machine.setMachineSpecId("9876427");
-		machine.setMachineSpecId("1001");
-		machine.setName("Laptop");
-		machines.add(machine);
-		List<Gender> masterApplicationDtoEntity = new ArrayList<>();
-		try {
-			Mockito.when(masterSyncGenderTypeRepository.saveAll(masterApplicationDtoEntity))
-					.thenThrow(RegBaseUncheckedException.class);
-			masterSyncDaoImpl.save(masterSyncDto);
-
 		} catch (Exception exception) {
 
 		}
@@ -1339,6 +593,63 @@ public class MasterSyncDaoImplTest {
 		Mockito.when(biometricAttributeRepository.findByLangCodeAndBiometricTypeCodeIn("eng",biometricType)).thenReturn(biometricAttributes);
 		assertNotNull(masterSyncDaoImpl.getBiometricType("eng", biometricType));
 		
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test()
+	public void testSingleEntity() {
+		String response=null;
+		SyncDataResponseDto syncDataResponseDto = getSyncDataResponseDto("biometricJson.json");
+		Mockito.when(clientSettingSyncHelper.saveClientSettings(Mockito.any(SyncDataResponseDto.class)))
+		.thenReturn(RegistrationConstants.SUCCESS);
+		response= masterSyncDaoImpl.saveSyncData(syncDataResponseDto);		
+		assertEquals(RegistrationConstants.SUCCESS, response);
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testClientSettingsSyncForJson() {
+		
+		String response=null;
+		SyncDataResponseDto syncDataResponseDto = getSyncDataResponseDto("responseJson.json");
+		Mockito.when(clientSettingSyncHelper.saveClientSettings(Mockito.any(SyncDataResponseDto.class)))
+		.thenReturn(RegistrationConstants.SUCCESS);
+		response= masterSyncDaoImpl.saveSyncData(syncDataResponseDto);		
+		assertEquals(RegistrationConstants.SUCCESS, response);
+	}
+		
+	@SuppressWarnings("unchecked")
+	@Test(expected = RegBaseUncheckedException.class)
+	public void testInvalidJsonSyntaxJsonSyntaxException() {		
+		SyncDataResponseDto syncDataResponseDto = getSyncDataResponseDto("invalidJson.json");
+		Mockito.when(clientSettingSyncHelper.saveClientSettings(Mockito.any(SyncDataResponseDto.class)))
+		.thenThrow(JsonSyntaxException.class);
+		masterSyncDaoImpl.saveSyncData(syncDataResponseDto);		
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test(expected = RegBaseUncheckedException.class)
+	public void testEmptyJsonRegBaseUncheckedException() {		
+		SyncDataResponseDto syncDataResponseDto = getSyncDataResponseDto("emptyJson.json");
+		Mockito.when(clientSettingSyncHelper.saveClientSettings(Mockito.any(SyncDataResponseDto.class)))
+		.thenThrow(RegBaseUncheckedException.class);
+		masterSyncDaoImpl.saveSyncData(syncDataResponseDto);			
+	}
+	
+	
+	private SyncDataResponseDto getSyncDataResponseDto(String fileName) {
+		
+		ObjectMapper mapper = new ObjectMapper();
+        SyncDataResponseDto syncDataResponseDto = null;
+		
+			try {
+				syncDataResponseDto = mapper.readValue(
+						new File(getClass().getClassLoader().getResource(fileName).getFile()),SyncDataResponseDto.class);
+			} catch (Exception e) {
+				//it could throw exception for invalid json which is part of negative test case
+			} 
+		
+		return syncDataResponseDto;
 	}
 
 }

@@ -5,13 +5,18 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.log4j.LogManager;
+import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.entity.RegistrationCommonFields;
+
+import org.apache.log4j.Logger;
 
 /**
  * MetaDataUtils class provide methods to copy values from DTO to entity along
@@ -26,6 +31,8 @@ import io.mosip.registration.entity.RegistrationCommonFields;
 @Component
 @SuppressWarnings("unchecked")
 public class MetaDataUtils {
+	
+	private static final Logger LOGGER = LogManager.getLogger(MetaDataUtils.class);
 
 	private MetaDataUtils() {
 		super();
@@ -89,7 +96,8 @@ public class MetaDataUtils {
 		setCreatedDateTime(contextUser, entity);
 		return entity;
 	}
-
+	
+	
 	/**
 	 * Sets the create meta data.
 	 *
@@ -146,5 +154,38 @@ public class MetaDataUtils {
 		entity.setUpdDtimes(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
 		entity.setUpdBy(contextUser);
 	}
+	
+	/**
+	 * This method takes <code>source</code> JSONObject and a class which
+	 * must extends {@link RegistrationCommonFields} and map all values from Json object to the
+	 * <code>destinationClass</code> object and return it.
+	 * 
+	 * @param                  <T> is a type parameter
+	 * @param                  <D> is a type parameter
+	 * @param jsonObject          is the source
+	 * @param destinationClass is the destination class
+	 * @return an entity class which extends {@link RegistrationCommonFields}
+	 * @throws DataAccessLayerException if any error occurs while mapping values
+	 * @see MapperUtils#setCreateJSONObjectToMetaData(Object, Class)
+	 */
+	public static <T, D extends RegistrationCommonFields> D setCreateJSONObjectToMetaData(final JSONObject jsonObject,
+			Class<?> entityClass) throws IllegalAccessException, InstantiationException {
+		String contextUser = null;
+		D entity = null;
+		try {
+			if(SessionContext.isSessionContextAvailable()) {
+				contextUser = SessionContext.userContext().getUserId();
+			} else {
+				contextUser = RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM;
+			}
+			entity = (D) MapperUtils.mapJSONObjectToEntity(jsonObject, entityClass);
+		} catch(Throwable t) {
+			LOGGER.error(t);
+			throw t; 
+		}
+		setCreatedDateTime(contextUser, entity);
+		return entity;
+	}
+
 
 }

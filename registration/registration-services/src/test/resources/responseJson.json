@@ -1,0 +1,421 @@
+{
+	"lastSyncTime": "2020-02-26T13:36:16.056Z",
+	"dataToSync": [{
+			"entityName": "Application",
+			"entityType": "structured",
+			"data": []
+		},
+		{
+			"entityName": "AppAuthenticationMethod",
+			"entityType": "structured",
+			"data": [
+				"{\"appId\":\"10003\",\"processId\":\"eod_auth\",\"roleCode\":\"REGISTRATION_OFFICER\",\"authMethodCode\":\"OTP\",\"methodSequence\":2,\"langCode\":\"eng\",\"isDeleted\":null,\"isActive\":false}",
+				"{\"appId\":\"10003\",\"processId\":\"exception_auth\",\"roleCode\":\"REGISTRATION_OFFICER\",\"authMethodCode\":\"OTP\",\"methodSequence\":2,\"langCode\":\"eng\",\"isDeleted\":null,\"isActive\":false}"
+			]
+		},
+		{
+			"entityName": "AppDetail",
+			"entityType": "structured",
+			"data": [
+				"{\"id\":\"10003\",\"name\":\"Client dinscription\",\"descr\":\"Application de bureau pour les inscriptions\",\"langCode\":\"fra\",\"isDeleted\":null,\"isActive\":true}",
+				"{\"id\":\"10009\",\"name\":\"Contrôle didentité\",\"descr\":\"Portail Web pour la configuration dapplications\",\"langCode\":\"fra\",\"isDeleted\":null,\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "AppRolePriority",
+			"entityType": "structured",
+			"data": [
+				"{\"appId\":\"10003\",\"processId\":\"eod_auth\",\"roleCode\":\"REGISTRATION_ADMIN\",\"priority\":1,\"langCode\":\"eng\",\"isDeleted\":null,\"isActive\":true}",
+				"{\"appId\":\"10003\",\"processId\":\"onboard_auth\",\"roleCode\":\"REGISTRATION_OFFICER\",\"priority\":3,\"langCode\":\"eng\",\"isDeleted\":null,\"isActive\":true}"
+
+			]
+		},
+		{
+			"entityName": "Machine",
+			"entityType": "structured",
+			"data": [
+
+				"{\"id\":\"10030\",\"name\":\"Machine 30\",\"serialNum\":\"FB5962911664\",\"macAddress\":\"70-5A-0F-8C-01-39\",\"ipAddress\":\"192.168.0.356\",\"machineSpecId\":\"1001\",\"validityDateTime\":null,\"keyIndex\":null,\"publicKey\":null,\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}",
+				"{\"id\":\"10001\",\"name\":\"b2ml27198\",\"serialNum\":\"NM5328114630\",\"macAddress\":\"8C-16-45-5A-5D-0D\",\"ipAddress\":\"192.168.0.150\",\"machineSpecId\":\"1001\",\"validityDateTime\":null,\"keyIndex\":null,\"publicKey\":null,\"isDeleted\":null,\"langCode\":\"ara\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "MachineSpecification",
+			"entityType": "structured",
+			"data": [
+
+				"{\"id\":\"1001\",\"name\":\"Vostro\",\"brand\":\"Dell\",\"model\":\"3568\",\"machineTypeCode\":\"DKS\",\"minDriverversion\":\"1.454\",\"description\":\"To take enrollments\",\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "MachineType",
+			"entityType": "structured",
+			"data": [
+				"{\"code\":\"DKS\",\"name\":\"Desktop\",\"description\":\"Desktop Computer\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}",
+				"{\"code\":\"DKS\",\"name\":\"الحاسوب\",\"description\":\"أجهزة الكمبيوتر المكتبية\",\"isDeleted\":null,\"langCode\":\"ara\",\"isActive\":true}",
+				"{\"code\":\"DKS\",\"name\":\"Ordinateur\",\"description\":\"Ordinateurs de bureau\",\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "RegistrationCenterType",
+			"entityType": "structured",
+			"data": [
+				"{\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true,\"code\":\"REG\",\"name\":\"Ordinaire\",\"descr\":\"Centre dinscription régulière\"}"
+			]
+		},
+		{
+			"entityName": "RegistrationCenter",
+			"entityType": "structured",
+			"data": [
+				"{\"id\":\"10001\",\"name\":\"Center A Ben Mansour\",\"centerTypeCode\":\"REG\",\"addressLine1\":\"P4238\",\"addressLine2\":\"Ben Mansour\",\"addressLine3\":\"Morocco\",\"latitude\":\"34.52117\",\"longitude\":\"-6.453275\",\"locationCode\":\"14022\",\"holidayLocationCode\":\"KTA\",\"contactPhone\":\"779517433\",\"numberOfStations\":null,\"workingHours\":\"8:00:00\",\"numberOfKiosks\":3,\"perKioskProcessTime\":[0,15],\"centerStartTime\":[9,0],\"centerEndTime\":[17,0],\"timeZone\":\"(GTM+01:00) CENTRAL EUROPEAN TIME\",\"contactPerson\":\"John Doe\",\"lunchStartTime\":[13,0],\"lunchEndTime\":[14,0],\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "RegistrationCenterMachine",
+			"entityType": "structured",
+			"data": [
+				"{\"regCenterId\":\"10001\",\"machineId\":\"10030\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "RegistrationCenterDevice",
+			"entityType": "structured",
+			"data": [
+
+				"{\"regCenterId\":\"10001\",\"deviceId\":\"3000061\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}",
+				"{\"regCenterId\":\"10001\",\"deviceId\":\"3000166\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "RegistrationCenterMachineDevice",
+			"entityType": "structured",
+			"data": [
+
+				"{\"regCenterId\":\"10001\",\"machineId\":\"10030\",\"deviceId\":\"3000167\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}",
+				"{\"regCenterId\":\"10001\",\"machineId\":\"10030\",\"deviceId\":\"3000166\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "RegistrationCenterUserMachine",
+			"entityType": "structured",
+			"data": [
+
+				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"cntrId\":\"10001\",\"machineId\":\"10031\",\"usrId\":\"110031\"}"
+			]
+		},
+		{
+			"entityName": "RegistrationCenterUser",
+			"entityType": "structured",
+			"data": [
+				"{\"regCenterId\":\"10001\",\"userId\":\"110031\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "Device",
+			"entityType": "structured",
+			"data": [
+
+				"{\"id\":\"3000166\",\"name\":\"Dummy Finger Print Scanner 30\",\"serialNum\":\"BS563Q2230814\",\"deviceSpecId\":\"165\",\"macAddress\":\"D6-15-AC-80-6B-86\",\"ipAddress\":null,\"validityDateTime\":[2018,12,10,11,42,52,994000000],\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}",
+				"{\"id\":\"3000041\",\"name\":\"Dummy IRIS Scanner 1\",\"serialNum\":\"JN7935692567\",\"deviceSpecId\":\"327\",\"macAddress\":\"11-FB-CF-6A-BF-29\",\"ipAddress\":null,\"validityDateTime\":[2018,12,10,11,42,52,994000000],\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "DeviceSpecification",
+			"entityType": "structured",
+			"data": [
+
+				"{\"id\":\"736\",\"name\":\"Webcam\",\"brand\":\"Logitech\",\"model\":\"C270\",\"deviceTypeCode\":\"CMR\",\"minDriverversion\":\"2.086\",\"description\":\"To capture photo\",\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true}",
+				"{\"id\":\"165\",\"name\":\"Fingerprint Scanner\",\"brand\":\"Safran Morpho\",\"model\":\"1300 E2\",\"deviceTypeCode\":\"FRS\",\"minDriverversion\":\"1.12\",\"description\":\"To scan fingerprint\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "DeviceType",
+			"entityType": "structured",
+			"data": [
+
+				"{\"code\":\"PRT\",\"name\":\"Imprimante\",\"description\":\"Pour imprimer des documents\",\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true}",
+				"{\"code\":\"IRS\",\"name\":\"Scanner dIris\",\"description\":\"Pour scanner liris\",\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "DeviceTypeDPM",
+			"entityType": "structured",
+			"data": [
+
+				"{\"code\":\"Iris\",\"name\":\"Iris\",\"descr\":\"Iris Biomertric\",\"isDeleted\":null,\"langCode\":null,\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "DeviceSubTypeDPM",
+			"entityType": "structured",
+			"data": [
+
+				"{\"code\":\"DoubleIris\",\"dtypeCode\":\"Iris\",\"name\":\"Double\",\"descr\":\"Double\",\"isDeleted\":null,\"langCode\":null,\"isActive\":true}",
+				"{\"code\":\"Single\",\"dtypeCode\":\"Finger\",\"name\":\"Single\",\"descr\":\"Fingerprint Single Finger\",\"isDeleted\":null,\"langCode\":null,\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "DeviceProvider",
+			"entityType": "structured",
+			"data": []
+		},
+		{
+			"entityName": "DeviceService",
+			"entityType": "structured",
+			"data": []
+		},
+		{
+			"entityName": "RegisteredDevice",
+			"entityType": "structured",
+			"data": []
+		},
+		{
+			"entityName": "Template",
+			"entityType": "structured",
+			"data": [
+
+				"{\"id\":\"1164\",\"name\":\"Authentication History Request Success SMS\",\"description\":\"Authentication History Request Success SMS\",\"fileFormatCode\":\"txt\",\"model\":\"velocity\",\"fileText\":\"Hi $fullName_eng,\\n\\nYour Request for Authentication History has been processed successfully.\\n\\nThank You!\",\"moduleId\":\"10006\",\"moduleName\":\"Resident Services\",\"templateTypeCode\":\"RS_AUTH_HIST_SUCCESS_SMS\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}",
+				"{\"id\":\"1138\",\"name\":\"Registration Acknowledgement Template - Part 1\",\"description\":\"Acknowledgement generated after registration - Part 1\",\"fileFormatCode\":\"txt\",\"model\":\"velocity\",\"fileText\":\" body.addEventListener(\\\"selectstart\\\", function(event) {event.preventDefault();});}}</script></head>\",\"moduleId\":\"10005\",\"moduleName\":\"Registration\",\"templateTypeCode\":\"reg-ack-template-part1\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}",
+				"{\"id\":\"1202\",\"name\":\"VID Revocation Failure Email\",\"description\":\"VID Revocation Failure Email\",\"fileFormatCode\":\"txt\",\"model\":\"velocity\",\"fileText\":\"Hi $fullName_eng,\\n\\nYour $VID revokation has failed. Please try again later.\\n\\nThank You!\",\"moduleId\":\"10006\",\"moduleName\":\"Resident Services\",\"templateTypeCode\":\"RS_VIN_REV_FAILURE_EMAIL\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "TemplateFileFormat",
+			"entityType": "structured",
+			"data": [
+
+				"{\"code\":\"xml\",\"description\":\"ملف XML\",\"isDeleted\":null,\"langCode\":\"ara\",\"isActive\":true}",
+				"{\"code\":\"html\",\"description\":\"html file\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "TemplateType",
+			"entityType": "structured",
+			"data": [
+
+				"{\"code\":\"NewReg-sms-template\",\"description\":\"Modèle de nouvelle inscription SMS\",\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true}",
+				"{\"code\":\"OTP-email-content-template\",\"description\":\"Modèle de contenu de courrier électronique de génération dOTP\",\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "Holiday",
+			"entityType": "structured",
+			"data": []
+		},
+		{
+			"entityName": "BlacklistedWords",
+			"entityType": "structured",
+			"data": [
+
+				"{\"word\":\"shit\",\"description\":\"Blacklisted Word\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}",
+				"{\"word\":\"dammit\",\"description\":\"Blacklisted Word\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
+
+			]
+		},
+		{
+			"entityName": "BiometricType",
+			"entityType": "structured",
+			"data": [
+				"{\"code\":\"FNR\",\"name\":\"Fingerprint\",\"description\":\"Finger prints of the applicant\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}",
+
+				"{\"code\":\"PHT\",\"name\":\"Photo\",\"description\":\"Photo of the face of the applicant\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "BiometricAttribute",
+			"entityType": "structured",
+			"data": [
+				"{\"code\":\"LI\",\"name\":\"Iris gauche\",\"description\":\"Gravure de Iris Gauche\",\"biometricTypeCode\":\"IRS\",\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true}",
+
+				"{\"code\":\"LH\",\"name\":\"Left Slab\",\"description\":\"Print of Left Slab\",\"biometricTypeCode\":\"FNR\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "Title",
+			"entityType": "structured",
+			"data": [
+
+				"{\"code\":\"MIR\",\"titleName\":\"Mr\",\"titleDescription\":\"Male Title\",\"langCode\":\"eng\",\"isDeleted\":null,\"isActive\":true}",
+				"{\"code\":\"MIR\",\"titleName\":\"Monsieur\",\"titleDescription\":\"Titre masculin\",\"langCode\":\"fra\",\"isDeleted\":null,\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "Language",
+			"entityType": "structured",
+			"data": [
+				"{\"code\":\"eng\",\"name\":\"English\",\"family\":\"Indo-European\",\"nativeName\":\"English\",\"isDeleted\":null,\"isActive\":true}",
+				"{\"code\":\"fra\",\"name\":\"French\",\"family\":\"Indo-European\",\"nativeName\":\"français\",\"isDeleted\":null,\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "Gender",
+			"entityType": "structured",
+			"data": [
+
+				"{\"code\":\"FLE\",\"genderName\":\"أنثى\",\"isDeleted\":null,\"langCode\":\"ara\",\"isActive\":true}",
+				"{\"code\":\"OTH\",\"genderName\":\"الآخرين\",\"isDeleted\":null,\"langCode\":\"ara\",\"isActive\":false}"
+			]
+		},
+		{
+			"entityName": "IdType",
+			"entityType": "structured",
+			"data": [
+
+				"{\"code\":\"PRID\",\"name\":\"ID de pré-inscription\",\"descr\":\"ID attribué après la pré-inscription\",\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true}",
+
+				"{\"code\":\"UIN\",\"name\":\"Unique Identification Number\",\"descr\":\"National ID given to the applicant\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "Location",
+			"entityType": "structured",
+			"data": [
+
+				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"code\":\"10036\",\"name\":\"10036\",\"hierarchyLevel\":5,\"hierarchyName\":\"Postal Code\",\"parentLocCode\":\"MDDR\"}",
+				"{\"isDeleted\":null,\"langCode\":\"ara\",\"isActive\":true,\"code\":\"10036\",\"name\":\"10036\",\"hierarchyLevel\":5,\"hierarchyName\":\"الرمز البريدي\",\"parentLocCode\":\"MDDR\"}"
+			]
+		},
+		{
+			"entityName": "ReasonCategory",
+			"entityType": "structured",
+			"data": [
+				"{\"code\":\"CLR\",\"name\":\"Rejet de client\",\"description\":\"Rejet en enregistrement Client\",\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true}",
+				"{\"code\":\"MNA\",\"name\":\"Manuel arbitrage\",\"description\":\"Renvoi en cours de sélection manuelle\",\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "ReasonList",
+			"entityType": "structured",
+			"data": [
+
+				"{\"code\":\"ADM\",\"name\":\"Tous les détails sont adaptent\",\"description\":\"Tous les détails sont adaptent\",\"rsnCatCode\":\"MNA\",\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true}",
+				null,
+				"{\"code\":\"SDM\",\"name\":\"Certains détails démographiques sont Matching\",\"description\":\"Certains détails démographiques sont Matching\",\"rsnCatCode\":\"MNA\",\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true}"
+
+			]
+		},
+		{
+			"entityName": "IndividualType",
+			"entityType": "structured",
+			"data": [
+
+				"{\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true,\"code\":\"FR\",\"name\":\"Étranger\"}"
+			]
+		},
+		{
+			"entityName": "DocumentCategory",
+			"entityType": "structured",
+			"data": [
+
+				"{\"code\":\"POA\",\"name\":\"Proof of Address\",\"description\":\"Address Proof\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}",
+				"{\"code\":\"POA\",\"name\":\"Un justificatif de domicile\",\"description\":\"Preuve dadresse\",\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "DocumentType",
+			"entityType": "structured",
+			"data": [
+				"{\"code\":\"DOC018\",\"name\":\"Water bill as long as it is not more than 3 months’ old\",\"description\":\"Water bill as long as it is not more than 3 months’ old\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}",
+
+				"{\"code\":\"DOC006\",\"name\":\"Photo identification cards issued by the Government\",\"description\":\"Photo identification cards issued by the Government\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "ValidDocument",
+			"entityType": "structured",
+			"data": [
+
+				"{\"docTypeCode\":\"DOC005\",\"docCategoryCode\":\"POI\",\"isDeleted\":null,\"langCode\":\"ara\",\"isActive\":true}",
+				"{\"docTypeCode\":\"DOC007\",\"docCategoryCode\":\"POI\",\"isDeleted\":null,\"langCode\":\"ara\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "ApplicantValidDocument",
+			"entityType": "structured",
+			"data": [
+
+				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"appTypeCode\":\"006\",\"docTypeCode\":\"CIN\",\"docCatCode\":\"POI\"}",
+				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"appTypeCode\":\"014\",\"docTypeCode\":\"RNC\",\"docCatCode\":\"POA\"}",
+				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"appTypeCode\":\"015\",\"docTypeCode\":\"CRN\",\"docCatCode\":\"POR\"}",
+				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"appTypeCode\":\"013\",\"docTypeCode\":\"CRN\",\"docCatCode\":\"POR\"}"
+
+			]
+		},
+		{
+			"entityName": "ScreenAuthorization",
+			"entityType": "structured",
+			"data": [
+				"{\"screenId\":\"uploadPacketRoot\",\"roleCode\":\"REGISTRATION_OFFICER\",\"isPermitted\":true,\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}",
+				"{\"screenId\":\"reportRoot\",\"roleCode\":\"REGISTRATION_ADMIN\",\"isPermitted\":true,\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "ScreenDetail",
+			"entityType": "structured",
+			"data": [
+
+				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"id\":\"uinUpdateRoot\",\"appId\":\"10003\",\"name\":\"uinUpdateRoot\",\"descr\":\"uinUpdateRoot\"}",
+				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"id\":\"uinActivationRoot\",\"appId\":\"10003\",\"name\":\"uinActivationRoot\",\"descr\":\"uinActivationRoot\"}"
+			]
+		},
+		{
+			"entityName": "ProcessList",
+			"entityType": "structured",
+			"data": [
+
+				"{\"id\":\"onboard_auth\",\"name\":\"Authentification intégrée\",\"descr\":\"Authentification intégrée\",\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true}",
+				"{\"id\":\"exception_auth\",\"name\":\"Authentification d’exception\",\"descr\":\"Authentification d’exception\",\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true}"
+			]
+		},
+		{
+			"entityName": "FoundationalTrustProvider",
+			"entityType": "structured",
+			"data": []
+		},
+		{
+			"entityName": "RegistrationCenterUserHistory",
+			"entityType": "structured",
+			"data": []
+		},
+		{
+			"entityName": "RegistrationCenterUserMachineHistory",
+			"entityType": "structured",
+			"data": [
+				"{\"cntrId\":\"10001\",\"machineId\":\"10031\",\"usrId\":\"110031\",\"effectivetimes\":\"2018-12-10T11:42:52.994Z\"}",
+				"{\"cntrId\":\"10001\",\"machineId\":\"10001\",\"usrId\":\"110001\",\"effectivetimes\":\"2018-12-10T11:42:52.994Z\"}"
+			]
+		},
+		{
+			"entityName": "RegistrationCenterMachineDeviceHistory",
+			"entityType": "structured",
+			"data": [
+
+				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"regCenterId\":\"10001\",\"machineId\":\"10001\",\"deviceId\":\"3000061\",\"effectivetimes\":[2018,12,10,11,42,52,994000000]}",
+				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"regCenterId\":\"10001\",\"machineId\":\"10030\",\"deviceId\":\"3000166\",\"effectivetimes\":[2018,12,10,11,42,52,994000000]}"
+			]
+		},
+		{
+			"entityName": "RegistrationCenterDeviceHistory",
+			"entityType": "structured",
+			"data": [
+
+				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"regCenterId\":\"10001\",\"deviceId\":\"3000174\",\"effectivetimes\":\"2018-12-10T11:42:52.994Z\"}",
+				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"regCenterId\":\"10001\",\"deviceId\":\"3000171\",\"effectivetimes\":\"2018-12-10T11:42:52.994Z\"}"
+			]
+		},
+		{
+			"entityName": "RegistrationCenterMachineHistory",
+			"entityType": "structured",
+			"data": [
+				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"regCenterId\":\"10001\",\"machineId\":\"10001\",\"effectivetimes\":[2018,12,10,11,42,52,994000000]}",
+				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"regCenterId\":\"10001\",\"machineId\":\"10030\",\"effectivetimes\":[2018,12,10,11,42,52,994000000]}",
+				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"regCenterId\":\"10001\",\"machineId\":\"10031\",\"effectivetimes\":[2018,12,10,11,42,52,994000000]}"
+			]
+		},
+		{
+			"entityName": "SyncJobDef",
+			"entityType": "structured",
+			"data": []
+		}
+	]
+}

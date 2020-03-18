@@ -1,5 +1,7 @@
 package io.mosip.registration.jobs;
 
+import java.sql.Timestamp;
+
 import io.mosip.registration.entity.SyncControl;
 import io.mosip.registration.entity.SyncTransaction;
 
@@ -29,12 +31,20 @@ public interface SyncManager {
 	 */
 	public SyncTransaction createSyncTransaction(String status, String statusComment, String triggerPoint,
 			String syncJobId);
-
+	
 	/**
 	 * @param syncTransaction
 	 *            last transaction
 	 * @return updated sync control for respective sync job transaction
 	 */
 	public SyncControl createSyncControlTransaction(SyncTransaction syncTransaction);
+
+	/**
+	 * To create / update job sync details with provided last sync time
+	 * @param syncTransaction
+	 * @param lastSyncTime
+	 * @return
+	 */
+	public SyncControl updateClientSettingLastSyncTime(SyncTransaction syncTransaction, Timestamp lastSyncTime);
 
 }
