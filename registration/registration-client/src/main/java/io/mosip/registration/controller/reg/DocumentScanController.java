@@ -508,7 +508,7 @@ public class DocumentScanController extends BaseController {
 	private void scanFromStubbed(Stage popupStage) throws IOException {
 		byte[] byteArray = documentScanFacade.getScannedDocument();
 		String documentSize = getValueFromApplicationContext(RegistrationConstants.DOC_SIZE);
-		int docSize=Integer.parseInt(documentSize) / 1000;
+		int docSize=Integer.parseInt(documentSize) / (1024 * 1024);
 		
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Converting byte array to image");
@@ -582,7 +582,7 @@ public class DocumentScanController extends BaseController {
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Converting byte array to image");
 		String documentSize = getValueFromApplicationContext(RegistrationConstants.DOC_SIZE);
-		
+		int docSize=Integer.parseInt(documentSize) / (1024 * 1024);
 		if (scannedPages == null || scannedPages.isEmpty()) {
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOCUMENT_EMPTY);
 			return;
@@ -598,9 +598,9 @@ public class DocumentScanController extends BaseController {
 			return;
 		}
 
-		if (byteArray.length > Integer.parseInt(documentSize)) {
+		if (docSize <= (byteArray.length / (1024 * 1024))) {
 			scannedPages.clear();
-			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOC_SIZE.replace("1", documentSize));
+			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOC_SIZE.replace("1", Integer.toString(docSize)));
 		} else {
 			if (selectedDocument != null) {
 				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
