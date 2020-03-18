@@ -1270,6 +1270,7 @@ public class FingerPrintCaptureController extends BaseController implements Init
 		LOGGER.info(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Validating Captured FingerPrints");
 		if (detailsDTO.isCaptured() && bioService.isValidFingerPrints(detailsDTO,false)) {
+			
 			captureTimeValue.setText(Duration.between(start, end).toString().replace("PT", ""));
 
 			boolean isNotMatched = true;

@@ -200,13 +200,19 @@ public class PacketUploadServiceImpl extends BaseService implements PacketUpload
 	 *
 	 * @param syncedPackets
 	 *            the synced packets
+	 * @param responseDTO
 	 */
-	private void uploadSyncedPacket(List<PacketStatusDTO> syncedPackets) {
+	private ResponseDTO uploadSyncedPacket(List<PacketStatusDTO> syncedPackets) {
+
+		LOGGER.info("REGISTRATION - PUSH_PACKET - PACKET_UPLOAD_SERVICE", APPLICATION_NAME, APPLICATION_ID,
+				"Syncing Packets:");
+		ResponseDTO responseDTO = new ResponseDTO();
 
 		List<PacketStatusDTO> packetUploadList = new ArrayList<>();
 
 		if (!syncedPackets.isEmpty()) {
 			for (PacketStatusDTO syncedPacket : syncedPackets) {
+
 				if (syncedPacket != null) {
 					String ackFileName = syncedPacket.getPacketPath();
 					int lastIndex = ackFileName.indexOf(RegistrationConstants.ACKNOWLEDGEMENT_FILE);
@@ -214,9 +220,14 @@ public class PacketUploadServiceImpl extends BaseService implements PacketUpload
 					File packet = FileUtils.getFile(packetPath + RegistrationConstants.ZIP_FILE_EXTENSION);
 					try {
 						if (packet.exists()) {
+							LOGGER.info("REGISTRATION - PUSH_PACKET - PACKET_UPLOAD_SERVICE", APPLICATION_NAME,
+									APPLICATION_ID, "Uploading Packet : " + packet.getName());
+
 							ResponseDTO response = pushPacket(packet);
 
 							if (response.getSuccessResponseDTO() != null) {
+								LOGGER.info("REGISTRATION - PUSH_PACKET - PACKET_UPLOAD_SERVICE", APPLICATION_NAME,
+										APPLICATION_ID, "Uploaded Success : " + packet.getName());
 								syncedPacket.setPacketClientStatus(
 										RegistrationClientStatusCode.UPLOADED_SUCCESSFULLY.getCode());
 								syncedPacket
@@ -224,7 +235,13 @@ public class PacketUploadServiceImpl extends BaseService implements PacketUpload
 								syncedPacket.setPacketServerStatus(response.getSuccessResponseDTO().getMessage());
 								packetUploadList.add(syncedPacket);
 
+								setSuccessResponse(responseDTO, RegistrationConstants.SUCCESS, null);
 							} else if (response.getErrorResponseDTOs() != null) {
+
+								LOGGER.error("REGISTRATION - PUSH_PACKET - PACKET_UPLOAD_SERVICE", APPLICATION_NAME,
+										APPLICATION_ID, "Uploaded Failure : " + packet.getName());
+								setErrorResponse(responseDTO, RegistrationConstants.FAILURE, null);
+								responseDTO.setSuccessResponseDTO(null);
 								String errMessage = response.getErrorResponseDTOs().get(0).getMessage();
 								if (errMessage.contains(RegistrationConstants.PACKET_DUPLICATE)) {
 
@@ -236,9 +253,13 @@ public class PacketUploadServiceImpl extends BaseService implements PacketUpload
 
 								}
 							} else {
+								LOGGER.error("REGISTRATION - PUSH_PACKET - PACKET_UPLOAD_SERVICE", APPLICATION_NAME,
+										APPLICATION_ID, "Uploaded Failure : " + packet.getName());
 								syncedPacket
 										.setUploadStatus(RegistrationClientStatusCode.UPLOAD_ERROR_STATUS.getCode());
 								packetUploadList.add(syncedPacket);
+								setErrorResponse(responseDTO, RegistrationConstants.FAILURE, null);
+								responseDTO.setSuccessResponseDTO(null);
 							}
 						}
 					} catch (RegBaseCheckedException | URISyntaxException exception) {
@@ -247,6 +268,8 @@ public class PacketUploadServiceImpl extends BaseService implements PacketUpload
 										+ exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 						syncedPacket.setUploadStatus(RegistrationClientStatusCode.UPLOAD_ERROR_STATUS.getCode());
 						packetUploadList.add(syncedPacket);
+						setErrorResponse(responseDTO, RegistrationConstants.FAILURE, null);
+						responseDTO.setSuccessResponseDTO(null);
 					} catch (RuntimeException runtimeException) {
 						LOGGER.error("REGISTRATION - HANDLE_PACKET_UPLOAD_RUNTIME_ERROR - PACKET_UPLOAD_SERVICE",
 								APPLICATION_NAME, APPLICATION_ID,
@@ -255,11 +278,14 @@ public class PacketUploadServiceImpl extends BaseService implements PacketUpload
 
 						syncedPacket.setUploadStatus(RegistrationClientStatusCode.UPLOAD_ERROR_STATUS.getCode());
 						packetUploadList.add(syncedPacket);
+						setErrorResponse(responseDTO, RegistrationConstants.FAILURE, null);
+						responseDTO.setSuccessResponseDTO(null);
 					}
 				}
 			}
 		}
 		updateStatus(packetUploadList);
+		return responseDTO;
 	}
 
 	/*
@@ -271,24 +297,24 @@ public class PacketUploadServiceImpl extends BaseService implements PacketUpload
 	 */
 	@Override
 	public void uploadEODPackets(List<String> regIds) {
-		if(!regIds.isEmpty()) {
-		regIds.forEach(regId -> {
-			if(StringUtils.isEmpty(regId)) {
-				LOGGER.error("REGISTRATION - UPLOAD_PACKET_EOD_ERROR - PACKET_UPLOAD_SERVICE", APPLICATION_NAME,
-						APPLICATION_ID, "Registration id is missing");
-			}
-		});
-		List<Registration> registrations = registrationDAO.get(regIds);
-		List<PacketStatusDTO> packetsToBeSynced = new ArrayList<>();
-		registrations.forEach(reg -> {
-			packetsToBeSynced.add(packetStatusDtoPreperation(reg));
-		});
-		uploadSyncedPacket(packetsToBeSynced);
+		if (!regIds.isEmpty()) {
+			regIds.forEach(regId -> {
+				if (StringUtils.isEmpty(regId)) {
+					LOGGER.error("REGISTRATION - UPLOAD_PACKET_EOD_ERROR - PACKET_UPLOAD_SERVICE", APPLICATION_NAME,
+							APPLICATION_ID, "Registration id is missing");
+				}
+			});
+			List<Registration> registrations = registrationDAO.get(regIds);
+			List<PacketStatusDTO> packetsToBeSynced = new ArrayList<>();
+			registrations.forEach(reg -> {
+				packetsToBeSynced.add(packetStatusDtoPreperation(reg));
+			});
+			uploadSyncedPacket(packetsToBeSynced);
 		} else {
 			LOGGER.error("REGISTRATION - UPLOAD_PACKET_EOD_ERROR - PACKET_UPLOAD_SERVICE", APPLICATION_NAME,
 					APPLICATION_ID, "Registration id list is missing");
 		}
-		
+
 	}
 
 	/*
@@ -298,14 +324,31 @@ public class PacketUploadServiceImpl extends BaseService implements PacketUpload
 	 * uploadAllSyncedPackets()
 	 */
 	@Override
-	public void uploadAllSyncedPackets() {
+	public ResponseDTO uploadAllSyncedPackets() {
 
+		LOGGER.info("REGISTRATION - PUSH_PACKET - PACKET_UPLOAD_SERVICE", APPLICATION_NAME, APPLICATION_ID,
+				"Started Uploading All Packets Invocation");
+		ResponseDTO responseDTO = new ResponseDTO();
 		List<Registration> synchedPackets = getSynchedPackets();
 		List<PacketStatusDTO> packetsToBeSynced = new ArrayList<>();
-		synchedPackets.forEach(reg -> {
-			packetsToBeSynced.add(packetStatusDtoPreperation(reg));
-		});
-		uploadSyncedPacket(packetsToBeSynced);
+		if (synchedPackets != null && !synchedPackets.isEmpty()) {
+			synchedPackets.forEach(reg -> {
+				packetsToBeSynced.add(packetStatusDtoPreperation(reg));
+			});
+
+			LOGGER.info("REGISTRATION - PUSH_PACKET - PACKET_UPLOAD_SERVICE", APPLICATION_NAME, APPLICATION_ID,
+					"Syncing Packets:");
+			responseDTO = uploadSyncedPacket(packetsToBeSynced);
+		} else {
+
+			LOGGER.info("REGISTRATION - PUSH_PACKET - PACKET_UPLOAD_SERVICE", APPLICATION_NAME, APPLICATION_ID,
+					"No Synced Packets found to Upload");
+			setSuccessResponse(responseDTO, RegistrationConstants.SUCCESS, null);
+		}
+
+		LOGGER.info("REGISTRATION - PUSH_PACKET - PACKET_UPLOAD_SERVICE", APPLICATION_NAME, APPLICATION_ID,
+				"Completed Uploading All Packets Invocation");
+		return responseDTO;
 
 	}
 

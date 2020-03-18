@@ -1299,7 +1299,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 			selectedSlap.addAll(RegistrationConstants.LEFT_SLAP);
 
 		}
-
+ 
 		if (fingerType == null || fingerType.equals(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)) {
 			selectedSlap.addAll(RegistrationConstants.RIGHT_SLAP);
 

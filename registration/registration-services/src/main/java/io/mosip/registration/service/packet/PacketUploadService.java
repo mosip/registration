@@ -118,6 +118,7 @@ public interface PacketUploadService {
 	 * <p>
 	 * The client and server statuses will be updated after packet is uploaded
 	 * </p>
+	 * @return 
 	 */
-	void uploadAllSyncedPackets();
+	ResponseDTO uploadAllSyncedPackets();
 }

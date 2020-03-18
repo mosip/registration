@@ -17,9 +17,11 @@ import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dto.ResponseDTO;
+import io.mosip.registration.dto.SuccessResponseDTO;
 import io.mosip.registration.entity.SyncJobDef;
 import io.mosip.registration.entity.SyncTransaction;
 import io.mosip.registration.exception.RegBaseUncheckedException;
+import io.mosip.registration.service.config.impl.JobConfigurationServiceImpl;
 
 /**
  * The class BaseJob was a quartzJobBean which gives the information of job and
@@ -65,7 +67,7 @@ public abstract class BaseJob extends QuartzJobBean {
 	 */
 	private static final Logger LOGGER = AppConfig.getLogger(BaseJob.class);
 
-	protected Map<String, SyncJobDef> jobMap;
+
 
 	/**
 	 * To get current job class
@@ -120,32 +122,33 @@ public abstract class BaseJob extends QuartzJobBean {
 	 * @param jobMap
 	 *            is a job's map
 	 */
-	public synchronized void executeChildJob(String currentJobID, Map<String, SyncJobDef> jobMap) {
+	public synchronized ResponseDTO executeParentJob(String currentJobID) {
 
 		LOGGER.info(LoggerConstants.BASE_JOB_TITLE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "job execution started");
-
+		ResponseDTO parentJobResponse = new ResponseDTO();
 		try {
 
-			/* Check for current job's child */
-			jobMap.forEach((jobIdForChild, childJob) -> {
-				if (childJob.getParentSyncJobId() != null && childJob.getParentSyncJobId().equals(currentJobID)) {
+			/* Check for current job's Parent */
+			SyncJobDef parentJob = JobConfigurationServiceImpl.getParentJobMap().get(currentJobID);
+			 
+			if(parentJob!=null && parentJob.getApiName()!=null) {
+				/* Parent SyncJob */
+				BaseJob parentBaseJob = (BaseJob) applicationContext.getBean(parentJob.getApiName());
+				
+				/* Response of parentBaseJob */
+				parentJobResponse = parentBaseJob
+						.executeJob(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM, parentJob.getId());
 
-					/* Parent SyncJob */
-					BaseJob parentBaseJob = (BaseJob) applicationContext.getBean(childJob.getApiName());
 
-					removeCompletedJobInMap(childJob.getId());
-
-					/* Response of parentBaseJob */
-					ResponseDTO childJobResponseDTO = parentBaseJob
-							.executeJob(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM, childJob.getId());
-
-					if (childJobResponseDTO.getSuccessResponseDTO() != null) {
-						/* Execute its next child Job */
-						executeChildJob(childJob.getId(), jobMap);
-					}
-				}
-			});
+			} else {
+				
+				SuccessResponseDTO successResponseDTO =new SuccessResponseDTO();
+				successResponseDTO.setMessage(RegistrationConstants.SUCCESS);
+				parentJobResponse.setSuccessResponseDTO(successResponseDTO);
+				return parentJobResponse;
+			}
+			
 
 		} catch (NoSuchBeanDefinitionException noSuchBeanDefinitionException) {
 			LOGGER.error(RegistrationConstants.BASE_JOB_NO_SUCH_BEAN_DEFINITION_EXCEPTION,
@@ -159,6 +162,8 @@ public abstract class BaseJob extends QuartzJobBean {
 
 		LOGGER.info(LoggerConstants.BASE_JOB_TITLE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "job execution Ended");
+		
+		return parentJobResponse;
 
 	}
 
@@ -225,11 +230,7 @@ public abstract class BaseJob extends QuartzJobBean {
 
 			triggerPoint = RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM;
 
-			/* Get Job Map */
-			if (jobMap == null) {
-				jobMap = jobManager.getChildJobs(context);
-
-			}
+			
 
 		} catch (NoSuchBeanDefinitionException | RegBaseUncheckedException exception) {
 
@@ -266,7 +267,7 @@ public abstract class BaseJob extends QuartzJobBean {
 
 	public void addToCompletedJobMap(String jobId, String status) {
 		completedJobMap.put(jobId, status);
-		if (status.contains("success")) {
+		if (status.toLowerCase().contains(RegistrationConstants.SUCCESS.toLowerCase())) {
 			successJob.add(jobId);
 		}
 	}

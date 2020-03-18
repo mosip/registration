@@ -53,7 +53,8 @@ public class MasterSyncJob extends BaseJob {
 	/**
 	 * Execute internal.
 	 *
-	 * @param context the context
+	 * @param context
+	 *            the context
 	 */
 	/*
 	 * (non-Javadoc)
@@ -72,12 +73,12 @@ public class MasterSyncJob extends BaseJob {
 			this.jobId = loadContext(context);
 			masterSyncService = applicationContext.getBean(MasterSyncService.class);
 
-			// Run the Parent JOB always first
-			this.responseDTO = masterSyncService.getMasterSync(jobId, triggerPoint);
+			// Execute Parent Job
+			this.responseDTO = executeParentJob(jobId);
 
-			// To run the child jobs after the parent job Success
+			// Execute Current Job
 			if (responseDTO.getSuccessResponseDTO() != null) {
-				executeChildJob(jobId, jobMap);
+				this.responseDTO = masterSyncService.getMasterSync(jobId, triggerPoint);
 			}
 
 			syncTransactionUpdate(responseDTO, triggerPoint, jobId);

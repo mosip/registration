@@ -53,7 +53,8 @@ public class UserDetailServiceJob extends BaseJob {
 	/**
 	 * Execute internal.
 	 *
-	 * @param context the context
+	 * @param context
+	 *            the context
 	 */
 	/*
 	 * (non-Javadoc)
@@ -72,12 +73,13 @@ public class UserDetailServiceJob extends BaseJob {
 			this.jobId = loadContext(context);
 			userDetailService = applicationContext.getBean(UserDetailService.class);
 
-			// Run the Parent JOB always first
-			this.responseDTO = userDetailService.save(triggerPoint);
+			// Execute Parent Job
+			this.responseDTO = executeParentJob(jobId);
 
-			// To run the child jobs after the parent job Success
+			// Execute Current Job
 			if (responseDTO.getSuccessResponseDTO() != null) {
-				executeChildJob(jobId, jobMap);
+				this.responseDTO = userDetailService.save(triggerPoint);
+
 			}
 
 			syncTransactionUpdate(responseDTO, triggerPoint, jobId);
@@ -101,12 +103,17 @@ public class UserDetailServiceJob extends BaseJob {
 
 		LOGGER.info(LoggerConstants.USER_DETAIL_SERVICE_JOB_TITLE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "execute Job started");
+		// Execute Parent Job
+		this.responseDTO = executeParentJob(jobId);
 
-		try {
-			this.responseDTO = userDetailService.save(triggerPoint);
-		} catch (RegBaseCheckedException checkedException) {
-			LOGGER.error(LoggerConstants.USER_DETAIL_SERVICE_JOB_TITLE, APPLICATION_NAME, APPLICATION_ID,
-					ExceptionUtils.getStackTrace(checkedException));
+		// Execute Current Job
+		if (responseDTO.getSuccessResponseDTO() != null) {
+			try {
+				this.responseDTO = userDetailService.save(triggerPoint);
+			} catch (RegBaseCheckedException checkedException) {
+				LOGGER.error(LoggerConstants.USER_DETAIL_SERVICE_JOB_TITLE, APPLICATION_NAME, APPLICATION_ID,
+						ExceptionUtils.getStackTrace(checkedException));
+			}
 		}
 		syncTransactionUpdate(responseDTO, triggerPoint, jobId);
 

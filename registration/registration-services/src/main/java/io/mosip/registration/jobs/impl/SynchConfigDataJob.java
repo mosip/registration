@@ -45,8 +45,14 @@ public class SynchConfigDataJob extends BaseJob {
 		LOGGER.info(RegistrationConstants.SYNCH_CONFIG_DATA_JOB_TITLE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "execute Job started");
 
-		this.responseDTO = globalParamService
-				.synchConfigData(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM.equalsIgnoreCase(triggerPoint));
+		// Execute Parent Job
+		this.responseDTO = executeParentJob(jobId);
+
+		// Execute Current Job
+		if (responseDTO.getSuccessResponseDTO() != null) {
+			this.responseDTO = globalParamService
+					.synchConfigData(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM.equalsIgnoreCase(triggerPoint));
+		}
 		syncTransactionUpdate(responseDTO, triggerPoint, jobId);
 
 		LOGGER.info(RegistrationConstants.SYNCH_CONFIG_DATA_JOB_TITLE, RegistrationConstants.APPLICATION_NAME,
@@ -66,12 +72,13 @@ public class SynchConfigDataJob extends BaseJob {
 			this.jobId = loadContext(context);
 			globalParamService = applicationContext.getBean(GlobalParamService.class);
 
-			// Run the Parent JOB always first
-			this.responseDTO = globalParamService.synchConfigData(true);
+			// Execute Parent Job
+			this.responseDTO = executeParentJob(jobId);
 
-			// To run the child jobs after the parent job Success
+			// Execute Current Job
 			if (responseDTO.getSuccessResponseDTO() != null) {
-				executeChildJob(jobId, jobMap);
+				this.responseDTO = globalParamService.synchConfigData(true);
+
 			}
 
 			syncTransactionUpdate(responseDTO, triggerPoint, jobId);

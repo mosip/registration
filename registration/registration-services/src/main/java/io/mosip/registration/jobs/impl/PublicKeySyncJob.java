@@ -52,7 +52,8 @@ public class PublicKeySyncJob extends BaseJob {
 	/**
 	 * Execute internal.
 	 *
-	 * @param context the context
+	 * @param context
+	 *            the context
 	 */
 	/*
 	 * (non-Javadoc)
@@ -71,12 +72,13 @@ public class PublicKeySyncJob extends BaseJob {
 			this.jobId = loadContext(context);
 			publicKeySyncService = applicationContext.getBean(PublicKeySync.class);
 
-			// Run the Parent JOB always first
-			this.responseDTO = publicKeySyncService.getPublicKey(triggerPoint);
+			// Execute Parent Job
+			this.responseDTO = executeParentJob(jobId);
 
-			// To run the child jobs after the parent job Success
+			// Execute Current Job
 			if (responseDTO.getSuccessResponseDTO() != null) {
-				executeChildJob(jobId, jobMap);
+				this.responseDTO = publicKeySyncService.getPublicKey(triggerPoint);
+
 			}
 
 			syncTransactionUpdate(responseDTO, triggerPoint, jobId);
@@ -100,12 +102,17 @@ public class PublicKeySyncJob extends BaseJob {
 
 		LOGGER.info(LoggerConstants.PUBLIC_KEY_SYNC_STATUS_JOB_TITLE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "execute Job started");
+		// Execute Parent Job
+		this.responseDTO = executeParentJob(jobId);
 
-		try {
-			this.responseDTO = publicKeySyncService.getPublicKey(triggerPoint);
-		} catch (RegBaseCheckedException checkedException) {
-			LOGGER.error(LoggerConstants.PUBLIC_KEY_SYNC_STATUS_JOB_TITLE, APPLICATION_NAME, APPLICATION_ID,
-					ExceptionUtils.getStackTrace(checkedException));
+		// Execute Current Job
+		if (responseDTO.getSuccessResponseDTO() != null) {
+			try {
+				this.responseDTO = publicKeySyncService.getPublicKey(triggerPoint);
+			} catch (RegBaseCheckedException checkedException) {
+				LOGGER.error(LoggerConstants.PUBLIC_KEY_SYNC_STATUS_JOB_TITLE, APPLICATION_NAME, APPLICATION_ID,
+						ExceptionUtils.getStackTrace(checkedException));
+			}
 		}
 		syncTransactionUpdate(responseDTO, triggerPoint, jobId);
 

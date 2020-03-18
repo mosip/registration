@@ -65,7 +65,13 @@ public class PreRegistrationPacketDeletionJob extends BaseJob {
 		LOGGER.info("REGISTRATION - PRE_REG_PACKET_DELETION_STARTED_CHILD_JOB - PRE_REGISTRATION_PACKET_DELETION_JOB",
 				APPLICATION_NAME, APPLICATION_ID, "Pre-Registration Packet Deletion job started");
 
-		this.responseDTO = preRegistrationDataSyncService.fetchAndDeleteRecords();
+		// Execute Parent Job
+		this.responseDTO = executeParentJob(jobId);
+
+		// Execute Current Job
+		if (responseDTO.getSuccessResponseDTO() != null) {
+			this.responseDTO = preRegistrationDataSyncService.fetchAndDeleteRecords();
+		}
 
 		syncTransactionUpdate(responseDTO, triggerPoint, jobId);
 
@@ -91,23 +97,24 @@ public class PreRegistrationPacketDeletionJob extends BaseJob {
 			this.jobId = loadContext(context);
 			preRegistrationDataSyncService = applicationContext.getBean(PreRegistrationDataSyncService.class);
 
-			try {
-				// Run the Parent JOB always first
-				this.responseDTO = preRegistrationDataSyncService.fetchAndDeleteRecords();
+			// Execute Parent Job
+			this.responseDTO = executeParentJob(jobId);
 
-			} catch (RuntimeException exception) {
-				LOGGER.error("PRE_REGISTRATION_PACKET_DELETION_JOB", RegistrationConstants.APPLICATION_NAME,
-						RegistrationConstants.APPLICATION_ID, exception.getMessage());
-				ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO();
-				LinkedList<ErrorResponseDTO> list = new LinkedList<>();
-				list.add(errorResponseDTO);
-				responseDTO.setErrorResponseDTOs(list);
-
-			}
-
-			// To run the child jobs after the parent job Success
+			// Execute Current Job
 			if (responseDTO.getSuccessResponseDTO() != null) {
-				executeChildJob(jobId, jobMap);
+				try {
+					// Run the Parent JOB always first
+					this.responseDTO = preRegistrationDataSyncService.fetchAndDeleteRecords();
+
+				} catch (RuntimeException exception) {
+					LOGGER.error("PRE_REGISTRATION_PACKET_DELETION_JOB", RegistrationConstants.APPLICATION_NAME,
+							RegistrationConstants.APPLICATION_ID, exception.getMessage());
+					ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO();
+					LinkedList<ErrorResponseDTO> list = new LinkedList<>();
+					list.add(errorResponseDTO);
+					responseDTO.setErrorResponseDTOs(list);
+
+				}
 			}
 
 			syncTransactionUpdate(responseDTO, triggerPoint, jobId);

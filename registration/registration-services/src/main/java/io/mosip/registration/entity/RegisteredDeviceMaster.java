@@ -1,6 +1,5 @@
 package io.mosip.registration.entity;
 
-import java.sql.Blob;
 import java.sql.Timestamp;
 
 import javax.persistence.Column;
@@ -8,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
@@ -18,7 +18,7 @@ import lombok.EqualsAndHashCode;
  * @version 1.0
  */
 
-
+@Data
 @EqualsAndHashCode(callSuper = false)
 @Entity
 @Table(name = "registered_device_master", schema = "reg")
@@ -73,17 +73,21 @@ public class RegisteredDeviceMaster extends RegistrationCommonFields {
 	@Column(name="certification_level",length=3)
 	private String certificationLevel;
 	
+
+	@Column(name="foundational_trust_provider_id",length=36)
+	private String foundationalTPId;
+	
 	@Column(name="foundational_trust_signature",length=512)
 	private String foundationalTrustSignature;
 	
-	@Column(name="foundational_trust_certificate",length=128)
-	private Blob foundationalTrustCertificate;
+	@Column(name="foundational_trust_certificate")
+	private byte[] foundationalTrustCertificate;
 	
 	@Column(name="dprovider_signature",length=512)
 	private String dproviderSignature;
 
 	@Column(name="is_deleted")
-	private boolean isDeleted;
+	private Boolean isDeleted;
 
 	@Column(name="del_dtimes")
 	private Timestamp delDTimes;

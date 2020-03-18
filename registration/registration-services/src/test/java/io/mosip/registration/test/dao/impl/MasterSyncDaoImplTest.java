@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalTime;
@@ -32,10 +34,11 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.dao.DataAccessException;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.util.ReflectionTestUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,7 +51,6 @@ import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.context.SessionContext.UserContext;
 import io.mosip.registration.dao.MasterSyncDao;
-
 import io.mosip.registration.dao.impl.MasterSyncDaoImpl;
 import io.mosip.registration.dto.ApplicantValidDocumentDto;
 import io.mosip.registration.dto.IndividualTypeDto;
@@ -196,7 +198,7 @@ import io.mosip.registration.util.mastersync.MetaDataUtils;
  */
 @RunWith(PowerMockRunner.class)
 @SpringBootTest
-@PrepareForTest({ MetaDataUtils.class, RegBaseUncheckedException.class, SessionContext.class, ClientSettingSyncHelper.class,BiometricAttributeRepository.class })
+@PrepareForTest({ MetaDataUtils.class, RegBaseUncheckedException.class, SessionContext.class, BiometricAttributeRepository.class })
 public class MasterSyncDaoImplTest {
 
 	// private MapperFacade mapperFacade = CustomObjectMapper.MAPPER_FACADE;
@@ -206,7 +208,6 @@ public class MasterSyncDaoImplTest {
 
 	@Mock
 	private SyncJobControlRepository syncStatusRepository;
-	
 	@Mock
 	private BiometricAttributeRepository biometricAttributeRepository;
 	@Mock
@@ -347,9 +348,6 @@ public class MasterSyncDaoImplTest {
 	@InjectMocks
 	private MasterSyncDaoImpl masterSyncDaoImpl;
 	
-	@Autowired
-	MasterSyncDaoImplTest masterSyncDaoImplTest;
-	
 	@Before
 	public void initialize() throws Exception {
 		UserContext userContext = Mockito.mock(SessionContext.UserContext.class);
@@ -373,7 +371,7 @@ public class MasterSyncDaoImplTest {
 	public void testMasterSyncDaoSucess() throws RegBaseCheckedException {
 
 		SyncControl masterSyncDetails = new SyncControl();
-		
+
 		masterSyncDetails.setSyncJobId("MDS_J00001");
 		masterSyncDetails.setLastSyncDtimes(new Timestamp(System.currentTimeMillis()));
 		masterSyncDetails.setCrBy("mosip");
@@ -399,7 +397,6 @@ public class MasterSyncDaoImplTest {
 
 		}
 	}
-
 
 	@Test
 	public void findLocationByLangCode() throws RegBaseCheckedException {

@@ -39,6 +39,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -70,6 +71,7 @@ import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
 import io.mosip.registration.service.bio.impl.BioServiceImpl;
 import io.mosip.registration.service.security.AuthenticationService;
 import io.mosip.registration.test.util.datastub.DataProvider;
+import javafx.scene.image.Image;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ ImageIO.class, IOUtils.class, FingerprintTemplate.class, SessionContext.class })
@@ -96,16 +98,21 @@ public class BioServiceTest {
 	
 	private RequestDetail requestDetail;
 
+	FingerprintDetailsDTO fingerPrints;
 	
 	@Before
-	public void beforeClass() throws RegBaseCheckedException {
-		requestDetail=new RequestDetail("type", "timeout", 1, "60", null);
+	public void beforeClass() throws RegBaseCheckedException, IOException {
+		requestDetail= PowerMockito.spy(new RequestDetail("type", "timeout", 1, "60", null));
 		RegistrationDTO registrationDTO = DataProvider.getPacketDTO();
 		BiometricInfoDTO biometricInfoDTO = new BiometricInfoDTO();
 		List<BiometricExceptionDTO> biometricExceptionDTOs = new ArrayList<>();
 		biometricInfoDTO.setBiometricExceptionDTO(biometricExceptionDTOs);
 		BiometricDTO biometricDTO = new BiometricDTO();
 		biometricDTO.setApplicantBiometricDTO(biometricInfoDTO);
+		biometricDTO.setIntroducerBiometricDTO(biometricInfoDTO);
+		biometricDTO.setSupervisorBiometricDTO(biometricInfoDTO);
+		biometricDTO.setOperatorBiometricDTO(biometricInfoDTO);
+
 		registrationDTO.setBiometricDTO(biometricDTO);
 
 		BiometricDTO useronboardbiometricDTO = new BiometricDTO();
@@ -123,6 +130,18 @@ public class BioServiceTest {
 		appMap.put("mosip.mdm.enabled", "Y");
 		appMap.put(RegistrationConstants.FINGERPRINT_AUTHENTICATION_THRESHHOLD, "40");
 		ApplicationContext.getInstance().setApplicationMap(appMap);
+		HashMap<String, Map<Integer, Image>> BIO_STREAM_IMAGES = new HashMap<String, Map<Integer, Image>>();
+		BIO_STREAM_IMAGES.put("key", new HashMap<>());
+		//ReflectionTestUtils.setField(bioService.getClass(), "BIO_STREAM_IMAGES", BIO_STREAM_IMAGES);
+		ReflectionTestUtils.setField(bioService, "BIO_STREAM_IMAGES", BIO_STREAM_IMAGES);
+		CaptureResponseDto captureResponseDto = getFingerPritnCaptureResponse();
+		Mockito.when(mosipBioDeviceManager.regScan(Mockito.anyObject())).thenReturn(captureResponseDto);
+		Mockito.when(mosipBioDeviceManager.getSingleBiometricIsoTemplate(captureResponseDto))
+				.thenReturn("value".getBytes());
+		requestDetail.setType("thumbs");
+		fingerPrints = bioService.getFingerPrintImageAsDTO(requestDetail,2);
+		biometricDTO.getOperatorBiometricDTO().setFingerprintDetailsDTO(Arrays.asList(fingerPrints));
+		
 	}
 
 	
@@ -510,16 +529,6 @@ public class BioServiceTest {
 		bioService.getIrisImageAsDTO(requestDetail,2,2);
 	}
 
-	@Test
-	public void getFingerPrintImageAsDTOWithMdmTest() throws RegBaseCheckedException, IOException {
-		CaptureResponseDto captureResponseDto = getFingerPritnCaptureResponse();
-		Mockito.when(mosipBioDeviceManager.regScan(Mockito.anyObject())).thenReturn(captureResponseDto);
-		Mockito.when(mosipBioDeviceManager.getSingleBiometricIsoTemplate(captureResponseDto))
-				.thenReturn("value".getBytes());
-		requestDetail.setType("thumbs");
-		bioService.getFingerPrintImageAsDTO(requestDetail,2);
-
-	}
 	
 	@Test
 	public void getFingerPrintImageAsDTONonMDMTest() throws RegBaseCheckedException, IOException {
@@ -581,6 +590,28 @@ public class BioServiceTest {
 		Mockito.when(mosipBioDeviceManager.getSingleBiometricIsoTemplate(captureResponseDto))
 				.thenReturn("value".getBytes());
 		bioService.validateIris(bioService.getIrisAuthenticationDto("userId", requestDetail));
+	}
+	
+	@Test
+	public void simpleCallForCoverage() throws Exception {
+		bioService.getBioQualityScores("",1);
+		bioService.getHighQualityScoreByBioType("",1.1);
+		PowerMockito.when(mosipBioDeviceManager,"regScan", Mockito.anyObject()).thenReturn(null);
+		assertEquals(null, bioService.captureFace(Mockito.anyObject()));
+		PowerMockito.when(mosipBioDeviceManager,"getSingleBiometricIsoTemplate", Mockito.anyObject()).thenReturn(null);
+		assertEquals(null, bioService.getSingleBiometricIsoTemplate(Mockito.anyObject()));
+		PowerMockito.when(mosipBioDeviceManager,"getSingleBioValue", Mockito.anyObject()).thenReturn(null);
+		assertEquals(null, bioService.getSingleBioValue(Mockito.anyObject()));
+		bioService.getBioStreamImage("key", 1);
+		FingerprintDetailsDTO leftFingerPrint = PowerMockito.spy(fingerPrints);
+		leftFingerPrint.setFingerType(RegistrationConstants.FINGERPRINT_SLAB_LEFT);
+		//bioService.isValidFingerPrints(leftFingerPrint);
+		//bioService.isAllNonExceptionFingerprintsCaptured();
+		bioService.clearAllCaptures();
+		bioService.clearAllStreamImages();
+		bioService.clearBIOScoreByBioType(Arrays.asList("captured"));
+		bioService.clearCaptures(Arrays.asList("captured"));
+
 	}
 
 }

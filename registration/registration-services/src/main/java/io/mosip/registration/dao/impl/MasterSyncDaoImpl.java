@@ -387,7 +387,6 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 
 		return syncControlResonse;
 	}
-	
 
 	/*
 	 * (non-Javadoc)

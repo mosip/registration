@@ -76,6 +76,7 @@ import io.mosip.registration.dto.json.metadata.FieldValueArray;
 import io.mosip.registration.dto.json.metadata.HashSequence;
 import io.mosip.registration.dto.json.metadata.PacketMetaInfo;
 import io.mosip.registration.dto.json.metadata.RegisteredDevice;
+import io.mosip.registration.dto.mastersync.AuditRequestDto;
 import io.mosip.registration.entity.DocumentType;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;

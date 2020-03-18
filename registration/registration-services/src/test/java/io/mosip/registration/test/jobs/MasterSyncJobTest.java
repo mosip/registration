@@ -7,11 +7,15 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -29,6 +33,7 @@ import io.mosip.registration.jobs.BaseJob;
 import io.mosip.registration.jobs.JobManager;
 import io.mosip.registration.jobs.SyncManager;
 import io.mosip.registration.jobs.impl.MasterSyncJob;
+import io.mosip.registration.service.config.impl.JobConfigurationServiceImpl;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.service.sync.impl.MasterSyncServiceImpl;
 
@@ -38,6 +43,8 @@ import io.mosip.registration.service.sync.impl.MasterSyncServiceImpl;
  *
  * @since 1.0.0
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ JobConfigurationServiceImpl.class })
 public class MasterSyncJobTest {
 
 	@Mock
@@ -91,6 +98,12 @@ public class MasterSyncJobTest {
 		});
 		Mockito.when(jobConfigDAO.getActiveJobs()).thenReturn(syncJobList);
 		
+		PowerMockito.mockStatic(JobConfigurationServiceImpl.class);
+
+		Map<String, SyncJobDef> parentJobMap = new HashMap<>();
+		parentJobMap.put("1", syncJob);
+		Mockito.when(JobConfigurationServiceImpl.getParentJobMap()).thenReturn(parentJobMap);
+		
 	}
 
 	@Test
@@ -120,7 +133,7 @@ public class MasterSyncJobTest {
 		Mockito.when(applicationContext.getBean(JobManager.class)).thenReturn(jobManager);
 		Mockito.when(applicationContext.getBean(MasterSyncServiceImpl.class)).thenReturn(masterSyncService);
 		
-		Mockito.when(jobManager.getChildJobs(Mockito.any())).thenReturn(jobMap);
+//		Mockito.when(jobManager.getChildJobs(Mockito.any())).thenReturn(jobMap);
 		Mockito.when(jobManager.getJobId(Mockito.any(JobExecutionContext.class))).thenReturn("1");
 		
 		
@@ -184,7 +197,7 @@ public class MasterSyncJobTest {
 
 		Mockito.when(applicationContext.getBean(Mockito.anyString())).thenThrow(NoSuchBeanDefinitionException.class);
 		
-		masterSyncJob.executeChildJob("1", jobMap);
+		masterSyncJob.executeParentJob("1");
 
 	}
 
