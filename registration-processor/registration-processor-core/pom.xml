@@ -108,14 +108,14 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idvalidator-rid</artifactId>
-			<version>${kernel.idvalidator.version}</version>
+			<version>${kernel.idvalidator.rid.version}</version>
 		</dependency>
 
 		<!-- Kernel Logback Impl -->
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-logger-logback</artifactId>
-			<version>${kernel.core.version}</version>
+			<version>${kernel.logger.logback.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
