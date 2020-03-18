@@ -79,7 +79,7 @@ import javafx.util.StringConverter;
 public class DocumentScanController extends BaseController {
 
 	private static final Logger LOGGER = AppConfig.getLogger(DocumentScanController.class);
-	
+
 	@FXML
 	private Label bioExceptionToggleLabel1;
 
@@ -261,9 +261,9 @@ public class DocumentScanController extends BaseController {
 				pobCategory = documentCategory;
 			}
 		}
-//		if (pobCategory.getCode() != null) {
-//			documentCategories.remove(pobCategory);
-//		}
+		// if (pobCategory.getCode() != null) {
+		// documentCategories.remove(pobCategory);
+		// }
 
 		docScanVbox.setSpacing(5);
 		if (documentCategories != null && !documentCategories.isEmpty())
@@ -507,33 +507,27 @@ public class DocumentScanController extends BaseController {
 	 */
 	private void scanFromStubbed(Stage popupStage) throws IOException {
 		byte[] byteArray = documentScanFacade.getScannedDocument();
-		String documentSize = getValueFromApplicationContext(RegistrationConstants.DOC_SIZE);
-		int docSize=Integer.parseInt(documentSize) / (1024 * 1024);
 		
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Converting byte array to image");
 
-		if (docSize <= (byteArray.length / (1024 * 1024))) {
-			generateAlert(RegistrationConstants.ERROR,
-					RegistrationUIConstants.SCAN_DOC_SIZE.replace("1", Integer.toString(docSize)));
-		} else {
-			if (selectedDocument != null) {
+		if (selectedDocument != null) {
 
-				scanPopUpViewController.getScanImage().setImage(convertBytesToImage(byteArray));
+			scanPopUpViewController.getScanImage().setImage(convertBytesToImage(byteArray));
 
-				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
-						RegistrationConstants.APPLICATION_ID, "Adding documents to Screen");
+			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "Adding documents to Screen");
 
-				DocumentDetailsDTO documentDetailsDTO = new DocumentDetailsDTO();
+			DocumentDetailsDTO documentDetailsDTO = new DocumentDetailsDTO();
 
-				getDocumentsMapFromSession().put(selectedDocument, documentDetailsDTO);
-				attachDocuments(documentDetailsDTO, selectedComboBox.getValue(), selectedDocVBox, byteArray, true);
+			getDocumentsMapFromSession().put(selectedDocument, documentDetailsDTO);
+			attachDocuments(documentDetailsDTO, selectedComboBox.getValue(), selectedDocVBox, byteArray, true);
 
-				popupStage.close();
+			popupStage.close();
 
-				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
-						RegistrationConstants.APPLICATION_ID, "Documents added successfully");
-			}
+			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "Documents added successfully");
+
 		}
 	}
 
@@ -582,7 +576,7 @@ public class DocumentScanController extends BaseController {
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Converting byte array to image");
 		String documentSize = getValueFromApplicationContext(RegistrationConstants.DOC_SIZE);
-		int docSize=Integer.parseInt(documentSize) / (1024 * 1024);
+		int docSize = Integer.parseInt(documentSize) / (1024 * 1024);
 		if (scannedPages == null || scannedPages.isEmpty()) {
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOCUMENT_EMPTY);
 			return;
@@ -600,7 +594,8 @@ public class DocumentScanController extends BaseController {
 
 		if (docSize <= (byteArray.length / (1024 * 1024))) {
 			scannedPages.clear();
-			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOC_SIZE.replace("1", Integer.toString(docSize)));
+			generateAlert(RegistrationConstants.ERROR,
+					RegistrationUIConstants.SCAN_DOC_SIZE.replace("1", Integer.toString(docSize)));
 		} else {
 			if (selectedDocument != null) {
 				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
@@ -780,7 +775,8 @@ public class DocumentScanController extends BaseController {
 	private ImageView createImageView(VBox vboxElement) {
 
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
-				RegistrationConstants.APPLICATION_ID, "Binding OnAction event for Image to delete the attached document");
+				RegistrationConstants.APPLICATION_ID,
+				"Binding OnAction event for Image to delete the attached document");
 
 		Image image = new Image(this.getClass().getResourceAsStream(RegistrationConstants.CLOSE_IMAGE_PATH), 15, 15,
 				true, true);
@@ -1067,7 +1063,7 @@ public class DocumentScanController extends BaseController {
 	}
 
 	private void validateDocumentsPane() {
-		if(RegistrationConstants.DISABLE.equalsIgnoreCase(
+		if (RegistrationConstants.DISABLE.equalsIgnoreCase(
 				String.valueOf(ApplicationContext.map().get(RegistrationConstants.DOC_DISABLE_FLAG)))) {
 			continueBtn.setDisable(false);
 		} else {
