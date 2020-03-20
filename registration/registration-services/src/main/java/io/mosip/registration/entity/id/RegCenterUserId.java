@@ -21,8 +21,8 @@ public class RegCenterUserId implements Serializable {
 	private static final long serialVersionUID = -7306845601917592413L;
 
 	@Column(name = "regcntr_id")
-	private String regcntrId;
+	private String regCenterId;
 	@Column(name = "usr_id")
-	private String usrId;
+	private String userId;
 
 }

@@ -1,5 +1,7 @@
 package io.mosip.registration.entity;
 
+import java.sql.Date;
+
 import javax.persistence.AttributeOverride;
 import javax.persistence.AttributeOverrides;
 import javax.persistence.Column;
@@ -19,7 +21,7 @@ import io.mosip.registration.entity.id.TemplateId;
 @Entity
 @IdClass(TemplateId.class)
 @Table(schema = "reg", name = "TEMPLATE")
-public class Template extends TemplateCommonFields {
+public class Template extends RegistrationCommonFields {
 
 	@Id
 	@AttributeOverrides({ @AttributeOverride(name = "id", column = @Column(name = "id")),
@@ -41,6 +43,14 @@ public class Template extends TemplateCommonFields {
 	private String moduleName;
 	@Column(name = "template_typ_code")
 	private String templateTypCode;
+	
+	@Column(name="descr")
+	private String descr;
+	@Column(name="is_deleted")
+	private Boolean isDeleted;
+	@Column(name="del_dtimes")
+	private Date delDtimes;
+
 
 	public String getId() {
 		return id;
@@ -112,6 +122,30 @@ public class Template extends TemplateCommonFields {
 
 	public void setLangCode(String langCode) {
 		this.langCode = langCode;
+	}
+
+	public String getDescr() {
+		return descr;
+	}
+
+	public void setDescr(String descr) {
+		this.descr = descr;
+	}
+
+	public Boolean getIsDeleted() {
+		return isDeleted;
+	}
+
+	public void setIsDeleted(Boolean isDeleted) {
+		this.isDeleted = isDeleted;
+	}
+
+	public Date getDelDtimes() {
+		return delDtimes;
+	}
+
+	public void setDelDtimes(Date delDtimes) {
+		this.delDtimes = delDtimes;
 	}
 
 	@Override
@@ -192,7 +226,7 @@ public class Template extends TemplateCommonFields {
 		return "Template [id=" + id + ", name=" + name + ", descr=" + descr + ", file_format_code=" + fileFormatCode
 				+ ", model=" + model + ", file_txt=" + fileTxt + ", module_id=" + moduleId + ", module_name="
 				+ moduleName + ", template_typ_code=" + templateTypCode + ", lang_code=" + langCode + ", is_active="
-				+ isActive + ", cr_by=" + crBy + ", cr_dtimes=" + crDtimes + ", upd_by=" + updBy + ", upd_dtimes="
+				+ getIsActive() + ", cr_by=" + crBy + ", cr_dtimes=" + getCrDtime() + ", upd_by=" + updBy + ", upd_dtimes="
 				+ updDtimes + ", is_deleted=" + isDeleted + ", del_dtimes=" + delDtimes + "]";
 	}
 

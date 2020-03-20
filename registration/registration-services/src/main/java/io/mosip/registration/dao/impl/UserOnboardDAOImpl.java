@@ -272,11 +272,11 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 					"fetching center details from repository....");
 
 			CenterMachine regCenterMachineDtls = centerMachineRepository
-					.findByIsActiveTrueAndCenterMachineIdId(stationId);
+					.findByIsActiveTrueAndCenterMachineIdMachineId(stationId);
 
-			if (regCenterMachineDtls != null && regCenterMachineDtls.getCenterMachineId().getCentreId() != null) {
+			if (regCenterMachineDtls != null && regCenterMachineDtls.getCenterMachineId().getRegCenterId() != null) {
 
-				return regCenterMachineDtls.getCenterMachineId().getCentreId();
+				return regCenterMachineDtls.getCenterMachineId().getRegCenterId();
 
 			} else {
 				return null;

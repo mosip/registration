@@ -355,7 +355,7 @@ public class UserOnBoardDAOImlpTest {
 
 	@Test(expected = RegBaseUncheckedException.class)
 	public void getCenterIDRunExceptionTest() throws RegBaseCheckedException {
-		Mockito.when(centerMachineRepository.findByIsActiveTrueAndCenterMachineIdId(Mockito.anyString()))
+		Mockito.when(centerMachineRepository.findByIsActiveTrueAndCenterMachineIdMachineId(Mockito.anyString()))
 				.thenThrow(new RegBaseUncheckedException());
 		userOnboardDAOImpl.getCenterID("StationID1947");
 	}
@@ -363,13 +363,13 @@ public class UserOnBoardDAOImlpTest {
 	@Test
 	public void getCenterID() throws RegBaseCheckedException {
 		CenterMachineId centerMachineId = new CenterMachineId();
-		centerMachineId.setId("StationID1947");
-		centerMachineId.setCentreId("CenterID1947");
+		centerMachineId.setMachineId("StationID1947");
+		centerMachineId.setRegCenterId("CenterID1947");
 
 		CenterMachine centerMachine = new CenterMachine();
 		centerMachine.setCenterMachineId(centerMachineId);
 
-		Mockito.when(centerMachineRepository.findByIsActiveTrueAndCenterMachineIdId(Mockito.anyString()))
+		Mockito.when(centerMachineRepository.findByIsActiveTrueAndCenterMachineIdMachineId(Mockito.anyString()))
 				.thenReturn(centerMachine);
 		String stationId = userOnboardDAOImpl.getCenterID("StationID1947");
 		Assert.assertSame("CenterID1947", stationId);

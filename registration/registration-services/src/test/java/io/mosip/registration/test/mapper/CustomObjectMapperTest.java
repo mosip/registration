@@ -130,8 +130,8 @@ public class CustomObjectMapperTest {
 		
 		RegCenterUser regCenterUser = new RegCenterUser();
 		RegCenterUserId regCenterUserId = new RegCenterUserId();
-		regCenterUserId.setRegcntrId("10001");
-		regCenterUserId.setUsrId("mosip");
+		regCenterUserId.setRegCenterId("10001");
+		regCenterUserId.setUserId("mosip");
 		regCenterUser.setRegCenterUserId(regCenterUserId);
 		userDetail.setRegCenterUser(regCenterUser);
 		return userDetail;

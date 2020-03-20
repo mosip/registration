@@ -46,7 +46,7 @@ public class TemplateServiceTest {
 		template.setId("T01");
 		template.setFileTxt("sample text");
 		template.setLangCode("eng");
-		template.setActive(true);
+		template.setIsActive(true);
 		templates.add(template);
 		return templates;
 	}
@@ -58,7 +58,7 @@ public class TemplateServiceTest {
 		typePrimaryKey.setCode("ackTemplate");
 		typePrimaryKey.setLangCode("eng");
 		templateType.setPkTmpltCode(typePrimaryKey);
-		templateType.setActive(true);
+		templateType.setIsActive(true);
 		templateTypes.add(templateType);
 		return templateTypes;
 	}
@@ -70,7 +70,7 @@ public class TemplateServiceTest {
 		fileFormatPK.setCode("vel");
 		fileFormatPK.setLangCode("eng");
 		fileFormat.setPkTfftCode(fileFormatPK);
-		fileFormat.setActive(true);
+		fileFormat.setIsActive(true);
 		fileFormats.add(fileFormat);
 		return fileFormats;
 	}
@@ -113,7 +113,7 @@ public class TemplateServiceTest {
 		template.setId("T01");
 		template.setFileTxt("sample text");
 		template.setLangCode("en");
-		template.setActive(true);
+		template.setIsActive(true);
 		template.setName("AckTemplate");
 		
 		TemplateServiceImpl temp = new TemplateServiceImpl();

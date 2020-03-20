@@ -20,7 +20,7 @@ public class RegCentreMachineDeviceId implements Serializable {
 
 	private static final long serialVersionUID = -1247474923778950226L;
 	@Column(name = "regcntr_id")
-	private String regCentreId;
+	private String regCenterId;
 	@Column(name = "machine_id")
 	private String machineId;
 	@Column(name = "device_id")
@@ -29,16 +29,16 @@ public class RegCentreMachineDeviceId implements Serializable {
 	/**
 	 * @return the regCentreId
 	 */
-	public String getRegCentreId() {
-		return regCentreId;
+	public String getRegCenterId() {
+		return regCenterId;
 	}
 
 	/**
 	 * @param regCentreId
 	 *            the regCentreId to set
 	 */
-	public void setRegCentreId(String regCentreId) {
-		this.regCentreId = regCentreId;
+	public void setRegCenterId(String regCenterId) {
+		this.regCenterId = regCenterId;
 	}
 
 	/**
@@ -77,7 +77,7 @@ public class RegCentreMachineDeviceId implements Serializable {
 		int result = 1;
 		result = prime * result + ((deviceId == null) ? 0 : deviceId.hashCode());
 		result = prime * result + ((machineId == null) ? 0 : machineId.hashCode());
-		result = prime * result + ((regCentreId == null) ? 0 : regCentreId.hashCode());
+		result = prime * result + ((regCenterId == null) ? 0 : regCenterId.hashCode());
 		return result;
 	}
 
@@ -100,10 +100,10 @@ public class RegCentreMachineDeviceId implements Serializable {
 				return false;
 		} else if (!machineId.equals(other.machineId))
 			return false;
-		if (regCentreId == null) {
-			if (other.regCentreId != null)
+		if (regCenterId == null) {
+			if (other.regCenterId != null)
 				return false;
-		} else if (!regCentreId.equals(other.regCentreId))
+		} else if (!regCenterId.equals(other.regCenterId))
 			return false;
 		return true;
 	}

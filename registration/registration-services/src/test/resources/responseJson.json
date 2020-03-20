@@ -82,7 +82,7 @@
 			"entityType": "structured",
 			"data": [
 
-				"{\"regCenterId\":\"10001\",\"deviceId\":\"3000061\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}",
+				"{\"regCenterId\":\"10001\",\"deviceId\":\"3000041\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}",
 				"{\"regCenterId\":\"10001\",\"deviceId\":\"3000166\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
 			]
 		},
@@ -91,7 +91,7 @@
 			"entityType": "structured",
 			"data": [
 
-				"{\"regCenterId\":\"10001\",\"machineId\":\"10030\",\"deviceId\":\"3000167\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}",
+				"{\"regCenterId\":\"10001\",\"machineId\":\"10030\",\"deviceId\":\"3000041\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}",
 				"{\"regCenterId\":\"10001\",\"machineId\":\"10030\",\"deviceId\":\"3000166\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
 			]
 		},
@@ -116,7 +116,7 @@
 			"data": [
 
 				"{\"id\":\"3000166\",\"name\":\"Dummy Finger Print Scanner 30\",\"serialNum\":\"BS563Q2230814\",\"deviceSpecId\":\"165\",\"macAddress\":\"D6-15-AC-80-6B-86\",\"ipAddress\":null,\"validityDateTime\":[2018,12,10,11,42,52,994000000],\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}",
-				"{\"id\":\"3000041\",\"name\":\"Dummy IRIS Scanner 1\",\"serialNum\":\"JN7935692567\",\"deviceSpecId\":\"327\",\"macAddress\":\"11-FB-CF-6A-BF-29\",\"ipAddress\":null,\"validityDateTime\":[2018,12,10,11,42,52,994000000],\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
+				"{\"id\":\"3000041\",\"name\":\"Dummy IRIS Scanner 1\",\"serialNum\":\"JN7935692567\",\"deviceSpecId\":\"736\",\"macAddress\":\"11-FB-CF-6A-BF-29\",\"ipAddress\":null,\"validityDateTime\":[2018,12,10,11,42,52,994000000],\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
 			]
 		},
 		{
@@ -124,7 +124,7 @@
 			"entityType": "structured",
 			"data": [
 
-				"{\"id\":\"736\",\"name\":\"Webcam\",\"brand\":\"Logitech\",\"model\":\"C270\",\"deviceTypeCode\":\"CMR\",\"minDriverversion\":\"2.086\",\"description\":\"To capture photo\",\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true}",
+				"{\"id\":\"736\",\"name\":\"Webcam\",\"brand\":\"Logitech\",\"model\":\"C270\",\"deviceTypeCode\":\"CMR\",\"minDriverversion\":\"2.086\",\"description\":\"To capture photo\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}",
 				"{\"id\":\"165\",\"name\":\"Fingerprint Scanner\",\"brand\":\"Safran Morpho\",\"model\":\"1300 E2\",\"deviceTypeCode\":\"FRS\",\"minDriverversion\":\"1.12\",\"description\":\"To scan fingerprint\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
 			]
 		},
@@ -133,8 +133,8 @@
 			"entityType": "structured",
 			"data": [
 
-				"{\"code\":\"PRT\",\"name\":\"Imprimante\",\"description\":\"Pour imprimer des documents\",\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true}",
-				"{\"code\":\"IRS\",\"name\":\"Scanner dIris\",\"description\":\"Pour scanner liris\",\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true}"
+				"{\"code\":\"CMR\",\"name\":\"Imprimante\",\"description\":\"Pour imprimer des documents\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}",
+				"{\"code\":\"FRS\",\"name\":\"Scanner dIris\",\"description\":\"Pour scanner liris\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
 			]
 		},
 		{
@@ -218,7 +218,7 @@
 			"data": [
 				"{\"code\":\"FNR\",\"name\":\"Fingerprint\",\"description\":\"Finger prints of the applicant\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}",
 
-				"{\"code\":\"PHT\",\"name\":\"Photo\",\"description\":\"Photo of the face of the applicant\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
+				"{\"code\":\"IRS\",\"name\":\"Photo\",\"description\":\"Photo of the face of the applicant\",\"isDeleted\":null,\"langCode\":\"fra\",\"isActive\":true}"
 			]
 		},
 		{
@@ -325,8 +325,8 @@
 			"entityType": "structured",
 			"data": [
 
-				"{\"docTypeCode\":\"DOC005\",\"docCategoryCode\":\"POI\",\"isDeleted\":null,\"langCode\":\"ara\",\"isActive\":true}",
-				"{\"docTypeCode\":\"DOC007\",\"docCategoryCode\":\"POI\",\"isDeleted\":null,\"langCode\":\"ara\",\"isActive\":true}"
+				"{\"docTypeCode\":\"DOC006\",\"docCategoryCode\":\"POA\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}",
+				"{\"docTypeCode\":\"DOC006\",\"docCategoryCode\":\"POA\",\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true}"
 			]
 		},
 		{
@@ -334,10 +334,10 @@
 			"entityType": "structured",
 			"data": [
 
-				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"appTypeCode\":\"006\",\"docTypeCode\":\"CIN\",\"docCatCode\":\"POI\"}",
-				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"appTypeCode\":\"014\",\"docTypeCode\":\"RNC\",\"docCatCode\":\"POA\"}",
-				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"appTypeCode\":\"015\",\"docTypeCode\":\"CRN\",\"docCatCode\":\"POR\"}",
-				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"appTypeCode\":\"013\",\"docTypeCode\":\"CRN\",\"docCatCode\":\"POR\"}"
+				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"appTypeCode\":\"006\",\"docTypeCode\":\"DOC006\",\"docCatCode\":\"POA\"}",
+				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"appTypeCode\":\"014\",\"docTypeCode\":\"DOC006\",\"docCatCode\":\"POA\"}",
+				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"appTypeCode\":\"015\",\"docTypeCode\":\"DOC006\",\"docCatCode\":\"POA\"}",
+				"{\"isDeleted\":null,\"langCode\":\"eng\",\"isActive\":true,\"appTypeCode\":\"013\",\"docTypeCode\":\"DOC006\",\"docCatCode\":\"POA\"}"
 
 			]
 		},

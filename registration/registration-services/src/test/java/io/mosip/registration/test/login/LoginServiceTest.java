@@ -396,7 +396,7 @@ public class LoginServiceTest {
 		UserDetail userDetail = new UserDetail();
 		RegCenterUser regCenterUser = new RegCenterUser();
 		RegCenterUserId regCenterUserId = new RegCenterUserId();
-		regCenterUserId.setRegcntrId("10011");
+		regCenterUserId.setRegCenterId("10011");
 		regCenterUser.setRegCenterUserId(regCenterUserId);
 		userDetail.setRegCenterUser(regCenterUser);
 		userDetail.setStatusCode("ACTIVE");
@@ -467,7 +467,7 @@ public class LoginServiceTest {
 		UserDetail userDetail = new UserDetail();
 		RegCenterUser regCenterUser = new RegCenterUser();
 		RegCenterUserId regCenterUserId = new RegCenterUserId();
-		regCenterUserId.setRegcntrId("10011");
+		regCenterUserId.setRegCenterId("10011");
 		regCenterUser.setRegCenterUserId(regCenterUserId);
 		userDetail.setRegCenterUser(regCenterUser);
 		userDetail.setStatusCode("BLOCKED");
@@ -499,7 +499,7 @@ public class LoginServiceTest {
 		UserDetail userDetail = new UserDetail();
 		RegCenterUser regCenterUser = new RegCenterUser();
 		RegCenterUserId regCenterUserId = new RegCenterUserId();
-		regCenterUserId.setRegcntrId("11234");
+		regCenterUserId.setRegCenterId("11234");
 		regCenterUser.setRegCenterUserId(regCenterUserId);
 		userDetail.setRegCenterUser(regCenterUser);
 		Mockito.when(userDetailDAO.getUserDetail(Mockito.anyString())).thenReturn(userDetail);
@@ -524,7 +524,7 @@ public class LoginServiceTest {
 		UserDetail userDetail = new UserDetail();
 		RegCenterUser regCenterUser = new RegCenterUser();
 		RegCenterUserId regCenterUserId = new RegCenterUserId();
-		regCenterUserId.setRegcntrId("10011");
+		regCenterUserId.setRegCenterId("10011");
 		regCenterUser.setRegCenterUserId(regCenterUserId);
 		userDetail.setRegCenterUser(regCenterUser);
 		userDetail.setStatusCode("ACTIVE");
@@ -576,7 +576,7 @@ public class LoginServiceTest {
 		UserDetail userDetail = new UserDetail();
 		RegCenterUser regCenterUser = new RegCenterUser();
 		RegCenterUserId regCenterUserId = new RegCenterUserId();
-		regCenterUserId.setRegcntrId("10011");
+		regCenterUserId.setRegCenterId("10011");
 		regCenterUser.setRegCenterUserId(regCenterUserId);
 		userDetail.setRegCenterUser(regCenterUser);
 		userDetail.setStatusCode("ACTIVE");
