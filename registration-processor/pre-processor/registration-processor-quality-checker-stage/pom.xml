@@ -75,7 +75,7 @@
         <dependency>
             <groupId>io.mosip.kernel</groupId>
             <artifactId>kernel-bioapi-provider</artifactId>
-            <version>1.0.5</version>
+            <version>${kernel.bioapi.provider.version}</version>
         </dependency>
         <dependency>
             <groupId>io.mosip.kernel</groupId>

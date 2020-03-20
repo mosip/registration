@@ -74,7 +74,7 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idvalidator-rid</artifactId>
-			<version>${kernel.idvalidator.version}</version>
+			<version>${kernel.idvalidator.rid.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.h2database</groupId>
