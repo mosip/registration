@@ -502,6 +502,7 @@ public class MapperUtils {
 				continue;
 			}
 			
+			//avoids failure of complete sync on missing of non-mandatory field
 			if(!jsonObject.has(dfield.getName())) {
 				//throw new RegBaseUncheckedException(MAPPER_UTILL, String.format(FIELD_MISSING_ERROR_MESSAGE, dfield.getName()));
 				LOGGER.warn(MAPPER_UTILL, APPLICATION_NAME, APPLICATION_ID, String.format(FIELD_MISSING_ERROR_MESSAGE, dfield.getName()));

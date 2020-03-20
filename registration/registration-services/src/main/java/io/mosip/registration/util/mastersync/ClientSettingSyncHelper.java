@@ -1,6 +1,10 @@
 package io.mosip.registration.util.mastersync;
 
 
+import static io.mosip.registration.constants.LoggerConstants.LOG_REG_MASTER_SYNC;
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
+
 import java.io.SyncFailedException;
 import java.util.ArrayList;
 import java.util.List;
@@ -368,7 +372,8 @@ public class ClientSettingSyncHelper {
 			machineTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "MachineType")));
 			machineRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "MachineMaster")));
 		}  catch (Exception e) {
-			throw new SyncFailedException(e.getMessage()+"Saving the entities into machine sync  is failed ");
+			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
+			throw new SyncFailedException("Machine data sync failed due to " +  e.getMessage());
 		}	
 	}
 	
@@ -388,8 +393,8 @@ public class ClientSettingSyncHelper {
 			//TODO need to check if userdetails are synced before this ?
 			//registrationCenterUserRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "RegistrationCenterUser")));
 		} catch (Exception e ) {
-			e.printStackTrace();
-			throw new SyncFailedException(e.getMessage()+"Saving the respective entities into registration center sync is failed ");
+			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
+			throw new SyncFailedException("RegistrationCenter data sync failed due to " +  e.getMessage());
 		} 
 	}
 	
@@ -405,7 +410,8 @@ public class ClientSettingSyncHelper {
 			appRolePriorityRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "AppRolePriority")));
 			appAuthenticationRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "AppAuthenticationMethod")));
 		} catch (Exception e) {
-			throw new SyncFailedException(e.getMessage()+"Saving the respective entities into app detail sync is failed ");
+			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
+			throw new SyncFailedException("AppDetail data sync failed due to " +  e.getMessage());
 		}
 	}
 	
@@ -421,7 +427,8 @@ public class ClientSettingSyncHelper {
 			templateTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "TemplateType")));
 			templateRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "Template")));
 		} catch (Exception e) {
-			throw new SyncFailedException(e.getMessage()+"Saving the respective entities into template sync is failed ");
+			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
+			throw new SyncFailedException("Template data sync failed due to " +  e.getMessage());
 		}
 		
 	}
@@ -439,7 +446,8 @@ public class ClientSettingSyncHelper {
 			applicantValidDocumentRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "ApplicantValidDocument")));
 			validDocumentRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "ValidDocument")));
 		} catch (Exception e) {
-			throw new SyncFailedException(e.getMessage()+"Saving the respective entities into document sync is failed ");
+			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
+			throw new SyncFailedException("Document data sync failed due to " +  e.getMessage());
 		}
 	}
 	
@@ -459,7 +467,8 @@ public class ClientSettingSyncHelper {
 			titleRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "Title")));
 			individualTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "IndividualType")));
 		} catch (Exception e) {
-			throw new SyncFailedException(e.getMessage()+"Saving the respective entities into scheam possible value sync is failed ");
+			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
+			throw new SyncFailedException("IdSchema data sync failed due to " +  e.getMessage());
 		}		
 	}
 	
@@ -482,8 +491,8 @@ public class ClientSettingSyncHelper {
 			syncJobDefRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "SyncJobDef")));
 			
 		} catch (Exception e) {
-			e.printStackTrace();
-			throw new SyncFailedException(e.getMessage()+"Saving the respective entities into  sync is failed ");
+			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
+			throw new SyncFailedException("Miscellaneous data sync failed due to " +  e.getMessage());
 		}
 	}
 }
