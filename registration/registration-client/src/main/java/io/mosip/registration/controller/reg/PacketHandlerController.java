@@ -619,6 +619,9 @@ public class PacketHandlerController extends BaseController implements Initializ
 								getClass().getResource(RegistrationConstants.ACK_RECEIPT_PATH),
 								applicationContext.getApplicationLanguageBundle());
 						getScene(createRoot).setRoot(createRoot);
+
+						setIsAckOpened(true);
+						
 					} else {
 						clearRegistrationData();
 						createPacket();
