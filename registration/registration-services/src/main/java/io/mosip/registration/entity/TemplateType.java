@@ -7,6 +7,9 @@ import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * The Entity Class for TemplateType details
  * 
@@ -15,55 +18,18 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(schema="reg", name = "TEMPLATE_TYPE")
+@Getter
+@Setter
 public class TemplateType extends RegistrationCommonFields {
 	@EmbeddedId
 	@Column(name="pk_tmplt_code")
 	private TemplateEmbeddedKeyCommonFields pkTmpltCode;
 	
 	@Column(name="descr")
-	private String descr;
+	private String description;
 	@Column(name="is_deleted")
 	private Boolean isDeleted;
 	@Column(name="del_dtimes")
 	private Date delDtimes;
-
-	/**
-	 * @return the pkTmpltCode
-	 */
-	public TemplateEmbeddedKeyCommonFields getPkTmpltCode() {
-		return pkTmpltCode;
-	}
-
-	/**
-	 * @param pkTmpltCode the pkTmpltCode to set
-	 */
-	public void setPkTmpltCode(TemplateEmbeddedKeyCommonFields pkTmpltCode) {
-		this.pkTmpltCode = pkTmpltCode;
-	}
-
-	public String getDescr() {
-		return descr;
-	}
-
-	public void setDescr(String descr) {
-		this.descr = descr;
-	}
-
-	public Boolean getIsDeleted() {
-		return isDeleted;
-	}
-
-	public void setIsDeleted(Boolean isDeleted) {
-		this.isDeleted = isDeleted;
-	}
-
-	public Date getDelDtimes() {
-		return delDtimes;
-	}
-
-	public void setDelDtimes(Date delDtimes) {
-		this.delDtimes = delDtimes;
-	}
-
 	
 }

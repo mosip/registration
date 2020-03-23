@@ -11,6 +11,8 @@ import javax.persistence.IdClass;
 import javax.persistence.Table;
 
 import io.mosip.registration.entity.id.TemplateId;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * The Entity Class for Template details
@@ -21,6 +23,8 @@ import io.mosip.registration.entity.id.TemplateId;
 @Entity
 @IdClass(TemplateId.class)
 @Table(schema = "reg", name = "TEMPLATE")
+@Getter
+@Setter
 public class Template extends RegistrationCommonFields {
 
 	@Id
@@ -45,108 +49,13 @@ public class Template extends RegistrationCommonFields {
 	private String templateTypCode;
 	
 	@Column(name="descr")
-	private String descr;
+	private String description;
 	@Column(name="is_deleted")
 	private Boolean isDeleted;
 	@Column(name="del_dtimes")
 	private Date delDtimes;
 
 
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getFileFormatCode() {
-		return fileFormatCode;
-	}
-
-	public void setFileFormatCode(String fileFormatCode) {
-		this.fileFormatCode = fileFormatCode;
-	}
-
-	public String getModel() {
-		return model;
-	}
-
-	public void setModel(String model) {
-		this.model = model;
-	}
-
-	public String getFileTxt() {
-		return fileTxt;
-	}
-
-	public void setFileTxt(String fileTxt) {
-		this.fileTxt = fileTxt;
-	}
-
-	public String getModuleId() {
-		return moduleId;
-	}
-
-	public void setModuleId(String moduleId) {
-		this.moduleId = moduleId;
-	}
-
-	public String getModuleName() {
-		return moduleName;
-	}
-
-	public void setModuleName(String moduleName) {
-		this.moduleName = moduleName;
-	}
-
-	public String getTemplateTypCode() {
-		return templateTypCode;
-	}
-
-	public void setTemplateTypCode(String templateTypCode) {
-		this.templateTypCode = templateTypCode;
-	}
-
-	public String getLangCode() {
-		return langCode;
-	}
-
-	public void setLangCode(String langCode) {
-		this.langCode = langCode;
-	}
-
-	public String getDescr() {
-		return descr;
-	}
-
-	public void setDescr(String descr) {
-		this.descr = descr;
-	}
-
-	public Boolean getIsDeleted() {
-		return isDeleted;
-	}
-
-	public void setIsDeleted(Boolean isDeleted) {
-		this.isDeleted = isDeleted;
-	}
-
-	public Date getDelDtimes() {
-		return delDtimes;
-	}
-
-	public void setDelDtimes(Date delDtimes) {
-		this.delDtimes = delDtimes;
-	}
 
 	@Override
 	public int hashCode() {
@@ -223,7 +132,7 @@ public class Template extends RegistrationCommonFields {
 
 	@Override
 	public String toString() {
-		return "Template [id=" + id + ", name=" + name + ", descr=" + descr + ", file_format_code=" + fileFormatCode
+		return "Template [id=" + id + ", name=" + name + ", descr=" + description + ", file_format_code=" + fileFormatCode
 				+ ", model=" + model + ", file_txt=" + fileTxt + ", module_id=" + moduleId + ", module_name="
 				+ moduleName + ", template_typ_code=" + templateTypCode + ", lang_code=" + langCode + ", is_active="
 				+ getIsActive() + ", cr_by=" + crBy + ", cr_dtimes=" + getCrDtime() + ", upd_by=" + updBy + ", upd_dtimes="
