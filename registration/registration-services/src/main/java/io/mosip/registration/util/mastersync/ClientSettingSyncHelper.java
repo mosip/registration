@@ -7,7 +7,9 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.io.SyncFailedException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -238,6 +240,26 @@ public class ClientSettingSyncHelper {
 	
 	@Autowired
 	private DeviceProviderRepository deviceProviderRepository;
+	
+	private static final Map<String, String> ENTITY_CLASS_NAMES = new HashMap<String, String>();
+	
+	
+	static {
+		ENTITY_CLASS_NAMES.put("Device", ENTITY_PACKAGE_NAME + "RegDeviceMaster");
+		ENTITY_CLASS_NAMES.put("DeviceType", ENTITY_PACKAGE_NAME + "RegDeviceType");
+		ENTITY_CLASS_NAMES.put("DeviceSpecification", ENTITY_PACKAGE_NAME + "RegDeviceSpec");
+		ENTITY_CLASS_NAMES.put("MachineSpecification", ENTITY_PACKAGE_NAME + "RegMachineSpec");
+		ENTITY_CLASS_NAMES.put("RegistrationCenterDevice", ENTITY_PACKAGE_NAME + "RegCenterDevice");
+		ENTITY_CLASS_NAMES.put("RegistrationCenterUser", ENTITY_PACKAGE_NAME + "RegCenterUser");
+		ENTITY_CLASS_NAMES.put("RegistrationCenterMachine", ENTITY_PACKAGE_NAME + "CenterMachine");
+		ENTITY_CLASS_NAMES.put("RegistrationCenterMachineDevice", ENTITY_PACKAGE_NAME + "RegCentreMachineDevice");
+		ENTITY_CLASS_NAMES.put("RegistrationDeviceMaster", ENTITY_PACKAGE_NAME + "RegDeviceMaster");
+		ENTITY_CLASS_NAMES.put("DeviceService", ENTITY_PACKAGE_NAME + "MosipDeviceService");
+		ENTITY_CLASS_NAMES.put("DeviceTypeDPM", ENTITY_PACKAGE_NAME + "RegisteredDeviceType");
+		ENTITY_CLASS_NAMES.put("DeviceSubTypeDPM", ENTITY_PACKAGE_NAME + "RegisteredSubDeviceType");
+		ENTITY_CLASS_NAMES.put("RegisteredDevice", ENTITY_PACKAGE_NAME + "RegisteredDeviceMaster");
+	}
+	
 
 	/**
 	 * Save the SyncDataResponseDto 
@@ -302,36 +324,9 @@ public class ClientSettingSyncHelper {
 	
 	private Class getEntityClass(String entityName) throws ClassNotFoundException {
 		try {
-			switch (entityName) {
-			case "Device":
-				return Class.forName(ENTITY_PACKAGE_NAME + "RegDeviceMaster");
-			case "DeviceType":
-				return Class.forName(ENTITY_PACKAGE_NAME + "RegDeviceType");
-			case "DeviceSpecification":
-				return Class.forName(ENTITY_PACKAGE_NAME + "RegDeviceSpec");
-			case "MachineSpecification":
-				return Class.forName(ENTITY_PACKAGE_NAME + "RegMachineSpec");
-			case "RegistrationCenterDevice":
-				return Class.forName(ENTITY_PACKAGE_NAME + "RegCenterDevice");
-			case "RegistrationCenterUser":
-				return Class.forName(ENTITY_PACKAGE_NAME + "RegCenterUser");
-			case "RegistrationCenterMachine" :
-				return Class.forName(ENTITY_PACKAGE_NAME + "CenterMachine");
-			case "RegistrationCenterMachineDevice" :
-				return Class.forName(ENTITY_PACKAGE_NAME + "RegCentreMachineDevice");
-			case "RegistrationDeviceMaster" :
-				return Class.forName(ENTITY_PACKAGE_NAME + "RegDeviceMaster");
-			case "DeviceService":
-				return Class.forName(ENTITY_PACKAGE_NAME + "MosipDeviceService");
-			case "DeviceTypeDPM":
-				return Class.forName(ENTITY_PACKAGE_NAME + "RegisteredDeviceType");
-			case "DeviceSubTypeDPM":
-				return Class.forName(ENTITY_PACKAGE_NAME + "RegisteredSubDeviceType");
-			case "RegisteredDevice" :
-				return Class.forName(ENTITY_PACKAGE_NAME + "RegisteredDeviceMaster");
-			default:
-				return Class.forName(ENTITY_PACKAGE_NAME + entityName);
-			}
+			
+			return ENTITY_CLASS_NAMES.containsKey(entityName) ? Class.forName(ENTITY_CLASS_NAMES.get(entityName)) : 
+				Class.forName(ENTITY_PACKAGE_NAME + entityName);
 			
 		} catch(ClassNotFoundException ex) {
 			return Class.forName(ENTITY_PACKAGE_NAME + "Reg" + entityName);
@@ -391,7 +386,7 @@ public class ClientSettingSyncHelper {
 			centerMachineRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "RegistrationCenterMachine")));
 			registrationCenterMachineDeviceRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "RegistrationCenterMachineDevice")));
 			//TODO need to check if userdetails are synced before this ?
-			//registrationCenterUserRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "RegistrationCenterUser")));
+			registrationCenterUserRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "RegistrationCenterUser")));
 		} catch (Exception e ) {
 			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
 			throw new SyncFailedException("RegistrationCenter data sync failed due to " +  e.getMessage());
