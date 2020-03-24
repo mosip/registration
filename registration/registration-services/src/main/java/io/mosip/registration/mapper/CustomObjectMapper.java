@@ -127,8 +127,8 @@ public class CustomObjectMapper extends ConfigurableMapper {
 		.customize(new CustomMapper<RegCenterUser, RegCenterUserDTO>() {
 			@Override
 			public void mapAtoB(RegCenterUser a, RegCenterUserDTO b, MappingContext context) {
-				b.setRegcntrId(a.getRegCenterUserId().getRegcntrId());
-				b.setUsrId(a.getRegCenterUserId().getUsrId());
+				b.setRegcntrId(a.getRegCenterUserId().getRegCenterId());
+				b.setUsrId(a.getRegCenterUserId().getUserId());
 			}
 		}).byDefault().register();
 		

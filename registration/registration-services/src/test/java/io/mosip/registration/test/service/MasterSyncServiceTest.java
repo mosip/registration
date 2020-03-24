@@ -1183,9 +1183,9 @@ public class MasterSyncServiceTest {
 
 		Map<String, String> requestParams = ReflectionTestUtils.invokeMethod(masterSyncServiceImpl, "getRequestParamsForClientSettingsSync",
 				"macId", null);
-
-		//Assert.assertTrue(requestParams.containsKey(RegistrationConstants.MAC_ADDRESS));
-		Assert.assertEquals(0, requestParams.size());
+		
+		Assert.assertNull(requestParams.get(RegistrationConstants.KEY_INDEX.toLowerCase()));
+		Assert.assertEquals(1, requestParams.size());
 	}
 
 	@Test
@@ -1198,8 +1198,8 @@ public class MasterSyncServiceTest {
 		PowerMockito.when(masterSyncDao.syncJobDetails(Mockito.anyString())).thenReturn(null);
 
 		Map<String, String> requestParams = ReflectionTestUtils.invokeMethod(masterSyncServiceImpl, "getRequestParamsForClientSettingsSync",
-				"macId", "keyIndex");
-
+				"macId", "keyIndex");		
+		
 		Assert.assertTrue(requestParams.containsKey(RegistrationConstants.KEY_INDEX.toLowerCase()));
 		Assert.assertEquals(1, requestParams.size());
 

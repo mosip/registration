@@ -735,22 +735,21 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	 * @throws RegBaseCheckedException
 	 */
 	private Map<String, String> getRequestParamsForClientSettingsSync(String masterSyncDtls, String keyIndex) throws RegBaseCheckedException  {
-		Map<String, String> requestParamMap = new HashMap<String, String>();			
-		String machineName = null;
-		try {
-			machineName = InetAddress.getLocalHost().getHostName();
-		} catch (UnknownHostException e) {
-			throwRegBaseCheckedException(RegistrationExceptionConstants.REG_MASTER_SYNC_SERVICE_IMPL_NO_MACHINE_NAME);
+		Map<String, String> requestParamMap = new HashMap<String, String>();
+		
+		if(keyIndex == null) {
+			String machineName = null;
+			try {
+				machineName = InetAddress.getLocalHost().getHostName();
+			} catch (UnknownHostException e) {
+				throwRegBaseCheckedException(RegistrationExceptionConstants.REG_MASTER_SYNC_SERVICE_IMPL_NO_MACHINE_NAME);
+			}
+			String keyIndexBasedOnMachineName = machineMappingDAO.getKeyIndexByMachineName(machineName);
+			requestParamMap.put(RegistrationConstants.KEY_INDEX.toLowerCase(), keyIndexBasedOnMachineName);
 		}
-		// Get KeyIndex
-		if (!RegistrationConstants.ENABLE
-				.equalsIgnoreCase(String.valueOf(ApplicationContext.map().get(RegistrationConstants.INITIAL_SETUP)))) {
-			keyIndex = machineMappingDAO.getKeyIndexByMachineName(machineName);
-		}
-		// Add the Key Index
-		if (null != keyIndex) {
+		else
 			requestParamMap.put(RegistrationConstants.KEY_INDEX.toLowerCase(), keyIndex);
-		}
+		
 		// getting Last Sync date from Data from sync table
 		SyncControl masterSyncDetails = masterSyncDao.syncJobDetails(masterSyncDtls);	
 		if (masterSyncDetails != null) {

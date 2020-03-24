@@ -487,7 +487,7 @@ public class MapperUtils {
 	 * @param fields         destination fields
 	 * @throws IllegalAccessException if provided fields are not accessible
 	 */
-	private static <D> D mapJsonToEntity(JSONObject jsonObject, D destination, Field[] fields)
+	private static <D> void mapJsonToEntity(JSONObject jsonObject, D destination, Field[] fields)
 			throws InstantiationException, IllegalAccessException {
 		for (Field dfield : fields) {
 			if (isIgnoreField(dfield)) {
@@ -500,13 +500,33 @@ public class MapperUtils {
 				dfield.set(destination, id);
 				dfield.setAccessible(false);
 				continue;
-			}			
-			if(!jsonObject.has(dfield.getName()))
-				throw new RegBaseUncheckedException(MAPPER_UTILL, String.format(FIELD_MISSING_ERROR_MESSAGE, dfield.getName()));
+			}
+			
+			//avoids failure of complete sync on missing of non-mandatory field
+			if(!jsonObject.has(dfield.getName())) {
+				//throw new RegBaseUncheckedException(MAPPER_UTILL, String.format(FIELD_MISSING_ERROR_MESSAGE, dfield.getName()));
+				LOGGER.warn(MAPPER_UTILL, APPLICATION_NAME, APPLICATION_ID, String.format(FIELD_MISSING_ERROR_MESSAGE, dfield.getName()));
+				continue;
+			}
+			
 			dfield.setAccessible(true);
-			dfield.set(destination, jsonObject.get(dfield.getName()));
+			
+			switch (dfield.getType().getName()) {
+			case "java.lang.Boolean":	
+				dfield.set(destination, (jsonObject.get(dfield.getName()) != JSONObject.NULL) ? jsonObject.get(dfield.getName()) : null);
+				break;
+			case "boolean":
+				dfield.set(destination, (jsonObject.get(dfield.getName()) != JSONObject.NULL) ? jsonObject.get(dfield.getName()) : false);
+				break;
+			case "java.sql.Time":
+				if(jsonObject.get(dfield.getName()) != JSONObject.NULL)
+					dfield.set(destination, java.sql.Time.valueOf("00:00:00"));
+				break;
+			default:
+				dfield.set(destination, (jsonObject.get(dfield.getName()) != JSONObject.NULL) ? jsonObject.get(dfield.getName()) : null);
+				break;
+			}			
 		}
-		return destination;
 	}
 	
 	

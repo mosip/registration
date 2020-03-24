@@ -180,7 +180,7 @@ public class MetaDataUtils {
 			}
 			entity = (D) MapperUtils.mapJSONObjectToEntity(jsonObject, entityClass);
 		} catch(Throwable t) {
-			LOGGER.error(t);
+			t.printStackTrace();
 			throw t; 
 		}
 		setCreatedDateTime(contextUser, entity);

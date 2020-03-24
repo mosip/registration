@@ -23,21 +23,21 @@ public class CenterMachineId implements Serializable{
 	private static final long serialVersionUID = 241072783610318336L;
 
 	@Column(name = "machine_id")
-	private String id;
+	private String machineId;
 	@Column(name = "regcntr_id")
-	private String centreId;
+	private String regCenterId;
 	
-	public String getId() {
-		return id;
+	public String getMachineId() {
+		return machineId;
 	}
-	public void setId(String id) {
-		this.id = id;
+	public void setMachineId(String machineId) {
+		this.machineId = machineId;
 	}
-	public String getCentreId() {
-		return centreId;
+	public String getRegCenterId() {
+		return regCenterId;
 	}
-	public void setCentreId(String centreId) {
-		this.centreId = centreId;
+	public void setRegCenterId(String regCenterId) {
+		this.regCenterId = regCenterId;
 	}
 		
 }

@@ -104,7 +104,7 @@ public class UserClientMachineMappingDAOTest {
 
 	@Test
 	public void getStationIDNullTest() {
-		Mockito.when(centerMachineRepository.findByIsActiveTrueAndCenterMachineIdId(Mockito.anyString()))
+		Mockito.when(centerMachineRepository.findByIsActiveTrueAndCenterMachineIdMachineId(Mockito.anyString()))
 				.thenReturn(null);
 		try {
 			machineMappingDAOImpl.getStationID("8C-16-45-88-E7-0C");
