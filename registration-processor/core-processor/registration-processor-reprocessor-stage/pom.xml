@@ -10,6 +10,7 @@
 		<version>1.0.6</version>
 	</parent>
 	<artifactId>registration-processor-reprocessor-stage</artifactId>
+	 <version>1.0.6</version>
 	<name>registration-processor-reprocessor-stage</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
