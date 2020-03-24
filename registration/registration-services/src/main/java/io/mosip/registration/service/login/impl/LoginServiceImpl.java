@@ -61,6 +61,8 @@ import io.mosip.registration.service.sync.TPMPublicKeySyncService;
  */
 @Service
 public class LoginServiceImpl extends BaseService implements LoginService {
+	
+	private final String MOSIP_KEY_INDEX_KEY = "mosip.keyindex";
 
 	/**
 	 * Instance of LOGGER
@@ -313,6 +315,8 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 				return val;
 			}
 		}
+		else
+			keyIndex = getKeyIndexForLocalEnv(isInitialSetUp);		
 
 		performingAllSyncOperations(val, keyIndex, isInitialSetUp);
 		
@@ -320,6 +324,22 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 
 		return val;
 
+	}
+	
+	/**
+	 * fetches keyIndex from system environment
+	 * Temporary solution, will soon be using profile(environment) value from server to decide on 
+	 * which key to use.
+	 * 
+	 * @param isInitialSetUp
+	 * @return
+	 */
+	 //TODO need to handle based on environment value passed from server.
+	private String getKeyIndexForLocalEnv(boolean isInitialSetUp) {
+		if(!isInitialSetUp)
+			return null;
+		
+		return System.getenv(MOSIP_KEY_INDEX_KEY);
 	}
 
 	/**
