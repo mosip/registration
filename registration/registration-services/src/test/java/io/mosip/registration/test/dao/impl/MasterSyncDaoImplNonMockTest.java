@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+
 import java.util.Map;
 
 import org.junit.BeforeClass;
@@ -15,6 +16,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -23,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
+
 import io.mosip.registration.dao.MachineMappingDAO;
 import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dto.response.SyncDataResponseDto;
@@ -33,6 +36,7 @@ import io.mosip.registration.repositories.BiometricTypeRepository;
 import io.mosip.registration.repositories.MachineMasterRepository;
 import io.mosip.registration.repositories.RegistrationCenterUserRepository;
 import io.mosip.registration.repositories.UserDetailRepository;
+
 import io.mosip.registration.test.config.TestDaoConfig;
 
 
@@ -64,7 +68,7 @@ public class MasterSyncDaoImplNonMockTest {
 	
 	@Autowired
 	private MachineMasterRepository machineMasterRepository;
-		
+
 	
 	@BeforeClass
 	public static void setup() throws Exception {		
@@ -107,13 +111,14 @@ public class MasterSyncDaoImplNonMockTest {
 		SyncDataResponseDto syncDataResponseDto = getSyncDataResponseDto("biometricJson.json");	
 		
 		String response = masterSyncDaoImpl.saveSyncData(syncDataResponseDto);
-		
+
 		assertEquals(RegistrationConstants.SUCCESS, response);
 	}
 	
 	@Test
 	public void testSuccessSave() {
 		String response=null;
+
 		SyncDataResponseDto syncDataResponseDto = getSyncDataResponseDto("responseJson.json");
 		
 		response = masterSyncDaoImpl.saveSyncData(syncDataResponseDto);

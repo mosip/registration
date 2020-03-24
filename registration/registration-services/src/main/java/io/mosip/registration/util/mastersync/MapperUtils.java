@@ -495,6 +495,7 @@ public class MapperUtils {
 	 */
 	private static <D> void mapJsonToEntity(JSONObject jsonObject, D destination, Field[] fields)
 			throws InstantiationException, IllegalAccessException, ParseException {
+
 		for (Field dfield : fields) {
 			if (isIgnoreField(dfield)) {
 				continue;
