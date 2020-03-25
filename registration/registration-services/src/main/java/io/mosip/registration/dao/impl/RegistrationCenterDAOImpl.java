@@ -51,7 +51,7 @@ public class RegistrationCenterDAOImpl implements RegistrationCenterDAO {
 		if (registrationCenter.isPresent()) {
 			registrationCenterDetailDTO
 					.setRegistrationCenterId(registrationCenter.get().getRegistartionCenterId().getId());
-			registrationCenterDetailDTO.setRegistrationCenterName(registrationCenter.get().getCenterName());
+			registrationCenterDetailDTO.setRegistrationCenterName(registrationCenter.get().getName());
 			registrationCenterDetailDTO.setRegsitrationCenterTypeCode(registrationCenter.get().getCenterTypeCode());
 			registrationCenterDetailDTO.setRegistrationCenterAddrLine1(registrationCenter.get().getAddressLine1());
 			registrationCenterDetailDTO.setRegistrationCenterAddrLine2(registrationCenter.get().getAddressLine2());
