@@ -258,6 +258,7 @@ public class ClientSettingSyncHelper {
 		ENTITY_CLASS_NAMES.put("DeviceTypeDPM", ENTITY_PACKAGE_NAME + "RegisteredDeviceType");
 		ENTITY_CLASS_NAMES.put("DeviceSubTypeDPM", ENTITY_PACKAGE_NAME + "RegisteredSubDeviceType");
 		ENTITY_CLASS_NAMES.put("RegisteredDevice", ENTITY_PACKAGE_NAME + "RegisteredDeviceMaster");
+		ENTITY_CLASS_NAMES.put("Machine", ENTITY_PACKAGE_NAME + "MachineMaster");
 	}
 	
 
@@ -307,7 +308,7 @@ public class ClientSettingSyncHelper {
 				entities.add(entity);
 			}
 			return entities;
-		} catch (JSONException | IllegalAccessException | InstantiationException | ClassNotFoundException e) {
+		} catch (Throwable e) {
 			e.printStackTrace();
 			throw new SyncFailedException(e.getMessage() + " building entities is failed...");
 		}
@@ -364,8 +365,7 @@ public class ClientSettingSyncHelper {
 		try {
 			machineTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "MachineType")));
 			machineSpecificationRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "MachineSpecification")));
-			machineTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "MachineType")));
-			machineRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "MachineMaster")));
+			machineRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "Machine")));
 		}  catch (Exception e) {
 			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
 			throw new SyncFailedException("Machine data sync failed due to " +  e.getMessage());

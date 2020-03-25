@@ -165,11 +165,12 @@ public class MetaDataUtils {
 	 * @param jsonObject          is the source
 	 * @param destinationClass is the destination class
 	 * @return an entity class which extends {@link RegistrationCommonFields}
+	 * @throws Throwable 
 	 * @throws DataAccessLayerException if any error occurs while mapping values
 	 * @see MapperUtils#setCreateJSONObjectToMetaData(Object, Class)
 	 */
 	public static <T, D extends RegistrationCommonFields> D setCreateJSONObjectToMetaData(final JSONObject jsonObject,
-			Class<?> entityClass) throws IllegalAccessException, InstantiationException {
+			Class<?> entityClass) throws Throwable {
 		String contextUser = null;
 		D entity = null;
 		try {

@@ -37,7 +37,7 @@ public class MosipDeviceService extends RegistrationCommonFields {
 	private String swVersion;
 	
 	@Column(name="dprovider_id",length=36, nullable=false)
-	private String dProviderId;
+	private String dproviderId;
 	
 	@Column(name="dtype_code",length=36, nullable=false)
 	private String dtypeCode;

@@ -7,6 +7,9 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -44,6 +47,8 @@ public class MapperUtils {
 	private static final Logger LOGGER = AppConfig.getLogger(MapperUtils.class);
 	
 	private static final String FIELD_MISSING_ERROR_MESSAGE = "Field %s not found in data";
+	
+	private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
 	private MapperUtils() {
 		super();
@@ -459,8 +464,9 @@ public class MapperUtils {
 	 * 
 	 * @param jsonObject      which value is going to be mapped
 	 * @param destination where values is going to be mapped
+	 * @throws ParseException 
 	 */
-	public static <D> D mapJSONObjectToEntity(final JSONObject jsonObject, Class<?> entityClass) throws IllegalAccessException, InstantiationException {
+	public static <D> D mapJSONObjectToEntity(final JSONObject jsonObject, Class<?> entityClass) throws IllegalAccessException, InstantiationException, ParseException {
 		Objects.requireNonNull(jsonObject, SOURCE_NULL_MESSAGE);
 		Objects.requireNonNull(entityClass, "destination class should not be null");
 		Object destination = null;
@@ -488,7 +494,8 @@ public class MapperUtils {
 	 * @throws IllegalAccessException if provided fields are not accessible
 	 */
 	private static <D> void mapJsonToEntity(JSONObject jsonObject, D destination, Field[] fields)
-			throws InstantiationException, IllegalAccessException {
+			throws InstantiationException, IllegalAccessException, ParseException {
+
 		for (Field dfield : fields) {
 			if (isIgnoreField(dfield)) {
 				continue;
@@ -503,7 +510,7 @@ public class MapperUtils {
 			}
 			
 			//avoids failure of complete sync on missing of non-mandatory field
-			if(!jsonObject.has(dfield.getName())) {
+			if(!jsonObject.has(dfield.getName()) || jsonObject.get(dfield.getName()) == JSONObject.NULL) {
 				//throw new RegBaseUncheckedException(MAPPER_UTILL, String.format(FIELD_MISSING_ERROR_MESSAGE, dfield.getName()));
 				LOGGER.warn(MAPPER_UTILL, APPLICATION_NAME, APPLICATION_ID, String.format(FIELD_MISSING_ERROR_MESSAGE, dfield.getName()));
 				continue;
@@ -513,24 +520,29 @@ public class MapperUtils {
 			
 			switch (dfield.getType().getName()) {
 			case "java.lang.Boolean":	
-				dfield.set(destination, (jsonObject.get(dfield.getName()) != JSONObject.NULL) ? jsonObject.get(dfield.getName()) : null);
+				dfield.set(destination, jsonObject.get(dfield.getName()));
 				break;
 			case "boolean":
-				dfield.set(destination, (jsonObject.get(dfield.getName()) != JSONObject.NULL) ? jsonObject.get(dfield.getName()) : false);
+				dfield.set(destination,  jsonObject.get(dfield.getName()));
 				break;
 			case "java.sql.Time":
-				if(jsonObject.get(dfield.getName()) != JSONObject.NULL)
-					dfield.set(destination, java.sql.Time.valueOf("00:00:00"));
+				dfield.set(destination, java.sql.Time.valueOf(jsonObject.getString(dfield.getName())));
+				break;
+			case "[B" :
+				dfield.set(destination, jsonObject.getString(dfield.getName()).getBytes());
+				break;
+			case "java.sql.Timestamp" :
+				dfield.set(destination, new Timestamp(SIMPLE_DATE_FORMAT.parse(jsonObject.getString(dfield.getName())).getTime()));
 				break;
 			default:
-				dfield.set(destination, (jsonObject.get(dfield.getName()) != JSONObject.NULL) ? jsonObject.get(dfield.getName()) : null);
+				dfield.set(destination, jsonObject.get(dfield.getName()));
 				break;
 			}			
 		}
 	}
 	
 	
-	private static <D> void setBaseFieldValueFromJsonObject(JSONObject source, D destination) throws InstantiationException, IllegalAccessException {
+	private static <D> void setBaseFieldValueFromJsonObject(JSONObject source, D destination) throws InstantiationException, IllegalAccessException, ParseException {
 
 		String destinationSupername = destination.getClass().getSuperclass().getName();// super class of destination object
 		String baseEntityClassName = RegistrationCommonFields.class.getName();// base entity fully qualified name
