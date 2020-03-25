@@ -39,14 +39,14 @@ public class Template extends RegistrationCommonFields {
 	@Column(name = "file_format_code")
 	private String fileFormatCode;
 	private String model;
-	@Column(name = "file_txt")
-	private String fileTxt;
+	@Column(name = "file_txt", length = 4000)
+	private String fileText;
 	@Column(name = "module_id")
 	private String moduleId;
 	@Column(name = "module_name")
 	private String moduleName;
 	@Column(name = "template_typ_code")
-	private String templateTypCode;
+	private String templateTypeCode;
 	
 	@Column(name="descr")
 	private String description;
@@ -62,14 +62,14 @@ public class Template extends RegistrationCommonFields {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((fileFormatCode == null) ? 0 : fileFormatCode.hashCode());
-		result = prime * result + ((fileTxt == null) ? 0 : fileTxt.hashCode());
+		result = prime * result + ((fileText == null) ? 0 : fileText.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		result = prime * result + ((langCode == null) ? 0 : langCode.hashCode());
 		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		result = prime * result + ((moduleId == null) ? 0 : moduleId.hashCode());
 		result = prime * result + ((moduleName == null) ? 0 : moduleName.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((templateTypCode == null) ? 0 : templateTypCode.hashCode());
+		result = prime * result + ((templateTypeCode == null) ? 0 : templateTypeCode.hashCode());
 		return result;
 	}
 
@@ -87,10 +87,10 @@ public class Template extends RegistrationCommonFields {
 				return false;
 		} else if (!fileFormatCode.equals(other.fileFormatCode))
 			return false;
-		if (fileTxt == null) {
-			if (other.fileTxt != null)
+		if (fileText == null) {
+			if (other.fileText != null)
 				return false;
-		} else if (!fileTxt.equals(other.fileTxt))
+		} else if (!fileText.equals(other.fileText))
 			return false;
 		if (id == null) {
 			if (other.id != null)
@@ -122,10 +122,10 @@ public class Template extends RegistrationCommonFields {
 				return false;
 		} else if (!name.equals(other.name))
 			return false;
-		if (templateTypCode == null) {
-			if (other.templateTypCode != null)
+		if (templateTypeCode == null) {
+			if (other.templateTypeCode != null)
 				return false;
-		} else if (!templateTypCode.equals(other.templateTypCode))
+		} else if (!templateTypeCode.equals(other.templateTypeCode))
 			return false;
 		return true;
 	}
@@ -133,8 +133,8 @@ public class Template extends RegistrationCommonFields {
 	@Override
 	public String toString() {
 		return "Template [id=" + id + ", name=" + name + ", descr=" + description + ", file_format_code=" + fileFormatCode
-				+ ", model=" + model + ", file_txt=" + fileTxt + ", module_id=" + moduleId + ", module_name="
-				+ moduleName + ", template_typ_code=" + templateTypCode + ", lang_code=" + langCode + ", is_active="
+				+ ", model=" + model + ", file_txt=" + fileText + ", module_id=" + moduleId + ", module_name="
+				+ moduleName + ", template_typ_code=" + templateTypeCode + ", lang_code=" + langCode + ", is_active="
 				+ getIsActive() + ", cr_by=" + crBy + ", cr_dtimes=" + getCrDtime() + ", upd_by=" + updBy + ", upd_dtimes="
 				+ updDtimes + ", is_deleted=" + isDeleted + ", del_dtimes=" + delDtimes + "]";
 	}

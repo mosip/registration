@@ -379,13 +379,13 @@ public class UserOnBoardDAOImlpTest {
 	public void getLastUpdatedTime() {
 		UserMachineMapping userMachineMapping = new UserMachineMapping();		
 		userMachineMapping.setCrDtime(new Timestamp(System.currentTimeMillis()));		
-		Mockito.when(userMachineMappingRepository.findByUserMachineMappingIdUserIDIgnoreCase(Mockito.anyString())).thenReturn(userMachineMapping);
+		Mockito.when(userMachineMappingRepository.findByUserMachineMappingIdUsrIdIgnoreCase(Mockito.anyString())).thenReturn(userMachineMapping);
 		Assert.assertNotNull(userOnboardDAOImpl.getLastUpdatedTime("Usr123"));
 	}
 	
 	@Test(expected = RuntimeException.class)
 	public void getLastUpdatedTimeFailure() {		
-		Mockito.when(userMachineMappingRepository.findByUserMachineMappingIdUserIDIgnoreCase(Mockito.anyString())).thenThrow(RuntimeException.class);
+		Mockito.when(userMachineMappingRepository.findByUserMachineMappingIdUsrIdIgnoreCase(Mockito.anyString())).thenThrow(RuntimeException.class);
 		Assert.assertNotNull(userOnboardDAOImpl.getLastUpdatedTime("Usr123"));
 	}
 

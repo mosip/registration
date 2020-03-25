@@ -19,6 +19,6 @@ public interface TemplateRepository<P> extends BaseRepository<Template, String>{
 	 *            the required template type code
 	 * @return the list of {@link Template}
 	 */
-	List<Template> findByIsActiveTrueAndTemplateTypCode(String templateTypeCode);
+	List<Template> findByIsActiveTrueAndTemplateTypeCode(String templateTypeCode);
 	
 }

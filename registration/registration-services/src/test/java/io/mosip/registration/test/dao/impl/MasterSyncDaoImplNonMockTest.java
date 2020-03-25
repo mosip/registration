@@ -23,6 +23,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.config.ApplicationContextProvider;
+import io.mosip.registration.config.PropertiesConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 
@@ -45,7 +48,7 @@ import io.mosip.registration.test.config.TestDaoConfig;
  *
  */
 @RunWith(SpringRunner.class)
-//@ContextConfiguration(classes= {PropertiesConfig.class, ApplicationContextProvider.class, AppConfig.class, TestDaoConfig.class})
+//@ContextConfiguration(classes= {ApplicationContextProvider.class, AppConfig.class})
 @ContextConfiguration(classes= {TestDaoConfig.class})
 //@SpringBootTest(classes= {PropertiesConfig.class, ApplicationContextProvider.class, AppConfig.class, DaoConfig.class})
 //@PrepareForTest({ ApplicationContext.class, SessionContext.class })
@@ -102,7 +105,7 @@ public class MasterSyncDaoImplNonMockTest {
 		UserDetail userDetail4 = new UserDetail();
 		userDetail4.setId("110002");
 		userDetail4.setRegid("10003");
-		users.add(userDetail4);
+		users.add(userDetail4);		
 		userDetailRepository.saveAll(users);
 	}
 	

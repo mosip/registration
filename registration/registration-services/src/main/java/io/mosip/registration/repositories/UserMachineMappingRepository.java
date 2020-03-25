@@ -16,7 +16,7 @@ import io.mosip.registration.entity.id.UserMachineMappingID;
 
 public interface UserMachineMappingRepository extends BaseRepository<UserMachineMapping, UserMachineMappingID> {
 	
-	List<UserMachineMapping>findByIsActiveTrueAndUserMachineMappingIdMachineID(String machineId);
+	List<UserMachineMapping>findByIsActiveTrueAndUserMachineMappingIdMachineId(String machineId);
 
-	UserMachineMapping findByUserMachineMappingIdUserIDIgnoreCase(String userId);
+	UserMachineMapping findByUserMachineMappingIdUsrIdIgnoreCase(String userId);
 }

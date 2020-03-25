@@ -109,7 +109,7 @@ public class JobConfigurationServiceTest {
 		syncJob.setId("1234");
 
 		syncJob.setApiName("packetSyncStatusJob");
-		syncJob.setSyncFrequency("0/5 * * * * ?");
+		syncJob.setSyncFreq("0/5 * * * * ?");
 		syncJob.setIsActive(true);
 		syncJobList.add(syncJob);
 
@@ -117,7 +117,7 @@ public class JobConfigurationServiceTest {
 		mdsJob.setId("RCS_J00005");
 
 		mdsJob.setApiName("packetSyncStatusJob");
-		mdsJob.setSyncFrequency("0/5 * * * * ?");
+		mdsJob.setSyncFreq("0/5 * * * * ?");
 		mdsJob.setIsActive(true);
 		mdsJob.setName("Master Data Sync");
 		syncJobList.add(mdsJob);
@@ -179,7 +179,7 @@ public class JobConfigurationServiceTest {
 		List<SyncJobDef> updatedJobs = new LinkedList<>();
 		SyncJobDef syncJobDef = new SyncJobDef();
 		syncJobDef.setId(globalParam.getName());
-		syncJobDef.setSyncFrequency(globalParam.getVal());
+		syncJobDef.setSyncFreq(globalParam.getVal());
 		syncJobDef.setIsActive(globalParam.getIsActive());
 		syncJobDef.setApiName("packetSyncStatusJob");
 		updatedJobs.add(syncJobDef);

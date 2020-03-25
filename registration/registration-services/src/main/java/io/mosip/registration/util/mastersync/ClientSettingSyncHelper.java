@@ -64,6 +64,7 @@ import io.mosip.registration.repositories.TemplateFileFormatRepository;
 import io.mosip.registration.repositories.TemplateRepository;
 import io.mosip.registration.repositories.TemplateTypeRepository;
 import io.mosip.registration.repositories.TitleRepository;
+import io.mosip.registration.repositories.UserMachineMappingRepository;
 import io.mosip.registration.repositories.ValidDocumentRepository;
 import io.mosip.registration.util.mastersync.MetaDataUtils;
 
@@ -241,6 +242,9 @@ public class ClientSettingSyncHelper {
 	@Autowired
 	private DeviceProviderRepository deviceProviderRepository;
 	
+	@Autowired
+	private UserMachineMappingRepository userMachineMappingRepository;
+	
 	private static final Map<String, String> ENTITY_CLASS_NAMES = new HashMap<String, String>();
 	
 	
@@ -259,6 +263,7 @@ public class ClientSettingSyncHelper {
 		ENTITY_CLASS_NAMES.put("DeviceSubTypeDPM", ENTITY_PACKAGE_NAME + "RegisteredSubDeviceType");
 		ENTITY_CLASS_NAMES.put("RegisteredDevice", ENTITY_PACKAGE_NAME + "RegisteredDeviceMaster");
 		ENTITY_CLASS_NAMES.put("Machine", ENTITY_PACKAGE_NAME + "MachineMaster");
+		ENTITY_CLASS_NAMES.put("RegistrationCenterUserMachine", ENTITY_PACKAGE_NAME + "UserMachineMapping");
 	}
 	
 

@@ -307,8 +307,7 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 			return syncStatusMessage;
 		} catch (Exception runtimeException) {			
 			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
-					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
-			System.err.println(runtimeException);
+					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));			
 			syncStatusMessage = runtimeException.getMessage();
 		}
 		throw new RegBaseUncheckedException(RegistrationConstants.MASTER_SYNC_EXCEPTION, syncStatusMessage);

@@ -112,7 +112,7 @@ public class SyncManagerTest {
 		syncJob.setLangCode("EN");
 		syncJob.setLockDuration("20");
 		syncJob.setParentSyncJobId("ParentSyncJobId");
-		syncJob.setSyncFrequency("25");
+		syncJob.setSyncFreq("25");
 		syncJob.setUpdBy("Yaswanth");
 		syncJob.setUpdDtimes(new Timestamp(System.currentTimeMillis()));
 

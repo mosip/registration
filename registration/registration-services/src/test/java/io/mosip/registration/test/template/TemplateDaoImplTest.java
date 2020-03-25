@@ -46,12 +46,12 @@ public class TemplateDaoImplTest {
 		Template template = new Template();
 		template.setId("T01");
 
-		template.setFileTxt("sample text");
+		template.setFileText("sample text");
 
 		template.setLangCode("en");
 		template.setIsActive(true);
 		templates.add(template);
-		when(templateRepository.findByIsActiveTrueAndTemplateTypCode("ackTemplate")).thenReturn(templates);
+		when(templateRepository.findByIsActiveTrueAndTemplateTypeCode("ackTemplate")).thenReturn(templates);
 		assertThat(templateDao.getAllTemplates("ackTemplate"), is(templates));
 	}
 

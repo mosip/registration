@@ -41,10 +41,10 @@ public class TemplateServiceTest {
 		List<Template> templates = new ArrayList<>();
 		Template template = new Template();
 		template.setName("AckTemplate");
-		template.setTemplateTypCode("vel");
+		template.setTemplateTypeCode("vel");
 		template.setFileFormatCode("vel");
 		template.setId("T01");
-		template.setFileTxt("sample text");
+		template.setFileText("sample text");
 		template.setLangCode("eng");
 		template.setIsActive(true);
 		templates.add(template);
@@ -111,7 +111,7 @@ public class TemplateServiceTest {
 	public void createReceiptTest() throws RegBaseCheckedException {
 		Template template = new Template();
 		template.setId("T01");
-		template.setFileTxt("sample text");
+		template.setFileText("sample text");
 		template.setLangCode("en");
 		template.setIsActive(true);
 		template.setName("AckTemplate");
