@@ -85,7 +85,7 @@ public class RegistrationPacketSyncJobTest {
 		syncJob.setId("1234");
 
 		syncJob.setApiName("registrationPacketSyncJob");
-		syncJob.setSyncFrequency("0/5 * * * * ?");
+		syncJob.setSyncFreq("0/5 * * * * ?");
 		syncJobList.add(syncJob);
 
 		syncJobList.forEach(job -> {

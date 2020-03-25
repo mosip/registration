@@ -52,10 +52,10 @@ public class MosipDeviceService extends RegistrationCommonFields {
 	private String model;
 
 	@Column(name="sw_cr_dtimes")
-	private Timestamp swCrDtimes;
+	private Timestamp swCreatedTime;
 	
 	@Column(name="sw_expiry_dtimes")
-	private Timestamp swExpiryDtimes;
+	private Timestamp swExpiryTime;
 	
 	@Column(name="is_active", nullable=false)
 	private boolean isActive;

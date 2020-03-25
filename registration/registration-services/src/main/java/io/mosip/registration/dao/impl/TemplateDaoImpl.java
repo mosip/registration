@@ -31,7 +31,7 @@ public class TemplateDaoImpl implements TemplateDao{
 	private TemplateFileFormatRepository<TemplateFileFormat> fileFormatRepository;
 	
 	public List<Template> getAllTemplates(String templateTypeCode){
-		return templateRepository.findByIsActiveTrueAndTemplateTypCode(templateTypeCode);
+		return templateRepository.findByIsActiveTrueAndTemplateTypeCode(templateTypeCode);
 	}
 	
 	public List<TemplateType> getAllTemplateTypes(String code,String langCode){

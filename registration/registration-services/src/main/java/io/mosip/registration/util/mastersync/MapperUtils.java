@@ -10,6 +10,7 @@ import java.lang.reflect.Modifier;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -48,10 +49,17 @@ public class MapperUtils {
 	
 	private static final String FIELD_MISSING_ERROR_MESSAGE = "Field %s not found in data";
 	
-	private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+	private static final SimpleDateFormat SIMPLE_DATE_FORMAT_1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+	private static final SimpleDateFormat SIMPLE_DATE_FORMAT_2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+	private static final SimpleDateFormat SIMPLE_DATE_FORMAT_3 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
+	
+	private static List<SimpleDateFormat> SUPPORTED_DATE_FORMATS = new ArrayList<SimpleDateFormat>();
 
 	private MapperUtils() {
 		super();
+		SUPPORTED_DATE_FORMATS.add(SIMPLE_DATE_FORMAT_1);
+		SUPPORTED_DATE_FORMATS.add(SIMPLE_DATE_FORMAT_2);
+		SUPPORTED_DATE_FORMATS.add(SIMPLE_DATE_FORMAT_3);
 	}
 
 	private static final String SOURCE_NULL_MESSAGE = "source should not be null";
@@ -516,7 +524,7 @@ public class MapperUtils {
 				continue;
 			}
 			
-			dfield.setAccessible(true);
+			dfield.setAccessible(true);			
 			
 			switch (dfield.getType().getName()) {
 			case "java.lang.Boolean":	
@@ -532,13 +540,26 @@ public class MapperUtils {
 				dfield.set(destination, jsonObject.getString(dfield.getName()).getBytes());
 				break;
 			case "java.sql.Timestamp" :
-				dfield.set(destination, new Timestamp(SIMPLE_DATE_FORMAT.parse(jsonObject.getString(dfield.getName())).getTime()));
+				dfield.set(destination, getTimestampValue(jsonObject.getString(dfield.getName())));
 				break;
 			default:
 				dfield.set(destination, jsonObject.get(dfield.getName()));
 				break;
 			}			
 		}
+	}
+	
+	private static Timestamp getTimestampValue(String value) {
+		Timestamp timestamp = null;
+		for(SimpleDateFormat format : SUPPORTED_DATE_FORMATS) {
+			try {
+				timestamp = new Timestamp(format.parse(value).getTime());
+				return timestamp;
+			} catch(ParseException ex) {
+				
+			}
+		}
+		return timestamp;
 	}
 	
 	

@@ -96,8 +96,8 @@ public class TemplateServiceImpl implements TemplateService {
 		String templateText = null;
 
 		if (nullCheckForTemplate(templateTypeCode, langCode)) {
-			if (getTemplate(templateTypeCode, langCode).getFileTxt() != null) {
-				templateText = getTemplate(templateTypeCode, langCode).getFileTxt();
+			if (getTemplate(templateTypeCode, langCode).getFileText() != null) {
+				templateText = getTemplate(templateTypeCode, langCode).getFileText();
 			}
 		} else {
 			LOGGER.error("REGISTRATION - TEMPLATE_GENERATION - TEMPLATE_SERVICE_IMPL", APPLICATION_NAME, APPLICATION_ID,

@@ -103,9 +103,9 @@ public class CustomObjectMapperTest {
 		Set<UserMachineMapping> userMachineMappings = new HashSet<>();
 		UserMachineMapping userMachineMapping = new UserMachineMapping();
 		UserMachineMappingID userMachineMappingId = new UserMachineMappingID();
-		userMachineMappingId.setCentreID("10001");
-		userMachineMappingId.setMachineID("10001");
-		userMachineMappingId.setUserID("mosip");
+		userMachineMappingId.setCntrId("10001");
+		userMachineMappingId.setMachineId("10001");
+		userMachineMappingId.setUsrId("mosip");
 		userMachineMapping.setUserMachineMappingId(userMachineMappingId);
 		userMachineMapping.setIsActive(true);
 		userMachineMapping.setLangCode("eng");

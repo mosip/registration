@@ -80,8 +80,8 @@ public class RegisteredDeviceMaster extends RegistrationCommonFields {
 	@Column(name="foundational_trust_signature",length=512)
 	private String foundationalTrustSignature;
 	
-	@Column(name="foundational_trust_certificate")
-	private byte[] foundationalTrustCertificate;
+	//@Column(name="foundational_trust_certificate")
+	//private byte[] foundationalTrustCertificate;
 	
 	@Column(name="dprovider_signature",length=512)
 	private String dproviderSignature;
