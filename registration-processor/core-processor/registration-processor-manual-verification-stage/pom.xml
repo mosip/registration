@@ -12,7 +12,7 @@
 	</parent>
 
 	<artifactId>registration-processor-manual-verification-stage</artifactId>
-
+     <version>1.0.6</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>

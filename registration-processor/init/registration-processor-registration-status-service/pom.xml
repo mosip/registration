@@ -11,6 +11,7 @@
 		<version>1.0.6</version>
 	</parent>
 	<artifactId>registration-processor-registration-status-service</artifactId>
+	 <version>1.0.6</version>
 
 	<name>registration-processor-registration-status-service</name>
 

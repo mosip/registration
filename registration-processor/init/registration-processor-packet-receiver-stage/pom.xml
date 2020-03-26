@@ -11,6 +11,7 @@
 	</parent>
 
 	<artifactId>registration-processor-packet-receiver-stage</artifactId>
+	 <version>1.0.6</version>
 	<name>registration-processor-packet-receiver-stage</name>
 
 	<properties>
