@@ -10,6 +10,7 @@
 
 	<groupId>io.mosip.registrationprocessor</groupId>
 	<artifactId>registration-processor</artifactId>
+	<version>1.0.6</version>
 	<packaging>pom</packaging>
 
 	<name>registration-processor</name>
@@ -104,27 +105,27 @@
 
 		<!-- local -->
 		<registration.status.service.version>1.0.6</registration.status.service.version>
-		<registration.processor.core.version>1.1.0-SNAPSHOT</registration.processor.core.version>
+		<registration.processor.core.version>1.1.0</registration.processor.core.version>
 		<filesystem.adapter.ceph.version>1.0.6</filesystem.adapter.ceph.version>
-		<packet.manager.version>1.0.7-SNAPSHOT</packet.manager.version>
-		<registration.processor.rest.client.version>1.0.7-SNAPSHOT</registration.processor.rest.client.version>
+		<packet.manager.version>1.0.7</packet.manager.version>
+		<registration.processor.rest.client.version>1.0.7</registration.processor.rest.client.version>
 		<registration.processor.abis.handler.stage.version>1.0.6</registration.processor.abis.handler.stage.version>
 		<packet.info.storage.service.version>1.0.6</packet.info.storage.service.version>
 		<packet.bio.dedupe.service.impl.version>1.0.6</packet.bio.dedupe.service.impl.version>
 		<registration.processor.message.sender.version>1.0.6</registration.processor.message.sender.version>
 		<packet.bio.dedupe.api.version>1.0.6</packet.bio.dedupe.api.version>
 		<registration.processor.print.service.version>1.0.6</registration.processor.print.service.version>
-		<registration.processor.print.service.impl.version>1.0.7-SNAPSHOT</registration.processor.print.service.impl.version>
+		<registration.processor.print.service.impl.version>1.0.7</registration.processor.print.service.impl.version>
 		
 		<!-- Kernel -->
-		<kernel.core.version>1.0.7-SNAPSHOT</kernel.core.version>
+		<kernel.core.version>1.0.7</kernel.core.version>
 		<kernel.dataaccess.hibernate.version>1.0.6</kernel.dataaccess.hibernate.version>
 		<kernel.templatemanager.velocity.version>1.0.6</kernel.templatemanager.velocity.version>
 		<kernel.idvalidator.uin.version>1.0.6</kernel.idvalidator.uin.version>
 		<kernel.idvalidator.rid.version>1.0.6</kernel.idvalidator.rid.version>
 		<kernel.clamav.version>1.0.6</kernel.clamav.version>
 		<kernel.idgenerator.rid.version>1.0.6</kernel.idgenerator.rid.version>
-		<kernel.cbeffutil.version>1.1.0-SNAPSHOT</kernel.cbeffutil.version>
+		<kernel.cbeffutil.version>1.1.0</kernel.cbeffutil.version>
 		<kernel.keygenerator.bouncycastle.version>1.0.6</kernel.keygenerator.bouncycastle.version>
         <kernel.crypto.jce.version>1.0.6</kernel.crypto.jce.version>
         <kernel.bioapi.provider.version>1.0.6</kernel.bioapi.provider.version>
@@ -135,7 +136,7 @@
 		<kernel.logger.logback.version>1.0.6</kernel.logger.logback.version>
 		<kernel.auth.adapter.version>1.0.6</kernel.auth.adapter.version>
 		<kernel.idvalidator.vid.version>1.0.6</kernel.idvalidator.vid.version>
-		<kernel.idobjectvalidator.version>1.0.7-SNAPSHOT</kernel.idobjectvalidator.version>
+		<kernel.idobjectvalidator.version>1.0.7</kernel.idobjectvalidator.version>
 			<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,
