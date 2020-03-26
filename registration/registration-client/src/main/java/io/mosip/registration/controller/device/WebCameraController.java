@@ -147,13 +147,13 @@ public class WebCameraController extends BaseController implements Initializable
 			capturedImage.flush();
 		}
 		CaptureResponseDto captureResponseDto = null;
-	if (bioService.isMdmEnabled()) {
-			Instant start = Instant.now();
+		Instant start = Instant.now();
+		if (bioService.isMdmEnabled()) {
+
 			try {
 				captureResponseDto = bioService.captureFace(new RequestDetail(RegistrationConstants.FACE_FULLFACE,
 						getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 1,
 						getValueFromApplicationContext(RegistrationConstants.FACE_THRESHOLD), null));
-				Instant end = Instant.now();
 
 				// Get ISO value
 				byte[] isoImage = bioService.getSingleBiometricIsoTemplate(captureResponseDto);
@@ -173,9 +173,9 @@ public class WebCameraController extends BaseController implements Initializable
 
 					parentController.saveApplicantPhoto(
 							ImageIO.read(new ByteArrayInputStream(bioService.getSingleBioValue(captureResponseDto))),
-							imageType, captureResponseDto, Duration.between(start, end).toString().replace("PT", ""),
-							isDuplicateFound);
-					
+							imageType, captureResponseDto,
+							Duration.between(start, Instant.now()).toString().replace("PT", ""), isDuplicateFound);
+
 					setScanningMsg(RegistrationUIConstants.FACE_CAPTURE_SUCCESS_MSG);
 					if (isDuplicateFound)
 						setScanningMsg(RegistrationUIConstants.FACE_DUPLICATE_ERROR);
@@ -199,7 +199,19 @@ public class WebCameraController extends BaseController implements Initializable
 			}
 
 		} else {
-			capturedImage = photoProvider.captureImage();
+			
+			LOGGER.info("REGISTRATION - UI - WEB_CAMERA_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+					"Capturing face as proxy");
+			
+			
+			parentController.saveApplicantPhoto(photoProvider.captureImage(), imageType, captureResponseDto,
+					Duration.between(start, Instant.now()).toString().replace("PT", ""), isDuplicateFound);
+			
+			setScanningMsg(RegistrationUIConstants.FACE_CAPTURE_SUCCESS_MSG);
+
+			capture.setDisable(true);
+
+			clear.setDisable(false);
 		}
 
 	}

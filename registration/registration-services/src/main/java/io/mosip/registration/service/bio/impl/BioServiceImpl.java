@@ -964,9 +964,13 @@ public class BioServiceImpl extends BaseService implements BioService {
 	}
 
 	@Override
-	public byte[] getSingleBiometricIsoTemplate(CaptureResponseDto captureResponseDto) {
+	public byte[] getSingleBiometricIsoTemplate(CaptureResponseDto captureResponseDto) throws IOException {
 
-		return mosipBioDeviceManager.getSingleBiometricIsoTemplate(captureResponseDto);
+		if (!isMdmEnabled())
+			return IOUtils.resourceToByteArray(RegistrationConstants.FACE_ISO);
+		else {
+			return mosipBioDeviceManager.getSingleBiometricIsoTemplate(captureResponseDto);
+		}
 	}
 
 	/*
@@ -1162,10 +1166,9 @@ public class BioServiceImpl extends BaseService implements BioService {
 			double qualityScore = 0;
 			for (FingerprintDetailsDTO detailsDTO : fingerprintDetailsDTO.getSegmentedFingerprints()) {
 
-				
 				if (detailsDTO.getQualityScore() < Double.valueOf(getGlobalConfigValueOf(threshold))) {
 					lowQualityBiometrics.add(detailsDTO);
-					
+
 				} else {
 					qualityScore += fingerprintDetailsDTO.getQualityScore();
 				}
@@ -1299,7 +1302,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 			selectedSlap.addAll(RegistrationConstants.LEFT_SLAP);
 
 		}
- 
+
 		if (fingerType == null || fingerType.equals(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)) {
 			selectedSlap.addAll(RegistrationConstants.RIGHT_SLAP);
 
