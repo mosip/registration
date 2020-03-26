@@ -86,10 +86,13 @@ import io.mosip.registration.processor.stages.utils.MasterDataValidation;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
+import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.mosip.registration.processor.status.service.SyncRegistrationService;
 
 @Service
 @Transactional
@@ -114,6 +117,12 @@ public class PacketValidateProcessor {
 	public static final String APPLICANT_TYPE = "applicantType";
 
 	private static final String VALIDATIONFALSE = "false";
+
+	/** The Constant APPROVED. */
+	public static final String APPROVED = "APPROVED";
+
+	/** The Constant REJECTED. */
+	public static final String REJECTED = "REJECTED";
 
 	/** The registration status service. */
 	@Autowired
@@ -154,6 +163,10 @@ public class PacketValidateProcessor {
 
 	@Autowired
 	private AuditUtility auditUtility;
+
+	/** The sync registration service. */
+	@Autowired
+	private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
 
 	private static final String INDIVIDUALBIOMETRICS = "individualBiometrics";
 
@@ -201,6 +214,8 @@ public class PacketValidateProcessor {
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VALIDATE_PACKET.toString());
 			registrationStatusDto.setRegistrationStageName(stageName);
+			boolean isValidSupervisorStatus = isValidSupervisorStatus();
+			if (isValidSupervisorStatus) {
 			InputStream packetMetaInfoStream = fileSystemManager.getFile(registrationId,
 					PacketFiles.PACKET_META_INFO.name());
 			PacketMetaInfo packetMetaInfo = (PacketMetaInfo) JsonUtil.inputStreamtoJavaObject(packetMetaInfoStream,
@@ -274,8 +289,27 @@ public class PacketValidateProcessor {
 						LoggerFileConstant.REGISTRATIONID.toString(), description.getCode() + " -- " + registrationId,
 						description.getMessage());
 
-			}
+				}
+			} else {
+				registrationStatusDto.setLatestTransactionStatusCode(
+						registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_REJECTED));
+				object.setIsValid(Boolean.FALSE);
+				int retryCount = registrationStatusDto.getRetryCount() != null
+						? registrationStatusDto.getRetryCount() + 1
+						: 1;
+				packetValidationDto.setTransactionSuccessful(false);
+				registrationStatusDto.setRetryCount(retryCount);
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
+				registrationStatusDto.setStatusComment(StatusUtil.PACKET_REJECTED.getMessage());
+				registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_REJECTED.getCode());
 
+				description.setMessage(PlatformErrorMessages.RPR_PVM_PACKET_REJECTED.getMessage());
+				description.setCode(PlatformErrorMessages.RPR_PVM_PACKET_REJECTED.getCode());
+
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), description.getCode() + " -- " + registrationId,
+						description.getMessage());
+			}
 			registrationStatusDto.setUpdatedBy(USER);
 
 		} catch (FSAdapterException e) {
@@ -459,6 +493,17 @@ public class PacketValidateProcessor {
 
 		return object;
 
+	}
+
+	private boolean isValidSupervisorStatus() {
+		SyncRegistrationEntity regEntity = syncRegistrationService.findByRegistrationId(registrationId);
+		if (regEntity.getSupervisorStatus().equalsIgnoreCase(APPROVED)) {
+			return true;
+
+		} else if (regEntity.getSupervisorStatus().equalsIgnoreCase(REJECTED)) {
+			return false;
+		}
+		return false;
 	}
 
 	private boolean validate(InternalRegistrationStatusDto registrationStatusDto, PacketMetaInfo packetMetaInfo,
