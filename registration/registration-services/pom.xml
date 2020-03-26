@@ -11,7 +11,7 @@
 	<artifactId>registration-services</artifactId>
 	<name>registration-services</name>
 	<description>Maven project of MOSIP Registration Service</description>
-    <version>1.0.7-SNAPSHOT</version>
+    <version>1.0.7</version>
 	<dependencies>
 		<!-- Lombok -->
 		<dependency>
