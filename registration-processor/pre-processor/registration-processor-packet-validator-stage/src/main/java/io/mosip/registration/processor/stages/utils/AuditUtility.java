@@ -74,6 +74,10 @@ public class AuditUtility {
 				dto.get();
 
 			});
+		} catch (RuntimeException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, "AuditUtility::saveAuditDetails()::error");
+
 		} catch (Exception e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId, "AuditUtility::saveAuditDetails()::error");
