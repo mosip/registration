@@ -39,7 +39,7 @@ public class RegDeviceMaster extends RegistrationCommonFields {
 	@Column(name = "dspec_id")
 	private String deviceSpecId;
 	@Column(name = "is_deleted")
-	@Type(type = "true_false")
+	//@Type(type = "true_false")
 	private Boolean isDeleted;
 	@Column(name = "del_dtimes")
 	private Timestamp deletedTime;
