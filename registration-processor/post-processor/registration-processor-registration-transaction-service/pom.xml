@@ -8,6 +8,7 @@
 		<version>1.0.6</version>
 	</parent>
 	<artifactId>registration-processor-registration-transaction-service</artifactId>
+	 <version>1.0.6</version>
 	<name>registration-processor-registration-transaction-service</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

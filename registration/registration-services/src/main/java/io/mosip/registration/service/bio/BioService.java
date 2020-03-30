@@ -217,8 +217,9 @@ public interface BioService {
 	 * @param CaptureResponseDto
 	 *            catpure response dto
 	 * @return byte[]
+	 * @throws IOException 
 	 */
-	byte[] getSingleBiometricIsoTemplate(CaptureResponseDto captureResponseDto);
+	byte[] getSingleBiometricIsoTemplate(CaptureResponseDto captureResponseDto) throws IOException;
 
 	/**
 	 * @param bioType

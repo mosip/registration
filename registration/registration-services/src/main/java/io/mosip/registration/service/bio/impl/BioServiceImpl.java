@@ -964,9 +964,13 @@ public class BioServiceImpl extends BaseService implements BioService {
 	}
 
 	@Override
-	public byte[] getSingleBiometricIsoTemplate(CaptureResponseDto captureResponseDto) {
+	public byte[] getSingleBiometricIsoTemplate(CaptureResponseDto captureResponseDto) throws IOException {
 
-		return mosipBioDeviceManager.getSingleBiometricIsoTemplate(captureResponseDto);
+		if (!isMdmEnabled())
+			return IOUtils.resourceToByteArray(RegistrationConstants.FACE_ISO);
+		else {
+			return mosipBioDeviceManager.getSingleBiometricIsoTemplate(captureResponseDto);
+		}
 	}
 
 	/*
@@ -1164,6 +1168,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 			for (FingerprintDetailsDTO detailsDTO : fingerprintDetailsDTO.getSegmentedFingerprints()) {
 
 				if (detailsDTO.getQualityScore() < Double.valueOf(getGlobalConfigValueOf(threshold))) {
+
 					lowQualityBio.add(detailsDTO);
 
 				} else {

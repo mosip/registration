@@ -13,7 +13,7 @@
 	<artifactId>registration-libs</artifactId>
 	<name>registration-libs</name>
 	<description>Maven project of MOSIP Registration library</description>
-	<version>1.0.7-SNAPSHOT</version>
+	<version>1.0.7</version>
 	<properties>
 		<main.basedir>${project.parent.basedir}</main.basedir>
 	</properties>
