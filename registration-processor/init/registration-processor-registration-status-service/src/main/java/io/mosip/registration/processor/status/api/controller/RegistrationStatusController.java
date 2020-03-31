@@ -13,7 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -85,19 +85,19 @@ public class RegistrationStatusController {
 	/**
 	 * Search.
 	 *
-	 * @param registrationIds
-	 *            the registration ids
+	 * @param registrationIds the registration ids
 	 * @return the response entity
 	 * @throws RegStatusAppException
 	 */
+	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_OFFICER', 'REGISTRATION_SUPERVISOR','RESIDENT')")
 	@PostMapping(path = "/search", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "Get the registration entity", response = RegistrationExternalStatusCode.class)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Registration Entity successfully fetched"),
 			@ApiResponse(code = 400, message = "Unable to fetch the Registration Entity") })
 	public ResponseEntity<Object> search(
-			@RequestBody(required = true) RegistrationStatusRequestDTO registrationStatusRequestDTO,
-			@CookieValue(value = "Authorization") String token) throws RegStatusAppException {
-		tokenValidator.validate("Authorization=" + token, "registrationstatus");
+			@RequestBody(required = true) RegistrationStatusRequestDTO registrationStatusRequestDTO)
+			throws RegStatusAppException {
+		// tokenValidator.validate("Authorization=" + token, "registrationstatus");
 		try {
 			registrationStatusRequestValidator.validate(registrationStatusRequestDTO,
 					env.getProperty(REG_STATUS_SERVICE_ID));
