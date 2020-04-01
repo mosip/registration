@@ -1024,14 +1024,17 @@ public class BioServiceImpl extends BaseService implements BioService {
 	}
 
 	@Override
-	public Double getHighQualityScoreByBioType(String bioType, Double qualityScore) {
+	public Double getHighQualityScoreByBioType(String bioType) {
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID, "Getting highest quality score for : " + bioType);
 
+		double qualityScore = 0;
 		try {
 			qualityScore = BIO_QUALITY_SCORE.get(bioType).entrySet().stream()
 					.max(Comparator.comparing(Map.Entry::getValue)).get().getValue();
-		} catch (Exception e) {
-			return qualityScore;
+		} catch (Exception exception) {
+			LOGGER.error(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+
 		}
 
 		return qualityScore;
@@ -1155,41 +1158,40 @@ public class BioServiceImpl extends BaseService implements BioService {
 	 */
 	public boolean isValidFingerPrints(FingerprintDetailsDTO fingerprintDetailsDTO, boolean isAuth) {
 
-		boolean isValid = false;
-
 		if (isAuth) {
 
 			String threshold = getThresholdKey(fingerprintDetailsDTO.getFingerType());
 
-			List<FingerprintDetailsDTO> lowQualityBiometrics = new ArrayList<>();
+			List<FingerprintDetailsDTO> lowQualityBio = new ArrayList<>();
 
 			double qualityScore = 0;
 			for (FingerprintDetailsDTO detailsDTO : fingerprintDetailsDTO.getSegmentedFingerprints()) {
 
 				if (detailsDTO.getQualityScore() < Double.valueOf(getGlobalConfigValueOf(threshold))) {
-					lowQualityBiometrics.add(detailsDTO);
+
+					lowQualityBio.add(detailsDTO);
 
 				} else {
 					qualityScore += fingerprintDetailsDTO.getQualityScore();
 				}
 			}
 
-			fingerprintDetailsDTO.getSegmentedFingerprints().removeAll(lowQualityBiometrics);
+			fingerprintDetailsDTO.getSegmentedFingerprints().removeAll(lowQualityBio);
+
+			double avgQualityScore = qualityScore / (double) fingerprintDetailsDTO.getSegmentedFingerprints().size();
 
 			setBioQualityScores(fingerprintDetailsDTO.getFingerType(), fingerprintDetailsDTO.getNumRetry(),
 					qualityScore / (double) fingerprintDetailsDTO.getSegmentedFingerprints().size());
 
-			return !fingerprintDetailsDTO.getSegmentedFingerprints().isEmpty();
-		} else if (isAllNonExceptionBiometricsCaptured(fingerprintDetailsDTO.getSegmentedFingerprints(),
-				fingerprintDetailsDTO.getFingerType(),
-				getExceptionFingersByBioType(fingerprintDetailsDTO.getFingerType()))) {
+			fingerprintDetailsDTO.setQualityScore(avgQualityScore);
 
-			isValid = true;
-			if (!(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
-				return validateQualityScore(fingerprintDetailsDTO);
-			}
+			return !fingerprintDetailsDTO.getSegmentedFingerprints().isEmpty();
 		}
-		return isValid;
+
+		/** Check if all non exception biometrics captured or not */
+		return isAllNonExceptionBiometricsCaptured(fingerprintDetailsDTO.getSegmentedFingerprints(),
+				fingerprintDetailsDTO.getFingerType(),
+				getExceptionFingersByBioType(fingerprintDetailsDTO.getFingerType()));
 	}
 
 	private String getThresholdKey(String fingerType) {
@@ -1206,10 +1208,6 @@ public class BioServiceImpl extends BaseService implements BioService {
 			threshold = RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD;
 		}
 		return threshold;
-	}
-
-	private void removeBelowThresholdBiometrics(FingerprintDetailsDTO fingerprintDetailsDTO) {
-
 	}
 
 	private List<String> getExceptionFingersByBioType(String bioSubType) {
@@ -1369,8 +1367,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 		if (!isMdmEnabled()) {
 			qualityScore = fingerprintDetailsDTO.getQualityScore();
 		} else {
-			qualityScore = getHighQualityScoreByBioType(fingerprintDetailsDTO.getFingerType(),
-					fingerprintDetailsDTO.getQualityScore());
+			qualityScore = getHighQualityScoreByBioType(fingerprintDetailsDTO.getFingerType());
 		}
 		return qualityScore >= Double.parseDouble(getGlobalConfigValueOf(handThreshold))
 				|| (qualityScore < Double.parseDouble(getGlobalConfigValueOf(handThreshold))
@@ -1401,7 +1398,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 					"Validating quality score of captured fingerprints ended");
 			return false;
 		} catch (RuntimeException runtimeException) {
-			LOGGER.error(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+			LOGGER.error(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 
 			throw new RegBaseUncheckedException(RegistrationConstants.USER_REG_FINGERPRINT_SCORE_VALIDATION_EXP,
