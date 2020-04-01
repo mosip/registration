@@ -40,7 +40,6 @@ import io.mosip.registration.processor.core.digital.signature.dto.SignResponseDt
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
-import io.mosip.registration.processor.core.token.validation.TokenValidator;
 import io.mosip.registration.processor.status.api.config.RegistrationStatusConfigTest;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusRequestDTO;
@@ -112,8 +111,7 @@ public class RegistrationStatusAndSyncControllerTest {
 	@Mock
 	private Environment env;
 
-	@MockBean(name = "tokenValidator")
-	private TokenValidator tokenValidator;
+
 
 	@MockBean
 	RegistrationStatusRequestValidator registrationStatusRequestValidator;
@@ -203,7 +201,7 @@ public class RegistrationStatusAndSyncControllerTest {
 
 		Mockito.doReturn(registrationDtoList).when(registrationStatusService).getByIds(ArgumentMatchers.any());
 		Mockito.doReturn(registrationDtoList1).when(syncRegistrationService).getByIds(ArgumentMatchers.any());
-		Mockito.doNothing().when(tokenValidator).validate(ArgumentMatchers.any(), ArgumentMatchers.any());
+
 		signresponse.setSignature("abcd");
 		dto.setResponse(signresponse);
 		Mockito.when(reprcrestclient.postApi(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(),

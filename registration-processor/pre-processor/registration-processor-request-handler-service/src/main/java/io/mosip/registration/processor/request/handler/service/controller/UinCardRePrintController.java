@@ -21,7 +21,6 @@ import com.google.gson.GsonBuilder;
 
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
-import io.mosip.registration.processor.core.token.validation.TokenValidator;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
 import io.mosip.registration.processor.request.handler.service.dto.PacketGeneratorResDto;
 import io.mosip.registration.processor.request.handler.service.dto.PacketGeneratorResponseDto;
@@ -41,9 +40,7 @@ import io.swagger.annotations.ApiResponses;
 @Api(tags = "Uin Card RePrint")
 public class UinCardRePrintController {
 
-	/** Token validator class */
-	@Autowired
-	TokenValidator tokenValidator;
+
 
 	@Autowired
 	private UinCardRePrintServiceImpl uinCardRePrintServiceImpl;

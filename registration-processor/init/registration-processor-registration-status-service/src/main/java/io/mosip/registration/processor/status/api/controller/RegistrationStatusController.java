@@ -23,7 +23,6 @@ import com.google.gson.GsonBuilder;
 
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.token.validation.TokenValidator;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
 import io.mosip.registration.processor.status.code.RegistrationExternalStatusCode;
 import io.mosip.registration.processor.status.dto.ErrorDTO;
@@ -64,9 +63,7 @@ public class RegistrationStatusController {
 	@Autowired
 	RegistrationStatusRequestValidator registrationStatusRequestValidator;
 
-	/** Token validator class */
-	@Autowired
-	TokenValidator tokenValidator;
+
 
 	private static final String REG_STATUS_SERVICE_ID = "mosip.registration.processor.registration.status.id";
 	private static final String REG_STATUS_APPLICATION_VERSION = "mosip.registration.processor.registration.status.version";
@@ -97,7 +94,7 @@ public class RegistrationStatusController {
 	public ResponseEntity<Object> search(
 			@RequestBody(required = true) RegistrationStatusRequestDTO registrationStatusRequestDTO)
 			throws RegStatusAppException {
-		// tokenValidator.validate("Authorization=" + token, "registrationstatus");
+
 		try {
 			registrationStatusRequestValidator.validate(registrationStatusRequestDTO,
 					env.getProperty(REG_STATUS_SERVICE_ID));

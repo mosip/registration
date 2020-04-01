@@ -23,7 +23,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.constant.ResponseStatusCode;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.token.validation.TokenValidator;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -68,9 +67,7 @@ public class RegistrationSyncController {
 	@Autowired
 	private Environment env;
 
-	/** Token validator class */
-	@Autowired
-	TokenValidator tokenValidator;
+
 
 	@Value("${registration.processor.signature.isEnabled}")
 	private Boolean isEnabled;
@@ -100,7 +97,7 @@ public class RegistrationSyncController {
 			@RequestHeader(name = "Center-Machine-RefId", required = true) String referenceId,
 			@RequestHeader(name = "timestamp", required = true) String timeStamp,
 			@RequestBody(required = true) Object encryptedSyncMetaInfo) throws RegStatusAppException {
-		// tokenValidator.validate("Authorization=" + token, "sync");
+
 
 		try {
 			List<SyncResponseDto> syncResponseList = new ArrayList<>();
