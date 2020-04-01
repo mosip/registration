@@ -215,17 +215,7 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 			StatusNotificationTypeMapUtil map = new StatusNotificationTypeMapUtil();
 
 			if (registrationStatusDto.getStatusCode().equals(RegistrationStatusCode.PROCESSED.toString())) {
-				if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.LOST.getValue()))
-					type = NotificationTemplateType.LOST_UIN;
-				else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.NEW.getValue()))
-					type = NotificationTemplateType.UIN_CREATED;
-				else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.UPDATE.getValue()))
-					type = NotificationTemplateType.UIN_UPDATE;
-				else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.ACTIVATED.getValue()))
-					type = NotificationTemplateType.UIN_UPDATE;
-				else if (registrationStatusDto.getRegistrationType()
-						.equalsIgnoreCase(SyncTypeDto.DEACTIVATED.getValue()))
-					type = NotificationTemplateType.UIN_UPDATE;
+				type = setNotificationTemplateType(registrationStatusDto, type);
 			} else {
 				type = map.getTemplateType(status);
 			}
@@ -354,6 +344,22 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 		}
 
 		return object;
+	}
+
+	private NotificationTemplateType setNotificationTemplateType(InternalRegistrationStatusDto registrationStatusDto,
+			NotificationTemplateType type) {
+		if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.LOST.getValue()))
+			type = NotificationTemplateType.LOST_UIN;
+		else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.NEW.getValue()))
+			type = NotificationTemplateType.UIN_CREATED;
+		else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.UPDATE.getValue()))
+			type = NotificationTemplateType.UIN_UPDATE;
+		else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.ACTIVATED.getValue()))
+			type = NotificationTemplateType.UIN_UPDATE;
+		else if (registrationStatusDto.getRegistrationType()
+				.equalsIgnoreCase(SyncTypeDto.DEACTIVATED.getValue()))
+			type = NotificationTemplateType.UIN_UPDATE;
+		return type;
 	}
 
 	private boolean isNotificationEmailsEmpty() {
