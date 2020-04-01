@@ -1526,9 +1526,13 @@ public class BaseController {
 					.parseDouble(getValueFromApplicationContext(getThresholdKeyByBioType(bioType)))) {
 				progressBar.getStyleClass().removeAll(RegistrationConstants.PROGRESS_BAR_RED);
 				progressBar.getStyleClass().add(RegistrationConstants.PROGRESS_BAR_GREEN);
+				progressQualityScore.getStyleClass().removeAll(RegistrationConstants.LABEL_RED);
+				progressQualityScore.getStyleClass().add(RegistrationConstants.LABEL_GREEN);
 			} else {
 				progressBar.getStyleClass().removeAll(RegistrationConstants.PROGRESS_BAR_GREEN);
 				progressBar.getStyleClass().add(RegistrationConstants.PROGRESS_BAR_RED);
+				progressQualityScore.getStyleClass().removeAll(RegistrationConstants.LABEL_GREEN);
+				progressQualityScore.getStyleClass().add(RegistrationConstants.LABEL_RED);
 			}
 
 		}

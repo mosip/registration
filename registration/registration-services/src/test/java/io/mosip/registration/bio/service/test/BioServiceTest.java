@@ -595,7 +595,7 @@ public class BioServiceTest {
 	@Test
 	public void simpleCallForCoverage() throws Exception {
 		bioService.getBioQualityScores("",1);
-		bioService.getHighQualityScoreByBioType("",1.1);
+		bioService.getHighQualityScoreByBioType("");
 		PowerMockito.when(mosipBioDeviceManager,"regScan", Mockito.anyObject()).thenReturn(null);
 		assertEquals(null, bioService.captureFace(Mockito.anyObject()));
 		PowerMockito.when(mosipBioDeviceManager,"getSingleBiometricIsoTemplate", Mockito.anyObject()).thenReturn(null);
