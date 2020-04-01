@@ -1,7 +1,7 @@
 /**
  * 
  */
-package io.mosip.registration.processor.bio.dedupe.api.controller.test;
+package io.mosip.registration.processor.bio.dedupe.api.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 
@@ -18,7 +18,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -28,9 +30,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import io.mosip.registration.processor.bio.dedupe.api.config.BioDedupeConfigTest;
-import io.mosip.registration.processor.bio.dedupe.api.controller.BioDedupeController;
+import io.mosip.registration.processor.bio.dedupe.api.config.BioDedupeSecurityConfig;
 import io.mosip.registration.processor.core.spi.biodedupe.BioDedupeService;
-import io.mosip.registration.processor.core.token.validation.TokenValidator;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
 
 /**
@@ -42,6 +43,7 @@ import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
 @AutoConfigureMockMvc
 @ContextConfiguration(classes = BioDedupeConfigTest.class)
 @TestPropertySource(locations = "classpath:application.properties")
+@Import(BioDedupeSecurityConfig.class)
 @ImportAutoConfiguration(RefreshAutoConfiguration.class)
 public class BioDedupeControllerTest {
 
@@ -54,8 +56,7 @@ public class BioDedupeControllerTest {
 	@Autowired
 	private MockMvc mockMvc;
 
-	@MockBean
-	private TokenValidator tokenValidator;
+
 
 	@MockBean
 	private DigitalSignatureUtility digitalSignatureUtility;
@@ -71,10 +72,11 @@ public class BioDedupeControllerTest {
 		regId = "1234";
 		cbeffFile = regId.getBytes();
 
-		Mockito.doNothing().when(tokenValidator).validate(any(), any());
+
 	}
 
 	@Test
+	@WithUserDetails("reg-processor")
 	public void getFileSuccessTest() throws Exception {
 		Mockito.when(bioDedupeService.getFileByAbisRefId("1234")).thenReturn(cbeffFile);
 		Mockito.when(digitalSignatureUtility.getDigitalSignature(any())).thenReturn("abc");
