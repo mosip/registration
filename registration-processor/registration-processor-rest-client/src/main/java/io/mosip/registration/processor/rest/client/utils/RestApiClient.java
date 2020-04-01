@@ -6,10 +6,8 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Map;
 
 import javax.net.ssl.SSLContext;
 
@@ -39,12 +37,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.exceptions.JWTDecodeException;
-import com.auth0.jwt.interfaces.Claim;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.google.gson.Gson;
 
+import io.mosip.kernel.auth.adapter.util.TokenHandlerUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
@@ -75,6 +70,9 @@ public class RestApiClient {
 	Environment environment;
 
 	private static final String AUTHORIZATION = "Authorization=";
+
+	@Autowired
+	TokenHandlerUtil tokenHandlerUtil;
 
 	/**
 	 * Gets the api.
@@ -287,8 +285,9 @@ public class RestApiClient {
 
 		if (StringUtils.isNotEmpty(token)) {
 
-			isValid = isValidBearerToken(token, environment.getProperty("token.request.issuerUrl"),
+			isValid = tokenHandlerUtil.isValidBearerToken(token, environment.getProperty("token.request.issuerUrl"),
 					environment.getProperty("token.request.clientId"));
+
 
 		}
 		if (!isValid) {
@@ -348,35 +347,6 @@ public class RestApiClient {
 		request.setUserName(environment.getProperty("token.request.username"));
 		return request;
 	}
-
-	public boolean isValidBearerToken(String accessToken, String issuerUrl, String clientId) {
-
-		try {
-			DecodedJWT decodedJWT = JWT.decode(accessToken);
-			Map<String, Claim> claims = decodedJWT.getClaims();
-			LocalDateTime expiryTime = DateUtils
-					.convertUTCToLocalDateTime(DateUtils.getUTCTimeFromDate(decodedJWT.getExpiresAt()));
-
-			if (!decodedJWT.getIssuer().equals(issuerUrl))
-				return false;
-			if (!DateUtils.before(DateUtils.getUTCCurrentDateTime(), expiryTime))
-				return false;
-			if (!claims.get("clientId").asString().equals(clientId))
-				return false;
-
-			return true;
-		} catch (JWTDecodeException e) {
-			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
-			return false;
-		} catch (Exception e) {
-			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
-			return false;
-		}
-
-	}
-
 
 
 }
