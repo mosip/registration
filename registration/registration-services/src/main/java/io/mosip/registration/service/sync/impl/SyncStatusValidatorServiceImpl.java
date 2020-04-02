@@ -321,7 +321,8 @@ public class SyncStatusValidatorServiceImpl extends BaseService implements SyncS
 		LOGGER.info(LoggerConstants.OPT_TO_REG_LOGGER_SESSION_ID, APPLICATION_NAME, APPLICATION_ID,
 				"Getting the center latitude and longitudes from session context");
 
-		if (RegistrationConstants.ENABLE.equalsIgnoreCase(RegistrationConstants.ENABLE)) {
+		if (RegistrationConstants.ENABLE.equalsIgnoreCase(
+				String.valueOf(ApplicationContext.map().get(RegistrationConstants.GPS_DEVICE_DISABLE_FLAG)))) {
 
 			LOGGER.info(LoggerConstants.OPT_TO_REG_LOGGER_SESSION_ID, APPLICATION_NAME, APPLICATION_ID,
 					"Validating the geo location of machine w.r.t registration center started");
