@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.servlet.Filter;
+import javax.servlet.http.Cookie;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -28,8 +28,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.Gson;
@@ -124,11 +122,11 @@ public class RegistrationStatusAndSyncControllerTest {
 	private List<SyncRegistrationDto> list;
 	SyncResponseFailureDto syncResponseFailureDto = new SyncResponseFailureDto();
 
-	@Autowired
-	private WebApplicationContext context;
+	// @Autowired
+//	private WebApplicationContext context;
 
-	@Autowired
-	private Filter springSecurityFilterChain;
+	// @Autowired
+	//// private Filter springSecurityFilterChain;
 
 	/**
 	 * Sets the up.
@@ -139,7 +137,8 @@ public class RegistrationStatusAndSyncControllerTest {
 	@Before
 	public void setUp() throws JsonProcessingException, ApisResourceAccessException {
 
-		mockMvc = MockMvcBuilders.webAppContextSetup(context).addFilters(springSecurityFilterChain).build();
+		// mockMvc =
+		// MockMvcBuilders.webAppContextSetup(context).addFilters(springSecurityFilterChain).build();
 		when(env.getProperty("mosip.registration.processor.registration.status.id"))
 				.thenReturn("mosip.registration.status");
 		when(env.getProperty("mosip.registration.processor.datetime.pattern"))
@@ -225,8 +224,9 @@ public class RegistrationStatusAndSyncControllerTest {
 		doNothing().when(registrationStatusRequestValidator).validate((registrationStatusRequestDTO),
 				"mosip.registration.status");
 
+
 		this.mockMvc.perform(post("/search").accept(MediaType.APPLICATION_JSON_VALUE)
-				.contentType(MediaType.APPLICATION_JSON_VALUE)
+				.cookie(new Cookie("Authorization", regStatusToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
 				.content(regStatusToJson.getBytes()).header("timestamp", "2019-05-07T05:13:55.704Z"))
 				.andExpect(status().isOk());
 	}
@@ -238,7 +238,7 @@ public class RegistrationStatusAndSyncControllerTest {
 		Mockito.doThrow(new RegStatusAppException()).when(registrationStatusRequestValidator)
 				.validate(ArgumentMatchers.any(), ArgumentMatchers.any());
 		this.mockMvc.perform(post("/search").accept(MediaType.APPLICATION_JSON_VALUE)
-				.contentType(MediaType.APPLICATION_JSON_VALUE)
+				.cookie(new Cookie("Authorization", regStatusToJson)).contentType(MediaType.APPLICATION_JSON_VALUE)
 				.content(regStatusToJson.getBytes()).header("timestamp", "2019-05-07T05:13:55.704Z"))
 				.andExpect(status().isOk());
 	}
@@ -251,7 +251,7 @@ public class RegistrationStatusAndSyncControllerTest {
 		this.mockMvc.perform(
 				post("/sync").accept(MediaType.APPLICATION_JSON_VALUE).header("timestamp", "2019-05-07T05:13:55.704Z")
 						.header("Center-Machine-RefId", "abcd").contentType(MediaType.APPLICATION_JSON_VALUE)
-						.content(regStatusToJson.getBytes()))
+						.content(regStatusToJson.getBytes()).cookie(new Cookie("Authorization", regStatusToJson)))
 				.andExpect(status().isOk());
 	}
 
