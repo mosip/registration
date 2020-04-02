@@ -28,23 +28,11 @@ import org.springframework.security.web.firewall.HttpFirewall;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class RegistrationStatusSecurityConfig extends WebSecurityConfigurerAdapter {
 
-	/**
-	 * Default http firewall.
-	 *
-	 * @return the http firewall
-	 */
 	@Bean
 	public HttpFirewall defaultHttpFirewall() {
 		return new DefaultHttpFirewall();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.security.config.annotation.web.configuration.
-	 * WebSecurityConfigurerAdapter#configure(org.springframework.security.config.
-	 * annotation.web.builders.WebSecurity)
-	 */
 	@Override
 	public void configure(WebSecurity webSecurity) throws Exception {
 		webSecurity.ignoring().antMatchers(allowedEndPoints());
@@ -52,25 +40,12 @@ public class RegistrationStatusSecurityConfig extends WebSecurityConfigurerAdapt
 		webSecurity.httpFirewall(defaultHttpFirewall());
 	}
 
-	/**
-	 * Allowed end points.
-	 *
-	 * @return the string[]
-	 */
 	private String[] allowedEndPoints() {
 		return new String[] { "/assets/**", "/icons/**", "/screenshots/**", "/favicon**", "/**/favicon**", "/css/**",
 				"/js/**", "/*/error**", "/*/webjars/**", "/*/v2/api-docs", "/*/configuration/ui",
-				"/*/configuration/security", "/*/swagger-resources/**", "/*/swagger-ui.html", "/**/search**",
-				"/**/sync**" };
+				"/*/configuration/security", "/*/swagger-resources/**", "/*/swagger-ui.html" };
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.security.config.annotation.web.configuration.
-	 * WebSecurityConfigurerAdapter#configure(org.springframework.security.config.
-	 * annotation.web.builders.HttpSecurity)
-	 */
 	@Override
 	protected void configure(final HttpSecurity httpSecurity) throws Exception {
 		httpSecurity.csrf().disable();
@@ -79,28 +54,33 @@ public class RegistrationStatusSecurityConfig extends WebSecurityConfigurerAdapt
 				.authenticationEntryPoint(unauthorizedEntryPoint());
 	}
 
-	/**
-	 * Unauthorized entry point.
-	 *
-	 * @return the authentication entry point
-	 */
 	@Bean
 	public AuthenticationEntryPoint unauthorizedEntryPoint() {
 		return (request, response, authException) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.security.config.annotation.web.configuration.
-	 * WebSecurityConfigurerAdapter#userDetailsService()
-	 */
 	@Bean
 	public UserDetailsService userDetailsService() {
 		List<UserDetails> users = new ArrayList<>();
+		users.add(new User("reg-officer", "mosip",
+				Arrays.asList(new SimpleGrantedAuthority("ROLE_REGISTRATION_OFFICER"))));
+		users.add(new User("reg-supervisor", "mosip",
+				Arrays.asList(new SimpleGrantedAuthority("ROLE_REGISTRATION_SUPERVISOR"))));
+		users.add(new User("reg-admin", "mosip", Arrays.asList(new SimpleGrantedAuthority("ROLE_REGISTRATION_ADMIN"))));
 		users.add(new User("reg-processor", "mosip",
 				Arrays.asList(new SimpleGrantedAuthority("ROLE_REGISTRATION_PROCESSOR"))));
-		users.add(new User("reg-admin", "mosip", Arrays.asList(new SimpleGrantedAuthority("ROLE_REGISTRATION_ADMIN"))));
+		users.add(new User("id-auth", "mosip", Arrays.asList(new SimpleGrantedAuthority("ROLE_ID_AUTHENTICATION"))));
+		users.add(new User("individual", "mosip", Arrays.asList(new SimpleGrantedAuthority("ROLE_INDIVIDUAL"))));
+		users.add(new User("test", "mosip", Arrays.asList(new SimpleGrantedAuthority("ROLE_TEST"),
+				new SimpleGrantedAuthority("ROLE_ZONAL_ADMIN"))));
+		users.add(new User("zonal-admin", "mosip", Arrays.asList(new SimpleGrantedAuthority("ROLE_ZONAL_ADMIN"))));
+		users.add(
+				new User("zonal-approver", "mosip", Arrays.asList(new SimpleGrantedAuthority("ROLE_ZONAL_APPROVER"))));
+		users.add(new User("central-admin", "mosip", Arrays.asList(new SimpleGrantedAuthority("ROLE_CENTRAL_ADMIN"))));
+		users.add(new User("device-provider", "mosip",
+				Arrays.asList(new SimpleGrantedAuthority("ROLE_DEVICE_PROVIDER"))));
+		users.add(new User("global-admin", "mosip", Arrays.asList(new SimpleGrantedAuthority("ROLE_GLOBAL_ADMIN"))));
+		users.add(new User("resident", "mosip", Arrays.asList(new SimpleGrantedAuthority("ROLE_RESIDENT"))));
 		return new InMemoryUserDetailsManager(users);
 	}
 }
