@@ -105,9 +105,9 @@ public class CustomObjectMapper extends ConfigurableMapper {
 		.customize(new CustomMapper<UserMachineMapping, UserMachineMappingDTO>() {
 			@Override
 			public void mapAtoB(UserMachineMapping a, UserMachineMappingDTO b, MappingContext context) {
-				b.setCentreID(a.getUserMachineMappingId().getCentreID());
-				b.setMachineID(a.getUserMachineMappingId().getMachineID());
-				b.setUserID(a.getUserMachineMappingId().getUserID());
+				b.setCentreID(a.getUserMachineMappingId().getCntrId());
+				b.setMachineID(a.getUserMachineMappingId().getMachineId());
+				b.setUserID(a.getUserMachineMappingId().getUsrId());
 				b.setLangCode(a.getLangCode());
 				b.setActive(a.getIsActive());
 			}
@@ -127,8 +127,8 @@ public class CustomObjectMapper extends ConfigurableMapper {
 		.customize(new CustomMapper<RegCenterUser, RegCenterUserDTO>() {
 			@Override
 			public void mapAtoB(RegCenterUser a, RegCenterUserDTO b, MappingContext context) {
-				b.setRegcntrId(a.getRegCenterUserId().getRegcntrId());
-				b.setUsrId(a.getRegCenterUserId().getUsrId());
+				b.setRegcntrId(a.getRegCenterUserId().getRegCenterId());
+				b.setUsrId(a.getRegCenterUserId().getUserId());
 			}
 		}).byDefault().register();
 		

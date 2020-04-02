@@ -31,15 +31,15 @@ public class RegistrationCenter extends RegistrationCommonFields {
 	private RegistartionCenterId registartionCenterId;
 	
 	@Column(name = "name")
-	private String centerName;
+	private String name;
 	@Column(name = "cntrtyp_code")
-	private String cntrTypCode;
+	private String centerTypeCode;
 	@Column(name = "addr_line1")
-	private String addrLine1;
+	private String addressLine1;
 	@Column(name = "addr_line2")
-	private String addrLine2;
+	private String addressLine2;
 	@Column(name = "addr_line3")
-	private String addrLine3;
+	private String addressLine3;
 	@Column(name = "latitude")
 	private String latitude;
 	@Column(name = "longitude")
@@ -67,7 +67,7 @@ public class RegistrationCenter extends RegistrationCommonFields {
 	@Column(name = "time_zone")
 	private String timeZone;
 	@Column(name = "holiday_loc_code")
-	private String holidayLocCode;
+	private String holidayLocationCode;
 	@Column(name = "is_deleted")
 	private Boolean isDeleted;
 	@Column(name = "del_dtimes")

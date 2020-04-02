@@ -7,6 +7,8 @@ import javax.persistence.Embeddable;
 
 import io.mosip.registration.entity.UserMachineMapping;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * composite key for {@link UserMachineMapping}
@@ -16,66 +18,27 @@ import lombok.Data;
  */
 @Embeddable
 @Data
+@Getter
+@Setter
 public class UserMachineMappingID implements Serializable {
 
 	private static final long serialVersionUID = -1883492292190913762L;
 
 	@Column(name = "usr_id")
-	private String userID;
+	private String usrId;
 	@Column(name = "regcntr_id")
-	private String centreID;
+	private String cntrId;
 	@Column(name = "machine_id")
-	private String machineID;
+	private String machineId;
 
-	/**
-	 * @return the userID
-	 */
-	public String getUserID() {
-		return userID;
-	}
-
-	/**
-	 * @param userID the userID to set
-	 */
-	public void setUserID(String userID) {
-		this.userID = userID;
-	}
-
-	/**
-	 * @return the centreID
-	 */
-	public String getCentreID() {
-		return centreID;
-	}
-
-	/**
-	 * @param centreID the centreID to set
-	 */
-	public void setCentreID(String centreID) {
-		this.centreID = centreID;
-	}
-
-	/**
-	 * @return the machineID
-	 */
-	public String getMachineID() {
-		return machineID;
-	}
-
-	/**
-	 * @param machineID the machineID to set
-	 */
-	public void setMachineID(String machineID) {
-		this.machineID = machineID;
-	}
-
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((centreID == null) ? 0 : centreID.hashCode());
-		result = prime * result + ((machineID == null) ? 0 : machineID.hashCode());
-		result = prime * result + ((userID == null) ? 0 : userID.hashCode());
+		result = prime * result + ((cntrId == null) ? 0 : cntrId.hashCode());
+		result = prime * result + ((machineId == null) ? 0 : machineId.hashCode());
+		result = prime * result + ((usrId == null) ? 0 : usrId.hashCode());
 		return result;
 	}
 
@@ -88,20 +51,20 @@ public class UserMachineMappingID implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		UserMachineMappingID other = (UserMachineMappingID) obj;
-		if (centreID == null) {
-			if (other.centreID != null)
+		if (cntrId == null) {
+			if (other.cntrId != null)
 				return false;
-		} else if (!centreID.equals(other.centreID))
+		} else if (!cntrId.equals(other.cntrId))
 			return false;
-		if (machineID == null) {
-			if (other.machineID != null)
+		if (machineId == null) {
+			if (other.machineId != null)
 				return false;
-		} else if (!machineID.equals(other.machineID))
+		} else if (!machineId.equals(other.machineId))
 			return false;
-		if (userID == null) {
-			if (other.userID != null)
+		if (usrId == null) {
+			if (other.usrId != null)
 				return false;
-		} else if (!userID.equals(other.userID))
+		} else if (!usrId.equals(other.usrId))
 			return false;
 		return true;
 	}

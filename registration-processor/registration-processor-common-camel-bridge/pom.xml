@@ -9,6 +9,7 @@
 		<version>1.0.6</version>
 	</parent>
 	<artifactId>registration-processor-common-camel-bridge</artifactId>
+	 <version>1.0.6</version>
 	<packaging>jar</packaging>
 
 	<properties>

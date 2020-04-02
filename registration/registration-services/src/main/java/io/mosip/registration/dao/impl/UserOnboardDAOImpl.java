@@ -193,9 +193,9 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 
 			UserMachineMapping user = new UserMachineMapping();
 			UserMachineMappingID userID = new UserMachineMappingID();
-			userID.setUserID(SessionContext.userContext().getUserId());
-			userID.setCentreID(ApplicationContext.map().get(RegistrationConstants.USER_CENTER_ID).toString());
-			userID.setMachineID(ApplicationContext.map().get(RegistrationConstants.USER_STATION_ID).toString());
+			userID.setUsrId(SessionContext.userContext().getUserId());
+			userID.setCntrId(ApplicationContext.map().get(RegistrationConstants.USER_CENTER_ID).toString());
+			userID.setMachineId(ApplicationContext.map().get(RegistrationConstants.USER_STATION_ID).toString());
 
 			user.setUserMachineMappingId(userID);
 			user.setCrBy(SessionContext.userContext().getUserId());
@@ -272,11 +272,11 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 					"fetching center details from repository....");
 
 			CenterMachine regCenterMachineDtls = centerMachineRepository
-					.findByIsActiveTrueAndCenterMachineIdId(stationId);
+					.findByIsActiveTrueAndCenterMachineIdMachineId(stationId);
 
-			if (regCenterMachineDtls != null && regCenterMachineDtls.getCenterMachineId().getCentreId() != null) {
+			if (regCenterMachineDtls != null && regCenterMachineDtls.getCenterMachineId().getRegCenterId() != null) {
 
-				return regCenterMachineDtls.getCenterMachineId().getCentreId();
+				return regCenterMachineDtls.getCenterMachineId().getRegCenterId();
 
 			} else {
 				return null;
@@ -294,7 +294,7 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 		try {
 			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
 					"fetching userMachineMapping details from repository....");
-			UserMachineMapping userMachineMapping = machineMappingRepository.findByUserMachineMappingIdUserIDIgnoreCase(usrId);
+			UserMachineMapping userMachineMapping = machineMappingRepository.findByUserMachineMappingIdUsrIdIgnoreCase(usrId);
 			return userMachineMapping != null ? userMachineMapping.getCrDtime() : null;
 		} catch (RuntimeException runtimeException) {
 			

@@ -1,9 +1,15 @@
 package io.mosip.registration.util.mastersync;
 
 
+import static io.mosip.registration.constants.LoggerConstants.LOG_REG_MASTER_SYNC;
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
+
 import java.io.SyncFailedException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -58,6 +64,7 @@ import io.mosip.registration.repositories.TemplateFileFormatRepository;
 import io.mosip.registration.repositories.TemplateRepository;
 import io.mosip.registration.repositories.TemplateTypeRepository;
 import io.mosip.registration.repositories.TitleRepository;
+import io.mosip.registration.repositories.UserMachineMappingRepository;
 import io.mosip.registration.repositories.ValidDocumentRepository;
 import io.mosip.registration.util.mastersync.MetaDataUtils;
 
@@ -234,6 +241,31 @@ public class ClientSettingSyncHelper {
 	
 	@Autowired
 	private DeviceProviderRepository deviceProviderRepository;
+	
+	@Autowired
+	private UserMachineMappingRepository userMachineMappingRepository;
+	
+	private static final Map<String, String> ENTITY_CLASS_NAMES = new HashMap<String, String>();
+	
+	
+	static {
+		ENTITY_CLASS_NAMES.put("Device", ENTITY_PACKAGE_NAME + "RegDeviceMaster");
+		ENTITY_CLASS_NAMES.put("DeviceType", ENTITY_PACKAGE_NAME + "RegDeviceType");
+		ENTITY_CLASS_NAMES.put("DeviceSpecification", ENTITY_PACKAGE_NAME + "RegDeviceSpec");
+		ENTITY_CLASS_NAMES.put("MachineSpecification", ENTITY_PACKAGE_NAME + "RegMachineSpec");
+		ENTITY_CLASS_NAMES.put("RegistrationCenterDevice", ENTITY_PACKAGE_NAME + "RegCenterDevice");
+		ENTITY_CLASS_NAMES.put("RegistrationCenterUser", ENTITY_PACKAGE_NAME + "RegCenterUser");
+		ENTITY_CLASS_NAMES.put("RegistrationCenterMachine", ENTITY_PACKAGE_NAME + "CenterMachine");
+		ENTITY_CLASS_NAMES.put("RegistrationCenterMachineDevice", ENTITY_PACKAGE_NAME + "RegCentreMachineDevice");
+		ENTITY_CLASS_NAMES.put("RegistrationDeviceMaster", ENTITY_PACKAGE_NAME + "RegDeviceMaster");
+		ENTITY_CLASS_NAMES.put("DeviceService", ENTITY_PACKAGE_NAME + "MosipDeviceService");
+		ENTITY_CLASS_NAMES.put("DeviceTypeDPM", ENTITY_PACKAGE_NAME + "RegisteredDeviceType");
+		ENTITY_CLASS_NAMES.put("DeviceSubTypeDPM", ENTITY_PACKAGE_NAME + "RegisteredSubDeviceType");
+		ENTITY_CLASS_NAMES.put("RegisteredDevice", ENTITY_PACKAGE_NAME + "RegisteredDeviceMaster");
+		ENTITY_CLASS_NAMES.put("Machine", ENTITY_PACKAGE_NAME + "MachineMaster");
+		ENTITY_CLASS_NAMES.put("RegistrationCenterUserMachine", ENTITY_PACKAGE_NAME + "UserMachineMapping");
+	}
+	
 
 	/**
 	 * Save the SyncDataResponseDto 
@@ -269,27 +301,42 @@ public class ClientSettingSyncHelper {
 	private List buildEntities(SyncDataBaseDto syncDataBaseDto) throws SyncFailedException {	
 		try {		
 			List<Object> entities = new ArrayList<Object>();
-			if(syncDataBaseDto == null||syncDataBaseDto.getData() == null || syncDataBaseDto.getData().isEmpty())
+			if(syncDataBaseDto == null || syncDataBaseDto.getData() == null || syncDataBaseDto.getData().isEmpty())
 				return entities;
+			
 			for(String jsonString : syncDataBaseDto.getData()) {
-				JSONObject jsonObject = new JSONObject(jsonString);	
-				Object entity = MetaDataUtils.setCreateJSONObjectToMetaData(jsonObject, 
-						Class.forName(ENTITY_PACKAGE_NAME + syncDataBaseDto.getEntityName()));
+				if(jsonString == null)
+					continue;
+				
+				JSONObject jsonObject = new JSONObject(jsonString);				
+				Object entity = MetaDataUtils.setCreateJSONObjectToMetaData(jsonObject, getEntityClass(syncDataBaseDto.getEntityName()));
 				entities.add(entity);
 			}
 			return entities;
-		} catch (JSONException | IllegalAccessException | InstantiationException | ClassNotFoundException e) {
+		} catch (Throwable e) {
+			e.printStackTrace();
 			throw new SyncFailedException(e.getMessage() + " building entities is failed...");
 		}
 	}
 	
 	private SyncDataBaseDto getSyncDataBaseDto(SyncDataResponseDto syncDataResponseDto, String entityName) throws Exception {
 		SyncDataBaseDto syncDataBaseDto = syncDataResponseDto.getDataToSync().stream()
-				.filter(obj -> obj.getEntityName() == entityName)
+				.filter(obj -> entityName.equalsIgnoreCase(obj.getEntityName() ))
 				.findAny()
 				.orElse(null);
 		 
 		return syncDataBaseDto;
+	}
+	
+	private Class getEntityClass(String entityName) throws ClassNotFoundException {
+		try {
+			
+			return ENTITY_CLASS_NAMES.containsKey(entityName) ? Class.forName(ENTITY_CLASS_NAMES.get(entityName)) : 
+				Class.forName(ENTITY_PACKAGE_NAME + entityName);
+			
+		} catch(ClassNotFoundException ex) {
+			return Class.forName(ENTITY_PACKAGE_NAME + "Reg" + entityName);
+		}
 	}
 	
 	/**
@@ -298,16 +345,16 @@ public class ClientSettingSyncHelper {
 	 * @throws Exception 
 	 */
 	@SuppressWarnings("unchecked")
-	private void handleDeviceSync(SyncDataResponseDto syncDataResponseDto) throws Exception{
+	private void handleDeviceSync(SyncDataResponseDto syncDataResponseDto) throws Exception {
 		try {		
 			deviceTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "DeviceType")));
 			deviceSpecificationRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"DeviceSpecification")));
-			deviceMasterRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"DeviceMaster")));
-			registeredDeviceTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"RegisteredDeviceType")));
-			registeredSubDeviceTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"RegisteredSubDeviceType")));
-			mosipDeviceServiceRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"MosipDeviceService")));
+			deviceMasterRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"Device")));
+			registeredDeviceTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"DeviceTypeDPM")));
+			registeredSubDeviceTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"DeviceSubTypeDPM")));
+			mosipDeviceServiceRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"DeviceService")));
 			deviceProviderRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"DeviceProvider")));
-			registeredDeviceRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"RegisteredDeviceMaster")));
+			registeredDeviceRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"RegisteredDevice")));
 		} catch (Exception e) {
 			throw new SyncFailedException(e.getMessage()+"Saving the entities into machine sync is failed ");
 		}		
@@ -323,10 +370,10 @@ public class ClientSettingSyncHelper {
 		try {
 			machineTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "MachineType")));
 			machineSpecificationRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "MachineSpecification")));
-			machineTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "MachineType")));
-			machineRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "MachineMaster")));
+			machineRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "Machine")));
 		}  catch (Exception e) {
-			throw new SyncFailedException(e.getMessage()+"Saving the entities into machine sync  is failed ");
+			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
+			throw new SyncFailedException("Machine data sync failed due to " +  e.getMessage());
 		}	
 	}
 	
@@ -339,13 +386,15 @@ public class ClientSettingSyncHelper {
 	private void handleRegistrationCenterSync(SyncDataResponseDto syncDataResponseDto) throws SyncFailedException  {
 		try {
 			registrationCenterTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "RegistrationCenterType")));
-			registrationCenterRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "RegistrationCenter")));
-			registrationCenterUserRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "RegistrationCenterUser")));
+			registrationCenterRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "RegistrationCenter")));			
 			registrationCenterDeviceRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "RegistrationCenterDevice")));
-			registrationCenterMachineDeviceRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "RegistrationCenterMachine")));
+			centerMachineRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "RegistrationCenterMachine")));
 			registrationCenterMachineDeviceRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "RegistrationCenterMachineDevice")));
+			//TODO need to check if userdetails are synced before this ?
+			registrationCenterUserRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "RegistrationCenterUser")));
 		} catch (Exception e ) {
-			throw new SyncFailedException(e.getMessage()+"Saving the respective entities into registration center sync is failed ");
+			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
+			throw new SyncFailedException("RegistrationCenter data sync failed due to " +  e.getMessage());
 		} 
 	}
 	
@@ -361,7 +410,8 @@ public class ClientSettingSyncHelper {
 			appRolePriorityRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "AppRolePriority")));
 			appAuthenticationRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "AppAuthenticationMethod")));
 		} catch (Exception e) {
-			throw new SyncFailedException(e.getMessage()+"Saving the respective entities into app detail sync is failed ");
+			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
+			throw new SyncFailedException("AppDetail data sync failed due to " +  e.getMessage());
 		}
 	}
 	
@@ -377,7 +427,8 @@ public class ClientSettingSyncHelper {
 			templateTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "TemplateType")));
 			templateRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "Template")));
 		} catch (Exception e) {
-			throw new SyncFailedException(e.getMessage()+"Saving the respective entities into template sync is failed ");
+			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
+			throw new SyncFailedException("Template data sync failed due to " +  e.getMessage());
 		}
 		
 	}
@@ -395,7 +446,8 @@ public class ClientSettingSyncHelper {
 			applicantValidDocumentRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "ApplicantValidDocument")));
 			validDocumentRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "ValidDocument")));
 		} catch (Exception e) {
-			throw new SyncFailedException(e.getMessage()+"Saving the respective entities into document sync is failed ");
+			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
+			throw new SyncFailedException("Document data sync failed due to " +  e.getMessage());
 		}
 	}
 	
@@ -415,7 +467,8 @@ public class ClientSettingSyncHelper {
 			titleRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "Title")));
 			individualTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "IndividualType")));
 		} catch (Exception e) {
-			throw new SyncFailedException(e.getMessage()+"Saving the respective entities into scheam possible value sync is failed ");
+			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
+			throw new SyncFailedException("IdSchema data sync failed due to " +  e.getMessage());
 		}		
 	}
 	
@@ -431,14 +484,15 @@ public class ClientSettingSyncHelper {
 			processListRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "ProcessList")));
 			screenDetailRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "ScreenDetail")));
 			screenAuthorizationRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "ScreenAuthorization")));
-			foundationalTrustProviderRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "FoundationTrustProvider")));
+			foundationalTrustProviderRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "FoundationalTrustProvider")));
 			languageRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "Language")));
 			reasonCategoryRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "ReasonCategory")));
-			reasonListRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "BiometricType")));
+			reasonListRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "ReasonList")));
 			syncJobDefRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "SyncJobDef")));
 			
 		} catch (Exception e) {
-			throw new SyncFailedException(e.getMessage()+"Saving the respective entities into  sync is failed ");
+			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
+			throw new SyncFailedException("Miscellaneous data sync failed due to " +  e.getMessage());
 		}
 	}
 }

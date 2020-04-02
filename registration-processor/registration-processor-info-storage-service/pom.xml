@@ -10,6 +10,7 @@
 		<version>1.0.6</version>
 	</parent>
 	<artifactId>registration-processor-info-storage-service</artifactId>
+	<version>1.0.6</version>
 	<name>registration-processor-info-storage-service</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

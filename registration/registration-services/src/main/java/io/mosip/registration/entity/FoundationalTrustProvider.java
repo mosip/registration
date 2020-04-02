@@ -36,10 +36,10 @@ public class FoundationalTrustProvider extends RegistrationCommonFields {
 	private String email;
 	
 	@Column(name="contact_number",length=16)
-	private String contactNumber;
+	private String contactNo;
 	
 	@Column(name="certificate_alias",length=36)
-	private String certificateAlias;
+	private String certAlias;
 
 	@Column(name="is_active", nullable=false)
 	private boolean isActive;

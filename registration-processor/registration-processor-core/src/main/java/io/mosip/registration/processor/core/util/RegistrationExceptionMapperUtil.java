@@ -155,6 +155,8 @@ public class RegistrationExceptionMapperUtil {
 		statusMap.put(RegistrationExceptionTypeCode.AUTH_SYSTEM_EXCEPTION,
 				RegistrationTransactionStatusCode.REPROCESS);
 		
+		statusMap.put(RegistrationExceptionTypeCode.PACKET_REJECTED, RegistrationTransactionStatusCode.REJECTED);
+
 		return unmodifiableMap;
 
 	}

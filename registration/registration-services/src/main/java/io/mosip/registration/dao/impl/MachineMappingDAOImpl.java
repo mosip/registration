@@ -114,7 +114,7 @@ public class MachineMappingDAOImpl implements MachineMappingDAO {
 	 */
 	@Override
 	public List<UserMachineMapping> getUserMappingDetails(String machineId) {
-		return machineMappingRepository.findByIsActiveTrueAndUserMachineMappingIdMachineID(machineId);
+		return machineMappingRepository.findByIsActiveTrueAndUserMachineMappingIdMachineId(machineId);
 	}
 
 	/*
@@ -136,7 +136,7 @@ public class MachineMappingDAOImpl implements MachineMappingDAO {
 	public boolean isExists(String userId) {
 		LOGGER.info(MACHINE_MAPPING_LOGGER_TITLE, APPLICATION_NAME, APPLICATION_ID, "checking exists or not");
 
-		return machineMappingRepository.findByUserMachineMappingIdUserIDIgnoreCase(userId) != null;
+		return machineMappingRepository.findByUserMachineMappingIdUsrIdIgnoreCase(userId) != null;
 	}
 
 	/*

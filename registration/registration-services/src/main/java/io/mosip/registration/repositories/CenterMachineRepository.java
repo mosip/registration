@@ -19,5 +19,5 @@ public interface CenterMachineRepository extends BaseRepository<CenterMachine, C
 	 * @param userId the user id
 	 * @return center id
 	 */
-	CenterMachine findByIsActiveTrueAndCenterMachineIdId(String userId);
+	CenterMachine findByIsActiveTrueAndCenterMachineIdMachineId(String userId);
 }

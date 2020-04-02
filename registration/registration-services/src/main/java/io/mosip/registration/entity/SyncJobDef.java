@@ -28,7 +28,7 @@ public class SyncJobDef extends RegistrationCommonFields {
 	@Column(name = "parent_syncjob_id")
 	private String parentSyncJobId;
 	@Column(name = "sync_freq")
-	private String syncFrequency;
+	private String syncFreq;
 	@Column(name = "lock_duration")
 	private String lockDuration;
 	@Column(name = "lang_code")
@@ -71,12 +71,12 @@ public class SyncJobDef extends RegistrationCommonFields {
 		this.parentSyncJobId = parentSyncJobId;
 	}
 
-	public String getSyncFrequency() {
-		return syncFrequency;
+	public String getSyncFreq() {
+		return syncFreq;
 	}
 
-	public void setSyncFrequency(String syncFrequency) {
-		this.syncFrequency = syncFrequency;
+	public void setSyncFreq(String syncFreq) {
+		this.syncFreq = syncFreq;
 	}
 
 	public String getLockDuration() {

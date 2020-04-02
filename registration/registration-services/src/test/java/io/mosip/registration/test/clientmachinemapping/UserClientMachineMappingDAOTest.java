@@ -104,7 +104,7 @@ public class UserClientMachineMappingDAOTest {
 
 	@Test
 	public void getStationIDNullTest() {
-		Mockito.when(centerMachineRepository.findByIsActiveTrueAndCenterMachineIdId(Mockito.anyString()))
+		Mockito.when(centerMachineRepository.findByIsActiveTrueAndCenterMachineIdMachineId(Mockito.anyString()))
 				.thenReturn(null);
 		try {
 			machineMappingDAOImpl.getStationID("8C-16-45-88-E7-0C");
@@ -129,7 +129,7 @@ public class UserClientMachineMappingDAOTest {
 		userDetail.setId("mosip");
 		userMachineMapping.setUserDetail(userDetail);
 		list.add(userMachineMapping);
-		Mockito.when(machineMappingRepository.findByIsActiveTrueAndUserMachineMappingIdMachineID(Mockito.anyString()))
+		Mockito.when(machineMappingRepository.findByIsActiveTrueAndUserMachineMappingIdMachineId(Mockito.anyString()))
 				.thenReturn(list);
 		Assert.assertEquals(userMachineMapping.getUserDetail().getId(),
 				machineMappingDAOImpl.getUserMappingDetails("machineId").get(0).getUserDetail().getId());
@@ -139,7 +139,7 @@ public class UserClientMachineMappingDAOTest {
 	public void isExistsNullTest() {
 		UserMachineMapping machineMapping = null;
 		Mockito.when(
-				machineMappingRepository.findByUserMachineMappingIdUserIDIgnoreCase(RegistrationConstants.JOB_TRIGGER_POINT_USER))
+				machineMappingRepository.findByUserMachineMappingIdUsrIdIgnoreCase(RegistrationConstants.JOB_TRIGGER_POINT_USER))
 				.thenReturn(machineMapping);
 		Assert.assertFalse(machineMappingDAOImpl.isExists(RegistrationConstants.JOB_TRIGGER_POINT_USER));
 	}
@@ -148,12 +148,12 @@ public class UserClientMachineMappingDAOTest {
 	public void isExistsTest() {
 		UserMachineMapping machineMapping = new UserMachineMapping();		
 		UserMachineMappingID machineMapId=new UserMachineMappingID();
-		machineMapId.setUserID("1234");				
+		machineMapId.setUsrId("1234");				
 		machineMapping.setUserMachineMappingId(machineMapId);
 		List<UserMachineMapping> deviceList = new ArrayList<>();
 		deviceList.add(machineMapping);
 		Mockito.when(
-				machineMappingRepository.findByUserMachineMappingIdUserIDIgnoreCase(RegistrationConstants.JOB_TRIGGER_POINT_USER))
+				machineMappingRepository.findByUserMachineMappingIdUsrIdIgnoreCase(RegistrationConstants.JOB_TRIGGER_POINT_USER))
 				.thenReturn(machineMapping);
 		Assert.assertTrue(machineMappingDAOImpl.isExists(RegistrationConstants.JOB_TRIGGER_POINT_USER));
 	}

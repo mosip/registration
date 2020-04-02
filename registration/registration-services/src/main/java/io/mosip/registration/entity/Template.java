@@ -1,5 +1,7 @@
 package io.mosip.registration.entity;
 
+import java.sql.Date;
+
 import javax.persistence.AttributeOverride;
 import javax.persistence.AttributeOverrides;
 import javax.persistence.Column;
@@ -9,6 +11,8 @@ import javax.persistence.IdClass;
 import javax.persistence.Table;
 
 import io.mosip.registration.entity.id.TemplateId;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * The Entity Class for Template details
@@ -19,7 +23,9 @@ import io.mosip.registration.entity.id.TemplateId;
 @Entity
 @IdClass(TemplateId.class)
 @Table(schema = "reg", name = "TEMPLATE")
-public class Template extends TemplateCommonFields {
+@Getter
+@Setter
+public class Template extends RegistrationCommonFields {
 
 	@Id
 	@AttributeOverrides({ @AttributeOverride(name = "id", column = @Column(name = "id")),
@@ -33,100 +39,37 @@ public class Template extends TemplateCommonFields {
 	@Column(name = "file_format_code")
 	private String fileFormatCode;
 	private String model;
-	@Column(name = "file_txt")
-	private String fileTxt;
+	@Column(name = "file_txt", length = 4000)
+	private String fileText;
 	@Column(name = "module_id")
 	private String moduleId;
 	@Column(name = "module_name")
 	private String moduleName;
 	@Column(name = "template_typ_code")
-	private String templateTypCode;
+	private String templateTypeCode;
+	
+	@Column(name="descr")
+	private String description;
+	@Column(name="is_deleted")
+	private Boolean isDeleted;
+	@Column(name="del_dtimes")
+	private Date delDtimes;
 
-	public String getId() {
-		return id;
-	}
 
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getFileFormatCode() {
-		return fileFormatCode;
-	}
-
-	public void setFileFormatCode(String fileFormatCode) {
-		this.fileFormatCode = fileFormatCode;
-	}
-
-	public String getModel() {
-		return model;
-	}
-
-	public void setModel(String model) {
-		this.model = model;
-	}
-
-	public String getFileTxt() {
-		return fileTxt;
-	}
-
-	public void setFileTxt(String fileTxt) {
-		this.fileTxt = fileTxt;
-	}
-
-	public String getModuleId() {
-		return moduleId;
-	}
-
-	public void setModuleId(String moduleId) {
-		this.moduleId = moduleId;
-	}
-
-	public String getModuleName() {
-		return moduleName;
-	}
-
-	public void setModuleName(String moduleName) {
-		this.moduleName = moduleName;
-	}
-
-	public String getTemplateTypCode() {
-		return templateTypCode;
-	}
-
-	public void setTemplateTypCode(String templateTypCode) {
-		this.templateTypCode = templateTypCode;
-	}
-
-	public String getLangCode() {
-		return langCode;
-	}
-
-	public void setLangCode(String langCode) {
-		this.langCode = langCode;
-	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((fileFormatCode == null) ? 0 : fileFormatCode.hashCode());
-		result = prime * result + ((fileTxt == null) ? 0 : fileTxt.hashCode());
+		result = prime * result + ((fileText == null) ? 0 : fileText.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		result = prime * result + ((langCode == null) ? 0 : langCode.hashCode());
 		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		result = prime * result + ((moduleId == null) ? 0 : moduleId.hashCode());
 		result = prime * result + ((moduleName == null) ? 0 : moduleName.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((templateTypCode == null) ? 0 : templateTypCode.hashCode());
+		result = prime * result + ((templateTypeCode == null) ? 0 : templateTypeCode.hashCode());
 		return result;
 	}
 
@@ -144,10 +87,10 @@ public class Template extends TemplateCommonFields {
 				return false;
 		} else if (!fileFormatCode.equals(other.fileFormatCode))
 			return false;
-		if (fileTxt == null) {
-			if (other.fileTxt != null)
+		if (fileText == null) {
+			if (other.fileText != null)
 				return false;
-		} else if (!fileTxt.equals(other.fileTxt))
+		} else if (!fileText.equals(other.fileText))
 			return false;
 		if (id == null) {
 			if (other.id != null)
@@ -179,20 +122,20 @@ public class Template extends TemplateCommonFields {
 				return false;
 		} else if (!name.equals(other.name))
 			return false;
-		if (templateTypCode == null) {
-			if (other.templateTypCode != null)
+		if (templateTypeCode == null) {
+			if (other.templateTypeCode != null)
 				return false;
-		} else if (!templateTypCode.equals(other.templateTypCode))
+		} else if (!templateTypeCode.equals(other.templateTypeCode))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "Template [id=" + id + ", name=" + name + ", descr=" + descr + ", file_format_code=" + fileFormatCode
-				+ ", model=" + model + ", file_txt=" + fileTxt + ", module_id=" + moduleId + ", module_name="
-				+ moduleName + ", template_typ_code=" + templateTypCode + ", lang_code=" + langCode + ", is_active="
-				+ isActive + ", cr_by=" + crBy + ", cr_dtimes=" + crDtimes + ", upd_by=" + updBy + ", upd_dtimes="
+		return "Template [id=" + id + ", name=" + name + ", descr=" + description + ", file_format_code=" + fileFormatCode
+				+ ", model=" + model + ", file_txt=" + fileText + ", module_id=" + moduleId + ", module_name="
+				+ moduleName + ", template_typ_code=" + templateTypeCode + ", lang_code=" + langCode + ", is_active="
+				+ getIsActive() + ", cr_by=" + crBy + ", cr_dtimes=" + getCrDtime() + ", upd_by=" + updBy + ", upd_dtimes="
 				+ updDtimes + ", is_deleted=" + isDeleted + ", del_dtimes=" + delDtimes + "]";
 	}
 

@@ -46,12 +46,12 @@ public class TemplateDaoImplTest {
 		Template template = new Template();
 		template.setId("T01");
 
-		template.setFileTxt("sample text");
+		template.setFileText("sample text");
 
 		template.setLangCode("en");
-		template.setActive(true);
+		template.setIsActive(true);
 		templates.add(template);
-		when(templateRepository.findByIsActiveTrueAndTemplateTypCode("ackTemplate")).thenReturn(templates);
+		when(templateRepository.findByIsActiveTrueAndTemplateTypeCode("ackTemplate")).thenReturn(templates);
 		assertThat(templateDao.getAllTemplates("ackTemplate"), is(templates));
 	}
 
@@ -63,7 +63,7 @@ public class TemplateDaoImplTest {
 		typePrimaryKey.setCode("vel");
 		typePrimaryKey.setLangCode("eng");
 		templateType.setPkTmpltCode(typePrimaryKey);
-		templateType.setActive(true);
+		templateType.setIsActive(true);
 		templateTypes.add(templateType);
 		when(typeRepository.findByIsActiveTrueAndPkTmpltCodeCodeAndPkTmpltCodeLangCode("ackTemplate", "eng"))
 				.thenReturn(templateTypes);
@@ -78,7 +78,7 @@ public class TemplateDaoImplTest {
 		fileFormatPK.setCode("vel");
 		fileFormatPK.setLangCode("eng");
 		fileFormat.setPkTfftCode(fileFormatPK);
-		fileFormat.setActive(true);
+		fileFormat.setIsActive(true);
 		fileFormats.add(fileFormat);
 		when(fileFormatRepository.findByIsActiveTrue()).thenReturn(fileFormats);
 		assertThat(templateDao.getAllTemplateFileFormats(), is(fileFormats));

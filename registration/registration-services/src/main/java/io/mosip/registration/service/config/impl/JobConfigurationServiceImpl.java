@@ -190,8 +190,8 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 
 					/* Store the jobs to be updated */
 					for (SyncJobDef syncJobDef : jobDefs) {
-						if (!syncDataFreq.equals(syncJobDef.getSyncFrequency())) {
-							syncJobDef.setSyncFrequency(syncDataFreq);
+						if (!syncDataFreq.equals(syncJobDef.getSyncFreq())) {
+							syncJobDef.setSyncFreq(syncDataFreq);
 
 							jobsToBeUpdated.add(syncJobDef);
 						}
@@ -298,7 +298,7 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 
 					CronTrigger trigger = (CronTrigger) TriggerBuilder.newTrigger().forJob(jobDetail)
 							.withIdentity(syncJob.getId())
-							.withSchedule(CronScheduleBuilder.cronSchedule(syncJob.getSyncFrequency())).build();
+							.withSchedule(CronScheduleBuilder.cronSchedule(syncJob.getSyncFreq())).build();
 
 					schedulerFactoryBean.getScheduler().scheduleJob(jobDetail, trigger);
 
@@ -732,10 +732,10 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 				RegistrationConstants.APPLICATION_ID, "Started invoking Missed Trigger Jobs");
 
 		map.forEach((jobId, syncJob) -> {
-			if (!isNull(syncJob.getSyncFrequency())
+			if (!isNull(syncJob.getSyncFreq())
 					&& !isNull(syncJob.getApiName())) {
 				/* An A-sync task to complete missed trigger */
-				new Thread(() -> executeMissedTrigger(jobId, syncJob.getSyncFrequency())).start();
+				new Thread(() -> executeMissedTrigger(jobId, syncJob.getSyncFreq())).start();
 			}
 
 		});

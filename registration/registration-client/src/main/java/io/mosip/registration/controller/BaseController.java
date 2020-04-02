@@ -217,6 +217,8 @@ public class BaseController {
 	@Autowired
 	private RestartController restartController;
 
+	private static boolean isAckOpened = false;
+
 	/**
 	 * @return the alertStage
 	 */
@@ -563,7 +565,8 @@ public class BaseController {
 	public void goToHomePage() {
 		webCameraController.closeWebcam();
 		try {
-			if (pageNavigantionAlert()) {
+			if (isAckOpened() || pageNavigantionAlert()) {
+				setIsAckOpened(false);
 				BaseController.load(getClass().getResource(RegistrationConstants.HOME_PAGE));
 				if (!(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
 					clearOnboardData();
@@ -577,6 +580,7 @@ public class BaseController {
 							RegistrationConstants.ENABLE);
 				}
 			}
+			
 		} catch (IOException ioException) {
 			LOGGER.error("REGISTRATION - REDIRECTHOME - BASE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 					ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
@@ -1522,9 +1526,13 @@ public class BaseController {
 					.parseDouble(getValueFromApplicationContext(getThresholdKeyByBioType(bioType)))) {
 				progressBar.getStyleClass().removeAll(RegistrationConstants.PROGRESS_BAR_RED);
 				progressBar.getStyleClass().add(RegistrationConstants.PROGRESS_BAR_GREEN);
+				progressQualityScore.getStyleClass().removeAll(RegistrationConstants.LABEL_RED);
+				progressQualityScore.getStyleClass().add(RegistrationConstants.LABEL_GREEN);
 			} else {
 				progressBar.getStyleClass().removeAll(RegistrationConstants.PROGRESS_BAR_GREEN);
 				progressBar.getStyleClass().add(RegistrationConstants.PROGRESS_BAR_RED);
+				progressQualityScore.getStyleClass().removeAll(RegistrationConstants.LABEL_GREEN);
+				progressQualityScore.getStyleClass().add(RegistrationConstants.LABEL_RED);
 			}
 
 		}
@@ -1560,4 +1568,19 @@ public class BaseController {
 		public T toRun();
 	}
 
+	/**
+	 * Check of wheteher operator was in acknowledgement page
+	 *
+	 * @return true or false if acknowledge page was opened
+	 */
+	protected boolean isAckOpened() {
+		return isAckOpened;
+	}
+	
+	/**
+	 * Set the operator was in acknowledgement page
+	 */
+	protected void setIsAckOpened(boolean isAckOpened) {
+		this.isAckOpened = isAckOpened;
+	}
 }

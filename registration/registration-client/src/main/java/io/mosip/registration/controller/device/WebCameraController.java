@@ -73,7 +73,7 @@ public class WebCameraController extends BaseController implements Initializable
 
 	@FXML
 	private Button close;
-	
+
 	@FXML
 	public Label message;
 
@@ -84,17 +84,17 @@ public class WebCameraController extends BaseController implements Initializable
 	private IMosipWebcamService photoProvider = null;
 	@Autowired
 	private PhotoCaptureFacade photoCaptureFacade;
-	
+
 	@Autowired
 	private BioService bioService;
-	
+
 	@Autowired
 	private Streamer streamer;
 
 	private String imageType;
-	
+
 	private Stage webCameraStage;
-	
+
 	public Stage getWebCameraStage() {
 		return webCameraStage;
 	}
@@ -142,58 +142,78 @@ public class WebCameraController extends BaseController implements Initializable
 	public void captureImage(ActionEvent event) throws RegBaseCheckedException, IOException {
 		LOGGER.info("REGISTRATION - UI - WEB_CAMERA_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 				"capturing the image from webcam");
-		boolean isDuplicateFound=false;
+		boolean isDuplicateFound = false;
 		if (capturedImage != null) {
 			capturedImage.flush();
 		}
-		CaptureResponseDto captureResponseDto =null;
+		CaptureResponseDto captureResponseDto = null;
 		Instant start = Instant.now();
-		Instant end = Instant.now();
 		if (bioService.isMdmEnabled()) {
-			start = Instant.now();
-			end = start;
+
 			try {
-				captureResponseDto = bioService
-						.captureFace(new RequestDetail(RegistrationConstants.FACE_FULLFACE,
-								getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 1,
-								getValueFromApplicationContext(RegistrationConstants.FACE_THRESHOLD), null));
-				end = Instant.now();
-				AuthenticationValidatorDTO authenticationValidatorDTO = new AuthenticationValidatorDTO();
-				authenticationValidatorDTO.setUserId(SessionContext.userContext().getUserId());
-				FaceDetailsDTO faceDetail = new FaceDetailsDTO();
-				faceDetail.setFaceISO(bioService.getSingleBiometricIsoTemplate(captureResponseDto));
-				authenticationValidatorDTO.setFaceDetail(faceDetail);
-				isDuplicateFound = generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.FACE_CAPTURE_SUCCESS, ()->{
-						if((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER))
-							return false;
-						return bioService.validateFace(authenticationValidatorDTO);
-					}, this);
-			} catch (RegBaseCheckedException | IOException exception) {
-				generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)+RegistrationConstants.UNDER_SCORE+RegistrationConstants.MESSAGE.toUpperCase()));
-				streamer.stop();
-				return;
-			}
-			if (null != captureResponseDto && null != captureResponseDto.getMosipBioDeviceDataResponses()) {
-				try {
-					capturedImage = ImageIO.read(new ByteArrayInputStream(bioService.getSingleBioValue(captureResponseDto)));
-				} catch (IOException exception) {
-					LOGGER.error("REGISTRATION - UI - WEB_CAMERA_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
-							String.format("%s Exception while getting the captured Face details : %s ",
-									exception.getMessage(), ExceptionUtils.getStackTrace(exception)));
+				captureResponseDto = bioService.captureFace(new RequestDetail(RegistrationConstants.FACE_FULLFACE,
+						getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 1,
+						getValueFromApplicationContext(RegistrationConstants.FACE_THRESHOLD), null));
+
+				// Get ISO value
+				byte[] isoImage = bioService.getSingleBiometricIsoTemplate(captureResponseDto);
+
+				if (isoImage != null) {
+					AuthenticationValidatorDTO authenticationValidatorDTO = new AuthenticationValidatorDTO();
+					authenticationValidatorDTO.setUserId(SessionContext.userContext().getUserId());
+					FaceDetailsDTO faceDetail = new FaceDetailsDTO();
+					faceDetail.setFaceISO(isoImage);
+					authenticationValidatorDTO.setFaceDetail(faceDetail);
+					isDuplicateFound = generateAlert(RegistrationConstants.ALERT_INFORMATION,
+							RegistrationUIConstants.FACE_CAPTURE_SUCCESS, () -> {
+								if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER))
+									return false;
+								return bioService.validateFace(authenticationValidatorDTO);
+							}, this);
+
+					parentController.saveApplicantPhoto(
+							ImageIO.read(new ByteArrayInputStream(bioService.getSingleBioValue(captureResponseDto))),
+							imageType, captureResponseDto,
+							Duration.between(start, Instant.now()).toString().replace("PT", ""), isDuplicateFound);
+
+					setScanningMsg(RegistrationUIConstants.FACE_CAPTURE_SUCCESS_MSG);
+					if (isDuplicateFound)
+						setScanningMsg(RegistrationUIConstants.FACE_DUPLICATE_ERROR);
+					// parentController.calculateRecaptureTime(imageType);
+					capture.setDisable(true);
+
+					clear.setDisable(false);
+
+				} else {
+					generateAlert(RegistrationConstants.ALERT, RegistrationUIConstants.FACE_CAPTURE_ERROR);
+					streamer.stop();
+					webCameraStage.close();
 				}
+
+			} catch (RegBaseCheckedException | IOException exception) {
+				generateAlert(RegistrationConstants.ALERT_INFORMATION,
+						RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)
+								+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
+				streamer.stop();
+				webCameraStage.close();
 			}
 
 		} else {
-			capturedImage = photoProvider.captureImage();
-		}
-		parentController.saveApplicantPhoto(capturedImage, imageType,captureResponseDto, Duration.between(start, end).toString().replace("PT", ""), isDuplicateFound);
-		setScanningMsg(RegistrationUIConstants.FACE_CAPTURE_SUCCESS_MSG);
-		if(isDuplicateFound)
-			setScanningMsg(RegistrationUIConstants.FACE_DUPLICATE_ERROR);	
-//		parentController.calculateRecaptureTime(imageType);
-		capture.setDisable(true);
+			
+			LOGGER.info("REGISTRATION - UI - WEB_CAMERA_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+					"Capturing face as proxy");
+			
+			
+			parentController.saveApplicantPhoto(photoProvider.captureImage(), imageType, captureResponseDto,
+					Duration.between(start, Instant.now()).toString().replace("PT", ""), isDuplicateFound);
+			
+			setScanningMsg(RegistrationUIConstants.FACE_CAPTURE_SUCCESS_MSG);
 
-		clear.setDisable(false);
+			capture.setDisable(true);
+
+			clear.setDisable(false);
+		}
+
 	}
 
 	@FXML
@@ -215,7 +235,7 @@ public class WebCameraController extends BaseController implements Initializable
 		}
 		Stage stage = (Stage) ((Node) event.getSource()).getParent().getScene().getWindow();
 		stage.close();
-		
+
 	}
 
 	public void closeWebcam() {

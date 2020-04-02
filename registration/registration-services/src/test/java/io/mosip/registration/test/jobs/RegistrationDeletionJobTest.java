@@ -81,7 +81,7 @@ public class RegistrationDeletionJobTest {
 		syncJob.setId("1234");
 
 		syncJob.setApiName("registrationDeletionJob");
-		syncJob.setSyncFrequency("0/5 * * * * ?");
+		syncJob.setSyncFreq("0/5 * * * * ?");
 		syncJobList.add(syncJob);
 
 		syncJobList.forEach(job -> {

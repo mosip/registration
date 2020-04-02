@@ -33,6 +33,7 @@ public enum StatusUtil {
 	UIN_NOT_FOUND_IDREPO(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "008","UIN is Not Found in ID Repository"),
 	MANDATORY_VALIDATION_FAILED(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "009", "Mandatory Fields are Not Present in ID Object"),
 	RID_AND_TYPE_SYNC_FAILED(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "010", "RID & Type not matched from sync table"),
+	PACKET_REJECTED(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "011", "Rejected by Supervisor"),
 
 	// External stage
 	EXTERNAL_STAGE_SUCCESS(StatusConstants.EXTERNAL_SATGE_MODULE_SUCCESS + "001", "Packet processing in External stage is sucessful"),

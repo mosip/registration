@@ -7,11 +7,11 @@
 	<parent>
 		<groupId>io.mosip</groupId>
 		<artifactId>registration</artifactId>
-		<version>1.0.7-SNAPSHOT</version>
+		<version>1.0.6</version>
 	</parent>
 
 	<groupId>io.mosip.registration</groupId>
-	<version>1.0.7-SNAPSHOT</version>
+	<version>1.0.6</version>
 	<artifactId>registration-parent</artifactId>
 	<packaging>pom</packaging>
 	<name>registration</name>
