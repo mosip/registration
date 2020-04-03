@@ -130,7 +130,7 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 	 */
 	private BaseJob baseJob;
 
-	private static List<String> restartableJobList = new LinkedList<>();
+	private List<String> restartableJobList;
 
 	/**
 	 * create a parser based on provided definition
@@ -142,12 +142,16 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 	@Autowired
 	private JobProcessListener jobProcessListener;
 
-	private List<String> offlineJobs = new LinkedList<>(
-			Arrays.asList("DEL_J00013", "RDJ_J00010", "ADJ_J00012", "PVS_J00015"));
+	private List<String> offlineJobs;
 
-	private List<String> unTaggedJobs = new LinkedList<>(Arrays.asList("PDS_J00003"));
+	private List<String> unTaggedJobs;
 
 	private static Map<String, SyncJobDef> parentJobMap = new HashMap<>();
+
+	/**
+	 * Active sync job map with key as jobID and value as SyncJob (Entity)
+	 */
+	private Map<String, SyncJobDef> syncActiveJobMapExecutable = new HashMap<>();
 
 	public static Map<String, SyncJobDef> getParentJobMap() {
 		return parentJobMap;
@@ -165,10 +169,18 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 
 		try {
 
-			/* Registration Client Config Sync */
+			offlineJobs = getGlobalConfigValueOf(RegistrationConstants.offlineJobs) != null
+					? Arrays.asList(getGlobalConfigValueOf(RegistrationConstants.offlineJobs).split(","))
+					: offlineJobs;
+			unTaggedJobs = getGlobalConfigValueOf(RegistrationConstants.unTaggedJobs) != null
+					? Arrays.asList(getGlobalConfigValueOf(RegistrationConstants.unTaggedJobs).split(","))
+					: unTaggedJobs;
+
 			// it contains the list of job id, once this job is successfully completed then
 			// application should be restarted to pick the updated config.
-			restartableJobList.add("RCS_J00005");
+			restartableJobList = getGlobalConfigValueOf(RegistrationConstants.restartableJobs) != null
+					? Arrays.asList(getGlobalConfigValueOf(RegistrationConstants.restartableJobs).split(","))
+					: restartableJobList;
 
 			/* Get All Jobs */
 			List<SyncJobDef> jobDefs = getJobs();
@@ -200,6 +212,9 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 					if (!isNull(jobsToBeUpdated) && !isEmpty(jobsToBeUpdated)) {
 						/* Update Jobs */
 						updateJobs(jobsToBeUpdated);
+
+						/* Refresh The sync job map and sync active job map as we have updated jobs */
+						setSyncJobMap(jobsToBeUpdated);
 					}
 				}
 
@@ -208,9 +223,9 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 			if (!syncActiveJobMap.isEmpty()) {
 
 				/* Check and Execute missed triggers */
-				executeMissedTriggers(syncActiveJobMap);
+				executeMissedTriggers(syncActiveJobMapExecutable);
 
-				schedulerFactoryBean = getSchedulerFactoryBean(String.valueOf(syncActiveJobMap.size()));
+				schedulerFactoryBean = getSchedulerFactoryBean(String.valueOf(syncActiveJobMapExecutable.size()));
 
 				startScheduler();
 
@@ -281,7 +296,7 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 		LOGGER.info(LoggerConstants.BATCH_JOBS_CONFIG_LOGGER_TITLE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Loading Scheduler started");
 
-		syncActiveJobMap.forEach((jobId, syncJob) -> {
+		syncActiveJobMapExecutable.forEach((jobId, syncJob) -> {
 
 			try {
 				LOGGER.info(LoggerConstants.BATCH_JOBS_CONFIG_LOGGER_TITLE, RegistrationConstants.APPLICATION_NAME,
@@ -645,8 +660,19 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 			if (syncJob.getIsActive()) {
 				syncActiveJobMap.put(syncJob.getId(), syncJob);
 			}
-			if (!isNull(syncJob.getParentSyncJobId())) {
-				parentJobMap.put(syncJob.getId(), syncActiveJobMap.get(syncJob.getParentSyncJobId()));
+
+		});
+
+		syncActiveJobMapExecutable = syncActiveJobMap;
+
+		syncActiveJobMap.forEach((jobID, syncJobDef) -> {
+			if (!isNull(syncJobDef.getParentSyncJobId())) {
+				if (syncActiveJobMap.get(syncJobDef.getParentSyncJobId()) == null) {
+					syncActiveJobMapExecutable.remove(jobID);
+				} else {
+					parentJobMap.put(jobID, syncActiveJobMap.get(syncJobDef.getParentSyncJobId()));
+					syncActiveJobMapExecutable.remove(syncJobDef.getParentSyncJobId());
+				}
 			}
 		});
 	}
@@ -660,8 +686,6 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 
 		LOGGER.info(LoggerConstants.BATCH_JOBS_CONFIG_LOGGER_TITLE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Updating Jobs in sync active job map");
-		/* Refresh The sync job map and sync active job map as we have updated jobs */
-		setSyncJobMap(syncJobDefs);
 
 	}
 
@@ -732,8 +756,7 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 				RegistrationConstants.APPLICATION_ID, "Started invoking Missed Trigger Jobs");
 
 		map.forEach((jobId, syncJob) -> {
-			if (!isNull(syncJob.getSyncFreq())
-					&& !isNull(syncJob.getApiName())) {
+			if (!isNull(syncJob.getSyncFreq()) && !isNull(syncJob.getApiName())) {
 				/* An A-sync task to complete missed trigger */
 				new Thread(() -> executeMissedTrigger(jobId, syncJob.getSyncFreq())).start();
 			}
@@ -761,17 +784,18 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 		BaseJob.clearCompletedJobMap();
 		List<String> failureJobs = new LinkedList<>();
 
-		for (Entry<String, SyncJobDef> syncJob : syncActiveJobMap.entrySet()) {
+		for (Entry<String, SyncJobDef> syncJob : syncActiveJobMapExecutable.entrySet()) {
 			LOGGER.info(LoggerConstants.BATCH_JOBS_CONFIG_LOGGER_TITLE, RegistrationConstants.APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, "Validating job to execute : " + syncJob.getKey());
 
-			if ((!offlineJobs.contains(syncJob.getKey()) && !unTaggedJobs.contains(syncJob.getKey()))
+			if ((offlineJobs == null || !offlineJobs.contains(syncJob.getKey())
+					&& (unTaggedJobs == null || !unTaggedJobs.contains(syncJob.getKey())))
 					&& !isNull(syncJob.getValue().getApiName())) {
 
 				String triggerPoint = getUserIdFromSession().equals(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM)
 						? RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM
 						: RegistrationConstants.JOB_TRIGGER_POINT_USER;
-				
+
 				executeJob(syncJob.getKey(), triggerPoint);
 
 			}

@@ -927,6 +927,14 @@ public class RegistrationConstants {
 	public static final String JOB_TRIGGER_MIS_FIRED = "Trigger Mis-Fired";
 	public static final String JOB_EXECUTION_REJECTED = "Execution Rejected";
 	public static final String RETRIEVED_PRE_REG_ID = "Retrieved Pre Registration";
+	
+	public static final String offlineJobs = "mosip.registration.jobs.offline";
+	public static final String unTaggedJobs ="mosip.registration.jobs.unTagged";
+	public static final String restartableJobs ="mosip.registration.jobs.restart";
+	
+//	public static final String offlineJobs = "DEL_J00013,RDJ_J00010,ADJ_J00012,PVS_J00015";
+//	public static final String unTaggedJobs ="PDS_J00003";
+//	public static final String restartableJobs ="RCS_J00005";
 
 	public static final String JOB_TRIGGER_POINT_SYSTEM = "System";
 	public static final String JOB_TRIGGER_POINT_USER = "User";
