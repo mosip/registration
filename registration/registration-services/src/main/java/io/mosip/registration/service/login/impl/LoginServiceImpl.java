@@ -36,7 +36,6 @@ import io.mosip.registration.dao.UserDetailDAO;
 import io.mosip.registration.dto.AuthorizationDTO;
 import io.mosip.registration.dto.RegistrationCenterDetailDTO;
 import io.mosip.registration.dto.ResponseDTO;
-import io.mosip.registration.dto.SuccessResponseDTO;
 import io.mosip.registration.dto.UserDTO;
 import io.mosip.registration.dto.UserMachineMappingDTO;
 import io.mosip.registration.entity.UserDetail;
@@ -52,6 +51,7 @@ import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.service.sync.PublicKeySync;
 import io.mosip.registration.service.sync.TPMPublicKeySyncService;
 
+
 /**
  * Implementation for {@link LoginService}
  * 
@@ -63,6 +63,12 @@ import io.mosip.registration.service.sync.TPMPublicKeySyncService;
 public class LoginServiceImpl extends BaseService implements LoginService {
 	
 	private final String MOSIP_KEY_INDEX_KEY = "mosip.keyindex";
+	private final String PUBLIC_KEY_SYNC_STEP = "PublicKey Sync";
+	private final String MACHINE_KEY_VERIFICATION_STEP = "Machine-Key verification";
+	private final String GLOBAL_PARAM_SYNC_STEP = "Global parameter Sync";
+	private final String CLIENTSETTINGS_SYNC_STEP = "Client settings / Master data Sync";
+	private final String USER_DETAIL_SYNC_STEP = "User detail Sync";
+	private final String USER_SALT_SYNC_STEP = "User salt Sync";
 
 	/**
 	 * Instance of LOGGER
@@ -178,7 +184,7 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 					AuditReferenceIdTypes.APPLICATION_ID.getReferenceTypeId());
 
 			userDTO = MAPPER_FACADE.map(userDetailDAO.getUserDetail(userId), UserDTO.class);
-
+			
 			LOGGER.info(LOG_REG_LOGIN_SERVICE, APPLICATION_NAME, APPLICATION_ID, "Completed fetching User details");
 			
 		} catch (RegBaseCheckedException regBaseCheckedException) {
@@ -287,54 +293,91 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 					ExceptionUtils.getStackTrace(regBaseCheckedException));
 		}
 	}
-
-	/*
-	 * (non-Javadoc)
+	
+	/* Must follow the same order on every initial sync
+	 * 1. signing key sync
+	 * 2. verify machine-key mapping
+	 * 3. global parameters sync
+	 * 4. client-settings / master-data sync
+	 * 5. user details sync
+	 * 6. user salts sync
 	 * 
 	 * @see io.mosip.registration.service.login.LoginService#initialSync()
 	 */
 	@Override
 	public List<String> initialSync() {
 		LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "Started Initial sync");
-
-		List<String> val = new LinkedList<>();
-
-		// Sync the TPM Public with Server, if it is initial set-up and TPM is available
-		String keyIndex = null;
-		final boolean isInitialSetUp = RegistrationConstants.ENABLE
-				.equalsIgnoreCase(getGlobalConfigValueOf(RegistrationConstants.INITIAL_SETUP));
-
-		if (isInitialSetUp && RegistrationConstants.ENABLE
-				.equals(getGlobalConfigValueOf(RegistrationConstants.TPM_AVAILABILITY))) {
-			try {
-				keyIndex = tpmPublicKeySyncService.syncTPMPublicKey();
-			} catch (RegBaseCheckedException regBaseCheckedException) {
-				LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-						"Exception while syncing the TPM public key to server");
-				val.add(RegistrationConstants.FAILURE);
-				return val;
-			}
-		}
-		else
-			keyIndex = getKeyIndexForLocalEnv(isInitialSetUp);		
-
-		performingAllSyncOperations(val, keyIndex, isInitialSetUp);
+		List<String> results = new LinkedList<>();		
+		final boolean isInitialSetUp = RegistrationConstants.ENABLE.equalsIgnoreCase(getGlobalConfigValueOf(RegistrationConstants.INITIAL_SETUP));		
+		ResponseDTO responseDTO = null;
 		
-		LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "completed Initial sync");
+		try {			
+			responseDTO = publicKeySyncImpl.getPublicKey(RegistrationConstants.JOB_TRIGGER_POINT_USER);
+			validateResponse(responseDTO, PUBLIC_KEY_SYNC_STEP);
+			
+			String keyIndex = verifyMachinePublicKeyMapping(isInitialSetUp);
+						
+			responseDTO = globalParamService.synchConfigData(false);
+			validateResponse(responseDTO, GLOBAL_PARAM_SYNC_STEP);
+			if(responseDTO.getSuccessResponseDTO().getOtherAttributes() != null)
+				results.add(RegistrationConstants.RESTART);
+			
+			responseDTO = isInitialSetUp ? masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
+								RegistrationConstants.JOB_TRIGGER_POINT_USER, keyIndex) : 
+							masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
+								RegistrationConstants.JOB_TRIGGER_POINT_USER);
+			validateResponse(responseDTO, CLIENTSETTINGS_SYNC_STEP);
+			
+			responseDTO = userDetailService.save(RegistrationConstants.JOB_TRIGGER_POINT_USER);
+			validateResponse(responseDTO, USER_DETAIL_SYNC_STEP);
 
-		return val;
-
+			responseDTO = userSaltDetailsService.getUserSaltDetails(RegistrationConstants.JOB_TRIGGER_POINT_USER);
+			validateResponse(responseDTO, USER_SALT_SYNC_STEP);
+			
+			results.add(RegistrationConstants.SUCCESS);
+			
+			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "completed Initial sync");
+		
+		} catch (RegBaseCheckedException e) {
+			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(e));
+			results.add(isAuthTokenEmptyException(e) ? RegistrationConstants.AUTH_TOKEN_NOT_RECEIVED_ERROR : RegistrationConstants.FAILURE);			
+		}
+		return results;
 	}
 	
-	/**
+	
+	//TODO - till today check was based on only properties flag, should we do real check ?
+	//TODO - need to work on generating new key pair
+	private String verifyMachinePublicKeyMapping(boolean isInitialSetup) throws RegBaseCheckedException {		
+		final boolean tpmAvailable = RegistrationConstants.ENABLE.equals(getGlobalConfigValueOf(RegistrationConstants.TPM_AVAILABILITY));		
+		String keyIndex = tpmAvailable ? tpmPublicKeySyncService.syncTPMPublicKey() : getKeyIndexForLocalEnv(isInitialSetup);
+		return keyIndex;
+	}
+	
+	private void validateResponse(ResponseDTO responseDTO, String syncStep) throws RegBaseCheckedException {
+		if(responseDTO == null)
+			throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_SYNC_NO_RESPONSE.getErrorCode(), 
+					RegistrationExceptionConstants.REG_SYNC_NO_RESPONSE.getErrorMessage());
+		
+		if(responseDTO.getErrorResponseDTOs() != null) {
+			if(RegistrationExceptionConstants.AUTH_TOKEN_COOKIE_NOT_FOUND.getErrorCode()
+			.equals(responseDTO.getErrorResponseDTOs().get(0).getMessage()))
+				throw new RegBaseCheckedException(RegistrationExceptionConstants.AUTH_TOKEN_COOKIE_NOT_FOUND.getErrorCode(), 
+						RegistrationExceptionConstants.AUTH_TOKEN_COOKIE_NOT_FOUND.getErrorMessage());
+			else
+				throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_SYNC_FAILURE.getErrorCode(),
+						String.format(RegistrationExceptionConstants.REG_SYNC_FAILURE.getErrorMessage(), syncStep));
+		}
+		
+		LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "Initial Sync Done : " + syncStep);
+	}
+	
+	
+	/*
 	 * fetches keyIndex from system environment
 	 * Temporary solution, will soon be using profile(environment) value from server to decide on 
 	 * which key to use.
-	 * 
-	 * @param isInitialSetUp
-	 * @return
 	 */
-	 //TODO need to handle based on environment value passed from server.
 	private String getKeyIndexForLocalEnv(boolean isInitialSetUp) {
 		if(!isInitialSetUp)
 			return null;
@@ -342,89 +385,7 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 		return System.getenv(MOSIP_KEY_INDEX_KEY);
 	}
 
-	/**
-	 * Performing all sync operations.
-	 *
-	 * @param val            the List of values
-	 * @param keyIndex       the key index
-	 * @param isInitialSetUp the isInitialSetUp flag
-	 */
-	private void performingAllSyncOperations(List<String> val, String keyIndex, final boolean isInitialSetUp) {
-		ResponseDTO publicKeySyncResponse=null;
-		try {
-			publicKeySyncResponse = publicKeySyncImpl
-					.getPublicKey(RegistrationConstants.JOB_TRIGGER_POINT_USER);
-			ResponseDTO responseDTO = globalParamService.synchConfigData(false);
-			ResponseDTO userResponseDTO = new ResponseDTO();
-			ResponseDTO userSaltResponse = new ResponseDTO();
-			SuccessResponseDTO successResponseDTO = responseDTO.getSuccessResponseDTO();
-			if (successResponseDTO != null && successResponseDTO.getOtherAttributes() != null) {
-				val.add(RegistrationConstants.RESTART);
-			}
-
-			ResponseDTO masterResponseDTO = null;
-			if (isInitialSetUp) {
-				masterResponseDTO = masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
-						RegistrationConstants.JOB_TRIGGER_POINT_USER, keyIndex);
-
-			} else {
-				masterResponseDTO = masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
-						RegistrationConstants.JOB_TRIGGER_POINT_USER);
-
-			}
-			onSyncOperation(val, publicKeySyncResponse, responseDTO, userResponseDTO, userSaltResponse,
-					masterResponseDTO);
-		} catch (RegBaseCheckedException exRegBaseCheckedException) {
-			if (isAuthTokenEmptyException(exRegBaseCheckedException)) {
-				val.add(RegistrationConstants.AUTH_TOKEN_NOT_RECEIVED_ERROR);
-			} else {
-				val.add(RegistrationConstants.FAILURE);
-			}
-			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-					ExceptionUtils.getStackTrace(exRegBaseCheckedException));
-		}
-	}
-
-	private void onSyncOperation(List<String> val, ResponseDTO publicKeySyncResponse, ResponseDTO responseDTO,
-			ResponseDTO userResponseDTO, ResponseDTO userSaltResponse, ResponseDTO masterResponseDTO)
-			throws RegBaseCheckedException {
-		if (null != masterResponseDTO && null != masterResponseDTO.getSuccessResponseDTO()) {
-			userResponseDTO = userDetailService.save(RegistrationConstants.JOB_TRIGGER_POINT_USER);
-
-			userSaltResponse = getUserSaltResponse(userResponseDTO, userSaltResponse);
-		}
-		if ((null != masterResponseDTO && masterResponseDTO.getErrorResponseDTOs() != null)
-				|| userResponseDTO.getErrorResponseDTOs() != null
-				|| userSaltResponse.getErrorResponseDTOs() != null || responseDTO.getErrorResponseDTOs() != null
-				|| publicKeySyncResponse.getErrorResponseDTOs() != null) {
-			if (isAuthTokeEmptyError(masterResponseDTO, userResponseDTO, userSaltResponse, publicKeySyncResponse)) {
-				val.add(RegistrationConstants.AUTH_TOKEN_NOT_RECEIVED_ERROR);
-			} else {
-				val.add(RegistrationConstants.FAILURE);
-			}
-		} else {
-			val.add(RegistrationConstants.SUCCESS);
-		}
-	}
-
-	/**
-	 * Gets the user salt response.
-	 *
-	 * @param userResponseDTO the user response DTO
-	 * @param userSaltResponse the user salt response
-	 * @return the user salt response
-	 * @throws RegBaseCheckedException the reg base checked exception
-	 */
-	private ResponseDTO getUserSaltResponse(ResponseDTO userResponseDTO, ResponseDTO userSaltResponse)
-			throws RegBaseCheckedException {
-		if (null != userResponseDTO.getSuccessResponseDTO()) {
-			userSaltResponse = userSaltDetailsService
-					.getUserSaltDetails(RegistrationConstants.JOB_TRIGGER_POINT_USER);
-
-		}
-		return userSaltResponse;
-	}
-
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -631,21 +592,6 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 		if(null == userDTO) {
 			throwRegBaseCheckedException(RegistrationExceptionConstants.REG_LOGIN_USER_DTO_EXCEPTION);
 		} 
-	}
-
-	/**
-	 * Checks if is auth toke empty error.
-	 *
-	 * @param masterSync the master sync
-	 * @param userSync the user sync
-	 * @param saltSync the salt sync
-	 * @param publicKeySync the public key sync
-	 * @return true, if is auth toke empty error
-	 */
-	private boolean isAuthTokeEmptyError(ResponseDTO masterSync, ResponseDTO userSync, ResponseDTO saltSync,
-			ResponseDTO publicKeySync) {
-		return (isAuthTokenEmptyError(masterSync) || isAuthTokenEmptyError(userSync) || isAuthTokenEmptyError(saltSync)
-				|| isAuthTokenEmptyError(publicKeySync));
 	}
 
 }

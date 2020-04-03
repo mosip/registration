@@ -194,9 +194,10 @@ public enum RegistrationExceptionConstants {
 	REG_MASTER_BIO_SERVICE_IMPL_IRIS_AUTHENTICATION("REG-MSS-002","user id is null"),
 	REG_MASTER_BIO_SERVICE_IMPL_FINGERPRINT_IMAGE_TYPE("REG-MSS-003","finger type is null"),
 	REG_MASTER_BIO_SERVICE_IMPL_FINGERPRINT_SCANNED_PATH("REG-MSS-004","path string is null"),
-	REG_MASTER_BIO_SERVICE_IMPL_IRIS_IMAGE("REG-MSS-005","iris string is null");
+	REG_MASTER_BIO_SERVICE_IMPL_IRIS_IMAGE("REG-MSS-005","iris string is null"),
 
-
+	REG_SYNC_NO_RESPONSE("REG-SYN-001","Response cannot be null or empty"),
+	REG_SYNC_FAILURE("REG-SYN-002","%s failed");
 
 	
 	/**
