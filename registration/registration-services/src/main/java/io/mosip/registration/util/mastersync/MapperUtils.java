@@ -550,7 +550,7 @@ public class MapperUtils {
 				dfield.set(destination, getLocalDateTimeValue(jsonObject.getString(dfield.getName())));
 				break;
 			case "java.time.LocalDate":
-				dfield.set(destination, getLocalDateTimeValue(jsonObject.getString(dfield.getName())));
+				dfield.set(destination, getLocalDateValue(jsonObject.getString(dfield.getName())));
 				break;
 			default:
 				dfield.set(destination, jsonObject.get(dfield.getName()));
@@ -585,8 +585,7 @@ public class MapperUtils {
 	private static LocalDate getLocalDateValue(String value) {
 		LocalDate timestamp = null;
 		try {
-			Instant instant = Instant.parse(value);
-			timestamp = LocalDate.ofInstant(instant, ZoneId.of(ZoneOffset.UTC.getId()));
+			timestamp = LocalDate.parse(value);
 			return timestamp;
 		} catch(DateTimeParseException ex) {
 			LOGGER.error(MAPPER_UTILL, APPLICATION_NAME, APPLICATION_ID, "Failed to parse LocalDate, invalid format >> " + value);
