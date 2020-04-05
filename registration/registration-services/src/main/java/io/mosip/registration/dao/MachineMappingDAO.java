@@ -19,14 +19,12 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 public interface MachineMappingDAO {
 
 	/**
-	 * This method is used to get station id by using mac address
-	 * 
-	 * @param MacAddress
-	 *            machine mac address
-	 * @return station ID
-	 * @throws RegBaseCheckedException Registration Base Checked Exception
+	 * This method is used to get station id by using machine name
+	 * @param machineName
+	 * @return
+	 * @throws RegBaseCheckedException
 	 */
-	String getStationID(String MacAddress) throws RegBaseCheckedException;
+	String getStationID(String machineName) throws RegBaseCheckedException;
 	
 	/**
 	 * This method is used to check the validity of the device.
@@ -64,15 +62,6 @@ public interface MachineMappingDAO {
 	 * @return is exists or not
 	 */
 	boolean isExists(String userId);
-
-	/**
-	 * This method is used to get the key index of the Machine based on MAC Id
-	 * 
-	 * @param macId
-	 *            the MAC Id of the machine
-	 * @return the key index of the machine
-	 */
-	String getKeyIndexByMacId(String macId);
 	
 	/**
 	 * This method is used to get the key index of the Machine based on MachineName

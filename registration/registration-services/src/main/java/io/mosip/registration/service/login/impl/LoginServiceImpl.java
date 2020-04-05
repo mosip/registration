@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
@@ -47,6 +48,7 @@ import io.mosip.registration.service.login.LoginService;
 import io.mosip.registration.service.operator.UserDetailService;
 import io.mosip.registration.service.operator.UserOnboardService;
 import io.mosip.registration.service.operator.UserSaltDetailsService;
+import io.mosip.registration.service.security.ClientSecurity;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.service.sync.PublicKeySync;
 import io.mosip.registration.service.sync.TPMPublicKeySyncService;
@@ -122,8 +124,12 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 
 	@Autowired
 	private UserSaltDetailsService userSaltDetailsService;
+	
 	@Autowired
 	private TPMPublicKeySyncService tpmPublicKeySyncService;
+	
+	@Autowired
+	private ClientSecurity clientSecurity;
 
 	/*
 	 * (non-Javadoc)
@@ -373,16 +379,11 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 	}
 	
 	
-	/*
-	 * fetches keyIndex from system environment
-	 * Temporary solution, will soon be using profile(environment) value from server to decide on 
-	 * which key to use.
-	 */
 	private String getKeyIndexForLocalEnv(boolean isInitialSetUp) {
 		if(!isInitialSetUp)
 			return null;
 		
-		return System.getenv(MOSIP_KEY_INDEX_KEY);
+		return CryptoUtil.computeFingerPrint(clientSecurity.getSigningPublicPart(), null);
 	}
 
 	

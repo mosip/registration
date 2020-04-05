@@ -377,7 +377,7 @@ public class PacketMetaInfoConverter extends CustomConverter<RegistrationDTO, Pa
 		// Add Dongle ID
 		metaData.add(buildFieldValue("dongleId", metaDataDTO.getDeviceId()));
 		// Add MAC ID
-		metaData.add(buildFieldValue("macId", RegistrationSystemPropertiesChecker.getMachineId()));
+		metaData.add(buildFieldValue("macId", RegistrationSystemPropertiesChecker.getMachineMacAddress()));
 		// Add Center ID
 		metaData.add(buildFieldValue("centerId", metaDataDTO.getCenterId()));
 		// Add Previous Registration ID

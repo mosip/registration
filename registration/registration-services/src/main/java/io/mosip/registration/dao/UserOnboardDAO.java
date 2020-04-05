@@ -27,15 +27,15 @@ public interface UserOnboardDAO {
 	String insert(BiometricDTO biometricDTO);
 	
 	/**
-	 * This method is used to get Station ID by giving mac address of the machine.
+	 * This method is used to get Station ID by giving machine name.
 	 *
-	 * @param MacAddress
-	 * 				machine mac address
+	 * @param machineName
+	 * 				machine name
 	 * @return station ID
 	 * @throws RegBaseCheckedException 
 	 * 				the reg base checked exception
 	 */
-	String getStationID(String MacAddress) throws RegBaseCheckedException;
+	String getStationID(String machineName) throws RegBaseCheckedException;
 	
 	/**
 	 * This method is used to get center ID using stationID.

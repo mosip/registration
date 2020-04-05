@@ -21,7 +21,7 @@ public class RegistrationSystemPropertiesCheckerTest {
 	@Ignore
 	@Test
 	public void macAddressValidationTest() {
-		String macAddress = RegistrationSystemPropertiesChecker.getMachineId();
+		String macAddress = RegistrationSystemPropertiesChecker.getMachineMacAddress();
 		Pattern pattern = Pattern.compile(PATTERN);
 		Matcher matcher = pattern.matcher(macAddress);
 		assertTrue(matcher.matches());
