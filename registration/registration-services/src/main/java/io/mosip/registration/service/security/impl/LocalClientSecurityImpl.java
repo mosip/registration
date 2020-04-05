@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -208,8 +210,9 @@ public class LocalClientSecurityImpl implements ClientSecurity {
 		builder.append("\r\n");
 		builder.append("KeyIndex: ");
 		builder.append(CryptoUtil.computeFingerPrint(publicKey.getEncoded(), null));
+		builder.append("\r\n");
 		
-		Files.writeString(Paths.get(getKeysDirPath() + File.separator + README), builder.toString(), 
+		Files.write(Paths.get(getKeysDirPath() + File.separator + README), builder.toString().getBytes(StandardCharsets.UTF_8), 
 				StandardOpenOption.CREATE);	
 	}
 
