@@ -208,7 +208,9 @@ public enum RegistrationExceptionConstants {
 	NON_TPM_ASYMMETRIC_DECRYPT_ERROR("REG-NONTPM-004",
 			"Exception while encrypting the data using asymmetric crypto-algorithm through NON-TPM"),
 	NON_TPM_GET_SIGN_KEY_ERROR("REG-NONTPM-005", "Exception while public key of NON-TPM Local client security"),
-	NON_TPM_GET_TPM_INSTANCE_ERROR("REG-NONTPM-006", "Exception while setting NON-TPM Local client security");
+	NON_TPM_GET_TPM_INSTANCE_ERROR("REG-NONTPM-006", "Exception while setting NON-TPM Local client security"),
+	
+	TPM_REQUIRED("REG-TPM-001", "TPM INSTANCE IS REQUIRED");
 
 	
 	/**

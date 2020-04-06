@@ -64,7 +64,6 @@ import io.mosip.registration.service.sync.TPMPublicKeySyncService;
 @Service
 public class LoginServiceImpl extends BaseService implements LoginService {
 	
-	private final String MOSIP_KEY_INDEX_KEY = "mosip.keyindex";
 	private final String PUBLIC_KEY_SYNC_STEP = "PublicKey Sync";
 	private final String MACHINE_KEY_VERIFICATION_STEP = "Machine-Key verification";
 	private final String GLOBAL_PARAM_SYNC_STEP = "Global parameter Sync";
@@ -322,6 +321,7 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 			validateResponse(responseDTO, PUBLIC_KEY_SYNC_STEP);
 			
 			String keyIndex = verifyMachinePublicKeyMapping(isInitialSetUp);
+			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "Initial Verifiation Done : " + MACHINE_KEY_VERIFICATION_STEP);
 						
 			responseDTO = globalParamService.synchConfigData(false);
 			validateResponse(responseDTO, GLOBAL_PARAM_SYNC_STEP);
@@ -353,9 +353,19 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 	
 	
 	//TODO - till today check was based on only properties flag, should we do real check ?
-	//TODO - need to work on generating new key pair
-	private String verifyMachinePublicKeyMapping(boolean isInitialSetup) throws RegBaseCheckedException {		
-		final boolean tpmAvailable = RegistrationConstants.ENABLE.equals(getGlobalConfigValueOf(RegistrationConstants.TPM_AVAILABILITY));		
+	private String verifyMachinePublicKeyMapping(boolean isInitialSetup) throws RegBaseCheckedException {
+		final boolean tpmAvailable = RegistrationConstants.ENABLE.equals(getGlobalConfigValueOf(RegistrationConstants.TPM_AVAILABILITY));
+		final String environment = getGlobalConfigValueOf(RegistrationConstants.SERVER_ACTIVE_PROFILE);
+		
+		if(RegistrationConstants.SERVER_PROD_PROFILE.equalsIgnoreCase(environment) && !tpmAvailable) {
+			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "TPM IS REQUIRED TO BE ENABLED.");
+			throw new RegBaseCheckedException(RegistrationExceptionConstants.TPM_REQUIRED.getErrorCode(),
+					RegistrationExceptionConstants.TPM_REQUIRED.getErrorMessage());
+		}
+		
+		LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "CURRENT PROFILE : " + 
+				environment != null ? environment : RegistrationConstants.SERVER_NO_PROFILE);
+		
 		String keyIndex = tpmAvailable ? tpmPublicKeySyncService.syncTPMPublicKey() : getKeyIndexForLocalEnv(isInitialSetup);
 		return keyIndex;
 	}
