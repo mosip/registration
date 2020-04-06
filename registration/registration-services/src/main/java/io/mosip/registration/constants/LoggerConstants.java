@@ -193,7 +193,8 @@ public class LoggerConstants {
 
 	public static final String STREAMER = "STREAMER";
 	
-
+	public static final String TPM_CLIENT_SECURITY_IMPL = "TPM_CLIENT_SECURITY_IMPL";
+	public static final String LOCAL_CLIENT_SECURITY_IMPL = "LOCAL_CLIENT_SECURITY_IMPL";
 
 	
 }

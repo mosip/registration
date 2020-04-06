@@ -221,28 +221,25 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 	}
 
 	/*
-	 * (non-Javadoc) Getting station id based on mac address
+	 * (non-Javadoc) Getting station id based on machine name
 	 * 
 	 * @see
 	 * io.mosip.registration.dao.MachineMappingDAO#getStationID(java.lang.String)
 	 */
 	@Override
-	public String getStationID(String macAdres) throws RegBaseCheckedException {
+	public String getStationID(String machineName) throws RegBaseCheckedException {
 
 		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
-				"getStationID() macAddress --> " + macAdres);
+				"getStationID() machineName --> " + machineName);
 
 		try {
 
-			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "fetching mac address....");
+			MachineMaster machineMaster = machineMasterRepository
+					.findByIsActiveTrueAndNameAndRegMachineSpecIdLangCode(machineName.toLowerCase(), ApplicationContext.applicationLanguage());
 
-			MachineMaster macAddressOfMachineMaster = machineMasterRepository
-					.findByIsActiveTrueAndMacAddressAndRegMachineSpecIdLangCode(macAdres,
-							ApplicationContext.applicationLanguage());
+			if (machineMaster != null && machineMaster.getRegMachineSpecId().getId() != null) {
 
-			if (macAddressOfMachineMaster != null && macAddressOfMachineMaster.getRegMachineSpecId().getId() != null) {
-
-				return macAddressOfMachineMaster.getRegMachineSpecId().getId();
+				return machineMaster.getRegMachineSpecId().getId();
 
 			} else {
 

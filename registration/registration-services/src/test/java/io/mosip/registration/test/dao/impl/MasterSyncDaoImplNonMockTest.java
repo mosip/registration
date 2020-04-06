@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -15,17 +14,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.mosip.registration.config.AppConfig;
-import io.mosip.registration.config.ApplicationContextProvider;
-import io.mosip.registration.config.PropertiesConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 
@@ -37,9 +31,7 @@ import io.mosip.registration.entity.UserDetail;
 import io.mosip.registration.repositories.BiometricAttributeRepository;
 import io.mosip.registration.repositories.BiometricTypeRepository;
 import io.mosip.registration.repositories.MachineMasterRepository;
-import io.mosip.registration.repositories.RegistrationCenterUserRepository;
 import io.mosip.registration.repositories.UserDetailRepository;
-
 import io.mosip.registration.test.config.TestDaoConfig;
 
 
@@ -48,10 +40,7 @@ import io.mosip.registration.test.config.TestDaoConfig;
  *
  */
 @RunWith(SpringRunner.class)
-//@ContextConfiguration(classes= {ApplicationContextProvider.class, AppConfig.class})
 @ContextConfiguration(classes= {TestDaoConfig.class})
-//@SpringBootTest(classes= {PropertiesConfig.class, ApplicationContextProvider.class, AppConfig.class, DaoConfig.class})
-//@PrepareForTest({ ApplicationContext.class, SessionContext.class })
 public class MasterSyncDaoImplNonMockTest {
 	
 	@Autowired
@@ -71,7 +60,7 @@ public class MasterSyncDaoImplNonMockTest {
 	
 	@Autowired
 	private MachineMasterRepository machineMasterRepository;
-
+	
 	
 	@BeforeClass
 	public static void setup() throws Exception {		

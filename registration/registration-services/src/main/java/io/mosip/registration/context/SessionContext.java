@@ -509,7 +509,7 @@ public class SessionContext {
 
 		userDTO.getUserMachineMapping().forEach(machineMapping -> {
 			if (machineMapping.isActive()) {
-				machineList.add(machineMapping.getMachineMaster().getMacAddress());
+				machineList.add(machineMapping.getMachineMaster().getName());
 				centerList.add(machineMapping.getCentreID());
 			}
 		});

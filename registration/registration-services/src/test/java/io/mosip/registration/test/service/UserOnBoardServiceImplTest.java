@@ -67,7 +67,7 @@ public class UserOnBoardServiceImplTest {
 	private RegistrationAppHealthCheckUtil registrationAppHealthCheckUtil;
 	
 	@Mock
-	private RegistrationSystemPropertiesChecker RegistrationSystemPropertiesChecker;
+	private RegistrationSystemPropertiesChecker registrationSystemPropertiesChecker;
 	
 	@InjectMocks
 	private UserOnboardServiceImpl userOnboardServiceImpl;
@@ -851,7 +851,7 @@ public class UserOnBoardServiceImplTest {
 		
 		PowerMockito.mockStatic(RegistrationSystemPropertiesChecker.class);
 		
-		Mockito.when(RegistrationSystemPropertiesChecker.getMachineId()).thenReturn("1A-2B-3C-4D-5E");
+		Mockito.when(registrationSystemPropertiesChecker.getMachineId()).thenReturn("localhost");
 		Mockito.when(userOnBoardDao.getStationID(Mockito.anyString())).thenReturn("1947");
 		Mockito.when(userOnBoardDao.getCenterID(Mockito.anyString())).thenReturn("abc123");
 		
@@ -867,7 +867,7 @@ public class UserOnBoardServiceImplTest {
 		
 		PowerMockito.mockStatic(RegistrationSystemPropertiesChecker.class);
 		
-		Mockito.when(RegistrationSystemPropertiesChecker.getMachineId()).thenReturn("1A-2B-3C-4D-5E");
+		Mockito.when(registrationSystemPropertiesChecker.getMachineId()).thenReturn("localhost");
 		Mockito.when(userOnBoardDao.getStationID(Mockito.anyString())).thenReturn("1947");
 		Mockito.when(userOnBoardDao.getCenterID(Mockito.anyString())).thenThrow(RegBaseCheckedException.class);
 		

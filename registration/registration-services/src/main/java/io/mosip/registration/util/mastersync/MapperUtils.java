@@ -10,6 +10,8 @@ import java.lang.reflect.Modifier;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -19,6 +21,12 @@ import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
@@ -49,17 +57,11 @@ public class MapperUtils {
 	
 	private static final String FIELD_MISSING_ERROR_MESSAGE = "Field %s not found in data";
 	
-	private static final SimpleDateFormat SIMPLE_DATE_FORMAT_1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-	private static final SimpleDateFormat SIMPLE_DATE_FORMAT_2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-	private static final SimpleDateFormat SIMPLE_DATE_FORMAT_3 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
+	private static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";	
+	private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat(DATE_TIME_FORMAT);
 	
-	private static List<SimpleDateFormat> SUPPORTED_DATE_FORMATS = new ArrayList<SimpleDateFormat>();
-
 	private MapperUtils() {
 		super();
-		SUPPORTED_DATE_FORMATS.add(SIMPLE_DATE_FORMAT_1);
-		SUPPORTED_DATE_FORMATS.add(SIMPLE_DATE_FORMAT_2);
-		SUPPORTED_DATE_FORMATS.add(SIMPLE_DATE_FORMAT_3);
 	}
 
 	private static final String SOURCE_NULL_MESSAGE = "source should not be null";
@@ -475,6 +477,8 @@ public class MapperUtils {
 	 * @throws ParseException 
 	 */
 	public static <D> D mapJSONObjectToEntity(final JSONObject jsonObject, Class<?> entityClass) throws IllegalAccessException, InstantiationException, ParseException {
+		LOGGER.debug(MAPPER_UTILL, APPLICATION_NAME, APPLICATION_ID, "Building entity of type : " + entityClass.getName());
+		
 		Objects.requireNonNull(jsonObject, SOURCE_NULL_MESSAGE);
 		Objects.requireNonNull(entityClass, "destination class should not be null");
 		Object destination = null;
@@ -482,7 +486,7 @@ public class MapperUtils {
 			destination = entityClass.newInstance();
 		} catch (InstantiationException | IllegalAccessException exOperationException) {
 			LOGGER.error(MAPPER_UTILL, APPLICATION_NAME, APPLICATION_ID, "Exception in mapping vlaues from source : "
-					+ jsonObject.getClass().getName() + " to destination : " + entityClass.getClass().getName());
+					+ jsonObject.getClass().getName() + " to destination : " + entityClass.getName());
 			throw new RegBaseUncheckedException(MAPPER_UTILL,
 					exOperationException.getMessage() + ExceptionUtils.getStackTrace(exOperationException));
 		}
@@ -542,6 +546,12 @@ public class MapperUtils {
 			case "java.sql.Timestamp" :
 				dfield.set(destination, getTimestampValue(jsonObject.getString(dfield.getName())));
 				break;
+			case "java.time.LocalDateTime":
+				dfield.set(destination, getLocalDateTimeValue(jsonObject.getString(dfield.getName())));
+				break;
+			case "java.time.LocalDate":
+				dfield.set(destination, getLocalDateValue(jsonObject.getString(dfield.getName())));
+				break;
 			default:
 				dfield.set(destination, jsonObject.get(dfield.getName()));
 				break;
@@ -551,13 +561,34 @@ public class MapperUtils {
 	
 	private static Timestamp getTimestampValue(String value) {
 		Timestamp timestamp = null;
-		for(SimpleDateFormat format : SUPPORTED_DATE_FORMATS) {
-			try {
-				timestamp = new Timestamp(format.parse(value).getTime());
-				return timestamp;
-			} catch(ParseException ex) {
-				
-			}
+		try {
+			timestamp = new Timestamp(SIMPLE_DATE_FORMAT.parse(value).getTime());
+			return timestamp;
+		} catch(ParseException ex) {
+			LOGGER.error(MAPPER_UTILL, APPLICATION_NAME, APPLICATION_ID, "Failed to parse timestamp, invalid format >> " + value);
+		}
+		return timestamp;
+	}
+	
+	private static LocalDateTime getLocalDateTimeValue(String value) {
+		LocalDateTime timestamp = null;
+		try {
+			Instant instant = Instant.parse(value);
+			timestamp = LocalDateTime.ofInstant(instant, ZoneId.of(ZoneOffset.UTC.getId()));
+			return timestamp;
+		} catch(DateTimeParseException ex) {
+			LOGGER.error(MAPPER_UTILL, APPLICATION_NAME, APPLICATION_ID, "Failed to parse LocalDateTime, invalid format >> " + value);
+		}
+		return timestamp;
+	}
+	
+	private static LocalDate getLocalDateValue(String value) {
+		LocalDate timestamp = null;
+		try {
+			timestamp = LocalDate.parse(value);
+			return timestamp;
+		} catch(DateTimeParseException ex) {
+			LOGGER.error(MAPPER_UTILL, APPLICATION_NAME, APPLICATION_ID, "Failed to parse LocalDate, invalid format >> " + value);
 		}
 		return timestamp;
 	}

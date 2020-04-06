@@ -6,6 +6,9 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -15,6 +18,8 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.exception.RegistrationExceptionConstants;
 
 /**
  * Registration System Properties Checker
@@ -36,16 +41,31 @@ public class RegistrationSystemPropertiesChecker {
 	}
 
 	/**
-	 * This method is used to get Ethernet MAC Address.
+	 * This method is used to get machine name.
 	 * 
+	 * @return machine name
+	 * @throws RegBaseCheckedException 
+	 */
+	public static String getMachineId() {
+		String machineName = "";
+		try {
+			machineName = InetAddress.getLocalHost().getHostName();
+		} catch (UnknownHostException e) {
+			LOGGER.error(LOG_REG_MAC_ADDRESS, RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, ExceptionUtils.getStackTrace(e));
+		}
+		return machineName.toLowerCase();
+	}
+	
+	/**
+	 * This method is used to get Ethernet MAC Address.
 	 * <p>
 	 * Based on the Operating System, the command gets executed and the MAC Address
 	 * is fetched from the result of execution of the command.
 	 * </p>
-	 * 
-	 * @return machine ID
+	 * @return machine mac address
 	 */
-	public static String getMachineId() {
+	public static String getMachineMacAddress() {
 		String machineId = "";
 		if (System.getProperty("os.name").equals("Linux")) {
 			try {

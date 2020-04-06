@@ -83,22 +83,23 @@ public class UserClientMachineMappingDAOTest {
 
 	@Test(expected = RegBaseUncheckedException.class)
 	public void getStationIDRunException() throws RegBaseCheckedException {
-		Mockito.when(machineMasterRepository.findByIsActiveTrueAndMacAddressAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
+		Mockito.when(machineMasterRepository.findByIsActiveTrueAndNameAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
 				.thenThrow(new RegBaseUncheckedException());
-		machineMappingDAOImpl.getStationID("8C-16-45-88-E7-0B");
+		machineMappingDAOImpl.getStationID("localhost");
 	}
 
 	@Test
 	public void getStationID() throws RegBaseCheckedException {
 		MachineMaster machineMaster = new MachineMaster();
+		machineMaster.setName("localhost");
 		machineMaster.setMacAddress("8C-16-45-88-E7-0C");
 		RegMachineSpecId specId = new RegMachineSpecId();
 		specId.setId("100131");
 		specId.setLangCode("eng");
 		machineMaster.setRegMachineSpecId(specId);
-		Mockito.when(machineMasterRepository.findByIsActiveTrueAndMacAddressAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
+		Mockito.when(machineMasterRepository.findByIsActiveTrueAndNameAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(machineMaster);
-		String stationId = machineMappingDAOImpl.getStationID("8C-16-45-88-E7-0C");
+		String stationId = machineMappingDAOImpl.getStationID("localhost");
 		Assert.assertSame("100131", stationId);
 	}
 
@@ -107,7 +108,7 @@ public class UserClientMachineMappingDAOTest {
 		Mockito.when(centerMachineRepository.findByIsActiveTrueAndCenterMachineIdMachineId(Mockito.anyString()))
 				.thenReturn(null);
 		try {
-			machineMappingDAOImpl.getStationID("8C-16-45-88-E7-0C");
+			machineMappingDAOImpl.getStationID("localhost");
 		} catch (RegBaseCheckedException regBaseCheckedException) {
 			Assert.assertNotNull(regBaseCheckedException);
 		}
@@ -176,24 +177,24 @@ public class UserClientMachineMappingDAOTest {
 	}
 
 	@Test
-	public void getKeyIndexByMacIdTest() {
+	public void getKeyIndexByNameTest() {
 		MachineMaster machineMaster = PowerMockito.mock(MachineMaster.class);
 		machineMaster.setKeyIndex("keyIndex");
 
-		PowerMockito.when(machineMasterRepository.findByIsActiveTrueAndMacAddressAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
+		PowerMockito.when(machineMasterRepository.findByIsActiveTrueAndNameAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(machineMaster);
 
-		Assert.assertEquals(machineMaster.getKeyIndex(), machineMappingDAOImpl.getKeyIndexByMacId("name"));
+		Assert.assertEquals(machineMaster.getKeyIndex(), machineMappingDAOImpl.getKeyIndexByMachineName("name"));
 
 	}
 
 	@Test
-	public void getKeyIndexByMacIdNullTest() {
+	public void getKeyIndexByMachineNameNullTest() {
 
-		PowerMockito.when(machineMasterRepository.findByIsActiveTrueAndMacAddressAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
+		PowerMockito.when(machineMasterRepository.findByIsActiveTrueAndNameAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(null);
 
-		Assert.assertNull(machineMappingDAOImpl.getKeyIndexByMacId("name"));
+		Assert.assertNull(machineMappingDAOImpl.getKeyIndexByMachineName("name"));
 
 	}
 

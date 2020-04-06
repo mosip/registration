@@ -28,6 +28,7 @@ import io.mosip.registration.dto.AuthTokenDTO;
 import io.mosip.registration.dto.LoginUserDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
+import io.mosip.registration.service.security.ClientSecurity;
 import io.mosip.registration.tpm.spi.TPMUtil;
 import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
 import io.mosip.registration.util.restclient.RequestHTTPDTO;
@@ -54,6 +55,8 @@ public class RestClientAuthAdvice {
 	private ServiceDelegateUtil serviceDelegateUtil;
 	@Autowired
 	private MachineMappingDAO machineMappingDAO;
+	@Autowired
+	private ClientSecurity clientSecurity;
 
 	/**
 	 * The {@link Around} advice method which be invoked for all web services. This
@@ -267,9 +270,9 @@ public class RestClientAuthAdvice {
 
 		try {
 			httpHeaders.add("request-signature", String.format("Authorization:%s", CryptoUtil
-					.encodeBase64(TPMUtil.signData(JsonUtils.javaObjectToJsonString(requestBody).getBytes()))));
+					.encodeBase64(clientSecurity.signData(JsonUtils.javaObjectToJsonString(requestBody).getBytes()))));
 			httpHeaders.add(RegistrationConstants.KEY_INDEX, CryptoUtil.encodeBase64String(String
-					.valueOf(machineMappingDAO.getKeyIndexByMacId(RegistrationSystemPropertiesChecker.getMachineId()))
+					.valueOf(machineMappingDAO.getKeyIndexByMachineName(RegistrationSystemPropertiesChecker.getMachineId()))
 					.getBytes()));
 		} catch (JsonProcessingException jsonProcessingException) {
 			throw new RegBaseCheckedException(RegistrationExceptionConstants.AUTHZ_ADDING_REQUEST_SIGN.getErrorCode(),

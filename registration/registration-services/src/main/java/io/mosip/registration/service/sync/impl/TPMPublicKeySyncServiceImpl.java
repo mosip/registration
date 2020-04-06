@@ -21,6 +21,7 @@ import io.mosip.registration.dto.tpm.PublicKeyUploadRequestDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
+import io.mosip.registration.service.security.ClientSecurity;
 import io.mosip.registration.service.sync.TPMPublicKeySyncService;
 import io.mosip.registration.tpm.spi.TPMUtil;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
@@ -39,8 +40,12 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 public class TPMPublicKeySyncServiceImpl implements TPMPublicKeySyncService {
 
 	private static final Logger LOGGER = AppConfig.getLogger(TPMPublicKeySyncServiceImpl.class);
+	
 	@Autowired
 	private ServiceDelegateUtil serviceDelegateUtil;
+	
+	@Autowired
+	private ClientSecurity clientSecurity;
 
 	/*
 	 * (non-Javadoc)
@@ -63,7 +68,7 @@ public class TPMPublicKeySyncServiceImpl implements TPMPublicKeySyncService {
 			tpmKeyUploadRequest.setRequesttime(DateUtils.getUTCCurrentDateTime());
 			PublicKeyUploadRequestDTO publicKeyUploadRequestDTO = new PublicKeyUploadRequestDTO();
 			publicKeyUploadRequestDTO.setMachineName(InetAddress.getLocalHost().getHostName());
-			publicKeyUploadRequestDTO.setPublicKey(CryptoUtil.encodeBase64(TPMUtil.getSigningPublicPart()));
+			publicKeyUploadRequestDTO.setPublicKey(CryptoUtil.encodeBase64(clientSecurity.getSigningPublicPart()));
 			tpmKeyUploadRequest.setRequest(publicKeyUploadRequestDTO);
 
 			Map<String, Object> publicKeyResponse = (Map<String, Object>) serviceDelegateUtil.post(

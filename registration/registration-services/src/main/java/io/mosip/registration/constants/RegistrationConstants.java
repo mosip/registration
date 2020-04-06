@@ -1611,4 +1611,9 @@ public class RegistrationConstants {
 	public static String DEDUPLICATION_IRIS_ENABLE_FLAG = "mosip.registration.mds.iris.dedup.enable.flag";
 	public static String DEDUPLICATION_FACE_ENABLE_FLAG = "mosip.registration.mds.face.dedup.enable.flag";
 	public static String RE_MAP_SUCCESS="rempaSucess";
+	
+	public static final String SERVER_PROFILE = "profile";
+	public static final String SERVER_PROD_PROFILE = "PROD";
+	public static final String SERVER_NO_PROFILE = "NO_PROFILE";
+	public static final String SERVER_ACTIVE_PROFILE = "mosip.registration.server_profile";
 }

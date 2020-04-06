@@ -39,6 +39,7 @@ import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.sync.PolicySyncService;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
+import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
 
 /**
  * 
@@ -70,7 +71,8 @@ public class PolicySyncServiceImpl extends BaseService implements PolicySyncServ
 		ResponseDTO responseDTO = new ResponseDTO();
 		try {
 			//if(null!getCenterId(getStationId(getMacAddress()));
-			String centerMachineId = getCenterId(getStationId(getMacAddress())) + "_" + getStationId(getMacAddress());
+			String stationId = getStationId(RegistrationSystemPropertiesChecker.getMachineId());
+			String centerMachineId = getCenterId(stationId) + "_" + stationId;
 
 			if (!RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
 				LOGGER.error("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID, "user is not in online");
@@ -132,9 +134,10 @@ public class PolicySyncServiceImpl extends BaseService implements PolicySyncServ
 	@SuppressWarnings("unchecked")
 	public synchronized void getPublicKey(ResponseDTO responseDTO, String centerMachineId,String validDate)
 			throws KeyManagementException, IOException, java.security.NoSuchAlgorithmException, RegBaseCheckedException {
+		String stationId = getStationId(RegistrationSystemPropertiesChecker.getMachineId());
 		LOGGER.debug("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID,
-				getCenterId(getStationId(getMacAddress())));
-		if(validate(responseDTO,centerMachineId,getCenterId(getStationId(getMacAddress()))))
+				getCenterId(stationId));
+		if(validate(responseDTO,centerMachineId,getCenterId(stationId)))
 {
 		KeyStore keyStore = new KeyStore();
 		List<ErrorResponseDTO> erResponseDTOs = new ArrayList<>();
@@ -204,8 +207,9 @@ public class PolicySyncServiceImpl extends BaseService implements PolicySyncServ
 
 		try {
 
+			String stationId = getStationId(RegistrationSystemPropertiesChecker.getMachineId());
 			KeyStore keyStore = policySyncDAO
-					.getPublicKey(getCenterId(getStationId(getMacAddress())) + "_" + getStationId(getMacAddress()));
+					.getPublicKey(getCenterId(stationId) + "_" + stationId);
 
 			if (keyStore != null) {
 				String val = getGlobalConfigValueOf(RegistrationConstants.KEY_NAME);
