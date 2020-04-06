@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Primary;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-import io.mosip.kernel.auth.adapter.util.TokenHandlerUtil;
 import io.mosip.kernel.cbeffutil.impl.CbeffImpl;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.fsadapter.spi.FileSystemAdapter;
@@ -49,10 +48,5 @@ public class KernelConfig {
 		return new ObjectMapper().registerModule(new JavaTimeModule());
 	}
 
-	@Bean
-	@Primary
-	public TokenHandlerUtil tokenHandlerUtil() {
-		return new TokenHandlerUtil();
-	}
 
 }
