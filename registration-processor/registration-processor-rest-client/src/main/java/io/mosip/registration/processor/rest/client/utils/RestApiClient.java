@@ -39,10 +39,10 @@ import org.springframework.web.client.RestTemplate;
 
 import com.google.gson.Gson;
 
-import io.mosip.kernel.auth.adapter.util.TokenHandlerUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.kernel.core.util.TokenHandlerUtil;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.rest.client.audit.dto.Metadata;
@@ -71,8 +71,7 @@ public class RestApiClient {
 
 	private static final String AUTHORIZATION = "Authorization=";
 
-	@Autowired
-	TokenHandlerUtil tokenHandlerUtil;
+
 
 	/**
 	 * Gets the api.
@@ -285,7 +284,7 @@ public class RestApiClient {
 
 		if (StringUtils.isNotEmpty(token)) {
 
-			isValid = tokenHandlerUtil.isValidBearerToken(token, environment.getProperty("token.request.issuerUrl"),
+			isValid = TokenHandlerUtil.isValidBearerToken(token, environment.getProperty("token.request.issuerUrl"),
 					environment.getProperty("token.request.clientId"));
 
 

@@ -110,6 +110,4 @@ public class RegistrationStatusServiceBeanConfig {
 	public Decryptor decryptor() {
 		return new Decryptor();
 	}
-
-
 }

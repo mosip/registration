@@ -22,8 +22,7 @@ import io.mosip.registration.processor.status.config.RegistrationStatusBeanConfi
  * The Class BioDedupeConfig.
  */
 @Configuration
-@ComponentScan(basePackages = {
-		"io.mosip.registration.processor.bio.dedupe.api.controller" },
+@ComponentScan(basePackages = { "io.mosip.registration.processor.bio.dedupe.api.controller", "io.mosip.registration.processor.core.*"},
 excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = {
 				RegistrationStatusBeanConfig.class,RestConfigBean.class, PacketStorageBeanConfig.class, KernelConfig.class, CoreConfigBean.class }))
 public class BioDedupeConfigTest {
