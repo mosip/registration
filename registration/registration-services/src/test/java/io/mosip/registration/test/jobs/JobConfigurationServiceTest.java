@@ -133,6 +133,13 @@ public class JobConfigurationServiceTest {
 		applicationMap.put(RegistrationConstants.SYNC_TRANSACTION_NO_OF_DAYS_LIMIT, "5");
 		applicationMap.put(RegistrationConstants.SYNC_DATA_FREQ, "0 0 11 * * ?");
 
+		applicationMap.put(RegistrationConstants.offlineJobs, "DEL_J00013,RDJ_J00010,ADJ_J00012,PVS_J00015");
+
+
+		applicationMap.put(RegistrationConstants.unTaggedJobs, "PDS_J00003");
+
+		applicationMap.put(RegistrationConstants.restartableJobs, "RCS_J00005");
+
 		// PowerMockito.mockStatic(io.mosip.registration.context.ApplicationContext.class);
 		// when(io.mosip.registration.context.ApplicationContext.map()).thenReturn(applicationMap);
 		// PowerMockito.mockStatic(io.mosip.registration.context.ApplicationContext.class);
@@ -353,6 +360,7 @@ public class JobConfigurationServiceTest {
 		PowerMockito.mockStatic(BaseJob.class);
 
 		Mockito.when(BaseJob.getCompletedJobMap()).thenReturn(completedJobMap);
+		
 		Assert.assertNotNull(jobConfigurationService.isRestart().getSuccessResponseDTO());
 
 	}
@@ -395,17 +403,20 @@ public class JobConfigurationServiceTest {
 
 	@Test
 	public void getOfflineJobsTest() {
+		initiateJobTest();
 		Assert.assertNotNull(jobConfigurationService.getOfflineJobs());
 	}
 
 	@Test
 	public void getUnTaggedJobsTest() {
+		initiateJobTest();
 		Assert.assertNotNull(jobConfigurationService.getUnTaggedJobs());
 	}
 
 	@Test
 	public void startSchedulerExcepTest() {
 
+		initiateJobTest();
 		Mockito.doThrow(RuntimeException.class).when(schedulerFactoryBean).start();
 
 		Assert.assertNotNull(jobConfigurationService.startScheduler().getErrorResponseDTOs());
