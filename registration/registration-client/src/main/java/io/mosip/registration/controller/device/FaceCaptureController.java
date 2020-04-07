@@ -935,13 +935,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 	public void setExceptionFaceDescriptionText(boolean isParentOrGuardianBiometricsCaptured) {
 		ResourceBundle applicationLanguage = ApplicationContext.applicationLanguageBundle();
 
-		String exceptionFaceDescription = applicationLanguage.getString("exceptionimage");
-
-		if (isParentOrGuardianBiometricsCaptured) {
-			exceptionFaceDescription = applicationLanguage.getString("parentOrGuardian").concat(" ")
-					.concat(exceptionFaceDescription.toLowerCase());
-		}
-
-		exceptionImageLabel.setText(exceptionFaceDescription);
+		
+		exceptionImageLabel.setText(applicationLanguage.getString("exceptionimage"));
 	}
 }
