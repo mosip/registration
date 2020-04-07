@@ -79,7 +79,11 @@
 			<artifactId>kernel-fsadapter-hdfs</artifactId>
 			<version>${kernel.fsadapter.hdfs.version}</version>
 		</dependency>
-
+         <dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-auth-adapter</artifactId>
+			<version>${kernel.auth.adapter.version}</version>
+		</dependency>
   </dependencies>
   <build>
 		<plugins>

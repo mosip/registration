@@ -134,7 +134,7 @@
         <kernel.pdfgenerator.itext.version>1.0.6</kernel.pdfgenerator.itext.version>
 		<kernel.qrcodegenerator.zxing.version>1.0.6</kernel.qrcodegenerator.zxing.version>
 		<kernel.logger.logback.version>1.0.6</kernel.logger.logback.version>
-		<kernel.auth.adapter.version>1.0.8-SNAPSHOT</kernel.auth.adapter.version>
+		<kernel.auth.adapter.version>1.0.6</kernel.auth.adapter.version>
 		<kernel.idvalidator.vid.version>1.0.6</kernel.idvalidator.vid.version>
 		<kernel.idobjectvalidator.version>1.0.7</kernel.idobjectvalidator.version>
 			<sonar.coverage.exclusions>**/dto/**,

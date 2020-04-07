@@ -77,10 +77,5 @@
            <artifactId>java-jwt</artifactId>
            <version>3.9.0</version>
        </dependency>
-       <dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-auth-adapter</artifactId>
-			<version>${kernel.auth.adapter.version}</version>
-		</dependency>
-	</dependencies>
+      </dependencies>
 </project>

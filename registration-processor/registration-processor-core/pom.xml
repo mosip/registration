@@ -167,12 +167,7 @@
 			<groupId>com.googlecode.json-simple</groupId>
 			<artifactId>json-simple</artifactId>
 		</dependency>
-        <dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-auth-adapter</artifactId>
-			<version>${kernel.auth.adapter.version}</version>
-		</dependency>
-	</dependencies>
+       </dependencies>
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
