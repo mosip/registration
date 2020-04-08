@@ -52,6 +52,8 @@ public class RestClientAuthAdviceTest {
 	private ProceedingJoinPoint proceedingJoinPoint;
 	@Mock
 	private MachineMappingDAO machineMappingDAO;
+	@Mock
+	private ClientSecurity clientSecurity;
 	@InjectMocks
 	private RestClientAuthAdvice restClientAuthAdvice;
 
