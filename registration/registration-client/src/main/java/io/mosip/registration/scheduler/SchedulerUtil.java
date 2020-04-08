@@ -23,6 +23,7 @@ import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.device.ScanPopUpViewController;
+import io.mosip.registration.controller.device.Streamer;
 import io.mosip.registration.controller.device.WebCameraController;
 import io.mosip.registration.controller.reg.PacketUploadController;
 import io.mosip.registration.exception.RegBaseCheckedException;
@@ -88,6 +89,9 @@ public class SchedulerUtil extends BaseController {
 
 	@Autowired
 	private PacketUploadController packetUploadController;
+	
+	@Autowired
+	private Streamer streamer;
 
 	/**
 	 * Constructor to invoke scheduler method once login success.
@@ -299,6 +303,8 @@ public class SchedulerUtil extends BaseController {
 		clearRegistrationData();
 		// to clear the session object
 		SessionContext.destroySession();
+		
+		streamer.stop();
 		// load login screen
 		loadLoginScreen();
 		isShowing = false;
