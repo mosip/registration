@@ -1707,7 +1707,8 @@ public class FingerPrintCaptureController extends BaseController implements Init
 		if (!bioService.isMdmEnabled()) {
 			qualityScore = fingerprintDetailsDTO.getQualityScore();
 		} else {
-			qualityScore = bioService.getHighQualityScoreByBioType(fingerprintDetailsDTO.getFingerType());
+			qualityScore = bioService.getHighQualityScoreByBioType(fingerprintDetailsDTO.getFingerType(),
+					fingerprintDetailsDTO.getQualityScore());
 		}
 		return qualityScore >= Double.parseDouble(getValueFromApplicationContext(handThreshold))
 				|| (qualityScore < Double.parseDouble(getValueFromApplicationContext(handThreshold))
