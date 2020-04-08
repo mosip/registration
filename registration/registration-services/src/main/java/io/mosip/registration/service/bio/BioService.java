@@ -236,7 +236,7 @@ public interface BioService {
 	 *            biometricType
 	 * @return quality score
 	 */
-	public Double getHighQualityScoreByBioType(String bioType);
+	public Double getHighQualityScoreByBioType(String bioType, Double qualityScore);
 
 	/**
 	 * @param bioType
