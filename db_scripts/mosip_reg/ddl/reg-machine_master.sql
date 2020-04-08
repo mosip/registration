@@ -8,7 +8,7 @@
 -- 
 -- Modified Date        Modified By         Comments / Remarks
 -- ------------------------------------------------------------------------------------------
--- 
+-- 07-Apr-2020          Sadanandegowda      Column constraints and data type change
 -- ------------------------------------------------------------------------------------------
 
 -- NOTE: the code below contains the SQL for the selected object
@@ -26,11 +26,11 @@
 CREATE TABLE reg.machine_master(
 	id character varying(10) NOT NULL,
 	name character varying(64) NOT NULL,
-	mac_address character varying(64) NOT NULL,
-	serial_num character varying(64) NOT NULL,
+	mac_address character varying(64),
+	serial_num character varying(64),
 	ip_address character varying(17),
-	public_key blob,
-	key_index character varying(128),
+	public_key  character varying(1024) NOT NULL,
+	key_index character varying(128) NOT NULL,
 	validity_end_dtimes timestamp,
 	mspec_id character varying(36) NOT NULL,
 	lang_code character varying(3) NOT NULL,
