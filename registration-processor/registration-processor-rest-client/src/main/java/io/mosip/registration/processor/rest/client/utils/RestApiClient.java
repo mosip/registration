@@ -6,10 +6,8 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Map;
 
 import javax.net.ssl.SSLContext;
 
@@ -39,15 +37,12 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.exceptions.JWTDecodeException;
-import com.auth0.jwt.interfaces.Claim;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.google.gson.Gson;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.kernel.core.util.TokenHandlerUtil;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.rest.client.audit.dto.Metadata;
@@ -76,15 +71,13 @@ public class RestApiClient {
 
 	private static final String AUTHORIZATION = "Authorization=";
 
+
 	/**
-	 * Gets the api.
-	 *
-	 * @param <T>
-	 *            the generic type
-	 * @param getURI
-	 *            the get URI
-	 * @param responseType
-	 *            the response type
+	 * Gets the api. *
+	 * 
+	 * @param              <T> the generic type
+	 * @param getURI       the get URI
+	 * @param responseType the response type
 	 * @return the api
 	 * @throws Exception
 	 */
@@ -287,8 +280,9 @@ public class RestApiClient {
 
 		if (StringUtils.isNotEmpty(token)) {
 
-			isValid = isValidBearerToken(token, environment.getProperty("token.request.issuerUrl"),
+			isValid = TokenHandlerUtil.isValidBearerToken(token, environment.getProperty("token.request.issuerUrl"),
 					environment.getProperty("token.request.clientId"));
+
 
 		}
 		if (!isValid) {
@@ -348,35 +342,6 @@ public class RestApiClient {
 		request.setUserName(environment.getProperty("token.request.username"));
 		return request;
 	}
-
-	public boolean isValidBearerToken(String accessToken, String issuerUrl, String clientId) {
-
-		try {
-			DecodedJWT decodedJWT = JWT.decode(accessToken);
-			Map<String, Claim> claims = decodedJWT.getClaims();
-			LocalDateTime expiryTime = DateUtils
-					.convertUTCToLocalDateTime(DateUtils.getUTCTimeFromDate(decodedJWT.getExpiresAt()));
-
-			if (!decodedJWT.getIssuer().equals(issuerUrl))
-				return false;
-			if (!DateUtils.before(DateUtils.getUTCCurrentDateTime(), expiryTime))
-				return false;
-			if (!claims.get("clientId").asString().equals(clientId))
-				return false;
-
-			return true;
-		} catch (JWTDecodeException e) {
-			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
-			return false;
-		} catch (Exception e) {
-			logger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-					LoggerFileConstant.APPLICATIONID.toString(), e.getMessage() + ExceptionUtils.getStackTrace(e));
-			return false;
-		}
-
-	}
-
 
 
 }

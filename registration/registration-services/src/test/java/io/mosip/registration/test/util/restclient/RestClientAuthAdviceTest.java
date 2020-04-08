@@ -217,7 +217,7 @@ public class RestClientAuthAdviceTest {
 		MachineMaster machineMaster = Mockito.mock(MachineMaster.class);
 		String signedData = "signedData";
 
-		PowerMockito.when(machineMappingDAO.getKeyIndexByMacId(Mockito.anyString())).thenReturn("keyIndex");
+		PowerMockito.when(machineMappingDAO.getKeyIndexByMachineName(Mockito.anyString())).thenReturn("keyIndex");
 		PowerMockito.when(machineMaster.getKeyIndex()).thenReturn(signedData);
 
 		ReflectionTestUtils.invokeMethod(restClientAuthAdvice, "addRequestSignature", httpHeaders, signedData);

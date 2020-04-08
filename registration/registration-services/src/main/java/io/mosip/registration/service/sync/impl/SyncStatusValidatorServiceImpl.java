@@ -28,6 +28,7 @@ import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.dao.GlobalParamDAO;
+import io.mosip.registration.dao.RegistrationCenterDAO;
 import io.mosip.registration.dao.SyncJobConfigDAO;
 import io.mosip.registration.dao.SyncJobControlDAO;
 import io.mosip.registration.dao.SyncJobControlDAO.SyncJobInfo;
@@ -36,6 +37,7 @@ import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.entity.GlobalParam;
 import io.mosip.registration.entity.Registration;
+import io.mosip.registration.entity.RegistrationCenter;
 import io.mosip.registration.entity.SyncControl;
 import io.mosip.registration.entity.SyncJobDef;
 import io.mosip.registration.entity.id.GlobalParamId;
@@ -72,6 +74,9 @@ public class SyncStatusValidatorServiceImpl extends BaseService implements SyncS
 
 	@Autowired
 	private GlobalParamDAO globalParamDAO;
+	
+	@Autowired
+	private RegistrationCenterDAO registration;
 
 	private static final Logger LOGGER = AppConfig.getLogger(SyncStatusValidatorServiceImpl.class);
 
@@ -322,11 +327,17 @@ public class SyncStatusValidatorServiceImpl extends BaseService implements SyncS
 			LOGGER.info(LoggerConstants.OPT_TO_REG_LOGGER_SESSION_ID, APPLICATION_NAME, APPLICATION_ID,
 					"Validating the geo location of machine w.r.t registration center started");
 
-			double centerLatitude = Double.parseDouble(
-					SessionContext.userContext().getRegistrationCenterDetailDTO().getRegistrationCenterLatitude());
+			double centerLatitude = Double
+					.parseDouble(registration
+							.getRegistrationCenterDetails(SessionContext.userContext().getRegistrationCenterDetailDTO()
+									.getRegistrationCenterId(), ApplicationContext.applicationLanguage())
+							.getRegistrationCenterLatitude());
 
-			double centerLongitude = Double.parseDouble(
-					SessionContext.userContext().getRegistrationCenterDetailDTO().getRegistrationCenterLongitude());
+			double centerLongitude = Double
+					.parseDouble(registration
+							.getRegistrationCenterDetails(SessionContext.userContext().getRegistrationCenterDetailDTO()
+									.getRegistrationCenterId(), ApplicationContext.applicationLanguage())
+							.getRegistrationCenterLongitude());
 
 			Map<String, Object> gpsMapDetails = gpsFacade.getLatLongDtls(centerLatitude, centerLongitude,
 					String.valueOf(ApplicationContext.map().get(RegistrationConstants.GPS_DEVICE_MODEL)));

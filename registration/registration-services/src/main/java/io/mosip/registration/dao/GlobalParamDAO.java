@@ -76,5 +76,12 @@ public interface GlobalParamDAO {
 	 * @return global Param after updating the flag in the table
 	 */
 	GlobalParam update(GlobalParam globalParam);
-
+	
+	/**
+	 * This method is used to update server profile
+	 * 
+	 * @param globalParam
+	 * @return {@link GlobalParam}
+	 */
+	GlobalParam upsertServerProfile(String profileName);
 }

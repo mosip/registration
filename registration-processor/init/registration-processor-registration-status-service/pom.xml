@@ -11,7 +11,7 @@
 		<version>1.0.6</version>
 	</parent>
 	<artifactId>registration-processor-registration-status-service</artifactId>
-	 <version>1.0.6</version>
+	 <version>1.0.8-SNAPSHOT</version>
 
 	<name>registration-processor-registration-status-service</name>
 
@@ -35,6 +35,11 @@
 			<groupId>io.mosip.registrationprocessor</groupId>
 			<artifactId>registration-processor-registration-status-service-impl</artifactId>
 			<version>${registration.status.service.version}</version>
+		</dependency>
+		 <dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-auth-adapter</artifactId>
+			<version>${kernel.auth.adapter.version}</version>
 		</dependency>
 	</dependencies>
 	<build>

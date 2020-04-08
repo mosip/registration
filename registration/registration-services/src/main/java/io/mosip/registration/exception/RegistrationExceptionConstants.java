@@ -194,9 +194,23 @@ public enum RegistrationExceptionConstants {
 	REG_MASTER_BIO_SERVICE_IMPL_IRIS_AUTHENTICATION("REG-MSS-002","user id is null"),
 	REG_MASTER_BIO_SERVICE_IMPL_FINGERPRINT_IMAGE_TYPE("REG-MSS-003","finger type is null"),
 	REG_MASTER_BIO_SERVICE_IMPL_FINGERPRINT_SCANNED_PATH("REG-MSS-004","path string is null"),
-	REG_MASTER_BIO_SERVICE_IMPL_IRIS_IMAGE("REG-MSS-005","iris string is null");
+	REG_MASTER_BIO_SERVICE_IMPL_IRIS_IMAGE("REG-MSS-005","iris string is null"),
 
-
+	REG_SYNC_NO_RESPONSE("REG-SYN-001","Response cannot be null or empty"),
+	REG_SYNC_FAILURE("REG-SYN-002","%s failed"),
+	
+	// LOCAL Client security Impl
+	NON_TPM_SIGN_ERROR("REG-NONTPM-001", "Exception while signing the data using NON-TPM"),
+	NON_TPM_VALIDATE_SIGN_ERROR("REG-NONTPM-002",
+			"Exception while validating the signature provided by NON-TPM"),
+	NON_TPM_ASYMMETRIC_ENCRYPT_ERROR("REG-NONTPM-003",
+			"Exception while encrypting the data using asymmetric crypto-algorithm through NON-TPM"),
+	NON_TPM_ASYMMETRIC_DECRYPT_ERROR("REG-NONTPM-004",
+			"Exception while encrypting the data using asymmetric crypto-algorithm through NON-TPM"),
+	NON_TPM_GET_SIGN_KEY_ERROR("REG-NONTPM-005", "Exception while public key of NON-TPM Local client security"),
+	NON_TPM_GET_TPM_INSTANCE_ERROR("REG-NONTPM-006", "Exception while setting NON-TPM Local client security"),
+	
+	TPM_REQUIRED("REG-TPM-001", "TPM INSTANCE IS REQUIRED");
 
 	
 	/**

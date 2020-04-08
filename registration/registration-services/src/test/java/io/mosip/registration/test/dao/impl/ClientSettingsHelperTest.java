@@ -1,54 +1,29 @@
 package io.mosip.registration.test.dao.impl;
 
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.io.ClassPathResource;
 
-import com.esotericsoftware.kryo.Registration;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.SessionContext;
-import io.mosip.registration.context.SessionContext.UserContext;
-import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dao.impl.MasterSyncDaoImpl;
-import io.mosip.registration.dto.response.SyncDataBaseDto;
 import io.mosip.registration.dto.response.SyncDataResponseDto;
-import io.mosip.registration.entity.RegistrationCenterType;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.repositories.AppAuthenticationRepository;
 import io.mosip.registration.repositories.AppDetailRepository;
@@ -95,9 +70,7 @@ import io.mosip.registration.repositories.TemplateTypeRepository;
 import io.mosip.registration.repositories.TitleRepository;
 import io.mosip.registration.repositories.UserMachineMappingRepository;
 import io.mosip.registration.repositories.ValidDocumentRepository;
-import io.mosip.registration.service.sync.impl.MasterSyncServiceImpl;
 import io.mosip.registration.util.mastersync.ClientSettingSyncHelper;
-import io.mosip.registration.util.mastersync.MapperUtils;
 import io.mosip.registration.util.mastersync.MetaDataUtils;
 
 @RunWith(PowerMockRunner.class)

@@ -261,15 +261,7 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 						PlatformErrorMessages.RPR_PRT_QRCODE_NOT_SET.name());
 			}
 
-			if (cardType.equalsIgnoreCase(CardType.MASKED_UIN.toString())) {
-				template = MASKED_UIN_CARD_TEMPLATE;
-				if (vid == null) {
-					vid = getVid(uin);
-				}
-				attributes.put(IdType.VID.toString(), vid);
-				String maskedUin = maskString(uin, uinLength - unMaskedLength, '*');
-				attributes.put(IdType.UIN.toString(), maskedUin);
-			}
+			template = setTemplateForMaskedUIN(cardType, uin, vid, attributes, template);
 
 			// getting template and placing original values
 			InputStream uinArtifact = templateGenerator.getTemplate(template, attributes, primaryLang);
@@ -402,6 +394,20 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 				"PrintServiceImpl::getDocuments()::exit");
 
 		return byteMap;
+	}
+
+	private String setTemplateForMaskedUIN(String cardType, String uin, String vid, Map<String, Object> attributes,
+			String template) throws ApisResourceAccessException, VidCreationException, IOException {
+		if (cardType.equalsIgnoreCase(CardType.MASKED_UIN.toString())) {
+			template = MASKED_UIN_CARD_TEMPLATE;
+			if (vid == null) {
+				vid = getVid(uin);
+			}
+			attributes.put(IdType.VID.toString(), vid);
+			String maskedUin = maskString(uin, uinLength - unMaskedLength, '*');
+			attributes.put(IdType.UIN.toString(), maskedUin);
+		}
+		return template;
 	}
 
 	/**

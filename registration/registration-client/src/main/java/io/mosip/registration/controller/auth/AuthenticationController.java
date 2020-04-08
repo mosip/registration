@@ -132,18 +132,6 @@ public class AuthenticationController extends BaseController implements Initiali
 	private Button backBtn;
 	@FXML
 	private ImageView backImageView;
-	@FXML
-	private Button fpScanBtn;
-	@FXML
-	private ImageView fpScanImageView;
-	@FXML
-	private Button irisScanBtn;
-	@FXML
-	private ImageView irisScanImageView;
-	@FXML
-	private Button faceScanBtn;
-	@FXML
-	private ImageView faceScanImageView;
 
 	@Autowired
 	private PacketHandlerController packetHandlerController;
@@ -1043,27 +1031,6 @@ public class AuthenticationController extends BaseController implements Initiali
 				backImageView.setImage(backInWhite);
 			} else {
 				backImageView.setImage(backImage);
-			}
-		});
-		fpScanBtn.hoverProperty().addListener((ov, oldValue, newValue) -> {
-			if (newValue) {
-				fpScanImageView.setImage(scanInWhite);
-			} else {
-				fpScanImageView.setImage(scanImage);
-			}
-		});
-		irisScanBtn.hoverProperty().addListener((ov, oldValue, newValue) -> {
-			if (newValue) {
-				irisScanImageView.setImage(scanInWhite);
-			} else {
-				irisScanImageView.setImage(scanImage);
-			}
-		});
-		faceScanBtn.hoverProperty().addListener((ov, oldValue, newValue) -> {
-			if (newValue) {
-				faceScanImageView.setImage(scanInWhite);
-			} else {
-				faceScanImageView.setImage(scanImage);
 			}
 		});
 	}

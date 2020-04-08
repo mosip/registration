@@ -184,7 +184,7 @@ public class OSIValidator {
 						.getStatusCode(RegistrationExceptionTypeCode.SUPERVISOR_OR_OFFICER_WAS_INACTIVE));
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 				String userId;
-				if (regOsi.getOfficerId() != null && !regOsi.getOfficerId().isEmpty()) {
+				if (StringUtils.isNotEmpty(regOsi.getOfficerId())) {
 					userId = regOsi.getOfficerId();
 				} else {
 					userId = regOsi.getSupervisorId();
@@ -496,25 +496,8 @@ public class OSIValidator {
 
 				}
 				if (introducerUIN != null) {
-					if (introducerBiometricsFileName != null && (!introducerBiometricsFileName.trim().isEmpty())) {
-						InputStream packetMetaInfoStream = adapter.getFile(registrationId,
-								PacketStructure.BIOMETRIC + introducerBiometricsFileName.toUpperCase());
-						byte[] introducerbiometric = IOUtils.toByteArray(packetMetaInfoStream);
-						return validateUserBiometric(registrationId, introducerUIN, introducerbiometric,
-								INDIVIDUAL_TYPE_UIN, registrationStatusDto);
-					} else {
-						registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-								.getStatusCode(RegistrationExceptionTypeCode.PARENT_BIOMETRIC_NOT_IN_PACKET));
-						registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-						registrationStatusDto
-								.setStatusComment(StatusUtil.PARENT_BIOMETRIC_FILE_NAME_NOT_FOUND.getMessage());
-						registrationStatusDto
-								.setSubStatusCode(StatusUtil.PARENT_BIOMETRIC_FILE_NAME_NOT_FOUND.getCode());
-						regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-								LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-								StatusMessage.PARENT_BIOMETRIC_NOT_IN_PACKET);
-						throw new ParentOnHoldException(StatusUtil.PARENT_BIOMETRIC_FILE_NAME_NOT_FOUND.getCode(),StatusUtil.PARENT_BIOMETRIC_FILE_NAME_NOT_FOUND.getMessage());
-					}
+					return validateIntroducerBiometric(registrationId, registrationStatusDto,
+							introducerBiometricsFileName, introducerUIN);
 				} else {
 					throw new ParentOnHoldException(StatusUtil.PARENT_UIN_NOT_FOUND.getCode(),StatusUtil.PARENT_UIN_NOT_FOUND.getMessage());
 				}
@@ -525,6 +508,33 @@ public class OSIValidator {
 				registrationId, "OSIValidator::isValidIntroducer()::exit");
 
 		return true;
+	}
+
+	private boolean validateIntroducerBiometric(String registrationId,
+			InternalRegistrationStatusDto registrationStatusDto, String introducerBiometricsFileName,
+			String introducerUIN) throws IOException, PacketDecryptionFailureException, ApisResourceAccessException,
+			io.mosip.kernel.core.exception.IOException, InvalidKeySpecException, NoSuchAlgorithmException,
+			ParserConfigurationException, SAXException, BiometricException, BioTypeException, AuthSystemException,
+			ParentOnHoldException {
+		if (introducerBiometricsFileName != null && (!introducerBiometricsFileName.trim().isEmpty())) {
+			InputStream packetMetaInfoStream = adapter.getFile(registrationId,
+					PacketStructure.BIOMETRIC + introducerBiometricsFileName.toUpperCase());
+			byte[] introducerbiometric = IOUtils.toByteArray(packetMetaInfoStream);
+			return validateUserBiometric(registrationId, introducerUIN, introducerbiometric,
+					INDIVIDUAL_TYPE_UIN, registrationStatusDto);
+		} else {
+			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
+					.getStatusCode(RegistrationExceptionTypeCode.PARENT_BIOMETRIC_NOT_IN_PACKET));
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+			registrationStatusDto
+					.setStatusComment(StatusUtil.PARENT_BIOMETRIC_FILE_NAME_NOT_FOUND.getMessage());
+			registrationStatusDto
+					.setSubStatusCode(StatusUtil.PARENT_BIOMETRIC_FILE_NAME_NOT_FOUND.getCode());
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+					StatusMessage.PARENT_BIOMETRIC_NOT_IN_PACKET);
+			throw new ParentOnHoldException(StatusUtil.PARENT_BIOMETRIC_FILE_NAME_NOT_FOUND.getCode(),StatusUtil.PARENT_BIOMETRIC_FILE_NAME_NOT_FOUND.getMessage());
+		}
 	}
 
 	private boolean isValidIntroducer(String introducerUIN, String introducerRID) {

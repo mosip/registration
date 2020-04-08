@@ -333,23 +333,24 @@ public class UserOnBoardDAOImlpTest {
 	@Test(expected = RegBaseUncheckedException.class)
 	public void getStationIDRunException() throws RegBaseCheckedException {
 		Mockito.when(machineMasterRepository
-				.findByIsActiveTrueAndMacAddressAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
+				.findByIsActiveTrueAndNameAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
 				.thenThrow(new RegBaseUncheckedException());
-		userOnboardDAOImpl.getStationID("8C-16-45-88-E7-0B");
+		userOnboardDAOImpl.getStationID("localhost");
 	}
 
 	@Test
 	public void getStationID() throws RegBaseCheckedException {
 		MachineMaster machineMaster = new MachineMaster();
+		machineMaster.setName("localhost");
 		machineMaster.setMacAddress("8C-16-45-88-E7-0C");
 		RegMachineSpecId regMachineSpecId = new RegMachineSpecId();
 		regMachineSpecId.setId("100311");
 		regMachineSpecId.setLangCode("eng");
 		machineMaster.setRegMachineSpecId(regMachineSpecId);
 		Mockito.when(machineMasterRepository
-				.findByIsActiveTrueAndMacAddressAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
+				.findByIsActiveTrueAndNameAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(machineMaster);
-		String stationId = userOnboardDAOImpl.getStationID("8C-16-45-88-E7-0C");
+		String stationId = userOnboardDAOImpl.getStationID("localhost");
 		Assert.assertSame("100311", stationId);
 	}
 

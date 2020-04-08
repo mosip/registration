@@ -1,10 +1,8 @@
 package io.mosip.registration.processor.transaction.api.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,14 +16,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.util.WebUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.token.validation.TokenValidator;
 import io.mosip.registration.processor.core.token.validation.exception.AccessDeniedException;
 import io.mosip.registration.processor.core.token.validation.exception.InvalidTokenException;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
@@ -86,7 +82,7 @@ public class RegistrationTransactionController {
 	public ResponseEntity<RegTransactionResponseDTO> getTransactionsbyRid(@PathVariable("rid") String rid,
 			@PathVariable("langCode") String langCode,HttpServletRequest request)
 			throws Exception {
-		List<RegistrationTransactionDto> dtoList=new ArrayList<>();
+		List<RegistrationTransactionDto> dtoList;
 		HttpHeaders headers = new HttpHeaders();
 		try {
 			dtoList = transactionService.getTransactionByRegId(rid,langCode);

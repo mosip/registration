@@ -112,7 +112,7 @@ public class RegistrationAppHealthCheckUtil {
 	public static boolean checkServiceAvailability(String serviceUrl) {
 		boolean isNWAvailable = false;
 		try {
-			serviceUrl = serviceUrl != null ? serviceUrl.replace("${mosip.hostname}", System.getenv("mosip.hostname")) : "";
+			serviceUrl = serviceUrl != null && System.getenv("mosip.hostname") != null ? serviceUrl.replace("${mosip.hostname}", System.getenv("mosip.hostname")) : serviceUrl;
 			RestClientUtil.turnOffSslChecking();
 			// acceptAnySSLCerticficate();
 			// System.setProperty("java.net.useSystemProxies", "true");

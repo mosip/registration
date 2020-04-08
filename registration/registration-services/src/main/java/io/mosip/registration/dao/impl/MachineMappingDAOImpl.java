@@ -61,19 +61,20 @@ public class MachineMappingDAOImpl implements MachineMappingDAO {
 	private DeviceMasterRepository deviceMasterRepository;
 
 	/*
-	 * (non-Javadoc) Getting station id based on mac address
+	 * (non-Javadoc) Getting station id based on machineName
 	 * 
 	 * @see
 	 * io.mosip.registration.dao.MachineMappingDAO#getStationID(java.lang.String)
 	 */
 	@Override
-	public String getStationID(String macAddress) throws RegBaseCheckedException {
+	public String getStationID(String machineName) throws RegBaseCheckedException {
 
 		LOGGER.info(MACHINE_MAPPING_LOGGER_TITLE, APPLICATION_NAME, APPLICATION_ID,
-				"getStationID() macAddress --> " + macAddress);
+				"getStationID() machineName --> " + machineName);
 
 		try {
-			MachineMaster machineMaster = machineMasterRepository.findByIsActiveTrueAndMacAddressAndRegMachineSpecIdLangCode(macAddress, ApplicationContext.applicationLanguage());
+			MachineMaster machineMaster = machineMasterRepository.findByIsActiveTrueAndNameAndRegMachineSpecIdLangCode(machineName.toLowerCase(),
+					ApplicationContext.applicationLanguage());
 
 			if (machineMaster != null && machineMaster.getRegMachineSpecId().getId() != null) {
 				return machineMaster.getRegMachineSpecId().getId();
@@ -139,26 +140,7 @@ public class MachineMappingDAOImpl implements MachineMappingDAO {
 		return machineMappingRepository.findByUserMachineMappingIdUsrIdIgnoreCase(userId) != null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * io.mosip.registration.dao.MachineMappingDAO#getKeyIndexByMacId(java.lang.
-	 * String)
-	 */
-	@Override
-	public String getKeyIndexByMacId(String macId) {
-		LOGGER.info(MACHINE_MAPPING_LOGGER_TITLE, APPLICATION_NAME, APPLICATION_ID,
-				"Fetching Key Index of Machine based on MAC Id");
-
-		MachineMaster machineMaster = machineMasterRepository.findByIsActiveTrueAndMacAddressAndRegMachineSpecIdLangCode(macId, ApplicationContext.applicationLanguage());
-
-		LOGGER.info(MACHINE_MAPPING_LOGGER_TITLE, APPLICATION_NAME, APPLICATION_ID,
-				"Completed fetching Key Index of Machine based on MAC Id");
-		return machineMaster == null ? null : machineMaster.getKeyIndex();
-	}
-	
-	
+		
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -171,7 +153,8 @@ public class MachineMappingDAOImpl implements MachineMappingDAO {
 		LOGGER.info(MACHINE_MAPPING_LOGGER_TITLE, APPLICATION_NAME, APPLICATION_ID,
 				"Fetching Key Index of Machine based on Machine name");
 
-		MachineMaster machineMaster = machineMasterRepository.findByIsActiveTrueAndNameAndRegMachineSpecIdLangCode(machineName, ApplicationContext.applicationLanguage());
+		MachineMaster machineMaster = machineMasterRepository.findByIsActiveTrueAndNameAndRegMachineSpecIdLangCode(machineName.toLowerCase(), 
+				ApplicationContext.applicationLanguage());
 
 		LOGGER.info(MACHINE_MAPPING_LOGGER_TITLE, APPLICATION_NAME, APPLICATION_ID,
 				"Completed fetching Key Index of Machine based on Machine name");
