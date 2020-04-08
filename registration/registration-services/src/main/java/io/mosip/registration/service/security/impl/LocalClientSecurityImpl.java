@@ -77,6 +77,9 @@ public class LocalClientSecurityImpl implements ClientSecurity {
 		}		
 		LOGGER.info(LoggerConstants.LOCAL_CLIENT_SECURITY_IMPL, RegistrationConstants.APPLICATION_ID,
 				RegistrationConstants.APPLICATION_NAME, "Completed getting the instance of Local Security Impl");
+		LOGGER.info(LoggerConstants.LOCAL_CLIENT_SECURITY_IMPL, RegistrationConstants.APPLICATION_ID,
+				RegistrationConstants.APPLICATION_NAME, "Check this file for publicKey and KeyIndex if already exist: " 
+						+ getKeysDirPath() + File.separator + README);
 	}	
 	
 	@Override
