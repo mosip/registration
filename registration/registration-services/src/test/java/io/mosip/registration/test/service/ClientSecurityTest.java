@@ -48,14 +48,14 @@ public class ClientSecurityTest {
 			keyGenerator.initialize(KEY_LENGTH, new SecureRandom());
 			KeyPair keypair = keyGenerator.generateKeyPair();
 			File directoy = new File(path.toAbsolutePath().toString()+ File.separator + KEYS_DIR);
-			directoy.mkdirs();
+			directoy.mkdirs();			
+			
+			PowerMockito.mockStatic(System.class);
+			PowerMockito.doReturn(path.toAbsolutePath().toString()).when(System.class, "getProperty", "user.home", 
+					path.toAbsolutePath().toString());
 			
 			tempDirectory = directoy.getAbsolutePath();
 			
-			PowerMockito.mockStatic(LocalClientSecurityImpl.class);
-			//PowerMockito.doReturn(directoy.getAbsolutePath()).when(LocalClientSecurityImpl.class, "getKeysDirPath");
-			//Mockito.when(System.getProperty("user.home")).thenReturn(tempDirectory);
-						
 			createKeyFile(PRIVATE_KEY, keypair.getPrivate().getEncoded());
 			createKeyFile(PUBLIC_KEY, keypair.getPublic().getEncoded());
 			
@@ -71,7 +71,7 @@ public class ClientSecurityTest {
 		String plainText = "Simple Text";
 		byte[] cipherText = clientSecurity.asymmetricEncrypt(plainText.getBytes());		
 		byte[] plainBytes = clientSecurity.asymmetricDecrypt(cipherText);		
-		//assertEquals(plainText.getBytes(), plainBytes);
+		assertEquals(plainText, new String(plainBytes));
 	}
 	
 	@Test

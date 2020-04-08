@@ -366,8 +366,7 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 		LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "CURRENT PROFILE : " + 
 				environment != null ? environment : RegistrationConstants.SERVER_NO_PROFILE);
 		
-		String keyIndex = tpmAvailable ? tpmPublicKeySyncService.syncTPMPublicKey() : getKeyIndexForLocalEnv(isInitialSetup);
-		return keyIndex;
+		return tpmPublicKeySyncService.syncTPMPublicKey();
 	}
 	
 	private void validateResponse(ResponseDTO responseDTO, String syncStep) throws RegBaseCheckedException {
@@ -387,15 +386,6 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 		
 		LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "Initial Sync Done : " + syncStep);
 	}
-	
-	
-	private String getKeyIndexForLocalEnv(boolean isInitialSetUp) {
-		if(!isInitialSetUp)
-			return null;
-		
-		return CryptoUtil.computeFingerPrint(clientSecurity.getSigningPublicPart(), null);
-	}
-
 	
 	/*
 	 * (non-Javadoc)
