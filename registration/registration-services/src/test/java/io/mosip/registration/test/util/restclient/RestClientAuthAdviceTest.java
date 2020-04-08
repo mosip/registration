@@ -35,6 +35,7 @@ import io.mosip.registration.dto.AuthTokenDTO;
 import io.mosip.registration.dto.LoginUserDTO;
 import io.mosip.registration.entity.MachineMaster;
 import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.service.security.ClientSecurity;
 import io.mosip.registration.tpm.spi.TPMUtil;
 import io.mosip.registration.util.advice.RestClientAuthAdvice;
 import io.mosip.registration.util.restclient.RequestHTTPDTO;
