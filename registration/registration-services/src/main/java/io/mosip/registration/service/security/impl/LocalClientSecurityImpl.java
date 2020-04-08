@@ -209,7 +209,11 @@ public class LocalClientSecurityImpl implements ClientSecurity {
 		builder.append(CryptoUtil.encodeBase64String(publicKey.getEncoded()));
 		builder.append("\r\n");
 		builder.append("KeyIndex: ");
-		builder.append(CryptoUtil.computeFingerPrint(publicKey.getEncoded(), null));
+		builder.append(CryptoUtil.computeFingerPrint(publicKey.getEncoded(), null).toLowerCase());
+		builder.append("\r\n");
+		builder.append("Note : Use the above public key and machine name to create machine using admin API");
+		builder.append("\r\n");
+		builder.append("Note : If the keys are lost/deleted, keys are regenerated on next launch of reg-cli. Machine entry in server has to be deactivated and recreated once again.");
 		builder.append("\r\n");
 		
 		Files.write(Paths.get(getKeysDirPath() + File.separator + README), builder.toString().getBytes(StandardCharsets.UTF_8), 
