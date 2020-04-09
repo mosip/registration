@@ -366,7 +366,7 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 		LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "CURRENT PROFILE : " + 
 				environment != null ? environment : RegistrationConstants.SERVER_NO_PROFILE);
 		
-		return tpmPublicKeySyncService.syncTPMPublicKey();
+		return tpmAvailable ? tpmPublicKeySyncService.syncTPMPublicKey() : getKeyIndexForLocalEnv(isInitialSetup);
 	}
 	
 	private void validateResponse(ResponseDTO responseDTO, String syncStep) throws RegBaseCheckedException {
