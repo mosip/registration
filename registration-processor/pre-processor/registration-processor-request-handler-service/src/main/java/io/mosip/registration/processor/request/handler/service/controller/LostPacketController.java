@@ -12,7 +12,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -93,14 +93,14 @@ public class LostPacketController {
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
+	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_PROCESSOR', 'RESIDENT')")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Lost UIN or RID Api"),
 			@ApiResponse(code = 400, message = "Unable to fetch the detail "),
 			@ApiResponse(code = 500, message = "Internal Server Error") })
 	@PostMapping(path = "/lost", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Object> getIdValue(@RequestBody(required = true) LostPacketRequestDto lostPacketRequestDto,
-			@CookieValue(value = "Authorization", required = true) String token)
+	public ResponseEntity<Object> getIdValue(@RequestBody(required = true) LostPacketRequestDto lostPacketRequestDto)
 			throws RegBaseCheckedException, IOException {
-		tokenValidator.validate("Authorization=" + token, "requesthandler");
+
 		try {
 			validator.validate(lostPacketRequestDto.getRequesttime(), lostPacketRequestDto.getId(),
 					lostPacketRequestDto.getVersion());
