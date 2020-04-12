@@ -186,6 +186,12 @@ public class MessageBusAddress implements Serializable {
 	/** The Constant QUALITY_CHECKER_BUS_OUT. */
 	public static final MessageBusAddress QUALITY_CHECKER_BUS_OUT = new MessageBusAddress("quality-checker-bus-out");
 
+	/** The Constant SECUREZONE_NOTIFICATION_IN. */
+	public static final MessageBusAddress SECUREZONE_NOTIFICATION_IN = new MessageBusAddress("securezone-notification-bus-in");
+
+	/** The Constant SECUREZONE_NOTIFICATION_OUT. */
+	public static final MessageBusAddress SECUREZONE_NOTIFICATION_OUT = new MessageBusAddress("securezone-notification-bus-out");
+
 	/*
 	 * (non-Javadoc)
 	 *

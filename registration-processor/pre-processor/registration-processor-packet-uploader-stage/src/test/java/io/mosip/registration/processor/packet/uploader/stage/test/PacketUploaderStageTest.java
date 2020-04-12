@@ -2,6 +2,7 @@ package io.mosip.registration.processor.packet.uploader.stage.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -59,326 +60,65 @@ import io.vertx.ext.web.Session;
  */
 @RunWith(SpringRunner.class)
 public class PacketUploaderStageTest {
+	MessageDTO dto = new MessageDTO();
+	@Mock
+	private PacketUploaderService<MessageDTO> packetUploaderService;
 
-	private static final int maxRetryCount = 5;
-
-	private static final InputStream stream = Mockito.mock(InputStream.class);
-	
-	private RoutingContext ctx;
-	private Boolean responseObject;
-	
 	@Mock
 	private MosipRouter router;
-	
+	@Mock
+	MosipEventBus mosipEventBus;
 	@InjectMocks
-	PacketUploaderStage packetUploaderStage = new PacketUploaderStage() {
-		
-		@Override
-		public void setResponse(RoutingContext ctx, Object object) {
-			responseObject = Boolean.TRUE;
-		}
-		
-		@Override
-		public void send(MosipEventBus mosipEventBus, MessageBusAddress toAddress, MessageDTO message) {
-		}
-		
-		 
+	private PacketUploaderStage packetValidatorStage = new PacketUploaderStage() {
 		@Override
 		public MosipEventBus getEventBus(Object verticleName, String url, int instanceNumber) {
-			return null;
+			vertx = Vertx.vertx();
+
+			return new MosipEventBus(vertx) {
+			};
 		}
-		
+
 		@Override
-		public void createServer(Router route,int port)
-		{
-			
+		public void consumeAndSend(MosipEventBus eventbus, MessageBusAddress addressbus1,
+								   MessageBusAddress addressbus2) {
 		}
+
 		@Override
 		public Router postUrl(Vertx vertx, MessageBusAddress consumeAddress, MessageBusAddress sendAddress) {
 			return null;
+
+		}
+		@Override
+		public void createServer(Router router, int port) {
+
 		}
 	};
-
-	private RoutingContext setContext() {
-		return new RoutingContext() {
-
-			@Override
-			public Set<FileUpload> fileUploads() {
-				return null;
-			}
-
-			@Override
-			public Vertx vertx() {
-				return null;
-			}
-
-			@Override
-			public User user() {
-				return null;
-			}
-
-			@Override
-			public int statusCode() {
-				return 0;
-			}
-
-			@Override
-			public void setUser(User user) {
-			}
-
-			@Override
-			public void setSession(Session session) {
-			}
-
-			@Override
-			public void setBody(Buffer body) {
-			}
-
-			@Override
-			public void setAcceptableContentType(String contentType) {
-			}
-
-			@Override
-			public Session session() {
-				return null;
-			}
-
-			@Override
-			public HttpServerResponse response() {
-				return null;
-			}
-
-			@Override
-			public void reroute(HttpMethod method, String path) {
-			}
-
-			@Override
-			public HttpServerRequest request() {
-				return null;
-			}
-
-			@Override
-			public boolean removeHeadersEndHandler(int handlerID) {
-				return false;
-			}
-
-			@Override
-			public Cookie removeCookie(String name, boolean invalidate) {
-				return null;
-			}
-
-			@Override
-			public boolean removeBodyEndHandler(int handlerID) {
-				return false;
-			}
-
-			@Override
-			public <T> T remove(String key) {
-				return null;
-			}
-
-			@Override
-			public MultiMap queryParams() {
-				return null;
-			}
-
-			@Override
-			public List<String> queryParam(String query) {
-				return null;
-			}
-
-			@Override
-			public RoutingContext put(String key, Object obj) {
-				return null;
-			}
-
-			@Override
-			public Map<String, String> pathParams() {
-				return null;
-			}
-
-			@Override
-			public String pathParam(String name) {
-				return null;
-			}
-
-			@Override
-			public ParsedHeaderValues parsedHeaders() {
-				return null;
-			}
-
-			@Override
-			public String normalisedPath() {
-				return null;
-			}
-
-			@Override
-			public void next() {
-			}
-
-			@Override
-			public String mountPoint() {
-				return null;
-			}
-
-			@Override
-			public Cookie getCookie(String name) {
-				return null;
-			}
-
-			@Override
-			public String getBodyAsString(String encoding) {
-				return null;
-			}
-
-			@Override
-			public String getBodyAsString() {
-				return null;
-			}
-
-			@Override
-			public JsonArray getBodyAsJsonArray() {
-				return null;
-			}
-
-			@Override
-			public JsonObject getBodyAsJson() {
-				JsonObject obj= new JsonObject();
-				obj.put("rid", "51130282650000320190117144316");
-				obj.put("isValid", true);
-				obj.put("internalError", false);
-				return obj;
-			}
-
-			@Override
-			public Buffer getBody() {
-				return null;
-			}
-
-			@Override
-			public String getAcceptableContentType() {
-				return null;
-			}
-
-			@Override
-			public <T> T get(String key) {
-				return null;
-			}
-
-			@Override
-			public Throwable failure() {
-				return null;
-			}
-
-			@Override
-			public boolean failed() {
-				return false;
-			}
-
-			@Override
-			public void fail(Throwable throwable) {
-			}
-
-			@Override
-			public void fail(int statusCode) {
-			}
-
-			@Override
-			public Map<String, Object> data() {
-				return null;
-			}
-
-			@Override
-			public Route currentRoute() {
-				return null;
-			}
-
-			@Override
-			public Set<Cookie> cookies() {
-				return null;
-			}
-
-			@Override
-			public int cookieCount() {
-				return 0;
-			}
-
-			@Override
-			public void clearUser() {
-			}
-
-			@Override
-			public int addHeadersEndHandler(Handler<Void> handler) {
-				return 0;
-			}
-
-			@Override
-			public RoutingContext addCookie(Cookie cookie) {
-				return null;
-			}
-
-			@Override
-			public int addBodyEndHandler(Handler<Void> handler) {
-				return 0;
-			}
-
-			@Override
-			public List<Locale> acceptableLocales() {
-				return null;
-			}
-		};
-	}
-	
-	@Mock
-	PacketUploaderService<MessageDTO> packetUploaderService;
-	
-	
-	@Before
-	public void setup() {
-
-		ctx = setContext();
-		ReflectionTestUtils.setField(packetUploaderStage, "workerPoolSize", 10);
-		ReflectionTestUtils.setField(packetUploaderStage, "clusterManagerUrl", "/dummyPath");
-		ReflectionTestUtils.setField(packetUploaderStage, "port", "7999");
-		Mockito.when(router.post(Mockito.any())).thenReturn(null);
-		Mockito.doNothing().when(router).setRoute(Mockito.any());
-		Mockito.doNothing().when(router).nonSecureHandler(Mockito.any(),Mockito.any());
-		MessageDTO messageDTO= new MessageDTO();
-		messageDTO.setInternalError(Boolean.FALSE);
-		messageDTO.setIsValid(Boolean.TRUE);
-		messageDTO.setRid("51130282650000320190117144316");
-	when(packetUploaderService.validateAndUploadPacket(anyString(), anyString())).thenReturn(messageDTO);
-		
-		
-	}
-	
 	@Test
-	public void processallTests() throws ClientProtocolException, IOException{
-		processURLTest();
-		testStart();
-		processFailureURLTest();
+	public void testStart()
+	{
+		ReflectionTestUtils.setField(packetValidatorStage, "port", "2333");
+		Mockito.doNothing().when(router).setRoute(any());
+		packetValidatorStage.start();
 	}
-	
-    public void testStart()
-    {
-    	packetUploaderStage.start();
-    	packetUploaderStage.deployVerticle();
-    }
-	
-	
-	public void processURLTest() {
-		packetUploaderStage.processURL(ctx);
-		assertTrue(responseObject);
+
+	/**
+	 * Test deploy verticle.
+	 */
+	@Test
+	public void testDeployVerticle() {
+
+		ReflectionTestUtils.setField(packetValidatorStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(packetValidatorStage, "clusterManagerUrl", "/dummyPath");
+		packetValidatorStage.deployVerticle();
 	}
-	
-	public void processFailureURLTest() {
-		MessageDTO messageDTO= new MessageDTO();
-		messageDTO.setInternalError(Boolean.TRUE);
-		messageDTO.setIsValid(Boolean.FALSE);
-		messageDTO.setRid("51130282650000320190117144316");
-	when(packetUploaderService.validateAndUploadPacket(anyString(), anyString())).thenReturn(messageDTO);
-	
-		packetUploaderStage.processURL(ctx);
-		assertTrue(responseObject);
+
+	@Test
+	public void testProcess() {
+		MessageDTO result = new MessageDTO();
+		result.setIsValid(true);
+		Mockito.when(packetUploaderService.validateAndUploadPacket(any(), any())).thenReturn(result);
+		dto = packetValidatorStage.process(dto);
+		assertTrue(dto.getIsValid());
+
 	}
 }
