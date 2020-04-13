@@ -10,6 +10,8 @@ public enum ModuleName {
 
 	PACKET_RECEIVER,
 
+	SECUREZONE_NOTIFICATION,
+
 	PACKET_UPLOAD,
 
 	/** The packet validator. */
