@@ -17,6 +17,10 @@ public enum PlatformSuccessMessages {
 	RPR_PKR_PACKET_RECEIVER(PlatformConstants.RPR_PACKET_RECEIVER_MODULE + "000",
 			"Packet received and uploaded to landing zone"),
 
+	// securezone notification success messages
+	/** The rpr sez notification. */
+	RPR_SEZ_SECUREZONE_NOTIFICATION(PlatformConstants.RPR_SECUREZONE_NOTIFICATION_MODULE + "000", "Securezone Notification Success"),
+
 	RPR_PUM_PACKET_UPLOADER(PlatformConstants.RPR_PACKET_UPLOADER_MODULE + "000", "Packet uploaded to file system"),
 
 	RPR_PUM_PACKET_ARCHIVED(PlatformConstants.RPR_PACKET_UPLOADER_MODULE + "001", "Packet successfully archived"),

@@ -61,11 +61,6 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>io.mosip.registrationprocessor</groupId>
-            <artifactId>registration-processor-packet-manager</artifactId>
-            <version>${packet.manager.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
@@ -82,18 +77,8 @@
         </dependency>
         <dependency>
             <groupId>io.mosip.registrationprocessor</groupId>
-            <artifactId>registration-processor-rest-client</artifactId>
-            <version>${registration.processor.rest.client.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.mosip.registrationprocessor</groupId>
             <artifactId>registration-processor-core</artifactId>
             <version>${registration.processor.core.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.mosip.kernel</groupId>
-            <artifactId>kernel-virusscanner-clamav</artifactId>
-            <version>${kernel.clamav.version}</version>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>

@@ -58,6 +58,8 @@ public class PacketUploaderStage extends MosipVerticleAPIManager {
 	 */
 	public void deployVerticle() {
 		this.mosipEventBus = this.getEventBus(this, clusterManagerUrl ,workerPoolSize);
+		this.consumeAndSend(mosipEventBus, MessageBusAddress.PACKET_UPLOADER_IN,
+				MessageBusAddress.PACKET_UPLOADER_OUT);
 	}
 
 	@Override

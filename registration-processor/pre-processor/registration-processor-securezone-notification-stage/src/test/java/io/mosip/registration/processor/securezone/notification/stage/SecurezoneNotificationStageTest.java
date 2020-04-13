@@ -4,6 +4,14 @@ import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
+import io.mosip.registration.processor.core.http.ResponseWrapper;
+import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
+import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
+import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
+import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
+import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
+import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -40,6 +48,8 @@ import java.util.Set;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 
 @RunWith(SpringRunner.class)
 public class SecurezoneNotificationStageTest {
@@ -47,6 +57,16 @@ public class SecurezoneNotificationStageTest {
     private static final int maxRetryCount = 5;
 
     private static final InputStream stream = Mockito.mock(InputStream.class);
+
+    /** The registration status service. */
+    @Mock
+    RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
+
+    @Mock
+    private RegistrationExceptionMapperUtil registrationStatusMapperUtil;
+
+    @Mock
+    private AuditLogRequestBuilder auditLogRequestBuilder;
 
     private RoutingContext ctx;
     private Boolean responseObject;
@@ -228,9 +248,10 @@ public class SecurezoneNotificationStageTest {
             @Override
             public JsonObject getBodyAsJson() {
                 JsonObject obj= new JsonObject();
-                obj.put("rid", "51130282650000320190117144316");
+                obj.put("rid", "2018701130000410092018110735");
                 obj.put("isValid", true);
                 obj.put("internalError", false);
+                obj.put("reg_type", "NEW");
                 return obj;
             }
 
@@ -316,6 +337,14 @@ public class SecurezoneNotificationStageTest {
     @Before
     public void setup() {
 
+        InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
+        registrationStatusDto = new InternalRegistrationStatusDto();
+        registrationStatusDto.setRegistrationId("2018701130000410092018110735");
+        registrationStatusDto.setStatusCode("SECUREZONE_NOTIFICATION_SUCCESS");
+        ResponseWrapper responseWrapper = new ResponseWrapper();
+        AuditResponseDto auditResponseDto = new AuditResponseDto();
+        responseWrapper.setResponse(auditResponseDto);
+
         ctx = setContext();
         ReflectionTestUtils.setField(notificationStage, "workerPoolSize", 10);
         ReflectionTestUtils.setField(notificationStage, "clusterManagerUrl", "/dummyPath");
@@ -326,7 +355,12 @@ public class SecurezoneNotificationStageTest {
         MessageDTO messageDTO= new MessageDTO();
         messageDTO.setInternalError(Boolean.FALSE);
         messageDTO.setIsValid(Boolean.TRUE);
-        messageDTO.setRid("51130282650000320190117144316");
+        messageDTO.setRid("2018701130000410092018110735");
+        Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+        Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(),any(),any());
+        Mockito.doReturn(responseWrapper).when(auditLogRequestBuilder).createAuditRequestBuilder(anyString(), anyString(), anyString(),
+                anyString(), anyString(), anyString(), anyString());
+        Mockito.when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("Something");
     }
 
     @Test
@@ -338,6 +372,14 @@ public class SecurezoneNotificationStageTest {
 
     @Test
     public void processURLTest() {
+        notificationStage.processURL(ctx);
+        assertTrue(responseObject);
+    }
+
+    @Test
+    public void ridNotFoundTest() {
+        Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
+
         notificationStage.processURL(ctx);
         assertTrue(responseObject);
     }
@@ -355,8 +397,16 @@ public class SecurezoneNotificationStageTest {
         MessageDTO inputDto= new MessageDTO();
         inputDto.setInternalError(Boolean.FALSE);
         inputDto.setIsValid(Boolean.TRUE);
-        inputDto.setRid("51130282650000320190117144316");
+        inputDto.setRid("2018701130000410092018110735");
         MessageDTO messageDTO = notificationStage.process(inputDto);
         assertNull(messageDTO);
+    }
+
+    @Test
+    public void dbExceptionTest() {
+        Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenThrow(new TablenotAccessibleException("exception"));
+
+        notificationStage.processURL(ctx);
+        assertNull(responseObject);
     }
 }
