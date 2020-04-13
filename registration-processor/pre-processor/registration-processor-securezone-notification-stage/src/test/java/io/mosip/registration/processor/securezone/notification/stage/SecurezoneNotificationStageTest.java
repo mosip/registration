@@ -386,6 +386,14 @@ public class SecurezoneNotificationStageTest {
     }
 
     @Test
+    public void ridNotFoundTest() {
+        Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
+
+        notificationStage.processURL(ctx);
+        assertTrue(responseObject);
+    }
+
+    @Test
     public void processFailureURLTest() {
         RoutingContext routingContext = Mockito.mock(RoutingContext.class);
         routingContext.setBody(null);
