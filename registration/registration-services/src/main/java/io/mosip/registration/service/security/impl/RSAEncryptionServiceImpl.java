@@ -24,6 +24,7 @@ import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.security.RSAEncryptionService;
+import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
 import io.mosip.registration.util.publickey.PublicKeyGenerationUtil;
 
 /**
@@ -59,7 +60,8 @@ public class RSAEncryptionServiceImpl extends BaseService implements RSAEncrypti
 			// Validate the input parameters and required configuration parameters
 			validateInputData(sessionKey);
 
-			String centerMachineId = getCenterId(getStationId(getMacAddress())) + "_" + getStationId(getMacAddress());
+			String stationId = getStationId(RegistrationSystemPropertiesChecker.getMachineId());
+			String centerMachineId = getCenterId(stationId) + "_" + stationId;
 
 			// encrypt AES Session Key using RSA public key
 			KeyStore rsaPublicKey = policySyncDAO.getPublicKey(centerMachineId);

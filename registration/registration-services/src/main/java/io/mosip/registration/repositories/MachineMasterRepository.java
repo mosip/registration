@@ -11,16 +11,7 @@ import io.mosip.registration.entity.id.RegMachineSpecId;
  */
 public interface MachineMasterRepository extends BaseRepository<MachineMaster, RegMachineSpecId>{
 	
-	/**
-	 * Find the station id based on macAddress.
-	 *
-	 * @param macAddress macAddress to get {@link MachineMaster}
-	 * @param langCode the lang code
-	 * @return the machine master
-	 */
-	MachineMaster findByIsActiveTrueAndMacAddressAndRegMachineSpecIdLangCode(String macAddress, String langCode);
-	
-	
+		
 	/**
 	 * Find machine based on  machine name.
 	 * 

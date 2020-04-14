@@ -301,15 +301,12 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 		String stationId = RegistrationConstants.EMPTY;
 		String centerId = RegistrationConstants.EMPTY;
 
-		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "fetching mac Id....");
+		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "fetching getMachineCenterId ....");
 
 		try {
 
-			// to get mac Id
-			String systemMacId = RegistrationSystemPropertiesChecker.getMachineId();
-
 			// get stationID
-			stationId = userOnBoardDao.getStationID(systemMacId);
+			stationId = userOnBoardDao.getStationID(RegistrationSystemPropertiesChecker.getMachineId());
 
 			// get CenterID
 			centerId = userOnBoardDao.getCenterID(stationId);

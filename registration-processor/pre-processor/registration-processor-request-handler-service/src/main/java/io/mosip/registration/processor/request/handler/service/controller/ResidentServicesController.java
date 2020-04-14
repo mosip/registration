@@ -13,7 +13,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,7 +22,6 @@ import com.google.gson.GsonBuilder;
 
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
-import io.mosip.registration.processor.core.token.validation.TokenValidator;
 import io.mosip.registration.processor.core.util.DigitalSignatureUtility;
 import io.mosip.registration.processor.request.handler.service.PacketGeneratorService;
 import io.mosip.registration.processor.request.handler.service.dto.PacketGeneratorResDto;
@@ -40,8 +38,7 @@ import io.swagger.annotations.ApiResponses;
 @RestController
 @Api(tags = "Resident update service")
 public class ResidentServicesController {
-	@Autowired
-	TokenValidator tokenValidator;
+
 
 	@Autowired
 	@Qualifier("residentUpdateService")

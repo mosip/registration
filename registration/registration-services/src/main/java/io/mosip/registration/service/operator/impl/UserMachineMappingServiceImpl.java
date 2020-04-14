@@ -35,6 +35,7 @@ import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.operator.UserMachineMappingService;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
+import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
 
 /**
  * Implementation for {@link UserMachineMappingService}
@@ -62,8 +63,8 @@ public class UserMachineMappingServiceImpl extends BaseService implements UserMa
 	public ResponseDTO syncUserDetails() {
 		LOGGER.info("REGISTRATION-CENTER-USER-MACHINE-MAPPING-DETAILS- SYNC", APPLICATION_NAME, APPLICATION_ID,
 				"sync user details is started");
-		String systemMacId = null;
-		String machineId = null;
+		
+		String stationId = null;
 		String centerId = null;
 		List<UserMachineMapping> userMachineMappingList = null;
 		List<Map<String, Object>> list = new ArrayList<>();
@@ -74,14 +75,13 @@ public class UserMachineMappingServiceImpl extends BaseService implements UserMa
 					RegistrationConstants.POLICY_SYNC_CLIENT_NOT_ONLINE_ERROR_MESSAGE);
 		} else {
 
-			try {
-				systemMacId = baseService.getMacAddress();
-				machineId = baseService.getStationId(systemMacId);
-				centerId = baseService.getCenterId(machineId);
-				userMachineMappingList = machineMappingDAO.getUserMappingDetails(machineId);
+			try {				
+				stationId = baseService.getStationId(RegistrationSystemPropertiesChecker.getMachineId());
+				centerId = baseService.getCenterId(stationId);
+				userMachineMappingList = machineMappingDAO.getUserMappingDetails(stationId);
 				Map<String, Object> requestMap = new LinkedHashMap<>();
 				requestMap.put(RegistrationConstants.ID, RegistrationConstants.APPLICATION_NAME);
-				requestMap.put(RegistrationConstants.REQ_TIME, DateUtils.getUTCCurrentDateTimeString());
+				requestMap.put(RegistrationConstants.REQ_TIME, DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
 				requestMap.put("metadata", new HashMap<>());
 				RegCenterMachineUserReqDto<RegistrationCenterUserMachineMappingDto> regCenterMachineUserReqDto = new RegCenterMachineUserReqDto<>();
 				regCenterMachineUserReqDto.setId("REGISTRATION");
@@ -89,7 +89,7 @@ public class UserMachineMappingServiceImpl extends BaseService implements UserMa
 				for (UserMachineMapping userMachineMapping : userMachineMappingList) {
 					Map<String, Object> userMap = new HashMap<>();
 					userMap.put("cntrId", centerId);
-					userMap.put("machineId", machineId);
+					userMap.put("machineId", stationId);
 					userMap.put("isActive", true);
 					userMap.put("langCode", ApplicationContext.applicationLanguage());
 					userMap.put("usrId", userMachineMapping.getUserDetail().getId());

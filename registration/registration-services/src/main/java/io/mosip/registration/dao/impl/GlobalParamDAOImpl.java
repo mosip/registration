@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dao.GlobalParamDAO;
@@ -150,5 +151,40 @@ public class GlobalParamDAOImpl implements GlobalParamDAO {
 		
 		return globalParamRepository.update(globalParam);
 		
+	}
+
+	@Override
+	public GlobalParam upsertServerProfile(String profileName) {
+		LOGGER.info("REGISTRATION - GLOBALPARAMS - GLOBAL_PARAM_DAO_IMPL", RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "Upserts server active profile started.");
+
+		GlobalParamId globalParamId = new GlobalParamId();
+		globalParamId.setCode(RegistrationConstants.SERVER_ACTIVE_PROFILE);
+		globalParamId.setLangCode(RegistrationConstants.ENGLISH_LANG_CODE);
+
+		GlobalParam globalParam = get(globalParamId);
+		
+		if(globalParam == null) {
+			globalParam = new GlobalParam();
+			globalParam.setName(RegistrationConstants.SERVER_ACTIVE_PROFILE);
+			globalParam.setTyp("CONFIGURATION");
+			globalParam.setIsActive(true);
+			globalParam.setCrBy(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
+			globalParam.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
+			globalParam.setVal(profileName);
+			globalParam.setGlobalParamId(globalParamId);
+			globalParam = globalParamRepository.save(globalParam);
+		}
+		else {
+			globalParam.setVal(profileName);
+			globalParam.setUpdBy(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
+			globalParam.setUpdDtimes(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
+			globalParam = globalParamRepository.update(globalParam);
+		}
+		
+		LOGGER.info("REGISTRATION - GLOBALPARAMS - GLOBAL_PARAM_DAO_IMPL", RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "Upserts server active profile ended.");
+		
+		return globalParam;
 	}
 }

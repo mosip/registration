@@ -428,12 +428,7 @@ public class RequestHandlerRequestValidator {
 
 				if (isValidUin) {
 					if(registrationType.equals(RegistrationType.RES_UPDATE.toString())) {
-						JSONObject idObject = utilities.retrieveIdrepoJson(Long.valueOf(uin));
-						if(idObject!=null && status.equals("ACTIVATED"))
-							return true;
-						else
-							throw new RegBaseCheckedException(PlatformErrorMessages.RPR_PGS_REG_BASE_EXCEPTION,
-									"UIN is not valid", new Throwable());
+						return validateUINForResUpdate(uin, status);
 					}
 					if (!status.equalsIgnoreCase(registrationType)) {
 						return true;
@@ -454,6 +449,16 @@ public class RequestHandlerRequestValidator {
 		} catch (NumberFormatException | IdRepoAppException | ApisResourceAccessException e) {
 			throw new RegBaseCheckedException(PlatformErrorMessages.RPR_PGS_REG_BASE_EXCEPTION, e);
 		}
+	}
+
+	private boolean validateUINForResUpdate(String uin, String status)
+			throws ApisResourceAccessException, IOException, RegBaseCheckedException {
+		JSONObject idObject = utilities.retrieveIdrepoJson(Long.valueOf(uin));
+		if(idObject!=null && status.equals("ACTIVATED"))
+			return true;
+		else
+			throw new RegBaseCheckedException(PlatformErrorMessages.RPR_PGS_REG_BASE_EXCEPTION,
+					"UIN is not valid", new Throwable());
 	}
 
 	/**

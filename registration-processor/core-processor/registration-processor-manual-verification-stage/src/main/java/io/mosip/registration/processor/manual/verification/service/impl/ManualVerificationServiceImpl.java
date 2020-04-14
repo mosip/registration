@@ -305,13 +305,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		messageDTO.setInternalError(false);
 		messageDTO.setIsValid(false);
 		messageDTO.setRid(manualVerificationDTO.getRegId());
-		if (isRegAndMactedRefIdEmpty(registrationId, matchedRefId)) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, "ManualVerificationServiceImpl::updatePacketStatus()::InvalidFileNameException"
-							+ PlatformErrorMessages.RPR_MVS_REG_ID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
-			throw new InvalidFileNameException(PlatformErrorMessages.RPR_MVS_REG_ID_SHOULD_NOT_EMPTY_OR_NULL.getCode(),
-					PlatformErrorMessages.RPR_MVS_REG_ID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
-		}
+		validateRegAndMactedRefIdEmpty(registrationId, matchedRefId);
 
 		LogDescription description = new LogDescription();
 		boolean isTransactionSuccessful = false;
@@ -425,9 +419,16 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 	}
 
-	private boolean isRegAndMactedRefIdEmpty(String registrationId, String matchedRefId) {
+	private void validateRegAndMactedRefIdEmpty(String registrationId, String matchedRefId) {
 
-		return registrationId == null || registrationId.isEmpty() || matchedRefId == null || matchedRefId.isEmpty();
+		if (registrationId == null || registrationId.isEmpty() || matchedRefId == null || matchedRefId.isEmpty()) {
+
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, "ManualVerificationServiceImpl::updatePacketStatus()::InvalidFileNameException"
+							+ PlatformErrorMessages.RPR_MVS_REG_ID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
+			throw new InvalidFileNameException(PlatformErrorMessages.RPR_MVS_REG_ID_SHOULD_NOT_EMPTY_OR_NULL.getCode(),
+					PlatformErrorMessages.RPR_MVS_REG_ID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
+		}
 	}
 
 	@SuppressWarnings("unchecked")

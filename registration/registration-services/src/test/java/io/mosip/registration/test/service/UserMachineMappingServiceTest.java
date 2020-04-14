@@ -63,10 +63,8 @@ public class UserMachineMappingServiceTest {
 		userDetail.setIsActive(true);
 		userMachineMapping.setUserDetail(userDetail);
 		list.add(userMachineMapping);
-		String macAdress = "macAddress";
 		String machineId = "machineId";
 		String centerId = "centerId";
-		Mockito.when(baseService.getMacAddress()).thenReturn(macAdress);
 		Mockito.when(baseService.getStationId(Mockito.anyString())).thenReturn(machineId);
 		Mockito.when(baseService.getCenterId(Mockito.anyString())).thenReturn(centerId);
 		Mockito.when(machineMappingDAO.getUserMappingDetails(Mockito.anyString())).thenReturn(list);
@@ -145,10 +143,8 @@ public class UserMachineMappingServiceTest {
 		userDetail.setIsActive(true);
 		userMachineMapping.setUserDetail(userDetail);
 		list.add(userMachineMapping);
-		String macAdress = "macAddress";
 		String machineId = "machineId";
 		String centerId = "centerId";
-		Mockito.when(baseService.getMacAddress()).thenReturn(macAdress);
 		Mockito.when(baseService.getStationId(Mockito.anyString())).thenReturn(machineId);
 		Mockito.when(baseService.getCenterId(Mockito.anyString())).thenReturn(centerId);
 		Mockito.when(machineMappingDAO.getUserMappingDetails(Mockito.anyString())).thenReturn(list);

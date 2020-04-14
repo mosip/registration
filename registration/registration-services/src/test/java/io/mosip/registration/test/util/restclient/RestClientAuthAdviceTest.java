@@ -35,6 +35,7 @@ import io.mosip.registration.dto.AuthTokenDTO;
 import io.mosip.registration.dto.LoginUserDTO;
 import io.mosip.registration.entity.MachineMaster;
 import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.service.security.ClientSecurity;
 import io.mosip.registration.tpm.spi.TPMUtil;
 import io.mosip.registration.util.advice.RestClientAuthAdvice;
 import io.mosip.registration.util.restclient.RequestHTTPDTO;
@@ -52,6 +53,8 @@ public class RestClientAuthAdviceTest {
 	private ProceedingJoinPoint proceedingJoinPoint;
 	@Mock
 	private MachineMappingDAO machineMappingDAO;
+	@Mock
+	private ClientSecurity clientSecurity;
 	@InjectMocks
 	private RestClientAuthAdvice restClientAuthAdvice;
 
@@ -217,7 +220,7 @@ public class RestClientAuthAdviceTest {
 		MachineMaster machineMaster = Mockito.mock(MachineMaster.class);
 		String signedData = "signedData";
 
-		PowerMockito.when(machineMappingDAO.getKeyIndexByMacId(Mockito.anyString())).thenReturn("keyIndex");
+		PowerMockito.when(machineMappingDAO.getKeyIndexByMachineName(Mockito.anyString())).thenReturn("keyIndex");
 		PowerMockito.when(machineMaster.getKeyIndex()).thenReturn(signedData);
 
 		ReflectionTestUtils.invokeMethod(restClientAuthAdvice, "addRequestSignature", httpHeaders, signedData);

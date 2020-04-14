@@ -8,16 +8,16 @@ import org.springframework.context.annotation.FilterType;
 
 import io.mosip.kernel.fsadapter.hdfs.util.ConnectionUtils;
 import io.mosip.registration.processor.core.config.CoreConfigBean;
-import io.mosip.registration.processor.core.kernel.beans.KernelConfig;
 import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.rest.client.config.RestConfigBean;
 import io.mosip.registration.processor.status.config.RegistrationStatusBeanConfig;
 import io.mosip.registration.processor.status.config.RegistrationStatusServiceBeanConfig;
 
 @Configuration
-@ComponentScan(basePackages = { "io.mosip.registration.processor.status.*",
-		"io.mosip.registration.processor.rest.client.*" }, excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = {
-				RegistrationStatusServiceBeanConfig.class,RegistrationStatusBeanConfig.class, RestConfigBean.class, CoreConfigBean.class, KernelConfig.class }))
+@ComponentScan(basePackages = {
+		"io.mosip.registration.processor.status.*" }, excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = {
+				RegistrationStatusServiceBeanConfig.class, RegistrationStatusBeanConfig.class, RestConfigBean.class,
+				CoreConfigBean.class }))
 public class RegistrationStatusConfigTest {
 
 	@MockBean
@@ -25,5 +25,6 @@ public class RegistrationStatusConfigTest {
 
 	@MockBean
 	public ConnectionUtils connectionUtil;
-	
+
 }
+

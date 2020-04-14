@@ -19,11 +19,13 @@ import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
+import io.mosip.registration.service.security.ClientSecurity;
 import io.mosip.registration.service.sync.impl.TPMPublicKeySyncServiceImpl;
 import io.mosip.registration.tpm.spi.TPMUtil;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
@@ -36,6 +38,8 @@ public class TPMPublicKeySyncServiceTest {
 	public MockitoRule mockitoRule = MockitoJUnit.rule();
 	@Mock
 	private ServiceDelegateUtil serviceDelegateUtil;
+	@Mock
+	private ClientSecurity clientSecurity;
 	@InjectMocks
 	private TPMPublicKeySyncServiceImpl tpmPublicKeySyncServiceImpl;
 
@@ -97,6 +101,7 @@ public class TPMPublicKeySyncServiceTest {
 		PowerMockito.doReturn("signedData".getBytes()).when(TPMUtil.class, "getSigningPublicPart");
 		PowerMockito.when(serviceDelegateUtil.post(Mockito.anyString(), Mockito.any(), Mockito.anyString()))
 				.thenReturn(publicKeyResponse);
+		PowerMockito.when(clientSecurity.getSigningPublicPart()).thenReturn("signedData".getBytes());
 
 		tpmPublicKeySyncServiceImpl.syncTPMPublicKey();
 

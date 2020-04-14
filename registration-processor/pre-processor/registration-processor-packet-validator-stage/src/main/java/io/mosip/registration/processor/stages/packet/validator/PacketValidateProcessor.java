@@ -765,12 +765,7 @@ public class PacketValidateProcessor {
 					mainRequestDto.setVersion(VERSION);
 					mainRequestDto.setRequesttime(new Date());
 					ReverseDataSyncRequestDTO reverseDataSyncRequestDto = new ReverseDataSyncRequestDTO();
-					reverseDataSyncRequestDto.setCreatedBy(CREATED_BY);
-					reverseDataSyncRequestDto.setLangCode("eng");
 					reverseDataSyncRequestDto.setPreRegistrationIds(Arrays.asList(preRegId));
-					reverseDataSyncRequestDto.setCreatedDateTime(new Date());
-					reverseDataSyncRequestDto.setUpdateDateTime(new Date());
-					reverseDataSyncRequestDto.setUpdateBy(CREATED_BY);
 					mainRequestDto.setRequest(reverseDataSyncRequestDto);
 					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,

@@ -8,6 +8,7 @@ import java.net.SocketTimeoutException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,7 @@ import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.dao.GlobalParamDAO;
 import io.mosip.registration.dao.PolicySyncDAO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.entity.KeyStore;
@@ -51,6 +53,9 @@ public class PublicKeySyncImpl extends BaseService implements PublicKeySync {
 	/** The policy sync DAO. */
 	@Autowired
 	private PolicySyncDAO policySyncDAO;
+	
+	@Autowired
+	private GlobalParamDAO globalParamDAO;
 
 	/** The Constant LOGGER. */
 	private static final Logger LOGGER = AppConfig.getLogger(PublicKeySyncImpl.class);
@@ -150,7 +155,7 @@ public class PublicKeySyncImpl extends BaseService implements PublicKeySync {
 		ResponseDTO responseDTO = new ResponseDTO();
 		Map<String, String> requestParamMap = new LinkedHashMap<>();
 		requestParamMap.put(RegistrationConstants.REF_ID, RegistrationConstants.KER);
-		requestParamMap.put(RegistrationConstants.TIME_STAMP, DateUtils.getUTCCurrentDateTimeString());
+		requestParamMap.put(RegistrationConstants.TIME_STAMP, DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
 
 		try {
 
@@ -180,8 +185,12 @@ public class PublicKeySyncImpl extends BaseService implements PublicKeySync {
 					keyStore.setRefId(RegistrationConstants.KER);
 					keyStore.setCreatedDtimes(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
 					policySyncDAO.updatePolicy(keyStore);
+					
+					updateServerProfile(responseMap);
+					
 					responseDTO = setSuccessResponse(responseDTO, RegistrationConstants.POLICY_SYNC_SUCCESS_MESSAGE,
 							null);
+					
 					LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
 							"Public key sync successful...");
 				} else {
@@ -236,6 +245,11 @@ public class PublicKeySyncImpl extends BaseService implements PublicKeySync {
 			return true;
 		}
 
+	}
+	
+	private void updateServerProfile(Map<String, Object> responseMap) {
+		globalParamDAO.upsertServerProfile(responseMap.containsKey(RegistrationConstants.SERVER_PROFILE) ? 
+				(String) responseMap.get(RegistrationConstants.SERVER_PROFILE) : RegistrationConstants.SERVER_NO_PROFILE);
 	}
 
 }

@@ -196,17 +196,17 @@ public class BaseService {
 	/**
 	 * Gets the station id.
 	 *
-	 * @param macAddress
-	 *            the mac address
+	 * @param machineName
+	 *            the machine Name
 	 * @return the station id
 	 */
-	public String getStationId(String macAddress) {
+	public String getStationId(String machineName) {
 		String stationId = null;
-		if (macAddress != null) {
+		if (machineName != null) {
 			try {
 
 				/* Get Station ID */
-				stationId = userOnboardDAO.getStationID(macAddress);
+				stationId = userOnboardDAO.getStationID(machineName);
 
 			} catch (RegBaseCheckedException baseCheckedException) {
 				LOGGER.error("REGISTRATION_BASE_SERVICE", APPLICATION_NAME, APPLICATION_ID,
@@ -227,7 +227,7 @@ public class BaseService {
 		String centerId = null;
 
 		/* Get Station ID */
-		String stationId = getStationId(getMacAddress());
+		String stationId = getStationId(RegistrationSystemPropertiesChecker.getMachineId());
 
 		if (stationId != null) {
 			/* Get Center Id */
@@ -259,17 +259,7 @@ public class BaseService {
 		return centerId;
 	}
 
-	/**
-	 * Gets the mac address.
-	 *
-	 * @return the mac address
-	 */
-	public String getMacAddress() {
-		/* Get Mac Address */
-		return RegistrationSystemPropertiesChecker.getMachineId();
-
-	}
-
+	
 	/**
 	 * Get Global Param configuration value.
 	 *

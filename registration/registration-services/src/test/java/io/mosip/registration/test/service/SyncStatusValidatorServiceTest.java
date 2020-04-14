@@ -36,6 +36,7 @@ import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.context.SessionContext.UserContext;
 import io.mosip.registration.dao.GlobalParamDAO;
+import io.mosip.registration.dao.RegistrationCenterDAO;
 import io.mosip.registration.dao.SyncJobConfigDAO;
 import io.mosip.registration.dao.SyncJobControlDAO;
 import io.mosip.registration.dao.SyncJobControlDAO.SyncJobInfo;
@@ -77,6 +78,9 @@ public class SyncStatusValidatorServiceTest {
 	io.mosip.registration.context.ApplicationContext context;
 	@Mock
 	private AuditManagerService auditFactory;
+	
+	@Mock
+	RegistrationCenterDAO registration;
 
 	@BeforeClass
 	public static void beforeClass() {
@@ -88,11 +92,13 @@ public class SyncStatusValidatorServiceTest {
 		RegistrationCenterDetailDTO centerDetailDTO = new RegistrationCenterDetailDTO();
 		centerDetailDTO.setRegistrationCenterLatitude("12.991276");
 		centerDetailDTO.setRegistrationCenterLongitude("80.2461");
+		Mockito.when(registration.getRegistrationCenterDetails(Mockito.anyString(), Mockito.anyString()))
+				.thenReturn(centerDetailDTO);
 		UserContext userContext = Mockito.mock(SessionContext.UserContext.class);
 		PowerMockito.mockStatic(SessionContext.class);
 		PowerMockito.doReturn(userContext).when(SessionContext.class, "userContext");
 		PowerMockito.when(SessionContext.userContext().getRegistrationCenterDetailDTO()).thenReturn(centerDetailDTO);
-		SessionContext.map().put("lastCapturedTime", null);		
+		SessionContext.map().put("lastCapturedTime", null);
 
 		doNothing().when(auditFactory).audit(Mockito.any(AuditEvent.class), Mockito.any(Components.class),
 				Mockito.anyString(), Mockito.anyString());
