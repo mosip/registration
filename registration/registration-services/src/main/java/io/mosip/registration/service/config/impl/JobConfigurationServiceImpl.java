@@ -263,7 +263,9 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 		/* Check Whether Scheduler is running or not */
 		if (isSchedulerRunning()) {
 			return setErrorResponse(responseDTO, RegistrationConstants.SYNC_DATA_PROCESS_ALREADY_STARTED, null);
-		} else {
+		} else if (RegistrationConstants.ENABLE.equalsIgnoreCase(
+				getGlobalConfigValueOf(RegistrationConstants.IS_REGISTRATION_JOBS_SCHEDULER_ENABLED))) {
+
 			try {
 				schedulerFactoryBean.start();
 				isSchedulerRunning = true;
@@ -283,6 +285,10 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 				setErrorResponse(responseDTO, RegistrationConstants.START_SCHEDULER_ERROR_MESSAGE, null);
 			}
 
+		} else {
+
+			// Configuration was disabled to run the jobs scheduler
+			return setErrorResponse(responseDTO, RegistrationConstants.START_SCHEDULER_ERROR_MESSAGE, null);
 		}
 
 		LOGGER.info(LoggerConstants.BATCH_JOBS_CONFIG_LOGGER_TITLE, RegistrationConstants.APPLICATION_NAME,

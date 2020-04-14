@@ -932,6 +932,11 @@ public class RegistrationConstants {
 	public static final String unTaggedJobs ="mosip.registration.jobs.unTagged";
 	public static final String restartableJobs ="mosip.registration.jobs.restart";
 	
+	//Registration batch jobs scheduler : If ‘Y’ or ‘y’ means enabled, else anything as value means disabled
+	public static final String IS_REGISTRATION_JOBS_SCHEDULER_ENABLED ="mosip.registration.jobs.scheduler.enable";
+	
+	
+	
 //	public static final String offlineJobs = "DEL_J00013,RDJ_J00010,ADJ_J00012,PVS_J00015";
 //	public static final String unTaggedJobs ="PDS_J00003";
 //	public static final String restartableJobs ="RCS_J00005";
