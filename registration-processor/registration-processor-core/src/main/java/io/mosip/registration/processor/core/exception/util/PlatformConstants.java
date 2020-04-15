@@ -80,6 +80,9 @@ public final class PlatformConstants {
 	/** The Constant RPR_PACKET_VALIDATOR_MODULE. */
 	public static final String RPR_PACKET_VALIDATOR_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "PVM-";
 
+	/** The Constant RPR_PACKET_VALIDATOR_MODULE. */
+	public static final String RPR_SECUREZONE_NOTIFICATION_MODULE = RPR_REGISTRATION_PROCESSOR_PREFIX + "SEZ-";
+
 	/** The Constant RPR_UIN_GENERATOR_STAGE. */
 	public static final String RPR_UIN_GENERATOR_STAGE = RPR_REGISTRATION_PROCESSOR_PREFIX + "UGS-";
 

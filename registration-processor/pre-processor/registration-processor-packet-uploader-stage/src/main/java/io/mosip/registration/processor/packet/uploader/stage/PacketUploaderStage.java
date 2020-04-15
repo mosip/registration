@@ -1,9 +1,5 @@
 package io.mosip.registration.processor.packet.uploader.stage;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -13,8 +9,9 @@ import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIMan
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.packet.uploader.service.PacketUploaderService;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.RoutingContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 /**
  * The Class PacketUploaderStage.
@@ -61,75 +58,15 @@ public class PacketUploaderStage extends MosipVerticleAPIManager {
 	 */
 	public void deployVerticle() {
 		this.mosipEventBus = this.getEventBus(this, clusterManagerUrl ,workerPoolSize);
+		this.consumeAndSend(mosipEventBus, MessageBusAddress.PACKET_UPLOADER_IN,
+				MessageBusAddress.PACKET_UPLOADER_OUT);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see io.vertx.core.AbstractVerticle#start()
-	 */
 	@Override
-	public void start() {
-
-		router.setRoute(this.postUrl(vertx, null, MessageBusAddress.PACKET_UPLOADER_OUT));
-		this.routes(router);
+	public void start(){
+		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.PACKET_UPLOADER_IN,
+				MessageBusAddress.PACKET_UPLOADER_OUT));
 		this.createServer(router.getRouter(), Integer.parseInt(port));
-	}
-
-	/**
-	 * contains all the routes in this stage
-	 *
-	 * @param router
-	 */
-	private void routes(MosipRouter router) {
-		router.post(contextPath + "/securezone");
-		router.handler(this::processURL, this::failure);
-
-	}
-
-	/**
-	 * This is for failure handler
-	 *
-	 * @param routingContext
-	 */
-	private void failure(RoutingContext routingContext) {
-		this.setResponse(routingContext, routingContext.failure().getMessage());
-	}
-
-	/**
-	 * method to process the context received.
-	 *
-	 * @param ctx
-	 *            the ctx
-	 */
-	public void processURL(RoutingContext ctx) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"PacketUploaderStage::processURL()::entry");
-		JsonObject obj = ctx.getBodyAsJson();
-
-		MessageDTO messageDTO = new MessageDTO();
-		messageDTO.setMessageBusAddress(MessageBusAddress.PACKET_UPLOADER_IN);
-		messageDTO.setInternalError(Boolean.FALSE);
-		messageDTO.setIsValid(Boolean.FALSE);
-		messageDTO.setRid(obj.getString("rid"));
-		messageDTO = packetUploaderService.validateAndUploadPacket(messageDTO.getRid(),
-				this.getClass().getSimpleName());
-		if (messageDTO.getIsValid()) {
-			sendMessage(messageDTO);
-			this.setResponse(ctx,
-					"Packet with registrationId '" + obj.getString("rid") + "' has been forwarded to next stage");
-			regProcLogger.info(obj.getString("rid"),
-					"Packet with registrationId '" + obj.getString("rid") + "' has been forwarded to next stage", null,
-					null);
-		} else {
-			this.setResponse(ctx,
-					"Packet with registrationId '" + obj.getString("rid") + "' has not been uploaded to file System");
-			regProcLogger.info(obj.getString("rid"),
-					"Packet with registrationId '" + obj.getString("rid") + "' has not been uploaded to file System",
-					null, null);
-
-		}
-
 	}
 
 	/*
@@ -140,18 +77,20 @@ public class PacketUploaderStage extends MosipVerticleAPIManager {
 	 * java.lang.Object)
 	 */
 	@Override
-	public MessageDTO process(MessageDTO object) {
-		return null;
-	}
+	public MessageDTO process(MessageDTO messageDTO) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+				"PacketUploaderStage::processURL()::entry");
 
-	/**
-	 * sends messageDTO to camel bridge.
-	 *
-	 * @param messageDTO
-	 *            the message DTO
-	 */
-	public void sendMessage(MessageDTO messageDTO) {
-		this.send(this.mosipEventBus, MessageBusAddress.PACKET_UPLOADER_OUT, messageDTO);
+		messageDTO.setMessageBusAddress(MessageBusAddress.PACKET_UPLOADER_IN);
+		messageDTO.setInternalError(Boolean.FALSE);
+		messageDTO.setIsValid(Boolean.FALSE);
+		messageDTO = packetUploaderService.validateAndUploadPacket(messageDTO.getRid(),
+				this.getClass().getSimpleName());
+
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				"PacketUploaderStage::processURL()::exit", messageDTO.toString());
+
+		return messageDTO;
 	}
 
 }
