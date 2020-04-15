@@ -146,6 +146,7 @@
 			<artifactId>kernel-auth-adapter</artifactId>
 			<version>${kernel.auth.adapter.version}</version>
 		</dependency>
+		
 	</dependencies>
 	<build>
 		<plugins>
