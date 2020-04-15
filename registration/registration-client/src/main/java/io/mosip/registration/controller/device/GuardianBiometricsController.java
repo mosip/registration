@@ -636,7 +636,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 					scanPopUpViewController.getScanImage().setImage(convertBytesToImage(iris.getIris()));
 					biometricImage.setImage(bioService.isMdmEnabled()
-							? bioService.getBioStreamImage(iris.getIrisType(), iris.getNumOfIrisRetry())
+							? convertBytesToImage(bioService.getBioStreamImage(iris.getIrisType(), iris.getNumOfIrisRetry()))
 							: convertBytesToImage(iris.getIris()));
 
 					setCapturedValues(bioService.isMdmEnabled()
@@ -793,7 +793,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 				detailsDTO.setFingerPrint(streamer.imageBytes);
 			}
 			biometricImage.setImage(bioService.isMdmEnabled()
-					? bioService.getBioStreamImage(detailsDTO.getFingerType(), detailsDTO.getNumRetry())
+					? convertBytesToImage(bioService.getBioStreamImage(detailsDTO.getFingerType(), detailsDTO.getNumRetry()))
 					: convertBytesToImage(detailsDTO.getFingerPrint()));
 
 			LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
@@ -1332,7 +1332,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 		String qualityScore = getQualityScore(qualityScoreValue);
 
 		if (qualityScore != null) {
-			Image streamImage = bioService.getBioStreamImage(bioType, attempt);
+			Image streamImage = convertBytesToImage(bioService.getBioStreamImage(bioType, attempt));
 			// Set Stream image
 			biometricImage.setImage(streamImage);
 

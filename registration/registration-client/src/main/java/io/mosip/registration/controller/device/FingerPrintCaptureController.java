@@ -1306,15 +1306,15 @@ public class FingerPrintCaptureController extends BaseController implements Init
 
 				if (detailsDTO.getFingerType().equals(RegistrationConstants.FINGERPRINT_SLAB_LEFT)) {
 
-					leftHandPalmImageview.setImage((bioService.getBioStreamImage(detailsDTO.getFingerType(), attempt)));
+					leftHandPalmImageview.setImage(convertBytesToImage((bioService.getBioStreamImage(detailsDTO.getFingerType(), attempt))));
 
 				} else if (detailsDTO.getFingerType().equals(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)) {
 
 					rightHandPalmImageview
-							.setImage((bioService.getBioStreamImage(detailsDTO.getFingerType(), attempt)));
+							.setImage(convertBytesToImage((bioService.getBioStreamImage(detailsDTO.getFingerType(), attempt))));
 				} else {
 
-					thumbImageview.setImage((bioService.getBioStreamImage(detailsDTO.getFingerType(), attempt)));
+					thumbImageview.setImage(convertBytesToImage((bioService.getBioStreamImage(detailsDTO.getFingerType(), attempt))));
 
 				}
 			}

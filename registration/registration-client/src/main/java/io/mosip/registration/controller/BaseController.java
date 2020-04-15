@@ -1509,7 +1509,7 @@ public class BaseController {
 		String qualityScore = getQualityScore(qualityScoreValue);
 
 		if (qualityScore != null) {
-			Image image = bioService.getBioStreamImage(bioType, attempt);
+			Image image = convertBytesToImage(bioService.getBioStreamImage(bioType, attempt));
 			// Set Stream image
 			streamImage.setImage(image);
 
