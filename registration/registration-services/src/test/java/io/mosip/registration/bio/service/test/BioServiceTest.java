@@ -71,7 +71,6 @@ import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
 import io.mosip.registration.service.bio.impl.BioServiceImpl;
 import io.mosip.registration.service.security.AuthenticationService;
 import io.mosip.registration.test.util.datastub.DataProvider;
-import javafx.scene.image.Image;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ ImageIO.class, IOUtils.class, FingerprintTemplate.class, SessionContext.class })
@@ -83,6 +82,7 @@ public class BioServiceTest {
 	@Mock
 	MosipBioDeviceManager mosipBioDeviceManager;
 
+	
 	@Mock
 	private AuthenticationService authService;
 
@@ -130,7 +130,7 @@ public class BioServiceTest {
 		appMap.put("mosip.mdm.enabled", "Y");
 		appMap.put(RegistrationConstants.FINGERPRINT_AUTHENTICATION_THRESHHOLD, "40");
 		ApplicationContext.getInstance().setApplicationMap(appMap);
-		HashMap<String, Map<Integer, Image>> BIO_STREAM_IMAGES = new HashMap<String, Map<Integer, Image>>();
+		HashMap<String, Map<Integer, byte[]>> BIO_STREAM_IMAGES = new HashMap<String, Map<Integer, byte[]>>();
 		BIO_STREAM_IMAGES.put("key", new HashMap<>());
 		//ReflectionTestUtils.setField(bioService.getClass(), "BIO_STREAM_IMAGES", BIO_STREAM_IMAGES);
 		ReflectionTestUtils.setField(bioService, "BIO_STREAM_IMAGES", BIO_STREAM_IMAGES);
