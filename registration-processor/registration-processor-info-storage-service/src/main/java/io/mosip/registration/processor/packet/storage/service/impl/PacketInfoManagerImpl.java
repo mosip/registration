@@ -213,11 +213,24 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 					jsonValueList.add(nameArray);
 			}
 			demographicData.setName(jsonValueList.isEmpty() ? null : jsonValueList);
-			
+
 			demographicData.setDateOfBirth((String) JsonUtil.getJSONValue(demographicIdentity,
 					JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "dob"), "value")));
 			demographicData.setGender(JsonUtil.getJsonValues(demographicIdentity,
 					JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "gender"), "value")));
+			demographicData.setPhone((String) JsonUtil.getJSONValue(demographicIdentity,
+					JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "phone"), "value")));
+			demographicData.setEmail((String) JsonUtil.getJSONValue(demographicIdentity,
+					JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "email"), "value")));
+			String[] addressList = ((String) JsonUtil
+					.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "address"), "value")).split(",");
+			for (String address : addressList) {
+				if (address.equals("postalCode")) {
+					demographicData.setPostalCode((String) JsonUtil.getJSONValue(demographicIdentity, address));
+				}
+					
+			}
+
 		} catch (IOException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
