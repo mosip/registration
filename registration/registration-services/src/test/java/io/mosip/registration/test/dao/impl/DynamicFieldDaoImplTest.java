@@ -5,34 +5,24 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.util.List;
 
-import javax.imageio.ImageIO;
-
-import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.machinezoo.sourceafis.FingerprintTemplate;
 
-import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.dao.impl.DynamicFieldDAOImpl;
 import io.mosip.registration.dto.mastersync.DynamicFieldValueJsonDto;
 import io.mosip.registration.entity.DynamicField;
 import io.mosip.registration.repositories.DynamicFieldRepository;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ ImageIO.class, IOUtils.class, FingerprintTemplate.class, SessionContext.class })
 public class DynamicFieldDaoImplTest {
 
 	@Rule

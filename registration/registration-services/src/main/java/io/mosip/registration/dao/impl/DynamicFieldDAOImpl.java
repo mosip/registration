@@ -1,5 +1,6 @@
 package io.mosip.registration.dao.impl;
 
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.util.List;
@@ -33,11 +34,18 @@ public class DynamicFieldDAOImpl implements DynamicFieldDAO {
 	@Override
 	public DynamicField getDynamicField(String fieldName, String langCode) {
 
+		LOGGER.info("DynamicFieldDAOImpl", APPLICATION_NAME, APPLICATION_ID,
+				"fetching the dynamic field");
+
 		return dynamicFieldRepository.findByIsActiveTrueAndNameAndLangCode(fieldName, langCode);
 	}
 
 	@Override
 	public List<DynamicFieldValueJsonDto> getValueJSON(String fieldName, String langCode) {
+		
+		LOGGER.info("DynamicFieldDAOImpl", APPLICATION_NAME, APPLICATION_ID,
+				"fetching the valueJSON ");
+		
 		DynamicField dynamicField = getDynamicField(fieldName, langCode);
 		ObjectMapper mapper  = new ObjectMapper();
 		try {
