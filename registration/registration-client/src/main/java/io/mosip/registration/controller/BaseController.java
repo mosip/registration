@@ -5,6 +5,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -13,6 +14,8 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -22,6 +25,7 @@ import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.javafx.scene.control.skin.TableHeaderRow;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -50,10 +54,12 @@ import io.mosip.registration.controller.reg.HeaderController;
 import io.mosip.registration.controller.reg.HomeController;
 import io.mosip.registration.controller.reg.PacketHandlerController;
 import io.mosip.registration.controller.reg.RegistrationPreviewController;
+import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.device.fp.FingerprintFacade;
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.ResponseDTO;
+import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.dto.biometric.BiometricExceptionDTO;
 import io.mosip.registration.dto.biometric.BiometricInfoDTO;
@@ -190,6 +196,9 @@ public class BaseController {
 	@FXML
 	public Text scanningMsg;
 
+	@Autowired
+	private Validations validations;
+	
 	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
 
 	public Text getScanningMsg() {
@@ -218,6 +227,8 @@ public class BaseController {
 	private RestartController restartController;
 
 	private static boolean isAckOpened = false;
+	
+	private List<UiSchemaDTO> uiSchemaDTOs;
 
 	/**
 	 * @return the alertStage
@@ -1578,5 +1589,47 @@ public class BaseController {
 	 */
 	protected void setIsAckOpened(boolean isAckOpened) {
 		this.isAckOpened = isAckOpened;
+	}
+	
+	protected void loadUIElementsFromSchema() {
+		//Get JSON File
+		
+		String filePath = "C:\\Users\\M1044402\\Desktop\\uiSchema.json";
+		File uiSchemaJsonFile = new File(filePath);
+		
+		if(uiSchemaJsonFile.exists()) {
+		ObjectMapper mapper = new ObjectMapper();
+
+		//JSON file to Java object
+		try {
+			
+			//Parse to DTO			
+			UiSchemaDTO[] uiSchemaDTOsArray = mapper.readValue(uiSchemaJsonFile, UiSchemaDTO[].class);
+			
+			//Store in temporary list
+			
+			uiSchemaDTOs = uiSchemaDTOs==null ? new LinkedList<>() : uiSchemaDTOs;
+			
+			uiSchemaDTOs.addAll(Arrays.asList(uiSchemaDTOsArray));
+			
+			Map<String, String[]> validationsMap = new HashMap<>();
+			
+			List<String> neglectTypes = Arrays.asList("documentType","biometricsType");
+			for (UiSchemaDTO uiSchemaDTO : uiSchemaDTOs) {
+				if(!neglectTypes.contains(uiSchemaDTO.getType())) {
+					validationsMap.put(uiSchemaDTO.getId(), uiSchemaDTO.getValidators());
+				}
+			}
+			
+			//Set Validations Map
+			validations.setValidations(validationsMap);
+			
+		} catch (IOException ioException) {
+			// TODO Auto-generated catch block
+			ioException.printStackTrace();
+		}
+		
+		
+		}
 	}
 }

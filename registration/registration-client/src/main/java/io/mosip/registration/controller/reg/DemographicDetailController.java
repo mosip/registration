@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 
-import org.assertj.core.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
@@ -63,7 +62,6 @@ import io.mosip.registration.dto.demographic.IndividualIdentity;
 import io.mosip.registration.dto.demographic.LocationDTO;
 import io.mosip.registration.dto.demographic.ValuesDTO;
 import io.mosip.registration.dto.mastersync.LocationDto;
-import io.mosip.registration.entity.Location;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.service.sync.MasterSyncService;
@@ -71,10 +69,12 @@ import io.mosip.registration.service.sync.PreRegistrationDataSyncService;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.NodeOrientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -708,7 +708,7 @@ public class DemographicDetailController extends BaseController {
 	 * @see javafx.fxml.Initializable#initialize()
 	 */
 	@FXML
-	private void initialize() {
+	private void initialize() throws IOException {
 
 		LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Entering the Demographic Details Screen");
@@ -1276,8 +1276,9 @@ public class DemographicDetailController extends BaseController {
 
 	/**
 	 * Listening on the fields for any operation
+	 * @throws IOException 
 	 */
-	private void listenerOnFields() {
+	private void listenerOnFields() throws IOException {
 		try {
 			LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, "Populating the local language fields");
@@ -1287,6 +1288,12 @@ public class DemographicDetailController extends BaseController {
 				hasToBeTransliterated = false;
 			}
 
+//			Parent root = FXMLLoader.load(getClass().getResource("/fxml/DemographicDetail.fxml"),ApplicationContext.applicationLanguageBundle());
+//	         Scene scene = new Scene(root);
+//
+//
+//			TextField name = (TextField) scene.lookup("#fullName");
+			
 			fxUtils.validateOnFocusOut(parentFlowPane, fullName, validation, fullNameLocalLanguage,
 					hasToBeTransliterated);
 			fxUtils.validateOnFocusOut(parentFlowPane, addressLine1, validation, addressLine1LocalLanguage,
