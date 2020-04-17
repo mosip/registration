@@ -110,6 +110,8 @@ public class UinCardRePrintServiceImpl {
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(UinCardRePrintServiceImpl.class);
 
+	public static final String VID_TYPE = "registration.processor.id.repo.vidType";
+
 	/**
 	 * Creates the packet.
 	 *
@@ -150,7 +152,7 @@ public class UinCardRePrintServiceImpl {
 					RequestWrapper<VidRequestDto> request = new RequestWrapper<>();
 					VidResponseDTO response;
 					vidRequestDto.setUIN(uin);
-					vidRequestDto.setVidType("Temporary");
+					vidRequestDto.setVidType(env.getProperty(VID_TYPE));
 					request.setId(env.getProperty(VID_CREATE_ID));
 					request.setRequest(vidRequestDto);
 					DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
