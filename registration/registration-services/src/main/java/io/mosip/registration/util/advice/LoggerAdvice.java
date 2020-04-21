@@ -41,7 +41,9 @@ public class LoggerAdvice {
 		RequestHTTPDTO requestHTTPDTO = (RequestHTTPDTO) jointPointResponse[0];
 
 		if (ActiveProfiles.DEV.getCode().equalsIgnoreCase(
-				String.valueOf(ApplicationContext.map().get(RegistrationConstants.SERVER_ACTIVE_PROFILE)))) {
+				String.valueOf(ApplicationContext.map().get(RegistrationConstants.SERVER_ACTIVE_PROFILE)))
+				|| ActiveProfiles.QA.getCode().equalsIgnoreCase(
+						String.valueOf(ApplicationContext.map().get(RegistrationConstants.SERVER_ACTIVE_PROFILE)))) {
 
 			LOGGER.info(beforelog, APPLICATION_NAME, APPLICATION_ID, "Request URL======>" + requestHTTPDTO.getUri());
 			LOGGER.info(beforelog, APPLICATION_NAME, APPLICATION_ID,
@@ -63,7 +65,9 @@ public class LoggerAdvice {
 		LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) result;
 
 		if (ActiveProfiles.DEV.getCode().equalsIgnoreCase(
-				String.valueOf(ApplicationContext.map().get(RegistrationConstants.SERVER_ACTIVE_PROFILE)))) {
+				String.valueOf(ApplicationContext.map().get(RegistrationConstants.SERVER_ACTIVE_PROFILE)))
+				|| ActiveProfiles.QA.getCode().equalsIgnoreCase(
+						String.valueOf(ApplicationContext.map().get(RegistrationConstants.SERVER_ACTIVE_PROFILE)))) {
 
 			if (responseMap != null && !responseMap.isEmpty()) {
 
@@ -82,7 +86,9 @@ public class LoggerAdvice {
 		Object[] requestHTTPDTO = joinPoint.getArgs();
 		RequestHTTPDTO requestDto = (RequestHTTPDTO) requestHTTPDTO[0];
 		if (ActiveProfiles.DEV.getCode().equalsIgnoreCase(
-				String.valueOf(ApplicationContext.map().get(RegistrationConstants.SERVER_ACTIVE_PROFILE)))) {
+				String.valueOf(ApplicationContext.map().get(RegistrationConstants.SERVER_ACTIVE_PROFILE)))
+				|| ActiveProfiles.QA.getCode().equalsIgnoreCase(
+						String.valueOf(ApplicationContext.map().get(RegistrationConstants.SERVER_ACTIVE_PROFILE)))) {
 			if (!StringUtils.containsIgnoreCase(requestDto.getUri().toString(),
 					RegistrationConstants.AUTH_SERVICE_URL)) {
 				LOGGER.info(afteReturnlog, APPLICATION_NAME, APPLICATION_ID,
