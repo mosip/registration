@@ -1295,12 +1295,6 @@ public class DemographicDetailController extends BaseController {
 				hasToBeTransliterated = false;
 			}
 
-//			Parent root = FXMLLoader.load(getClass().getResource("/fxml/DemographicDetail.fxml"),ApplicationContext.applicationLanguageBundle());
-//	         Scene scene = new Scene(root);
-//
-//
-//			TextField name = (TextField) scene.lookup("#fullName");
-			
 			fxUtils.validateOnFocusOut(parentFlowPane, fullName, validation, fullNameLocalLanguage,
 					hasToBeTransliterated);
 			fxUtils.validateOnFocusOut(parentFlowPane, addressLine1, validation, addressLine1LocalLanguage,
