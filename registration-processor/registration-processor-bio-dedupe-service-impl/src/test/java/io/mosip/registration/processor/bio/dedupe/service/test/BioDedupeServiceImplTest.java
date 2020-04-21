@@ -120,7 +120,7 @@ public class BioDedupeServiceImplTest {
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		ReflectionTestUtils.setField(bioDedupeService, "maxResults", 30);
 		ReflectionTestUtils.setField(bioDedupeService, "targetFPIR", 30);
-		ReflectionTestUtils.setField(bioDedupeService, "threshold", 60);
+
 
 		String refId = "01234567-89AB-CDEF-0123-456789ABCDEF";
 		List<String> refIdList = new ArrayList<>();

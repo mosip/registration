@@ -116,9 +116,6 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
 
-	@Value("${registration.processor.abis.threshold}")
-	private int abisThreshold;
-
 	/** server port number. */
 	@Value("${server.port}")
 	private String port;

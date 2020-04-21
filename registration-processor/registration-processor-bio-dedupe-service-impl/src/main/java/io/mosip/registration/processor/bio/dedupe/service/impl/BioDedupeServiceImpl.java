@@ -89,10 +89,6 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 	@Value("${registration.processor.abis.targetFPIR}")
 	private Integer targetFPIR;
 
-	/** The threshold. */
-	@Value("${registration.processor.abis.threshold}")
-	private Integer threshold;
-
 	/** The filesystem adapter impl. */
 	@Autowired
 	private PacketManager filesystemCephAdapterImpl;
