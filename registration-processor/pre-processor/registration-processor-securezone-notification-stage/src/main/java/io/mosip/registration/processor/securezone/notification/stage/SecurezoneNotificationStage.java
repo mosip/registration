@@ -210,7 +210,7 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
             ctx.fail(e);
         } catch (Exception e) {
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-                    ctx.getBodyAsString(), e.getStackTrace().toString());
+                    ctx.getBodyAsString(), ExceptionUtils.getStackTrace(e));
             ctx.fail(e);
         } finally {
             if (messageDTO.getInternalError()) {
