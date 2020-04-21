@@ -364,13 +364,6 @@ public class SecurezoneNotificationStageTest {
     }
 
     @Test
-    public void testStart()
-    {
-        notificationStage.start();
-        notificationStage.deployVerticle();
-    }
-
-    @Test
     public void processURLTest() {
         notificationStage.processURL(ctx);
         assertTrue(responseObject);
