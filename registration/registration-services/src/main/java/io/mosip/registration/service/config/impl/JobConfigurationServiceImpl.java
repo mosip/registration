@@ -669,7 +669,7 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 
 		});
 
-		syncActiveJobMapExecutable = syncActiveJobMap;
+		syncActiveJobMapExecutable.putAll(syncActiveJobMap); 
 
 		syncActiveJobMap.forEach((jobID, syncJobDef) -> {
 			if (!isNull(syncJobDef.getParentSyncJobId())) {
