@@ -15,7 +15,7 @@ public class AbisCommonResponseDto implements Serializable{
 	private String id;
 
 	private String requestId;
-	
+
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 	private LocalDateTime responsetime;
 	
