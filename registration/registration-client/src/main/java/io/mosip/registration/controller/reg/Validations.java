@@ -26,6 +26,7 @@ import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.controller.BaseController;
+import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
 import io.mosip.registration.dto.mastersync.BlacklistedWordsDto;
 import io.mosip.registration.entity.BlacklistedWords;
@@ -56,7 +57,7 @@ public class Validations extends BaseController {
 	 */
 	private static final Logger LOGGER = AppConfig.getLogger(Validations.class);
 	private boolean isChild;
-	private Map<String, String[]> validationMap;
+	private Map<String, UiSchemaDTO> validationMap;
 	private ResourceBundle applicationMessageBundle;
 	private ResourceBundle localMessageBundle;
 	private ResourceBundle applicationLabelBundle;
@@ -246,9 +247,11 @@ public class Validations extends BaseController {
 		try {
 			String label = id.replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY)
 					.replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY);
-			String[] validationProperty = getValidationProperties(id, isLostUIN);
-			String regex = validationProperty[0];
-			boolean isMandatory = RegistrationConstants.TRUE.equalsIgnoreCase(validationProperty[1]);
+
+			UiSchemaDTO uiSchemaDTO = getValidationProperties(id, isLostUIN);
+			String[] validationProperty = uiSchemaDTO.getValidators();
+			String regex = validationProperty == null ? null : validationProperty[0];
+			boolean isMandatory = uiSchemaDTO.isRequired();
 			boolean showAlert = (noAlert.contains(node.getId()) && id.contains(RegistrationConstants.ON_TYPE));
 			String inputText = node.getText();
 
@@ -497,7 +500,7 @@ public class Validations extends BaseController {
 	 * @return <code>true</code>, if successful, else <code>false</code>
 	 */
 	public boolean validateSingleString(String value, String id) {
-		String[] validationProperty = getValidationProperties(id, isLostUIN);
+		String[] validationProperty = getValidationProperties(id, isLostUIN).getValidators();
 
 		return value.matches(validationProperty[0]);
 	}
@@ -546,62 +549,74 @@ public class Validations extends BaseController {
 	 *            the flag to indicate for lost UIN
 	 * @return String[]
 	 */
-	private String[] getValidationProperties(String id, boolean isLostUIN) {
-		String[] validation = new String[2];
-
-		if (validationMap.containsKey(id)) {
-			validation = validationMap.get(id);
-		} else {
-			switch (id.replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY)
-					.replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY)) {
-			case RegistrationConstants.EMAIL_ID:
-				validation[0] = getValueFromApplicationContext(RegistrationConstants.EMAIL_VALIDATION_REGEX);
-				validation[1] = RegistrationConstants.TRUE;
-				break;
-			case RegistrationConstants.CNI_OR_PIN:
-				validation[0] = getValueFromApplicationContext(RegistrationConstants.REFERENCE_ID_NO_VALIDATION_REGEX);
-				validation[1] = RegistrationConstants.TRUE;
-				break;
-			case RegistrationConstants.MOBILE_NUMBER:
-				validation[0] = getValueFromApplicationContext(RegistrationConstants.PHONE_VALIDATION_REGEX);
-				validation[1] = RegistrationConstants.TRUE;
-				break;
-			case RegistrationConstants.POSTAL_CODE:
-				validation[0] = getValueFromApplicationContext(RegistrationConstants.POSTAL_CODE_VALIDATION_REGEX);
-				validation[1] = RegistrationConstants.TRUE;
-				break;
-			case RegistrationConstants.FULL_NAME:
-				validation[0] = getValueFromApplicationContext(RegistrationConstants.ID_FULL_NAME_REGEX);
-
-				validation[1] = RegistrationConstants.TRUE;
-				break;
-			case RegistrationConstants.AGE_FIELD:
-				validation[0] = getValueFromApplicationContext(RegistrationConstants.AGE_VALIDATION_REGEX);
-				validation[1] = RegistrationConstants.TRUE;
-				break;
-			case RegistrationConstants.ADDRESS_LINE1:
-				validation[0] = getValueFromApplicationContext(RegistrationConstants.ADDRESS_LINE_1_REGEX);
-				validation[1] = RegistrationConstants.TRUE;
-				break;
-			case RegistrationConstants.ADDRESS_LINE2:
-				validation[0] = getValueFromApplicationContext(RegistrationConstants.ADDRESS_LINE_2_REGEX);
-				validation[1] = RegistrationConstants.FALSE;
-				break;
-			case RegistrationConstants.ADDRESS_LINE3:
-				validation[0] = getValueFromApplicationContext(RegistrationConstants.ADDRESS_LINE_3_REGEX);
-				validation[1] = RegistrationConstants.FALSE;
-				break;
-			default:
-				validation[0] = RegistrationConstants.REGEX_ANY;
-				validation[1] = RegistrationConstants.FALSE;
-			}
+	private UiSchemaDTO getValidationProperties(String id, boolean isLostUIN) {
+		UiSchemaDTO uiSchemaDTO = null;
+		String regexType = "REGEX";
+		if (validationMap.containsKey(id) && validationMap.get(id).getType().equalsIgnoreCase(regexType)) {
+			uiSchemaDTO = validationMap.get(id);
 		}
+		return uiSchemaDTO;
+		// else {
+		// switch (id.replaceAll(RegistrationConstants.LOCAL_LANGUAGE,
+		// RegistrationConstants.EMPTY)
+		// .replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY)) {
+		// case RegistrationConstants.EMAIL_ID:
+		// validation[0] =
+		// getValueFromApplicationContext(RegistrationConstants.EMAIL_VALIDATION_REGEX);
+		// validation[1] = RegistrationConstants.TRUE;
+		// break;
+		// case RegistrationConstants.CNI_OR_PIN:
+		// validation[0] =
+		// getValueFromApplicationContext(RegistrationConstants.REFERENCE_ID_NO_VALIDATION_REGEX);
+		// validation[1] = RegistrationConstants.TRUE;
+		// break;
+		// case RegistrationConstants.MOBILE_NUMBER:
+		// validation[0] =
+		// getValueFromApplicationContext(RegistrationConstants.PHONE_VALIDATION_REGEX);
+		// validation[1] = RegistrationConstants.TRUE;
+		// break;
+		// case RegistrationConstants.POSTAL_CODE:
+		// validation[0] =
+		// getValueFromApplicationContext(RegistrationConstants.POSTAL_CODE_VALIDATION_REGEX);
+		// validation[1] = RegistrationConstants.TRUE;
+		// break;
+		// case RegistrationConstants.FULL_NAME:
+		// validation[0] =
+		// getValueFromApplicationContext(RegistrationConstants.ID_FULL_NAME_REGEX);
+		//
+		// validation[1] = RegistrationConstants.TRUE;
+		// break;
+		// case RegistrationConstants.AGE_FIELD:
+		// validation[0] =
+		// getValueFromApplicationContext(RegistrationConstants.AGE_VALIDATION_REGEX);
+		// validation[1] = RegistrationConstants.TRUE;
+		// break;
+		// case RegistrationConstants.ADDRESS_LINE1:
+		// validation[0] =
+		// getValueFromApplicationContext(RegistrationConstants.ADDRESS_LINE_1_REGEX);
+		// validation[1] = RegistrationConstants.TRUE;
+		// break;
+		// case RegistrationConstants.ADDRESS_LINE2:
+		// validation[0] =
+		// getValueFromApplicationContext(RegistrationConstants.ADDRESS_LINE_2_REGEX);
+		// validation[1] = RegistrationConstants.FALSE;
+		// break;
+		// case RegistrationConstants.ADDRESS_LINE3:
+		// validation[0] =
+		// getValueFromApplicationContext(RegistrationConstants.ADDRESS_LINE_3_REGEX);
+		// validation[1] = RegistrationConstants.FALSE;
+		// break;
+		// default:
+		// validation[0] = RegistrationConstants.REGEX_ANY;
+		// validation[1] = RegistrationConstants.FALSE;
+		// }
+		// }
 
-		if (isLostUIN) {
-			validation[1] = RegistrationConstants.FALSE;
-		}
-
-		return validation;
+//		if (isLostUIN) {
+//			validation[1] = RegistrationConstants.FALSE;
+//		}
+//
+//		return validation;
 	}
 
 	/**
@@ -610,7 +625,11 @@ public class Validations extends BaseController {
 	 * @param validations
 	 *            is a map id's and regex validations
 	 */
-	public void setValidations(Map<String, String[]> validations) {
+	public void setValidations(Map<String, UiSchemaDTO> validations) {
 		this.validationMap = validations;
+	}
+
+	public Map<String, UiSchemaDTO> getValidationMap() {
+		return validationMap;
 	}
 }

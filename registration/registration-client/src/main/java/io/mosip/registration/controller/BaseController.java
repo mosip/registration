@@ -1612,12 +1612,12 @@ public class BaseController {
 			
 			uiSchemaDTOs.addAll(Arrays.asList(uiSchemaDTOsArray));
 			
-			Map<String, String[]> validationsMap = new HashMap<>();
+			Map<String, UiSchemaDTO> validationsMap = new HashMap<>();
 			
 			List<String> neglectTypes = Arrays.asList("documentType","biometricsType");
 			for (UiSchemaDTO uiSchemaDTO : uiSchemaDTOs) {
 				if(!neglectTypes.contains(uiSchemaDTO.getType())) {
-					validationsMap.put(uiSchemaDTO.getId(), uiSchemaDTO.getValidators());
+					validationsMap.put(uiSchemaDTO.getId(), uiSchemaDTO);
 				}
 			}
 			

@@ -52,6 +52,7 @@ import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.RegistrationMetaDataDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.SuccessResponseDTO;
+import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.biometric.BiometricInfoDTO;
 import io.mosip.registration.dto.biometric.FaceDetailsDTO;
 import io.mosip.registration.dto.demographic.AddressDTO;
@@ -86,6 +87,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
@@ -736,7 +738,12 @@ public class DemographicDetailController extends BaseController {
 			switchedOnParentUinOrRid = new SimpleBooleanProperty(true);
 			toggleFunctionForParentUinOrRid();
 			ageBasedOperation();
+			
+			addListenersFromUiProperties(validation.getValidationMap(), parentFlowPane);
+			
+			//TODO Modify Listeners
 			listenerOnFields();
+			
 			loadLocalLanguageFields();
 			fullNameNodePos = 200.00;
 			addressLine1NodePos = 470.00;
@@ -1288,12 +1295,6 @@ public class DemographicDetailController extends BaseController {
 				hasToBeTransliterated = false;
 			}
 
-//			Parent root = FXMLLoader.load(getClass().getResource("/fxml/DemographicDetail.fxml"),ApplicationContext.applicationLanguageBundle());
-//	         Scene scene = new Scene(root);
-//
-//
-//			TextField name = (TextField) scene.lookup("#fullName");
-			
 			fxUtils.validateOnFocusOut(parentFlowPane, fullName, validation, fullNameLocalLanguage,
 					hasToBeTransliterated);
 			fxUtils.validateOnFocusOut(parentFlowPane, addressLine1, validation, addressLine1LocalLanguage,
@@ -2486,5 +2487,20 @@ public class DemographicDetailController extends BaseController {
 		} else {
 			updatePageFlow(pageId, true);
 		}
+	}
+	
+	private void addListenersFromUiProperties(Map<String,UiSchemaDTO> uiSchemaProperties, Pane pane) {
+		for (Node node : pane.getChildren()) {
+			if (node instanceof Pane) {
+				addListenersFromUiProperties(uiSchemaProperties, (Pane)node);
+			} else {
+				if(uiSchemaProperties.containsKey(node.getId())) {
+					
+					System.out.println("********** "+node.getId());
+					//Add Listener
+				}
+			}
+		}
+		
 	}
 }
