@@ -124,11 +124,10 @@ public class BioDedupeServiceImplTest {
 
 		CandidatesDto candidate1 = new CandidatesDto();
 		candidate1.setReferenceId("01234567-89AB-CDEF-0123-456789ABCDEG");
-		candidate1.setScaledScore("70");
 
 		CandidatesDto candidate2 = new CandidatesDto();
 		candidate2.setReferenceId("01234567-89AB-CDEF-0123-456789ABCDEH");
-		candidate2.setScaledScore("80");
+
 
 		CandidatesDto[] candidateArray = new CandidatesDto[2];
 		candidateArray[0] = candidate1;

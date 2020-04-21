@@ -649,13 +649,9 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 
 	private void updateAbisResponseDetail(CandidatesDto candidatesDto, AbisResponseDto abisResponseDto,
 			String bioRefId) {
-		int scaledScore = 0;
-		if (!candidatesDto.getReferenceId().equalsIgnoreCase(bioRefId)) {
-			if (candidatesDto.getScaledScore() != null) {
-				scaledScore = Integer.valueOf(candidatesDto.getScaledScore());
 
-			}
-			if (scaledScore >= abisThreshold) {
+		if (!candidatesDto.getReferenceId().equalsIgnoreCase(bioRefId)) {
+
 				String candidateRegId = packetInfoDao.getRegIdByBioRefId(candidatesDto.getReferenceId().toLowerCase());
 				if (candidateRegId == null || candidateRegId.isEmpty())
 					return;
@@ -664,14 +660,13 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 				abisResponseDetPKEntity.setAbisRespId(abisResponseDto.getId());
 				abisResponseDetPKEntity.setMatchedBioRefId(candidatesDto.getReferenceId().toLowerCase());
 				abisResponseDetEntity.setId(abisResponseDetPKEntity);
-				abisResponseDetEntity.setScore(scaledScore);
-				abisResponseDetEntity.setCrBy(SYSTEM);
+			abisResponseDetEntity.setCrBy(SYSTEM);
 				abisResponseDetEntity.setUpdBy(SYSTEM);
 				abisResponseDetEntity.setIsDeleted(false);
 				abisResponseDetEntity.setCrDtimes(LocalDateTime.now(ZoneId.of("UTC")));
 				abisResponseDetEntity.setUpdDtimes(LocalDateTime.now(ZoneId.of("UTC")));
 				abisResponseDetailRepositary.save(abisResponseDetEntity);
-			}
+
 		}
 
 	}

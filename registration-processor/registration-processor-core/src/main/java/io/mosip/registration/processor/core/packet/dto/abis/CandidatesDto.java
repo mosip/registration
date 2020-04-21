@@ -20,29 +20,18 @@ public class CandidatesDto implements Serializable {
 	/** The reference id. */
 	private String referenceId;
 
-	/** The scaled score. */
-	private String scaledScore;
+	private Analytics analytics;
 
-	private String internalScore;
+	private Modalities[] modalities;
 
-	private Analytics[] analytics;
+	
 
-	private AbisScores[] scores;
-
-	public Analytics[] getAnalytics() {
-		return analytics != null ? analytics.clone() : null;
+	public Modalities[] getModalities() {
+		return modalities != null ? modalities.clone() : null;
 	}
 
-	public void setAnalytics(Analytics[] analytics) {
-		this.analytics = analytics != null ? analytics : null;
-	}
-
-	public AbisScores[] getScores() {
-		return scores != null ? scores.clone() : null;
-	}
-
-	public void setScores(AbisScores[] scores) {
-		this.scores = scores != null ? scores : null;
+	public void setModalities(Modalities[] modalities) {
+		this.modalities = modalities != null ? modalities : null;
 	}
 
 }

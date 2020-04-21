@@ -3,7 +3,8 @@ package io.mosip.registration.processor.bio.dedupe.service.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -11,10 +12,12 @@ import java.util.UUID;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.bio.dedupe.exception.ABISAbortException;
 import io.mosip.registration.processor.bio.dedupe.exception.ABISInternalError;
 import io.mosip.registration.processor.bio.dedupe.exception.UnableToServeRequestABISException;
@@ -39,6 +42,7 @@ import io.mosip.registration.processor.core.packet.dto.abis.AbisIdentifyResponse
 import io.mosip.registration.processor.core.packet.dto.abis.AbisInsertRequestDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisInsertResponseDto;
 import io.mosip.registration.processor.core.packet.dto.abis.CandidatesDto;
+import io.mosip.registration.processor.core.packet.dto.abis.Flag;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.DemographicInfoDto;
 import io.mosip.registration.processor.core.spi.biodedupe.BioDedupeService;
 import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
@@ -97,6 +101,10 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 
 	private static final String ABIS_IDENTIFY = "mosip.abis.identify";
 
+	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
+
+	@Autowired
+	private Environment env;
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -117,9 +125,10 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 		abisInsertRequestDto.setRequestId(requestId);
 		abisInsertRequestDto.setReferenceId(referenceId);
 		abisInsertRequestDto.setReferenceURL(url + registrationId);
-		String timeStamp = String.valueOf(new Timestamp(System.currentTimeMillis()).getTime() / 1000L);
-		abisInsertRequestDto.setTimestamp(timeStamp);
-
+		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+		LocalDateTime localdatetime = LocalDateTime
+				.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+		abisInsertRequestDto.setRequesttime(localdatetime);
 		RegAbisRefDto regAbisRefDto = new RegAbisRefDto();
 		regAbisRefDto.setAbis_ref_id(referenceId);
 		regAbisRefDto.setReg_id(registrationId);
@@ -198,15 +207,19 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 		String referenceId = packetInfoManager.getReferenceIdByRid(registrationId).get(0);
 
 		AbisIdentifyRequestDto identifyRequestDto = new AbisIdentifyRequestDto();
+		Flag flag = new Flag();
 		identifyRequestDto.setId(ABIS_IDENTIFY);
 		identifyRequestDto.setVer("1.0");
 		identifyRequestDto.setRequestId(requestId);
 		identifyRequestDto.setReferenceId(referenceId);
 
-		String timeStamp = String.valueOf(new Timestamp(System.currentTimeMillis()).getTime() / 1000L);
-		identifyRequestDto.setTimestamp(timeStamp);
-		identifyRequestDto.setMaxResults(maxResults);
-		identifyRequestDto.setTargetFPIR(targetFPIR);
+		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+		LocalDateTime localdatetime = LocalDateTime
+				.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+		identifyRequestDto.setRequesttime(localdatetime);
+		flag.setMaxResults(maxResults);
+		flag.setTargetFPIR(targetFPIR);
+		identifyRequestDto.setFlags(flag);
 
 		// call Identify Api to get duplicate ids
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
@@ -253,13 +266,13 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 		CandidatesDto[] candidateList = responsedto.getCandidateList().getCandidates();
 
 		for (CandidatesDto candidate : candidateList) {
-			if (Integer.parseInt(candidate.getScaledScore()) >= threshold) {
+
 				List<String> regIdList = packetInfoManager.getRidByReferenceId(candidate.getReferenceId());
 				if (!regIdList.isEmpty()) {
 					String regId = regIdList.get(0);
 					abisResponseDuplicates.add(regId);
 				}
-			}
+
 		}
 
 		for (String duplicateReg : abisResponseDuplicates) {

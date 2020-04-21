@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.core.packet.dto.abis;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 import lombok.Data;
 
@@ -13,7 +14,7 @@ public class AbisCommonResponseDto implements Serializable{
 
 	private String requestId;
 
-	private String timestamp;
+	private LocalDateTime responsetime;
 	
 	private Integer returnValue;
 	
