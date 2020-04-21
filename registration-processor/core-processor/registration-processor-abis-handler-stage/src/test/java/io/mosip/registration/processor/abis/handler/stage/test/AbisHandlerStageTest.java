@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.core.env.Environment;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.registration.processor.abis.handler.stage.AbisHandlerStage;
@@ -69,6 +70,9 @@ public class AbisHandlerStageTest {
 
 	List<AbisRequestDto> abisRequestDtoList = new ArrayList<>();
 
+	@Mock
+	private Environment env;
+
 	@InjectMocks
 	private AbisHandlerStage abisHandlerStage = new AbisHandlerStage() {
 		@Override
@@ -91,7 +95,8 @@ public class AbisHandlerStageTest {
 		ReflectionTestUtils.setField(abisHandlerStage, "targetFPIR", 30);
 		ReflectionTestUtils.setField(abisHandlerStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(abisHandlerStage, "clusterManagerUrl", "/dummyPath");
-
+		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern"))
+				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		AbisApplicationDto dto = new AbisApplicationDto();
 		dto.setCode("ABIS1");
 		abisApplicationDtos.add(dto);

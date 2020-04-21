@@ -24,6 +24,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.core.env.Environment;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import ch.qos.logback.classic.Logger;
@@ -99,6 +100,9 @@ public class BioDedupeServiceImplTest {
 	private Logger fooLogger;
 
 	@Mock
+	private Environment env;
+
+	@Mock
 	private RegistrationStatusService registrationStatusService;
 
 	/**
@@ -112,7 +116,8 @@ public class BioDedupeServiceImplTest {
 		Mockito.doNothing().when(packetInfoManager).saveAbisRef(any(), any(), any());
 
 		abisInsertResponseDto.setReturnValue(2);
-
+		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern"))
+				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		ReflectionTestUtils.setField(bioDedupeService, "maxResults", 30);
 		ReflectionTestUtils.setField(bioDedupeService, "targetFPIR", 30);
 		ReflectionTestUtils.setField(bioDedupeService, "threshold", 60);
