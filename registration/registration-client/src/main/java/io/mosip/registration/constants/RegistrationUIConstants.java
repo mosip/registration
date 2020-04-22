@@ -404,4 +404,6 @@ public static final String FINGERPRINT_SELECTION_PANE_ALERT = bundle.getString("
 	public static final String VALIDATION_MESSAGE = bundle.getString("VALIDATION_MESSAGE");
 
 	public static final String EXCEPTION_PHOTO_MANDATORY = bundle.getString("EXCEPTION_PHOTO_MANDATORY");
+
+	public static final String REGEX_TYPE = "REGEX";
 }
