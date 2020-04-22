@@ -1594,7 +1594,7 @@ public class BaseController {
 	protected void loadUIElementsFromSchema() {
 		//Get JSON File
 		
-		String filePath = "C:\\Users\\M1044402\\Desktop\\uiSchema.json";
+		String filePath = "C:\\Users\\M1044402\\Desktop\\uiSchema_copy.json";
 		File uiSchemaJsonFile = new File(filePath);
 		
 		if(uiSchemaJsonFile.exists()) {
