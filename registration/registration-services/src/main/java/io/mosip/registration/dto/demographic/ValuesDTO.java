@@ -13,6 +13,15 @@ public class ValuesDTO {
 
 	/** The value. */
 	private String value;
+	
+	public ValuesDTO() {
+		super();
+	}
+
+	public ValuesDTO(String language, String value) {
+		this.language = language;
+		this.value = value;
+	}
 
 	/**
 	 * Gets the language.

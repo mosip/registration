@@ -30,10 +30,10 @@ public class UiSchemaDTO {
 	private String controlType;
 	private String fieldType;
 	private String format;
-	private String[] validators;
+	private Validator validators;
 	private String fieldCategory;
 	
-	@JsonProperty("isRequired")
+	@JsonProperty("required")
 	private boolean isRequired;
 
 }

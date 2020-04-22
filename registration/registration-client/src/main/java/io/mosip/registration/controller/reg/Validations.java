@@ -249,50 +249,51 @@ public class Validations extends BaseController {
 					.replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY);
 
 			UiSchemaDTO uiSchemaDTO = getValidationProperties(id, isLostUIN);
-			String[] validationProperty = uiSchemaDTO.getValidators();
-			String regex = validationProperty == null ? null : validationProperty[0];
-			boolean isMandatory = uiSchemaDTO.isRequired();
-			boolean showAlert = (noAlert.contains(node.getId()) && id.contains(RegistrationConstants.ON_TYPE));
-			String inputText = node.getText();
 
-			if (node.isDisabled() || (!isMandatory && inputText.isEmpty())) {
-				isInputValid = true;
-			} else if (isMandatory && (inputText == null || inputText.isEmpty())) {
-				generateInvalidValueAlert(parentPane, id,
-						labelBundle.getString(label).concat(RegistrationConstants.SPACE)
-								.concat(messageBundle.getString(RegistrationConstants.REG_LGN_001)),
-						showAlert);
-				if (isPreviousValid && !id.contains(RegistrationConstants.ON_TYPE)) {
-					node.requestFocus();
-					node.getStyleClass().removeIf((s) -> {
-						return s.equals(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
-					});
-					node.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
-				}
-			} else if (inputText.matches(regex)) {
-				isInputValid = validateBlackListedWords(parentPane, node, id, blackListedWords, showAlert,
-						String.format("%s %s %s", messageBundle.getString(RegistrationConstants.BLACKLISTED_1),
-								labelBundle.getString(label),
-								messageBundle.getString(RegistrationConstants.BLACKLISTED_2)),
-						messageBundle.getString(RegistrationConstants.BLACKLISTED_ARE),
-						messageBundle.getString(RegistrationConstants.BLACKLISTED_IS));
-			} else {
-				generateInvalidValueAlert(parentPane, id,
-						labelBundle.getString(label) + " " + messageBundle.getString(RegistrationConstants.REG_DDC_004),
-						showAlert);
-				if (isPreviousValid && !id.contains(RegistrationConstants.ON_TYPE)) {
-					Label nodeLabel = (Label) parentPane.lookup("#" + node.getId() + "Label");
-					node.requestFocus();
-					node.getStyleClass().removeIf((s) -> {
-						return s.equals(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
-					});
-					node.getStyleClass().removeIf((s) -> {
-						return s.equals("demoGraphicTextFieldOnType");
-					});
-					nodeLabel.getStyleClass().removeIf((s) -> {
-						return s.equals("demoGraphicFieldLabelOnType");
-					});
-					node.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
+			if (uiSchemaDTO != null && uiSchemaDTO.getValidators() != null
+					&& uiSchemaDTO.getValidators().getType().equalsIgnoreCase(RegistrationUIConstants.REGEX_TYPE)) {
+				boolean isMandatory = uiSchemaDTO.isRequired();
+				boolean showAlert = (noAlert.contains(node.getId()) && id.contains(RegistrationConstants.ON_TYPE));
+				String inputText = node.getText();
+
+				if (node.isDisabled() || (!isMandatory && inputText.isEmpty())) {
+					isInputValid = true;
+				} else if (isMandatory && (inputText == null || inputText.isEmpty())) {
+					generateInvalidValueAlert(parentPane, id,
+							labelBundle.getString(label).concat(RegistrationConstants.SPACE)
+									.concat(messageBundle.getString(RegistrationConstants.REG_LGN_001)),
+							showAlert);
+					if (isPreviousValid && !id.contains(RegistrationConstants.ON_TYPE)) {
+						node.requestFocus();
+						node.getStyleClass().removeIf((s) -> {
+							return s.equals(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
+						});
+						node.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
+					}
+				} else if (inputText.matches(uiSchemaDTO.getValidators().getValidator())) {
+					isInputValid = validateBlackListedWords(parentPane, node, id, blackListedWords, showAlert,
+							String.format("%s %s %s", messageBundle.getString(RegistrationConstants.BLACKLISTED_1),
+									labelBundle.getString(label),
+									messageBundle.getString(RegistrationConstants.BLACKLISTED_2)),
+							messageBundle.getString(RegistrationConstants.BLACKLISTED_ARE),
+							messageBundle.getString(RegistrationConstants.BLACKLISTED_IS));
+				} else {
+					generateInvalidValueAlert(parentPane, id, labelBundle.getString(label) + " "
+							+ messageBundle.getString(RegistrationConstants.REG_DDC_004), showAlert);
+					if (isPreviousValid && !id.contains(RegistrationConstants.ON_TYPE)) {
+						Label nodeLabel = (Label) parentPane.lookup("#" + node.getId() + "Label");
+						node.requestFocus();
+						node.getStyleClass().removeIf((s) -> {
+							return s.equals(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
+						});
+						node.getStyleClass().removeIf((s) -> {
+							return s.equals("demoGraphicTextFieldOnType");
+						});
+						nodeLabel.getStyleClass().removeIf((s) -> {
+							return s.equals("demoGraphicFieldLabelOnType");
+						});
+						node.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
+					}
 				}
 			}
 		} catch (RuntimeException runtimeException) {
@@ -301,6 +302,7 @@ public class Validations extends BaseController {
 		}
 
 		return isInputValid;
+
 	}
 
 	private boolean validateBlackListedWords(Pane parentPane, TextField node, String id, List<String> blackListedWords,
@@ -500,9 +502,8 @@ public class Validations extends BaseController {
 	 * @return <code>true</code>, if successful, else <code>false</code>
 	 */
 	public boolean validateSingleString(String value, String id) {
-		String[] validationProperty = getValidationProperties(id, isLostUIN).getValidators();
-
-		return value.matches(validationProperty[0]);
+		
+		return value.matches(getValidationProperties(id, isLostUIN).getValidators().getValidator());
 	}
 
 	/**
@@ -540,83 +541,14 @@ public class Validations extends BaseController {
 		validationMessage.delete(0, validationMessage.length());
 	}
 
-	/**
-	 * This method will get the validations property from the global param
-	 *
-	 * @param id
-	 *            the id of the UI field
-	 * @param isLostUIN
-	 *            the flag to indicate for lost UIN
-	 * @return String[]
-	 */
 	private UiSchemaDTO getValidationProperties(String id, boolean isLostUIN) {
 		UiSchemaDTO uiSchemaDTO = null;
-		String regexType = "REGEX";
-		if (validationMap.containsKey(id) && validationMap.get(id).getType().equalsIgnoreCase(regexType)) {
+
+		if (validationMap.containsKey(id)) {
 			uiSchemaDTO = validationMap.get(id);
 		}
 		return uiSchemaDTO;
-		// else {
-		// switch (id.replaceAll(RegistrationConstants.LOCAL_LANGUAGE,
-		// RegistrationConstants.EMPTY)
-		// .replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY)) {
-		// case RegistrationConstants.EMAIL_ID:
-		// validation[0] =
-		// getValueFromApplicationContext(RegistrationConstants.EMAIL_VALIDATION_REGEX);
-		// validation[1] = RegistrationConstants.TRUE;
-		// break;
-		// case RegistrationConstants.CNI_OR_PIN:
-		// validation[0] =
-		// getValueFromApplicationContext(RegistrationConstants.REFERENCE_ID_NO_VALIDATION_REGEX);
-		// validation[1] = RegistrationConstants.TRUE;
-		// break;
-		// case RegistrationConstants.MOBILE_NUMBER:
-		// validation[0] =
-		// getValueFromApplicationContext(RegistrationConstants.PHONE_VALIDATION_REGEX);
-		// validation[1] = RegistrationConstants.TRUE;
-		// break;
-		// case RegistrationConstants.POSTAL_CODE:
-		// validation[0] =
-		// getValueFromApplicationContext(RegistrationConstants.POSTAL_CODE_VALIDATION_REGEX);
-		// validation[1] = RegistrationConstants.TRUE;
-		// break;
-		// case RegistrationConstants.FULL_NAME:
-		// validation[0] =
-		// getValueFromApplicationContext(RegistrationConstants.ID_FULL_NAME_REGEX);
-		//
-		// validation[1] = RegistrationConstants.TRUE;
-		// break;
-		// case RegistrationConstants.AGE_FIELD:
-		// validation[0] =
-		// getValueFromApplicationContext(RegistrationConstants.AGE_VALIDATION_REGEX);
-		// validation[1] = RegistrationConstants.TRUE;
-		// break;
-		// case RegistrationConstants.ADDRESS_LINE1:
-		// validation[0] =
-		// getValueFromApplicationContext(RegistrationConstants.ADDRESS_LINE_1_REGEX);
-		// validation[1] = RegistrationConstants.TRUE;
-		// break;
-		// case RegistrationConstants.ADDRESS_LINE2:
-		// validation[0] =
-		// getValueFromApplicationContext(RegistrationConstants.ADDRESS_LINE_2_REGEX);
-		// validation[1] = RegistrationConstants.FALSE;
-		// break;
-		// case RegistrationConstants.ADDRESS_LINE3:
-		// validation[0] =
-		// getValueFromApplicationContext(RegistrationConstants.ADDRESS_LINE_3_REGEX);
-		// validation[1] = RegistrationConstants.FALSE;
-		// break;
-		// default:
-		// validation[0] = RegistrationConstants.REGEX_ANY;
-		// validation[1] = RegistrationConstants.FALSE;
-		// }
-		// }
 
-//		if (isLostUIN) {
-//			validation[1] = RegistrationConstants.FALSE;
-//		}
-//
-//		return validation;
 	}
 
 	/**
