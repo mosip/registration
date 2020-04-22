@@ -12,6 +12,9 @@
 	<name>registration-services</name>
 	<description>Maven project of MOSIP Registration Service</description>
     <version>1.0.8</version>
+	<properties>
+	<mosip.core.kernel.version>1.0.6</mosip.core.kernel.version>
+	</properties>
 	<dependencies>
 		<!-- Lombok -->
 		<dependency>
@@ -122,31 +125,38 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-core</artifactId>
+			<version>${mosip.core.kernel.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idgenerator-rid</artifactId>
+			<version>${mosip.core.kernel.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idvalidator-rid</artifactId>
+			<version>${mosip.core.kernel.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-crypto-signature</artifactId>
+			<version>${mosip.core.kernel.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idvalidator-uin</artifactId>
+			<version>${mosip.core.kernel.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idvalidator-prid</artifactId>
+			<version>${mosip.core.kernel.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-virusscanner-clamav</artifactId>
+			<version>${mosip.core.kernel.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>ma.glasnost.orika</groupId>
@@ -179,22 +189,27 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-logger-logback</artifactId>
+			<version>${mosip.core.kernel.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-dataaccess-hibernate</artifactId>
+			<version>${mosip.core.kernel.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-auditmanager-api</artifactId>
+			<version>${mosip.core.kernel.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-keygenerator-bouncycastle</artifactId>
+			<version>${mosip.core.kernel.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-qrcodegenerator-zxing</artifactId>
+			<version>${mosip.core.kernel.version}</version>
 		</dependency>
 		<!-- FTP Packet Upload -->
 		<dependency>
@@ -286,6 +301,7 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-templatemanager-velocity</artifactId>
+			<version>${mosip.core.kernel.version}</version>
 		</dependency>
 
 		<!-- scanner dependencies -->
@@ -303,6 +319,7 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-crypto-jce</artifactId>
+			<version>${mosip.core.kernel.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>
@@ -341,14 +358,17 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-transliteration-icu4j</artifactId>
+			<version>${mosip.core.kernel.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-applicanttype-api</artifactId>
+			<version>${mosip.core.kernel.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-cbeffutil-api</artifactId>
+			<version>${mosip.core.kernel.version}</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.github.microsoft/TSS.Java -->
 		<dependency>
@@ -359,16 +379,21 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idobjectvalidator</artifactId>
+			<version>${mosip.core.kernel.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-bioapi-provider </artifactId>
+			<version>${mosip.core.kernel.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-pdfgenerator-itext</artifactId>
+			<version>${mosip.core.kernel.version}</version>
 		</dependency>
+		
+		
 	</dependencies>
 
 	<repositories>
