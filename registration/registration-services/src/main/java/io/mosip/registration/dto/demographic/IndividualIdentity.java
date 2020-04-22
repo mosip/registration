@@ -9,7 +9,6 @@ import org.assertj.core.util.Arrays;
 
 import org.springframework.stereotype.Component;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
