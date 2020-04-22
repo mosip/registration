@@ -27,6 +27,7 @@ import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.dto.UiSchemaDTO;
+import io.mosip.registration.dto.Validator;
 import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
 import io.mosip.registration.dto.mastersync.BlacklistedWordsDto;
 import io.mosip.registration.entity.BlacklistedWords;
@@ -242,16 +243,18 @@ public class Validations extends BaseController {
 	 */
 	private boolean languageSpecificValidation(Pane parentPane, TextField node, String id, ResourceBundle labelBundle,
 			ResourceBundle messageBundle, List<String> blackListedWords, boolean isPreviousValid) {
-		boolean isInputValid = false;
+		boolean isInputValid = true;
 
 		try {
 			String label = id.replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY)
 					.replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY);
 
-			UiSchemaDTO uiSchemaDTO = getValidationProperties(id, isLostUIN);
+			UiSchemaDTO uiSchemaDTO = getUiSchemaDTO(id, isLostUIN);
 
-			if (uiSchemaDTO != null && uiSchemaDTO.getValidators() != null
-					&& uiSchemaDTO.getValidators().getType().equalsIgnoreCase(RegistrationUIConstants.REGEX_TYPE)) {
+			String regex = getRegex(uiSchemaDTO, RegistrationUIConstants.REGEX_TYPE);
+			if (regex != null) {
+
+				isInputValid = false;
 				boolean isMandatory = uiSchemaDTO.isRequired();
 				boolean showAlert = (noAlert.contains(node.getId()) && id.contains(RegistrationConstants.ON_TYPE));
 				String inputText = node.getText();
@@ -270,7 +273,7 @@ public class Validations extends BaseController {
 						});
 						node.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
 					}
-				} else if (inputText.matches(uiSchemaDTO.getValidators().getValidator())) {
+				} else if (inputText.matches(regex)) {
 					isInputValid = validateBlackListedWords(parentPane, node, id, blackListedWords, showAlert,
 							String.format("%s %s %s", messageBundle.getString(RegistrationConstants.BLACKLISTED_1),
 									labelBundle.getString(label),
@@ -502,8 +505,8 @@ public class Validations extends BaseController {
 	 * @return <code>true</code>, if successful, else <code>false</code>
 	 */
 	public boolean validateSingleString(String value, String id) {
-		
-		return value.matches(getValidationProperties(id, isLostUIN).getValidators().getValidator());
+
+		return value.matches(getRegex(getUiSchemaDTO(id, isLostUIN), RegistrationUIConstants.REGEX_TYPE));
 	}
 
 	/**
@@ -541,7 +544,7 @@ public class Validations extends BaseController {
 		validationMessage.delete(0, validationMessage.length());
 	}
 
-	private UiSchemaDTO getValidationProperties(String id, boolean isLostUIN) {
+	private UiSchemaDTO getUiSchemaDTO(String id, boolean isLostUIN) {
 		UiSchemaDTO uiSchemaDTO = null;
 
 		if (validationMap.containsKey(id)) {
@@ -563,5 +566,20 @@ public class Validations extends BaseController {
 
 	public Map<String, UiSchemaDTO> getValidationMap() {
 		return validationMap;
+	}
+
+	private String getRegex(UiSchemaDTO uiSchemaDTO, String regexType) {
+
+		String regex = null;
+
+		if (uiSchemaDTO != null && uiSchemaDTO.getValidators() != null) {
+			for (Validator validator : uiSchemaDTO.getValidators()) {
+				if (validator.getType().equalsIgnoreCase(regexType)) {
+					return validator.getValidator();
+				}
+			}
+		}
+
+		return regex;
 	}
 }
