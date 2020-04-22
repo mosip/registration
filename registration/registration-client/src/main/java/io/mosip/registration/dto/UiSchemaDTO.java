@@ -1,5 +1,6 @@
 package io.mosip.registration.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Getter;
@@ -18,6 +19,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UiSchemaDTO {
 
 	private String id;
@@ -35,5 +37,9 @@ public class UiSchemaDTO {
 	
 	@JsonProperty("required")
 	private boolean isRequired;
+	
+	@JsonProperty("bioAttributes")
+	private String[] bioAttributes;
+	
 
 }
