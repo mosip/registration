@@ -28,7 +28,6 @@ public class AbisResponseDetEntity extends BasePacketEntity<AbisResponseDetPKEnt
 	@Column(name = "is_deleted")
 	private Boolean isDeleted;
 
-	private Integer score;
 
 	@Column(name = "upd_by")
 	private String updBy = "MOSIP_SYSTEM";
@@ -77,14 +76,6 @@ public class AbisResponseDetEntity extends BasePacketEntity<AbisResponseDetPKEnt
 
 	public void setIsDeleted(Boolean isDeleted) {
 		this.isDeleted = isDeleted;
-	}
-
-	public Integer getScore() {
-		return this.score;
-	}
-
-	public void setScore(Integer score) {
-		this.score = score;
 	}
 
 	public String getUpdBy() {
