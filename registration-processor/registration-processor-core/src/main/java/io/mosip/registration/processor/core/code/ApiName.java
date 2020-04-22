@@ -209,6 +209,8 @@ public enum ApiName {
 
 	DEVICEVALIDATEHISTORY,
 	
-	PDFSIGN;
+	PDFSIGN,
+
+	NGINXDMZURL;
 
 }
