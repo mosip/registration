@@ -85,7 +85,7 @@ public class RegistrationExceptionMapperUtil {
 				RegistrationTransactionStatusCode.REPROCESS);
 		statusMap.put(RegistrationExceptionTypeCode.INTERNAL_SERVER_ERROR, RegistrationTransactionStatusCode.REPROCESS);
 		statusMap.put(RegistrationExceptionTypeCode.PACKET_NOT_FOUND_EXCEPTION,
-				RegistrationTransactionStatusCode.REPROCESS);
+				RegistrationTransactionStatusCode.ERROR);
 		statusMap.put(RegistrationExceptionTypeCode.DATA_ACCESS_EXCEPTION, RegistrationTransactionStatusCode.REPROCESS);
 		statusMap.put(RegistrationExceptionTypeCode.DATA_ACCESS_LAYER_EXCEPTION,
 				RegistrationTransactionStatusCode.REPROCESS);
@@ -104,8 +104,7 @@ public class RegistrationExceptionMapperUtil {
 		statusMap.put(RegistrationExceptionTypeCode.CONFIGURATION_NOT_FOUND_EXCEPTION,
 				RegistrationTransactionStatusCode.REPROCESS);
 		statusMap.put(RegistrationExceptionTypeCode.UNEXCEPTED_ERROR, RegistrationTransactionStatusCode.REPROCESS);
-		statusMap.put(RegistrationExceptionTypeCode.JSCH_CONNECTION, RegistrationTransactionStatusCode.REPROCESS);
-		statusMap.put(RegistrationExceptionTypeCode.SFTP_OPERATION_EXCEPTION,
+		statusMap.put(RegistrationExceptionTypeCode.NGINX_ACCESS_EXCEPTION,
 				RegistrationTransactionStatusCode.REPROCESS);
 		statusMap.put(RegistrationExceptionTypeCode.PACKET_OSI_VALIDATION_FAILED,
 				RegistrationTransactionStatusCode.FAILED);

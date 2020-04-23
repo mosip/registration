@@ -24,11 +24,8 @@ public enum RegistrationExceptionTypeCode {
 	/** The fsadapter exception. */
 	FSADAPTER_EXCEPTION,
 
-	/** The jsch connection. */
-	JSCH_CONNECTION,
-
 	/** The sftp operation exception. */
-	SFTP_OPERATION_EXCEPTION,
+	NGINX_ACCESS_EXCEPTION,
 
 	/** The unsupported encoding exception. */
 	UNSUPPORTED_ENCODING_EXCEPTION,
