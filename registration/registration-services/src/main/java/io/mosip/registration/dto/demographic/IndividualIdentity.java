@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.assertj.core.util.Arrays;
+import org.springframework.stereotype.Component;
 
 import org.springframework.stereotype.Component;
 
@@ -172,7 +173,6 @@ public class IndividualIdentity extends Identity {
 
 		/** Add to element to the identity map */
 		documentsMap.put(fxId, value);
-    
 	}
 
 }

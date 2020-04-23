@@ -34,7 +34,8 @@ public class UiSchemaDTO {
 	private String format;
 	private Validator[] validators;
 	private String fieldCategory;
-	
+	private String [] bioAttributes;
+ 	
 	@JsonProperty("required")
 	private boolean isRequired;
 	
