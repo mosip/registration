@@ -146,15 +146,15 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
 
             if (registrationStatusDto != null && messageDTO.getRid().equalsIgnoreCase(registrationStatusDto.getRegistrationId())) {
                 registrationStatusDto
-                        .setLatestTransactionTypeCode(RegistrationTransactionTypeCode.VALIDATE_PACKET.toString());
+                        .setLatestTransactionTypeCode(RegistrationTransactionTypeCode.SECUREZONE_NOTIFICATION.toString());
                 registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
 
 
                 registrationStatusDto
                         .setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
                 messageDTO.setIsValid(Boolean.TRUE);
-                registrationStatusDto.setStatusComment(StatusUtil.PACKET_STRUCTURAL_VALIDATION_SUCCESS.getMessage());
-                registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_STRUCTURAL_VALIDATION_SUCCESS.getCode());
+                registrationStatusDto.setStatusComment(StatusUtil.NOTIFICATION_RECEIVED_TO_SECUREZONE.getMessage());
+                registrationStatusDto.setSubStatusCode(StatusUtil.NOTIFICATION_RECEIVED_TO_SECUREZONE.getCode());
                 registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 
                 isTransactionSuccessful = true;
@@ -211,6 +211,10 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
         } catch (Exception e) {
             regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
                     ctx.getBodyAsString(), ExceptionUtils.getStackTrace(e));
+            messageDTO.setIsValid(Boolean.FALSE);
+            isTransactionSuccessful = false;
+            description.setCode(PlatformErrorMessages.RPR_SECUREZONE_FAILURE.getCode());
+            description.setMessage(PlatformErrorMessages.RPR_SECUREZONE_FAILURE.getMessage());
             ctx.fail(e);
         } finally {
             if (messageDTO.getInternalError()) {

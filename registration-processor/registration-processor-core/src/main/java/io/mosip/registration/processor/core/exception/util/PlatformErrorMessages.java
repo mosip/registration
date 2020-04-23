@@ -1099,9 +1099,11 @@ public enum PlatformErrorMessages {
 	/** The rpr demo sending for manual. */
 	RPR_DEMO_SENDING_FOR_MANUAL(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "001",
 			"ABIS response Details found. Hence sending to manual adjudication"),
-	
+
+	RPR_SECUREZONE_FAILURE(PlatformConstants.RPR_SECUREZONE_NOTIFICATION_MODULE + "001",
+			"Exception occured in securezone notification stage. Check logs for more info"),
+
 	RPR_AUTH_SYSTEM_EXCEPTION(PlatformConstants.RPR_AUTHENTICATION + "03", "Request could not be processed. Please try again");
-	;
 
 	/** The error message. */
 	private final String errorMessage; 

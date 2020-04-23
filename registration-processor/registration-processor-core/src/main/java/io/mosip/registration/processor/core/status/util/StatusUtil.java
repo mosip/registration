@@ -7,6 +7,9 @@ public enum StatusUtil {
 	VIRUS_SCANNER_FAILED(StatusConstants.PACKET_RECEIVER_MODULE_FAILURE + "001","Packet is Virus Infected"),
 	PACKET_DECRYPTION_FAILED(StatusConstants.PACKET_RECEIVER_MODULE_FAILURE + "002", "Packet Decryption Failed"),
 
+	// securezone notification stage
+	NOTIFICATION_RECEIVED_TO_SECUREZONE(StatusConstants.SECUREZONE_NOTIFICATION_SUCCESS + "001","Notification received to securezone"),
+
 	// Packet uploader stage
 	PACKET_UPLOADED(StatusConstants.PACKET_UPLOADER_MODULE_SUCCESS + "001","Packet is Uploaded to Packet Store"),
 	PACKET_CLEANUP_FAILED(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "001","Packet Clean Up Failed from Landing Zone"), 
