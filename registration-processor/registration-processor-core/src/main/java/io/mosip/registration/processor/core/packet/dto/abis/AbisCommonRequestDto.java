@@ -3,6 +3,8 @@ package io.mosip.registration.processor.core.packet.dto.abis;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+import org.apache.htrace.shaded.fasterxml.jackson.annotation.JsonFormat;
+
 import lombok.Data;
 
 @Data
@@ -22,6 +24,7 @@ public class AbisCommonRequestDto implements Serializable{
 	/** The request id. */
 	private String requestId;
 	
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 	private LocalDateTime requesttime;
 	
 	/** The reference id. */
