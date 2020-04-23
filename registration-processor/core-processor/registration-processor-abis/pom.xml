@@ -10,7 +10,7 @@
     <version>1.0.6</version>
   </parent>
   <artifactId>registration-processor-abis</artifactId>
-  <version>1.0.6</version>
+  <version>1.0.9-SNAPSHOT</version>
   <name>registration-processor-abis</name>
   <url>http://maven.apache.org</url>
   <properties>
