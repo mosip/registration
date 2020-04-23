@@ -346,6 +346,19 @@ public class PacketUploaderServiceTest {
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
 		assertFalse(result.getIsValid());
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testScannerServiceAPIResourceException() throws JschConnectionException, SftpFileOperationException, PacketDecryptionFailureException, ApisResourceAccessException {
+		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
+		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(enrypteddata);
+		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class)))
+				.thenReturn(true);
+		Mockito.when(decryptor.decrypt(Mockito.any(InputStream.class),Mockito.anyString()))
+		.thenThrow(ApisResourceAccessException.class);
+		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
+		assertTrue(result.getInternalError());
+	}
 
 	@Test
 	public void testException() throws JschConnectionException, SftpFileOperationException {

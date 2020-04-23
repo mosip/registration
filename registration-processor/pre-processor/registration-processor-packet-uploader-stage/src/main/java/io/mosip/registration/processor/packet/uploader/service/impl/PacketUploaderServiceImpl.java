@@ -28,7 +28,9 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCo
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.RegistrationType;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.JschConnectionException;
+import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.SftpFileOperationException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
@@ -40,6 +42,7 @@ import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
+import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
 import io.mosip.registration.processor.packet.manager.dto.DirectoryPathDto;
 import io.mosip.registration.processor.packet.uploader.archiver.util.PacketArchiver;
 import io.mosip.registration.processor.packet.uploader.exception.PacketNotFoundException;
@@ -140,6 +143,10 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 	/** The packet archiver. */
 	@Autowired
 	private PacketArchiver packetArchiver;
+	
+	/** The decryptor. */
+	@Autowired
+	private Decryptor packetUploaderDecryptor;
 
 	/*
 	 * java class to trim exception message
@@ -321,7 +328,27 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 			description.setMessage(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode());
 
-		} catch (Exception e) {
+		} catch (ApisResourceAccessException e) {
+			messageDTO.setInternalError(Boolean.TRUE);
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId,PlatformErrorMessages.RPR_PUM_API_RESOUCE_ACCESS_FAILED.getMessage()
+							+ ExceptionUtils.getStackTrace(e));
+			description.setMessage(PlatformErrorMessages.RPR_PUM_API_RESOUCE_ACCESS_FAILED.getMessage());
+			description.setCode(PlatformErrorMessages.RPR_PUM_API_RESOUCE_ACCESS_FAILED.getCode());
+
+		} catch (PacketDecryptionFailureException e) {
+			messageDTO.setInternalError(Boolean.TRUE);
+			dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+			dto.setStatusComment(StatusUtil.PACKET_DECRYPTION_FAILED.getMessage());
+			dto.setSubStatusCode(StatusUtil.PACKET_DECRYPTION_FAILED.getCode());
+			dto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+					.getStatusCode(RegistrationExceptionTypeCode.PACKET_DECRYPTION_FAILURE_EXCEPTION));
+			description.setMessage(PlatformErrorMessages.RPR_PUM_PACKET_DECRYPTION_FAILED.getMessage());
+			description.setCode(PlatformErrorMessages.RPR_PUM_PACKET_DECRYPTION_FAILED.getCode());
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, ExceptionUtils.getStackTrace(e));
+
+		}catch (Exception e) {
 			dto.setLatestTransactionStatusCode(
 					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.EXCEPTION));
 			dto.setStatusComment(trimExpMessage
@@ -369,13 +396,24 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 	 * @param registrationId
 	 * @param description
 	 * @return true, if successful
+	 * @throws IOException 
+	 * @throws ApisResourceAccessException 
+	 * @throws PacketDecryptionFailureException 
 	 */
 	private boolean scanFile(InputStream inputStream, String registrationId, InternalRegistrationStatusDto dto,
-			LogDescription description) {
+			LogDescription description) throws IOException, PacketDecryptionFailureException, ApisResourceAccessException {
 		boolean isInputFileClean = false;
 		try {
-			isInputFileClean = virusScannerService.scanFile(inputStream);
+			byte[] encryptedByteArray = IOUtils.toByteArray(inputStream);
+			isInputFileClean = virusScannerService.scanFile(new ByteArrayInputStream(encryptedByteArray));
+			if (isInputFileClean) {
+				
+				InputStream decryptedData = packetUploaderDecryptor
+						.decrypt(new ByteArrayInputStream(encryptedByteArray), registrationId);
+				isInputFileClean = virusScannerService.scanFile(decryptedData);
+			}
 			if (!isInputFileClean) {
+				
 				description.setMessage(PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCAN_FAILED.getMessage());
 				description.setCode(PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCAN_FAILED.getCode());
 				dto.setStatusCode(RegistrationExceptionTypeCode.PACKET_UPLOADER_FAILED.toString());

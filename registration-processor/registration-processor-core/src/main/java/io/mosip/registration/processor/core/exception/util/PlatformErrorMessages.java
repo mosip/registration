@@ -657,6 +657,10 @@ public enum PlatformErrorMessages {
 	/** The rpr pum packet not found exception. */
 	RPR_PUM_PACKET_UPLOAD_FAILURE(PlatformConstants.RPR_PACKET_UPLOADER_MODULE + "011",
 			"Failure in uploading the packet to Packet Store"),
+	
+	/** The rpr pum packet not found exception. */
+	RPR_PUM_API_RESOUCE_ACCESS_FAILED(PlatformConstants.RPR_PACKET_UPLOADER_MODULE + "012",
+			"Unable to Access API Resource"),
 
 	/** The rpr bdd abis internal error. */
 	RPR_BDD_ABIS_INTERNAL_ERROR(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "001",
