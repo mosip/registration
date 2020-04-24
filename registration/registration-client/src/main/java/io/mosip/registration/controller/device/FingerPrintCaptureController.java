@@ -314,7 +314,6 @@ public class FingerPrintCaptureController extends BaseController implements Init
 		disablePaneOnBioAttributes(leftHandGreaterPane, RegistrationConstants.leftHandUiAttributes);
 		disablePaneOnBioAttributes(rightHandGreaterPane, RegistrationConstants.rightHandUiAttributes);
 		disablePaneOnBioAttributes(twoThumbGreaterPane, RegistrationConstants.twoThumbsUiAttributes);
-
 		setImagesOnHover();
 		initializeCaptureCount();
 		try {
