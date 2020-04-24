@@ -171,7 +171,6 @@ public class IrisCaptureController extends BaseController {
 
 		disablePaneOnBioAttributes(rightIrisPane, Arrays.asList(RegistrationConstants.leftEyeUiAttribute));
 		disablePaneOnBioAttributes(leftIrisPane, Arrays.asList(RegistrationConstants.rightEyeUiAttribute));
-
 		leftIrisCount = 0;
 		rightIrisCount = 0;
 		try {
