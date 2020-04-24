@@ -3,8 +3,10 @@ package io.mosip.registration.util.mastersync;
 
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.MAPPER_UTILL;
+import static org.junit.Assert.assertNotNull;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.sql.Timestamp;
@@ -31,10 +33,16 @@ import java.time.ZoneOffset;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.dto.mastersync.DynamicFieldDto;
 import io.mosip.registration.entity.RegistrationCommonFields;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 
@@ -48,7 +56,6 @@ import io.mosip.registration.exception.RegBaseUncheckedException;
  * @see MapperUtils
  *
  */
-@Component
 @SuppressWarnings("unchecked")
 public class MapperUtils {
 
@@ -66,6 +73,8 @@ public class MapperUtils {
 
 	private static final String SOURCE_NULL_MESSAGE = "source should not be null";
 	private static final String DESTINATION_NULL_MESSAGE = "destination should not be null";
+	
+	private static final ObjectMapper mapper = new ObjectMapper();
 
 	/**
 	 * This flag is used to restrict copy null values.
@@ -603,6 +612,14 @@ public class MapperUtils {
 			Field[] destinationFields = destination.getClass().getSuperclass().getDeclaredFields();
 			mapJsonToEntity(source, destination, destinationFields);
 		}
+	}
+	
+	public static <T> T convertJSONStringToDto(final String jsonString, TypeReference<T> typeReference) throws IOException {
+		return mapper.readValue(jsonString, typeReference);
+	}
+	
+	public static String convertObjectToJsonString(final Object object) throws IOException {
+		return mapper.writeValueAsString(object);
 	}
 
 }
