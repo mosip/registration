@@ -107,6 +107,18 @@ public class FingerPrintCaptureController extends BaseController implements Init
 	/** The thumb pane. */
 	@FXML
 	private GridPane thumbPane;
+	
+	/** The left hand palm pane. */
+	@FXML
+	private GridPane leftHandGreaterPane;
+
+	/** The right hand palm pane. */
+	@FXML
+	private GridPane rightHandGreaterPane;
+
+	/** The thumb pane. */
+	@FXML
+	private GridPane twoThumbGreaterPane;
 
 	/** The left hand palm imageview. */
 	@FXML
@@ -296,9 +308,9 @@ public class FingerPrintCaptureController extends BaseController implements Init
 		LOGGER.info(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Loading of FingerprintCapture screen started");
 
-		disablePaneOnBioAttributes(leftHandPalmPane, RegistrationConstants.LEFT_SLAP);
-		disablePaneOnBioAttributes(rightHandPalmPane, RegistrationConstants.RIGHT_SLAP);
-		disablePaneOnBioAttributes(thumbPane, RegistrationConstants.TWO_THUMBS);
+		disablePaneOnBioAttributes(leftHandGreaterPane, RegistrationConstants.LEFT_SLAP);
+		disablePaneOnBioAttributes(rightHandGreaterPane, RegistrationConstants.RIGHT_SLAP);
+		disablePaneOnBioAttributes(twoThumbGreaterPane, RegistrationConstants.TWO_THUMBS);
 
 		setImagesOnHover();
 		initializeCaptureCount();

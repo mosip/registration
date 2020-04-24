@@ -10,6 +10,7 @@ import java.net.URL;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -167,6 +168,9 @@ public class FaceCaptureController extends BaseController implements Initializab
 	public void initialize(URL location, ResourceBundle resources) {
 		LOGGER.info("REGISTRATION - UI - FACE_CAPTURE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 				"Loading of FaceCapture screen started");
+
+		disablePaneOnBioAttributes(applicantImagePane, Arrays.asList(RegistrationConstants.FACE));
+		disablePaneOnBioAttributes(exceptionImagePane, Arrays.asList(RegistrationConstants.FACE_EXCEPTION));
 
 		setImagesOnHover();
 
@@ -488,8 +492,8 @@ public class FaceCaptureController extends BaseController implements Initializab
 		}
 
 		if (capturedImage != null) {
-			capturedImage.flush();}
-		else {
+			capturedImage.flush();
+		} else {
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.FACE_SCANNING_ERROR);
 		}
 		if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER) && validateOperatorPhoto()) {
@@ -935,7 +939,6 @@ public class FaceCaptureController extends BaseController implements Initializab
 	public void setExceptionFaceDescriptionText(boolean isParentOrGuardianBiometricsCaptured) {
 		ResourceBundle applicationLanguage = ApplicationContext.applicationLanguageBundle();
 
-		
 		exceptionImageLabel.setText(applicationLanguage.getString("exceptionimage"));
 	}
 }
