@@ -1,7 +1,5 @@
 package io.mosip.registration.processor.abis.handler.stage;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -307,10 +305,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		abisIdentifyRequestDto.setRequestId(id);
 		abisIdentifyRequestDto.setReferenceId(bioRefId);
 		abisIdentifyRequestDto.setReferenceUrl(url + "/" + bioRefId);
-		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
-		LocalDateTime localdatetime = LocalDateTime
-				.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
-		abisIdentifyRequestDto.setRequesttime(localdatetime);
+		abisIdentifyRequestDto.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		flag.setMaxResults(maxResults);
 		flag.setTargetFPIR(targetFPIR);
 		abisIdentifyRequestDto.setFlags(flag);
@@ -458,10 +453,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		abisInsertRequestDto.setReferenceId(bioRefId);
 		abisInsertRequestDto.setReferenceURL(url + "/" + bioRefId);
 		abisInsertRequestDto.setRequestId(id);
-		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
-		LocalDateTime localdatetime = LocalDateTime
-				.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
-		abisInsertRequestDto.setRequesttime(localdatetime);
+		abisInsertRequestDto.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		abisInsertRequestDto.setVer(AbisHandlerStageConstant.VERSION);
 		try {
 			String jsonString = JsonUtils.javaObjectToJsonString(abisInsertRequestDto);
