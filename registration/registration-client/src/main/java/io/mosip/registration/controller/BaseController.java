@@ -89,6 +89,7 @@ import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -198,7 +199,7 @@ public class BaseController {
 
 	@Autowired
 	private Validations validations;
-	
+
 	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
 
 	public Text getScanningMsg() {
@@ -227,7 +228,7 @@ public class BaseController {
 	private RestartController restartController;
 
 	private static boolean isAckOpened = false;
-	
+
 	private List<UiSchemaDTO> uiSchemaDTOs;
 
 	/**
@@ -591,7 +592,7 @@ public class BaseController {
 							RegistrationConstants.ENABLE);
 				}
 			}
-			
+
 		} catch (IOException ioException) {
 			LOGGER.error("REGISTRATION - REDIRECTHOME - BASE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 					ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
@@ -1113,8 +1114,6 @@ public class BaseController {
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID, "Navigated to next page");
 	}
 
-
-
 	/**
 	 * Checks if the machine is remapped to another center and starts the subsequent
 	 * processing accordingly.
@@ -1301,11 +1300,12 @@ public class BaseController {
 		}
 		if (getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_PARENTGUARDIAN_DETAILS, true);
-//
-//			Label guardianBiometricsLabel = guardianBiometricsController.getGuardianBiometricsLabel();
-//			guardianBiometricsLabel.setText("Biometrics");
-//
-//			guardianBiometricsController.setGuardianBiometricsLabel(guardianBiometricsLabel);
+			//
+			// Label guardianBiometricsLabel =
+			// guardianBiometricsController.getGuardianBiometricsLabel();
+			// guardianBiometricsLabel.setText("Biometrics");
+			//
+			// guardianBiometricsController.setGuardianBiometricsLabel(guardianBiometricsLabel);
 
 		} else if (updateUINNextPage(RegistrationConstants.FINGERPRINT_DISABLE_FLAG) && !isChild()) {
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_FINGERPRINTCAPTURE, true);
@@ -1583,53 +1583,87 @@ public class BaseController {
 	protected boolean isAckOpened() {
 		return isAckOpened;
 	}
-	
+
 	/**
 	 * Set the operator was in acknowledgement page
 	 */
 	protected void setIsAckOpened(boolean isAckOpened) {
 		this.isAckOpened = isAckOpened;
 	}
-	
+
 	protected void loadUIElementsFromSchema() {
-		//Get JSON File
-		
+		// Get JSON File
+
 		String filePath = "C:\\Users\\M1044402\\Desktop\\uiSchema_copy.json";
 		File uiSchemaJsonFile = new File(filePath);
-		
-		if(uiSchemaJsonFile.exists()) {
-		ObjectMapper mapper = new ObjectMapper();
 
-		//JSON file to Java object
-		try {
-			
-			//Parse to DTO			
-			UiSchemaDTO[] uiSchemaDTOsArray = mapper.readValue(uiSchemaJsonFile, UiSchemaDTO[].class);
-			
-			//Store in temporary list
-			
-			uiSchemaDTOs = uiSchemaDTOs==null ? new LinkedList<>() : uiSchemaDTOs;
-			
-			uiSchemaDTOs.addAll(Arrays.asList(uiSchemaDTOsArray));
-			
-			Map<String, UiSchemaDTO> validationsMap = new HashMap<>();
-			
-			List<String> neglectTypes = Arrays.asList("documentType","biometricsType");
-			for (UiSchemaDTO uiSchemaDTO : uiSchemaDTOs) {
-				if(!neglectTypes.contains(uiSchemaDTO.getType())) {
-					validationsMap.put(uiSchemaDTO.getId(), uiSchemaDTO);
+		if (uiSchemaJsonFile.exists()) {
+			ObjectMapper mapper = new ObjectMapper();
+
+			// JSON file to Java object
+			try {
+
+				// Parse to DTO
+				UiSchemaDTO[] uiSchemaDTOsArray = mapper.readValue(uiSchemaJsonFile, UiSchemaDTO[].class);
+
+				// Store in temporary list
+
+				uiSchemaDTOs = uiSchemaDTOs == null ? new LinkedList<>() : uiSchemaDTOs;
+
+				uiSchemaDTOs.addAll(Arrays.asList(uiSchemaDTOsArray));
+
+				Map<String, UiSchemaDTO> validationsMap = new HashMap<>();
+
+//				List<String> neglectTypes = Arrays.asList("documentType", "biometricsType");
+				for (UiSchemaDTO uiSchemaDTO : uiSchemaDTOs) {
+//					if (!neglectTypes.contains(uiSchemaDTO.getType())) {
+						validationsMap.put(uiSchemaDTO.getId(), uiSchemaDTO);
+//					}
+				}
+
+				// Set Validations Map
+				validations.setValidations(validationsMap);
+
+			} catch (IOException ioException) {
+				// TODO Auto-generated catch block
+				ioException.printStackTrace();
+			}
+
+		}
+	}
+
+	protected void disablePaneOnBioAttributes(Node pane, List<String> constantBioAttributes) {
+
+		/** Put pane disable by default */
+		pane.setDisable(true);
+
+		/** Get UI schema individual Biometrics Bio Attributes */
+		String indBiometrics = "individualBiometrics";
+		List<String> uiSchemaBioAttributes = getUiSchemaBioAttributes(indBiometrics);
+
+		/** If bio Attribute not mentioned for bio attribute then disable */
+		if (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
+			pane.setDisable(true);
+		} else {
+
+			for (String attribute : constantBioAttributes) {
+
+				/** If bio attribute configured in UI Schema, then enable the pane */
+				if (uiSchemaBioAttributes.contains(attribute)) {
+					pane.setDisable(false);
+
+					/** Stop the iteration as we got the attribute */
+					break;
 				}
 			}
-			
-			//Set Validations Map
-			validations.setValidations(validationsMap);
-			
-		} catch (IOException ioException) {
-			// TODO Auto-generated catch block
-			ioException.printStackTrace();
 		}
-		
-		
-		}
+	}
+
+	private List<String> getUiSchemaBioAttributes(String indBiometrics) {
+
+		UiSchemaDTO uiSchemaDTO = validations.getValidationMap().get(indBiometrics);
+
+		return uiSchemaDTO != null ? Arrays.asList(uiSchemaDTO.getBioAttributes()) : null;
+
 	}
 }

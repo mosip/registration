@@ -35,6 +35,7 @@ import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.reg.RegistrationController;
 import io.mosip.registration.controller.reg.UserOnboardParentController;
+import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
 import io.mosip.registration.dto.biometric.BiometricExceptionDTO;
 import io.mosip.registration.dto.biometric.FingerprintDetailsDTO;
@@ -281,6 +282,9 @@ public class FingerPrintCaptureController extends BaseController implements Init
 	@Autowired
 	MosipBioDeviceManager mosipBioDeviceManager;
 
+	@Autowired
+	private Validations validations;
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -291,6 +295,10 @@ public class FingerPrintCaptureController extends BaseController implements Init
 	public void initialize(URL location, ResourceBundle resources) {
 		LOGGER.info(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Loading of FingerprintCapture screen started");
+
+		disablePaneOnBioAttributes(leftHandPalmPane, RegistrationConstants.LEFT_SLAP);
+		disablePaneOnBioAttributes(rightHandPalmPane, RegistrationConstants.RIGHT_SLAP);
+		disablePaneOnBioAttributes(thumbPane, RegistrationConstants.TWO_THUMBS);
 
 		setImagesOnHover();
 		initializeCaptureCount();
@@ -1269,8 +1277,8 @@ public class FingerPrintCaptureController extends BaseController implements Init
 
 		LOGGER.info(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Validating Captured FingerPrints");
-		if (detailsDTO.isCaptured() && bioService.isValidFingerPrints(detailsDTO,false)) {
-			
+		if (detailsDTO.isCaptured() && bioService.isValidFingerPrints(detailsDTO, false)) {
+
 			captureTimeValue.setText(Duration.between(start, end).toString().replace("PT", ""));
 
 			boolean isNotMatched = true;
@@ -1279,8 +1287,11 @@ public class FingerPrintCaptureController extends BaseController implements Init
 
 				LOGGER.info(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 						"Verifying Local Deduplication check of captured fingerprints against Operator Biometrics");
-				isNotMatched = generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.FP_CAPTURE_SUCCESS, ()->{return bioService.validateBioDeDup(detailsDTO.getSegmentedFingerprints());}, scanPopUpViewController);
-			}else {
+				isNotMatched = generateAlert(RegistrationConstants.ALERT_INFORMATION,
+						RegistrationUIConstants.FP_CAPTURE_SUCCESS, () -> {
+							return bioService.validateBioDeDup(detailsDTO.getSegmentedFingerprints());
+						}, scanPopUpViewController);
+			} else {
 				generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.FP_CAPTURE_SUCCESS);
 			}
 
@@ -1308,15 +1319,17 @@ public class FingerPrintCaptureController extends BaseController implements Init
 
 				if (detailsDTO.getFingerType().equals(RegistrationConstants.FINGERPRINT_SLAB_LEFT)) {
 
-					leftHandPalmImageview.setImage(convertBytesToImage((bioService.getBioStreamImage(detailsDTO.getFingerType(), attempt))));
+					leftHandPalmImageview.setImage(
+							convertBytesToImage((bioService.getBioStreamImage(detailsDTO.getFingerType(), attempt))));
 
 				} else if (detailsDTO.getFingerType().equals(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)) {
 
-					rightHandPalmImageview
-							.setImage(convertBytesToImage((bioService.getBioStreamImage(detailsDTO.getFingerType(), attempt))));
+					rightHandPalmImageview.setImage(
+							convertBytesToImage((bioService.getBioStreamImage(detailsDTO.getFingerType(), attempt))));
 				} else {
 
-					thumbImageview.setImage(convertBytesToImage((bioService.getBioStreamImage(detailsDTO.getFingerType(), attempt))));
+					thumbImageview.setImage(
+							convertBytesToImage((bioService.getBioStreamImage(detailsDTO.getFingerType(), attempt))));
 
 				}
 			}
@@ -1363,12 +1376,12 @@ public class FingerPrintCaptureController extends BaseController implements Init
 						"Verifying whether all Non Exception FingerPrints Captured or Not :  Failure");
 				continueBtn.setDisable(true);
 			}
-			
+
 		} else {
 
 			LOGGER.info(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					"Validating Captured FingerPrints Failed");
-			
+
 			streamer.stop();
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.FINGERPRINT_SCANNING_ERROR);
 		}
