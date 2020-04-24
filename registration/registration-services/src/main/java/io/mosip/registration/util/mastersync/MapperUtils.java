@@ -3,7 +3,6 @@ package io.mosip.registration.util.mastersync;
 
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.MAPPER_UTILL;
-import static org.junit.Assert.assertNotNull;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.io.IOException;
