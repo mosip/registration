@@ -1253,6 +1253,10 @@ public class BioServiceImpl extends BaseService implements BioService {
 			}
 		}
 
+		if (exceptionBiometrics != null) {
+			exceptionBiometrics.remove(RegistrationConstants.FACE);
+			exceptionBiometrics.remove(RegistrationConstants.FACE_EXCEPTION);
+		}
 		return exceptionBiometrics;
 
 	}
@@ -1416,6 +1420,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 		for (FingerprintDetailsDTO detailsDTO : fingerprintDetailsDTOs) {
 			segmentedFingerPrints.addAll(detailsDTO.getSegmentedFingerprints());
 		}
+
 		if (!isAllNonExceptionBiometricsCaptured(segmentedFingerPrints, null, getAllExceptionFingers())) {
 			return false;
 		}

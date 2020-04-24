@@ -169,8 +169,6 @@ public class IrisCaptureController extends BaseController {
 	@FXML
 	public void initialize() {
 
-		disablePaneOnBioAttributes(leftIrisPane, Arrays.asList(RegistrationConstants.LEFT_IRIS));
-		disablePaneOnBioAttributes(rightIrisPane, Arrays.asList(RegistrationConstants.RIGHT_IRIS));
 
 		leftIrisCount = 0;
 		rightIrisCount = 0;

@@ -2220,6 +2220,7 @@ public class DemographicDetailController extends BaseController {
 	@FXML
 	private void next() throws InvalidApplicantArgumentException, ParseException {
 
+		
 		if (preRegistrationId.getText().isEmpty()) {
 			preRegistrationId.clear();
 		}
@@ -2274,6 +2275,8 @@ public class DemographicDetailController extends BaseController {
 				} else {
 					registrationController.showCurrentPage(RegistrationConstants.DEMOGRAPHIC_DETAIL,
 							getPageDetails(RegistrationConstants.DEMOGRAPHIC_DETAIL, RegistrationConstants.NEXT));
+					addExceptionDTOs();
+					
 				}
 			}
 		}

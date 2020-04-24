@@ -169,8 +169,6 @@ public class FaceCaptureController extends BaseController implements Initializab
 		LOGGER.info("REGISTRATION - UI - FACE_CAPTURE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 				"Loading of FaceCapture screen started");
 
-		disablePaneOnBioAttributes(applicantImagePane, Arrays.asList(RegistrationConstants.FACE));
-		disablePaneOnBioAttributes(exceptionImagePane, Arrays.asList(RegistrationConstants.FACE_EXCEPTION));
 
 		setImagesOnHover();
 

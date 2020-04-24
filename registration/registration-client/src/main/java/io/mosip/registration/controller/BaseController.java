@@ -1614,11 +1614,11 @@ public class BaseController {
 
 				Map<String, UiSchemaDTO> validationsMap = new HashMap<>();
 
-//				List<String> neglectTypes = Arrays.asList("documentType", "biometricsType");
+				// List<String> neglectTypes = Arrays.asList("documentType", "biometricsType");
 				for (UiSchemaDTO uiSchemaDTO : uiSchemaDTOs) {
-//					if (!neglectTypes.contains(uiSchemaDTO.getType())) {
-						validationsMap.put(uiSchemaDTO.getId(), uiSchemaDTO);
-//					}
+					// if (!neglectTypes.contains(uiSchemaDTO.getType())) {
+					validationsMap.put(uiSchemaDTO.getId(), uiSchemaDTO);
+					// }
 				}
 
 				// Set Validations Map
@@ -1638,8 +1638,8 @@ public class BaseController {
 		pane.setDisable(true);
 
 		/** Get UI schema individual Biometrics Bio Attributes */
-		String indBiometrics = "individualBiometrics";
-		List<String> uiSchemaBioAttributes = getUiSchemaBioAttributes(indBiometrics);
+
+		List<String> uiSchemaBioAttributes = getUiSchemaBioAttributes(RegistrationConstants.indBiometrics);
 
 		/** If bio Attribute not mentioned for bio attribute then disable */
 		if (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
@@ -1657,6 +1657,42 @@ public class BaseController {
 				}
 			}
 		}
+	}
+
+	protected void addExceptionDTOs() {
+
+		List<String> uiSchemaBioAttributes = getUiSchemaBioAttributes(RegistrationConstants.indBiometrics);
+
+		List<String> attributes = new LinkedList<>();
+
+		attributes.addAll(RegistrationConstants.leftHandUiAttributes);
+		attributes.addAll(RegistrationConstants.rightHandUiAttributes);
+		attributes.addAll(RegistrationConstants.twoThumbsUiAttributes);
+		attributes.addAll(RegistrationConstants.eyesUiAttributes);
+		attributes.add(RegistrationConstants.FACE);
+		attributes.add(RegistrationConstants.FACE_EXCEPTION);
+
+		List<String> bioList = new LinkedList<>();
+		/** If bio Attribute not mentioned for bio attribute then disable */
+		if (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
+			bioList.addAll(attributes);
+		} else {
+
+			for (String attribute : attributes) {
+
+				/** If bio attribute configured in UI Schema, then enable the pane */
+				if (!uiSchemaBioAttributes.contains(attribute)) {
+
+					bioList.add(attribute);
+				}
+			}
+
+		}
+		List<BiometricExceptionDTO> biometricExceptionDTOs = biometricExceptionController
+				.getBiometricsExceptionList(bioList);
+		
+		biometricExceptionController.addExceptionToRegistration(biometricExceptionDTOs);
+
 	}
 
 	private List<String> getUiSchemaBioAttributes(String indBiometrics) {
