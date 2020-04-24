@@ -3,21 +3,23 @@ package io.mosip.registration.dao.impl;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dao.DynamicFieldDAO;
-import io.mosip.registration.dto.mastersync.DynamicFieldValueJsonDto;
+import io.mosip.registration.dto.mastersync.DynamicFieldValueDto;
 import io.mosip.registration.entity.DynamicField;
 import io.mosip.registration.repositories.DynamicFieldRepository;
+import io.mosip.registration.util.mastersync.MapperUtils;
 
 @Repository
 public class DynamicFieldDAOImpl implements DynamicFieldDAO {
@@ -37,27 +39,24 @@ public class DynamicFieldDAOImpl implements DynamicFieldDAO {
 		LOGGER.info("DynamicFieldDAOImpl", APPLICATION_NAME, APPLICATION_ID,
 				"fetching the dynamic field");
 
-		return dynamicFieldRepository.findByIsActiveTrueAndNameAndLangCode(fieldName, langCode);
+		return dynamicFieldRepository.findByNameAndLangCode(fieldName, langCode);
 	}
 
 	@Override
-	public List<DynamicFieldValueJsonDto> getValueJSON(String fieldName, String langCode) {
+	public List<DynamicFieldValueDto> getDynamicFieldValues(String fieldName, String langCode) {
 		
 		LOGGER.info("DynamicFieldDAOImpl", APPLICATION_NAME, APPLICATION_ID,
-				"fetching the valueJSON ");
+				"fetching the valueJSON ");		
 		
 		DynamicField dynamicField = getDynamicField(fieldName, langCode);
-		ObjectMapper mapper  = new ObjectMapper();
-		try {
-			@SuppressWarnings("unchecked")
-			List<DynamicFieldValueJsonDto> listOfFieldValueJson = mapper.readValue(dynamicField.getValueJson(), List.class);
-			if(listOfFieldValueJson==null)
-				throw new Exception();
-			return listOfFieldValueJson;
-		} catch (Exception exception) {
-			LOGGER.error("Unable to fetch detail of ValueJson of Dynamic field", APPLICATION_NAME,
-					RegistrationConstants.APPLICATION_ID,
-					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+		
+		try {			
+			return MapperUtils.convertJSONStringToDto(dynamicField.getValueJson() == null ? "[]" : dynamicField.getValueJson(), 
+					new TypeReference<List<DynamicFieldValueDto>>() {});			
+			
+		} catch (IOException e) {
+			LOGGER.error("Unable to parse value json for dynamic field: " + fieldName, APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, ExceptionUtils.getStackTrace(e));
 		}
 		return null;
 	}

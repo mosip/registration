@@ -1,5 +1,7 @@
 package io.mosip.registration.dto;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -32,14 +34,14 @@ public class UiSchemaDTO {
 	private String controlType;
 	private String fieldType;
 	private String format;
-	private Validator[] validators;
+	private List<Validator> validators;
 	private String fieldCategory;
  	
 	@JsonProperty("required")
-	private boolean isRequired;
+	private boolean isRequired;	
 	
 	@JsonProperty("bioAttributes")
-	private String[] bioAttributes;
+	private List<String> bioAttributes;
 	
-
+	private String requiredOn;
 }

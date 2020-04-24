@@ -1,5 +1,7 @@
 package io.mosip.registration.dto;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,5 +27,5 @@ public class Validator {
 	/**
 	 * Arguments if required
 	 */
-	private String[] arguments;
+	private List<String> arguments;
 }
