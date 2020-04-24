@@ -30,7 +30,6 @@ public class BiometricDTO extends BaseDTO {
 		biometricsMap.put(RegistrationConstants.introducerBiometricDTO, new BiometricInfoDTO());
 		biometricsMap.put(RegistrationConstants.supervisorBiometricDTO, new BiometricInfoDTO());
 		biometricsMap.put(RegistrationConstants.operatorBiometricDTO, new BiometricInfoDTO());
-
 	}
 
 	public Map<String, BiometricInfoDTO> getBiometricsMap() {
@@ -95,5 +94,4 @@ public class BiometricDTO extends BaseDTO {
 		return personBiometric.getFingerprintDetailsDTO().isEmpty() && personBiometric.getIrisDetailsDTO().isEmpty()
 				&& personBiometric.getFace().getFace() == null;
 	}
-
 }

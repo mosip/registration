@@ -1618,6 +1618,7 @@ public class RegistrationConstants {
 	public static final String SERVER_NO_PROFILE = "NO_PROFILE";
 	public static final String SERVER_ACTIVE_PROFILE = "mosip.registration.server_profile";
 
+	
 	public static final String applicantBiometricDTO = "applicantBiometricDTO";
 	public static final String introducerBiometricDTO = "introducerBiometricDTO";
 	public static final String supervisorBiometricDTO = "supervisorBiometricDTO";
