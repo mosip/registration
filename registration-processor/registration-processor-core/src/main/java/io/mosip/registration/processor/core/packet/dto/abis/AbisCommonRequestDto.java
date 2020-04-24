@@ -28,10 +28,8 @@ public class AbisCommonRequestDto implements Serializable{
 	/** The request id. */
 	private String requestId;
 	
-	@JsonDeserialize(using = LocalDateTimeDeserializer.class)
-	@JsonSerialize(using = LocalDateTimeSerializer.class)
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-	private LocalDateTime requesttime;
+	
+	private String requesttime;
 	
 	/** The reference id. */
 	private String referenceId;
