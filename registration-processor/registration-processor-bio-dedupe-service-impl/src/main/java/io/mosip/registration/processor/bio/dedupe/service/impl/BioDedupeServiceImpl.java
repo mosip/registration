@@ -3,8 +3,6 @@ package io.mosip.registration.processor.bio.dedupe.service.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -121,10 +119,7 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 		abisInsertRequestDto.setRequestId(requestId);
 		abisInsertRequestDto.setReferenceId(referenceId);
 		abisInsertRequestDto.setReferenceURL(url + registrationId);
-		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
-		LocalDateTime localdatetime = LocalDateTime
-				.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
-		abisInsertRequestDto.setRequesttime(localdatetime);
+		abisInsertRequestDto.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		RegAbisRefDto regAbisRefDto = new RegAbisRefDto();
 		regAbisRefDto.setAbis_ref_id(referenceId);
 		regAbisRefDto.setReg_id(registrationId);
@@ -208,11 +203,7 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 		identifyRequestDto.setVer("1.0");
 		identifyRequestDto.setRequestId(requestId);
 		identifyRequestDto.setReferenceId(referenceId);
-
-		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
-		LocalDateTime localdatetime = LocalDateTime
-				.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
-		identifyRequestDto.setRequesttime(localdatetime);
+		identifyRequestDto.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		flag.setMaxResults(maxResults);
 		flag.setTargetFPIR(targetFPIR);
 		identifyRequestDto.setFlags(flag);
