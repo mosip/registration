@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Timer;
-import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -44,7 +43,6 @@ import io.mosip.registration.controller.device.FingerPrintCaptureController;
 import io.mosip.registration.controller.device.GuardianBiometricsController;
 import io.mosip.registration.controller.device.IrisCaptureController;
 import io.mosip.registration.controller.device.ScanPopUpViewController;
-import io.mosip.registration.controller.device.Streamer;
 import io.mosip.registration.controller.device.WebCameraController;
 import io.mosip.registration.controller.eodapproval.RegistrationApprovalController;
 import io.mosip.registration.controller.reg.AlertController;
@@ -79,7 +77,6 @@ import io.mosip.registration.service.template.TemplateService;
 import io.mosip.registration.util.acktemplate.TemplateGenerator;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 import javafx.animation.PauseTransition;
-import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
@@ -199,7 +196,7 @@ public class BaseController {
 
 	@Autowired
 	private Validations validations;
-
+	
 	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
 
 	public Text getScanningMsg() {
@@ -1002,7 +999,7 @@ public class BaseController {
 
 	}
 
-	/**
+	/** 
 	 * to return to the next page based on the current page and action.
 	 *
 	 * @param pageList
@@ -1594,7 +1591,7 @@ public class BaseController {
 	protected void loadUIElementsFromSchema() {
 		// Get JSON File
 
-		String filePath = "C:\\Users\\M1044402\\Desktop\\uiSchema_copy.json";
+		String filePath = "C:\\Users\\M1048290\\Desktop\\uiSchema.json";
 		File uiSchemaJsonFile = new File(filePath);
 
 		if (uiSchemaJsonFile.exists()) {
@@ -1623,6 +1620,9 @@ public class BaseController {
 
 				// Set Validations Map
 				validations.setValidations(validationsMap);
+				
+				ApplicationContext.map().put("individualBiometrics", getUiSchemaBioAttributes("individualBiometrics"));
+				ApplicationContext.map().put("parentOrGuardianBiometrics", getUiSchemaBioAttributes("parentOrGuardianBiometrics"));
 
 			} catch (IOException ioException) {
 				// TODO Auto-generated catch block
@@ -1630,6 +1630,7 @@ public class BaseController {
 			}
 
 		}
+		
 	}
 
 	protected void disablePaneOnBioAttributes(Node pane, List<String> constantBioAttributes) {
@@ -1658,6 +1659,7 @@ public class BaseController {
 			}
 		}
 	}
+
 
 	protected void addExceptionDTOs() {
 
@@ -1694,6 +1696,7 @@ public class BaseController {
 		biometricExceptionController.addExceptionToRegistration(biometricExceptionDTOs);
 
 	}
+
 
 	private List<String> getUiSchemaBioAttributes(String indBiometrics) {
 
