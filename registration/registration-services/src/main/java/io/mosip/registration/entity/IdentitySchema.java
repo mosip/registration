@@ -1,10 +1,12 @@
 package io.mosip.registration.entity;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 import lombok.Data;
 
@@ -13,6 +15,7 @@ import lombok.Data;
  */
 @Data
 @Entity
+@Table(name = "identity_schema", schema = "reg")
 public class IdentitySchema implements Serializable {
 
 	private static final long serialVersionUID = 933141370563068589L;
@@ -23,23 +26,19 @@ public class IdentitySchema implements Serializable {
 	private String id;
 
 	/** The schema version. */
-	@Column(name = "schema_version")
-	private double schemaVersion;
+	@Column(name = "id_version")
+	private double idVersion;
 
-	/** The id attr json. */
-	@Column(name = "id_attr_json")
-	private String idAttrJson;
+	/** file to store UI json and schema json */
+	@Column(name = "file_name")
+	private String fileName;
 
-	/** The schema json. */
-	@Column(name = "schema_json")
-	private String schemaJson;
+	/** MD5 hash of the file */
+	@Column(name = "file_hash")
+	private String fileHash;
 
 	/** The effective from. */
 	@Column(name = "effective_from")
-	private String effectiveFrom;
-
-	/** The is active. */
-	@Column(name = "is_active")
-	private boolean isActive;
+	private LocalDateTime effectiveFrom;	
 
 }

@@ -36,6 +36,8 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -74,6 +76,11 @@ public class MapperUtils {
 	private static final String DESTINATION_NULL_MESSAGE = "destination should not be null";
 	
 	private static final ObjectMapper mapper = new ObjectMapper();
+	
+	static {
+		mapper.registerModule(new JavaTimeModule());
+		mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+	}
 
 	/**
 	 * This flag is used to restrict copy null values.

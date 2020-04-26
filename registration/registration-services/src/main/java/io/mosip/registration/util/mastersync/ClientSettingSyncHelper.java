@@ -526,7 +526,8 @@ public class ClientSettingSyncHelper {
 						DynamicFieldDto dynamicFieldDto = MapperUtils.convertJSONStringToDto(jsonString, 
 								new TypeReference<DynamicFieldDto>() {});
 							
-						DynamicField dynamicField = new DynamicField();						
+						DynamicField dynamicField = new DynamicField();
+						dynamicField.setId(dynamicFieldDto.getId());
 						dynamicField.setDataType(dynamicFieldDto.getDataType());
 						dynamicField.setName(dynamicFieldDto.getName());
 						dynamicField.setLangCode(dynamicFieldDto.getLangCode());
