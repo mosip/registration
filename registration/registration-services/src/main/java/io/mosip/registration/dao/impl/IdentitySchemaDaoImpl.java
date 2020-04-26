@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -22,6 +23,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dao.IdentitySchemaDao;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.response.SchemaDto;
@@ -128,21 +130,21 @@ public class IdentitySchemaDaoImpl implements IdentitySchemaDao {
 	
 	private SchemaDto getSchemaFromFile(double idVersion, String originalChecksum) throws RegBaseCheckedException {
 		String filePath = getFilePath(idVersion);
-		StringWriter stringWriter = new StringWriter();
+		String content = RegistrationConstants.EMPTY;
 		
-		try(FileReader reader = new FileReader(filePath)){
-			reader.transferTo(stringWriter);
+		try {
+			content = FileUtils.readFileToString(new File(filePath));
 		} catch (IOException e) {
 			throw new RegBaseCheckedException(SchemaMessage.SCHEMA_FILE_NOT_FOUND.getCode(), 
 					filePath + " : " +ExceptionUtils.getStackTrace(e));
 		}
 		
-		if(!isValidFile(stringWriter.toString(), originalChecksum))
+		if(!isValidFile(content, originalChecksum))
 			throw new RegBaseCheckedException(SchemaMessage.SCHEMA_TAMPERED.getCode(), 
 					filePath + " : " +SchemaMessage.SCHEMA_TAMPERED.getMessage());
 		
 		try {
-			SchemaDto dto = MapperUtils.convertJSONStringToDto(stringWriter.toString(), 
+			SchemaDto dto = MapperUtils.convertJSONStringToDto(content, 
 					new TypeReference<SchemaDto>() {});
 			return dto;
 			
@@ -164,7 +166,7 @@ public class IdentitySchemaDaoImpl implements IdentitySchemaDao {
 	
 	private boolean isValidFile(String content, String checksum) {
 		return checksum.equals(CryptoUtil.computeFingerPrint(content, null).toLowerCase());
-	}	
+	}
 
 }
 

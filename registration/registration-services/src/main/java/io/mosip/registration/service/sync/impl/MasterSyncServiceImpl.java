@@ -26,6 +26,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -764,9 +766,8 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 						
 					//SchemaDto schemaDto = (SchemaDto) syncResponse.get(RegistrationConstants.RESPONSE);
 					String content = null;
-					//try(FileReader reader = new FileReader("/home/anusha/Downloads/response_1587846312621.json")) {
 					try(InputStream in = AppConfig.class.getClassLoader().getResourceAsStream("response_1587846312621.json")) {
-						content = new String(in.readAllBytes());
+						content = IOUtils.toString(in);
 					}
 					SchemaDto schemaDto = MapperUtils.convertJSONStringToDto(content, new TypeReference<SchemaDto>() {});
 					identitySchemaDao.createIdentitySchema(schemaDto);					
