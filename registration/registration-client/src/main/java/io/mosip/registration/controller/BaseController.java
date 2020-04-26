@@ -66,6 +66,7 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
 import io.mosip.registration.scheduler.SchedulerUtil;
+import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.bio.impl.BioServiceImpl;
 import io.mosip.registration.service.config.GlobalParamService;
@@ -223,10 +224,22 @@ public class BaseController {
 
 	@Autowired
 	private RestartController restartController;
+	
+	@Autowired
+	private IdentitySchemaService identitySchemaService;
 
 	private static boolean isAckOpened = false;
 
-	private List<UiSchemaDTO> uiSchemaDTOs;
+	private static List<String> ALL_BIO_ATTRIBUTES = null;
+	
+	static {
+		ALL_BIO_ATTRIBUTES = new ArrayList<String>();
+		ALL_BIO_ATTRIBUTES.addAll(RegistrationConstants.leftHandUiAttributes);
+		ALL_BIO_ATTRIBUTES.addAll(RegistrationConstants.rightHandUiAttributes);
+		ALL_BIO_ATTRIBUTES.addAll(RegistrationConstants.twoThumbsUiAttributes);
+		ALL_BIO_ATTRIBUTES.addAll(RegistrationConstants.eyesUiAttributes);
+		ALL_BIO_ATTRIBUTES.add(RegistrationConstants.FACE_EXCEPTION);
+	}
 
 	/**
 	 * @return the alertStage
@@ -1588,49 +1601,26 @@ public class BaseController {
 		this.isAckOpened = isAckOpened;
 	}
 
-	protected void loadUIElementsFromSchema() {
-		// Get JSON File
-
-		String filePath = "C:\\Users\\M1048290\\Desktop\\uiSchema.json";
-		File uiSchemaJsonFile = new File(filePath);
-
-		if (uiSchemaJsonFile.exists()) {
-			ObjectMapper mapper = new ObjectMapper();
-
-			// JSON file to Java object
-			try {
-
-				// Parse to DTO
-				UiSchemaDTO[] uiSchemaDTOsArray = mapper.readValue(uiSchemaJsonFile, UiSchemaDTO[].class);
-
-				// Store in temporary list
-
-				uiSchemaDTOs = uiSchemaDTOs == null ? new LinkedList<>() : uiSchemaDTOs;
-
-				uiSchemaDTOs.addAll(Arrays.asList(uiSchemaDTOsArray));
-
-				Map<String, UiSchemaDTO> validationsMap = new HashMap<>();
-
-				// List<String> neglectTypes = Arrays.asList("documentType", "biometricsType");
-				for (UiSchemaDTO uiSchemaDTO : uiSchemaDTOs) {
-					// if (!neglectTypes.contains(uiSchemaDTO.getType())) {
-					validationsMap.put(uiSchemaDTO.getId(), uiSchemaDTO);
-					// }
-				}
-
-				// Set Validations Map
-				validations.setValidations(validationsMap);
-				
-				ApplicationContext.map().put("individualBiometrics", getUiSchemaBioAttributes("individualBiometrics"));
-				ApplicationContext.map().put("parentOrGuardianBiometrics", getUiSchemaBioAttributes("parentOrGuardianBiometrics"));
-
-			} catch (IOException ioException) {
-				// TODO Auto-generated catch block
-				ioException.printStackTrace();
-			}
-
-		}
+protected void loadUIElementsFromSchema() {
 		
+		try {
+			List<UiSchemaDTO> schemaFields = identitySchemaService.getLatestEffectiveUISchema();						
+			Map<String, UiSchemaDTO> validationsMap = new HashMap<>();			
+			List<String> neglectTypes = Arrays.asList("documentType","biometricsType");
+			for (UiSchemaDTO schemaField : schemaFields) {
+				if(!neglectTypes.contains(schemaField.getType())) {
+					validationsMap.put(schemaField.getId(), schemaField);
+				}
+			}			
+			validations.setValidations(validationsMap);	 //Set Validations Map
+			
+			ApplicationContext.map().put("individualBiometrics", getSchemaFieldBioAttributes("individualBiometrics"));
+			ApplicationContext.map().put("parentOrGuardianBiometrics", getSchemaFieldBioAttributes("parentOrGuardianBiometrics"));
+			
+		} catch(RegBaseCheckedException e) {
+			LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
+					ExceptionUtils.getStackTrace(e));
+		}		
 	}
 
 	protected void disablePaneOnBioAttributes(Node pane, List<String> constantBioAttributes) {
@@ -1639,8 +1629,7 @@ public class BaseController {
 		pane.setDisable(true);
 
 		/** Get UI schema individual Biometrics Bio Attributes */
-
-		List<String> uiSchemaBioAttributes = getUiSchemaBioAttributes(RegistrationConstants.indBiometrics);
+		List<String> uiSchemaBioAttributes = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
 
 		/** If bio Attribute not mentioned for bio attribute then disable */
 		if (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
@@ -1662,47 +1651,27 @@ public class BaseController {
 
 
 	protected void addExceptionDTOs() {
-
-		List<String> uiSchemaBioAttributes = getUiSchemaBioAttributes(RegistrationConstants.indBiometrics);
-
-		List<String> attributes = new LinkedList<>();
-
-		attributes.addAll(RegistrationConstants.leftHandUiAttributes);
-		attributes.addAll(RegistrationConstants.rightHandUiAttributes);
-		attributes.addAll(RegistrationConstants.twoThumbsUiAttributes);
-		attributes.addAll(RegistrationConstants.eyesUiAttributes);
-		attributes.add(RegistrationConstants.FACE);
-		attributes.add(RegistrationConstants.FACE_EXCEPTION);
-
-		List<String> bioList = new LinkedList<>();
+		List<String> bioAttributesFromSchema = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);		
+		List<String> bioList = new ArrayList<String>();
+		
 		/** If bio Attribute not mentioned for bio attribute then disable */
-		if (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
-			bioList.addAll(attributes);
-		} else {
-
-			for (String attribute : attributes) {
-
-				/** If bio attribute configured in UI Schema, then enable the pane */
-				if (!uiSchemaBioAttributes.contains(attribute)) {
-
-					bioList.add(attribute);
-				}
-			}
-
-		}
-		List<BiometricExceptionDTO> biometricExceptionDTOs = biometricExceptionController
-				.getBiometricsExceptionList(bioList);
+		bioList.addAll(ALL_BIO_ATTRIBUTES);
+		
+		/** If bio attribute configured in UI Schema, then enable the pane */
+		if(bioAttributesFromSchema != null && !bioAttributesFromSchema.isEmpty())
+			bioList.removeAll(bioAttributesFromSchema);
+		
+		List<BiometricExceptionDTO> biometricExceptionDTOs = biometricExceptionController.getBiometricsExceptionList(bioList);
 		
 		biometricExceptionController.addExceptionToRegistration(biometricExceptionDTOs);
 
 	}
 
 
-	private List<String> getUiSchemaBioAttributes(String indBiometrics) {
-
-		UiSchemaDTO uiSchemaDTO = validations.getValidationMap().get(indBiometrics);
-
-		return uiSchemaDTO != null ? Arrays.asList(uiSchemaDTO.getBioAttributes()) : null;
-
+	private List<String> getSchemaFieldBioAttributes(String fieldId) {
+		if(validations.getValidationMap().containsKey(fieldId) && validations.getValidationMap().get(fieldId).getType() == "biometricsType")
+			validations.getValidationMap().get(fieldId).getBioAttributes();
+		
+		return null;
 	}
 }
