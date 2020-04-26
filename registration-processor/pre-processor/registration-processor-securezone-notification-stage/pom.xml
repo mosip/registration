@@ -5,7 +5,7 @@
     <parent>
         <artifactId>pre-processor</artifactId>
         <groupId>io.mosip.registrationprocessor</groupId>
-        <version>1.0.6</version>
+        <version>1.0.9</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <version>1.0.9-SNAPSHOT</version>
@@ -94,6 +94,16 @@
             <artifactId>awaitility</artifactId>
             <version>${awaitility.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+            <version>${io.micrometer.prometheus.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+            <version>${io.micrometer.prometheus.version}</version>
         </dependency>
     </dependencies>
 
