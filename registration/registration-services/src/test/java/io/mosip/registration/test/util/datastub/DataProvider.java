@@ -231,11 +231,10 @@ public class DataProvider {
 
 	private static DemographicDTO getDemographicDTO() throws RegBaseCheckedException {
 		DemographicDTO demographicDTO = new DemographicDTO();
-		demographicDTO.setApplicantDocumentDTO(DataProvider.setApplicantDocumentDTO());
+
 		demographicDTO.setDemographicInfoDTO(DataProvider.getDemoInLocalLang());
-		demographicDTO.getApplicantDocumentDTO().setDocuments(new HashMap<String, DocumentDetailsDTO>());
 		getDocumentDetailsDTO(demographicDTO.getDemographicInfoDTO().getIdentity(),
-				demographicDTO.getApplicantDocumentDTO().getDocuments());
+				new RegistrationDTO().getDocuments());
 		return demographicDTO;
 	}
 
