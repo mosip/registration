@@ -726,6 +726,7 @@ public class DemographicDetailController extends BaseController {
 				getRegistrationDTOFromSession().setUpdateUINNonBiometric(false);
 				getRegistrationDTOFromSession().setUpdateUINChild(false);
 			}
+			//testing
 			postalCode.setDisable(true);
 			validation.setChild(false);
 			parentDetailPane.setManaged(false);
