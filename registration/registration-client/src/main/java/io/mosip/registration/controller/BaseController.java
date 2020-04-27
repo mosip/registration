@@ -5,7 +5,6 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -15,7 +14,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -24,7 +22,6 @@ import java.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.javafx.scene.control.skin.TableHeaderRow;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -213,6 +210,9 @@ public class BaseController {
 	private List<String> pageDetails = new ArrayList<>();
 
 	private Stage alertStage;
+	
+	public static  Map<String, UiSchemaDTO> validationMap;
+
 
 	@Autowired
 	private BioService bioService;
@@ -241,6 +241,33 @@ public class BaseController {
 		ALL_BIO_ATTRIBUTES.add(RegistrationConstants.FACE_EXCEPTION);
 	}
 
+	
+
+	public UiSchemaDTO getUiSchemaDTO(String id, boolean isLostUIN) {
+		UiSchemaDTO uiSchemaDTO = null;
+
+		if (validationMap.containsKey(id)) {
+			uiSchemaDTO = validationMap.get(id);
+		}
+		return uiSchemaDTO;
+
+	}
+
+	/**
+	 * Set Validations map
+	 * 
+	 * @param validations
+	 *            is a map id's and regex validations
+	 */
+	public void setValidations(Map<String, UiSchemaDTO> validations) {
+		validationMap = validations;
+	}
+
+	public Map<String, UiSchemaDTO> getValidationMap() {
+		return validationMap;
+	}
+
+	
 	/**
 	 * @return the alertStage
 	 */

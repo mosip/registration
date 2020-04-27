@@ -58,7 +58,6 @@ public class Validations extends BaseController {
 	 */
 	private static final Logger LOGGER = AppConfig.getLogger(Validations.class);
 	private boolean isChild;
-	private Map<String, UiSchemaDTO> validationMap;
 	private ResourceBundle applicationMessageBundle;
 	private ResourceBundle localMessageBundle;
 	private ResourceBundle applicationLabelBundle;
@@ -249,7 +248,7 @@ public class Validations extends BaseController {
 			String label = id.replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY)
 					.replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY);
 
-			UiSchemaDTO uiSchemaDTO = getUiSchemaDTO(id, isLostUIN);
+			UiSchemaDTO uiSchemaDTO = getUiSchemaDTO(label, isLostUIN);
 
 			String regex = getRegex(uiSchemaDTO, RegistrationUIConstants.REGEX_TYPE);
 			if (regex != null) {
@@ -541,30 +540,6 @@ public class Validations extends BaseController {
 	 */
 	public void setValidationMessage() {
 		validationMessage.delete(0, validationMessage.length());
-	}
-
-	private UiSchemaDTO getUiSchemaDTO(String id, boolean isLostUIN) {
-		UiSchemaDTO uiSchemaDTO = null;
-
-		if (validationMap.containsKey(id)) {
-			uiSchemaDTO = validationMap.get(id);
-		}
-		return uiSchemaDTO;
-
-	}
-
-	/**
-	 * Set Validations map
-	 * 
-	 * @param validations
-	 *            is a map id's and regex validations
-	 */
-	public void setValidations(Map<String, UiSchemaDTO> validations) {
-		this.validationMap = validations;
-	}
-
-	public Map<String, UiSchemaDTO> getValidationMap() {
-		return validationMap;
 	}
 
 	private String getRegex(UiSchemaDTO uiSchemaDTO, String regexType) {
