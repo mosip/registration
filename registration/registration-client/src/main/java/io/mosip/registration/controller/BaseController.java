@@ -1674,4 +1674,28 @@ protected void loadUIElementsFromSchema() {
 		
 		return null;
 	}
+	
+	protected boolean isAvailableInBioAttributes(List<String> constantAttributes) {
+
+		boolean isAvailable = false;
+		List<String> uiSchemaBioAttributes = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
+
+		/** If bio Attribute not mentioned for bio attribute then disable */
+		if (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
+			isAvailable = false;
+		} else {
+
+			for (String attribute : constantAttributes) {
+
+				/** If bio attribute configured in UI Schema, then enable the pane */
+				if (uiSchemaBioAttributes.contains(attribute)) {
+
+					isAvailable = true;
+				}
+			}
+
+		}
+
+		return isAvailable;
+	}
 }

@@ -169,7 +169,6 @@ public class FaceCaptureController extends BaseController implements Initializab
 		LOGGER.info("REGISTRATION - UI - FACE_CAPTURE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 				"Loading of FaceCapture screen started");
 
-
 		setImagesOnHover();
 
 		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getSelectionListDTO() != null) {
@@ -413,6 +412,13 @@ public class FaceCaptureController extends BaseController implements Initializab
 	@Override
 	public void saveApplicantPhoto(BufferedImage capturedImage, String photoType, CaptureResponseDto captureResponseDto,
 			String reponseTime, boolean isDuplicate) {
+
+		disablePaneOnBioAttributes(applicantImagePane, Arrays.asList(RegistrationConstants.FACE));
+		
+		saveBiometricDetailsBtn.setDisable(!isAvailableInBioAttributes(
+				Arrays.asList(RegistrationConstants.FACE)));
+		
+		
 		captureTimeValue.setText(reponseTime);
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Opening WebCamera to capture photograph");
