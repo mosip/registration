@@ -716,6 +716,9 @@ public class DemographicDetailController extends BaseController {
 	public Map<String, TextField> listOfTextField = new HashMap<>();
 
 	private int age = 0;
+	
+	@Autowired
+	private IdentitySchemaService identitySchemaService;
 
 	@Autowired
 	private IdentitySchemaService identitySchemaService;
@@ -1666,7 +1669,11 @@ public class DemographicDetailController extends BaseController {
 			auditFactory.audit(AuditEvent.SAVE_DETAIL_TO_DTO, Components.REGISTRATION_CONTROLLER,
 					SessionContext.userContext().getUserId(), RegistrationConstants.ONBOARD_DEVICES_REF_ID_TYPE);
 
-			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
+		RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
+
+
+
+
 
 			if (preRegistrationId.getText().isEmpty()) {
 				registrationDTO.setPreRegistrationId("");
@@ -1896,12 +1903,18 @@ public class DemographicDetailController extends BaseController {
 					RegistrationConstants.APPLICATION_ID, "Preparing the Edit page content");
 
 			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
+
 			Map<String, Object> demographics = registrationDTO.getDemographics();
+
+
+
+
 
 			List<String> locationBasedFields = Arrays.asList(orderOfAddress);
 			List<UiSchemaDTO> list;
 			try {
 				list = identitySchemaService.getLatestEffectiveUISchema();
+
 			} catch (RegBaseCheckedException e) {
 				LOGGER.error("REGISTRATION - GETTING SCHEMA FIELDS FAILED", APPLICATION_NAME,
 						RegistrationConstants.APPLICATION_ID, ExceptionUtils.getStackTrace(e));

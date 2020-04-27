@@ -6,10 +6,16 @@ import static org.junit.Assert.assertNull;
 import java.io.File;
 import java.io.IOException;
 
+
+
+
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Calendar;
+
+
+
 
 
 
@@ -27,8 +33,12 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 
-import io.mosip.kernel.core.util.DateUtils;
 
+
+
+
+
+import io.mosip.kernel.core.util.DateUtils;
 
 import io.mosip.registration.dao.IdentitySchemaDao;
 import io.mosip.registration.dto.response.SchemaDto;
@@ -62,6 +72,9 @@ public class IdentitySchemaDaoTest {
 	public void testSuccessSchemaSync() throws IOException {
 		
 
+
+
+
 		SchemaDto dto = getSchemaDto("response_1587846312621.json");		
 		
 		Double version = identitySchemaRepository.findLatestEffectiveIdVersion(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
@@ -69,6 +82,11 @@ public class IdentitySchemaDaoTest {
 		assertNull(version);
 		
 		identitySchemaDao.createIdentitySchema(dto);		
+
+
+
+
+
 		
 		version = identitySchemaRepository.findLatestEffectiveIdVersion(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
 
