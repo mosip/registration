@@ -3,7 +3,6 @@ package io.mosip.registration.test.mapper;
 import java.util.HashMap;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -89,7 +88,7 @@ public class PacketMetaInfoConverterTest {
 		DemographicDTO demographicDTO = new DemographicDTO();
 		ApplicantDocumentDTO applicantDocumentDTO = new ApplicantDocumentDTO();
 		applicantDocumentDTO.setDocuments(new HashMap<>());
-		demographicDTO.setApplicantDocumentDTO(applicantDocumentDTO);
+		//demographicDTO.setApplicantDocumentDTO(applicantDocumentDTO);
 		DemographicInfoDTO demographicInfoDTO = new DemographicInfoDTO();
 		demographicInfoDTO.setIdentity(new Identity());
 		demographicDTO.setDemographicInfoDTO(demographicInfoDTO);

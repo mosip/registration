@@ -222,7 +222,7 @@ public class PreRegZipHandlingServiceTest {
 		// Create object for Demographic DTOS
 		DemographicDTO demographicDTO = new DemographicDTO();
 		ApplicantDocumentDTO applicantDocumentDTO = new ApplicantDocumentDTO();
-		demographicDTO.setApplicantDocumentDTO(applicantDocumentDTO);
+		//demographicDTO.setApplicantDocumentDTO(applicantDocumentDTO);
 
 		applicantDocumentDTO.setDocuments(new HashMap<>());
 
