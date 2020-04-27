@@ -195,7 +195,7 @@ public class BaseController {
 
 	@Autowired
 	private Validations validations;
-	
+
 	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
 
 	public Text getScanningMsg() {
@@ -211,9 +211,8 @@ public class BaseController {
 	private List<String> pageDetails = new ArrayList<>();
 
 	private Stage alertStage;
-	
-	public static  Map<String, UiSchemaDTO> validationMap;
 
+	public static Map<String, UiSchemaDTO> validationMap;
 
 	@Autowired
 	private BioService bioService;
@@ -225,14 +224,14 @@ public class BaseController {
 
 	@Autowired
 	private RestartController restartController;
-	
+
 	@Autowired
 	private IdentitySchemaService identitySchemaService;
 
 	private static boolean isAckOpened = false;
 
 	private static List<String> ALL_BIO_ATTRIBUTES = null;
-	
+
 	static {
 		ALL_BIO_ATTRIBUTES = new ArrayList<String>();
 		ALL_BIO_ATTRIBUTES.addAll(RegistrationConstants.leftHandUiAttributes);
@@ -241,8 +240,6 @@ public class BaseController {
 		ALL_BIO_ATTRIBUTES.addAll(RegistrationConstants.eyesUiAttributes);
 		ALL_BIO_ATTRIBUTES.add(RegistrationConstants.FACE_EXCEPTION);
 	}
-
-	
 
 	public UiSchemaDTO getUiSchemaDTO(String id, boolean isLostUIN) {
 		UiSchemaDTO uiSchemaDTO = null;
@@ -268,7 +265,6 @@ public class BaseController {
 		return validationMap;
 	}
 
-	
 	/**
 	 * @return the alertStage
 	 */
@@ -1040,7 +1036,7 @@ public class BaseController {
 
 	}
 
-	/** 
+	/**
 	 * to return to the next page based on the current page and action.
 	 *
 	 * @param pageList
@@ -1629,26 +1625,27 @@ public class BaseController {
 		this.isAckOpened = isAckOpened;
 	}
 
-protected void loadUIElementsFromSchema() {
-		
+	protected void loadUIElementsFromSchema() {
+
 		try {
-			List<UiSchemaDTO> schemaFields = identitySchemaService.getLatestEffectiveUISchema();						
-			Map<String, UiSchemaDTO> validationsMap = new LinkedHashMap<>();			
-			List<String> neglectTypes = Arrays.asList("documentType","biometricsType");
+			List<UiSchemaDTO> schemaFields = identitySchemaService.getLatestEffectiveUISchema();
+			Map<String, UiSchemaDTO> validationsMap = new HashMap<>();
+			List<String> neglectTypes = Arrays.asList("documentType", "biometricsType");
 			for (UiSchemaDTO schemaField : schemaFields) {
-				if(!neglectTypes.contains(schemaField.getType())) {
+				if (!neglectTypes.contains(schemaField.getType())) {
 					validationsMap.put(schemaField.getId(), schemaField);
 				}
-			}			
-			validations.setValidations(validationsMap);	 //Set Validations Map
-			
+			}
+			validations.setValidations(validationsMap); // Set Validations Map
+
 			ApplicationContext.map().put("individualBiometrics", getSchemaFieldBioAttributes("individualBiometrics"));
-			ApplicationContext.map().put("parentOrGuardianBiometrics", getSchemaFieldBioAttributes("parentOrGuardianBiometrics"));
-			
-		} catch(RegBaseCheckedException e) {
+			ApplicationContext.map().put("parentOrGuardianBiometrics",
+					getSchemaFieldBioAttributes("parentOrGuardianBiometrics"));
+
+		} catch (RegBaseCheckedException e) {
 			LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(e));
-		}		
+		}
 	}
 
 	protected void disablePaneOnBioAttributes(Node pane, List<String> constantBioAttributes) {
@@ -1677,32 +1674,32 @@ protected void loadUIElementsFromSchema() {
 		}
 	}
 
-
 	protected void addExceptionDTOs() {
-		List<String> bioAttributesFromSchema = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);		
+		List<String> bioAttributesFromSchema = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
 		List<String> bioList = new ArrayList<String>();
-		
+
 		/** If bio Attribute not mentioned for bio attribute then disable */
 		bioList.addAll(ALL_BIO_ATTRIBUTES);
-		
+
 		/** If bio attribute configured in UI Schema, then enable the pane */
-		if(bioAttributesFromSchema != null && !bioAttributesFromSchema.isEmpty())
+		if (bioAttributesFromSchema != null && !bioAttributesFromSchema.isEmpty())
 			bioList.removeAll(bioAttributesFromSchema);
-		
-		List<BiometricExceptionDTO> biometricExceptionDTOs = biometricExceptionController.getBiometricsExceptionList(bioList);
-		
+
+		List<BiometricExceptionDTO> biometricExceptionDTOs = biometricExceptionController
+				.getBiometricsExceptionList(bioList);
+
 		biometricExceptionController.addExceptionToRegistration(biometricExceptionDTOs);
 
 	}
 
-
 	private List<String> getSchemaFieldBioAttributes(String fieldId) {
-		if(validations.getValidationMap().containsKey(fieldId) && validations.getValidationMap().get(fieldId).getType() == "biometricsType")
+		if (validations.getValidationMap().containsKey(fieldId)
+				&& validations.getValidationMap().get(fieldId).getType() == "biometricsType")
 			validations.getValidationMap().get(fieldId).getBioAttributes();
-		
+
 		return null;
 	}
-	
+
 	protected boolean isAvailableInBioAttributes(List<String> constantAttributes) {
 
 		boolean isAvailable = false;

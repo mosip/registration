@@ -191,8 +191,6 @@ public class LoginController extends BaseController implements Initializable {
 
 		versionValueLabel.setText(softwareUpdateHandler.getCurrentVersion());
 		
-		loadUIElementsFromSchema();
-		
 		if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
 
 			// Check for updates
