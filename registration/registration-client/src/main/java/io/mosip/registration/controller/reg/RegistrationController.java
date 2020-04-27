@@ -423,12 +423,6 @@ public class RegistrationController extends BaseController {
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID, 
 				"Registration Started for RID  : [ " + registrationDTO.getRegistrationId() + " ] ");
 		
-		//TODO - remove
-		DemographicDTO demographicDTO = new DemographicDTO();
-		DemographicInfoDTO demographicInfoDTO = new DemographicInfoDTO();
-		demographicInfoDTO.setIdentity(new Identity());
-		demographicDTO.setDemographicInfoDTO(demographicInfoDTO);
-		
 		// Put the RegistrationDTO object to SessionContext Map
 		SessionContext.map().put(RegistrationConstants.REGISTRATION_DATA, registrationDTO);
 	}

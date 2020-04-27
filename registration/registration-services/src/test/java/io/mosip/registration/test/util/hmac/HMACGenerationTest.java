@@ -47,7 +47,7 @@ public class HMACGenerationTest {
 		IndividualIdentity individualIdentity = new IndividualIdentity();
 		demographicInfoDTO.setIdentity(individualIdentity);
 		demographicDTO.setDemographicInfoDTO(demographicInfoDTO);
-		registrationDTO.setDemographicDTO(demographicDTO);
+		//registrationDTO.setDemographicDTO(demographicDTO);
 		Map<String, byte[]> filesGeneratedForPacket = new HashMap<>();
 		filesGeneratedForPacket.put(RegistrationConstants.DEMOGRPAHIC_JSON_NAME,
 				RegistrationConstants.DEMOGRPAHIC_JSON_NAME.getBytes());

@@ -47,6 +47,7 @@ import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.context.SessionContext.UserContext;
+import io.mosip.registration.dao.IdentitySchemaDao;
 import io.mosip.registration.dao.MachineMappingDAO;
 import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dao.UserOnboardDAO;
@@ -56,6 +57,7 @@ import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.SuccessResponseDTO;
 import io.mosip.registration.dto.mastersync.BiometricAttributeDto;
 import io.mosip.registration.dto.mastersync.MasterDataResponseDto;
+import io.mosip.registration.dto.response.SchemaDto;
 import io.mosip.registration.dto.response.SyncDataResponseDto;
 import io.mosip.registration.entity.BiometricAttribute;
 import io.mosip.registration.entity.BlacklistedWords;
@@ -130,6 +132,9 @@ public class MasterSyncServiceTest {
 	private ApplicationContext context;
 	@Mock
 	private MachineMappingDAO machineMappingDAO;
+	
+	@Mock
+	private IdentitySchemaDao identitySchemaDao; 
 
 	@Before
 	public void beforeClass() throws Exception {
@@ -144,6 +149,7 @@ public class MasterSyncServiceTest {
 		PowerMockito.when(SessionContext.userContext().getRegistrationCenterDetailDTO()).thenReturn(centerDetailDTO);
 		
 		PowerMockito.mockStatic(ApplicationContext.class);
+		
 	}
 
 	@Test

@@ -898,9 +898,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 		if (response.getSuccessResponseDTO() != null
 				&& response.getSuccessResponseDTO().getMessage().equals(RegistrationConstants.SUCCESS)) {
 			
-			IndividualIdentity individualIdentity = (IndividualIdentity) registrationDTO.getDemographicDTO()
-					.getDemographicInfoDTO().getIdentity();
-
 			try {
 				// Deletes the pre registration Data after creation of registration Packet.
 				if (getRegistrationDTOFromSession().getPreRegistrationId() != null
@@ -928,7 +925,9 @@ public class PacketHandlerController extends BaseController implements Initializ
 				FileUtils.copyToFile(new ByteArrayInputStream(ackInBytes),
 						new File(filePath.concat("_Ack.").concat(RegistrationConstants.ACKNOWLEDGEMENT_FORMAT)));
 
-				sendNotification(individualIdentity.getEmail(), individualIdentity.getPhone(),
+				//TODO - can we send contact field attribute in schema ?
+				sendNotification((String)registrationDTO.getDemographics().get("email"), 
+						(String)registrationDTO.getDemographics().get("phone"),
 						registrationDTO.getRegistrationId());
 
 				// Sync and Uploads Packet when EOD Process Configuration is set to OFF
@@ -959,7 +958,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 			}
 
 			//TODO this will not be part of current UI
-			if (registrationDTO.getSelectionListDTO() == null) {
+			/*if (registrationDTO.getSelectionListDTO() == null) {
 
 				AddressDTO addressDTO = Builder.build(AddressDTO.class)
 						.with(address -> address.setAddressLine1(individualIdentity.getAddressLine1() != null
@@ -992,7 +991,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 						.get();
 
 				SessionContext.map().put(RegistrationConstants.ADDRESS_KEY, addressDTO);
-			}
+			}*/
 		} else {
 			if (response.getErrorResponseDTOs() != null && response.getErrorResponseDTOs().get(0).getCode()
 					.equals(RegistrationExceptionConstants.AUTH_ADVICE_USR_ERROR.getErrorCode())) {
