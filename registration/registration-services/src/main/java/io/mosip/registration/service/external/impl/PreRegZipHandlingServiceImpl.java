@@ -14,7 +14,9 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -26,6 +28,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -54,6 +58,7 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.service.external.PreRegZipHandlingService;
+import io.mosip.registration.util.mastersync.MapperUtils;
 
 /**
  * This implementation class to handle the pre-registration data
@@ -105,8 +110,7 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 				if (docFileName.contains("_")) {
 					documentDetailsDTO = new DocumentDetailsDTO();
 					String docCategoryCode = docFileName.substring(0, docFileName.indexOf("_"));
-					getRegistrationDtoContent().getDemographicDTO().getApplicantDocumentDTO().getDocuments()
-							.put(docCategoryCode, documentDetailsDTO);
+					getRegistrationDtoContent().getDocuments().put(docCategoryCode, documentDetailsDTO);
 					attachDocument(documentDetailsDTO, inputStream, docFileName, docCategoryCode);
 
 				}
@@ -133,13 +137,7 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 		documentDetailsDTO.setDocument(IOUtils.toByteArray(zipInputStream));
 		documentDetailsDTO.setFormat(fileName.substring(fileName.lastIndexOf(RegistrationConstants.DOT) + 1));
 
-		IndividualIdentity individualIdentity = (IndividualIdentity) getRegistrationDtoContent().getDemographicDTO()
-				.getDemographicInfoDTO().getIdentity();
-
-		String docTypeName = null;
-		if (individualIdentity != null) {
-			docTypeName = getDocTypeName(fileName, docCatgory, individualIdentity);
-		}
+		String docTypeName = getDocTypeName(fileName, docCatgory);
 
 		/*
 		 * checking and setting the doc type name based on the reg client primary
@@ -165,24 +163,24 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 		return docTypeName;
 	}
 
-	private String getDocTypeName(String fileName, String docCatgory, IndividualIdentity individualIdentity) {
+	private String getDocTypeName(String fileName, String docCatgory) {
 		String docTypeName;
 		if (RegistrationConstants.POA_DOCUMENT.equalsIgnoreCase(docCatgory)
-				&& null != individualIdentity.getProofOfAddress()) {
+				&& null != getRegistrationDtoContent().getDocuments().get(RegistrationConstants.POA_DOCUMENT)) {
 
-			docTypeName = individualIdentity.getProofOfAddress().getType();
+			docTypeName = getRegistrationDtoContent().getDocuments().get(RegistrationConstants.POA_DOCUMENT).getType();
 
 		} else if (RegistrationConstants.POI_DOCUMENT.equalsIgnoreCase(docCatgory)
-				&& null != individualIdentity.getProofOfIdentity()) {
-			docTypeName = individualIdentity.getProofOfIdentity().getType();
+				&& null != getRegistrationDtoContent().getDocuments().get(RegistrationConstants.POI_DOCUMENT)) {
+			docTypeName = getRegistrationDtoContent().getDocuments().get(RegistrationConstants.POI_DOCUMENT).getType();
 
 		} else if (RegistrationConstants.POR_DOCUMENT.equalsIgnoreCase(docCatgory)
-				&& null != individualIdentity.getProofOfRelationship()) {
-			docTypeName = individualIdentity.getProofOfRelationship().getType();
+				&& null != getRegistrationDtoContent().getDocuments().get(RegistrationConstants.POR_DOCUMENT)) {
+			docTypeName = getRegistrationDtoContent().getDocuments().get(RegistrationConstants.POR_DOCUMENT).getType();
 
 		} else if (RegistrationConstants.DOB_DOCUMENT.equalsIgnoreCase(docCatgory)
-				&& null != individualIdentity.getProofOfDateOfBirth()) {
-			docTypeName = individualIdentity.getProofOfDateOfBirth().getType();
+				&& null != getRegistrationDtoContent().getDocuments().get(RegistrationConstants.DOB_DOCUMENT)) {
+			docTypeName = getRegistrationDtoContent().getDocuments().get(RegistrationConstants.DOB_DOCUMENT).getType();
 
 		} else {
 			docTypeName = fileName.substring(fileName.indexOf("_") + 1, fileName.lastIndexOf("."));
@@ -201,21 +199,25 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 	 * @throws RegBaseCheckedException
 	 *             - holds the cheked exceptions
 	 */
+	@SuppressWarnings("unchecked")
 	private void parseDemographicJson(BufferedReader bufferedReader, ZipEntry zipEntry) throws RegBaseCheckedException {
 
 		try {
+			
 			String value;
 			StringBuilder jsonString = new StringBuilder();
 			while ((value = bufferedReader.readLine()) != null) {
 				jsonString.append(value);
 			}
 
-			if (!StringUtils.isEmpty(jsonString) 
-					&& validateDemographicInfoObject()) {
-				/* validate id json schema */
+			/* validate id json schema */
+			if (!StringUtils.isEmpty(jsonString) && validateDemographicInfoObject()) {
+				
 				IndividualIdentity individualIdentity = (IndividualIdentity) JsonUtils.jsonStringToJavaObject(
 						IndividualIdentity.class, new JSONObject(jsonString.toString()).get("identity").toString());
 				getRegistrationDtoContent().getDemographicDTO().getDemographicInfoDTO().setIdentity(individualIdentity);
+				
+				//TODO -- Need to validate
 				/*idObjectValidator.validateIdObject(
 						getRegistrationDtoContent().getDemographicDTO().getDemographicInfoDTO(),
 						RegistrationConstants.PACKET_TYPE_NEW);*/

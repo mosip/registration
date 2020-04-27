@@ -3,8 +3,10 @@ package io.mosip.registration.dto.biometric;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import io.mosip.registration.builder.Builder;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dto.BaseDTO;
+import io.mosip.registration.dto.demographic.CBEFFFilePropertiesDTO;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,13 +20,16 @@ import lombok.Setter;
 public class BiometricDTO extends BaseDTO {
 
 	private Map<String, BiometricInfoDTO> biometricsMap;
+	
+	private CBEFFFilePropertiesDTO applicantBiometrics;
+	private CBEFFFilePropertiesDTO introducerBiometrics;
 
 	public BiometricDTO() {
 		biometricsMap = new LinkedHashMap<>();
-		biometricsMap.put(RegistrationConstants.applicantBiometricDTO, null);
-		biometricsMap.put(RegistrationConstants.introducerBiometricDTO, null);
-		biometricsMap.put(RegistrationConstants.supervisorBiometricDTO, null);
-		biometricsMap.put(RegistrationConstants.operatorBiometricDTO, null);
+		biometricsMap.put(RegistrationConstants.applicantBiometricDTO, new BiometricInfoDTO());
+		biometricsMap.put(RegistrationConstants.introducerBiometricDTO, new BiometricInfoDTO());
+		biometricsMap.put(RegistrationConstants.supervisorBiometricDTO, new BiometricInfoDTO());
+		biometricsMap.put(RegistrationConstants.operatorBiometricDTO, new BiometricInfoDTO());
 
 	}
 
@@ -42,6 +47,8 @@ public class BiometricDTO extends BaseDTO {
 
 	public void setApplicantBiometricDTO(BiometricInfoDTO applicantBiometricDTO) {
 		this.biometricsMap.put(RegistrationConstants.applicantBiometricDTO, applicantBiometricDTO);
+		applicantBiometrics = buildCBEFFDTO(isCBEFFNotAvailable(applicantBiometricDTO),
+				RegistrationConstants.APPLICANT_BIO_CBEFF_FILE_NAME);
 	}
 
 	public BiometricInfoDTO getIntroducerBiometricDTO() {
@@ -51,6 +58,8 @@ public class BiometricDTO extends BaseDTO {
 
 	public void setIntroducerBiometricDTO(BiometricInfoDTO introducerBiometricDTO) {
 		this.biometricsMap.put(RegistrationConstants.introducerBiometricDTO, introducerBiometricDTO);
+		introducerBiometrics = buildCBEFFDTO(isCBEFFNotAvailable(introducerBiometricDTO),
+				RegistrationConstants.AUTHENTICATION_BIO_CBEFF_FILE_NAME);
 	}
 
 	public BiometricInfoDTO getSupervisorBiometricDTO() {
@@ -71,6 +80,20 @@ public class BiometricDTO extends BaseDTO {
 
 	public void addBiometricsToMap(String key, BiometricInfoDTO biometricDTO) {
 		biometricsMap.put(key, biometricDTO);
+	}
+	
+	private CBEFFFilePropertiesDTO buildCBEFFDTO(boolean isCBEFFNotRequired, String cbeffFileName) {
+		return isCBEFFNotRequired ? null
+				: (CBEFFFilePropertiesDTO) Builder.build(CBEFFFilePropertiesDTO.class)
+						.with(cbeffProperties -> cbeffProperties.setFormat(RegistrationConstants.CBEFF_FILE_FORMAT))
+						.with(cbeffProperty -> cbeffProperty.setValue(cbeffFileName
+								.replace(RegistrationConstants.XML_FILE_FORMAT, RegistrationConstants.EMPTY)))
+						.with(cbeffProperty -> cbeffProperty.setVersion(1.0)).get();
+	}
+
+	private boolean isCBEFFNotAvailable(BiometricInfoDTO personBiometric) {
+		return personBiometric.getFingerprintDetailsDTO().isEmpty() && personBiometric.getIrisDetailsDTO().isEmpty()
+				&& personBiometric.getFace().getFace() == null;
 	}
 
 }

@@ -54,6 +54,7 @@ import io.mosip.registration.dto.SuccessResponseDTO;
 import io.mosip.registration.dto.biometric.BiometricExceptionDTO;
 import io.mosip.registration.dto.biometric.FingerprintDetailsDTO;
 import io.mosip.registration.dto.biometric.IrisDetailsDTO;
+import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
 import io.mosip.registration.dto.demographic.IndividualIdentity;
 import io.mosip.registration.dto.demographic.ValuesDTO;
 import io.mosip.registration.exception.RegBaseUncheckedException;
@@ -212,7 +213,7 @@ public class TemplateGenerator extends BaseService {
 			setUpDemographicInfo(registration, templateValues, isChild, applicationLanguageProperties, individualIdentity);
 
 			/* Set-up the list of documents submitted by the applicant */
-			setUpDocuments(templateValues, applicationLanguageProperties, individualIdentity, documentDisableFlag);
+			setUpDocuments(templateValues, applicationLanguageProperties, registration.getDocuments(), documentDisableFlag);
 
 			/* Set-up captured biometrics count */
 			setUpBiometricsCount(templateValues, registration, applicationLanguageProperties, fingerPrintDisableFlag,
@@ -674,33 +675,33 @@ public class TemplateGenerator extends BaseService {
 	}
 
 	private void setUpDocuments(Map<String, Object> templateValues, ResourceBundle applicationLanguageProperties,
-			IndividualIdentity individualIdentity, String documentDisableFlag) {
+			Map<String, DocumentDetailsDTO> documents, String documentDisableFlag) {
 		if (RegistrationConstants.ENABLE.equalsIgnoreCase(documentDisableFlag)) {
 			templateValues.put(RegistrationConstants.TEMPLATE_DOCUMENTS_USER_LANG_LABEL,
 					applicationLanguageProperties.getString("documents"));
 			templateValues.put(RegistrationConstants.TEMPLATE_DOCUMENTS_LOCAL_LANG_LABEL,
 					getSecondaryLanguageLabel("documents"));
 			StringBuilder documentsList = new StringBuilder();
-			if (individualIdentity.getProofOfIdentity() != null) {
-				documentsList.append(individualIdentity.getProofOfIdentity().getValue());
+			if (documents.get(RegistrationConstants.POI_DOCUMENT) != null) {
+				documentsList.append(documents.get(RegistrationConstants.POI_DOCUMENT).getValue());
 			}
-			if (individualIdentity.getProofOfAddress() != null) {
+			if (documents.get(RegistrationConstants.POA_DOCUMENT) != null) {
 				if (documentsList.length() > 0) {
 					documentsList.append(", ");
 				}
-				documentsList.append(individualIdentity.getProofOfAddress().getValue());
+				documentsList.append(documents.get(RegistrationConstants.POA_DOCUMENT).getValue());
 			}
-			if (individualIdentity.getProofOfRelationship() != null) {
+			if (documents.get(RegistrationConstants.POR_DOCUMENT) != null) {
 				if (documentsList.length() > 0) {
 					documentsList.append(", ");
 				}
-				documentsList.append(individualIdentity.getProofOfRelationship().getValue());
+				documentsList.append(documents.get(RegistrationConstants.POR_DOCUMENT).getValue());
 			}
-			if (individualIdentity.getProofOfDateOfBirth() != null) {
+			if (documents.get(RegistrationConstants.DOB_DOCUMENT) != null) {
 				if (documentsList.length() > 0) {
 					documentsList.append(", ");
 				}
-				documentsList.append(individualIdentity.getProofOfDateOfBirth().getValue());
+				documentsList.append(documents.get(RegistrationConstants.DOB_DOCUMENT).getValue());
 			}
 			templateValues.put(RegistrationConstants.TEMPLATE_DOCUMENTS, documentsList.toString());
 			templateValues.put(RegistrationConstants.TEMPLATE_DOCUMENTS_LOCAL_LANG, RegistrationConstants.EMPTY);

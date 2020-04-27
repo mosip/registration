@@ -9,26 +9,12 @@ import io.mosip.registration.dto.BaseDTO;
  * @since 1.0.0
  */
 public class DemographicDTO extends BaseDTO {
-	private ApplicantDocumentDTO applicantDocumentDTO;
+	
 	private String introducerRID;
 	private String introducerUIN;
 	private DemographicInfoDTO demographicInfoDTO;
 
-	/**
-	 * @return the applicantDocumentDTO
-	 */
-	public ApplicantDocumentDTO getApplicantDocumentDTO() {
-		return applicantDocumentDTO;
-	}
-
-	/**
-	 * @param applicantDocumentDTO
-	 *            the applicantDocumentDTO to set
-	 */
-	public void setApplicantDocumentDTO(ApplicantDocumentDTO applicantDocumentDTO) {
-		this.applicantDocumentDTO = applicantDocumentDTO;
-	}
-
+	
 	/**
 	 * @return the introducerRID
 	 */

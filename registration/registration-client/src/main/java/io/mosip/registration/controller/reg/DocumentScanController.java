@@ -309,7 +309,7 @@ public class DocumentScanController extends BaseController {
 	}
 
 	private Map<String, DocumentDetailsDTO> getDocumentsMapFromSession() {
-		return getRegistrationDTOFromSession().getDemographicDTO().getApplicantDocumentDTO().getDocuments();
+		return getRegistrationDTOFromSession().getDocuments();
 	}
 
 	/**
@@ -656,7 +656,7 @@ public class DocumentScanController extends BaseController {
 
 		generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.SCAN_DOC_SUCCESS);
 		
-		IndividualIdentity.addDocumentsInIndividualIdentityMap(document.getCode(), documentDetailsDTO);
+		getRegistrationDTOFromSession().addDocument(document.getCode(), documentDetailsDTO);
 	}
 
 	/**
@@ -888,21 +888,17 @@ public class DocumentScanController extends BaseController {
 	 */
 	protected void prepareEditPageContent() {
 
-		if (getRegistrationDTOFromSession().getDemographicDTO() != null) {
+		FXUtils fxUtils = FXUtils.getInstance();
 
-			FXUtils fxUtils = FXUtils.getInstance();
+		if (documentComboBoxes != null && !documentComboBoxes.isEmpty()) {
 
-			if (documentComboBoxes != null && !documentComboBoxes.isEmpty()) {
+			Map<String, DocumentDetailsDTO> documentsMap = getDocumentsMapFromSession();
+			for (String docCategoryKey : documentsMap.keySet()) {
 
-				Map<String, DocumentDetailsDTO> documentsMap = getDocumentsMapFromSession();
-				for (String docCategoryKey : documentsMap.keySet()) {
-
-					addDocumentsToScreen(documentsMap.get(docCategoryKey).getValue(),
-							documentsMap.get(docCategoryKey).getFormat(), documentVBoxes.get(docCategoryKey));
-					fxUtils.selectComboBoxValue(documentComboBoxes.get(docCategoryKey),
-							documentsMap.get(docCategoryKey).getValue());
-				}
-
+				addDocumentsToScreen(documentsMap.get(docCategoryKey).getValue(),
+						documentsMap.get(docCategoryKey).getFormat(), documentVBoxes.get(docCategoryKey));
+				fxUtils.selectComboBoxValue(documentComboBoxes.get(docCategoryKey),
+						documentsMap.get(docCategoryKey).getValue());
 			}
 
 		}
