@@ -1625,8 +1625,7 @@ public class DemographicDetailController extends BaseController {
 
 		// Get RegistrationDTO from SessionContext
 		RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
-		Map<String, DocumentDetailsDTO> documents = registrationDTO.getDemographicDTO().getApplicantDocumentDTO()
-				.getDocuments();
+		Map<String, DocumentDetailsDTO> documents = registrationDTO.getDocuments();
 		boolean isDocumentsMapEmpty = documents.isEmpty();
 
 		// Get Applicant and Introducer Biometrics DTO

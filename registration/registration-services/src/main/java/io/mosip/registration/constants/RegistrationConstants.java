@@ -1648,4 +1648,6 @@ public class RegistrationConstants {
 	
 	public static final List<String> eyesUiAttributes = Arrays.asList(leftEyeUiAttribute,rightEyeUiAttribute);
 	public static final String indBiometrics = "individualBiometrics";
+	
+	public static final String ID_SCHEMA_SYNC_SERVICE = "idschema_key";
 }

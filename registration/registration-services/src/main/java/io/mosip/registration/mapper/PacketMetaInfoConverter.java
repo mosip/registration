@@ -80,7 +80,7 @@ public class PacketMetaInfoConverter extends CustomConverter<RegistrationDTO, Pa
 			setExceptionPhotograph(source, identity);
 
 			// Set Documents
-			identity.setDocuments(buildDocuments(source.getDemographicDTO()));
+			identity.setDocuments(buildDocuments(source));
 
 			// Add Biometric Details
 			BiometricInfoDTO biometricInfoDTO = source.getBiometricDTO().getApplicantBiometricDTO();
@@ -244,13 +244,13 @@ public class PacketMetaInfoConverter extends CustomConverter<RegistrationDTO, Pa
 	 * @param demographicDTO
 	 * @return
 	 */
-	private List<Document> buildDocuments(DemographicDTO demographicDTO) {
+	private List<Document> buildDocuments(RegistrationDTO registrationDTO) {
 		List<Document> documents = new ArrayList<>();
 
-		if (demographicDTO.getApplicantDocumentDTO().getAcknowledgeReceipt() != null) {
+		if (registrationDTO.getAcknowledgeReceipt() != null) {
 			// Add the Acknowledgement Receipt
 			documents.add(
-					getDocument(removeFileExt(demographicDTO.getApplicantDocumentDTO().getAcknowledgeReceiptName()),
+					getDocument(removeFileExt(registrationDTO.getAcknowledgeReceiptName()),
 							RegistrationConstants.ACK_RECEIPT, RegistrationConstants.ACK_RECEIPT, "Self"));
 		}
 

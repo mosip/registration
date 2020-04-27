@@ -5,22 +5,28 @@ import static io.mosip.registration.constants.LoggerConstants.LOG_REG_MASTER_SYN
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import java.io.IOException;
 import java.io.SyncFailedException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.dto.mastersync.DynamicFieldDto;
 import io.mosip.registration.dto.response.SyncDataBaseDto;
 import io.mosip.registration.dto.response.SyncDataResponseDto;
+import io.mosip.registration.entity.DynamicField;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.repositories.AppAuthenticationRepository;
 import io.mosip.registration.repositories.AppDetailRepository;
@@ -36,6 +42,7 @@ import io.mosip.registration.repositories.DeviceSpecificationRepository;
 import io.mosip.registration.repositories.DeviceTypeRepository;
 import io.mosip.registration.repositories.DocumentCategoryRepository;
 import io.mosip.registration.repositories.DocumentTypeRepository;
+import io.mosip.registration.repositories.DynamicFieldRepository;
 import io.mosip.registration.repositories.FoundationalTrustProviderRepository;
 import io.mosip.registration.repositories.GenderRepository;
 import io.mosip.registration.repositories.IdTypeRepository;
@@ -64,17 +71,16 @@ import io.mosip.registration.repositories.TemplateFileFormatRepository;
 import io.mosip.registration.repositories.TemplateRepository;
 import io.mosip.registration.repositories.TemplateTypeRepository;
 import io.mosip.registration.repositories.TitleRepository;
-import io.mosip.registration.repositories.UserMachineMappingRepository;
 import io.mosip.registration.repositories.ValidDocumentRepository;
-import io.mosip.registration.util.mastersync.MetaDataUtils;
 
 @Component
 public class ClientSettingSyncHelper {
 	
 	private static final Logger LOGGER = AppConfig.getLogger(ClientSettingSyncHelper.class);
 	
-	private static final String ENTITY_PACKAGE_NAME = "io.mosip.registration.entity.";
-	
+	private static final String ENTITY_PACKAGE_NAME = "io.mosip.registration.entity.";	
+	private static final String FIELD_TYPE_DYNAMIC = "dynamic";
+		
 	/** Object for Sync Biometric Attribute Repository. */
 	@Autowired
 	private BiometricAttributeRepository biometricAttributeRepository;
@@ -243,8 +249,9 @@ public class ClientSettingSyncHelper {
 	private DeviceProviderRepository deviceProviderRepository;
 	
 	@Autowired
-	private UserMachineMappingRepository userMachineMappingRepository;
+	private DynamicFieldRepository dynamicFieldRepository;
 	
+		
 	private static final Map<String, String> ENTITY_CLASS_NAMES = new HashMap<String, String>();
 	
 	
@@ -284,6 +291,7 @@ public class ClientSettingSyncHelper {
 			handleDocumentSync(syncDataResponseDto);
 			handleIdSchemaPossibleValuesSync(syncDataResponseDto);
 			handleMisellaneousSync(syncDataResponseDto);
+			handleDynamicFieldSync(syncDataResponseDto);
 			return RegistrationConstants.SUCCESS;
 		} catch (Throwable e) {	
 			throw new RegBaseUncheckedException(RegistrationConstants.MASTER_SYNC_EXCEPTION + RegistrationConstants.FAILURE,
@@ -314,8 +322,8 @@ public class ClientSettingSyncHelper {
 			}
 			return entities;
 		} catch (Throwable e) {
-			e.printStackTrace();
-			throw new SyncFailedException(e.getMessage() + " building entities is failed...");
+			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(e));
+			throw new SyncFailedException("Building entities is failed..." + e.getMessage());
 		}
 	}
 	
@@ -494,5 +502,48 @@ public class ClientSettingSyncHelper {
 			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
 			throw new SyncFailedException("Miscellaneous data sync failed due to " +  e.getMessage());
 		}
+	}
+	
+	/**
+	 * save dynamic fields with value json
+	 * @param syncDataResponseDto
+	 */
+	private void handleDynamicFieldSync(SyncDataResponseDto syncDataResponseDto) throws SyncFailedException {
+		try {
+			Iterator<SyncDataBaseDto> iterator = syncDataResponseDto.getDataToSync().stream()
+					.filter(obj -> FIELD_TYPE_DYNAMIC.equalsIgnoreCase(obj.getEntityType()))
+					.iterator();
+			
+			List<DynamicField> fields = new ArrayList<DynamicField>();
+			while(iterator.hasNext()) {
+				SyncDataBaseDto syncDataBaseDto = iterator.next();
+				
+				if(syncDataBaseDto != null && syncDataBaseDto.getData() != null) {
+					for(String jsonString : syncDataBaseDto.getData()) {
+						if(jsonString == null)
+							continue;
+						
+						DynamicFieldDto dynamicFieldDto = MapperUtils.convertJSONStringToDto(jsonString, 
+								new TypeReference<DynamicFieldDto>() {});
+							
+						DynamicField dynamicField = new DynamicField();
+						dynamicField.setId(dynamicFieldDto.getId());
+						dynamicField.setDataType(dynamicFieldDto.getDataType());
+						dynamicField.setName(dynamicFieldDto.getName());
+						dynamicField.setLangCode(dynamicFieldDto.getLangCode());
+						dynamicField.setValueJson(dynamicFieldDto.getFieldVal() == null ?
+								"[]" : MapperUtils.convertObjectToJsonString(dynamicFieldDto.getFieldVal()));	
+						fields.add(dynamicField);
+					}
+				}
+			}
+			
+			if(!fields.isEmpty())
+				dynamicFieldRepository.saveAll(fields);
+				
+		} catch(IOException e) {
+			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
+			throw new SyncFailedException("Dynamic field sync failed due to " +  e.getMessage());
+		}		
 	}
 }

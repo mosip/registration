@@ -136,9 +136,9 @@ public class ZipCreationServiceImpl extends BaseService implements ZipCreationSe
 			final Map<String, byte[]> filesGeneratedForPacket, ZipOutputStream zipOutputStream)
 			throws RegBaseCheckedException {
 		// Create folder structure for Demographic
-		if (checkNotNull(registrationDTO.getDemographicDTO())) {
-			if (checkNotNull(registrationDTO.getDemographicDTO().getApplicantDocumentDTO())) {
-				addDemogrpahicData(registrationDTO.getDemographicDTO(), "Demographic".concat(separator),
+		if (checkNotNull(registrationDTO.getDemographics())) {
+			if (checkNotNull(registrationDTO.getDocuments())) {
+				addDemogrpahicData(registrationDTO, "Demographic".concat(separator),
 						zipOutputStream);
 
 				LOGGER.info(LOG_ZIP_CREATION, APPLICATION_NAME, APPLICATION_ID, "Applicant's demographic added");
@@ -201,19 +201,19 @@ public class ZipCreationServiceImpl extends BaseService implements ZipCreationSe
 				"Registration Exception photo has been added");
 	}
 
-	private static void addDemogrpahicData(final DemographicDTO demographicDTO, final String folderName,
+	private static void addDemogrpahicData(final RegistrationDTO registrationDTO, final String folderName,
 			final ZipOutputStream zipOutputStream) throws RegBaseCheckedException {
 		// Add Proofs
-		Map<String, DocumentDetailsDTO> documents = demographicDTO.getApplicantDocumentDTO().getDocuments();
+		Map<String, DocumentDetailsDTO> documents = registrationDTO.getDocuments();
 		
 		for (Entry<String, DocumentDetailsDTO> documentCategory : documents.entrySet()) {
 			writeFileToZip(folderName + getFileNameWithExt(documentCategory.getValue()),
 					documentCategory.getValue().getDocument(), zipOutputStream);
 		}
 
-		if (demographicDTO.getApplicantDocumentDTO().getAcknowledgeReceipt() != null) {
-			addToZip(demographicDTO.getApplicantDocumentDTO().getAcknowledgeReceipt(),
-					folderName + demographicDTO.getApplicantDocumentDTO().getAcknowledgeReceiptName(), zipOutputStream);
+		if (registrationDTO.getAcknowledgeReceipt() != null) {
+			addToZip(registrationDTO.getAcknowledgeReceipt(),
+					folderName + registrationDTO.getAcknowledgeReceiptName(), zipOutputStream);
 		}
 	}
 

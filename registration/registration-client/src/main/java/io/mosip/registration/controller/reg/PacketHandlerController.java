@@ -884,8 +884,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 		if (RegistrationConstants.ENABLE
 				.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.ACK_INSIDE_PACKET))) {
-			registrationDTO.getDemographicDTO().getApplicantDocumentDTO().setAcknowledgeReceipt(ackInBytes);
-			registrationDTO.getDemographicDTO().getApplicantDocumentDTO().setAcknowledgeReceiptName(
+			registrationDTO.setAcknowledgeReceipt(ackInBytes);
+			registrationDTO.setAcknowledgeReceiptName(
 					"RegistrationAcknowledgement." + RegistrationConstants.ACKNOWLEDGEMENT_FORMAT);
 		}
 
@@ -897,7 +897,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 		if (response.getSuccessResponseDTO() != null
 				&& response.getSuccessResponseDTO().getMessage().equals(RegistrationConstants.SUCCESS)) {
-
+			
 			IndividualIdentity individualIdentity = (IndividualIdentity) registrationDTO.getDemographicDTO()
 					.getDemographicInfoDTO().getIdentity();
 
@@ -958,6 +958,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 						APPLICATION_ID, runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 			}
 
+			//TODO this will not be part of current UI
 			if (registrationDTO.getSelectionListDTO() == null) {
 
 				AddressDTO addressDTO = Builder.build(AddressDTO.class)
