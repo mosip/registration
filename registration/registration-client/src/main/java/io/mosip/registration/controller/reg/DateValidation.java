@@ -52,16 +52,15 @@ public class DateValidation extends BaseController {
 	 * @param localField  the local field to be populated if input is valid.
 	 */
 	public void validateDate(Pane parentPane, TextField date, TextField month, TextField year, Validations validations,
-			FXUtils fxUtils, TextField localField, TextField ageField, TextField ageLocalField, Label dobMessage) {
+			FXUtils fxUtils, TextField ageField, TextField ageLocalField, Label dobMessage) {
 		if (maxAge == 0)
 			maxAge = Integer.parseInt(getValueFromApplicationContext(RegistrationConstants.MAX_AGE));
 		try {
-			fxUtils.validateOnType(parentPane, date, validation, localField, false);
+			fxUtils.validateOnType(parentPane, date, validation, false);
 			date.textProperty().addListener((obsValue, oldValue, newValue) -> {
-				populateAge(parentPane, date, month, year, ageField, ageLocalField, dobMessage);
+				populateAge(parentPane, date, month, year, ageField, dobMessage);
 
 			});
-			fxUtils.onTypeFocusUnfocusListener(parentPane, localField);
 			
 		} catch (RuntimeException runTimeException) {
 			LOGGER.error(LoggerConstants.DATE_VALIDATION, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
@@ -83,14 +82,13 @@ public class DateValidation extends BaseController {
 	 * @param localField  the local field to be populated if input is valid.
 	 */
 	public void validateMonth(Pane parentPane, TextField date, TextField month, TextField year, Validations validations,
-			FXUtils fxUtils, TextField localField, TextField ageField, TextField ageLocalField, Label dobMessage) {
+			FXUtils fxUtils, TextField ageField, TextField ageLocalField, Label dobMessage) {
 		try {
-			fxUtils.validateOnType(parentPane, month, validation, localField, false);
+			fxUtils.validateOnType(parentPane, month, validation, false);
 			month.textProperty().addListener((obsValue, oldValue, newValue) -> {
-				populateAge(parentPane, date, month, year, ageField, ageLocalField, dobMessage);
+				populateAge(parentPane, date, month, year, ageField, dobMessage);
 
 			});
-			fxUtils.onTypeFocusUnfocusListener(parentPane, localField);
 		} catch (RuntimeException runTimeException) {
 			LOGGER.error(LoggerConstants.DATE_VALIDATION, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 					runTimeException.getMessage() + ExceptionUtils.getStackTrace(runTimeException));
@@ -111,14 +109,13 @@ public class DateValidation extends BaseController {
 	 * @param localField  the local field to be populated if input is valid.
 	 */
 	public void validateYear(Pane parentPane, TextField date, TextField month, TextField year, Validations validations,
-			FXUtils fxUtils, TextField localField, TextField ageField, TextField ageLocalField, Label dobMessage) {
+			FXUtils fxUtils, TextField ageField, TextField ageLocalField, Label dobMessage) {
 		try {
-			fxUtils.validateOnType(parentPane, year, validation, localField, false);
+			fxUtils.validateOnType(parentPane, year, validation, false);
 
 			year.textProperty().addListener((obsValue, oldValue, newValue) -> {
-				populateAge(parentPane, date, month, year, ageField, ageLocalField, dobMessage);
+				populateAge(parentPane, date, month, year, ageField, dobMessage);
 			});
-			fxUtils.onTypeFocusUnfocusListener(parentPane, localField);
 		} catch (RuntimeException runTimeException) {
 			LOGGER.error(LoggerConstants.DATE_VALIDATION, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 					runTimeException.getMessage() + ExceptionUtils.getStackTrace(runTimeException));
@@ -126,8 +123,7 @@ public class DateValidation extends BaseController {
 		}
 	}
 
-	private void populateAge(Pane parentPane, TextField date, TextField month, TextField year, TextField ageField,
-			TextField ageLocalField, Label dobMessage) {
+	private void populateAge(Pane parentPane, TextField date, TextField month, TextField year, TextField ageField, Label dobMessage) {
 
 		if (date != null && month != null && year != null) {
 			if (!date.getText().isEmpty() && !month.getText().isEmpty() && !year.getText().isEmpty()
@@ -144,7 +140,7 @@ public class DateValidation extends BaseController {
 						getRegistrationDTOFromSession().setAgeCalculatedByDOB(true);
 
 						ageField.setText(String.valueOf(age));
-						ageLocalField.setText(String.valueOf(age));
+						ageField.requestFocus();
 						dobMessage.setText(RegistrationConstants.EMPTY);
 						dobMessage.setVisible(false);
 						date.getStyleClass().removeIf((s) -> {
@@ -159,10 +155,9 @@ public class DateValidation extends BaseController {
 						date.getStyleClass().add("demoGraphicTextField");
 						month.getStyleClass().add("demoGraphicTextField");
 						year.getStyleClass().add("demoGraphicTextField");
-						demographicDetailController.ageValidation(false);
+					//	demographicDetailController.ageValidation(false);
 					} else {
 						ageField.clear();
-						ageLocalField.clear();
 						dobMessage.setText(RegistrationUIConstants.FUTURE_DOB);
 						dobMessage.setVisible(true);						
 						generateAlert(parentPane, RegistrationConstants.DOB, dobMessage.getText());						

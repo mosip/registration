@@ -561,7 +561,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 								generateAlert(RegistrationConstants.ERROR, errorMessage.toString().trim());
 							} else {
 								getScene(createRoot).setRoot(createRoot);
-								demographicDetailController.lostUIN();
+								//demographicDetailController.lostUIN();
 							}
 						}
 					} catch (IOException ioException) {
