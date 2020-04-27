@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 
-import org.assertj.core.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
@@ -53,6 +52,7 @@ import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.RegistrationMetaDataDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.SuccessResponseDTO;
+import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.biometric.BiometricInfoDTO;
 import io.mosip.registration.dto.biometric.FaceDetailsDTO;
 import io.mosip.registration.dto.demographic.AddressDTO;
@@ -63,7 +63,6 @@ import io.mosip.registration.dto.demographic.IndividualIdentity;
 import io.mosip.registration.dto.demographic.LocationDTO;
 import io.mosip.registration.dto.demographic.ValuesDTO;
 import io.mosip.registration.dto.mastersync.LocationDto;
-import io.mosip.registration.entity.Location;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.service.sync.MasterSyncService;
@@ -71,10 +70,12 @@ import io.mosip.registration.service.sync.PreRegistrationDataSyncService;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.NodeOrientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -86,6 +87,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
@@ -708,7 +710,7 @@ public class DemographicDetailController extends BaseController {
 	 * @see javafx.fxml.Initializable#initialize()
 	 */
 	@FXML
-	private void initialize() {
+	private void initialize() throws IOException {
 
 		LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Entering the Demographic Details Screen");
@@ -736,7 +738,12 @@ public class DemographicDetailController extends BaseController {
 			switchedOnParentUinOrRid = new SimpleBooleanProperty(true);
 			toggleFunctionForParentUinOrRid();
 			ageBasedOperation();
+			
+			addListenersFromUiProperties(validation.getValidationMap(), parentFlowPane);
+			
+			//TODO Modify Listeners
 			listenerOnFields();
+			
 			loadLocalLanguageFields();
 			fullNameNodePos = 200.00;
 			addressLine1NodePos = 470.00;
@@ -1276,8 +1283,9 @@ public class DemographicDetailController extends BaseController {
 
 	/**
 	 * Listening on the fields for any operation
+	 * @throws IOException 
 	 */
-	private void listenerOnFields() {
+	private void listenerOnFields() throws IOException {
 		try {
 			LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, "Populating the local language fields");
@@ -2479,5 +2487,20 @@ public class DemographicDetailController extends BaseController {
 		} else {
 			updatePageFlow(pageId, true);
 		}
+	}
+	
+	private void addListenersFromUiProperties(Map<String,UiSchemaDTO> uiSchemaProperties, Pane pane) {
+		for (Node node : pane.getChildren()) {
+			if (node instanceof Pane) {
+				addListenersFromUiProperties(uiSchemaProperties, (Pane)node);
+			} else {
+				if(uiSchemaProperties.containsKey(node.getId())) {
+					
+					System.out.println("********** "+node.getId());
+					//Add Listener
+				}
+			}
+		}
+		
 	}
 }

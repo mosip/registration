@@ -17,6 +17,10 @@ import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -143,6 +147,23 @@ public class MosipBioDeviceManager {
 
 	}
 
+	/*
+	 * Testing the network with method
+	 */
+	public static boolean checkServiceAvailability(String serviceUrl, String method) {
+		HttpUriRequest request = RequestBuilder
+				.create(method).setUri(serviceUrl).build();
+		
+		CloseableHttpClient client = HttpClients.createDefault();
+		try {
+			client.execute(request);
+		} catch (Exception exception) {
+			return false;
+		}
+		return true;
+
+	}
+	
 	private void initByPortAndDeviceType(Integer availablePort, String deviceType) throws RegBaseCheckedException {
 
 		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
@@ -155,7 +176,7 @@ public class MosipBioDeviceManager {
 
 			url = buildUrl(availablePort, MosipBioDeviceConstants.DEVICE_INFO_ENDPOINT);
 			/* check if the service is available for the current port */
-			if (RegistrationAppHealthCheckUtil.checkServiceAvailability(url)) {
+			if (checkServiceAvailability(url,"MOSIPDINFO")) {
 				List<LinkedHashMap<String, String>> deviceInfoResponseDtos = null;
 				String response = (String) mosipBioDeviceIntegrator.getDeviceInfo(url, Object[].class);
 
