@@ -712,6 +712,8 @@ public class DemographicDetailController extends BaseController {
 
 	boolean hasToBeTransliterated = true;
 
+	private List<Object> listOfFields;
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -926,6 +928,8 @@ public class DemographicDetailController extends BaseController {
 		vBoxDD.getChildren().addAll(ddLabel, dd);
 
 		listOfTextField.put("dd" + languageType, dd);
+		listOfFields.add(dd);
+		
 
 		VBox vBoxMM = new VBox();
 		TextField mm = new TextField();
@@ -938,6 +942,8 @@ public class DemographicDetailController extends BaseController {
 		vBoxMM.getChildren().addAll(mmLabel, mm);
 
 		listOfTextField.put("mm" + languageType, mm);
+		listOfFields.add(mm);
+		
 
 		VBox vBoxYYYY = new VBox();
 		TextField yyyy = new TextField();
@@ -950,6 +956,8 @@ public class DemographicDetailController extends BaseController {
 		vBoxYYYY.getChildren().addAll(yyyyLabel, yyyy);
 
 		listOfTextField.put("yyyy" + languageType, yyyy);
+		listOfFields.add(yyyy);
+		
 
 		Label dobMessage = new Label();
 		dobMessage.setId("dobMessage" + languageType);
@@ -984,6 +992,7 @@ public class DemographicDetailController extends BaseController {
 		vboxAgeField.getChildren().addAll(ageFieldLabel, ageField);
 
 		listOfTextField.put("ageField" + languageType, ageField);
+		listOfFields.add(ageField);
 
 		ageField.setPromptText(
 				localLanguage ? localLabelBundle.getString("ageField") : applicationLabelBundle.getString("ageField"));
@@ -1053,6 +1062,7 @@ public class DemographicDetailController extends BaseController {
 		}
 
 		listOfTextField.put(field.getId(), field);
+		listOfFields.add(field);
 
 		if (languageType.equals("LocalLanguage")) {
 			field.setPromptText(localLabelBundle.getString(fieldName));
@@ -1081,6 +1091,7 @@ public class DemographicDetailController extends BaseController {
 		field.setId(fieldName+languageType);
 		field.setPrefWidth(vbox.getPrefWidth());
 		listOfComboBoxWithString.put(fieldName + languageType, field);
+		listOfFields.add(field);
 
 		try {
 			if (fieldName.equals("residence")) {
@@ -1130,6 +1141,7 @@ public class DemographicDetailController extends BaseController {
 		field.setId(fieldName + languageType);
 		field.setPrefWidth(vbox.getPrefWidth());
 		listOfComboBoxWithLocation.put(fieldName + languageType, field);
+		listOfFields.add(field);
 		helperMethodForComboBox(field, fieldName, label, validationMessage, vbox, languageType);
 		field.setConverter((StringConverter<LocationDto>) uiRenderForComboBox);
 		return vbox;
