@@ -219,7 +219,7 @@ public class LostPacketServiceImpl implements LostPacketService {
 					break;
 				}
 			}
-			if (rid == null && registrationStatusList != null && !registrationStatusList.isEmpty()) {
+			if (rid == null && !registrationStatusList.isEmpty()) {
 				rid = registrationStatusList.get(registrationStatusList.size() - 1).getRegistrationId();
 			}
 
