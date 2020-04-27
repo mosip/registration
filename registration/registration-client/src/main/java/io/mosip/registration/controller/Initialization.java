@@ -48,6 +48,10 @@ public class Initialization extends Application {
 			setPrimaryStage(primaryStage);
 			LoginController loginController = applicationContext.getBean(LoginController.class);
 			loginController.loadInitialScreen(primaryStage);
+
+			//Load Elements From Schema
+			loginController.loadUIElementsFromSchema();
+			
 			SessionContext.setApplicationContext(applicationContext);
 
 			LOGGER.info("REGISTRATION - LOGIN SCREEN INITILIZATION - REGISTRATIONAPPINITILIZATION", APPLICATION_NAME,
