@@ -256,6 +256,8 @@ public class Validations extends BaseController {
 
 				isInputValid = false;
 				boolean isMandatory = uiSchemaDTO.isRequired();
+				if(isLostUIN)
+					isMandatory=false;
 				boolean showAlert = (noAlert.contains(node.getId()) && id.contains(RegistrationConstants.ON_TYPE));
 				String inputText = node.getText();
 

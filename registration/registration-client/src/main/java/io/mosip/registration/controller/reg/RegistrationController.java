@@ -428,7 +428,7 @@ public class RegistrationController extends BaseController {
 		DemographicInfoDTO demographicInfoDTO = new DemographicInfoDTO();
 		demographicInfoDTO.setIdentity(new Identity());
 		demographicDTO.setDemographicInfoDTO(demographicInfoDTO);
-		
+		registrationDTO.setDemographicDTO(demographicDTO);
 		// Put the RegistrationDTO object to SessionContext Map
 		SessionContext.map().put(RegistrationConstants.REGISTRATION_DATA, registrationDTO);
 	}

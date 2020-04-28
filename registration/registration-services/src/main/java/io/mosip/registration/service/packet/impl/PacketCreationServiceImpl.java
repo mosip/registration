@@ -146,8 +146,8 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 			// validate the input against the schema, mandatory, pattern and master data. if
 			// any error then stop the rest of the process
 			// and display error message to the user.
-			idObjectValidator.validateIdObject(registrationDTO.getDemographicDTO().getDemographicInfoDTO(),
-					registrationDTO.getRegistrationMetaDataDTO().getRegistrationCategory());
+			/*idObjectValidator.validateIdObject(registrationDTO.getDemographicDTO().getDemographicInfoDTO(),
+					registrationDTO.getRegistrationMetaDataDTO().getRegistrationCategory());*/
 
 			// Map object to store the UUID's generated for BIR in CBEFF
 			Map<String, String> birUUIDs = new HashMap<>();
@@ -167,7 +167,7 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 						AuditReferenceIdTypes.REGISTRATION_ID.getReferenceTypeId());
 			}
 
-			cbeffInBytes = registrationDTO.getBiometricDTO().getApplicantBiometricDTO().getExceptionFace().getFace();
+			cbeffInBytes = registrationDTO.getBiometricDTO().getBiometricsMap().get("applicantBiometricDTO").getFace().getFace();
 			if (cbeffInBytes != null) {
 				if (registrationDTO.isUpdateUINChild()) {
 					filesGeneratedForPacket.put(RegistrationConstants.PARENT
@@ -342,7 +342,7 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 						AuditReferenceIdTypes.REGISTRATION_ID.getReferenceTypeId());
 			}
 
-			cbeffInBytes = registrationDTO.getBiometricDTO().getIntroducerBiometricDTO().getExceptionFace().getFace();
+			cbeffInBytes = registrationDTO.getBiometricDTO().getBiometricsMap().get("applicantBiometricDTO").getFace().getFace();
 			if (cbeffInBytes != null) {
 				if (registrationDTO.isUpdateUINNonBiometric() && !registrationDTO.isUpdateUINChild()) {
 					filesGeneratedForPacket.put(RegistrationConstants.INDIVIDUAL
@@ -707,8 +707,7 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 		boolean hasApplicantBiometricException = false;
 		boolean hasAuthenticationBiometricException = false;
 		if (isFingerprintOrIrisCaptureEnabled) {
-			hasApplicantBiometricException = applicantBiometrics != null
-					&& isListNotEmpty(applicantBiometrics.getBiometricExceptionDTO());
+			hasApplicantBiometricException = false;
 
 			if (authenticationBiometrics != null) {
 				hasAuthenticationBiometricException = isListNotEmpty(
