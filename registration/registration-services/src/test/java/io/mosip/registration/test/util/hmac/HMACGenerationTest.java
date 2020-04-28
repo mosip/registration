@@ -42,10 +42,7 @@ public class HMACGenerationTest {
 		RegistrationDTO registrationDTO = new RegistrationDTO();
 		BiometricDTO biometricDTO = new BiometricDTO();
 		registrationDTO.setBiometricDTO(biometricDTO);
-		DemographicDTO demographicDTO = new DemographicDTO();
-		ApplicantDocumentDTO applicantDocumentDTO = new ApplicantDocumentDTO();
-		applicantDocumentDTO.setDocuments(new HashMap<>());
-		demographicDTO.setApplicantDocumentDTO(applicantDocumentDTO);
+		DemographicDTO demographicDTO = new DemographicDTO();		
 		DemographicInfoDTO demographicInfoDTO = new DemographicInfoDTO();
 		IndividualIdentity individualIdentity = new IndividualIdentity();
 		demographicInfoDTO.setIdentity(individualIdentity);

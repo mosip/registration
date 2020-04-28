@@ -10,6 +10,7 @@ import java.net.URL;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -167,6 +168,8 @@ public class FaceCaptureController extends BaseController implements Initializab
 	public void initialize(URL location, ResourceBundle resources) {
 		LOGGER.info("REGISTRATION - UI - FACE_CAPTURE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 				"Loading of FaceCapture screen started");
+
+		disablePaneOnBioAttributes(applicantImagePane, Arrays.asList(RegistrationConstants.FACE.toLowerCase()));
 
 		setImagesOnHover();
 
@@ -411,6 +414,10 @@ public class FaceCaptureController extends BaseController implements Initializab
 	@Override
 	public void saveApplicantPhoto(BufferedImage capturedImage, String photoType, CaptureResponseDto captureResponseDto,
 			String reponseTime, boolean isDuplicate) {
+
+		
+		saveBiometricDetailsBtn.setDisable(!isAvailableInBioAttributes(Arrays.asList(RegistrationConstants.FACE)));
+
 		captureTimeValue.setText(reponseTime);
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Opening WebCamera to capture photograph");
@@ -488,8 +495,8 @@ public class FaceCaptureController extends BaseController implements Initializab
 		}
 
 		if (capturedImage != null) {
-			capturedImage.flush();}
-		else {
+			capturedImage.flush();
+		} else {
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.FACE_SCANNING_ERROR);
 		}
 		if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER) && validateOperatorPhoto()) {
@@ -552,12 +559,11 @@ public class FaceCaptureController extends BaseController implements Initializab
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "validating applicant biometrics");
 
-		return applicantImageCaptured
-				? ((bioService.hasBiometricExceptionToggleEnabled() && !BioServiceImpl.isChild()
+		return isAvailableInBioAttributes(Arrays.asList(RegistrationConstants.FACE)) ? applicantImageCaptured
+				: true && ((bioService.hasBiometricExceptionToggleEnabled() && !BioServiceImpl.isChild()
 						&& !getRegistrationDTOFromSession().isUpdateUINNonBiometric())
 								? (exceptionImageCaptured ? true : false)
-								: true)
-				: false;
+								: true);
 
 	}
 
@@ -915,10 +921,10 @@ public class FaceCaptureController extends BaseController implements Initializab
 	 * Disable next button.
 	 */
 	public void disableNextButton() {
-		if (!validateApplicantImage()) {
-			saveBiometricDetailsBtn.setDisable(true);
-		} else {
+		if (validateApplicantImage()) {
 			saveBiometricDetailsBtn.setDisable(false);
+		} else {
+			saveBiometricDetailsBtn.setDisable(true);
 		}
 	}
 
@@ -935,7 +941,6 @@ public class FaceCaptureController extends BaseController implements Initializab
 	public void setExceptionFaceDescriptionText(boolean isParentOrGuardianBiometricsCaptured) {
 		ResourceBundle applicationLanguage = ApplicationContext.applicationLanguageBundle();
 
-		
 		exceptionImageLabel.setText(applicationLanguage.getString("exceptionimage"));
 	}
 }

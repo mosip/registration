@@ -42,12 +42,13 @@ public class PageFlow {
 	 * accessed from anywhere.
 	 * </p>
 	 */
+
 	public void getInitialPageDetails() {
 
 		LOGGER.info(LoggerConstants.LOG_REG_PAGE_FLOW, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID,
 				"Preparing Page flow map for New Registration, Onboard, UIN Update");
-
+		
 		Map<String, Map<String, Boolean>> registrationMap = new LinkedHashMap<>();
 		Map<String, Map<String, Boolean>> onboardMap = new LinkedHashMap<>();
 
@@ -78,19 +79,23 @@ public class PageFlow {
 
 		Map<String, Boolean> fingerPrintMap = new LinkedHashMap<>();
 		fingerPrintMap.put(RegistrationConstants.VISIBILITY, true);
-		registrationMap.put(RegistrationConstants.FINGERPRINT_CAPTURE, fingerPrintMap);
 		onboardMap.put(RegistrationConstants.FINGERPRINT_CAPTURE, fingerPrintMap);
 
 		Map<String, Boolean> irisMap = new LinkedHashMap<>();
 		irisMap.put(RegistrationConstants.VISIBILITY, true);
-		registrationMap.put(RegistrationConstants.IRIS_CAPTURE, irisMap);
 		onboardMap.put(RegistrationConstants.IRIS_CAPTURE, irisMap);
 
 		Map<String, Boolean> faceMap = new LinkedHashMap<>();
 		faceMap.put(RegistrationConstants.VISIBILITY, true);
-		registrationMap.put(RegistrationConstants.FACE_CAPTURE, faceMap);
 		onboardMap.put(RegistrationConstants.FACE_CAPTURE, faceMap);
 
+		Map<String, Boolean> onBoardSuccessMap = new LinkedHashMap<>();
+		onBoardSuccessMap.put(RegistrationConstants.VISIBILITY, true);
+		onboardMap.put(RegistrationConstants.ONBOARD_USER_SUCCESS, onBoardSuccessMap);
+
+		updateRegMap(onboardMap, RegistrationConstants.ONBOARD);
+		
+        registrationPageFlow(registrationMap, RegistrationConstants.APPLICATION_NAME);
 		Map<String, Boolean> previewMap = new LinkedHashMap<>();
 		previewMap.put(RegistrationConstants.VISIBILITY, true);
 		registrationMap.put(RegistrationConstants.REGISTRATION_PREVIEW, previewMap);
@@ -98,13 +103,6 @@ public class PageFlow {
 		Map<String, Boolean> authMap = new LinkedHashMap<>();
 		authMap.put(RegistrationConstants.VISIBILITY, true);
 		registrationMap.put(RegistrationConstants.OPERATOR_AUTHENTICATION, authMap);
-
-		Map<String, Boolean> onBoardSuccessMap = new LinkedHashMap<>();
-		onBoardSuccessMap.put(RegistrationConstants.VISIBILITY, true);
-		onboardMap.put(RegistrationConstants.ONBOARD_USER_SUCCESS, onBoardSuccessMap);
-
-		updateRegMap(registrationMap, RegistrationConstants.APPLICATION_NAME);
-		updateRegMap(onboardMap, RegistrationConstants.ONBOARD);
 
 		ApplicationContext.map().put(RegistrationConstants.ONBOARD_LIST, getOnboardPageList(onboardMap));
 		ApplicationContext.map().put(RegistrationConstants.ONBOARD_MAP, onboardMap);
@@ -116,27 +114,23 @@ public class PageFlow {
 				RegistrationConstants.APPLICATION_ID, "Updating Map and storing in Application Context");
 
 	}
+	
+	@SuppressWarnings("unchecked")
+	private void registrationPageFlow(Map<String, Map<String, Boolean>> registrationMap, String page) {
 
-	private void updateRegMap(Map<String, Map<String, Boolean>> registrationMap, String page) {
+		
+		Map<String, Boolean> fingerPrintMap = new LinkedHashMap<>();
+		fingerPrintMap.put(RegistrationConstants.VISIBILITY, finegrPrintCheck((List<String>)ApplicationContext.map().get(RegistrationConstants.indBiometrics)));
+		registrationMap.put(RegistrationConstants.FINGERPRINT_CAPTURE, fingerPrintMap);
 
-		LOGGER.info(LoggerConstants.LOG_REG_PAGE_FLOW, RegistrationConstants.APPLICATION_NAME,
-				RegistrationConstants.APPLICATION_ID, "Updating Map values based on Configuration ");
+		Map<String, Boolean> irisMap = new LinkedHashMap<>();
+		irisMap.put(RegistrationConstants.VISIBILITY, irisCheck((List<String>)ApplicationContext.map().get(RegistrationConstants.indBiometrics)));
+		registrationMap.put(RegistrationConstants.IRIS_CAPTURE, irisMap);
 
-		updateDetailMap(registrationMap,
-				String.valueOf(ApplicationContext.map().get(RegistrationConstants.FINGERPRINT_DISABLE_FLAG)),
-				RegistrationConstants.FINGERPRINT_CAPTURE, RegistrationConstants.BIOMETRIC_EXCEPTION,
-				RegistrationConstants.FINGER_PANE);
-		updateDetailMap(registrationMap,
-				String.valueOf(ApplicationContext.map().get(RegistrationConstants.IRIS_DISABLE_FLAG)),
-				RegistrationConstants.IRIS_CAPTURE, RegistrationConstants.BIOMETRIC_EXCEPTION,
-				RegistrationConstants.IRIS_PANE);
-		updateDetailMap(registrationMap,
-				String.valueOf(ApplicationContext.map().get(RegistrationConstants.FACE_DISABLE_FLAG)),
-				RegistrationConstants.FACE_CAPTURE, "", "");
-
-		LOGGER.info(LoggerConstants.LOG_REG_PAGE_FLOW, RegistrationConstants.APPLICATION_NAME,
-				RegistrationConstants.APPLICATION_ID, "Updating Child values of Map based on Configuration");
-
+		Map<String, Boolean> faceMap = new LinkedHashMap<>();
+		faceMap.put(RegistrationConstants.VISIBILITY, faceCheck((List<String>)ApplicationContext.map().get(RegistrationConstants.indBiometrics)));
+		registrationMap.put(RegistrationConstants.FACE_CAPTURE, faceMap);
+		
 		if (page.equalsIgnoreCase(RegistrationConstants.APPLICATION_NAME)) {
 			updateDetailMap(registrationMap,
 					String.valueOf(ApplicationContext.map().get(RegistrationConstants.DOC_DISABLE_FLAG)),
@@ -160,6 +154,30 @@ public class PageFlow {
 
 		LOGGER.info(LoggerConstants.LOG_REG_PAGE_FLOW, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Map values are updated based on Configuration");
+
+	}
+
+	private void updateRegMap(Map<String, Map<String, Boolean>> registrationMap, String page) {
+
+		LOGGER.info(LoggerConstants.LOG_REG_PAGE_FLOW, RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "Updating Map values based on Configuration ");
+
+//		updateDetailMap(registrationMap,
+//				String.valueOf(ApplicationContext.map().get(RegistrationConstants.FINGERPRINT_DISABLE_FLAG)),
+//				RegistrationConstants.FINGERPRINT_CAPTURE, RegistrationConstants.BIOMETRIC_EXCEPTION,
+//				RegistrationConstants.FINGER_PANE);
+//		updateDetailMap(registrationMap,
+//				String.valueOf(ApplicationContext.map().get(RegistrationConstants.IRIS_DISABLE_FLAG)),
+//				RegistrationConstants.IRIS_CAPTURE, RegistrationConstants.BIOMETRIC_EXCEPTION,
+//				RegistrationConstants.IRIS_PANE);
+//		updateDetailMap(registrationMap,
+//				String.valueOf(ApplicationContext.map().get(RegistrationConstants.FACE_DISABLE_FLAG)),
+//				RegistrationConstants.FACE_CAPTURE, "", "");
+
+		LOGGER.info(LoggerConstants.LOG_REG_PAGE_FLOW, RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "Updating Child values of Map based on Configuration");
+		
+
 	}
 
 	private void updateDetailMap(Map<String, Map<String, Boolean>> detailMap, String flagVal, String pageId,
@@ -199,4 +217,54 @@ public class PageFlow {
 		return onboardPageList;
 	}
 
+	
+
+	
+	/**
+	 * Face check.
+	 *
+	 * @param validations the validations
+	 * @return true, if successful
+	 */
+	private boolean faceCheck(List<String> validations) {
+		if (null != validations && !validations.isEmpty()) {
+			validations.contains(RegistrationConstants.FACE.toLowerCase());
+			return true;
+		}
+		return false;
+	}
+
+	
+	/**
+	 * Finegr print check.
+	 *
+	 * @param validations the validations
+	 * @return true, if successful
+	 */
+	private boolean finegrPrintCheck(List<String> validations) {
+		if (null != validations && !validations.isEmpty()
+				&& (validations.stream().anyMatch(RegistrationConstants.leftHandUiAttributes::contains)
+						|| validations.stream().anyMatch(RegistrationConstants.rightHandUiAttributes::contains)
+						|| validations.stream().anyMatch(RegistrationConstants.twoThumbsUiAttributes::contains))) {
+			return true;
+		}
+		return false;
+	}
+
+	
+	/**
+	 * Iris check.
+	 *
+	 * @param validations the validations
+	 * @return true, if successful
+	 */
+	private boolean irisCheck(List<String> validations) {
+		if (null != validations && !validations.isEmpty()
+				&& validations.stream().anyMatch(RegistrationConstants.eyesUiAttributes::contains)) {
+
+			return true;
+		}
+		return false;
+	}
+	
 }

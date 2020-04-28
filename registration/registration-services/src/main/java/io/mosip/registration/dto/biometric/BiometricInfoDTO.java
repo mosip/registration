@@ -1,5 +1,6 @@
 package io.mosip.registration.dto.biometric;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import io.mosip.registration.dto.BaseDTO;
@@ -17,6 +18,14 @@ import lombok.Setter;
 @Getter
 @Setter
 public class BiometricInfoDTO extends BaseDTO {
+	
+	public BiometricInfoDTO() {
+		setBiometricExceptionDTO(new ArrayList<>());
+		setFingerprintDetailsDTO(new ArrayList<>());
+		setIrisDetailsDTO(new ArrayList<>());
+		setFace(new FaceDetailsDTO());
+		setExceptionFace(new FaceDetailsDTO());
+	}
 
 	/** The fingerprint details DTO. */
 	private List<FingerprintDetailsDTO> fingerprintDetailsDTO;

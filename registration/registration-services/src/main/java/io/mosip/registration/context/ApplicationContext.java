@@ -44,8 +44,6 @@ public class ApplicationContext {
 	/** The application map. */
 	private static Map<String, Object> applicationMap = new HashMap<>();
 
-	/** The application languagevalidation bundle. */
-	private ResourceBundle applicationLanguagevalidationBundle;
 
 	/** The local language. */
 	private String localLanguage;
@@ -87,14 +85,7 @@ public class ApplicationContext {
 
 	}
 
-	/**
-	 * Gets the application languagevalidation bundle.
-	 *
-	 * @return the application languagevalidation bundle
-	 */
-	public ResourceBundle getApplicationLanguagevalidationBundle() {
-		return applicationLanguagevalidationBundle;
-	}
+
 
 	
 	/**
@@ -166,7 +157,6 @@ public class ApplicationContext {
 		localLanguageBundle = ResourceBundle.getBundle("labels", secondaryLanguageLocale);
 		applicationMessagesBundle = ResourceBundle.getBundle("messages", applicationLanguageLocale);
 		localMessagesBundle = ResourceBundle.getBundle("messages", secondaryLanguageLocale);
-		applicationLanguagevalidationBundle = ResourceBundle.getBundle("validations");
 		
 		return isPrimaryOrSecondaryLanguageEmpty;
 	}
@@ -266,14 +256,6 @@ public class ApplicationContext {
 		return applicationContext.getLocalLanguageProperty();
 	}
 
-	/**
-	 * Application language validation bundle.
-	 *
-	 * @return the resource bundle
-	 */
-	public static ResourceBundle applicationLanguageValidationBundle() {
-		return applicationContext.getApplicationLanguagevalidationBundle();
-	}
 
 	/**
 	 * Local language validation bundle.

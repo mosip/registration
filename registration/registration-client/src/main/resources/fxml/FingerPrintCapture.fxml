@@ -122,7 +122,7 @@
                            <children>
                               <GridPane alignment="CENTER" styleClass="dividerTypeOne" GridPane.rowIndex="1">
                                  <children>
-                                    <GridPane GridPane.columnIndex="2">
+                                    <GridPane fx:id="twoThumbGreaterPane" GridPane.columnIndex="2">
                                       <columnConstraints>
                                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                                       </columnConstraints>
@@ -344,7 +344,7 @@
                                           </GridPane>
                                        </children>
                                     </GridPane>
-                                    <GridPane GridPane.columnIndex="1">
+                                    <GridPane fx:id="rightHandGreaterPane" GridPane.columnIndex="1">
                                        <children>
                                           <GridPane fx:id="rightHandPalmPane" styleClass="fingerPrintPanes" GridPane.columnIndex="1" GridPane.rowIndex="1">
                                              <columnConstraints>
@@ -372,7 +372,7 @@
                                           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                        </rowConstraints>
                                     </GridPane>
-                                    <GridPane>
+                                    <GridPane fx:id="leftHandGreaterPane">
                                        <children>
                                           <GridPane fx:id="leftHandPalmPane" styleClass="fingerPrintPanes" GridPane.columnIndex="1" GridPane.rowIndex="1">
                                              <columnConstraints>

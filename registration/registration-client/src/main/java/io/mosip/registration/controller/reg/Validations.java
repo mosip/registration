@@ -256,6 +256,8 @@ public class Validations extends BaseController {
 
 				isInputValid = false;
 				boolean isMandatory = uiSchemaDTO.isRequired();
+				if(isLostUIN)
+					isMandatory=false;
 				boolean showAlert = (noAlert.contains(node.getId()) && id.contains(RegistrationConstants.ON_TYPE));
 				String inputText = node.getText();
 
@@ -393,8 +395,7 @@ public class Validations extends BaseController {
 						.asList(new String[] { RegistrationConstants.POA_DOCUMENT, RegistrationConstants.POI_DOCUMENT,
 								RegistrationConstants.POR_DOCUMENT, RegistrationConstants.DOB_DOCUMENT })
 						.contains(id)) {
-					Map<String, DocumentDetailsDTO> documents = getRegistrationDTOFromSession().getDemographicDTO()
-							.getApplicantDocumentDTO().getDocuments();
+					Map<String, DocumentDetailsDTO> documents = getRegistrationDTOFromSession().getDocuments();
 					if (documents.containsKey(id) && documents.get(id) != null) {
 						isComboBoxValueValid = true;
 					}

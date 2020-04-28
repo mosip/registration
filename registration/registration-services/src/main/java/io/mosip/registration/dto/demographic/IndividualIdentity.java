@@ -7,6 +7,9 @@ import java.util.Map;
 
 import org.assertj.core.util.Arrays;
 
+import org.springframework.stereotype.Component;
+
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
@@ -19,6 +22,7 @@ import lombok.EqualsAndHashCode;
  * @author Balaji Sridharan
  * @since 1.0.0
  */
+@Component
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class IndividualIdentity extends Identity {
@@ -110,7 +114,9 @@ public class IndividualIdentity extends Identity {
 	 * resident, with key as fxId and value as {@value ValuesDTO}
 	 */
 	private Map<String, Object> individualIdentityMap;
-
+	
+	private static Map<String, Object> documentsMap;
+	
 	/**
 	 * Assign the map to individual identity of resident map
 	 * 
@@ -158,6 +164,16 @@ public class IndividualIdentity extends Identity {
 			/** Remove the element using fxId in the identity map */
 			individualIdentityMap.remove(fxId);
 		}
+	}
+	
+	public static void addDocumentsInIndividualIdentityMap(String fxId, Object value) {
+
+		/** initilaize identity map if not added till now else take the same map */
+		documentsMap = documentsMap == null ? new HashMap<>() : documentsMap;
+
+		/** Add to element to the identity map */
+		documentsMap.put(fxId, value);
+    
 	}
 
 }

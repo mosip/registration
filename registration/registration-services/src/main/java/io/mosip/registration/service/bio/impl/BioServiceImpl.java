@@ -95,6 +95,16 @@ public class BioServiceImpl extends BaseService implements BioService {
 
 	private static Map<String, List<String>> lowQualityBiometrics = new HashMap<>();
 
+	private static List<String> bioAttributes = new LinkedList<>();
+
+	public static List<String> getBioAttributes() {
+		return bioAttributes;
+	}
+
+	public static void setBioAttributes(List<String> bioAttributes) {
+		BioServiceImpl.bioAttributes = bioAttributes;
+	}
+
 	public Map<String, List<String>> getLowQualityBiometrics() {
 		return lowQualityBiometrics;
 	}
@@ -1253,6 +1263,10 @@ public class BioServiceImpl extends BaseService implements BioService {
 			}
 		}
 
+		if (exceptionBiometrics != null) {
+			exceptionBiometrics.remove(RegistrationConstants.FACE);
+			exceptionBiometrics.remove(RegistrationConstants.FACE_EXCEPTION);
+		}
 		return exceptionBiometrics;
 
 	}
@@ -1298,17 +1312,21 @@ public class BioServiceImpl extends BaseService implements BioService {
 		if (exceptionFingers != null && !exceptionFingers.isEmpty()) {
 			isValid = true;
 
-			if (selectedSlap.size() - segmentedFingerPrints.size() == exceptionFingers.size()) {
-				for (FingerprintDetailsDTO detailsDTO : segmentedFingerPrints) {
-					if (exceptionFingers.contains(detailsDTO.getFingerType())
-							|| !selectedSlap.contains(detailsDTO.getFingerType())) {
-						isValid = false;
-						break;
-					}
-				}
-			} else {
-				isValid = false;
-			}
+			//TODO Temp fix
+			
+			isValid =  selectedSlap.size() - exceptionFingers.size() <= segmentedFingerPrints.size() ;
+			
+//			if (selectedSlap.size() - exceptionFingers.size() <= segmentedFingerPrints.size() ) {
+//				for (FingerprintDetailsDTO detailsDTO : segmentedFingerPrints) {
+//					if (exceptionFingers.contains(detailsDTO.getFingerType())
+//							|| !selectedSlap.contains(detailsDTO.getFingerType())) {
+//						isValid = false;
+//						break;
+//					}
+//				}
+//			} else {
+//				isValid = false;
+//			}
 
 		} else {
 			return selectedSlap.size() == segmentedFingerPrints.size();
@@ -1416,7 +1434,27 @@ public class BioServiceImpl extends BaseService implements BioService {
 		for (FingerprintDetailsDTO detailsDTO : fingerprintDetailsDTOs) {
 			segmentedFingerPrints.addAll(detailsDTO.getSegmentedFingerprints());
 		}
-		if (!isAllNonExceptionBiometricsCaptured(segmentedFingerPrints, null, getAllExceptionFingers())) {
+
+		List<String> fingerBioAttributes = new LinkedList<>();
+		fingerBioAttributes.addAll(RegistrationConstants.leftHandUiAttributes);
+		fingerBioAttributes.addAll(RegistrationConstants.rightHandUiAttributes);
+		fingerBioAttributes.addAll(RegistrationConstants.twoThumbsUiAttributes);
+
+		List<String> nonConfigFiongers = getNonConfigBioAttributes(fingerBioAttributes);
+
+		nonConfigFiongers = nonConfigFiongers != null ? nonConfigFiongers : new LinkedList<>();
+
+		List<String> exceptionFingers = getAllExceptionFingers();
+
+		if (exceptionFingers != null) {
+			for (String exceptiopnFinger : exceptionFingers) {
+				if (!nonConfigFiongers.contains(exceptiopnFinger)) {
+					nonConfigFiongers.add(exceptiopnFinger);
+				}
+			}
+		}
+
+		if (!isAllNonExceptionBiometricsCaptured(segmentedFingerPrints, null, nonConfigFiongers)) {
 			return false;
 		}
 		return true;
@@ -1425,6 +1463,21 @@ public class BioServiceImpl extends BaseService implements BioService {
 	public boolean hasBiometricExceptionToggleEnabled() {
 		return (Boolean) SessionContext.userContext().getUserMap()
 				.get(RegistrationConstants.TOGGLE_BIO_METRIC_EXCEPTION);
+	}
+
+	protected List<String> getNonConfigBioAttributes(List<String> constantAttributes) {
+
+		List<String> nonConfigBiometrics = new LinkedList<>();
+
+		// Get Bio Attributes
+		List<String> uiAttributes = getBioAttributes();
+
+		for (String attribute : constantAttributes) {
+			if (!uiAttributes.contains(attribute)) {
+				nonConfigBiometrics.add(RegistrationConstants.regBioMap.get(attribute));
+			}
+		}
+		return nonConfigBiometrics;
 	}
 
 }
