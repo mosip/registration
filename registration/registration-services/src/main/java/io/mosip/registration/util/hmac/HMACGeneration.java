@@ -63,7 +63,7 @@ public class HMACGeneration {
 				RegistrationConstants.DEMOGRPAHIC_JSON_NAME, sequence.getDemographicSequence().getApplicant());
 
 		// generates demographic hash
-		if (registrationDTO.getDemographicDTO() != null) {
+		if (registrationDTO.getDocuments() != null) {
 			generateDemographicHash(registrationDTO, sequence.getDemographicSequence());
 		}
 

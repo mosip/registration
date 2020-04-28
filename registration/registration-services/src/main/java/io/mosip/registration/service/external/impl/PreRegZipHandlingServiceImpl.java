@@ -51,12 +51,15 @@ import io.mosip.registration.dao.DocumentTypeDAO;
 import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dto.PreRegistrationDTO;
 import io.mosip.registration.dto.RegistrationDTO;
+import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
 import io.mosip.registration.dto.demographic.IndividualIdentity;
+import io.mosip.registration.dto.demographic.ValuesDTO;
 import io.mosip.registration.entity.DocumentType;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
+import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.external.PreRegZipHandlingService;
 import io.mosip.registration.util.mastersync.MapperUtils;
 
@@ -78,6 +81,10 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 
 	@Autowired
 	private MasterSyncDao masterSyncDao;
+	
+	@Autowired
+	private IdentitySchemaService identitySchemaService;
+	
 
 	private static final Logger LOGGER = AppConfig.getLogger(PreRegZipHandlingServiceImpl.class);
 
@@ -110,6 +117,7 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 				if (docFileName.contains("_")) {
 					documentDetailsDTO = new DocumentDetailsDTO();
 					String docCategoryCode = docFileName.substring(0, docFileName.indexOf("_"));
+					documentDetailsDTO.setType(docCategoryCode);
 					getRegistrationDtoContent().getDocuments().put(docCategoryCode, documentDetailsDTO);
 					attachDocument(documentDetailsDTO, inputStream, docFileName, docCategoryCode);
 
@@ -119,11 +127,13 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 				bufferedReader.close();
 			}
 		} catch (IOException exception) {
+			exception.printStackTrace();
 			LOGGER.error("REGISTRATION - PRE_REG_ZIP_HANDLING_SERVICE_IMPL", RegistrationConstants.APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID,
 					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 			throw new RegBaseCheckedException(REG_IO_EXCEPTION.getErrorCode(), exception.getCause().getMessage());
 		} catch (RuntimeException exception) {
+			exception.printStackTrace();
 			LOGGER.error("REGISTRATION - PRE_REG_ZIP_HANDLING_SERVICE_IMPL - PRE_REGISTRATION_DATA_SYNC_SERVICE_IMPL",
 					RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
@@ -209,36 +219,49 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 			while ((value = bufferedReader.readLine()) != null) {
 				jsonString.append(value);
 			}
-
-			/* validate id json schema */
+			
 			if (!StringUtils.isEmpty(jsonString) && validateDemographicInfoObject()) {
+				JSONObject jsonObject = (JSONObject) new JSONObject(jsonString.toString()).get("identity");
+				List<UiSchemaDTO> fieldList = identitySchemaService.getLatestEffectiveUISchema();	
 				
-				IndividualIdentity individualIdentity = (IndividualIdentity) JsonUtils.jsonStringToJavaObject(
-						IndividualIdentity.class, new JSONObject(jsonString.toString()).get("identity").toString());
-				getRegistrationDtoContent().getDemographicDTO().getDemographicInfoDTO().setIdentity(individualIdentity);
+				if(jsonObject.has("IdSchemaVersion"))
+					getRegistrationDtoContent().setIdSchemaVersion(jsonObject.getDouble("IdSchemaVersion"));
 				
-				//TODO -- Need to validate
-				/*idObjectValidator.validateIdObject(
-						getRegistrationDtoContent().getDemographicDTO().getDemographicInfoDTO(),
-						RegistrationConstants.PACKET_TYPE_NEW);*/
-
+				for(UiSchemaDTO field : fieldList) {
+					if(field.getId().equalsIgnoreCase("IdSchemaVersion"))
+						continue;
+					
+					if(field.getType() != "documentType" && field.getType() != "biometricsType") {
+						Object fieldValue = getValueFromJson(field.getId(), field.getType(), jsonObject);
+						if(fieldValue != null)
+							getRegistrationDtoContent().getDemographics().put(field.getId(), fieldValue);
+					}
+				}
 			}
-		} catch (IOException exception) {
-			throw new RegBaseCheckedException(REG_IO_EXCEPTION.getErrorCode(), exception.getCause().getMessage());
-		} catch (JsonParseException | JsonMappingException | JSONException
-				| io.mosip.kernel.core.exception.IOException jsonValidationException) {
-			throw new RegBaseCheckedException(
-					RegistrationExceptionConstants.REG_PACKET_JSON_VALIDATOR_ERROR_CODE.getErrorCode(),
-					RegistrationExceptionConstants.REG_PACKET_JSON_VALIDATOR_ERROR_CODE.getErrorMessage(),
-					jsonValidationException);
-		} catch (BaseCheckedException baseCheckedException) {
-			throw new RegBaseCheckedException(baseCheckedException.getErrorCode(), baseCheckedException.getErrorText());
+		} catch (JSONException | IOException e) {
+			e.printStackTrace();
+			throw new RegBaseCheckedException(REG_IO_EXCEPTION.getErrorCode(), e.getMessage());
 		}
-
+	}
+	
+	
+	private Object getValueFromJson(String key, String fieldType, JSONObject jsonObject) throws IOException {
+		if(!jsonObject.has(key))
+			return null;
+			
+		switch (fieldType) {
+		case "string":	return jsonObject.getString(key);
+		case "integer":	return jsonObject.getInt(key);
+		case "number": return jsonObject.getNumber(key);
+		case "simpleType": 	
+			return MapperUtils.convertJSONStringToDto(jsonObject.getJSONArray(key).toString(), 
+				new TypeReference<List<ValuesDTO>>() {});
+		}
+		return null;
 	}
 
 	private boolean validateDemographicInfoObject() {
-		return null != getRegistrationDtoContent() && getRegistrationDtoContent().getDemographicDTO().getDemographicInfoDTO() != null;
+		return null != getRegistrationDtoContent() && getRegistrationDtoContent().getDemographics() != null;
 	}
 
 	/*

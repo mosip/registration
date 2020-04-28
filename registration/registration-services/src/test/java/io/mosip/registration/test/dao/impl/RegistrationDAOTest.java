@@ -89,18 +89,14 @@ public class RegistrationDAOTest {
 	public void testSaveRegistration() throws RegBaseCheckedException {
 		RegistrationDTO registrationDTO = new RegistrationDTO();
 		RegistrationMetaDataDTO registrationMetaDataDTO=new RegistrationMetaDataDTO();
-		DemographicDTO demographicDTO = new DemographicDTO();
-		DemographicInfoDTO demographicInfoDTO = new DemographicInfoDTO();
-		IndividualIdentity identity = new IndividualIdentity();
+		
 		List<ValuesDTO> fullNames = new ArrayList<>();
 		ValuesDTO valuesDTO = new ValuesDTO();
 		valuesDTO.setLanguage("eng");
 		valuesDTO.setValue("Individual Name");
-		fullNames.add(valuesDTO);
-		identity.setFullName(fullNames);
-		demographicInfoDTO.setIdentity(identity);
-		demographicDTO.setDemographicInfoDTO(demographicInfoDTO);
-		registrationDTO.setDemographicDTO(demographicDTO);
+		fullNames.add(valuesDTO);		
+		registrationDTO.getDemographics().put("fullName", fullNames);
+		
 		registrationDTO.setRegistrationMetaDataDTO(registrationMetaDataDTO);
 		registrationDTO.getRegistrationMetaDataDTO().setRegistrationCategory("New");
 		when(registrationRepository.create(Mockito.any(Registration.class))).thenReturn(new Registration());
