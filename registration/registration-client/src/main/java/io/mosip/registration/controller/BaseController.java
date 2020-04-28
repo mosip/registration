@@ -1629,7 +1629,7 @@ public class BaseController {
 
 		try {
 			List<UiSchemaDTO> schemaFields = identitySchemaService.getLatestEffectiveUISchema();
-			Map<String, UiSchemaDTO> validationsMap = new HashMap<>();
+			Map<String, UiSchemaDTO> validationsMap = new LinkedHashMap<>();
 			List<String> neglectTypes = Arrays.asList("documentType", "biometricsType");
 			for (UiSchemaDTO schemaField : schemaFields) {
 				if (!neglectTypes.contains(schemaField.getType())) {

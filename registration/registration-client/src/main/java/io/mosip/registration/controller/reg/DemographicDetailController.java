@@ -707,19 +707,18 @@ public class DemographicDetailController extends BaseController {
 
 	boolean hasToBeTransliterated = true;
 
-	private List<Object> listOfFields = new ArrayList<>();
+	private List<Object> listOfFields;
 
 	public Map<String, ComboBox<String>> listOfComboBoxWithString = new HashMap<>();
 
 	public Map<String, ComboBox<LocationDto>> listOfComboBoxWithLocation = new HashMap<>();
 
 	public Map<String, TextField> listOfTextField = new HashMap<>();
-	
+
 	private int age = 0;
-	
+
 	@Autowired
 	private IdentitySchemaService identitySchemaService;
-
 
 	/*
 	 * (non-Javadoc)
@@ -733,9 +732,12 @@ public class DemographicDetailController extends BaseController {
 				RegistrationConstants.APPLICATION_ID, "Entering the Demographic Details Screen");
 
 		if (ApplicationContext.getInstance().getApplicationLanguage()
-				.equals(ApplicationContext.getInstance().getApplicationLanguage())) {
+				.equals(ApplicationContext.getInstance().getLocalLanguage())) {
 			hasToBeTransliterated = false;
 		}
+
+		SessionContext.userMap().put(RegistrationConstants.TOGGLE_BIO_METRIC_EXCEPTION, false);
+		listOfFields = new ArrayList<>();
 
 		try {
 			RegistrationConstants.CNI_MANDATORY = String.valueOf(false);
@@ -898,10 +900,10 @@ public class DemographicDetailController extends BaseController {
 		// create content
 
 		VBox content = null;
-				
+
 		switch (schemaDTO.getControlType()) {
 		case "dropdown":
-			if(Arrays.asList(orderOfAddress).contains(schemaDTO.getId()))
+			if (Arrays.asList(orderOfAddress).contains(schemaDTO.getId()))
 				content = addContentWithComboBoxAndLocation(schemaDTO.getId(), languageType);
 			else
 				content = addContentWithComboBox(new ComboBox<String>(), schemaDTO.getId(), new Label(), new Label(),
@@ -910,10 +912,10 @@ public class DemographicDetailController extends BaseController {
 		case "ageDate":
 			content = addContentForDobAndAge(languageType);
 			break;
-		case "age":	
-			//TODO Not yet supported
+		case "age":
+			// TODO Not yet supported
 			break;
-		case "textbox":	
+		case "textbox":
 			content = addContentWithTextField(schemaDTO.getId(), languageType);
 			break;
 		}
@@ -1514,37 +1516,61 @@ public class DemographicDetailController extends BaseController {
 	}
 
 	private void addDemoGraphicDetailsToSession() {
-		// List<Object> fxElements = new LinkedList<>();
-		//// fxElements.addAll(listOfFields);
-		// fxElements.addAll(listOfComboBoxWithString);
-		// fxElements.addAll(listOfComboBoxWithLocation);
-		// fxElements.addAll(listOfTextField);
-		for (Object fxElement : listOfFields) {
-			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
-			if (fxElement instanceof TextField) {
-				TextField localField = listOfTextField.get(((TextField) fxElement).getId() + "LocalLanguage");
-				if (localField.getId().matches("dd|mm|yyyy|ddLocalLanguage|mmLocalLanguage|yyyyLocalLanguage")) {
-				
-					registrationDTO.addDemographicField("dateOfBirth", "applicationLanguage",
-							"dateOfBirth", "localLanguage",
-							age+"");
-					
-					registrationDTO.addDemographicField("age", "applicationLanguage",
-							"age", "localLanguage",
-							age+"");
 
+		RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 
-				} else {
-					registrationDTO.addDemographicField(((TextField) fxElement).getId(), "applicationLanguage",
-							((TextField) fxElement).getText(), "localLanguage",
-							localField != null ? localField.getText() : null);
+		List<UiSchemaDTO> schemaFields = null;
+		try {
+			schemaFields = identitySchemaService.getLatestEffectiveUISchema();
+		} catch (RegBaseCheckedException e) {
+			e.printStackTrace();
+		}
+		for (UiSchemaDTO schemaField : schemaFields) {
+			if (!(schemaField.getControlType() == null)) {
+				switch (schemaField.getType()) {
+				case "simpleType":
+
+					if (schemaField.getControlType().equals("dropdown")) {
+
+						if (Arrays.asList(orderOfAddress).contains(schemaField.getId())) {
+							ComboBox<LocationDto> platformField = listOfComboBoxWithLocation.get(schemaField.getId());
+							ComboBox<LocationDto> localField = listOfComboBoxWithLocation
+									.get(schemaField.getId() + "LocalLanguage");
+							registrationDTO.addDemographicField(schemaField.getId(),
+									applicationContext.getApplicationLanguage(), platformField.getValue().getName(),
+									applicationContext.getLocalLanguage(), localField.getValue().getName());
+						} else {
+							ComboBox<String> platformField = listOfComboBoxWithString.get(schemaField.getId());
+							ComboBox<String> localField = listOfComboBoxWithString
+									.get(schemaField.getId() + "LocalLanguage");
+							registrationDTO.addDemographicField(schemaField.getId(),
+									applicationContext.getApplicationLanguage(), platformField.getValue(),
+									applicationContext.getLocalLanguage(), localField.getValue());
+						}
+					} else {
+						TextField platformField = listOfTextField.get(schemaField.getId());
+						TextField localField = listOfTextField.get(schemaField.getId() + "LocalLanguage");
+						registrationDTO.addDemographicField(schemaField.getId(),
+								applicationContext.getApplicationLanguage(), platformField.getText(),
+								applicationContext.getLocalLanguage(), localField.getText());
+					}
+
+					break;
+
+				case "number":
+				case "string":
+					if (schemaField.getControlType().equalsIgnoreCase("ageDate")) {
+						registrationDTO.addDemographicField(schemaField.getId(),
+								listOfTextField.get("dd").getText() + "/" + listOfTextField.get("mm").getText() + "/"
+										+ listOfTextField.get("yyyy").getText());
+					} else {
+						registrationDTO.addDemographicField(schemaField.getId(),
+								listOfTextField.get(schemaField.getId()).getText());
+					}
+					break;
 				}
-			} else if (fxElement instanceof ComboBox<?>) {
-				registrationDTO.addDemographicField(((ComboBox<?>) fxElement).getId(),
-						((ComboBox<?>) fxElement).getValue());
 			}
 		}
-
 	}
 
 	/**
@@ -1641,7 +1667,7 @@ public class DemographicDetailController extends BaseController {
 					SessionContext.userContext().getUserId(), RegistrationConstants.ONBOARD_DEVICES_REF_ID_TYPE);
 
 			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
-			
+
 			if (preRegistrationId.getText().isEmpty()) {
 				registrationDTO.setPreRegistrationId("");
 			}
@@ -1658,7 +1684,7 @@ public class DemographicDetailController extends BaseController {
 				osiDataDTO.setIntroducerType(IntroducerType.PARENT.getCode());
 			}
 
-			registrationMetaDataDTO.setParentOrGuardianRID(parentRegId.getText());
+			// registrationMetaDataDTO.setParentOrGuardianRID(parentRegId.getText());
 
 			osiDataDTO.setOperatorID(SessionContext.userContext().getUserId());
 
@@ -1870,44 +1896,45 @@ public class DemographicDetailController extends BaseController {
 					RegistrationConstants.APPLICATION_ID, "Preparing the Edit page content");
 
 			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
-			Map<String, Object>  demographics = registrationDTO.getDemographics();
-						
+			Map<String, Object> demographics = registrationDTO.getDemographics();
+
 			List<String> locationBasedFields = Arrays.asList(orderOfAddress);
 			List<UiSchemaDTO> list;
 			try {
 				list = identitySchemaService.getLatestEffectiveUISchema();
-			} catch(RegBaseCheckedException e) {
+			} catch (RegBaseCheckedException e) {
 				LOGGER.error("REGISTRATION - GETTING SCHEMA FIELDS FAILED", APPLICATION_NAME,
 						RegistrationConstants.APPLICATION_ID, ExceptionUtils.getStackTrace(e));
-				generateAlert(RegistrationConstants.ERROR, "ID Schema is emtpy"); //TODO
+				generateAlert(RegistrationConstants.ERROR, "ID Schema is emtpy"); // TODO
 				return;
 			}
-			
-			for(UiSchemaDTO schemaField : list) {
+
+			for (UiSchemaDTO schemaField : list) {
 				switch (schemaField.getType()) {
-				case "simpleType":	
-					List<ValuesDTO> values = demographics.get(schemaField.getId()) != null ? 
-							(List<ValuesDTO>)demographics.get(schemaField.getId()) : null;
-					
-					if(values != null) {
-						if(locationBasedFields.contains(schemaField.getId())) {
-							populateFieldValue(listOfComboBoxWithLocation.get(schemaField.getId()), 
+				case "simpleType":
+					List<ValuesDTO> values = demographics.get(schemaField.getId()) != null
+							? (List<ValuesDTO>) demographics.get(schemaField.getId())
+							: null;
+
+					if (values != null) {
+						if (locationBasedFields.contains(schemaField.getId())) {
+							populateFieldValue(listOfComboBoxWithLocation.get(schemaField.getId()),
 									listOfComboBoxWithLocation.get(schemaField.getId() + "LocalLanguage"), values);
-						}
-						else
-							populateFieldValue(listOfComboBoxWithString.get(schemaField.getId()), 
+						} else
+							populateFieldValue(listOfComboBoxWithString.get(schemaField.getId()),
 									listOfComboBoxWithString.get(schemaField.getId() + "LocalLanguage"), values);
-					}				
-					
+					}
+
 					break;
-				
+
 				case "number":
-				case "string":	
-					String value = demographics.get(schemaField.getId()) != null ? 
-							(String)demographics.get(schemaField.getId()) : RegistrationConstants.EMPTY ;
-					
-					if(schemaField.getControlType().equalsIgnoreCase("ageDate")) {
-						if(value != null && !value.isEmpty()) {
+				case "string":
+					String value = demographics.get(schemaField.getId()) != null
+							? (String) demographics.get(schemaField.getId())
+							: RegistrationConstants.EMPTY;
+
+					if (schemaField.getControlType().equalsIgnoreCase("ageDate")) {
+						if (value != null && !value.isEmpty()) {
 							String[] date = value.split("/");
 							if (date.length == 3) {
 								dd.setText(" ");
@@ -1916,25 +1943,24 @@ public class DemographicDetailController extends BaseController {
 								mm.setText(date[1]);
 							}
 						}
-					}
-					else {
+					} else {
 						TextField textField = listOfTextField.get(schemaField.getId());
-						if(textField != null) {
+						if (textField != null) {
 							textField.setText(value);
 						}
 					}
-										
-					break;				
+
+					break;
 				}
 			}
-			
+
 			if (SessionContext.map().get(RegistrationConstants.IS_Child) != null) {
 
 				boolean isChild = (boolean) SessionContext.map().get(RegistrationConstants.IS_Child);
 				parentDetailPane.setDisable(!isChild);
 				parentDetailPane.setVisible(isChild);
 			}
-			
+
 			preRegistrationId.setText(registrationDTO.getPreRegistrationId());
 
 		} catch (RuntimeException runtimeException) {
