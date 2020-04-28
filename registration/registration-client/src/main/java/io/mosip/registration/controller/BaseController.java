@@ -1651,23 +1651,23 @@ public class BaseController {
 		}
 	}
 
-	protected void addExceptionDTOs() {
-		List<String> bioAttributesFromSchema = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
-		List<String> bioList = new ArrayList<String>();
-
-		/** If bio Attribute not mentioned for bio attribute then disable */
-		bioList.addAll(ALL_BIO_ATTRIBUTES);
-
-		/** If bio attribute configured in UI Schema, then enable the pane */
-		if (bioAttributesFromSchema != null && !bioAttributesFromSchema.isEmpty())
-			bioList.removeAll(bioAttributesFromSchema);
-
-		List<BiometricExceptionDTO> biometricExceptionDTOs = biometricExceptionController
-				.getBiometricsExceptionList(bioList);
-
-		biometricExceptionController.addExceptionToRegistration(biometricExceptionDTOs);
-
-	}
+//	protected void addExceptionDTOs() {
+//		List<String> bioAttributesFromSchema = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
+//		List<String> bioList = new ArrayList<String>();
+//
+//		/** If bio Attribute not mentioned for bio attribute then disable */
+//		bioList.addAll(ALL_BIO_ATTRIBUTES);
+//
+//		/** If bio attribute configured in UI Schema, then enable the pane */
+//		if (bioAttributesFromSchema != null && !bioAttributesFromSchema.isEmpty())
+//			bioList.removeAll(bioAttributesFromSchema);
+//
+//		List<BiometricExceptionDTO> biometricExceptionDTOs = biometricExceptionController
+//				.getBiometricsExceptionList(bioList);
+//
+//		biometricExceptionController.addExceptionToRegistration(biometricExceptionDTOs);
+//
+//	}
 
 	private List<String> getSchemaFieldBioAttributes(String fieldId) {
 		if (validations.getValidationMap().containsKey(fieldId)

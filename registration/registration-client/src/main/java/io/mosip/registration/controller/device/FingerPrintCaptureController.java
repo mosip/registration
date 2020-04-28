@@ -748,9 +748,9 @@ public class FingerPrintCaptureController extends BaseController implements Init
 	 */
 	private void singleBiomtericCaptureCheck() {
 
-//		if (!validateFingerPrints()) {
-//			continueBtn.setDisable(true);
-//		}
+		if (!bioService.isAllNonExceptionFingerprintsCaptured()) {
+			continueBtn.setDisable(true);
+		}
 
 		long irisCountApplicant = 0;
 		long irisCountIntroducer = 0;
