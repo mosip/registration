@@ -720,8 +720,6 @@ public class DemographicDetailController extends BaseController {
 	@Autowired
 	private IdentitySchemaService identitySchemaService;
 
-	@Autowired
-	private IdentitySchemaService identitySchemaService;
 
 	/*
 	 * (non-Javadoc)
@@ -799,7 +797,7 @@ public class DemographicDetailController extends BaseController {
 //			}
 
 			loadUIElementsFromSchema();
-			Map<String, UiSchemaDTO> schemaMap = getValidationMap();
+			Map<String, UiSchemaDTO> schemaMap = validation.getValidationMap();
 
 			ObservableList<Node> parentFlow = parentFlowPane.getChildren();
 			for (Entry<String, UiSchemaDTO> entry : schemaMap.entrySet()) {
@@ -903,17 +901,10 @@ public class DemographicDetailController extends BaseController {
 		// create content
 
 		VBox content = null;
-<<<<<<< HEAD
 
 		switch (schemaDTO.getControlType()) {
 		case "dropdown":
 			if (Arrays.asList(orderOfAddress).contains(schemaDTO.getId()))
-=======
-				
-		switch (schemaDTO.getControlType()) {
-		case "dropdown":
-			if(Arrays.asList(orderOfAddress).contains(schemaDTO.getId()))
->>>>>>> checking dateOfbrith based on control type
 				content = addContentWithComboBoxAndLocation(schemaDTO.getId(), languageType);
 			else
 				content = addContentWithComboBox(new ComboBox<String>(), schemaDTO.getId(), new Label(), new Label(),
@@ -922,17 +913,10 @@ public class DemographicDetailController extends BaseController {
 		case "ageDate":
 			content = addContentForDobAndAge(languageType);
 			break;
-<<<<<<< HEAD
 		case "age":
 			// TODO Not yet supported
 			break;
 		case "textbox":
-=======
-		case "age":	
-			//TODO Not yet supported
-			break;
-		case "textbox":	
->>>>>>> checking dateOfbrith based on control type
 			content = addContentWithTextField(schemaDTO.getId(), languageType);
 			break;
 		}

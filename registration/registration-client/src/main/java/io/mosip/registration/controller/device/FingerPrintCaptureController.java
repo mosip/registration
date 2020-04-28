@@ -123,18 +123,6 @@ public class FingerPrintCaptureController extends BaseController implements Init
 	@FXML
 	private GridPane twoThumbGreaterPane;
 
-	/** The left hand palm pane. */
-	@FXML
-	private GridPane leftHandGreaterPane;
-
-	/** The right hand palm pane. */
-	@FXML
-	private GridPane rightHandGreaterPane;
-
-	/** The thumb pane. */
-	@FXML
-	private GridPane twoThumbGreaterPane;
-
 	/** The left hand palm imageview. */
 	@FXML
 	private ImageView leftHandPalmImageview;
