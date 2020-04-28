@@ -5,11 +5,11 @@
     <parent>
         <groupId>io.mosip.registrationprocessor</groupId>
         <artifactId>pre-processor</artifactId>
-        <version>1.0.6</version>
+        <version>1.0.9</version>
     </parent>
 
     <artifactId>registration-processor-quality-checker-stage</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.9</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -100,6 +100,16 @@
 			<artifactId>registration-processor-packet-manager</artifactId>
 			<version>${packet.manager.version}</version>
 		</dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+            <version>${io.micrometer.prometheus.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+            <version>${io.micrometer.prometheus.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

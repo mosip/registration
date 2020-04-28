@@ -7,6 +7,9 @@ public enum StatusUtil {
 	VIRUS_SCANNER_FAILED(StatusConstants.PACKET_RECEIVER_MODULE_FAILURE + "001","Packet is Virus Infected"),
 	PACKET_DECRYPTION_FAILED(StatusConstants.PACKET_RECEIVER_MODULE_FAILURE + "002", "Packet Decryption Failed"),
 
+	// securezone notification stage
+	NOTIFICATION_RECEIVED_TO_SECUREZONE(StatusConstants.SECUREZONE_NOTIFICATION_SUCCESS + "001","Notification received to securezone"),
+
 	// Packet uploader stage
 	PACKET_UPLOADED(StatusConstants.PACKET_UPLOADER_MODULE_SUCCESS + "001","Packet is Uploaded to Packet Store"),
 	PACKET_CLEANUP_FAILED(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "001","Packet Clean Up Failed from Landing Zone"), 
@@ -15,6 +18,7 @@ public enum StatusUtil {
 	PACKET_NOT_FOUND_LANDING_ZIONE(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "004","Packet Not Found in Landing Zone"),
 	PACKET_HASHCODE_VALIDATION_FAILED(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "005","Packet Hash Code Validation Failed"),
 	VIRUS_SCANNER_FAILED_UPLOADER(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "006","Packet is Virus Infected"),
+	PACKET_UPLOAD_DECRYPTION_FAILED(StatusConstants.PACKET_UPLOADER_MODULE_FAILED + "007", "Packet Decryption Failed"),
 
 	// Quality checker stage
 	INDIVIDUAL_BIOMETRIC_NOT_FOUND(StatusConstants.QUALITY_CHECKER_MODULE_SUCCESS + "001","Individual Biometric Parameter Not Found in ID JSON"), 
@@ -153,8 +157,8 @@ public enum StatusUtil {
 	DB_NOT_ACCESSIBLE(StatusConstants.SYSTEM_EXCEPTION_CODE,"Databse Not Accessible"), 
 	PACKET_NOT_FOUND_PACKET_STORE(StatusConstants.SYSTEM_EXCEPTION_CODE, "Packet not found in File System"),
 	FS_ADAPTER_EXCEPTION(StatusConstants.SYSTEM_EXCEPTION_CODE,"FS Adapter Exception Occurred"), 
-	JSCH_EXCEPTION_OCCURED(StatusConstants.SYSTEM_EXCEPTION_CODE,"JSCH Connection Exception Occurred"), 
-	SFTP_FILE_OPERATION_EXCEPTION(StatusConstants.SYSTEM_EXCEPTION_CODE,"SFTP File Operation Exception Occurred"), 
+	JSCH_EXCEPTION_OCCURED(StatusConstants.SYSTEM_EXCEPTION_CODE,"JSCH Connection Exception Occurred"),
+	NGINX_ACCESS_EXCEPTION(StatusConstants.SYSTEM_EXCEPTION_CODE,"NGINX url is not accessible"),
 	IO_EXCEPTION(StatusConstants.SYSTEM_EXCEPTION_CODE,"IO Exception Occurred"), 
 	BIO_METRIC_EXCEPTION(StatusConstants.SYSTEM_EXCEPTION_CODE,"Biometric Exception Occurred in IDA "),
 	BIO_METRIC_FILE_MISSING(StatusConstants.SYSTEM_EXCEPTION_CODE,"Applicant biometric fileName/file is missing"),

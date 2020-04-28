@@ -7,10 +7,12 @@ import java.util.UUID;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.abis.handler.constant.AbisHandlerStageConstant;
@@ -37,6 +39,7 @@ import io.mosip.registration.processor.core.packet.dto.abis.AbisIdentifyRequestD
 import io.mosip.registration.processor.core.packet.dto.abis.AbisIdentifyRequestGalleryDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisInsertRequestDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisRequestDto;
+import io.mosip.registration.processor.core.packet.dto.abis.Flag;
 import io.mosip.registration.processor.core.packet.dto.abis.ReferenceIdDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegBioRefDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegDemoDedupeListDto;
@@ -107,6 +110,10 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	@Autowired
 	MosipRouter router;
 
+	@Autowired
+	private Environment env;
+
+	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 	/**
 	 * Deploy verticle.
 	 */
@@ -292,14 +299,17 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	private byte[] getIdentifyRequestBytes(String transactionId, String bioRefId, String transactionTypeCode, String id,
 			LogDescription description) {
 		AbisIdentifyRequestDto abisIdentifyRequestDto = new AbisIdentifyRequestDto();
+		Flag flag = new Flag();
 		abisIdentifyRequestDto.setId(AbisHandlerStageConstant.MOSIP_ABIS_IDENTIFY);
 		abisIdentifyRequestDto.setVer(AbisHandlerStageConstant.VERSION);
 		abisIdentifyRequestDto.setRequestId(id);
 		abisIdentifyRequestDto.setReferenceId(bioRefId);
 		abisIdentifyRequestDto.setReferenceUrl(url + "/" + bioRefId);
-		abisIdentifyRequestDto.setTimestamp(AbisHandlerStageConstant.TIMESTAMP);
-		abisIdentifyRequestDto.setMaxResults(maxResults);
-		abisIdentifyRequestDto.setTargetFPIR(targetFPIR);
+		abisIdentifyRequestDto.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
+		flag.setMaxResults(maxResults);
+		flag.setTargetFPIR(targetFPIR);
+		abisIdentifyRequestDto.setFlags(flag);
+
 
 		// Added Gallery data for demo dedupe
 		if (transactionTypeCode.equalsIgnoreCase(AbisHandlerStageConstant.DEMOGRAPHIC_VERIFICATION)) {
@@ -443,7 +453,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		abisInsertRequestDto.setReferenceId(bioRefId);
 		abisInsertRequestDto.setReferenceURL(url + "/" + bioRefId);
 		abisInsertRequestDto.setRequestId(id);
-		abisInsertRequestDto.setTimestamp(AbisHandlerStageConstant.TIMESTAMP);
+		abisInsertRequestDto.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		abisInsertRequestDto.setVer(AbisHandlerStageConstant.VERSION);
 		try {
 			String jsonString = JsonUtils.javaObjectToJsonString(abisInsertRequestDto);

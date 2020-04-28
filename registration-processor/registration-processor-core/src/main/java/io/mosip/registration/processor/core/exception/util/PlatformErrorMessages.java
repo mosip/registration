@@ -640,7 +640,7 @@ public enum PlatformErrorMessages {
 
 	/** The rpr pum packet not found exception. */
 	RPR_PUM_PACKET_NOT_FOUND_EXCEPTION(PlatformConstants.RPR_PACKET_UPLOADER_MODULE + "001",
-			"Packet not copied from LANDING ZONE FOLDER DURING ARCHIVAL "),
+			"Packet not found in LANDING_ZONE "),
 
 	/** The rpr pum packet deletion info. */
 	RPR_PUM_PACKET_DELETION_INFO(PlatformConstants.RPR_PACKET_UPLOADER_MODULE + "002",
@@ -662,8 +662,8 @@ public enum PlatformErrorMessages {
 	RPR_PUM_JSCH_NOT_CONNECTED(PlatformConstants.RPR_PACKET_UPLOADER_MODULE + "006", "The JSCH connection failed"),
 
 	/** The rpr pkm file not found in source. */
-	RPR_PUM_SFTP_FILE_OPERATION_FAILED(PlatformConstants.RPR_PACKET_UPLOADER_MODULE + "007",
-			"The Sftp operation failed during file processing"),
+	RPR_PUM_NGINX_ACCESS_FAILED(PlatformConstants.RPR_PACKET_UPLOADER_MODULE + "007",
+			"Could not get the packet from nginx Url"),
 
 	/** The rpr pum packet not yet sync. */
 	RPR_PUM_PACKET_NOT_YET_SYNC(PlatformConstants.RPR_PACKET_UPLOADER_MODULE + "008",
@@ -1099,9 +1099,11 @@ public enum PlatformErrorMessages {
 	/** The rpr demo sending for manual. */
 	RPR_DEMO_SENDING_FOR_MANUAL(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "001",
 			"ABIS response Details found. Hence sending to manual adjudication"),
-	
+
+	RPR_SECUREZONE_FAILURE(PlatformConstants.RPR_SECUREZONE_NOTIFICATION_MODULE + "001",
+			"Exception occured in securezone notification stage. Check logs for more info"),
+
 	RPR_AUTH_SYSTEM_EXCEPTION(PlatformConstants.RPR_AUTHENTICATION + "03", "Request could not be processed. Please try again");
-	;
 
 	/** The error message. */
 	private final String errorMessage; 

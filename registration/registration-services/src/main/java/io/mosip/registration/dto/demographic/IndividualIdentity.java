@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.assertj.core.util.Arrays;
+
 import org.springframework.stereotype.Component;
+
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -115,7 +117,6 @@ public class IndividualIdentity extends Identity {
 	
 	private static Map<String, Object> documentsMap;
 	
-
 	/**
 	 * Assign the map to individual identity of resident map
 	 * 
@@ -172,6 +173,7 @@ public class IndividualIdentity extends Identity {
 
 		/** Add to element to the identity map */
 		documentsMap.put(fxId, value);
+    
 	}
 
 }

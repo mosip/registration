@@ -102,7 +102,7 @@ public class AbisServiceImpl implements AbisService {
 
 		response.setId(ABIS_INSERT);
 		response.setRequestId(abisInsertRequestDto.getRequestId());
-		response.setTimestamp(abisInsertRequestDto.getTimestamp());
+		response.setResponsetime(abisInsertRequestDto.getRequesttime());
 
 		Document doc;
 		try {
@@ -216,7 +216,7 @@ public class AbisServiceImpl implements AbisService {
 
 			response.setId(ABIS_IDENTIFY);
 			response.setRequestId(identifyRequest.getRequestId());
-			response.setTimestamp(identifyRequest.getTimestamp());
+			response.setResponsetime(identifyRequest.getRequesttime());
 
 			if (doc != null) {
 				NodeList fingerNodeList = doc.getElementsByTagName(testFingerPrint);
@@ -300,7 +300,7 @@ public class AbisServiceImpl implements AbisService {
 			if (!(identifyRequest.getReferenceId().equals(storedRefIdList.get(i)))) {
 
 				candidatesDto[i].setReferenceId(storedRefIdList.get(i));
-				candidatesDto[i].setScaledScore(100 - i + "");
+
 				count++;
 			}
 

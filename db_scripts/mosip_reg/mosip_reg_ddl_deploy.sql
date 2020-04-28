@@ -63,6 +63,10 @@ run 'ddl/reg-foundational_trust_provider.sql';
 run 'ddl/reg-mosip_device_service.sql';
 run 'ddl/reg-registered_device_master.sql';
 
+run 'ddl/reg-identity_schema.sql';
+run 'ddl/reg-dynamic_field.sql';
+run 'ddl/reg-schema_definition.sql';
+
 run 'ddl/reg-fk.sql';
 
 run 'mosip_reg_dml_deploy.sql';

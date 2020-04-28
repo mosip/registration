@@ -25,8 +25,6 @@ public class AbisResponseDetDto implements Serializable {
 
 	private Boolean isDeleted;
 
-	private Integer score;
-
 	private String updBy;
 
 	private LocalDateTime updDtimes;

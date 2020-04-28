@@ -229,6 +229,8 @@ public class BaseController {
 	private IdentitySchemaService identitySchemaService;
 
 	private static boolean isAckOpened = false;
+	
+	private List<UiSchemaDTO> uiSchemaDTOs;
 
 	private static List<String> ALL_BIO_ATTRIBUTES = null;
 
@@ -1719,5 +1721,4 @@ public class BaseController {
 		}
 		return nonConfigBiometrics;
 	}
-
 }
