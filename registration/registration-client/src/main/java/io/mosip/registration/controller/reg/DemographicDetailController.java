@@ -9,6 +9,7 @@ import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -64,6 +65,7 @@ import io.mosip.registration.dto.demographic.ValuesDTO;
 import io.mosip.registration.dto.mastersync.LocationDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
+import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.service.sync.PreRegistrationDataSyncService;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -714,6 +716,9 @@ public class DemographicDetailController extends BaseController {
 	public Map<String, TextField> listOfTextField = new HashMap<>();
 	
 	private int age = 0;
+	
+	@Autowired
+	private IdentitySchemaService identitySchemaService;
 
 
 	/*
@@ -892,21 +897,28 @@ public class DemographicDetailController extends BaseController {
 
 		// create content
 
-		VBox myContent = null;
-
-		if (schemaDTO.getControlType().equals("dropdown") && schemaDTO.getId().matches("region|city|province|zone")) {
-			myContent = addContentWithComboBoxAndLocation(schemaDTO.getId(), languageType);
-
-		} else if (schemaDTO.getControlType().equals("dropdown")
-				&& !schemaDTO.getId().matches("region|city|province|zone")) {
-			myContent = addContentWithComboBox(new ComboBox<String>(), schemaDTO.getId(), new Label(), new Label(),
-					languageType);
-		} else if (schemaDTO.getControlType().equals("ageDate") && schemaDTO.getId().equals("dateOfBirth")) {
-			myContent = addContentForDobAndAge(languageType);
-		} else if (schemaDTO.getControlType().equals("textbox")) {
-			myContent = addContentWithTextField(schemaDTO.getId(), languageType);
+		VBox content = null;
+				
+		switch (schemaDTO.getControlType()) {
+		case "dropdown":
+			if(Arrays.asList(orderOfAddress).contains(schemaDTO.getId()))
+				content = addContentWithComboBoxAndLocation(schemaDTO.getId(), languageType);
+			else
+				content = addContentWithComboBox(new ComboBox<String>(), schemaDTO.getId(), new Label(), new Label(),
+						languageType);
+			break;
+		case "ageDate":
+			content = addContentForDobAndAge(languageType);
+			break;
+		case "age":	
+			//TODO Not yet supported
+			break;
+		case "textbox":	
+			content = addContentWithTextField(schemaDTO.getId(), languageType);
+			break;
 		}
-		gridPane.add(myContent, 1, 2);
+
+		gridPane.add(content, 1, 2);
 
 		return gridPane;
 	}
@@ -1629,7 +1641,7 @@ public class DemographicDetailController extends BaseController {
 					SessionContext.userContext().getUserId(), RegistrationConstants.ONBOARD_DEVICES_REF_ID_TYPE);
 
 			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
-			DemographicInfoDTO demographicInfoDTO;
+			
 			if (preRegistrationId.getText().isEmpty()) {
 				registrationDTO.setPreRegistrationId("");
 			}
@@ -1637,10 +1649,8 @@ public class DemographicDetailController extends BaseController {
 			RegistrationMetaDataDTO registrationMetaDataDTO = registrationDTO.getRegistrationMetaDataDTO();
 			String platformLanguageCode = ApplicationContext.applicationLanguage();
 			String localLanguageCode = ApplicationContext.localLanguage();
-//			registrationMetaDataDTO.setFullName(buildValues(platformLanguageCode, localLanguageCode, fullName.getText(),
-//					fullNameLocalLanguage.getText()));
+
 			SessionContext.map().put(RegistrationConstants.IS_Child, isChild);
-			// demographicInfoDTO = buildDemographicInfo();
 
 			addDemoGraphicDetailsToSession();
 
@@ -1651,8 +1661,6 @@ public class DemographicDetailController extends BaseController {
 			registrationMetaDataDTO.setParentOrGuardianRID(parentRegId.getText());
 
 			osiDataDTO.setOperatorID(SessionContext.userContext().getUserId());
-
-//			registrationDTO.getDemographicDTO().setDemographicInfoDTO(demographicInfoDTO);
 
 			LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, "Saved the demographic fields to DTO");
@@ -1862,75 +1870,71 @@ public class DemographicDetailController extends BaseController {
 					RegistrationConstants.APPLICATION_ID, "Preparing the Edit page content");
 
 			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
-			IndividualIdentity individualIdentity = (IndividualIdentity) registrationDTO.getDemographicDTO()
-					.getDemographicInfoDTO().getIdentity();
-
-			List<ValuesDTO> fullNameValues = individualIdentity.getFullName();
-			if (registrationDTO.getSelectionListDTO() != null && !registrationDTO.isNameNotUpdated()) {
-
-				fullNameValues = registrationDTO.getRegistrationMetaDataDTO().getFullName();
+			Map<String, Object>  demographics = registrationDTO.getDemographics();
+						
+			List<String> locationBasedFields = Arrays.asList(orderOfAddress);
+			List<UiSchemaDTO> list;
+			try {
+				list = identitySchemaService.getLatestEffectiveUISchema();
+			} catch(RegBaseCheckedException e) {
+				LOGGER.error("REGISTRATION - GETTING SCHEMA FIELDS FAILED", APPLICATION_NAME,
+						RegistrationConstants.APPLICATION_ID, ExceptionUtils.getStackTrace(e));
+				generateAlert(RegistrationConstants.ERROR, "ID Schema is emtpy"); //TODO
+				return;
 			}
-			populateFieldValue(fullName, fullNameLocalLanguage, fullNameValues);
-			populateFieldValue(addressLine1, addressLine1LocalLanguage, individualIdentity.getAddressLine1());
-			populateFieldValue(addressLine2, addressLine2LocalLanguage, individualIdentity.getAddressLine2());
-			populateFieldValue(addressLine3, addressLine3LocalLanguage, individualIdentity.getAddressLine3());
-			populateFieldValue(region, regionLocalLanguage, individualIdentity.getRegion());
-			populateFieldValue(province, provinceLocalLanguage, individualIdentity.getProvince());
-			populateFieldValue(city, cityLocalLanguage, individualIdentity.getCity());
-
-			if (individualIdentity.getResidenceStatus() != null && !individualIdentity.getResidenceStatus().isEmpty()) {
-				if (RegistrationConstants.ATTR_FORINGER
-						.equalsIgnoreCase(individualIdentity.getResidenceStatus().get(0).getValue())) {
-					// foreigner(null);
-				} else {
-					// national(null);
+			
+			for(UiSchemaDTO schemaField : list) {
+				switch (schemaField.getType()) {
+				case "simpleType":	
+					List<ValuesDTO> values = demographics.get(schemaField.getId()) != null ? 
+							(List<ValuesDTO>)demographics.get(schemaField.getId()) : null;
+					
+					if(values != null) {
+						if(locationBasedFields.contains(schemaField.getId())) {
+							populateFieldValue(listOfComboBoxWithLocation.get(schemaField.getId()), 
+									listOfComboBoxWithLocation.get(schemaField.getId() + "LocalLanguage"), values);
+						}
+						else
+							populateFieldValue(listOfComboBoxWithString.get(schemaField.getId()), 
+									listOfComboBoxWithString.get(schemaField.getId() + "LocalLanguage"), values);
+					}				
+					
+					break;
+				
+				case "number":
+				case "string":	
+					String value = demographics.get(schemaField.getId()) != null ? 
+							(String)demographics.get(schemaField.getId()) : RegistrationConstants.EMPTY ;
+					
+					if(schemaField.getControlType().equalsIgnoreCase("ageDate")) {
+						if(value != null && !value.isEmpty()) {
+							String[] date = value.split("/");
+							if (date.length == 3) {
+								dd.setText(" ");
+								dd.setText(date[2]);
+								yyyy.setText(date[0]);
+								mm.setText(date[1]);
+							}
+						}
+					}
+					else {
+						TextField textField = listOfTextField.get(schemaField.getId());
+						if(textField != null) {
+							textField.setText(value);
+						}
+					}
+										
+					break;				
 				}
 			}
-			postalCode.setText(individualIdentity.getPostalCode());
-			mobileNo.setText(individualIdentity.getPhone());
-			emailId.setText(individualIdentity.getEmail());
-			ageField.setText(individualIdentity.getAge() == null ? RegistrationConstants.EMPTY
-					: String.valueOf(individualIdentity.getAge()));
-			cniOrPinNumber.setText(individualIdentity.getReferenceIdentityNumber());
-			postalCodeLocalLanguage.setText(individualIdentity.getPostalCode());
-			postalCodeLocalLanguage.setAccessibleHelp(individualIdentity.getPostalCode());
-			mobileNoLocalLanguage.setText(individualIdentity.getPhone());
-			emailIdLocalLanguage.setText(individualIdentity.getEmail());
-			cniOrPinNumberLocalLanguage.setText(individualIdentity.getReferenceIdentityNumber());
-			parentRegId.setText(individualIdentity.getParentOrGuardianRID() == null ? ""
-					: String.valueOf(individualIdentity.getParentOrGuardianRID()));
-			parentUinId.setText(individualIdentity.getParentOrGuardianUIN() == null ? ""
-					: String.valueOf(individualIdentity.getParentOrGuardianUIN()));
-
-			populateFieldValue(genderValue, genderValueLocalLanguage, individualIdentity.getGender());
-
-			if (individualIdentity.getGender() != null && individualIdentity.getGender().size() > 0) {
-				if (individualIdentity.getGender().get(0).getValue().equalsIgnoreCase(textMale)
-						|| individualIdentity.getGender().get(0).getValue().equalsIgnoreCase(textMaleLocalLanguage)
-						|| individualIdentity.getGender().get(0).getValue().equalsIgnoreCase(textMaleCode)) {
-					// male(null);
-				} else {
-					// female(null);
-				}
-			}
-			if (individualIdentity.getDateOfBirth() != null) {
-				String[] date = individualIdentity.getDateOfBirth().split("/");
-				if (date.length == 3) {
-					dd.setText(" ");
-					dd.setText(date[2]);
-					yyyy.setText(date[0]);
-					mm.setText(date[1]);
-				}
-			}
-
-			populateFieldValue(zone, zoneLocalLanguage, individualIdentity.getZone());
-
+			
 			if (SessionContext.map().get(RegistrationConstants.IS_Child) != null) {
 
 				boolean isChild = (boolean) SessionContext.map().get(RegistrationConstants.IS_Child);
 				parentDetailPane.setDisable(!isChild);
 				parentDetailPane.setVisible(isChild);
 			}
+			
 			preRegistrationId.setText(registrationDTO.getPreRegistrationId());
 
 		} catch (RuntimeException runtimeException) {

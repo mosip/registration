@@ -2,6 +2,7 @@ package io.mosip.registration.dto;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,11 +51,7 @@ public class RegistrationDTO {
 
 	/** The acknowledge receipt name. */
 	private String acknowledgeReceiptName;
-	
-	//TODO - field to be removed
-	private DemographicDTO demographicDTO;
-	
-	
+		
 	public void addDemographicField(String fieldId, Object value) {
 		this.demographics.put(fieldId, value);
 	}
@@ -76,5 +73,23 @@ public class RegistrationDTO {
 	
 	public void addDocument(String fieldId, DocumentDetailsDTO value) {
 		this.documents.put(fieldId, value);
+	}
+	
+	public Map<String, Object> getIdentity() {
+		Map<String, Object> allIdentityDetails = new LinkedHashMap<String, Object>();
+		allIdentityDetails.put("IDSchemaVersion", idSchemaVersion);
+		allIdentityDetails.put("UIN", registrationMetaDataDTO.getUin());
+		
+		allIdentityDetails.putAll(this.demographics);
+		allIdentityDetails.putAll(this.documents);
+		
+		if(biometricDTO.getApplicantBiometrics() != null)
+			allIdentityDetails.put("applicantBiometrics", biometricDTO.getApplicantBiometrics());
+		if(biometricDTO.getIntroducerBiometrics() != null)
+			allIdentityDetails.put("introducerBiometrics", biometricDTO.getIntroducerBiometrics());
+				
+		Map<String, Object> identity = new LinkedHashMap<String, Object>();
+		identity.put("identity", allIdentityDetails);
+		return identity;	
 	}
 }
