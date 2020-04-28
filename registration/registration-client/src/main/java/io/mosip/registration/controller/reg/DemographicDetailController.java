@@ -897,21 +897,28 @@ public class DemographicDetailController extends BaseController {
 
 		// create content
 
-		VBox myContent = null;
-
-		if (schemaDTO.getControlType().equals("dropdown") && schemaDTO.getId().matches("region|city|province|zone")) {
-			myContent = addContentWithComboBoxAndLocation(schemaDTO.getId(), languageType);
-
-		} else if (schemaDTO.getControlType().equals("dropdown")
-				&& !schemaDTO.getId().matches("region|city|province|zone")) {
-			myContent = addContentWithComboBox(new ComboBox<String>(), schemaDTO.getId(), new Label(), new Label(),
-					languageType);
-		} else if (schemaDTO.getControlType().equals("ageDate") && schemaDTO.getId().equals("dateOfBirth")) {
-			myContent = addContentForDobAndAge(languageType);
-		} else if (schemaDTO.getControlType().equals("textbox")) {
-			myContent = addContentWithTextField(schemaDTO.getId(), languageType);
+		VBox content = null;
+				
+		switch (schemaDTO.getControlType()) {
+		case "dropdown":
+			if(Arrays.asList(orderOfAddress).contains(schemaDTO.getId()))
+				content = addContentWithComboBoxAndLocation(schemaDTO.getId(), languageType);
+			else
+				content = addContentWithComboBox(new ComboBox<String>(), schemaDTO.getId(), new Label(), new Label(),
+						languageType);
+			break;
+		case "ageDate":
+			content = addContentForDobAndAge(languageType);
+			break;
+		case "age":	
+			//TODO Not yet supported
+			break;
+		case "textbox":	
+			content = addContentWithTextField(schemaDTO.getId(), languageType);
+			break;
 		}
-		gridPane.add(myContent, 1, 2);
+
+		gridPane.add(content, 1, 2);
 
 		return gridPane;
 	}
@@ -1896,28 +1903,28 @@ public class DemographicDetailController extends BaseController {
 				
 				case "number":
 				case "string":	
-					TextField textField = listOfTextField.get(schemaField.getId());
-					if(textField != null) {
-						String value = demographics.get(schemaField.getId()) != null ? 
-								(String)demographics.get(schemaField.getId()) : RegistrationConstants.EMPTY ;						
-						textField.setText(value);
-					}					
-					break;
+					String value = demographics.get(schemaField.getId()) != null ? 
+							(String)demographics.get(schemaField.getId()) : RegistrationConstants.EMPTY ;
 					
-				case "dob":	
-					String dob = demographics.get(schemaField.getId()) != null ? 
-							(String)demographics.get(schemaField.getId()) : null ;
-					if(dob != null) {
-						String[] date = dob.split("/");
-						if (date.length == 3) {
-							dd.setText(" ");
-							dd.setText(date[2]);
-							yyyy.setText(date[0]);
-							mm.setText(date[1]);
+					if(schemaField.getControlType().equalsIgnoreCase("ageDate")) {
+						if(value != null && !value.isEmpty()) {
+							String[] date = value.split("/");
+							if (date.length == 3) {
+								dd.setText(" ");
+								dd.setText(date[2]);
+								yyyy.setText(date[0]);
+								mm.setText(date[1]);
+							}
 						}
-					}					
-					break;
-				
+					}
+					else {
+						TextField textField = listOfTextField.get(schemaField.getId());
+						if(textField != null) {
+							textField.setText(value);
+						}
+					}
+										
+					break;				
 				}
 			}
 			
