@@ -260,24 +260,14 @@ public class DocumentScanController extends BaseController {
 		
 		
 		
-		List<UiSchemaDTO> list=getDocId();
-		System.out.println(list);
+		List<UiSchemaDTO> listOfDocId=getDocId();
 		List<DocumentCategory> documentCategories = documentCategoryService
 				.getDocumentCategoriesByLangCode(ApplicationContext.applicationLanguage());
 
-		DocumentCategory pobCategory = new DocumentCategory();
-		for (DocumentCategory documentCategory : documentCategories) {
-			if (documentCategory.getCode().equalsIgnoreCase(RegistrationConstants.DOB_DOCUMENT)) {
-				pobCategory = documentCategory;
-			}
-		}
-		// if (pobCategory.getCode() != null) {
-		// documentCategories.remove(pobCategory);
-		// }
 
 		docScanVbox.setSpacing(5);
 		if (documentCategories != null && !documentCategories.isEmpty())
-			prepareDocumentScanSection(list);
+			prepareDocumentScanSection(listOfDocId);
 
 		/*
 		 * populate the documents for edit if its already present or fetched from pre

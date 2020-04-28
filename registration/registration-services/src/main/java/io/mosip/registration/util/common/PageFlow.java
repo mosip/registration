@@ -43,28 +43,11 @@ public class PageFlow {
 	 * </p>
 	 */
 
-
-	List<String> dynamicList;
-	
-	
-	/**
-	 * Gets the dynamic page flow.
-	 *
-	 * @param validations the validations
-	 * @return the dynamic page flow
-	 */
-	public void getDynamicPageFlow(List<String> validations) {
-		if(null==this.dynamicList) {
-			this.dynamicList=validations;
-		}
-	}
-
 	public void getInitialPageDetails() {
 
 		LOGGER.info(LoggerConstants.LOG_REG_PAGE_FLOW, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID,
 				"Preparing Page flow map for New Registration, Onboard, UIN Update");
-		test();
 		
 		Map<String, Map<String, Boolean>> registrationMap = new LinkedHashMap<>();
 		Map<String, Map<String, Boolean>> onboardMap = new LinkedHashMap<>();
@@ -236,11 +219,12 @@ public class PageFlow {
 
 	
 
+	
 	/**
 	 * Face check.
 	 *
 	 * @param validations the validations
-	 * @return the string
+	 * @return true, if successful
 	 */
 	private boolean faceCheck(List<String> validations) {
 		if (null != validations && !validations.isEmpty()) {
@@ -250,11 +234,12 @@ public class PageFlow {
 		return false;
 	}
 
+	
 	/**
 	 * Finegr print check.
 	 *
 	 * @param validations the validations
-	 * @return the string
+	 * @return true, if successful
 	 */
 	private boolean finegrPrintCheck(List<String> validations) {
 		if (null != validations && !validations.isEmpty()
@@ -266,11 +251,12 @@ public class PageFlow {
 		return false;
 	}
 
+	
 	/**
 	 * Iris check.
 	 *
 	 * @param validations the validations
-	 * @return the string
+	 * @return true, if successful
 	 */
 	private boolean irisCheck(List<String> validations) {
 		if (null != validations && !validations.isEmpty()
@@ -281,7 +267,4 @@ public class PageFlow {
 		return false;
 	}
 	
-	private void test() {
-		getDynamicPageFlow(new ArrayList<>());
-	}
 }
