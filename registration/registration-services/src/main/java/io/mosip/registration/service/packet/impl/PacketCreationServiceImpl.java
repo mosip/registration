@@ -707,7 +707,8 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 		boolean hasApplicantBiometricException = false;
 		boolean hasAuthenticationBiometricException = false;
 		if (isFingerprintOrIrisCaptureEnabled) {
-			hasApplicantBiometricException = false;
+			hasApplicantBiometricException = applicantBiometrics != null
+					&& isListNotEmpty(applicantBiometrics.getBiometricExceptionDTO());
 
 			if (authenticationBiometrics != null) {
 				hasAuthenticationBiometricException = isListNotEmpty(
