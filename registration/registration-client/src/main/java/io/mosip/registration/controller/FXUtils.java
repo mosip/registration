@@ -177,8 +177,6 @@ public class FXUtils {
 	public void populateLocalComboBox(Pane parentPane, ComboBox<?> applicationField, ComboBox<?> localField) {
 		applicationField.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
 			selectComboBoxValueByCode(localField, applicationField.getValue(), applicationField);
-			System.out.println(applicationField.getId() + RegistrationConstants.LABEL);
-			System.out.println(localField.getId() + RegistrationConstants.LABEL);
 			toggleUIField(parentPane, applicationField.getId() + RegistrationConstants.LABEL, true);
 			toggleUIField(parentPane, localField.getId() + RegistrationConstants.LABEL, true);
 			toggleUIField(parentPane, applicationField.getId() + RegistrationConstants.MESSAGE, false);
