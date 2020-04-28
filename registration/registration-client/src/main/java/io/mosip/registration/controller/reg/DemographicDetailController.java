@@ -903,10 +903,17 @@ public class DemographicDetailController extends BaseController {
 		// create content
 
 		VBox content = null;
+<<<<<<< HEAD
 
 		switch (schemaDTO.getControlType()) {
 		case "dropdown":
 			if (Arrays.asList(orderOfAddress).contains(schemaDTO.getId()))
+=======
+				
+		switch (schemaDTO.getControlType()) {
+		case "dropdown":
+			if(Arrays.asList(orderOfAddress).contains(schemaDTO.getId()))
+>>>>>>> checking dateOfbrith based on control type
 				content = addContentWithComboBoxAndLocation(schemaDTO.getId(), languageType);
 			else
 				content = addContentWithComboBox(new ComboBox<String>(), schemaDTO.getId(), new Label(), new Label(),
@@ -915,10 +922,17 @@ public class DemographicDetailController extends BaseController {
 		case "ageDate":
 			content = addContentForDobAndAge(languageType);
 			break;
+<<<<<<< HEAD
 		case "age":
 			// TODO Not yet supported
 			break;
 		case "textbox":
+=======
+		case "age":	
+			//TODO Not yet supported
+			break;
+		case "textbox":	
+>>>>>>> checking dateOfbrith based on control type
 			content = addContentWithTextField(schemaDTO.getId(), languageType);
 			break;
 		}
@@ -1903,12 +1917,7 @@ public class DemographicDetailController extends BaseController {
 					RegistrationConstants.APPLICATION_ID, "Preparing the Edit page content");
 
 			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
-
 			Map<String, Object> demographics = registrationDTO.getDemographics();
-
-
-
-
 
 			List<String> locationBasedFields = Arrays.asList(orderOfAddress);
 			List<UiSchemaDTO> list;
