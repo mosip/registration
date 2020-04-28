@@ -48,6 +48,7 @@ public class Initialization extends Application {
 			setPrimaryStage(primaryStage);
 			LoginController loginController = applicationContext.getBean(LoginController.class);
 			loginController.loadInitialScreen(primaryStage);
+			loginController.loadUIElementsFromSchema();
 			SessionContext.setApplicationContext(applicationContext);
 
 			LOGGER.info("REGISTRATION - LOGIN SCREEN INITILIZATION - REGISTRATIONAPPINITILIZATION", APPLICATION_NAME,
@@ -110,9 +111,9 @@ public class Initialization extends Application {
 	public static Stage getPrimaryStage() {
 		return applicationPrimaryStage;
 	}
-	
+
 	public static void setPrimaryStage(Stage primaryStage) {
-		applicationPrimaryStage =  primaryStage;
+		applicationPrimaryStage = primaryStage;
 	}
 
 }

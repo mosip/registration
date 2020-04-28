@@ -1650,4 +1650,26 @@ public class RegistrationConstants {
 	public static final String indBiometrics = "individualBiometrics";
 	
 	public static final String ID_SCHEMA_SYNC_SERVICE = "idschema_key";
+	
+	
+	
+	public static final Map<String, String> regBioMap = new HashMap<String, String>() {
+
+		{
+			put("leftIndex", LeftIndex);
+			put("leftLittle", LeftLittle);
+			put("leftMiddle",LeftMiddle);
+			put("leftRing", LeftRing);
+			put("leftThumb", LeftThumb);
+			put("rightIndex", RightIndex);
+			put("rightLittle", RightLittle);
+			put("rightMiddle", RightMiddle);
+			put("rightRing", RightRing);
+			put("rightThumb", RightThumb);
+			put("LeftEye", LEFT_EYE);
+			put("RightEye", RIGHT_EYE);
+			
+		}
+
+	};
 }

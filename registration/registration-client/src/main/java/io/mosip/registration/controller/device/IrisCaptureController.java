@@ -169,6 +169,8 @@ public class IrisCaptureController extends BaseController {
 	@FXML
 	public void initialize() {
 
+		disablePaneOnBioAttributes(rightIrisPane, Arrays.asList(RegistrationConstants.leftEyeUiAttribute));
+		disablePaneOnBioAttributes(leftIrisPane, Arrays.asList(RegistrationConstants.rightEyeUiAttribute));
 
 		leftIrisCount = 0;
 		rightIrisCount = 0;
@@ -941,13 +943,16 @@ public class IrisCaptureController extends BaseController {
 
 			boolean isValid = false;
 
-			boolean isRightEyeCaptured = !isRightEyeException(getIrisExceptions())
-					? isValidRightEyeCaptured(irisDetailsDTOs)
-					: true;
+			boolean isRightEyeCaptured = isAvailableInBioAttributes(
+					Arrays.asList(RegistrationConstants.leftEyeUiAttribute))
+							? !isRightEyeException(getIrisExceptions()) ? isValidRightEyeCaptured(irisDetailsDTOs)
+									: true
+							: true;
 
-			boolean isLeftEyeCaptured = !isLeftEyeException(getIrisExceptions())
-					? isValidLeftEyeCaptured(irisDetailsDTOs)
-					: true;
+			boolean isLeftEyeCaptured = isAvailableInBioAttributes(
+					Arrays.asList(RegistrationConstants.rightEyeUiAttribute))
+							? !isLeftEyeException(getIrisExceptions()) ? isValidLeftEyeCaptured(irisDetailsDTOs) : true
+							: true;
 
 			isValid = isRightAndLeftBioValid(isRightEyeCaptured, isLeftEyeCaptured);
 

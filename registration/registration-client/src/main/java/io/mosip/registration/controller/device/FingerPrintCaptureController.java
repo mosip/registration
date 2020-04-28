@@ -107,7 +107,7 @@ public class FingerPrintCaptureController extends BaseController implements Init
 	/** The thumb pane. */
 	@FXML
 	private GridPane thumbPane;
-	
+
 	/** The left hand palm pane. */
 	@FXML
 	private GridPane leftHandGreaterPane;
@@ -308,11 +308,10 @@ public class FingerPrintCaptureController extends BaseController implements Init
 		LOGGER.info(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Loading of FingerprintCapture screen started");
 
-//		disablePaneOnBioAttributes(leftHandGreaterPane, RegistrationConstants.LEFT_SLAP);
-//		disablePaneOnBioAttributes(rightHandGreaterPane, RegistrationConstants.RIGHT_SLAP);
-//		disablePaneOnBioAttributes(twoThumbGreaterPane, RegistrationConstants.TWO_THUMBS);
+		disablePaneOnBioAttributes(leftHandGreaterPane, RegistrationConstants.leftHandUiAttributes);
+		disablePaneOnBioAttributes(rightHandGreaterPane, RegistrationConstants.rightHandUiAttributes);
+		disablePaneOnBioAttributes(twoThumbGreaterPane, RegistrationConstants.twoThumbsUiAttributes);
 
-		
 		setImagesOnHover();
 		initializeCaptureCount();
 		try {
@@ -749,9 +748,9 @@ public class FingerPrintCaptureController extends BaseController implements Init
 	 */
 	private void singleBiomtericCaptureCheck() {
 
-		if (!validateFingerPrints()) {
-			continueBtn.setDisable(true);
-		}
+//		if (!validateFingerPrints()) {
+//			continueBtn.setDisable(true);
+//		}
 
 		long irisCountApplicant = 0;
 		long irisCountIntroducer = 0;
@@ -965,23 +964,40 @@ public class FingerPrintCaptureController extends BaseController implements Init
 				auditFactory.audit(getAuditEventForScan(selectedPane.getId()), Components.REG_BIOMETRICS,
 						SessionContext.userId(), AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 				String FingerType = "";
+
+				List<String> attributes = null;
 				if (selectedPane.getId() == leftHandPalmPane.getId()) {
 					exception = leftHandExceptions;
+
+					attributes = getNonConfigBioAttributes(RegistrationConstants.leftHandUiAttributes);
+
 					FingerType = RegistrationConstants.LEFTPALM;
 					imageView = leftHandPalmImageview;
 					requestedScore = getValueFromApplicationContext(
 							RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD);
 				} else if (selectedPane.getId() == rightHandPalmPane.getId()) {
 					exception = rightHandExceptions;
+					
+					attributes = getNonConfigBioAttributes(RegistrationConstants.leftHandUiAttributes);
+
 					FingerType = RegistrationConstants.RIGHTPALM;
 					imageView = rightHandPalmImageview;
 					requestedScore = getValueFromApplicationContext(
 							RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD);
 				} else {
 					exception = thumbsExceptions;
+					
+					attributes = getNonConfigBioAttributes(RegistrationConstants.leftHandUiAttributes);
+
 					FingerType = RegistrationConstants.THUMBS;
 					imageView = thumbImageview;
 					requestedScore = getValueFromApplicationContext(RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD);
+				}
+
+				for (String attribute : attributes) {
+					if (!exception.contains(RegistrationConstants.userOnBoardMap.get(attribute))) {
+						exception.add(RegistrationConstants.userOnBoardMap.get(attribute));
+					}
 				}
 				scanPopUpViewController.init(this, RegistrationUIConstants.FINGERPRINT);
 				if (bioService.isMdmEnabled()) {

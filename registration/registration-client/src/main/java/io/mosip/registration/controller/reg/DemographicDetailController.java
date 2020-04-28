@@ -2274,7 +2274,7 @@ public class DemographicDetailController extends BaseController {
 				} else {
 					registrationController.showCurrentPage(RegistrationConstants.DEMOGRAPHIC_DETAIL,
 							getPageDetails(RegistrationConstants.DEMOGRAPHIC_DETAIL, RegistrationConstants.NEXT));
-					addExceptionDTOs();
+					//addExceptionDTOs();
 					
 				}
 			}
