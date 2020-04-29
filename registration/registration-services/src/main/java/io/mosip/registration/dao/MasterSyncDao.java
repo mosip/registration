@@ -128,6 +128,9 @@ public interface MasterSyncDao {
 	 * @return the individul type
 	 */
 	List<IndividualType> getIndividulType(String code, String langCode);
+	
+	List<IndividualType> getIndividulType(String langCode);
+
 
 	/**
 	 * Get All the Active Sync JOBS

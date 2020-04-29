@@ -67,6 +67,8 @@ public class Validations extends BaseController {
 	private List<String> localLanguageblackListedWords;
 	private List<String> noAlert;
 	private boolean isLostUIN = false;
+	int maxAge;
+	
 
 	/**
 	 * Instantiates a new validations.
@@ -248,8 +250,12 @@ public class Validations extends BaseController {
 			String label = id.replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY)
 					.replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY);
 
+			if(isLostUIN && !id.contains("_ontype") ) {
+				return true;
+			}
+			
 			UiSchemaDTO uiSchemaDTO = getUiSchemaDTO(label, isLostUIN);
-
+			
 			String regex = getRegex(uiSchemaDTO, RegistrationUIConstants.REGEX_TYPE);
 			if (regex != null) {
 
@@ -260,7 +266,7 @@ public class Validations extends BaseController {
 
 				if (node.isDisabled() || (!isMandatory && inputText.isEmpty())) {
 					isInputValid = true;
-				} else if (isMandatory && (inputText == null || inputText.isEmpty())) {
+				} else if (isMandatory && (inputText == null || inputText.isEmpty()) && !isLostUIN) {
 					generateInvalidValueAlert(parentPane, id,
 							labelBundle.getString(label).concat(RegistrationConstants.SPACE)
 									.concat(messageBundle.getString(RegistrationConstants.REG_LGN_001)),
@@ -298,10 +304,19 @@ public class Validations extends BaseController {
 					}
 				}
 			}
+
+			
+			if(label.equals("ageField")) {
+				maxAge=Integer.parseInt(getValueFromApplicationContext(RegistrationConstants.MAX_AGE));
+				if( Integer.parseInt(node.getText())>maxAge) {
+					return false;
+				}
+			}
 		} catch (RuntimeException runtimeException) {
 			LOGGER.error(RegistrationConstants.VALIDATION_LOGGER, APPLICATION_NAME, APPLICATION_ID,
 					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 		}
+
 
 		return isInputValid;
 

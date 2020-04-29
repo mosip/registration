@@ -18,6 +18,7 @@ import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.reg.RegistrationController;
 import io.mosip.registration.controller.reg.Validations;
+import io.mosip.registration.dto.IndividualTypeDto;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.mastersync.BiometricAttributeDto;
 import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
@@ -602,6 +603,10 @@ public class FXUtils {
 					&& selectedOption instanceof DocumentCategoryDto) {
 				findIndexOfSelectedItem = index -> ((DocumentCategoryDto) localComboBoxValues.get(index)).getCode()
 						.equals(((DocumentCategoryDto) selectedOption).getCode());
+			} else if (localComboBoxValues.get(0) instanceof IndividualTypeDto
+					&& selectedOption instanceof IndividualTypeDto) {
+				findIndexOfSelectedItem = index -> ((IndividualTypeDto) localComboBoxValues.get(index)).getCode()
+						.equals(((IndividualTypeDto) selectedOption).getCode());
 			} else if (localComboBoxValues.get(0) instanceof String && selectedOption instanceof String) {
 				findIndexOfSelectedItem = index -> ((String) comboBoxValues.get(index))
 						.equals(((String) ComboBox.getSelectionModel().getSelectedItem()));
@@ -634,10 +639,16 @@ public class FXUtils {
 				findIndexOfSelectedItem = index -> ((LocationDto) comboBoxValues.get(index)).getName().equals(
 						selectedValue) || ((LocationDto) comboBoxValues.get(index)).getCode().equals(selectedValue);
 			} else if (comboBoxValues.get(0) instanceof GenderDto) {
-				findIndexOfSelectedItem = index -> ((GenderDto) comboBoxValues.get(index)).getGenderName()
+				findIndexOfSelectedItem = index -> ((GenderDto) comboBoxValues.get(index)).getCode()
 						.equals(selectedValue);
 			} else if (comboBoxValues.get(0) instanceof DocumentCategoryDto) {
 				findIndexOfSelectedItem = index -> ((DocumentCategoryDto) comboBoxValues.get(index)).getName()
+						.equals(selectedValue);
+			} else if (comboBoxValues.get(0) instanceof IndividualTypeDto) {
+				findIndexOfSelectedItem = index -> ((IndividualTypeDto) comboBoxValues.get(index)).getCode()
+						.equals(selectedValue);
+			} else if(comboBoxValues.get(0) instanceof String) {
+				findIndexOfSelectedItem = index -> ((String) comboBoxValues.get(index))
 						.equals(selectedValue);
 			}
 
@@ -672,6 +683,8 @@ public class FXUtils {
 					value = ((DocumentCategoryDto) object).getName();
 				} else if (object instanceof BiometricAttributeDto) {
 					value = ((BiometricAttributeDto) object).getName();
+				} else if (object instanceof IndividualTypeDto) {
+					value = ((IndividualTypeDto) object).getName();
 				}
 				return value;
 			}

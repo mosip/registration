@@ -16,4 +16,7 @@ import io.mosip.registration.entity.id.IndividualTypeId;
 public interface IndividualTypeRepository extends BaseRepository<IndividualType, IndividualTypeId> {
 	List<IndividualType> findByIndividualTypeIdCodeAndIndividualTypeIdLangCodeAndIsActiveTrue(String code,
 			String langCode);
+	
+	List<IndividualType> findByIndividualTypeIdLangCodeAndIsActiveTrue(String langCode);
+
 }

@@ -125,6 +125,9 @@ public interface MasterSyncService {
 	 * @throws RegBaseCheckedException
 	 */
 	List<IndividualTypeDto> getIndividualType(String code, String langCode) throws RegBaseCheckedException;
+	
+	
+	List<IndividualTypeDto> getIndividualType(String langCode) throws RegBaseCheckedException;
 
 	/**
 	 * Gets the biometric type.

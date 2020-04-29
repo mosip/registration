@@ -455,6 +455,31 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 		return listOfIndividualDTO;
 	}
 
+	
+	/**
+	 * Gets the individual type.
+	 *
+	 * @param code     the code
+	 * @param langCode the lang code
+	 * @return the individual type
+	 * @throws RegBaseCheckedException
+	 */
+	@Override
+	public List<IndividualTypeDto> getIndividualType(String langCode) throws RegBaseCheckedException {
+		List<IndividualTypeDto> listOfIndividualDTO = new ArrayList<>();
+
+			List<IndividualType> masterDocuments = masterSyncDao.getIndividulType(langCode);
+
+			masterDocuments.forEach(individual -> {
+				IndividualTypeDto individualDto = new IndividualTypeDto();
+				individualDto.setName(individual.getName());
+				individualDto.setCode(individual.getIndividualTypeId().getCode());
+				individualDto.setLangCode(individual.getIndividualTypeId().getLangCode());
+				listOfIndividualDTO.add(individualDto);
+			});
+		return listOfIndividualDTO;
+	}
+
 	/**
 	 * Gets the biometric type.
 	 *
