@@ -656,6 +656,7 @@ public class FingerPrintCaptureController extends BaseController implements Init
 	@SuppressWarnings("unchecked")
 	public void clearImage() {
 
+		scanBtn.setDisable(true);
 		exceptionFingersCount();
 
 		List<BiometricExceptionDTO> tempExceptionList = (List<BiometricExceptionDTO>) SessionContext.map()
@@ -700,20 +701,28 @@ public class FingerPrintCaptureController extends BaseController implements Init
 			leftHandGreaterPane.setDisable(true);
 			removeFingerPrint(RegistrationConstants.FINGERPRINT_SLAB_LEFT, leftHandPalmImageview, leftSlapQualityScore,
 					RegistrationConstants.LEFTPALM_IMG_PATH, leftSlapAttempt);
-
+		}else {
+			leftHandGreaterPane.setDisable(false);
 		}
+		
 		if (rightMap.size() == 4) {
 			rightHandGreaterPane.setDisable(true);
 			removeFingerPrint(RegistrationConstants.FINGERPRINT_SLAB_RIGHT, rightHandPalmImageview,
 					rightSlapQualityScore, RegistrationConstants.RIGHTPALM_IMG_PATH, rightSlapAttempt);
 
+		}else {
+			rightHandGreaterPane.setDisable(false);
 		}
+		
 		if (thumbMap.size() == 2) {
 			twoThumbGreaterPane.setDisable(true);
 			removeFingerPrint(RegistrationConstants.FINGERPRINT_SLAB_THUMBS, thumbImageview, thumbsQualityScore,
 					RegistrationConstants.THUMB_IMG_PATH, thumbSlapAttempt);
 
+		}else {
+			twoThumbGreaterPane.setDisable(false);
 		}
+		
 		if ((tempExceptionList == null || tempExceptionList.isEmpty())
 				&& !(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER) && (Boolean) SessionContext
 						.userContext().getUserMap().get(RegistrationConstants.TOGGLE_BIO_METRIC_EXCEPTION)) {

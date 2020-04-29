@@ -1400,9 +1400,9 @@ public class DemographicDetailController extends BaseController {
 						}
 
 						updatePageFlow(RegistrationConstants.GUARDIAN_BIOMETRIC, false);
-						updateBioPageFlow(RegistrationConstants.FINGERPRINT_DISABLE_FLAG,
-								RegistrationConstants.FINGERPRINT_CAPTURE);
-						updateBioPageFlow(RegistrationConstants.IRIS_DISABLE_FLAG, RegistrationConstants.IRIS_CAPTURE);
+						//updateBioPageFlow(RegistrationConstants.FINGERPRINT_DISABLE_FLAG,
+						//		RegistrationConstants.FINGERPRINT_CAPTURE);
+						//updateBioPageFlow(RegistrationConstants.IRIS_DISABLE_FLAG, RegistrationConstants.IRIS_CAPTURE);
 
 						// parentFieldValidation();
 					}

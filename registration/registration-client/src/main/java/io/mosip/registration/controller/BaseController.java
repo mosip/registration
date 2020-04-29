@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -1603,16 +1604,13 @@ public class BaseController {
 		this.isAckOpened = isAckOpened;
 	}
 
-	protected void loadUIElementsFromSchema() {
+	public void loadUIElementsFromSchema() {
 
 		try {
 			List<UiSchemaDTO> schemaFields = identitySchemaService.getLatestEffectiveUISchema();
-			Map<String, UiSchemaDTO> validationsMap = new HashMap<>();
-			// List<String> neglectTypes = Arrays.asList("documentType", "biometricsType");
+			Map<String, UiSchemaDTO> validationsMap = new LinkedHashMap<>();
 			for (UiSchemaDTO schemaField : schemaFields) {
-				// if (!neglectTypes.contains(schemaField.getType())) {
 				validationsMap.put(schemaField.getId(), schemaField);
-				// }
 			}
 			validations.setValidations(validationsMap); // Set Validations Map
 
