@@ -737,7 +737,6 @@ public class DemographicDetailController extends BaseController {
 			hasToBeTransliterated = false;
 		}
 
-		SessionContext.userMap().put(RegistrationConstants.TOGGLE_BIO_METRIC_EXCEPTION, false);
 		listOfFields = new ArrayList<>();
 
 		try {
@@ -802,7 +801,7 @@ public class DemographicDetailController extends BaseController {
 			ObservableList<Node> parentFlow = parentFlowPane.getChildren();
 			for (Entry<String, UiSchemaDTO> entry : schemaMap.entrySet()) {
 
-				if (!entry.getValue().getId().matches("IDSchemaVersion|UIN")) {
+				if (isDemographicField(entry.getValue()) ) {
 					GridPane mainGridPane = mainGridPane(entry.getValue());
 					parentFlow.add(mainGridPane);
 
@@ -2470,5 +2469,10 @@ public class DemographicDetailController extends BaseController {
 			}
 		}
 
+	}
+	
+	private boolean isDemographicField(UiSchemaDTO schemaField) {
+		return (schemaField.isInputRequired() && 
+				!( schemaField.getType().equalsIgnoreCase("biometricsType") || schemaField.getType().equalsIgnoreCase("documentType")));
 	}
 }
