@@ -145,7 +145,7 @@ public class RegistrationController extends BaseController {
 	 */
 	private void uinUpdate() {
 		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
-			demographicDetailController.uinUpdate();
+			//demographicDetailController.uinUpdate();
 		}
 	}
 
@@ -169,7 +169,7 @@ public class RegistrationController extends BaseController {
 		try {
 			LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, "Preparing the Edit page content");
-			demographicDetailController.prepareEditPageContent();
+			//demographicDetailController.prepareEditPageContent();
 			documentScanController.prepareEditPageContent();
 			SessionContext.map().put(RegistrationConstants.REGISTRATION_ISEDIT, false);
 		} catch (RuntimeException runtimeException) {
@@ -259,7 +259,7 @@ public class RegistrationController extends BaseController {
 				RegistrationConstants.APPLICATION_ID, "saving the details of applicant biometrics");
 		boolean isValid = true;
 		if (!(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
-			isValid = demographicDetailController.validateThisPane();
+			isValid = true; // demographicDetailController.validateThisPane();
 			if (isValid && RegistrationConstants.ENABLE
 					.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.DOC_DISABLE_FLAG))) {
 				isValid = validateDemographicPane(documentScanController.documentScanPane);
@@ -423,12 +423,6 @@ public class RegistrationController extends BaseController {
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID, 
 				"Registration Started for RID  : [ " + registrationDTO.getRegistrationId() + " ] ");
 		
-		//TODO - remove
-		DemographicDTO demographicDTO = new DemographicDTO();
-		DemographicInfoDTO demographicInfoDTO = new DemographicInfoDTO();
-		demographicInfoDTO.setIdentity(new Identity());
-		demographicDTO.setDemographicInfoDTO(demographicInfoDTO);
-		registrationDTO.setDemographicDTO(demographicDTO);
 		// Put the RegistrationDTO object to SessionContext Map
 		SessionContext.map().put(RegistrationConstants.REGISTRATION_DATA, registrationDTO);
 	}

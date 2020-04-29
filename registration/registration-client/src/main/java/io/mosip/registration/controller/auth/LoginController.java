@@ -191,8 +191,6 @@ public class LoginController extends BaseController implements Initializable {
 
 		versionValueLabel.setText(softwareUpdateHandler.getCurrentVersion());
 		
-		loadUIElementsFromSchema();
-		
 		if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
 
 			// Check for updates
@@ -257,13 +255,14 @@ public class LoginController extends BaseController implements Initializable {
 		try {
 
 			LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, "Retrieve Login mode");
-
+			
 			fXComponents.setStage(primaryStage);
 
 			validations.setResourceBundle();
 			loginRoot = BaseController.load(getClass().getResource(RegistrationConstants.INITIAL_PAGE));
 
 			scene = getScene(loginRoot);
+			loadUIElementsFromSchema();
 			pageFlow.getInitialPageDetails();
 			Screen screen = Screen.getPrimary();
 			Rectangle2D bounds = screen.getVisualBounds();

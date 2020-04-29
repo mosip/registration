@@ -1,7 +1,9 @@
 package io.mosip.registration.dto;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,24 +52,26 @@ public class RegistrationDTO {
 
 	/** The acknowledge receipt name. */
 	private String acknowledgeReceiptName;
-	
-	//TODO - field to be removed
-	private DemographicDTO demographicDTO;
-	
-	
+		
 	public void addDemographicField(String fieldId, Object value) {
-		this.demographics.put(fieldId, value);
+		this.demographics.put(fieldId, (value != null) ? value : null);
 	}
 	
 	public void addDemographicField(String fieldId, String language, String value) {
-		this.demographics.put(fieldId, new ValuesDTO(language, value));
+		this.demographics.put(fieldId, new ValuesDTO(language, (value != null && !value.isEmpty()) ? 
+					value : null));
 	}
 	
-	public void addDemographicField(String fieldId, String applicationLanguage, String applicationValue,
+	public void addDemographicField(String fieldId, String applicationLanguage, String value,
 			String localLanguage, String localValue) {
-		ValuesDTO valuesDTO[] = {new ValuesDTO(applicationLanguage, applicationValue), 
-									new ValuesDTO(localLanguage, localValue)};		
-		this.demographics.put(fieldId, Arrays.asList(valuesDTO));
+		List<ValuesDTO> values = new ArrayList<>();
+		if(value != null && !value.isEmpty())
+			values.add(new ValuesDTO(applicationLanguage, value));
+		
+		if(localValue != null && !localValue.isEmpty())
+			values.add(new ValuesDTO(localLanguage, localValue));
+	
+		this.demographics.put(fieldId, values);
 	}
 	
 	public void removeDemographicField(String fieldId) {
@@ -76,5 +80,24 @@ public class RegistrationDTO {
 	
 	public void addDocument(String fieldId, DocumentDetailsDTO value) {
 		this.documents.put(fieldId, value);
+	}
+	
+	public Map<String, Object> getIdentity() {
+		Map<String, Object> allIdentityDetails = new LinkedHashMap<String, Object>();
+		allIdentityDetails.put("IDSchemaVersion", idSchemaVersion);
+		if(registrationMetaDataDTO.getUin() != null)
+			allIdentityDetails.put("UIN", registrationMetaDataDTO.getUin());
+		
+		allIdentityDetails.putAll(this.demographics);
+		allIdentityDetails.putAll(this.documents);
+		
+		if(biometricDTO.getApplicantBiometrics() != null)
+			allIdentityDetails.put("applicantBiometrics", biometricDTO.getApplicantBiometrics());
+		if(biometricDTO.getIntroducerBiometrics() != null)
+			allIdentityDetails.put("introducerBiometrics", biometricDTO.getIntroducerBiometrics());
+				
+		Map<String, Object> identity = new LinkedHashMap<String, Object>();
+		identity.put("identity", allIdentityDetails);
+		return identity;	
 	}
 }

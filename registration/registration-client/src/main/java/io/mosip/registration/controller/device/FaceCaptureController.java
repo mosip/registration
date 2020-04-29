@@ -170,7 +170,6 @@ public class FaceCaptureController extends BaseController implements Initializab
 				"Loading of FaceCapture screen started");
 
 		disablePaneOnBioAttributes(applicantImagePane, Arrays.asList(RegistrationConstants.FACE.toLowerCase()));
-
 		setImagesOnHover();
 
 		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getSelectionListDTO() != null) {

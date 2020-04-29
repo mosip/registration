@@ -12,8 +12,8 @@ import lombok.Setter;
  * @author YASWANTH S
  *
  */
-@Getter
 @Setter
+@Getter
 public class Validator {
 
 	/**

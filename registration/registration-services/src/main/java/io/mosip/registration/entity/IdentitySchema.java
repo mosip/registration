@@ -1,6 +1,7 @@
 package io.mosip.registration.entity;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 import javax.persistence.Column;
@@ -39,6 +40,6 @@ public class IdentitySchema implements Serializable {
 
 	/** The effective from. */
 	@Column(name = "effective_from")
-	private LocalDateTime effectiveFrom;	
+	private Timestamp effectiveFrom;	
 
 }

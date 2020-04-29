@@ -169,9 +169,8 @@ public class IrisCaptureController extends BaseController {
 	@FXML
 	public void initialize() {
 
-		disablePaneOnBioAttributes(rightIrisPane, Arrays.asList(RegistrationConstants.leftEyeUiAttribute));
-		disablePaneOnBioAttributes(leftIrisPane, Arrays.asList(RegistrationConstants.rightEyeUiAttribute));
-
+		disablePaneOnBioAttributes(leftIrisPane, Arrays.asList(RegistrationConstants.leftEyeUiAttribute));
+		disablePaneOnBioAttributes(rightIrisPane, Arrays.asList(RegistrationConstants.rightEyeUiAttribute));
 		leftIrisCount = 0;
 		rightIrisCount = 0;
 		try {
@@ -944,13 +943,13 @@ public class IrisCaptureController extends BaseController {
 			boolean isValid = false;
 
 			boolean isRightEyeCaptured = isAvailableInBioAttributes(
-					Arrays.asList(RegistrationConstants.leftEyeUiAttribute))
+					Arrays.asList(RegistrationConstants.rightEyeUiAttribute))
 							? !isRightEyeException(getIrisExceptions()) ? isValidRightEyeCaptured(irisDetailsDTOs)
 									: true
 							: true;
 
 			boolean isLeftEyeCaptured = isAvailableInBioAttributes(
-					Arrays.asList(RegistrationConstants.rightEyeUiAttribute))
+					Arrays.asList(RegistrationConstants.leftEyeUiAttribute))
 							? !isLeftEyeException(getIrisExceptions()) ? isValidLeftEyeCaptured(irisDetailsDTOs) : true
 							: true;
 
@@ -1114,10 +1113,10 @@ public class IrisCaptureController extends BaseController {
 	}
 
 	private void singleBiometricCaptureCheck() {
-
-		if (!(validateIris(getIrises()))) {
-			continueBtn.setDisable(true);
-		}
+		continueBtn.setDisable(true);
+		if (validateIris(getIrises())) {
+			continueBtn.setDisable(false);
+		}			
 
 		long irisCountIntroducer = 0;
 

@@ -5,12 +5,9 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.StringWriter;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.sql.Timestamp;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -22,6 +19,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dao.IdentitySchemaDao;
@@ -47,7 +45,7 @@ public class IdentitySchemaDaoImpl implements IdentitySchemaDao {
 	
 	@Override
 	public Double getLatestEffectiveSchemaVersion() throws RegBaseCheckedException {
-		Double idVersion = identitySchemaRepository.findLatestEffectiveIdVersion(LocalDateTime.now());
+		Double idVersion = identitySchemaRepository.findLatestEffectiveIdVersion(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
 		
 		if(idVersion == null)
 			throw new RegBaseCheckedException(SchemaMessage.SCHEMA_NOT_SYNCED.getCode(), 
@@ -58,7 +56,7 @@ public class IdentitySchemaDaoImpl implements IdentitySchemaDao {
 
 	@Override
 	public IdentitySchema getLatestEffectiveIdentitySchema() {
-		return identitySchemaRepository.findLatestEffectiveIdentitySchema(LocalDateTime.now(ZoneOffset.UTC));
+		return identitySchemaRepository.findLatestEffectiveIdentitySchema(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
 	}
 
 	@Override
@@ -120,7 +118,7 @@ public class IdentitySchemaDaoImpl implements IdentitySchemaDao {
 		
 		IdentitySchema identitySchema = new IdentitySchema();
 		identitySchema.setId(schemaReponseDto.getId());
-		identitySchema.setEffectiveFrom(schemaReponseDto.getEffectiveFrom());
+		identitySchema.setEffectiveFrom(Timestamp.valueOf(schemaReponseDto.getEffectiveFrom()));
 		identitySchema.setFileName(getFileName(schemaReponseDto.getIdVersion()));
 		identitySchema.setIdVersion(schemaReponseDto.getIdVersion());
 		identitySchema.setFileHash(CryptoUtil.computeFingerPrint(content, null).toLowerCase());

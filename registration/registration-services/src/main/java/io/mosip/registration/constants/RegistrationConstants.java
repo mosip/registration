@@ -1442,7 +1442,7 @@ public class RegistrationConstants {
 	public static final String PUBLIC_KEY = "publicKey";
 	public static final String PUBLIC_KEY_REST = "public_key";
 	public static final String KER = "SIGN";
-	public static final String DTAE_MONTH_YEAR_REGEX = "dd|mm|yyyy|ddLocalLanguage|mmLocalLanguage|yyyyLocalLanguage|ageField";
+	public static final String DTAE_MONTH_YEAR_REGEX = "dd|mm|yyyy|ddLocalLanguage|mmLocalLanguage|yyyyLocalLanguage|ageField|dob";
 
 	public static final String UIN_UPDATE_PARENTGUARDIAN_DETAILS = "parentOrGuardianDetails";
 
@@ -1618,6 +1618,7 @@ public class RegistrationConstants {
 	public static final String SERVER_NO_PROFILE = "NO_PROFILE";
 	public static final String SERVER_ACTIVE_PROFILE = "mosip.registration.server_profile";
 
+	
 	public static final String applicantBiometricDTO = "applicantBiometricDTO";
 	public static final String introducerBiometricDTO = "introducerBiometricDTO";
 	public static final String supervisorBiometricDTO = "supervisorBiometricDTO";

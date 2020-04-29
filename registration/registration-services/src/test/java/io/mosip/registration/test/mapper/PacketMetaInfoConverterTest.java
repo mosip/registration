@@ -92,7 +92,7 @@ public class PacketMetaInfoConverterTest {
 		DemographicInfoDTO demographicInfoDTO = new DemographicInfoDTO();
 		demographicInfoDTO.setIdentity(new Identity());
 		demographicDTO.setDemographicInfoDTO(demographicInfoDTO);
-		registrationDTO.setDemographicDTO(demographicDTO);
+		//registrationDTO.setDemographicDTO(demographicDTO);
 		BiometricDTO biometricDTO = new BiometricDTO();
 		BiometricInfoDTO biometricInfoDTO = new BiometricInfoDTO();
 		FaceDetailsDTO faceDetailsDTO = new FaceDetailsDTO();		
