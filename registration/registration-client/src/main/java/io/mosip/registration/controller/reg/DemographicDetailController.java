@@ -1415,7 +1415,6 @@ public class DemographicDetailController extends BaseController {
 					ageField.getStyleClass().remove("demoGraphicFieldLabelOnType");
 					dobMessage.setText(RegistrationUIConstants.INVALID_AGE + maxAge);
 					dobMessage.setVisible(true);
-					dobMessage.setStyle("-fx-background-color:BLUE");
 
 					generateAlert(dobParentPane, RegistrationConstants.DOB, dobMessage.getText());
 					// parentFieldValidation();
