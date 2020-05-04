@@ -88,9 +88,9 @@ public class ZipCreationServiceTest {
 		documentDetailsResidenceDTO.setFormat("jpg");
 		documentDetailsResidenceDTO.setValue("ProofOfRelationship");
 		documentDetailsResidenceDTO.setOwner("hof");
-		registrationDTO.getDemographicDTO().getApplicantDocumentDTO().getDocuments().put("doc",
+		registrationDTO.getDocuments().put("doc",
 				documentDetailsResidenceDTO);
-		registrationDTO.getDemographicDTO().getApplicantDocumentDTO().getDocuments().put("doc2",
+		registrationDTO.getDocuments().put("doc2",
 				documentDetailsResidenceDTO);
 
 		zipCreationService.createPacket(registrationDTO, filesGeneratedForPacket);
@@ -111,7 +111,7 @@ public class ZipCreationServiceTest {
 		DemographicInfoDTO demographicInfoDTO = new DemographicInfoDTO();
 		demographicInfoDTO.setIdentity(new IndividualIdentity());
 		demographicDTO.setDemographicInfoDTO(demographicInfoDTO);
-		registrationDTO.setDemographicDTO(demographicDTO);
+		//registrationDTO.setDemographicDTO(demographicDTO);
 		BiometricDTO biometricDTO = new BiometricDTO();
 		BiometricInfoDTO biometricInfoDTO = new BiometricInfoDTO();
 		FaceDetailsDTO faceDetailsDTO = new FaceDetailsDTO();

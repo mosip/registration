@@ -139,6 +139,8 @@ public class JobConfigurationServiceTest {
 		applicationMap.put(RegistrationConstants.unTaggedJobs, "PDS_J00003");
 
 		applicationMap.put(RegistrationConstants.restartableJobs, "RCS_J00005");
+		
+		applicationMap.put(RegistrationConstants.IS_REGISTRATION_JOBS_SCHEDULER_ENABLED, "Y");
 
 		// PowerMockito.mockStatic(io.mosip.registration.context.ApplicationContext.class);
 		// when(io.mosip.registration.context.ApplicationContext.map()).thenReturn(applicationMap);

@@ -6,10 +6,10 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>post-processor</artifactId>
-		<version>1.0.6</version>
+		<version>1.0.9</version>
 	</parent>
 	<artifactId>registration-processor-printing-stage</artifactId>
-	 <version>1.0.6</version>
+	 <version>1.0.9</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -118,6 +118,16 @@
 			<groupId>io.mosip.registrationprocessor</groupId>
 			<artifactId>registration-processor-packet-manager</artifactId>
 			<version>${packet.manager.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-core</artifactId>
+			<version>${io.micrometer.prometheus.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+			<version>${io.micrometer.prometheus.version}</version>
 		</dependency>
 	</dependencies>
 	<build>

@@ -7,11 +7,11 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>init</artifactId>
-		<version>1.0.6</version>
+		<version>1.0.9</version>
 	</parent>
 
 	<artifactId>registration-processor-packet-receiver-stage</artifactId>
-	 <version>1.0.6</version>
+	 <version>1.0.9</version>
 	<name>registration-processor-packet-receiver-stage</name>
 
 	<properties>
@@ -54,13 +54,11 @@
 			<version>${vertx.version}</version>
 			<scope>test</scope>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/io.vertx/vertx-web-client -->
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-web-client</artifactId>
 			<version>3.6.2</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpmime -->
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpmime</artifactId>
@@ -121,6 +119,17 @@
 			<artifactId>kernel-virusscanner-clamav</artifactId>
 			<version>${kernel.clamav.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-core</artifactId>
+			<version>${io.micrometer.prometheus.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+			<version>${io.micrometer.prometheus.version}</version>
+		</dependency>
+
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>

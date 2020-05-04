@@ -187,6 +187,9 @@ public class PacketInfoMapper {
 				}
 			}
 			entity.setGender(getHMACHashCode(getJsonValues(demoDto.getGender(), languageArray[i])));
+			entity.setPhone(getHMACHashCode(demoDto.getPhone()));
+			entity.setEmail(getHMACHashCode(demoDto.getEmail()));
+			entity.setPostalCode(getHMACHashCode(demoDto.getPostalCode()));
 			demogrphicDedupeEntities.add(entity);
 
 		}
@@ -456,7 +459,6 @@ public class PacketInfoMapper {
 		abisResDetDto.setCrDtimes(entity.getCrDtimes());
 		abisResDetDto.setDelDtimes(entity.getDelDtimes());
 		abisResDetDto.setIsDeleted(entity.getIsDeleted());
-		abisResDetDto.setScore(entity.getScore());
 		abisResDetDto.setUpdBy(entity.getUpdBy());
 		abisResDetDto.setUpdDtimes(entity.getUpdDtimes());
 		return abisResDetDto;
@@ -480,7 +482,6 @@ public class PacketInfoMapper {
 		}
 		entity.setDelDtimes(abisResponseDetDto.getDelDtimes());
 		entity.setIsDeleted(abisResponseDetDto.getIsDeleted());
-		entity.setScore(abisResponseDetDto.getScore());
 		entity.setUpdBy(abisResponseDetDto.getUpdBy());
 		entity.setUpdDtimes(LocalDateTime.now(ZoneId.of("UTC")));
 

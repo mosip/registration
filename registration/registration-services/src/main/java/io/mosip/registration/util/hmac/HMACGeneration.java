@@ -63,28 +63,27 @@ public class HMACGeneration {
 				RegistrationConstants.DEMOGRPAHIC_JSON_NAME, sequence.getDemographicSequence().getApplicant());
 
 		// generates demographic hash
-		if (registrationDTO.getDemographicDTO() != null) {
-			generateDemographicHash(registrationDTO.getDemographicDTO(), sequence.getDemographicSequence());
+		if (registrationDTO.getDocuments() != null) {
+			generateDemographicHash(registrationDTO, sequence.getDemographicSequence());
 		}
 
 		// generated hash
 		return HMACUtils.digestAsPlainText(HMACUtils.updatedHash()).getBytes();
 	}
 
-	private static void generateDemographicHash(final DemographicDTO demographicDTO,
+	private static void generateDemographicHash(final RegistrationDTO registrationDTO,
 			final DemographicSequence demographicSequence) {
 		List<String> hashOrder = demographicSequence.getApplicant();
 
 		// generates applicant document hash
-		for (Entry<String, DocumentDetailsDTO> documentCategory : demographicDTO.getApplicantDocumentDTO()
-				.getDocuments().entrySet()) {
+		for (Entry<String, DocumentDetailsDTO> documentCategory : registrationDTO.getDocuments().entrySet()) {
 			generateHash(documentCategory.getValue().getDocument(), documentCategory.getValue().getValue(), hashOrder);
 		}
 
 		// Hash for Acknowledgement Receipt
-		byte[] registrationAck = demographicDTO.getApplicantDocumentDTO().getAcknowledgeReceipt();
+		byte[] registrationAck = registrationDTO.getAcknowledgeReceipt();
 		if (registrationAck != null) {
-			generateHash(registrationAck, demographicDTO.getApplicantDocumentDTO().getAcknowledgeReceiptName(),
+			generateHash(registrationAck, registrationDTO.getAcknowledgeReceiptName(),
 					hashOrder);
 		}
 	}

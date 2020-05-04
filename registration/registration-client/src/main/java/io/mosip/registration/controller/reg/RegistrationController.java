@@ -49,6 +49,7 @@ import io.mosip.registration.dto.demographic.DemographicDTO;
 import io.mosip.registration.dto.demographic.DemographicInfoDTO;
 import io.mosip.registration.dto.demographic.Identity;
 import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.update.SoftwareUpdateHandler;
 import javafx.fxml.FXML;
@@ -113,6 +114,9 @@ public class RegistrationController extends BaseController {
 	
 	@Autowired
 	private SoftwareUpdateHandler softwareUpdateHandler;
+	
+	@Autowired
+	private IdentitySchemaService identitySchemaService;
 
 	/*
 	 * (non-Javadoc)
@@ -141,7 +145,7 @@ public class RegistrationController extends BaseController {
 	 */
 	private void uinUpdate() {
 		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
-			demographicDetailController.uinUpdate();
+			//demographicDetailController.uinUpdate();
 		}
 	}
 
@@ -165,7 +169,7 @@ public class RegistrationController extends BaseController {
 		try {
 			LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, "Preparing the Edit page content");
-			demographicDetailController.prepareEditPageContent();
+			//demographicDetailController.prepareEditPageContent();
 			documentScanController.prepareEditPageContent();
 			SessionContext.map().put(RegistrationConstants.REGISTRATION_ISEDIT, false);
 		} catch (RuntimeException runtimeException) {
@@ -255,7 +259,7 @@ public class RegistrationController extends BaseController {
 				RegistrationConstants.APPLICATION_ID, "saving the details of applicant biometrics");
 		boolean isValid = true;
 		if (!(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
-			isValid = demographicDetailController.validateThisPane();
+			isValid = true; // demographicDetailController.validateThisPane();
 			if (isValid && RegistrationConstants.ENABLE
 					.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.DOC_DISABLE_FLAG))) {
 				isValid = validateDemographicPane(documentScanController.documentScanPane);
@@ -382,42 +386,22 @@ public class RegistrationController extends BaseController {
 	 */
 	protected void createRegistrationDTOObject(String registrationCategory) {
 		RegistrationDTO registrationDTO = new RegistrationDTO();
-
-		// Create objects for Biometric DTOS
-		BiometricDTO biometricDTO = new BiometricDTO();
-		biometricDTO.setApplicantBiometricDTO(createBiometricInfoDTO());
-		biometricDTO.setIntroducerBiometricDTO(createBiometricInfoDTO());
-		biometricDTO.setOperatorBiometricDTO(createBiometricInfoDTO());
-		biometricDTO.setSupervisorBiometricDTO(createBiometricInfoDTO());
-		registrationDTO.setBiometricDTO(biometricDTO);
-
-		// Create object for Demographic DTOS
-		DemographicDTO demographicDTO = new DemographicDTO();
-		ApplicantDocumentDTO applicantDocumentDTO = new ApplicantDocumentDTO();
-		applicantDocumentDTO.setDocuments(new HashMap<>());
-
-		demographicDTO.setApplicantDocumentDTO(applicantDocumentDTO);
-		DemographicInfoDTO demographicInfoDTO = new DemographicInfoDTO();
-		Identity identity = new Identity();
-		demographicInfoDTO.setIdentity(identity);
-		demographicDTO.setDemographicInfoDTO(demographicInfoDTO);
-
-		applicantDocumentDTO.setDocuments(new HashMap<>());
-
-		registrationDTO.setDemographicDTO(demographicDTO);
+		
+		//set id-schema version to be followed for this registration
+		try {
+			registrationDTO.setIdSchemaVersion(identitySchemaService.getLatestEffectiveSchemaVersion());
+		} catch(RegBaseCheckedException e) {
+			generateAlert(RegistrationConstants.ERROR, "Published Identity Schema is required"); //TODO
+		}				
 
 		// Create object for OSIData DTO
 		registrationDTO.setOsiDataDTO(new OSIDataDTO());
 
-		// Create object for RegistrationMetaData DTO
+		// Create RegistrationMetaData DTO & set default values in it
 		RegistrationMetaDataDTO registrationMetaDataDTO = new RegistrationMetaDataDTO();
-		registrationMetaDataDTO.setRegistrationCategory(registrationCategory);
-		
-		// setting the reg client version
+		registrationMetaDataDTO.setRegistrationCategory(registrationCategory);		
 		registrationMetaDataDTO.setRegClientVersionNumber(softwareUpdateHandler.getCurrentVersion());
-
 		RegistrationCenterDetailDTO registrationCenter = SessionContext.userContext().getRegistrationCenterDetailDTO();
-
 		if (RegistrationConstants.ENABLE
 				.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.GPS_DEVICE_DISABLE_FLAG))) {
 			registrationMetaDataDTO
@@ -426,38 +410,21 @@ public class RegistrationController extends BaseController {
 					.setGeoLongitudeLoc(Double.parseDouble(registrationCenter.getRegistrationCenterLongitude()));
 		}
 
-		Map<String, Object> applicationContextMap = ApplicationContext.map();
-
-		registrationMetaDataDTO.setCenterId((String) applicationContextMap.get(RegistrationConstants.USER_CENTER_ID));
-		registrationMetaDataDTO.setMachineId((String) applicationContextMap.get(RegistrationConstants.USER_STATION_ID));
-		registrationMetaDataDTO
-				.setDeviceId((String) applicationContextMap.get(RegistrationConstants.DONGLE_SERIAL_NUMBER));
-
+		registrationMetaDataDTO.setCenterId((String) ApplicationContext.map().get(RegistrationConstants.USER_CENTER_ID));
+		registrationMetaDataDTO.setMachineId((String) ApplicationContext.map().get(RegistrationConstants.USER_STATION_ID));
+		registrationMetaDataDTO.setDeviceId((String) ApplicationContext.map().get(RegistrationConstants.DONGLE_SERIAL_NUMBER));
 		registrationDTO.setRegistrationMetaDataDTO(registrationMetaDataDTO);
 
 		// Set RID
 		String registrationID = ridGeneratorImpl.generateId(registrationMetaDataDTO.getCenterId(),
 				registrationMetaDataDTO.getMachineId());
-
-		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
-				RegistrationConstants.APPLICATION_ID, "Registration Started for RID  : [ " + registrationID + " ] ");
-
 		registrationDTO.setRegistrationId(registrationID);
+
+		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID, 
+				"Registration Started for RID  : [ " + registrationDTO.getRegistrationId() + " ] ");
+		
 		// Put the RegistrationDTO object to SessionContext Map
 		SessionContext.map().put(RegistrationConstants.REGISTRATION_DATA, registrationDTO);
-	}
-
-	/**
-	 * This method will create the biometrics info DTO
-	 */
-	protected BiometricInfoDTO createBiometricInfoDTO() {
-		BiometricInfoDTO biometricInfoDTO = new BiometricInfoDTO();
-		biometricInfoDTO.setBiometricExceptionDTO(new ArrayList<>());
-		biometricInfoDTO.setFingerprintDetailsDTO(new ArrayList<>());
-		biometricInfoDTO.setIrisDetailsDTO(new ArrayList<>());
-		biometricInfoDTO.setFace(new FaceDetailsDTO());
-		biometricInfoDTO.setExceptionFace(new FaceDetailsDTO());
-		return biometricInfoDTO;
 	}
 
 	/**

@@ -437,39 +437,13 @@ public class BiometricExceptionController extends BaseController implements Init
 		List<String> bioList = new ArrayList<>();
 		bioList.addAll(fingerList);
 		bioList.addAll(irisList);
+		
 		List<BiometricExceptionDTO> biometricExceptionList = new ArrayList<>();
 		if (!bioList.isEmpty()) {
-			bioList.forEach(bioType -> {
-				BiometricExceptionDTO biometricExceptionDTO = new BiometricExceptionDTO();
-				if (bioType.contains(RegistrationConstants.EYE)) {
-					biometricExceptionDTO.setBiometricType(RegistrationConstants.IRIS.toLowerCase());
-				} else {
-					biometricExceptionDTO.setBiometricType(RegistrationConstants.FINGERPRINT);
-				}
-				biometricExceptionDTO.setMissingBiometric(bioType);
-				biometricExceptionDTO.setExceptionType(RegistrationConstants.PERMANENT_EXCEPTION);
-				biometricExceptionDTO.setReason(RegistrationConstants.MISSING_BIOMETRICS);
-				biometricExceptionDTO.setMarkedAsException(true);
-				if (!(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
-					biometricExceptionDTO
-							.setIndividualType((boolean) SessionContext.map().get(RegistrationConstants.IS_Child)
-									? RegistrationConstants.PARENT
-									: RegistrationConstants.INDIVIDUAL);
-				}
-				biometricExceptionList.add(biometricExceptionDTO);
-			});
-			SessionContext.map().put(RegistrationConstants.NEW_BIOMETRIC_EXCEPTION, biometricExceptionList);
-			if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)
-					|| (boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER_UPDATE)) {
-				((BiometricDTO) SessionContext.map().get(RegistrationConstants.USER_ONBOARD_DATA))
-						.getOperatorBiometricDTO().setBiometricExceptionDTO(biometricExceptionList);
-			} else if ((boolean) SessionContext.map().get(RegistrationConstants.IS_Child)) {
-				((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA)).getBiometricDTO()
-						.getIntroducerBiometricDTO().setBiometricExceptionDTO(biometricExceptionList);
-			} else {
-				((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA)).getBiometricDTO()
-						.getApplicantBiometricDTO().setBiometricExceptionDTO(biometricExceptionList);
-			}
+		
+			biometricExceptionList = getBiometricsExceptionList(bioList);
+			
+			addExceptionToRegistration(biometricExceptionList);
 
 		} else {
 			SessionContext.map().put(RegistrationConstants.NEW_BIOMETRIC_EXCEPTION, biometricExceptionList);
@@ -483,6 +457,45 @@ public class BiometricExceptionController extends BaseController implements Init
 		LOGGER.info("REGISTRATION - EXCEPTION_DTO_CREATION_END - BIOMETRIC_EXCEPTION_LISTENER", APPLICATION_NAME,
 				APPLICATION_ID, "End of exception dto creation functionality");
 
+	}
+
+	public void addExceptionToRegistration(List<BiometricExceptionDTO> biometricExceptionList) {
+		SessionContext.map().put(RegistrationConstants.NEW_BIOMETRIC_EXCEPTION, biometricExceptionList);
+		if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)
+				|| (boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER_UPDATE)) {
+			((BiometricDTO) SessionContext.map().get(RegistrationConstants.USER_ONBOARD_DATA))
+					.getOperatorBiometricDTO().setBiometricExceptionDTO(biometricExceptionList);
+		} else if ((boolean) SessionContext.map().get(RegistrationConstants.IS_Child)) {
+			((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA)).getBiometricDTO()
+					.getIntroducerBiometricDTO().setBiometricExceptionDTO(biometricExceptionList);
+		} else {
+			((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA)).getBiometricDTO()
+					.getApplicantBiometricDTO().setBiometricExceptionDTO(biometricExceptionList);
+		}
+	}
+
+	public List<BiometricExceptionDTO> getBiometricsExceptionList(List<String> bioList) {
+		List<BiometricExceptionDTO> biometricExceptionList = new ArrayList<>();
+		bioList.forEach(bioType -> {
+			BiometricExceptionDTO biometricExceptionDTO = new BiometricExceptionDTO();
+			if (bioType.contains(RegistrationConstants.EYE)) {
+				biometricExceptionDTO.setBiometricType(RegistrationConstants.IRIS.toLowerCase());
+			} else {
+				biometricExceptionDTO.setBiometricType(RegistrationConstants.FINGERPRINT);
+			}
+			biometricExceptionDTO.setMissingBiometric(bioType);
+			biometricExceptionDTO.setExceptionType(RegistrationConstants.PERMANENT_EXCEPTION);
+			biometricExceptionDTO.setReason(RegistrationConstants.MISSING_BIOMETRICS);
+			biometricExceptionDTO.setMarkedAsException(true);
+			if (!(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
+				biometricExceptionDTO
+						.setIndividualType((boolean) SessionContext.map().get(RegistrationConstants.IS_Child)
+								? RegistrationConstants.PARENT
+								: RegistrationConstants.INDIVIDUAL);
+			}
+			biometricExceptionList.add(biometricExceptionDTO);
+		});
+		return biometricExceptionList;
 	}
 
 	/**

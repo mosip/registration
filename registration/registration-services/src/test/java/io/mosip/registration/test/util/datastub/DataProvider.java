@@ -68,7 +68,8 @@ public class DataProvider {
 		registrationDTO.setPreRegistrationId("PEN1345T");
 		registrationDTO.setRegistrationId("10011100110016320190307151917");
 
-		registrationDTO.setDemographicDTO(DataProvider.getDemographicDTO());
+		//registrationDTO.setDemographicDTO(DataProvider.getDemographicDTO());
+		registrationDTO.setDemographics(new HashMap<String, Object>());
 		registrationDTO.setBiometricDTO(DataProvider.getBiometricDTO());
 		SelectionListDTO selectionListDTO=new SelectionListDTO();
 		selectionListDTO.setAge(true);
@@ -231,11 +232,10 @@ public class DataProvider {
 
 	private static DemographicDTO getDemographicDTO() throws RegBaseCheckedException {
 		DemographicDTO demographicDTO = new DemographicDTO();
-		demographicDTO.setApplicantDocumentDTO(DataProvider.setApplicantDocumentDTO());
+
 		demographicDTO.setDemographicInfoDTO(DataProvider.getDemoInLocalLang());
-		demographicDTO.getApplicantDocumentDTO().setDocuments(new HashMap<String, DocumentDetailsDTO>());
 		getDocumentDetailsDTO(demographicDTO.getDemographicInfoDTO().getIdentity(),
-				demographicDTO.getApplicantDocumentDTO().getDocuments());
+				new RegistrationDTO().getDocuments());
 		return demographicDTO;
 	}
 

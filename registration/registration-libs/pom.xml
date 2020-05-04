@@ -7,13 +7,13 @@
 	<parent>
 		<groupId>io.mosip.registration</groupId>
 		<artifactId>registration-parent</artifactId>
-		<version>1.0.8</version>
+		<version>1.0.9</version>
 	</parent>
 
 	<artifactId>registration-libs</artifactId>
 	<name>registration-libs</name>
 	<description>Maven project of MOSIP Registration library</description>
-	<version>1.0.8</version>
+	<version>1.0.9</version>
 	<properties>
 		<main.basedir>${project.parent.basedir}</main.basedir>
 		<mosip.core.kernel.version>1.0.6</mosip.core.kernel.version>
@@ -113,7 +113,7 @@
 				<artifactId>kernel-core</artifactId>
 				<version>${mosip.core.kernel.version}</version>
 			</dependency>
-			<!-- <dependency> <groupId>io.mosip</groupId> <artifactId>kernel-security</artifactId> 
+			<!-- <dependency> <groupId>io.mosip</groupId> <artifactId>kernel-security</artifactId>
 				<version>${project.version}</version> </dependency> -->
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>

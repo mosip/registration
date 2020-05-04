@@ -15,6 +15,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -146,7 +147,7 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 			// validate the input against the schema, mandatory, pattern and master data. if
 			// any error then stop the rest of the process
 			// and display error message to the user.
-			idObjectValidator.validateIdObject(registrationDTO.getDemographicDTO().getDemographicInfoDTO(),
+			idObjectValidator.validateIdObject(registrationDTO.getDemographics(),
 					registrationDTO.getRegistrationMetaDataDTO().getRegistrationCategory());
 
 			// Map object to store the UUID's generated for BIR in CBEFF
@@ -167,7 +168,7 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 						AuditReferenceIdTypes.REGISTRATION_ID.getReferenceTypeId());
 			}
 
-			cbeffInBytes = registrationDTO.getBiometricDTO().getApplicantBiometricDTO().getExceptionFace().getFace();
+			cbeffInBytes = registrationDTO.getBiometricDTO().getBiometricsMap().get("applicantBiometricDTO").getFace().getFace();
 			if (cbeffInBytes != null) {
 				if (registrationDTO.isUpdateUINChild()) {
 					filesGeneratedForPacket.put(RegistrationConstants.PARENT
@@ -206,12 +207,11 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 				}
 			}
 
-			// Convert the Document Name to Codes
-			setDocumentCodes(registrationDTO);
+			//TODO Not required, as we already set doc codes
+			//setDocumentCodes(registrationDTO);
 
-			// Generating Demographic JSON as byte array
-			filesGeneratedForPacket.put(DEMOGRPAHIC_JSON_NAME,
-					javaObjectToJsonString(registrationDTO.getDemographicDTO().getDemographicInfoDTO()).getBytes());
+			// Generating Demographic JSON as byte array			
+			filesGeneratedForPacket.put(DEMOGRPAHIC_JSON_NAME, javaObjectToJsonString(registrationDTO.getIdentity()).getBytes());
 
 			LOGGER.info(LOG_PKT_CREATION, APPLICATION_NAME, APPLICATION_ID,
 					String.format(loggerMessageForCBEFF, RegistrationConstants.DEMOGRPAHIC_JSON_NAME));
@@ -342,7 +342,7 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 						AuditReferenceIdTypes.REGISTRATION_ID.getReferenceTypeId());
 			}
 
-			cbeffInBytes = registrationDTO.getBiometricDTO().getIntroducerBiometricDTO().getExceptionFace().getFace();
+			cbeffInBytes = registrationDTO.getBiometricDTO().getBiometricsMap().get("applicantBiometricDTO").getFace().getFace();
 			if (cbeffInBytes != null) {
 				if (registrationDTO.isUpdateUINNonBiometric() && !registrationDTO.isUpdateUINChild()) {
 					filesGeneratedForPacket.put(RegistrationConstants.INDIVIDUAL
@@ -797,26 +797,6 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 							RegistrationExceptionConstants.REG_PKT_CREATE_NO_CBEFF_TAG_FLAG.getErrorCode(),
 							RegistrationExceptionConstants.REG_PKT_CREATE_NO_CBEFF_TAG_FLAG.getErrorMessage()));
 		}
-	}
-
-	private void setDocumentCodes(RegistrationDTO registrationDTO) {
-		IndividualIdentity individualIdentity = (IndividualIdentity) registrationDTO.getDemographicDTO()
-				.getDemographicInfoDTO().getIdentity();
-
-		setDocumentTypeCode(individualIdentity.getProofOfAddress());
-		setDocumentTypeCode(individualIdentity.getProofOfDateOfBirth());
-		setDocumentTypeCode(individualIdentity.getProofOfException());
-		setDocumentTypeCode(individualIdentity.getProofOfIdentity());
-		setDocumentTypeCode(individualIdentity.getProofOfRelationship());
-	}
-
-	private void setDocumentTypeCode(DocumentDetailsDTO documentDetailsDTO) {
-		if (documentDetailsDTO != null) {
-			List<DocumentType> documentTypes = documentTypeDAO.getDocTypeByName(documentDetailsDTO.getType());
-
-			if (!documentTypes.isEmpty())
-				documentDetailsDTO.setType(documentTypes.get(0).getCode());
-		}
-	}
+	}	
 
 }

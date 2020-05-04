@@ -182,7 +182,7 @@ public class RegistrationConstants {
 	public static final String FACE_STUB = "face";
 	public static final String SUPERVISOR_AUTH = "supervisor";
 	public static final String OFFICER_AUTH = "officer";
-	
+
 	// Authentication Methods
 	public static final String PWORD = "PWD";
 	public static final String OTP = "OTP";
@@ -338,7 +338,7 @@ public class RegistrationConstants {
 	public static final String UIN_UPDATE_GENDER_LBL = "Gender";
 	public static final String MALE_CODE = "MLE";
 	public static final String FEMALE_CODE = "FLE";
-	public static final String STREAMER_THREAD= "STREAMER_THREAD";
+	public static final String STREAMER_THREAD = "STREAMER_THREAD";
 
 	public static final String UIN_UPDATE_PARENT_DETAILS_LBL = "Parent/Guardian details";
 	public static final String UIN_UPDATE_CNIE_NUMBER_LBL = "CNIE/PIN/Residence Card Number";
@@ -721,7 +721,6 @@ public class RegistrationConstants {
 	// Acknowledgement Form
 	public static final String ACKNOWLEDGEMENT_FORM_TITLE = "Registration Acknowledgement";
 	public static final String REGISTRATION = "Registration";
-	
 
 	// logos for new registration
 	public static final String DEMOGRAPHIC_DETAILS_LOGO = "file:src/main/resources/images/Pre-Registration.png";
@@ -927,14 +926,19 @@ public class RegistrationConstants {
 	public static final String JOB_TRIGGER_MIS_FIRED = "Trigger Mis-Fired";
 	public static final String JOB_EXECUTION_REJECTED = "Execution Rejected";
 	public static final String RETRIEVED_PRE_REG_ID = "Retrieved Pre Registration";
-	
+
 	public static final String offlineJobs = "mosip.registration.jobs.offline";
-	public static final String unTaggedJobs ="mosip.registration.jobs.unTagged";
-	public static final String restartableJobs ="mosip.registration.jobs.restart";
-	
-//	public static final String offlineJobs = "DEL_J00013,RDJ_J00010,ADJ_J00012,PVS_J00015";
-//	public static final String unTaggedJobs ="PDS_J00003";
-//	public static final String restartableJobs ="RCS_J00005";
+	public static final String unTaggedJobs = "mosip.registration.jobs.unTagged";
+	public static final String restartableJobs = "mosip.registration.jobs.restart";
+
+	// Registration batch jobs scheduler : If ‘Y’ or ‘y’ means enabled, else
+	// anything as value means disabled
+	public static final String IS_REGISTRATION_JOBS_SCHEDULER_ENABLED = "mosip.registration.jobs.scheduler.enable";
+
+	// public static final String offlineJobs =
+	// "DEL_J00013,RDJ_J00010,ADJ_J00012,PVS_J00015";
+	// public static final String unTaggedJobs ="PDS_J00003";
+	// public static final String restartableJobs ="RCS_J00005";
 
 	public static final String JOB_TRIGGER_POINT_SYSTEM = "System";
 	public static final String JOB_TRIGGER_POINT_USER = "User";
@@ -1438,7 +1442,7 @@ public class RegistrationConstants {
 	public static final String PUBLIC_KEY = "publicKey";
 	public static final String PUBLIC_KEY_REST = "public_key";
 	public static final String KER = "SIGN";
-	public static final String DTAE_MONTH_YEAR_REGEX = "dd|mm|yyyy|ddLocalLanguage|mmLocalLanguage|yyyyLocalLanguage|ageField";
+	public static final String DTAE_MONTH_YEAR_REGEX = "dd|mm|yyyy|ddLocalLanguage|mmLocalLanguage|yyyyLocalLanguage|ageField|dob";
 
 	public static final String UIN_UPDATE_PARENTGUARDIAN_DETAILS = "parentOrGuardianDetails";
 
@@ -1578,42 +1582,95 @@ public class RegistrationConstants {
 	public static final String RightLittle = "Right Little";
 	public static final String LeftThumb = "Left Thumb";
 	public static final String RightThumb = "Right Thumb";
-	
-	
+
 	// bio-devices bio-types
 	public static final List<String> LEFT_SLAP = Arrays.asList(LeftIndex, LeftMiddle, LeftRing, LeftLittle);
 
-	public static final List<String> RIGHT_SLAP = Arrays.asList(RightIndex, RightMiddle, RightRing,
-			RightLittle);
+	public static final List<String> RIGHT_SLAP = Arrays.asList(RightIndex, RightMiddle, RightRing, RightLittle);
 
 	public static final List<String> TWO_THUMBS = Arrays.asList(LeftThumb, RightThumb);
-	
+
 	public static final String LEFT_EYE = "Left Iris";
 	public static final String RIGHT_EYE = "Right Iris";
-	
+
 	public static final List<String> TWO_IRIS = Arrays.asList(LEFT_EYE, RIGHT_EYE);
-	
-	
+
 	public static final String SESSION_KEY_URL = "session_key";
 	public static final String AUTH_HASH = "hash";
-	public static final String SESSION_KEY="sessionKey";
+	public static final String SESSION_KEY = "sessionKey";
 	public static final String SIGNATURE = "signature";
 	public static final String ADD = "aad";
 	public static final String SALT = "salt";
-	public static final String REQ_TIME="requesttime";
-	public static final String AP_ID="applicationId";
-	public static final String AP_IDA="IDA";
+	public static final String REQ_TIME = "requesttime";
+	public static final String AP_ID = "applicationId";
+	public static final String AP_IDA = "IDA";
 	public static final int MAX_BIO_QUALITY_SCORE = 100;
-	
+
 	public static String DEDUPLICATION_ENABLE_FLAG = "mosip.registration.mds.deduplication.enable.flag";
 
 	public static String DEDUPLICATION_FINGERPRINT_ENABLE_FLAG = "mosip.registration.mds.fingerprint.dedup.enable.flag";
 	public static String DEDUPLICATION_IRIS_ENABLE_FLAG = "mosip.registration.mds.iris.dedup.enable.flag";
 	public static String DEDUPLICATION_FACE_ENABLE_FLAG = "mosip.registration.mds.face.dedup.enable.flag";
-	public static String RE_MAP_SUCCESS="rempaSucess";
-	
+	public static String RE_MAP_SUCCESS = "rempaSucess";
+
 	public static final String SERVER_PROFILE = "profile";
 	public static final String SERVER_PROD_PROFILE = "PROD";
 	public static final String SERVER_NO_PROFILE = "NO_PROFILE";
 	public static final String SERVER_ACTIVE_PROFILE = "mosip.registration.server_profile";
+
+	
+	public static final String applicantBiometricDTO = "applicantBiometricDTO";
+	public static final String introducerBiometricDTO = "introducerBiometricDTO";
+	public static final String supervisorBiometricDTO = "supervisorBiometricDTO";
+	public static final String operatorBiometricDTO = "operatorBiometricDTO";
+
+	public static final String leftIndexUiAttribute = "leftIndex";
+	public static final String leftLittleUiAttribute = "leftLittle";
+	public static final String leftMiddleUiAttribute = "leftMiddle";
+	public static final String leftRingUiAttribute = "leftRing";
+	public static final String leftThumbUiAttribute = "leftThumb";
+
+	public static final String rightIndexUiAttribute = "rightIndex";
+	public static final String rightLittleUiAttribute = "rightLittle";
+	public static final String rightMiddleUiAttribute = "rightMiddle";
+	public static final String rightThumbUiAttribute = "rightThumb";
+	public static final String rightRingUiAttribute = "rightRing";
+
+	public static final String leftEyeUiAttribute = "leftEye";
+	public static final String rightEyeUiAttribute = "rightEye";
+
+	public static final List<String> rightHandUiAttributes = Arrays.asList(rightIndexUiAttribute, rightLittleUiAttribute,
+			rightMiddleUiAttribute, rightRingUiAttribute);
+	
+	public static final List<String> leftHandUiAttributes = Arrays.asList(leftIndexUiAttribute, leftLittleUiAttribute,
+			leftMiddleUiAttribute, leftRingUiAttribute);
+	
+	public static final List<String> twoThumbsUiAttributes = Arrays.asList(rightThumbUiAttribute,leftThumbUiAttribute);
+	
+	public static final List<String> eyesUiAttributes = Arrays.asList(leftEyeUiAttribute,rightEyeUiAttribute);
+	public static final String indBiometrics = "individualBiometrics";
+	
+	public static final String ID_SCHEMA_SYNC_SERVICE = "idschema_key";
+	
+	
+	
+	public static final Map<String, String> regBioMap = new HashMap<String, String>() {
+
+		{
+			put("leftIndex", LeftIndex);
+			put("leftLittle", LeftLittle);
+			put("leftMiddle",LeftMiddle);
+			put("leftRing", LeftRing);
+			put("leftThumb", LeftThumb);
+			put("rightIndex", RightIndex);
+			put("rightLittle", RightLittle);
+			put("rightMiddle", RightMiddle);
+			put("rightRing", RightRing);
+			put("rightThumb", RightThumb);
+			put("LeftEye", LEFT_EYE);
+			put("RightEye", RIGHT_EYE);
+			
+		}
+
+	};
 }

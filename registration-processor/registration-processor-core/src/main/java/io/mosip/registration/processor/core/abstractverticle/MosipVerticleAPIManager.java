@@ -118,7 +118,7 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	private boolean checkServletPathContainsCoreProcessor(String servletPath) {
 		return servletPath.contains("packetvalidator") || servletPath.contains("osi") || servletPath.contains("demo")
 				|| servletPath.contains("bio") || servletPath.contains("uin") || servletPath.contains("quality")
-				|| servletPath.contains("abishandler");
+				|| servletPath.contains("abishandler") || servletPath.contains("securezone");
 	}
 
 	/**

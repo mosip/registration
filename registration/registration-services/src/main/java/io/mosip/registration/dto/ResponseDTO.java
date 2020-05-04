@@ -24,4 +24,16 @@ public class ResponseDTO {
 		this.successResponseDTO = successResponseDTO;
 	}
 	
+	@Override
+	public String toString() {
+		if(this.errorResponseDTOs != null && !this.errorResponseDTOs.isEmpty()) {
+			return this.errorResponseDTOs.get(0).getCode() + ":" + this.errorResponseDTOs.get(0).getMessage();
+		}
+		
+		if(this.successResponseDTO != null)
+			return this.successResponseDTO.getCode() + ":" + this.successResponseDTO.getMessage();
+		
+		return super.toString();
+	}
+	
 }

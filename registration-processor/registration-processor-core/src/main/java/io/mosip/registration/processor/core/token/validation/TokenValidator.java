@@ -147,8 +147,8 @@ public class TokenValidator {
 				if (role.contains(assignedRole))
 					return true;
 			}
-		} else if (url.contains("uploader")) {
-			for (String assignedRole : APIAuthorityList.PACKETUPLOADER.getList()) {
+		} else if (url.contains("securezone")) {
+			for (String assignedRole : APIAuthorityList.SECUREZONENOTIFICATION.getList()) {
 				if (role.contains(assignedRole))
 					return true;
 			}

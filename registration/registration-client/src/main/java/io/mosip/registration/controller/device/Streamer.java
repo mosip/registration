@@ -75,7 +75,7 @@ public class Streamer {
 
 		image = image == null ? streamImage : image;
 
-		BioServiceImpl.setBioStreamImages(image, bioType, attempt);
+		BioServiceImpl.setBioStreamImages(imageBytes, bioType, attempt);
 
 		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
 				"Completed Set Stream image of : " + bioType + " for attempt : " + attempt);

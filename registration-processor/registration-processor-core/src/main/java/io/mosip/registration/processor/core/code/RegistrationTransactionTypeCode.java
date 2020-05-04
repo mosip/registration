@@ -38,6 +38,8 @@ public enum RegistrationTransactionTypeCode {
 	/** The Quality Check*/
 	QUALITY_CHECK,
 	/** The biometric Authentication*/
-	BIOMETRIC_AUTHENTICATION
+	BIOMETRIC_AUTHENTICATION,
+	/** The securezone notification stage */
+	SECUREZONE_NOTIFICATION
 
 }

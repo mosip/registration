@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -43,6 +44,7 @@ import io.mosip.registration.dto.OSIDataDTO;
 import io.mosip.registration.dto.PreRegistrationDTO;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.RegistrationMetaDataDTO;
+import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.dto.biometric.BiometricInfoDTO;
 import io.mosip.registration.dto.demographic.ApplicantDocumentDTO;
@@ -51,6 +53,7 @@ import io.mosip.registration.dto.demographic.DemographicInfoDTO;
 import io.mosip.registration.dto.demographic.IndividualIdentity;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
+import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.external.impl.PreRegZipHandlingServiceImpl;
 import io.mosip.registration.validator.RegIdObjectValidator;
 
@@ -78,11 +81,32 @@ public class PreRegZipHandlingServiceTest {
 	static byte[] preRegPacketEncrypted;
 
 	static MosipSecurityMethod mosipSecurityMethod;
+	
+	@Mock
+	private IdentitySchemaService identitySchemaService;
+	
+	List<UiSchemaDTO> schemaFields = new ArrayList<UiSchemaDTO>();
 
 	@Before
 	public void init() throws Exception {
 		createRegistrationDTOObject();
+		
+		UiSchemaDTO field1 = new UiSchemaDTO();
+		field1.setId("fullName");
+		field1.setType("simpleType");
+		schemaFields.add(field1);
+		
+		UiSchemaDTO field2 = new UiSchemaDTO();
+		field2.setId("gender");
+		field2.setType("simpleType");
+		schemaFields.add(field2);		
+		
+		UiSchemaDTO field3 = new UiSchemaDTO();
+		field3.setId("postalCode");
+		field3.setType("string");
+		schemaFields.add(field3);
 	}
+	
 	
 	@BeforeClass
 	public static void initialize() throws IOException, java.io.IOException {
@@ -96,7 +120,6 @@ public class PreRegZipHandlingServiceTest {
 		applicationMap.put("mosip.registration.registration_pre_reg_packet_location", "..//PreRegPacketStore");
 		ApplicationContext.getInstance();
 		ApplicationContext.setApplicationMap(applicationMap);
-
 	}
 
 	@Test
@@ -105,7 +128,8 @@ public class PreRegZipHandlingServiceTest {
 			return "Success";
 		}).when(idObjectValidator).validateIdObject(Mockito.any(), Mockito.any());
 		Mockito.when(documentTypeDAO.getDocTypeByName(Mockito.anyString())).thenReturn(new ArrayList<>());
-
+		Mockito.when(identitySchemaService.getLatestEffectiveUISchema()).thenReturn(schemaFields);
+		
 		RegistrationDTO registrationDTO = preRegZipHandlingServiceImpl.extractPreRegZipFile(preRegPacket);
 
 		assertNotNull(registrationDTO);
@@ -127,6 +151,7 @@ public class PreRegZipHandlingServiceTest {
 				return "Success";
 			}).when(idObjectValidator).validateIdObject(Mockito.any(), Mockito.any());
 			Mockito.when(documentTypeDAO.getDocTypeByName(Mockito.anyString())).thenReturn(new ArrayList<>());
+			Mockito.when(identitySchemaService.getLatestEffectiveUISchema()).thenReturn(schemaFields);
 			preRegZipHandlingServiceImpl.extractPreRegZipFile(byteArrayOutputStream.toByteArray());
 		}
 	}
@@ -212,26 +237,8 @@ public class PreRegZipHandlingServiceTest {
 		registrationDTO.setRegistrationId("10011100110016320190307151917");
 
 		// Create objects for Biometric DTOS
-		BiometricDTO biometricDTO = new BiometricDTO();
-		biometricDTO.setApplicantBiometricDTO(createBiometricInfoDTO());
-		biometricDTO.setIntroducerBiometricDTO(createBiometricInfoDTO());
-		biometricDTO.setOperatorBiometricDTO(createBiometricInfoDTO());
-		biometricDTO.setSupervisorBiometricDTO(createBiometricInfoDTO());
-		registrationDTO.setBiometricDTO(biometricDTO);
-
-		// Create object for Demographic DTOS
-		DemographicDTO demographicDTO = new DemographicDTO();
-		ApplicantDocumentDTO applicantDocumentDTO = new ApplicantDocumentDTO();
-		demographicDTO.setApplicantDocumentDTO(applicantDocumentDTO);
-
-		applicantDocumentDTO.setDocuments(new HashMap<>());
-
-		DemographicInfoDTO demographicInfoDTOLocal = new DemographicInfoDTO();
-		IndividualIdentity identity = new IndividualIdentity();
-		demographicInfoDTOLocal.setIdentity(identity);
-
-		demographicDTO.setDemographicInfoDTO(demographicInfoDTOLocal);
-		registrationDTO.setDemographicDTO(demographicDTO);
+		BiometricDTO biometricDTO = new BiometricDTO();		
+		registrationDTO.setBiometricDTO(biometricDTO);		
 
 		// Create object for OSIData DTO
 		registrationDTO.setOsiDataDTO(new OSIDataDTO());

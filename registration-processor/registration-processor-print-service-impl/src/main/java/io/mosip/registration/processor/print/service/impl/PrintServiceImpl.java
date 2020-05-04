@@ -185,6 +185,8 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 
 	private static final String NAME = "name";
 
+	public static final String VID_TYPE = "registration.processor.id.repo.vidType";
+
 	/** The cbeffutil. */
 	@Autowired
 	private CbeffUtil cbeffutil;
@@ -680,7 +682,7 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 		RequestWrapper<VidRequestDto> request = new RequestWrapper<>();
 		VidResponseDTO vidResponse;
 		vidRequestDto.setUIN(uin);
-		vidRequestDto.setVidType("Temporary");
+		vidRequestDto.setVidType(env.getProperty(VID_TYPE));
 		request.setId(env.getProperty(VID_CREATE_ID));
 		request.setRequest(vidRequestDto);
 		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));

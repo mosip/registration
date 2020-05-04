@@ -6,15 +6,15 @@
 	<parent>
 		<groupId>io.mosip.registration</groupId>
 		<artifactId>registration-parent</artifactId>
-		<version>1.0.8</version>
+		<version>1.0.9</version>
 	</parent>
 	<artifactId>registration-services</artifactId>
 	<name>registration-services</name>
 	<description>Maven project of MOSIP Registration Service</description>
-    <version>1.0.8</version>
-	<properties>
-	<mosip.core.kernel.version>1.0.6</mosip.core.kernel.version>
-	</properties>
+    <version>1.0.9</version>
+    <properties>
+        <mosip.core.kernel.version>1.0.6</mosip.core.kernel.version>
+    </properties>
 	<dependencies>
 		<!-- Lombok -->
 		<dependency>
@@ -331,13 +331,6 @@
 			<groupId>com.cronutils</groupId>
 			<artifactId>cron-utils</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>com.oracle</groupId>
-			<artifactId>javafx</artifactId>
-			<version>${javafx.version}</version>
-			<systemPath>${project.basedir}/../lib/jfxrt.jar</systemPath>
-			<scope>system</scope>
-		</dependency>
 
 		<!-- __https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
 		<dependency>
@@ -392,8 +385,8 @@
 			<artifactId>kernel-pdfgenerator-itext</artifactId>
 			<version>${mosip.core.kernel.version}</version>
 		</dependency>
-		
-		
+
+
 	</dependencies>
 
 	<repositories>

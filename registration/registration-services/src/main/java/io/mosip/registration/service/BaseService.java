@@ -478,5 +478,7 @@ public class BaseService {
 	protected boolean isUpdateUinNonBioMetric() {
 		return getRegistrationDTOFromSession().isUpdateUINNonBiometric();
 	}
+	
+	
 
 }

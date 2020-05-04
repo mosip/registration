@@ -24,6 +24,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.core.env.Environment;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import ch.qos.logback.classic.Logger;
@@ -99,6 +100,9 @@ public class BioDedupeServiceImplTest {
 	private Logger fooLogger;
 
 	@Mock
+	private Environment env;
+
+	@Mock
 	private RegistrationStatusService registrationStatusService;
 
 	/**
@@ -112,10 +116,11 @@ public class BioDedupeServiceImplTest {
 		Mockito.doNothing().when(packetInfoManager).saveAbisRef(any(), any(), any());
 
 		abisInsertResponseDto.setReturnValue(2);
-
+		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern"))
+				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		ReflectionTestUtils.setField(bioDedupeService, "maxResults", 30);
 		ReflectionTestUtils.setField(bioDedupeService, "targetFPIR", 30);
-		ReflectionTestUtils.setField(bioDedupeService, "threshold", 60);
+
 
 		String refId = "01234567-89AB-CDEF-0123-456789ABCDEF";
 		List<String> refIdList = new ArrayList<>();
@@ -124,11 +129,10 @@ public class BioDedupeServiceImplTest {
 
 		CandidatesDto candidate1 = new CandidatesDto();
 		candidate1.setReferenceId("01234567-89AB-CDEF-0123-456789ABCDEG");
-		candidate1.setScaledScore("70");
 
 		CandidatesDto candidate2 = new CandidatesDto();
 		candidate2.setReferenceId("01234567-89AB-CDEF-0123-456789ABCDEH");
-		candidate2.setScaledScore("80");
+
 
 		CandidatesDto[] candidateArray = new CandidatesDto[2];
 		candidateArray[0] = candidate1;

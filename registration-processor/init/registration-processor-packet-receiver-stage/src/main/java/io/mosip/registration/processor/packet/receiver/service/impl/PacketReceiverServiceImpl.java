@@ -31,7 +31,6 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCo
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.RegistrationType;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -40,7 +39,6 @@ import io.mosip.registration.processor.core.spi.filesystem.manager.FileManager;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
-import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
 import io.mosip.registration.processor.packet.manager.dto.DirectoryPathDto;
 import io.mosip.registration.processor.packet.receiver.constants.PacketReceiverConstant;
 import io.mosip.registration.processor.packet.receiver.exception.DuplicateUploadRequestException;
@@ -112,10 +110,6 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	/** The virus scanner service. */
 	@Autowired
 	private VirusScanner<Boolean, InputStream> virusScannerService;
-
-	/** The decryptor. */
-	@Autowired
-	private Decryptor packetReceiverDecryptor;
 
 	/*
 	 * (non-Javadoc)
@@ -477,12 +471,6 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 			scanningFlag = scanFile(new ByteArrayInputStream(encryptedByteArray), registrationExceptionMapperUtil,
 					registrationId, dto, description);
 			if (scanningFlag) {
-				InputStream decryptedData = packetReceiverDecryptor
-						.decrypt(new ByteArrayInputStream(encryptedByteArray), registrationId);
-				scanningFlag = scanFile(decryptedData, registrationExceptionMapperUtil, registrationId, dto,
-						description);
-			}
-			if (scanningFlag) {
 				fileManager.put(registrationId, new ByteArrayInputStream(encryptedByteArray),
 						DirectoryPathDto.LANDING_ZONE);
 				dto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
@@ -516,29 +504,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 					PacketReceiverConstant.ERROR_IN_PACKET_RECIVER
 							+ PlatformErrorMessages.RPR_PKR_DATA_ACCESS_EXCEPTION.getMessage()
 							+ ExceptionUtils.getStackTrace(e));
-		} catch (ApisResourceAccessException e) {
-			messageDTO.setInternalError(Boolean.TRUE);
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId,
-					PacketReceiverConstant.API_RESOURCE_UNAVAILABLE
-							+ PlatformErrorMessages.RPR_PKR_API_RESOUCE_ACCESS_FAILED.getMessage()
-							+ ExceptionUtils.getStackTrace(e));
-			description.setMessage(PlatformErrorMessages.RPR_PKR_API_RESOUCE_ACCESS_FAILED.getMessage());
-			description.setCode(PlatformErrorMessages.RPR_PKR_API_RESOUCE_ACCESS_FAILED.getCode());
-
-		} catch (io.mosip.registration.processor.core.exception.PacketDecryptionFailureException e) {
-			messageDTO.setInternalError(Boolean.TRUE);
-			dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-			dto.setStatusComment(StatusUtil.PACKET_DECRYPTION_FAILED.getMessage());
-			dto.setSubStatusCode(StatusUtil.PACKET_DECRYPTION_FAILED.getCode());
-			dto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-					.getStatusCode(RegistrationExceptionTypeCode.PACKET_DECRYPTION_FAILURE_EXCEPTION));
-			description.setMessage(PlatformErrorMessages.RPR_PKR_DECRYPTION_FAILED.getMessage());
-			description.setCode(PlatformErrorMessages.RPR_PKR_DECRYPTION_FAILED.getCode());
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, ExceptionUtils.getStackTrace(e));
-
-		} finally {
+		}  finally {
 			/** Module-Id can be Both Success/Error code */
 			String moduleId = isTransactionSuccessful ? PlatformSuccessMessages.RPR_PKR_PACKET_RECEIVER.getCode()
 					: description.getCode();

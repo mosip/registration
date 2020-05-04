@@ -5,6 +5,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -13,15 +14,18 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Timer;
-import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.javafx.scene.control.skin.TableHeaderRow;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -40,7 +44,6 @@ import io.mosip.registration.controller.device.FingerPrintCaptureController;
 import io.mosip.registration.controller.device.GuardianBiometricsController;
 import io.mosip.registration.controller.device.IrisCaptureController;
 import io.mosip.registration.controller.device.ScanPopUpViewController;
-import io.mosip.registration.controller.device.Streamer;
 import io.mosip.registration.controller.device.WebCameraController;
 import io.mosip.registration.controller.eodapproval.RegistrationApprovalController;
 import io.mosip.registration.controller.reg.AlertController;
@@ -50,10 +53,12 @@ import io.mosip.registration.controller.reg.HeaderController;
 import io.mosip.registration.controller.reg.HomeController;
 import io.mosip.registration.controller.reg.PacketHandlerController;
 import io.mosip.registration.controller.reg.RegistrationPreviewController;
+import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.device.fp.FingerprintFacade;
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.ResponseDTO;
+import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.dto.biometric.BiometricExceptionDTO;
 import io.mosip.registration.dto.biometric.BiometricInfoDTO;
@@ -62,6 +67,7 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
 import io.mosip.registration.scheduler.SchedulerUtil;
+import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.bio.impl.BioServiceImpl;
 import io.mosip.registration.service.config.GlobalParamService;
@@ -73,7 +79,6 @@ import io.mosip.registration.service.template.TemplateService;
 import io.mosip.registration.util.acktemplate.TemplateGenerator;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 import javafx.animation.PauseTransition;
-import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
@@ -83,6 +88,7 @@ import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -190,6 +196,9 @@ public class BaseController {
 	@FXML
 	public Text scanningMsg;
 
+	@Autowired
+	private Validations validations;
+
 	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
 
 	public Text getScanningMsg() {
@@ -217,8 +226,43 @@ public class BaseController {
 	@Autowired
 	private RestartController restartController;
 
-	private static boolean isAckOpened = false;
+	@Autowired
+	private IdentitySchemaService identitySchemaService;
 
+	private static boolean isAckOpened = false;
+	
+	private List<UiSchemaDTO> uiSchemaDTOs;
+	
+	private static Map<String, UiSchemaDTO> validationMap;
+
+	
+	
+	private static List<String> ALL_BIO_ATTRIBUTES = null;
+
+	static {
+		ALL_BIO_ATTRIBUTES = new ArrayList<String>();
+		ALL_BIO_ATTRIBUTES.addAll(RegistrationConstants.leftHandUiAttributes);
+		ALL_BIO_ATTRIBUTES.addAll(RegistrationConstants.rightHandUiAttributes);
+		ALL_BIO_ATTRIBUTES.addAll(RegistrationConstants.twoThumbsUiAttributes);
+		ALL_BIO_ATTRIBUTES.addAll(RegistrationConstants.eyesUiAttributes);
+		ALL_BIO_ATTRIBUTES.add(RegistrationConstants.FACE_EXCEPTION);
+	}
+
+	/**
+	 * Set Validations map
+	 * 
+	 * @param validations
+	 *            is a map id's and regex validations
+	 */
+	public void setValidations(Map<String, UiSchemaDTO> validations) {
+		validationMap = validations;
+	}
+
+	public Map<String, UiSchemaDTO> getValidationMap() {
+		return validationMap;
+	}
+
+	
 	/**
 	 * @return the alertStage
 	 */
@@ -580,7 +624,7 @@ public class BaseController {
 							RegistrationConstants.ENABLE);
 				}
 			}
-			
+
 		} catch (IOException ioException) {
 			LOGGER.error("REGISTRATION - REDIRECTHOME - BASE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 					ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
@@ -1102,8 +1146,6 @@ public class BaseController {
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID, "Navigated to next page");
 	}
 
-
-
 	/**
 	 * Checks if the machine is remapped to another center and starts the subsequent
 	 * processing accordingly.
@@ -1290,11 +1332,12 @@ public class BaseController {
 		}
 		if (getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_PARENTGUARDIAN_DETAILS, true);
-//
-//			Label guardianBiometricsLabel = guardianBiometricsController.getGuardianBiometricsLabel();
-//			guardianBiometricsLabel.setText("Biometrics");
-//
-//			guardianBiometricsController.setGuardianBiometricsLabel(guardianBiometricsLabel);
+			//
+			// Label guardianBiometricsLabel =
+			// guardianBiometricsController.getGuardianBiometricsLabel();
+			// guardianBiometricsLabel.setText("Biometrics");
+			//
+			// guardianBiometricsController.setGuardianBiometricsLabel(guardianBiometricsLabel);
 
 		} else if (updateUINNextPage(RegistrationConstants.FINGERPRINT_DISABLE_FLAG) && !isChild()) {
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_FINGERPRINTCAPTURE, true);
@@ -1509,7 +1552,7 @@ public class BaseController {
 		String qualityScore = getQualityScore(qualityScoreValue);
 
 		if (qualityScore != null) {
-			Image image = bioService.getBioStreamImage(bioType, attempt);
+			Image image = convertBytesToImage(bioService.getBioStreamImage(bioType, attempt));
 			// Set Stream image
 			streamImage.setImage(image);
 
@@ -1572,11 +1615,127 @@ public class BaseController {
 	protected boolean isAckOpened() {
 		return isAckOpened;
 	}
-	
+
 	/**
 	 * Set the operator was in acknowledgement page
 	 */
 	protected void setIsAckOpened(boolean isAckOpened) {
 		this.isAckOpened = isAckOpened;
+	}
+
+	public void loadUIElementsFromSchema() {
+
+		try {
+			List<UiSchemaDTO> schemaFields = identitySchemaService.getLatestEffectiveUISchema();
+			Map<String, UiSchemaDTO> validationsMap = new LinkedHashMap<>();
+			for (UiSchemaDTO schemaField : schemaFields) {
+				validationsMap.put(schemaField.getId(), schemaField);
+			}
+			validations.setValidations(validationsMap); // Set Validations Map
+
+			ApplicationContext.map().put(RegistrationConstants.indBiometrics,
+					getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics));
+			ApplicationContext.map().put("parentOrGuardianBiometrics",
+					getSchemaFieldBioAttributes("parentOrGuardianBiometrics"));
+
+		} catch (RegBaseCheckedException e) {
+			LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
+					ExceptionUtils.getStackTrace(e));
+		}
+	}
+
+	protected void disablePaneOnBioAttributes(Node pane, List<String> constantBioAttributes) {
+
+		/** Put pane disable by default */
+		pane.setDisable(true);
+
+		/** Get UI schema individual Biometrics Bio Attributes */
+		List<String> uiSchemaBioAttributes = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
+
+		/** If bio Attribute not mentioned for bio attribute then disable */
+		if (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
+			pane.setDisable(true);
+		} else {
+
+			for (String attribute : constantBioAttributes) {
+
+				/** If bio attribute configured in UI Schema, then enable the pane */
+				if (uiSchemaBioAttributes.contains(attribute)) {
+					pane.setDisable(false);
+
+					/** Stop the iteration as we got the attribute */
+					break;
+				}
+			}
+		}
+	}
+
+//	protected void addExceptionDTOs() {
+//		List<String> bioAttributesFromSchema = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
+//		List<String> bioList = new ArrayList<String>();
+//
+//		/** If bio Attribute not mentioned for bio attribute then disable */
+//		bioList.addAll(ALL_BIO_ATTRIBUTES);
+//
+//		/** If bio attribute configured in UI Schema, then enable the pane */
+//		if (bioAttributesFromSchema != null && !bioAttributesFromSchema.isEmpty())
+//			bioList.removeAll(bioAttributesFromSchema);
+//
+//		List<BiometricExceptionDTO> biometricExceptionDTOs = biometricExceptionController
+//				.getBiometricsExceptionList(bioList);
+//
+//		biometricExceptionController.addExceptionToRegistration(biometricExceptionDTOs);
+//
+//	}
+
+	private List<String> getSchemaFieldBioAttributes(String fieldId) {
+		if (validations.getValidationMap().containsKey(fieldId)
+				&& validations.getValidationMap().get(fieldId).getType().equalsIgnoreCase("biometricsType")) {
+			
+			BioServiceImpl.setBioAttributes(validations.getValidationMap().get(fieldId).getBioAttributes());
+			return validations.getValidationMap().get(fieldId).getBioAttributes();
+
+		}
+			
+		return null;
+	}
+
+	protected boolean isAvailableInBioAttributes(List<String> constantAttributes) {
+
+		boolean isAvailable = false;
+		List<String> uiSchemaBioAttributes = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
+
+		/** If bio Attribute not mentioned for bio attribute then disable */
+		if (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
+			isAvailable = false;
+		} else {
+
+			for (String attribute : constantAttributes) {
+
+				/** If bio attribute configured in UI Schema, then enable the pane */
+				if (uiSchemaBioAttributes.contains(attribute)) {
+
+					isAvailable = true;
+				}
+			}
+
+		}
+
+		return isAvailable;
+	}
+
+	protected List<String> getNonConfigBioAttributes(List<String> constantAttributes) {
+
+		List<String> nonConfigBiometrics = new LinkedList<>();
+
+		// Get Bio Attributes
+		List<String> uiAttributes = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
+
+		for (String attribute : constantAttributes) {
+			if (!uiAttributes.contains(attribute)) {
+				nonConfigBiometrics.add(attribute);
+			}
+		}
+		return nonConfigBiometrics;
 	}
 }

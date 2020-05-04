@@ -1,17 +1,15 @@
 package io.mosip.registration.service.sync.impl;
 
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_MASTER_SYNC;
+import static io.mosip.registration.constants.LoggerConstants.LOG_REG_SCHEMA_SYNC;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
-import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.Timestamp;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -25,14 +23,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.google.gson.Gson;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -45,6 +42,7 @@ import io.mosip.registration.constants.AuditReferenceIdTypes;
 import io.mosip.registration.constants.Components;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
+import io.mosip.registration.dao.IdentitySchemaDao;
 import io.mosip.registration.dao.MachineMappingDAO;
 import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dto.IndividualTypeDto;
@@ -52,10 +50,10 @@ import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.mastersync.BiometricAttributeDto;
 import io.mosip.registration.dto.mastersync.BlacklistedWordsDto;
 import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
-import io.mosip.registration.dto.mastersync.GenderDto;
+import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.mastersync.LocationDto;
-import io.mosip.registration.dto.mastersync.MasterDataResponseDto;
 import io.mosip.registration.dto.mastersync.ReasonListDto;
+import io.mosip.registration.dto.response.SchemaDto;
 import io.mosip.registration.dto.response.SyncDataResponseDto;
 import io.mosip.registration.entity.BiometricAttribute;
 import io.mosip.registration.entity.BlacklistedWords;
@@ -69,7 +67,6 @@ import io.mosip.registration.entity.SyncControl;
 import io.mosip.registration.entity.SyncTransaction;
 import io.mosip.registration.entity.ValidDocument;
 import io.mosip.registration.exception.RegBaseCheckedException;
-import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.jobs.SyncManager;
 import io.mosip.registration.service.BaseService;
@@ -77,7 +74,7 @@ import io.mosip.registration.service.config.GlobalParamService;
 import io.mosip.registration.service.remap.CenterMachineReMapService;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
-import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
+import io.mosip.registration.util.mastersync.MapperUtils;
 
 /**
  * It makes call to the external 'MASTER Sync' services to download the master
@@ -125,6 +122,9 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	/** The center machine re map service. */
 	@Autowired
 	private CenterMachineReMapService centerMachineReMapService;
+	
+	@Autowired
+	private IdentitySchemaDao identitySchemaDao;
 
 	/** Object for Logger. */
 	private static final Logger LOGGER = AppConfig.getLogger(MasterSyncServiceImpl.class);
@@ -144,7 +144,16 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	public ResponseDTO getMasterSync(String masterSyncDtls, String triggerPoint) throws RegBaseCheckedException {
 		LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, "Initiating the Master Sync");
 		if (masterSyncFieldsValidate(masterSyncDtls, triggerPoint)) {
-			return syncClientSettings(masterSyncDtls, triggerPoint, getRequestParamsForClientSettingsSync(masterSyncDtls, null));
+			
+			ResponseDTO responseDto = syncClientSettings(masterSyncDtls, triggerPoint, 
+					getRequestParamsForClientSettingsSync(masterSyncDtls, null));
+			
+			if(responseDto.getSuccessResponseDTO() != null) {
+				responseDto = syncSchema(triggerPoint);
+			}
+			
+			return responseDto;
+			
 		} else {
 			LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
 					"masterSyncDtls/triggerPoint is mandatory...");
@@ -174,9 +183,17 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	public ResponseDTO getMasterSync(String masterSyncDtls, String triggerPoint, String keyIndex)
 			throws RegBaseCheckedException {
 		LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
-				"Initiating the Master Sync for initial setup");
+				"Initiating the Master Sync for initial setup");		
 		if (masterSyncFieldsValidateWithIndex(masterSyncDtls, triggerPoint, keyIndex)) {
-			return syncClientSettings(masterSyncDtls, triggerPoint, getRequestParamsForClientSettingsSync(masterSyncDtls, keyIndex));
+			ResponseDTO responseDTO =  syncClientSettings(masterSyncDtls, triggerPoint, 
+					getRequestParamsForClientSettingsSync(masterSyncDtls, keyIndex));
+			
+			if(responseDTO.getSuccessResponseDTO() != null) {
+				responseDTO = syncSchema(triggerPoint);
+			}
+			
+			return responseDTO;
+			
 		} else {
 			LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
 					"masterSyncDtls/triggerPoint/keyIndex is mandatory...");
@@ -184,93 +201,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 					RegistrationExceptionConstants.REG_MASTER_SYNC_SERVICE_IMPL.getErrorCode(),
 					RegistrationExceptionConstants.REG_MASTER_SYNC_SERVICE_IMPL.getErrorMessage());
 		}
-
-	}	
-	
-	
-	/**
-	 * It invokes the external 'Master Sync' service to download the required center
-	 * specific information from MOSIP server. Once
-	 * download, the data would be updated into the DB for further process.
-	*/
-	
-	/**
-	 * It makes the call to external Master sync service [master_sync/
-	 * center_remap_sync] with respect to the current center
-	 * 
-	 * @param triggerPoint    from where the call has been initiated. Applicable
-	 *                        values are {user or system}.
-	 * @param requestParamMap it holds the center id, last sync datetime, mac
-	 *                        address and machine id.
-	 * @return Map Response object, which contains the master sync data.
-	 * @throws RegBaseCheckedException
-	 */
-	@SuppressWarnings("unchecked")
-	private LinkedHashMap<String, Object> getMasterSyncJson(String triggerPoint, Map<String, String> requestParamMap)
-			throws RegBaseCheckedException {
-
-		ResponseDTO responseDTO = new ResponseDTO();
-		LinkedHashMap<String, Object> masterSyncResponse = null;
-		String serviceName;
-
-		LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, "Master Sync Restful service starts.....");
-
-		try {
-
-			// Setting uri Variables
-			// If initial setup, then invoke the 'Master Sync' without center id. That will
-			// be returned based on the mac id/ machine name.
-			if (RegistrationConstants.ENABLE.equalsIgnoreCase(
-					(String) globalParamService.getGlobalParams().get(RegistrationConstants.INITIAL_SETUP))) {
-
-				serviceName = RegistrationConstants.MASTER_VALIDATOR_SERVICE_NAME;
-
-			} else {
-				// If Center id available in db, then invoke the 'Master Sync' with center id.
-				requestParamMap.put(RegistrationConstants.MASTER_CENTER_PARAM, getCenterId());
-				serviceName = RegistrationConstants.MASTER_CENTER_REMAP_SERVICE_NAME;
-			}
-
-			LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
-					RegistrationConstants.KEY_INDEX + "===> " + requestParamMap.get(RegistrationConstants.KEY_INDEX)
-							+ " " + RegistrationConstants.MASTER_DATA_LASTUPDTAE + "==> "
-							+ requestParamMap.get(RegistrationConstants.MASTER_DATA_LASTUPDTAE));
-
-			if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
-				masterSyncResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil.get(serviceName,
-						requestParamMap, true, triggerPoint);
-
-				if (null != masterSyncResponse.get(RegistrationConstants.RESPONSE)) {
-					LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, RegistrationConstants.SUCCESS);
-					setSuccessResponse(responseDTO, RegistrationConstants.SUCCESS, null);
-				} else {
-					LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, errorMsg(masterSyncResponse));
-					setErrorResponse(responseDTO, errorMsg(masterSyncResponse), null);
-				}
-			} else {
-				LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, RegistrationConstants.NO_INTERNET);
-				setErrorResponse(responseDTO, RegistrationConstants.NO_INTERNET, null);
-			}
-		} catch (HttpClientErrorException httpClientErrorException) {
-			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
-					httpClientErrorException.getRawStatusCode() + "Http error while pulling json from server"
-							+ ExceptionUtils.getStackTrace(httpClientErrorException));
-			throw new RegBaseCheckedException(Integer.toString(httpClientErrorException.getRawStatusCode()),
-					httpClientErrorException.getStatusText());
-		} catch (SocketTimeoutException socketTimeoutException) {
-			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
-					socketTimeoutException.getMessage() + "Http error while pulling json from server"
-							+ ExceptionUtils.getStackTrace(socketTimeoutException));
-			throw new RegBaseCheckedException(socketTimeoutException.getMessage(),
-					socketTimeoutException.getLocalizedMessage());
-		}
-
-		LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
-				"Master Sync Restful service ends successful.....");
-
-		return masterSyncResponse;
 	}
-
 	
 
 	/**
@@ -282,17 +213,16 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	 * @throws RegBaseCheckedException
 	 */
 	@Override
-	public List<LocationDto> findLocationByHierarchyCode(String hierarchyCode, String langCode)
+	public List<GenericDto> findLocationByHierarchyCode(String hierarchyCode, String langCode)
 			throws RegBaseCheckedException {
 
-		List<LocationDto> locationDto = new ArrayList<>();
+		List<GenericDto> locationDto = new ArrayList<>();
 		if (codeAndlangCodeNullCheck(hierarchyCode, langCode)) {
 			List<Location> masterLocation = masterSyncDao.findLocationByLangCode(hierarchyCode, langCode);
 
 			for (Location masLocation : masterLocation) {
-				LocationDto location = new LocationDto();
+				GenericDto location = new GenericDto();
 				location.setCode(masLocation.getCode());
-				location.setHierarchyName(masLocation.getHierarchyName());
 				location.setName(masLocation.getName());
 				location.setLangCode(masLocation.getLangCode());
 				locationDto.add(location);
@@ -316,16 +246,15 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	 * @throws RegBaseCheckedException
 	 */
 	@Override
-	public List<LocationDto> findProvianceByHierarchyCode(String code, String langCode) throws RegBaseCheckedException {
+	public List<GenericDto> findProvianceByHierarchyCode(String code, String langCode) throws RegBaseCheckedException {
 
-		List<LocationDto> locationDto = new ArrayList<>();
+		List<GenericDto> locationDto = new ArrayList<>();
 		if (codeAndlangCodeNullCheck(code, langCode)) {
 			List<Location> masterLocation = masterSyncDao.findLocationByParentLocCode(code, langCode);
 
 			for (Location masLocation : masterLocation) {
-				LocationDto location = new LocationDto();
+				GenericDto location = new GenericDto();
 				location.setCode(masLocation.getCode());
-				location.setHierarchyName(masLocation.getHierarchyName());
 				location.setName(masLocation.getName());
 				location.setLangCode(masLocation.getLangCode());
 				locationDto.add(location);
@@ -424,17 +353,16 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	 * @throws RegBaseCheckedException
 	 */
 	@Override
-	public List<GenderDto> getGenderDtls(String langCode) throws RegBaseCheckedException {
-		List<GenderDto> gendetDtoList = new ArrayList<>();
+	public List<GenericDto> getGenderDtls(String langCode) throws RegBaseCheckedException {
+		List<GenericDto> gendetDtoList = new ArrayList<>();
 		if (langCodeNullCheck(langCode)) {
 			List<Gender> masterDocuments = masterSyncDao.getGenderDtls(langCode);
 			masterDocuments.forEach(gender -> {
-				GenderDto genders = new GenderDto();
-				genders.setCode(gender.getCode());
-				genders.setGenderName(gender.getGenderName());
-				genders.setIsActive(gender.getIsActive());
-				genders.setLangCode(gender.getLangCode());
-				gendetDtoList.add(genders);
+				GenericDto comboBox = new GenericDto();
+				comboBox.setCode(gender.getCode());
+				comboBox.setName(gender.getGenderName());
+				comboBox.setLangCode(gender.getLangCode());
+				gendetDtoList.add(comboBox);
 			});
 		} else {
 			LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
@@ -445,7 +373,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 		}
 		return gendetDtoList;
 	}
-
+	
 	/**
 	 * Gets all the document categories from db that to be displayed in the UI
 	 * dropdown.
@@ -519,6 +447,32 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 		}
 		return listOfIndividualDTO;
 	}
+	
+	
+	/**
+	 * Gets the individual type.
+	 *
+	 * @param code     the code
+	 * @param langCode the lang code
+	 * @return the individual type
+	 * @throws RegBaseCheckedException
+	 */
+	@Override
+	public List<GenericDto> getIndividualType(String langCode) throws RegBaseCheckedException {
+		List<GenericDto> listOfIndividualDTO = new ArrayList<>();
+
+			List<IndividualType> masterDocuments = masterSyncDao.getIndividulType(langCode);
+
+			masterDocuments.forEach(individual -> {
+				GenericDto individualDto = new GenericDto();
+				individualDto.setName(individual.getName());
+				individualDto.setCode(individual.getIndividualTypeId().getCode());
+				individualDto.setLangCode(individual.getIndividualTypeId().getLangCode());
+				listOfIndividualDTO.add(individualDto);
+			});
+		return listOfIndividualDTO;
+	}
+
 
 	/**
 	 * Gets the biometric type.
@@ -563,42 +517,17 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	}
 
 	/**
-	 * Center re map flag.
-	 *
-	 * @param centerReMap the center re map
-	 * @return the boolean
-	 */
-	@SuppressWarnings("unchecked")
-	private Boolean centerReMapFlag(LinkedHashMap<String, Object> centerReMap) {
-
-		LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, "Logging center remap flag....");
-		Boolean reMapFlag = false;
-
-		if (null != centerReMap && null != centerReMap.get(RegistrationConstants.ERRORS)) {
-			List<LinkedHashMap<String, Object>> errorMap = (List<LinkedHashMap<String, Object>>) centerReMap
-					.get(RegistrationConstants.ERRORS);
-			String errorMsg = (String) errorMap.get(0).get(RegistrationConstants.ERROR_MSG);
-			if ("Registration Center has been updated for the received Machine ID".equalsIgnoreCase(errorMsg)) {
-				reMapFlag = true;
-			}
-		}
-		LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, Boolean.toString(reMapFlag));
-		return reMapFlag;
-
-	}
-
-	/**
 	 * Error msg.
 	 *
-	 * @param centerReMap the center re map
+	 * @param responseMap
 	 * @return the string
 	 */
 	@SuppressWarnings("unchecked")
-	private String errorMsg(LinkedHashMap<String, Object> centerReMap) {
+	private String errorMsg(LinkedHashMap<String, Object> responseMap) {
 		LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, "Logging error message....");
 		String errorMsg = RegistrationConstants.MASTER_SYNC + "-" + RegistrationConstants.MASTER_SYNC_FAILURE_MSG;
-		if (null != centerReMap && centerReMap.size() > 0) {
-			List<LinkedHashMap<String, Object>> errorMap = (List<LinkedHashMap<String, Object>>) centerReMap
+		if (null != responseMap && responseMap.size() > 0) {
+			List<LinkedHashMap<String, Object>> errorMap = (List<LinkedHashMap<String, Object>>) responseMap
 					.get(RegistrationConstants.ERRORS);
 			if (null != errorMap.get(0).get(RegistrationConstants.ERROR_MSG)) {
 				errorMsg = (String) errorMap.get(0).get(RegistrationConstants.ERROR_MSG);
@@ -726,6 +655,11 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 			requestParamMap.put(RegistrationConstants.MASTER_DATA_LASTUPDTAE, DateUtils.formatToISOString(
 					LocalDateTime.ofInstant(masterSyncDetails.getLastSyncDtimes().toInstant(), ZoneOffset.ofHours(0))));
 		}
+		
+		String registrationCenterId = getCenterId();
+		if(registrationCenterId != null)
+			requestParamMap.put(RegistrationConstants.MASTER_CENTER_PARAM, registrationCenterId);
+		
 		return requestParamMap;
 	}
 	
@@ -738,72 +672,77 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	 * @param requestParam
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	private ResponseDTO syncClientSettings(String masterSyncDtls, String triggerPoint,
 			Map<String, String> requestParam) {
+		LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, "Client settings sync started.....");
+		
 		ResponseDTO responseDTO = new ResponseDTO();
-		String resoponse = RegistrationConstants.EMPTY;
-		ObjectMapper objectMapper = new ObjectMapper();
-		Gson gson = new Gson();
-		objectMapper.registerModule(new JavaTimeModule());
-		objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-		try {
-			LinkedHashMap<String, Object> masterSyncResponse = getMasterSyncJson(triggerPoint, requestParam);
-			if (null != masterSyncResponse && !masterSyncResponse.isEmpty()
-					&& null != masterSyncResponse.get(RegistrationConstants.RESPONSE)
-					&& null == masterSyncResponse.get(RegistrationConstants.ERRORS)) {
+		LinkedHashMap<String, Object> masterSyncResponse = null;
 				
-				String jsonString = new ObjectMapper().writeValueAsString(
-						masterSyncResponse.get(RegistrationConstants.RESPONSE));
-				SyncDataResponseDto syncDataResponseDto = gson.fromJson(jsonString, SyncDataResponseDto.class);
-				resoponse = masterSyncDao.saveSyncData(syncDataResponseDto);
+		try {			
+			String serviceName = RegistrationConstants.ENABLE.equalsIgnoreCase((String) 
+					ApplicationContext.map().get(RegistrationConstants.INITIAL_SETUP)) ? RegistrationConstants.MASTER_VALIDATOR_SERVICE_NAME :
+						RegistrationConstants.MASTER_CENTER_REMAP_SERVICE_NAME;	
+			
+			LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, new JSONObject(requestParam).toString());
+			
+			if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
 				
-				if (resoponse.equals(RegistrationConstants.SUCCESS)) {
-
-					LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
-							RegistrationConstants.MASTER_SYNC_SUCCESS);
-					setSuccessResponse(responseDTO, RegistrationConstants.MASTER_SYNC_SUCCESS, null);
-					
-					SyncTransaction syncTransaction= syncManager.createSyncTransaction(RegistrationConstants.JOB_EXECUTION_SUCCESS,
-							RegistrationConstants.JOB_EXECUTION_SUCCESS, triggerPoint, masterSyncDtls);
-					
-					syncManager.updateClientSettingLastSyncTime(syncTransaction, getTimestamp(syncDataResponseDto.getLastSyncTime()));
-				} else {
-
-					LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
-							RegistrationConstants.MASTER_SYNC_FAILURE_MSG_INFO);
-					setErrorResponse(responseDTO, RegistrationConstants.MASTER_SYNC_FAILURE_MSG, null);
-				}
+				masterSyncResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil.get(serviceName, requestParam, 
+						true, triggerPoint);
 				
-			} else {
-				if (centerReMapFlag(masterSyncResponse)) {
-					LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, "Auditing center remapping");
-					auditFactory.audit(AuditEvent.MACHINE_REMAPPED, Components.CENTER_MACHINE_REMAP,
-							RegistrationConstants.APPLICATION_NAME, AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
-					LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
-							"updating center remapping flag in global param");
-					globalParamService.update(RegistrationConstants.MACHINE_CENTER_REMAP_FLAG,
-							RegistrationConstants.TRUE);
-					LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
-							"updating center remapping process");
-					centerMachineReMapService.startRemapProcess();
-					setSuccessResponse(responseDTO,
-							(String) globalParamService.getGlobalParams().get(RegistrationConstants.INITIAL_SETUP),
-							masterSyncResponse);
-				} else {
-					LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
-							RegistrationConstants.MASTER_SYNC_FAILURE_MSG_INFO);
-					setErrorResponse(responseDTO, errorMsg(masterSyncResponse), null);
-				}
+				if (null != masterSyncResponse.get(RegistrationConstants.RESPONSE))					
+					saveClientSettings(masterSyncDtls, triggerPoint, masterSyncResponse, responseDTO);
+				else if(null != masterSyncResponse.get(RegistrationConstants.ERRORS) && isMachineRemapped(masterSyncResponse))
+					initiateMachineCenterRemapping(masterSyncResponse, responseDTO);				
+				else
+					setErrorResponse(responseDTO, errorMsg(masterSyncResponse), null);									
 			}
-		} catch (RegBaseUncheckedException | RegBaseCheckedException regBaseUncheckedException) {
-			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, regBaseUncheckedException.getMessage()
-					+ resoponse + ExceptionUtils.getStackTrace(regBaseUncheckedException));
-		} catch (RuntimeException | IOException runtimeException) {
-			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
-					runtimeException.getMessage() + resoponse + ExceptionUtils.getStackTrace(runtimeException));
+			else
+				setErrorResponse(responseDTO, RegistrationConstants.NO_INTERNET, null);
+					
+		} catch (Exception e) {
+			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage() + ExceptionUtils.getStackTrace(e));
 			setErrorResponse(responseDTO, RegistrationConstants.MASTER_SYNC_FAILURE_MSG, null);
 		}
+		
+		LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, 
+				"Client settings sync completed :: " + responseDTO.toString());
 		return responseDTO;
+	}
+	
+	
+	private void saveClientSettings(String masterSyncDtls, String triggerPoint, 
+			LinkedHashMap<String, Object> masterSyncResponse, ResponseDTO responseDTO) throws Exception {
+		LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, "save Client Settings started...");
+		String jsonString = MapperUtils.convertObjectToJsonString(masterSyncResponse.get(RegistrationConstants.RESPONSE));					
+		SyncDataResponseDto syncDataResponseDto = MapperUtils.convertJSONStringToDto(jsonString, 
+				new TypeReference<SyncDataResponseDto>() {});					
+		String response = masterSyncDao.saveSyncData(syncDataResponseDto);
+		
+		if(response.equals(RegistrationConstants.SUCCESS)) {
+			setSuccessResponse(responseDTO, RegistrationConstants.MASTER_SYNC_SUCCESS, null);						
+			SyncTransaction syncTransaction = syncManager.createSyncTransaction(RegistrationConstants.JOB_EXECUTION_SUCCESS,
+					RegistrationConstants.JOB_EXECUTION_SUCCESS, triggerPoint, masterSyncDtls);						
+			syncManager.updateClientSettingLastSyncTime(syncTransaction, getTimestamp(syncDataResponseDto.getLastSyncTime()));
+			LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, "Save Client Settings completed successfully.");
+		}
+		else
+			setErrorResponse(responseDTO, RegistrationConstants.MASTER_SYNC_FAILURE_MSG, null);
+	}
+	
+	
+	private void initiateMachineCenterRemapping(LinkedHashMap<String, Object> masterSyncResponse, ResponseDTO responseDTO) {
+		LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, "Machine center remapping ...");
+		
+		auditFactory.audit(AuditEvent.MACHINE_REMAPPED, Components.CENTER_MACHINE_REMAP,
+				RegistrationConstants.APPLICATION_NAME, AuditReferenceIdTypes.USER_ID.getReferenceTypeId());		
+		globalParamService.update(RegistrationConstants.MACHINE_CENTER_REMAP_FLAG, RegistrationConstants.TRUE);		
+		centerMachineReMapService.startRemapProcess();
+		
+		setSuccessResponse(responseDTO, (String) globalParamService.getGlobalParams().get(RegistrationConstants.INITIAL_SETUP), 
+				masterSyncResponse);
 	}
 	
 	/**
@@ -823,5 +762,60 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 		}
 		throw new RegBaseCheckedException(RegistrationConstants.SYNC_TRANSACTION_RUNTIME_EXCEPTION, 
 				"Failed to parse lastSyncTime from server : " + time);
+	}
+
+	@SuppressWarnings("unchecked")
+	public ResponseDTO syncSchema(String triggerPoint) throws RegBaseCheckedException {
+		LOGGER.info(LOG_REG_SCHEMA_SYNC, APPLICATION_NAME, APPLICATION_ID, "ID Schema sync started .....");
+		
+		ResponseDTO responseDTO = new ResponseDTO();
+		LinkedHashMap<String, Object> syncResponse = null;
+		
+		
+		if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {			
+			try {
+				/*syncResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil.get(
+						RegistrationConstants.ID_SCHEMA_SYNC_SERVICE, new HashMap<String, String>(), true, triggerPoint);*/
+				
+				syncResponse = new LinkedHashMap<String, Object>();
+				syncResponse.put(RegistrationConstants.RESPONSE, "test");
+				
+				if (null != syncResponse.get(RegistrationConstants.RESPONSE)) {
+					LOGGER.info(LOG_REG_SCHEMA_SYNC, APPLICATION_NAME, APPLICATION_ID, "ID Schema sync fetched from server.");
+						
+					//SchemaDto schemaDto = (SchemaDto) syncResponse.get(RegistrationConstants.RESPONSE);
+					String content = null;
+					try(InputStream in = AppConfig.class.getClassLoader().getResourceAsStream("response_1587846312621.json")) {
+						content = IOUtils.toString(in);
+					}
+					SchemaDto schemaDto = MapperUtils.convertJSONStringToDto(content, new TypeReference<SchemaDto>() {});
+					identitySchemaDao.createIdentitySchema(schemaDto);					
+					setSuccessResponse(responseDTO, RegistrationConstants.SUCCESS, null);
+				}
+				else
+					setErrorResponse(responseDTO, errorMsg(syncResponse), null);
+				
+			} catch(HttpClientErrorException | IOException e) {
+				LOGGER.error(LOG_REG_SCHEMA_SYNC, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(e));
+				setErrorResponse(responseDTO, ExceptionUtils.getStackTrace(e), null);
+			}
+		}
+		else
+			setErrorResponse(responseDTO, RegistrationConstants.NO_INTERNET, null);
+		
+		return responseDTO;
+	}
+	
+	
+	private boolean isMachineRemapped(LinkedHashMap<String, Object> syncReponse) {
+		
+		@SuppressWarnings("unchecked")
+		List<Map<String, Object>> errorList = (List<Map<String, Object>>) syncReponse
+				.get(RegistrationConstants.ERRORS);
+		
+		if(errorList != null && !errorList.isEmpty())
+			return "KER-SNC-149".equalsIgnoreCase((String) errorList.get(0).get("errorCode"));
+		
+		return false;
 	}
 }

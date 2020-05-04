@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
@@ -41,7 +42,6 @@ import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.vertx.core.Vertx;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AbisMiddleWareStageTest {
@@ -340,7 +340,10 @@ public class AbisMiddleWareStageTest {
 
 	@Test
 	public void testConsumerListener() throws RegistrationProcessorCheckedException {
-		String failedInsertResponse = "{\"id\":\"mosip.abis.insert\",\"requestId\":\"5b64e806-8d5f-4ba1-b641-0b55cf40c0e1\",\"timestamp\":\"1558001992\",\"returnValue\":2,\"failureReason\":7}\r\n"
+
+
+		String failedInsertResponse = "{\"id\":\"mosip.abis.insert\",\"requestId\":\"5b64e806-8d5f-4ba1-b641-0b55cf40c0e1\",\"responsetime\":"
+				+ null + ",\"returnValue\":2,\"failureReason\":7}\r\n"
 				+ "";
 		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
 		ByteSequence byteSeq = new ByteSequence();
@@ -354,7 +357,8 @@ public class AbisMiddleWareStageTest {
 		Mockito.when(packetInfoManager.getAbisRequestByRequestId(Mockito.any())).thenReturn(abisCommonRequestDto);
 		stage.consumerListener(amq, "abis1_inboundAddress", queue, evenBus);
 
-		String sucessfulResponse = "{\"id\":\"mosip.abis.insert\",\"requestId\":\"5b64e806-8d5f-4ba1-b641-0b55cf40c0e1\",\"timestamp\":\"1558001992\",\"returnValue\":1,\"failureReason\":null}\r\n"
+		String sucessfulResponse = "{\"id\":\"mosip.abis.insert\",\"requestId\":\"5b64e806-8d5f-4ba1-b641-0b55cf40c0e1\",\"responsetime\":"
+				+ null + ",\"returnValue\":1,\"failureReason\":null}\r\n"
 				+ "";
 		byteSeq.setData(sucessfulResponse.getBytes());
 		amq.setContent(byteSeq);
@@ -368,7 +372,8 @@ public class AbisMiddleWareStageTest {
 
 	@Test
 	public void batchIdNull() throws RegistrationProcessorCheckedException {
-		String sucessfulResponse = "{\"id\":\"mosip.abis.insert\",\"requestId\":\"5b64e806-8d5f-4ba1-b641-0b55cf40c0e1\",\"timestamp\":\"1558001992\",\"returnValue\":1,\"failureReason\":null}\r\n"
+		String sucessfulResponse = "{\"id\":\"mosip.abis.insert\",\"requestId\":\"5b64e806-8d5f-4ba1-b641-0b55cf40c0e1\",\"responsetime\":"
+				+ null + ",\"returnValue\":1,\"failureReason\":null}\r\n"
 				+ "";
 		ActiveMQBytesMessage amq1 = new ActiveMQBytesMessage();
 		ByteSequence byteSeq1 = new ByteSequence();
@@ -393,7 +398,8 @@ public class AbisMiddleWareStageTest {
 		Mockito.when(packetInfoManager.getBatchStatusbyBatchId(Mockito.anyString())).thenReturn(null);
 
 		// test for identify succes response - no duplicates
-		String identifySucessfulResponse = "{\"id\":\"mosip.abis.identify\",\"requestId\":\"8a3effd4-5fba-44e0-8cbb-3083ba098209\",\"timestamp\":\"1558001992\",\"returnValue\":1,\"failureReason\":null,\"candidateList\":null}";
+		String identifySucessfulResponse = "{\"id\":\"mosip.abis.identify\",\"requestId\":\"8a3effd4-5fba-44e0-8cbb-3083ba098209\",\"responsetime\":"
+				+ null + ",\"returnValue\":1,\"failureReason\":null,\"candidateList\":null}";
 		ActiveMQBytesMessage amq1 = new ActiveMQBytesMessage();
 		ByteSequence byteSeq1 = new ByteSequence();
 		byteSeq1.setData(identifySucessfulResponse.getBytes());
@@ -406,12 +412,15 @@ public class AbisMiddleWareStageTest {
 		Mockito.when(packetInfoManager.getAbisRequestByRequestId(Mockito.any())).thenReturn(abisCommonRequestDto1);
 		stage.consumerListener(amq1, "abis1_inboundAddress", queue1, evenBus1);
 		// test for identify failed response
-		String identifyFailedResponse = "{\"id\":\"mosip.abis.identify\",\"requestId\":\"8a3effd4-5fba-44e0-8cbb-3083ba098209\",\"timestamp\":\"1558001992\",\"returnValue\":2,\"failureReason\":3,\"candidateList\":null}";
+		String identifyFailedResponse = "{\"id\":\"mosip.abis.identify\",\"requestId\":\"8a3effd4-5fba-44e0-8cbb-3083ba098209\",\"responsetime\":"
+				+ null + ",\"returnValue\":2,\"failureReason\":3,\"candidateList\":null}";
 		byteSeq1.setData(identifyFailedResponse.getBytes());
 		amq1.setContent(byteSeq1);
 		stage.consumerListener(amq1, "abis1_inboundAddress", queue1, evenBus1);
 		// test for identify response - with duplicates
-		String duplicateIdentifySuccessResponse = "{\"id\":\"mosip.abis.identify\",\"requestId\":\"f4b1f6fd-466c-462f-aa8b-c218596542ec\",\"timestamp\":\"1558413054\",\"returnValue\":1,\"failureReason\":null,\"candidateList\":{\"count\":\"1\",\"candidates\":[{\"referenceId\":\"d1070375-0960-4e90-b12c-72ab6186444d\",\"scaledScore\":\"100\",\"internalScore\":null,\"analytics\":null,\"scores\":null}]}}";
+		String duplicateIdentifySuccessResponse = "{\"id\":\"mosip.abis.identify\",\"requestId\":\"f4b1f6fd-466c-462f-aa8b-c218596542ec\",\"responsetime\":"
+				+ null
+				+ ",\"returnValue\":1,\"failureReason\":null,\"candidateList\":{\"count\":\"1\",\"candidates\":[{\"referenceId\":\"d1070375-0960-4e90-b12c-72ab6186444d\",\"analytics\":null,\"modalities\":null}]}}";
 		byteSeq1.setData(duplicateIdentifySuccessResponse.getBytes());
 		amq1.setContent(byteSeq1);
 		stage.consumerListener(amq1, "abis1_inboundAddress", queue1, evenBus1);
