@@ -256,6 +256,21 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 		return individualTypeRepository.findByIndividualTypeIdCodeAndIndividualTypeIdLangCodeAndIsActiveTrue(code,
 				langCode);
 	}
+	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * io.mosip.registration.dao.MasterSyncDao#getIndividulType(java.lang.String,
+	 * java.lang.String)
+	 */
+	@Override
+	public List<IndividualType> getIndividulType(String langCode) {
+		return individualTypeRepository.findByIndividualTypeIdLangCodeAndIsActiveTrue(
+				langCode);
+	}
+	
+	
 
 	public List<SyncJobDef> getSyncJobs() {
 		return syncJobDefRepository.findAllByIsActiveTrue();
