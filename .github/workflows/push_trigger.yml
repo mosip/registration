@@ -100,592 +100,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.access_token }}
         GPG_TTY: $(tty)  
-  
-  docker-registration-processor-bio-dedupe-stage:
-    needs: build
 
-    runs-on: ubuntu-latest
-    env:
-      NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-bio-dedupe-stage
-      SERVICE_LOCATION: registration-processor/registration-processor-bio-dedupe-stage
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v1
-        with:
-          name: release
-          path: ./
-
-      - name: Get version info from pom
-        id: getPomVersion
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract the registration-processor-bio-dedupe-stage
-        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
-      - name: Build image
-        run: |
-          cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-      - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
-        
-      - name: Push image
-        run: |
-          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=${{steps.getPomVersion.outputs.info}}
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
-  docker-registration-processor-request-handler-service:
-    needs: build
-
-    runs-on: ubuntu-latest
-    env:
-      NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-request-handler-service
-      SERVICE_LOCATION: registration-processor/registration-processor-request-handler-service
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v1
-        with:
-          name: release
-          path: ./
-
-      - name: Get version info from pom
-        id: getPomVersion
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract the registration-processor-request-handler-service
-        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
-      - name: Build image
-        run: |
-          cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-      - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
-        
-      - name: Push image
-        run: |
-          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=${{steps.getPomVersion.outputs.info}}
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
-  docker-registration-processor-uin-generator-stage:
-    needs: build
-
-    runs-on: ubuntu-latest
-    env:
-      NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-uin-generator-stage
-      SERVICE_LOCATION: registration-processor/registration-processor-uin-generator-stage
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v1
-        with:
-          name: release
-          path: ./
-
-      - name: Get version info from pom
-        id: getPomVersion
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract the registration-processor-uin-generator-stage
-        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
-      - name: Build image
-        run: |
-          cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-      - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
-        
-      - name: Push image
-        run: |
-          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=${{steps.getPomVersion.outputs.info}}
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
-  docker-registration-processor-abis-handler-stage:
-    needs: build
-
-    runs-on: ubuntu-latest
-    env:
-      NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-abis-handler-stage
-      SERVICE_LOCATION: registration-processor/registration-processor-abis-handler-stage
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v1
-        with:
-          name: release
-          path: ./
-
-      - name: Get version info from pom
-        id: getPomVersion
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract the registration-processor-abis-handler-stage
-        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
-      - name: Build image
-        run: |
-          cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-      - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
-        
-      - name: Push image
-        run: |
-          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=${{steps.getPomVersion.outputs.info}}
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
-  docker-registration-processor-abis-middleware-stage:
-    needs: build
-
-    runs-on: ubuntu-latest
-    env:
-      NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-abis-middleware-stage
-      SERVICE_LOCATION: registration-processor/registration-processor-abis-middleware-stage
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v1
-        with:
-          name: release
-          path: ./
-
-      - name: Get version info from pom
-        id: getPomVersion
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract the registration-processor-abis-middleware-stage
-        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
-      - name: Build image
-        run: |
-          cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-      - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
-        
-      - name: Push image
-        run: |
-          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=${{steps.getPomVersion.outputs.info}}
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
-  docker-registration-processor-bio-dedupe-service:
-    needs: build
-
-    runs-on: ubuntu-latest
-    env:
-      NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-bio-dedupe-service
-      SERVICE_LOCATION: registration-processor/registration-processor-bio-dedupe-service
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v1
-        with:
-          name: release
-          path: ./
-
-      - name: Get version info from pom
-        id: getPomVersion
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract the registration-processor-bio-dedupe-service
-        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
-      - name: Build image
-        run: |
-          cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-      - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
-        
-      - name: Push image
-        run: |
-          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=${{steps.getPomVersion.outputs.info}}
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
-  docker-registration-processor-biometric-authentication-stage:
-    needs: build
-
-    runs-on: ubuntu-latest
-    env:
-      NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-biometric-authentication-stage
-      SERVICE_LOCATION: registration-processor/registration-processor-biometric-authentication-stage
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v1
-        with:
-          name: release
-          path: ./
-
-      - name: Get version info from pom
-        id: getPomVersion
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract the registration-processor-biometric-authentication-stage
-        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
-      - name: Build image
-        run: |
-          cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-      - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
-        
-      - name: Push image
-        run: |
-          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=${{steps.getPomVersion.outputs.info}}
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
-  docker-registration-processor-common-camel-bridge:
-    needs: build
-
-    runs-on: ubuntu-latest
-    env:
-      NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-common-camel-bridge
-      SERVICE_LOCATION: registration-processor/registration-processor-common-camel-bridge
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v1
-        with:
-          name: release
-          path: ./
-
-      - name: Get version info from pom
-        id: getPomVersion
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract the registration-processor-common-camel-bridge
-        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
-      - name: Build image
-        run: |
-          cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-      - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
-        
-      - name: Push image
-        run: |
-          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=${{steps.getPomVersion.outputs.info}}
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
-  docker-registration-processor-demo-dedupe-stage:
-    needs: build
-
-    runs-on: ubuntu-latest
-    env:
-      NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-demo-dedupe-stage
-      SERVICE_LOCATION: registration-processor/registration-processor-demo-dedupe-stage
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v1
-        with:
-          name: release
-          path: ./
-
-      - name: Get version info from pom
-        id: getPomVersion
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract the registration-processor-demo-dedupe-stage
-        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
-      - name: Build image
-        run: |
-          cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-      - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
-        
-      - name: Push image
-        run: |
-          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=${{steps.getPomVersion.outputs.info}}
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
-  docker-registration-processor-external-integration-service:
-    needs: build
-
-    runs-on: ubuntu-latest
-    env:
-      NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-external-integration-service
-      SERVICE_LOCATION: registration-processor/registration-processor-external-integration-service
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v1
-        with:
-          name: release
-          path: ./
-
-      - name: Get version info from pom
-        id: getPomVersion
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract the registration-processor-external-integration-service
-        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
-      - name: Build image
-        run: |
-          cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-      - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
-        
-      - name: Push image
-        run: |
-          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=${{steps.getPomVersion.outputs.info}}
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
-  docker-registration-processor-external-stage:
-    needs: build
-
-    runs-on: ubuntu-latest
-    env:
-      NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-external-stage
-      SERVICE_LOCATION: registration-processor/registration-processor-external-stage
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v1
-        with:
-          name: release
-          path: ./
-
-      - name: Get version info from pom
-        id: getPomVersion
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract the registration-processor-external-stage
-        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
-      - name: Build image
-        run: |
-          cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-      - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
-        
-      - name: Push image
-        run: |
-          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=${{steps.getPomVersion.outputs.info}}
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
-  docker-registration-processor-manual-verification-stage:
-    needs: build
-
-    runs-on: ubuntu-latest
-    env:
-      NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-manual-verification-stage
-      SERVICE_LOCATION: registration-processor/registration-processor-manual-verification-stage
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v1
-        with:
-          name: release
-          path: ./
-
-      - name: Get version info from pom
-        id: getPomVersion
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract the registration-processor-manual-verification-stage
-        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
-      - name: Build image
-        run: |
-          cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-      - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
-        
-      - name: Push image
-        run: |
-          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=${{steps.getPomVersion.outputs.info}}
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
-  docker-registration-processor-message-sender-stage:
-    needs: build
-
-    runs-on: ubuntu-latest
-    env:
-      NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-message-sender-stage
-      SERVICE_LOCATION: registration-processor/registration-processor-message-sender-stage
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v1
-        with:
-          name: release
-          path: ./
-
-      - name: Get version info from pom
-        id: getPomVersion
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract the registration-processor-message-sender-stage
-        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
-      - name: Build image
-        run: |
-          cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-      - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
-        
-      - name: Push image
-        run: |
-          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=${{steps.getPomVersion.outputs.info}}
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
   docker-registration-processor-osi-validator-stage:
     needs: build
 
@@ -693,7 +108,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-osi-validator-stage
-      SERVICE_LOCATION: registration-processor/registration-processor-osi-validator-stage
+      SERVICE_LOCATION: registration-processor/pre-processor/registration-processor-osi-validator-stage
 
     steps:
       - uses: actions/checkout@v2
@@ -731,321 +146,7 @@ jobs:
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
-  docker-registration-processor-packet-uploader-stage:
-    needs: build
 
-    runs-on: ubuntu-latest
-    env:
-      NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-packet-uploader-stage
-      SERVICE_LOCATION: registration-processor/registration-processor-packet-uploader-stage
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v1
-        with:
-          name: release
-          path: ./
-
-      - name: Get version info from pom
-        id: getPomVersion
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract the registration-processor-packet-uploader-stage
-        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
-      - name: Build image
-        run: |
-          cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-      - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
-        
-      - name: Push image
-        run: |
-          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=${{steps.getPomVersion.outputs.info}}
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
-  docker-registration-processor-packet-validator-stage:
-    needs: build
-
-    runs-on: ubuntu-latest
-    env:
-      NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-packet-validator-stage
-      SERVICE_LOCATION: registration-processor/registration-processor-packet-validator-stage
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v1
-        with:
-          name: release
-          path: ./
-
-      - name: Get version info from pom
-        id: getPomVersion
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract the registration-processor-packet-validator-stage
-        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
-      - name: Build image
-        run: |
-          cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-      - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
-        
-      - name: Push image
-        run: |
-          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=${{steps.getPomVersion.outputs.info}}
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
-  docker-registration-processor-printing-stage:
-    needs: build
-
-    runs-on: ubuntu-latest
-    env:
-      NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-printing-stage
-      SERVICE_LOCATION: registration-processor/registration-processor-printing-stage
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v1
-        with:
-          name: release
-          path: ./
-
-      - name: Get version info from pom
-        id: getPomVersion
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract the registration-processor-printing-stage
-        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
-      - name: Build image
-        run: |
-          cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-      - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
-        
-      - name: Push image
-        run: |
-          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=${{steps.getPomVersion.outputs.info}}
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
-  docker-registration-processor-print-service:
-    needs: build
-
-    runs-on: ubuntu-latest
-    env:
-      NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-print-service
-      SERVICE_LOCATION: registration-processor/registration-processor-print-service
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v1
-        with:
-          name: release
-          path: ./
-
-      - name: Get version info from pom
-        id: getPomVersion
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract the registration-processor-print-service
-        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
-      - name: Build image
-        run: |
-          cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-      - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
-        
-      - name: Push image
-        run: |
-          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=${{steps.getPomVersion.outputs.info}}
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
-  docker-registration-processor-quality-checker-stage:
-    needs: build
-
-    runs-on: ubuntu-latest
-    env:
-      NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-quality-checker-stage
-      SERVICE_LOCATION: registration-processor/registration-processor-quality-checker-stage
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v1
-        with:
-          name: release
-          path: ./
-
-      - name: Get version info from pom
-        id: getPomVersion
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract the registration-processor-quality-checker-stage
-        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
-      - name: Build image
-        run: |
-          cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-      - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
-        
-      - name: Push image
-        run: |
-          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=${{steps.getPomVersion.outputs.info}}
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
-  docker-registration-processor-reprocessor-stage:
-    needs: build
-
-    runs-on: ubuntu-latest
-    env:
-      NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-reprocessor-stage
-      SERVICE_LOCATION: registration-processor/registration-processor-reprocessor-stage
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v1
-        with:
-          name: release
-          path: ./
-
-      - name: Get version info from pom
-        id: getPomVersion
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract the registration-processor-reprocessor-stage
-        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
-      - name: Build image
-        run: |
-          cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-      - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
-        
-      - name: Push image
-        run: |
-          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=${{steps.getPomVersion.outputs.info}}
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
-  docker-registration-processor-registration-transaction-service:
-    needs: build
-
-    runs-on: ubuntu-latest
-    env:
-      NAMESPACE: mosipdev
-      SERVICE_NAME: registration-processor-registration-transaction-service
-      SERVICE_LOCATION: registration-processor/registration-processor-registration-transaction-service
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v1
-        with:
-          name: release
-          path: ./
-
-      - name: Get version info from pom
-        id: getPomVersion
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
-      
-      - name: Unzip and extract the registration-processor-registration-transaction-service
-        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
-      
-      - name: Build image
-        run: |
-          cd "./${{env.SERVICE_LOCATION}}"
-          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
-      - name: Log into registry
-        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
-        
-      - name: Push image
-        run: |
-          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
-          
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=${{steps.getPomVersion.outputs.info}}
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
   docker-registration-processor-securezone-notification-stage:
     needs: build
 
@@ -1053,7 +154,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-securezone-notification-stage
-      SERVICE_LOCATION: registration-processor/registration-processor-securezone-notification-stage
+      SERVICE_LOCATION: registration-processor/pre-processor/registration-processor-securezone-notification-stage
 
     steps:
       - uses: actions/checkout@v2
@@ -1070,6 +171,1111 @@ jobs:
           xpath: /*[local-name()="project"]/*[local-name()="version"] 
       
       - name: Unzip and extract the registration-processor-securezone-notification-stage
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+  
+
+  docker-registration-processor-request-handler-service:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-request-handler-service
+      SERVICE_LOCATION: registration-processor/pre-processor/registration-processor-request-handler-service
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the registration-processor-request-handler-service
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+
+  docker-registration-processor-external-stage:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-external-stage
+      SERVICE_LOCATION: registration-processor/pre-processor/registration-processor-external-stage
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the registration-processor-external-stage
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+
+  docker-registration-processor-packet-validator-stage:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-packet-validator-stage
+      SERVICE_LOCATION: registration-processor/pre-processor/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+          
+  docker-registration-processor-packet-uploader-stage:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-packet-uploader-stage
+      SERVICE_LOCATION: registration-processor/pre-processor/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+         
+  docker-registration-processor-quality-checker-stage:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-quality-checker-stage
+      SERVICE_LOCATION: registration-processor/pre-processor/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+         
+  docker-registration-processor-external-integration-service:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-external-integration-service
+      SERVICE_LOCATION: registration-processor/pre-processor/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+ 
+  docker-registration-processor-common-camel-bridge:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-common-camel-bridge
+      SERVICE_LOCATION: registration-processor/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+ 
+  docker-registration-processor-print-service:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-print-service
+      SERVICE_LOCATION: registration-processor/post-processor/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+ 
+  docker-registration-processor-printing-stage:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-printing-stage
+      SERVICE_LOCATION: registration-processor/post-processor/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+ 
+  docker-registration-processor-registration-transaction-service:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-registration-transaction-service
+      SERVICE_LOCATION: registration-processor/post-processor/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+ 
+  docker-registration-processor-message-sender-stage:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-message-sender-stage
+      SERVICE_LOCATION: registration-processor/post-processor/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+ 
+  docker-registration-processor-manual-verification-stage:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-manual-verification-stage
+      SERVICE_LOCATION: registration-processor/core-processor/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+ 
+  docker-registration-processor-abis-handler-stage:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-abis-handler-stage
+      SERVICE_LOCATION: registration-processor/core-processor/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+
+  docker-registration-processor-abis-middleware-stage:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-abis-middleware-stage
+      SERVICE_LOCATION: registration-processor/core-processor/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+
+  docker-registration-processor-uin-generator-stage:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-uin-generator-stage
+      SERVICE_LOCATION: registration-processor/core-processor/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+
+  docker-registration-processor-bio-dedupe-service:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-bio-dedupe-service
+      SERVICE_LOCATION: registration-processor/core-processor/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+
+  docker-registration-processor-abis:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-abis
+      SERVICE_LOCATION: registration-processor/core-processor/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+
+  docker-registration-processor-bio-dedupe-stage:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-bio-dedupe-stage
+      SERVICE_LOCATION: registration-processor/core-processor/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+
+  docker-registration-processor-reprocessor-stage:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-reprocessor-stage
+      SERVICE_LOCATION: registration-processor/core-processor/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+
+  docker-registration-processor-demo-dedupe-stage:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-demo-dedupe-stage
+      SERVICE_LOCATION: registration-processor/core-processor/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+
+  docker-registration-processor-biometric-authentication-stage:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-biometric-authentication-stage
+      SERVICE_LOCATION: registration-processor/core-processor/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+
+  docker-registration-processor-packet-receiver-stage:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-packet-receiver-stage
+      SERVICE_LOCATION: registration-processor/init/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+
+  docker-registration-processor-dmz-packet-server:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-dmz-packet-server
+      SERVICE_LOCATION: registration-processor/init/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
+        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      
+      - name: Build image
+        run: |
+          cd "./${{env.SERVICE_LOCATION}}"
+          docker build . --file Dockerfile --tag ${{ env.SERVICE_NAME }}
+      - name: Log into registry
+        run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
+        
+      - name: Push image
+        run: |
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          echo "push version ${{steps.getPomVersion.outputs.info}}"
+          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+
+  docker-registration-processor-registration-status-service:
+    needs: build
+
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: mosipdev
+      SERVICE_NAME: registration-processor-registration-status-service
+      SERVICE_LOCATION: registration-processor/init/${{ env.SERVICE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v1
+        with:
+          name: release
+          path: ./
+
+      - name: Get version info from pom
+        id: getPomVersion
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
+          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+      
+      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
       
       - name: Build image
