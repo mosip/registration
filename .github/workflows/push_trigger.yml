@@ -292,7 +292,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-packet-validator-stage
-      SERVICE_LOCATION: registration-processor/pre-processor/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/pre-processor/registration-processor-packet-validator-stage
 
     steps:
       - uses: actions/checkout@v2
@@ -338,7 +338,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-packet-uploader-stage
-      SERVICE_LOCATION: registration-processor/pre-processor/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/pre-processor/registration-processor-packet-uploader-stage
 
     steps:
       - uses: actions/checkout@v2
@@ -384,7 +384,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-quality-checker-stage
-      SERVICE_LOCATION: registration-processor/pre-processor/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/pre-processor/registration-processor-quality-checker-stage
 
     steps:
       - uses: actions/checkout@v2
@@ -430,7 +430,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-external-integration-service
-      SERVICE_LOCATION: registration-processor/pre-processor/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/pre-processor/registration-processor-external-integration-service
 
     steps:
       - uses: actions/checkout@v2
@@ -476,7 +476,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-common-camel-bridge
-      SERVICE_LOCATION: registration-processor/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/registration-processor-common-camel-bridge
 
     steps:
       - uses: actions/checkout@v2
@@ -522,7 +522,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-print-service
-      SERVICE_LOCATION: registration-processor/post-processor/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/post-processor/registration-processor-print-service
 
     steps:
       - uses: actions/checkout@v2
@@ -568,7 +568,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-printing-stage
-      SERVICE_LOCATION: registration-processor/post-processor/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/post-processor/registration-processor-printing-stage
 
     steps:
       - uses: actions/checkout@v2
@@ -614,7 +614,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-registration-transaction-service
-      SERVICE_LOCATION: registration-processor/post-processor/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/post-processor/registration-processor-registration-transaction-service
 
     steps:
       - uses: actions/checkout@v2
@@ -660,7 +660,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-message-sender-stage
-      SERVICE_LOCATION: registration-processor/post-processor/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/post-processor/registration-processor-message-sender-stage
 
     steps:
       - uses: actions/checkout@v2
@@ -706,7 +706,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-manual-verification-stage
-      SERVICE_LOCATION: registration-processor/core-processor/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/core-processor/registration-processor-manual-verification-stage
 
     steps:
       - uses: actions/checkout@v2
@@ -752,7 +752,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-abis-handler-stage
-      SERVICE_LOCATION: registration-processor/core-processor/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/core-processor/registration-processor-abis-handler-stage
 
     steps:
       - uses: actions/checkout@v2
@@ -798,7 +798,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-abis-middleware-stage
-      SERVICE_LOCATION: registration-processor/core-processor/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/core-processor/registration-processor-abis-middleware-stage
 
     steps:
       - uses: actions/checkout@v2
@@ -844,7 +844,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-uin-generator-stage
-      SERVICE_LOCATION: registration-processor/core-processor/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/core-processor/registration-processor-uin-generator-stage
 
     steps:
       - uses: actions/checkout@v2
@@ -890,7 +890,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-bio-dedupe-service
-      SERVICE_LOCATION: registration-processor/core-processor/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/core-processor/registration-processor-bio-dedupe-service
 
     steps:
       - uses: actions/checkout@v2
@@ -936,7 +936,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-abis
-      SERVICE_LOCATION: registration-processor/core-processor/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/core-processor/registration-processor-abis
 
     steps:
       - uses: actions/checkout@v2
@@ -982,7 +982,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-bio-dedupe-stage
-      SERVICE_LOCATION: registration-processor/core-processor/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/core-processor/registration-processor-bio-dedupe-stage
 
     steps:
       - uses: actions/checkout@v2
@@ -1028,7 +1028,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-reprocessor-stage
-      SERVICE_LOCATION: registration-processor/core-processor/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/core-processor/registration-processor-reprocessor-stage
 
     steps:
       - uses: actions/checkout@v2
@@ -1074,7 +1074,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-demo-dedupe-stage
-      SERVICE_LOCATION: registration-processor/core-processor/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/core-processor/registration-processor-demo-dedupe-stage
 
     steps:
       - uses: actions/checkout@v2
@@ -1120,7 +1120,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-biometric-authentication-stage
-      SERVICE_LOCATION: registration-processor/core-processor/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/core-processor/registration-processor-biometric-authentication-stage
 
     steps:
       - uses: actions/checkout@v2
@@ -1166,7 +1166,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-packet-receiver-stage
-      SERVICE_LOCATION: registration-processor/init/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/init/registration-processor-packet-receiver-stage
 
     steps:
       - uses: actions/checkout@v2
@@ -1212,7 +1212,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-dmz-packet-server
-      SERVICE_LOCATION: registration-processor/init/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/init/registration-processor-dmz-packet-server
 
     steps:
       - uses: actions/checkout@v2
@@ -1258,7 +1258,7 @@ jobs:
     env:
       NAMESPACE: mosipdev
       SERVICE_NAME: registration-processor-registration-status-service
-      SERVICE_LOCATION: registration-processor/init/${{ env.SERVICE_NAME }}
+      SERVICE_LOCATION: registration-processor/init/registration-processor-registration-status-service
 
     steps:
       - uses: actions/checkout@v2
