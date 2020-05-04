@@ -297,7 +297,8 @@
 		<module>pre-processor</module>
 		<module>core-processor</module>
 		<module>post-processor</module>
-	</modules>
+    <module>registration-processor-packet-utility</module>
+  </modules>
 
 	<profiles>
 		<profile>
