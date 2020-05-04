@@ -58,7 +58,6 @@ public class Validations extends BaseController {
 	 */
 	private static final Logger LOGGER = AppConfig.getLogger(Validations.class);
 	private boolean isChild;
-	private Map<String, UiSchemaDTO> validationMap;
 	private ResourceBundle applicationMessageBundle;
 	private ResourceBundle localMessageBundle;
 	private ResourceBundle applicationLabelBundle;
@@ -68,6 +67,7 @@ public class Validations extends BaseController {
 	private List<String> localLanguageblackListedWords;
 	private List<String> noAlert;
 	private boolean isLostUIN = false;
+	private int maxAge;;
 
 	/**
 	 * Instantiates a new validations.
@@ -248,6 +248,10 @@ public class Validations extends BaseController {
 		try {
 			String label = id.replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY)
 					.replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY);
+			
+			if(isLostUIN && !id.contains("_ontype") ) {
+				return true;
+			}
 
 			UiSchemaDTO uiSchemaDTO = getUiSchemaDTO(id, isLostUIN);
 
@@ -263,7 +267,7 @@ public class Validations extends BaseController {
 
 				if (node.isDisabled() || (!isMandatory && inputText.isEmpty())) {
 					isInputValid = true;
-				} else if (isMandatory && (inputText == null || inputText.isEmpty())) {
+				} else if (isMandatory && (inputText == null || inputText.isEmpty()) && !isLostUIN) {
 					generateInvalidValueAlert(parentPane, id,
 							labelBundle.getString(label).concat(RegistrationConstants.SPACE)
 									.concat(messageBundle.getString(RegistrationConstants.REG_LGN_001)),
@@ -299,6 +303,12 @@ public class Validations extends BaseController {
 						});
 						node.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
 					}
+				}
+			}
+			if(label.equals("ageField")) {
+				maxAge=Integer.parseInt(getValueFromApplicationContext(RegistrationConstants.MAX_AGE));
+				if( Integer.parseInt(node.getText())>maxAge) {
+					return false;
 				}
 			}
 		} catch (RuntimeException runtimeException) {
@@ -548,26 +558,13 @@ public class Validations extends BaseController {
 	private UiSchemaDTO getUiSchemaDTO(String id, boolean isLostUIN) {
 		UiSchemaDTO uiSchemaDTO = null;
 
-		if (validationMap.containsKey(id)) {
-			uiSchemaDTO = validationMap.get(id);
+		if (getValidationMap().containsKey(id)) {
+			uiSchemaDTO = getValidationMap().get(id);
 		}
 		return uiSchemaDTO;
 
 	}
 
-	/**
-	 * Set Validations map
-	 * 
-	 * @param validations
-	 *            is a map id's and regex validations
-	 */
-	public void setValidations(Map<String, UiSchemaDTO> validations) {
-		this.validationMap = validations;
-	}
-
-	public Map<String, UiSchemaDTO> getValidationMap() {
-		return validationMap;
-	}
 
 	private String getRegex(UiSchemaDTO uiSchemaDTO, String regexType) {
 

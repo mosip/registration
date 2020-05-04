@@ -232,7 +232,11 @@ public class BaseController {
 	private static boolean isAckOpened = false;
 	
 	private List<UiSchemaDTO> uiSchemaDTOs;
+	
+	private static Map<String, UiSchemaDTO> validationMap;
 
+	
+	
 	private static List<String> ALL_BIO_ATTRIBUTES = null;
 
 	static {
@@ -244,6 +248,21 @@ public class BaseController {
 		ALL_BIO_ATTRIBUTES.add(RegistrationConstants.FACE_EXCEPTION);
 	}
 
+	/**
+	 * Set Validations map
+	 * 
+	 * @param validations
+	 *            is a map id's and regex validations
+	 */
+	public void setValidations(Map<String, UiSchemaDTO> validations) {
+		validationMap = validations;
+	}
+
+	public Map<String, UiSchemaDTO> getValidationMap() {
+		return validationMap;
+	}
+
+	
 	/**
 	 * @return the alertStage
 	 */

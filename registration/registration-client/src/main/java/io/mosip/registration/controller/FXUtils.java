@@ -20,6 +20,7 @@ import io.mosip.registration.controller.reg.RegistrationController;
 import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.mastersync.BiometricAttributeDto;
+import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
 import io.mosip.registration.dto.mastersync.GenderDto;
 import io.mosip.registration.dto.mastersync.LocationDto;
@@ -592,7 +593,10 @@ public class FXUtils {
 
 		if (!localComboBoxValues.isEmpty() && selectedOption != null) {
 			IntPredicate findIndexOfSelectedItem = null;
-			if (localComboBoxValues.get(0) instanceof LocationDto && selectedOption instanceof LocationDto) {
+			 if (localComboBoxValues.get(0) instanceof GenericDto && selectedOption instanceof GenericDto) {
+					findIndexOfSelectedItem = index -> ((GenericDto) localComboBoxValues.get(index)).getCode()
+							.equals(((GenericDto) selectedOption).getCode());
+			}else if (localComboBoxValues.get(0) instanceof LocationDto && selectedOption instanceof LocationDto) {
 				findIndexOfSelectedItem = index -> ((LocationDto) localComboBoxValues.get(index)).getCode()
 						.equals(((LocationDto) selectedOption).getCode());
 			} else if (localComboBoxValues.get(0) instanceof GenderDto && selectedOption instanceof GenderDto) {
@@ -639,6 +643,9 @@ public class FXUtils {
 			} else if (comboBoxValues.get(0) instanceof DocumentCategoryDto) {
 				findIndexOfSelectedItem = index -> ((DocumentCategoryDto) comboBoxValues.get(index)).getName()
 						.equals(selectedValue);
+			} else if (comboBoxValues.get(0) instanceof GenericDto) {
+				findIndexOfSelectedItem = index -> ((GenericDto) comboBoxValues.get(index)).getCode()
+						.equals(selectedValue);
 			}
 
 			OptionalInt indexOfSelectedLocation = getIndexOfSelectedItem(comboBoxValues, findIndexOfSelectedItem);
@@ -672,6 +679,8 @@ public class FXUtils {
 					value = ((DocumentCategoryDto) object).getName();
 				} else if (object instanceof BiometricAttributeDto) {
 					value = ((BiometricAttributeDto) object).getName();
+				} else if (object instanceof GenericDto) {
+					value = ((GenericDto) object).getName();
 				}
 				return value;
 			}

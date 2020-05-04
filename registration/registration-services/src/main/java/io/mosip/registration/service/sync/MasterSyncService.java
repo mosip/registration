@@ -8,6 +8,7 @@ import io.mosip.registration.dto.mastersync.BiometricAttributeDto;
 import io.mosip.registration.dto.mastersync.BlacklistedWordsDto;
 import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
 import io.mosip.registration.dto.mastersync.GenderDto;
+import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.mastersync.LocationDto;
 import io.mosip.registration.dto.mastersync.ReasonListDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
@@ -64,7 +65,7 @@ public interface MasterSyncService {
 	 * @return the list holds the Location data to be displayed in the UI.
 	 * @throws RegBaseCheckedException
 	 */
-	List<LocationDto> findLocationByHierarchyCode(String hierarchyCode, String langCode) throws RegBaseCheckedException;
+	List<GenericDto> findLocationByHierarchyCode(String hierarchyCode, String langCode) throws RegBaseCheckedException;
 
 	/**
 	 * Find proviance by hierarchy code.
@@ -74,7 +75,7 @@ public interface MasterSyncService {
 	 * @return the list holds the Province data to be displayed in the UI.
 	 * @throws RegBaseCheckedException
 	 */
-	List<LocationDto> findProvianceByHierarchyCode(String code, String langCode) throws RegBaseCheckedException;
+	List<GenericDto> findProvianceByHierarchyCode(String code, String langCode) throws RegBaseCheckedException;
 
 	/**
 	 * Gets all the reasons for rejection that to be selected during EOD approval
@@ -114,7 +115,8 @@ public interface MasterSyncService {
 	 * @return the gender dtls
 	 * @throws RegBaseCheckedException
 	 */
-	List<GenderDto> getGenderDtls(String langCode) throws RegBaseCheckedException;
+	List<GenericDto> getGenderDtls(String langCode) throws RegBaseCheckedException;
+
 
 	/**
 	 * Gets the individual type.
@@ -126,6 +128,8 @@ public interface MasterSyncService {
 	 */
 	List<IndividualTypeDto> getIndividualType(String code, String langCode) throws RegBaseCheckedException;
 
+	List<GenericDto> getIndividualType(String langCode) throws RegBaseCheckedException;
+	
 	/**
 	 * Gets the biometric type.
 	 *

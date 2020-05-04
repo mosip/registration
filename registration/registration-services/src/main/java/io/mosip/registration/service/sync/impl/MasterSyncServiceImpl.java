@@ -1,15 +1,12 @@
 package io.mosip.registration.service.sync.impl;
 
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_MASTER_SYNC;
+import static io.mosip.registration.constants.LoggerConstants.LOG_REG_SCHEMA_SYNC;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
-import static io.mosip.registration.constants.LoggerConstants.LOG_REG_SCHEMA_SYNC;
 
-import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Timestamp;
@@ -26,7 +23,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +50,7 @@ import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.mastersync.BiometricAttributeDto;
 import io.mosip.registration.dto.mastersync.BlacklistedWordsDto;
 import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
-import io.mosip.registration.dto.mastersync.GenderDto;
+import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.mastersync.LocationDto;
 import io.mosip.registration.dto.mastersync.ReasonListDto;
 import io.mosip.registration.dto.response.SchemaDto;
@@ -217,17 +213,16 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	 * @throws RegBaseCheckedException
 	 */
 	@Override
-	public List<LocationDto> findLocationByHierarchyCode(String hierarchyCode, String langCode)
+	public List<GenericDto> findLocationByHierarchyCode(String hierarchyCode, String langCode)
 			throws RegBaseCheckedException {
 
-		List<LocationDto> locationDto = new ArrayList<>();
+		List<GenericDto> locationDto = new ArrayList<>();
 		if (codeAndlangCodeNullCheck(hierarchyCode, langCode)) {
 			List<Location> masterLocation = masterSyncDao.findLocationByLangCode(hierarchyCode, langCode);
 
 			for (Location masLocation : masterLocation) {
-				LocationDto location = new LocationDto();
+				GenericDto location = new GenericDto();
 				location.setCode(masLocation.getCode());
-				location.setHierarchyName(masLocation.getHierarchyName());
 				location.setName(masLocation.getName());
 				location.setLangCode(masLocation.getLangCode());
 				locationDto.add(location);
@@ -251,16 +246,15 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	 * @throws RegBaseCheckedException
 	 */
 	@Override
-	public List<LocationDto> findProvianceByHierarchyCode(String code, String langCode) throws RegBaseCheckedException {
+	public List<GenericDto> findProvianceByHierarchyCode(String code, String langCode) throws RegBaseCheckedException {
 
-		List<LocationDto> locationDto = new ArrayList<>();
+		List<GenericDto> locationDto = new ArrayList<>();
 		if (codeAndlangCodeNullCheck(code, langCode)) {
 			List<Location> masterLocation = masterSyncDao.findLocationByParentLocCode(code, langCode);
 
 			for (Location masLocation : masterLocation) {
-				LocationDto location = new LocationDto();
+				GenericDto location = new GenericDto();
 				location.setCode(masLocation.getCode());
-				location.setHierarchyName(masLocation.getHierarchyName());
 				location.setName(masLocation.getName());
 				location.setLangCode(masLocation.getLangCode());
 				locationDto.add(location);
@@ -359,17 +353,16 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	 * @throws RegBaseCheckedException
 	 */
 	@Override
-	public List<GenderDto> getGenderDtls(String langCode) throws RegBaseCheckedException {
-		List<GenderDto> gendetDtoList = new ArrayList<>();
+	public List<GenericDto> getGenderDtls(String langCode) throws RegBaseCheckedException {
+		List<GenericDto> gendetDtoList = new ArrayList<>();
 		if (langCodeNullCheck(langCode)) {
 			List<Gender> masterDocuments = masterSyncDao.getGenderDtls(langCode);
 			masterDocuments.forEach(gender -> {
-				GenderDto genders = new GenderDto();
-				genders.setCode(gender.getCode());
-				genders.setGenderName(gender.getGenderName());
-				genders.setIsActive(gender.getIsActive());
-				genders.setLangCode(gender.getLangCode());
-				gendetDtoList.add(genders);
+				GenericDto comboBox = new GenericDto();
+				comboBox.setCode(gender.getCode());
+				comboBox.setName(gender.getGenderName());
+				comboBox.setLangCode(gender.getLangCode());
+				gendetDtoList.add(comboBox);
 			});
 		} else {
 			LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
@@ -380,7 +373,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 		}
 		return gendetDtoList;
 	}
-
+	
 	/**
 	 * Gets all the document categories from db that to be displayed in the UI
 	 * dropdown.
@@ -454,6 +447,32 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 		}
 		return listOfIndividualDTO;
 	}
+	
+	
+	/**
+	 * Gets the individual type.
+	 *
+	 * @param code     the code
+	 * @param langCode the lang code
+	 * @return the individual type
+	 * @throws RegBaseCheckedException
+	 */
+	@Override
+	public List<GenericDto> getIndividualType(String langCode) throws RegBaseCheckedException {
+		List<GenericDto> listOfIndividualDTO = new ArrayList<>();
+
+			List<IndividualType> masterDocuments = masterSyncDao.getIndividulType(langCode);
+
+			masterDocuments.forEach(individual -> {
+				GenericDto individualDto = new GenericDto();
+				individualDto.setName(individual.getName());
+				individualDto.setCode(individual.getIndividualTypeId().getCode());
+				individualDto.setLangCode(individual.getIndividualTypeId().getLangCode());
+				listOfIndividualDTO.add(individualDto);
+			});
+		return listOfIndividualDTO;
+	}
+
 
 	/**
 	 * Gets the biometric type.
