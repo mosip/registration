@@ -19,7 +19,7 @@ import io.mosip.registration.processor.packet.utility.utils.ZipUtils;
 
 /**
  * The Class PacketReaderServiceImpl.
- * 
+ *
  * @author Sowmya
  */
 public class PacketReaderServiceImpl implements PacketReaderService {
