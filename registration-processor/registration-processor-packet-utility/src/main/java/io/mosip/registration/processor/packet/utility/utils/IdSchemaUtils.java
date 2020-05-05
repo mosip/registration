@@ -83,7 +83,7 @@ public class IdSchemaUtils {
 	 *            the uri
 	 * @return the json
 	 */
-	public static String getJson(String configServerFileStorageURL, String uri) {
+	private static String getJson(String configServerFileStorageURL, String uri) {
 		RestTemplate restTemplate = new RestTemplate();
 		return restTemplate.getForObject(configServerFileStorageURL + uri, String.class);
 	}
@@ -95,7 +95,7 @@ public class IdSchemaUtils {
 	 * @param id the id
 	 * @return the field category
 	 */
-	public  static String getFieldCategory(JSONObject jsonObject,String id){
+	private  static String getFieldCategory(JSONObject jsonObject,String id){
 		String fieldCategory=null;
 		String idvalue = JsonUtil.getJSONValue(jsonObject, IDschemaConstants.ID);
 		if(idvalue!=null && id.equalsIgnoreCase(idvalue)) {
