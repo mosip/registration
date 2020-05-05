@@ -183,10 +183,10 @@ public class DocumentScanController extends BaseController {
 	private ImageView backImageView;
 	@FXML
 	private Label biometricExceptionReq;
-	
+
 	@Autowired
 	private Validations validation;
-	
+
 	/**
 	 * @return the bioExceptionToggleLabel1
 	 */
@@ -257,13 +257,10 @@ public class DocumentScanController extends BaseController {
 		documentComboBoxes.clear();
 		documentVBoxes.clear();
 		initializePreviewSection();
-		
-		
-		
-		List<UiSchemaDTO> listOfDocId=getDocId();
+
+		List<UiSchemaDTO> listOfDocId = getDocId();
 		List<DocumentCategory> documentCategories = documentCategoryService
 				.getDocumentCategoriesByLangCode(ApplicationContext.applicationLanguage());
-
 
 		docScanVbox.setSpacing(5);
 		if (documentCategories != null && !documentCategories.isEmpty())
@@ -507,7 +504,7 @@ public class DocumentScanController extends BaseController {
 	 */
 	private void scanFromStubbed(Stage popupStage) throws IOException {
 		byte[] byteArray = documentScanFacade.getScannedDocument();
-		
+
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Converting byte array to image");
 
@@ -645,7 +642,7 @@ public class DocumentScanController extends BaseController {
 		validateDocumentsPane();
 
 		generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.SCAN_DOC_SUCCESS);
-		
+
 		getRegistrationDTOFromSession().addDocument(document.getCode(), documentDetailsDTO);
 	}
 
@@ -940,15 +937,17 @@ public class DocumentScanController extends BaseController {
 			LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, "Entering into toggle function for Biometric exception");
 
-			Map<String, Map<String, Boolean>> detailMap = (Map<String, Map<String, Boolean>>) applicationContext
-					.getApplicationMap().get(RegistrationConstants.REGISTRATION_MAP);
+			// Map<String, Map<String, Boolean>> detailMap = (Map<String, Map<String,
+			// Boolean>>) applicationContext
+			// .getApplicationMap().get(RegistrationConstants.REGISTRATION_MAP);
 
-			if (!detailMap.get(RegistrationConstants.DOCUMENT_SCAN).get(RegistrationConstants.DOCUMENT_PANE)) {
-
+			if (!pageFlow.isVisibleInRegFlowMap(RegistrationConstants.DOCUMENT_SCAN,
+					RegistrationConstants.DOCUMENT_PANE)) {
 				documentPane.setVisible(false);
 			}
-			if (!detailMap.get(RegistrationConstants.IRIS_CAPTURE).get(RegistrationConstants.VISIBILITY) && !detailMap
-					.get(RegistrationConstants.FINGERPRINT_CAPTURE).get(RegistrationConstants.VISIBILITY)) {
+			if (!pageFlow.isVisibleInRegFlowMap(RegistrationConstants.IRIS_CAPTURE, RegistrationConstants.VISIBILITY)
+					&& !pageFlow.isVisibleInRegFlowMap(RegistrationConstants.FINGERPRINT_CAPTURE,
+							RegistrationConstants.VISIBILITY)) {
 				exceptionPane.setVisible(false);
 			}
 
@@ -1104,7 +1103,7 @@ public class DocumentScanController extends BaseController {
 
 		biometricExceptionReq.setText(exceptionFaceDescription);
 	}
-	
+
 	private List<UiSchemaDTO> getDocId() {
 
 		return validation.getValidationMap().entrySet().stream()

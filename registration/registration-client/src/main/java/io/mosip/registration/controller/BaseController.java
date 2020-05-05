@@ -201,7 +201,7 @@ public class BaseController {
 	private Validations validations;
 
 	@Autowired
-	private PageFlow pageFlow;
+	protected PageFlow pageFlow;
 
 	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
 
@@ -1441,9 +1441,11 @@ public class BaseController {
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Updating page flow to navigate next or previous");
 
-		((Map<String, Map<String, Boolean>>) ApplicationContext.map().get(RegistrationConstants.REGISTRATION_MAP))
-				.get(pageId).put(RegistrationConstants.VISIBILITY, val);
+		// ((Map<String, Map<String, Boolean>>)
+		// ApplicationContext.map().get(RegistrationConstants.REGISTRATION_MAP))
+		// .get(pageId).put(RegistrationConstants.VISIBILITY, val);
 
+		pageFlow.updateRegMap(pageId, RegistrationConstants.VISIBILITY, val);
 	}
 
 	protected void restartApplication() {

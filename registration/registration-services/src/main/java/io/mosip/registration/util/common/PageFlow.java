@@ -28,9 +28,9 @@ public class PageFlow {
 	 */
 	private static final Logger LOGGER = AppConfig.getLogger(PageFlow.class);
 
-	private static Map<String, Map<String, Boolean>> regMap;
+	private static Map<String, Map<String, Boolean>> regPageFlowMap;
 
-	private static Map<String, Map<String, Boolean>> onBoardingMap;
+	private static Map<String, Map<String, Boolean>> onBoardingPageFlowMap;
 
 	/**
 	 * This method sets the initial page flow for all the functionalities like New
@@ -387,19 +387,19 @@ public class PageFlow {
 	}
 
 	public Map<String, Map<String, Boolean>> getRegMap() {
-		return regMap;
+		return regPageFlowMap;
 	}
 
 	public void setRegMap(Map<String, Map<String, Boolean>> regMap) {
-		PageFlow.regMap = regMap;
+		PageFlow.regPageFlowMap = regMap;
 	}
 
 	public Map<String, Map<String, Boolean>> getOnBoardingMap() {
-		return onBoardingMap;
+		return onBoardingPageFlowMap;
 	}
 
 	public void setOnBoardingMap(Map<String, Map<String, Boolean>> onBoardingMap) {
-		PageFlow.onBoardingMap = onBoardingMap;
+		PageFlow.onBoardingPageFlowMap = onBoardingMap;
 	}
 
 	/**
@@ -412,12 +412,12 @@ public class PageFlow {
 	 */
 	public void updateOnBoardingMap(String page, String key, boolean val) {
 
-		if (onBoardingMap.get(page) == null) {
+		if (onBoardingPageFlowMap.get(page) == null) {
 
 			// If not exists create and update
-			onBoardingMap.put(page, new LinkedHashMap<>());
+			onBoardingPageFlowMap.put(page, new LinkedHashMap<>());
 		}
-		PageFlow.onBoardingMap.get(page).put(key, val);
+		PageFlow.onBoardingPageFlowMap.get(page).put(key, val);
 	}
 
 	/**
@@ -430,11 +430,49 @@ public class PageFlow {
 	 */
 	public void updateRegMap(String page, String key, boolean val) {
 
-		if (regMap.get(page) == null) {
+		if (regPageFlowMap.get(page) == null) {
 
 			// If not exists create and update
-			regMap.put(page, new LinkedHashMap<>());
+			regPageFlowMap.put(page, new LinkedHashMap<>());
 		}
-		PageFlow.regMap.get(page).put(key, val);
+		PageFlow.regPageFlowMap.get(page).put(key, val);
+	}
+
+	/**
+	 * @param page
+	 *            Registration page Name
+	 * @param attribute
+	 *            attribute in the Registration page
+	 * @return returns whether visible or not
+	 */
+	public boolean isVisibleInRegFlowMap(String page, String attribute) {
+		boolean isVisible = false;
+
+		if (regPageFlowMap.get(page) != null) {
+
+			isVisible = regPageFlowMap.get(page).get(attribute);
+
+		}
+
+		return isVisible;
+	}
+
+	/**
+	 * @param page
+	 *            registration page Name
+	 * @param attribute
+	 *            attribute in the onBoard page
+	 * @return returns whether visible or not
+	 */
+	public boolean isVisibleInOnBoardFlowMap(String page, String attribute) {
+		boolean isVisible = false;
+
+		if (onBoardingPageFlowMap.get(page) != null) {
+
+			isVisible = onBoardingPageFlowMap.get(page).get(attribute);
+
+		}
+
+		return isVisible;
 	}
 }
