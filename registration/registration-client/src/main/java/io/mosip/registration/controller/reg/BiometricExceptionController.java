@@ -418,7 +418,7 @@ public class BiometricExceptionController extends BaseController implements Init
 				} 
 				registrationController.showUINUpdateCurrentPage();
 			} else {
-				registrationController.showCurrentPage(RegistrationConstants.BIOMETRIC_EXCEPTION, getPageDetails(
+				registrationController.showCurrentPage(RegistrationConstants.BIOMETRIC_EXCEPTION, getPageByAction(
 						RegistrationConstants.UIN_UPDATE_BIOMETRICEXCEPTION, RegistrationConstants.NEXT));
 			}
 			fingerPrintCaptureController.clearImage();
@@ -524,7 +524,7 @@ public class BiometricExceptionController extends BaseController implements Init
 				registrationController.showUINUpdateCurrentPage();
 			} else {
 				registrationController.showCurrentPage(RegistrationConstants.BIOMETRIC_EXCEPTION,
-						getPageDetails(RegistrationConstants.BIOMETRIC_EXCEPTION, RegistrationConstants.PREVIOUS));
+						getPageByAction(RegistrationConstants.BIOMETRIC_EXCEPTION, RegistrationConstants.PREVIOUS));
 			}
 		}
 	}

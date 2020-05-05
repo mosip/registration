@@ -1022,7 +1022,7 @@ public class DocumentScanController extends BaseController {
 				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 		registrationController.showCurrentPage(RegistrationConstants.DOCUMENT_SCAN,
-				getPageDetails(RegistrationConstants.DOCUMENT_SCAN, RegistrationConstants.PREVIOUS));
+				getPageByAction(RegistrationConstants.DOCUMENT_SCAN, RegistrationConstants.PREVIOUS));
 	}
 
 	/**
@@ -1049,11 +1049,11 @@ public class DocumentScanController extends BaseController {
 					.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.DOC_DISABLE_FLAG))) {
 				if (registrationController.validateDemographicPane(documentScanPane)) {
 					registrationController.showCurrentPage(RegistrationConstants.DOCUMENT_SCAN,
-							getPageDetails(RegistrationConstants.DOCUMENT_SCAN, RegistrationConstants.NEXT));
+							getPageByAction(RegistrationConstants.DOCUMENT_SCAN, RegistrationConstants.NEXT));
 				}
 			} else {
 				registrationController.showCurrentPage(RegistrationConstants.DOCUMENT_SCAN,
-						getPageDetails(RegistrationConstants.DOCUMENT_SCAN, RegistrationConstants.NEXT));
+						getPageByAction(RegistrationConstants.DOCUMENT_SCAN, RegistrationConstants.NEXT));
 
 			}
 		}

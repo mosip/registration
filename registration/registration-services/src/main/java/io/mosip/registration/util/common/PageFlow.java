@@ -117,7 +117,7 @@ public class PageFlow {
 
 		setOnBoardingMap(onboardMap);
 
-		setRegMap(regMap);
+		setRegMap(registrationMap);
 
 		LOGGER.info(LoggerConstants.LOG_REG_PAGE_FLOW, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Updating Map and storing in Application Context");
@@ -323,6 +323,12 @@ public class PageFlow {
 		return nextPage;
 	}
 
+	/**
+	 * @param currentPage
+	 *            registration page name
+	 * @return returns registration next page name if current page and next page
+	 *         found, else null
+	 */
 	public String getNextRegPage(String currentPage) {
 
 		// Get Visible Registration Pages
@@ -332,6 +338,12 @@ public class PageFlow {
 		return getNextPage(currentPage, pageList);
 	}
 
+	/**
+	 * @param currentPage
+	 *            registration page name
+	 * @return returns registration previous page name if current page and previous
+	 *         page found, else null
+	 */
 	public String getPreviousRegPage(String currentPage) {
 		// Get Visible Registration Pages
 		List<String> pageList = getVisiblePages(getRegMap());
@@ -362,10 +374,12 @@ public class PageFlow {
 
 		LinkedList<String> pageList = new LinkedList<>();
 
-		for (Map.Entry<String, Map<String, Boolean>> entry : pageMap.entrySet()) {
+		if (pageMap != null && !pageMap.isEmpty()) {
+			for (Map.Entry<String, Map<String, Boolean>> entry : pageMap.entrySet()) {
 
-			if (entry.getValue().get(RegistrationConstants.VISIBILITY)) {
-				pageList.add(entry.getKey());
+				if (entry.getValue().get(RegistrationConstants.VISIBILITY)) {
+					pageList.add(entry.getKey());
+				}
 			}
 		}
 
@@ -388,13 +402,39 @@ public class PageFlow {
 		PageFlow.onBoardingMap = onBoardingMap;
 	}
 
+	/**
+	 * @param page
+	 *            page name
+	 * @param key
+	 *            to find attributes such as visibility
+	 * @param val
+	 *            boolean value to say true or false
+	 */
 	public void updateOnBoardingMap(String page, String key, boolean val) {
 
+		if (onBoardingMap.get(page) == null) {
+
+			// If not exists create and update
+			onBoardingMap.put(page, new LinkedHashMap<>());
+		}
 		PageFlow.onBoardingMap.get(page).put(key, val);
 	}
 
+	/**
+	 * @param page
+	 *            page name
+	 * @param key
+	 *            to find attributes such as visibility
+	 * @param val
+	 *            boolean value to say true or false
+	 */
 	public void updateRegMap(String page, String key, boolean val) {
 
+		if (regMap.get(page) == null) {
+
+			// If not exists create and update
+			regMap.put(page, new LinkedHashMap<>());
+		}
 		PageFlow.regMap.get(page).put(key, val);
 	}
 }

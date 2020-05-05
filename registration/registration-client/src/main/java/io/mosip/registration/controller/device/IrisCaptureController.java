@@ -863,7 +863,7 @@ public class IrisCaptureController extends BaseController {
 				} else {
 					faceCaptureController.checkForException();
 					registrationController.showCurrentPage(RegistrationConstants.IRIS_CAPTURE,
-							getPageDetails(RegistrationConstants.IRIS_CAPTURE, RegistrationConstants.NEXT));
+							getPageByAction(RegistrationConstants.IRIS_CAPTURE, RegistrationConstants.NEXT));
 					faceCaptureController.isExceptionPhotoMandatory();
 				}
 			}
@@ -912,7 +912,7 @@ public class IrisCaptureController extends BaseController {
 				registrationController.showUINUpdateCurrentPage();
 			} else {
 				registrationController.showCurrentPage(RegistrationConstants.IRIS_CAPTURE,
-						getPageDetails(RegistrationConstants.IRIS_CAPTURE, RegistrationConstants.PREVIOUS));
+						getPageByAction(RegistrationConstants.IRIS_CAPTURE, RegistrationConstants.PREVIOUS));
 			}
 
 			LOGGER.debug(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,

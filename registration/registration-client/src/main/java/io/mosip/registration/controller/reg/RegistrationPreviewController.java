@@ -139,7 +139,7 @@ public class RegistrationPreviewController extends BaseController implements Ini
 			registrationController.showUINUpdateCurrentPage();
 		} else {
 			registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
-					getPageDetails(RegistrationConstants.REGISTRATION_PREVIEW, RegistrationConstants.PREVIOUS));
+					getPageByAction(RegistrationConstants.REGISTRATION_PREVIEW, RegistrationConstants.PREVIOUS));
 		}
 	}
 
@@ -184,7 +184,7 @@ public class RegistrationPreviewController extends BaseController implements Ini
 				registrationController.showUINUpdateCurrentPage();
 			} else {
 				registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
-						getPageDetails(RegistrationConstants.REGISTRATION_PREVIEW, RegistrationConstants.NEXT));
+						getPageByAction(RegistrationConstants.REGISTRATION_PREVIEW, RegistrationConstants.NEXT));
 			}
 			registrationController.goToAuthenticationPage();
 		} else {

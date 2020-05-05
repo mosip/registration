@@ -329,7 +329,7 @@ public class RegistrationController extends BaseController {
 								showUINUpdateCurrentPage();
 							} else {
 								showCurrentPage(RegistrationConstants.FACE_CAPTURE,
-										getPageDetails(RegistrationConstants.FACE_CAPTURE, RegistrationConstants.NEXT));
+										getPageByAction(RegistrationConstants.FACE_CAPTURE, RegistrationConstants.NEXT));
 							}
 
 						} else {
