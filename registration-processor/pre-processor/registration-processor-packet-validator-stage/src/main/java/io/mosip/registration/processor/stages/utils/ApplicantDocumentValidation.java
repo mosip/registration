@@ -17,6 +17,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
+import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.applicantcategory.ApplicantCategory;
@@ -89,28 +90,24 @@ public class ApplicantDocumentValidation {
 	/**
 	 * Validate document.
 	 *
-	 * @param registrationId
-	 *            the registration id
-	 * @param jsonString
-	 *            the json string
+	 * @param registrationId the registration id
+	 * @param jsonString     the json string
 	 * @return true, if successful
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws io.mosip.kernel.core.exception.IOException 
-	 * @throws PacketDecryptionFailureException 
-	 * @throws ParseException
-	 *             the parse exception
-	 * @throws ParseException
-	 *             the parse exception
-	 * @throws SecurityException
-	 *             the security exception
-	 * @throws IllegalArgumentException
-	 *             the illegal argument exception
+	 * @throws ApisResourceAccessException           the apis resource access
+	 *                                               exception
+	 * @throws IOException                           Signals that an I/O exception
+	 *                                               has occurred.
+	 * @throws                                       io.mosip.kernel.core.exception.IOException
+	 * @throws PacketDecryptionFailureException
+	 * @throws RegistrationProcessorCheckedException
+	 * @throws ParseException                        the parse exception
+	 * @throws ParseException                        the parse exception
+	 * @throws SecurityException                     the security exception
+	 * @throws IllegalArgumentException              the illegal argument exception
 	 */
 	public boolean validateDocument(String registrationId, String jsonString)
-			throws ApisResourceAccessException, IOException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException {
+			throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
+			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
 
 		boolean isApplicantDocumentVerified = false;
 		String applicantType = null;
