@@ -2,6 +2,7 @@ package io.mosip.registration.util.common;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +28,10 @@ public class PageFlow {
 	 */
 	private static final Logger LOGGER = AppConfig.getLogger(PageFlow.class);
 
+	private static Map<String, Map<String, Boolean>> regMap;
+
+	private static Map<String, Map<String, Boolean>> onBoardingMap;
+
 	/**
 	 * This method sets the initial page flow for all the functionalities like New
 	 * Registration, On-boarding, UIN Update.
@@ -48,7 +53,7 @@ public class PageFlow {
 		LOGGER.info(LoggerConstants.LOG_REG_PAGE_FLOW, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID,
 				"Preparing Page flow map for New Registration, Onboard, UIN Update");
-		
+
 		Map<String, Map<String, Boolean>> registrationMap = new LinkedHashMap<>();
 		Map<String, Map<String, Boolean>> onboardMap = new LinkedHashMap<>();
 
@@ -94,8 +99,8 @@ public class PageFlow {
 		onboardMap.put(RegistrationConstants.ONBOARD_USER_SUCCESS, onBoardSuccessMap);
 
 		updateRegMap(onboardMap, RegistrationConstants.ONBOARD);
-		
-        registrationPageFlow(registrationMap, RegistrationConstants.APPLICATION_NAME);
+
+		registrationPageFlow(registrationMap, RegistrationConstants.APPLICATION_NAME);
 		Map<String, Boolean> previewMap = new LinkedHashMap<>();
 		previewMap.put(RegistrationConstants.VISIBILITY, true);
 		registrationMap.put(RegistrationConstants.REGISTRATION_PREVIEW, previewMap);
@@ -110,27 +115,33 @@ public class PageFlow {
 		ApplicationContext.map().put(RegistrationConstants.BIOMETRIC_EXCEPTION_FLOW,
 				registrationMap.get(RegistrationConstants.BIOMETRIC_EXCEPTION).get(RegistrationConstants.VISIBILITY));
 
+		setOnBoardingMap(onboardMap);
+
+		setRegMap(regMap);
+
 		LOGGER.info(LoggerConstants.LOG_REG_PAGE_FLOW, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Updating Map and storing in Application Context");
 
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	private void registrationPageFlow(Map<String, Map<String, Boolean>> registrationMap, String page) {
 
-		
 		Map<String, Boolean> fingerPrintMap = new LinkedHashMap<>();
-		fingerPrintMap.put(RegistrationConstants.VISIBILITY, finegrPrintCheck((List<String>)ApplicationContext.map().get(RegistrationConstants.indBiometrics)));
+		fingerPrintMap.put(RegistrationConstants.VISIBILITY,
+				finegrPrintCheck((List<String>) ApplicationContext.map().get(RegistrationConstants.indBiometrics)));
 		registrationMap.put(RegistrationConstants.FINGERPRINT_CAPTURE, fingerPrintMap);
 
 		Map<String, Boolean> irisMap = new LinkedHashMap<>();
-		irisMap.put(RegistrationConstants.VISIBILITY, irisCheck((List<String>)ApplicationContext.map().get(RegistrationConstants.indBiometrics)));
+		irisMap.put(RegistrationConstants.VISIBILITY,
+				irisCheck((List<String>) ApplicationContext.map().get(RegistrationConstants.indBiometrics)));
 		registrationMap.put(RegistrationConstants.IRIS_CAPTURE, irisMap);
 
 		Map<String, Boolean> faceMap = new LinkedHashMap<>();
-		faceMap.put(RegistrationConstants.VISIBILITY, faceCheck((List<String>)ApplicationContext.map().get(RegistrationConstants.indBiometrics)));
+		faceMap.put(RegistrationConstants.VISIBILITY,
+				faceCheck((List<String>) ApplicationContext.map().get(RegistrationConstants.indBiometrics)));
 		registrationMap.put(RegistrationConstants.FACE_CAPTURE, faceMap);
-		
+
 		if (page.equalsIgnoreCase(RegistrationConstants.APPLICATION_NAME)) {
 			updateDetailMap(registrationMap,
 					String.valueOf(ApplicationContext.map().get(RegistrationConstants.DOC_DISABLE_FLAG)),
@@ -162,21 +173,22 @@ public class PageFlow {
 		LOGGER.info(LoggerConstants.LOG_REG_PAGE_FLOW, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Updating Map values based on Configuration ");
 
-//		updateDetailMap(registrationMap,
-//				String.valueOf(ApplicationContext.map().get(RegistrationConstants.FINGERPRINT_DISABLE_FLAG)),
-//				RegistrationConstants.FINGERPRINT_CAPTURE, RegistrationConstants.BIOMETRIC_EXCEPTION,
-//				RegistrationConstants.FINGER_PANE);
-//		updateDetailMap(registrationMap,
-//				String.valueOf(ApplicationContext.map().get(RegistrationConstants.IRIS_DISABLE_FLAG)),
-//				RegistrationConstants.IRIS_CAPTURE, RegistrationConstants.BIOMETRIC_EXCEPTION,
-//				RegistrationConstants.IRIS_PANE);
-//		updateDetailMap(registrationMap,
-//				String.valueOf(ApplicationContext.map().get(RegistrationConstants.FACE_DISABLE_FLAG)),
-//				RegistrationConstants.FACE_CAPTURE, "", "");
+		// updateDetailMap(registrationMap,
+		// String.valueOf(ApplicationContext.map().get(RegistrationConstants.FINGERPRINT_DISABLE_FLAG)),
+		// RegistrationConstants.FINGERPRINT_CAPTURE,
+		// RegistrationConstants.BIOMETRIC_EXCEPTION,
+		// RegistrationConstants.FINGER_PANE);
+		// updateDetailMap(registrationMap,
+		// String.valueOf(ApplicationContext.map().get(RegistrationConstants.IRIS_DISABLE_FLAG)),
+		// RegistrationConstants.IRIS_CAPTURE,
+		// RegistrationConstants.BIOMETRIC_EXCEPTION,
+		// RegistrationConstants.IRIS_PANE);
+		// updateDetailMap(registrationMap,
+		// String.valueOf(ApplicationContext.map().get(RegistrationConstants.FACE_DISABLE_FLAG)),
+		// RegistrationConstants.FACE_CAPTURE, "", "");
 
 		LOGGER.info(LoggerConstants.LOG_REG_PAGE_FLOW, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Updating Child values of Map based on Configuration");
-		
 
 	}
 
@@ -217,13 +229,11 @@ public class PageFlow {
 		return onboardPageList;
 	}
 
-	
-
-	
 	/**
 	 * Face check.
 	 *
-	 * @param validations the validations
+	 * @param validations
+	 *            the validations
 	 * @return true, if successful
 	 */
 	private boolean faceCheck(List<String> validations) {
@@ -234,11 +244,11 @@ public class PageFlow {
 		return false;
 	}
 
-	
 	/**
 	 * Finegr print check.
 	 *
-	 * @param validations the validations
+	 * @param validations
+	 *            the validations
 	 * @return true, if successful
 	 */
 	private boolean finegrPrintCheck(List<String> validations) {
@@ -251,11 +261,11 @@ public class PageFlow {
 		return false;
 	}
 
-	
 	/**
 	 * Iris check.
 	 *
-	 * @param validations the validations
+	 * @param validations
+	 *            the validations
 	 * @return true, if successful
 	 */
 	private boolean irisCheck(List<String> validations) {
@@ -266,5 +276,125 @@ public class PageFlow {
 		}
 		return false;
 	}
-	
+
+	public boolean hasNextPage(String currentPage, List<String> pageList) {
+		boolean isAvailabe = false;
+
+		if (pageList.contains(currentPage)) {
+
+			int currentPageIndex = pageList.indexOf(currentPage);
+
+			isAvailabe = pageList.get(currentPageIndex + 1) != null;
+		}
+
+		return isAvailabe;
+	}
+
+	public boolean hasPreviousPage(String currentPage, List<String> pageList) {
+		boolean isAvailabe = false;
+
+		if (pageList.contains(currentPage)) {
+
+			int currentPageIndex = pageList.indexOf(currentPage);
+
+			isAvailabe = pageList.get(currentPageIndex - 1) != null;
+		}
+
+		return isAvailabe;
+	}
+
+	public String getPreviousPage(String currentPage, List<String> pageList) {
+		String previousPage = "";
+
+		if (pageList != null && !pageList.isEmpty() && hasPreviousPage(currentPage, pageList)) {
+			previousPage = pageList.get((pageList.indexOf(currentPage)) - 1);
+		}
+		return previousPage;
+	}
+
+	public String getNextPage(String currentPage, List<String> pageList) {
+		String nextPage = null;
+
+		if (pageList != null && !pageList.isEmpty() && hasNextPage(currentPage, pageList)) {
+
+			nextPage = pageList.get((pageList.indexOf(currentPage)) + 1);
+		}
+
+		return nextPage;
+	}
+
+	public String getNextRegPage(String currentPage) {
+
+		// Get Visible Registration Pages
+		List<String> pageList = getVisiblePages(getRegMap());
+
+		// Get Registration pages
+		return getNextPage(currentPage, pageList);
+	}
+
+	public String getPreviousRegPage(String currentPage) {
+		// Get Visible Registration Pages
+		List<String> pageList = getVisiblePages(getRegMap());
+
+		// Get previous page
+		return getPreviousPage(currentPage, pageList);
+	}
+
+	public String getNextOnboardPage(String currentPage) {
+
+		// Get Visible onboard pages
+		List<String> pageList = getVisiblePages(getOnBoardingMap());
+
+		// Get next page
+		return getNextPage(currentPage, pageList);
+	}
+
+	public String getPreviousOnboardPage(String currentPage) {
+
+		// Get Visible onboard pages
+		List<String> pageList = getVisiblePages(getOnBoardingMap());
+
+		// Get previous page
+		return getPreviousPage(currentPage, pageList);
+	}
+
+	private List<String> getVisiblePages(Map<String, Map<String, Boolean>> pageMap) {
+
+		LinkedList<String> pageList = new LinkedList<>();
+
+		for (Map.Entry<String, Map<String, Boolean>> entry : pageMap.entrySet()) {
+
+			if (entry.getValue().get(RegistrationConstants.VISIBILITY)) {
+				pageList.add(entry.getKey());
+			}
+		}
+
+		return pageList;
+	}
+
+	public Map<String, Map<String, Boolean>> getRegMap() {
+		return regMap;
+	}
+
+	public void setRegMap(Map<String, Map<String, Boolean>> regMap) {
+		PageFlow.regMap = regMap;
+	}
+
+	public Map<String, Map<String, Boolean>> getOnBoardingMap() {
+		return onBoardingMap;
+	}
+
+	public void setOnBoardingMap(Map<String, Map<String, Boolean>> onBoardingMap) {
+		PageFlow.onBoardingMap = onBoardingMap;
+	}
+
+	public void updateOnBoardingMap(String page, String key, boolean val) {
+
+		PageFlow.onBoardingMap.get(page).put(key, val);
+	}
+
+	public void updateRegMap(String page, String key, boolean val) {
+
+		PageFlow.regMap.get(page).put(key, val);
+	}
 }
