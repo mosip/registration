@@ -1223,12 +1223,12 @@ jobs:
           name: release
           path: ./
 
-      - name: Get version info from pom
-        id: getPomVersion
+      - name: Get version info 
+        id: getVersion
         uses: mavrosxristoforos/get-xml-info@1.0
         with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml 
-          xpath: /*[local-name()="project"]/*[local-name()="version"] 
+          xml-file: ./${{ env.SERVICE_LOCATION }}/version.xml 
+          xpath: version 
       
       - name: Unzip and extract the ${{ env.SERVICE_NAME }}
         run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
@@ -1246,8 +1246,8 @@ jobs:
           
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          echo "push version ${{steps.getPomVersion.outputs.info}}"
-          VERSION=${{steps.getPomVersion.outputs.info}}
+          echo "push version ${{steps.getVersion.outputs.info}}"
+          VERSION=${{steps.getVersion.outputs.info}}
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
