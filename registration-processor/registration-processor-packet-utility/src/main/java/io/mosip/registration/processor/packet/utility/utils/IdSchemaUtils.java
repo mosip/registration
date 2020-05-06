@@ -31,11 +31,11 @@ import lombok.Data;
  */
 @Data
 public class IdSchemaUtils {
-	
+
 	/** The config server file storage URL. */
 	@Value("${config.server.file.storage.uri}")
 	private String configServerFileStorageURL;
-	
+
 	/** The registration processor abis json. */
 	@Value("${idschema.json}")
 	private String idSchemaJson;
@@ -50,20 +50,20 @@ public class IdSchemaUtils {
 	public String getSource(String id) throws RegistrationProcessorCheckedException {
 		String fieldCategory=null;
 		String idSchema =IdSchemaUtils.getJson(configServerFileStorageURL, idSchemaJson);
-		
+
 		JSONObject idSchemaJsonObject;
 		try {
 			idSchemaJsonObject = JsonUtil.objectMapperReadValue(idSchema, JSONObject.class);
 			JSONArray schemaArray = JsonUtil.getJSONArray(idSchemaJsonObject, IDschemaConstants.SCHEMA);
-			
+
 
 			for (Object jsonObject : schemaArray) {
-				
+
 				JSONObject json = new JSONObject((Map) jsonObject);
 				fieldCategory=IdSchemaUtils.getFieldCategory(json, id);
 				if(fieldCategory!=null)
 				 break;
-			  
+
 			}
 		}
 		 catch (IOException e) {
@@ -71,7 +71,7 @@ public class IdSchemaUtils {
 						PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), e);
 		}
 
-		
+
 		return fieldCategory;
 	}
 	/**
@@ -87,7 +87,7 @@ public class IdSchemaUtils {
 		RestTemplate restTemplate = new RestTemplate();
 		return restTemplate.getForObject(configServerFileStorageURL + uri, String.class);
 	}
-	
+
 	/**
 	 * Gets the field category.
 	 *
@@ -105,6 +105,6 @@ public class IdSchemaUtils {
 		  }
 		}
 		return fieldCategory;
-		
+
 	}
 }

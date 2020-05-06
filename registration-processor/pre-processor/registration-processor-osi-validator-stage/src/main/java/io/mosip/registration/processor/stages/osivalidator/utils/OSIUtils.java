@@ -16,16 +16,16 @@ import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
 import io.mosip.registration.processor.core.packet.dto.RegOsiDto;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.util.IdentityIteratorUtil;
 import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 
 @Service
 public class OSIUtils {
 
 	/** The adapter. */
 	@Autowired
-	private PacketManager adapter;
+	private PacketReaderService packetReaderService;
 	
 	private IdentityIteratorUtil identityIteratorUtil = new IdentityIteratorUtil();
 	
@@ -62,7 +62,8 @@ public class OSIUtils {
 	}
 	
 	public Identity getIdentity(String registrationId) throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException {
-		InputStream packetMetaInfoStream = adapter.getFile(registrationId, PacketFiles.PACKET_META_INFO.name());
+		InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId,
+				PacketFiles.META_INFO.name(), JsonConstant.ID);
 		PacketMetaInfo packetMetaInfo = (PacketMetaInfo) JsonUtil.inputStreamtoJavaObject(packetMetaInfoStream,PacketMetaInfo.class);
 		return packetMetaInfo.getIdentity();
 

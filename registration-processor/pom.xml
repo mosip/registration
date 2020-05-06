@@ -106,15 +106,16 @@
 
 		<!-- local -->
 		<registration.status.service.version>1.0.9-SNAPSHOT</registration.status.service.version>
-		<registration.processor.core.version>1.0.9-SNAPSHOT</registration.processor.core.version>
+		<registration.processor.core.version>1.0.10-SNAPSHOT</registration.processor.core.version>
 		<filesystem.adapter.ceph.version>1.0.9</filesystem.adapter.ceph.version>
 		<packet.manager.version>1.0.9</packet.manager.version>
 		<registration.processor.rest.client.version>1.0.9</registration.processor.rest.client.version>
 		<registration.processor.abis.handler.stage.version>1.0.9-SNAPSHOT</registration.processor.abis.handler.stage.version>
-		<packet.info.storage.service.version>1.0.9-SNAPSHOT</packet.info.storage.service.version>
+		<packet.info.storage.service.version>1.0.10-SNAPSHOT</packet.info.storage.service.version>
 		<packet.bio.dedupe.service.impl.version>1.0.9-SNAPSHOT</packet.bio.dedupe.service.impl.version>
 		<registration.processor.message.sender.version>1.0.9</registration.processor.message.sender.version>
 		<registration.processor.print.service.impl.version>1.0.9-SNAPSHOT</registration.processor.print.service.impl.version>
+		<registration.processor.packet.utility.version>1.0.10-SNAPSHOT</registration.processor.packet.utility.version>
 		
 		<!-- Kernel -->
 		<kernel.core.version>1.0.8</kernel.core.version>
