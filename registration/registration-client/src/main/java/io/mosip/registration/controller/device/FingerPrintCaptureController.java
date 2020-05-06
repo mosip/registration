@@ -692,7 +692,7 @@ public class FingerPrintCaptureController extends BaseController implements Init
 			}
 		}
 		for (String attribute : getNonConfigBioAttributes(RegistrationConstants.twoThumbsUiAttributes)) {
-			if (!leftMap.contains(attribute)) {
+			if (!thumbMap.contains(attribute)) {
 				thumbMap.add(attribute);
 			}
 		}

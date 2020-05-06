@@ -490,7 +490,7 @@
         "inputRequired": true,
         "validators": [],
         "bioAttributes": [
-          "leftEye",
+          "leftEye","rightIndex","leftIndex","leftThumb",
           "face"
         ],
         "requiredOn": null,

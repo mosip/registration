@@ -706,18 +706,21 @@ public class BaseController {
 		SessionContext.userMap().remove(RegistrationConstants.IS_LOW_QUALITY_BIOMETRICS);
 		SessionContext.map().remove(RegistrationConstants.DUPLICATE_FINGER);
 
-		updatePageFlow(RegistrationConstants.BIOMETRIC_EXCEPTION,
-				(boolean) ApplicationContext.map().get(RegistrationConstants.BIOMETRIC_EXCEPTION_FLOW));
+		pageFlow.loadPageFlow();
 
-		updatePageFlow(RegistrationConstants.FINGERPRINT_CAPTURE,
-				String.valueOf(ApplicationContext.map().get(RegistrationConstants.FINGERPRINT_DISABLE_FLAG))
-						.equalsIgnoreCase(RegistrationConstants.ENABLE));
-
-		updatePageFlow(RegistrationConstants.IRIS_CAPTURE,
-				String.valueOf(ApplicationContext.map().get(RegistrationConstants.IRIS_DISABLE_FLAG))
-						.equalsIgnoreCase(RegistrationConstants.ENABLE));
-
-		updatePageFlow(RegistrationConstants.GUARDIAN_BIOMETRIC, false);
+		// updatePageFlow(RegistrationConstants.BIOMETRIC_EXCEPTION,
+		// (boolean)
+		// ApplicationContext.map().get(RegistrationConstants.BIOMETRIC_EXCEPTION_FLOW));
+		//
+		// updatePageFlow(RegistrationConstants.FINGERPRINT_CAPTURE,
+		// String.valueOf(ApplicationContext.map().get(RegistrationConstants.FINGERPRINT_DISABLE_FLAG))
+		// .equalsIgnoreCase(RegistrationConstants.ENABLE));
+		//
+		// updatePageFlow(RegistrationConstants.IRIS_CAPTURE,
+		// String.valueOf(ApplicationContext.map().get(RegistrationConstants.IRIS_DISABLE_FLAG))
+		// .equalsIgnoreCase(RegistrationConstants.ENABLE));
+		//
+		// updatePageFlow(RegistrationConstants.GUARDIAN_BIOMETRIC, false);
 	}
 
 	/**
@@ -1002,8 +1005,23 @@ public class BaseController {
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
 				"Updating OnBoard flow based on visibility and returning next page details");
 
-		return getReturnPage((List<String>) ApplicationContext.map().get(RegistrationConstants.ONBOARD_LIST),
-				currentPage, action);
+		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
+				"Returning Next page by action " + action);
+
+		String page = null;
+
+		if (action.equalsIgnoreCase(RegistrationConstants.NEXT)) {
+			/** Get Next Page if action is "NEXT" */
+			page = pageFlow.getNextOnboardPage(currentPage);
+		} else if (action.equalsIgnoreCase(RegistrationConstants.PREVIOUS)) {
+
+			/** Get Previous Page if action is "PREVIOUS" */
+			page = pageFlow.getPreviousOnboardPage(currentPage);
+		}
+
+		page = saveDetails(currentPage, page);
+		return page;
+
 	}
 
 	/**

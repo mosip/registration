@@ -18,11 +18,11 @@ import io.mosip.registration.context.ApplicationContext;
 public class PageFlowTest {
 
 	PageFlow pageFlow;
-	
+
 	@Test
 	public void testGetInitialPageDetails() {
 		PowerMockito.mockStatic(ApplicationContext.class);
-		Map<String, Object> map =new HashMap<>();
+		Map<String, Object> map = new HashMap<>();
 		map.put(RegistrationConstants.FINGERPRINT_DISABLE_FLAG, "n");
 		map.put(RegistrationConstants.IRIS_DISABLE_FLAG, "n");
 		map.put(RegistrationConstants.FACE_DISABLE_FLAG, "n");
@@ -30,7 +30,7 @@ public class PageFlowTest {
 		when(ApplicationContext.map()).thenReturn(map);
 
 		pageFlow = new PageFlow();
-		pageFlow.getInitialPageDetails();
+		pageFlow.loadPageFlow();
 	}
 
 }

@@ -205,13 +205,13 @@ public class BiometricExceptionController extends BaseController implements Init
 					.setText(SessionContext.userContext().getRegistrationCenterDetailDTO().getRegistrationCenterId());
 			employeeCode.setText(SessionContext.userContext().getUserId());
 			machineID.setText(getValueFromApplicationContext(RegistrationConstants.USER_STATION_ID));
-			if (!((Map<String, Map<String, Boolean>>) ApplicationContext.map().get(RegistrationConstants.ONBOARD_MAP))
-					.get(RegistrationConstants.BIOMETRIC_EXCEPTION).get(RegistrationConstants.FINGER_PANE)) {
+			if (!pageFlow.isVisibleInOnBoardFlowMap(RegistrationConstants.BIOMETRIC_EXCEPTION,
+					RegistrationConstants.FINGER_PANE)) {
 				fingerPane.setManaged(false);
 				fingerPane.setVisible(false);
 			}
-			if (!((Map<String, Map<String, Boolean>>) ApplicationContext.map().get(RegistrationConstants.ONBOARD_MAP))
-					.get(RegistrationConstants.BIOMETRIC_EXCEPTION).get(RegistrationConstants.IRIS_PANE)) {
+			if (!pageFlow.isVisibleInOnBoardFlowMap(RegistrationConstants.BIOMETRIC_EXCEPTION,
+					RegistrationConstants.IRIS_PANE)) {
 				irisPane.setManaged(false);
 				irisPane.setVisible(false);
 			}
