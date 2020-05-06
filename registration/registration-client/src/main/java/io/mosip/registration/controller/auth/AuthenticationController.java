@@ -1045,7 +1045,7 @@ public class AuthenticationController extends BaseController implements Initiali
 
 		} else {
 			registrationController.showCurrentPage(RegistrationConstants.OPERATOR_AUTHENTICATION,
-					getPageDetails(RegistrationConstants.OPERATOR_AUTHENTICATION, RegistrationConstants.PREVIOUS));
+					getPageByAction(RegistrationConstants.OPERATOR_AUTHENTICATION, RegistrationConstants.PREVIOUS));
 		}
 	}
 

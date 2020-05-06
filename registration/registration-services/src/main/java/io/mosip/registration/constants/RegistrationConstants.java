@@ -86,7 +86,7 @@ public class RegistrationConstants {
 	public static final String OPERATOR_AUTHENTICATION = "operatorAuthenticationPane";
 	public static final String ONBOARD_USER_PARENT = "onboardUser";
 	public static final String ONBOARD_USER_SUCCESS = "userOnboardSuccess";
-	public static final String BIOMETRIC_EXCEPTION_FLOW = "biometricExceptionFlow";
+//	public static final String BIOMETRIC_EXCEPTION_FLOW = "biometricExceptionFlow";
 	public static final String GUARDIAN_BIOMETRIC = "guardianBiometric";
 
 	// css for quality indicator
@@ -104,9 +104,9 @@ public class RegistrationConstants {
 
 	// Page Flow
 	public static final String VISIBILITY = "visibility";
-	public static final String ONBOARD_LIST = "onboardPageList";
-	public static final String ONBOARD_MAP = "onboardMap";
-	public static final String REGISTRATION_MAP = "registrationMap";
+//	public static final String ONBOARD_LIST = "onboardPageList";
+//	public static final String ONBOARD_MAP = "onboardMap";
+//	public static final String REGISTRATION_MAP = "registrationMap";
 	public static final String ONBOARD = "onboard";
 
 	// CSS file

@@ -391,7 +391,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 					registrationController.showUINUpdateCurrentPage();
 				} else {
 					registrationController.showCurrentPage(RegistrationConstants.FACE_CAPTURE,
-							getPageDetails(RegistrationConstants.FACE_CAPTURE, RegistrationConstants.PREVIOUS));
+							getPageByAction(RegistrationConstants.FACE_CAPTURE, RegistrationConstants.PREVIOUS));
 				}
 			} catch (RuntimeException runtimeException) {
 				LOGGER.error("REGISTRATION - COULD NOT GO TO DEMOGRAPHIC TITLE PANE ", APPLICATION_NAME,

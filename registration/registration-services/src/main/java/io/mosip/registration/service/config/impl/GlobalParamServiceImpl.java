@@ -184,7 +184,7 @@ public class GlobalParamServiceImpl extends BaseService implements GlobalParamSe
 					} else {
 						setSuccessResponse(responseDTO, RegistrationConstants.POLICY_SYNC_SUCCESS_MESSAGE, null);
 					}
-					pageFlow.getInitialPageDetails();
+//					pageFlow.getInitialPageDetails();
 				} else {
 					setErrorResponse(responseDTO, RegistrationConstants.POLICY_SYNC_ERROR_MESSAGE, null);
 				}

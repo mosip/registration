@@ -692,7 +692,7 @@ public class FingerPrintCaptureController extends BaseController implements Init
 			}
 		}
 		for (String attribute : getNonConfigBioAttributes(RegistrationConstants.twoThumbsUiAttributes)) {
-			if (!leftMap.contains(attribute)) {
+			if (!thumbMap.contains(attribute)) {
 				thumbMap.add(attribute);
 			}
 		}
@@ -1555,7 +1555,7 @@ public class FingerPrintCaptureController extends BaseController implements Init
 					faceCaptureController.checkForException();
 
 					registrationController.showCurrentPage(RegistrationConstants.FINGERPRINT_CAPTURE,
-							getPageDetails(RegistrationConstants.FINGERPRINT_CAPTURE, RegistrationConstants.NEXT));
+							getPageByAction(RegistrationConstants.FINGERPRINT_CAPTURE, RegistrationConstants.NEXT));
 				}
 			}
 			LOGGER.info(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
@@ -1603,7 +1603,7 @@ public class FingerPrintCaptureController extends BaseController implements Init
 
 				} else {
 					registrationController.showCurrentPage(RegistrationConstants.FINGERPRINT_CAPTURE,
-							getPageDetails(RegistrationConstants.FINGERPRINT_CAPTURE, RegistrationConstants.PREVIOUS));
+							getPageByAction(RegistrationConstants.FINGERPRINT_CAPTURE, RegistrationConstants.PREVIOUS));
 				}
 			}
 			LOGGER.info(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
