@@ -77,6 +77,7 @@ import io.mosip.registration.service.security.AuthenticationService;
 import io.mosip.registration.service.sync.SyncStatusValidatorService;
 import io.mosip.registration.service.template.TemplateService;
 import io.mosip.registration.util.acktemplate.TemplateGenerator;
+import io.mosip.registration.util.common.PageFlow;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 import javafx.animation.PauseTransition;
 import javafx.concurrent.Service;
@@ -199,6 +200,9 @@ public class BaseController {
 	@Autowired
 	private Validations validations;
 
+	@Autowired
+	protected PageFlow pageFlow;
+
 	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
 
 	public Text getScanningMsg() {
@@ -230,13 +234,11 @@ public class BaseController {
 	private IdentitySchemaService identitySchemaService;
 
 	private static boolean isAckOpened = false;
-	
+
 	private List<UiSchemaDTO> uiSchemaDTOs;
-	
+
 	private static Map<String, UiSchemaDTO> validationMap;
 
-	
-	
 	private static List<String> ALL_BIO_ATTRIBUTES = null;
 
 	static {
@@ -262,7 +264,6 @@ public class BaseController {
 		return validationMap;
 	}
 
-	
 	/**
 	 * @return the alertStage
 	 */
@@ -705,18 +706,21 @@ public class BaseController {
 		SessionContext.userMap().remove(RegistrationConstants.IS_LOW_QUALITY_BIOMETRICS);
 		SessionContext.map().remove(RegistrationConstants.DUPLICATE_FINGER);
 
-		updatePageFlow(RegistrationConstants.BIOMETRIC_EXCEPTION,
-				(boolean) ApplicationContext.map().get(RegistrationConstants.BIOMETRIC_EXCEPTION_FLOW));
+		pageFlow.loadPageFlow();
 
-		updatePageFlow(RegistrationConstants.FINGERPRINT_CAPTURE,
-				String.valueOf(ApplicationContext.map().get(RegistrationConstants.FINGERPRINT_DISABLE_FLAG))
-						.equalsIgnoreCase(RegistrationConstants.ENABLE));
-
-		updatePageFlow(RegistrationConstants.IRIS_CAPTURE,
-				String.valueOf(ApplicationContext.map().get(RegistrationConstants.IRIS_DISABLE_FLAG))
-						.equalsIgnoreCase(RegistrationConstants.ENABLE));
-
-		updatePageFlow(RegistrationConstants.GUARDIAN_BIOMETRIC, false);
+		// updatePageFlow(RegistrationConstants.BIOMETRIC_EXCEPTION,
+		// (boolean)
+		// ApplicationContext.map().get(RegistrationConstants.BIOMETRIC_EXCEPTION_FLOW));
+		//
+		// updatePageFlow(RegistrationConstants.FINGERPRINT_CAPTURE,
+		// String.valueOf(ApplicationContext.map().get(RegistrationConstants.FINGERPRINT_DISABLE_FLAG))
+		// .equalsIgnoreCase(RegistrationConstants.ENABLE));
+		//
+		// updatePageFlow(RegistrationConstants.IRIS_CAPTURE,
+		// String.valueOf(ApplicationContext.map().get(RegistrationConstants.IRIS_DISABLE_FLAG))
+		// .equalsIgnoreCase(RegistrationConstants.ENABLE));
+		//
+		// updatePageFlow(RegistrationConstants.GUARDIAN_BIOMETRIC, false);
 	}
 
 	/**
@@ -1001,8 +1005,23 @@ public class BaseController {
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
 				"Updating OnBoard flow based on visibility and returning next page details");
 
-		return getReturnPage((List<String>) ApplicationContext.map().get(RegistrationConstants.ONBOARD_LIST),
-				currentPage, action);
+		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
+				"Returning Next page by action " + action);
+
+		String page = null;
+
+		if (action.equalsIgnoreCase(RegistrationConstants.NEXT)) {
+			/** Get Next Page if action is "NEXT" */
+			page = pageFlow.getNextOnboardPage(currentPage);
+		} else if (action.equalsIgnoreCase(RegistrationConstants.PREVIOUS)) {
+
+			/** Get Previous Page if action is "PREVIOUS" */
+			page = pageFlow.getPreviousOnboardPage(currentPage);
+		}
+
+		page = saveDetails(currentPage, page);
+		return page;
+
 	}
 
 	/**
@@ -1016,21 +1035,24 @@ public class BaseController {
 	 * @return id of next Anchorpane
 	 */
 	@SuppressWarnings("unchecked")
-	protected String getPageDetails(String currentPage, String action) {
+	protected String getPageByAction(String currentPage, String action) {
 
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
-				"Updating RegistrationMap based on visibility");
+				"Returning Next page by action " + action);
 
-		for (Map.Entry<String, Map<String, Boolean>> entry : ((Map<String, Map<String, Boolean>>) ApplicationContext
-				.map().get(RegistrationConstants.REGISTRATION_MAP)).entrySet()) {
-			if (entry.getValue().get(RegistrationConstants.VISIBILITY)) {
-				pageDetails.add(entry.getKey());
-			}
+		String page = null;
+
+		if (action.equalsIgnoreCase(RegistrationConstants.NEXT)) {
+			/** Get Next Page if action is "NEXT" */
+			page = pageFlow.getNextRegPage(currentPage);
+		} else if (action.equalsIgnoreCase(RegistrationConstants.PREVIOUS)) {
+
+			/** Get Previous Page if action is "PREVIOUS" */
+			page = pageFlow.getPreviousRegPage(currentPage);
 		}
 
-		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID, "Returning Next page details");
-
-		return getReturnPage(pageDetails, currentPage, action);
+		page = saveDetails(currentPage, page);
+		return page;
 
 	}
 
@@ -1066,6 +1088,16 @@ public class BaseController {
 			returnPage = pageList.get((pageList.indexOf(currentPage)) - 1);
 		}
 
+		saveDetails(currentPage, returnPage);
+
+		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
+				"Returning the corresponding next page based on given action" + returnPage);
+
+		pageDetails.clear();
+		return returnPage;
+	}
+
+	private String saveDetails(String currentPage, String returnPage) {
 		if (returnPage.equalsIgnoreCase(RegistrationConstants.REGISTRATION_PREVIEW)) {
 
 			LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
@@ -1114,10 +1146,6 @@ public class BaseController {
 			}
 		}
 
-		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
-				"Returning the corresponding next page based on given action" + returnPage);
-
-		pageDetails.clear();
 		return returnPage;
 	}
 
@@ -1431,9 +1459,11 @@ public class BaseController {
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Updating page flow to navigate next or previous");
 
-		((Map<String, Map<String, Boolean>>) ApplicationContext.map().get(RegistrationConstants.REGISTRATION_MAP))
-				.get(pageId).put(RegistrationConstants.VISIBILITY, val);
+		// ((Map<String, Map<String, Boolean>>)
+		// ApplicationContext.map().get(RegistrationConstants.REGISTRATION_MAP))
+		// .get(pageId).put(RegistrationConstants.VISIBILITY, val);
 
+		pageFlow.updateRegMap(pageId, RegistrationConstants.VISIBILITY, val);
 	}
 
 	protected void restartApplication() {
@@ -1670,33 +1700,35 @@ public class BaseController {
 		}
 	}
 
-//	protected void addExceptionDTOs() {
-//		List<String> bioAttributesFromSchema = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
-//		List<String> bioList = new ArrayList<String>();
-//
-//		/** If bio Attribute not mentioned for bio attribute then disable */
-//		bioList.addAll(ALL_BIO_ATTRIBUTES);
-//
-//		/** If bio attribute configured in UI Schema, then enable the pane */
-//		if (bioAttributesFromSchema != null && !bioAttributesFromSchema.isEmpty())
-//			bioList.removeAll(bioAttributesFromSchema);
-//
-//		List<BiometricExceptionDTO> biometricExceptionDTOs = biometricExceptionController
-//				.getBiometricsExceptionList(bioList);
-//
-//		biometricExceptionController.addExceptionToRegistration(biometricExceptionDTOs);
-//
-//	}
+	// protected void addExceptionDTOs() {
+	// List<String> bioAttributesFromSchema =
+	// getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
+	// List<String> bioList = new ArrayList<String>();
+	//
+	// /** If bio Attribute not mentioned for bio attribute then disable */
+	// bioList.addAll(ALL_BIO_ATTRIBUTES);
+	//
+	// /** If bio attribute configured in UI Schema, then enable the pane */
+	// if (bioAttributesFromSchema != null && !bioAttributesFromSchema.isEmpty())
+	// bioList.removeAll(bioAttributesFromSchema);
+	//
+	// List<BiometricExceptionDTO> biometricExceptionDTOs =
+	// biometricExceptionController
+	// .getBiometricsExceptionList(bioList);
+	//
+	// biometricExceptionController.addExceptionToRegistration(biometricExceptionDTOs);
+	//
+	// }
 
 	private List<String> getSchemaFieldBioAttributes(String fieldId) {
 		if (validations.getValidationMap().containsKey(fieldId)
 				&& validations.getValidationMap().get(fieldId).getType().equalsIgnoreCase("biometricsType")) {
-			
+
 			BioServiceImpl.setBioAttributes(validations.getValidationMap().get(fieldId).getBioAttributes());
 			return validations.getValidationMap().get(fieldId).getBioAttributes();
 
 		}
-			
+
 		return null;
 	}
 
