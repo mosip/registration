@@ -364,22 +364,20 @@ public class BioDedupeProcessor {
 	/**
 	 * Post abis identification.
 	 *
-	 * @param registrationStatusDto
-	 *            the registration status dto
-	 * @param object
-	 *            the object
-	 * @param registrationType
-	 *            the registration type
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws io.mosip.kernel.core.exception.IOException
+	 * @param registrationStatusDto the registration status dto
+	 * @param object                the object
+	 * @param registrationType      the registration type
+	 * @throws ApisResourceAccessException           the apis resource access
+	 *                                               exception
+	 * @throws IOException                           Signals that an I/O exception
+	 *                                               has occurred.
+	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
+	 * @throws RegistrationProcessorCheckedException
 	 */
 	private void postAbisIdentification(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object,
 			String registrationType) throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException {
+			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
 		String moduleId = "";
 		String moduleName = ModuleName.BIO_DEDUPE.toString();
 		List<String> matchedRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),

@@ -56,6 +56,7 @@ import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
+import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
@@ -914,7 +915,8 @@ public class PacketValidateProcessorTest {
 	@Test
 	public void testBaseUnCheckedExceptions()
 			throws IdObjectValidationFailedException, IdObjectIOException, PacketDecryptionFailureException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException {
+			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException,
+			RegistrationProcessorCheckedException {
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
 		Mockito.when(utility.getUIn(any())).thenReturn(null);
 

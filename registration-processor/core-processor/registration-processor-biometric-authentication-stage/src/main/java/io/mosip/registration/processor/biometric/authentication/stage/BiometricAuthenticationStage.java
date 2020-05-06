@@ -40,6 +40,7 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.exception.AuthSystemException;
 import io.mosip.registration.processor.core.exception.BioTypeException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
+import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -333,7 +334,8 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 	private boolean checkIndividualAuthentication(String registrationId, List<FieldValue> metadata,
 			InternalRegistrationStatusDto registrationStatusDto) throws IOException, PacketDecryptionFailureException,
 			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, InvalidKeySpecException,
-			NoSuchAlgorithmException, BiometricException, BioTypeException, ParserConfigurationException, SAXException, AuthSystemException {
+			NoSuchAlgorithmException, BiometricException, BioTypeException, ParserConfigurationException, SAXException,
+			AuthSystemException, RegistrationProcessorCheckedException {
 		IdentityIteratorUtil identityIterator = new IdentityIteratorUtil();
 		String individualAuthentication = identityIterator.getFieldValue(metadata,
 				BiometricAuthenticationConstants.INDIVIDUALAUTHENTICATION);

@@ -171,7 +171,7 @@ public class OSIValidator {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "OSIValidator::isValidOSI()::entry");
 		boolean isValidOsi = false;
-		JSONObject demographicIdentity = utility.getDemographicIdentityJSONObject(registrationId);
+
 		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
 		Identity identity = osiUtils.getIdentity(registrationId);
 		/** Getting data from packet MetadataInfo */
@@ -209,7 +209,7 @@ public class OSIValidator {
 			}
 			if (((isValidOperator(regOsi, registrationId, registrationStatusDto))
 					&& (isValidSupervisor(regOsi, registrationId, registrationStatusDto)))
-					&& (isValidIntroducer(registrationId, demographicIdentity,
+					&& (isValidIntroducer(registrationId, regProcessorIdentityJson,
 							registrationStatusDto)))
 				isValidOsi = true;
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
