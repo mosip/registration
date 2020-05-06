@@ -70,6 +70,8 @@ import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoServic
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
+import io.mosip.registration.processor.packet.utility.utils.IdSchemaUtils;
 import io.mosip.registration.processor.stages.osivalidator.utils.OSIUtils;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -171,6 +173,11 @@ public class OSIValidatorTest {
 	LogDescription description;
 	private ClassLoader classLoader;
 
+	@Mock
+	private PacketReaderService packetReaderService;
+
+	@Mock
+	private IdSchemaUtils idSchemaUtils;
 	/**
 	 * Sets the up.
 	 *
@@ -186,10 +193,13 @@ public class OSIValidatorTest {
 		ReflectionTestUtils.setField(osiValidator, "ageLimit", "5");
 		ReflectionTestUtils.setField(osiValidator, "dobFormat", "yyyy/MM/dd");
 		ReflectionTestUtils.setField(osiValidator, "introducerValidation", true);
+		ReflectionTestUtils.setField(osiValidator, "officerBiometricFileSource", "id");
+		ReflectionTestUtils.setField(osiValidator, "supervisorBiometricFileSource", "id");
 		File idJson = new File(classLoader.getResource("ID.json").getFile());
 		InputStream ip = new FileInputStream(idJson);
 		String idJsonString = IOUtils.toString(ip, "UTF-8");
-		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(JsonUtil.getJSONObject(
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString()))
+				.thenReturn(JsonUtil.getJSONObject(
 				JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class), MappingJsonConstants.IDENTITY));
 
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
@@ -294,7 +304,10 @@ public class OSIValidatorTest {
 				.thenReturn(userResponseDto).thenReturn(ridResponseDto1).thenReturn(idResponseDTO)
 				.thenReturn(ridResponseDto1).thenReturn(idResponseDTO);
 		Mockito.when(osiUtils.getOSIDetailsFromMetaInfo(anyString(), any())).thenReturn(regOsiDto);
-
+		File cbeffFile = new File(classLoader.getResource("cbeff.xml").getFile());
+		InputStream cbeffInputstream = new FileInputStream(cbeffFile);
+		Mockito.when(packetReaderService.getFile(anyString(), anyString(), anyString())).thenReturn(cbeffInputstream);
+		Mockito.when(idSchemaUtils.getSource((anyString()))).thenReturn("id");
 	}
 
 	/**
@@ -471,7 +484,7 @@ public class OSIValidatorTest {
 		Mockito.when(osiUtils.getMetaDataValue(anyString(), any())).thenReturn("2015/01/01");
 		registrationStatusDto.setStatusCode("FAILED");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
-		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString())).thenReturn(
 				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
 		osiValidator.isValidOSI("reg1234", registrationStatusDto);
 	}
@@ -488,7 +501,7 @@ public class OSIValidatorTest {
 		introducerRegistrationStatusDto.setStatusCode((RegistrationStatusCode.PROCESSING.toString()));
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
 				.thenReturn(introducerRegistrationStatusDto);
-		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString())).thenReturn(
 				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
 		osiValidator.isValidOSI("reg1234", registrationStatusDto);
 	}
@@ -499,7 +512,7 @@ public class OSIValidatorTest {
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
 		registrationStatusDto.setRegistrationType("NEW");
-		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString())).thenReturn(
 				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
 		osiValidator.isValidOSI("reg1234", registrationStatusDto);
@@ -526,7 +539,7 @@ public class OSIValidatorTest {
 		io.mosip.registration.processor.core.auth.dto.ResponseDTO responseDTO = new io.mosip.registration.processor.core.auth.dto.ResponseDTO();
 		responseDTO.setAuthStatus(true);
 		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO);
-		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString())).thenReturn(
 				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
 		registrationStatusDto.setStatusCode("PROCESSED");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
@@ -557,7 +570,7 @@ public class OSIValidatorTest {
 		registrationStatusDto.setStatusCode("PROCESSED");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.when(osiUtils.getMetaDataValue(anyString(), any())).thenReturn("2015/01/01");
-		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString())).thenReturn(
 				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
 		AuthResponseDTO authResponseDTO1 = new AuthResponseDTO();
 		authResponseDTO1.setErrors(null);
@@ -579,7 +592,7 @@ public class OSIValidatorTest {
 		introducerRegistrationStatusDto.setStatusCode((RegistrationStatusCode.PROCESSED.toString()));
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
 				.thenReturn(introducerRegistrationStatusDto);
-		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString())).thenReturn(
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString())).thenReturn(
 				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
 		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn(null);
 		osiValidator.isValidOSI("reg1234", registrationStatusDto);

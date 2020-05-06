@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import io.mosip.kernel.core.fsadapter.spi.FileSystemAdapter;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -30,6 +31,7 @@ public class PacketReaderServiceImpl implements PacketReaderService {
 
 	/** The decryptor. */
 	@Autowired
+	@Qualifier("decrypter")
 	private Decryptor decryptor;
 
 	/** The reg proc logger. */
