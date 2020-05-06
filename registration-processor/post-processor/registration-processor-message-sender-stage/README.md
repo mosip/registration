@@ -6,11 +6,18 @@ This stage sends sms and email notification for different packets based on their
 
 [Design - Approach for Message Sender Stage]()
 
-## Default Context Path and Port
-```
-server.port=8088
-eventbus.port=5721
-```
+
+## Default Port and Context Path
+  
+  * server.port=8088
+  * eventbus.port=5721
+  * server.servlet.path=/registrationprocessor/v1/sender-stage
+
+
+## URL
+
+ * https://{dns-name}:8099/registrationprocessor/v1/sender-stage/swagger-ui.html
+ 
 ## Configurable Properties from Config Server
 ```
 registration.processor.identityjson=RegistrationProcessorIdentity.json
@@ -24,6 +31,7 @@ registration.processor.uin.deactivated.subject=Uin is deactivated
 registration.processor.updated.subject=UIN Details Updated
 ```
 ## Information related to putting placeholders in notification template
+
 We need to store templates in master table.
 The parameter FileText for a template will be sent as a message in sms or email.
 
@@ -76,3 +84,14 @@ eg: FileText for UIN Generation SMS notification
 	Your UIN for the Registration $RID has been successfully generated and will reach soon at your Postal Address."
 	
 Here $name_eng will be replaced with actual english name, and $RID will be replaced with actual registration id.
+ 
+
+## API Dependencies
+	
+|Dependent Module |  Dependent Services  | API |
+| ------------- | ------------- | ------------- |
+| commons/kernel | kernel-masterdata-service | /maserdata/templates|
+| commons/kernel | kernel-smsnotification-service | /smsnotifier/sms/send|
+| commons/kernel | kernel-emailnotification-service | /emailnotifier/email/send|
+| commons/kernel | kernel-auditmanager-service | /auditmanager/audits|
+| id-repository | id-repository-identity-service | /idrepository/v1/identity/rid|
