@@ -1,24 +1,26 @@
-### registration-processor-registration-status-service
+# registration-processor-registration-status-service
 
-[Background & Design](https://github.com/mosip/mosip/wiki/Registration-Processor)
+Registration packets created by the registration clients will be periodically uploaded to the server for processing. The packets will be further processed and in each step status will be updated in registration status table. This component enables syncing of packet(s) and getting status of packet(s) via REST Api.
 
-This component enables syncing of packet(s) and getting status of packet(s) via REST Api.
+## Design
 
-[API Specification](https://github.com/mosip/mosip/wiki/Registration-Processor-APIs#2-registration-status-service)
+[Design](https://github.com/mosip/registration/blob/master/design/registration-processor/Approach_for_registration_status_module.md)
 
-##### Default Context-path and Port
 
-```
-server.port=8083
-server.servlet.path=/registrationprocessor/v1/registrationstatus
+## Default Port and Context Path
+  
+  * server.port=8083
+  * server.servlet.path=/registrationprocessor/v1/registrationstatus
 
-```
 
-##### Configurable Properties from Config Server
+## URL
 
-```
-registration.processor.max.retry=3
-mosip.registration.processor.registration.status.id=mosip.registration.status
-mosip.registration.processor.registration.sync.id=mosip.registration.sync
+ * https://{dns-name}:8099/registrationprocessor/v1/registrationstatus/swagger-ui.html
+ 
 
-```
+## API Dependencies
+	
+|Dependent Module |  Dependent Services  | API |
+| ------------- | ------------- | ------------- |
+| commons/kernel | kernel-cryptomanager-service | /cryptomanager/decrypt|
+| commons/kernel  | kernel-signature-service | /signature/sign|
