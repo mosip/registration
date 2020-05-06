@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.JPanel;
 
+import com.github.sarxos.webcam.Webcam;
 import com.github.sarxos.webcam.WebcamPanel;
 
 /**
@@ -66,5 +67,36 @@ public interface IMosipWebcamService {
 	 * This method is to close the webcam which is open
 	 */
 	public void close();
+	
+	/**
+	 * This method captures the image from webcam and return it.
+	 * 
+	 * <p>
+	 * It will return image object or null if webcam is closed or has been already
+	 * disposed by JVM.
+	 * </p>
+	 * * @param webcam web camera
+	 * 
+	 * @return returns the image object that is captured from the webcam as
+	 *         {@link BufferedImage}.
+	 */
+	public BufferedImage captureImage(Webcam webcam);
+	
+	/**
+	 * This method is to open the specified camera
+	 * 
+	 * <p>
+	 * This method takes the webcam device that are connected and opens the device
+	 * with the specified name.
+	 * </p>
+	 * 
+	 * @param webcam
+	 *            web camera
+	 * @param width
+	 *            - Required width for the camera to be set-up.
+	 * @param height
+	 *            - Required height for the camera to be set-up.
+	 */
+	public void openWebCam(Webcam webcam, int width, int height);
 
 }
