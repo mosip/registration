@@ -246,9 +246,9 @@ public class Utilities {
 		String ageKey = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.AGE), VALUE);
 		String dobKey = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.DOB), VALUE);
 
-		JSONObject demographicIdentity = getDemographicIdentityJSONObject(registrationId);
+		
 		String applicantDob = JsonUtil.getJSONValue(getDemographicIdentityJSONObject(registrationId,dobKey), dobKey);
-		Integer applicantAge = JsonUtil.getJSONValue(getDemographicIdentityJSONObject(registrationId,ageKey), ageKey);
+	    Integer applicantAge = JsonUtil.getJSONValue(getDemographicIdentityJSONObject(registrationId,ageKey), ageKey);
 		if (applicantDob != null) {
 			return calculateAge(applicantDob);
 		} else if (applicantAge != null) {
@@ -266,7 +266,7 @@ public class Utilities {
 						registrationId, "Utilities::getApplicantAge()::exit when ID REPO applicantDob is not null");
 				return calculateAge(idRepoApplicantDob);
 			}
-			Integer idRepoApplicantAge = JsonUtil.getJSONValue(demographicIdentity, ageKey);
+			Integer idRepoApplicantAge = JsonUtil.getJSONValue(identityJSONOject, ageKey);
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 					registrationId, "Utilities::getApplicantAge()::exit when ID REPO applicantAge is not null");
 			return idRepoApplicantAge != null ? idRepoApplicantAge : 0;
@@ -926,13 +926,14 @@ public class Utilities {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getDemographicIdentityJSONObject()::entry");
 		String source = idSchemaUtils.getSource(fieldLabel);
-		
+		JSONObject demographicIdentity=null;
+		if(source!=null) {
 		InputStream idJsonStream =packetReaderService.getFile(registrationId, PacketFiles.ID.name(), source);
 		
 		byte[] bytearray = IOUtils.toByteArray(idJsonStream);
 		String jsonString = new String(bytearray);
 		JSONObject demographicIdentityJson = (JSONObject) JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
-		JSONObject demographicIdentity = JsonUtil.getJSONObject(demographicIdentityJson,
+		demographicIdentity = JsonUtil.getJSONObject(demographicIdentityJson,
 				getRegProcessorDemographicIdentity);
 
 		if (demographicIdentity == null) {
@@ -944,7 +945,7 @@ public class Utilities {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getDemographicIdentityJSONObject()::exit");
-
+		}
 		return demographicIdentity;
 
 	}
