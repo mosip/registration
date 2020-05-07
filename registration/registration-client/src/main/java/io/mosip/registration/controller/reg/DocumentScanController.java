@@ -185,13 +185,12 @@ public class DocumentScanController extends BaseController {
 	private ImageView backImageView;
 	@FXML
 	private Label biometricExceptionReq;
-	
+
 	@Autowired
 	private Validations validation;
 	
 	@Autowired
 	private WebcamSarxosServiceImpl webcamSarxosServiceImpl;
-	
 	
 	/**
 	 * @return the bioExceptionToggleLabel1
@@ -425,7 +424,6 @@ public class DocumentScanController extends BaseController {
 				documentLabel.setId(documentCategory.getSubType() + RegistrationConstants.LABEL);
 				comboBox.getItems().addAll(documentCategoryDtos);
 			}
-
 		}
 	}
 	
@@ -642,6 +640,7 @@ public class DocumentScanController extends BaseController {
 	private void scanFromStubbed(Stage popupStage) throws IOException {
 		
 		byte[] byteArray = null;
+    
 		if (selectedComboBox.getValue().getName().equalsIgnoreCase("Expetion Photo")) {
 			webcamSarxosServiceImpl.openWebCam(webcamSarxosServiceImpl.getWebCams().get(0), 10, 50);
 			BufferedImage bufferedImage = webcamSarxosServiceImpl
@@ -798,8 +797,9 @@ public class DocumentScanController extends BaseController {
 		validateDocumentsPane();
 
 		generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.SCAN_DOC_SUCCESS);
-		
+
 		getRegistrationDTOFromSession().addDocument(selectedComboBox.getId(), documentDetailsDTO);
+
 	}
 
 	/**
@@ -1092,15 +1092,17 @@ public class DocumentScanController extends BaseController {
 			LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, "Entering into toggle function for Biometric exception");
 
-			Map<String, Map<String, Boolean>> detailMap = (Map<String, Map<String, Boolean>>) applicationContext
-					.getApplicationMap().get(RegistrationConstants.REGISTRATION_MAP);
+			// Map<String, Map<String, Boolean>> detailMap = (Map<String, Map<String,
+			// Boolean>>) applicationContext
+			// .getApplicationMap().get(RegistrationConstants.REGISTRATION_MAP);
 
-			if (!detailMap.get(RegistrationConstants.DOCUMENT_SCAN).get(RegistrationConstants.DOCUMENT_PANE)) {
-
+			if (!pageFlow.isVisibleInRegFlowMap(RegistrationConstants.DOCUMENT_SCAN,
+					RegistrationConstants.DOCUMENT_PANE)) {
 				documentPane.setVisible(false);
 			}
-			if (!detailMap.get(RegistrationConstants.IRIS_CAPTURE).get(RegistrationConstants.VISIBILITY) && !detailMap
-					.get(RegistrationConstants.FINGERPRINT_CAPTURE).get(RegistrationConstants.VISIBILITY)) {
+			if (!pageFlow.isVisibleInRegFlowMap(RegistrationConstants.IRIS_CAPTURE, RegistrationConstants.VISIBILITY)
+					&& !pageFlow.isVisibleInRegFlowMap(RegistrationConstants.FINGERPRINT_CAPTURE,
+							RegistrationConstants.VISIBILITY)) {
 				exceptionPane.setVisible(false);
 			}
 
@@ -1186,7 +1188,7 @@ public class DocumentScanController extends BaseController {
 				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 		registrationController.showCurrentPage(RegistrationConstants.DOCUMENT_SCAN,
-				getPageDetails(RegistrationConstants.DOCUMENT_SCAN, RegistrationConstants.PREVIOUS));
+				getPageByAction(RegistrationConstants.DOCUMENT_SCAN, RegistrationConstants.PREVIOUS));
 	}
 
 	/**
@@ -1213,11 +1215,11 @@ public class DocumentScanController extends BaseController {
 					.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.DOC_DISABLE_FLAG))) {
 				if (true) {
 					registrationController.showCurrentPage(RegistrationConstants.DOCUMENT_SCAN,
-							getPageDetails(RegistrationConstants.DOCUMENT_SCAN, RegistrationConstants.NEXT));
+							getPageByAction(RegistrationConstants.DOCUMENT_SCAN, RegistrationConstants.NEXT));
 				}
 			} else {
 				registrationController.showCurrentPage(RegistrationConstants.DOCUMENT_SCAN,
-						getPageDetails(RegistrationConstants.DOCUMENT_SCAN, RegistrationConstants.NEXT));
+						getPageByAction(RegistrationConstants.DOCUMENT_SCAN, RegistrationConstants.NEXT));
 
 			}
 		}
@@ -1271,7 +1273,7 @@ public class DocumentScanController extends BaseController {
 
 		biometricExceptionReq.setText(exceptionFaceDescription);
 	}
-	
+
 	private List<UiSchemaDTO> getDocId() {
 
 		return validation.getValidationMap().entrySet().stream()
