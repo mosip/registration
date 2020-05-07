@@ -4,7 +4,8 @@
 package io.mosip.registration.processor.packet.utility.exception;
 	
 import io.mosip.kernel.core.exception.BaseUncheckedException;
-import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
+import io.mosip.registration.processor.packet.utility.constants.PacketUtilityErrorCodes;
+
 
 /**
  * FileNotFoundInDestinationException occurs when file is not present 
@@ -32,7 +33,7 @@ public class FileNotFoundInDestinationException extends BaseUncheckedException{
 	 * @param errorMessage the error message
 	 */
 	public FileNotFoundInDestinationException(String errorMessage) {
-		super(PlatformErrorMessages.RPR_PKM_FILE_NOT_FOUND_IN_DESTINATION.getCode(), errorMessage);
+		super(PacketUtilityErrorCodes.FILE_NOT_FOUND_IN_DESTINATION.getErrorCode(), errorMessage);
 	}
 
 	/**
@@ -42,7 +43,7 @@ public class FileNotFoundInDestinationException extends BaseUncheckedException{
 	 * @param cause the cause
 	 */
 	public FileNotFoundInDestinationException(String message, Throwable cause) {
-		super(PlatformErrorMessages.RPR_PKM_FILE_NOT_FOUND_IN_DESTINATION.getCode() + EMPTY_SPACE, message, cause);
+		super(PacketUtilityErrorCodes.FILE_NOT_FOUND_IN_DESTINATION.getErrorCode() + EMPTY_SPACE, message, cause);
 
 	}
 }

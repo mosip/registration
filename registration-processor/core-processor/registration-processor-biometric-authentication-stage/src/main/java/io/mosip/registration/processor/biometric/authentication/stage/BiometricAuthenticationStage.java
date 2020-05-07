@@ -335,7 +335,8 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 			InternalRegistrationStatusDto registrationStatusDto) throws IOException, PacketDecryptionFailureException,
 			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, InvalidKeySpecException,
 			NoSuchAlgorithmException, BiometricException, BioTypeException, ParserConfigurationException, SAXException,
-			AuthSystemException, RegistrationProcessorCheckedException {
+			AuthSystemException, RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		IdentityIteratorUtil identityIterator = new IdentityIteratorUtil();
 		String individualAuthentication = identityIterator.getFieldValue(metadata,
 				BiometricAuthenticationConstants.INDIVIDUALAUTHENTICATION);

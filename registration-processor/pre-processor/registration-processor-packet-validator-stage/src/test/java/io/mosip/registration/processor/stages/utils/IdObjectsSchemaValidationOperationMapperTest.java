@@ -45,7 +45,8 @@ public class IdObjectsSchemaValidationOperationMapperTest {
 	@Test
 	public void childRegistrationTest()
 			throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
+			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		SyncRegistrationEntity regEntity=new SyncRegistrationEntity();
 		regEntity.setRegistrationType(SyncTypeDto.NEW.getValue());
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
@@ -56,7 +57,8 @@ public class IdObjectsSchemaValidationOperationMapperTest {
 
 	@Test
 	public void newRegistrationTest() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
+			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		SyncRegistrationEntity regEntity=new SyncRegistrationEntity();
 		regEntity.setRegistrationType(SyncTypeDto.NEW.getValue());
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
@@ -66,7 +68,8 @@ public class IdObjectsSchemaValidationOperationMapperTest {
 
 	@Test
 	public void lostUINTest() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
+			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		SyncRegistrationEntity regEntity=new SyncRegistrationEntity();
 		regEntity.setRegistrationType(SyncTypeDto.LOST.getValue());
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
@@ -76,7 +79,8 @@ public class IdObjectsSchemaValidationOperationMapperTest {
 
 	@Test
 	public void updateUINTest() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
+			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		SyncRegistrationEntity regEntity=new SyncRegistrationEntity();
 		regEntity.setRegistrationType(SyncTypeDto.UPDATE.getValue());
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
@@ -86,7 +90,8 @@ public class IdObjectsSchemaValidationOperationMapperTest {
 
 	@Test
 	public void resUpdateTest() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
+			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		SyncRegistrationEntity regEntity=new SyncRegistrationEntity();
 		regEntity.setRegistrationType(SyncTypeDto.RES_UPDATE.getValue());
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
@@ -96,7 +101,8 @@ public class IdObjectsSchemaValidationOperationMapperTest {
 
 	@Test
 	public void activateTest() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
+			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		SyncRegistrationEntity regEntity=new SyncRegistrationEntity();
 		regEntity.setRegistrationType(SyncTypeDto.ACTIVATED.getValue());
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
@@ -106,7 +112,8 @@ public class IdObjectsSchemaValidationOperationMapperTest {
 
 	@Test
 	public void deactivateTest() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
+			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		SyncRegistrationEntity regEntity=new SyncRegistrationEntity();
 		regEntity.setRegistrationType(SyncTypeDto.DEACTIVATED.getValue());
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);

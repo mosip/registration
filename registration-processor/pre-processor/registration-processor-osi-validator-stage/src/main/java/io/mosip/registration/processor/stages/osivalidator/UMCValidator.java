@@ -345,21 +345,21 @@ public class UMCValidator {
 	/**
 	 * Checks if is valid UMC.
 	 *
-	 * @param registrationId
-	 *            the registration id
+	 * @param registrationId         the registration id
 	 * @param registrationStatusDto2
 	 * @return true, if is valid UMC
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
+	 * @throws ApisResourceAccessException      the apis resource access exception
 	 * @throws IOException
-	 * @throws io.mosip.kernel.core.exception.IOException
+	 * @throws                                  io.mosip.kernel.core.exception.IOException
 	 * @throws JsonMappingException
 	 * @throws JsonParseException
 	 * @throws PacketDecryptionFailureException
+	 * @throws                                  io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
 	 */
 	public boolean isValidUMC(String registrationId, InternalRegistrationStatusDto registrationStatusDto)
 			throws ApisResourceAccessException, JsonParseException, JsonMappingException,
-			io.mosip.kernel.core.exception.IOException, IOException, PacketDecryptionFailureException {
+			io.mosip.kernel.core.exception.IOException, IOException, PacketDecryptionFailureException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "UMCValidator::isValidUMC()::entry");
 		RegistrationCenterMachineDto rcmDto = getCenterMachineDto(registrationId);
@@ -411,19 +411,20 @@ public class UMCValidator {
 	/**
 	 * Gets the center machine dto.
 	 *
-	 * @param registrationId
-	 *            the registration id
+	 * @param registrationId the registration id
 	 * @return the center machine dto
 	 * @throws IOException
-	 * @throws io.mosip.kernel.core.exception.IOException
+	 * @throws                                  io.mosip.kernel.core.exception.IOException
 	 * @throws JsonMappingException
 	 * @throws JsonParseException
 	 * @throws ApisResourceAccessException
 	 * @throws PacketDecryptionFailureException
+	 * @throws                                  io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
 	 */
 	private RegistrationCenterMachineDto getCenterMachineDto(String registrationId)
 			throws JsonParseException, JsonMappingException, io.mosip.kernel.core.exception.IOException, IOException,
-			PacketDecryptionFailureException, ApisResourceAccessException {
+			PacketDecryptionFailureException, ApisResourceAccessException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 
 		identity = osiUtils.getIdentity(registrationId);
 

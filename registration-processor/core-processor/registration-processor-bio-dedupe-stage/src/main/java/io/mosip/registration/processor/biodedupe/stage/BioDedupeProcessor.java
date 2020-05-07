@@ -290,10 +290,12 @@ public class BioDedupeProcessor {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
+	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
 	 */
 	private void newPacketPreAbisIdentification(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object)
 			throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
+			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		if (isValidCbeff(registrationStatusDto.getRegistrationId(), registrationStatusDto.getRegistrationType())) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 			registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_INPROGRESS.getMessage());
@@ -374,10 +376,12 @@ public class BioDedupeProcessor {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
+	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
 	 */
 	private void postAbisIdentification(InternalRegistrationStatusDto registrationStatusDto, MessageDTO object,
 			String registrationType) throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
+			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		String moduleId = "";
 		String moduleName = ModuleName.BIO_DEDUPE.toString();
 		List<String> matchedRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
@@ -422,10 +426,12 @@ public class BioDedupeProcessor {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
+	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
 	 */
 	private Boolean isValidCbeff(String registrationId, String registrationType) throws ApisResourceAccessException,
 			IOException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			RegistrationProcessorCheckedException {
+			RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		List<String> pathSegments = new ArrayList<>();
 		pathSegments.add(registrationId);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),

@@ -510,7 +510,8 @@ public class PacketValidateProcessor {
 			MessageDTO object, IdentityIteratorUtil identityIteratorUtil, PacketValidationDto packetValidationDto)
 			throws IOException, ApisResourceAccessException, JSONException, org.json.simple.parser.ParseException,
 			RegistrationProcessorCheckedException, IdObjectValidationFailedException, IdObjectIOException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException {
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		Long uin = null;
 		JSONObject demographicIdentity = null;
 		String registrationId = registrationStatusDto.getRegistrationId();
@@ -628,7 +629,8 @@ public class PacketValidateProcessor {
 			PacketValidationDto packetValidationDto)
 			throws ApisResourceAccessException, IOException, IdObjectValidationFailedException, IdObjectIOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			RegistrationProcessorCheckedException {
+			RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 
 		if (env.getProperty(VALIDATESCHEMA).trim().equalsIgnoreCase(VALIDATIONFALSE)) {
 			packetValidationDto.setSchemaValidated(true);
@@ -720,7 +722,8 @@ public class PacketValidateProcessor {
 			PacketValidationDto packetValidationDto)
 			throws IOException, ApisResourceAccessException, org.json.simple.parser.ParseException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			RegistrationProcessorCheckedException {
+			RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		if (env.getProperty(VALIDATEAPPLICANTDOCUMENT).trim().equalsIgnoreCase(VALIDATIONFALSE)) {
 			packetValidationDto.setApplicantDocumentValidation(true);
 			return packetValidationDto.isApplicantDocumentValidation();

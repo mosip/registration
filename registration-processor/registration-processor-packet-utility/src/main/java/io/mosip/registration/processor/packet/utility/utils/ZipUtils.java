@@ -14,8 +14,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOCase;
 
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.packet.utility.constants.LoggerFileConstant;
+import io.mosip.registration.processor.packet.utility.logger.PacketUtilityLogger;
 
 /**
  * Class to unzip the packets
@@ -26,7 +26,7 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 public class ZipUtils {
 
 	/** The reg proc logger. */
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(ZipUtils.class);
+	private static Logger packetUtilityLogger = PacketUtilityLogger.getLogger(ZipUtils.class);
 
 	private ZipUtils() {
 		// DONOT DELETE
@@ -45,7 +45,7 @@ public class ZipUtils {
 	 *             if any error occored while unzipping the file
 	 */
 	public static InputStream unzipAndGetFile(InputStream packetStream, String file) throws IOException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+		packetUtilityLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ZipUtils::unzipAndGetFile()::entry");
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		boolean flag = false;
@@ -72,7 +72,7 @@ public class ZipUtils {
 			out.close();
 		}
 		if (flag) {
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+			packetUtilityLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", "ZipUtils::unzipAndGetFile()::exit");
 
 			return new ByteArrayInputStream(out.toByteArray());
@@ -94,7 +94,7 @@ public class ZipUtils {
 	 */
 	public static boolean unzipAndCheckIsFileExist(InputStream packetStream, String file) throws IOException {
 		boolean isExist = false;
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+		packetUtilityLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ZipUtils::unzipAndCheckIsFileExist()::entry");
 
 		try (ZipInputStream zis = new ZipInputStream(packetStream)) {
@@ -113,7 +113,7 @@ public class ZipUtils {
 		} finally {
 			packetStream.close();
 		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+		packetUtilityLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ZipUtils::unzipAndCheckIsFileExist()::exit");
 
 		return isExist;
@@ -131,14 +131,14 @@ public class ZipUtils {
 	 */
 	public static void unZipFromInputStream(InputStream input, String desDir) throws IOException {
 		byte[] buffer = new byte[1024];
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+		packetUtilityLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ZipUtils::unZipFromInputStream()::entry");
 
 		try (ZipInputStream zis = new ZipInputStream(input)) {
 			File folder = FileUtils.getFile(desDir);
 			if (!folder.exists()) {
 				if (folder.mkdir()) {
-					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+					packetUtilityLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), "", folder + "created");
 
 				}
@@ -148,7 +148,7 @@ public class ZipUtils {
 				if (ze.isDirectory()) {
 					File file = FileUtils.getFile(desDir + ze.getName());
 					if (file.mkdir()) {
-						regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+						packetUtilityLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 								LoggerFileConstant.REGISTRATIONID.toString(), "", file + "created");
 
 					}
@@ -170,7 +170,7 @@ public class ZipUtils {
 		} finally {
 			input.close();
 		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+		packetUtilityLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ZipUtils::unZipFromInputStream()::exit");
 
 	}

@@ -512,26 +512,25 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	/**
 	 * Update id repo wit uin.
 	 *
-	 * @param regId
-	 *            the reg id
-	 * @param uin
-	 *            the uin
-	 * @param object
-	 *            the object
+	 * @param regId       the reg id
+	 * @param uin         the uin
+	 * @param object      the object
 	 * @param description
 	 * @return the id response DTO
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @throws ApisResourceAccessException           the apis resource access
+	 *                                               exception
+	 * @throws IOException                           Signals that an I/O exception
+	 *                                               has occurred.
 	 * @throws RegistrationProcessorCheckedException
-	 * @throws io.mosip.kernel.core.exception.IOException
+	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
+	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
 	 */
 	private boolean uinUpdate(String regId, Long uin, MessageDTO object, JSONObject demographicIdentity,
 			LogDescription description)
 			throws ApisResourceAccessException, IOException, RegistrationProcessorCheckedException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException {
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		IdResponseDTO result;
 		boolean isTransactionSuccessful = Boolean.FALSE;
 		List<Documents> documentInfo = utility.getAllDocumentsByRegId(regId);

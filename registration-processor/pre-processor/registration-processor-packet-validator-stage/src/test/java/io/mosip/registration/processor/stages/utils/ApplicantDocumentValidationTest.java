@@ -83,11 +83,13 @@ public class ApplicantDocumentValidationTest {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
+	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
 	 */
 	@Before
 	public void setUp()
 			throws IOException, ApisResourceAccessException, ParseException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
+			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 
 		dto.setRid("2018701130000410092018110735");
 
@@ -130,12 +132,14 @@ public class ApplicantDocumentValidationTest {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
+	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
 	 */
 	@Test
 	public void testApplicantDocumentValidationAdultSuccess() throws ApisResourceAccessException, NoSuchFieldException,
 			IllegalAccessException, IOException, ParseException, org.json.simple.parser.ParseException, JSONException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			RegistrationProcessorCheckedException {
+			RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		boolean isApplicantDocumentValidated = applicantDocumentValidation.validateDocument("1234", jsonStringID);
 		assertTrue("Test for successful Applicant Document Validation success for adult", isApplicantDocumentValidated);
 	}
@@ -155,12 +159,14 @@ public class ApplicantDocumentValidationTest {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
+	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
 	 */
 	@Test
 	public void testApplicantDocumentValidationChildSuccess() throws ApisResourceAccessException, NoSuchFieldException,
 			IllegalAccessException, IOException, ParseException, org.json.simple.parser.ParseException, JSONException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			RegistrationProcessorCheckedException {
+			RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		Mockito.when(utility.getApplicantAge(any())).thenReturn(4);
 		boolean isApplicantDocumentValidated = applicantDocumentValidation.validateDocument("1234", jsonStringID);
 		assertTrue("Test for successful Applicant Document Validation for child", isApplicantDocumentValidated);
@@ -181,12 +187,14 @@ public class ApplicantDocumentValidationTest {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
+	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
 	 */
 	@Test(expected = IdentityNotFoundException.class)
 	public void testApplicantDocumentValidationIDJSONNull() throws ApisResourceAccessException, NoSuchFieldException,
 			IllegalAccessException, IOException, ParseException, org.json.simple.parser.ParseException, JSONException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			RegistrationProcessorCheckedException {
+			RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 
 		boolean isApplicantDocumentValidated = applicantDocumentValidation.validateDocument("1234", "{}");
 
@@ -207,12 +215,14 @@ public class ApplicantDocumentValidationTest {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
+	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
 	 */
 	@Test
 	public void testInvalidType() throws ApisResourceAccessException, NoSuchFieldException, IllegalAccessException,
 			IOException, ParseException, org.json.simple.parser.ParseException, JSONException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			RegistrationProcessorCheckedException {
+			RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 
 		InputStream inputStream = new FileInputStream("src/test/resources/ID2.json");
 		byte[] bytes = IOUtils.toByteArray(inputStream);

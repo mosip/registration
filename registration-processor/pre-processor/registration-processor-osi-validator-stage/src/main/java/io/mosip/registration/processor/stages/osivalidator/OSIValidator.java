@@ -162,12 +162,14 @@ public class OSIValidator {
 	 * @throws ParentOnHoldException
 	 * @throws AuthSystemException
 	 * @throws RegistrationProcessorCheckedException
+	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
 	 */
 	public boolean isValidOSI(String registrationId, InternalRegistrationStatusDto registrationStatusDto)
 			throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException,
 			ParserConfigurationException, SAXException, NumberFormatException, BiometricException, BioTypeException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ParentOnHoldException,
-			AuthSystemException, RegistrationProcessorCheckedException {
+			AuthSystemException, RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "OSIValidator::isValidOSI()::entry");
 		boolean isValidOsi = false;
@@ -282,10 +284,8 @@ public class OSIValidator {
 	/**
 	 * Checks if is valid operator.
 	 *
-	 * @param regOsi
-	 *            the reg osi
-	 * @param registrationId
-	 *            the registration id
+	 * @param regOsi         the reg osi
+	 * @param registrationId the registration id
 	 * @return true, if is valid operator
 	 * @throws IOException
 	 * @throws SAXException
@@ -295,9 +295,10 @@ public class OSIValidator {
 	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeySpecException
 	 * @throws ApisResourceAccessException
-	 * @throws io.mosip.kernel.core.exception.IOException
+	 * @throws                                  io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
-	 * @throws AuthSystemException 
+	 * @throws AuthSystemException
+	 * @throws                                  io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
 	 * @throws Exception
 	 * 
 	 */
@@ -305,7 +306,8 @@ public class OSIValidator {
 			InternalRegistrationStatusDto registrationStatusDto)
 			throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException,
 			BiometricException, BioTypeException, ParserConfigurationException, SAXException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, AuthSystemException {
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, AuthSystemException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		boolean isValid = false;
 		String officerId = regOsi.getOfficerId();
 		if (officerId != null) {
@@ -362,10 +364,8 @@ public class OSIValidator {
 	/**
 	 * Checks if is valid supervisor.
 	 *
-	 * @param regOsi
-	 *            the reg osi
-	 * @param registrationId
-	 *            the registration id
+	 * @param regOsi                the reg osi
+	 * @param registrationId        the registration id
 	 * @param registrationStatusDto
 	 * @return true, if is valid supervisor
 	 * @throws IOException
@@ -376,16 +376,18 @@ public class OSIValidator {
 	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeySpecException
 	 * @throws ApisResourceAccessException
-	 * @throws io.mosip.kernel.core.exception.IOException
+	 * @throws                                  io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
-	 * @throws AuthSystemException 
+	 * @throws AuthSystemException
+	 * @throws                                  io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
 	 * @throws Exception
 	 */
 	private boolean isValidSupervisor(RegOsiDto regOsi, String registrationId,
 			InternalRegistrationStatusDto registrationStatusDto)
 			throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException,
 			BiometricException, BioTypeException, ParserConfigurationException, SAXException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, AuthSystemException {
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, AuthSystemException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "OSIValidator::isValidSupervisor()::entry");
 		String supervisorId = regOsi.getSupervisorId();
@@ -450,13 +452,15 @@ public class OSIValidator {
 	 * @throws ParentOnHoldException
 	 * @throws AuthSystemException
 	 * @throws RegistrationProcessorCheckedException
+	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
 	 */
 	private boolean isValidIntroducer(String registrationId,
 			JSONObject regProcessorIdentityJson, InternalRegistrationStatusDto registrationStatusDto)
 			throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException,
 			ParserConfigurationException, SAXException, BiometricException, BioTypeException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ParentOnHoldException,
-			AuthSystemException, RegistrationProcessorCheckedException {
+			AuthSystemException, RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "OSIValidator::isValidIntroducer()::entry");
 
@@ -527,7 +531,8 @@ public class OSIValidator {
 			String introducerUIN,String introducerBiometricsLabel) throws IOException, PacketDecryptionFailureException, ApisResourceAccessException,
 			io.mosip.kernel.core.exception.IOException, InvalidKeySpecException, NoSuchAlgorithmException,
 			ParserConfigurationException, SAXException, BiometricException, BioTypeException, AuthSystemException,
-			ParentOnHoldException, RegistrationProcessorCheckedException {
+			ParentOnHoldException, RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		if (introducerBiometricsFileName != null && (!introducerBiometricsFileName.trim().isEmpty())) {
 			String source = idSchemaUtils.getSource(introducerBiometricsLabel);
 			InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId,
