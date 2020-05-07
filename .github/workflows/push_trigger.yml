@@ -45,7 +45,9 @@ jobs:
       run: mvn -B package -s $GITHUB_WORKSPACE/settings.xml -DskipTests --file pom.xml    
       
     - name: Ready the springboot artifacts
-      run: find -name '*.jar' -executable -type f  -exec zip release.zip {} +
+      run: |
+        find -name '*.jar' -executable -type f  -exec zip release.zip {} +
+        find . -regextype posix-extended -regex '.*registration-processor-common-camel-bridge-[0-9\.]+[-A-Z]*\.jar' -type f  -exec zip release.zip {} +
 
     - name: Upload the springboot jars 
       uses: actions/upload-artifact@v1
@@ -1380,8 +1382,8 @@ jobs:
           xml-file: ./${{ env.SERVICE_LOCATION }}/version.xml 
           xpath: version 
       
-      - name: Unzip and extract the ${{ env.SERVICE_NAME }}
-        run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
+      #- name: Unzip and extract the ${{ env.SERVICE_NAME }}
+      #  run: unzip -uj "release.zip" "${{ env.SERVICE_LOCATION }}/target/*" -d "./${{ env.SERVICE_LOCATION }}/target"
       
       - name: Build image
         run: |
