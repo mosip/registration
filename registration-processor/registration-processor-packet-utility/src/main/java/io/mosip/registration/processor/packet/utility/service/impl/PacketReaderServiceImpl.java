@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 
 import io.mosip.kernel.core.fsadapter.spi.FileSystemAdapter;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -13,7 +12,7 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureExceptionConstant;
-import io.mosip.registration.processor.packet.utility.service.Decryptor;
+import io.mosip.registration.processor.packet.utility.service.PacketDecryptor;
 import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.packet.utility.utils.ZipUtils;
 
@@ -31,8 +30,7 @@ public class PacketReaderServiceImpl implements PacketReaderService {
 
 	/** The decryptor. */
 	@Autowired
-	@Qualifier("decrypter")
-	private Decryptor decryptor;
+	private PacketDecryptor decryptor;
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(PacketReaderServiceImpl.class);

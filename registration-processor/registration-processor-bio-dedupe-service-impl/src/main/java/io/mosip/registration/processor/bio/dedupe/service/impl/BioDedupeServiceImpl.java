@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -22,18 +23,14 @@ import io.mosip.registration.processor.bio.dedupe.exception.UnableToServeRequest
 import io.mosip.registration.processor.bio.dedupe.exception.UnexceptedError;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.ModuleName;
-import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.constant.PacketFiles;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorUnCheckedException;
-import io.mosip.registration.processor.core.exception.util.PacketStructure;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.packet.dto.FieldValueArray;
 import io.mosip.registration.processor.core.packet.dto.Identity;
-import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
 import io.mosip.registration.processor.core.packet.dto.RegAbisRefDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisIdentifyRequestDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisIdentifyResponseDto;
@@ -43,12 +40,13 @@ import io.mosip.registration.processor.core.packet.dto.abis.CandidatesDto;
 import io.mosip.registration.processor.core.packet.dto.abis.Flag;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.DemographicInfoDto;
 import io.mosip.registration.processor.core.spi.biodedupe.BioDedupeService;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
-import io.mosip.registration.processor.core.util.IdentityIteratorUtil;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
+import io.mosip.registration.processor.packet.utility.utils.IdSchemaUtils;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 
 /**
@@ -87,9 +85,7 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 	@Value("${registration.processor.abis.targetFPIR}")
 	private Integer targetFPIR;
 
-	/** The filesystem adapter impl. */
-	@Autowired
-	private PacketManager filesystemCephAdapterImpl;
+
 
 	private static final String ABIS_INSERT = "mosip.abis.insert";
 
@@ -99,6 +95,15 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 
 	@Autowired
 	private Environment env;
+
+	@Autowired
+	private Utilities utility;
+
+	@Autowired
+	private PacketReaderService packetReaderService;
+
+	@Autowired
+	private IdSchemaUtils idSchemaUtils;
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -335,24 +340,16 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "BioDedupeServiceImpl::getFile()::entry");
 		try {
-			InputStream packetMetaInfoStream = filesystemCephAdapterImpl.getFile(registrationId,
-					PacketFiles.PACKET_META_INFO.name());
-			PacketMetaInfo packetMetaInfo = null;
-			String applicantBiometricFileName = "";
-
-			packetMetaInfo = (PacketMetaInfo) JsonUtil.inputStreamtoJavaObject(packetMetaInfoStream,
-					PacketMetaInfo.class);
-
-			List<FieldValueArray> hashSequence = packetMetaInfo.getIdentity().getHashSequence1();
-
-			IdentityIteratorUtil identityIteratorUtil = new IdentityIteratorUtil();
-			List<String> hashList = identityIteratorUtil.getHashSequence(hashSequence,
-					JsonConstant.APPLICANTBIOMETRICSEQUENCE);
-			if (hashList != null)
-				applicantBiometricFileName = hashList.get(0);
-			InputStream fileInStream = filesystemCephAdapterImpl.getFile(registrationId,
-					PacketStructure.BIOMETRIC + applicantBiometricFileName.toUpperCase());
-
+			JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
+			String individualBiometricsLabel = JsonUtil.getJSONValue(
+					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
+					MappingJsonConstants.VALUE);
+			String individualBiometricsFileName = JsonUtil.getJSONValue(JsonUtil.getJSONObject(
+					utility.getDemographicIdentityJSONObject(registrationId, individualBiometricsLabel),
+					individualBiometricsLabel), MappingJsonConstants.VALUE);
+			String source = idSchemaUtils.getSource(individualBiometricsLabel);
+			InputStream fileInStream = packetReaderService.getFile(registrationId,
+					individualBiometricsFileName.toUpperCase(), source);
 			file = IOUtils.toByteArray(fileInStream);
 
 		} catch (UnsupportedEncodingException exp) {

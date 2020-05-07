@@ -62,7 +62,6 @@ import io.mosip.registration.processor.core.packet.dto.demographicinfo.Demograph
 import io.mosip.registration.processor.core.packet.dto.masterdata.UserDetailsDto;
 import io.mosip.registration.processor.core.packet.dto.masterdata.UserDetailsResponseDto;
 import io.mosip.registration.processor.core.packet.dto.masterdata.UserResponseDto;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
@@ -101,9 +100,7 @@ public class OSIValidatorTest {
 	@Mock
 	private IdRepoService idRepoService;
 
-	/** The adapter. */
-	@Mock
-	PacketManager adapter;
+
 
 	/** The rest client service. */
 	@Mock
@@ -222,8 +219,7 @@ public class OSIValidatorTest {
 
 		Mockito.when(env.getProperty("mosip.kernel.applicant.type.age.limit")).thenReturn("5");
 
-		Mockito.when(adapter.getFile(anyString(), anyString())).thenReturn(inputStream);
-		Mockito.when(adapter.checkFileExistence(anyString(), anyString())).thenReturn(true);
+
 
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(data);

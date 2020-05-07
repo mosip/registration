@@ -2,7 +2,6 @@ package io.mosip.registration.processor.packet.manager.config;
 
 import java.io.InputStream;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -42,7 +41,6 @@ public class PacketManagerConfig {
     }
     @Bean
 	@Primary
-	@Qualifier("packetmanagerdecrypter")
     public Decryptor getDecryptor() {
         return new DecryptorImpl();
     }
