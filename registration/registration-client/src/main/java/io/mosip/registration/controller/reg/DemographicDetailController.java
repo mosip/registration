@@ -722,6 +722,7 @@ public class DemographicDetailController extends BaseController {
 	@FXML
 	private void initialize() throws IOException {
 
+		
 		listOfComboBoxWithString = new HashMap<>();
 		listOfComboBoxWithObject = new HashMap<>();
 		listOfTextField = new HashMap<>();
