@@ -287,6 +287,7 @@
 		<module>registration-processor-core</module>
 		<module>registration-processor-rest-client</module>
 		<module>registration-processor-packet-manager</module>
+		<module>registration-processor-packet-utility</module>
 		<module>registration-processor-common-camel-bridge</module>
 		<module>registration-processor-bio-dedupe-service-impl</module>
 		<module>registration-processor-print-service-impl</module>
@@ -298,7 +299,6 @@
 		<module>pre-processor</module>
 		<module>core-processor</module>
 		<module>post-processor</module>
-    <module>registration-processor-packet-utility</module>
   </modules>
 
 	<profiles>

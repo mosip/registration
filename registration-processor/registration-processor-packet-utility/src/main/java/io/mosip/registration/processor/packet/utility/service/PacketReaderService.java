@@ -46,4 +46,15 @@ public interface PacketReaderService {
 	 */
 	public InputStream getFile(String id, String fileName, String source) throws IOException,
 			PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException;
+
+	/**
+	 * Get the encrypted source packet from the parent zip
+	 *
+	 * @param rid : The rid
+	 * @param inputStream : parent zip input stream
+	 * @param source : the source (EX - id, evidence, optional)
+	 * @return : source zip
+	 * @throws IOException
+	 */
+	public InputStream getEncryptedSourcePacket(String rid, InputStream inputStream, String source) throws IOException;
 }

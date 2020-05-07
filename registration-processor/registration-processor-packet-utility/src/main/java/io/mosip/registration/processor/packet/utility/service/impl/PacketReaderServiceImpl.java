@@ -15,6 +15,7 @@ import io.mosip.registration.processor.packet.utility.exception.PacketDecryption
 import io.mosip.registration.processor.packet.utility.service.PacketDecryptor;
 import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.packet.utility.utils.ZipUtils;
+import org.springframework.stereotype.Component;
 
 
 /**
@@ -22,6 +23,7 @@ import io.mosip.registration.processor.packet.utility.utils.ZipUtils;
  *
  * @author Sowmya
  */
+@Component
 public class PacketReaderServiceImpl implements PacketReaderService {
 
 	/** The file system adapter. */
@@ -110,5 +112,10 @@ public class PacketReaderServiceImpl implements PacketReaderService {
 							.getErrorMessage());
 		}
 		return decryptedData;
+	}
+
+	@Override
+	public InputStream getEncryptedSourcePacket(String rid, InputStream inputStream, String source) throws IOException {
+		return ZipUtils.unzipAndGetFile(inputStream, rid + "_" + source);
 	}
 }

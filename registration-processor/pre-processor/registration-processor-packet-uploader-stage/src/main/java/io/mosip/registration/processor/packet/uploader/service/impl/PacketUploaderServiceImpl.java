@@ -2,6 +2,7 @@ package io.mosip.registration.processor.packet.uploader.service.impl;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
+import io.mosip.kernel.core.fsadapter.spi.FileSystemAdapter;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.HMACUtils;
 import io.mosip.kernel.core.virusscanner.exception.VirusScannerException;
@@ -25,15 +26,15 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
-import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
 import io.mosip.registration.processor.packet.uploader.archiver.util.PacketArchiver;
 import io.mosip.registration.processor.packet.uploader.exception.PacketNotFoundException;
 import io.mosip.registration.processor.packet.uploader.service.PacketUploaderService;
+import io.mosip.registration.processor.packet.utility.service.PacketDecryptor;
+import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -85,7 +86,13 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 
 	/** The hdfs adapter. */
 	@Autowired
-	private PacketManager fileSystemManager;
+	private FileSystemAdapter fsAdapter;
+
+	@Value("${registration.processor.sourcepackets}")
+	private String packetSources;
+
+	@Autowired
+	private PacketReaderService packetReaderService;
 
 	/** The sync registration service. */
 	@Autowired
@@ -119,7 +126,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 	
 	/** The decryptor. */
 	@Autowired
-	private Decryptor packetUploaderDecryptor;
+	private PacketDecryptor packetDecryptor;
 
 	/*
 	 * java class to trim exception message
@@ -155,14 +162,14 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 			dto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.UPLOAD_PACKET.toString());
 			dto.setRegistrationStageName(stageName);
 
-			byte[] encryptedByteArray = getPakcetFromDMZ(registrationId);
+			final byte[] encryptedByteArray = getPakcetFromDMZ(registrationId);
 
 			if (encryptedByteArray != null) {
 
 				if (validateHashCode(new ByteArrayInputStream(encryptedByteArray), regEntity, registrationId, dto,
 						description)) {
 
-					if (scanFile(new ByteArrayInputStream(encryptedByteArray), registrationId, dto, description)) {
+					if (scanFile(encryptedByteArray, registrationId, dto, description)) {
 						int retrycount = (dto.getRetryCount() == null) ? 0 : dto.getRetryCount() + 1;
 						dto.setRetryCount(retrycount);
 						if (retrycount < getMaxRetryCount()) {
@@ -344,29 +351,41 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 	 * @throws ApisResourceAccessException 
 	 * @throws PacketDecryptionFailureException 
 	 */
-	private boolean scanFile(InputStream inputStream, String registrationId, InternalRegistrationStatusDto dto,
+	private boolean scanFile(final byte[] inputStream, String registrationId, InternalRegistrationStatusDto dto,
 							 LogDescription description) throws IOException, PacketDecryptionFailureException, ApisResourceAccessException {
 		boolean isInputFileClean = false;
 		try {
-			byte[] encryptedByteArray = IOUtils.toByteArray(inputStream);
-			isInputFileClean = virusScannerService.scanFile(new ByteArrayInputStream(encryptedByteArray));
-			if (isInputFileClean) {
+			String[] sources = packetSources.split(",");
 
-				InputStream decryptedData = packetUploaderDecryptor
-						.decrypt(new ByteArrayInputStream(encryptedByteArray), registrationId);
-				isInputFileClean = virusScannerService.scanFile(decryptedData);
+			for (String source : sources) {
+				ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(inputStream);
+				InputStream encryptedSourcePacket = packetReaderService.getEncryptedSourcePacket(registrationId, byteArrayInputStream, source);
+
+				if (encryptedSourcePacket == null || encryptedSourcePacket.read() == 0)
+					continue;
+
+				byte[] encryptedByteArray = IOUtils.toByteArray(encryptedSourcePacket);
+				isInputFileClean = virusScannerService.scanFile(new ByteArrayInputStream(encryptedByteArray));
+				if (isInputFileClean) {
+
+					InputStream decryptedData = packetDecryptor
+							.decrypt(new ByteArrayInputStream(encryptedByteArray), registrationId);
+					isInputFileClean = virusScannerService.scanFile(decryptedData);
+				}
+				if (!isInputFileClean) {
+					description.setMessage(PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCAN_FAILED.getMessage());
+					description.setCode(PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCAN_FAILED.getCode());
+					dto.setStatusCode(RegistrationExceptionTypeCode.PACKET_UPLOADER_FAILED.toString());
+					dto.setStatusComment(StatusUtil.VIRUS_SCANNER_FAILED_UPLOADER.getMessage());
+					dto.setSubStatusCode(StatusUtil.VIRUS_SCANNER_FAILED_UPLOADER.getCode());
+					dto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+							.getStatusCode(RegistrationExceptionTypeCode.VIRUS_SCAN_FAILED_EXCEPTION));
+					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+							PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCAN_FAILED.getMessage());
+					break;
 			}
-			if (!isInputFileClean) {
-				description.setMessage(PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCAN_FAILED.getMessage());
-				description.setCode(PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCAN_FAILED.getCode());
-				dto.setStatusCode(RegistrationExceptionTypeCode.PACKET_UPLOADER_FAILED.toString());
-				dto.setStatusComment(StatusUtil.VIRUS_SCANNER_FAILED_UPLOADER.getMessage());
-				dto.setSubStatusCode(StatusUtil.VIRUS_SCANNER_FAILED_UPLOADER.getCode());
-				dto.setLatestTransactionStatusCode(registrationStatusMapperUtil
-						.getStatusCode(RegistrationExceptionTypeCode.VIRUS_SCAN_FAILED_EXCEPTION));
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-						PlatformErrorMessages.RPR_PUM_PACKET_VIRUS_SCAN_FAILED.getMessage());
+
 			}
 		} catch (VirusScannerException e) {
 
@@ -445,8 +464,8 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 
 		object.setIsValid(false);
 		registrationId = dto.getRegistrationId();
-		fileSystemManager.storePacket(registrationId, decryptedData);
-		if (fileSystemManager.isPacketPresent(registrationId)) {
+		fsAdapter.storePacket(registrationId, decryptedData);
+		if (fsAdapter.isPacketPresent(registrationId)) {
 
 			dto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 			dto.setStatusComment(StatusUtil.PACKET_UPLOADED.getMessage());
