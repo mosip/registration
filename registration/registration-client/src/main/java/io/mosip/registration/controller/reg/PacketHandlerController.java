@@ -439,12 +439,12 @@ public class PacketHandlerController extends BaseController implements Initializ
 						RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
 				return;
 			}
-//			if (isMachineRemapProcessStarted()) {
-//
-//				LOGGER.info("REGISTRATION - CREATE_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
-//						APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
-//				return;
-//			}
+			if (isMachineRemapProcessStarted()) {
+
+				LOGGER.info("REGISTRATION - CREATE_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
+						APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
+				return;
+			}
 			ResponseDTO keyResponse = isKeyValid();
 			if (null != keyResponse.getSuccessResponseDTO()) {
 				LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Creation of Registration Starting.");
@@ -507,12 +507,12 @@ public class PacketHandlerController extends BaseController implements Initializ
 				return;
 			}
 
-//			if (isMachineRemapProcessStarted()) {
-//
-//				LOGGER.info("REGISTRATION - lost UIN - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
-//						APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
-//				return;
-//			}
+			if (isMachineRemapProcessStarted()) {
+
+				LOGGER.info("REGISTRATION - lost UIN - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
+						APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
+				return;
+			}
 			String fingerPrintDisableFlag = getValueFromApplicationContext(
 					RegistrationConstants.FINGERPRINT_DISABLE_FLAG);
 			String irisDisableFlag = getValueFromApplicationContext(RegistrationConstants.IRIS_DISABLE_FLAG);
@@ -523,11 +523,11 @@ public class PacketHandlerController extends BaseController implements Initializ
 					&& RegistrationConstants.DISABLE.equalsIgnoreCase(faceDisableFlag)) {
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.LOST_UIN_REQUEST_ERROR);
 			} else {
-//				if (isMachineRemapProcessStarted()) {
-//					LOGGER.info("REGISTRATION - CREATE_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER",
-//							APPLICATION_NAME, APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
-//					return;
-//				}
+				if (isMachineRemapProcessStarted()) {
+					LOGGER.info("REGISTRATION - CREATE_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER",
+							APPLICATION_NAME, APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
+					return;
+				}
 				ResponseDTO keyResponse = isKeyValid();
 				if (null != keyResponse.getSuccessResponseDTO()) {
 					LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID,
@@ -751,12 +751,12 @@ public class PacketHandlerController extends BaseController implements Initializ
 				return;
 			}
 
-//			if (isMachineRemapProcessStarted()) {
-//
-//				LOGGER.info("REGISTRATION - update UIN - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
-//						APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
-//				return;
-//			}
+			if (isMachineRemapProcessStarted()) {
+
+				LOGGER.info("REGISTRATION - update UIN - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
+						APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
+				return;
+			}
 			ResponseDTO keyResponse = isKeyValid();
 			if (null != keyResponse.getSuccessResponseDTO()) {
 
