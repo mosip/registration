@@ -4,6 +4,7 @@ import java.io.InputStream;
 
 import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
 
+
 /**
  * The Interface Decryptor.
  * 
@@ -18,8 +19,9 @@ public interface PacketDecryptor {
 	 * @param registrationId the registration id
 	 * @return decrypted packet
 	 * @throws PacketDecryptionFailureException if error occured while decrypting
+	 * @throws ApisResourceAccessException      if error occured while
 	 */
 	public InputStream decrypt(InputStream input, String registrationId)
-			throws PacketDecryptionFailureException;
+			throws PacketDecryptionFailureException, ApisResourceAccessException;
 
 }
