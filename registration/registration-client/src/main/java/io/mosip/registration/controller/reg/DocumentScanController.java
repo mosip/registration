@@ -271,11 +271,9 @@ public class DocumentScanController extends BaseController {
 		    exceptionPane.setDisable(false);
 
 		docScanVbox.setSpacing(5);
-		if (toggleBiometricException) {
-			prepareDocumentExceptionScanSection(listOfDocId);
-		} else {
-			prepareDocumentScanSection(listOfDocId);
-		}
+
+		prepareDocumentScanSection(listOfDocId);
+		
 		
 
 		/*
@@ -327,112 +325,107 @@ public class DocumentScanController extends BaseController {
 
 		for (UiSchemaDTO documentCategory : documentCategories) {
 
-			if (!documentCategory.getSubType().equalsIgnoreCase("POE")) {
-				
-				String docCategoryCode = documentCategory.getSubType();
+			String docCategoryCode = documentCategory.getSubType();
 
-				String docCategoryName = documentCategory.getDescription();
+			String docCategoryName = documentCategory.getDescription();
 
-				List<DocumentCategoryDto> documentCategoryDtos = null;
+			List<DocumentCategoryDto> documentCategoryDtos = null;
 
-				try {
-					documentCategoryDtos = masterSyncService.getDocumentCategories(docCategoryCode,
-							ApplicationContext.applicationLanguage());
-				} catch (RuntimeException runtimeException) {
-					LOGGER.error("REGISTRATION - LOADING LIST OF DOCUMENTS FAILED ", APPLICATION_NAME,
-							RegistrationConstants.APPLICATION_ID,
-							runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
-				} catch (RegBaseCheckedException checkedException) {
-					LOGGER.error("REGISTRATION - LOADING LIST OF DOCUMENTS FAILED ", APPLICATION_NAME,
-							RegistrationConstants.APPLICATION_ID,
-							checkedException.getMessage() + ExceptionUtils.getStackTrace(checkedException));
-				}
-
-				if (documentCategoryDtos != null && !documentCategoryDtos.isEmpty()) {
-					HBox hBox = new HBox();
-
-					ComboBox<DocumentCategoryDto> comboBox = new ComboBox<>();
-					comboBox.setPrefWidth(docScanVbox.getWidth() / 2);
-					comboBox.setId(documentCategory.getId());
-
-					comboBox.valueProperty().addListener((v, oldValue, newValue) -> {
-						validateDocumentsPane();
-					});
-					ImageView indicatorImage = new ImageView(
-							new Image(this.getClass().getResourceAsStream(RegistrationConstants.CLOSE_IMAGE_PATH), 15,
-									15, true, true));
-					comboBox.setPromptText(docCategoryName);
-					comboBox.getStyleClass().add(RegistrationConstants.DOC_COMBO_BOX);
-					Label documentLabel = new Label(docCategoryName);
-					documentLabel.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
-					documentLabel.setPrefWidth(docScanVbox.getWidth() / 2);
-					documentLabel.setVisible(false);
-					comboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
-						documentLabel.setVisible(true);
-					});
-					StringConverter<T> uiRenderForComboBox = FXUtils.getInstance().getStringConverterForComboBox();
-					comboBox.setConverter((StringConverter<DocumentCategoryDto>) uiRenderForComboBox);
-					if (applicationContext.isPrimaryLanguageRightToLeft()) {
-						comboBox.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
-						documentLabel.setAlignment(Pos.CENTER_RIGHT);
-					}
-
-					/*
-					 * adding all the dynamically created combo boxes in a map inorder to show it in
-					 * the edit page
-					 */
-					documentComboBoxes.put(documentCategory.getId(), comboBox);
-
-					VBox documentVBox = new VBox();
-					documentVBox.getStyleClass().add(RegistrationConstants.SCAN_VBOX);
-					documentVBox.setId(docCategoryCode);
-
-					documentVBoxes.put(documentCategory.getId(), documentVBox);
-
-					Button scanButton = new Button();
-					scanButton.setText(RegistrationUIConstants.SCAN);
-					scanButton.setId(docCategoryCode);
-					scanButton.getStyleClass().add(RegistrationConstants.DOCUMENT_CONTENT_BUTTON);
-					scanButton.setGraphic(new ImageView(new Image(
-							this.getClass().getResourceAsStream(RegistrationConstants.SCAN), 12, 12, true, true)));
-					scanButton.setOnAction(new EventHandler<ActionEvent>() {
-
-						@Override
-						public void handle(ActionEvent event) {
-
-							auditFactory.audit(
-									AuditEvent.valueOf(
-											String.format("REG_DOC_%S_SCAN", ((Button) event.getSource()).getId())),
-									Components.REG_DOCUMENTS, SessionContext.userId(),
-									AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
-
-							Button clickedBtn = (Button) event.getSource();
-							clickedBtn.getId();
-							scanDocument(comboBox, documentVBox, documentCategory.getSubType(),
-									RegistrationUIConstants.PLEASE_SELECT + RegistrationConstants.SPACE
-											+ documentCategory.getSubType() + " " + RegistrationUIConstants.DOCUMENT);
-						}
-					});
-					scanButton.hoverProperty().addListener((ov, oldValue, newValue) -> {
-						if (newValue) {
-							scanButton.setGraphic(new ImageView(
-									new Image(this.getClass().getResourceAsStream(RegistrationConstants.SCAN_FOCUSED),
-											12, 12, true, true)));
-						} else {
-							scanButton.setGraphic(new ImageView(
-									new Image(this.getClass().getResourceAsStream(RegistrationConstants.SCAN), 12, 12,
-											true, true)));
-						}
-					});
-					hBox.getChildren().addAll(new VBox(new Label(), indicatorImage), comboBox, documentVBox,
-							scanButton);
-					docScanVbox.getChildren().addAll(new HBox(new Label("       "), documentLabel), hBox);
-					hBox.setId(documentCategory.getSubType());
-					documentLabel.setId(documentCategory.getSubType() + RegistrationConstants.LABEL);
-					comboBox.getItems().addAll(documentCategoryDtos);
-				}
-
+			try {
+				documentCategoryDtos = masterSyncService.getDocumentCategories(docCategoryCode,
+						ApplicationContext.applicationLanguage());
+			} catch (RuntimeException runtimeException) {
+				LOGGER.error("REGISTRATION - LOADING LIST OF DOCUMENTS FAILED ", APPLICATION_NAME,
+						RegistrationConstants.APPLICATION_ID,
+						runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
+			} catch (RegBaseCheckedException checkedException) {
+				LOGGER.error("REGISTRATION - LOADING LIST OF DOCUMENTS FAILED ", APPLICATION_NAME,
+						RegistrationConstants.APPLICATION_ID,
+						checkedException.getMessage() + ExceptionUtils.getStackTrace(checkedException));
 			}
+
+			if (documentCategoryDtos != null && !documentCategoryDtos.isEmpty()) {
+				HBox hBox = new HBox();
+
+				ComboBox<DocumentCategoryDto> comboBox = new ComboBox<>();
+				comboBox.setPrefWidth(docScanVbox.getWidth() / 2);
+				comboBox.setId(documentCategory.getId());
+
+				comboBox.valueProperty().addListener((v, oldValue, newValue) -> {
+					validateDocumentsPane();
+				});
+				ImageView indicatorImage = new ImageView(
+						new Image(this.getClass().getResourceAsStream(RegistrationConstants.CLOSE_IMAGE_PATH), 15, 15,
+								true, true));
+				comboBox.setPromptText(docCategoryName);
+				comboBox.getStyleClass().add(RegistrationConstants.DOC_COMBO_BOX);
+				Label documentLabel = new Label(docCategoryName);
+				documentLabel.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
+				documentLabel.setPrefWidth(docScanVbox.getWidth() / 2);
+				documentLabel.setVisible(false);
+				comboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
+					documentLabel.setVisible(true);
+				});
+				StringConverter<T> uiRenderForComboBox = FXUtils.getInstance().getStringConverterForComboBox();
+				comboBox.setConverter((StringConverter<DocumentCategoryDto>) uiRenderForComboBox);
+				if (applicationContext.isPrimaryLanguageRightToLeft()) {
+					comboBox.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
+					documentLabel.setAlignment(Pos.CENTER_RIGHT);
+				}
+
+				/*
+				 * adding all the dynamically created combo boxes in a map inorder to show it in
+				 * the edit page
+				 */
+				documentComboBoxes.put(documentCategory.getId(), comboBox);
+
+				VBox documentVBox = new VBox();
+				documentVBox.getStyleClass().add(RegistrationConstants.SCAN_VBOX);
+				documentVBox.setId(documentCategory.getId());
+
+				documentVBoxes.put(documentCategory.getId(), documentVBox);
+
+				Button scanButton = new Button();
+				scanButton.setText(RegistrationUIConstants.SCAN);
+				scanButton.setId(docCategoryCode);
+				scanButton.getStyleClass().add(RegistrationConstants.DOCUMENT_CONTENT_BUTTON);
+				scanButton.setGraphic(new ImageView(new Image(
+						this.getClass().getResourceAsStream(RegistrationConstants.SCAN), 12, 12, true, true)));
+				scanButton.setOnAction(new EventHandler<ActionEvent>() {
+
+					@Override
+					public void handle(ActionEvent event) {
+
+						auditFactory.audit(
+								AuditEvent.valueOf(
+										String.format("REG_DOC_%S_SCAN", ((Button) event.getSource()).getId())),
+								Components.REG_DOCUMENTS, SessionContext.userId(),
+								AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+
+						Button clickedBtn = (Button) event.getSource();
+						clickedBtn.getId();
+						scanDocument(comboBox, documentVBox, documentCategory.getSubType(),
+								RegistrationUIConstants.PLEASE_SELECT + RegistrationConstants.SPACE
+										+ documentCategory.getSubType() + " " + RegistrationUIConstants.DOCUMENT);
+					}
+				});
+				scanButton.hoverProperty().addListener((ov, oldValue, newValue) -> {
+					if (newValue) {
+						scanButton.setGraphic(new ImageView(
+								new Image(this.getClass().getResourceAsStream(RegistrationConstants.SCAN_FOCUSED), 12,
+										12, true, true)));
+					} else {
+						scanButton.setGraphic(new ImageView(new Image(
+								this.getClass().getResourceAsStream(RegistrationConstants.SCAN), 12, 12, true, true)));
+					}
+				});
+				hBox.getChildren().addAll(new VBox(new Label(), indicatorImage), comboBox, documentVBox, scanButton);
+				docScanVbox.getChildren().addAll(new HBox(new Label("       "), documentLabel), hBox);
+				hBox.setId(documentCategory.getSubType());
+				documentLabel.setId(documentCategory.getSubType() + RegistrationConstants.LABEL);
+				comboBox.getItems().addAll(documentCategoryDtos);
+			}
+
 		}
 	}
 	
@@ -949,15 +942,14 @@ public class DocumentScanController extends BaseController {
 				RegistrationConstants.APPLICATION_ID, "Creating Image to delete the attached document");
 
 		imageView.setOnMouseClicked((event) -> {
-			auditFactory.audit(
+			/*auditFactory.audit(
 					AuditEvent.valueOf(String.format("REG_DOC_%S_DELETE",
 							((ImageView) event.getSource()).getParent().getParent().getId())),
 					Components.REG_DOCUMENTS, SessionContext.userId(),
-					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());*/
 
 			HBox hbox = (HBox) vboxElement.getParent();
 			ComboBox<String> comboBox = (ComboBox) hbox.getChildren().get(1);
-			comboBox.getSelectionModel().clearSelection();
 			(((VBox) hbox.getParent()).lookup(RegistrationConstants.HASH + hbox.getId() + RegistrationConstants.LABEL))
 					.setVisible(false);
 
@@ -967,9 +959,9 @@ public class DocumentScanController extends BaseController {
 			initializePreviewSection();
 
 			GridPane gridpane = (GridPane) ((ImageView) event.getSource()).getParent();
-			String key = ((VBox) gridpane.getParent()).getId();
+			String key = comboBox.getId();
 			getDocumentsMapFromSession().remove(key);
-
+			comboBox.getSelectionModel().clearSelection();
 			ObservableList<Node> nodes = ((HBox) vboxElement.getParent()).getChildren();
 			for (Node node : nodes) {
 				if (node instanceof ComboBox<?>) {
@@ -1014,10 +1006,10 @@ public class DocumentScanController extends BaseController {
 
 			GridPane pane = (GridPane) ((Hyperlink) actionEvent.getSource()).getParent();
 			String documentKey = ((VBox) pane.getParent()).getId();
-
-			auditFactory.audit(AuditEvent.valueOf(String.format("REG_DOC_%S_VIEW", documentKey)),
+			
+			/*auditFactory.audit(AuditEvent.valueOf(String.format("REG_DOC_%S_VIEW", documentKey)),
 					Components.REG_DOCUMENTS, SessionContext.userId(),
-					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());*/
 
 			DocumentDetailsDTO selectedDocumentToDisplay = getDocumentsMapFromSession().get(documentKey);
 
@@ -1137,15 +1129,23 @@ public class DocumentScanController extends BaseController {
 					clearAllValues();
 					fingerPrintCaptureController.duplicateCheckLbl.setText("");
 					if (newValue) {
-						docScanVbox.getChildren().clear();
+						docScanVbox.getChildren();
+						//docScanVbox.getChildren().clear();
 						bioExceptionToggleLabel1.setLayoutX(30);
 						toggleBiometricException = true;
 						updatePageFlow(RegistrationConstants.BIOMETRIC_EXCEPTION, false);
 						biometricExceptionController.fingerException();
 						biometricExceptionController.clearIrisException();
-						prepareDocumentExceptionScanSection(getDocId());
+						/*HBox hbox=new HBox();
+						Label documentLabel= new Label();
+						documentLabel.setText("Sreekar");*/
+						//hBox.getChildren().addAll(new VBox(new Label(), indicatorImage), comboBox, documentVBox, scanButton);
+						//docScanVbox.getChildren().add(documentLabel);
+						
+						//prepareDocumentExceptionScanSection(getDocId());
 					} else {
-						docScanVbox.getChildren().clear();
+						//docScanVbox.getChildren().get(1).get;
+						//docScanVbox.getChildren().clear();
 						bioExceptionToggleLabel1.setLayoutX(0);
 
 						toggleBiometricException = false;
@@ -1154,7 +1154,7 @@ public class DocumentScanController extends BaseController {
 						if ((boolean) SessionContext.map().get(RegistrationConstants.IS_Child)) {
 							updatePageFlow(RegistrationConstants.GUARDIAN_BIOMETRIC, true);
 						}
-						prepareDocumentScanSection(getDocId());
+						//prepareDocumentScanSection(getDocId());
 					}
 					SessionContext.userMap().put(RegistrationConstants.TOGGLE_BIO_METRIC_EXCEPTION,
 							toggleBiometricException);
