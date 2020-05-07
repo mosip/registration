@@ -466,7 +466,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		} else {
 			registrationController.showCurrentPage(RegistrationConstants.GUARDIAN_BIOMETRIC,
-					getPageDetails(RegistrationConstants.GUARDIAN_BIOMETRIC, RegistrationConstants.PREVIOUS));
+					getPageByAction(RegistrationConstants.GUARDIAN_BIOMETRIC, RegistrationConstants.PREVIOUS));
 		}
 	}
 
@@ -499,7 +499,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 			registrationController.showUINUpdateCurrentPage();
 		} else {
 			registrationController.showCurrentPage(RegistrationConstants.GUARDIAN_BIOMETRIC,
-					getPageDetails(RegistrationConstants.GUARDIAN_BIOMETRIC, RegistrationConstants.NEXT));
+					getPageByAction(RegistrationConstants.GUARDIAN_BIOMETRIC, RegistrationConstants.NEXT));
 			faceCaptureController.checkForException();
 		}
 	}
