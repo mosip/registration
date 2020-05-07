@@ -6,6 +6,8 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -13,6 +15,7 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Assertions;
+import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,21 +38,22 @@ import io.mosip.registration.processor.bio.dedupe.exception.ABISInternalError;
 import io.mosip.registration.processor.bio.dedupe.exception.UnableToServeRequestABISException;
 import io.mosip.registration.processor.bio.dedupe.exception.UnexceptedError;
 import io.mosip.registration.processor.bio.dedupe.service.impl.BioDedupeServiceImpl;
-import io.mosip.registration.processor.core.constant.PacketFiles;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.packet.dto.FieldValueArray;
+import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.packet.dto.Identity;
-import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisIdentifyResponseDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisInsertResponseDto;
 import io.mosip.registration.processor.core.packet.dto.abis.CandidateListDto;
 import io.mosip.registration.processor.core.packet.dto.abis.CandidatesDto;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.DemographicInfoDto;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
+import io.mosip.registration.processor.packet.utility.utils.IdSchemaUtils;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 
 /**
@@ -86,11 +90,6 @@ public class BioDedupeServiceImplTest {
 	/** The registration id. */
 	String registrationId = "1000";
 
-	/** The adapter. */
-	@Mock
-	PacketManager adapter;
-
-	private PacketMetaInfo packetMetaInfo;
 
 	/** The identity. */
 	Identity identity = new Identity();
@@ -105,14 +104,27 @@ public class BioDedupeServiceImplTest {
 	@Mock
 	private RegistrationStatusService registrationStatusService;
 
-	/**
-	 * Setup.
+	@Mock
+	private Utilities utility;
+
+	@Mock
+	private PacketReaderService packetReaderService;
+
+	@Mock
+	private IdSchemaUtils idSchemaUtils;
+
+	@Mock
+	LogDescription description;
+	private ClassLoader classLoader;
+	/*
+	 * 
+	 * /** Setup.
 	 * 
 	 * @throws Exception
 	 */
 	@Before
 	public void setup() throws Exception {
-
+		classLoader = getClass().getClassLoader();
 		Mockito.doNothing().when(packetInfoManager).saveAbisRef(any(), any(), any());
 
 		abisInsertResponseDto.setReturnValue(2);
@@ -148,22 +160,22 @@ public class BioDedupeServiceImplTest {
 		demoList.add(demo1);
 		Mockito.when(packetInfoManager.findDemoById(anyString())).thenReturn(demoList);
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(anyString())).thenReturn(true);
-		packetMetaInfo = new PacketMetaInfo();
-		List<FieldValueArray> fieldValueArrayList = new ArrayList<FieldValueArray>();
-		FieldValueArray introducerBiometric = new FieldValueArray();
-		introducerBiometric.setLabel(PacketFiles.APPLICANTBIOMETRICSEQUENCE.name());
-		List<String> introducerBiometricValues = new ArrayList<String>();
-		introducerBiometricValues.add("applicant_bio_CBEFF");
-		introducerBiometric.setValue(introducerBiometricValues);
-		fieldValueArrayList.add(introducerBiometric);
-		identity.setHashSequence(fieldValueArrayList);
-		packetMetaInfo.setIdentity(identity);
-		PowerMockito.mockStatic(JsonUtil.class);
-		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
-				.thenReturn(packetMetaInfo);
 
+		File file = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
+		InputStream inputStream = new FileInputStream(file);
+		String mappingJson = IOUtils.toString(inputStream);
+		JSONObject mappingJSONObject = JsonUtil.objectMapperReadValue(mappingJson, JSONObject.class);
+		Mockito.when(utility.getRegistrationProcessorIdentityJson())
+				.thenReturn(JsonUtil.getJSONObject(mappingJSONObject, MappingJsonConstants.IDENTITY));
 		fooLogger = (Logger) LoggerFactory.getLogger(BioDedupeServiceImpl.class);
 		listAppender = new ListAppender<>();
+		Mockito.when(idSchemaUtils.getSource((anyString()))).thenReturn("id");
+		File idJson = new File(classLoader.getResource("ID.json").getFile());
+		InputStream ip = new FileInputStream(idJson);
+		String idJsonString = IOUtils.toString(ip, "UTF-8");
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString()))
+				.thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class),
+						MappingJsonConstants.IDENTITY));
 
 	}
 
@@ -381,7 +393,7 @@ public class BioDedupeServiceImplTest {
 	@Test
 	public void testGetFile() throws Exception {
 		byte[] data = "1234567890".getBytes();
-		Mockito.when(adapter.getFile(anyString(), anyString())).thenReturn(inputStream);
+		Mockito.when(packetReaderService.getFile(anyString(), anyString(), anyString())).thenReturn(inputStream);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(data);
 
@@ -393,7 +405,7 @@ public class BioDedupeServiceImplTest {
 	public void getFileByAbisRefId() throws Exception {
 		// case1 : if regId is invalid(null or empty),
 		byte[] expected = "1234567890".getBytes();
-		Mockito.when(adapter.getFile(anyString(), anyString())).thenReturn(inputStream);
+		Mockito.when(packetReaderService.getFile(anyString(), anyString(), anyString())).thenReturn(inputStream);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(expected);
 
@@ -414,7 +426,7 @@ public class BioDedupeServiceImplTest {
 		listAppender.start();
 		fooLogger.addAppender(listAppender);
 		byte[] data = "1234567890".getBytes();
-		Mockito.when(adapter.getFile(anyString(), anyString())).thenReturn(inputStream);
+		Mockito.when(packetReaderService.getFile(anyString(), anyString(), anyString())).thenReturn(inputStream);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenThrow(new IOException());
 

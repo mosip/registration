@@ -10,7 +10,7 @@ import io.mosip.registration.processor.core.exception.PacketDecryptionFailureExc
  * 
  * @author Sowmya
  */
-public interface Decryptor {
+public interface PacketDecryptor {
 
 	/**
 	 * This Method provide the functionality to decrypt packet.

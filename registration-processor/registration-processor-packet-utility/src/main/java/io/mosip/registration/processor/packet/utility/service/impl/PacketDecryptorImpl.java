@@ -9,7 +9,6 @@ import java.time.format.DateTimeParseException;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -37,7 +36,7 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 import io.mosip.registration.processor.packet.utility.dto.CryptomanagerRequestDto;
 import io.mosip.registration.processor.packet.utility.dto.CryptomanagerResponseDto;
 import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureExceptionConstant;
-import io.mosip.registration.processor.packet.utility.service.Decryptor;
+import io.mosip.registration.processor.packet.utility.service.PacketDecryptor;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 
 /**
@@ -48,9 +47,8 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
  * @since 1.0.0
  */
 @Component
-@Qualifier("decrypter")
-public class DecryptorImpl implements Decryptor {
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(DecryptorImpl.class);
+public class PacketDecryptorImpl implements PacketDecryptor {
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(PacketDecryptorImpl.class);
 
 	@Value("${registration.processor.application.id}")
 	private String applicationId;
