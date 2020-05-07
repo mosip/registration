@@ -220,10 +220,10 @@ public class Validations extends BaseController {
 	 */
 	public boolean validateTextField(Pane parentPane, TextField node, String id, boolean isPreviousValid) {
 		if (node.getId().contains(RegistrationConstants.LOCAL_LANGUAGE)) {
-			return languageSpecificValidation(parentPane, node, id, localLabelBundle, localMessageBundle,
+			return languageSpecificValidation(parentPane, node, id, localMessageBundle,
 					localLanguageblackListedWords, isPreviousValid);
 		} else {
-			return languageSpecificValidation(parentPane, node, id, applicationLabelBundle, applicationMessageBundle,
+			return languageSpecificValidation(parentPane, node, id, applicationMessageBundle,
 					applicationLanguageblackListedWords, isPreviousValid);
 		}
 	}
@@ -241,7 +241,7 @@ public class Validations extends BaseController {
 	 *            the flag to indicate for displaying consolidated message
 	 * @return true, if successful
 	 */
-	private boolean languageSpecificValidation(Pane parentPane, TextField node, String id, ResourceBundle labelBundle,
+	private boolean languageSpecificValidation(Pane parentPane, TextField node, String id,
 			ResourceBundle messageBundle, List<String> blackListedWords, boolean isPreviousValid) {
 		boolean isInputValid = true;
 
@@ -269,7 +269,7 @@ public class Validations extends BaseController {
 					isInputValid = true;
 				} else if (isMandatory && (inputText == null || inputText.isEmpty()) && !isLostUIN) {
 					generateInvalidValueAlert(parentPane, id,
-							labelBundle.getString(label).concat(RegistrationConstants.SPACE)
+							getFromLabelMap(id).concat(RegistrationConstants.SPACE)
 									.concat(messageBundle.getString(RegistrationConstants.REG_LGN_001)),
 							showAlert);
 					if (isPreviousValid && !id.contains(RegistrationConstants.ON_TYPE)) {
@@ -282,12 +282,12 @@ public class Validations extends BaseController {
 				} else if (inputText.matches(regex)) {
 					isInputValid = validateBlackListedWords(parentPane, node, id, blackListedWords, showAlert,
 							String.format("%s %s %s", messageBundle.getString(RegistrationConstants.BLACKLISTED_1),
-									labelBundle.getString(label),
+									getFromLabelMap(id),
 									messageBundle.getString(RegistrationConstants.BLACKLISTED_2)),
 							messageBundle.getString(RegistrationConstants.BLACKLISTED_ARE),
 							messageBundle.getString(RegistrationConstants.BLACKLISTED_IS));
 				} else {
-					generateInvalidValueAlert(parentPane, id, labelBundle.getString(label) + " "
+					generateInvalidValueAlert(parentPane, id, getFromLabelMap(id) + " "
 							+ messageBundle.getString(RegistrationConstants.REG_DDC_004), showAlert);
 					if (isPreviousValid && !id.contains(RegistrationConstants.ON_TYPE)) {
 						Label nodeLabel = (Label) parentPane.lookup("#" + node.getId() + "Label");

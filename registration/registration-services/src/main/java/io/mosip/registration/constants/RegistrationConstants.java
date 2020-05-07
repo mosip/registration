@@ -272,6 +272,14 @@ public class RegistrationConstants {
 	public static final String SECONDARY_LANGUAGE = "mosip.secondary-language";
 	public static final String LANGUAGE_ENGLISH = "english";
 	public static final String LANGUAGE_ARABIC = "arabic";
+	
+	public static final String SIMPLE_TYPE = "simpleType";
+	public static final String NUMBER = "number";
+	public static final String STRING="string";
+	public static final String AGE_DATE="ageDate";
+	public static final String DROPDOWN="dropdown";
+	public static final String TEXTBOX="textbox";
+	public static final String RESIDENCE_STATUS="residenceStatus";
 
 	public static final String APPLICATION_LANGUAGE = "application_language";
 	public static final String REGISTRATION_LOCAL_LANGUAGE = "local_language";
@@ -915,6 +923,7 @@ public class RegistrationConstants {
 	public static final String IS_SOFTWARE_UPDATE_AVAILABLE = "mosip.registration.is_software_update_available";
 	public static final String PROVIDER_NAME = "mosip.registration.provider_name";
 	public static final String DISK_SPACE = "mosip.registration.disk_space_size";
+	
 
 	// Spring Batch-Jobs
 	public static final String JOB_TRIGGER_STARTED = "Trigger started";

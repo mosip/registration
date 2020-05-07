@@ -238,6 +238,16 @@ public class BaseController {
 	private List<UiSchemaDTO> uiSchemaDTOs;
 
 	private static Map<String, UiSchemaDTO> validationMap;
+	
+	private static HashMap<String, String> labelMap = new HashMap<>();
+	
+	public static String getFromLabelMap(String key) {
+		return labelMap.get(key);
+	}
+
+	public static void putIntoLabelMap(String key, String value) {
+		labelMap.put(key, value);
+	}
 
 	private static List<String> ALL_BIO_ATTRIBUTES = null;
 

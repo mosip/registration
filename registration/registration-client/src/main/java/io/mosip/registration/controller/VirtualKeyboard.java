@@ -97,7 +97,6 @@ public class VirtualKeyboard {
 		final Modifiers modifiers = new Modifiers();
 		KEY_LENGTHS.add(1);
 		KEY_LENGTHS.add(2);
-
 		String[][] unshifted = null;
 		try {
 			unshifted = new String[][] {

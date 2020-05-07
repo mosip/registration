@@ -303,6 +303,10 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 	public List<Location> getLocationDetails() {
 		return locationRepository.findAllByIsActiveTrue();
 	}
+	
+	public List<Location> getLocationDetails(String langCode) {
+		return locationRepository.findByIsActiveTrueAndLangCode(langCode);
+	}
 
 	/**
 	 * All the master data such as Location, gender,Registration center, Document types,category etc., 

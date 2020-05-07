@@ -136,7 +136,7 @@
 																					<children>
 																						<HBox alignment="BOTTOM_RIGHT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
 																							<children>
-																								<Label fx:id="languageLabelLocalLanguage" styleClass="demographicLangHeader" text="%language" />
+																								<Label fx:id="languageLabelLocalLanguage" prefHeight="52.0" prefWidth="313.0" styleClass="demographicLangHeader" text="%language" translateZ="20.0" />
 																							</children>
 																						</HBox>
 																					</children>

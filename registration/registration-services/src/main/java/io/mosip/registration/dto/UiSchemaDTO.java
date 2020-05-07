@@ -1,5 +1,6 @@
 package io.mosip.registration.dto;
 
+import java.util.HashMap;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -34,7 +35,7 @@ public class UiSchemaDTO {
 	private int minimum;
 	private int maximum;
 	private String description;
-	private String labelName;
+	private HashMap<String, String> label;
 	private String controlType;
 	private String fieldType;
 	private String format;
@@ -51,4 +52,7 @@ public class UiSchemaDTO {
 	
 	@JsonProperty("subType")
 	private String subType;
+	
+	private String contactType;
+
 }
