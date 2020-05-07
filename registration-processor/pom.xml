@@ -10,7 +10,7 @@
 
 	<groupId>io.mosip.registrationprocessor</groupId>
 	<artifactId>registration-processor</artifactId>
-	<version>1.0.9</version>
+	<version>1.0.10</version>
 	<packaging>pom</packaging>
 
 	<name>registration-processor</name>
@@ -92,7 +92,7 @@
 		<s3mock.version>0.2.4</s3mock.version>
 
 		<!-- Vert.x -->
-		<vertx.version>3.5.3</vertx.version>
+		<vertx.version>3.5.4</vertx.version>
 		<camel.vertx.version>2.23.0</camel.vertx.version>
 		<hazelcast.kubernetes.version>1.0.0</hazelcast.kubernetes.version>
 		<!-- json-simple -->
