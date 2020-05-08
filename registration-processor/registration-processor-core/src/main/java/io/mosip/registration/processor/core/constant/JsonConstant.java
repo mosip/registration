@@ -226,4 +226,6 @@ public class JsonConstant {
 	public static final String VID = "VID";
 	
 	public static final String CARDTYPE = "CARDTYPE";
+
+	public static final String ID = "id";
 }

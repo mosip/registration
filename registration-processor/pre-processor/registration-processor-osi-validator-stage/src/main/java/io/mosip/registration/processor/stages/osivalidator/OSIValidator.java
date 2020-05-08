@@ -32,14 +32,13 @@ import io.mosip.registration.processor.core.exception.AuthSystemException;
 import io.mosip.registration.processor.core.exception.BioTypeException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.ParentOnHoldException;
-import io.mosip.registration.processor.core.exception.util.PacketStructure;
+import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.RegOsiDto;
 import io.mosip.registration.processor.core.packet.dto.ServerError;
 import io.mosip.registration.processor.core.packet.dto.masterdata.UserResponseDto;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
@@ -50,6 +49,8 @@ import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
+import io.mosip.registration.processor.packet.utility.utils.IdSchemaUtils;
 import io.mosip.registration.processor.stages.osivalidator.utils.OSIUtils;
 import io.mosip.registration.processor.stages.osivalidator.utils.StatusMessage;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -83,9 +84,8 @@ public class OSIValidator {
 	@Autowired
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
-	/** The adapter. */
 	@Autowired
-	private PacketManager adapter;
+	private PacketReaderService packetReaderService;
 
 	/** The rest client service. */
 	@Autowired
@@ -110,6 +110,12 @@ public class OSIValidator {
 	@Value("${registration.processor.validate.introducer}")
 	private boolean introducerValidation;
 
+	@Value("${registration.processor.officer.biometric.source}")
+	private String officerBiometricFileSource;
+
+	@Value("${registration.processor.supervisor.biometric.source}")
+	private String supervisorBiometricFileSource;
+
 	@Autowired
 	private Utilities utility;
 
@@ -132,16 +138,18 @@ public class OSIValidator {
 
 	private static final String INDIVIDUAL_TYPE_USERID = "USERID";
 
+	@Autowired
+	private IdSchemaUtils idSchemaUtils;
+
 	/**
 	 * Checks if is valid OSI.
 	 *
-	 * @param registrationId
-	 *            the registration id
+	 * @param registrationId the registration id
 	 * @return true, if is valid OSI
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
+	 * @throws IOException                           Signals that an I/O exception
+	 *                                               has occurred.
+	 * @throws ApisResourceAccessException           the apis resource access
+	 *                                               exception
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
 	 * @throws NoSuchAlgorithmException
@@ -149,19 +157,21 @@ public class OSIValidator {
 	 * @throws BioTypeException
 	 * @throws BiometricException
 	 * @throws NumberFormatException
-	 * @throws io.mosip.kernel.core.exception.IOException
+	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
-	 * @throws ParentOnHoldException 
-	 * @throws AuthSystemException 
+	 * @throws ParentOnHoldException
+	 * @throws AuthSystemException
+	 * @throws RegistrationProcessorCheckedException
 	 */
 	public boolean isValidOSI(String registrationId, InternalRegistrationStatusDto registrationStatusDto)
 			throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException,
 			ParserConfigurationException, SAXException, NumberFormatException, BiometricException, BioTypeException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ParentOnHoldException, AuthSystemException {
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ParentOnHoldException,
+			AuthSystemException, RegistrationProcessorCheckedException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "OSIValidator::isValidOSI()::entry");
 		boolean isValidOsi = false;
-		JSONObject demographicIdentity = utility.getDemographicIdentityJSONObject(registrationId);
+
 		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
 		Identity identity = osiUtils.getIdentity(registrationId);
 		/** Getting data from packet MetadataInfo */
@@ -199,7 +209,7 @@ public class OSIValidator {
 			}
 			if (((isValidOperator(regOsi, registrationId, registrationStatusDto))
 					&& (isValidSupervisor(regOsi, registrationId, registrationStatusDto)))
-					&& (isValidIntroducer(registrationId, demographicIdentity, regProcessorIdentityJson,
+					&& (isValidIntroducer(registrationId, regProcessorIdentityJson,
 							registrationStatusDto)))
 				isValidOsi = true;
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -318,7 +328,9 @@ public class OSIValidator {
 							StatusMessage.PASSWORD_OTP_FAILURE);
 				}
 			} else {
-				InputStream biometricStream = adapter.getFile(registrationId, officerBiometricFileName.toUpperCase());
+                
+				InputStream biometricStream = packetReaderService.getFile(registrationId,
+						officerBiometricFileName.toUpperCase(), officerBiometricFileSource);
 				byte[] officerbiometric = IOUtils.toByteArray(biometricStream);
 				isValid = validateUserBiometric(registrationId, officerId, officerbiometric, INDIVIDUAL_TYPE_USERID,
 						registrationStatusDto);
@@ -400,8 +412,8 @@ public class OSIValidator {
 							StatusMessage.PASSWORD_OTP_FAILURE);
 				}
 			} else {
-				InputStream biometricStream = adapter.getFile(registrationId,
-						supervisorBiometricFileName.toUpperCase());
+				InputStream biometricStream = packetReaderService.getFile(registrationId,
+						supervisorBiometricFileName.toUpperCase(), supervisorBiometricFileSource);
 				byte[] supervisorbiometric = IOUtils.toByteArray(biometricStream);
 				isValid = validateUserBiometric(registrationId, supervisorId, supervisorbiometric,
 						INDIVIDUAL_TYPE_USERID, registrationStatusDto);
@@ -419,32 +431,32 @@ public class OSIValidator {
 	/**
 	 * Checks if is valid introducer.
 	 *
-	 * @param regOsi
-	 *            the reg osi
-	 * @param registrationId
-	 *            the registration id
+	 * @param regOsi                the reg osi
+	 * @param registrationId        the registration id
 	 * @param registrationStatusDto
 	 * @return true, if is valid introducer
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
+	 * @throws IOException                           Signals that an I/O exception
+	 *                                               has occurred.
+	 * @throws ApisResourceAccessException           the apis resource access
+	 *                                               exception
 	 * @throws SAXException
 	 * @throws ParserConfigurationException
 	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeySpecException
 	 * @throws BioTypeException
 	 * @throws BiometricException
-	 * @throws io.mosip.kernel.core.exception.IOException
+	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
-	 * @throws ParentOnHoldException 
-	 * @throws AuthSystemException 
+	 * @throws ParentOnHoldException
+	 * @throws AuthSystemException
+	 * @throws RegistrationProcessorCheckedException
 	 */
-	private boolean isValidIntroducer(String registrationId, JSONObject demographicIdentity,
+	private boolean isValidIntroducer(String registrationId,
 			JSONObject regProcessorIdentityJson, InternalRegistrationStatusDto registrationStatusDto)
 			throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException,
 			ParserConfigurationException, SAXException, BiometricException, BioTypeException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ParentOnHoldException, AuthSystemException {
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ParentOnHoldException,
+			AuthSystemException, RegistrationProcessorCheckedException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "OSIValidator::isValidIntroducer()::entry");
 
@@ -459,9 +471,9 @@ public class OSIValidator {
 				String introducerRidLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PARENT_OR_GUARDIAN_RID), MappingJsonConstants.VALUE);
 				String introducerBiometricsLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PARENT_OR_GUARDIAN_BIO), MappingJsonConstants.VALUE);
 
-				Number introducerUinNumber = JsonUtil.getJSONValue(demographicIdentity, introducerUinLabel);
-				Number introducerRidNumber = JsonUtil.getJSONValue(demographicIdentity, introducerRidLabel);
-				String introducerBiometricsFileName = JsonUtil.getJSONValue(JsonUtil.getJSONObject(demographicIdentity, introducerBiometricsLabel), MappingJsonConstants.VALUE);
+				Number introducerUinNumber = JsonUtil.getJSONValue(utility.getDemographicIdentityJSONObject(registrationId, introducerUinLabel), introducerUinLabel);
+				Number introducerRidNumber = JsonUtil.getJSONValue(utility.getDemographicIdentityJSONObject(registrationId, introducerRidLabel), introducerRidLabel);
+				String introducerBiometricsFileName = JsonUtil.getJSONValue(JsonUtil.getJSONObject(utility.getDemographicIdentityJSONObject(registrationId, introducerBiometricsLabel), introducerBiometricsLabel), MappingJsonConstants.VALUE);
 				String introducerUIN = numberToString(introducerUinNumber);
 				String introducerRID = numberToString(introducerRidNumber);
 				if (isValidIntroducer(introducerUIN, introducerRID)) {
@@ -497,7 +509,7 @@ public class OSIValidator {
 				}
 				if (introducerUIN != null) {
 					return validateIntroducerBiometric(registrationId, registrationStatusDto,
-							introducerBiometricsFileName, introducerUIN);
+							introducerBiometricsFileName, introducerUIN, introducerBiometricsLabel);
 				} else {
 					throw new ParentOnHoldException(StatusUtil.PARENT_UIN_NOT_FOUND.getCode(),StatusUtil.PARENT_UIN_NOT_FOUND.getMessage());
 				}
@@ -512,13 +524,15 @@ public class OSIValidator {
 
 	private boolean validateIntroducerBiometric(String registrationId,
 			InternalRegistrationStatusDto registrationStatusDto, String introducerBiometricsFileName,
-			String introducerUIN) throws IOException, PacketDecryptionFailureException, ApisResourceAccessException,
+			String introducerUIN,String introducerBiometricsLabel) throws IOException, PacketDecryptionFailureException, ApisResourceAccessException,
 			io.mosip.kernel.core.exception.IOException, InvalidKeySpecException, NoSuchAlgorithmException,
 			ParserConfigurationException, SAXException, BiometricException, BioTypeException, AuthSystemException,
-			ParentOnHoldException {
+			ParentOnHoldException, RegistrationProcessorCheckedException {
 		if (introducerBiometricsFileName != null && (!introducerBiometricsFileName.trim().isEmpty())) {
-			InputStream packetMetaInfoStream = adapter.getFile(registrationId,
-					PacketStructure.BIOMETRIC + introducerBiometricsFileName.toUpperCase());
+			String source = idSchemaUtils.getSource(introducerBiometricsLabel);
+			InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId,
+					introducerBiometricsFileName.toUpperCase(), source);
+			
 			byte[] introducerbiometric = IOUtils.toByteArray(packetMetaInfoStream);
 			return validateUserBiometric(registrationId, introducerUIN, introducerbiometric,
 					INDIVIDUAL_TYPE_UIN, registrationStatusDto);
@@ -736,4 +750,5 @@ public class OSIValidator {
 		return isValid;
 	}
 
+	
 }

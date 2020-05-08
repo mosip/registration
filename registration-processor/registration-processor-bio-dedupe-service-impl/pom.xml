@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>registration-processor-bio-dedupe-service-impl</artifactId>
-  <version>1.0.9</version>
+  <version>1.0.10-SNAPSHOT</version>
   <name>registration-processor-bio-dedupe-service-impl</name>
 
   <properties>
@@ -77,5 +77,10 @@
 			       <artifactId>kernel-fsadapter-hdfs</artifactId>
 			       <version>${kernel.fsadapter.hdfs.version}</version>
 		    </dependency>
+		    <dependency>
+			<groupId>io.mosip.registrationprocessor</groupId>
+			<artifactId>registration-processor-packet-utility</artifactId>
+			<version>${registration.processor.packet.utility.version}</version>
+		</dependency>
   </dependencies>
 </project>

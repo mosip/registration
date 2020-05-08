@@ -16,7 +16,8 @@ import io.mosip.registration.processor.status.config.RegistrationStatusBeanConfi
  */
 @SpringBootApplication
 @ComponentScan(basePackages = {"io.mosip.registration.processor.*","io.mosip.kernel.auth.*" },
- excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = {PacketManagerConfig.class,RestConfigBean.class,PacketManagerConfig.class,RegistrationStatusBeanConfig.class,PacketStorageBeanConfig.class}))
+		excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = { RestConfigBean.class,
+				PacketManagerConfig.class, RegistrationStatusBeanConfig.class, PacketStorageBeanConfig.class }))
 
 public class BioDedupeApiApp {
 

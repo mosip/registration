@@ -13,11 +13,7 @@ import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
 import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
-import io.mosip.registration.processor.packet.manager.exception.FileNotFoundInDestinationException;
-import io.mosip.registration.processor.packet.manager.exception.PacketDecryptionFailureExceptionConstant;
-import io.mosip.registration.processor.packet.manager.utils.ZipUtils;
 
 /**
  * File System Manager implementation.
@@ -32,8 +28,6 @@ public class FileSystemManagerImpl implements PacketManager {
 	@Autowired
 	private FileSystemAdapter fileSystemAdapter;
 
-	@Autowired
-	private Decryptor decryptor;
 
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(FileSystemManagerImpl.class);
 
@@ -49,12 +43,18 @@ public class FileSystemManagerImpl implements PacketManager {
 	@Override
 	public boolean checkFileExistence(String id, String fileName)
 			throws PacketDecryptionFailureException, ApisResourceAccessException, IOException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
-				"HdfsFileSystemManagerImpl::checkFileExistence()::entry");
-		InputStream decryptedData = getFile(id);
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
-				"HdfsFileSystemManagerImpl::checkFileExistence()::extractZip");
-		return ZipUtils.unzipAndCheckIsFileExist(decryptedData, fileName);
+		// To do use registration processor packetUtility
+		/*
+		 * regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+		 * LoggerFileConstant.REGISTRATIONID.toString(), id,
+		 * "HdfsFileSystemManagerImpl::checkFileExistence()::entry"); InputStream
+		 * decryptedData = getFile(id);
+		 * regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+		 * LoggerFileConstant.REGISTRATIONID.toString(), id,
+		 * "HdfsFileSystemManagerImpl::checkFileExistence()::extractZip"); return
+		 * ZipUtils.unzipAndCheckIsFileExist(decryptedData, fileName);
+		 */
+		return false;
 	}
 
 	/*
@@ -82,12 +82,17 @@ public class FileSystemManagerImpl implements PacketManager {
 	@Override
 	public InputStream getFile(String id, String fileName)
 			throws PacketDecryptionFailureException, ApisResourceAccessException, IOException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
-				"HdfsFileSystemManagerImpl::getFile()::entry");
-		InputStream decryptedData = getFile(id);
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
-				"HdfsFileSystemManagerImpl::getFile()::extractZip");
-		return ZipUtils.unzipAndGetFile(decryptedData, fileName);
+		// To do use registration processor packetUtility
+		/*
+		 * regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+		 * LoggerFileConstant.REGISTRATIONID.toString(), id,
+		 * "HdfsFileSystemManagerImpl::getFile()::entry"); InputStream decryptedData =
+		 * getFile(id); regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+		 * LoggerFileConstant.REGISTRATIONID.toString(), id,
+		 * "HdfsFileSystemManagerImpl::getFile()::extractZip"); return
+		 * ZipUtils.unzipAndGetFile(decryptedData, fileName);
+		 */
+		return null;
 	}
 
 	/*
@@ -132,20 +137,21 @@ public class FileSystemManagerImpl implements PacketManager {
 			throws PacketDecryptionFailureException, ApisResourceAccessException, IOException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
 				"HdfsFileSystemManagerImpl::fileSystemAdapter.getPacket()");
-		InputStream data = fileSystemAdapter.getPacket(id);
-		if (data == null) {
-			throw new FileNotFoundInDestinationException(PACKET_NOTAVAILABLE_ERROR_DESC + id);
-		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
-				"HdfsFileSystemManagerImpl::getFile(regid)::decryptor");
-		InputStream decryptedData = decryptor.decrypt(data, id);
-		if (decryptedData == null) {
-			throw new PacketDecryptionFailureException(
-					PacketDecryptionFailureExceptionConstant.MOSIP_PACKET_DECRYPTION_FAILURE_ERROR_CODE.getErrorCode(),
-					PacketDecryptionFailureExceptionConstant.MOSIP_PACKET_DECRYPTION_FAILURE_ERROR_CODE
-							.getErrorMessage());
-		}
-		return decryptedData;
+		// To do use registration processor packetUtility
+		/*
+		 * InputStream data = fileSystemAdapter.getPacket(id); if (data == null) { throw
+		 * new FileNotFoundInDestinationException(PACKET_NOTAVAILABLE_ERROR_DESC + id);
+		 * } regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+		 * LoggerFileConstant.REGISTRATIONID.toString(), id,
+		 * "HdfsFileSystemManagerImpl::getFile(regid)::decryptor"); InputStream
+		 * decryptedData = null;// decryptor.decrypt(data, id); if (decryptedData ==
+		 * null) { throw new PacketDecryptionFailureException(
+		 * PacketDecryptionFailureExceptionConstant.
+		 * MOSIP_PACKET_DECRYPTION_FAILURE_ERROR_CODE.getErrorCode(),
+		 * PacketDecryptionFailureExceptionConstant.
+		 * MOSIP_PACKET_DECRYPTION_FAILURE_ERROR_CODE .getErrorMessage()); }
+		 */
+		return null;
 	}
 
 	/* (non-Javadoc)
