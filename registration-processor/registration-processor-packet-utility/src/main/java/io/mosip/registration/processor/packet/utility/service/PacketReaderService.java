@@ -3,8 +3,9 @@ package io.mosip.registration.processor.packet.utility.service;
 import java.io.IOException;
 import java.io.InputStream;
 
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
+import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
+
+
 
 /**
  * The Interface PacketReaderService.
@@ -27,7 +28,7 @@ public interface PacketReaderService {
 	 *                                          occurred.
 	 */
 	public boolean checkFileExistence(String id, String fileName, String source)
-			throws PacketDecryptionFailureException, ApisResourceAccessException, IOException;
+			throws PacketDecryptionFailureException, IOException;
 
 	/**
 	 * Gets the file.
@@ -45,5 +46,5 @@ public interface PacketReaderService {
 	 * @throws ApisResourceAccessException      the apis resource access exception
 	 */
 	public InputStream getFile(String id, String fileName, String source) throws IOException,
-			PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException;
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException;
 }

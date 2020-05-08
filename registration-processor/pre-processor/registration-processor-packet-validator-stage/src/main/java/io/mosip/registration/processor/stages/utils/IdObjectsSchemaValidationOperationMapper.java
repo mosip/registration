@@ -37,7 +37,8 @@ public class IdObjectsSchemaValidationOperationMapper {
 	
 	public IdObjectValidatorSupportedOperations getOperation(String registrationId)
 			throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
+			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"IdObjectsSchemaValidationOperationMapper::getOperation()::entry");
 		SyncRegistrationEntity regEntity=syncRegistrationService.findByRegistrationId(registrationId);

@@ -916,7 +916,8 @@ public class PacketValidateProcessorTest {
 	public void testBaseUnCheckedExceptions()
 			throws IdObjectValidationFailedException, IdObjectIOException, PacketDecryptionFailureException,
 			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException,
-			RegistrationProcessorCheckedException {
+			RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
 		Mockito.when(utility.getUIn(any())).thenReturn(null);
 

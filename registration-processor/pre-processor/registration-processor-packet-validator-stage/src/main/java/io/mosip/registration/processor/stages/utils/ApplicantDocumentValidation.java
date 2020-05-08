@@ -100,6 +100,7 @@ public class ApplicantDocumentValidation {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
+	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
 	 * @throws ParseException                        the parse exception
 	 * @throws ParseException                        the parse exception
 	 * @throws SecurityException                     the security exception
@@ -107,7 +108,8 @@ public class ApplicantDocumentValidation {
 	 */
 	public boolean validateDocument(String registrationId, String jsonString)
 			throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
+			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 
 		boolean isApplicantDocumentVerified = false;
 		String applicantType = null;

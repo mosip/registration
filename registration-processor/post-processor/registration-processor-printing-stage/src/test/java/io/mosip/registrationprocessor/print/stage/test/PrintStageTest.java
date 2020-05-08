@@ -665,7 +665,8 @@ public class PrintStageTest {
 
 	@Test
 	public void testPrintStageSuccessForRes_Reprint() throws PacketDecryptionFailureException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException {
+			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		FieldValue fieldValue = new FieldValue();
 		FieldValue fieldValue1 = new FieldValue();
 		fieldValue1.setLabel("vid");
@@ -692,7 +693,8 @@ public class PrintStageTest {
 
 	@Test
 	public void testPrintStageSuccessForRes_ReprintUIN() throws PacketDecryptionFailureException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException {
+			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		FieldValue fieldValue = new FieldValue();
 		FieldValue fieldValue1 = new FieldValue();
 		fieldValue1.setLabel("vid");

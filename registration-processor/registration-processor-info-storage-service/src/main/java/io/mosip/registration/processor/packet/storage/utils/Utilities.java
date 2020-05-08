@@ -236,9 +236,10 @@ public class Utilities {
 	 * @throws PacketDecryptionFailureException
 	 *             the packet decryption failure exception
 	 * @throws RegistrationProcessorCheckedException 
+	 * @throws io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException 
 	 */
 	public int getApplicantAge(String registrationId) throws IOException, ApisResourceAccessException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "Utilities::getApplicantAge()::entry");
 
@@ -466,9 +467,10 @@ public class Utilities {
 	 * @throws ApisResourceAccessException
 	 *             the apis resource access exception
 	 * @throws RegistrationProcessorCheckedException 
+	 * @throws io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException 
 	 */
 	public Long getUIn(String registrationId) throws IOException, PacketDecryptionFailureException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
+			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getUIn()::entry");
 		Number number;
@@ -604,9 +606,10 @@ public class Utilities {
 	 *             Signals that an I/O exception has occurred.
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
+	 * @throws io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException 
 	 */
 	public PacketMetaInfo getPacketMetaInfo(String registrationId) throws PacketDecryptionFailureException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException {
+			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getPacketMetaInfo():: entry");
 		InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId, PacketFiles.PACKET_META_INFO.name(),JsonConstant.ID);
@@ -630,9 +633,10 @@ public class Utilities {
 	 * @throws ApisResourceAccessException
 	 *             the apis resource access exception
 	 * @throws RegistrationProcessorCheckedException 
+	 * @throws io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException 
 	 */
 	public List<Documents> getAllDocumentsByRegId(String regId) throws IOException, PacketDecryptionFailureException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
+			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				regId, "Utilities::getAllDocumentsByRegId():: entry");
 
@@ -697,10 +701,11 @@ public class Utilities {
 	 * @throws ApisResourceAccessException
 	 *             the apis resource access exception
 	 * @throws RegistrationProcessorCheckedException 
+	 * @throws io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException 
 	 */
 	private Documents getIdDocumnet(String registrationId, String folderPath, JSONObject idDocObj, String idDocLabel)
 			throws IOException, PacketDecryptionFailureException, ApisResourceAccessException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
+			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getIdDocumnet():: entry");
      
@@ -921,8 +926,9 @@ public class Utilities {
 	 *             the packet decryption failure exception
 	 * @throws ApisResourceAccessException
 	 *             the apis resource access exception
+	 * @throws io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException 
 	 */
-	public JSONObject getDemographicIdentityJSONObject(String registrationId,String fieldLabel) throws RegistrationProcessorCheckedException, PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException  {
+	public JSONObject getDemographicIdentityJSONObject(String registrationId,String fieldLabel) throws RegistrationProcessorCheckedException, PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException  {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getDemographicIdentityJSONObject()::entry");
 		String source = idSchemaUtils.getSource(fieldLabel);

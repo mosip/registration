@@ -311,7 +311,8 @@ public class BiometricAuthenticationStageTest {
 
 	@Test
 	public void childPacketTest() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
+			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 
 		Mockito.when(utility.getApplicantAge(any())).thenReturn(2);
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
@@ -348,7 +349,8 @@ public class BiometricAuthenticationStageTest {
 
 	@Test
 	public void testIOException() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
+			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 
 		Mockito.when(utility.getApplicantAge(any())).thenThrow(new IOException("IOException"));
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
@@ -358,7 +360,8 @@ public class BiometricAuthenticationStageTest {
 	@Test
 	public void testApisResourceAccessException() throws ApisResourceAccessException, IOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			RegistrationProcessorCheckedException {
+			RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 
 		Mockito.when(utility.getApplicantAge(any()))
 				.thenThrow(new ApisResourceAccessException("ApisResourceAccessException"));
@@ -368,7 +371,8 @@ public class BiometricAuthenticationStageTest {
 
 	@Test
 	public void testException() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException {
+			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 
 		Mockito.when(utility.getApplicantAge(any()))
 				.thenThrow(new PacketDecryptionFailureException("testCode", "test message"));
@@ -392,7 +396,8 @@ public class BiometricAuthenticationStageTest {
 	@Test
 	public void resupdatePacketTest() throws ApisResourceAccessException, InvalidKeySpecException,
 			NoSuchAlgorithmException, BiometricException, BioTypeException, IOException, ParserConfigurationException,
-			SAXException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException {
+			SAXException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		FieldValue fieldValue = new FieldValue();
 		FieldValue fieldValue1 = new FieldValue();
 		fieldValue1.setLabel("authenticationBiometricFileName");
@@ -418,7 +423,8 @@ public class BiometricAuthenticationStageTest {
 	@Test
 	public void testNewPacket() throws IOException, PacketDecryptionFailureException, ApisResourceAccessException,
 			io.mosip.kernel.core.exception.IOException, InvalidKeySpecException, NoSuchAlgorithmException,
-			BiometricException, BioTypeException, ParserConfigurationException, SAXException {
+			BiometricException, BioTypeException, ParserConfigurationException, SAXException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		FieldValue fieldValue = new FieldValue();
 		FieldValue fieldValue1 = new FieldValue();
 		fieldValue1.setLabel("authenticationBiometricFileName");

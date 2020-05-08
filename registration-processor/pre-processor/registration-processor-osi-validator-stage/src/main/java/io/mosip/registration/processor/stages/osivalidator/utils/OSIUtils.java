@@ -61,7 +61,9 @@ public class OSIUtils {
 
 	}
 	
-	public Identity getIdentity(String registrationId) throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException {
+	public Identity getIdentity(String registrationId)
+			throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId,
 				PacketFiles.META_INFO.name(), JsonConstant.ID);
 		PacketMetaInfo packetMetaInfo = (PacketMetaInfo) JsonUtil.inputStreamtoJavaObject(packetMetaInfoStream,PacketMetaInfo.class);

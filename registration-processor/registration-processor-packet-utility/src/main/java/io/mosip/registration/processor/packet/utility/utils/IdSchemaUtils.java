@@ -11,11 +11,6 @@ import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
 
-
-import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
-import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.util.JsonUtil;
-
 import io.mosip.registration.processor.packet.utility.constants.IDschemaConstants;
 import lombok.Data;
 
@@ -45,9 +40,9 @@ public class IdSchemaUtils {
 	 *
 	 * @param id the id
 	 * @return the source
-	 * @throws RegistrationProcessorCheckedException the registration processor checked exception
+	 * @throws IOException 
 	 */
-	public String getSource(String id) throws RegistrationProcessorCheckedException {
+	public String getSource(String id) throws IOException{
 		String fieldCategory=null;
 		String idSchema =IdSchemaUtils.getJson(configServerFileStorageURL, idSchemaJson);
 
@@ -67,8 +62,7 @@ public class IdSchemaUtils {
 			}
 		}
 		 catch (IOException e) {
-			 throw new RegistrationProcessorCheckedException(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
-						PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), e);
+			 throw e;
 		}
 
 
