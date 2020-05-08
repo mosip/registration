@@ -110,6 +110,7 @@
 		<module>registration-services</module>
 		<module>registration-client</module>
 		<module>registration-libs</module>
+		<module>registration-packetmanager</module>
 	</modules>
 
 	<dependencyManagement>
