@@ -8,7 +8,7 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
+import io.mosip.registration.processor.packet.manager.utils.ZipUtils;
 import org.apache.commons.io.IOUtils;
 import org.h2.store.fs.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,9 +114,6 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	/** The virus scanner service. */
 	@Autowired
 	private VirusScanner<Boolean, InputStream> virusScannerService;
-
-	@Autowired
-	private PacketReaderService packetReaderService;
 
 	/*
 	 * (non-Javadoc)
@@ -317,7 +314,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 				String[] sources = packetSources.split(",");
 				for (String source : sources) {
 					ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(inputStream);
-					InputStream encryptedSourcePacket = packetReaderService.getEncryptedSourcePacket(registrationId, byteArrayInputStream, source);
+					InputStream encryptedSourcePacket = ZipUtils.unzipAndGetFile(byteArrayInputStream, registrationId + "_" + source);
 					isInputFileClean = virusScannerService.scanFile(encryptedSourcePacket);
 					if (!isInputFileClean)
 						break;

@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
+import io.mosip.registration.processor.packet.manager.utils.ZipUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -81,7 +81,7 @@ import io.mosip.registration.processor.status.service.SyncRegistrationService;
 
 @RefreshScope
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ IOUtils.class, HMACUtils.class, org.h2.store.fs.FileUtils.class })
+@PrepareForTest({ZipUtils.class, IOUtils.class, HMACUtils.class, org.h2.store.fs.FileUtils.class })
 public class PacketReceiverServiceTest {
 
 	private static final String fileExtension = ".zip";
@@ -112,9 +112,6 @@ public class PacketReceiverServiceTest {
 	
 	@Mock
 	private RegistrationExceptionMapperUtil registrationStatusMapperUtil;
-
-	@Mock
-	private PacketReaderService packetReaderService;
 
 	private String stageName = "PacketReceiverStage";
 
@@ -154,7 +151,8 @@ public class PacketReceiverServiceTest {
 		registrations.add(registrationStatusDto);
 		Mockito.doNothing().when(description).setMessage(any());
 		Mockito.when(registrationStatusService.getByIds(anyList())).thenReturn(registrations);
-		Mockito.when(packetReaderService.getEncryptedSourcePacket(any(), any(), any()))
+		PowerMockito.mockStatic(ZipUtils.class);
+		PowerMockito.when(ZipUtils.unzipAndGetFile(any(), anyString()))
 				.thenReturn(new ByteArrayInputStream(new String("abc").getBytes()));
 		PowerMockito.mockStatic(HMACUtils.class);
 		PowerMockito.when(HMACUtils.digestAsPlainText(any())).thenReturn("abcd1234");
