@@ -15,7 +15,7 @@ public class PacketUtilityConfig {
 
 	@Bean
 	@Primary
-	public PacketDecryptor getDecryptor() {
+	public PacketDecryptor getPacketDecryptor() {
 		return new PacketDecryptorImpl();
 	}
 
