@@ -22,6 +22,6 @@ public interface PacketDecryptor {
 	 * @throws ApisResourceAccessException      if error occured while
 	 */
 	public InputStream decrypt(InputStream input, String registrationId)
-			throws PacketDecryptionFailureException, ApisResourceAccessException;
+			throws PacketDecryptionFailureException;
 
 }
