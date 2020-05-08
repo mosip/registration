@@ -161,8 +161,9 @@ jobs:
     
     - name: Publish the maven package
       run: |
-        find registration-processor/*/ -name "pom.xml" | xargs -I{} mvn deploy -DskipTests -f {} -s $GITHUB_WORKSPACE/settings.xml
-        find registration/*/ -name "pom.xml" | xargs -I{} mvn deploy -DskipTests -f {} -s $GITHUB_WORKSPACE/settings.xml
+        chmod +x ./deploy.sh
+        ./deploy registration-processor $GITHUB_WORKSPACE/settings.xml SNAPSHOT
+        ./deploy registration $GITHUB_WORKSPACE/settings.xml SNAPSHOT
       env:
         GITHUB_TOKEN: ${{ secrets.access_token }}
         GPG_TTY: $(tty)  
