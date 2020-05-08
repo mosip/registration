@@ -108,7 +108,11 @@
 			<artifactId>registration-processor-rest-client</artifactId>
 			<version>${registration.processor.rest.client.version}</version>
 		</dependency>
-
+		<dependency>
+			<groupId>io.mosip.registrationprocessor</groupId>
+			<artifactId>registration-processor-packet-utility</artifactId>
+			<version>${registration.processor.packet.utility.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>javax.inject</groupId>
 			<artifactId>javax.inject</artifactId>
