@@ -40,6 +40,7 @@ import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.constant.AbisConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
@@ -50,6 +51,7 @@ import io.mosip.registration.processor.core.spi.biodedupe.BioDedupeService;
 import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
@@ -205,6 +207,7 @@ public class BioDedupeProcessorTest {
 		Mockito.when(utility.getConfigServerFileStorageURL()).thenReturn(CONFIG_SERVER_URL);
 		Mockito.when(utility.getGetRegProcessorIdentityJson()).thenReturn("RegistrationProcessorIdentity.json");
 		Mockito.when(bioDedupeService.getFileByRegId(anyString())).thenReturn("test".getBytes());
+
 	}
 
 	/**
@@ -343,12 +346,17 @@ public class BioDedupeProcessorTest {
 	 */
 	@Test
 	public void testUpdateInsertionToHandler() throws Exception {
+		ClassLoader classLoader = getClass().getClassLoader();
+		File idJson = new File(classLoader.getResource("ID.json").getFile());
+		InputStream ip = new FileInputStream(idJson);
+		String idJsonString = IOUtils.toString(ip, "UTF-8");
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString()))
+				.thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class),
+						MappingJsonConstants.IDENTITY));
 
-		InputStream inputStream = new FileInputStream("src/test/resources/ID.json");
 		PowerMockito.mockStatic(Utilities.class);
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn(IDENTITY);
 
-		Mockito.when(adapter.getFile(any(), any())).thenReturn(inputStream);
 
 		registrationStatusDto.setRegistrationId("reg1234");
 		registrationStatusDto.setRegistrationType("Update");
@@ -367,12 +375,18 @@ public class BioDedupeProcessorTest {
 	 */
 	@Test
 	public void testUpdateInsertionToUIN() throws Exception {
+		ClassLoader classLoader = getClass().getClassLoader();
+		File idJson = new File(classLoader.getResource("ID2.json").getFile());
+		InputStream ip = new FileInputStream(idJson);
+		String idJsonString = IOUtils.toString(ip, "UTF-8");
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString()))
+				.thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class),
+						MappingJsonConstants.IDENTITY));
 
-		InputStream inputStream = new FileInputStream("src/test/resources/ID2.json");
 		PowerMockito.mockStatic(Utilities.class);
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn(IDENTITY);
 
-		Mockito.when(adapter.getFile(any(), any())).thenReturn(inputStream);
+
 
 		registrationStatusDto.setRegistrationId("reg1234");
 		registrationStatusDto.setRegistrationType("Update");
