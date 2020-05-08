@@ -27,7 +27,6 @@ import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.RegAbisRefDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisApplicationDto;
@@ -53,8 +52,6 @@ import io.mosip.registration.processor.packet.storage.entity.RegBioRefEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegDemoDedupeListEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegLostUinDetEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegLostUinDetPKEntity;
-import io.mosip.registration.processor.packet.storage.exception.FileNotFoundInPacketStore;
-import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
 import io.mosip.registration.processor.packet.storage.exception.MappingJsonException;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.exception.TablenotAccessibleException;
@@ -191,42 +188,41 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 * @return the identity keys and fetch values from JSON
 	 */
 	@Override
-	public IndividualDemographicDedupe getIdentityKeysAndFetchValuesFromJSON(String demographicJsonString) {
+	public IndividualDemographicDedupe getIdentityKeysAndFetchValuesFromJSON(String registrationId) {
 		IndividualDemographicDedupe demographicData = new IndividualDemographicDedupe();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"PacketInfoManagerImpl::getIdentityKeysAndFetchValuesFromJSON()::entry");
 		try {
 			// Get Identity Json from config server and map keys to Java Object
 			JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
-			JSONObject demographicJson = (JSONObject) JsonUtil.objectMapperReadValue(demographicJsonString,
-					JSONObject.class);
-			JSONObject demographicIdentity = JsonUtil.getJSONObject(demographicJson,
-					utility.getGetRegProcessorDemographicIdentity());
-			if (demographicIdentity == null)
-				throw new IdentityNotFoundException(PlatformErrorMessages.RPR_PIS_IDENTITY_NOT_FOUND.getMessage());
+
+
 			String[] names = ((String) JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "name"),
 					"value")).split(",");
 			List<JsonValue[]> jsonValueList = new ArrayList<>();
 			for (String name : names) {
-				JsonValue[] nameArray = JsonUtil.getJsonValues(demographicIdentity, name);
+				JsonValue[] nameArray = JsonUtil.getJsonValues(utility.getDemographicIdentityJSONObject(registrationId,name), name);
 				if (nameArray != null)
 					jsonValueList.add(nameArray);
 			}
 			demographicData.setName(jsonValueList.isEmpty() ? null : jsonValueList);
-
-			demographicData.setDateOfBirth((String) JsonUtil.getJSONValue(demographicIdentity,
-					JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "dob"), "value")));
-			demographicData.setGender(JsonUtil.getJsonValues(demographicIdentity,
-					JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "gender"), "value")));
-			demographicData.setPhone((String) JsonUtil.getJSONValue(demographicIdentity,
-					JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "phone"), "value")));
-			demographicData.setEmail((String) JsonUtil.getJSONValue(demographicIdentity,
-					JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "email"), "value")));
+			String dobKey=JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "dob"), "value");
+			String genderKey=JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "gender"), "value");
+			String phoneKey=JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "phone"), "value");
+			String emailKey = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "email"), "value");
+			demographicData.setDateOfBirth((String) JsonUtil.getJSONValue(utility.getDemographicIdentityJSONObject(registrationId,dobKey),
+					dobKey));
+			demographicData.setGender(JsonUtil.getJsonValues(utility.getDemographicIdentityJSONObject(registrationId,genderKey),
+					genderKey));
+			demographicData.setPhone((String) JsonUtil
+					.getJSONValue(utility.getDemographicIdentityJSONObject(registrationId, phoneKey), phoneKey));
+			demographicData.setEmail((String) JsonUtil.getJSONValue(utility.getDemographicIdentityJSONObject(registrationId,emailKey),
+					emailKey));
 			String[] addressList = ((String) JsonUtil
 					.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "address"), "value")).split(",");
 			for (String address : addressList) {
 				if (address.equals("postalCode")) {
-					demographicData.setPostalCode((String) JsonUtil.getJSONValue(demographicIdentity, address));
+					demographicData.setPostalCode((String) JsonUtil.getJSONValue(utility.getDemographicIdentityJSONObject(registrationId,address), address));
 				}
 					
 			}
@@ -250,21 +246,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 	}
 
-	/**
-	 * Gets the registration id.
-	 *
-	 * @param metaData the meta data
-	 * @return the registration id
-	 */
-	private void getRegistrationId(List<FieldValue> metaData) {
-		for (int i = 0; i < metaData.size(); i++) {
-			if ("preRegistrationId".equals(metaData.get(i).getLabel())) {
-				metaData.get(i).getValue();
 
-			}
-		}
-
-	}
 
 	/**
 	 * Save individual demographic dedupe.
@@ -272,11 +254,10 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 * @param demographicJsonBytes the demographic json bytes
 	 * @param description
 	 */
-	private void saveIndividualDemographicDedupe(byte[] demographicJsonBytes, String regId, LogDescription description,
+	private void saveIndividualDemographicDedupe(String regId, LogDescription description,
 			String moduleId, String moduleName) {
 
-		String getJsonStringFromBytes = new String(demographicJsonBytes);
-		IndividualDemographicDedupe demographicData = getIdentityKeysAndFetchValuesFromJSON(getJsonStringFromBytes);
+		IndividualDemographicDedupe demographicData = getIdentityKeysAndFetchValuesFromJSON(regId);
 		boolean isTransactionSuccessful = false;
 		try {
 			List<IndividualDemographicDedupeEntity> applicantDemographicEntities = PacketInfoMapper
@@ -364,20 +345,18 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 * saveDemographicInfoJson(java.io.InputStream, java.util.List)
 	 */
 	@Override
-	public void saveDemographicInfoJson(byte[] bytes, String registrationId, List<FieldValue> metaData, String moduleId,
+	public void saveDemographicInfoJson(String registrationId, String moduleId,
 			String moduleName) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"PacketInfoManagerImpl::saveDemographicInfoJson()::entry");
 		LogDescription description = new LogDescription();
-		getRegistrationId(metaData);
+
 		boolean isTransactionSuccessful = false;
-		if (bytes == null)
-			throw new FileNotFoundInPacketStore(
-					PlatformErrorMessages.RPR_PIS_FILE_NOT_FOUND_IN_PACKET_STORE.getMessage());
+
 
 		try {
 
-			saveIndividualDemographicDedupe(bytes, registrationId, description, moduleId, moduleName);
+			saveIndividualDemographicDedupe(registrationId, description, moduleId, moduleName);
 
 			isTransactionSuccessful = true;
 			description.setMessage("Demographic Json saved");

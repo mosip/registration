@@ -50,7 +50,6 @@ import io.mosip.registration.processor.core.packet.dto.regcentermachine.Registra
 import io.mosip.registration.processor.core.packet.dto.regcentermachine.RegistrationCenterResponseDto;
 import io.mosip.registration.processor.core.packet.dto.regcentermachine.RegistrationCenterUserMachineMappingHistoryDto;
 import io.mosip.registration.processor.core.packet.dto.regcentermachine.RegistrationCenterUserMachineMappingHistoryResponseDto;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
@@ -73,9 +72,7 @@ public class UMCValidatorTest {
 	@Mock
 	PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
 
-	/** The adapter. */
-	@Mock
-	private PacketManager adapter;
+
 
 	/** The registration processor rest service. */
 	@Mock
@@ -135,7 +132,6 @@ public class UMCValidatorTest {
 		File idJsonFile = new File(classLoader.getResource("packet_meta_info.json").getFile());
 		InputStream packetMetaInfoStream = new FileInputStream(idJsonFile);
 
-		Mockito.when(adapter.getFile(any(), any())).thenReturn(packetMetaInfoStream);
 
 		metaData = new ArrayList<>();
 		FieldValue fv = new FieldValue();

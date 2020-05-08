@@ -109,7 +109,7 @@ public class PacketReceiverServiceTest {
 
 	@Mock
 	private LogDescription description;
-
+	
 	@Mock
 	private RegistrationExceptionMapperUtil registrationStatusMapperUtil;
 

@@ -25,7 +25,6 @@ import io.mosip.kernel.core.util.HMACUtils;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.DemographicInfoDto;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
@@ -55,9 +54,7 @@ public class DemoDedupeTest {
 	@Mock
 	private InputStream inputStream;
 
-	/** The filesystem adapter impl. */
-	@Mock
-	PacketManager filesystemAdapterImpl;
+
 
 	/** The registration status service. */
 	@Mock
@@ -107,8 +104,7 @@ public class DemoDedupeTest {
 		// Mockito.when(packetInfoManager.getApplicantFingerPrintImageNameById(anyString())).thenReturn(fingers);
 		// Mockito.when(packetInfoManager.getApplicantIrisImageNameById(anyString())).thenReturn(iris);
 
-		Mockito.when(filesystemAdapterImpl.checkFileExistence(anyString(), anyString())).thenReturn(Boolean.TRUE);
-		Mockito.when(filesystemAdapterImpl.getFile(anyString(), anyString())).thenReturn(inputStream);
+
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(anyString())).thenReturn(true);
 
 		byte[] data = "1234567890".getBytes();
