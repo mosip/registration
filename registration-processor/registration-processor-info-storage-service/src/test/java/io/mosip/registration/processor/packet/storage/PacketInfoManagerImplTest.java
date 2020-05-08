@@ -73,8 +73,6 @@ import io.mosip.registration.processor.packet.storage.entity.RegBioRefPKEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegDemoDedupeListEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegDemoDedupeListPKEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegLostUinDetEntity;
-import io.mosip.registration.processor.packet.storage.exception.FileNotFoundInPacketStore;
-import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.packet.storage.exception.UnableToInsertData;
 import io.mosip.registration.processor.packet.storage.mapper.PacketInfoMapper;
@@ -557,17 +555,10 @@ public class PacketInfoManagerImplTest {
 	@Test
 	public void saveDemographicInfoJsonTest() {
 
-		packetInfoManagerImpl.saveDemographicInfoJson(byteArray, "2018782130000224092018121229", metaDataList, "", "");
+		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229", "", "");
 		assertEquals("identity", utility.getGetRegProcessorDemographicIdentity());
 	}
 
-	/**
-	 * File not found in packet store test.
-	 */
-	@Test(expected = FileNotFoundInPacketStore.class)
-	public void fileNotFoundInPacketStoreTest() {
-		packetInfoManagerImpl.saveDemographicInfoJson(null, "2018782130000224092018121229", metaDataList, "", "");
-	}
 
 	/**
 	 * Unable to insert data test.
@@ -577,7 +568,7 @@ public class PacketInfoManagerImplTest {
 
 		Mockito.when(demographicDedupeRepository.save(any())).thenThrow(exp);
 
-		packetInfoManagerImpl.saveDemographicInfoJson(byteArray, "2018782130000224092018121229", metaDataList, "", "");
+		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229", "", "");
 	}
 
 	/**
@@ -587,19 +578,11 @@ public class PacketInfoManagerImplTest {
 	public void demographicDedupeUnableToInsertDataTest() {
 
 		Mockito.when(demographicDedupeRepository.save(any())).thenThrow(exp);
-		packetInfoManagerImpl.saveDemographicInfoJson(byteArray, "2018782130000224092018121229", metaDataList, "", "");
+		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229", "", "");
 
 	}
 
-	/**
-	 * Identity not found exception test.
-	 */
-	@Test(expected = ParsingException.class)
-	public void identityNotFoundExceptionTest() {
 
-		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn(null);
-		packetInfoManagerImpl.saveDemographicInfoJson(byteArray, "2018782130000224092018121229", metaDataList, "", "");
-	}
 
 	/**
 	 * Gets the packets for QC users test.

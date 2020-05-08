@@ -63,7 +63,6 @@ import io.mosip.registration.processor.core.packet.dto.demographicinfo.Individua
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.JsonValue;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.IdentityJsonValues;
 import io.mosip.registration.processor.core.packet.dto.idjson.Document;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
@@ -114,8 +113,7 @@ public class DemodedupeProcessorTest {
 	@Mock
 	private InputStream inputStream;
 
-	@Mock
-	private PacketManager adapter;
+
 
 	/** The dto. */
 	private MessageDTO dto = new MessageDTO();
@@ -311,7 +309,7 @@ public class DemodedupeProcessorTest {
 		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
 		byte[] b = "sds".getBytes();
 		List<DemographicInfoDto> emptyDuplicateDtoSet = new ArrayList<>();
-		Mockito.when(adapter.getFile(anyString(), anyString())).thenReturn(inputStream);
+
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
@@ -347,7 +345,7 @@ public class DemodedupeProcessorTest {
 
 		byte[] b = "sds".getBytes();
 		List<DemographicInfoDto> emptyDuplicateDtoSet = new ArrayList<>();
-		Mockito.when(adapter.getFile(anyString(), anyString())).thenReturn(inputStream);
+
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
@@ -365,7 +363,7 @@ public class DemodedupeProcessorTest {
 	public void testDemoDedupeSuccessNotDuplicateAfterAuth() throws Exception {
 
 		byte[] b = "sds".getBytes();
-		Mockito.when(adapter.getFile(anyString(), anyString())).thenReturn(inputStream);
+
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
@@ -397,7 +395,7 @@ public class DemodedupeProcessorTest {
 		abisResponseDtos.add(abisResponseDto);
 
 		byte[] b = "sds".getBytes();
-		Mockito.when(adapter.getFile(anyString(), anyString())).thenReturn(inputStream);
+
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
@@ -433,7 +431,7 @@ public class DemodedupeProcessorTest {
 
 		matchedRegIds.add("2018701130000410092018110735");
 		byte[] b = "sds".getBytes();
-		Mockito.when(adapter.getFile(anyString(), anyString())).thenReturn(inputStream);
+
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
@@ -465,7 +463,7 @@ public class DemodedupeProcessorTest {
 		abisResponseDtos.add(abisResponseDto);
 
 		byte[] b = "sds".getBytes();
-		Mockito.when(adapter.getFile(anyString(), anyString())).thenReturn(inputStream);
+
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
@@ -571,7 +569,7 @@ public class DemodedupeProcessorTest {
 		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("false");
 		byte[] b = "sds".getBytes();
 
-		Mockito.when(adapter.getFile(anyString(), anyString())).thenReturn(inputStream);
+
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
@@ -594,7 +592,7 @@ public class DemodedupeProcessorTest {
 		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
 		byte[] b = "sds".getBytes();
 	
-		Mockito.when(adapter.getFile(anyString(), anyString())).thenReturn(inputStream);
+
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
@@ -618,7 +616,7 @@ public class DemodedupeProcessorTest {
 		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
 		byte[] b = "sds".getBytes();
 	
-		Mockito.when(adapter.getFile(anyString(), anyString())).thenReturn(inputStream);
+
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
