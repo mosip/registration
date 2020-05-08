@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/mosip/registration.svg?branch=1.0.10)](https://travis-ci.org/mosip/registration)
 # Registration
 
 This repository contains the two components of registration:
