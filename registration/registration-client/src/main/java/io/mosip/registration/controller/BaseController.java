@@ -1758,9 +1758,23 @@ public class BaseController {
 		List<String> bioAttributes = null;
 
 		if (subType != null) {
+
+			bioAttributes = getAttributesByTypeAndSubType(RegistrationConstants.BIOMETRICS_TYPE, subType);
+
+		}
+
+		return bioAttributes;
+	}
+
+	private List<String> getAttributesByTypeAndSubType(String type, String subType) {
+		List<String> bioAttributes = null;
+
+		if (type != null && subType != null) {
+
 			for (Map.Entry<String, UiSchemaDTO> entry : validations.getValidationMap().entrySet()) {
 
-				if (entry.getValue() != null && subType.equalsIgnoreCase(entry.getValue().getSubType())) {
+				if (entry.getValue() != null && type.equalsIgnoreCase(entry.getValue().getType())
+						&& subType.equalsIgnoreCase(entry.getValue().getSubType())) {
 
 					bioAttributes = bioAttributes == null ? new LinkedList<>() : bioAttributes;
 
