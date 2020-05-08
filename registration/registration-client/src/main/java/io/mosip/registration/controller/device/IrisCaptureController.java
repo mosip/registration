@@ -1129,7 +1129,7 @@ public class IrisCaptureController extends BaseController {
 		}
 
 		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getSelectionListDTO() != null
-				&& !getRegistrationDTOFromSession().getSelectionListDTO().isBiometrics()) {
+				&& getRegistrationDTOFromSession().getSelectionListDTO().get("biometrics")==null) {
 
 			if ((!getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
 					.getFingerprintDetailsDTO().isEmpty() && isForceCapturedFingerprint())
@@ -1240,7 +1240,7 @@ public class IrisCaptureController extends BaseController {
 
 		boolean isValid = false;
 		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getSelectionListDTO() != null
-				&& !getRegistrationDTOFromSession().getSelectionListDTO().isBiometrics()) {
+				&& getRegistrationDTOFromSession().getSelectionListDTO().get("biometrics")==null) {
 			if (isLeftEyeCaptured || isRightEyeCaptured) {
 				isValid = true;
 			}

@@ -191,7 +191,7 @@ public class TemplateGenerator extends BaseService {
 			}
 
 			if (registration.getSelectionListDTO() != null) {
-				if (registration.getSelectionListDTO().isBiometrics()
+				if (registration.getSelectionListDTO().get("biometrics")==null
 						|| registration.getBiometricDTO().getApplicantBiometricDTO().getIrisDetailsDTO() != null) {
 					templateValues = countMissingIrises(templateValues, registration, isChild, templateType);
 				} else {
@@ -380,8 +380,8 @@ public class TemplateGenerator extends BaseService {
 		if (RegistrationConstants.ENABLE.equalsIgnoreCase(irisDisableFlag)
 				&& ((registration.getSelectionListDTO() == null && !isChild)
 						|| (registration.getSelectionListDTO() == null && isChild)
-						|| (registration.getSelectionListDTO() != null
-								&& registration.getSelectionListDTO().isBiometrics()))) {
+						|| (registration.getSelectionListDTO() != null &&
+							 registration.getSelectionListDTO().get("biometrics")==null))) {
 			if (isChild || registration.isUpdateUINNonBiometric()) {
 				if (registration.getBiometricDTO().getIntroducerBiometricDTO().getFace() == null
 						|| (registration.getBiometricDTO().getIntroducerBiometricDTO().getFace() != null && registration
@@ -455,7 +455,7 @@ public class TemplateGenerator extends BaseService {
 		}
 
 		if (RegistrationConstants.ENABLE.equalsIgnoreCase(fingerPrintDisableFlag)
-				&& ((registration.getSelectionListDTO() != null && registration.getSelectionListDTO().isBiometrics())
+				&& ((registration.getSelectionListDTO() != null && registration.getSelectionListDTO().get("biometrics")!=null)
 						|| (registration.getSelectionListDTO() == null && !isChild)
 						|| (registration.getSelectionListDTO() == null && isChild))) {
 			templateValues.put(RegistrationConstants.TEMPLATE_FINGERPRINTS_CAPTURED, null);
@@ -619,7 +619,7 @@ public class TemplateGenerator extends BaseService {
 		if (RegistrationConstants.ENABLE.equalsIgnoreCase(fingerPrintDisableFlag)) {
 
 			if (registration.getSelectionListDTO() != null) {
-				if (registration.getSelectionListDTO().isBiometrics() || registration.getBiometricDTO()
+				if (registration.getSelectionListDTO().get("biometrics")!=null || registration.getBiometricDTO()
 						.getApplicantBiometricDTO().getFingerprintDetailsDTO() != null) {
 					addToCapturedBiometrics(biometricsCaptured, biometricsCapturedLocalLang,
 							applicationLanguageProperties, "fingersCount", fingersAndIrises[0]);
@@ -631,7 +631,7 @@ public class TemplateGenerator extends BaseService {
 		}
 		if (RegistrationConstants.ENABLE.equalsIgnoreCase(irisDisableFlag)) {
 			if (registration.getSelectionListDTO() != null) {
-				if (registration.getSelectionListDTO().isBiometrics()
+				if (registration.getSelectionListDTO().get("biometrics")!=null
 						|| registration.getBiometricDTO().getApplicantBiometricDTO().getIrisDetailsDTO() != null) {
 					addToCapturedBiometrics(biometricsCaptured, biometricsCapturedLocalLang,
 							applicationLanguageProperties, "irisCount", fingersAndIrises[1]);
@@ -1404,7 +1404,7 @@ public class TemplateGenerator extends BaseService {
 		if ((registration.getSelectionListDTO() == null
 				&& (boolean) SessionContext.map().get(RegistrationConstants.IS_Child))
 				|| (registration.getSelectionListDTO() != null
-						&& registration.getSelectionListDTO().isParentOrGuardianDetails())) {
+						&& registration.getSelectionListDTO().get("biometrics")!=null)) {
 			biometricExceptionDTOs = registration.getBiometricDTO().getIntroducerBiometricDTO()
 					.getBiometricExceptionDTO();
 			for (BiometricExceptionDTO biometricExceptionDTO : biometricExceptionDTOs) {

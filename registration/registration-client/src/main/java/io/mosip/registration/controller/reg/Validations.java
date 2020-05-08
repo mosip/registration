@@ -362,11 +362,11 @@ public class Validations extends BaseController {
 		try {
 			if (getRegistrationDTOFromSession().getSelectionListDTO() != null && ((id
 					.matches(RegistrationConstants.POA_DOCUMENT)
-					&& !getRegistrationDTOFromSession().getSelectionListDTO().isAddress())
+					&& getRegistrationDTOFromSession().getSelectionListDTO().get("AddressLine1")==null)
 					|| (id.matches(RegistrationConstants.POI_DOCUMENT)
-							&& !getRegistrationDTOFromSession().getSelectionListDTO().isName())
+							&& getRegistrationDTOFromSession().getSelectionListDTO().get("fullName")==null)
 					|| (id.matches(RegistrationConstants.POR_DOCUMENT)
-							&& !getRegistrationDTOFromSession().getSelectionListDTO().isParentOrGuardianDetails()))) {
+							&& getRegistrationDTOFromSession().getSelectionListDTO().get("parent")==null))) {
 				return true;
 			}
 			if (getRegistrationDTOFromSession().getSelectionListDTO() == null

@@ -43,8 +43,7 @@
                       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                     </columnConstraints>
                     <rowConstraints>
-                      <RowConstraints maxHeight="349.0" minHeight="10.0" prefHeight="291.0" vgrow="SOMETIMES" />
-                        <RowConstraints maxHeight="242.0" minHeight="10.0" prefHeight="204.0" vgrow="SOMETIMES" />
+                      <RowConstraints maxHeight="349.0" minHeight="10.0" percentHeight="100.0" prefHeight="291.0" vgrow="SOMETIMES" />
                     </rowConstraints>
                      <children>
                         <GridPane>
@@ -52,12 +51,10 @@
                             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                           </columnConstraints>
                           <rowConstraints>
-                            <RowConstraints minHeight="10.0" percentHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                            <RowConstraints minHeight="10.0" percentHeight="5.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" percentHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" percentHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" percentHeight="75.0" prefHeight="30.0" vgrow="SOMETIMES" />
                           </rowConstraints>
                            <children>
                               <GridPane GridPane.rowIndex="1">
@@ -83,7 +80,7 @@
                                     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                  </rowConstraints>
                               </GridPane>
-                              <GridPane GridPane.rowIndex="3">
+                              <GridPane fx:id="contentGridPane" GridPane.rowIndex="3">
                                 <columnConstraints>
                                   <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                                 </columnConstraints>
@@ -91,56 +88,11 @@
                                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                 </rowConstraints>
                                  <children>
-                                    <HBox fx:id="demographicHBox" alignment="CENTER_LEFT" spacing="30" styleClass="updateUinCheckBoxCommon">
+                                    <HBox fx:id="demographicHBox" prefHeight="161.0" prefWidth="${contentGridPane.width}" spacing="30" styleClass="updateUinCheckBoxCommon">
                                        <children>
-                                          <CheckBox fx:id="name" mnemonicParsing="false" styleClass="updateUinCheckBox" text="%name" />
-                                          <CheckBox fx:id="age" mnemonicParsing="false" styleClass="updateUinCheckBox" text="%age/dob" />
-                                          <CheckBox fx:id="foreigner" mnemonicParsing="false" styleClass="updateUinCheckBox" text="%Foreigner/National" />
-                                          <CheckBox fx:id="gender" mnemonicParsing="false" styleClass="updateUinCheckBox" text="%gender" />
-                                          <CheckBox fx:id="address" mnemonicParsing="false" styleClass="updateUinCheckBox" text="%address" />
-                                          <CheckBox fx:id="phone" mnemonicParsing="false" styleClass="updateUinCheckBox" text="%Phone" />
-                                          <CheckBox fx:id="email" mnemonicParsing="false" styleClass="updateUinCheckBox" text="%Email" />
+                                          <FlowPane fx:id="parentFlowPane" prefHeight="372.0" prefWidth="${contentGridPane.width}" />
                                        </children>
                                     </HBox>
-                                 </children>
-                              </GridPane>
-                              <GridPane GridPane.rowIndex="4">
-                                <columnConstraints>
-                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                </columnConstraints>
-                                <rowConstraints>
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                </rowConstraints>
-                                 <children>
-                                    <HBox fx:id="biometricBox" alignment="CENTER_LEFT" spacing="30" styleClass="updateUinCheckBoxCommon">
-                                       <children>
-                                          <CheckBox fx:id="cnieNumber" mnemonicParsing="false" styleClass="updateUinCheckBox" text="%cnie/pin/residencecardnumber" />
-                                          <CheckBox fx:id="parentOrGuardianDetails" mnemonicParsing="false" styleClass="updateUinCheckBox" text="%parent/guardiandetails" />
-                                          <CheckBox fx:id="biometrics" mnemonicParsing="false" styleClass="updateUinCheckBox" text="%uinUpdateBiometrics" />
-                                       </children>
-                                    </HBox>
-                                 </children>
-                              </GridPane>
-                              <GridPane GridPane.rowIndex="5">
-                                <columnConstraints>
-                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="10.0" prefWidth="100.0" />
-                                </columnConstraints>
-                                <rowConstraints>
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                </rowConstraints>
-                                 <children>
-                                    <GridPane fx:id="spliterLine">
-                                       <children>
-                                          <Line startX="${spliterLine.width-5}" styleClass="splitLineSeparator" />
-                                       </children>
-                                       <columnConstraints>
-                                          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="30.0" />
-                                       </columnConstraints>
-                                       <rowConstraints>
-                                          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                       </rowConstraints>
-                                    </GridPane>
                                  </children>
                               </GridPane>
                            </children>

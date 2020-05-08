@@ -106,7 +106,7 @@ public class RegistrationConstants {
 	public static final String VISIBILITY = "visibility";
 //	public static final String ONBOARD_LIST = "onboardPageList";
 //	public static final String ONBOARD_MAP = "onboardMap";
-//	public static final String REGISTRATION_MAP = "registrationMap";
+	public static final String REGISTRATION_MAP = "registrationMap";
 	public static final String ONBOARD = "onboard";
 
 	// CSS file
@@ -280,6 +280,13 @@ public class RegistrationConstants {
 	public static final String DROPDOWN="dropdown";
 	public static final String TEXTBOX="textbox";
 	public static final String RESIDENCE_STATUS="residenceStatus";
+	public static final String PRIMARY="primary";
+	public static final String SECONDARY="secondary";
+	public static final String DemoGraphicFieldMessageLabel="demoGraphicFieldMessageLabel";
+	public static final String Parent="Parent";
+	public static final String updateUinCheckBox="updateUinCheckBox";
+	
+	
 
 	public static final String APPLICATION_LANGUAGE = "application_language";
 	public static final String REGISTRATION_LOCAL_LANGUAGE = "local_language";

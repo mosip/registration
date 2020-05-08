@@ -33,7 +33,7 @@ public class RegistrationDTO {
 	private RegistrationMetaDataDTO registrationMetaDataDTO;
 	private OSIDataDTO osiDataDTO;
 	
-	private SelectionListDTO selectionListDTO;
+	private HashMap<String, Object> selectionListDTO;
 	private boolean isUpdateUINNonBiometric;	
 	private boolean isNameNotUpdated;	
 	private boolean isUpdateUINChild;

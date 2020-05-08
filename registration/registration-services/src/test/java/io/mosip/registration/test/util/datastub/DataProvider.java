@@ -71,8 +71,7 @@ public class DataProvider {
 		//registrationDTO.setDemographicDTO(DataProvider.getDemographicDTO());
 		registrationDTO.setDemographics(new HashMap<String, Object>());
 		registrationDTO.setBiometricDTO(DataProvider.getBiometricDTO());
-		SelectionListDTO selectionListDTO=new SelectionListDTO();
-		selectionListDTO.setAge(true);
+		HashMap<String, Object> selectionListDTO=new HashMap<>();
 		registrationDTO.setSelectionListDTO(selectionListDTO);
 		return registrationDTO;
 

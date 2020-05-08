@@ -149,12 +149,11 @@ public class RegistrationController extends BaseController {
 		}
 	}
 
-	public void init(SelectionListDTO selectionListDTO) {
+	public void init(HashMap<String, Object> selectionListDTO) {
 		validation.updateAsLostUIN(false);
 		createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_UPDATE);
 		RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 		registrationDTO.setSelectionListDTO(selectionListDTO);
-		registrationDTO.setNameNotUpdated(!selectionListDTO.isName());
 	}
 
 	protected void initializeLostUIN() {

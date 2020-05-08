@@ -1664,23 +1664,44 @@ public class BaseController {
 	}
 
 	public void loadUIElementsFromSchema() {
+		//Get JSON File
+		
+		String filePath = "C:\\Users\\M1047962\\Documents\\uiSchema2_copy.json";
+		File uiSchemaJsonFile = new File(filePath);
+		
+		if(uiSchemaJsonFile.exists()) {
+		ObjectMapper mapper = new ObjectMapper();
 
+		//JSON file to Java object
 		try {
-			List<UiSchemaDTO> schemaFields = identitySchemaService.getLatestEffectiveUISchema();
+			
+			//Parse to DTO			
+			UiSchemaDTO[] uiSchemaDTOsArray = mapper.readValue(uiSchemaJsonFile, UiSchemaDTO[].class);
+			
+			//Store in temporary list
+			
+			uiSchemaDTOs = uiSchemaDTOs==null ? new LinkedList<>() : uiSchemaDTOs;
+			
+			uiSchemaDTOs.addAll(Arrays.asList(uiSchemaDTOsArray));
+			
 			Map<String, UiSchemaDTO> validationsMap = new LinkedHashMap<>();
-			for (UiSchemaDTO schemaField : schemaFields) {
-				validationsMap.put(schemaField.getId(), schemaField);
+			
+			List<String> neglectTypes = Arrays.asList("documentType","biometricsType");
+			for (UiSchemaDTO uiSchemaDTO : uiSchemaDTOs) {
+				if(!neglectTypes.contains(uiSchemaDTO.getType())) {
+					validationsMap.put(uiSchemaDTO.getId(), uiSchemaDTO);
+				}
 			}
-			validations.setValidations(validationsMap); // Set Validations Map
-
-			ApplicationContext.map().put(RegistrationConstants.indBiometrics,
-					getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics));
-			ApplicationContext.map().put("parentOrGuardianBiometrics",
-					getSchemaFieldBioAttributes("parentOrGuardianBiometrics"));
-
-		} catch (RegBaseCheckedException e) {
-			LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
-					ExceptionUtils.getStackTrace(e));
+			
+			//Set Validations Map
+			setValidations(validationsMap);
+			
+		} catch (IOException ioException) {
+			// TODO Auto-generated catch block
+			ioException.printStackTrace();
+		}
+		
+		
 		}
 	}
 
@@ -1779,5 +1800,11 @@ public class BaseController {
 			}
 		}
 		return nonConfigBiometrics;
+	}
+	
+
+	protected boolean isDemographicField(UiSchemaDTO schemaField) {
+		return (schemaField.isInputRequired() && !(schemaField.getType().equalsIgnoreCase("biometricsType")
+				|| schemaField.getType().equalsIgnoreCase("documentType")));
 	}
 }

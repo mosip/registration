@@ -822,7 +822,7 @@ public class FingerPrintCaptureController extends BaseController implements Init
 				.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.IRIS_DISABLE_FLAG))
 				&& getRegistrationDTOFromSession() != null
 				&& getRegistrationDTOFromSession().getSelectionListDTO() != null
-				&& !getRegistrationDTOFromSession().getSelectionListDTO().isBiometrics() && irisCountApplicant < 2
+		//		&& !getRegistrationDTOFromSession().getSelectionListDTO().isBiometrics() && irisCountApplicant < 2
 				&& irisCountIntroducer < 2) {
 			continueBtn.setDisable(false);
 		}
@@ -1692,10 +1692,10 @@ public class FingerPrintCaptureController extends BaseController implements Init
 
 			if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getSelectionListDTO() != null
 
-					&& ((getRegistrationDTOFromSession().getSelectionListDTO().isBiometrics() && isleftHandSlapCaptured
+					&& ((getRegistrationDTOFromSession().getSelectionListDTO().get("biometric")!=null && isleftHandSlapCaptured
 							&& isrightHandSlapCaptured && isthumbsCaptured)
 
-							|| !getRegistrationDTOFromSession().getSelectionListDTO().isBiometrics()
+							|| getRegistrationDTOFromSession().getSelectionListDTO().get("biometric")==null
 									&& (isleftHandSlapCaptured || isrightHandSlapCaptured || isthumbsCaptured))) {
 
 				isValid = fingerdeduplicationCheck(segmentedFingerprintDetailsDTOs, isValid, fingerprintDetailsDTOs);

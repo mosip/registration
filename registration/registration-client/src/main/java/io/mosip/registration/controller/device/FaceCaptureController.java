@@ -185,7 +185,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 					ApplicationContext.applicationLanguageBundle().getString(RegistrationConstants.LOSTUINLBL));
 		}
 
-		disableNextButton();
+		//disableNextButton();
 
 		takePhoto.setDisable(true);
 
@@ -202,7 +202,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 			}
 		} else {
 			hasLowBiometrics = false;
-			hasBiometricException = bioService.hasBiometricExceptionToggleEnabled();
+			hasBiometricException =false; // bioService.hasBiometricExceptionToggleEnabled();
 
 			defaultExceptionImage = new Image(
 					getClass().getResourceAsStream(RegistrationConstants.DEFAULT_EXCEPTION_IMAGE_PATH));
