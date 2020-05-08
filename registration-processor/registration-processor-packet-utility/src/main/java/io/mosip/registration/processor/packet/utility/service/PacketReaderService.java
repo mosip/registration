@@ -3,6 +3,7 @@ package io.mosip.registration.processor.packet.utility.service;
 import java.io.IOException;
 import java.io.InputStream;
 
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
 
 
@@ -28,7 +29,7 @@ public interface PacketReaderService {
 	 *                                          occurred.
 	 */
 	public boolean checkFileExistence(String id, String fileName, String source)
-			throws PacketDecryptionFailureException, IOException;
+			throws PacketDecryptionFailureException, IOException, ApisResourceAccessException;
 
 	/**
 	 * Gets the file.
@@ -46,5 +47,16 @@ public interface PacketReaderService {
 	 * @throws ApisResourceAccessException      the apis resource access exception
 	 */
 	public InputStream getFile(String id, String fileName, String source) throws IOException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException;
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ApisResourceAccessException;
+
+	/**
+	 * Get the encrypted source packet from the parent zip
+	 *
+	 * @param rid : The rid
+	 * @param inputStream : parent zip input stream
+	 * @param source : the source (EX - id, evidence, optional)
+	 * @return : source zip
+	 * @throws IOException
+	 */
+	public InputStream getEncryptedSourcePacket(String rid, InputStream inputStream, String source) throws IOException;
 }
