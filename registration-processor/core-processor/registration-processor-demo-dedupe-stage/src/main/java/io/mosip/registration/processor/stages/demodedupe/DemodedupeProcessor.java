@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +29,6 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode
 import io.mosip.registration.processor.core.constant.AbisConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
@@ -39,14 +37,12 @@ import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessag
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Identity;
-import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisResponseDetDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisResponseDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegDemoDedupeListDto;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.DemographicInfoDto;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.IndividualDemographicDedupe;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.JsonValue;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
@@ -56,6 +52,7 @@ import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.stages.app.constants.DemoDedupeConstants;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -93,9 +90,10 @@ public class DemodedupeProcessor {
 	@Autowired
 	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
 
-	/** The adapter. */
 	@Autowired
-	private PacketManager adapter;
+	private PacketReaderService packetReaderService;
+
+
 
 	/** The registration exception mapper util. */
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil = new RegistrationExceptionMapperUtil();
@@ -149,8 +147,7 @@ public class DemodedupeProcessor {
 		/** The demographic info stream. */
 		InputStream demographicInfoStream = null;
 
-		/** The bytes array. */
-		byte[] bytesArray = null;
+
 
 		boolean isTransactionSuccessful = false;
 
@@ -167,15 +164,8 @@ public class DemodedupeProcessor {
 				String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
 
 				if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
-					InputStream packetMetaInfoStream = adapter.getFile(registrationId,
-							PacketFiles.PACKET_META_INFO.name());
-					PacketMetaInfo packetMetaInfo = (PacketMetaInfo) JsonUtil
-							.inputStreamtoJavaObject(packetMetaInfoStream, PacketMetaInfo.class);
-					demographicInfoStream = adapter.getFile(registrationId, PacketFiles.DEMOGRAPHIC.name()
-							+ DemoDedupeConstants.FILE_SEPARATOR + PacketFiles.ID.name());
-					bytesArray = IOUtils.toByteArray(demographicInfoStream);
-					packetInfoManager.saveDemographicInfoJson(bytesArray, registrationId,
-							packetMetaInfo.getIdentity().getMetaData(), moduleId, moduleName);
+
+					packetInfoManager.saveDemographicInfoJson(registrationId, moduleId, moduleName);
 
 					if (env.getProperty(DEMODEDUPEENABLE).trim().equalsIgnoreCase(TRUE)) {
 						duplicateDtos = performDemoDedupe(registrationStatusDto, object, description);
@@ -207,12 +197,9 @@ public class DemodedupeProcessor {
 					|| registrationStatusDto.getRegistrationType().equals(RegistrationType.RES_UPDATE.name())) {
 				IndividualDemographicDedupe demoDedupeData = new IndividualDemographicDedupe();
 
-				demographicInfoStream = adapter.getFile(registrationId,
-						PacketFiles.DEMOGRAPHIC.name() + DemoDedupeConstants.FILE_SEPARATOR + PacketFiles.ID.name());
-				bytesArray = IOUtils.toByteArray(demographicInfoStream);
-				String demographicJsonString = new String(bytesArray);
+				
 				IndividualDemographicDedupe demographicData = packetInfoManager
-						.getIdentityKeysAndFetchValuesFromJSON(demographicJsonString);
+						.getIdentityKeysAndFetchValuesFromJSON(registrationId);
 				JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
 				Long uinFieldCheck = utility.getUIn(registrationId);
 				JSONObject jsonObject = utility.retrieveIdrepoJson(uinFieldCheck);
