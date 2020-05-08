@@ -38,15 +38,10 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-maven-${{ env.BRANCH_NAME }}
     - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      run: cd registration-processor && mvn -B package --file pom.xml -s $GITHUB_WORKSPACE/settings.xml
     
     - name: Setup the settings file for ossrh server
       run: echo "<settings> <servers>  <server>  <id>ossrh</id>    <username>${{secrets.ossrh_user}}</username> <password>${{secrets.ossrh_secret}}</password> </server> </servers> <profiles> <profile>     <id>ossrh</id> <activation> <activeByDefault>true</activeByDefault> </activation>  <properties> <gpg.executable>gpg2</gpg.executable> <gpg.passphrase>${{secrets.gpg_secret}}</gpg.passphrase> </properties> </profile> <profile> <id>allow-snapshots</id>       <activation><activeByDefault>true</activeByDefault></activation> <repositories> <repository>        <id>snapshots-repo</id> <url>https://oss.sonatype.org/content/repositories/snapshots</url> <releases><enabled>false</enabled></releases> <snapshots><enabled>true</enabled></snapshots> </repository>  <repository>         <id>releases-repo</id>  <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>         <releases><enabled>true</enabled></releases>         <snapshots><enabled>false</enabled></snapshots> </repository> </repositories>  </profile> </profiles> </settings>" > $GITHUB_WORKSPACE/settings.xml
-    
-    - name: Publish the maven package
-      run: mvn deploy -DskipTests -s $GITHUB_WORKSPACE/settings.xml
-      env:
-        GPG_TTY: $(tty)
          
     - name: Ready the springboot artifacts
       run: find -name '*.jar' -executable -type f  -exec zip release.zip {} +
@@ -56,8 +51,79 @@ jobs:
       with:
         name: release
         path: ./release.zip
+
+    - name: Build camel bridge image
+      run: |
+          # The camel bridge is not packaged as part of release.zip
+          cd "./registration-processor/registration-processor-common-camel-bridge"
+          docker build . --file Dockerfile --tag registration-processor-common-camel-bridge
+    
+    - name: Log into registry
+      run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
+    - name: Push image
+      run: |
+          IMAGE_ID=${{ secrets.dev_namespace_docker_hub }}/registration-processor-common-camel-bridge
+          
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          VERSION=$BRANCH_NAME
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION 
         
+
+  client_build:
+
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          ref: ${{ github.ref }}
+          java-version: 1.8
+          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          settings-path: ${{ github.workspace }} # location for the settings.xml file
+
+      - name: Setup branch and GPG public key 
+        run: |
+          # Strip git ref prefix from version
+          echo "::set-env name=BRANCH_NAME::$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')"
+          echo ${{ env.BRANCH_NAME }}
+          echo "::set-env name=GPG_TTY::$(tty)"
+          echo ${{ env.GPG_TTY }}
+          sudo apt-get --yes install gnupg2
+          gpg2 --import ./.github/keys/mosipgpgkey_pub.gpg 
+          gpg2 --quiet --batch --passphrase=${{secrets.gpg_secret}}  --allow-secret-key-import --import ./.github/keys/mosipgpgkey_sec.gpg 
+      
+      - uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-${{ env.BRANCH_NAME }}
+      - name: Build with Maven
+        run: cd registration && mvn -B package --file pom.xml -s $GITHUB_WORKSPACE/settings.xml
+      
+      - name: Setup the settings file for ossrh server
+        run: echo "<settings> <servers>  <server>  <id>ossrh</id>    <username>${{secrets.ossrh_user}}</username> <password>${{secrets.ossrh_secret}}</password> </server> </servers> <profiles> <profile>     <id>ossrh</id> <activation> <activeByDefault>true</activeByDefault> </activation>  <properties> <gpg.executable>gpg2</gpg.executable> <gpg.passphrase>${{secrets.gpg_secret}}</gpg.passphrase> </properties> </profile> <profile> <id>allow-snapshots</id>       <activation><activeByDefault>true</activeByDefault></activation> <repositories> <repository>        <id>snapshots-repo</id> <url>https://oss.sonatype.org/content/repositories/snapshots</url> <releases><enabled>false</enabled></releases> <snapshots><enabled>true</enabled></snapshots> </repository>  <repository>         <id>releases-repo</id>  <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>         <releases><enabled>true</enabled></releases>         <snapshots><enabled>false</enabled></snapshots> </repository> </repositories>  </profile> </profiles> </settings>" > $GITHUB_WORKSPACE/settings.xml
+      
+      - name: Publish the maven package
+        run: cd registration && mvn deploy -DskipTests -s $GITHUB_WORKSPACE/settings.xml
+        env:
+          GPG_TTY: $(tty)
+          
+      #- name: Ready the springboot artifacts
+      #  run: find -name '*.jar' -executable -type f  -exec zip release.zip {} +
+
+      #- name: Upload the springboot jars 
+      #  uses: actions/upload-artifact@v1
+      #  with:
+      #    name: clinet_release
+      #    path: ./release.zip
+
   publish_to_nexus:
     needs: build
 
@@ -94,8 +160,9 @@ jobs:
     
     - name: Publish the maven package
       run: |
-        find registration-processor/*/ -name "pom.xml" | xargs -I{} mvn deploy -DskipTests -f {} -s $GITHUB_WORKSPACE/settings.xml
-        find registration/*/ -name "pom.xml" | xargs -I{} mvn deploy -DskipTests -f {} -s $GITHUB_WORKSPACE/settings.xml
+        chmod +x ./deploy.sh
+        ./deploy registration-processor $GITHUB_WORKSPACE/settings.xml SNAPSHOT
+        ./deploy registration $GITHUB_WORKSPACE/settings.xml SNAPSHOT
       env:
         GITHUB_TOKEN: ${{ secrets.access_token }}
         GPG_TTY: $(tty)  
@@ -105,7 +172,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-osi-validator-stage
       SERVICE_LOCATION: registration-processor/pre-processor/registration-processor-osi-validator-stage
 
@@ -151,7 +218,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-securezone-notification-stage
       SERVICE_LOCATION: registration-processor/pre-processor/registration-processor-securezone-notification-stage
 
@@ -198,7 +265,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-request-handler-service
       SERVICE_LOCATION: registration-processor/pre-processor/registration-processor-request-handler-service
 
@@ -244,7 +311,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-external-stage
       SERVICE_LOCATION: registration-processor/pre-processor/registration-processor-external-stage
 
@@ -290,7 +357,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-packet-validator-stage
       SERVICE_LOCATION: registration-processor/pre-processor/registration-processor-packet-validator-stage
 
@@ -336,7 +403,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-packet-uploader-stage
       SERVICE_LOCATION: registration-processor/pre-processor/registration-processor-packet-uploader-stage
 
@@ -382,7 +449,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-quality-checker-stage
       SERVICE_LOCATION: registration-processor/pre-processor/registration-processor-quality-checker-stage
 
@@ -428,7 +495,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-external-integration-service
       SERVICE_LOCATION: registration-processor/pre-processor/registration-processor-external-integration-service
 
@@ -474,7 +541,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-common-camel-bridge
       SERVICE_LOCATION: registration-processor/registration-processor-common-camel-bridge
 
@@ -520,7 +587,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-print-service
       SERVICE_LOCATION: registration-processor/post-processor/registration-processor-print-service
 
@@ -566,7 +633,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-printing-stage
       SERVICE_LOCATION: registration-processor/post-processor/registration-processor-printing-stage
 
@@ -612,7 +679,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-registration-transaction-service
       SERVICE_LOCATION: registration-processor/post-processor/registration-processor-registration-transaction-service
 
@@ -658,7 +725,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-message-sender-stage
       SERVICE_LOCATION: registration-processor/post-processor/registration-processor-message-sender-stage
 
@@ -704,7 +771,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-manual-verification-stage
       SERVICE_LOCATION: registration-processor/core-processor/registration-processor-manual-verification-stage
 
@@ -750,7 +817,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-abis-handler-stage
       SERVICE_LOCATION: registration-processor/core-processor/registration-processor-abis-handler-stage
 
@@ -796,7 +863,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-abis-middleware-stage
       SERVICE_LOCATION: registration-processor/core-processor/registration-processor-abis-middleware-stage
 
@@ -842,7 +909,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-uin-generator-stage
       SERVICE_LOCATION: registration-processor/core-processor/registration-processor-uin-generator-stage
 
@@ -888,7 +955,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-bio-dedupe-service
       SERVICE_LOCATION: registration-processor/core-processor/registration-processor-bio-dedupe-service
 
@@ -934,7 +1001,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-abis
       SERVICE_LOCATION: registration-processor/core-processor/registration-processor-abis
 
@@ -980,7 +1047,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-bio-dedupe-stage
       SERVICE_LOCATION: registration-processor/core-processor/registration-processor-bio-dedupe-stage
 
@@ -1026,7 +1093,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-reprocessor-stage
       SERVICE_LOCATION: registration-processor/core-processor/registration-processor-reprocessor-stage
 
@@ -1072,7 +1139,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-demo-dedupe-stage
       SERVICE_LOCATION: registration-processor/core-processor/registration-processor-demo-dedupe-stage
 
@@ -1118,7 +1185,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-biometric-authentication-stage
       SERVICE_LOCATION: registration-processor/core-processor/registration-processor-biometric-authentication-stage
 
@@ -1164,7 +1231,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-packet-receiver-stage
       SERVICE_LOCATION: registration-processor/init/registration-processor-packet-receiver-stage
 
@@ -1210,7 +1277,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-dmz-packet-server
       SERVICE_LOCATION: registration-processor/init/registration-processor-dmz-packet-server
 
@@ -1256,7 +1323,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: mosipdev
+      NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
       SERVICE_NAME: registration-processor-registration-status-service
       SERVICE_LOCATION: registration-processor/init/registration-processor-registration-status-service
 
