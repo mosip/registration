@@ -8,6 +8,7 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.registration.processor.packet.manager.utils.ZipUtils;
 import org.apache.commons.io.IOUtils;
 import org.h2.store.fs.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,6 +107,9 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	/** The file size. */
 	@Value("${registration.processor.max.file.size}")
 	private String fileSize;
+
+	@Value("${registration.processor.sourcepackets}")
+	private String packetSources;
 
 	/** The virus scanner service. */
 	@Autowired
@@ -227,10 +231,10 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	/**
 	 * Store packet.
 	 *
-	 * @param encryptedInputStream
-	 *            the encrypted input stream
-	 * @param registrationId
-	 *            the registration id
+	 * @param dto
+	 *            the InternalRegistrationStatusDto
+	 * @param regEntity
+	 *            the SyncRegistrationEntity
 	 * @param stageName
 	 *            the stage name
 	 * @param description
@@ -279,7 +283,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	 * @param fileOriginalName
 	 *            the file original name
 	 * @param description
-	 * @param regId
+	 * @param registrationId
 	 *            the reg id
 	 */
 	private void validatePacketFormat(String fileOriginalName, String registrationId, LogDescription description) {
@@ -300,10 +304,23 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	 *            the input stream
 	 * @param description
 	 */
-	private boolean scanFile(InputStream inputStream, RegistrationExceptionMapperUtil registrationExceptionMapperUtil,
-			String registrationId, InternalRegistrationStatusDto dto, LogDescription description) {
+	private boolean scanFile(final byte[] inputStream, RegistrationExceptionMapperUtil registrationExceptionMapperUtil,
+			String registrationId, InternalRegistrationStatusDto dto, LogDescription description) throws IOException {
 		try {
-			boolean isInputFileClean = virusScannerService.scanFile(inputStream);
+			boolean isInputFileClean = virusScannerService.scanFile(new ByteArrayInputStream(inputStream));
+
+			// scanning the source packets (Like - id, evidence, optional packets).
+			if (isInputFileClean) {
+				String[] sources = packetSources.split(",");
+				for (String source : sources) {
+					ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(inputStream);
+					InputStream encryptedSourcePacket = ZipUtils.unzipAndGetFile(byteArrayInputStream, registrationId + "_" + source);
+					isInputFileClean = virusScannerService.scanFile(encryptedSourcePacket);
+					if (!isInputFileClean)
+						break;
+				}
+			}
+
 			if (!isInputFileClean) {
 				description.setMessage(PlatformErrorMessages.PRP_PKR_PACKET_VIRUS_SCAN_FAILED.getMessage());
 				description.setCode(PlatformErrorMessages.PRP_PKR_PACKET_VIRUS_SCAN_FAILED.getCode());
@@ -421,7 +438,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	 *
 	 * @param length
 	 *            the length
-	 * @param regid
+	 * @param registrationId
 	 *            the regid
 	 */
 	private void validatePacketSize(long length, SyncRegistrationEntity regEntity, String registrationId,
@@ -467,8 +484,8 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 		regEntity = syncRegistrationService.findByRegistrationId(registrationId);
 		messageDTO.setReg_type(RegistrationType.valueOf(regEntity.getRegistrationType()));
 		try (InputStream encryptedInputStream = FileUtils.newInputStream(file.getAbsolutePath())) {
-			byte[] encryptedByteArray = IOUtils.toByteArray(encryptedInputStream);
-			scanningFlag = scanFile(new ByteArrayInputStream(encryptedByteArray), registrationExceptionMapperUtil,
+			final byte[] encryptedByteArray = IOUtils.toByteArray(encryptedInputStream);
+			scanningFlag = scanFile(encryptedByteArray, registrationExceptionMapperUtil,
 					registrationId, dto, description);
 			if (scanningFlag) {
 				fileManager.put(registrationId, new ByteArrayInputStream(encryptedByteArray),

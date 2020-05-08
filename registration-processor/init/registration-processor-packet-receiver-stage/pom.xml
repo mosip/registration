@@ -108,7 +108,6 @@
 			<artifactId>registration-processor-rest-client</artifactId>
 			<version>${registration.processor.rest.client.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>javax.inject</groupId>
 			<artifactId>javax.inject</artifactId>

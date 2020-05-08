@@ -97,6 +97,11 @@
 			<version>${kernel.clamav.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-fsadapter-hdfs</artifactId>
+			<version>${kernel.fsadapter.hdfs.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 		</dependency>
@@ -120,6 +125,11 @@
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-registry-prometheus</artifactId>
 			<version>${io.micrometer.prometheus.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.registrationprocessor</groupId>
+			<artifactId>registration-processor-packet-utility</artifactId>
+			<version>${registration.processor.packet.utility.version}</version>
 		</dependency>
 	</dependencies>
 

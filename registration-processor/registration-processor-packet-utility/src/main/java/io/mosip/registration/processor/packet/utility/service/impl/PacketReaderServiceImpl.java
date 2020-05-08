@@ -81,7 +81,6 @@ public class PacketReaderServiceImpl implements PacketReaderService {
 	 * @return the file
 	 * @throws PacketDecryptionFailureException the packet decryption failure
 	 *                                          exception
-	 * @throws ApisResourceAccessException      the apis resource access exception
 	 * @throws IOException                      Signals that an I/O exception has
 	 *                                          occurred.
 	 */
@@ -109,5 +108,10 @@ public class PacketReaderServiceImpl implements PacketReaderService {
 							.getErrorMessage());
 		}
 		return decryptedData;
+	}
+
+	@Override
+	public InputStream getEncryptedSourcePacket(String rid, InputStream inputStream, String source) throws IOException {
+		return ZipUtils.unzipAndGetFile(inputStream, rid + "_" + source);
 	}
 }
