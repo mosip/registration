@@ -1830,4 +1830,19 @@ public class BaseController {
 		return (schemaField.isInputRequired() && !(schemaField.getType().equalsIgnoreCase("biometricsType")
 				|| schemaField.getType().equalsIgnoreCase("documentType")));
 	}
+
+	protected List<String> getConstantConfigBioAttributes(String bioType) {
+
+		return bioType.equalsIgnoreCase(RegistrationUIConstants.RIGHT_SLAP)
+				? RegistrationConstants.rightHandUiAttributes
+				: bioType.equalsIgnoreCase(RegistrationUIConstants.LEFT_SLAP)
+						? RegistrationConstants.leftHandUiAttributes
+						: bioType.equalsIgnoreCase(RegistrationUIConstants.THUMBS)
+								? RegistrationConstants.twoThumbsUiAttributes
+								: bioType.equalsIgnoreCase(RegistrationConstants.IRIS)
+										? RegistrationConstants.eyesUiAttributes
+										: bioType.equalsIgnoreCase(RegistrationConstants.FACE)
+												? Arrays.asList(RegistrationConstants.FACE)
+												: null;
+	}
 }
