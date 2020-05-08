@@ -13,12 +13,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -63,8 +61,8 @@ public class PacketDecryptorImpl implements PacketDecryptor {
 	@Autowired
 	private Environment env;
 
-	@Autowired
-	private RestTemplate restTemplate;
+	// @Autowired
+	// private RestTemplate restTemplate;
 
 	@Autowired
 	ObjectMapper mapper;
@@ -130,9 +128,11 @@ public class PacketDecryptorImpl implements PacketDecryptor {
 			HttpEntity<RequestWrapper<CryptomanagerRequestDto>> httpEntity = new HttpEntity<>(request,
 					new HttpHeaders());
 			CryptomanagerResponseDto response;
-			ResponseEntity<String> responseEntity = restTemplate.exchange(env.getProperty("DMZCRYPTOMANAGERDECRYPT"),
-					HttpMethod.POST, httpEntity,
-					String.class);
+			ResponseEntity<String> responseEntity = null;
+			/*
+			 * /restTemplate.exchange(env.getProperty("DMZCRYPTOMANAGERDECRYPT"),
+			 * HttpMethod.POST, httpEntity, String.class);
+			 */
 			ResponseWrapper<CryptomanagerResponseDto> responseObject;
 
 				responseObject = mapper.readValue(responseEntity.getBody(), ResponseWrapper.class);
