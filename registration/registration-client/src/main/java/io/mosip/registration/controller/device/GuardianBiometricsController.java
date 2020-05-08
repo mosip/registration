@@ -381,7 +381,6 @@ public class GuardianBiometricsController extends BaseController implements Init
 				bioType = "IRIS_DOUBLE";
 			}
 
-			
 			scanPopUpViewController.init(this, headerText);
 			if (bioService.isMdmEnabled())
 				streamer.startStream(bioType, scanPopUpViewController.getScanImage(), biometricImage);
@@ -397,8 +396,14 @@ public class GuardianBiometricsController extends BaseController implements Init
 		// Exception fingers
 		List<String> exceptionFingers = null;
 
+		// TODO check age whether to get introducer or indiviual bio attributes
+		int age = 15;
+		int configured = 5;
+		String subType = age >= configured ? RegistrationConstants.INDIVIDUAL : RegistrationConstants.INTRODUCER;
+
 		// Get Non configured bio attributes Using Ui Schema
-		List<String> nonConfigBioAttributesByBioType = getNonConfigBioAttributesByBioType(bioType);
+		List<String> nonConfigBioAttributesByBioType = getNonConfigBioAttributesByUiSchemaSubTypeAndBioType(subType,
+				bioType);
 
 		if (nonConfigBioAttributesByBioType != null && !nonConfigBioAttributesByBioType.isEmpty()) {
 			exceptionFingers = exceptionFingers != null ? exceptionFingers : new LinkedList<String>();
@@ -442,7 +447,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 		return selectedExceptions;
 	}
 
-	private List<String> getNonConfigBioAttributesByBioType(String bioType) {
+	private List<String> getNonConfigBioAttributesByUiSchemaSubTypeAndBioType(String uiSchemaSubType, String bioType) {
 
 		List<String> bioAttributes = bioType.equalsIgnoreCase(RegistrationUIConstants.RIGHT_SLAP)
 				? RegistrationConstants.rightHandUiAttributes
@@ -455,7 +460,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 										: bioType.equalsIgnoreCase(RegistrationConstants.FACE)
 												? Arrays.asList(RegistrationConstants.FACE)
 												: null;
-		return getNonConfigBioAttributes(bioAttributes);
+		return getNonConfigBioAttributes(uiSchemaSubType, bioAttributes);
 
 	}
 
@@ -800,7 +805,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		attempt = attempt != 0 ? attempt + 1 : 1;
 
-		//TODO to be passed through MDS capture request 
+		// TODO to be passed through MDS capture request
 		List<String> exceptions = getExceptionFingersByBioType(biometricType.getText());
 
 		try {

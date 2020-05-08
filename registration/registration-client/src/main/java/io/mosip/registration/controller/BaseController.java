@@ -1695,12 +1695,14 @@ public class BaseController {
 			
 			//Set Validations Map
 			setValidations(validationsMap);
-			
+			ApplicationContext.map().put(RegistrationConstants.indBiometrics,
+			getBioAttributesBySubType(RegistrationConstants.indBiometrics));	
+			ApplicationContext.map().put("parentOrGuardianBiometrics",
+		getBioAttributesBySubType("parentOrGuardianBiometrics"));
+
 		} catch (IOException ioException) {
-			// TODO Auto-generated catch block
 			ioException.printStackTrace();
 		}
-		
 		
 		}
 	}
@@ -1711,7 +1713,7 @@ public class BaseController {
 		pane.setDisable(true);
 
 		/** Get UI schema individual Biometrics Bio Attributes */
-		List<String> uiSchemaBioAttributes = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
+		List<String> uiSchemaBioAttributes = getBioAttributesBySubType(RegistrationConstants.indBiometrics);
 
 		/** If bio Attribute not mentioned for bio attribute then disable */
 		if (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
@@ -1751,22 +1753,29 @@ public class BaseController {
 	//
 	// }
 
-	private List<String> getSchemaFieldBioAttributes(String fieldId) {
-		if (validations.getValidationMap().containsKey(fieldId)
-				&& validations.getValidationMap().get(fieldId).getType().equalsIgnoreCase("biometricsType")) {
+	private List<String> getBioAttributesBySubType(String subType) {
 
-			BioServiceImpl.setBioAttributes(validations.getValidationMap().get(fieldId).getBioAttributes());
-			return validations.getValidationMap().get(fieldId).getBioAttributes();
+		List<String> bioAttributes = null;
 
+		if (subType != null) {
+			for (Map.Entry<String, UiSchemaDTO> entry : validations.getValidationMap().entrySet()) {
+
+				if (entry.getValue() != null && subType.equalsIgnoreCase(entry.getValue().getSubType())) {
+
+					bioAttributes = bioAttributes == null ? new LinkedList<>() : bioAttributes;
+
+					bioAttributes.addAll(entry.getValue().getBioAttributes());
+				}
+			}
 		}
 
-		return null;
+		return bioAttributes;
 	}
 
 	protected boolean isAvailableInBioAttributes(List<String> constantAttributes) {
 
 		boolean isAvailable = false;
-		List<String> uiSchemaBioAttributes = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
+		List<String> uiSchemaBioAttributes = getBioAttributesBySubType(RegistrationConstants.indBiometrics);
 
 		/** If bio Attribute not mentioned for bio attribute then disable */
 		if (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
@@ -1787,12 +1796,12 @@ public class BaseController {
 		return isAvailable;
 	}
 
-	protected List<String> getNonConfigBioAttributes(List<String> constantAttributes) {
+	protected List<String> getNonConfigBioAttributes(String uiSchemaSubType, List<String> constantAttributes) {
 
 		List<String> nonConfigBiometrics = new LinkedList<>();
 
 		// Get Bio Attributes
-		List<String> uiAttributes = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
+		List<String> uiAttributes = getBioAttributesBySubType(uiSchemaSubType);
 
 		for (String attribute : constantAttributes) {
 			if (!uiAttributes.contains(attribute)) {
