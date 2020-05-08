@@ -36,7 +36,6 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.config.GlobalParamService;
-import io.mosip.registration.util.common.PageFlow;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 
 /**
@@ -65,8 +64,6 @@ public class GlobalParamServiceImpl extends BaseService implements GlobalParamSe
 	@Autowired
 	private GlobalParamDAO globalParamDAO;
 	
-	@Autowired
-	private PageFlow pageFlow;
 
 	/*
 	 * (non-Javadoc)
