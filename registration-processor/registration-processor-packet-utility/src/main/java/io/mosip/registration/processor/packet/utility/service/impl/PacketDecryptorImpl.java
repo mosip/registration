@@ -80,7 +80,7 @@ public class PacketDecryptorImpl implements PacketDecryptor {
 	 */
 	@Override
 	public InputStream decrypt(InputStream encryptedPacket, String registrationId)
-			throws PacketDecryptionFailureException, ApiNotAccessibleException {
+			throws PacketDecryptionFailureException {
 		InputStream outstream = null;
 
 		try {
