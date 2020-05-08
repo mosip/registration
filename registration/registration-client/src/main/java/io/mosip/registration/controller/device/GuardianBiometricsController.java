@@ -402,8 +402,8 @@ public class GuardianBiometricsController extends BaseController implements Init
 		String subType = age >= configured ? RegistrationConstants.INDIVIDUAL : RegistrationConstants.INTRODUCER;
 
 		// Get Non configured bio attributes Using Ui Schema
-		List<String> nonConfigBioAttributesByBioType = getNonConfigBioAttributesByUiSchemaSubTypeAndBioType(subType,
-				bioType);
+		List<String> nonConfigBioAttributesByBioType = getNonConfigBioAttributes(subType,
+				getConstantConfigBioAttributes(bioType));
 
 		if (nonConfigBioAttributesByBioType != null && !nonConfigBioAttributesByBioType.isEmpty()) {
 			exceptionFingers = exceptionFingers != null ? exceptionFingers : new LinkedList<String>();
@@ -445,23 +445,6 @@ public class GuardianBiometricsController extends BaseController implements Init
 		}
 
 		return selectedExceptions;
-	}
-
-	private List<String> getNonConfigBioAttributesByUiSchemaSubTypeAndBioType(String uiSchemaSubType, String bioType) {
-
-		List<String> bioAttributes = bioType.equalsIgnoreCase(RegistrationUIConstants.RIGHT_SLAP)
-				? RegistrationConstants.rightHandUiAttributes
-				: bioType.equalsIgnoreCase(RegistrationUIConstants.LEFT_SLAP)
-						? RegistrationConstants.leftHandUiAttributes
-						: bioType.equalsIgnoreCase(RegistrationUIConstants.THUMBS)
-								? RegistrationConstants.twoThumbsUiAttributes
-								: bioType.equalsIgnoreCase(RegistrationConstants.IRIS)
-										? RegistrationConstants.eyesUiAttributes
-										: bioType.equalsIgnoreCase(RegistrationConstants.FACE)
-												? Arrays.asList(RegistrationConstants.FACE)
-												: null;
-		return getNonConfigBioAttributes(uiSchemaSubType, bioAttributes);
-
 	}
 
 	/*
