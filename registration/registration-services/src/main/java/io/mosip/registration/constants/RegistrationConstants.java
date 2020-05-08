@@ -1689,4 +1689,9 @@ public class RegistrationConstants {
 		}
 
 	};
+	
+	public static final String BIOMETRICS_TYPE = "biometricsType";
+	
+	
+	
 }
