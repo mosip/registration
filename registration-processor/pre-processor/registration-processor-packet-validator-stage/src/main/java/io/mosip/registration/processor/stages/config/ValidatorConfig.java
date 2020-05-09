@@ -20,6 +20,8 @@ import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectValidationFailed
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.core.packet.dto.applicantcategory.ApplicantTypeDocument;
+import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
+import io.mosip.registration.processor.packet.utility.service.impl.PacketReaderServiceImpl;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.stages.helper.RestHelper;
 import io.mosip.registration.processor.stages.helper.RestHelperImpl;
@@ -93,6 +95,11 @@ public class ValidatorConfig {
 		if (StringUtils.isNotBlank(env.getProperty(IDOBJECT_PROVIDER))) {
 			Class.forName(env.getProperty(IDOBJECT_PROVIDER));
 		}
+	}
+	
+	@Bean
+	public PacketReaderService getPacketReaderService() {
+		return new PacketReaderServiceImpl();
 	}
 
 	@Bean

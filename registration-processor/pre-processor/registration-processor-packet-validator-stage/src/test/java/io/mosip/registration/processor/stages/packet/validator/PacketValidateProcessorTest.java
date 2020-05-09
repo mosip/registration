@@ -80,6 +80,7 @@ import io.mosip.registration.processor.packet.storage.exception.IdRepoAppExcepti
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
 import io.mosip.registration.processor.stages.utils.CheckSumValidation;
@@ -111,7 +112,7 @@ public class PacketValidateProcessorTest {
 
 	/** The filesystem ceph adapter impl. */
 	@Mock
-	private PacketManager filesystemCephAdapterImpl;
+	private PacketReaderService filesystemCephAdapterImpl;
 
 	/** The registration status service. */
 	@Mock
@@ -131,7 +132,7 @@ public class PacketValidateProcessorTest {
 	InternalRegistrationStatusDto registrationStatusDto;
 
 	@Mock
-	CheckSumValidation checkSumValidation = new CheckSumValidation(filesystemCephAdapterImpl, registrationStatusDto);
+	CheckSumValidation checkSumValidation = new CheckSumValidation(filesystemCephAdapterImpl, registrationStatusDto,"id");
 
 	@Mock
 	private RegistrationProcessorRestClientService<Object> restClientService;
@@ -335,10 +336,10 @@ public class PacketValidateProcessorTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(registrationStatusDto, "", "");
-		Mockito.when(filesystemCephAdapterImpl.checkFileExistence(anyString(), anyString())).thenReturn(Boolean.TRUE);
+		Mockito.when(filesystemCephAdapterImpl.checkFileExistence(anyString(),anyString(),anyString())).thenReturn(Boolean.TRUE);
 		Mockito.when(idRepoService.findUinFromIdrepo(any(), any())).thenReturn(65324321);
 
-		Mockito.when(filesystemCephAdapterImpl.getFile(any(), any())).thenReturn(inputStream);
+		Mockito.when(filesystemCephAdapterImpl.getFile(any(), any(),anyString())).thenReturn(inputStream);
 		PowerMockito.mockStatic(HMACUtils.class);
 		PowerMockito.doNothing().when(HMACUtils.class, "update", data);
 		PowerMockito.when(HMACUtils.class, "digestAsPlainText", anyString().getBytes()).thenReturn(test);
@@ -395,14 +396,14 @@ public class PacketValidateProcessorTest {
 		// String test = "{}";
 		// byte[] data = "{}".getBytes();
 
-		Mockito.when(filesystemCephAdapterImpl.getFile(anyString(), anyString())).thenReturn(inputStream);
+		Mockito.when(filesystemCephAdapterImpl.getFile(anyString(),anyString(),anyString())).thenReturn(inputStream);
 
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
 				.thenReturn(packetMetaInfo);
 
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(registrationStatusDto, "", "");
-		Mockito.when(filesystemCephAdapterImpl.checkFileExistence(anyString(), anyString())).thenReturn(Boolean.TRUE);
+		Mockito.when(filesystemCephAdapterImpl.checkFileExistence(anyString(),anyString(),anyString())).thenReturn(Boolean.TRUE);
 
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(test.getBytes());
@@ -632,7 +633,7 @@ public class PacketValidateProcessorTest {
 		String test = "123456789";
 		byte[] data = "{}".getBytes();
 
-		Mockito.when(filesystemCephAdapterImpl.getFile(anyString(), anyString())).thenReturn(inputStream);
+		Mockito.when(filesystemCephAdapterImpl.getFile(anyString(),anyString(), anyString())).thenReturn(inputStream);
 
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
 				.thenReturn(packetMetaInfo);
@@ -640,7 +641,7 @@ public class PacketValidateProcessorTest {
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(registrationStatusDto, "", "");
-		Mockito.when(filesystemCephAdapterImpl.checkFileExistence(anyString(), anyString())).thenReturn(Boolean.TRUE);
+		Mockito.when(filesystemCephAdapterImpl.checkFileExistence(anyString(),anyString(), anyString())).thenReturn(Boolean.TRUE);
 
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(data);
@@ -663,7 +664,7 @@ public class PacketValidateProcessorTest {
 	@Test
 	public void testFilesValidationFailure() throws Exception {
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
-		Mockito.when(filesystemCephAdapterImpl.getFile(anyString(), anyString())).thenReturn(inputStream);
+		Mockito.when(filesystemCephAdapterImpl.getFile(anyString(), anyString(),anyString())).thenReturn(inputStream);
 		PowerMockito.mockStatic(JsonUtil.class);
 
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
@@ -672,7 +673,7 @@ public class PacketValidateProcessorTest {
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(registrationStatusDto, "", "");
-		Mockito.when(filesystemCephAdapterImpl.checkFileExistence(anyString(), anyString())).thenReturn(Boolean.FALSE);
+		Mockito.when(filesystemCephAdapterImpl.checkFileExistence(anyString(), anyString(),anyString())).thenReturn(Boolean.FALSE);
 		MessageDTO messageDto = packetValidateProcessor.process(dto, stageName);
 		assertFalse(messageDto.getIsValid());
 	}
@@ -686,7 +687,7 @@ public class PacketValidateProcessorTest {
 	@Test
 	public void testExceptions() throws Exception {
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
-		Mockito.when(filesystemCephAdapterImpl.getFile(anyString(), anyString())).thenReturn(inputStream);
+		Mockito.when(filesystemCephAdapterImpl.getFile(anyString(),anyString(), anyString())).thenReturn(inputStream);
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
 				.thenReturn(packetMetaInfo);
@@ -696,7 +697,7 @@ public class PacketValidateProcessorTest {
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(registrationStatusDto, "", "'");
-		Mockito.when(filesystemCephAdapterImpl.checkFileExistence(anyString(), anyString())).thenReturn(Boolean.TRUE);
+		Mockito.when(filesystemCephAdapterImpl.checkFileExistence(anyString(), anyString(),anyString())).thenReturn(Boolean.TRUE);
 
 		MessageDTO messageDto = packetValidateProcessor.process(dto, stageName);
 
@@ -739,7 +740,7 @@ public class PacketValidateProcessorTest {
 	@Test
 	public void testIOExceptions() throws Exception {
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
-		Mockito.when(filesystemCephAdapterImpl.getFile(anyString(), anyString())).thenReturn(inputStream);
+		Mockito.when(filesystemCephAdapterImpl.getFile(anyString(), anyString(),anyString())).thenReturn(inputStream);
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
 				.thenReturn(packetMetaInfo);
@@ -750,7 +751,7 @@ public class PacketValidateProcessorTest {
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(registrationStatusDto, "", "");
-		Mockito.when(filesystemCephAdapterImpl.checkFileExistence(anyString(), anyString())).thenReturn(Boolean.TRUE);
+		Mockito.when(filesystemCephAdapterImpl.checkFileExistence(anyString(),anyString(), anyString())).thenReturn(Boolean.TRUE);
 
 		MessageDTO messageDto = packetValidateProcessor.process(dto, stageName);
 
@@ -769,7 +770,7 @@ public class PacketValidateProcessorTest {
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
 		String test = "123456789";
 		byte[] data = "{}".getBytes();
-		Mockito.when(filesystemCephAdapterImpl.getFile(anyString(), anyString())).thenReturn(inputStream);
+		Mockito.when(filesystemCephAdapterImpl.getFile(anyString(), anyString(),anyString())).thenReturn(inputStream);
 
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
 				.thenReturn(packetMetaInfo);
@@ -778,7 +779,7 @@ public class PacketValidateProcessorTest {
 		registrationStatusDto.setRetryCount(1);
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(registrationStatusDto, "", "");
-		Mockito.when(filesystemCephAdapterImpl.checkFileExistence(anyString(), anyString())).thenReturn(Boolean.TRUE);
+		Mockito.when(filesystemCephAdapterImpl.checkFileExistence(anyString(),anyString(), anyString())).thenReturn(Boolean.TRUE);
 
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(data);
@@ -882,7 +883,7 @@ public class PacketValidateProcessorTest {
 	@Test
 	public void fSAdapterExceptionTest() throws Exception {
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
-		Mockito.when(filesystemCephAdapterImpl.checkFileExistence(anyString(), anyString()))
+		Mockito.when(filesystemCephAdapterImpl.checkFileExistence(anyString(), anyString(),anyString()))
 				.thenThrow(new FSAdapterException("", ""));
 
 		MessageDTO messageDto = packetValidateProcessor.process(dto, stageName);

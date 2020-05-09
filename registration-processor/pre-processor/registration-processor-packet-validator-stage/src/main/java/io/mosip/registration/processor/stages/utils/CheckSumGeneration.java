@@ -16,7 +16,7 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.FieldValueArray;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
+import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 
 /**
  * The Class CheckSumGeneration.
@@ -33,7 +33,9 @@ public class CheckSumGeneration {
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(CheckSumGeneration.class);
 
 	/** The adapter. */
-	private PacketManager adapter;
+	private PacketReaderService adapter;
+
+	private String source;
 
 	/**
 	 * Instantiates a new check sum generation.
@@ -41,8 +43,9 @@ public class CheckSumGeneration {
 	 * @param adapter
 	 *            the adapter
 	 */
-	public CheckSumGeneration(PacketManager adapter) {
+	public CheckSumGeneration(PacketReaderService adapter,String source) {
 		this.adapter = adapter;
+		this.source=source;
 	}
 
 	/**
@@ -63,15 +66,15 @@ public class CheckSumGeneration {
 
 			if (PacketFiles.APPLICANTBIOMETRICSEQUENCE.name().equalsIgnoreCase(fieldValueArray.getLabel())) {
 
-				generateBiometricsHash(fieldValueArray.getValue(), registrationId, outputStream);
+				generateHash(fieldValueArray.getValue(), registrationId, outputStream);
 
 			} else if (PacketFiles.INTRODUCERBIOMETRICSEQUENCE.name().equalsIgnoreCase(fieldValueArray.getLabel())) {
 
-				generateBiometricsHash(fieldValueArray.getValue(), registrationId, outputStream);
+				generateHash(fieldValueArray.getValue(), registrationId, outputStream);
 
 			} else if (PacketFiles.APPLICANTDEMOGRAPHICSEQUENCE.name().equalsIgnoreCase(fieldValueArray.getLabel())) {
 
-				generateDemographicHash(fieldValueArray.getValue(), registrationId, outputStream);
+				generateHash(fieldValueArray.getValue(), registrationId, outputStream);
 			}
 		}
         byte[] dataByte = HMACUtils.generateHash(outputStream.toByteArray());
@@ -81,32 +84,7 @@ public class CheckSumGeneration {
 
 	}
 
-	/**
-	 * Generate biometric infos hash.
-	 *
-	 * @param hashOrder
-	 *            the hash order
-	 * @param registrationId
-	 *            the registration id
-	 * @param personType
-	 *            the person type
-	 */
-	private void generateBiometricsHash(List<String> hashOrder, String registrationId, ByteArrayOutputStream outputStream) {
-		hashOrder.forEach(file -> {
-			byte[] fileByte = null;
-			try {
-				InputStream fileStream = adapter.getFile(registrationId,
-						PacketFiles.BIOMETRIC.name() + FILE_SEPARATOR + file.toUpperCase());
-
-                fileByte = IOUtils.toByteArray(fileStream);
-                outputStream.write(fileByte);
-			} catch (IOException | PacketDecryptionFailureException | ApisResourceAccessException | io.mosip.kernel.core.exception.IOException e) {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.APPLICATIONID.toString(), StatusMessage.INPUTSTREAM_NOT_READABLE,
-						e.getMessage() + ExceptionUtils.getStackTrace(e));
-			}
-		});
-	}
+	
 
 	/**
 	 * Generate demographic hash.
@@ -116,12 +94,11 @@ public class CheckSumGeneration {
 	 * @param registrationId
 	 *            the registration id
 	 */
-	private void generateDemographicHash(List<String> hashOrder, String registrationId, ByteArrayOutputStream outputStream ) {
+	private void generateHash(List<String> hashOrder, String registrationId, ByteArrayOutputStream outputStream ) {
 		hashOrder.forEach(document -> {
 			byte[] fileByte = null;
 			try {
-				InputStream fileStream = adapter.getFile(registrationId,
-						PacketFiles.DEMOGRAPHIC.name() + FILE_SEPARATOR + document.toUpperCase());
+				InputStream fileStream = adapter.getFile(registrationId, document.toUpperCase(),source);
 
                 fileByte = IOUtils.toByteArray(fileStream);
 				outputStream.write(fileByte);
@@ -140,7 +117,7 @@ public class CheckSumGeneration {
 			hashValues.forEach(value -> {
 				byte[] valuebyte = null;
 				try {
-					InputStream fileStream = adapter.getFile(registrationId, value.toUpperCase());
+					InputStream fileStream = adapter.getFile(registrationId, value.toUpperCase(),source);
 
 					valuebyte = IOUtils.toByteArray(fileStream);
 					outputStream.write(valuebyte);

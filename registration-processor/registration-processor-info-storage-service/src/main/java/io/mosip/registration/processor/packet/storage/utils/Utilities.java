@@ -430,9 +430,8 @@ public class Utilities {
 				registrationId, "Utilities::getDemographicIdentityJSONObject()::entry");
 		
 		
-/*
-		InputStream idJsonStream = adapter.getFile(registrationId,
-				PacketFiles.DEMOGRAPHIC.name() + FILE_SEPARATOR + PacketFiles.ID.name());
+
+		InputStream idJsonStream = packetReaderService.getFile(registrationId, PacketFiles.ID.name(),JsonConstant.ID);
 		byte[] bytearray = IOUtils.toByteArray(idJsonStream);
 		String jsonString = new String(bytearray);
 		JSONObject demographicIdentityJson = (JSONObject) JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
@@ -448,9 +447,9 @@ public class Utilities {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getDemographicIdentityJSONObject()::exit");
-*/
+
 		
-		return null;
+		return demographicIdentity;
 
 	}
 

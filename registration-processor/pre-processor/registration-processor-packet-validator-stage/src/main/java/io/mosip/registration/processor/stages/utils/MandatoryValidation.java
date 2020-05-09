@@ -19,10 +19,10 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 
 /**
@@ -35,20 +35,23 @@ public class MandatoryValidation {
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(MandatoryValidation.class);
 
 	/** The adapter. */
-	private PacketManager adapter;
+	private PacketReaderService adapter;
 
 	private Utilities utility;
 
 	/** The registration status dto. */
 	private InternalRegistrationStatusDto registrationStatusDto;
 
+	private String source;
+
 	public static final String FILE_SEPARATOR = "\\";
 
-	public MandatoryValidation(PacketManager adapter, InternalRegistrationStatusDto registrationStatusDto,
-			Utilities utility) {
+	public MandatoryValidation(PacketReaderService adapter, InternalRegistrationStatusDto registrationStatusDto,
+			Utilities utility,String source) {
 		this.adapter = adapter;
 		this.registrationStatusDto = registrationStatusDto;
 		this.utility = utility;
+		this.source=source;
 	}
 
 	public boolean mandatoryFieldValidation(String regId) throws IOException, JSONException,
@@ -101,8 +104,7 @@ public class MandatoryValidation {
 
 	private JSONObject getDemoIdentity(String registrationId) throws IOException, PacketDecryptionFailureException,
 			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException {
-		InputStream documentInfoStream = adapter.getFile(registrationId,
-				PacketFiles.DEMOGRAPHIC.name() + FILE_SEPARATOR + PacketFiles.ID.name());
+		InputStream documentInfoStream = adapter.getFile(registrationId, PacketFiles.ID.name(),source);
 
 		byte[] bytes = IOUtils.toByteArray(documentInfoStream);
 		String demographicJsonString = new String(bytes);

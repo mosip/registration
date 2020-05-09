@@ -15,6 +15,7 @@ import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
@@ -62,7 +63,6 @@ import io.mosip.registration.processor.core.packet.dto.packetvalidator.MainReque
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.MainResponseDTO;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.ReverseDataSyncRequestDTO;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.ReverseDatasyncReponseDTO;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
@@ -74,6 +74,7 @@ import io.mosip.registration.processor.packet.storage.exception.IdRepoAppExcepti
 import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.stages.dto.PacketValidationDto;
 import io.mosip.registration.processor.stages.utils.ApplicantDocumentValidation;
@@ -106,7 +107,7 @@ public class PacketValidateProcessor {
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(PacketValidateProcessor.class);
 
 	@Autowired
-	private PacketManager fileSystemManager;
+	private PacketReaderService packetReaderService;
 
 	@Autowired
 	private RegistrationRepositary<SyncRegistrationEntity, String> registrationRepositary;
@@ -168,6 +169,9 @@ public class PacketValidateProcessor {
 	/** The sync registration service. */
 	@Autowired
 	private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
+	
+	@Value("${registration.processor.default.source}")
+	private String source;
 
 	private static final String INDIVIDUALBIOMETRICS = "individualBiometrics";
 
@@ -217,8 +221,8 @@ public class PacketValidateProcessor {
 			registrationStatusDto.setRegistrationStageName(stageName);
 			boolean isValidSupervisorStatus = isValidSupervisorStatus();
 			if (isValidSupervisorStatus) {
-			InputStream packetMetaInfoStream = fileSystemManager.getFile(registrationId,
-					PacketFiles.PACKET_META_INFO.name());
+			InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId,
+					PacketFiles.META_INFO.name(),source);
 			PacketMetaInfo packetMetaInfo = (PacketMetaInfo) JsonUtil.inputStreamtoJavaObject(packetMetaInfoStream,
 					PacketMetaInfo.class);
 			IdentityIteratorUtil identityIteratorUtil = new IdentityIteratorUtil();
@@ -522,8 +526,7 @@ public class PacketValidateProcessor {
 		}
 
 		Identity identity = packetMetaInfo.getIdentity();
-		InputStream idJsonStream = fileSystemManager.getFile(registrationId,
-				PacketFiles.DEMOGRAPHIC.name() + FILE_SEPARATOR + PacketFiles.ID.name());
+		InputStream idJsonStream = packetReaderService.getFile(registrationId, PacketFiles.ID.name(),source);
 
 		byte[] bytearray = IOUtils.toByteArray(idJsonStream);
 		String jsonString = new String(bytearray);
@@ -536,7 +539,7 @@ public class PacketValidateProcessor {
 
 		if (!checkSumValidation(identity, registrationStatusDto, packetValidationDto))
 			return false;
-
+		
 		demographicIdentity = utility.getDemographicIdentityJSONObject(registrationId);
 		if (!individualBiometricsValidation(registrationStatusDto, demographicIdentity, packetValidationDto))
 			return false;
@@ -615,8 +618,8 @@ public class PacketValidateProcessor {
 			PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException {
 		if (env.getProperty(VALIDATEMANDATORY).trim().equalsIgnoreCase(VALIDATIONFALSE))
 			return true;
-		MandatoryValidation mandatoryValidation = new MandatoryValidation(fileSystemManager, registrationStatusDto,
-				utility);
+		MandatoryValidation mandatoryValidation = new MandatoryValidation(packetReaderService, registrationStatusDto,
+				utility,source);
 		packetValidationDto.setMandatoryValidation(
 				mandatoryValidation.mandatoryFieldValidation(registrationStatusDto.getRegistrationId()));
 		if (!packetValidationDto.isMandatoryValidation()) {
@@ -658,7 +661,7 @@ public class PacketValidateProcessor {
 			packetValidationDto.setFilesValidated(true);
 			return packetValidationDto.isFilesValidated();
 		}
-		FilesValidation filesValidation = new FilesValidation(fileSystemManager, registrationStatusDto);
+		FilesValidation filesValidation = new FilesValidation(packetReaderService, registrationStatusDto,source);
 		packetValidationDto.setFilesValidated(
 				filesValidation.filesValidation(registrationStatusDto.getRegistrationId(), packetMetaInfo));
 		if (!packetValidationDto.isFilesValidated()) {
@@ -676,7 +679,7 @@ public class PacketValidateProcessor {
 			packetValidationDto.setCheckSumValidated(true);
 			return packetValidationDto.isCheckSumValidated();
 		}
-		CheckSumValidation checkSumValidation = new CheckSumValidation(fileSystemManager, registrationStatusDto);
+		CheckSumValidation checkSumValidation = new CheckSumValidation(packetReaderService, registrationStatusDto,source);
 		packetValidationDto.setCheckSumValidated(
 				checkSumValidation.checksumvalidation(registrationStatusDto.getRegistrationId(), identity));
 		if (!packetValidationDto.isCheckSumValidated()) {
@@ -704,8 +707,7 @@ public class PacketValidateProcessor {
 							.setPacketValidatonStatusCode(StatusUtil.INDIVIDUAL_BIOMETRIC_VALIDATION_FAILED.getCode());
 					return false;
 				}
-				InputStream idJsonStream = fileSystemManager.getFile(registrationId,
-						PacketFiles.BIOMETRIC.name() + FILE_SEPARATOR + cbefFile);
+				InputStream idJsonStream = packetReaderService.getFile(registrationId, cbefFile,source);
 				if (idJsonStream != null)
 					return true;
 
