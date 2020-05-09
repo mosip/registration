@@ -3,13 +3,13 @@ package io.mosip.registration.processor.packet.utility.service.impl;
 import java.io.IOException;
 import java.io.InputStream;
 
+import io.mosip.registration.processor.packet.utility.exception.FileNotFoundInDestinationException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import io.mosip.kernel.core.fsadapter.spi.FileSystemAdapter;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.packet.utility.constants.LoggerFileConstant;
 import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
-import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureExceptionConstant;
 import io.mosip.registration.processor.packet.utility.logger.PacketUtilityLogger;
 import io.mosip.registration.processor.packet.utility.service.PacketDecryptor;
 import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
@@ -35,7 +35,7 @@ public class PacketReaderServiceImpl implements PacketReaderService {
 	private static Logger packetUtilityLogger = PacketUtilityLogger.getLogger(PacketReaderServiceImpl.class);
 
 	/** The Constant PACKET_NOTAVAILABLE_ERROR_DESC. */
-	private static final String PACKET_NOTAVAILABLE_ERROR_DESC = "the requested file {} in the destination is not found";
+	private static final String PACKET_NOTAVAILABLE_ERROR_DESC = "the requested file is not found in the destination";
 
 	/*
 	 * (non-Javadoc)
@@ -90,22 +90,24 @@ public class PacketReaderServiceImpl implements PacketReaderService {
 				"PacketReaderServiceImpl::fileSystemAdapter.getPacket()");
 		InputStream data = fileSystemAdapter.getPacket(id);
 		if (data == null) {
-			throw new io.mosip.registration.processor.packet.utility.exception.FileNotFoundInDestinationException(
-					PACKET_NOTAVAILABLE_ERROR_DESC + id);
+			throw new FileNotFoundInDestinationException(
+					PACKET_NOTAVAILABLE_ERROR_DESC);
 		}
 		packetUtilityLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
 				"PacketReaderServiceImpl::getFile()::extractSubfolderZip");
 
 		InputStream sourceFolderInputStream = ZipUtils.unzipAndGetFile(data, id + "_" + source);
 
+		if (sourceFolderInputStream == null) {
+			throw new FileNotFoundInDestinationException(
+					PACKET_NOTAVAILABLE_ERROR_DESC);
+		}
+
 		packetUtilityLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
 				"PacketReaderServiceImpl::getFile(regid)::decryptor");
 		InputStream decryptedData = decryptor.decrypt(sourceFolderInputStream, id);
 		if (decryptedData == null) {
-			throw new PacketDecryptionFailureException(
-					PacketDecryptionFailureExceptionConstant.MOSIP_PACKET_DECRYPTION_FAILURE_ERROR_CODE.getErrorCode(),
-					PacketDecryptionFailureExceptionConstant.MOSIP_PACKET_DECRYPTION_FAILURE_ERROR_CODE
-							.getErrorMessage());
+			throw new PacketDecryptionFailureException();
 		}
 		return decryptedData;
 	}

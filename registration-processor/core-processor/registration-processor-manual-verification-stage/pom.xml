@@ -130,6 +130,11 @@
 			<artifactId>micrometer-registry-prometheus</artifactId>
 			<version>${io.micrometer.prometheus.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>io.mosip.registrationprocessor</groupId>
+			<artifactId>registration-processor-packet-utility</artifactId>
+			<version>${registration.processor.packet.utility.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>

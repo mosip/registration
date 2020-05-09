@@ -18,4 +18,6 @@ public class FileRequestDto implements Serializable {
 	/** The reg id. */
 	String regId;
 
+	String source;
+
 }

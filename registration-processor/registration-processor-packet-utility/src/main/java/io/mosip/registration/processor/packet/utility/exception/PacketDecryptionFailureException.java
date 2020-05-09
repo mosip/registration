@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.packet.utility.exception;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
+import io.mosip.registration.processor.packet.utility.constants.PacketUtilityErrorCodes;
 
 /**
  * PacketDecryptionFailureException class.
@@ -12,21 +13,24 @@ public class PacketDecryptionFailureException extends BaseCheckedException{
 	/** Serializable version Id. */
 	private static final long serialVersionUID = 1L;
 
+	public PacketDecryptionFailureException() {
+		super(PacketUtilityErrorCodes.PACKET_DECRYPTION_FAILURE_EXCEPTION.getErrorCode(),
+				PacketUtilityErrorCodes.PACKET_DECRYPTION_FAILURE_EXCEPTION.getErrorMessage());
+	}
+
 	/**
-	 * @param code
-	 *            Error Code Corresponds to Particular Exception
 	 * @param message
 	 *            Message providing the specific context of the error.
 	 * @param cause
 	 *            Throwable cause for the specific exception
 	 */
-	public PacketDecryptionFailureException(String code, String message, Throwable cause) {
-		super(code, message, cause);
+	public PacketDecryptionFailureException(String message, Throwable cause) {
+		super(PacketUtilityErrorCodes.PACKET_DECRYPTION_FAILURE_EXCEPTION.getErrorCode(), message, cause);
 
 	}
 
-	public PacketDecryptionFailureException(String errorCode, String errorMessage) {
-		super(errorCode,errorMessage);
+	public PacketDecryptionFailureException(String errorMessage) {
+		super(PacketUtilityErrorCodes.PACKET_DECRYPTION_FAILURE_EXCEPTION.getErrorCode(), errorMessage);
 	}
 
 }

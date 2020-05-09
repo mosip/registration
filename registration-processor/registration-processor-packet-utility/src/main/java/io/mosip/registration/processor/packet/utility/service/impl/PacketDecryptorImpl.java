@@ -32,7 +32,6 @@ import io.mosip.registration.processor.packet.utility.constants.LoggerFileConsta
 import io.mosip.registration.processor.packet.utility.dto.CryptomanagerRequestDto;
 import io.mosip.registration.processor.packet.utility.dto.CryptomanagerResponseDto;
 import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
-import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureExceptionConstant;
 import io.mosip.registration.processor.packet.utility.logger.PacketUtilityLogger;
 import io.mosip.registration.processor.packet.utility.service.PacketDecryptor;
 
@@ -114,10 +113,7 @@ public class PacketDecryptorImpl implements PacketDecryptor {
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 						"Packet DecryptionFailed-Invalid Packet format");
 
-				throw new PacketDecryptionFailureException(
-						PacketDecryptionFailureExceptionConstant.MOSIP_PACKET_DECRYPTION_FAILURE_ERROR_CODE
-								.getErrorCode(),
-						"Packet DecryptionFailed-Invalid Packet format");
+				throw new PacketDecryptionFailureException("Packet DecryptionFailed-Invalid Packet format");
 			}
 			request.setId(env.getProperty(DECRYPT_SERVICE_ID));
 			request.setMetadata(null);
@@ -146,7 +142,7 @@ public class PacketDecryptorImpl implements PacketDecryptor {
 				packetUtilityLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationId, DECRYPTION_FAILURE);
 
-				throw new PacketDecryptionFailureException(error.getErrorCode(), error.getMessage());
+				throw new PacketDecryptionFailureException(error.getMessage());
 			}
 			byte[] decryptedPacket = CryptoUtil.decodeBase64(response.getResponse().getData());
 			outstream = new ByteArrayInputStream(decryptedPacket);
@@ -156,16 +152,12 @@ public class PacketDecryptorImpl implements PacketDecryptor {
 
 			packetUtilityLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId, e.getMessage());
-			throw new PacketDecryptionFailureException(
-					PacketDecryptionFailureExceptionConstant.MOSIP_PACKET_DECRYPTION_FAILURE_ERROR_CODE.getErrorCode(),
-					IO_EXCEPTION, e);
+			throw new PacketDecryptionFailureException(IO_EXCEPTION, e);
 		} catch (DateTimeParseException e) {
 
 			packetUtilityLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId, e.getMessage());
-			throw new PacketDecryptionFailureException(
-					PacketDecryptionFailureExceptionConstant.MOSIP_PACKET_DECRYPTION_FAILURE_ERROR_CODE.getErrorCode(),
-					DATE_TIME_EXCEPTION);
+			throw new PacketDecryptionFailureException(DATE_TIME_EXCEPTION);
 		} catch (Exception e) {
 			packetUtilityLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId, "Internal Error occurred ");
@@ -174,17 +166,11 @@ public class PacketDecryptorImpl implements PacketDecryptor {
 
 
 
-				throw new PacketDecryptionFailureException(
-						PacketDecryptionFailureExceptionConstant.MOSIP_PACKET_DECRYPTION_FAILURE_ERROR_CODE
-								.getErrorCode(),
-						httpClientException.getResponseBodyAsString());
+				throw new PacketDecryptionFailureException(httpClientException.getResponseBodyAsString());
 			} else if (e.getCause() instanceof HttpServerErrorException) {
 				HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
 
-				throw new PacketDecryptionFailureException(
-						PacketDecryptionFailureExceptionConstant.MOSIP_PACKET_DECRYPTION_FAILURE_ERROR_CODE
-								.getErrorCode(),
-						httpServerException.getResponseBodyAsString());
+				throw new PacketDecryptionFailureException(httpServerException.getResponseBodyAsString());
 			} else {
 
 
