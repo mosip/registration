@@ -107,6 +107,9 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 	@Autowired
 	private IdSchemaUtils idSchemaUtils;
 
+	@Value("${registration.processor.default.source}")
+	private String defaultSource;
+
 	/** Mosip router for APIs */
 	@Autowired
 	MosipRouter router;
@@ -156,7 +159,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 			if (applicantAge <= childAgeLimit && applicantAge > 0) {
 				applicantType = BiometricAuthenticationConstants.CHILD;
 			}
-			if (isUpdateAdultPacket(registartionType, applicantType)) {
+			if (true) {
 
 				JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
 
@@ -351,22 +354,18 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 			NoSuchAlgorithmException, BiometricException, BioTypeException, ParserConfigurationException, SAXException,
 			AuthSystemException, RegistrationProcessorCheckedException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
-		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
-		String individualAuthenticationLabel = JsonUtil.getJSONValue(
-				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUALAUTHENTICATION),
-				MappingJsonConstants.VALUE);
-		String individualAuthenticationFileName = JsonUtil.getJSONValue(JsonUtil.getJSONObject(
-				utility.getDemographicIdentityJSONObject(registrationId, individualAuthenticationLabel),
-				individualAuthenticationLabel), MappingJsonConstants.VALUE);
-		if (individualAuthenticationFileName == null || individualAuthenticationFileName.isEmpty()) {
+		IdentityIteratorUtil identityIterator = new IdentityIteratorUtil();
+		String individualAuthentication = identityIterator.getFieldValue(metadata,
+				BiometricAuthenticationConstants.INDIVIDUALAUTHENTICATION);
+		if (individualAuthentication == null || individualAuthentication.isEmpty()) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			registrationStatusDto.setStatusComment(StatusUtil.BIOMETRIC_AUTHENTICATION_FAILED.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.BIOMETRIC_AUTHENTICATION_FAILED.getCode());
 			return false;
 		}
-		String source = idSchemaUtils.getSource(individualAuthenticationLabel);
+
 		InputStream inputStream = packetReaderService.getFile(registrationId,
-				individualAuthenticationFileName.toUpperCase(), source);
+				individualAuthentication.toUpperCase(), defaultSource);
 		if (inputStream == null) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			registrationStatusDto
