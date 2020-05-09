@@ -31,9 +31,9 @@ import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
+import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.TemplateProcessingFailureException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.http.RequestWrapper;
@@ -44,7 +44,6 @@ import io.mosip.registration.processor.core.notification.template.generator.dto.
 import io.mosip.registration.processor.core.notification.template.generator.dto.SmsRequestDto;
 import io.mosip.registration.processor.core.notification.template.generator.dto.SmsResponseDto;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.JsonValue;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.message.sender.MessageNotificationService;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
@@ -106,9 +105,6 @@ public class MessageNotificationServiceImpl
 	@Autowired
 	private Environment env;
 
-	/** The adapter. */
-	@Autowired
-	private PacketManager adapter;
 
 	/** The template generator. */
 	@Autowired
@@ -144,7 +140,9 @@ public class MessageNotificationServiceImpl
 	@Override
 	public SmsResponseDto sendSmsNotification(String templateTypeCode, String id, IdType idType,
 			Map<String, Object> attributes, String regType) throws ApisResourceAccessException, IOException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException {
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException,
+			RegistrationProcessorCheckedException {
 		SmsResponseDto response;
 		SmsRequestDto smsDto = new SmsRequestDto();
 		RequestWrapper<SmsRequestDto> requestWrapper = new RequestWrapper<>();
@@ -314,26 +312,26 @@ public class MessageNotificationServiceImpl
 	/**
 	 * Gets the template json.
 	 *
-	 * @param id
-	 *            the id
-	 * @param idType
-	 *            the id type
-	 * @param attributes
-	 *            the attributes
-	 * @param regType
-	 *            the reg type
+	 * @param id         the id
+	 * @param idType     the id type
+	 * @param attributes the attributes
+	 * @param regType    the reg type
 	 * @return the template json
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @throws IOException                           Signals that an I/O exception
+	 *                                               has occurred.
 	 * @throws ApisResourceAccessException
-	 * @throws io.mosip.kernel.core.exception.IOException
+	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
+	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
+	 * @throws RegistrationProcessorCheckedException
 	 * @throws IdRepoAppException
 	 */
 	private Map<String, Object> setAttributes(String id, IdType idType, Map<String, Object> attributes, String regType,
 			StringBuilder phoneNumber, StringBuilder emailId) throws IOException, ApisResourceAccessException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException {
-		InputStream demographicInfoStream = null;
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
+			RegistrationProcessorCheckedException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+
 		Long uin = 0l;
 		if (idType.toString().equalsIgnoreCase(UIN)) {
 			JSONObject jsonObject = utility.retrieveUIN(id);
@@ -343,9 +341,8 @@ public class MessageNotificationServiceImpl
 		} else {
 			attributes.put("RID", id);
 		}
-		demographicInfoStream = adapter.getFile(id,
-				PacketFiles.DEMOGRAPHIC.name() + FILE_SEPARATOR + PacketFiles.ID.name());
-		String demographicInfo = IOUtils.toString(demographicInfoStream, ENCODING);
+
+
 
 		if (regType.equalsIgnoreCase(RegistrationType.ACTIVATED.name())
 				|| regType.equalsIgnoreCase(RegistrationType.DEACTIVATED.name())
@@ -354,7 +351,7 @@ public class MessageNotificationServiceImpl
 				||regType.equalsIgnoreCase(RegistrationType.LOST.name())) {
 			setAttributesFromIdRepo(uin, attributes, regType, phoneNumber, emailId);
 		} else {
-			setAttributes(demographicInfo, attributes, regType, phoneNumber, emailId);
+			setAttributesFromIdJson(id, attributes, regType, phoneNumber, emailId);
 		}
 
 		return attributes;
@@ -426,17 +423,8 @@ public class MessageNotificationServiceImpl
 			StringBuilder phoneNumber, StringBuilder emailId) throws IOException {
 		JSONObject demographicIdentity = null;
 
-		if (regType.equalsIgnoreCase(RegistrationType.ACTIVATED.name())
-				|| regType.equalsIgnoreCase(RegistrationType.DEACTIVATED.name())
-				|| regType.equalsIgnoreCase(RegistrationType.UPDATE.name())
-				|| regType.equalsIgnoreCase(RegistrationType.RES_UPDATE.name())
-				|| regType.equalsIgnoreCase(RegistrationType.LOST.name())) {
 			demographicIdentity = JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class);
-		} else {
-			JSONObject demographicjson = JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class);
-			demographicIdentity = JsonUtil.getJSONObject(demographicjson,
-					utility.getGetRegProcessorDemographicIdentity());
-		}
+
 
 		String mapperJsonString = Utilities.getJson(utility.getConfigServerFileStorageURL(),
 				utility.getGetRegProcessorIdentityJson());
@@ -487,4 +475,53 @@ public class MessageNotificationServiceImpl
 
 	}
 
+	@SuppressWarnings("unchecked")
+	private Map<String, Object> setAttributesFromIdJson(String id, Map<String, Object> attribute,
+			String regType, StringBuilder phoneNumber, StringBuilder emailId)
+			throws IOException, RegistrationProcessorCheckedException, PacketDecryptionFailureException,
+			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException,
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+
+		String mapperJsonString = Utilities.getJson(utility.getConfigServerFileStorageURL(),
+				utility.getGetRegProcessorIdentityJson());
+		JSONObject mapperJson = JsonUtil.objectMapperReadValue(mapperJsonString, JSONObject.class);
+		JSONObject mapperIdentity = JsonUtil.getJSONObject(mapperJson, utility.getGetRegProcessorDemographicIdentity());
+
+		List<String> mapperJsonKeys = new ArrayList<>(mapperIdentity.keySet());
+		for (String key : mapperJsonKeys) {
+			JSONObject jsonValue = JsonUtil.getJSONObject(mapperIdentity, key);
+			String value = (String) jsonValue.get(VALUE);
+			Object object = JsonUtil.getJSONValue(utility.getDemographicIdentityJSONObject(id,
+					value),
+					value);
+			if (object instanceof ArrayList) {
+				JSONArray node = JsonUtil.getJSONArray(utility.getDemographicIdentityJSONObject(id, value), value);
+				;
+				JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
+				for (int count = 0; count < jsonValues.length; count++) {
+					String lang = jsonValues[count].getLanguage();
+					attribute.put(key + "_" + lang, jsonValues[count].getValue());
+				}
+			} else if (object instanceof LinkedHashMap) {
+				JSONObject json = JsonUtil.getJSONObject(utility.getDemographicIdentityJSONObject(id, value), value);
+				attribute.put(key, json.get(VALUE));
+			} else {
+				attribute.put(key, object);
+			}
+		}
+		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
+		String email = JsonUtil.getJSONValue(
+				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.EMAIL),
+				MappingJsonConstants.VALUE);
+		String phone = JsonUtil.getJSONValue(
+				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PHONE),
+				MappingJsonConstants.VALUE);
+
+		emailId.append(JsonUtil.getJSONValue(utility.getDemographicIdentityJSONObject(id, email), email).toString());
+		phoneNumber
+				.append(JsonUtil.getJSONValue(utility.getDemographicIdentityJSONObject(id, phone), phone).toString());
+
+
+		return attribute;
+	}
 }

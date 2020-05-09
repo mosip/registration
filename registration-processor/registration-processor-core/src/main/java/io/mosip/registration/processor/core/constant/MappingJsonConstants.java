@@ -20,6 +20,7 @@ public class MappingJsonConstants {
 	public static final String FORMAT = "format";
 	public static final String AGE = "age";
 	public static final String ADDRESS = "address";
+	public static final String INDIVIDUALAUTHENTICATION = "authenticationBiometricFileName";
 
 	
 

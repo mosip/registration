@@ -40,6 +40,7 @@ import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
@@ -69,6 +70,7 @@ import io.mosip.registration.processor.message.sender.util.StatusNotificationTyp
 import io.mosip.registration.processor.message.sender.utility.MessageSenderStatusMessage;
 import io.mosip.registration.processor.message.sender.utility.NotificationTemplateCode;
 import io.mosip.registration.processor.message.sender.utility.NotificationTemplateType;
+import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.code.RegistrationType;
@@ -484,7 +486,8 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 	private boolean SendSms(String id, Map<String, Object> attributes, String regType,
 			MessageSenderDto messageSenderDto, LogDescription description) throws ApisResourceAccessException,
 			IOException, io.mosip.registration.processor.core.exception.PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException {
+			io.mosip.kernel.core.exception.IOException, PacketDecryptionFailureException,
+			RegistrationProcessorCheckedException {
 		boolean isSmsSuccess = false;
 		try {
 			SmsResponseDto smsResponse = service.sendSmsNotification(messageSenderDto.getSmsTemplateCode().name(), id,
