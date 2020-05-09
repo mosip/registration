@@ -8,7 +8,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -62,7 +61,6 @@ import javafx.geometry.NodeOrientation;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Hyperlink;
@@ -203,7 +201,7 @@ public class DocumentScanController extends BaseController {
 		return bioExceptionToggleLabel1;
 	}
 	
-	@Value("doc_value")
+	@Value("${doc_value:}")
 	private String proofOfExceptioPhotoFlag;
 
 	/*
@@ -437,7 +435,6 @@ public class DocumentScanController extends BaseController {
 			String errorMessage) {
 		if (documents.getValue().getCode().matches(proofOfExceptioPhotoFlag)) {
 			scanWindow();
-			documents.getValue().setCode(document);
 			selectedDocument = document;
 			selectedComboBox = documents;
 			selectedDocVBox = vboxElement;
