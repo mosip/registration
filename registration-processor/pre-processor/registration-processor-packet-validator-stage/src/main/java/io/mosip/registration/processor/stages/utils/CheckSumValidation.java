@@ -11,10 +11,10 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.FieldValueArray;
 import io.mosip.registration.processor.core.packet.dto.Identity;
+import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 
@@ -68,7 +68,7 @@ public class CheckSumValidation {
 	 * @throws ApisResourceAccessException 
 	 * @throws PacketDecryptionFailureException 
 	 */
-	public boolean checksumvalidation(String registrationId, Identity identity) throws IOException, PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException {
+	public boolean checksumvalidation(String registrationId, Identity identity) throws IOException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, PacketDecryptionFailureException {
 		List<FieldValueArray> hashSequence1 = identity.getHashSequence1();
 		List<FieldValueArray> hashSequence2 = identity.getHashSequence2();
         regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),

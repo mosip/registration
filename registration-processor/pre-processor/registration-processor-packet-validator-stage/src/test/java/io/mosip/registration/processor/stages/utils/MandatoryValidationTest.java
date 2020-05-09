@@ -88,7 +88,7 @@ public class MandatoryValidationTest {
 	}
 
 	@Test
-	public void mandatoryValidationSuccessTest() throws IOException, JSONException, PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException {
+	public void mandatoryValidationSuccessTest() throws IOException, JSONException, PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 
 		boolean result = mandatoryValidation.mandatoryFieldValidation(registrationStatusDto.getRegistrationId());
 		assertTrue("Test for mandate fields", result);

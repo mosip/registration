@@ -102,7 +102,7 @@ public class CheckSumGeneration {
 
                 fileByte = IOUtils.toByteArray(fileStream);
 				outputStream.write(fileByte);
-			} catch (IOException | PacketDecryptionFailureException | ApisResourceAccessException | io.mosip.kernel.core.exception.IOException e) {
+			} catch (IOException | io.mosip.kernel.core.exception.IOException | io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException e) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.APPLICATIONID.toString(), StatusMessage.INPUTSTREAM_NOT_READABLE,
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
@@ -121,7 +121,7 @@ public class CheckSumGeneration {
 
 					valuebyte = IOUtils.toByteArray(fileStream);
 					outputStream.write(valuebyte);
-				} catch (IOException | PacketDecryptionFailureException | ApisResourceAccessException | io.mosip.kernel.core.exception.IOException e) {
+				} catch (IOException | io.mosip.kernel.core.exception.IOException | io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException e) {
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.APPLICATIONID.toString(), StatusMessage.INPUTSTREAM_NOT_READABLE,
 							e.getMessage() + ExceptionUtils.getStackTrace(e));

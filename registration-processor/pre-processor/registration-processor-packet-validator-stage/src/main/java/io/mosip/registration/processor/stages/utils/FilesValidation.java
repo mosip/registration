@@ -6,10 +6,10 @@ import java.util.List;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.FieldValueArray;
 import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
+import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 
@@ -100,7 +100,7 @@ public class FilesValidation {
 	 * @throws ApisResourceAccessException 
 	 * @throws PacketDecryptionFailureException 
 	 */
-	private boolean validateHashSequence(String registrationId, List<FieldValueArray> hashSequence) throws PacketDecryptionFailureException, ApisResourceAccessException, IOException {
+	private boolean validateHashSequence(String registrationId, List<FieldValueArray> hashSequence) throws  ApisResourceAccessException, IOException, PacketDecryptionFailureException {
 		boolean isHashSequenceValidated = false;
 
 		for (FieldValueArray fieldValueArray : hashSequence) {
@@ -116,7 +116,7 @@ public class FilesValidation {
 	}
 
 
-	private boolean validateFilesExistance(String registrationId, List<String> values) throws PacketDecryptionFailureException, ApisResourceAccessException, IOException {
+	private boolean validateFilesExistance(String registrationId, List<String> values) throws  ApisResourceAccessException, IOException, PacketDecryptionFailureException {
 		boolean areFilesValidated = true;
 		for(String file : values){
 			String fileName = file.toUpperCase();
