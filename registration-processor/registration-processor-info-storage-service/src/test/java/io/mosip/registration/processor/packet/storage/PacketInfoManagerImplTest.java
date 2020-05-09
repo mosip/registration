@@ -56,7 +56,6 @@ import io.mosip.registration.processor.core.packet.dto.abis.RegBioRefDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegDemoDedupeListDto;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.DemographicInfoDto;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.IndividualDemographicDedupe;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
@@ -112,10 +111,6 @@ public class PacketInfoManagerImplTest {
 	/** The packet info dao. */
 	@Mock
 	private PacketInfoDao packetInfoDao;
-
-	/** The filesystem adapter impl. */
-	@Mock
-	private PacketManager filesystemAdapterImpl;
 
 	/** The reg abis ref repository. */
 	@Mock
@@ -536,7 +531,7 @@ public class PacketInfoManagerImplTest {
 		String inputString = "test";
 		InputStream inputStream = new ByteArrayInputStream(inputString.getBytes(StandardCharsets.UTF_8));
 
-		Mockito.when(filesystemAdapterImpl.getFile(any(), any())).thenReturn(inputStream);
+
 		exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.toString(), "errorMessage", new Exception());
 		classLoader = getClass().getClassLoader();
 		demographicJsonFile = new File(classLoader.getResource("ID.json").getFile());

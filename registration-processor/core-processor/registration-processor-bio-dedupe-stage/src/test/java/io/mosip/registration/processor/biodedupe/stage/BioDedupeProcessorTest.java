@@ -48,7 +48,6 @@ import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.spi.biodedupe.BioDedupeService;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
@@ -127,9 +126,6 @@ public class BioDedupeProcessorTest {
 	@InjectMocks
 	private BioDedupeProcessor bioDedupeProcessor;
 
-	/** The adapter. */
-	@Mock
-	private PacketManager adapter;
 
 	/** The stage name. */
 	private String stageName = "BioDedupeStage";
@@ -410,7 +406,6 @@ public class BioDedupeProcessorTest {
 		PowerMockito.mockStatic(Utilities.class);
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn(IDENTITY);
 
-		Mockito.when(adapter.getFile(any(), any())).thenReturn(inputStream);
 
 		registrationStatusDto.setRegistrationId("reg1234");
 		registrationStatusDto.setRegistrationType("Update");
@@ -557,7 +552,6 @@ public class BioDedupeProcessorTest {
 
 		InputStream inputStream = new FileInputStream("src/test/resources/ID.json");
 
-		Mockito.when(adapter.getFile(any(), any())).thenReturn(inputStream);
 
 		Map<String, String> map = new HashMap<>();
 		map.put("language", "eng");
@@ -592,7 +586,7 @@ public class BioDedupeProcessorTest {
 
 		InputStream inputStream = new FileInputStream("src/test/resources/ID1.json");
 
-		Mockito.when(adapter.getFile(any(), any())).thenReturn(inputStream);
+
 
 		JSONObject obj1 = new JSONObject();
 		obj1.put("dateOfBirth", "2016/01/01");
@@ -622,7 +616,6 @@ public class BioDedupeProcessorTest {
 
 		InputStream inputStream = new FileInputStream("src/test/resources/ID1.json");
 
-		Mockito.when(adapter.getFile(any(), any())).thenReturn(inputStream);
 
 		JSONObject obj1 = new JSONObject();
 		obj1.put("dateOfBirth", "2016/01/01");

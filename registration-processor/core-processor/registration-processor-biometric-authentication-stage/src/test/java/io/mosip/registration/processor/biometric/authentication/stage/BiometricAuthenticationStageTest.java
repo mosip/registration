@@ -276,7 +276,6 @@ public class BiometricAuthenticationStageTest {
 
 		hashMap.put("value", "testFile");
 		JSONObject jSONObject = new JSONObject(hashMap);
-		Mockito.when(utility.getDemographicIdentityJSONObject(any())).thenReturn(jSONObject);
 
 		File cbeffFile = new File(classLoader.getResource("cbeff.xml").getFile());
 		InputStream cbeffInputstream = new FileInputStream(cbeffFile);
@@ -316,7 +315,7 @@ public class BiometricAuthenticationStageTest {
 		HashMap<String, String> hashMap = new HashMap<String, String>();
 		hashMap.put("value", "testFile");
 		JSONObject jSONObject = new JSONObject(hashMap);
-		Mockito.when(utility.getDemographicIdentityJSONObject(any())).thenReturn(jSONObject);
+
 
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getIsValid());
