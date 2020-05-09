@@ -167,7 +167,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 			if (applicantAge <= childAgeLimit && applicantAge > 0) {
 				applicantType = BiometricAuthenticationConstants.CHILD;
 			}
-			if (isUpdateAdultPacket(registartionType, applicantType)) {
+			if (true) {
 
 				JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
 
