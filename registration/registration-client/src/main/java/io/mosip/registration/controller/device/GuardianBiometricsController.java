@@ -244,6 +244,41 @@ public class GuardianBiometricsController extends BaseController implements Init
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Loading of Guardian Biometric screen started");
 
+		HashMap<String, HashMap<ComboBox<String>, HBox>> hS = new HashMap<>();
+		
+		HashMap<String, HashMap<String, ArrayList<String>>> myMap = new HashMap<>();
+		
+		HashMap<String, ArrayList<String>> mT  = new HashMap<>();
+		
+		ArrayList<String> aR = new ArrayList<>();
+		aR.add("F1");
+		aR.add("F2");
+		aR.add("F3");
+		aR.add("F4");
+		
+		
+		mT.put("applicant_LEFT_SLAP", aR);
+		mT.put("applicant_RIGHT_SLAP", aR);
+		mT.put("applicant_THUMBS", aR);
+		myMap.put("applicant", mT);
+		
+		
+		
+		HashMap<String, ArrayList<String>> mT2  = new HashMap<>();
+		
+		ArrayList<String> aR2 = new ArrayList<>();
+		aR.add("F1");
+		aR.add("F2");
+		aR.add("F3");
+		aR.add("F4");
+		
+		
+		mT2.put("intro_LEFT_SLAP", aR2);
+		mT2.put("intro_RIGHT_SLAP", aR2);
+		mT2.put("intro_THUMBS", aR2);
+		myMap.put("intro", mT2);
+		
+		
 		// TODO replace the value from the comboMap
 		currentSubType = RegistrationConstants.INDIVIDUAL;
 
