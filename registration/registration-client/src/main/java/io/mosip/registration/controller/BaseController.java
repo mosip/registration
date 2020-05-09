@@ -1698,7 +1698,7 @@ public class BaseController {
 			ApplicationContext.map().put(RegistrationConstants.indBiometrics,
 			getBioAttributesBySubType(RegistrationConstants.indBiometrics));	
 			ApplicationContext.map().put("parentOrGuardianBiometrics",
-		getBioAttributesBySubType("parentOrGuardianBiometrics"));
+			getBioAttributesBySubType("parentOrGuardianBiometrics"));
 
 		} catch (IOException ioException) {
 			ioException.printStackTrace();
