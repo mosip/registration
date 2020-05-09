@@ -231,6 +231,8 @@ public class GuardianBiometricsController extends BaseController implements Init
 		return biometricPane;
 	}
 
+	private String currentSubType;
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -241,6 +243,9 @@ public class GuardianBiometricsController extends BaseController implements Init
 	public void initialize(URL arg0, ResourceBundle arg1) {
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Loading of Guardian Biometric screen started");
+
+		// TODO replace the value from the comboMap
+		currentSubType = RegistrationConstants.INDIVIDUAL;
 
 		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getSelectionListDTO() != null) {
 			registrationNavlabel.setText(ApplicationContext.applicationLanguageBundle()
@@ -391,38 +396,33 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 	}
 
-	private List<String> getExceptionFingersByBioType(String bioType) {
+	private List<String> getExceptionBioAttributesByBioType(String bioType) {
 
 		// Exception fingers
-		List<String> exceptionFingers = null;
-
-		// TODO check age whether to get introducer or indiviual bio attributes
-		int age = 15;
-		int configured = 5;
-		String subType = age >= configured ? RegistrationConstants.INDIVIDUAL : RegistrationConstants.INTRODUCER;
+		List<String> exceptionBioAttributes = null;
 
 		// Get Non configured bio attributes Using Ui Schema
-		List<String> nonConfigBioAttributesByBioType = getNonConfigBioAttributes(subType,
+		List<String> nonConfigBioAttributesByBioType = getNonConfigBioAttributes(currentSubType,
 				getConstantConfigBioAttributes(bioType));
 
 		if (nonConfigBioAttributesByBioType != null && !nonConfigBioAttributesByBioType.isEmpty()) {
-			exceptionFingers = exceptionFingers != null ? exceptionFingers : new LinkedList<String>();
+			exceptionBioAttributes = exceptionBioAttributes != null ? exceptionBioAttributes : new LinkedList<String>();
 
-			exceptionFingers.addAll(nonConfigBioAttributesByBioType);
+			exceptionBioAttributes.addAll(nonConfigBioAttributesByBioType);
 
 		}
 
 		// Get Operator selected Exception biometric attributes
-		List<String> selectedExceptionFingers = getSelectedExceptionsByBioType(bioType);
+		List<String> selectedExceptionBioAttributes = getSelectedExceptionsByBioType(bioType);
 
-		if (selectedExceptionFingers != null && !selectedExceptionFingers.isEmpty()) {
-			exceptionFingers = exceptionFingers != null ? exceptionFingers : new LinkedList<String>();
+		if (selectedExceptionBioAttributes != null && !selectedExceptionBioAttributes.isEmpty()) {
+			exceptionBioAttributes = exceptionBioAttributes != null ? exceptionBioAttributes : new LinkedList<String>();
 
-			exceptionFingers.addAll(selectedExceptionFingers);
+			exceptionBioAttributes.addAll(selectedExceptionBioAttributes);
 
 		}
 
-		return exceptionFingers;
+		return exceptionBioAttributes;
 	}
 
 	private List<String> getSelectedExceptionsByBioType(String bioType2) {
@@ -789,7 +789,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 		attempt = attempt != 0 ? attempt + 1 : 1;
 
 		// TODO to be passed through MDS capture request
-		List<String> exceptions = getExceptionFingersByBioType(biometricType.getText());
+		List<String> exceptions = getExceptionBioAttributesByBioType(biometricType.getText());
 
 		try {
 			start = Instant.now();
