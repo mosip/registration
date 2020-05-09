@@ -7,10 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.assertj.core.util.Arrays;
-
 import io.mosip.registration.dto.biometric.BiometricDTO;
-import io.mosip.registration.dto.demographic.DemographicDTO;
 import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
 import io.mosip.registration.dto.demographic.ValuesDTO;
 import lombok.Data;
@@ -42,6 +39,10 @@ public class RegistrationDTO {
 	private BiometricDTO biometricDTO = new BiometricDTO();
 	private Map<String, Object> demographics = new HashMap<>();
 	private Map<String, DocumentDetailsDTO> documents = new HashMap<>();
+	private Map<String, BiometricDTO> biometrics = new HashMap<>();
+	
+	private List<BiometricDTO> supervisorBiometrics;
+	private List<BiometricDTO> officerBiometrics;
 	
 	private List<AuditDTO> auditDTOs;
 	private Timestamp auditLogStartTime;
@@ -80,6 +81,25 @@ public class RegistrationDTO {
 	
 	public void addDocument(String fieldId, DocumentDetailsDTO value) {
 		this.documents.put(fieldId, value);
+	}
+	
+	public void addBiometric(String subType, String modality, BiometricDTO value) {
+		String key = String.format("%s_%s", subType, modality);
+		this.biometrics.put(key, value);
+	}
+	
+	public void addBiometricException(String subType, String modality, String exceptionType, String reason) {
+		String key = String.format("%s_%s", subType, modality);
+		BiometricDTO value = new BiometricDTO();
+		value.setException(true);
+		value.setExceptionType(exceptionType);
+		value.setReason(reason);
+		this.biometrics.put(key, value);
+	}
+	
+	public BiometricDTO getBiometric(String subType, String modality) {
+		String key = String.format("%s_%s", subType, modality);
+		return this.biometrics.get(key);
 	}
 	
 	public Map<String, Object> getIdentity() {

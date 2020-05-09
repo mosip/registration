@@ -3,6 +3,7 @@ package io.mosip.registration.dto.biometric;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.registration.builder.Builder;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dto.BaseDTO;
@@ -20,6 +21,20 @@ import lombok.Setter;
  */
 @Data
 public class BiometricDTO {
+	
+	private byte[] modalityISO;
+	private String modalityName;
+	private double qualityScore;
+	private boolean isForceCaptured;
+	private int numOfRetries;
+	
+	private long formatType;
+	private SingleType type;
+	private String subType;
+	
+	private boolean isException;
+	private String exceptionType;
+	private String reason;
 
 	private Map<String, BiometricInfoDTO> biometricsMap;
 	
