@@ -59,8 +59,12 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
+import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.dto.SyncTypeDto;
+import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.mosip.registration.processor.status.service.SyncRegistrationService;
 
 @Service
 public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
@@ -114,6 +118,9 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 	@Autowired
 	MosipRouter router;
 
+	@Autowired
+	private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationservice;
+
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.BIOMETRIC_AUTHENTICATION_BUS_IN,
@@ -142,6 +149,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 		registrationStatusDto
 				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.BIOMETRIC_AUTHENTICATION.toString());
 		registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
+		SyncRegistrationEntity regEntity = syncRegistrationservice.findByRegistrationId(registrationId);
 		String description = "";
 		String code = "";
 		boolean isTransactionSuccessful = false;
@@ -151,15 +159,14 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 			PacketMetaInfo packetMetaInfo = utility.getPacketMetaInfo(registrationId);
 			List<FieldValue> metadata = packetMetaInfo.getIdentity().getMetaData();
 			IdentityIteratorUtil identityIterator = new IdentityIteratorUtil();
-			String registartionType = identityIterator.getFieldValue(metadata,
-					BiometricAuthenticationConstants.REGISTRATIONTYPE);
+			String registartionType = regEntity.getRegistrationType();
 			int applicantAge = utility.getApplicantAge(registrationId);
 			int childAgeLimit = Integer.parseInt(ageLimit);
 			String applicantType = BiometricAuthenticationConstants.ADULT;
 			if (applicantAge <= childAgeLimit && applicantAge > 0) {
 				applicantType = BiometricAuthenticationConstants.CHILD;
 			}
-			if (true) {
+			if (isUpdateAdultPacket(registartionType, applicantType)) {
 
 				JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
 
