@@ -512,7 +512,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 		String source = idSchemaUtils.getSource(idDocLabel);
 		InputStream poiStream = packetReaderService.getFile(registrationId,
-				idDocObj.get("value").toString(), source);
+				idDocObj.get("value").toString(), defaultSource);
 		documentsInfoDto.setValue(CryptoUtil.encodeBase64(IOUtils.toByteArray(poiStream)));
 		documentsInfoDto.setCategory(idDocLabel);
 		return documentsInfoDto;
