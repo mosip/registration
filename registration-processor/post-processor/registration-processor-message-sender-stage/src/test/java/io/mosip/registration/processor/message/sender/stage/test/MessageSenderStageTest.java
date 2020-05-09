@@ -90,6 +90,8 @@ public class MessageSenderStageTest {
 	@Mock
 	private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationservice;
 
+	@Mock
+	private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationservice;
 
 	@Mock
 	private AuditLogRequestBuilder auditLogRequestBuilder;
