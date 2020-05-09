@@ -83,13 +83,23 @@ public class RegistrationDTO {
 		this.documents.put(fieldId, value);
 	}
 	
-	public void addBiometric(String subType, String modality, BiometricDTO value) {
-		String key = String.format("%s_%s", subType, modality);
+	public List<BiometricDTO> getBiometric(String subType, List<String> bioAttributes) {
+		List<BiometricDTO> list = new ArrayList<BiometricDTO>();
+		for(String bioAttribute : bioAttributes) {
+			String key = String.format("%s_%s", subType, bioAttribute);
+			if(this.biometrics.containsKey(key))
+				list.add(this.biometrics.get(key));
+		}
+		return list;
+	}
+	
+	public void addBiometric(String subType, String bioAttribute, BiometricDTO value) {
+		String key = String.format("%s_%s", subType, bioAttribute);
 		this.biometrics.put(key, value);
 	}
 	
-	public void addBiometricException(String subType, String modality, String exceptionType, String reason) {
-		String key = String.format("%s_%s", subType, modality);
+	public void addBiometricException(String subType, String bioAttribute, String exceptionType, String reason) {
+		String key = String.format("%s_%s", subType, bioAttribute);
 		BiometricDTO value = new BiometricDTO();
 		value.setException(true);
 		value.setExceptionType(exceptionType);
@@ -97,8 +107,13 @@ public class RegistrationDTO {
 		this.biometrics.put(key, value);
 	}
 	
-	public BiometricDTO getBiometric(String subType, String modality) {
-		String key = String.format("%s_%s", subType, modality);
+	public void removeBiometricException(String subType, String bioAttribute) {
+		String key = String.format("%s_%s", subType, bioAttribute);
+		this.biometrics.remove(key);
+	}
+	
+	public BiometricDTO getBiometric(String subType, String bioAttribute) {
+		String key = String.format("%s_%s", subType, bioAttribute);
 		return this.biometrics.get(key);
 	}
 	

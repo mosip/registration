@@ -22,19 +22,18 @@ import lombok.Setter;
 @Data
 public class BiometricDTO {
 	
-	private byte[] modalityISO;
-	private String modalityName;
+	private byte[] attributeISO;
+	private String bioAttribute;
 	private double qualityScore;
 	private boolean isForceCaptured;
 	private int numOfRetries;
-	
-	private long formatType;
-	private SingleType type;
-	private String subType;
+	private long formatType;	
 	
 	private boolean isException;
 	private String exceptionType;
 	private String reason;
+	
+	//TODO need to remove below fields and handle them
 
 	private Map<String, BiometricInfoDTO> biometricsMap;
 	
