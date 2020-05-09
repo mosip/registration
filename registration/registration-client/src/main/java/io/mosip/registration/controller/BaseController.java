@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Timer;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -1673,6 +1674,11 @@ public class BaseController {
 			}
 			validations.setValidations(validationsMap); // Set Validations Map
 
+			ApplicationContext.map().put(RegistrationConstants.indBiometrics,
+					getBioAttributesBySubType(RegistrationConstants.indBiometrics));
+			ApplicationContext.map().put("parentOrGuardianBiometrics",
+					getBioAttributesBySubType("parentOrGuardianBiometrics"));
+
 		} catch (RegBaseCheckedException e) {
 			LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(e));
@@ -1685,7 +1691,7 @@ public class BaseController {
 		pane.setDisable(true);
 
 		/** Get UI schema individual Biometrics Bio Attributes */
-		List<String> uiSchemaBioAttributes = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
+		List<String> uiSchemaBioAttributes = getBioAttributesBySubType(RegistrationConstants.indBiometrics);
 
 		/** If bio Attribute not mentioned for bio attribute then disable */
 		if (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
@@ -1725,22 +1731,43 @@ public class BaseController {
 	//
 	// }
 
-	private List<String> getSchemaFieldBioAttributes(String fieldId) {
-		if (validations.getValidationMap().containsKey(fieldId)
-				&& validations.getValidationMap().get(fieldId).getType().equalsIgnoreCase("biometricsType")) {
+	private List<String> getBioAttributesBySubType(String subType) {
 
-			BioServiceImpl.setBioAttributes(validations.getValidationMap().get(fieldId).getBioAttributes());
-			return validations.getValidationMap().get(fieldId).getBioAttributes();
+		List<String> bioAttributes = null;
+
+		if (subType != null) {
+
+			bioAttributes = getAttributesByTypeAndSubType(RegistrationConstants.BIOMETRICS_TYPE, subType);
 
 		}
 
-		return null;
+		return bioAttributes;
+	}
+
+	private List<String> getAttributesByTypeAndSubType(String type, String subType) {
+		List<String> bioAttributes = null;
+
+		if (type != null && subType != null) {
+
+			for (Map.Entry<String, UiSchemaDTO> entry : validations.getValidationMap().entrySet()) {
+
+				if (entry.getValue() != null && type.equalsIgnoreCase(entry.getValue().getType())
+						&& subType.equalsIgnoreCase(entry.getValue().getSubType())) {
+
+					bioAttributes = bioAttributes == null ? new LinkedList<>() : bioAttributes;
+
+					bioAttributes.addAll(entry.getValue().getBioAttributes());
+				}
+			}
+		}
+
+		return bioAttributes;
 	}
 
 	protected boolean isAvailableInBioAttributes(List<String> constantAttributes) {
 
 		boolean isAvailable = false;
-		List<String> uiSchemaBioAttributes = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
+		List<String> uiSchemaBioAttributes = getBioAttributesBySubType(RegistrationConstants.indBiometrics);
 
 		/** If bio Attribute not mentioned for bio attribute then disable */
 		if (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
@@ -1761,12 +1788,12 @@ public class BaseController {
 		return isAvailable;
 	}
 
-	protected List<String> getNonConfigBioAttributes(List<String> constantAttributes) {
+	protected List<String> getNonConfigBioAttributes(String uiSchemaSubType, List<String> constantAttributes) {
 
 		List<String> nonConfigBiometrics = new LinkedList<>();
 
 		// Get Bio Attributes
-		List<String> uiAttributes = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
+		List<String> uiAttributes = getBioAttributesBySubType(uiSchemaSubType);
 
 		for (String attribute : constantAttributes) {
 			if (!uiAttributes.contains(attribute)) {
@@ -1777,8 +1804,35 @@ public class BaseController {
 	}
 	
 
+
 	protected boolean isDemographicField(UiSchemaDTO schemaField) {
 		return (schemaField.isInputRequired() && !(schemaField.getType().equalsIgnoreCase("biometricsType")
 				|| schemaField.getType().equalsIgnoreCase("documentType")));
 	}
+
+
+	protected List<String> getConstantConfigBioAttributes(String bioType) {
+
+		return bioType.equalsIgnoreCase(RegistrationUIConstants.RIGHT_SLAP)
+				? RegistrationConstants.rightHandUiAttributes
+				: bioType.equalsIgnoreCase(RegistrationUIConstants.LEFT_SLAP)
+						? RegistrationConstants.leftHandUiAttributes
+						: bioType.equalsIgnoreCase(RegistrationUIConstants.THUMBS)
+								? RegistrationConstants.twoThumbsUiAttributes
+								: bioType.equalsIgnoreCase(RegistrationConstants.IRIS)
+										? RegistrationConstants.eyesUiAttributes
+										: bioType.equalsIgnoreCase(RegistrationConstants.FACE)
+												? Arrays.asList(RegistrationConstants.FACE)
+												: null;
+	}
+
+	/*protected List<String> getConfigBioAttributes(List<String> constantAttributes) {
+
+		// Get Bio Attributes
+		List<String> uiAttributes = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
+
+		return constantAttributes.stream().filter(uiAttributes::contains).collect(Collectors.toList());
+
+
+	}*/
 }

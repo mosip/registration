@@ -389,9 +389,10 @@ public class Validations extends BaseController {
 						.asList(new String[] { RegistrationConstants.POA_DOCUMENT, RegistrationConstants.POI_DOCUMENT,
 								RegistrationConstants.POR_DOCUMENT, RegistrationConstants.DOB_DOCUMENT })
 						.contains(id))) {
-					generateAlert(parentPane, id,
+					//TODO Need to check here it is failing for Documents
+					/*generateAlert(parentPane, id,
 							applicationLabelBundle.getString(id).concat(RegistrationConstants.SPACE)
-									.concat(applicationMessageBundle.getString(RegistrationConstants.REG_LGN_001)));
+									.concat(applicationMessageBundle.getString(RegistrationConstants.REG_LGN_001)));*/
 					if (isPreviousValid) {
 						node.requestFocus();
 						node.getStyleClass().removeIf((s) -> {

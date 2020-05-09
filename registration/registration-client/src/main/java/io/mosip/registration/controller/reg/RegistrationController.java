@@ -257,13 +257,16 @@ public class RegistrationController extends BaseController {
 		LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "saving the details of applicant biometrics");
 		boolean isValid = true;
-		if (!(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
-			isValid = true; // demographicDetailController.validateThisPane();
+		// TODO This is not required at this stage as validation is complted during click of documant continue button
+		/*if (!(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
+			isValid = true; 
+			demographicDetailController.validateThisPane();
+			
 			if (isValid && RegistrationConstants.ENABLE
 					.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.DOC_DISABLE_FLAG))) {
 				isValid = validateDemographicPane(documentScanController.documentScanPane);
 			}
-		}
+		}*/
 		if (isValid) {
 			try {
 				BufferedImage detectedFace = detectApplicantFace(applicantBufferedImage);

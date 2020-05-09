@@ -35,7 +35,6 @@ import io.mosip.registration.entity.GlobalParam;
 import io.mosip.registration.entity.id.GlobalParamId;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.config.impl.GlobalParamServiceImpl;
-import io.mosip.registration.util.common.PageFlow;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
@@ -68,8 +67,6 @@ public class GlobalParamServiceTest {
 	@Mock
 	ServiceDelegateUtil serviceDelegateUtil;
 	
-	@Mock
-	PageFlow pageFlow;
 
 	@Test
 	public void getGlobalParamsTest() {

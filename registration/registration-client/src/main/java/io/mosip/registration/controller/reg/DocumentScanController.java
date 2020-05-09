@@ -8,6 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -60,6 +62,7 @@ import javafx.geometry.NodeOrientation;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Hyperlink;
@@ -199,6 +202,9 @@ public class DocumentScanController extends BaseController {
 	public Label getBioExceptionToggleLabel1() {
 		return bioExceptionToggleLabel1;
 	}
+	
+	@Value("doc_value")
+	private String proofOfExceptioPhotoFlag;
 
 	/*
 	 * (non-Javadoc)
@@ -221,6 +227,7 @@ public class DocumentScanController extends BaseController {
 		});
 
 		try {
+			//Hiding Toggle Button always
 			exceptionPane.setVisible(false);
 			if (getRegistrationDTOFromSession() != null
 					&& getRegistrationDTOFromSession().getSelectionListDTO() != null) {
@@ -244,7 +251,7 @@ public class DocumentScanController extends BaseController {
 			} else {
 				continueBtn.setDisable(true);
 			}
-			// populateDocumentCategories();
+		
 		} catch (RuntimeException exception) {
 			LOGGER.error("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID,
@@ -264,18 +271,10 @@ public class DocumentScanController extends BaseController {
 		documentVBoxes.clear();
 		initializePreviewSection();
 
-		List<UiSchemaDTO> listOfDocId = getDocId();
-
-		if (listOfDocId.stream().anyMatch(obj -> obj.getSubType().equalsIgnoreCase("POE")))
-			exceptionPane.setVisible(true);
-		    exceptionPane.setDisable(false);
-
 		docScanVbox.setSpacing(5);
 
-		prepareDocumentScanSection(listOfDocId);
+		prepareDocumentScanSection(getDocId());
 		
-		
-
 		/*
 		 * populate the documents for edit if its already present or fetched from pre
 		 * reg
@@ -345,6 +344,7 @@ public class DocumentScanController extends BaseController {
 			}
 
 			if (documentCategoryDtos != null && !documentCategoryDtos.isEmpty()) {
+
 				HBox hBox = new HBox();
 
 				ComboBox<DocumentCategoryDto> comboBox = new ComboBox<>();
@@ -424,127 +424,10 @@ public class DocumentScanController extends BaseController {
 				hBox.setId(documentCategory.getSubType());
 				documentLabel.setId(documentCategory.getSubType() + RegistrationConstants.LABEL);
 				comboBox.getItems().addAll(documentCategoryDtos);
-			}
 
+			}
 		}
-	}
-	
-	/**
-	 * To prepare the document section
-	 */
-	@SuppressWarnings("unchecked")
-	private <T> void prepareDocumentExceptionScanSection(List<UiSchemaDTO> documentCategories) {
 
-		/* show the scan doc info label for format and size */
-		Label fileSizeInfoLabel = new Label();
-		fileSizeInfoLabel.setWrapText(true);
-		fileSizeInfoLabel.setText(RegistrationUIConstants.SCAN_DOC_INFO);
-		docScanVbox.getChildren().add(fileSizeInfoLabel);
-
-		for (UiSchemaDTO documentCategory : documentCategories) {
-
-			String docCategoryCode = documentCategory.getSubType();
-
-			String docCategoryName = documentCategory.getDescription();
-
-			List<DocumentCategoryDto> documentCategoryDtos = null;
-
-			try {
-				documentCategoryDtos = masterSyncService.getDocumentCategories(docCategoryCode,
-						ApplicationContext.applicationLanguage());
-			} catch (RuntimeException runtimeException) {
-				LOGGER.error("REGISTRATION - LOADING LIST OF DOCUMENTS FAILED ", APPLICATION_NAME,
-						RegistrationConstants.APPLICATION_ID,
-						runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
-			} catch (RegBaseCheckedException checkedException) {
-				LOGGER.error("REGISTRATION - LOADING LIST OF DOCUMENTS FAILED ", APPLICATION_NAME,
-						RegistrationConstants.APPLICATION_ID,
-						checkedException.getMessage() + ExceptionUtils.getStackTrace(checkedException));
-			}
-
-			if (documentCategoryDtos != null && !documentCategoryDtos.isEmpty()) {
-				HBox hBox = new HBox();
-
-				ComboBox<DocumentCategoryDto> comboBox = new ComboBox<>();
-				comboBox.setPrefWidth(docScanVbox.getWidth() / 2);
-				comboBox.setId(docCategoryCode);
-
-				comboBox.valueProperty().addListener((v, oldValue, newValue) -> {
-					validateDocumentsPane();
-				});
-				ImageView indicatorImage = new ImageView(
-						new Image(this.getClass().getResourceAsStream(RegistrationConstants.CLOSE_IMAGE_PATH), 15, 15,
-								true, true));
-				comboBox.setPromptText(docCategoryName);
-				comboBox.getStyleClass().add(RegistrationConstants.DOC_COMBO_BOX);
-				Label documentLabel = new Label(docCategoryName);
-				documentLabel.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
-				documentLabel.setPrefWidth(docScanVbox.getWidth() / 2);
-				documentLabel.setVisible(false);
-				comboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
-					documentLabel.setVisible(true);
-				});
-				StringConverter<T> uiRenderForComboBox = FXUtils.getInstance().getStringConverterForComboBox();
-				comboBox.setConverter((StringConverter<DocumentCategoryDto>) uiRenderForComboBox);
-				if (applicationContext.isPrimaryLanguageRightToLeft()) {
-					comboBox.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
-					documentLabel.setAlignment(Pos.CENTER_RIGHT);
-				}
-
-				/*
-				 * adding all the dynamically created combo boxes in a map inorder to show it in
-				 * the edit page
-				 */
-				documentComboBoxes.put(docCategoryCode, comboBox);
-
-				VBox documentVBox = new VBox();
-				documentVBox.getStyleClass().add(RegistrationConstants.SCAN_VBOX);
-				documentVBox.setId(docCategoryCode);
-
-				documentVBoxes.put(documentCategory.getId(), documentVBox);
-
-				Button scanButton = new Button();
-				scanButton.setText(RegistrationUIConstants.SCAN);
-				scanButton.setId(docCategoryCode);
-				scanButton.getStyleClass().add(RegistrationConstants.DOCUMENT_CONTENT_BUTTON);
-				scanButton.setGraphic(new ImageView(new Image(
-						this.getClass().getResourceAsStream(RegistrationConstants.SCAN), 12, 12, true, true)));
-				scanButton.setOnAction(new EventHandler<ActionEvent>() {
-
-					@Override
-					public void handle(ActionEvent event) {
-
-						auditFactory.audit(
-								AuditEvent.valueOf(
-										String.format("REG_DOC_%S_SCAN", ((Button) event.getSource()).getId())),
-								Components.REG_DOCUMENTS, SessionContext.userId(),
-								AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
-
-						Button clickedBtn = (Button) event.getSource();
-						clickedBtn.getId();
-						scanDocument(comboBox, documentVBox, documentCategory.getSubType(),
-								RegistrationUIConstants.PLEASE_SELECT + RegistrationConstants.SPACE
-										+ documentCategory.getSubType() + " " + RegistrationUIConstants.DOCUMENT);
-					}
-				});
-				scanButton.hoverProperty().addListener((ov, oldValue, newValue) -> {
-					if (newValue) {
-						scanButton.setGraphic(new ImageView(
-								new Image(this.getClass().getResourceAsStream(RegistrationConstants.SCAN_FOCUSED), 12,
-										12, true, true)));
-					} else {
-						scanButton.setGraphic(new ImageView(new Image(
-								this.getClass().getResourceAsStream(RegistrationConstants.SCAN), 12, 12, true, true)));
-					}
-				});
-				hBox.getChildren().addAll(new VBox(new Label(), indicatorImage), comboBox, documentVBox, scanButton);
-				docScanVbox.getChildren().addAll(new HBox(new Label("       "), documentLabel), hBox);
-				hBox.setId(documentCategory.getSubType());
-				documentLabel.setId(documentCategory.getSubType() + RegistrationConstants.LABEL);
-				comboBox.getItems().addAll(documentCategoryDtos);
-			}
-
-		}
 	}
 
 	/**
@@ -552,7 +435,7 @@ public class DocumentScanController extends BaseController {
 	 */
 	private void scanDocument(ComboBox<DocumentCategoryDto> documents, VBox vboxElement, String document,
 			String errorMessage) {
-		if (documents.getValue().getName().equalsIgnoreCase("Expetion Photo")) {
+		if (documents.getValue().getCode().matches(proofOfExceptioPhotoFlag)) {
 			scanWindow();
 			documents.getValue().setCode(document);
 			selectedDocument = document;
@@ -642,7 +525,7 @@ public class DocumentScanController extends BaseController {
 	private void scanFromStubbed(Stage popupStage) throws IOException {
 		
 		byte[] byteArray = null;
-		if (selectedComboBox.getValue().getName().equalsIgnoreCase("Expetion Photo")) {
+		if (selectedComboBox.getValue().getCode().matches(proofOfExceptioPhotoFlag)) {
 			webcamSarxosServiceImpl.openWebCam(webcamSarxosServiceImpl.getWebCams().get(0), 10, 50);
 			BufferedImage bufferedImage = webcamSarxosServiceImpl
 					.captureImage(webcamSarxosServiceImpl.getWebCams().get(0));
@@ -695,7 +578,7 @@ public class DocumentScanController extends BaseController {
 		byte[] byteArray;
 		BufferedImage bufferedImage;
 		
-		if (selectedComboBox.getValue().getName().equalsIgnoreCase("Expetion Photo")) {
+		if (selectedComboBox.getValue().getCode().matches(proofOfExceptioPhotoFlag)) {
 			webcamSarxosServiceImpl.openWebCam(webcamSarxosServiceImpl.getWebCams().get(0), 10, 50);
 			bufferedImage = webcamSarxosServiceImpl.captureImage(webcamSarxosServiceImpl.getWebCams().get(0));
 			webcamSarxosServiceImpl.close();
@@ -942,12 +825,13 @@ public class DocumentScanController extends BaseController {
 				RegistrationConstants.APPLICATION_ID, "Creating Image to delete the attached document");
 
 		imageView.setOnMouseClicked((event) -> {
-			/*auditFactory.audit(
+			String hyperLinkArray[]=((ImageView) event.getSource()).getParent().getId().split("_");
+			auditFactory.audit(
 					AuditEvent.valueOf(String.format("REG_DOC_%S_DELETE",
-							((ImageView) event.getSource()).getParent().getParent().getId())),
+							hyperLinkArray[0])),
 					Components.REG_DOCUMENTS, SessionContext.userId(),
-					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());*/
-
+					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+			
 			HBox hbox = (HBox) vboxElement.getParent();
 			ComboBox<String> comboBox = (ComboBox) hbox.getChildren().get(1);
 			(((VBox) hbox.getParent()).lookup(RegistrationConstants.HASH + hbox.getId() + RegistrationConstants.LABEL))
@@ -1003,13 +887,13 @@ public class DocumentScanController extends BaseController {
 				"Binding OnAction event to Hyperlink to display Scanned document");
 
 		hyperLink.setOnAction((actionEvent) -> {
-
+			actionEvent.getEventType().getName();
 			GridPane pane = (GridPane) ((Hyperlink) actionEvent.getSource()).getParent();
+			String hyperLinkArray[]=((Hyperlink) actionEvent.getSource()).getId().split("_");
 			String documentKey = ((VBox) pane.getParent()).getId();
-			
-			/*auditFactory.audit(AuditEvent.valueOf(String.format("REG_DOC_%S_VIEW", documentKey)),
+			auditFactory.audit(AuditEvent.valueOf(String.format("REG_DOC_%S_VIEW", hyperLinkArray[0])),
 					Components.REG_DOCUMENTS, SessionContext.userId(),
-					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());*/
+					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 			DocumentDetailsDTO selectedDocumentToDisplay = getDocumentsMapFromSession().get(documentKey);
 
@@ -1092,15 +976,14 @@ public class DocumentScanController extends BaseController {
 			LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, "Entering into toggle function for Biometric exception");
 
-			Map<String, Map<String, Boolean>> detailMap = (Map<String, Map<String, Boolean>>) applicationContext
-					.getApplicationMap().get(RegistrationConstants.REGISTRATION_MAP);
-
-			if (!detailMap.get(RegistrationConstants.DOCUMENT_SCAN).get(RegistrationConstants.DOCUMENT_PANE)) {
+			if (!pageFlow.isVisibleInRegFlowMap(RegistrationConstants.DOCUMENT_SCAN,
+					RegistrationConstants.DOCUMENT_PANE)) {
 
 				documentPane.setVisible(false);
 			}
-			if (!detailMap.get(RegistrationConstants.IRIS_CAPTURE).get(RegistrationConstants.VISIBILITY) && !detailMap
-					.get(RegistrationConstants.FINGERPRINT_CAPTURE).get(RegistrationConstants.VISIBILITY)) {
+			if (!pageFlow.isVisibleInRegFlowMap(RegistrationConstants.IRIS_CAPTURE, RegistrationConstants.VISIBILITY)
+					&& !pageFlow.isVisibleInRegFlowMap(RegistrationConstants.FINGERPRINT_CAPTURE,
+							RegistrationConstants.VISIBILITY)) {
 				exceptionPane.setVisible(false);
 			}
 
@@ -1129,36 +1012,23 @@ public class DocumentScanController extends BaseController {
 					clearAllValues();
 					fingerPrintCaptureController.duplicateCheckLbl.setText("");
 					if (newValue) {
-						docScanVbox.getChildren();
-						//docScanVbox.getChildren().clear();
 						bioExceptionToggleLabel1.setLayoutX(30);
 						toggleBiometricException = true;
 						updatePageFlow(RegistrationConstants.BIOMETRIC_EXCEPTION, false);
 						biometricExceptionController.fingerException();
-						biometricExceptionController.clearIrisException();
-						/*HBox hbox=new HBox();
-						Label documentLabel= new Label();
-						documentLabel.setText("Sreekar");*/
-						//hBox.getChildren().addAll(new VBox(new Label(), indicatorImage), comboBox, documentVBox, scanButton);
-						//docScanVbox.getChildren().add(documentLabel);
-						
-						//prepareDocumentExceptionScanSection(getDocId());
 					} else {
-						//docScanVbox.getChildren().get(1).get;
-						//docScanVbox.getChildren().clear();
 						bioExceptionToggleLabel1.setLayoutX(0);
-
 						toggleBiometricException = false;
 						faceCaptureController.clearExceptionImage();
 						updatePageFlow(RegistrationConstants.BIOMETRIC_EXCEPTION, false);
 						if ((boolean) SessionContext.map().get(RegistrationConstants.IS_Child)) {
 							updatePageFlow(RegistrationConstants.GUARDIAN_BIOMETRIC, true);
 						}
-						//prepareDocumentScanSection(getDocId());
 					}
 					SessionContext.userMap().put(RegistrationConstants.TOGGLE_BIO_METRIC_EXCEPTION,
 							toggleBiometricException);
 				}
+
 			});
 			bioExceptionToggleLabel1.setOnMouseClicked((event) -> {
 				BioServiceImpl.clearAllCaptures();
@@ -1202,6 +1072,7 @@ public class DocumentScanController extends BaseController {
 		irisCaptureController.clearIrisBasedOnExceptions();
 		guardianBiometricsController.manageBiometricsListBasedOnExceptions();
 		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
+			//TODO document pane validation Anusha 
 			if (registrationController.validateDemographicPane(documentScanPane)) {
 				SessionContext.map().put(RegistrationConstants.UIN_UPDATE_DOCUMENTSCAN, false);
 				updateUINMethodFlow();
@@ -1299,4 +1170,5 @@ public class DocumentScanController extends BaseController {
 
 		return imageInByte;
 	}
+	
 }
