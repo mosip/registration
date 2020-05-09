@@ -239,7 +239,7 @@ public class Utilities {
 	 *             the apis resource access exception
 	 * @throws PacketDecryptionFailureException
 	 *             the packet decryption failure exception
-	 * @throws RegistrationProcessorCheckedException 
+	 * @throws RegistrationProcessorCheckedException
 	 */
 	public int getApplicantAge(String registrationId) throws IOException, ApisResourceAccessException,
             PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException, ApiNotAccessibleException {
@@ -470,7 +470,7 @@ public class Utilities {
 	 *             the packet decryption failure exception
 	 * @throws ApisResourceAccessException
 	 *             the apis resource access exception
-	 * @throws RegistrationProcessorCheckedException 
+	 * @throws RegistrationProcessorCheckedException
 	 */
 	public Long getUIn(String registrationId) throws IOException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException, PacketDecryptionFailureException {
@@ -610,7 +610,7 @@ public class Utilities {
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-	public PacketMetaInfo getPacketMetaInfo(String registrationId) throws ApiNotAccessibleException, 
+	public PacketMetaInfo getPacketMetaInfo(String registrationId) throws ApiNotAccessibleException,
 			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException, PacketDecryptionFailureException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getPacketMetaInfo():: entry");
@@ -634,7 +634,7 @@ public class Utilities {
 	 *             the packet decryption failure exception
 	 * @throws ApisResourceAccessException
 	 *             the apis resource access exception
-	 * @throws RegistrationProcessorCheckedException 
+	 * @throws RegistrationProcessorCheckedException
 	 */
 	public List<Documents> getAllDocumentsByRegId(String regId) throws IOException, PacketDecryptionFailureException,
 			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
@@ -701,7 +701,7 @@ public class Utilities {
 	 *             the packet decryption failure exception
 	 * @throws ApisResourceAccessException
 	 *             the apis resource access exception
-	 * @throws RegistrationProcessorCheckedException 
+	 * @throws RegistrationProcessorCheckedException
 	 */
 	private Documents getIdDocumnet(String registrationId, String folderPath, JSONObject idDocObj, String idDocLabel)
 			throws IOException, PacketDecryptionFailureException, ApiNotAccessibleException,
