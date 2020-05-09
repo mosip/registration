@@ -1,4 +1,4 @@
-## packet-manager-api
+## registration-packetmanager
 
  [Background & Design](../../docs/design/kernel/packet-manager.md)
 
@@ -6,8 +6,8 @@
 
  ```
     <dependency>
-		<groupId>packet-manager</groupId>
-		<artifactId>kernel-packet-manager</artifactId>
+		<groupId>io.mosip.registration</groupId>
+		<artifactId>registration-packetmanager</artifactId>
 		<version>${project.version}</version>
 	</dependency>
  ```
