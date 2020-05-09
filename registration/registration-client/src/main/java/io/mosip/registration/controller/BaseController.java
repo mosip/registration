@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Timer;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -1803,10 +1804,12 @@ public class BaseController {
 	}
 	
 
+
 	protected boolean isDemographicField(UiSchemaDTO schemaField) {
 		return (schemaField.isInputRequired() && !(schemaField.getType().equalsIgnoreCase("biometricsType")
 				|| schemaField.getType().equalsIgnoreCase("documentType")));
 	}
+
 
 	protected List<String> getConstantConfigBioAttributes(String bioType) {
 
@@ -1822,4 +1825,14 @@ public class BaseController {
 												? Arrays.asList(RegistrationConstants.FACE)
 												: null;
 	}
+
+	/*protected List<String> getConfigBioAttributes(List<String> constantAttributes) {
+
+		// Get Bio Attributes
+		List<String> uiAttributes = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
+
+		return constantAttributes.stream().filter(uiAttributes::contains).collect(Collectors.toList());
+
+
+	}*/
 }
