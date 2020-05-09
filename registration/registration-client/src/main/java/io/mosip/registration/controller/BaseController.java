@@ -1664,46 +1664,23 @@ public class BaseController {
 	}
 
 	public void loadUIElementsFromSchema() {
-		//Get JSON File
-		
-		String filePath = "C:\\Users\\M1047962\\Documents\\uiSchema2_copy.json";
-		File uiSchemaJsonFile = new File(filePath);
-		
-		if(uiSchemaJsonFile.exists()) {
-		ObjectMapper mapper = new ObjectMapper();
 
-		//JSON file to Java object
 		try {
-			
-			//Parse to DTO			
-			UiSchemaDTO[] uiSchemaDTOsArray = mapper.readValue(uiSchemaJsonFile, UiSchemaDTO[].class);
-			
-			//Store in temporary list
-			
-			uiSchemaDTOs = uiSchemaDTOs==null ? new LinkedList<>() : uiSchemaDTOs;
-			
-			uiSchemaDTOs.addAll(Arrays.asList(uiSchemaDTOsArray));
-			
+			List<UiSchemaDTO> schemaFields = identitySchemaService.getLatestEffectiveUISchema();
 			Map<String, UiSchemaDTO> validationsMap = new LinkedHashMap<>();
-			
-			List<String> neglectTypes = Arrays.asList("documentType","biometricsType");
-			for (UiSchemaDTO uiSchemaDTO : uiSchemaDTOs) {
-				if(!neglectTypes.contains(uiSchemaDTO.getType())) {
-					validationsMap.put(uiSchemaDTO.getId(), uiSchemaDTO);
-				}
+			for (UiSchemaDTO schemaField : schemaFields) {
+				validationsMap.put(schemaField.getId(), schemaField);
 			}
-			
-			//Set Validations Map
-			setValidations(validationsMap);
-			ApplicationContext.map().put(RegistrationConstants.indBiometrics,
-			getBioAttributesBySubType(RegistrationConstants.indBiometrics));	
-			ApplicationContext.map().put("parentOrGuardianBiometrics",
-			getBioAttributesBySubType("parentOrGuardianBiometrics"));
+			validations.setValidations(validationsMap); // Set Validations Map
 
-		} catch (IOException ioException) {
-			ioException.printStackTrace();
-		}
-		
+			ApplicationContext.map().put(RegistrationConstants.indBiometrics,
+					getBioAttributesBySubType(RegistrationConstants.indBiometrics));
+			ApplicationContext.map().put("parentOrGuardianBiometrics",
+					getBioAttributesBySubType("parentOrGuardianBiometrics"));
+
+		} catch (RegBaseCheckedException e) {
+			LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
+					ExceptionUtils.getStackTrace(e));
 		}
 	}
 
