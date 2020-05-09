@@ -680,27 +680,14 @@ public class TemplateGenerator extends BaseService {
 			templateValues.put(RegistrationConstants.TEMPLATE_DOCUMENTS_LOCAL_LANG_LABEL,
 					getSecondaryLanguageLabel("documents"));
 			StringBuilder documentsList = new StringBuilder();
-			if (documents.get(RegistrationConstants.POI_DOCUMENT) != null) {
-				documentsList.append(documents.get(RegistrationConstants.POI_DOCUMENT).getValue());
-			}
-			if (documents.get(RegistrationConstants.POA_DOCUMENT) != null) {
+
+			for (String docName : documents.keySet()) {
+				documentsList.append(docName);
 				if (documentsList.length() > 0) {
 					documentsList.append(", ");
 				}
-				documentsList.append(documents.get(RegistrationConstants.POA_DOCUMENT).getValue());
 			}
-			if (documents.get(RegistrationConstants.POR_DOCUMENT) != null) {
-				if (documentsList.length() > 0) {
-					documentsList.append(", ");
-				}
-				documentsList.append(documents.get(RegistrationConstants.POR_DOCUMENT).getValue());
-			}
-			if (documents.get(RegistrationConstants.DOB_DOCUMENT) != null) {
-				if (documentsList.length() > 0) {
-					documentsList.append(", ");
-				}
-				documentsList.append(documents.get(RegistrationConstants.DOB_DOCUMENT).getValue());
-			}
+			
 			templateValues.put(RegistrationConstants.TEMPLATE_DOCUMENTS, documentsList.toString());
 			templateValues.put(RegistrationConstants.TEMPLATE_DOCUMENTS_LOCAL_LANG, RegistrationConstants.EMPTY);
 		} else {

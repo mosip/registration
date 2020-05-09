@@ -146,6 +146,7 @@ public class DemographicDetailController extends BaseController {
 	private boolean lostUIN = false;
 	private ResourceBundle applicationLabelBundle;
 	private ResourceBundle localLabelBundle;
+	@Autowired
 	private FaceCaptureController faceCaptureController;
 	private String primaryLanguage;
 	private String secondaryLanguage;
@@ -194,6 +195,7 @@ public class DemographicDetailController extends BaseController {
 		}
 
 		try {
+			applicationLabelBundle = applicationContext.getApplicationLanguageBundle();
 			if (getRegistrationDTOFromSession() == null) {
 				validation.updateAsLostUIN(false);
 				registrationController.createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_NEW);
@@ -216,7 +218,6 @@ public class DemographicDetailController extends BaseController {
 			isChild = false;
 			minAge = Integer.parseInt(getValueFromApplicationContext(RegistrationConstants.MIN_AGE));
 			maxAge = Integer.parseInt(getValueFromApplicationContext(RegistrationConstants.MAX_AGE));
-			applicationLabelBundle = applicationContext.getApplicationLanguageBundle();
 			localLabelBundle = applicationContext.getLocalLanguageProperty();
 			primaryLanguage = applicationContext.getApplicationLanguage();
 			secondaryLanguage = applicationContext.getLocalLanguage();
@@ -236,6 +237,7 @@ public class DemographicDetailController extends BaseController {
 					applicationContext.getApplicationLanguage());
 			addFirstOrderAddress(listOfComboBoxWithObject.get(orderOfAddress.get(1) + RegistrationConstants.LOCAL_LANGUAGE),
 					orderOfAddress.get(1), applicationContext.getLocalLanguage());
+
 			populateDropDowns();
 
 			for (int j = 0; j < orderOfAddress.size() - 1; j++) {

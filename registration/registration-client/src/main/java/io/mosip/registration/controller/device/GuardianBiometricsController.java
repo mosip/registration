@@ -10,7 +10,6 @@ import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -514,6 +513,8 @@ public class GuardianBiometricsController extends BaseController implements Init
 						Integer.parseInt(getValueFromApplicationContext(RegistrationConstants.IRIS_THRESHOLD)));
 			}
 
+			captureBiometrics(currentSubType, biometricType.getText());
+
 		} catch (RuntimeException runtimeException) {
 			LOGGER.error(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					String.format(
@@ -533,6 +534,85 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Scan process ended for capturing biometrics");
+	}
+
+	private void captureBiometrics(String subType, String bioType) {
+
+		// TODO Get Modality
+
+		// TODO Get Exception Fingers
+
+		// TODO Request MDS
+		RequestDetail mdsRequestDetails = new RequestDetail(getModality(bioType), getCaptureTimeOut(), 1,
+				getThresholdScore(bioType), getExceptionBioAttributesByBioType(bioType));
+
+		// TODO Get Response from the MDS
+
+		// TODO Validate the biometricDTO from the MDS with threshold values
+
+		// TODO validate local de-dup check
+
+		// TODO if threshold values and local-dedup passed save into the registration
+		// DTO
+
+		// TODO if any above checks failed show alert capture failure
+
+		// TODO if all the above check success show alert capture success
+
+		// TODO using captured response fill the fields like quality score and progress
+		// bar,,etc,.. UI
+
+		// TODO Get the stream image from Bio ServiceImpl and load it in the image pane
+
+	}
+
+	private void clearCapturesBySubTypeAndBioType(String subType, String bioType) {
+
+		List<String> bioSubTypeList = getBioSubTypeListByBioType(bioType);
+
+		// TODO Merge with anusha code to remove all bio captures of bio sub type
+		// TODO pass subType and bioType
+	}
+
+	private void clearExceptionBySubTypeAndBioType(String subType, String bioSubType) {
+
+		// TODO Merge with anusha code to remove exception of bio sub type
+
+		// TODO pass subType and bioType
+	}
+
+	private List<String> getBioSubTypeListByBioType(String bioType) {
+
+		// TODO Get Constant attributes
+		return null;
+	}
+
+	private String getThresholdScore(String bioType) {
+		/* Get Configued threshold score for bio type */
+		return getValueFromApplicationContext(RegistrationConstants.IRIS_THRESHOLD);
+	}
+
+	private String getCaptureTimeOut() {
+
+		/* Get Configued capture timeOut */
+		return getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT);
+	}
+
+	private String getModality(String bioType) {
+
+		// Get Modality
+		return bioType.equalsIgnoreCase(RegistrationUIConstants.RIGHT_SLAP)
+				? RegistrationConstants.FINGERPRINT_SLAB_RIGHT
+				: bioType.equalsIgnoreCase(RegistrationUIConstants.LEFT_SLAP)
+						? RegistrationConstants.FINGERPRINT_SLAB_LEFT
+						: bioType.equalsIgnoreCase(RegistrationUIConstants.THUMBS)
+								? RegistrationConstants.FINGERPRINT_SLAB_THUMBS
+								: bioType.equalsIgnoreCase(RegistrationConstants.IRIS)
+										? RegistrationConstants.LEFT.concat(RegistrationConstants.EYE)
+										: bioType.equalsIgnoreCase(RegistrationConstants.FACE)
+												? RegistrationConstants.FACE
+												: bioType;
+
 	}
 
 	/**
@@ -834,6 +914,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 			detailsDTO = bioService.getFingerPrintImageAsDTO(new RequestDetail(fingerType,
 					getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 1,
 					String.valueOf(thresholdValue), fingerException), attempt);
+
 			end = Instant.now();
 			streamer.stop();
 			bioService.segmentFingerPrintImage(detailsDTO, segmentedFingersPath, fingerType);

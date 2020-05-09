@@ -522,7 +522,7 @@
 	"fieldCategory": "pvt",
 	"required": true,
 	"requiredOn": "",
-	"bioAttributes": ["leftEye", "RightThumb"],
+	"bioAttributes": ["leftEye", "rightIndex","rightLittle","leftIndex","leftLittle","face"],
 	"subType": "applicant"
 }, {
 	"id": "individualBiometrics-2",

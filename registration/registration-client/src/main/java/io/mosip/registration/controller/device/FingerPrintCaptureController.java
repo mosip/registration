@@ -681,20 +681,20 @@ public class FingerPrintCaptureController extends BaseController implements Init
 			}
 		}
 
-		for (String attribute : getNonConfigBioAttributes(RegistrationConstants.INDIVIDUAL,
+		for (String attribute : getNonConfigBioAttributes(RegistrationConstants.APPLICANT,
 				RegistrationConstants.leftHandUiAttributes)) {
 
 			if (!leftMap.contains(attribute)) {
 				leftMap.add(attribute);
 			}
 		}
-		for (String attribute : getNonConfigBioAttributes(RegistrationConstants.INDIVIDUAL,
+		for (String attribute : getNonConfigBioAttributes(RegistrationConstants.APPLICANT,
 				RegistrationConstants.rightHandUiAttributes)) {
 			if (!rightMap.contains(attribute)) {
 				rightMap.add(attribute);
 			}
 		}
-		for (String attribute : getNonConfigBioAttributes(RegistrationConstants.INDIVIDUAL,
+		for (String attribute : getNonConfigBioAttributes(RegistrationConstants.APPLICANT,
 				RegistrationConstants.twoThumbsUiAttributes)) {
 			if (!thumbMap.contains(attribute)) {
 				thumbMap.add(attribute);
