@@ -421,7 +421,7 @@ public class Utilities {
 	 *             the packet decryption failure exception
 	 * @throws ApisResourceAccessException
 	 *             the apis resource access exception
-	 * @throws ApiNotAccessibleException 
+	 * @throws ApiNotAccessibleException
 	 */
 	public JSONObject getDemographicIdentityJSONObject(String registrationId) throws IOException,
 			PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {

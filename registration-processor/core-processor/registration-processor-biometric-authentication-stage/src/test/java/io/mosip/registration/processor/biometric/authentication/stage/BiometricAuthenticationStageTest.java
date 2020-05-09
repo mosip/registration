@@ -212,7 +212,7 @@ public class BiometricAuthenticationStageTest {
 						MappingJsonConstants.IDENTITY));
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
 
-	
+
 		list = new ArrayList<InternalRegistrationStatusDto>();
 
 		listAppender = new ListAppender<>();
