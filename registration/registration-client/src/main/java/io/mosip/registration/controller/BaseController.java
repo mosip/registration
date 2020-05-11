@@ -23,6 +23,7 @@ import java.util.Map.Entry;
 import java.util.ResourceBundle;
 import java.util.Timer;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -239,16 +240,15 @@ public class BaseController {
 	private List<UiSchemaDTO> uiSchemaDTOs;
 
 	private static Map<String, UiSchemaDTO> validationMap;
-	
-	private static TreeMap<String,String> listOfbiometricSubtypes = new TreeMap<>();
 
-	
+	private static TreeMap<String, String> listOfbiometricSubtypes = new TreeMap<>();
+
 	public static TreeMap<String, String> getListOfbiometricSubtypes() {
 		return listOfbiometricSubtypes;
 	}
 
 	private static HashMap<String, String> labelMap = new HashMap<>();
-	
+
 	public static String getFromLabelMap(String key) {
 		return labelMap.get(key);
 	}
@@ -1678,17 +1678,19 @@ public class BaseController {
 			Map<String, UiSchemaDTO> validationsMap = new LinkedHashMap<>();
 			for (UiSchemaDTO schemaField : schemaFields) {
 				validationsMap.put(schemaField.getId(), schemaField);
-				if(schemaField.getControlType()!=null && schemaField.getControlType().equals("biometrics")) {
+				if (schemaField.getControlType() != null && schemaField.getControlType().equals("biometrics")) {
 					listOfbiometricSubtypes.put(schemaField.getSubType(), schemaField.getLabel().get("primary"));
 				}
 			}
 			validations.setValidations(validationsMap); // Set Validations Map
 
-			//THIS IS NOT REQUIRED
-			/*ApplicationContext.map().put(RegistrationConstants.indBiometrics,
-					getBioAttributesBySubType(RegistrationConstants.indBiometrics));
-			ApplicationContext.map().put("parentOrGuardianBiometrics",
-					getBioAttributesBySubType("parentOrGuardianBiometrics"));*/
+			// THIS IS NOT REQUIRED
+			/*
+			 * ApplicationContext.map().put(RegistrationConstants.indBiometrics,
+			 * getBioAttributesBySubType(RegistrationConstants.indBiometrics));
+			 * ApplicationContext.map().put("parentOrGuardianBiometrics",
+			 * getBioAttributesBySubType("parentOrGuardianBiometrics"));
+			 */
 
 		} catch (RegBaseCheckedException e) {
 			LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
@@ -1696,34 +1698,29 @@ public class BaseController {
 		}
 	}
 
-	
-	public SimpleEntry<String, List<String>> getValue(String bio, List<String> attributes){
-		SimpleEntry<String, List<String>> entry = new SimpleEntry<String, List<String>>(bio,attributes);
+	public SimpleEntry<String, List<String>> getValue(String bio, List<String> attributes) {
+		SimpleEntry<String, List<String>> entry = new SimpleEntry<String, List<String>>(bio, attributes);
 		return entry;
 	}
-	
-	protected HashMap<Entry<String,String>, HashMap<String, List<List<String>>>> getconfigureAndNonConfiguredBioAttributes(List<Entry<String,List<String>>> entryListConstantAttributes) {
 
-		
-		
-		HashMap<Entry<String,String>, HashMap<String, List<List<String>>>> mapToProcess = new HashMap<>();
-		
-		
-		
-		for(Entry<String,String> uiSchemaSubType : getListOfbiometricSubtypes().entrySet() ) {
-		
+	protected HashMap<Entry<String, String>, HashMap<String, List<List<String>>>> getconfigureAndNonConfiguredBioAttributes(
+			List<Entry<String, List<String>>> entryListConstantAttributes) {
+
+		HashMap<Entry<String, String>, HashMap<String, List<List<String>>>> mapToProcess = new HashMap<>();
+
+		for (Entry<String, String> uiSchemaSubType : getListOfbiometricSubtypes().entrySet()) {
+
 			List<String> uiAttributes = getBioAttributesBySubType(uiSchemaSubType.getKey());
-			
+
 			HashMap<String, List<List<String>>> subMap = new HashMap<>();
-			for(Entry<String,List<String>> constantAttributes : entryListConstantAttributes)
-			{
+			for (Entry<String, List<String>> constantAttributes : entryListConstantAttributes) {
 				List<String> nonConfigBiometrics = new LinkedList<>();
 				List<String> configBiometrics = new LinkedList<>();
 				String slabType = constantAttributes.getKey();
 				for (String attribute : constantAttributes.getValue()) {
 					if (!uiAttributes.contains(attribute)) {
 						nonConfigBiometrics.add(attribute);
-					}else {
+					} else {
 						configBiometrics.add(attribute);
 					}
 				}
@@ -1735,8 +1732,6 @@ public class BaseController {
 		return mapToProcess;
 	}
 
-
-	
 	protected void disablePaneOnBioAttributes(Node pane, List<String> constantBioAttributes) {
 
 		/** Put pane disable by default */
@@ -1854,14 +1849,11 @@ public class BaseController {
 		}
 		return nonConfigBiometrics;
 	}
-	
-
 
 	protected boolean isDemographicField(UiSchemaDTO schemaField) {
 		return (schemaField.isInputRequired() && !(schemaField.getType().equalsIgnoreCase("biometricsType")
 				|| schemaField.getType().equalsIgnoreCase("documentType")));
 	}
-
 
 	protected List<String> getConstantConfigBioAttributes(String bioType) {
 
@@ -1878,13 +1870,25 @@ public class BaseController {
 												: null;
 	}
 
-	/*protected List<String> getConfigBioAttributes(List<String> constantAttributes) {
+	/*
+	 * protected List<String> getConfigBioAttributes(List<String>
+	 * constantAttributes) {
+	 * 
+	 * // Get Bio Attributes List<String> uiAttributes =
+	 * getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
+	 * 
+	 * return
+	 * constantAttributes.stream().filter(uiAttributes::contains).collect(Collectors
+	 * .toList());
+	 * 
+	 * 
+	 * }
+	 */
 
-		// Get Bio Attributes
-		List<String> uiAttributes = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
+	protected List<String> getContainsAllElements(List<String> source, List<String> target) {
 
-		return constantAttributes.stream().filter(uiAttributes::contains).collect(Collectors.toList());
+		return source.stream().filter(target::contains).collect(Collectors.toList());
 
+	}
 
-	}*/
 }
