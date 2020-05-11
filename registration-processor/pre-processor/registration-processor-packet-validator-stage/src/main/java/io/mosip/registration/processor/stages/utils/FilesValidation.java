@@ -9,6 +9,7 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.FieldValueArray;
 import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -62,8 +63,9 @@ public class FilesValidation {
 	 * @throws IOException 
 	 * @throws ApisResourceAccessException 
 	 * @throws PacketDecryptionFailureException 
+	 * @throws ApiNotAccessibleException 
 	 */
-	public boolean filesValidation(String registrationId, PacketMetaInfo packetMetaInfo) throws PacketDecryptionFailureException, ApisResourceAccessException, IOException {
+	public boolean filesValidation(String registrationId, PacketMetaInfo packetMetaInfo) throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, ApiNotAccessibleException {
 		if(packetMetaInfo == null){
 			registrationStatusDto.setStatusComment(StatusMessage.PACKET_FILES_VALIDATION_FAILURE);
 			return false;
@@ -99,8 +101,9 @@ public class FilesValidation {
 	 * @throws IOException 
 	 * @throws ApisResourceAccessException 
 	 * @throws PacketDecryptionFailureException 
+	 * @throws ApiNotAccessibleException 
 	 */
-	private boolean validateHashSequence(String registrationId, List<FieldValueArray> hashSequence) throws  ApisResourceAccessException, IOException, PacketDecryptionFailureException {
+	private boolean validateHashSequence(String registrationId, List<FieldValueArray> hashSequence) throws  ApisResourceAccessException, IOException, PacketDecryptionFailureException, ApiNotAccessibleException {
 		boolean isHashSequenceValidated = false;
 
 		for (FieldValueArray fieldValueArray : hashSequence) {
@@ -116,7 +119,7 @@ public class FilesValidation {
 	}
 
 
-	private boolean validateFilesExistance(String registrationId, List<String> values) throws  ApisResourceAccessException, IOException, PacketDecryptionFailureException {
+	private boolean validateFilesExistance(String registrationId, List<String> values) throws  ApisResourceAccessException, IOException, PacketDecryptionFailureException, ApiNotAccessibleException {
 		boolean areFilesValidated = true;
 		for(String file : values){
 			String fileName = file.toUpperCase();

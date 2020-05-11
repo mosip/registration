@@ -21,6 +21,7 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -55,7 +56,7 @@ public class MandatoryValidation {
 	}
 
 	public boolean mandatoryFieldValidation(String regId) throws IOException, JSONException,
-			PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException {
+			PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"MandatoryValidation::mandatoryFieldValidation()::entry");
 		JSONObject mapperIdentity = utility.getRegistrationProcessorIdentityJson();
@@ -103,7 +104,7 @@ public class MandatoryValidation {
 	}
 
 	private JSONObject getDemoIdentity(String registrationId) throws IOException, PacketDecryptionFailureException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException {
+			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
 		InputStream documentInfoStream = adapter.getFile(registrationId, PacketFiles.ID.name(),source);
 
 		byte[] bytes = IOUtils.toByteArray(documentInfoStream);

@@ -14,6 +14,7 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.FieldValueArray;
 import io.mosip.registration.processor.core.packet.dto.Identity;
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -67,8 +68,9 @@ public class CheckSumValidation {
 	 * @throws io.mosip.kernel.core.exception.IOException 
 	 * @throws ApisResourceAccessException 
 	 * @throws PacketDecryptionFailureException 
+	 * @throws ApiNotAccessibleException 
 	 */
-	public boolean checksumvalidation(String registrationId, Identity identity) throws IOException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, PacketDecryptionFailureException {
+	public boolean checksumvalidation(String registrationId, Identity identity) throws IOException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, PacketDecryptionFailureException, ApiNotAccessibleException {
 		List<FieldValueArray> hashSequence1 = identity.getHashSequence1();
 		List<FieldValueArray> hashSequence2 = identity.getHashSequence2();
         regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),

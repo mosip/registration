@@ -16,6 +16,7 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.FieldValueArray;
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 
 /**
@@ -102,7 +103,7 @@ public class CheckSumGeneration {
 
                 fileByte = IOUtils.toByteArray(fileStream);
 				outputStream.write(fileByte);
-			} catch (IOException | io.mosip.kernel.core.exception.IOException | io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException e) {
+			} catch (IOException | io.mosip.kernel.core.exception.IOException | io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException | ApiNotAccessibleException e) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.APPLICATIONID.toString(), StatusMessage.INPUTSTREAM_NOT_READABLE,
 						e.getMessage() + ExceptionUtils.getStackTrace(e));
@@ -121,7 +122,7 @@ public class CheckSumGeneration {
 
 					valuebyte = IOUtils.toByteArray(fileStream);
 					outputStream.write(valuebyte);
-				} catch (IOException | io.mosip.kernel.core.exception.IOException | io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException e) {
+				} catch (IOException | io.mosip.kernel.core.exception.IOException | io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException | ApiNotAccessibleException e) {
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.APPLICATIONID.toString(), StatusMessage.INPUTSTREAM_NOT_READABLE,
 							e.getMessage() + ExceptionUtils.getStackTrace(e));

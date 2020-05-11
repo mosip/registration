@@ -46,6 +46,7 @@ import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.stages.dto.PacketValidationDto;
@@ -298,7 +299,7 @@ public class PacketValidatorImpl implements PacketValidator{
 
 				}
 			} catch (IOException | io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException 
-					| io.mosip.kernel.core.exception.IOException e) {
+					| io.mosip.kernel.core.exception.IOException | ApiNotAccessibleException e) {
 				throw new RegistrationProcessorCheckedException(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
 						PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), e);
 			}
@@ -308,7 +309,7 @@ public class PacketValidatorImpl implements PacketValidator{
 	
 
 	private boolean fileValidation(PacketMetaInfo packetMetaInfo, InternalRegistrationStatusDto registrationStatusDto,
-			PacketValidationDto packetValidationDto) throws PacketDecryptionFailureException, ApisResourceAccessException, IOException {
+			PacketValidationDto packetValidationDto) throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, ApiNotAccessibleException {
 			if (env.getProperty(VALIDATEFILE).trim().equalsIgnoreCase(VALIDATIONFALSE)) {
 				packetValidationDto.setFilesValidated(true);
 				return packetValidationDto.isFilesValidated();
@@ -329,7 +330,7 @@ public class PacketValidatorImpl implements PacketValidator{
 			throws ApisResourceAccessException, IOException, IdObjectValidationFailedException, IdObjectIOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
 			RegistrationProcessorCheckedException, 
-			io.mosip.registration.processor.core.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.core.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 
 		if (env.getProperty(VALIDATESCHEMA).trim().equalsIgnoreCase(VALIDATIONFALSE)) {
 			packetValidationDto.setSchemaValidated(true);
@@ -351,7 +352,7 @@ public class PacketValidatorImpl implements PacketValidator{
 	
 	private boolean checkSumValidation(Identity identity, InternalRegistrationStatusDto registrationStatusDto,
 			PacketValidationDto packetValidationDto) throws IOException, PacketDecryptionFailureException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException {
+			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
 		if (env.getProperty(VALIDATECHECKSUM).trim().equalsIgnoreCase(VALIDATIONFALSE)) {
 			packetValidationDto.setCheckSumValidated(true);
 			return packetValidationDto.isCheckSumValidated();
@@ -372,7 +373,7 @@ public class PacketValidatorImpl implements PacketValidator{
 			PacketValidationDto packetValidationDto)
 			throws IOException, ApisResourceAccessException, org.json.simple.parser.ParseException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			RegistrationProcessorCheckedException, io.mosip.registration.processor.core.exception.PacketDecryptionFailureException {
+			RegistrationProcessorCheckedException, io.mosip.registration.processor.core.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		if (env.getProperty(VALIDATEAPPLICANTDOCUMENT).trim().equalsIgnoreCase(VALIDATIONFALSE)) {
 			packetValidationDto.setApplicantDocumentValidation(true);
 			return packetValidationDto.isApplicantDocumentValidation();
@@ -414,7 +415,7 @@ public class PacketValidatorImpl implements PacketValidator{
 	
 	private boolean mandatoryValidation(InternalRegistrationStatusDto registrationStatusDto,
 			PacketValidationDto packetValidationDto) throws IOException, JSONException,
-			PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException {
+			PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
 		if (env.getProperty(VALIDATEMANDATORY).trim().equalsIgnoreCase(VALIDATIONFALSE))
 			return true;
 		MandatoryValidation mandatoryValidation = new MandatoryValidation(packetReaderService, registrationStatusDto,
