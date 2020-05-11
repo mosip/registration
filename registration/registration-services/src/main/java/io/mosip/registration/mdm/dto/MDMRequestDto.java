@@ -15,4 +15,17 @@ public class MDMRequestDto {
 	private int count;
 	private int requestedScore;
 
+	public MDMRequestDto(String modality, String[] bioAttributes, String[] exceptions, String mosipProcess,
+			String environment, int timeout, int count, int requestedScore) {
+		super();
+		this.modality = modality;
+		this.bioAttributes = bioAttributes;
+		this.exceptions = exceptions;
+		this.mosipProcess = mosipProcess;
+		this.environment = environment;
+		this.timeout = timeout;
+		this.count = count;
+		this.requestedScore = requestedScore;
+	}
+
 }

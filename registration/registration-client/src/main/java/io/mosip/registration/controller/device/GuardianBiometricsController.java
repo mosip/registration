@@ -39,6 +39,7 @@ import io.mosip.registration.dto.biometric.IrisDetailsDTO;
 import io.mosip.registration.dto.mastersync.BiometricAttributeDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
+import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.mdm.dto.RequestDetail;
 import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.security.AuthenticationService;
@@ -207,6 +208,8 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 	private String bioType;
 
+	private static Map<String, byte[]> STREAM_IMAGES = new HashMap<String, byte[]>();
+
 	/** The face capture controller. */
 	@Autowired
 	private IrisCaptureController irisCaptureController;
@@ -232,6 +235,8 @@ public class GuardianBiometricsController extends BaseController implements Init
 	}
 
 	private String currentSubType;
+
+	private String currentModality;
 
 	/*
 	 * (non-Javadoc)
@@ -348,6 +353,9 @@ public class GuardianBiometricsController extends BaseController implements Init
 				"Displaying biometrics to capture");
 
 		if (null != biometricTypecombo.getValue()) {
+
+			currentModality = getModality(biometricTypecombo.getValue().getName());
+
 			if (biometricTypecombo.getValue().getName().equalsIgnoreCase(RegistrationUIConstants.RIGHT_SLAP)) {
 				updateBiometric(biometricTypecombo.getValue().getName(), RegistrationConstants.RIGHTPALM_IMG_PATH,
 						RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD,
@@ -534,32 +542,41 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 	private void captureBiometrics(String subType, String bioType) {
 
-		// TODO Get Modality
+		// TODO Get Exception attributes
+		String[] exceptionBioAttributes = null;
+		List<String> exceptionBioAttributesList = getExceptionBioAttributesByBioType(bioType);
+		if (exceptionBioAttributesList != null && !exceptionBioAttributesList.isEmpty()) {
+			exceptionBioAttributes = (String[]) exceptionBioAttributesList.toArray();
+		}
 
-		// TODO Get Exception Fingers
+		// TODO prepare bio attributes
+		String[] bioAttributes = null;
 
-		// TODO Request MDS
-		RequestDetail mdsRequestDetails = new RequestDetail(getModality(bioType), getCaptureTimeOut(), 1,
-				getThresholdScore(bioType), getExceptionBioAttributesByBioType(bioType));
+		// Check count
+		int count = 1;
+
+		MDMRequestDto mdmRequestDto = new MDMRequestDto(currentModality, bioAttributes, exceptionBioAttributes,
+				"Registration", "Staging", Integer.valueOf(getCaptureTimeOut()), count,
+				Integer.valueOf(getThresholdScore(bioType)));
 
 		try {
 			// TODO Get Response from the MDS
-			List<BiometricDTO> biometricDTOList = null;
+			List<BiometricDTO> biometricDTOList = bioService.captureModality(mdmRequestDto);
 
 			// TODO Validate the biometricDTO from the MDS with threshold values
-
-			boolean isValidBiometric = false;
-			if (biometricDTOList != null && !biometricDTOList.isEmpty()) {
-				for (BiometricDTO biometricDTO : biometricDTOList) {
-
-					if (biometricDTO.isForceCaptured()
-							|| biometricDTO.getQualityScore() >= Double.valueOf(getThresholdScore(bioType))) {
-						isValidBiometric = true;
-					} else {
-						isValidBiometric = false;
-					}
-				}
-			}
+			boolean isValidBiometric = true;
+			// if (biometricDTOList != null && !biometricDTOList.isEmpty()) {
+			// for (BiometricDTO biometricDTO : biometricDTOList) {
+			//
+			// if (biometricDTO.isForceCaptured()
+			// || biometricDTO.getQualityScore() >=
+			// Double.valueOf(getThresholdScore(bioType))) {
+			// isValidBiometric = true;
+			// } else {
+			// isValidBiometric = false;
+			// }
+			// }
+			// }
 
 			// TODO validate local de-dup check
 			boolean isMatchedWithLocalBiometrics = false;
@@ -609,12 +626,8 @@ public class GuardianBiometricsController extends BaseController implements Init
 		setCapturedValues(getAverageQualityScore(biometricDTOList), biometricDTOList.get(0).getNumOfRetries(),
 				Double.valueOf(getThresholdScore(bioType)));
 
-		// TODO Get the stream image from Bio ServiceImpl and load it in the image pane
-		// biometricImage.setImage(bioService.isMdmEnabled()
-		// ? convertBytesToImage(
-		// bioService.getBioStreamImage(detailsDTO.getFingerType(),
-		// detailsDTO.getNumRetry()))
-		// : convertBytesToImage(detailsDTO.getFingerPrint()));
+		// Get the stream image from Bio ServiceImpl and load it in the image pane
+		biometricImage.setImage(convertBytesToImage(getBioStreamImage(currentSubType, currentModality)));
 	}
 
 	private double getAverageQualityScore(List<BiometricDTO> biometricDTOList) {
@@ -1594,6 +1607,21 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		}
 
+	}
+
+	public void addBioStreamImage(byte[] streamImageBytes) {
+
+		STREAM_IMAGES.put(String.format("%s_%s", currentSubType, currentModality), streamImageBytes);
+	}
+
+	public void addBioStreamImage(String subType, String modality, byte[] streamImageBytes) {
+
+		STREAM_IMAGES.put(String.format("%s_%s", subType, modality), streamImageBytes);
+	}
+
+	public byte[] getBioStreamImage(String subType, String modality) {
+
+		return STREAM_IMAGES.get(String.format("%s_%s", subType, modality));
 	}
 
 }
