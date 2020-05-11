@@ -1,25 +1,28 @@
-### registration-processor-packet-receiver-stage
-[Background & design](https://github.com/mosip/mosip/wiki/Registration-Processor)
+# registration-processor-packet-receiver-stage
 
-This component supports upload of packet(s) through rest api.
+This API receives registration packet from reg-client. Before moving packet to landing zone virus scan is performed and then trustworthiness of the packet is validated using hash value and size.
 
-[API Specification](https://github.com/mosip/mosip/wiki/Registration-Processor-APIs#1-packet-receiver-service)
 
-##### Default Context-path and Port
+## Design
 
-```
-server.port=8081
-server.servlet.path=/registrationprocessor/v1/packetreceiver
+[Design](https://github.com/mosip/registration/blob/master/design/registration-processor/Approach_for_packet_receiver_stage.md)
 
-```
+ 
 
-##### Configurable Properties from Config Server
+## Default Port and Context Path
 
-```
-registration.processor.max.file.size=5
-mosip.registration.processor.application.version=1.0
-mosip.registration.processor.datetime.pattern=yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
-mosip.registration.processor.timezone=GMT
-mosip.registration.processor.packet.id=mosip.registration.packet
+  * server.port=8081
+  * server.servlet.path=/registrationprocessor/v1/packetreceiver
 
-```
+
+## URL
+
+* https://{dns-name}:8081/registrationprocessor/v1/packetreceiver/swagger-ui.html
+
+
+## API Dependencies
+	
+|Dependent Module |  Dependent Services  | API |
+| ------------- | ------------- | ------------- |
+| commons/kernel  | kernel-cryptomanager-service | /decrypt|
+| commons/kernel  | kernel-auditmanager-service | /audits|
