@@ -578,7 +578,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 						Integer.parseInt(getValueFromApplicationContext(RegistrationConstants.IRIS_THRESHOLD)));
 			}
 
-			captureBiometrics(currentSubType, biometricType.getText());
+			captureBiometrics(currentSubType, biometricType.getText(), currentModality);
 
 		} catch (RuntimeException runtimeException) {
 			LOGGER.error(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
