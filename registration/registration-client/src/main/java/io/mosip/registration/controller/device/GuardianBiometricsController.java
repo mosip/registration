@@ -10,10 +10,12 @@ import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.ResourceBundle;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,8 +46,6 @@ import io.mosip.registration.mdm.dto.RequestDetail;
 import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.security.AuthenticationService;
 import io.mosip.registration.service.sync.MasterSyncService;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -62,6 +62,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
@@ -235,6 +236,16 @@ public class GuardianBiometricsController extends BaseController implements Init
 	}
 
 	private String currentSubType;
+	
+	@FXML
+	private GridPane ContentHeader;
+	
+
+	@FXML
+	private GridPane checkBoxPane;
+	
+	private ResourceBundle applicationLabelBundle;
+
 
 	private String currentModality;
 
@@ -249,86 +260,133 @@ public class GuardianBiometricsController extends BaseController implements Init
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Loading of Guardian Biometric screen started");
 
-		HashMap<String, HashMap<ComboBox<String>, HBox>> hS = new HashMap<>();
+		applicationLabelBundle = applicationContext.getApplicationLanguageBundle();
+		
+		HashMap<String, VBox> comboBoxMap = new HashMap<>();
 
-		HashMap<String, HashMap<String, ArrayList<String>>> myMap = new HashMap<>();
-
-		HashMap<String, ArrayList<String>> mT = new HashMap<>();
-
-		ArrayList<String> aR = new ArrayList<>();
-		aR.add("F1");
-		aR.add("F2");
-		aR.add("F3");
-		aR.add("F4");
-
-		mT.put("applicant_LEFT_SLAP", aR);
-		mT.put("applicant_RIGHT_SLAP", aR);
-		mT.put("applicant_THUMBS", aR);
-		myMap.put("applicant", mT);
-
-		HashMap<String, ArrayList<String>> mT2 = new HashMap<>();
-
-		ArrayList<String> aR2 = new ArrayList<>();
-		aR.add("F1");
-		aR.add("F2");
-		aR.add("F3");
-		aR.add("F4");
-
-		mT2.put("intro_LEFT_SLAP", aR2);
-		mT2.put("intro_RIGHT_SLAP", aR2);
-		mT2.put("intro_THUMBS", aR2);
-		myMap.put("intro", mT2);
-
-		// TODO replace the value from the comboMap
-		currentSubType = RegistrationConstants.INDIVIDUAL;
-
-		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getSelectionListDTO() != null) {
-			registrationNavlabel.setText(ApplicationContext.applicationLanguageBundle()
-					.getString(RegistrationConstants.UIN_UPDATE_UINUPDATENAVLBL));
-		}
-
-		if (getRegistrationDTOFromSession() != null
-				&& getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory() != null
-				&& getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory()
-						.equals(RegistrationConstants.PACKET_TYPE_LOST)) {
-			registrationNavlabel.setText(
-					ApplicationContext.applicationLanguageBundle().getString(RegistrationConstants.LOSTUINLBL));
-		}
-		intializeCaptureCount();
-		fxUtils = FXUtils.getInstance();
-		fxUtils.setTransliteration(transliteration);
-		bioValue = RegistrationUIConstants.SELECT;
-		biometricBox.setVisible(false);
-		retryBox.setVisible(false);
-		continueBtn.setDisable(true);
-		populateBiometrics();
-		renderBiometrics();
-
-		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-				"Loading of Guardian Biometric screen ended");
-
-		biometricTypecombo.valueProperty().addListener(new ChangeListener<BiometricAttributeDto>() {
-
-			@Override
-			public void changed(ObservableValue<? extends BiometricAttributeDto> arg0,
-					BiometricAttributeDto previousValue, BiometricAttributeDto currentValue) {
-				if (null != previousValue && null != currentValue
-						&& !previousValue.getName().equalsIgnoreCase(currentValue.getName())) {
-					continueBtn.setDisable(true);
-
-					getRegistrationDTOFromSession().getBiometricDTO().getApplicantBiometricDTO()
-							.getFingerprintDetailsDTO().clear();
-					getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
-							.getFingerprintDetailsDTO().clear();
-
-					getRegistrationDTOFromSession().getBiometricDTO().getApplicantBiometricDTO().getIrisDetailsDTO()
-							.clear();
-					getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().getIrisDetailsDTO()
-							.clear();
+		HashMap<String,  HashMap<String, VBox>> checkBoxMap = new HashMap<>();
+		
+		HashMap<String, HashMap<String, List<List<String>>>> mapToProcess =  getconfigureAndNonConfiguredBioAttributes(Arrays.asList("applicant","introducer"), Arrays.asList( 
+				 getValue("LEFT_SLAB",RegistrationConstants.leftHandUiAttributes), 
+				 getValue("RIGHT_SLAB",RegistrationConstants.rightHandUiAttributes), 
+				 getValue("THUMBS_SLAB",RegistrationConstants.twoThumbsUiAttributes),
+				 getValue("IRIS",RegistrationConstants.eyesUiAttributes),
+				 getValue("FACE",RegistrationConstants.faceUiAttributes)));
+		
+		for(Entry<String, HashMap<String, List<List<String>>>> subType : mapToProcess.entrySet()) {
+			VBox vb = new VBox();
+			vb.setSpacing(10);
+			vb.setId(subType.getKey()+"vbox");
+			Label label = new Label(subType.getKey());
+			label.getStyleClass().add("paneHeader");
+			ComboBox<String> comboBox = new ComboBox<>();
+			comboBox.getStyleClass().add("demographicCombobox");
+			comboBox.setId(subType.getKey()+"combobox");
+			
+			vb.getChildren().addAll(label, comboBox);
+			ContentHeader.add(vb, 1, 1);
+			vb.setVisible(false);
+			vb.setManaged(false);
+			comboBoxMap.put(subType.getKey(), vb);
+			HashMap<String, VBox> subMap = new HashMap<>();
+			for(Entry<String, List<List<String>> > biometric : subType.getValue().entrySet() ) {
+				List<List<String>> listOfCheckBoxes = biometric.getValue();
+				if(!listOfCheckBoxes.get(0).isEmpty()) {
+				
+				comboBox.getItems().add(biometric.getKey());
+				
+				if(!listOfCheckBoxes.get(0).get(0).equals("face"))
+				{
+				VBox vboxForCheckBox = new VBox();
+				vboxForCheckBox.setSpacing(5);
+				
+				for(int i=0;i<listOfCheckBoxes.size();i++) {
+				
+					for(String exception : biometric.getValue().get(i)) {
+						CheckBox checkBox = new CheckBox(exception);
+						checkBox.getStyleClass().add(RegistrationConstants.updateUinCheckBox);
+						if(i==1)
+						{
+							checkBox.setSelected(true);
+							checkBox.setDisable(true);
+						}
+						vboxForCheckBox.getChildren().add(checkBox);
+					}
 				}
-
+				checkBoxPane.add(vboxForCheckBox, 0, 0);
+				vboxForCheckBox.setVisible(false);
+				vboxForCheckBox.setManaged(false);
+				
+				checkBoxMap.put(subType.getKey(), subMap );
+				subMap.put(biometric.getKey(), vboxForCheckBox);
+				
+				
+				}
+				}
+				
 			}
-		});
+			
+		}
+		
+		comboBoxMap.get("introducer").setVisible(true);
+		comboBoxMap.get("introducer").setManaged(true);
+		
+		checkBoxMap.get("introducer").get("LEFT_SLAB").setVisible(true);
+
+		checkBoxMap.get("introducer").get("LEFT_SLAB").setManaged(true);
+
+		
+//		
+//		// TODO replace the value from the comboMap
+//		currentSubType = RegistrationConstants.INDIVIDUAL;
+//
+//		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getSelectionListDTO() != null) {
+//			registrationNavlabel.setText(ApplicationContext.applicationLanguageBundle()
+//					.getString(RegistrationConstants.UIN_UPDATE_UINUPDATENAVLBL));
+//		}
+//
+//		if (getRegistrationDTOFromSession() != null
+//				&& getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory() != null
+//				&& getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory()
+//						.equals(RegistrationConstants.PACKET_TYPE_LOST)) {
+//			registrationNavlabel.setText(
+//					ApplicationContext.applicationLanguageBundle().getString(RegistrationConstants.LOSTUINLBL));
+//		}
+//		intializeCaptureCount();
+//		fxUtils = FXUtils.getInstance();
+//		fxUtils.setTransliteration(transliteration);
+//		bioValue = RegistrationUIConstants.SELECT;
+//		biometricBox.setVisible(false);
+//		retryBox.setVisible(false);
+//		continueBtn.setDisable(true);
+//		populateBiometrics();
+//		renderBiometrics();
+//
+//		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+//				"Loading of Guardian Biometric screen ended");
+//
+//		biometricTypecombo.valueProperty().addListener(new ChangeListener<BiometricAttributeDto>() {
+//
+//			@Override
+//			public void changed(ObservableValue<? extends BiometricAttributeDto> arg0,
+//					BiometricAttributeDto previousValue, BiometricAttributeDto currentValue) {
+//				if (null != previousValue && null != currentValue
+//						&& !previousValue.getName().equalsIgnoreCase(currentValue.getName())) {
+//					continueBtn.setDisable(true);
+//
+//					getRegistrationDTOFromSession().getBiometricDTO().getApplicantBiometricDTO()
+//							.getFingerprintDetailsDTO().clear();
+//					getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
+//							.getFingerprintDetailsDTO().clear();
+//
+//					getRegistrationDTOFromSession().getBiometricDTO().getApplicantBiometricDTO().getIrisDetailsDTO()
+//							.clear();
+//					getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().getIrisDetailsDTO()
+//							.clear();
+//				}
+//
+//			}
+//		});
 	}
 
 	public void intializeCaptureCount() {
@@ -346,7 +404,6 @@ public class GuardianBiometricsController extends BaseController implements Init
 	 * @param event
 	 *            the event for displaying biometrics
 	 */
-	@FXML
 	private void displayBiometric(ActionEvent event) {
 
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
@@ -516,8 +573,6 @@ public class GuardianBiometricsController extends BaseController implements Init
 				scanIris(RegistrationConstants.LEFT.concat(RegistrationConstants.EYE), popupStage,
 						Integer.parseInt(getValueFromApplicationContext(RegistrationConstants.IRIS_THRESHOLD)));
 			}
-
-			captureBiometrics(currentSubType, biometricType.getText());
 
 		} catch (RuntimeException runtimeException) {
 			LOGGER.error(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
