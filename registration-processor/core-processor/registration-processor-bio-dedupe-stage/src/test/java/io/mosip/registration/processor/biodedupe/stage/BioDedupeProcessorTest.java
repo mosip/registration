@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -188,21 +187,14 @@ public class BioDedupeProcessorTest {
 		Mockito.doNothing().when(packetInfoManager).saveManualAdjudicationData(any(), any(), any(), any(), any());
 		Mockito.doNothing().when(packetInfoManager).saveRegLostUinDet(any(), any(), any(), any());
 
-		String identityMappingjsonString = "";
-		ClassLoader classLoader = getClass().getClassLoader();
-		File identityMappingjson = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
-		InputStream identityMappingjsonStream = new FileInputStream(identityMappingjson);
 
-		try {
-			identityMappingjsonString = IOUtils.toString(identityMappingjsonStream, StandardCharsets.UTF_8);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		PowerMockito.mockStatic(Utilities.class);
-		PowerMockito.when(Utilities.class, "getJson", anyString(), anyString()).thenReturn(identityMappingjsonString);
-		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn(IDENTITY);
-		Mockito.when(utility.getConfigServerFileStorageURL()).thenReturn(CONFIG_SERVER_URL);
-		Mockito.when(utility.getGetRegProcessorIdentityJson()).thenReturn("RegistrationProcessorIdentity.json");
+		ClassLoader classLoader = getClass().getClassLoader();
+
+		File mappingJsonFile = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
+		InputStream is = new FileInputStream(mappingJsonFile);
+		String value = IOUtils.toString(is);
+		Mockito.when(utility.getRegistrationProcessorIdentityJson()).thenReturn(JsonUtil
+				.getJSONObject(JsonUtil.objectMapperReadValue(value, JSONObject.class), MappingJsonConstants.IDENTITY));
 		Mockito.when(bioDedupeService.getFileByRegId(anyString())).thenReturn("test".getBytes());
 
 	}
