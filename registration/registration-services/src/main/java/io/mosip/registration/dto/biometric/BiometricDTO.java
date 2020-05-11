@@ -31,9 +31,6 @@ public class BiometricDTO {
 	private int numOfRetries;
 	private long formatType;	
 	private boolean isCaptured;
-	private boolean isException;
-	private String exceptionType;
-	private String reason;
 	
 	//TODO need to remove below fields and handle them
 

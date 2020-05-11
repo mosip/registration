@@ -14,6 +14,7 @@ import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
 import io.mosip.registration.dto.demographic.ValuesDTO;
 import io.mosip.registration.packetmananger.dto.AuditDto;
 import io.mosip.registration.packetmananger.dto.SimpleDto;
+import io.mosip.registration.packetmananger.dto.metadata.ModalityException;
 import lombok.Data;
 
 /**
@@ -46,6 +47,7 @@ public class RegistrationDTO {
 	private Map<String, Object> demographics = new HashMap<>();
 	private Map<String, DocumentDetailsDTO> documents = new HashMap<>();
 	private Map<String, BiometricDTO> biometrics = new HashMap<>();
+	private List<String> biometricExceptions = new ArrayList<>(); 
 	
 	private List<BiometricDTO> supervisorBiometrics;
 	private List<BiometricDTO> officerBiometrics;
@@ -114,18 +116,16 @@ public class RegistrationDTO {
 		this.biometrics.put(key, value);
 	}
 	
-	public void addBiometricException(String subType, String bioAttribute, String exceptionType, String reason) {
-		String key = String.format("%s_%s", subType, bioAttribute);
-		BiometricDTO value = new BiometricDTO();
-		value.setException(true);
-		value.setExceptionType(exceptionType);
-		value.setReason(reason);
-		this.biometrics.put(key, value);
+	public void addBiometricException(String subType, String bioAttribute) {
+		biometricExceptions.add(String.format("%s_%s", subType, bioAttribute));
+	}
+	
+	public boolean isBiometricExceptionAvailable(String subType, String bioAttribute) {
+		return biometricExceptions.contains(String.format("%s_%s", subType, bioAttribute));
 	}
 	
 	public void removeBiometricException(String subType, String bioAttribute) {
-		String key = String.format("%s_%s", subType, bioAttribute);
-		this.biometrics.remove(key);
+		this.biometricExceptions.remove(String.format("%s_%s", subType, bioAttribute));
 	}
 	
 	public BiometricDTO getBiometric(String subType, String bioAttribute) {

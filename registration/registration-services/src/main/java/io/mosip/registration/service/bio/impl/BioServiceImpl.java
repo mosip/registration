@@ -1534,7 +1534,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 				"Scanning of mock modality for user registration");		
 		List<BiometricDTO> list = new ArrayList<>();
 		try {			
-			for(String bioAttribute : mdmRequestDto.getBioAttributes()) {
+			for(String bioAttribute : getBiometricsToCaptureForMock(mdmRequestDto.getModality(), mdmRequestDto.getExceptions())) {
 				BiometricDTO biometricDto = new BiometricDTO(bioAttribute, 
 						IOUtils.resourceToByteArray(getFilePath(mdmRequestDto.getModality(), bioAttribute)),
 						90.0);
@@ -1568,6 +1568,30 @@ public class BioServiceImpl extends BaseService implements BioService {
 			break;
 		}
 		return path;
+	}
+	
+	private List<String> getBiometricsToCaptureForMock(String modality, String[] exceptions) {
+		List<String> attributes = new ArrayList<String>();
+		switch (modality) {
+		case RegistrationConstants.FINGERPRINT_SLAB_LEFT:
+			attributes.addAll(RegistrationConstants.leftHandUiAttributes);
+			break;
+		case RegistrationConstants.FINGERPRINT_SLAB_RIGHT:
+			attributes.addAll(RegistrationConstants.rightHandUiAttributes);
+			break;
+		case RegistrationConstants.FINGERPRINT_SLAB_THUMBS:	
+			attributes.addAll(RegistrationConstants.twoThumbsUiAttributes);
+			break;
+		case RegistrationConstants.IRIS_DOUBLE:
+			attributes.add("leftEye");
+			attributes.add("rightEye");
+			break;
+		case RegistrationConstants.FACE_FULLFACE:
+			attributes.add("face");
+			break;
+		}
+		attributes.removeAll(Arrays.asList(exceptions));
+		return attributes;
 	}
 
 }
