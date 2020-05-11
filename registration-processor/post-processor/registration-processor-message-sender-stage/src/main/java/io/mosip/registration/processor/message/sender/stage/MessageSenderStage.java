@@ -1,7 +1,6 @@
 package io.mosip.registration.processor.message.sender.stage;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,10 +35,9 @@ import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.IdType;
-import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
@@ -48,15 +46,10 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.notification.template.generator.dto.ResponseDto;
 import io.mosip.registration.processor.core.notification.template.generator.dto.SmsResponseDto;
 import io.mosip.registration.processor.core.notification.template.generator.dto.TemplateResponseDto;
-import io.mosip.registration.processor.core.packet.dto.FieldValue;
-import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.message.sender.MessageNotificationService;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
-import io.mosip.registration.processor.core.util.IdentityIteratorUtil;
-import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.message.sender.constants.MessageSenderConstant;
 import io.mosip.registration.processor.message.sender.constants.NotificationTypeEnum;
 import io.mosip.registration.processor.message.sender.dto.MessageSenderDto;
@@ -69,14 +62,19 @@ import io.mosip.registration.processor.message.sender.util.StatusNotificationTyp
 import io.mosip.registration.processor.message.sender.utility.MessageSenderStatusMessage;
 import io.mosip.registration.processor.message.sender.utility.NotificationTemplateCode;
 import io.mosip.registration.processor.message.sender.utility.NotificationTemplateType;
+import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.code.RegistrationType;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
+import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.dto.SyncTypeDto;
 import io.mosip.registration.processor.status.dto.TransactionDto;
+import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.mosip.registration.processor.status.service.TransactionService;
 
 /**
@@ -96,9 +94,7 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 	@Autowired
 	private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
-	/** The adapter. */
-	@Autowired
-	private PacketManager adapter;
+
 
 	/** The cluster manager url. */
 	@Value("${vertx.cluster.configuration}")
@@ -158,7 +154,9 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
-
+	
+	@Autowired
+	private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationservice;
 	/**
 	 * Deploy verticle.
 	 */
@@ -196,6 +194,7 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 		String id = object.getRid();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
 				"MessageSenderStage::process()::entry");
+		SyncRegistrationEntity regEntity = syncRegistrationservice.findByRegistrationId(id);
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(id);
 		status = registrationStatusDto.getLatestTransactionTypeCode() + "_"
 				+ registrationStatusDto.getLatestTransactionStatusCode();
@@ -204,12 +203,8 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 		registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
 
 		try {
-			InputStream packetMetaInfoStream = adapter.getFile(id, PacketFiles.PACKET_META_INFO.name());
-			PacketMetaInfo packetMetaInfo = (PacketMetaInfo) JsonUtil.inputStreamtoJavaObject(packetMetaInfoStream,
-					PacketMetaInfo.class);
-			List<FieldValue> metadataList = packetMetaInfo.getIdentity().getMetaData();
-			IdentityIteratorUtil identityIteratorUtil = new IdentityIteratorUtil();
-			String regType = identityIteratorUtil.getFieldValue(metadataList, JsonConstant.REGISTRATIONTYPE);
+			
+			String regType = regEntity.getRegistrationType();
 
 			NotificationTemplateType type = null;
 			StatusNotificationTypeMapUtil map = new StatusNotificationTypeMapUtil();
@@ -484,7 +479,8 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 	private boolean SendSms(String id, Map<String, Object> attributes, String regType,
 			MessageSenderDto messageSenderDto, LogDescription description) throws ApisResourceAccessException,
 			IOException, io.mosip.registration.processor.core.exception.PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException {
+			io.mosip.kernel.core.exception.IOException, PacketDecryptionFailureException,
+			RegistrationProcessorCheckedException {
 		boolean isSmsSuccess = false;
 		try {
 			SmsResponseDto smsResponse = service.sendSmsNotification(messageSenderDto.getSmsTemplateCode().name(), id,

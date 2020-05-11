@@ -34,7 +34,7 @@ import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.constant.PacketFiles;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.AuthSystemException;
@@ -46,7 +46,6 @@ import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessag
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.IdentityIteratorUtil;
@@ -54,12 +53,18 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
+import io.mosip.registration.processor.packet.utility.utils.IdSchemaUtils;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
+import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.dto.SyncTypeDto;
+import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.mosip.registration.processor.status.service.SyncRegistrationService;
 
 @Service
 public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
@@ -71,8 +76,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 	@Autowired
 	private Utilities utility;
 
-	@Autowired
-	private PacketManager adapter;
+
 
 	/** The registration status service. */
 	@Autowired
@@ -101,9 +105,21 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
 
+	@Autowired
+	private PacketReaderService packetReaderService;
+
+	@Autowired
+	private IdSchemaUtils idSchemaUtils;
+
+	@Value("${registration.processor.default.source}")
+	private String defaultSource;
+
 	/** Mosip router for APIs */
 	@Autowired
 	MosipRouter router;
+
+	@Autowired
+	private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationservice;
 
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
@@ -133,6 +149,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 		registrationStatusDto
 				.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.BIOMETRIC_AUTHENTICATION.toString());
 		registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
+		SyncRegistrationEntity regEntity = syncRegistrationservice.findByRegistrationId(registrationId);
 		String description = "";
 		String code = "";
 		boolean isTransactionSuccessful = false;
@@ -142,8 +159,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 			PacketMetaInfo packetMetaInfo = utility.getPacketMetaInfo(registrationId);
 			List<FieldValue> metadata = packetMetaInfo.getIdentity().getMetaData();
 			IdentityIteratorUtil identityIterator = new IdentityIteratorUtil();
-			String registartionType = identityIterator.getFieldValue(metadata,
-					BiometricAuthenticationConstants.REGISTRATIONTYPE);
+			String registartionType = regEntity.getRegistrationType();
 			int applicantAge = utility.getApplicantAge(registrationId);
 			int childAgeLimit = Integer.parseInt(ageLimit);
 			String applicantType = BiometricAuthenticationConstants.ADULT;
@@ -152,9 +168,14 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 			}
 			if (isUpdateAdultPacket(registartionType, applicantType)) {
 
-				JSONObject demographicIdentity = utility.getDemographicIdentityJSONObject(registrationId);
-				JSONObject individualBioMetricLabel = JsonUtil.getJSONObject(demographicIdentity,
-						BiometricAuthenticationConstants.INDIVIDUALBIOMETRICS);
+				JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
+
+				String individualBioMetricKey = JsonUtil.getJSONValue(
+						JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
+						MappingJsonConstants.VALUE);
+				JSONObject individualBioMetricLabel = JsonUtil.getJSONObject(
+						utility.getDemographicIdentityJSONObject(registrationId, individualBioMetricKey),
+						individualBioMetricKey);
 				if (individualBioMetricLabel == null) {
 					isTransactionSuccessful = checkIndividualAuthentication(registrationId, metadata,
 							registrationStatusDto);
@@ -162,14 +183,17 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 							? PlatformSuccessMessages.RPR_PKR_BIOMETRIC_AUTHENTICATION.getMessage()
 							: PlatformErrorMessages.BIOMETRIC_AUTHENTICATION_FAILED.getMessage();
 				} else {
-					String individualBioMetricValue = (String) individualBioMetricLabel
-							.get(BiometricAuthenticationConstants.VALUE);
+					String individualBiometricsFileName = JsonUtil
+							.getJSONValue(
+									JsonUtil.getJSONObject(utility.getDemographicIdentityJSONObject(registrationId,
+											individualBioMetricKey), individualBioMetricKey),
+									MappingJsonConstants.VALUE);
 
-					if (individualBioMetricValue != null && !individualBioMetricValue.isEmpty()) {
+					if (individualBiometricsFileName != null && !individualBiometricsFileName.isEmpty()) {
 
-						InputStream inputStream = adapter.getFile(registrationId,
-								PacketFiles.BIOMETRIC + BiometricAuthenticationConstants.FILE_SEPERATOR
-										+ individualBioMetricValue.toUpperCase());
+						String source = idSchemaUtils.getSource(individualBioMetricKey);
+						InputStream inputStream = packetReaderService.getFile(registrationId,
+								individualBiometricsFileName.toUpperCase(), source);
 
 						if (inputStream == null) {
 							isTransactionSuccessful = false;
@@ -346,8 +370,9 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 			registrationStatusDto.setSubStatusCode(StatusUtil.BIOMETRIC_AUTHENTICATION_FAILED.getCode());
 			return false;
 		}
-		InputStream inputStream = adapter.getFile(registrationId, PacketFiles.BIOMETRIC
-				+ BiometricAuthenticationConstants.FILE_SEPERATOR + individualAuthentication.toUpperCase());
+
+		InputStream inputStream = packetReaderService.getFile(registrationId,
+				individualAuthentication.toUpperCase(), defaultSource);
 		if (inputStream == null) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			registrationStatusDto

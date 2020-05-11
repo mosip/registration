@@ -5,6 +5,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import io.mosip.kernel.core.exception.IOException;
@@ -22,7 +23,8 @@ import io.mosip.registration.processor.packet.utility.service.PacketReaderServic
 
 @Service
 public class OSIUtils {
-
+	@Value("${registration.processor.default.source}")
+	private String defaultSource;
 	/** The adapter. */
 	@Autowired
 	private PacketReaderService packetReaderService;
@@ -65,7 +67,7 @@ public class OSIUtils {
 			throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId,
-				PacketFiles.META_INFO.name(), JsonConstant.ID);
+				PacketFiles.META_INFO.name(), defaultSource);
 		PacketMetaInfo packetMetaInfo = (PacketMetaInfo) JsonUtil.inputStreamtoJavaObject(packetMetaInfoStream,PacketMetaInfo.class);
 		return packetMetaInfo.getIdentity();
 

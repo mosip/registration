@@ -155,6 +155,8 @@ public class Utilities {
 	@Value("${registration.processor.id.repo.vidVersion}")
 	private String vidVersion;
 
+	@Value("${registration.processor.default.source}")
+	private String defaultSource;
 	/** The packet info dao. */
 	@Autowired
 	private PacketInfoDao packetInfoDao;
@@ -612,7 +614,7 @@ public class Utilities {
 			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getPacketMetaInfo():: entry");
-		InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId, PacketFiles.PACKET_META_INFO.name(),JsonConstant.ID);
+		InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId, PacketFiles.META_INFO.name(),defaultSource);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getPacketMetaInfo():: exit");
 		return (PacketMetaInfo) JsonUtil.inputStreamtoJavaObject(packetMetaInfoStream, PacketMetaInfo.class);
