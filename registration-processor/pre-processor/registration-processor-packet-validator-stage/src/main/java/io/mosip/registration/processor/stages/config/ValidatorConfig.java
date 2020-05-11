@@ -31,11 +31,14 @@ import io.mosip.registration.processor.stages.utils.AuditUtility;
 import io.mosip.registration.processor.stages.utils.DocumentUtility;
 import io.mosip.registration.processor.stages.utils.IdObjectsSchemaValidationOperationMapper;
 import io.mosip.registration.processor.stages.utils.RestTemplateInterceptor;
+import io.mosip.registration.processor.stages.validator.PacketValidator;
+import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl;
 
 @Configuration
 public class ValidatorConfig {
 
 	public static final String IDOBJECT_PROVIDER = "idobject.validator.provider";
+	public static final String PACKET_VALIDATOR_PROVIDER = "packet.validator.provider";
 
 	@Autowired
 	private RestApiClient restApiClient;
@@ -100,6 +103,16 @@ public class ValidatorConfig {
 	@Bean
 	public PacketReaderService getPacketReaderService() {
 		return new PacketReaderServiceImpl();
+	}
+	
+	@Bean
+	public PacketValidator referencePacketValidator() throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+		if (StringUtils.isNotBlank(env.getProperty(PACKET_VALIDATOR_PROVIDER))) {
+			return (PacketValidator) Class.forName(env.getProperty(PACKET_VALIDATOR_PROVIDER)).newInstance();
+		} else {
+
+			return new PacketValidatorImpl();
+		}
 	}
 
 	@Bean
