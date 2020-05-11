@@ -1783,7 +1783,7 @@ public class BaseController {
 	//
 	// }
 
-	private List<String> getBioAttributesBySubType(String subType) {
+	public List<String> getBioAttributesBySubType(String subType) {
 
 		List<String> bioAttributes = null;
 
