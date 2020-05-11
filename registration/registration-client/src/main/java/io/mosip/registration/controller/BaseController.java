@@ -1702,13 +1702,17 @@ public class BaseController {
 		return entry;
 	}
 	
-	protected HashMap<String, HashMap<String, List<List<String>>>> getconfigureAndNonConfiguredBioAttributes(List<String> uiSchemaSubTypes, List<Entry<String,List<String>>> entryListConstantAttributes) {
+	protected HashMap<Entry<String,String>, HashMap<String, List<List<String>>>> getconfigureAndNonConfiguredBioAttributes(List<Entry<String,List<String>>> entryListConstantAttributes) {
 
-		HashMap<String, HashMap<String, List<List<String>>>> mapToProcess = new HashMap<>();
 		
-		for(String uiSchemaSubType : uiSchemaSubTypes ) {
 		
-			List<String> uiAttributes = getBioAttributesBySubType(uiSchemaSubType);
+		HashMap<Entry<String,String>, HashMap<String, List<List<String>>>> mapToProcess = new HashMap<>();
+		
+		
+		
+		for(Entry<String,String> uiSchemaSubType : getListOfbiometricSubtypes().entrySet() ) {
+		
+			List<String> uiAttributes = getBioAttributesBySubType(uiSchemaSubType.getKey());
 			
 			HashMap<String, List<List<String>>> subMap = new HashMap<>();
 			for(Entry<String,List<String>> constantAttributes : entryListConstantAttributes)
@@ -1730,6 +1734,7 @@ public class BaseController {
 
 		return mapToProcess;
 	}
+
 
 	
 	protected void disablePaneOnBioAttributes(Node pane, List<String> constantBioAttributes) {
