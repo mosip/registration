@@ -8,8 +8,10 @@ import io.mosip.registration.builder.Builder;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dto.BaseDTO;
 import io.mosip.registration.dto.demographic.CBEFFFilePropertiesDTO;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -28,7 +30,7 @@ public class BiometricDTO {
 	private boolean isForceCaptured;
 	private int numOfRetries;
 	private long formatType;	
-	
+	private boolean isCaptured;
 	private boolean isException;
 	private String exceptionType;
 	private String reason;
@@ -39,6 +41,12 @@ public class BiometricDTO {
 	
 	private CBEFFFilePropertiesDTO applicantBiometrics;
 	private CBEFFFilePropertiesDTO introducerBiometrics;
+	
+	public BiometricDTO(String bioAttribute, byte[] attributeISO, double qualityScore) {
+		this.bioAttribute = bioAttribute;
+		this.attributeISO = attributeISO;
+		this.qualityScore = qualityScore;
+	}
 
 	public BiometricDTO() {
 		biometricsMap = new LinkedHashMap<>();

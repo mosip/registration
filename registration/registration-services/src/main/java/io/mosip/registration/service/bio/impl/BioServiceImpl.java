@@ -51,6 +51,8 @@ import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.mdm.dto.CaptureResponsBioDataDto;
 import io.mosip.registration.mdm.dto.CaptureResponseBioDto;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
+import io.mosip.registration.mdm.dto.MDMError;
+import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.mdm.dto.RequestDetail;
 import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
 import io.mosip.registration.service.BaseService;
@@ -368,6 +370,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 
 		return fpDetailsDTO;
 	}
+	
 
 	/**
 	 * Gets the finger print image as DTO without MDM.
@@ -1478,6 +1481,93 @@ public class BioServiceImpl extends BaseService implements BioService {
 			}
 		}
 		return nonConfigBiometrics;
+	}
+	
+	@Override
+	public List<BiometricDTO> captureModality(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException {
+		if(isMdmEnabled())
+			return captureRealModality(mdmRequestDto);
+		else
+			return captureMockModality(mdmRequestDto); 
+	}
+	
+	private List<BiometricDTO> captureRealModality(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException {
+		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID, "Entering into captureModality method.." +
+				System.currentTimeMillis());		
+		
+		CaptureResponseDto captureResponseDto = mosipBioDeviceManager.scanModality(mdmRequestDto);		
+		if (captureResponseDto == null)
+			throw new RegBaseCheckedException(MDMError.MDM_REQUEST_FAILED.getErrorCode(), 
+					MDMError.MDM_REQUEST_FAILED.getErrorMessage());
+		
+		if (captureResponseDto.getError() != null)
+			throw new RegBaseCheckedException(captureResponseDto.getError().getErrorCode(),
+					captureResponseDto.getError().getErrorInfo());
+		
+		List<BiometricDTO> list = new ArrayList<BiometricDTO>();
+		Map<String, String> storedScores = new HashMap<String, String>();
+		for(CaptureResponseBioDto bioResponse : captureResponseDto.getMosipBioDeviceDataResponses()) {
+			CaptureResponsBioDataDto bioData = bioResponse.getCaptureResponseData();
+			
+			if(bioData != null && !isQualityScoreMaxInclusive(bioData.getQualityScore())) {
+				//check if current is best than previously seen
+				if(storedScores.containsKey(bioData.getBioSubType())) {
+					if(Integer.parseInt(storedScores.get(bioData.getBioSubType())) > Integer.parseInt(bioData.getQualityScore()))
+						continue;
+				}
+				
+				storedScores.put(bioData.getBioSubType(), bioData.getQualityScore());
+				
+				BiometricDTO biometricDto = new BiometricDTO(bioData.getBioSubType(), 
+						Base64.getUrlDecoder().decode(bioData.getBioExtract()), Double.parseDouble(bioData.getQualityScore()));
+				biometricDto.setCaptured(true);
+				list.add(biometricDto);
+			}
+		}		
+		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID, "Ended captureModality method.." +
+				System.currentTimeMillis());
+		return list;		
+	}
+	
+	private List<BiometricDTO> captureMockModality(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException {
+		LOGGER.info(LOG_REG_FINGERPRINT_FACADE, APPLICATION_NAME, APPLICATION_ID,
+				"Scanning of mock modality for user registration");		
+		List<BiometricDTO> list = new ArrayList<>();
+		try {			
+			for(String bioAttribute : mdmRequestDto.getBioAttributes()) {
+				BiometricDTO biometricDto = new BiometricDTO(bioAttribute, 
+						IOUtils.resourceToByteArray(getFilePath(mdmRequestDto.getModality(), bioAttribute)),
+						90.0);
+				biometricDto.setCaptured(true);
+				list.add(biometricDto);
+			}		
+		} catch(Exception e) {
+			throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_FINGERPRINT_SCANNING_ERROR.getErrorCode(),
+					RegistrationExceptionConstants.REG_FINGERPRINT_SCANNING_ERROR.getErrorMessage());
+		}
+		return list;
+	}
+	
+	private String getFilePath(String modality, String bioAttribute) throws IOException {
+		String path = null;
+		switch (modality) {
+		case RegistrationConstants.FINGERPRINT_SLAB_LEFT:
+			path = String.format("/fingerprints/lefthand/%s/ISOTemplate.iso", bioAttribute);
+			break;
+		case RegistrationConstants.FINGERPRINT_SLAB_RIGHT:
+			path = String.format("/fingerprints/Srighthand/%s/ISOTemplate.iso", bioAttribute);
+			break;
+		case RegistrationConstants.FINGERPRINT_SLAB_THUMBS:	
+			path = String.format("/fingerprints/thumb/%s/ISOTemplate.iso", bioAttribute);
+			break;
+		case RegistrationConstants.IRIS_DOUBLE:
+			path = String.format("/images/%s.iso", bioAttribute);
+			break;
+		case RegistrationConstants.FACE_FULLFACE:
+			path = String.format("/images/%s.iso", bioAttribute);
+			break;
+		}
+		return path;
 	}
 
 }

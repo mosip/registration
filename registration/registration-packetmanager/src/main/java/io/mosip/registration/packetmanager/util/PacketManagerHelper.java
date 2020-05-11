@@ -20,8 +20,7 @@ public class PacketManagerHelper {
 	
 	public byte[] getXMLData(List<BIR> birs) throws Exception {
 		byte[] xmlBytes = null;
-		
-		try(InputStream file = this.getClass().getResourceAsStream(PacketManagerConstants.CBEFF_SCHEMA_FILE_PATH)) {
+		try(InputStream file = getClass().getClassLoader().getResourceAsStream(PacketManagerConstants.CBEFF_SCHEMA_FILE_PATH)) {
 			byte[] bytesArray = new byte[(int) file.available()];
 			file.read(bytesArray);
 			xmlBytes = xmlBuilder.createXML(birs, bytesArray);

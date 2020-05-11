@@ -101,6 +101,11 @@ public class PacketCreatorImpl implements PacketCreator {
 	public void setMetaInfo(String label, String value) {
 		this.packetInfoDto.setMetaData(label, value);
 	}
+	
+	@Override
+	public void setOperationsInfo(String label, String value) {
+		this.packetInfoDto.setOperationsData(label, value);
+	}
 
 	@Override
 	public void setBiometricException(String fieldName, List<ModalityException> modalityExceptions) {
@@ -202,12 +207,12 @@ public class PacketCreatorImpl implements PacketCreator {
 			ZipOutputStream zipOutputStream, Map<String, HashSequenceMetaInfo> hashSequences) throws PacketCreatorException {
 		DocumentDto dto = this.packetInfoDto.getDocuments().get(fieldName);						
 		identity.put(fieldName, new DocumentType(dto.getValue(), dto.getType(), dto.getFormat()));
-		String fileName = String.format("%s.%s", dto.getValue(), dto.getFormat());
+		String fileName = String.format("%s.%s", fieldName, dto.getFormat());
 		addEntryToZip(fileName, dto.getDocument(), zipOutputStream);					
-		metaInfo.addDocumentMetaInfo(new DocumentMetaInfo(dto.getValue(), dto.getCategory(), 
+		metaInfo.addDocumentMetaInfo(new DocumentMetaInfo(fieldName, dto.getCategory(), 
 				dto.getOwner(), dto.getType()));
 		
-		addHashSequenceWithSource(PacketManagerConstants.DEMOGRAPHIC_SEQ, dto.getValue(), dto.getDocument(), 
+		addHashSequenceWithSource(PacketManagerConstants.DEMOGRAPHIC_SEQ, fieldName, dto.getDocument(), 
 				hashSequences);
 	}
 	
@@ -222,12 +227,14 @@ public class PacketCreatorImpl implements PacketCreator {
 				throw new PacketCreatorException(ErrorCode.BIR_TO_XML_ERROR.getErrorCode(), 
 						ErrorCode.BIR_TO_XML_ERROR.getErrorMessage().concat(ExceptionUtils.getStackTrace(e)));
 			}
-			addEntryToZip(String.format(PacketManagerConstants.CBEFF_FILENAME_WITH_EXT, fieldName), xmlBytes, zipOutputStream);							
-			identity.put(fieldName, new BiometricsType(PacketManagerConstants.CBEFF_FILE_FORMAT, 
-					PacketManagerConstants.CBEFF_VERSION, String.format(PacketManagerConstants.CBEFF_FILENAME, fieldName)));
 			
-			addHashSequenceWithSource(PacketManagerConstants.BIOMETRIC_SEQ, String.format(PacketManagerConstants.CBEFF_FILENAME, 
-					fieldName), xmlBytes, hashSequences);
+			if(xmlBytes != null) { 
+				addEntryToZip(String.format(PacketManagerConstants.CBEFF_FILENAME_WITH_EXT, fieldName), xmlBytes, zipOutputStream);							
+				identity.put(fieldName, new BiometricsType(PacketManagerConstants.CBEFF_FILE_FORMAT, 
+						PacketManagerConstants.CBEFF_VERSION, String.format(PacketManagerConstants.CBEFF_FILENAME, fieldName)));
+				addHashSequenceWithSource(PacketManagerConstants.BIOMETRIC_SEQ, String.format(PacketManagerConstants.CBEFF_FILENAME, 
+						fieldName), xmlBytes, hashSequences);
+			}			
 		}						
 		if(this.packetInfoDto.getExceptionBiometrics().containsKey(fieldName))
 			metaInfo.setBiometricException(this.packetInfoDto.getExceptionBiometrics().get(fieldName));
@@ -331,11 +338,13 @@ public class PacketCreatorImpl implements PacketCreator {
 						ErrorCode.BIR_TO_XML_ERROR.getErrorMessage().concat(ExceptionUtils.getStackTrace(e)));
 			}
 			
-			String fileName = String.format(PacketManagerConstants.CBEFF_FILENAME_WITH_EXT, operationType);
-			addEntryToZip(fileName, xmlBytes, zipOutputStream);
-			metaInfo.addOperationsData(new FieldValue(String.format("%sBiometricFileName", operationType), fileName));
-			addHashSequenceWithSource(PacketManagerConstants.OPERATIONS_SEQ, String.format(PacketManagerConstants.CBEFF_FILENAME,
-					operationType), xmlBytes, hashSequences);
+			if(xmlBytes != null) {
+				String fileName = String.format(PacketManagerConstants.CBEFF_FILENAME_WITH_EXT, operationType);
+				addEntryToZip(fileName, xmlBytes, zipOutputStream);
+				metaInfo.addOperationsData(new FieldValue(String.format("%sBiometricFileName", operationType), fileName));
+				addHashSequenceWithSource(PacketManagerConstants.OPERATIONS_SEQ, String.format(PacketManagerConstants.CBEFF_FILENAME,
+						operationType), xmlBytes, hashSequences);
+			}			
 		}
 	}	
 	

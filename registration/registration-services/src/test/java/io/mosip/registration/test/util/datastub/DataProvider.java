@@ -33,6 +33,7 @@ import io.mosip.registration.dto.demographic.Identity;
 import io.mosip.registration.dto.demographic.IndividualIdentity;
 import io.mosip.registration.dto.demographic.ValuesDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.packetmananger.dto.AuditDto;
 
 public class DataProvider {
 
@@ -432,8 +433,8 @@ public class DataProvider {
 		return osiDataDTO;
 	}
 
-	private static List<AuditDTO> getAuditDTOs() {
-		LinkedList<AuditDTO> auditDTOList = new LinkedList<>();
+	private static List<AuditDto> getAuditDTOs() {
+		LinkedList<AuditDto> auditDTOList = new LinkedList<>();
 
 		addAuditDTOToList(auditDTOList, "Capture Demographic Data", "Data Capture", "Caputured demographic data");
 		addAuditDTOToList(auditDTOList, "Capture Left Iris", "Iris Capture", "Caputured left iris");
@@ -445,11 +446,11 @@ public class DataProvider {
 		return auditDTOList;
 	}
 
-	private static void addAuditDTOToList(List<AuditDTO> auditDTOList, String eventName, String eventType,
+	private static void addAuditDTOToList(List<AuditDto> auditDTOList, String eventName, String eventType,
 			String description) {
 		LocalDateTime dateTime = LocalDateTime.now();
 
-		AuditDTO audit = new AuditDTO();
+		AuditDto audit = new AuditDto();
 
 		audit.setUuid(String.valueOf(UUID.randomUUID().getMostSignificantBits()));
 		audit.setCreatedAt(dateTime);

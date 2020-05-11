@@ -1,6 +1,8 @@
 package io.mosip.registration.dto;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -10,6 +12,8 @@ import java.util.Map;
 import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
 import io.mosip.registration.dto.demographic.ValuesDTO;
+import io.mosip.registration.packetmananger.dto.AuditDto;
+import io.mosip.registration.packetmananger.dto.SimpleDto;
 import lombok.Data;
 
 /**
@@ -22,6 +26,8 @@ import lombok.Data;
  */
 @Data
 public class RegistrationDTO {
+	
+	private static final String DATE_FORMAT = "dd/MM/yyyy";
 	
 	private double idSchemaVersion;	
 	private String registrationId;
@@ -44,7 +50,7 @@ public class RegistrationDTO {
 	private List<BiometricDTO> supervisorBiometrics;
 	private List<BiometricDTO> officerBiometrics;
 	
-	private List<AuditDTO> auditDTOs;
+	private List<AuditDto> auditDTOs;
 	private Timestamp auditLogStartTime;
 	private Timestamp auditLogEndTime;
 	
@@ -58,25 +64,35 @@ public class RegistrationDTO {
 		this.demographics.put(fieldId, (value != null) ? value : null);
 	}
 	
-	public void addDemographicField(String fieldId, String language, String value) {
-		this.demographics.put(fieldId, new ValuesDTO(language, (value != null && !value.isEmpty()) ? 
-					value : null));
-	}
-	
 	public void addDemographicField(String fieldId, String applicationLanguage, String value,
 			String localLanguage, String localValue) {
-		List<ValuesDTO> values = new ArrayList<>();
+		List<SimpleDto> values = new ArrayList<SimpleDto>();
 		if(value != null && !value.isEmpty())
-			values.add(new ValuesDTO(applicationLanguage, value));
+			values.add(new SimpleDto(applicationLanguage, value));
 		
 		if(localValue != null && !localValue.isEmpty())
-			values.add(new ValuesDTO(localLanguage, localValue));
+			values.add(new SimpleDto(localLanguage, localValue));
 	
 		this.demographics.put(fieldId, values);
 	}
 	
 	public void removeDemographicField(String fieldId) {
 		this.demographics.remove(fieldId);
+	}
+	
+	public void setDateField(String fieldId, String day, String month, String year) {
+		LocalDate date = LocalDate.of(Integer.valueOf(year), Integer.valueOf(month), Integer.valueOf(day));
+		this.demographics.put(fieldId, date.format(DateTimeFormatter.ofPattern(DATE_FORMAT)));
+	}
+	
+	public String[] getDateField(String fieldId) {
+		if(this.demographics.containsKey(fieldId)) {
+			String value = (String) this.demographics.get(fieldId);
+			LocalDate date = LocalDate.parse(value, DateTimeFormatter.ofPattern(DATE_FORMAT));
+			return new String[]{ String.valueOf(date.getDayOfMonth()), String.valueOf(date.getMonthValue()) , 
+					String.valueOf(date.getYear()) };
+		}
+		return null;
 	}
 	
 	public void addDocument(String fieldId, DocumentDetailsDTO value) {

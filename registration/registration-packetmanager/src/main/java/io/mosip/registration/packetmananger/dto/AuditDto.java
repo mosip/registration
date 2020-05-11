@@ -7,6 +7,8 @@ import lombok.Data;
 @Data
 public class AuditDto {
 	
+	private String uuid;
+	private LocalDateTime createdAt;
 	private String eventId;
 	private String eventName;
 	private String eventType;	

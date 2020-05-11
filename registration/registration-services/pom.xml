@@ -383,7 +383,7 @@
 		<dependency>
 			<groupId>io.mosip.registration</groupId>
 			<artifactId>registration-packetmanager</artifactId>
-			<version>1.0</version>
+			<version>1.0-SNAPSHOT</version>
 		</dependency>
 
 

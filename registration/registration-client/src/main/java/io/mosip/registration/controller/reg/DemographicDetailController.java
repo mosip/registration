@@ -7,7 +7,9 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -49,6 +51,7 @@ import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.mastersync.LocationDto;
 import io.mosip.registration.entity.Location;
 import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.packetmananger.dto.SimpleDto;
 import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.sync.MasterSyncService;
 import javafx.collections.ObservableList;
@@ -152,7 +155,7 @@ public class DemographicDetailController extends BaseController {
 	private String secondaryLanguage;
 	private List<String> orderOfAddress;
 	boolean hasToBeTransliterated = true;
-	public Map<String, ComboBox<String>> listOfComboBoxWithString;
+	//public Map<String, ComboBox<String>> listOfComboBoxWithString;
 	public Map<String, ComboBox<GenericDto>> listOfComboBoxWithObject;
 	public Map<String, TextField> listOfTextField;
 	private int age = 0;
@@ -165,7 +168,7 @@ public class DemographicDetailController extends BaseController {
 	int lastPosition;
 	private ObservableList<Node> parentFlow;
 	private boolean keyboardVisible = false;
-
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -175,18 +178,14 @@ public class DemographicDetailController extends BaseController {
 	private void initialize() throws IOException {
 
 		LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
-				RegistrationConstants.APPLICATION_ID, "Entering the Demographic Details Screen");
+				RegistrationConstants.APPLICATION_ID, "Entering the Demographic Details Screen");		
 		
-		listOfComboBoxWithString = new HashMap<>();
+	//	listOfComboBoxWithString = new HashMap<>();
 		listOfComboBoxWithObject = new HashMap<>();
 		listOfTextField = new HashMap<>();
 		lastPosition = -1;
 		positionTracker = new HashMap<>();
-		orderOfAddress = new ArrayList<>();
-		List<Location> location = masterSyncDao.getLocationDetails(applicationContext.getApplicationLanguage());
-		TreeMap<Integer, String> treeMap = new TreeMap<Integer, String>();
-		location.forEach((l) -> treeMap.put(l.getHierarchyLevel(), l.getHierarchyName()));
-		orderOfAddress = treeMap.values().stream().collect(Collectors.toList());
+		fillOrderOfLocation();
 		vk = VirtualKeyboard.getInstance();
 		keyboardNode = vk.view();
 		if (ApplicationContext.getInstance().getApplicationLanguage()
@@ -221,10 +220,10 @@ public class DemographicDetailController extends BaseController {
 			localLabelBundle = applicationContext.getLocalLanguageProperty();
 			primaryLanguage = applicationContext.getApplicationLanguage();
 			secondaryLanguage = applicationContext.getLocalLanguage();
-			Map<String, UiSchemaDTO> schemaMap = validation.getValidationMap();
 			parentFlow = parentFlowPane.getChildren();
 			int position = parentFlow.size() - 1;
-			for (Entry<String, UiSchemaDTO> entry : schemaMap.entrySet()) {
+			
+			for (Entry<String, UiSchemaDTO> entry : validation.getValidationMap().entrySet()) {
 
 				if (isDemographicField(entry.getValue())) {
 					GridPane mainGridPane = addContent(entry.getValue());
@@ -233,14 +232,15 @@ public class DemographicDetailController extends BaseController {
 					positionTracker.put(mainGridPane.getId(), position);
 				}
 			}
-			addFirstOrderAddress(listOfComboBoxWithObject.get(orderOfAddress.get(1)), orderOfAddress.get(1),
+			
+			addFirstOrderAddress(listOfComboBoxWithObject.get(orderOfAddress.get(0)), orderOfAddress.get(0),
 					applicationContext.getApplicationLanguage());
-			addFirstOrderAddress(listOfComboBoxWithObject.get(orderOfAddress.get(1) + RegistrationConstants.LOCAL_LANGUAGE),
-					orderOfAddress.get(1), applicationContext.getLocalLanguage());
+			addFirstOrderAddress(listOfComboBoxWithObject.get(orderOfAddress.get(0) + RegistrationConstants.LOCAL_LANGUAGE),
+					orderOfAddress.get(0), applicationContext.getLocalLanguage());
 
-			populateDropDowns();
-
-			for (int j = 0; j < orderOfAddress.size() - 1; j++) {
+			populateDropDowns();		
+			
+			for (int j = 0; j < orderOfAddress.size()-1; j++) {
 				final int k = j;
 				try {
 					listOfComboBoxWithObject.get(orderOfAddress.get(k)).setOnAction((event) -> {
@@ -259,6 +259,25 @@ public class DemographicDetailController extends BaseController {
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_DEMOGRAPHIC_PAGE);
 
 		}
+	}
+	
+	private void fillOrderOfLocation() {
+		List<Location> locations = masterSyncDao.getLocationDetails(applicationContext.getApplicationLanguage());
+		Map<Integer, String> treeMap = new TreeMap<Integer, String>();
+		
+		Collection<UiSchemaDTO> fields = validation.getValidationMap().values();
+		for(Location location : locations) {
+			List<UiSchemaDTO> matchedfield = fields.stream().filter(field -> isDemographicField(field) 
+					&& field.getSubType() != null && RegistrationConstants.DROPDOWN.equals(field.getControlType()) 
+					&& field.getSubType().equalsIgnoreCase(location.getHierarchyName())).collect(Collectors.toList());			
+			
+			if(matchedfield != null && !matchedfield.isEmpty()) {
+				treeMap.put(location.getHierarchyLevel(), matchedfield.get(0).getId());
+				LOGGER.info("REGISTRATION - CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						"location.getHierarchyLevel() >>> " + location.getHierarchyLevel() + " matchedfield.get(0).getId() >>> " + matchedfield.get(0).getId());
+			}
+		}
+		orderOfAddress = treeMap.values().stream().collect(Collectors.toList());
 	}
 
 	private void disablePreRegFetch() {
@@ -355,10 +374,7 @@ public class DemographicDetailController extends BaseController {
 
 		switch (schemaDTO.getControlType()) {
 		case RegistrationConstants.DROPDOWN:
-			if (orderOfAddress.contains(schemaDTO.getSubType()))
-				content = addContentWithComboBoxObject(schemaDTO.getSubType(), schemaDTO, languageType);
-			else
-				content = addContentWithComboBoxObject(schemaDTO.getId(), schemaDTO, languageType);
+			content = addContentWithComboBoxObject(schemaDTO.getId(), schemaDTO, languageType);
 			break;
 		case RegistrationConstants.AGE_DATE:
 			content = addContentForDobAndAge(languageType);
@@ -532,7 +548,7 @@ public class DemographicDetailController extends BaseController {
 			field.setPromptText(schema.getLabel().get(RegistrationConstants.SECONDARY));
 			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.SECONDARY));
 			label.setText(schema.getLabel().get(RegistrationConstants.SECONDARY));
-			if (fieldName.matches("phone|email|postalCode|parentOrGuardianRID|parentOrGuardianUIN")) {
+			if (!schema.getType().equals(RegistrationConstants.SIMPLE_TYPE)) {
 				field.setDisable(true);
 			} else {
 				ImageView imageView = null;
@@ -568,7 +584,6 @@ public class DemographicDetailController extends BaseController {
 	}
 
 	private void populateDropDowns() {
-
 		try {
 
 			listOfComboBoxWithObject.get("gender").getItems()
@@ -694,7 +709,8 @@ public class DemographicDetailController extends BaseController {
 					yyyy.requestFocus();
 					dd.requestFocus();
 
-					if (age <= minAge) {
+					//TODO NOT REQUIRED NOW
+					/*if (age <= minAge) {
 
 						if (!isChild == true) {
 							clearAllValues();
@@ -748,7 +764,7 @@ public class DemographicDetailController extends BaseController {
 						// updateBioPageFlow(RegistrationConstants.IRIS_DISABLE_FLAG,
 						// RegistrationConstants.IRIS_CAPTURE);
 
-					}
+					}*/
 					fxUtils.validateOnFocusOut(dobParentPane, ageField, validation, false);
 				} else {
 					ageField.getStyleClass().remove("demoGraphicTextFieldOnType");
@@ -781,7 +797,9 @@ public class DemographicDetailController extends BaseController {
 			location.getItems().clear();
 			try {
 				List<GenericDto> locations = null;
-				locations = masterSync.findLocationByHierarchyCode(id, languageType);
+				UiSchemaDTO field = validation.getValidationMap().get(id);
+				locations = masterSync.findLocationByHierarchyCode(field.getSubType(), languageType);				
+				
 				if (locations.isEmpty()) {
 					GenericDto lC = new GenericDto();
 					lC.setCode(RegistrationConstants.AUDIT_DEFAULT_USER);
@@ -792,9 +810,8 @@ public class DemographicDetailController extends BaseController {
 					location.getItems().addAll(locations);
 				}
 			} catch (Exception e) {
-
+				e.printStackTrace();
 			}
-
 		}
 	}
 
@@ -811,63 +828,42 @@ public class DemographicDetailController extends BaseController {
 	}
 
 	private void addDemoGraphicDetailsToSession() {
-
 		RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
-
-		List<UiSchemaDTO> schemaFields = null;
-		try {
-			schemaFields = identitySchemaService.getLatestEffectiveUISchema();
-		} catch (RegBaseCheckedException e) {
-			e.printStackTrace();
-		}
-		for (UiSchemaDTO schemaField : schemaFields) {
-			if (!(schemaField.getControlType() == null)) {
-				switch (schemaField.getType()) {
-				case RegistrationConstants.SIMPLE_TYPE:
-
-					if (schemaField.getControlType().equals(RegistrationConstants.DROPDOWN)) {
-
-						if (Arrays.asList(orderOfAddress).contains(schemaField.getId())
-								| schemaField.getId().matches("gender|residenceStatus")) {
-							ComboBox<GenericDto> platformField = listOfComboBoxWithObject.get(schemaField.getId());
-							ComboBox<GenericDto> localField = listOfComboBoxWithObject
-									.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE);
-							registrationDTO.addDemographicField(schemaField.getId(),
-									applicationContext.getApplicationLanguage(), platformField.getValue().getName(),
-									applicationContext.getLocalLanguage(), localField.getValue().getName());
-						} else {
-							ComboBox<String> platformField = listOfComboBoxWithString.get(schemaField.getId());
-							ComboBox<String> localField = listOfComboBoxWithString
-									.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE);
-							registrationDTO.addDemographicField(schemaField.getId(),
-									applicationContext.getApplicationLanguage(), platformField.getValue(),
-									applicationContext.getLocalLanguage(), localField.getValue());
-						}
-					} else {
-						TextField platformField = listOfTextField.get(schemaField.getId());
-						TextField localField = listOfTextField
-								.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE);
-						registrationDTO.addDemographicField(schemaField.getId(),
-								applicationContext.getApplicationLanguage(), platformField.getText(),
-								applicationContext.getLocalLanguage(), localField.getText());
-					}
-
-					break;
-
-				case RegistrationConstants.NUMBER:
-				case RegistrationConstants.STRING:
-					if (schemaField.getControlType().equalsIgnoreCase(RegistrationConstants.AGE_DATE)) {
-						registrationDTO.addDemographicField(schemaField.getId(),
-								listOfTextField.get(RegistrationConstants.DD).getText() + "/"
-										+ listOfTextField.get(RegistrationConstants.MM).getText() + "/"
-										+ listOfTextField.get(RegistrationConstants.YYYY).getText());
-					} else {
-						registrationDTO.addDemographicField(schemaField.getId(),
-								listOfTextField.get(schemaField.getId()).getText());
-					}
-					break;
+		for (UiSchemaDTO schemaField : validation.getValidationMap().values()) {
+			if(schemaField.getControlType() == null)
+				continue;
+		
+			switch(schemaField.getType()) {
+			case RegistrationConstants.SIMPLE_TYPE:
+				if(schemaField.getControlType().equals(RegistrationConstants.DROPDOWN)) {
+					ComboBox<GenericDto> platformField = listOfComboBoxWithObject.get(schemaField.getId());
+					ComboBox<GenericDto> localField = listOfComboBoxWithObject.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE);					
+					registrationDTO.addDemographicField(schemaField.getId(), 
+							applicationContext.getApplicationLanguage(), platformField.getValue().getName(),
+							applicationContext.getLocalLanguage(), localField == null ? null : localField.getValue().getName());
 				}
-			}
+				else {
+					TextField platformField = listOfTextField.get(schemaField.getId());
+					TextField localField = listOfTextField.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE);
+					registrationDTO.addDemographicField(schemaField.getId(),
+							applicationContext.getApplicationLanguage(), platformField.getText(),
+							applicationContext.getLocalLanguage(), localField == null ? null : localField.getText());
+				}					
+				break;				
+			case RegistrationConstants.NUMBER:
+			case RegistrationConstants.STRING:
+				if(schemaField.getControlType().equalsIgnoreCase(RegistrationConstants.AGE_DATE))
+					registrationDTO.setDateField(schemaField.getId(), listOfTextField.get(RegistrationConstants.DD).getText(),
+						listOfTextField.get(RegistrationConstants.MM).getText(), 
+						listOfTextField.get(RegistrationConstants.YYYY).getText());
+				else
+					registrationDTO.addDemographicField(schemaField.getId(),
+							listOfTextField.get(schemaField.getId()).getText());
+				break;
+
+			default:
+				break;
+			}			
 		}
 	}
 
@@ -917,9 +913,9 @@ public class DemographicDetailController extends BaseController {
 
 //			Map<String, Object> demographics = registrationDTO.getDemographics();
 
-			if (isChild) {
+			/*if (isChild) {
 				osiDataDTO.setIntroducerType(IntroducerType.PARENT.getCode());
-			}
+			}*/
 
 			osiDataDTO.setOperatorID(SessionContext.userContext().getUserId());
 
@@ -963,72 +959,46 @@ public class DemographicDetailController extends BaseController {
 			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 			Map<String, Object> demographics = registrationDTO.getDemographics();
 
-			List<UiSchemaDTO> list;
-			try {
-				list = identitySchemaService.getLatestEffectiveUISchema();
-
-			} catch (RegBaseCheckedException e) {
-				LOGGER.error("REGISTRATION - GETTING SCHEMA FIELDS FAILED", APPLICATION_NAME,
-						RegistrationConstants.APPLICATION_ID, ExceptionUtils.getStackTrace(e));
-				generateAlert(RegistrationConstants.ERROR, "ID Schema is emtpy"); // TODO
-				return;
-			}
-
-			for (UiSchemaDTO schemaField : list) {
+			for (UiSchemaDTO schemaField : validation.getValidationMap().values()) {
+				Object value = demographics.get(schemaField.getId());
+				if(value == null)
+					continue;
+				
 				switch (schemaField.getType()) {
 				case RegistrationConstants.SIMPLE_TYPE:
-					List<ValuesDTO> values = demographics.get(schemaField.getId()) != null
-							? (List<ValuesDTO>) demographics.get(schemaField.getId())
-							: null;
-
-					if (values != null) {
-						if (orderOfAddress.contains(schemaField.getId())
-								| schemaField.getId().matches("gender|residenceStatus")) {
-							populateFieldValue(listOfComboBoxWithObject.get(schemaField.getId()),
-									listOfComboBoxWithObject
-											.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE),
-									values);
-						} else
-							populateFieldValue(listOfComboBoxWithString.get(schemaField.getId()),
-									listOfComboBoxWithString
-											.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE),
-									values);
-					}
-
+					if (schemaField.getControlType().equals(RegistrationConstants.DROPDOWN)
+							|| Arrays.asList(orderOfAddress).contains(schemaField.getSubType())) {
+						populateFieldValue(listOfComboBoxWithObject.get(schemaField.getId()), listOfComboBoxWithObject
+								.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE), (List<SimpleDto>) value);
+					} else
+						populateFieldValue(listOfTextField.get(schemaField.getId()),
+								listOfTextField.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE),
+								(List<SimpleDto>) value);
 					break;
 
 				case RegistrationConstants.NUMBER:
-				case RegistrationConstants.STRING:
-					String value = demographics.get(schemaField.getId()) != null
-							? (String) demographics.get(schemaField.getId())
-							: RegistrationConstants.EMPTY;
-
+				case RegistrationConstants.STRING:					
 					if (schemaField.getControlType().equalsIgnoreCase(RegistrationConstants.AGE_DATE)) {
-						if (value != null && !value.isEmpty()) {
-							String[] date = value.split("/");
-							if (date.length == 3) {
-								listOfTextField.get("dd").setText(date[2]);
-								listOfTextField.get("yyyy").setText(date[0]);
-								listOfTextField.get("mm").setText(date[1]);
-							}
+						String[] dateParts = (String[]) value;
+						if (dateParts.length == 3) {
+							listOfTextField.get("dd").setText(dateParts[0]);
+							listOfTextField.get("mm").setText(dateParts[1]);
+							listOfTextField.get("yyyy").setText(dateParts[2]);
 						}
 					} else {
 						TextField textField = listOfTextField.get(schemaField.getId());
-						if (textField != null) {
-							textField.setText(value);
-						}
+						if (textField != null)
+							textField.setText((String) value);						
 					}
-
 					break;
 				}
 			}
 
-			if (SessionContext.map().get(RegistrationConstants.IS_Child) != null) {
-
+			/*if (SessionContext.map().get(RegistrationConstants.IS_Child) != null) {
 				boolean isChild = (boolean) SessionContext.map().get(RegistrationConstants.IS_Child);
 				parentDetailPane.setDisable(!isChild);
 				parentDetailPane.setVisible(isChild);
-			}
+			}*/
 
 			preRegistrationId.setText(registrationDTO.getPreRegistrationId());
 
@@ -1044,14 +1014,14 @@ public class DemographicDetailController extends BaseController {
 	 * Method to populate the local field value
 	 *
 	 */
-	private void populateFieldValue(Node nodeForPlatformLang, Node nodeForLocalLang, List<ValuesDTO> fieldValues) {
+	private void populateFieldValue(Node nodeForPlatformLang, Node nodeForLocalLang, List<SimpleDto> fieldValues) {
 		if (fieldValues != null) {
 			String platformLanguageCode = applicationContext.getApplicationLanguage();
 			String localLanguageCode = applicationContext.getLocalLanguage();
 			String valueInPlatformLang = RegistrationConstants.EMPTY;
 			String valueinLocalLang = RegistrationConstants.EMPTY;
 
-			for (ValuesDTO fieldValue : fieldValues) {
+			for (SimpleDto fieldValue : fieldValues) {
 				if (fieldValue.getLanguage().equalsIgnoreCase(platformLanguageCode)) {
 					valueInPlatformLang = fieldValue.getValue();
 				} else if (nodeForLocalLang != null && fieldValue.getLanguage().equalsIgnoreCase(localLanguageCode)) {
@@ -1203,12 +1173,16 @@ public class DemographicDetailController extends BaseController {
 					destLocationHierarchy.getItems().add(selectedLocationHierarchy);
 					destLocationHierarchyInLocal.getItems().add(selectedLocationHierarchy);
 				} else {
-
+					
 					List<GenericDto> locations = masterSync.findLocationByHierarchyCode(
 							selectedLocationHierarchy.getCode(), selectedLocationHierarchy.getLangCode());
 
-					List<GenericDto> locationsSecondary = masterSync.findProvianceByHierarchyCode(
+					List<GenericDto> locationsSecondary = masterSync.findLocationByHierarchyCode(
 							selectedLocationHierarchy.getCode(), ApplicationContext.localLanguage());
+					
+					System.out.println("selectedLocationHierarchy.getCode() >>> " + selectedLocationHierarchy.getCode());
+					System.out.println("locations in primry >>> " + locations.size());
+					System.out.println("locations in secondary >>> " + locationsSecondary.size());
 
 					if (locations.isEmpty()) {
 						GenericDto lC = new GenericDto();
@@ -1243,12 +1217,12 @@ public class DemographicDetailController extends BaseController {
 	}
 
 
-	private void updateBioPageFlow(String flag, String pageId) {
+	/*private void updateBioPageFlow(String flag, String pageId) {
 		if (RegistrationConstants.DISABLE.equalsIgnoreCase(String.valueOf(ApplicationContext.map().get(flag)))) {
 			updatePageFlow(pageId, false);
 		} else {
 			updatePageFlow(pageId, true);
 		}
-	}
+	}*/
 
 }

@@ -23,7 +23,9 @@ public interface PacketCreator {
 	
 	public void setDocument(String fieldName, DocumentDto value);
 	
-	public void setMetaInfo(String key, String value);	
+	public void setMetaInfo(String key, String value);
+	
+	public void setOperationsInfo(String key, String value);
 	
 	public void setBiometricException(String fieldName, List<ModalityException> modalityExceptions);
 	
