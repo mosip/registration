@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import org.junit.Before;
 import org.junit.Test;
@@ -300,7 +301,7 @@ public class ManualVerificationServiceTest {
 	}
 
 	@Test
-	public void getApplicantFileMethodCheck() throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+	public void getApplicantFileMethodCheck() throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		String regId = "Id";
 		String source = "id";
 

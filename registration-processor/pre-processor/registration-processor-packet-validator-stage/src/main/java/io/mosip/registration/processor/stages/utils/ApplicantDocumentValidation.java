@@ -7,6 +7,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
+import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.core.env.Environment;
@@ -16,7 +18,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -101,15 +102,13 @@ public class ApplicantDocumentValidation {
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
 	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
-	 * @throws ParseException                        the parse exception
-	 * @throws ParseException                        the parse exception
 	 * @throws SecurityException                     the security exception
 	 * @throws IllegalArgumentException              the illegal argument exception
 	 */
 	public boolean validateDocument(String registrationId, String jsonString)
 			throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException, ApiNotAccessibleException
+			 {
 
 		boolean isApplicantDocumentVerified = false;
 		String applicantType = null;
@@ -143,8 +142,6 @@ public class ApplicantDocumentValidation {
 	 * @param list
 	 *            the list
 	 * @return the boolean
-	 * @throws ParseException
-	 *             the parse exception
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */

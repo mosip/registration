@@ -3,6 +3,7 @@ package io.mosip.registration.processor.packet.utility.service.impl;
 import java.io.IOException;
 import java.io.InputStream;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.packet.utility.exception.FileNotFoundInDestinationException;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -46,7 +47,7 @@ public class PacketReaderServiceImpl implements PacketReaderService {
 	 */
 	@Override
 	public boolean checkFileExistence(String id, String fileName, String source)
-			throws PacketDecryptionFailureException, IOException {
+			throws PacketDecryptionFailureException, IOException, ApiNotAccessibleException {
 		packetUtilityLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
 				"PacketReaderServiceImpl::checkFileExistence()::entry");
 		InputStream decryptedData = getFile(id, source);
@@ -63,8 +64,8 @@ public class PacketReaderServiceImpl implements PacketReaderService {
 	 * getFile(java.lang.String, java.lang.String, java.lang.String)
 	 */
 	@Override
-	public InputStream getFile(String id, String fileName, String source) throws IOException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException {
+	public InputStream getFile(String id, String fileName, String source) throws
+			PacketDecryptionFailureException, IOException, ApiNotAccessibleException {
 		packetUtilityLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
 				"PacketReaderServiceImpl::getFile()::entry");
 		InputStream decryptedData = getFile(id, source);
@@ -85,7 +86,7 @@ public class PacketReaderServiceImpl implements PacketReaderService {
 	 *                                          occurred.
 	 */
 	private InputStream getFile(String id, String source)
-			throws PacketDecryptionFailureException, IOException {
+			throws PacketDecryptionFailureException, IOException, ApiNotAccessibleException {
 		packetUtilityLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
 				"PacketReaderServiceImpl::fileSystemAdapter.getPacket()");
 		InputStream data = fileSystemAdapter.getPacket(id);

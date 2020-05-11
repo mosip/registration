@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.junit.Before;
@@ -89,7 +90,7 @@ public class ApplicantDocumentValidationTest {
 	public void setUp()
 			throws IOException, ApisResourceAccessException, ParseException, PacketDecryptionFailureException,
 			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 
 		dto.setRid("2018701130000410092018110735");
 
@@ -137,7 +138,7 @@ public class ApplicantDocumentValidationTest {
 	@Test
 	public void testApplicantDocumentValidationAdultSuccess() throws ApisResourceAccessException, NoSuchFieldException,
 			IllegalAccessException, IOException, ParseException, org.json.simple.parser.ParseException, JSONException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
+			ApiNotAccessibleException, io.mosip.kernel.core.exception.IOException,
 			RegistrationProcessorCheckedException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		boolean isApplicantDocumentValidated = applicantDocumentValidation.validateDocument("1234", jsonStringID);
@@ -164,7 +165,7 @@ public class ApplicantDocumentValidationTest {
 	@Test
 	public void testApplicantDocumentValidationChildSuccess() throws ApisResourceAccessException, NoSuchFieldException,
 			IllegalAccessException, IOException, ParseException, org.json.simple.parser.ParseException, JSONException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
+			ApiNotAccessibleException, io.mosip.kernel.core.exception.IOException,
 			RegistrationProcessorCheckedException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		Mockito.when(utility.getApplicantAge(any())).thenReturn(4);
@@ -192,7 +193,7 @@ public class ApplicantDocumentValidationTest {
 	@Test(expected = IdentityNotFoundException.class)
 	public void testApplicantDocumentValidationIDJSONNull() throws ApisResourceAccessException, NoSuchFieldException,
 			IllegalAccessException, IOException, ParseException, org.json.simple.parser.ParseException, JSONException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
+			ApiNotAccessibleException, io.mosip.kernel.core.exception.IOException,
 			RegistrationProcessorCheckedException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 
@@ -220,7 +221,7 @@ public class ApplicantDocumentValidationTest {
 	@Test
 	public void testInvalidType() throws ApisResourceAccessException, NoSuchFieldException, IllegalAccessException,
 			IOException, ParseException, org.json.simple.parser.ParseException, JSONException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
+			ApiNotAccessibleException, io.mosip.kernel.core.exception.IOException,
 			RegistrationProcessorCheckedException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 

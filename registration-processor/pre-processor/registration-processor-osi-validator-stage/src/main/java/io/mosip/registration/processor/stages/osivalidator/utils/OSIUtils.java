@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -64,7 +65,7 @@ public class OSIUtils {
 	}
 	
 	public Identity getIdentity(String registrationId)
-			throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException,
+			throws PacketDecryptionFailureException, ApiNotAccessibleException, IOException, java.io.IOException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId,
 				PacketFiles.META_INFO.name(), defaultSource);

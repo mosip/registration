@@ -3,6 +3,7 @@ package io.mosip.registration.processor.quality.checker.stage.test;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,6 +13,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
+import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
+import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
+import io.mosip.registration.processor.packet.utility.utils.IdSchemaUtils;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -39,9 +44,6 @@ import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -72,7 +74,7 @@ public class QualityCheckerStageTest {
 	private Utilities utility;
 
 	@Mock
-	private PacketManager adapter;
+	private PacketReaderService packetReaderService;
 
 	/** The cbeff util. */
 	@Mock
@@ -80,6 +82,9 @@ public class QualityCheckerStageTest {
 
 	@Mock
 	private IBioApi fingerApi;
+
+	@Mock
+	private IdSchemaUtils idSchemaUtils;
 
 	@InjectMocks
 	private QualityCheckerStage qualityCheckerStage = new QualityCheckerStage() {
@@ -120,12 +125,13 @@ public class QualityCheckerStageTest {
 		InputStream idJsonStream = IOUtils.toInputStream(idJsonString, "UTF-8");
 
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
+		Mockito.when(idSchemaUtils.getSource(anyString())).thenReturn("id");
 
 		ClassLoader classLoader = getClass().getClassLoader();
 		File cbeff1 = new File(classLoader.getResource("CBEFF1.xml").getFile());
 		InputStream cbeff1Stream = new FileInputStream(cbeff1);
 
-		Mockito.when(adapter.getFile(any(), any())).thenReturn(idJsonStream).thenReturn(cbeff1Stream);
+		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenReturn(idJsonStream).thenReturn(cbeff1Stream);
 
 		List<BIRType> birTypeList = new ArrayList<>();
 		BIRType birType1 = new BIRType();
@@ -225,13 +231,13 @@ public class QualityCheckerStageTest {
 
 	@Test
 	public void testParameterMissing() throws IOException, PacketDecryptionFailureException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException {
+			ApiNotAccessibleException, io.mosip.kernel.core.exception.IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		String idJsonString = "{\n" + "  \"identity\" : {\n" + "    \"fullName\" : [ {\n"
 				+ "      \"language\" : \"eng\",\n" + "      \"value\" : \"Ragavendran V\"\n" + "    }, {\n"
 				+ "      \"language\" : \"ara\",\n" + "      \"value\" : \"قشلشرثىيقشى ر\"\n" + "    } ]\n" + "  }\n"
 				+ "}";
 		InputStream idJsonStream = IOUtils.toInputStream(idJsonString, "UTF-8");
-		Mockito.when(adapter.getFile(any(), any())).thenReturn(idJsonStream);
+		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenReturn(idJsonStream);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -241,7 +247,7 @@ public class QualityCheckerStageTest {
 	}
 
 	@Test
-	public void testFileNameMissing() throws IOException, PacketDecryptionFailureException, ApisResourceAccessException,
+	public void testFileNameMissing() throws IOException, PacketDecryptionFailureException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException {
 		String idJsonString = "{\n" + "  \"identity\" : {\n" + "    \"fullName\" : [ {\n"
 				+ "      \"language\" : \"eng\",\n" + "      \"value\" : \"Ragavendran V\"\n" + "    }, {\n"
@@ -249,7 +255,7 @@ public class QualityCheckerStageTest {
 				+ "    \"individualBiometrics\" : {\n" + "      \"format\" : \"cbeff\",\n"
 				+ "      \"version\" : 1.0,\n" + "      \"value\" : \"\"\n" + "    }\n" + "  }\n" + "}";
 		InputStream idJsonStream = IOUtils.toInputStream(idJsonString, "UTF-8");
-		Mockito.when(adapter.getFile(any(), any())).thenReturn(idJsonStream);
+		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenReturn(idJsonStream);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -259,10 +265,10 @@ public class QualityCheckerStageTest {
 	}
 
 	@Test
-	public void testFsAdapterException() throws PacketDecryptionFailureException, ApisResourceAccessException,
+	public void testFsAdapterException() throws PacketDecryptionFailureException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException, IOException {
 		FSAdapterException exception = new FSAdapterException("", "");
-		Mockito.when(adapter.getFile(any(), any())).thenThrow(exception);
+		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenThrow(exception);
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityCheckerStage.process(dto);
@@ -294,9 +300,9 @@ public class QualityCheckerStageTest {
 		return birList;
 	}
 	@Test
-	public void testQualityCheckfailureException() throws BiometricException, PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException {
+	public void testQualityCheckfailureException() throws BiometricException, PacketDecryptionFailureException, ApiNotAccessibleException, io.mosip.kernel.core.exception.IOException, IOException {
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
-		Mockito.when(adapter.getFile(any(), any())).thenReturn(null);
+		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenReturn(null);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");

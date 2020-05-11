@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.packet.utility.utils.IdSchemaUtils;
 import org.apache.commons.io.IOUtils;
@@ -722,7 +723,7 @@ public class UinGeneratorStageTest {
 
 	@Test
 	public void deactivateTestSuccess() throws ApisResourceAccessException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
 		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
@@ -753,7 +754,7 @@ public class UinGeneratorStageTest {
 
 	@Test
 	public void checkIsUinDeactivatedSuccess() throws ApisResourceAccessException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
 		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
@@ -778,7 +779,7 @@ public class UinGeneratorStageTest {
 
 	@Test
 	public void deactivateTestForExistingUinTestSuccess() throws ApisResourceAccessException,
-			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
 		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
@@ -817,7 +818,7 @@ public class UinGeneratorStageTest {
 
 	@Test
 	public void deactivateTestFailure() throws ApisResourceAccessException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 
 		ApisResourceAccessException exp = new ApisResourceAccessException(
 				HibernateErrorCode.ERR_DATABASE.getErrorCode());
@@ -859,7 +860,7 @@ public class UinGeneratorStageTest {
 
 	@Test
 	public void apisResourceAccessExceptionTest() throws ApisResourceAccessException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 
 		ApisResourceAccessException apisResourceAccessException = Mockito.mock(ApisResourceAccessException.class);
 		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(
@@ -883,7 +884,7 @@ public class UinGeneratorStageTest {
 
 	@Test
 	public void clientErrorExceptionTest() throws ApisResourceAccessException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 
 		ApisResourceAccessException apisResourceAccessException = Mockito.mock(ApisResourceAccessException.class);
 		HttpClientErrorException httpErrorErrorException = new HttpClientErrorException(
@@ -907,7 +908,7 @@ public class UinGeneratorStageTest {
 
 	@Test
 	public void getApiExceptionTest() throws ApisResourceAccessException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 
 		ApisResourceAccessException apisResourceAccessException = Mockito.mock(ApisResourceAccessException.class);
 
@@ -928,7 +929,7 @@ public class UinGeneratorStageTest {
 
 	@Test
 	public void testFSAdapterException() throws ApisResourceAccessException,
-			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		FSAdapterException fsAdapterException = new FSAdapterException("RPR-1001", "Unable to connect to HDFS");
 		Mockito.when(packetReaderService.getFile("27847657360002520181210094052",
 				PacketFiles.ID.name(), "id")).thenThrow(fsAdapterException);
@@ -946,7 +947,7 @@ public class UinGeneratorStageTest {
 
 	@Test
 	public void testJsonProcessingException() throws ApisResourceAccessException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
 		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
@@ -977,7 +978,7 @@ public class UinGeneratorStageTest {
 
 	@Test
 	public void testApisResourceAccessExceptionPostApi() throws ApisResourceAccessException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		ApisResourceAccessException exc = new ApisResourceAccessException();
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
@@ -1017,7 +1018,7 @@ public class UinGeneratorStageTest {
 
 	@Test
 	public void testUindeactivate() throws ApisResourceAccessException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
 		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
@@ -1106,7 +1107,7 @@ public class UinGeneratorStageTest {
 
 	@Test
 	public void updateTestSuccess() throws ApisResourceAccessException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("10031100110005020190313110030");
 		messageDTO.setReg_type(RegistrationType.valueOf("UPDATE"));
@@ -1137,7 +1138,7 @@ public class UinGeneratorStageTest {
 
 	@Test
 	public void vidException() throws ApisResourceAccessException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
@@ -1198,7 +1199,7 @@ public class UinGeneratorStageTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void vidJSONException() throws ApisResourceAccessException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.core.exception.IOException, IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";

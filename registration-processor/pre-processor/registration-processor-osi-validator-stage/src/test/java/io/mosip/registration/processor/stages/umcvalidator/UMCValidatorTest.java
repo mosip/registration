@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -182,7 +183,7 @@ public class UMCValidatorTest {
 	@Test
 	public void isValidUMCSuccessTest() throws ApisResourceAccessException, JsonParseException, JsonMappingException,
 			IOException, java.io.IOException, PacketDecryptionFailureException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		identity = new Identity();
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
@@ -391,7 +392,7 @@ public class UMCValidatorTest {
 	@Test
 	public void UMCMappingNotActiveTest() throws ApisResourceAccessException, JsonParseException, JsonMappingException,
 			IOException, java.io.IOException, PacketDecryptionFailureException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
 		rcdto.setLongitude("80.24492");
@@ -461,7 +462,7 @@ public class UMCValidatorTest {
 	@Test
 	public void machineIdNotFoundTest() throws ApisResourceAccessException, JsonParseException, JsonMappingException,
 			IOException, java.io.IOException, PacketDecryptionFailureException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
 		rcdto.setLongitude("80.24492");
@@ -527,7 +528,7 @@ public class UMCValidatorTest {
 	@Test
 	public void machineNotActiveTest() throws ApisResourceAccessException, JsonParseException, JsonMappingException,
 			IOException, java.io.IOException, PacketDecryptionFailureException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
 		rcdto.setLongitude("80.24492");
@@ -593,7 +594,7 @@ public class UMCValidatorTest {
 	@Test
 	public void WronggpsDataPresentInMasterTest() throws ApisResourceAccessException, JsonParseException,
 			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
 		rcdto.setId("12245");
@@ -658,7 +659,7 @@ public class UMCValidatorTest {
 	@Test
 	public void gpsDatanotPresentInPacketTest() throws ApisResourceAccessException, JsonParseException,
 			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		RegistrationCenterMachineDto rcmDto = new RegistrationCenterMachineDto();
 		rcmDto.setIsActive(true);
 		rcmDto.setLatitude("13.0049");
@@ -732,7 +733,7 @@ public class UMCValidatorTest {
 	@Test
 	public void registrationCenternotActiveTest() throws ApisResourceAccessException, JsonParseException,
 			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(false);
@@ -798,7 +799,7 @@ public class UMCValidatorTest {
 	@Test
 	public void isValidUMCFailureForTimestampTest() throws ApisResourceAccessException, JsonParseException,
 			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
 		rcdto.setLongitude("80.24492");
@@ -875,7 +876,7 @@ public class UMCValidatorTest {
 	@Test
 	public void isValidUMCFailureForRegistrationCenterIDTest() throws ApisResourceAccessException, JsonParseException,
 			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
 		rcdto.setLongitude("80.24492");
@@ -953,7 +954,7 @@ public class UMCValidatorTest {
 	@Test
 	public void isValidUMCCenterIdValidationRejectedTest() throws ApisResourceAccessException, JsonParseException,
 			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		identity = new Identity();
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
@@ -1051,7 +1052,7 @@ public class UMCValidatorTest {
 	@Test
 	public void validateDeviceFailureTest() throws ApisResourceAccessException, JsonParseException,
 			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 
 		ApisResourceAccessException apisResourceAccessException = Mockito.mock(ApisResourceAccessException.class);
 		byte[] response = "{\"timestamp\":1548930810031,\"status\":404,\"errors\":[{\"errorCode\":\"KER-MSD-129\",\"errorMessage\":\"Device History not found\"}]}"
@@ -1132,7 +1133,7 @@ public class UMCValidatorTest {
 	@Test
 	public void isValidCenterHistroyTest() throws ApisResourceAccessException, JsonParseException, JsonMappingException,
 			IOException, java.io.IOException, PacketDecryptionFailureException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		identity = new Identity();
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
@@ -1247,7 +1248,7 @@ public class UMCValidatorTest {
 	@Test
 	public void isValidMachineHistroyTest() throws ApisResourceAccessException, JsonParseException,
 			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		identity = new Identity();
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
@@ -1388,7 +1389,7 @@ public class UMCValidatorTest {
 	@Test
 	public void isValidDeviceMappedWithCenterTest() throws ApisResourceAccessException, JsonParseException,
 			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		identity = new Identity();
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
@@ -1578,7 +1579,7 @@ public class UMCValidatorTest {
 	@Test
 	public void isValidDeviceTest() throws ApisResourceAccessException, JsonParseException, JsonMappingException,
 			IOException, java.io.IOException, PacketDecryptionFailureException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		identity = new Identity();
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
@@ -1778,7 +1779,7 @@ public class UMCValidatorTest {
 	@Test
 	public void isValidCenterIdAndTimestampTest() throws ApisResourceAccessException, JsonParseException,
 			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		identity = new Identity();
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
@@ -1976,7 +1977,7 @@ public class UMCValidatorTest {
 	@Test
 	public void isValidCenterUserMachineMappingTest() throws ApisResourceAccessException, JsonParseException,
 			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		identity = new Identity();
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);

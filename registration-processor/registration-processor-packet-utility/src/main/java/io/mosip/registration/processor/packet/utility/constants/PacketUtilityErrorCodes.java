@@ -6,6 +6,7 @@ public enum PacketUtilityErrorCodes {
 			"Unknown resource provided"),
 	FILE_NOT_FOUND_IN_DESTINATION("KER-PUT-002", "Unable to Find File in Destination Folder"),
 	PACKET_DECRYPTION_FAILURE_EXCEPTION("KER-PUT-003", "Packet decryption failed"),
+	API_NOT_ACCESSIBLE_EXCEPTION("KER-PUT-005", "API not accessible"),
 	SYS_IO_EXCEPTION("KER-PUT-004", "Unable to Find File in Destination Folder");
 
 

@@ -9,6 +9,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.packet.utility.exception.FileNotFoundInDestinationException;
 import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
@@ -214,7 +215,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	 */
 	@Override
 	public byte[] getApplicantFile(String regId, String fileName, String source) throws
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException, PacketDecryptionFailureException {
+			ApiNotAccessibleException, io.mosip.kernel.core.exception.IOException, IOException, PacketDecryptionFailureException {
 
 		byte[] file = null;
 		InputStream fileInStream = null;
@@ -267,7 +268,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	 * @throws PacketDecryptionFailureException
 	 */
 	private InputStream getApplicantBiometricFile(String regId, String fileName, String source)
-			throws ApisResourceAccessException,
+			throws ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException, IOException, PacketDecryptionFailureException {
 		return packetReaderService.getFile(regId, fileName, source != null ? source : defaultSource);
 	}
@@ -286,13 +287,13 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	 * @throws PacketDecryptionFailureException
 	 */
 	private InputStream getApplicantDemographicFile(String regId, String fileName, String source)
-			throws PacketDecryptionFailureException, ApisResourceAccessException,
+			throws PacketDecryptionFailureException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException, IOException {
 		return packetReaderService.getFile(regId, fileName, source != null ? source : defaultSource);
 	}
 
 	private InputStream getApplicantMetaInfoFile(String regId, String fileName, String source) throws PacketDecryptionFailureException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException {
+			ApiNotAccessibleException, io.mosip.kernel.core.exception.IOException, IOException {
 		return packetReaderService.getFile(regId, PacketStructure.PACKETMETAINFO, source != null ? source : defaultSource);
 	}
 

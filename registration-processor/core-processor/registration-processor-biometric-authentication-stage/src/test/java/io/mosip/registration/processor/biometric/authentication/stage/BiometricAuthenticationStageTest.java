@@ -17,6 +17,7 @@ import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -289,7 +290,7 @@ public class BiometricAuthenticationStageTest {
 	@Test
 	@Ignore
 	public void biometricAuthenticationSuccessTest()
-			throws ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException, BiometricException,
+			throws ApisResourceAccessException, ApiNotAccessibleException, InvalidKeySpecException, NoSuchAlgorithmException, BiometricException,
 			BioTypeException, IOException, ParserConfigurationException, SAXException {
 		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -304,7 +305,7 @@ public class BiometricAuthenticationStageTest {
 	@Test
 	@Ignore
 	public void biometricAuthenticationSuccessWithoutBiometricTest()
-			throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException,
+			throws IOException, ApisResourceAccessException, ApiNotAccessibleException, InvalidKeySpecException, NoSuchAlgorithmException,
 			BiometricException, BioTypeException, ParserConfigurationException, SAXException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException {
 		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
@@ -322,7 +323,7 @@ public class BiometricAuthenticationStageTest {
 	}
 
 	@Test
-	public void IDAuthFailureTest() throws IOException, PacketDecryptionFailureException, ApisResourceAccessException,
+	public void IDAuthFailureTest() throws IOException, PacketDecryptionFailureException, ApisResourceAccessException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException, InvalidKeySpecException, NoSuchAlgorithmException,
 			BiometricException, BioTypeException, ParserConfigurationException, SAXException,
 			RegistrationProcessorCheckedException,
@@ -343,7 +344,7 @@ public class BiometricAuthenticationStageTest {
 
 	@Test
 	@Ignore
-	public void childPacketTest() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
+	public void childPacketTest() throws ApisResourceAccessException, ApiNotAccessibleException, IOException, PacketDecryptionFailureException,
 			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 
@@ -353,7 +354,7 @@ public class BiometricAuthenticationStageTest {
 	}
 
 	@Test
-	public void inputStreamNullTest() throws PacketDecryptionFailureException, ApisResourceAccessException,
+	public void inputStreamNullTest() throws PacketDecryptionFailureException, ApisResourceAccessException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException, IOException {
 
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
@@ -362,7 +363,7 @@ public class BiometricAuthenticationStageTest {
 
 	@Test
 	public void inputStreamNullIndividualAuthTest()
-			throws PacketDecryptionFailureException, ApisResourceAccessException,
+			throws PacketDecryptionFailureException, ApisResourceAccessException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException, IOException, InvalidKeySpecException, NoSuchAlgorithmException,
 			BiometricException, BioTypeException, ParserConfigurationException, SAXException,
 			RegistrationProcessorCheckedException,
@@ -383,7 +384,7 @@ public class BiometricAuthenticationStageTest {
 	}
 
 	@Test
-	public void testIOException() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
+	public void testIOException() throws ApisResourceAccessException, ApiNotAccessibleException, IOException, PacketDecryptionFailureException,
 			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 
@@ -393,7 +394,7 @@ public class BiometricAuthenticationStageTest {
 	}
 
 	@Test
-	public void testApisResourceAccessException() throws ApisResourceAccessException, IOException,
+	public void testApisResourceAccessException() throws ApisResourceAccessException, ApiNotAccessibleException, IOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
 			RegistrationProcessorCheckedException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
@@ -405,7 +406,7 @@ public class BiometricAuthenticationStageTest {
 	}
 
 	@Test
-	public void testException() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
+	public void testException() throws ApisResourceAccessException, ApiNotAccessibleException, IOException, PacketDecryptionFailureException,
 			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 
@@ -417,7 +418,7 @@ public class BiometricAuthenticationStageTest {
 
 	@Test
 	@Ignore
-	public void testEmptyJSONObject() throws IOException, PacketDecryptionFailureException, ApisResourceAccessException,
+	public void testEmptyJSONObject() throws IOException, PacketDecryptionFailureException, ApisResourceAccessException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		HashMap<String, String> hashMap = new HashMap<String, String>();
@@ -432,7 +433,7 @@ public class BiometricAuthenticationStageTest {
 
 	@Test
 	@Ignore
-	public void resupdatePacketTest() throws ApisResourceAccessException, InvalidKeySpecException,
+	public void resupdatePacketTest() throws ApisResourceAccessException, ApiNotAccessibleException, InvalidKeySpecException,
 			NoSuchAlgorithmException, BiometricException, BioTypeException, IOException, ParserConfigurationException,
 			SAXException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
@@ -460,7 +461,7 @@ public class BiometricAuthenticationStageTest {
 	}
 
 	@Test
-	public void testNewPacket() throws IOException, PacketDecryptionFailureException, ApisResourceAccessException,
+	public void testNewPacket() throws IOException, PacketDecryptionFailureException, ApisResourceAccessException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException, InvalidKeySpecException, NoSuchAlgorithmException,
 			BiometricException, BioTypeException, ParserConfigurationException, SAXException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
@@ -494,7 +495,7 @@ public class BiometricAuthenticationStageTest {
 		biometricAuthenticationStage.deployVerticle();
 	}
 	@Test
-	public void testAuthSystemException() throws ApisResourceAccessException, IOException,
+	public void testAuthSystemException() throws ApisResourceAccessException, ApiNotAccessibleException, IOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, InvalidKeySpecException,
 			NoSuchAlgorithmException, BiometricException, BioTypeException, ParserConfigurationException, SAXException,
 			RegistrationProcessorCheckedException,
@@ -517,7 +518,7 @@ public class BiometricAuthenticationStageTest {
 		assertTrue(messageDto.getInternalError());
 	}
 	@Test
-	public void testAuthFailed() throws ApisResourceAccessException, IOException,
+	public void testAuthFailed() throws ApisResourceAccessException, ApiNotAccessibleException, IOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, InvalidKeySpecException,
 			NoSuchAlgorithmException, BiometricException, BioTypeException, ParserConfigurationException, SAXException,
 			RegistrationProcessorCheckedException,

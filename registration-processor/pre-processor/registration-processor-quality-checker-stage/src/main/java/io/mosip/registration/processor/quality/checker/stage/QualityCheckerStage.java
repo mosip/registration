@@ -4,6 +4,10 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.List;
 
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
+import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
+import io.mosip.registration.processor.packet.utility.utils.IdSchemaUtils;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +42,6 @@ import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
@@ -120,9 +123,13 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
 
-	/** The adapter. */
+	/** The idschema utility.*/
 	@Autowired
-	private PacketManager adapter;
+	private IdSchemaUtils idSchemaUtils;
+
+	/** The PacketReaderService. */
+	@Autowired
+	private PacketReaderService packetReaderService;
 
 	/** The core audit request builder. */
 	@Autowired
@@ -168,6 +175,8 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 
 	private MosipEventBus mosipEventBus = null;
 
+	private TrimExceptionMessage trimExpMessage = new TrimExceptionMessage();
+
 	/**
 	 * Deploy verticle.
 	 */
@@ -205,15 +214,23 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 
 		try {
 			registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
-			InputStream idJsonStream = adapter.getFile(regId,
-					PacketFiles.DEMOGRAPHIC.name() + FILE_SEPARATOR + PacketFiles.ID.name());
+
+			// get the idobject individual biometrics key from mapping json
+			JSONObject mappingJson = utilities.getRegistrationProcessorIdentityJson();
+			String individualBiometrics = JsonUtil
+					.getJSONValue(JsonUtil.getJSONObject(mappingJson, INDIVIDUAL_BIOMETRICS), "value");
+			// get individual biometrics file name from id.json
+			String source = idSchemaUtils.getSource(individualBiometrics);
+			InputStream idJsonStream = packetReaderService.getFile(regId,
+					PacketFiles.ID.name(), source);
+			if (idJsonStream == null)
+				throw new FileMissingException(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getCode(),
+						"The id json file is missing to get biometric reference file name");
 			String idJsonString = IOUtils.toString(idJsonStream, UTF_8);
 			JSONObject idJsonObject = JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class);
 			JSONObject identity = JsonUtil.getJSONObject(idJsonObject,
 					utilities.getGetRegProcessorDemographicIdentity());
-			JSONObject mappingJson = utilities.getRegistrationProcessorIdentityJson();
-			String individualBiometrics = JsonUtil
-					.getJSONValue(JsonUtil.getJSONObject(mappingJson, INDIVIDUAL_BIOMETRICS), "value");
+
 			JSONObject individualBiometricsObject = JsonUtil.getJSONObject(identity, individualBiometrics);
 			if (individualBiometricsObject == null) {
 				description.setCode(PlatformErrorMessages.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getCode());
@@ -238,8 +255,8 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 					throw new FileMissingException(PlatformErrorMessages.RPR_QCR_FILENAME_MISSING.getCode(),
 							PlatformErrorMessages.RPR_QCR_FILENAME_MISSING.getMessage());
 				}
-				InputStream cbeffStream = adapter.getFile(regId,
-						PacketFiles.BIOMETRIC.name() + FILE_SEPARATOR + biometricFileName);
+				InputStream cbeffStream = packetReaderService.getFile(regId,
+						biometricFileName, source);
 				if (cbeffStream == null) {
 					description.setCode(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getCode());
 					description.setMessage(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getMessage());
@@ -308,6 +325,20 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 			description.setCode(PlatformErrorMessages.RPR_QCR_PACKET_STORE_NOT_ACCESSIBLE.getCode());
 			description.setMessage(PlatformErrorMessages.RPR_QCR_PACKET_STORE_NOT_ACCESSIBLE.getMessage());
 			object.setRid(regId);
+		} catch (ApisResourceAccessException | ApiNotAccessibleException e) {
+			registrationStatusDto.setLatestTransactionStatusCode(
+					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
+			registrationStatusDto.setStatusComment(trimExpMessage
+					.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
+			object.setInternalError(true);
+			object.setIsValid(false);
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId,
+					PlatformErrorMessages.RPR_PUM_NGINX_ACCESS_FAILED.name() + ExceptionUtils.getStackTrace(e));
+
+			description.setMessage(PlatformErrorMessages.RPR_PUM_NGINX_ACCESS_FAILED.getMessage());
+			description.setCode(PlatformErrorMessages.RPR_PUM_NGINX_ACCESS_FAILED.getCode());
 		} catch (FileMissingException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
 			registrationStatusDto.setStatusComment(StatusUtil.BIO_METRIC_FILE_MISSING.getMessage());

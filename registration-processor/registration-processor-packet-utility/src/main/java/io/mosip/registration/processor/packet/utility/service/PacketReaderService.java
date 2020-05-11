@@ -3,6 +3,7 @@ package io.mosip.registration.processor.packet.utility.service;
 import java.io.IOException;
 import java.io.InputStream;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
 
 
@@ -27,7 +28,7 @@ public interface PacketReaderService {
 	 *                                          occurred.
 	 */
 	public boolean checkFileExistence(String id, String fileName, String source)
-			throws PacketDecryptionFailureException, IOException;
+			throws PacketDecryptionFailureException, IOException, ApiNotAccessibleException;
 
 	/**
 	 * Gets the file.
@@ -44,7 +45,7 @@ public interface PacketReaderService {
 	 *                                          exception
 	 */
 	public InputStream getFile(String id, String fileName, String source) throws IOException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException;
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException;
 
 	/**
 	 * Get the encrypted source packet from the parent zip

@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.manual.verification.stage;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,7 +111,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 		router.handler(event -> {
 			try {
 				processBiometric(event);
-			} catch (PacketDecryptionFailureException | ApisResourceAccessException | IOException
+			} catch (PacketDecryptionFailureException | ApiNotAccessibleException | IOException
 					| java.io.IOException e2) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), "", "", ExceptionUtils.getStackTrace(e2));
 
@@ -126,7 +127,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 		router.handler(event -> {
 			try {
 				processDemographic(event);
-			} catch (PacketDecryptionFailureException | ApisResourceAccessException | IOException
+			} catch (PacketDecryptionFailureException | ApiNotAccessibleException | IOException
 					| java.io.IOException e1) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), "", "", ExceptionUtils.getStackTrace(e1));
 			}
@@ -162,7 +163,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 		router.handler(event -> {
 			try {
 				processPacketInfo(event);
-			} catch (PacketDecryptionFailureException | ApisResourceAccessException | IOException
+			} catch (PacketDecryptionFailureException | ApiNotAccessibleException | IOException
 					| java.io.IOException e) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), "", "", ExceptionUtils.getStackTrace(e));
 			}
@@ -178,7 +179,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	}
 
 	public void processBiometric(RoutingContext ctx)
-			throws ApisResourceAccessException, IOException, java.io.IOException, PacketDecryptionFailureException {
+			throws ApiNotAccessibleException, IOException, java.io.IOException, PacketDecryptionFailureException {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ManualVerificationStage::processBiometric::entry");
@@ -201,7 +202,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	}
 
 	public void processDemographic(RoutingContext ctx)
-			throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException {
+			throws PacketDecryptionFailureException, ApiNotAccessibleException, IOException, java.io.IOException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ManualVerificationStage::processDemographic::entry");
 		JsonObject obj = ctx.getBodyAsJson();
@@ -269,7 +270,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	}
 
 	public void processPacketInfo(RoutingContext ctx)
-			throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException {
+			throws PacketDecryptionFailureException, ApiNotAccessibleException, IOException, java.io.IOException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ManualVerificationStage::processpacketInfo::entry");
 		JsonObject obj = ctx.getBodyAsJson();

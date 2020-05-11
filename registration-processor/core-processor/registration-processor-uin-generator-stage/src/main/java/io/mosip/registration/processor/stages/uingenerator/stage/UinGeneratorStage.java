@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.packet.utility.utils.IdSchemaUtils;
@@ -314,7 +315,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			description.setCode(PlatformErrorMessages.RPR_UGS_PACKET_STORE_NOT_ACCESSIBLE.getCode());
 			object.setIsValid(Boolean.FALSE);
 			object.setRid(registrationId);
-		} catch (ApisResourceAccessException ex) {
+		} catch (ApisResourceAccessException | ApiNotAccessibleException ex) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
 			registrationStatusDto.setStatusComment(trimExceptionMessage
 					.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + ex.getMessage()));
@@ -404,7 +405,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	private IdResponseDTO sendIdRepoWithUin(String regId, JSONObject demographicIdentity, String uin,
 			LogDescription description)
 			throws ApisResourceAccessException, JsonParseException, JsonMappingException, IOException,
-			VidCreationException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException {
+			VidCreationException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
 
 		List<Documents> documentInfo = getAllDocumentsByRegId(regId);
 		RequestDto requestDto = new RequestDto();
@@ -466,7 +467,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	 * @throws JsonParseException
 	 */
 	private List<Documents> getAllDocumentsByRegId(String regId) throws IOException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, PacketDecryptionFailureException {
+			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, PacketDecryptionFailureException, ApiNotAccessibleException {
 		List<Documents> applicantDocuments = new ArrayList<>();
 
 		JSONObject idJSON = getDemoIdentity(regId);
@@ -507,7 +508,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 	private Documents getIdDocumnet(String registrationId, String folderPath, JSONObject idDocObj, String idDocLabel)
 			throws IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, ApisResourceAccessException {
+			io.mosip.kernel.core.exception.IOException, ApisResourceAccessException, ApiNotAccessibleException {
 		Documents documentsInfoDto = new Documents();
 
 		String source = idSchemaUtils.getSource(idDocLabel);
@@ -539,7 +540,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			LogDescription description)
 			throws ApisResourceAccessException, IOException, RegistrationProcessorCheckedException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, io.mosip.registration.processor.core.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, io.mosip.registration.processor.core.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		IdResponseDTO result;
 		boolean isTransactionSuccessful = Boolean.FALSE;
 		List<Documents> documentInfo = utility.getAllDocumentsByRegId(regId);
@@ -937,7 +938,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	}
 
 	private JSONObject getDemoIdentity(String registrationId) throws IOException, PacketDecryptionFailureException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException {
+			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
 		InputStream documentInfoStream = packetReaderService.getFile(registrationId,
 				PacketFiles.ID.name(), defaultSource);
 

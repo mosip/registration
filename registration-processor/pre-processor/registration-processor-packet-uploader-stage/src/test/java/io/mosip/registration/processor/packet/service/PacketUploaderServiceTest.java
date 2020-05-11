@@ -14,6 +14,8 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -45,7 +47,6 @@ import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.JschConnectionException;
 import io.mosip.registration.processor.core.exception.SftpFileOperationException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
@@ -72,7 +73,6 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 
 @RefreshScope
-//@RunWith(SpringRunner.class)
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ IOUtils.class, HMACUtils.class })
 public class PacketUploaderServiceTest {
@@ -140,7 +140,7 @@ public class PacketUploaderServiceTest {
 	private File file;
 
 	@Before
-	public void setUp() throws IOException, ApisResourceAccessException {
+	public void setUp() throws IOException, ApiNotAccessibleException, ApisResourceAccessException {
 		ReflectionTestUtils.setField(packetuploaderservice, "packetSources", "id,evidence,optional");
 		file = new File("src/test/resources/1001.zip");
 		dto.setRid("1001");
@@ -263,8 +263,8 @@ public class PacketUploaderServiceTest {
 	}
 
 	@Test
-	public void testPacketDecryptionException() throws ApisResourceAccessException,
-			JschConnectionException, SftpFileOperationException, PacketDecryptionFailureException {
+	public void testPacketDecryptionException() throws ApiNotAccessibleException,
+			JschConnectionException, SftpFileOperationException, PacketDecryptionFailureException, ApiNotAccessibleException {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
 		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(enrypteddata);
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
@@ -276,7 +276,7 @@ public class PacketUploaderServiceTest {
 
 	@Test
 	public void testIOException() throws JschConnectionException, SftpFileOperationException,
-			IOException, PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.registration.processor.core.exception.PacketDecryptionFailureException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			IOException, PacketDecryptionFailureException, ApiNotAccessibleException, io.mosip.registration.processor.core.exception.PacketDecryptionFailureException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		ReflectionTestUtils.setField(packetuploaderservice, "maxRetryCount", 3);
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
 		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(enrypteddata);
@@ -344,13 +344,13 @@ public class PacketUploaderServiceTest {
 	}
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testScannerServiceAPIResourceException() throws JschConnectionException, SftpFileOperationException, PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+	public void testScannerServiceAPIResourceException() throws JschConnectionException, SftpFileOperationException, PacketDecryptionFailureException, ApiNotAccessibleException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
 		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(enrypteddata);
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class)))
 				.thenReturn(true);
 		Mockito.when(decryptor.decrypt(Mockito.any(InputStream.class),Mockito.anyString()))
-		.thenThrow(ApisResourceAccessException.class);
+		.thenThrow(ApiNotAccessibleException.class);
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
 		assertTrue(result.getInternalError());
 	}
@@ -372,9 +372,9 @@ public class PacketUploaderServiceTest {
 	}
 
 	@Test
-	public void testGetPacketFromNginxFailed() throws JschConnectionException, SftpFileOperationException, ApisResourceAccessException {
+	public void testGetPacketFromNginxFailed() throws JschConnectionException, SftpFileOperationException, ApiNotAccessibleException, ApisResourceAccessException {
 		HttpClientErrorException e = new HttpClientErrorException(HttpStatus.NOT_FOUND);
-		ApisResourceAccessException apiException = new ApisResourceAccessException("Packet not found in nginx", e);
+		ApiNotAccessibleException apiException = new ApiNotAccessibleException("Packet not found in nginx", e);
 
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
 		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(null);
@@ -385,8 +385,8 @@ public class PacketUploaderServiceTest {
 	}
 
 	@Test
-	public void testNginxServerException() throws JschConnectionException, SftpFileOperationException, ApisResourceAccessException {
-		ApisResourceAccessException apiException = new ApisResourceAccessException("Packet not found in nginx");
+	public void testNginxServerException() throws JschConnectionException, SftpFileOperationException, ApiNotAccessibleException, ApisResourceAccessException {
+		ApiNotAccessibleException apiException = new ApiNotAccessibleException("Packet not found in nginx");
 
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
 		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(null);
@@ -397,7 +397,7 @@ public class PacketUploaderServiceTest {
 	}
 
 	@Test
-	public void testUnknownExceptionOccured() throws JschConnectionException, SftpFileOperationException, ApisResourceAccessException {
+	public void testUnknownExceptionOccured() throws JschConnectionException, SftpFileOperationException, ApiNotAccessibleException {
 		BaseUncheckedException exception = new BaseUncheckedException("Unknown");
 
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
@@ -412,7 +412,7 @@ public class PacketUploaderServiceTest {
 	}
 
 	@Test
-	public void testNullPacketFromDMZ() throws JschConnectionException, SftpFileOperationException, ApisResourceAccessException {
+	public void testNullPacketFromDMZ() throws JschConnectionException, SftpFileOperationException, ApiNotAccessibleException, ApisResourceAccessException {
 
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
 		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(null);

@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.manual.verification.service;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
 import org.springframework.stereotype.Service;
 
@@ -42,7 +43,7 @@ public interface ManualVerificationService {
 	 * @throws ApisResourceAccessException 
 	 * @throws PacketDecryptionFailureException 
 	 */
-	public byte[] getApplicantFile(String regId, String fileName, String source) throws ApisResourceAccessException, IOException, java.io.IOException, PacketDecryptionFailureException;
+	public byte[] getApplicantFile(String regId, String fileName, String source) throws ApiNotAccessibleException, IOException, java.io.IOException, PacketDecryptionFailureException;
 
 	/**
 	 * This method updates the Manual Verification status of a regId according to

@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.packet.utility.config;
 
+import io.mosip.registration.processor.packet.utility.utils.RestUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -27,5 +28,10 @@ public class PacketUtilityConfig {
 	@Bean
 	public PacketReaderService getPacketReaderService() {
 		return new PacketReaderServiceImpl();
+	}
+
+	@Bean
+	public RestUtil getRestUtil() {
+		return new RestUtil();
 	}
 }
