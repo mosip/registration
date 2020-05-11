@@ -578,7 +578,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 						Integer.parseInt(getValueFromApplicationContext(RegistrationConstants.IRIS_THRESHOLD)));
 			}
 
-			captureBiometrics(currentSubType, biometricType.getText());
+			captureBiometrics(currentSubType, biometricType.getText(), currentModality);
 
 		} catch (RuntimeException runtimeException) {
 			LOGGER.error(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
@@ -601,9 +601,9 @@ public class GuardianBiometricsController extends BaseController implements Init
 				"Scan process ended for capturing biometrics");
 	}
 
-	private void captureBiometrics(String subType, String bioType) {
+	private void captureBiometrics(String subType, String bioType, String modality) {
 
-		// TODO Get Exception attributes
+		// Get Exception attributes
 		String[] exceptionBioAttributes = null;
 		List<String> exceptionBioAttributesList = getExceptionBioAttributesByBioType(bioType);
 		if (exceptionBioAttributesList != null && !exceptionBioAttributesList.isEmpty()) {
@@ -1696,20 +1696,32 @@ public class GuardianBiometricsController extends BaseController implements Init
 		List<String> bioAttributes = getBioAttributesBySubType(currentSubType);
 
 		boolean isAllBiometricsCaptured = true;
+		List<String> leftHandBioAttributes = getContainsAllElements(RegistrationConstants.leftHandUiAttributes,
+				bioAttributes);
+		List<String> rightHandBioAttributes = getContainsAllElements(RegistrationConstants.rightHandUiAttributes,
+				bioAttributes);
+		List<String> twoThumbsBioAttributes = getContainsAllElements(RegistrationConstants.twoThumbsUiAttributes,
+				bioAttributes);
+		List<String> faceBioAttributes = getContainsAllElements(Arrays.asList(RegistrationConstants.FACE),
+				bioAttributes);
+		List<String> irisBioAttributes = getContainsAllElements(RegistrationConstants.eyesUiAttributes, bioAttributes);
 
-		for (String bioAttribute : bioAttributes) {
+		if (bioAttributes != null && !bioAttributes.isEmpty()) {
+			for (String bioAttribute : bioAttributes) {
 
-			// TODO replace with @Anusha Code
-			boolean isExceptionBiometricAvailable = true;
+				// TODO replace with @Anusha Code
+				boolean isExceptionBiometricAvailable = true;
 
-			if (getRegistrationDTOFromSession().getBiometric(currentSubType, currentModality) != null
-					|| isExceptionBiometricAvailable) {
-				isAllBiometricsCaptured = true;
-			} else {
-				isAllBiometricsCaptured = false;
-				break;
+				if (getRegistrationDTOFromSession().getBiometric(currentSubType, bioAttribute) != null
+						|| isExceptionBiometricAvailable) {
+					isAllBiometricsCaptured = true;
+				} else {
+					isAllBiometricsCaptured = false;
+					break;
+				}
 			}
 		}
+
 		if (isAllBiometricsCaptured) {
 			continueBtn.setDisable(false);
 		} else {

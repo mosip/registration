@@ -23,6 +23,7 @@ import java.util.Map.Entry;
 import java.util.ResourceBundle;
 import java.util.Timer;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -1825,4 +1826,11 @@ public class BaseController {
 	 * 
 	 * }
 	 */
+
+	protected List<String> getContainsAllElements(List<String> source, List<String> target) {
+
+		return source.stream().filter(target::contains).collect(Collectors.toList());
+
+	}
+
 }
