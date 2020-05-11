@@ -328,12 +328,15 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		}
 
-		comboBoxMap.get("introducer").setVisible(true);
-		comboBoxMap.get("introducer").setManaged(true);
+		if (null != comboBoxMap.get("introducer")) {
+			comboBoxMap.get("introducer").setVisible(true);
+			comboBoxMap.get("introducer").setManaged(true);
+			if (null!=checkBoxMap.get("introducer") && null != checkBoxMap.get("introducer").get("LEFT_SLAB")) {
+				checkBoxMap.get("introducer").get("LEFT_SLAB").setVisible(true);
 
-		checkBoxMap.get("introducer").get("LEFT_SLAB").setVisible(true);
-
-		checkBoxMap.get("introducer").get("LEFT_SLAB").setManaged(true);
+				checkBoxMap.get("introducer").get("LEFT_SLAB").setManaged(true);
+			}
+		}
 
 		//
 		// // TODO replace the value from the comboMap

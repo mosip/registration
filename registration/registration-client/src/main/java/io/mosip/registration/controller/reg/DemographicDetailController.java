@@ -780,9 +780,9 @@ public class DemographicDetailController extends BaseController {
 					// parentFieldValidation();
 				}
 			} else {
-				updatePageFlow(RegistrationConstants.GUARDIAN_BIOMETRIC, false);
-				updatePageFlow(RegistrationConstants.FINGERPRINT_CAPTURE, true);
-				updatePageFlow(RegistrationConstants.IRIS_CAPTURE, true);
+				//updatePageFlow(RegistrationConstants.GUARDIAN_BIOMETRIC, false);
+				//updatePageFlow(RegistrationConstants.FINGERPRINT_CAPTURE, true);
+				//updatePageFlow(RegistrationConstants.IRIS_CAPTURE, true);
 				dd.clear();
 				mm.clear();
 				yyyy.clear();

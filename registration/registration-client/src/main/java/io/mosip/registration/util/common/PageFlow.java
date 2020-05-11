@@ -75,11 +75,11 @@ public class PageFlow {
 		exceptionMap.put(RegistrationConstants.VISIBILITY, true);
 		exceptionMap.put(RegistrationConstants.FINGER_PANE, true);
 		exceptionMap.put(RegistrationConstants.IRIS_PANE, true);
-		registrationMap.put(RegistrationConstants.BIOMETRIC_EXCEPTION, exceptionMap);
+		//registrationMap.put(RegistrationConstants.BIOMETRIC_EXCEPTION, exceptionMap);
 		onboardMap.put(RegistrationConstants.BIOMETRIC_EXCEPTION, exceptionMap);
 
 		Map<String, Boolean> guardianBioMap = new LinkedHashMap<>();
-		guardianBioMap.put(RegistrationConstants.VISIBILITY, false);
+		guardianBioMap.put(RegistrationConstants.VISIBILITY, true);
 		registrationMap.put(RegistrationConstants.GUARDIAN_BIOMETRIC, guardianBioMap);
 
 		Map<String, Boolean> fingerPrintMap = new LinkedHashMap<>();
@@ -127,7 +127,7 @@ public class PageFlow {
 	@SuppressWarnings("unchecked")
 	private void registrationPageFlow(Map<String, Map<String, Boolean>> registrationMap, String page) {
 
-		Map<String, Boolean> fingerPrintMap = new LinkedHashMap<>();
+	/*	Map<String, Boolean> fingerPrintMap = new LinkedHashMap<>();
 		fingerPrintMap.put(RegistrationConstants.VISIBILITY,
 				finegrPrintCheck((List<String>) ApplicationContext.map().get(RegistrationConstants.indBiometrics)));
 		registrationMap.put(RegistrationConstants.FINGERPRINT_CAPTURE, fingerPrintMap);
@@ -140,14 +140,14 @@ public class PageFlow {
 		Map<String, Boolean> faceMap = new LinkedHashMap<>();
 		faceMap.put(RegistrationConstants.VISIBILITY,
 				faceCheck((List<String>) ApplicationContext.map().get(RegistrationConstants.indBiometrics)));
-		registrationMap.put(RegistrationConstants.FACE_CAPTURE, faceMap);
+		registrationMap.put(RegistrationConstants.FACE_CAPTURE, faceMap);*/
 
 		if (page.equalsIgnoreCase(RegistrationConstants.APPLICATION_NAME)) {
 			updateDetailMap(registrationMap,
 					String.valueOf(ApplicationContext.map().get(RegistrationConstants.DOC_DISABLE_FLAG)),
 					RegistrationConstants.DOCUMENT_PANE, RegistrationConstants.DOCUMENT_SCAN, "");
 
-			if (!registrationMap.get(RegistrationConstants.BIOMETRIC_EXCEPTION).get(RegistrationConstants.FINGER_PANE)
+			/*if (!registrationMap.get(RegistrationConstants.BIOMETRIC_EXCEPTION).get(RegistrationConstants.FINGER_PANE)
 					&& !registrationMap.get(RegistrationConstants.BIOMETRIC_EXCEPTION)
 							.get(RegistrationConstants.IRIS_PANE)) {
 				registrationMap.get(RegistrationConstants.BIOMETRIC_EXCEPTION).put(RegistrationConstants.VISIBILITY,
@@ -160,7 +160,7 @@ public class PageFlow {
 					&& registrationMap.containsKey(RegistrationConstants.DOCUMENT_SCAN) && !registrationMap
 							.get(RegistrationConstants.DOCUMENT_SCAN).get(RegistrationConstants.DOCUMENT_PANE)) {
 				registrationMap.get(RegistrationConstants.DOCUMENT_SCAN).put(RegistrationConstants.VISIBILITY, false);
-			}
+			}*/
 		}
 
 		LOGGER.info(LoggerConstants.LOG_REG_PAGE_FLOW, RegistrationConstants.APPLICATION_NAME,

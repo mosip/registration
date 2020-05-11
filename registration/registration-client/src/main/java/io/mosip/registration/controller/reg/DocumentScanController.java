@@ -433,7 +433,7 @@ public class DocumentScanController extends BaseController {
 	 */
 	private void scanDocument(ComboBox<DocumentCategoryDto> documents, VBox vboxElement, String document,
 			String errorMessage) {
-		if (documents.getValue().getCode().matches(proofOfExceptioPhotoFlag)) {
+		if (null!=documents.getValue() && documents.getValue().getCode().matches(proofOfExceptioPhotoFlag)) {
 			scanWindow();
 			selectedDocument = document;
 			selectedComboBox = documents;
@@ -1068,7 +1068,7 @@ public class DocumentScanController extends BaseController {
 		biometricExceptionController.disableNextBtn();
 		fingerPrintCaptureController.clearImage();
 		irisCaptureController.clearIrisBasedOnExceptions();
-		guardianBiometricsController.manageBiometricsListBasedOnExceptions();
+		//guardianBiometricsController.manageBiometricsListBasedOnExceptions();
 		
 		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
 			//TODO document pane validation Anusha 

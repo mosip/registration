@@ -172,7 +172,7 @@ public class BiometricExceptionController extends BaseController implements Init
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void initialize(URL arg0, ResourceBundle arg1) {
+	public void initialize(URL arg0, ResourceBundle arg1) {/*
 
 		Image backInWhite = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK_FOCUSED));
 		Image backImage = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK));
@@ -261,7 +261,7 @@ public class BiometricExceptionController extends BaseController implements Init
 			operatorExceptionLayout.setVisible(false);
 			operatorExceptionHeader.setVisible(false);
 		}
-	}
+	*/}
 
 	private void irisException() {
 		irisExceptionListener(leftEye);
