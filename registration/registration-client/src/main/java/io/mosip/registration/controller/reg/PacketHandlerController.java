@@ -466,7 +466,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 						ResponseDTO responseDTO;
 						responseDTO = validateSyncStatus();
 						List<ErrorResponseDTO> errorResponseDTOs = responseDTO.getErrorResponseDTOs();
-						if (errorResponseDTOs != null && !errorResponseDTOs.isEmpty()) {
+						if (false) {
 							for (ErrorResponseDTO errorResponseDTO : errorResponseDTOs) {
 								errorMessage.append(RegistrationUIConstants
 										.getMessageLanguageSpecific(errorResponseDTO.getMessage()) + "\n\n");
