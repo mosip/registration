@@ -204,12 +204,12 @@ public class ZipCreationServiceImpl extends BaseService implements ZipCreationSe
 	private static void addDemogrpahicData(final RegistrationDTO registrationDTO, final String folderName,
 			final ZipOutputStream zipOutputStream) throws RegBaseCheckedException {
 		// Add Proofs
-		Map<String, DocumentDetailsDTO> documents = registrationDTO.getDocuments();
+	/*	Map<String, DocumentDetailsDTO> documents = registrationDTO.getDocuments();
 		
 		for (Entry<String, DocumentDetailsDTO> documentCategory : documents.entrySet()) {
 			writeFileToZip(folderName + getFileNameWithExt(documentCategory.getValue()),
 					documentCategory.getValue().getDocument(), zipOutputStream);
-		}
+		}*/
 
 		if (registrationDTO.getAcknowledgeReceipt() != null) {
 			addToZip(registrationDTO.getAcknowledgeReceipt(),

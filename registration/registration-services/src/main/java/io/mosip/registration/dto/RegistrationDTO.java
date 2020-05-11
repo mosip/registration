@@ -11,10 +11,10 @@ import java.util.Map;
 
 import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
-import io.mosip.registration.dto.demographic.ValuesDTO;
 import io.mosip.registration.packetmananger.dto.AuditDto;
+import io.mosip.registration.packetmananger.dto.DocumentDto;
 import io.mosip.registration.packetmananger.dto.SimpleDto;
-import io.mosip.registration.packetmananger.dto.metadata.ModalityException;
+
 import lombok.Data;
 
 /**
@@ -45,7 +45,7 @@ public class RegistrationDTO {
 	
 	private BiometricDTO biometricDTO = new BiometricDTO();
 	private Map<String, Object> demographics = new HashMap<>();
-	private Map<String, DocumentDetailsDTO> documents = new HashMap<>();
+	private Map<String, DocumentDto> documents = new HashMap<>();
 	private Map<String, BiometricDTO> biometrics = new HashMap<>();
 	private List<String> biometricExceptions = new ArrayList<>(); 
 	
@@ -97,7 +97,7 @@ public class RegistrationDTO {
 		return null;
 	}
 	
-	public void addDocument(String fieldId, DocumentDetailsDTO value) {
+	public void addDocument(String fieldId, DocumentDto value) {
 		this.documents.put(fieldId, value);
 	}
 	

@@ -616,8 +616,9 @@ public class GuardianBiometricsController extends BaseController implements Init
 		// Check count
 		int count = 1;
 
-		MDMRequestDto mdmRequestDto = new MDMRequestDto(modality, bioAttributes, exceptionBioAttributes, "Registration",
-				"Staging", Integer.valueOf(getCaptureTimeOut()), count, Integer.valueOf(getThresholdScore(bioType)));
+		MDMRequestDto mdmRequestDto = new MDMRequestDto(currentModality, exceptionBioAttributes,
+				"Registration", "Staging", Integer.valueOf(getCaptureTimeOut()), count,
+				Integer.valueOf(getThresholdScore(bioType)));
 
 		try {
 			// TODO Get Response from the MDS
@@ -813,12 +814,12 @@ public class GuardianBiometricsController extends BaseController implements Init
 						true);
 				registrationPreviewController.setUpPreviewContent();
 			}
-			faceCaptureController.checkForException();
+			//faceCaptureController.checkForException();
 			registrationController.showUINUpdateCurrentPage();
 		} else {
 			registrationController.showCurrentPage(RegistrationConstants.GUARDIAN_BIOMETRIC,
 					getPageByAction(RegistrationConstants.GUARDIAN_BIOMETRIC, RegistrationConstants.NEXT));
-			faceCaptureController.checkForException();
+			//faceCaptureController.checkForException();
 		}
 	}
 

@@ -856,15 +856,15 @@ public class IrisCaptureController extends BaseController {
 								.put(RegistrationConstants.UIN_UPDATE_REGISTRATIONPREVIEW, true);
 						registrationPreviewController.setUpPreviewContent();
 					}
-					faceCaptureController.checkForException();
+					//faceCaptureController.checkForException();
 					registrationController.showUINUpdateCurrentPage();
-					faceCaptureController.isExceptionPhotoMandatory();
+					//faceCaptureController.isExceptionPhotoMandatory();
 
 				} else {
-					faceCaptureController.checkForException();
+					//faceCaptureController.checkForException();
 					registrationController.showCurrentPage(RegistrationConstants.IRIS_CAPTURE,
 							getPageByAction(RegistrationConstants.IRIS_CAPTURE, RegistrationConstants.NEXT));
-					faceCaptureController.isExceptionPhotoMandatory();
+					//faceCaptureController.isExceptionPhotoMandatory();
 				}
 			}
 

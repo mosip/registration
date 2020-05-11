@@ -1543,7 +1543,8 @@ public class BioServiceImpl extends BaseService implements BioService {
 			}		
 		} catch(Exception e) {
 			throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_FINGERPRINT_SCANNING_ERROR.getErrorCode(),
-					RegistrationExceptionConstants.REG_FINGERPRINT_SCANNING_ERROR.getErrorMessage());
+					RegistrationExceptionConstants.REG_FINGERPRINT_SCANNING_ERROR.getErrorMessage() + 
+					ExceptionUtils.getStackTrace(e));
 		}
 		return list;
 	}
@@ -1590,7 +1591,9 @@ public class BioServiceImpl extends BaseService implements BioService {
 			attributes.add("face");
 			break;
 		}
-		attributes.removeAll(Arrays.asList(exceptions));
+		if(exceptions != null)
+			attributes.removeAll(Arrays.asList(exceptions));
+		
 		return attributes;
 	}
 

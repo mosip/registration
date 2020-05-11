@@ -603,7 +603,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Enabling the capture button based on selected pane");
 
-		checkForException();
+		//checkForException();
 
 		/* get the selected pane to capture photo */
 		Pane sourcePane = (Pane) mouseEvent.getSource();

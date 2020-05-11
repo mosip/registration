@@ -46,7 +46,7 @@ public class HMACGeneration {
 	 * 
 	 * @return hash byte array of HMAC
 	 */
-	public static byte[] generatePacketDTOHash(final RegistrationDTO registrationDTO, final Map<String, byte[]> filesGeneratedForPacket,
+/*	public static byte[] generatePacketDTOHash(final RegistrationDTO registrationDTO, final Map<String, byte[]> filesGeneratedForPacket,
 			HashSequence sequence) {
 		// generates packet biometric hash which may include applicant and introducer
 		if (registrationDTO.getBiometricDTO() != null) {
@@ -86,7 +86,7 @@ public class HMACGeneration {
 			generateHash(registrationAck, registrationDTO.getAcknowledgeReceiptName(),
 					hashOrder);
 		}
-	}
+	}*/
 
 	private static void generateHash(final byte[] byteArray, final String filename, List<String> hashOrder) {
 		// Hash updation

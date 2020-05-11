@@ -40,6 +40,7 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.packetmanager.spi.PacketCreator;
 import io.mosip.registration.packetmananger.dto.AuditDto;
+import io.mosip.registration.packetmananger.dto.DocumentDto;
 import io.mosip.registration.packetmananger.exception.PacketCreatorException;
 import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.IdentitySchemaService;
@@ -118,23 +119,21 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		
 		try {			
 			String schema = identitySchemaService.getIDSchema(registrationDTO.getIdSchemaVersion());
-			packetCreator.initialize();			
-			packetCreator.setAcknowledgement(registrationDTO.getAcknowledgeReceiptName(), 
-					registrationDTO.getAcknowledgeReceipt());			
-			packetCreator.setAudits(registrationDTO.getAuditDTOs());			
+			
+			//TODO validate idObject with IDSchema
+			
+			packetCreator.initialize();		
+			setDemographics(registrationDTO.getDemographics());
+			setDocuments(registrationDTO.getDocuments());
+			
+			packetCreator.setAcknowledgement(registrationDTO.getAcknowledgeReceiptName(), registrationDTO.getAcknowledgeReceipt());			
+			packetCreator.setAudits(registrationDTO.getAuditDTOs());
 			byte[] packetZip = packetCreator.createPacket(registrationDTO.getRegistrationId(), registrationDTO.getIdSchemaVersion(),
 					schema, categoryPacketMapping, getPublicKeyToEncrypt(), null);				
-			String filePath = savePacketToDisk(registrationDTO.getRegistrationId(), packetZip);
-			registrationDAO.save(filePath, registrationDTO);						
-			auditLogControlDAO.save(Builder.build(AuditLogControl.class)
-					.with(auditLogControl -> auditLogControl.setAuditLogFromDateTime(registrationDTO.getAuditLogStartTime()))
-					.with(auditLogControl -> auditLogControl.setAuditLogToDateTime(registrationDTO.getAuditLogEndTime()))
-					.with(auditLogControl -> auditLogControl.setRegistrationId(registrationDTO.getRegistrationId()))
-					.with(auditLogControl -> auditLogControl.setAuditLogSyncDateTime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime())))
-					.with(auditLogControl -> auditLogControl.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime())))
-					.with(auditLogControl -> auditLogControl.setCrBy(SessionContext.userContext().getUserId()))
-					.get());
 			
+			String filePath = savePacketToDisk(registrationDTO.getRegistrationId(), packetZip);
+			registrationDAO.save(filePath, registrationDTO);			
+			createAuditLog(registrationDTO);			
 			SuccessResponseDTO successResponseDTO = new SuccessResponseDTO();
 			successResponseDTO.setCode("0000");
 			successResponseDTO.setMessage("Success");
@@ -163,9 +162,9 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		}
 	}
 	
-	private void setDocuments(Map<String, Object> demographics) {
-		for(String fieldName : demographics.keySet()) {
-			packetCreator.setField(fieldName, demographics.get(fieldName));
+	private void setDocuments(Map<String, DocumentDto> documents) {
+		for(String fieldName : documents.keySet()) {
+			packetCreator.setField(fieldName, documents.get(fieldName));
 		}
 	}
 	
@@ -188,5 +187,16 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		}
 		
 		return storageService.storeToDisk(registrationId, packetZip);
+	}
+	
+	private void createAuditLog(RegistrationDTO registrationDTO) {
+		auditLogControlDAO.save(Builder.build(AuditLogControl.class)
+				.with(auditLogControl -> auditLogControl.setAuditLogFromDateTime(registrationDTO.getAuditLogStartTime()))
+				.with(auditLogControl -> auditLogControl.setAuditLogToDateTime(registrationDTO.getAuditLogEndTime()))
+				.with(auditLogControl -> auditLogControl.setRegistrationId(registrationDTO.getRegistrationId()))
+				.with(auditLogControl -> auditLogControl.setAuditLogSyncDateTime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime())))
+				.with(auditLogControl -> auditLogControl.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime())))
+				.with(auditLogControl -> auditLogControl.setCrBy(SessionContext.userContext().getUserId()))
+				.get());
 	}
 }

@@ -32,6 +32,7 @@ import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
 import io.mosip.registration.dto.mastersync.BlacklistedWordsDto;
 import io.mosip.registration.entity.BlacklistedWords;
 import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.packetmananger.dto.DocumentDto;
 import io.mosip.registration.service.sync.MasterSyncService;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -357,6 +358,7 @@ public class Validations extends BaseController {
 	/**
 	 * Validate for the ComboBox type of node
 	 */
+	//TODO -- Anusha
 	private boolean validateComboBox(Pane parentPane, ComboBox<?> node, String id, boolean isPreviousValid) {
 		boolean isComboBoxValueValid = false;
 		try {
@@ -406,7 +408,7 @@ public class Validations extends BaseController {
 						.asList(new String[] { RegistrationConstants.POA_DOCUMENT, RegistrationConstants.POI_DOCUMENT,
 								RegistrationConstants.POR_DOCUMENT, RegistrationConstants.DOB_DOCUMENT })
 						.contains(id)) {
-					Map<String, DocumentDetailsDTO> documents = getRegistrationDTOFromSession().getDocuments();
+					Map<String, DocumentDto> documents = getRegistrationDTOFromSession().getDocuments();
 					if (documents.containsKey(id) && documents.get(id) != null) {
 						isComboBoxValueValid = true;
 					}
