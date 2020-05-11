@@ -31,6 +31,7 @@ import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.FXUtils;
 import io.mosip.registration.controller.reg.RegistrationController;
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
+import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.dto.biometric.BiometricExceptionDTO;
 import io.mosip.registration.dto.biometric.FaceDetailsDTO;
 import io.mosip.registration.dto.biometric.FingerprintDetailsDTO;
@@ -244,40 +245,35 @@ public class GuardianBiometricsController extends BaseController implements Init
 				"Loading of Guardian Biometric screen started");
 
 		HashMap<String, HashMap<ComboBox<String>, HBox>> hS = new HashMap<>();
-		
+
 		HashMap<String, HashMap<String, ArrayList<String>>> myMap = new HashMap<>();
-		
-		HashMap<String, ArrayList<String>> mT  = new HashMap<>();
-		
+
+		HashMap<String, ArrayList<String>> mT = new HashMap<>();
+
 		ArrayList<String> aR = new ArrayList<>();
 		aR.add("F1");
 		aR.add("F2");
 		aR.add("F3");
 		aR.add("F4");
-		
-		
+
 		mT.put("applicant_LEFT_SLAP", aR);
 		mT.put("applicant_RIGHT_SLAP", aR);
 		mT.put("applicant_THUMBS", aR);
 		myMap.put("applicant", mT);
-		
-		
-		
-		HashMap<String, ArrayList<String>> mT2  = new HashMap<>();
-		
+
+		HashMap<String, ArrayList<String>> mT2 = new HashMap<>();
+
 		ArrayList<String> aR2 = new ArrayList<>();
 		aR.add("F1");
 		aR.add("F2");
 		aR.add("F3");
 		aR.add("F4");
-		
-		
+
 		mT2.put("intro_LEFT_SLAP", aR2);
 		mT2.put("intro_RIGHT_SLAP", aR2);
 		mT2.put("intro_THUMBS", aR2);
 		myMap.put("intro", mT2);
-		
-		
+
 		// TODO replace the value from the comboMap
 		currentSubType = RegistrationConstants.INDIVIDUAL;
 
@@ -546,24 +542,93 @@ public class GuardianBiometricsController extends BaseController implements Init
 		RequestDetail mdsRequestDetails = new RequestDetail(getModality(bioType), getCaptureTimeOut(), 1,
 				getThresholdScore(bioType), getExceptionBioAttributesByBioType(bioType));
 
-		// TODO Get Response from the MDS
+		try {
+			// TODO Get Response from the MDS
+			List<BiometricDTO> biometricDTOList = null;
 
-		// TODO Validate the biometricDTO from the MDS with threshold values
+			// TODO Validate the biometricDTO from the MDS with threshold values
 
-		// TODO validate local de-dup check
+			boolean isValidBiometric = false;
+			if (biometricDTOList != null && !biometricDTOList.isEmpty()) {
+				for (BiometricDTO biometricDTO : biometricDTOList) {
 
-		// TODO if threshold values and local-dedup passed save into the registration
-		// DTO
+					if (biometricDTO.isForceCaptured()
+							|| biometricDTO.getQualityScore() >= Double.valueOf(getThresholdScore(bioType))) {
+						isValidBiometric = true;
+					} else {
+						isValidBiometric = false;
+					}
+				}
+			}
 
-		// TODO if any above checks failed show alert capture failure
+			// TODO validate local de-dup check
+			boolean isMatchedWithLocalBiometrics = false;
 
-		// TODO if all the above check success show alert capture success
+			// TODO if threshold values and local-dedup passed save into the registration
+			// DTO
 
-		// TODO using captured response fill the fields like quality score and progress
-		// bar,,etc,.. UI
+			if (isValidBiometric && !isMatchedWithLocalBiometrics) {
+
+				// save to registration DTO
+				for (BiometricDTO biometricDTO : biometricDTOList) {
+
+					getRegistrationDTOFromSession().addBiometric(currentSubType, biometricDTO.getBioAttribute(),
+							biometricDTO);
+				}
+
+				// if all the above check success show alert capture success
+				generateAlert(RegistrationConstants.ALERT_INFORMATION,
+						RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
+
+				// using captured response fill the fields like quality score and progress
+				// bar,,etc,.. UI
+				loadBiometricsUIElements(biometricDTOList, currentSubType);
+
+			} else {
+
+				// if any above checks failed show alert capture failure
+				generateAlert(RegistrationConstants.ALERT_INFORMATION,
+						RegistrationUIConstants.BIOMETRIC_CAPTURE_FAILURE);
+			}
+		} catch (Exception exception) {
+
+			LOGGER.error(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+					String.format("Exception while capturing biometrics : ", exception.getMessage(),
+							exception.getCause() + ExceptionUtils.getStackTrace(exception)));
+
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.BIOMETRIC_CAPTURE_FAILURE);
+		}
+
+	}
+
+	private void loadBiometricsUIElements(List<BiometricDTO> biometricDTOList, String subType) {
+
+		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+				"Updating progress Bar,Text and attempts Box in UI");
+
+		setCapturedValues(getAverageQualityScore(biometricDTOList), biometricDTOList.get(0).getNumOfRetries(),
+				Double.valueOf(getThresholdScore(bioType)));
 
 		// TODO Get the stream image from Bio ServiceImpl and load it in the image pane
+		// biometricImage.setImage(bioService.isMdmEnabled()
+		// ? convertBytesToImage(
+		// bioService.getBioStreamImage(detailsDTO.getFingerType(),
+		// detailsDTO.getNumRetry()))
+		// : convertBytesToImage(detailsDTO.getFingerPrint()));
+	}
 
+	private double getAverageQualityScore(List<BiometricDTO> biometricDTOList) {
+
+		double qualityScore = 0;
+		if (biometricDTOList != null && !biometricDTOList.isEmpty()) {
+
+			for (BiometricDTO biometricDTO : biometricDTOList) {
+				qualityScore += biometricDTO.getQualityScore();
+			}
+
+			qualityScore = qualityScore / biometricDTOList.size();
+		}
+		return qualityScore;
 	}
 
 	private void clearCapturesBySubTypeAndBioType(String subType, String bioType) {
