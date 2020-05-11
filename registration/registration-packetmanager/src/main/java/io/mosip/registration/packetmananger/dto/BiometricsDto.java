@@ -6,7 +6,6 @@ import lombok.Data;
 @Data
 public class BiometricsDto {
 	
-	private byte[] modality;
 	private byte[] modalityISO;
 	private String modalityName;
 	private double qualityScore;

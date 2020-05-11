@@ -76,9 +76,9 @@ public class PacketInfoDto {
 			this.metaData.add(fieldValue);
 	}
 	
-	public void setOperationsData(FieldValue fieldValue) {
-		if(!this.operationsData.contains(fieldValue))
-			this.operationsData.add(fieldValue);
+	public void setOperationsData(String key, String value) {
+		if(!this.operationsData.contains(new FieldValue(key, value)))
+			this.operationsData.add(new FieldValue(key, value));
 	}
 	
 }

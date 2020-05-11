@@ -12,7 +12,7 @@ public class PacketManagerConstants {
 	
 	public static final String CBEFF_FILE_FORMAT = "cbeff";
 	public static final double CBEFF_VERSION = 1.0;
-	public static final String CBEFF_SCHEMA_FILE_PATH = "/cbeff.xsd";
+	public static final String CBEFF_SCHEMA_FILE_PATH = "cbeff.xsd";
 	public static final String CBEFF_DEFAULT_FORMAT_ORG = "Mosip";
 	public static final String CBEFF_DEFAULT_FORMAT_TYPE = "257";
 	public static final String CBEFF_DEFAULT_ALG_ORG = "HMAC";

@@ -1,6 +1,7 @@
 package io.mosip.registration.packetmanager.impl;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.UUID;
@@ -56,7 +57,7 @@ public class CbeffBIRBuilder implements BiometricDataBuilder {
 						.withSubtype(Arrays.asList(subType))
 						.withPurpose(PurposeType.ENROLL)
 						.withLevel(ProcessedLevelType.RAW)
-						.withCreationDate(LocalDateTime.now(ZoneOffset.UTC))
+						.withCreationDate(LocalDateTime.now(ZoneId.of("UTC")))
 						.withIndex(UUID.randomUUID().toString())
 						.build())
 				.build();

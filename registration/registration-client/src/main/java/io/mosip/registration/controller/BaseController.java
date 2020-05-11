@@ -1674,10 +1674,11 @@ public class BaseController {
 			}
 			validations.setValidations(validationsMap); // Set Validations Map
 
-			ApplicationContext.map().put(RegistrationConstants.indBiometrics,
+			//THIS IS NOT REQUIRED
+			/*ApplicationContext.map().put(RegistrationConstants.indBiometrics,
 					getBioAttributesBySubType(RegistrationConstants.indBiometrics));
 			ApplicationContext.map().put("parentOrGuardianBiometrics",
-					getBioAttributesBySubType("parentOrGuardianBiometrics"));
+					getBioAttributesBySubType("parentOrGuardianBiometrics"));*/
 
 		} catch (RegBaseCheckedException e) {
 			LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
