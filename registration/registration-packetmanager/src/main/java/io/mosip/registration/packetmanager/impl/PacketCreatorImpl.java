@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.packetmanager.spi.PacketCreator;
@@ -139,7 +140,7 @@ public class PacketCreatorImpl implements PacketCreator {
 				//TODO sign zip
 				subpacketBytes = packetCryptoHelper.encryptPacket(subpacketBytes, publicKey);
 				addEntryToZip(String.format(PacketManagerConstants.SUBPACKET_ZIP_FILE_NAME, registrationId, subpacketName), 
-						subpacketBytes, packetZip);
+						CryptoUtil.encodeBase64(subpacketBytes).getBytes(), packetZip);
 			}
 			
 		} catch (IOException e) {
