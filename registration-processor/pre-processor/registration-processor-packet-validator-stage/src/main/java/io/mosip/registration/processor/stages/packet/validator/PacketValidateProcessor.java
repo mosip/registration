@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONException;
@@ -329,7 +330,7 @@ public class PacketValidateProcessor {
 			object.setIsValid(Boolean.FALSE);
 			object.setInternalError(Boolean.TRUE);
 			object.setRid(registrationStatusDto.getRegistrationId());
-		} catch (ApisResourceAccessException e) {
+		} catch (ApisResourceAccessException | ApiNotAccessibleException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 			registrationStatusDto.setStatusComment(trimMessage
 					.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + e.getMessage()));
@@ -511,7 +512,7 @@ public class PacketValidateProcessor {
 			throws IOException, ApisResourceAccessException, JSONException, org.json.simple.parser.ParseException,
 			RegistrationProcessorCheckedException, IdObjectValidationFailedException, IdObjectIOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		Long uin = null;
 		JSONObject demographicIdentity = null;
 		String registrationId = registrationStatusDto.getRegistrationId();
@@ -630,7 +631,7 @@ public class PacketValidateProcessor {
 			throws ApisResourceAccessException, IOException, IdObjectValidationFailedException, IdObjectIOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
 			RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 
 		if (env.getProperty(VALIDATESCHEMA).trim().equalsIgnoreCase(VALIDATIONFALSE)) {
 			packetValidationDto.setSchemaValidated(true);
@@ -723,7 +724,7 @@ public class PacketValidateProcessor {
 			throws IOException, ApisResourceAccessException, org.json.simple.parser.ParseException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
 			RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		if (env.getProperty(VALIDATEAPPLICANTDOCUMENT).trim().equalsIgnoreCase(VALIDATIONFALSE)) {
 			packetValidationDto.setApplicantDocumentValidation(true);
 			return packetValidationDto.isApplicantDocumentValidation();

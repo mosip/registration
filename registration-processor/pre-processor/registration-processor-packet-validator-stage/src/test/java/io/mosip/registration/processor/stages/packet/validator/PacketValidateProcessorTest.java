@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -917,7 +918,7 @@ public class PacketValidateProcessorTest {
 			throws IdObjectValidationFailedException, IdObjectIOException, PacketDecryptionFailureException,
 			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException,
 			RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
 		Mockito.when(utility.getUIn(any())).thenReturn(null);
 

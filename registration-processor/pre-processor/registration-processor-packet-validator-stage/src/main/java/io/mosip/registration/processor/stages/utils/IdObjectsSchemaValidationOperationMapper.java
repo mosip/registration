@@ -2,6 +2,8 @@ package io.mosip.registration.processor.stages.utils;
 
 import java.io.IOException;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
+import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -10,7 +12,6 @@ import io.mosip.kernel.core.idobjectvalidator.constant.IdObjectValidatorSupporte
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -38,7 +39,7 @@ public class IdObjectsSchemaValidationOperationMapper {
 	public IdObjectValidatorSupportedOperations getOperation(String registrationId)
 			throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
 			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			ApiNotAccessibleException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"IdObjectsSchemaValidationOperationMapper::getOperation()::entry");
 		SyncRegistrationEntity regEntity=syncRegistrationService.findByRegistrationId(registrationId);

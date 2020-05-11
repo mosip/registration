@@ -17,6 +17,7 @@ import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -491,7 +492,7 @@ public class OSIValidatorTest {
 			ParserConfigurationException, SAXException, PacketDecryptionFailureException,
 			io.mosip.kernel.core.exception.IOException, ParentOnHoldException, AuthSystemException,
 			RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		Mockito.when(osiUtils.getMetaDataValue(anyString(), any())).thenReturn("2015/01/01");
 		InternalRegistrationStatusDto introducerRegistrationStatusDto = new InternalRegistrationStatusDto();
 

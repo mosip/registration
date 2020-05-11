@@ -33,6 +33,7 @@ import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil
 import io.mosip.registration.processor.packet.uploader.archiver.util.PacketArchiver;
 import io.mosip.registration.processor.packet.uploader.exception.PacketNotFoundException;
 import io.mosip.registration.processor.packet.uploader.service.PacketUploaderService;
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.packet.utility.service.PacketDecryptor;
 import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -284,7 +285,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 
             description.setMessage(PlatformErrorMessages.RPR_PUM_PACKET_STORE_NOT_ACCESSIBLE.getMessage());
             description.setCode(PlatformErrorMessages.RPR_PUM_PACKET_STORE_NOT_ACCESSIBLE.getCode());
-        } catch (ApisResourceAccessException e) {
+        } catch (ApisResourceAccessException | ApiNotAccessibleException e) {
             dto.setLatestTransactionStatusCode(
                     registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.NGINX_ACCESS_EXCEPTION));
             dto.setStatusComment(trimExpMessage
@@ -376,7 +377,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
      * @throws PacketDecryptionFailureException
      */
     private boolean scanFile(final byte[] inputStream, String registrationId, InternalRegistrationStatusDto dto,
-                             LogDescription description) throws IOException, PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+                             LogDescription description) throws IOException, PacketDecryptionFailureException, ApiNotAccessibleException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
         boolean isInputFileClean = false;
         try {
             // scanning the top level packet

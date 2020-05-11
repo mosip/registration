@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.packet.utility.exception.FileNotFoundInDestinationException;
 import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -190,6 +191,10 @@ public class ManualVerificationExceptionHandler {
 	}
 
 	public BaseRestResponseDTO packetDecryptionFailureException(PacketDecryptionFailureException e) {
+		return buildAssignDecisionExceptionResponse(e);
+	}
+
+	public BaseRestResponseDTO apiNotAccessibleException(ApiNotAccessibleException e) {
 		return buildAssignDecisionExceptionResponse(e);
 	}
 

@@ -5,6 +5,7 @@ import static org.mockito.Matchers.anyString;
 
 import java.io.IOException;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,7 +47,7 @@ public class IdObjectsSchemaValidationOperationMapperTest {
 	public void childRegistrationTest()
 			throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
 			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		SyncRegistrationEntity regEntity=new SyncRegistrationEntity();
 		regEntity.setRegistrationType(SyncTypeDto.NEW.getValue());
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
@@ -56,7 +57,7 @@ public class IdObjectsSchemaValidationOperationMapperTest {
 	}
 
 	@Test
-	public void newRegistrationTest() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
+	public void newRegistrationTest() throws ApisResourceAccessException, IOException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		SyncRegistrationEntity regEntity=new SyncRegistrationEntity();
@@ -67,7 +68,7 @@ public class IdObjectsSchemaValidationOperationMapperTest {
 	}
 
 	@Test
-	public void lostUINTest() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
+	public void lostUINTest() throws ApisResourceAccessException, IOException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		SyncRegistrationEntity regEntity=new SyncRegistrationEntity();
@@ -78,7 +79,7 @@ public class IdObjectsSchemaValidationOperationMapperTest {
 	}
 
 	@Test
-	public void updateUINTest() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
+	public void updateUINTest() throws ApisResourceAccessException, IOException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		SyncRegistrationEntity regEntity=new SyncRegistrationEntity();
@@ -89,7 +90,7 @@ public class IdObjectsSchemaValidationOperationMapperTest {
 	}
 
 	@Test
-	public void resUpdateTest() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
+	public void resUpdateTest() throws ApisResourceAccessException, IOException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		SyncRegistrationEntity regEntity=new SyncRegistrationEntity();
@@ -100,7 +101,7 @@ public class IdObjectsSchemaValidationOperationMapperTest {
 	}
 
 	@Test
-	public void activateTest() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
+	public void activateTest() throws ApisResourceAccessException, IOException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		SyncRegistrationEntity regEntity=new SyncRegistrationEntity();
@@ -111,7 +112,7 @@ public class IdObjectsSchemaValidationOperationMapperTest {
 	}
 
 	@Test
-	public void deactivateTest() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
+	public void deactivateTest() throws ApisResourceAccessException, IOException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		SyncRegistrationEntity regEntity=new SyncRegistrationEntity();

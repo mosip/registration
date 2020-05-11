@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -327,7 +328,7 @@ public class MessageNotificationServiceImplTest {
 	public void testPhoneNumberNotFoundException() throws ApisResourceAccessException, IOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException,
-			RegistrationProcessorCheckedException {
+			RegistrationProcessorCheckedException, ApiNotAccessibleException {
 		ClassLoader classLoader = getClass().getClassLoader();
 		File demographicJsonFile = new File(classLoader.getResource("ID2.json").getFile());
 		InputStream inputStream = new FileInputStream(demographicJsonFile);

@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -169,7 +170,7 @@ public class OSIValidator {
 			ParserConfigurationException, SAXException, NumberFormatException, BiometricException, BioTypeException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ParentOnHoldException,
 			AuthSystemException, RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "OSIValidator::isValidOSI()::entry");
 		boolean isValidOsi = false;
@@ -307,7 +308,7 @@ public class OSIValidator {
 			throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException,
 			BiometricException, BioTypeException, ParserConfigurationException, SAXException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, AuthSystemException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		boolean isValid = false;
 		String officerId = regOsi.getOfficerId();
 		if (officerId != null) {
@@ -387,7 +388,7 @@ public class OSIValidator {
 			throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException,
 			BiometricException, BioTypeException, ParserConfigurationException, SAXException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, AuthSystemException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "OSIValidator::isValidSupervisor()::entry");
 		String supervisorId = regOsi.getSupervisorId();
@@ -460,7 +461,7 @@ public class OSIValidator {
 			ParserConfigurationException, SAXException, BiometricException, BioTypeException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ParentOnHoldException,
 			AuthSystemException, RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "OSIValidator::isValidIntroducer()::entry");
 
@@ -531,7 +532,7 @@ public class OSIValidator {
 			String introducerUIN,String introducerBiometricsLabel) throws IOException, PacketDecryptionFailureException, ApisResourceAccessException,
 			io.mosip.kernel.core.exception.IOException, InvalidKeySpecException, NoSuchAlgorithmException,
 			ParserConfigurationException, SAXException, BiometricException, BioTypeException, AuthSystemException,
-			ParentOnHoldException, RegistrationProcessorCheckedException,
+			ParentOnHoldException, ApiNotAccessibleException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		if (introducerBiometricsFileName != null && (!introducerBiometricsFileName.trim().isEmpty())) {
 			String source = idSchemaUtils.getSource(introducerBiometricsLabel);
@@ -567,7 +568,7 @@ public class OSIValidator {
 	/**
 	 * Validate otp and pwd.
 	 *
-	 * @param password
+	 * @param pwd
 	 *            the password
 	 * @param otp
 	 *            the otp

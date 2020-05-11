@@ -18,6 +18,11 @@ public class PacketDecryptionFailureException extends BaseCheckedException{
 				PacketUtilityErrorCodes.PACKET_DECRYPTION_FAILURE_EXCEPTION.getErrorMessage());
 	}
 
+	public PacketDecryptionFailureException(Throwable t) {
+		super(PacketUtilityErrorCodes.PACKET_DECRYPTION_FAILURE_EXCEPTION.getErrorCode(),
+				PacketUtilityErrorCodes.PACKET_DECRYPTION_FAILURE_EXCEPTION.getErrorMessage(), t);
+	}
+
 	/**
 	 * @param message
 	 *            Message providing the specific context of the error.

@@ -2,6 +2,7 @@ package io.mosip.registration.processor.packet.utility.service;
 
 import java.io.InputStream;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
 
 
@@ -22,6 +23,6 @@ public interface PacketDecryptor {
 	 * @throws ApisResourceAccessException      if error occured while
 	 */
 	public InputStream decrypt(InputStream input, String registrationId)
-			throws PacketDecryptionFailureException;
+			throws PacketDecryptionFailureException, ApiNotAccessibleException;
 
 }

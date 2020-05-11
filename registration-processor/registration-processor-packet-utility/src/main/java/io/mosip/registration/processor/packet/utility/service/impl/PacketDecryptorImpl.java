@@ -1,41 +1,34 @@
 package io.mosip.registration.processor.packet.utility.service.impl;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.kernel.core.exception.ServiceError;
+import io.mosip.kernel.core.http.RequestWrapper;
+import io.mosip.kernel.core.http.ResponseWrapper;
+import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.registration.processor.packet.utility.dto.CryptomanagerRequestDto;
+import io.mosip.registration.processor.packet.utility.dto.CryptomanagerResponseDto;
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
+import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
+import io.mosip.registration.processor.packet.utility.service.PacketDecryptor;
+import io.mosip.registration.processor.packet.utility.utils.RestUtil;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import io.mosip.kernel.core.exception.ServiceError;
-import io.mosip.kernel.core.http.RequestWrapper;
-import io.mosip.kernel.core.http.ResponseWrapper;
-import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.registration.processor.packet.utility.constants.LoggerFileConstant;
-import io.mosip.registration.processor.packet.utility.dto.CryptomanagerRequestDto;
-import io.mosip.registration.processor.packet.utility.dto.CryptomanagerResponseDto;
-import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
-import io.mosip.registration.processor.packet.utility.logger.PacketUtilityLogger;
-import io.mosip.registration.processor.packet.utility.service.PacketDecryptor;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 /**
  * Decryptor class for packet decryption.
@@ -46,7 +39,6 @@ import io.mosip.registration.processor.packet.utility.service.PacketDecryptor;
  */
 @Component
 public class PacketDecryptorImpl implements PacketDecryptor {
-	private static Logger packetUtilityLogger = PacketUtilityLogger.getLogger(PacketDecryptorImpl.class);
 
 	@Value("${registration.processor.application.id}")
 	private String applicationId;
@@ -60,12 +52,11 @@ public class PacketDecryptorImpl implements PacketDecryptor {
 	@Value("${registration.processor.rid.machineidsubstring}")
 	private int machineIdSubStringLength;
 
+	@Autowired
+	private Environment environment;
 
 	@Autowired
-	private Environment env;
-
-	// @Autowired
-	// private RestTemplate restTemplate;
+	private RestUtil restUtil;
 
 	@Autowired
 	ObjectMapper mapper;
@@ -88,9 +79,8 @@ public class PacketDecryptorImpl implements PacketDecryptor {
 	 */
 	@Override
 	public InputStream decrypt(InputStream encryptedPacket, String registrationId)
-			throws PacketDecryptionFailureException {
+			throws PacketDecryptionFailureException, ApiNotAccessibleException {
 		InputStream outstream = null;
-		boolean isTransactionSuccessful = false;
 
 		try {
 			String centerId = registrationId.substring(0, centerIdLength);
@@ -111,77 +101,47 @@ public class PacketDecryptorImpl implements PacketDecryptor {
 				cryptomanagerRequestDto.setTimeStamp(
 						LocalDateTime.parse(formattedDate, DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss")));
 			} else {
-				packetUtilityLogger.error(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-						"Packet DecryptionFailed-Invalid Packet format");
-
 				throw new PacketDecryptionFailureException("Packet DecryptionFailed-Invalid Packet format");
 			}
-			request.setId(env.getProperty(DECRYPT_SERVICE_ID));
+			request.setId(environment.getProperty(DECRYPT_SERVICE_ID));
 			request.setMetadata(null);
 			request.setRequest(cryptomanagerRequestDto);
-			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+			DateTimeFormatter format = DateTimeFormatter.ofPattern(environment.getProperty(DATETIME_PATTERN));
 			LocalDateTime localdatetime = LocalDateTime
-					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+					.parse(DateUtils.getUTCCurrentDateTimeString(environment.getProperty(DATETIME_PATTERN)), format);
 			request.setRequesttime(localdatetime);
-			request.setVersion(env.getProperty(REG_PROC_APPLICATION_VERSION));
+			request.setVersion(environment.getProperty(REG_PROC_APPLICATION_VERSION));
 			HttpEntity<RequestWrapper<CryptomanagerRequestDto>> httpEntity = new HttpEntity<>(request,
 					new HttpHeaders());
-			CryptomanagerResponseDto response;
-			ResponseEntity<String> responseEntity = null;
-			/*
-			 * /restTemplate.exchange(env.getProperty("DMZCRYPTOMANAGERDECRYPT"),
-			 * HttpMethod.POST, httpEntity, String.class);
-			 */
-			ResponseWrapper<CryptomanagerResponseDto> responseObject;
 
-				responseObject = mapper.readValue(responseEntity.getBody(), ResponseWrapper.class);
-				response = mapper.readValue(mapper.writeValueAsString(responseObject.getResponse()),
-						CryptomanagerResponseDto.class);
+			String responseString = restUtil.postApi(environment.getProperty("CRYPTOMANAGERDECRYPT"), MediaType.APPLICATION_JSON, httpEntity, String.class);
 
-			if (response.getErrors() != null && !response.getErrors().isEmpty()) {
-				ServiceError error = response.getErrors().get(0);
-				packetUtilityLogger.error(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), registrationId, DECRYPTION_FAILURE);
+			CryptomanagerResponseDto responseObject = mapper.readValue(responseString, CryptomanagerResponseDto.class);
 
+			if (responseObject != null &&
+					responseObject.getErrors() != null && !responseObject.getErrors().isEmpty()) {
+				ServiceError error = responseObject.getErrors().get(0);
 				throw new PacketDecryptionFailureException(error.getMessage());
 			}
-			byte[] decryptedPacket = CryptoUtil.decodeBase64(response.getResponse().getData());
+			byte[] decryptedPacket = CryptoUtil.decodeBase64(responseObject.getResponse().getData());
 			outstream = new ByteArrayInputStream(decryptedPacket);
-			isTransactionSuccessful = true;
 
 		} catch (IOException e) {
-
-			packetUtilityLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, e.getMessage());
 			throw new PacketDecryptionFailureException(IO_EXCEPTION, e);
 		} catch (DateTimeParseException e) {
-
-			packetUtilityLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, e.getMessage());
 			throw new PacketDecryptionFailureException(DATE_TIME_EXCEPTION);
 		} catch (Exception e) {
-			packetUtilityLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, "Internal Error occurred ");
 			if (e.getCause() instanceof HttpClientErrorException) {
 				HttpClientErrorException httpClientException = (HttpClientErrorException) e.getCause();
-
-
-
-				throw new PacketDecryptionFailureException(httpClientException.getResponseBodyAsString());
+				throw new ApiNotAccessibleException(httpClientException.getResponseBodyAsString());
 			} else if (e.getCause() instanceof HttpServerErrorException) {
 				HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
-
-				throw new PacketDecryptionFailureException(httpServerException.getResponseBodyAsString());
+				throw new ApiNotAccessibleException(httpServerException.getResponseBodyAsString());
 			} else {
-
-
-				throw e;
+				throw new ApiNotAccessibleException(e);
 			}
 
 		}
-		packetUtilityLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, DECRYPTION_SUCCESS);
 		return outstream;
 	}
 

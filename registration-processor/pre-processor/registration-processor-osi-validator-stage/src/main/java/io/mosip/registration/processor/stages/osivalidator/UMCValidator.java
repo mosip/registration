@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -359,7 +360,7 @@ public class UMCValidator {
 	public boolean isValidUMC(String registrationId, InternalRegistrationStatusDto registrationStatusDto)
 			throws ApisResourceAccessException, JsonParseException, JsonMappingException,
 			io.mosip.kernel.core.exception.IOException, IOException, PacketDecryptionFailureException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "UMCValidator::isValidUMC()::entry");
 		RegistrationCenterMachineDto rcmDto = getCenterMachineDto(registrationId);
@@ -423,7 +424,7 @@ public class UMCValidator {
 	 */
 	private RegistrationCenterMachineDto getCenterMachineDto(String registrationId)
 			throws JsonParseException, JsonMappingException, io.mosip.kernel.core.exception.IOException, IOException,
-			PacketDecryptionFailureException, ApisResourceAccessException,
+			PacketDecryptionFailureException, ApiNotAccessibleException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 
 		identity = osiUtils.getIdentity(registrationId);
@@ -653,10 +654,10 @@ public class UMCValidator {
 	 * 
 	 * @param registrationStatusDto
 	 *
-	 * @param centerId
-	 *            the center id
-	 * @param timestamp
-	 *            the timestamp
+	 * @param rcmDto
+	 *            the RegistrationCenterMachineDto
+	 * @param registrationStatusDto
+	 *            the InternalRegistrationStatusDto
 	 * @return true, if is valid center id timestamp
 	 * @throws ApisResourceAccessException
 	 *             the apis resource access exception
@@ -664,7 +665,6 @@ public class UMCValidator {
 	 * @throws JsonProcessingException
 	 * @throws com.fasterxml.jackson.databind.JsonMappingException
 	 * @throws com.fasterxml.jackson.core.JsonParseException
-	 * @throws UMCValidationException
 	 *
 	 */
 
