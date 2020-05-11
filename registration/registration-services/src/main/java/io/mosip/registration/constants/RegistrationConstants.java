@@ -1651,6 +1651,7 @@ public class RegistrationConstants {
 	public static final String rightMiddleUiAttribute = "rightMiddle";
 	public static final String rightThumbUiAttribute = "rightThumb";
 	public static final String rightRingUiAttribute = "rightRing";
+	
 
 	public static final String leftEyeUiAttribute = "leftEye";
 	public static final String rightEyeUiAttribute = "rightEye";
@@ -1664,6 +1665,8 @@ public class RegistrationConstants {
 	public static final List<String> twoThumbsUiAttributes = Arrays.asList(rightThumbUiAttribute,leftThumbUiAttribute);
 	
 	public static final List<String> eyesUiAttributes = Arrays.asList(leftEyeUiAttribute,rightEyeUiAttribute);
+	
+	public static final List<String> faceUiAttributes = Arrays.asList("face");
 	public static final String indBiometrics = "individualBiometrics";
 	
 	public static final String ID_SCHEMA_SYNC_SERVICE = "idschema_key";

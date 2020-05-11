@@ -5,13 +5,13 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -19,14 +19,14 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.ResourceBundle;
 import java.util.Timer;
-import java.util.stream.Collectors;
+import java.util.TreeMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.javafx.scene.control.skin.TableHeaderRow;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -240,6 +240,13 @@ public class BaseController {
 
 	private static Map<String, UiSchemaDTO> validationMap;
 	
+	private static TreeMap<String,String> listOfbiometricSubtypes = new TreeMap<>();
+
+	
+	public static TreeMap<String, String> getListOfbiometricSubtypes() {
+		return listOfbiometricSubtypes;
+	}
+
 	private static HashMap<String, String> labelMap = new HashMap<>();
 	
 	public static String getFromLabelMap(String key) {
@@ -1671,6 +1678,9 @@ public class BaseController {
 			Map<String, UiSchemaDTO> validationsMap = new LinkedHashMap<>();
 			for (UiSchemaDTO schemaField : schemaFields) {
 				validationsMap.put(schemaField.getId(), schemaField);
+				if(schemaField.getControlType()!=null && schemaField.getControlType().equals("biometrics")) {
+					listOfbiometricSubtypes.put(schemaField.getSubType(), schemaField.getLabel().get("primary"));
+				}
 			}
 			validations.setValidations(validationsMap); // Set Validations Map
 
@@ -1686,6 +1696,47 @@ public class BaseController {
 		}
 	}
 
+	
+	public SimpleEntry<String, List<String>> getValue(String bio, List<String> attributes){
+		SimpleEntry<String, List<String>> entry = new SimpleEntry<String, List<String>>(bio,attributes);
+		return entry;
+	}
+	
+	protected HashMap<Entry<String,String>, HashMap<String, List<List<String>>>> getconfigureAndNonConfiguredBioAttributes(List<Entry<String,List<String>>> entryListConstantAttributes) {
+
+		
+		
+		HashMap<Entry<String,String>, HashMap<String, List<List<String>>>> mapToProcess = new HashMap<>();
+		
+		
+		
+		for(Entry<String,String> uiSchemaSubType : getListOfbiometricSubtypes().entrySet() ) {
+		
+			List<String> uiAttributes = getBioAttributesBySubType(uiSchemaSubType.getKey());
+			
+			HashMap<String, List<List<String>>> subMap = new HashMap<>();
+			for(Entry<String,List<String>> constantAttributes : entryListConstantAttributes)
+			{
+				List<String> nonConfigBiometrics = new LinkedList<>();
+				List<String> configBiometrics = new LinkedList<>();
+				String slabType = constantAttributes.getKey();
+				for (String attribute : constantAttributes.getValue()) {
+					if (!uiAttributes.contains(attribute)) {
+						nonConfigBiometrics.add(attribute);
+					}else {
+						configBiometrics.add(attribute);
+					}
+				}
+				subMap.put(slabType, Arrays.asList(configBiometrics, nonConfigBiometrics));
+			}
+			mapToProcess.put(uiSchemaSubType, subMap);
+		}
+
+		return mapToProcess;
+	}
+
+
+	
 	protected void disablePaneOnBioAttributes(Node pane, List<String> constantBioAttributes) {
 
 		/** Put pane disable by default */
