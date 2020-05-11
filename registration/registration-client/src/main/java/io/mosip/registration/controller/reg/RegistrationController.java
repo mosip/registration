@@ -186,7 +186,7 @@ public class RegistrationController extends BaseController {
 	 *            the image that is captured as applicant photograph
 	 * @return BufferedImage the face that is detected from the applicant photograph
 	 */
-	public BufferedImage detectApplicantFace(BufferedImage applicantImage) {
+	public BufferedImage detectApplicantFace(BufferedImage applicantImage) { 
 		BufferedImage detectedFace = null;
 		CLMFaceDetector detector = new CLMFaceDetector();
 		List<CLMDetectedFace> faces = null;

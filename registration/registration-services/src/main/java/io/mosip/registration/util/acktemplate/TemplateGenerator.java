@@ -58,6 +58,7 @@ import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
 import io.mosip.registration.dto.demographic.IndividualIdentity;
 import io.mosip.registration.dto.demographic.ValuesDTO;
 import io.mosip.registration.exception.RegBaseUncheckedException;
+import io.mosip.registration.packetmananger.dto.DocumentDto;
 import io.mosip.registration.service.BaseService;
 
 /**
@@ -673,7 +674,7 @@ public class TemplateGenerator extends BaseService {
 	}
 
 	private void setUpDocuments(Map<String, Object> templateValues, ResourceBundle applicationLanguageProperties,
-			Map<String, DocumentDetailsDTO> documents, String documentDisableFlag) {
+			Map<String, DocumentDto> documents, String documentDisableFlag) {
 		if (RegistrationConstants.ENABLE.equalsIgnoreCase(documentDisableFlag)) {
 			templateValues.put(RegistrationConstants.TEMPLATE_DOCUMENTS_USER_LANG_LABEL,
 					applicationLanguageProperties.getString("documents"));

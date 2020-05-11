@@ -5,10 +5,12 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import javax.imageio.ImageIO;
@@ -27,9 +29,12 @@ import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.device.webcam.IMosipWebcamService;
 import io.mosip.registration.device.webcam.PhotoCaptureFacade;
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
+import io.mosip.registration.dto.RegistrationDTO;
+import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.dto.biometric.FaceDetailsDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
+import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.mdm.dto.RequestDetail;
 import io.mosip.registration.service.bio.BioService;
 import javafx.embed.swing.SwingNode;
@@ -146,9 +151,60 @@ public class WebCameraController extends BaseController implements Initializable
 		if (capturedImage != null) {
 			capturedImage.flush();
 		}
-		CaptureResponseDto captureResponseDto = null;
+		//CaptureResponseDto captureResponseDto = null;
 		Instant start = Instant.now();
-		if (bioService.isMdmEnabled()) {
+		
+		MDMRequestDto requestDto = new MDMRequestDto(RegistrationConstants.FACE_FULLFACE, null, "Registration", 
+				"Staging", Integer.valueOf(getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT)),
+				1,  Integer.valueOf(getValueFromApplicationContext(RegistrationConstants.FACE_THRESHOLD)));
+		
+		List<BiometricDTO> list = bioService.captureModality(requestDto);
+		
+		if(!list.isEmpty()) {
+			AuthenticationValidatorDTO authenticationValidatorDTO = new AuthenticationValidatorDTO();
+			authenticationValidatorDTO.setUserId(SessionContext.userContext().getUserId());
+			FaceDetailsDTO faceDetail = new FaceDetailsDTO();
+			faceDetail.setFaceISO(list.get(0).getAttributeISO());
+			authenticationValidatorDTO.setFaceDetail(faceDetail);
+			isDuplicateFound = generateAlert(RegistrationConstants.ALERT_INFORMATION,
+					RegistrationUIConstants.FACE_CAPTURE_SUCCESS, () -> {
+						if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER))
+							return false;
+						return bioService.validateFace(authenticationValidatorDTO);
+					}, this);
+			
+			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+			ImageIO.write(ImageIO.read(new ByteArrayInputStream(list.get(0).getAttributeISO())), 
+					RegistrationConstants.WEB_CAMERA_IMAGE_TYPE,
+					byteArrayOutputStream);
+			byte[] photoInBytes = byteArrayOutputStream.toByteArray();
+			
+			
+			if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {				
+				((BiometricDTO) SessionContext.map().get(RegistrationConstants.USER_ONBOARD_DATA))
+						.getOperatorBiometricDTO().getFace().setFace(photoInBytes);
+				((BiometricDTO) SessionContext.map().get(RegistrationConstants.USER_ONBOARD_DATA))
+						.getOperatorBiometricDTO().getFace().setFaceISO(list.get(0).getAttributeISO());
+			}else {
+				//TODO
+				((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA))
+				.addBiometric("", "face", list.get(0));
+			}	
+			
+			setScanningMsg(RegistrationUIConstants.FACE_CAPTURE_SUCCESS_MSG);
+			if (isDuplicateFound)
+				setScanningMsg(RegistrationUIConstants.FACE_DUPLICATE_ERROR);
+			// parentController.calculateRecaptureTime(imageType);
+			capture.setDisable(true);
+			clear.setDisable(false);
+		}
+		else {
+			generateAlert(RegistrationConstants.ALERT, RegistrationUIConstants.FACE_CAPTURE_ERROR);
+			streamer.stop();
+			webCameraStage.close();
+		}
+		
+		/*if (bioService.isMdmEnabled()) {
 
 			try {
 				captureResponseDto = bioService.captureFace(new RequestDetail(RegistrationConstants.FACE_FULLFACE,
@@ -212,7 +268,7 @@ public class WebCameraController extends BaseController implements Initializable
 			capture.setDisable(true);
 
 			clear.setDisable(false);
-		}
+		}*/
 
 	}
 

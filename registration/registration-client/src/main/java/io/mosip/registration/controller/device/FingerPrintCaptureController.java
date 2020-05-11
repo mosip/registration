@@ -701,7 +701,7 @@ public class FingerPrintCaptureController extends BaseController implements Init
 			}
 		}
 
-		if (leftMap.size() == 4) {
+	/*	if (leftMap.size() == 4) {
 			leftHandGreaterPane.setDisable(true);
 			removeFingerPrint(RegistrationConstants.FINGERPRINT_SLAB_LEFT, leftHandPalmImageview, leftSlapQualityScore,
 					RegistrationConstants.LEFTPALM_IMG_PATH, leftSlapAttempt);
@@ -725,7 +725,7 @@ public class FingerPrintCaptureController extends BaseController implements Init
 
 		} else {
 			twoThumbGreaterPane.setDisable(false);
-		}
+		}*/
 
 		if ((tempExceptionList == null || tempExceptionList.isEmpty())
 				&& !(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER) && (Boolean) SessionContext
@@ -1552,14 +1552,14 @@ public class FingerPrintCaptureController extends BaseController implements Init
 						SessionContext.map().put(RegistrationConstants.UIN_UPDATE_FACECAPTURE, true);
 					} else {
 						SessionContext.map().put(RegistrationConstants.UIN_UPDATE_REGISTRATIONPREVIEW, true);
-						faceCaptureController.checkForException();
+						//faceCaptureController.checkForException();
 						registrationPreviewController.setUpPreviewContent();
 					}
 					registrationController.showUINUpdateCurrentPage();
 				} else {
 					SessionContext.map().remove(RegistrationConstants.DUPLICATE_FINGER);
 					irisCaptureController.clearIrisBasedOnExceptions();
-					faceCaptureController.checkForException();
+					//faceCaptureController.checkForException();
 
 					registrationController.showCurrentPage(RegistrationConstants.FINGERPRINT_CAPTURE,
 							getPageByAction(RegistrationConstants.FINGERPRINT_CAPTURE, RegistrationConstants.NEXT));
