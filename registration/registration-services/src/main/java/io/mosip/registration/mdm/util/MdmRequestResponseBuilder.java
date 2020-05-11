@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -28,6 +29,7 @@ import io.mosip.registration.mdm.dto.CaptureRequestDto;
 import io.mosip.registration.mdm.dto.CaptureResponseBioDto;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
 import io.mosip.registration.mdm.dto.DeviceDiscoveryRequestDto;
+import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.mdm.dto.RequestDetail;
 
 /**
@@ -41,6 +43,7 @@ public class MdmRequestResponseBuilder {
 	private static final Logger LOGGER = AppConfig.getLogger(MdmRequestResponseBuilder.class);
 
 	private static Random rnd = new Random();
+	
 
 	private MdmRequestResponseBuilder() {
 
@@ -178,6 +181,33 @@ public class MdmRequestResponseBuilder {
 		deviceDiscoveryRequestDto.setType(deviceType);
 
 		return deviceDiscoveryRequestDto;
+	}
+	
+	
+	//TODO - Need to construct DTO based on specVersion
+	public static CaptureRequestDto getMDMCaptureRequestDto(String specVersion, BioDevice device, MDMRequestDto mdmRequestDto) {
+		LOGGER.info(MDM_REQUEST_RESPONSE_BUILDER, APPLICATION_NAME, APPLICATION_ID, "Building the request dto");		
+		CaptureRequestDto captureRequestDto = new CaptureRequestDto();
+		captureRequestDto.setEnv(mdmRequestDto.getEnvironment());
+		captureRequestDto.setPurpose(device.getPurpose());
+		captureRequestDto.setSpecVersion(specVersion);
+		captureRequestDto.setTimeout(mdmRequestDto.getTimeout());
+		captureRequestDto.setRegistrationID(String.valueOf(generateID()));		
+		captureRequestDto.setMosipBioRequest(new ArrayList<>());
+
+		CaptureRequestDeviceDetailDto requestBioDetails = new CaptureRequestDeviceDetailDto();
+		requestBioDetails.setType(getDevicCode(device.getDeviceType()));
+		requestBioDetails.setCount(mdmRequestDto.getCount());
+		requestBioDetails.setRequestedScore(mdmRequestDto.getRequestedScore());
+		requestBioDetails.setException(mdmRequestDto.getExceptions());
+		requestBioDetails.setDeviceId(device.getDeviceId());
+		requestBioDetails.setDeviceSubId(device.getDeviceSubId());
+		requestBioDetails.setPreviousHash("");		
+
+		captureRequestDto.getMosipBioRequest().add(requestBioDetails);
+		captureRequestDto.setCustomOpts(Arrays.asList( new HashMap<String, String>()));
+		captureRequestDto.setCaptureTime(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).toString());
+		return captureRequestDto;
 	}
 
 }

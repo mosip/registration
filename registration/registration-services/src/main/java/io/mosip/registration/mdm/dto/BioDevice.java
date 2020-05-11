@@ -140,7 +140,7 @@ public class BioDevice {
 
 	}
 
-	private void decode(CaptureResponseDto mosipBioCaptureResponseDto)
+	public void decode(CaptureResponseDto mosipBioCaptureResponseDto)
 			throws IOException, JsonParseException, JsonMappingException, RegBaseCheckedException {
 		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
 				"Entering into Decode Method.... " + System.currentTimeMillis());
