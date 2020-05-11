@@ -16,7 +16,7 @@ public class RegistrationUIConstants {
 	 * Instance of {@link Logger}
 	 */
 	private static final Logger LOGGER = AppConfig.getLogger(RegistrationUIConstants.class);
-	
+
 	// Key values to read value from messages.properties file
 
 	public static final ResourceBundle bundle = ApplicationContext.applicationMessagesBundle();
@@ -27,7 +27,7 @@ public class RegistrationUIConstants {
 		String message = "ERROR";
 		try {
 			message = bundle.getString(key);
-		}catch(Exception runtimeException) {
+		} catch (Exception runtimeException) {
 			LOGGER.error("REGISTRATION_UI_CONSTANTS", APPLICATION_NAME, APPLICATION_ID,
 					String.format(
 							"%s -> Exception while initializing Fingerprint Capture page for user registration  %s",
@@ -146,7 +146,7 @@ public class RegistrationUIConstants {
 	public static final String APPLICANT_IMAGE_ERROR = bundle.getString("APPLICANT_IMAGE_ERROR");
 	public static final String DEMOGRAPHIC_DETAILS_ERROR_CONTEXT = bundle
 			.getString("DEMOGRAPHIC_DETAILS_ERROR_CONTEXT");
-	
+
 	// REGISTRATION
 	public static final String AGE_WARNING = bundle.getString("AGE_WARNING");
 	public static final String TO = bundle.getString("TO");
@@ -267,7 +267,7 @@ public class RegistrationUIConstants {
 	public static final String IRIS_SCANNING_ERROR = bundle.getString("IRIS_SCANNING_ERROR");
 	public static final String FINGERPRINT_SCANNING_ERROR = bundle.getString("FINGERPRINT_SCANNING_ERROR");
 	public static final String NO_DEVICE_FOUND = bundle.getString("NO_DEVICE_FOUND");
-public static final String FINGERPRINT_SELECTION_PANE_ALERT = bundle.getString("FINGERPRINT_SELECTION_PANE_ALERT");
+	public static final String FINGERPRINT_SELECTION_PANE_ALERT = bundle.getString("FINGERPRINT_SELECTION_PANE_ALERT");
 	public static final String FINGERPRINT_SCAN_ALERT = bundle.getString("FINGERPRINT_SCAN_ALERT");
 	public static final String IRIS_VALIDATION_ERROR = bundle.getString("IRIS_VALIDATION_ERROR");
 	public static final String FINGERPRINT_DUPLICATION_ALERT = bundle.getString("FINGERPRINT_DUPLICATION_ALERT");
@@ -295,7 +295,7 @@ public static final String FINGERPRINT_SELECTION_PANE_ALERT = bundle.getString("
 	public static final String BIOMETRIC_EXCEPTION_ALERT = bundle.getString("BIOMETRIC_EXCEPTION_ALERT");
 
 	// User Onboard
-	public static final String UNABLE_LOAD_USERONBOARD_SCREEN = bundle.getString("UNABLE_LOAD_USERONBOARD_SCREEN");	
+	public static final String UNABLE_LOAD_USERONBOARD_SCREEN = bundle.getString("UNABLE_LOAD_USERONBOARD_SCREEN");
 	public static final String USER_MACHINE_VALIDATION_MSG = bundle.getString("USER_MACHINE_VALIDATION_MSG");
 	public static final String USER_ONBOARD_HI = bundle.getString("USER_ONBOARD_HI");
 	public static final String USER_ONBOARD_NOTONBOARDED = bundle.getString("USER_ONBOARD_NOTONBOARDED");
@@ -382,28 +382,32 @@ public static final String FINGERPRINT_SELECTION_PANE_ALERT = bundle.getString("
 
 	// AUTH TOKEN
 	public static String UNABLE_TO_GET_AUTH_TOKEN = bundle.getString("UNABLE_TO_GET_AUTH_TOKEN");
-	
+
 	// PAGE NAVIGATION
 	public static final String PAGE_NAVIGATION_MESSAGE = bundle.getString("PAGE_NAVIGATION_MESSAGE");
 	public static final String PAGE_NAVIGATION_CONFIRM = bundle.getString("PAGE_NAVIGATION_CONFIRM");
 	public static final String PAGE_NAVIGATION_CANCEL = bundle.getString("PAGE_NAVIGATION_CANCEL");
-	
+
 	// SYNC DATE TIME
 	public static final String LAST_DOWNLOADED = bundle.getString("LAST_DOWNLOADED");
 	public static final String LAST_UPDATED = bundle.getString("LAST_UPDATED");
-	
-	//Alert
+
+	// Alert
 	public static final String ALERT_NOTE_LABEL = bundle.getString("ALERT_NOTE_LABEL");
 	public static final String ALERT_FAILED_LABEL = bundle.getString("ALERT_FAILED_LABEL");
 
 	// Unable to get Auth Token
 	public static final String ALERT_AUTH_TOKEN_NOT_FOUND = bundle.getString("AUTH_TOKEN_NOT_FOUND");
-	
-	//Device Searching to start stream
+
+	// Device Searching to start stream
 	public static final String SEARCHING_DEVICE = bundle.getString("SEARCHING_DEVICE");
 	public static final String VALIDATION_MESSAGE = bundle.getString("VALIDATION_MESSAGE");
 
 	public static final String EXCEPTION_PHOTO_MANDATORY = bundle.getString("EXCEPTION_PHOTO_MANDATORY");
 
 	public static final String REGEX_TYPE = "REGEX";
+
+	public static final String BIOMETRIC_CAPTURE_SUCCESS = bundle.getString("BIOMETRIC_CAPTURE_SUCCESS");
+	public static final String BIOMETRIC_CAPTURE_FAILURE = bundle.getString("BIOMETRIC_CAPTURE_FAILURE");
+
 }
