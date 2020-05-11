@@ -17,7 +17,6 @@ import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -71,6 +70,7 @@ import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
@@ -342,7 +342,6 @@ public class BiometricAuthenticationStageTest {
 	}
 
 	@Test
-	@Ignore
 	public void childPacketTest() throws ApisResourceAccessException, ApiNotAccessibleException, IOException, PacketDecryptionFailureException,
 			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
@@ -410,7 +409,9 @@ public class BiometricAuthenticationStageTest {
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 
 		Mockito.when(utility.getApplicantAge(any()))
-				.thenThrow(new PacketDecryptionFailureException("testCode", "test message"));
+				.thenThrow(
+						new io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException(
+								"test message"));
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getInternalError());
 	}
@@ -431,7 +432,6 @@ public class BiometricAuthenticationStageTest {
 	}
 
 	@Test
-	@Ignore
 	public void resupdatePacketTest() throws ApisResourceAccessException, ApiNotAccessibleException, InvalidKeySpecException,
 			NoSuchAlgorithmException, BiometricException, BioTypeException, IOException, ParserConfigurationException,
 			SAXException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
