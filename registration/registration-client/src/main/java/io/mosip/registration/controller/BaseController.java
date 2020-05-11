@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ResourceBundle;
 import java.util.Timer;
+import java.util.TreeMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -239,6 +240,13 @@ public class BaseController {
 
 	private static Map<String, UiSchemaDTO> validationMap;
 	
+	private static TreeMap<String,String> listOfbiometricSubtypes = new TreeMap<>();
+
+	
+	public static TreeMap<String, String> getListOfbiometricSubtypes() {
+		return listOfbiometricSubtypes;
+	}
+
 	private static HashMap<String, String> labelMap = new HashMap<>();
 	
 	public static String getFromLabelMap(String key) {
@@ -1670,6 +1678,9 @@ public class BaseController {
 			Map<String, UiSchemaDTO> validationsMap = new LinkedHashMap<>();
 			for (UiSchemaDTO schemaField : schemaFields) {
 				validationsMap.put(schemaField.getId(), schemaField);
+				if(schemaField.getControlType()!=null && schemaField.getControlType().equals("biometrics")) {
+					listOfbiometricSubtypes.put(schemaField.getSubType(), schemaField.getLabel().get("primary"));
+				}
 			}
 			validations.setValidations(validationsMap); // Set Validations Map
 

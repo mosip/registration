@@ -1651,6 +1651,7 @@ public class RegistrationConstants {
 	public static final String rightMiddleUiAttribute = "rightMiddle";
 	public static final String rightThumbUiAttribute = "rightThumb";
 	public static final String rightRingUiAttribute = "rightRing";
+	
 
 	public static final String leftEyeUiAttribute = "leftEye";
 	public static final String rightEyeUiAttribute = "rightEye";

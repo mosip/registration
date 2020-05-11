@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -260,26 +261,29 @@ public class GuardianBiometricsController extends BaseController implements Init
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Loading of Guardian Biometric screen started");
 
+		fxUtils = FXUtils.getInstance();
+
 		applicationLabelBundle = applicationContext.getApplicationLanguageBundle();
 		
 		HashMap<String, VBox> comboBoxMap = new HashMap<>();
 
 		HashMap<String,  HashMap<String, VBox>> checkBoxMap = new HashMap<>();
 		
-		HashMap<String, HashMap<String, List<List<String>>>> mapToProcess =  getconfigureAndNonConfiguredBioAttributes(Arrays.asList("applicant","introducer"), Arrays.asList( 
+		HashMap<Entry<String,String>, HashMap<String, List<List<String>>>> mapToProcess =  getconfigureAndNonConfiguredBioAttributes( Arrays.asList( 
 				 getValue("LEFT_SLAB",RegistrationConstants.leftHandUiAttributes), 
 				 getValue("RIGHT_SLAB",RegistrationConstants.rightHandUiAttributes), 
 				 getValue("THUMBS_SLAB",RegistrationConstants.twoThumbsUiAttributes),
 				 getValue("IRIS",RegistrationConstants.eyesUiAttributes),
 				 getValue("FACE",RegistrationConstants.faceUiAttributes)));
 		
-		for(Entry<String, HashMap<String, List<List<String>>>> subType : mapToProcess.entrySet()) {
+		for(Entry<Entry<String,String>, HashMap<String, List<List<String>>>> subType : mapToProcess.entrySet()) {
 			VBox vb = new VBox();
 			vb.setSpacing(10);
 			vb.setId(subType.getKey()+"vbox");
-			Label label = new Label(subType.getKey());
+			Label label = new Label(subType.getKey().getValue());
 			label.getStyleClass().add("paneHeader");
-			ComboBox<String> comboBox = new ComboBox<>();
+			ComboBox<Entry<String, String>> comboBox = new ComboBox<>();
+			renderBiometrics(comboBox);
 			comboBox.getStyleClass().add("demographicCombobox");
 			comboBox.setId(subType.getKey()+"combobox");
 			
@@ -287,13 +291,13 @@ public class GuardianBiometricsController extends BaseController implements Init
 			ContentHeader.add(vb, 1, 1);
 			vb.setVisible(false);
 			vb.setManaged(false);
-			comboBoxMap.put(subType.getKey(), vb);
+			comboBoxMap.put(subType.getKey().getKey(), vb);
 			HashMap<String, VBox> subMap = new HashMap<>();
 			for(Entry<String, List<List<String>> > biometric : subType.getValue().entrySet() ) {
 				List<List<String>> listOfCheckBoxes = biometric.getValue();
 				if(!listOfCheckBoxes.get(0).isEmpty()) {
 				
-				comboBox.getItems().add(biometric.getKey());
+				comboBox.getItems().add(new SimpleEntry<String, String>(biometric.getKey(), applicationLabelBundle.getString( biometric.getKey())));
 				
 				if(!listOfCheckBoxes.get(0).get(0).equals("face"))
 				{
@@ -303,7 +307,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 				for(int i=0;i<listOfCheckBoxes.size();i++) {
 				
 					for(String exception : biometric.getValue().get(i)) {
-						CheckBox checkBox = new CheckBox(exception);
+						CheckBox checkBox = new CheckBox(applicationLabelBundle.getString(exception));
 						checkBox.getStyleClass().add(RegistrationConstants.updateUinCheckBox);
 						if(i==1)
 						{
@@ -317,7 +321,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 				vboxForCheckBox.setVisible(false);
 				vboxForCheckBox.setManaged(false);
 				
-				checkBoxMap.put(subType.getKey(), subMap );
+				checkBoxMap.put(subType.getKey().getKey(), subMap );
 				subMap.put(biometric.getKey(), vboxForCheckBox);
 				
 				
@@ -353,14 +357,12 @@ public class GuardianBiometricsController extends BaseController implements Init
 //					ApplicationContext.applicationLanguageBundle().getString(RegistrationConstants.LOSTUINLBL));
 //		}
 //		intializeCaptureCount();
-//		fxUtils = FXUtils.getInstance();
 //		fxUtils.setTransliteration(transliteration);
 //		bioValue = RegistrationUIConstants.SELECT;
 //		biometricBox.setVisible(false);
 //		retryBox.setVisible(false);
 //		continueBtn.setDisable(true);
 //		populateBiometrics();
-//		renderBiometrics();
 //
 //		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 //				"Loading of Guardian Biometric screen ended");
@@ -1602,14 +1604,14 @@ public class GuardianBiometricsController extends BaseController implements Init
 	 * Fetching the combobox details
 	 */
 	@SuppressWarnings("unchecked")
-	private <T> void renderBiometrics() {
+	private <T> void renderBiometrics(ComboBox<Entry<String, String>> biometricTypecombo) {
 		LOGGER.info("REGISTRATION - INDIVIDUAL_REGISTRATION - RENDER_COMBOBOXES", RegistrationConstants.APPLICATION_ID,
 				RegistrationConstants.APPLICATION_NAME, "Rendering of comboboxes started");
 
 		try {
 			StringConverter<T> uiRenderForComboBox = fxUtils.getStringConverterForComboBox();
 
-			biometricTypecombo.setConverter((StringConverter<BiometricAttributeDto>) uiRenderForComboBox);
+			biometricTypecombo.setConverter((StringConverter<Entry<String, String>>) uiRenderForComboBox);
 		} catch (RuntimeException runtimeException) {
 			throw new RegBaseUncheckedException(RegistrationConstants.REGISTRATION_CONTROLLER,
 					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException), runtimeException);
