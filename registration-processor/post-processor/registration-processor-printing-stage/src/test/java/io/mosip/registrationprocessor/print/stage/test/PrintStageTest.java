@@ -56,7 +56,6 @@ import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
 import io.mosip.registration.processor.core.queue.factory.MosipQueue;
 import io.mosip.registration.processor.core.queue.factory.QueueListener;
 import io.mosip.registration.processor.core.queue.impl.exception.ConnectionUnavailableException;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.print.service.PrintService;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
@@ -135,9 +134,6 @@ public class PrintStageTest {
 
 	@Mock
 	private PrintService<Map<String, byte[]>> printService;
-
-	@Mock
-	public PacketManager filesystemAdapter;
 
 	@Mock
 	private UinValidator<String> uinValidatorImpl;
