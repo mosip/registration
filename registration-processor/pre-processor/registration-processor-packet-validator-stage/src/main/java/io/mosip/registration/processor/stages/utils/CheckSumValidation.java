@@ -78,26 +78,26 @@ public class CheckSumValidation {
 		Boolean isValid = false;
 
 		// Getting hash bytes from packet
-		InputStream idSequenceHashStream = packetReaderService.getFile(registrationId, PacketFiles.PACKET_DATA_HASH.name(),source);
-		InputStream metaSequenceHashStream = packetReaderService.getFile(registrationId, PacketFiles.PACKET_OPERATIONS_HASH.name(),source);
+		InputStream dataHashStream = packetReaderService.getFile(registrationId, PacketFiles.PACKET_DATA_HASH.name(),source);
+		InputStream operationsHashStream = packetReaderService.getFile(registrationId, PacketFiles.PACKET_OPERATIONS_HASH.name(),source);
 
-		byte[] idSequenceHashByte = IOUtils.toByteArray(idSequenceHashStream);
-		byte[] metaSequenceHashByte = IOUtils.toByteArray(metaSequenceHashStream);
+		byte[] dataHashByte = IOUtils.toByteArray(dataHashStream);
+		byte[] operationsHashByte = IOUtils.toByteArray(operationsHashStream);
 
 		// Generating hash bytes using files
 		CheckSumGeneration checkSumGeneration = new CheckSumGeneration(packetReaderService,source);
-		byte[] idSequenceHash = checkSumGeneration.generateIdentityHash(hashSequence1, registrationId);
+		byte[] dataHash = checkSumGeneration.generateHash(hashSequence1, registrationId);
 		
-		byte[] metaSequenceHash = checkSumGeneration.generatePacketOSIHash(hashSequence2, registrationId);
+		byte[] operationsHash = checkSumGeneration.generateHash(hashSequence2, registrationId);
 
-		Boolean isIdCheckSumEqual = MessageDigest.isEqual(idSequenceHash, idSequenceHashByte);
-		Boolean ismetaCheckSumEqual = MessageDigest.isEqual(metaSequenceHash, metaSequenceHashByte);
+		Boolean isdataCheckSumEqual = MessageDigest.isEqual(dataHash, dataHashByte);
+		Boolean isoperationsCheckSumEqual = MessageDigest.isEqual(operationsHash, operationsHashByte);
 
-		if ((!isIdCheckSumEqual) || (!ismetaCheckSumEqual)) {
+		if ((!isdataCheckSumEqual) || (!isoperationsCheckSumEqual)) {
 			registrationStatusDto.setStatusComment(StatusMessage.PACKET_CHECKSUM_VALIDATION_FAILURE);
 		}
 
-		if (isIdCheckSumEqual && ismetaCheckSumEqual) {
+		if (isdataCheckSumEqual && isoperationsCheckSumEqual) {
 			isValid = true;
 		}
 	    regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
