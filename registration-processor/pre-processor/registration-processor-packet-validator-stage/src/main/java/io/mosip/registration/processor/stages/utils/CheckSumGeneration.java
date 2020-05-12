@@ -49,71 +49,11 @@ public class CheckSumGeneration {
 		this.source=source;
 	}
 
-	/**
-	 * Generate packet info hash.
-	 *
-	 * @param hashSequence
-	 *            the hash sequence
-	 * @param registrationId
-	 *            the registration id
-	 * @return the byte[]
-	 */
-	public byte[] generateIdentityHash(List<FieldValueArray> hashSequence, String registrationId) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "CheckSumGeneration::generateIdentityHash::entry");
-	    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-        for (FieldValueArray fieldValueArray : hashSequence) {
-
-			if (PacketFiles.APPLICANTBIOMETRICSEQUENCE.name().equalsIgnoreCase(fieldValueArray.getLabel())) {
-
-				generateHash(fieldValueArray.getValue(), registrationId, outputStream);
-
-			} else if (PacketFiles.INTRODUCERBIOMETRICSEQUENCE.name().equalsIgnoreCase(fieldValueArray.getLabel())) {
-
-				generateHash(fieldValueArray.getValue(), registrationId, outputStream);
-
-			} else if (PacketFiles.APPLICANTDEMOGRAPHICSEQUENCE.name().equalsIgnoreCase(fieldValueArray.getLabel())) {
-
-				generateHash(fieldValueArray.getValue(), registrationId, outputStream);
-			}
-		}
-        byte[] dataByte = HMACUtils.generateHash(outputStream.toByteArray());
-        regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "CheckSumGeneration::generateIdentityHash::exit");
-		return HMACUtils.digestAsPlainText(dataByte).getBytes();
-
-	}
-
 	
 
-	/**
-	 * Generate demographic hash.
-	 *
-	 * @param fieldValueArray
-	 *            the field value array
-	 * @param registrationId
-	 *            the registration id
-	 */
-	private void generateHash(List<String> hashOrder, String registrationId, ByteArrayOutputStream outputStream ) {
-		hashOrder.forEach(document -> {
-			byte[] fileByte = null;
-			try {
-				InputStream fileStream = packetReaderService.getFile(registrationId, document.toUpperCase(),source);
-
-                fileByte = IOUtils.toByteArray(fileStream);
-				outputStream.write(fileByte);
-			} catch (IOException | io.mosip.kernel.core.exception.IOException | io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException | ApiNotAccessibleException e) {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.APPLICATIONID.toString(), StatusMessage.INPUTSTREAM_NOT_READABLE,
-						e.getMessage() + ExceptionUtils.getStackTrace(e));
-			}
-		});
-	}
-
-	public byte[] generatePacketOSIHash(List<FieldValueArray> hashSequence2, String registrationId) {
+	public byte[] generateHash(List<FieldValueArray> hashSequence, String registrationId) {
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		for (FieldValueArray fieldValueArray : hashSequence2) {
+		for (FieldValueArray fieldValueArray : hashSequence) {
 			List<String> hashValues = fieldValueArray.getValue();
 			hashValues.forEach(value -> {
 				byte[] valuebyte = null;
@@ -129,9 +69,9 @@ public class CheckSumGeneration {
 				}
 			});
 		}
-		byte[] osiByte = HMACUtils.generateHash(outputStream.toByteArray());
+		byte[] hashByte = HMACUtils.generateHash(outputStream.toByteArray());
 
-		return HMACUtils.digestAsPlainText(osiByte).getBytes();
+		return HMACUtils.digestAsPlainText(hashByte).getBytes();
 
 	}
 		
