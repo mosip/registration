@@ -1552,6 +1552,25 @@ public class RegistrationConstants {
 
 	};
 
+	public static final Map<String, String> uIToMDSExceptionMap = new HashMap<String, String>() {
+
+		{
+			put("leftIndex", "LF_INDEX");
+			put("leftLittle", "LF_LITTLE");
+			put("leftMiddle", "LF_MIDDLE");
+			put("leftRing", "LF_RING");
+			put("leftThumb", "LF_THUMB");
+			put("rightIndex", "RF_INDEX");
+			put("rightLittle", "RF_LITTLE");
+			put("rightMiddle", "RF_MIDDLE");
+			put("rightRing", "RF_RING");
+			put("rightThumb", "RF_THUMB");
+			put("leftEye", "L_IRIS");
+			put("rightEye", "R_IRIS");
+		}
+
+	};
+	
 	public static final Map<String, String> userOnBoardBioFlag = new HashMap<String, String>() {
 
 		{
