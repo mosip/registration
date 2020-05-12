@@ -16,7 +16,7 @@ public class MetaInfo {
 		this.metaData = new ArrayList<FieldValue>();
 		this.operationsData = new ArrayList<FieldValue>();
 		this.biometrics = new HashMap<>();
-		this.exceptionBiometrics = new ArrayList<ModalityException>();
+		this.exceptionBiometrics = new ArrayList<BiometricsException>();
 		this.documents = new ArrayList<DocumentMetaInfo>();		
 		this.hashSequence1 = new LinkedList<HashSequenceMetaInfo>();
 		this.hashSequence2 = new LinkedList<HashSequenceMetaInfo>();	
@@ -24,7 +24,7 @@ public class MetaInfo {
 	}
 	
 	private Map<String, Map<String, ModalityInfo>> biometrics;
-	private List<ModalityException> exceptionBiometrics;
+	private List<BiometricsException> exceptionBiometrics;
 	private List<DocumentMetaInfo> documents;
 	private List<FieldValue> metaData;
 	private List<FieldValue> operationsData;
@@ -35,18 +35,18 @@ public class MetaInfo {
 	private List<FieldValue> checkSum;
 	private List<SimpleDto> printingName;
 	
-	public void setBiometrics(String subType, String modalityName, ModalityInfo modalityInfo) {
+	public void setBiometrics(String subType, String bioAttribute, ModalityInfo modalityInfo) {
 		if(this.biometrics.containsKey(subType) && this.biometrics.get(subType) != null) {
-			this.biometrics.get(subType).put(modalityName, modalityInfo);
+			this.biometrics.get(subType).put(bioAttribute, modalityInfo);
 		}
 		else {
 			Map<String, ModalityInfo> map = new HashMap<>();
-			map.put(modalityName, modalityInfo);
+			map.put(bioAttribute, modalityInfo);
 			this.biometrics.put(subType, map);
 		}
 	}
 	
-	public void setBiometricException(List<ModalityException> modalityExceptions) {
+	public void setBiometricException(List<BiometricsException> modalityExceptions) {
 		this.exceptionBiometrics.addAll(modalityExceptions);
 	}
 	

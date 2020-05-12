@@ -27,6 +27,7 @@ import io.mosip.registration.packetmanager.spi.PacketCreator;
 import io.mosip.registration.packetmanager.spi.PacketSigner;
 import io.mosip.registration.packetmanager.util.PacketCryptoHelper;
 import io.mosip.registration.packetmanager.util.PacketManagerHelper;
+import io.mosip.registration.packetmananger.constants.Biometric;
 import io.mosip.registration.packetmananger.constants.ErrorCode;
 import io.mosip.registration.packetmananger.constants.PacketManagerConstants;
 import io.mosip.registration.packetmananger.datatype.BiometricsType;
@@ -40,7 +41,7 @@ import io.mosip.registration.packetmananger.dto.metadata.DocumentMetaInfo;
 import io.mosip.registration.packetmananger.dto.metadata.FieldValue;
 import io.mosip.registration.packetmananger.dto.metadata.HashSequenceMetaInfo;
 import io.mosip.registration.packetmananger.dto.metadata.MetaInfo;
-import io.mosip.registration.packetmananger.dto.metadata.ModalityException;
+import io.mosip.registration.packetmananger.dto.metadata.BiometricsException;
 import io.mosip.registration.packetmananger.dto.metadata.ModalityInfo;
 import io.mosip.registration.packetmananger.exception.PacketCreatorException;
 
@@ -109,7 +110,7 @@ public class PacketCreatorImpl implements PacketCreator {
 	}
 
 	@Override
-	public void setBiometricException(String fieldName, List<ModalityException> modalityExceptions) {
+	public void setBiometricException(String fieldName, List<BiometricsException> modalityExceptions) {
 		this.packetInfoDto.setExceptionBiometrics(fieldName, modalityExceptions);
 	}
 	
@@ -138,9 +139,9 @@ public class PacketCreatorImpl implements PacketCreator {
 						registrationId);
 				
 				//TODO sign zip
-				subpacketBytes = packetCryptoHelper.encryptPacket(subpacketBytes, publicKey);
+				subpacketBytes = CryptoUtil.encodeBase64(packetCryptoHelper.encryptPacket(subpacketBytes, publicKey)).getBytes();
 				addEntryToZip(String.format(PacketManagerConstants.SUBPACKET_ZIP_FILE_NAME, registrationId, subpacketName), 
-						CryptoUtil.encodeBase64(subpacketBytes).getBytes(), packetZip);
+						subpacketBytes, packetZip);
 			}
 			
 		} catch (IOException e) {
@@ -229,13 +230,11 @@ public class PacketCreatorImpl implements PacketCreator {
 						ErrorCode.BIR_TO_XML_ERROR.getErrorMessage().concat(ExceptionUtils.getStackTrace(e)));
 			}
 			
-			if(xmlBytes != null) { 
-				addEntryToZip(String.format(PacketManagerConstants.CBEFF_FILENAME_WITH_EXT, fieldName), xmlBytes, zipOutputStream);							
-				identity.put(fieldName, new BiometricsType(PacketManagerConstants.CBEFF_FILE_FORMAT, 
-						PacketManagerConstants.CBEFF_VERSION, String.format(PacketManagerConstants.CBEFF_FILENAME, fieldName)));
-				addHashSequenceWithSource(PacketManagerConstants.BIOMETRIC_SEQ, String.format(PacketManagerConstants.CBEFF_FILENAME, 
-						fieldName), xmlBytes, hashSequences);
-			}			
+			addEntryToZip(String.format(PacketManagerConstants.CBEFF_FILENAME_WITH_EXT, fieldName), xmlBytes, zipOutputStream);							
+			identity.put(fieldName, new BiometricsType(PacketManagerConstants.CBEFF_FILE_FORMAT, 
+					PacketManagerConstants.CBEFF_VERSION, String.format(PacketManagerConstants.CBEFF_FILENAME, fieldName)));
+			addHashSequenceWithSource(PacketManagerConstants.BIOMETRIC_SEQ, String.format(PacketManagerConstants.CBEFF_FILENAME, 
+					fieldName), xmlBytes, hashSequences);			
 		}						
 		if(this.packetInfoDto.getExceptionBiometrics().containsKey(fieldName))
 			metaInfo.setBiometricException(this.packetInfoDto.getExceptionBiometrics().get(fieldName));
@@ -326,8 +325,8 @@ public class PacketCreatorImpl implements PacketCreator {
 		if(list != null && !list.isEmpty()) {	
 			List<BIR> birs = new ArrayList<BIR>();			
 			for(BiometricsDto bioDto : list) {
-				BIR bir = cbeffBIRBuilder.buildBIR(bioDto.getModalityISO(), bioDto.getFormatType(), bioDto.getQualityScore(), 
-						bioDto.getType(), bioDto.getSubType());			
+				BIR bir = cbeffBIRBuilder.buildBIR(bioDto.getAttributeISO(), bioDto.getQualityScore(), 
+						Biometric.getSingleTypeByAttribute(bioDto.getBioAttribute()), bioDto.getBioAttribute());			
 				birs.add(bir);
 			}
 			
@@ -387,11 +386,11 @@ public class PacketCreatorImpl implements PacketCreator {
 	public List<BIR> getSerializedBiometrics(List<BiometricsDto> list, MetaInfo metaInfo) {		
 		List<BIR> birs = new ArrayList<BIR>();			
 		for(BiometricsDto bioDto : list) {
-			BIR bir = cbeffBIRBuilder.buildBIR(bioDto.getModalityISO(), bioDto.getFormatType(), bioDto.getQualityScore(), 
-					bioDto.getType(), bioDto.getSubType());			
+			BIR bir = cbeffBIRBuilder.buildBIR(bioDto.getAttributeISO(), bioDto.getQualityScore(), 
+					Biometric.getSingleTypeByAttribute(bioDto.getBioAttribute()), bioDto.getBioAttribute());			
 			birs.add(bir);
 			
-			metaInfo.setBiometrics(bioDto.getSubType(), bioDto.getModalityName(), 
+			metaInfo.setBiometrics(bioDto.getSubType(), bioDto.getBioAttribute(), 
 					new ModalityInfo(bir.getBdbInfo().getIndex(), bioDto.getNumOfRetries(), bioDto.isForceCaptured()));
 		}
 		return birs;		

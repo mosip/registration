@@ -1,18 +1,25 @@
 package io.mosip.registration.packetmananger.dto;
 
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
+import io.mosip.registration.packetmananger.constants.Biometric;
 import lombok.Data;
 
 @Data
 public class BiometricsDto {
 	
-	private byte[] modalityISO;
+	private byte[] attributeISO;
+	private String bioAttribute;
 	private String modalityName;
 	private double qualityScore;
 	private boolean isForceCaptured;
-	private int numOfRetries;
-	
-	private long formatType;
-	private SingleType type;
+	private int numOfRetries;	
+	private boolean isCaptured;
 	private String subType;
+
+		
+	public BiometricsDto(String bioAttribute, byte[] attributeISO, double qualityScore) {
+		this.bioAttribute = bioAttribute;
+		this.attributeISO = attributeISO;
+		this.qualityScore = qualityScore;
+		this.modalityName = Biometric.getModalityNameByAttribute(bioAttribute);
+	}
 }

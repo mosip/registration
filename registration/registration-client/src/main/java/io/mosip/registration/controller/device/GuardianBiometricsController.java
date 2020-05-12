@@ -44,6 +44,8 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.mdm.dto.RequestDetail;
+import io.mosip.registration.packetmananger.constants.Biometric;
+import io.mosip.registration.packetmananger.dto.BiometricsDto;
 import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.security.AuthenticationService;
 import io.mosip.registration.service.sync.MasterSyncService;
@@ -505,7 +507,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		// Get Non configured bio attributes Using Ui Schema
 		List<String> nonConfigBioAttributesByBioType = getNonConfigBioAttributes(currentSubType,
-				getConstantConfigBioAttributes(bioType));
+				Biometric.getDefaultAttributes(bioType));
 
 		if (nonConfigBioAttributesByBioType != null && !nonConfigBioAttributesByBioType.isEmpty()) {
 			exceptionBioAttributes = exceptionBioAttributes != null ? exceptionBioAttributes : new LinkedList<String>();
@@ -625,7 +627,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		try {
 			// TODO Get Response from the MDS
-			List<BiometricDTO> biometricDTOList = bioService.captureModality(mdmRequestDto);
+			List<BiometricsDto> biometricDTOList = bioService.captureModality(mdmRequestDto);
 
 			// TODO Validate the biometricDTO from the MDS with threshold values
 			boolean isValidBiometric = true;
@@ -651,7 +653,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 			if (isValidBiometric && !isMatchedWithLocalBiometrics) {
 
 				// save to registration DTO
-				for (BiometricDTO biometricDTO : biometricDTOList) {
+				for (BiometricsDto biometricDTO : biometricDTOList) {
 
 					getRegistrationDTOFromSession().addBiometric(currentSubType, biometricDTO.getBioAttribute(),
 							biometricDTO);
@@ -682,7 +684,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 	}
 
-	private void loadBiometricsUIElements(List<BiometricDTO> biometricDTOList, String subType) {
+	private void loadBiometricsUIElements(List<BiometricsDto> biometricDTOList, String subType) {
 
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Updating progress Bar,Text and attempts Box in UI");
@@ -698,12 +700,12 @@ public class GuardianBiometricsController extends BaseController implements Init
 		biometricImage.setImage(getBioStreamImage(currentSubType, currentModality, String.valueOf(retry)));
 	}
 
-	private double getAverageQualityScore(List<BiometricDTO> biometricDTOList) {
+	private double getAverageQualityScore(List<BiometricsDto> biometricDTOList) {
 
 		double qualityScore = 0;
 		if (biometricDTOList != null && !biometricDTOList.isEmpty()) {
 
-			for (BiometricDTO biometricDTO : biometricDTOList) {
+			for (BiometricsDto biometricDTO : biometricDTOList) {
 				qualityScore += biometricDTO.getQualityScore();
 			}
 
@@ -857,11 +859,11 @@ public class GuardianBiometricsController extends BaseController implements Init
 			attemptSlap.setText(RegistrationConstants.HYPHEN);
 			duplicateCheckLbl.setText(RegistrationConstants.EMPTY);
 		}
-		getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().getFingerprintDetailsDTO()
-				.clear();
-		getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().getIrisDetailsDTO().clear();
-
-		getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().setFace(new FaceDetailsDTO());
+		//getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().getFingerprintDetailsDTO()
+		//		.clear();
+		//getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().getIrisDetailsDTO().clear();
+//
+		//getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().setFace(new FaceDetailsDTO());
 		intializeCaptureCount();
 
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,

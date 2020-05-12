@@ -8,7 +8,7 @@ import java.util.Map;
 import io.mosip.registration.packetmananger.datatype.SimpleType;
 import io.mosip.registration.packetmananger.dto.metadata.DeviceMetaInfo;
 import io.mosip.registration.packetmananger.dto.metadata.FieldValue;
-import io.mosip.registration.packetmananger.dto.metadata.ModalityException;
+import io.mosip.registration.packetmananger.dto.metadata.BiometricsException;
 import lombok.Data;
 
 
@@ -20,7 +20,7 @@ public class PacketInfoDto {
 	private Map<String, Object> demographics;
 	private Map<String, DocumentDto> documents;
 	private Map<String, List<BiometricsDto>> biometrics;
-	private Map<String, List<ModalityException>> exceptionBiometrics;
+	private Map<String, List<BiometricsException>> exceptionBiometrics;
 	private List<FieldValue> metaData;
 	private List<FieldValue> operationsData;
 	private List<DeviceMetaInfo> capturedRegisteredDevices;
@@ -37,7 +37,7 @@ public class PacketInfoDto {
 		this.demographics = new HashMap<String, Object>();
 		this.documents = new HashMap<String, DocumentDto>();
 		this.biometrics = new HashMap<String, List<BiometricsDto>>();
-		this.exceptionBiometrics = new HashMap<String, List<ModalityException>>();
+		this.exceptionBiometrics = new HashMap<String, List<BiometricsException>>();
 		this.metaData = new ArrayList<FieldValue>();
 		this.operationsData = new ArrayList<FieldValue>();
 	}
@@ -62,7 +62,7 @@ public class PacketInfoDto {
 		this.documents.put(fieldName, dto);		
 	}
 	
-	public void setExceptionBiometrics(String fieldName, List<ModalityException> exceptionList) {
+	public void setExceptionBiometrics(String fieldName, List<BiometricsException> exceptionList) {
 		this.exceptionBiometrics.put(fieldName, exceptionList);
 	}
 	

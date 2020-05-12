@@ -9,6 +9,8 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.dao.IdentitySchemaDao;
 import io.mosip.registration.dto.UiSchemaDTO;
+import io.mosip.registration.dto.response.SchemaDto;
+import io.mosip.registration.entity.IdentitySchema;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.IdentitySchemaService;
 
@@ -43,6 +45,11 @@ public class IdentitySchemaServiceImpl implements IdentitySchemaService {
 	@Override
 	public String getIDSchema(double idVersion) throws RegBaseCheckedException {
 		return identitySchemaDao.getIDSchema(idVersion);
+	}
+
+	@Override
+	public SchemaDto getIdentitySchema(double idVersion) throws RegBaseCheckedException {
+		return identitySchemaDao.getIdentitySchema(idVersion);
 	}
 
 }

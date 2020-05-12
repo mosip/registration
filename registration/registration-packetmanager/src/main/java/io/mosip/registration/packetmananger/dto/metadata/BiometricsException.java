@@ -1,9 +1,11 @@
 package io.mosip.registration.packetmananger.dto.metadata;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-public class ModalityException {
+@AllArgsConstructor
+public class BiometricsException {
 	private String type;
 	private String missingBiometric;
 	private String reason;

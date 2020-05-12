@@ -34,6 +34,7 @@ import io.mosip.registration.dto.demographic.IndividualIdentity;
 import io.mosip.registration.dto.demographic.ValuesDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.packetmananger.dto.AuditDto;
+import io.mosip.registration.packetmananger.dto.DocumentDto;
 
 public class DataProvider {
 
@@ -362,11 +363,11 @@ public class DataProvider {
 		return applicantDocumentDTO;
 	}
 
-	private static void getDocumentDetailsDTO(Identity identity, Map<String, DocumentDetailsDTO> documents) throws RegBaseCheckedException {
+	private static void getDocumentDetailsDTO(Identity identity, Map<String, DocumentDto> documents) throws RegBaseCheckedException {
 
 		IndividualIdentity individualIdentity = (IndividualIdentity) identity;
 
-		DocumentDetailsDTO documentDetailsDTO = new DocumentDetailsDTO();
+		DocumentDto documentDetailsDTO = new DocumentDto();
 		documentDetailsDTO.setDocument(DataProvider.getImageBytes("/proofOfAddress.jpg"));
 		documentDetailsDTO.setType("Passport");
 		documentDetailsDTO.setFormat("jpg");
@@ -376,7 +377,7 @@ public class DataProvider {
 		individualIdentity.setProofOfIdentity(documentDetailsDTO);
 		documents.put("POI", documentDetailsDTO);
 
-		DocumentDetailsDTO documentDetailsResidenceDTO = new DocumentDetailsDTO();
+		DocumentDto documentDetailsResidenceDTO = new DocumentDto();
 		documentDetailsResidenceDTO.setDocument(DataProvider.getImageBytes("/proofOfAddress.jpg"));
 		documentDetailsResidenceDTO.setType("Passport");
 		documentDetailsResidenceDTO.setFormat("jpg");
@@ -386,7 +387,7 @@ public class DataProvider {
 		individualIdentity.setProofOfAddress(documentDetailsResidenceDTO);
 		documents.put("POA", documentDetailsResidenceDTO);
 
-		documentDetailsDTO = new DocumentDetailsDTO();
+		documentDetailsDTO = new DocumentDto();
 		documentDetailsDTO.setDocument(DataProvider.getImageBytes("/proofOfAddress.jpg"));
 		documentDetailsDTO.setType("Passport");
 		documentDetailsDTO.setFormat("jpg");
@@ -396,7 +397,7 @@ public class DataProvider {
 		individualIdentity.setProofOfRelationship(documentDetailsDTO);
 		documents.put("POR", documentDetailsDTO);
 
-		documentDetailsResidenceDTO = new DocumentDetailsDTO();
+		documentDetailsResidenceDTO = new DocumentDto();
 		documentDetailsResidenceDTO.setDocument(DataProvider.getImageBytes("/proofOfAddress.jpg"));
 		documentDetailsResidenceDTO.setType("Passport");
 		documentDetailsResidenceDTO.setFormat("jpg");

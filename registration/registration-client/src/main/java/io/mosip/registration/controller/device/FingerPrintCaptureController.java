@@ -311,9 +311,9 @@ public class FingerPrintCaptureController extends BaseController implements Init
 		LOGGER.info(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Loading of FingerprintCapture screen started");
 
-		disablePaneOnBioAttributes(leftHandGreaterPane, RegistrationConstants.leftHandUiAttributes);
-		disablePaneOnBioAttributes(rightHandGreaterPane, RegistrationConstants.rightHandUiAttributes);
-		disablePaneOnBioAttributes(twoThumbGreaterPane, RegistrationConstants.twoThumbsUiAttributes);
+		//disablePaneOnBioAttributes(leftHandGreaterPane, RegistrationConstants.leftHandUiAttributes);
+		//disablePaneOnBioAttributes(rightHandGreaterPane, RegistrationConstants.rightHandUiAttributes);
+		//disablePaneOnBioAttributes(twoThumbGreaterPane, RegistrationConstants.twoThumbsUiAttributes);
 		setImagesOnHover();
 		initializeCaptureCount();
 		try {
