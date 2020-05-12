@@ -81,7 +81,7 @@ public class ZipCreationServiceTest {
 		Assert.assertNotNull(packetZipInBytes);
 	}
 
-	@Test(expected = RegBaseCheckedException.class)
+	/*@Test(expected = RegBaseCheckedException.class)
 	public void testIOException() throws RegBaseCheckedException {
 		DocumentDto documentDetailsResidenceDTO = new DocumentDto();
 		documentDetailsResidenceDTO.setDocument(DataProvider.getImageBytes("/proofOfAddress.jpg"));
@@ -95,7 +95,7 @@ public class ZipCreationServiceTest {
 				documentDetailsResidenceDTO);
 
 		zipCreationService.createPacket(registrationDTO, filesGeneratedForPacket);
-	}
+	}*/
 	
 	@Test
 	public void emptyDataTest() throws RegBaseCheckedException {

@@ -36,6 +36,7 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.mdm.dto.RequestDetail;
+import io.mosip.registration.packetmananger.dto.BiometricsDto;
 import io.mosip.registration.service.bio.BioService;
 import javafx.embed.swing.SwingNode;
 import javafx.event.ActionEvent;
@@ -158,7 +159,7 @@ public class WebCameraController extends BaseController implements Initializable
 				"Staging", Integer.valueOf(getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT)),
 				1,  Integer.valueOf(getValueFromApplicationContext(RegistrationConstants.FACE_THRESHOLD)));
 		
-		List<BiometricDTO> list = bioService.captureModality(requestDto);
+		List<BiometricsDto> list = bioService.captureModality(requestDto);
 		
 		if(!list.isEmpty()) {
 			AuthenticationValidatorDTO authenticationValidatorDTO = new AuthenticationValidatorDTO();

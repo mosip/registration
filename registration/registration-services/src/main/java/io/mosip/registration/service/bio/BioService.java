@@ -13,6 +13,7 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.mdm.dto.RequestDetail;
+import io.mosip.registration.packetmananger.dto.BiometricsDto;
 
 /**
  * This class {@code BioService} handles all the biometric captures and
@@ -273,6 +274,6 @@ public interface BioService {
 	
 //	public void remove
 	
-	public List<BiometricDTO> captureModality(MDMRequestDto mdmRequestDto)  throws RegBaseCheckedException ;
+	public List<BiometricsDto> captureModality(MDMRequestDto mdmRequestDto)  throws RegBaseCheckedException ;
 
 }

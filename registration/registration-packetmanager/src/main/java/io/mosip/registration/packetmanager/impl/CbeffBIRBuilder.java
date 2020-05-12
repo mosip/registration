@@ -1,14 +1,17 @@
 package io.mosip.registration.packetmanager.impl;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
@@ -19,20 +22,28 @@ import io.mosip.kernel.core.cbeffutil.jaxbclasses.ProcessedLevelType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.PurposeType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.QualityType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleAnySubtypeType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.packetmanager.spi.BiometricDataBuilder;
+import io.mosip.registration.packetmananger.constants.Biometric;
 import io.mosip.registration.packetmananger.constants.PacketManagerConstants;
 
 @Component
 public class CbeffBIRBuilder implements BiometricDataBuilder {	
 	
+	@Value("${mosip.registration.cbeff_only_unique_tags:Y}")
+	private String uniqueTagsEnabled;
+	
+	private static SecureRandom random = new SecureRandom(String.valueOf(5000).getBytes());
+	
 	@Override
-	public BIR buildBIR(byte[] bdb, long formatType, double qualityScore, SingleType type, String subType) {
+	public BIR buildBIR(byte[] bdb, double qualityScore, SingleType singleType, String bioAttribute) {
 
 		// Format
 		RegistryIDType birFormat = new RegistryIDType();
 		birFormat.setOrganization(PacketManagerConstants.CBEFF_DEFAULT_FORMAT_ORG);
-		birFormat.setType(String.valueOf(formatType));
+		birFormat.setType(String.valueOf(Biometric.getFormatType(singleType)));
 
 		// Algorithm
 		RegistryIDType birAlgorithm = new RegistryIDType();
@@ -46,15 +57,15 @@ public class CbeffBIRBuilder implements BiometricDataBuilder {
 
 		return new BIR.BIRBuilder()
 				.withBdb(bdb)
-				.withElement(Arrays.asList(getCBEFFTestTag(type)))
+				.withElement(Arrays.asList(getCBEFFTestTag(singleType)))
 				.withVersion(new BIRVersion.BIRVersionBuilder().withMajor(1).withMinor(1).build())
 				.withCbeffversion(new BIRVersion.BIRVersionBuilder().withMajor(1).withMinor(1).build())
 				.withBirInfo(new BIRInfo.BIRInfoBuilder().withIntegrity(false).build())
 				.withBdbInfo(new BDBInfo.BDBInfoBuilder()
 						.withFormat(birFormat)
 						.withQuality(qualityType)
-						.withType(Arrays.asList(type))
-						.withSubtype(Arrays.asList(subType))
+						.withType(Arrays.asList(singleType))
+						.withSubtype(getSubTypes(singleType, bioAttribute))
 						.withPurpose(PurposeType.ENROLL)
 						.withLevel(ProcessedLevelType.RAW)
 						.withCreationDate(LocalDateTime.now(ZoneId.of("UTC")))
@@ -65,7 +76,9 @@ public class CbeffBIRBuilder implements BiometricDataBuilder {
 	
 	private JAXBElement<String> getCBEFFTestTag(SingleType biometricType) {
 		String testTagElementName = null;
-		
+		String testTagType = "y".equalsIgnoreCase(uniqueTagsEnabled) ? "Unique" : 
+			(random.nextInt() % 2 == 0 ? "Duplicate" : "Unique");
+			
 		switch (biometricType) {
 		case FINGER:
 			testTagElementName = "TestFinger";
@@ -80,8 +93,27 @@ public class CbeffBIRBuilder implements BiometricDataBuilder {
 			break;
 		}
 
-		return new JAXBElement<>(new QName("testschema", testTagElementName), String.class, 
-				PacketManagerConstants.CBEFF_DEFAULT_FORMAT_TYPE);
+		return new JAXBElement<>(new QName("testschema", testTagElementName), String.class, testTagType);
+	}
+	
+	@SuppressWarnings("incomplete-switch")
+	private List<String> getSubTypes(SingleType singleType, String bioAttribute) {
+		List<String> subtypes = new ArrayList<>();			
+		switch (singleType) {
+		case FINGER:
+			if(bioAttribute.toLowerCase().contains("thumb"))
+				subtypes.add(SingleAnySubtypeType.THUMB.value());
+			else {
+				String val = bioAttribute.toLowerCase().replace("left", "").replace("right", "");
+				subtypes.add(SingleAnySubtypeType.fromValue(StringUtils.capitalizeFirstLetter(val).concat("Finger")).value());
+			}			
+		case IRIS:
+			subtypes.add(bioAttribute.contains("left") ? SingleAnySubtypeType.LEFT.value() : 
+				SingleAnySubtypeType.RIGHT.value());
+			break;
+		case FACE:break;
+		}
+		return subtypes;
 	}
 
 }

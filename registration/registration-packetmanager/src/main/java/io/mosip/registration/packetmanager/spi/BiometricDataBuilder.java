@@ -14,6 +14,6 @@ public interface BiometricDataBuilder {
 	 * @param subType
 	 * @return
 	 */
-	public BIR buildBIR(byte[] bdb, long formatType, double qualityScore, SingleType type, String subType);
+	public BIR buildBIR(byte[] bdb, double qualityScore, SingleType type, String subType);
 
 }

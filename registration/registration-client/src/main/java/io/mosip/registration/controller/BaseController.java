@@ -68,6 +68,7 @@ import io.mosip.registration.dto.biometric.FaceDetailsDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
+import io.mosip.registration.packetmananger.constants.PacketManagerConstants;
 import io.mosip.registration.scheduler.SchedulerUtil;
 import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.bio.BioService;
@@ -882,7 +883,7 @@ public class BaseController {
 			biometricExceptionController.clearSession();
 			fingerPrintCaptureController.clearFingerPrintDTO();
 			irisCaptureController.clearIrisData();
-			//faceCaptureController.clearPhoto(RegistrationConstants.APPLICANT_IMAGE);
+			// faceCaptureController.clearPhoto(RegistrationConstants.APPLICANT_IMAGE);
 		} else {
 			if (SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA) != null) {
 				((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA)).getBiometricDTO()
@@ -892,8 +893,8 @@ public class BaseController {
 				biometricExceptionController.clearSession();
 				fingerPrintCaptureController.clearFingerPrintDTO();
 				irisCaptureController.clearIrisData();
-				//faceCaptureController.clearPhoto(RegistrationConstants.APPLICANT_IMAGE);
-				//faceCaptureController.clearPhoto(RegistrationConstants.EXCEPTION_IMAGE);
+				// faceCaptureController.clearPhoto(RegistrationConstants.APPLICANT_IMAGE);
+				// faceCaptureController.clearPhoto(RegistrationConstants.EXCEPTION_IMAGE);
 				guardianBiometricsController.clearCapturedBioData();
 			}
 		}
@@ -1483,8 +1484,7 @@ public class BaseController {
 			table.widthProperty().addListener((source, oldWidth, newWidth) -> {
 				TableHeaderRow header = (TableHeaderRow) table.lookup("TableHeaderRow");
 				header.reorderingProperty()
-				 .addListener((observable, oldValue, newValue) ->
-				 header.setReordering(false));
+						.addListener((observable, oldValue, newValue) -> header.setReordering(false));
 			});
 		}
 	}
@@ -1618,7 +1618,7 @@ public class BaseController {
 			Map<String, UiSchemaDTO> validationsMap = new LinkedHashMap<>();
 			for (UiSchemaDTO schemaField : schemaFields) {
 				validationsMap.put(schemaField.getId(), schemaField);
-				if (schemaField.getControlType() != null && schemaField.getControlType().equals("biometrics")) {
+				if (schemaField.getType().equals(PacketManagerConstants.BIOMETRICS_DATATYPE)) {
 					listOfbiometricSubtypes.put(schemaField.getSubType(), schemaField.getLabel().get("primary"));
 				}
 			}
@@ -1672,32 +1672,39 @@ public class BaseController {
 		return mapToProcess;
 	}
 
-	protected void disablePaneOnBioAttributes(Node pane, List<String> constantBioAttributes) {
-		return;
-		/** Put pane disable by default */
-		/*
-		 * pane.setDisable(true);
-		 * 
-		 *//** Get UI schema individual Biometrics Bio Attributes */
-		/*
-		 * List<String> uiSchemaBioAttributes =
-		 * getBioAttributesBySubType(RegistrationConstants.indBiometrics);
-		 * 
-		 *//** If bio Attribute not mentioned for bio attribute then disable */
-		/*
-		 * if (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
-		 * pane.setDisable(true); } else {
-		 * 
-		 * for (String attribute : constantBioAttributes) {
-		 * 
-		 *//** If bio attribute configured in UI Schema, then enable the pane */
-		/*
-		 * if (uiSchemaBioAttributes.contains(attribute)) { pane.setDisable(false);
-		 * 
-		 *//** Stop the iteration as we got the attribute *//*
-															 * break; } } }
-															 */
-	}
+	/*
+	 * protected void disablePaneOnBioAttributes(Node pane, List<String>
+	 * constantBioAttributes) { return;
+	 *//** Put pane disable by default */
+	/*
+	 * 
+	 * pane.setDisable(true);
+	 * 
+	 *//** Get UI schema individual Biometrics Bio Attributes */
+	/*
+	 * 
+	 * List<String> uiSchemaBioAttributes =
+	 * getBioAttributesBySubType(RegistrationConstants.indBiometrics);
+	 * 
+	 *//** If bio Attribute not mentioned for bio attribute then disable */
+	/*
+	 * 
+	 * if (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
+	 * pane.setDisable(true); } else {
+	 * 
+	 * for (String attribute : constantBioAttributes) {
+	 * 
+	 *//** If bio attribute configured in UI Schema, then enable the pane */
+
+	/*
+	 * 
+	 * if (uiSchemaBioAttributes.contains(attribute)) { pane.setDisable(false);
+	 * 
+	 *//** Stop the iteration as we got the attribute *//*
+														 * break; } } }
+														 * 
+														 * }
+														 */
 
 	// protected void addExceptionDTOs() {
 	// List<String> bioAttributesFromSchema =
@@ -1720,63 +1727,50 @@ public class BaseController {
 	// }
 
 	public List<String> getBioAttributesBySubType(String subType) {
-
 		List<String> bioAttributes = new ArrayList<String>();
-
 		if (subType != null) {
-
 			bioAttributes = getAttributesByTypeAndSubType(RegistrationConstants.BIOMETRICS_TYPE, subType);
-
 		}
-
 		return bioAttributes;
 	}
 
 	private List<String> getAttributesByTypeAndSubType(String type, String subType) {
-		List<String> bioAttributes =  new LinkedList<>();
-
+		List<String> bioAttributes = new LinkedList<>();
 		if (type != null && subType != null) {
-
 			for (Map.Entry<String, UiSchemaDTO> entry : validations.getValidationMap().entrySet()) {
-
-				if (type.equalsIgnoreCase(entry.getValue().getType()) && 
-						subType.equalsIgnoreCase(entry.getValue().getSubType()) && 
-						entry.getValue().getBioAttributes() != null) {
+				if (type.equalsIgnoreCase(entry.getValue().getType())
+						&& subType.equalsIgnoreCase(entry.getValue().getSubType())
+						&& entry.getValue().getBioAttributes() != null) {
 					bioAttributes.addAll(entry.getValue().getBioAttributes());
 				}
 			}
 		}
-
 		return bioAttributes;
 	}
 
-	protected boolean isAvailableInBioAttributes(List<String> constantAttributes) {
-
-		boolean isAvailable = false;
-		List<String> uiSchemaBioAttributes = getBioAttributesBySubType(RegistrationConstants.indBiometrics);
-
-		/** If bio Attribute not mentioned for bio attribute then disable */
-		if (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
-			isAvailable = false;
-		} else {
-
-			for (String attribute : constantAttributes) {
-
-				/** If bio attribute configured in UI Schema, then enable the pane */
-				if (uiSchemaBioAttributes.contains(attribute)) {
-
-					isAvailable = true;
-				}
-			}
-
-		}
-
-		return isAvailable;
-	}
+	/*
+	 * protected boolean isAvailableInBioAttributes(List<String> constantAttributes)
+	 * { boolean isAvailable = false; List<String> uiSchemaBioAttributes =
+	 * getBioAttributesBySubType(RegistrationConstants.indBiometrics); // If bio
+	 * Attribute not mentioned for bio attribute then disable if
+	 * (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
+	 * isAvailable = false; } else {
+	 * 
+	 * for (String attribute : constantAttributes) {
+	 * 
+	 * // If bio attribute configured in UI Schema, then enable the pane if
+	 * (uiSchemaBioAttributes.contains(attribute)) {
+	 * 
+	 * isAvailable = true; } }
+	 * 
+	 * }
+	 * 
+	 * return isAvailable; }
+	 */
 
 	protected List<String> getNonConfigBioAttributes(String uiSchemaSubType, List<String> constantAttributes) {
-		
-		if((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER))
+
+		if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER))
 			return constantAttributes;
 
 		List<String> nonConfigBiometrics = new LinkedList<>();
@@ -1793,24 +1787,25 @@ public class BaseController {
 	}
 
 	protected boolean isDemographicField(UiSchemaDTO schemaField) {
-		return (schemaField.isInputRequired() && !(schemaField.getType().equalsIgnoreCase("biometricsType")
-				|| schemaField.getType().equalsIgnoreCase("documentType")));
+		return (schemaField.isInputRequired()
+				&& !(PacketManagerConstants.BIOMETRICS_DATATYPE.equals(schemaField.getType())
+						|| PacketManagerConstants.DOCUMENTS_DATATYPE.equals(schemaField.getType())));
 	}
 
-	protected List<String> getConstantConfigBioAttributes(String bioType) {
-
-		return bioType.equalsIgnoreCase(RegistrationUIConstants.RIGHT_SLAP)
-				? RegistrationConstants.rightHandUiAttributes
-				: bioType.equalsIgnoreCase(RegistrationUIConstants.LEFT_SLAP)
-						? RegistrationConstants.leftHandUiAttributes
-						: bioType.equalsIgnoreCase(RegistrationUIConstants.THUMBS)
-								? RegistrationConstants.twoThumbsUiAttributes
-								: bioType.equalsIgnoreCase(RegistrationConstants.IRIS)
-										? RegistrationConstants.eyesUiAttributes
-										: bioType.equalsIgnoreCase(RegistrationConstants.FACE)
-												? Arrays.asList(RegistrationConstants.FACE)
-												: null;
-	}
+	/*
+	 * protected List<String> getConstantConfigBioAttributes(String bioType) {
+	 * 
+	 * return bioType.equalsIgnoreCase(RegistrationUIConstants.RIGHT_SLAP) ?
+	 * RegistrationConstants.rightHandUiAttributes :
+	 * bioType.equalsIgnoreCase(RegistrationUIConstants.LEFT_SLAP) ?
+	 * RegistrationConstants.leftHandUiAttributes :
+	 * bioType.equalsIgnoreCase(RegistrationUIConstants.THUMBS) ?
+	 * RegistrationConstants.twoThumbsUiAttributes :
+	 * bioType.equalsIgnoreCase(RegistrationConstants.IRIS) ?
+	 * RegistrationConstants.eyesUiAttributes :
+	 * bioType.equalsIgnoreCase(RegistrationConstants.FACE) ?
+	 * Arrays.asList(RegistrationConstants.FACE) : null; }
+	 */
 
 	/*
 	 * protected List<String> getConfigBioAttributes(List<String>

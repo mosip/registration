@@ -12,9 +12,10 @@ import java.util.Map;
 import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
 import io.mosip.registration.packetmananger.dto.AuditDto;
+import io.mosip.registration.packetmananger.dto.BiometricsDto;
 import io.mosip.registration.packetmananger.dto.DocumentDto;
 import io.mosip.registration.packetmananger.dto.SimpleDto;
-
+import io.mosip.registration.packetmananger.dto.metadata.BiometricsException;
 import lombok.Data;
 
 /**
@@ -46,8 +47,8 @@ public class RegistrationDTO {
 	private BiometricDTO biometricDTO = new BiometricDTO();
 	private Map<String, Object> demographics = new HashMap<>();
 	private Map<String, DocumentDto> documents = new HashMap<>();
-	private Map<String, BiometricDTO> biometrics = new HashMap<>();
-	private List<String> biometricExceptions = new ArrayList<>(); 
+	private Map<String, BiometricsDto> biometrics = new HashMap<>();
+	private Map<String, BiometricsException> biometricExceptions = new HashMap<>(); 
 	
 	private List<BiometricDTO> supervisorBiometrics;
 	private List<BiometricDTO> officerBiometrics;
@@ -101,8 +102,8 @@ public class RegistrationDTO {
 		this.documents.put(fieldId, value);
 	}
 	
-	public List<BiometricDTO> getBiometric(String subType, List<String> bioAttributes) {
-		List<BiometricDTO> list = new ArrayList<BiometricDTO>();
+	public List<BiometricsDto> getBiometric(String subType, List<String> bioAttributes) {
+		List<BiometricsDto> list = new ArrayList<BiometricsDto>();
 		for(String bioAttribute : bioAttributes) {
 			String key = String.format("%s_%s", subType, bioAttribute);
 			if(this.biometrics.containsKey(key))
@@ -111,24 +112,26 @@ public class RegistrationDTO {
 		return list;
 	}
 	
-	public void addBiometric(String subType, String bioAttribute, BiometricDTO value) {
+	public void addBiometric(String subType, String bioAttribute, BiometricsDto value) {
 		String key = String.format("%s_%s", subType, bioAttribute);
 		this.biometrics.put(key, value);
 	}
 	
-	public void addBiometricException(String subType, String bioAttribute) {
-		biometricExceptions.add(String.format("%s_%s", subType, bioAttribute));
+	public void addBiometricException(String subType, String bioAttribute, String reason, String exceptionType) {
+		String key = String.format("%s_%s", subType, bioAttribute);
+		biometricExceptions.put(key, new BiometricsException(null, bioAttribute, reason, exceptionType, 
+				subType));
 	}
 	
 	public boolean isBiometricExceptionAvailable(String subType, String bioAttribute) {
-		return biometricExceptions.contains(String.format("%s_%s", subType, bioAttribute));
+		return biometricExceptions.containsKey(String.format("%s_%s", subType, bioAttribute));
 	}
 	
 	public void removeBiometricException(String subType, String bioAttribute) {
 		this.biometricExceptions.remove(String.format("%s_%s", subType, bioAttribute));
 	}
 	
-	public BiometricDTO getBiometric(String subType, String bioAttribute) {
+	public BiometricsDto getBiometric(String subType, String bioAttribute) {
 		String key = String.format("%s_%s", subType, bioAttribute);
 		return this.biometrics.get(key);
 	}

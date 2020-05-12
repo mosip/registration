@@ -169,7 +169,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 		LOGGER.info("REGISTRATION - UI - FACE_CAPTURE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 				"Loading of FaceCapture screen started");
 
-		disablePaneOnBioAttributes(applicantImagePane, Arrays.asList(RegistrationConstants.FACE.toLowerCase()));
+		//disablePaneOnBioAttributes(applicantImagePane, Arrays.asList(RegistrationConstants.FACE.toLowerCase()));
 		setImagesOnHover();
 
 		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getSelectionListDTO() != null) {
@@ -415,7 +415,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 			String reponseTime, boolean isDuplicate) {
 
 		
-		saveBiometricDetailsBtn.setDisable(!isAvailableInBioAttributes(Arrays.asList(RegistrationConstants.FACE)));
+		//saveBiometricDetailsBtn.setDisable(!isAvailableInBioAttributes(Arrays.asList(RegistrationConstants.FACE)));
 
 		captureTimeValue.setText(reponseTime);
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
@@ -558,12 +558,13 @@ public class FaceCaptureController extends BaseController implements Initializab
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "validating applicant biometrics");
 
-		return isAvailableInBioAttributes(Arrays.asList(RegistrationConstants.FACE)) ? applicantImageCaptured
+		/*return isAvailableInBioAttributes(Arrays.asList(RegistrationConstants.FACE)) ? applicantImageCaptured
 				: true && ((bioService.hasBiometricExceptionToggleEnabled() && !BioServiceImpl.isChild()
 						&& !getRegistrationDTOFromSession().isUpdateUINNonBiometric())
 								? (exceptionImageCaptured ? true : false)
 								: true);
-
+		 */
+		return true;
 	}
 
 	private boolean validateOperatorPhoto() {

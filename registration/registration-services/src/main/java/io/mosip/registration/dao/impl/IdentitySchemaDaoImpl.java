@@ -166,6 +166,17 @@ public class IdentitySchemaDaoImpl implements IdentitySchemaDao {
 		return checksum.equals(CryptoUtil.computeFingerPrint(content, null).toLowerCase());
 	}
 
+	@Override
+	public SchemaDto getIdentitySchema(double idVersion) throws RegBaseCheckedException {
+		IdentitySchema identitySchema = identitySchemaRepository.findByIdVersion(idVersion);
+		
+		if(identitySchema == null)
+			throw new RegBaseCheckedException(SchemaMessage.SCHEMA_FILE_NOT_FOUND.getCode(), 
+					SchemaMessage.SCHEMA_FILE_NOT_FOUND.getMessage());
+		
+		return getSchemaFromFile(identitySchema.getIdVersion(), identitySchema.getFileHash());
+	}
+
 }
 
 enum SchemaMessage {

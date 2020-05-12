@@ -5,10 +5,8 @@ import lombok.Data;
 @Data
 public class MDMRequestDto {
 	
-	private String modality;
-	//private String[] bioAttributes;
-	private String[] exceptions;
-	
+	private String modality;	
+	private String[] exceptions;	
 	private String mosipProcess;
 	private String environment;
 	private int timeout;
@@ -18,8 +16,7 @@ public class MDMRequestDto {
 	public MDMRequestDto(String modality, String[] exceptions, String mosipProcess,
 			String environment, int timeout, int count, int requestedScore) {
 		super();
-		this.modality = modality;
-		//this.bioAttributes = bioAttributes;
+		this.modality = modality;		
 		this.exceptions = exceptions;
 		this.mosipProcess = mosipProcess;
 		this.environment = environment;

@@ -1,5 +1,8 @@
 package io.mosip.registration.packetmananger.constants;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class PacketManagerConstants {
 	
 	public static final String IDENTITY_FILENAME = "ID.json";
@@ -42,4 +45,14 @@ public class PacketManagerConstants {
 	
 	public static final String BIOMETRICS_TYPE = "#/definitions/biometricsType";
 	public static final String DOCUMENTS_TYPE = "#/definitions/documentType";
+	
+	public static final String BIOMETRICS_DATATYPE = "biometricsType";
+	public static final String DOCUMENTS_DATATYPE = "documentType";	
+	
+	public static final String FINGERPRINT_SLAB_LEFT = "FINGERPRINT_SLAB_LEFT";
+	public static final String FINGERPRINT_SLAB_RIGHT = "FINGERPRINT_SLAB_RIGHT";
+	public static final String FINGERPRINT_SLAB_THUMBS = "FINGERPRINT_SLAB_THUMBS";
+	public static final String IRIS_DOUBLE = "IRIS_DOUBLE";
+	public static final String FACE_FULLFACE = "FACE_FULL FACE";
+
 }

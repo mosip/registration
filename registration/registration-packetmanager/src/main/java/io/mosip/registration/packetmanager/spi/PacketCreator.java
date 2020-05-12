@@ -7,7 +7,7 @@ import io.mosip.registration.packetmananger.dto.AuditDto;
 import io.mosip.registration.packetmananger.dto.BiometricsDto;
 import io.mosip.registration.packetmananger.dto.DocumentDto;
 import io.mosip.registration.packetmananger.dto.SimpleDto;
-import io.mosip.registration.packetmananger.dto.metadata.ModalityException;
+import io.mosip.registration.packetmananger.dto.metadata.BiometricsException;
 import io.mosip.registration.packetmananger.exception.PacketCreatorException;
 
 
@@ -27,7 +27,7 @@ public interface PacketCreator {
 	
 	public void setOperationsInfo(String key, String value);
 	
-	public void setBiometricException(String fieldName, List<ModalityException> modalityExceptions);
+	public void setBiometricException(String fieldName, List<BiometricsException> modalityExceptions);
 	
 	public void setAudits(List<AuditDto> auditList);
 	
