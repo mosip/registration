@@ -421,9 +421,10 @@ public class Utilities {
 	 *             the packet decryption failure exception
 	 * @throws ApisResourceAccessException
 	 *             the apis resource access exception
+	 * @throws ApiNotAccessibleException 
 	 */
 	public JSONObject getDemographicIdentityJSONObject(String registrationId) throws IOException,
-			PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException {
+			PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
 		
 		// To do use getDemographicIdentityJSONObject(String registrationId,String fieldLabel) this calling places
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
