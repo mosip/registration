@@ -78,8 +78,8 @@ public class CheckSumValidation {
 		Boolean isValid = false;
 
 		// Getting hash bytes from packet
-		InputStream idSequenceHashStream = adapter.getFile(registrationId, PacketFiles.HASH_SEQUENCE_1.name(),source);
-		InputStream metaSequenceHashStream = adapter.getFile(registrationId, PacketFiles.HASH_SEQUENCE_2.name(),source);
+		InputStream idSequenceHashStream = adapter.getFile(registrationId, PacketFiles.PACKET_DATA_HASH.name(),source);
+		InputStream metaSequenceHashStream = adapter.getFile(registrationId, PacketFiles.PACKET_OPERATIONS_HASH.name(),source);
 
 		byte[] idSequenceHashByte = IOUtils.toByteArray(idSequenceHashStream);
 		byte[] metaSequenceHashByte = IOUtils.toByteArray(metaSequenceHashStream);

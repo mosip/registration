@@ -918,21 +918,21 @@ public class PacketValidateProcessorTest {
 
 	}
 
-	@Test
-	public void testBaseUnCheckedExceptions()
-			throws IdObjectValidationFailedException, IdObjectIOException, PacketDecryptionFailureException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException,
-			RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
-		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
-		Mockito.when(utility.getUIn(any())).thenReturn(null);
-
-
-		MessageDTO messageDto = packetValidateProcessor.process(dto, stageName);
-
-		assertEquals(true, messageDto.getInternalError());
-
-	}
+//	@Test
+//	public void testBaseUnCheckedExceptions()
+//			throws IdObjectValidationFailedException, IdObjectIOException, PacketDecryptionFailureException,
+//			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException,
+//			RegistrationProcessorCheckedException,
+//			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+//		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
+//		Mockito.when(utility.getUIn(any())).thenReturn(null);
+//
+//
+//		MessageDTO messageDto = packetValidateProcessor.process(dto, stageName);
+//
+//		assertEquals(true, messageDto.getInternalError());
+//
+//	}
 
 	@Test
 	public void testParsingException() throws Exception {

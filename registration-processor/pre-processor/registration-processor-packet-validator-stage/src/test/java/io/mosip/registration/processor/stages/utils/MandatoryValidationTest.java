@@ -31,6 +31,7 @@ import io.mosip.registration.processor.core.exception.PacketDecryptionFailureExc
 import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 
@@ -88,7 +89,7 @@ public class MandatoryValidationTest {
 	}
 
 	@Test
-	public void mandatoryValidationSuccessTest() throws IOException, JSONException, PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+	public void mandatoryValidationSuccessTest() throws IOException, JSONException, PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 
 		boolean result = mandatoryValidation.mandatoryFieldValidation(registrationStatusDto.getRegistrationId());
 		assertTrue("Test for mandate fields", result);

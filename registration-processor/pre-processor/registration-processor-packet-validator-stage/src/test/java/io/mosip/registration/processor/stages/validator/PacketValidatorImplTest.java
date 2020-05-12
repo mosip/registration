@@ -210,6 +210,8 @@ public class PacketValidatorImplTest {
 	private String VALIDATEAPPLICANTDOCUMENT = "registration.processor.validateApplicantDocument";
 
 	private String VALIDATEMASTERDATA = "registration.processor.validateMasterData";
+	
+	private  String AGE_THRESHOLD = "mosip.kernel.applicant.type.age.limit";
 
 	private static final String VALIDATEMANDATORY = "registration-processor.validatemandotary";
 	private String stageName = "PacketValidatorStage";
@@ -369,9 +371,10 @@ public class PacketValidatorImplTest {
 		when(env.getProperty(VALIDATESCHEMA)).thenReturn("true");
 		when(env.getProperty(VALIDATEFILE)).thenReturn("true");
 		when(env.getProperty(VALIDATECHECKSUM)).thenReturn("true");
-		when(env.getProperty(VALIDATEAPPLICANTDOCUMENT)).thenReturn("false");
+		when(env.getProperty(VALIDATEAPPLICANTDOCUMENT)).thenReturn("true");
 		when(env.getProperty(VALIDATEMASTERDATA)).thenReturn("true");
-		when(env.getProperty(VALIDATEMANDATORY)).thenReturn("false");
+		when(env.getProperty(VALIDATEMANDATORY)).thenReturn("true");
+		when(env.getProperty(AGE_THRESHOLD)).thenReturn("5");
 		Mockito.when(idObjectValidator.validateIdObject(any(), any())).thenReturn(true);
 
 		JSONObject demographicIdentity = new JSONObject();
@@ -421,7 +424,7 @@ public class PacketValidatorImplTest {
 	
 	@Test
 	public void testSchemaValidationFailure() throws  PacketValidatorException, IdObjectValidationFailedException, IdObjectIOException {
-		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
+		
 		Mockito.when(idObjectValidator.validateIdObject(any(), any())).thenReturn(false);
 		assertFalse( PacketValidator.validate(registrationStatusDto,packetMetaInfo,dto,identityIteratorUtil,packetValidationDto,trimMessage,description));
 		
@@ -453,7 +456,8 @@ public class PacketValidatorImplTest {
 	 */
 	@Test
 	public void testStructuralDocumentValidationFailure() throws Exception {
-		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
+		Mockito.when(utility.getApplicantAge(anyString())).thenReturn(28);
+		JSONObject jsonObject = Mockito.mock(JSONObject.class);
 		packetMetaInfo = new PacketMetaInfo();
 		Identity identity = new Identity();
 
@@ -550,6 +554,23 @@ public class PacketValidatorImplTest {
 
 
 	}
+	
+	@Test
+	public void testBiometricsValidationFailure() throws Exception {
+		JSONObject jsonObject = Mockito.mock(JSONObject.class);
+		Mockito.when(utility.getUIn(any())).thenReturn(12345678l);
+		Mockito.when(utility.retrieveIdrepoJson(any())).thenReturn(jsonObject);
+		Mockito.when(utility.retrieveIdrepoJsonStatus(any())).thenReturn("ACTIVE");
+
+		Mockito.when(utility.getDemographicIdentityJSONObject(any())).thenReturn(jsonObject);
+		PowerMockito.when(JsonUtil.getJSONObject(jsonObject, "individualBiometrics")).thenReturn(jsonObject);
+		Mockito.when(jsonObject.get("value")).thenReturn(null);
+		assertFalse(PacketValidator.validate(registrationStatusDto,packetMetaInfo,dto,identityIteratorUtil,packetValidationDto,trimMessage,description));
+
+
+	}
+	
+	
 	
 	@Test
 	public void testBaseCheckedExceptions() throws IdObjectValidationFailedException, IdObjectIOException, PacketValidatorException {
@@ -712,16 +733,15 @@ public class PacketValidatorImplTest {
 //		assertTrue(PacketValidator.validate(registrationStatusDto,packetMetaInfo,dto,identityIteratorUtil,packetValidationDto,trimMessage,description));
 //
 //	}
-//	
-//	/**
-//	 * Test structural validation success for adult.
-//	 *
-//	 * @throws Exception
-//	 *             the exception
-//	 */
+	
+	/**
+	 * Test structural validation success for adult.
+	 *
+	 * @throws Exception
+	 *             the exception
+	 */
 //	@Test
 //	public void testStructuralValidationSuccessForAdult() throws Exception {
-//		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
 //		listAppender.start();
 //
 //		list.add(statusDto);

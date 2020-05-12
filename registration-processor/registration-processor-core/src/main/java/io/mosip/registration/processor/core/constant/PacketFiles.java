@@ -110,10 +110,8 @@ public enum PacketFiles {
 	PACKET_DATA_HASH,
 	/** The packetOsiHash. */
 	PACKET_OSI_HASH,
-	/** The idsequence. */
-	HASH_SEQUENCE_1,
 	/** The meta sequence. */
-	HASH_SEQUENCE_2,
+	PACKET_OPERATIONS_HASH,
 	/** The otherFiles. */
 	OTHERFILES,
 
