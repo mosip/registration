@@ -138,7 +138,7 @@ public class PacketDecryptorImpl implements PacketDecryptor {
 				HttpServerErrorException httpServerException = (HttpServerErrorException) e.getCause();
 				throw new ApiNotAccessibleException(httpServerException.getResponseBodyAsString());
 			} else {
-				throw new ApiNotAccessibleException(e);
+				throw new PacketDecryptionFailureException(e);
 			}
 
 		}
