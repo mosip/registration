@@ -1174,10 +1174,10 @@ public class DemographicDetailController extends BaseController {
 					destLocationHierarchyInLocal.getItems().add(selectedLocationHierarchy);
 				} else {
 					
-					List<GenericDto> locations = masterSync.findLocationByHierarchyCode(
+					List<GenericDto> locations = masterSync.findProvianceByHierarchyCode(
 							selectedLocationHierarchy.getCode(), selectedLocationHierarchy.getLangCode());
 
-					List<GenericDto> locationsSecondary = masterSync.findLocationByHierarchyCode(
+					List<GenericDto> locationsSecondary = masterSync.findProvianceByHierarchyCode(
 							selectedLocationHierarchy.getCode(), ApplicationContext.localLanguage());
 					
 					System.out.println("selectedLocationHierarchy.getCode() >>> " + selectedLocationHierarchy.getCode());
