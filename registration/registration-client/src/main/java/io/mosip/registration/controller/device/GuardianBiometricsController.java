@@ -34,9 +34,7 @@ import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.FXUtils;
 import io.mosip.registration.controller.reg.RegistrationController;
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
-import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.dto.biometric.BiometricExceptionDTO;
-import io.mosip.registration.dto.biometric.FaceDetailsDTO;
 import io.mosip.registration.dto.biometric.FingerprintDetailsDTO;
 import io.mosip.registration.dto.biometric.IrisDetailsDTO;
 import io.mosip.registration.dto.mastersync.BiometricAttributeDto;
@@ -333,7 +331,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 		if (null != comboBoxMap.get("introducer")) {
 			comboBoxMap.get("introducer").setVisible(true);
 			comboBoxMap.get("introducer").setManaged(true);
-			if (null!=checkBoxMap.get("introducer") && null != checkBoxMap.get("introducer").get("LEFT_SLAB")) {
+			if (null != checkBoxMap.get("introducer") && null != checkBoxMap.get("introducer").get("LEFT_SLAB")) {
 				checkBoxMap.get("introducer").get("LEFT_SLAB").setVisible(true);
 
 				checkBoxMap.get("introducer").get("LEFT_SLAB").setManaged(true);
@@ -621,9 +619,9 @@ public class GuardianBiometricsController extends BaseController implements Init
 		// Check count
 		int count = 1;
 
-		MDMRequestDto mdmRequestDto = new MDMRequestDto(currentModality, exceptionBioAttributes,
-				"Registration", "Staging", Integer.valueOf(getCaptureTimeOut()), count,
-				Integer.valueOf(getThresholdScore(bioType)));
+		MDMRequestDto mdmRequestDto = new MDMRequestDto(currentModality, exceptionBioAttributes, "Registration",
+				"Staging", Integer.valueOf(getCaptureTimeOut()), count,
+				Integer.valueOf(getThresholdKeyByBioType(getThresholdScore(bioType))));
 
 		try {
 			// TODO Get Response from the MDS
@@ -735,9 +733,18 @@ public class GuardianBiometricsController extends BaseController implements Init
 		return null;
 	}
 
-	private String getThresholdScore(String bioType) {
+	private String getThresholdScore(String thresholdKey) {
 		/* Get Configued threshold score for bio type */
-		return getValueFromApplicationContext(RegistrationConstants.IRIS_THRESHOLD);
+
+		return getValueFromApplicationContext(thresholdKey);
+	}
+
+	private int getThresholdScoreInInt(String thresholdKey) {
+		/* Get Configued threshold score for bio type */
+
+		String thresholdScore = getValueFromApplicationContext(thresholdKey);
+
+		return thresholdScore != null ? Integer.valueOf(thresholdScore) : 0;
 	}
 
 	private String getCaptureTimeOut() {
@@ -819,12 +826,12 @@ public class GuardianBiometricsController extends BaseController implements Init
 						true);
 				registrationPreviewController.setUpPreviewContent();
 			}
-			//faceCaptureController.checkForException();
+			// faceCaptureController.checkForException();
 			registrationController.showUINUpdateCurrentPage();
 		} else {
 			registrationController.showCurrentPage(RegistrationConstants.GUARDIAN_BIOMETRIC,
 					getPageByAction(RegistrationConstants.GUARDIAN_BIOMETRIC, RegistrationConstants.NEXT));
-			//faceCaptureController.checkForException();
+			// faceCaptureController.checkForException();
 		}
 	}
 
@@ -859,11 +866,12 @@ public class GuardianBiometricsController extends BaseController implements Init
 			attemptSlap.setText(RegistrationConstants.HYPHEN);
 			duplicateCheckLbl.setText(RegistrationConstants.EMPTY);
 		}
-		//getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().getFingerprintDetailsDTO()
-		//		.clear();
-		//getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().getIrisDetailsDTO().clear();
-//
-		//getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().setFace(new FaceDetailsDTO());
+		// getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().getFingerprintDetailsDTO()
+		// .clear();
+		// getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().getIrisDetailsDTO().clear();
+		//
+		// getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().setFace(new
+		// FaceDetailsDTO());
 		intializeCaptureCount();
 
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
@@ -1701,6 +1709,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 		List<String> bioAttributes = getBioAttributesBySubType(currentSubType);
 
 		boolean isAllBiometricsCaptured = true;
+
 		List<String> leftHandBioAttributes = getContainsAllElements(RegistrationConstants.leftHandUiAttributes,
 				bioAttributes);
 		List<String> rightHandBioAttributes = getContainsAllElements(RegistrationConstants.rightHandUiAttributes,
@@ -1711,21 +1720,14 @@ public class GuardianBiometricsController extends BaseController implements Init
 				bioAttributes);
 		List<String> irisBioAttributes = getContainsAllElements(RegistrationConstants.eyesUiAttributes, bioAttributes);
 
-		if (bioAttributes != null && !bioAttributes.isEmpty()) {
-			for (String bioAttribute : bioAttributes) {
-
-				// TODO replace with @Anusha Code
-				boolean isExceptionBiometricAvailable = true;
-
-				if (getRegistrationDTOFromSession().getBiometric(currentSubType, bioAttribute) != null
-						|| isExceptionBiometricAvailable) {
-					isAllBiometricsCaptured = true;
-				} else {
-					isAllBiometricsCaptured = false;
-					break;
-				}
-			}
-		}
+		isAllBiometricsCaptured = isBiometricsCaptured(leftHandBioAttributes,
+				getThresholdScoreInInt(RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD))
+				&& isBiometricsCaptured(rightHandBioAttributes,
+						getThresholdScoreInInt(RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD))
+				&& isBiometricsCaptured(twoThumbsBioAttributes,
+						getThresholdScoreInInt(RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD))
+				&& isBiometricsCaptured(irisBioAttributes, getThresholdScoreInInt(RegistrationConstants.IRIS_THRESHOLD))
+				&& isBiometricsCaptured(faceBioAttributes, getThresholdScoreInInt(RegistrationConstants.FACE));
 
 		if (isAllBiometricsCaptured) {
 			continueBtn.setDisable(false);
@@ -1736,4 +1738,50 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 	}
 
+	private boolean isBiometricsCaptured(List<String> bioAttributes, int thresholdScore) {
+
+		boolean isCaptured = false;
+
+		if (bioAttributes != null && !bioAttributes.isEmpty()) {
+
+			int qualityScore = 0;
+
+			int exceptionBioCount = 0;
+
+			boolean isForceCaptured = false;
+			for (String bioAttribute : bioAttributes) {
+
+				BiometricsDto biometricDTO = getRegistrationDTOFromSession().getBiometric(currentSubType, bioAttribute);
+				if (biometricDTO != null) {
+
+					/* Captures check */
+					qualityScore += biometricDTO.getQualityScore();
+
+					isCaptured = true;
+					isForceCaptured = biometricDTO.isForceCaptured();
+
+				} else if (getRegistrationDTOFromSession().isBiometricExceptionAvailable(currentSubType,
+						bioAttribute)) {
+
+					/* Exception bio check */
+					isCaptured = true;
+					++exceptionBioCount;
+
+				} else {
+					isCaptured = false;
+					break;
+				}
+			}
+
+			/* quality score check and force capture check */
+			if (isCaptured && !isForceCaptured) {
+				isCaptured = qualityScore / bioAttributes.size() - exceptionBioCount >= thresholdScore;
+			}
+		} else {
+
+			/* If no bio attributes */
+			isCaptured = true;
+		}
+		return true;
+	}
 }
