@@ -79,10 +79,6 @@ public class MessageNotificationServiceImplTest {
 	@InjectMocks
 	private MessageNotificationService<SmsResponseDto, ResponseDto, MultipartFile[]> messageNotificationServiceImpl = new MessageNotificationServiceImpl();
 
-	/** The adapter. */
-	@Mock
-	private PacketManager adapter;
-
 	@Mock
 	private IdRepoService idRepoService;
 

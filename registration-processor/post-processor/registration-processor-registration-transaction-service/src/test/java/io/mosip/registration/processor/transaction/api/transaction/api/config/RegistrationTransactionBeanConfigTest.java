@@ -16,9 +16,6 @@ import io.mosip.registration.processor.status.validator.RegistrationSyncRequestV
 public class RegistrationTransactionBeanConfigTest {
 
 	@MockBean
-	public PacketManager filesystemAdapter;
-
-	@MockBean
 	public ConnectionUtils connectionUtil;
 
 	@MockBean

@@ -21,9 +21,6 @@ import io.mosip.registration.processor.status.config.RegistrationStatusServiceBe
 public class RegistrationStatusConfigTest {
 
 	@MockBean
-	public PacketManager filesystemAdapter;
-
-	@MockBean
 	public ConnectionUtils connectionUtil;
 
 }

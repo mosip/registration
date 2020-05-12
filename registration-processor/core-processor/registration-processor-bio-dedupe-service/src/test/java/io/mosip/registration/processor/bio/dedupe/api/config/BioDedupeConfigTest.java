@@ -29,9 +29,6 @@ excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = {
 public class BioDedupeConfigTest {
 
 	@MockBean
-	public PacketManager filesystemAdapter;
-
-	@MockBean
 	public ConnectionUtils connectionUtil;
 
 	@MockBean

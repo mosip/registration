@@ -24,9 +24,6 @@ import io.mosip.registration.processor.rest.client.config.RestConfigBean;
 public class PrintServiceConfigTest {
 
 	@MockBean
-	public PacketManager filesystemAdapter;
-
-	@MockBean
 	public ConnectionUtils connectionUtil;
 
 	@MockBean

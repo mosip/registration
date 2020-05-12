@@ -81,8 +81,6 @@ public class OSIValidatorStageTest {
 	@Mock
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
-	@Mock
-	private PacketManager filesystemCephAdapterImpl;
 	/** The audit log request builder. */
 	@Mock
 	private AuditLogRequestBuilder auditLogRequestBuilder;

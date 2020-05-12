@@ -137,9 +137,6 @@ public class PrintStageTest {
 	private PrintService<Map<String, byte[]>> printService;
 
 	@Mock
-	public PacketManager filesystemAdapter;
-
-	@Mock
 	private UinValidator<String> uinValidatorImpl;
 
 	/** The packet meta info. */
