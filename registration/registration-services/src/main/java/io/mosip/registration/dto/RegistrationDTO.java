@@ -154,4 +154,9 @@ public class RegistrationDTO {
 		identity.put("identity", allIdentityDetails);
 		return identity;	
 	}
+	
+	public BiometricsDto removeBiometric(String subType, String bioAttribute) {
+		String key = String.format("%s_%s", subType, bioAttribute);
+		return this.biometrics.remove(key);
+	}
 }
