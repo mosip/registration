@@ -28,7 +28,7 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 public class CheckSumValidation {
 
 	/** The adapter. */
-	private PacketReaderService adapter;
+	private PacketReaderService packetReaderService;
 
 	/** The registration status dto. */
 	private InternalRegistrationStatusDto registrationStatusDto;
@@ -47,10 +47,10 @@ public class CheckSumValidation {
 	 * @param registrationStatusDto
 	 *            the registration status dto
 	 */
-	public CheckSumValidation(PacketReaderService adapter, InternalRegistrationStatusDto registrationStatusDto,
+	public CheckSumValidation(PacketReaderService packetReaderService, InternalRegistrationStatusDto registrationStatusDto,
 			String source) {
 		this.registrationStatusDto = registrationStatusDto;
-		this.adapter = adapter;
+		this.packetReaderService = packetReaderService;
 		this.source=source;
 
 	}
@@ -78,14 +78,14 @@ public class CheckSumValidation {
 		Boolean isValid = false;
 
 		// Getting hash bytes from packet
-		InputStream idSequenceHashStream = adapter.getFile(registrationId, PacketFiles.PACKET_DATA_HASH.name(),source);
-		InputStream metaSequenceHashStream = adapter.getFile(registrationId, PacketFiles.PACKET_OPERATIONS_HASH.name(),source);
+		InputStream idSequenceHashStream = packetReaderService.getFile(registrationId, PacketFiles.PACKET_DATA_HASH.name(),source);
+		InputStream metaSequenceHashStream = packetReaderService.getFile(registrationId, PacketFiles.PACKET_OPERATIONS_HASH.name(),source);
 
 		byte[] idSequenceHashByte = IOUtils.toByteArray(idSequenceHashStream);
 		byte[] metaSequenceHashByte = IOUtils.toByteArray(metaSequenceHashStream);
 
 		// Generating hash bytes using files
-		CheckSumGeneration checkSumGeneration = new CheckSumGeneration(adapter,source);
+		CheckSumGeneration checkSumGeneration = new CheckSumGeneration(packetReaderService,source);
 		byte[] idSequenceHash = checkSumGeneration.generateIdentityHash(hashSequence1, registrationId);
 		
 		byte[] metaSequenceHash = checkSumGeneration.generatePacketOSIHash(hashSequence2, registrationId);

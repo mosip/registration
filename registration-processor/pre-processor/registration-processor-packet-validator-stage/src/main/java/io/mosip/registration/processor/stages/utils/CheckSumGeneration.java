@@ -34,7 +34,7 @@ public class CheckSumGeneration {
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(CheckSumGeneration.class);
 
 	/** The adapter. */
-	private PacketReaderService adapter;
+	private PacketReaderService packetReaderService;
 
 	private String source;
 
@@ -44,8 +44,8 @@ public class CheckSumGeneration {
 	 * @param adapter
 	 *            the adapter
 	 */
-	public CheckSumGeneration(PacketReaderService adapter,String source) {
-		this.adapter = adapter;
+	public CheckSumGeneration(PacketReaderService packetReaderService,String source) {
+		this.packetReaderService = packetReaderService;
 		this.source=source;
 	}
 
@@ -99,7 +99,7 @@ public class CheckSumGeneration {
 		hashOrder.forEach(document -> {
 			byte[] fileByte = null;
 			try {
-				InputStream fileStream = adapter.getFile(registrationId, document.toUpperCase(),source);
+				InputStream fileStream = packetReaderService.getFile(registrationId, document.toUpperCase(),source);
 
                 fileByte = IOUtils.toByteArray(fileStream);
 				outputStream.write(fileByte);
@@ -118,7 +118,7 @@ public class CheckSumGeneration {
 			hashValues.forEach(value -> {
 				byte[] valuebyte = null;
 				try {
-					InputStream fileStream = adapter.getFile(registrationId, value.toUpperCase(),source);
+					InputStream fileStream = packetReaderService.getFile(registrationId, value.toUpperCase(),source);
 
 					valuebyte = IOUtils.toByteArray(fileStream);
 					outputStream.write(valuebyte);

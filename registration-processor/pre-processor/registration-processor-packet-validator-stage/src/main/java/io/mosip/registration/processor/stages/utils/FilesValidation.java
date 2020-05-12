@@ -26,7 +26,7 @@ public class FilesValidation {
 	public static final String BIOMETRIC = PacketFiles.BIOMETRIC.name() + FILE_SEPARATOR;
 
 	/** The adapter. */
-	private PacketReaderService adapter;
+	private PacketReaderService packetReaderService;
 
 	/** The registration status dto. */
 	InternalRegistrationStatusDto registrationStatusDto;
@@ -44,10 +44,10 @@ public class FilesValidation {
 	 * @param registrationStatusDto
 	 *            the registration status dto
 	 */
-	public FilesValidation(PacketReaderService adapter, InternalRegistrationStatusDto registrationStatusDto,
+	public FilesValidation(PacketReaderService packetReaderService, InternalRegistrationStatusDto registrationStatusDto,
 			String source) {
 		this.registrationStatusDto = registrationStatusDto;
-		this.adapter = adapter;
+		this.packetReaderService = packetReaderService;
 		this.source=source;
 	}
 
@@ -123,7 +123,7 @@ public class FilesValidation {
 		boolean areFilesValidated = true;
 		for(String file : values){
 			String fileName = file.toUpperCase();
-			areFilesValidated = adapter.checkFileExistence(registrationId, fileName,source);
+			areFilesValidated = packetReaderService.checkFileExistence(registrationId, fileName,source);
 			if (!areFilesValidated) {
 				break;
 			}

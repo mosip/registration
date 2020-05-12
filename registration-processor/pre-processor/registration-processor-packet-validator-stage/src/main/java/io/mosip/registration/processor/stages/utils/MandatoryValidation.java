@@ -36,7 +36,7 @@ public class MandatoryValidation {
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(MandatoryValidation.class);
 
 	/** The adapter. */
-	private PacketReaderService adapter;
+	private PacketReaderService packetReaderService;
 
 	private Utilities utility;
 
@@ -47,9 +47,9 @@ public class MandatoryValidation {
 
 	public static final String FILE_SEPARATOR = "\\";
 
-	public MandatoryValidation(PacketReaderService adapter, InternalRegistrationStatusDto registrationStatusDto,
+	public MandatoryValidation(PacketReaderService packetReaderService, InternalRegistrationStatusDto registrationStatusDto,
 			Utilities utility,String source) {
-		this.adapter = adapter;
+		this.packetReaderService = packetReaderService;
 		this.registrationStatusDto = registrationStatusDto;
 		this.utility = utility;
 		this.source=source;
@@ -105,7 +105,7 @@ public class MandatoryValidation {
 
 	private JSONObject getDemoIdentity(String registrationId) throws IOException, PacketDecryptionFailureException,
 			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
-		InputStream documentInfoStream = adapter.getFile(registrationId, PacketFiles.ID.name(),source);
+		InputStream documentInfoStream = packetReaderService.getFile(registrationId, PacketFiles.ID.name(),source);
 
 		byte[] bytes = IOUtils.toByteArray(documentInfoStream);
 		String demographicJsonString = new String(bytes);
