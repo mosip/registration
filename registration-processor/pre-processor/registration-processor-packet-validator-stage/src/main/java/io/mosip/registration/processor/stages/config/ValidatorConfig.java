@@ -20,6 +20,8 @@ import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectValidationFailed
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.core.packet.dto.applicantcategory.ApplicantTypeDocument;
+import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
+import io.mosip.registration.processor.packet.utility.service.impl.PacketReaderServiceImpl;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.stages.helper.RestHelper;
 import io.mosip.registration.processor.stages.helper.RestHelperImpl;
@@ -29,11 +31,14 @@ import io.mosip.registration.processor.stages.utils.AuditUtility;
 import io.mosip.registration.processor.stages.utils.DocumentUtility;
 import io.mosip.registration.processor.stages.utils.IdObjectsSchemaValidationOperationMapper;
 import io.mosip.registration.processor.stages.utils.RestTemplateInterceptor;
+import io.mosip.registration.processor.stages.validator.PacketValidator;
+import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl;
 
 @Configuration
 public class ValidatorConfig {
 
 	public static final String IDOBJECT_PROVIDER = "idobject.validator.provider";
+	public static final String PACKET_VALIDATOR_PROVIDER = "packet.validator.provider";
 
 	@Autowired
 	private RestApiClient restApiClient;
@@ -92,6 +97,21 @@ public class ValidatorConfig {
 	public void validateReferenceValidator() throws ClassNotFoundException {
 		if (StringUtils.isNotBlank(env.getProperty(IDOBJECT_PROVIDER))) {
 			Class.forName(env.getProperty(IDOBJECT_PROVIDER));
+		}
+	}
+	
+	@Bean
+	public PacketReaderService getPacketReaderService() {
+		return new PacketReaderServiceImpl();
+	}
+	
+	@Bean
+	public PacketValidator referencePacketValidator() throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+		if (StringUtils.isNotBlank(env.getProperty(PACKET_VALIDATOR_PROVIDER))) {
+			return (PacketValidator) Class.forName(env.getProperty(PACKET_VALIDATOR_PROVIDER)).newInstance();
+		} else {
+
+			return new PacketValidatorImpl();
 		}
 	}
 

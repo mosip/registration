@@ -3,6 +3,7 @@ package io.mosip.registration.processor.stages.utils;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,6 +31,8 @@ import io.mosip.registration.processor.core.exception.PacketDecryptionFailureExc
 import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
+import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 
 @RunWith(PowerMockRunner.class)
@@ -38,7 +41,7 @@ public class MandatoryValidationTest {
 
 	/** The adapter. */
 	@Mock
-	private PacketManager adapter;
+	private PacketReaderService adapter;
 
 	@Mock
 	private Utilities utility;
@@ -72,11 +75,11 @@ public class MandatoryValidationTest {
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("10003100030001120190410111048");
 
-		mandatoryValidation = new MandatoryValidation(adapter, registrationStatusDto, utility);
+		mandatoryValidation = new MandatoryValidation(adapter, registrationStatusDto, utility,"id");
 
 		Mockito.when(utility.getRegistrationProcessorIdentityJson()).thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(mappingJsonString, JSONObject.class), MappingJsonConstants.IDENTITY));
 		
-		Mockito.when(adapter.getFile(any(), any())).thenReturn(inputStream);
+		Mockito.when(adapter.getFile(any(), any(),anyString())).thenReturn(inputStream);
 
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(idJsonString.getBytes());
@@ -86,7 +89,7 @@ public class MandatoryValidationTest {
 	}
 
 	@Test
-	public void mandatoryValidationSuccessTest() throws IOException, JSONException, PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException {
+	public void mandatoryValidationSuccessTest() throws IOException, JSONException, PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 
 		boolean result = mandatoryValidation.mandatoryFieldValidation(registrationStatusDto.getRegistrationId());
 		assertTrue("Test for mandate fields", result);

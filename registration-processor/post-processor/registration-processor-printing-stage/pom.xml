@@ -9,7 +9,7 @@
 		<version>1.0.9</version>
 	</parent>
 	<artifactId>registration-processor-printing-stage</artifactId>
-	 <version>1.0.9</version>
+	 <version>1.0.10-SNAPSHOT</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -96,6 +96,11 @@
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idvalidator-uin</artifactId>
 			<version>${kernel.idvalidator.uin.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.registrationprocessor</groupId>
+			<artifactId>registration-processor-packet-utility</artifactId>
+			<version>${registration.processor.packet.utility.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>

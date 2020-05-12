@@ -421,18 +421,18 @@ public class Utilities {
 	 *             the packet decryption failure exception
 	 * @throws ApisResourceAccessException
 	 *             the apis resource access exception
+	 * @throws ApiNotAccessibleException 
 	 */
 	public JSONObject getDemographicIdentityJSONObject(String registrationId) throws IOException,
-			PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException {
+			PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
 		
 		// To do use getDemographicIdentityJSONObject(String registrationId,String fieldLabel) this calling places
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getDemographicIdentityJSONObject()::entry");
 		
 		
-/*
-		InputStream idJsonStream = adapter.getFile(registrationId,
-				PacketFiles.DEMOGRAPHIC.name() + FILE_SEPARATOR + PacketFiles.ID.name());
+
+		InputStream idJsonStream = packetReaderService.getFile(registrationId, PacketFiles.ID.name(),JsonConstant.ID);
 		byte[] bytearray = IOUtils.toByteArray(idJsonStream);
 		String jsonString = new String(bytearray);
 		JSONObject demographicIdentityJson = (JSONObject) JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
@@ -448,9 +448,9 @@ public class Utilities {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getDemographicIdentityJSONObject()::exit");
-*/
+
 		
-		return null;
+		return demographicIdentity;
 
 	}
 

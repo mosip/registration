@@ -16,13 +16,14 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
+import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
+import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 
 /**
@@ -35,24 +36,27 @@ public class MandatoryValidation {
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(MandatoryValidation.class);
 
 	/** The adapter. */
-	private PacketManager adapter;
+	private PacketReaderService packetReaderService;
 
 	private Utilities utility;
 
 	/** The registration status dto. */
 	private InternalRegistrationStatusDto registrationStatusDto;
 
+	private String source;
+
 	public static final String FILE_SEPARATOR = "\\";
 
-	public MandatoryValidation(PacketManager adapter, InternalRegistrationStatusDto registrationStatusDto,
-			Utilities utility) {
-		this.adapter = adapter;
+	public MandatoryValidation(PacketReaderService packetReaderService, InternalRegistrationStatusDto registrationStatusDto,
+			Utilities utility,String source) {
+		this.packetReaderService = packetReaderService;
 		this.registrationStatusDto = registrationStatusDto;
 		this.utility = utility;
+		this.source=source;
 	}
 
 	public boolean mandatoryFieldValidation(String regId) throws IOException, JSONException,
-			PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException {
+			PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"MandatoryValidation::mandatoryFieldValidation()::entry");
 		JSONObject mapperIdentity = utility.getRegistrationProcessorIdentityJson();
@@ -100,9 +104,8 @@ public class MandatoryValidation {
 	}
 
 	private JSONObject getDemoIdentity(String registrationId) throws IOException, PacketDecryptionFailureException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException {
-		InputStream documentInfoStream = adapter.getFile(registrationId,
-				PacketFiles.DEMOGRAPHIC.name() + FILE_SEPARATOR + PacketFiles.ID.name());
+			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
+		InputStream documentInfoStream = packetReaderService.getFile(registrationId, PacketFiles.ID.name(),source);
 
 		byte[] bytes = IOUtils.toByteArray(documentInfoStream);
 		String demographicJsonString = new String(bytes);
