@@ -247,6 +247,17 @@ public class GuardianBiometricsController extends BaseController implements Init
 	private ResourceBundle applicationLabelBundle;
 
 	private String currentModality;
+	
+	private int currentPosition=-1;
+	
+	private int previousPosition=-1;
+	
+	private int sizeOfCombobox=-1;
+	
+	private HashMap<String, VBox> comboBoxMap;
+
+	private HashMap<String, HashMap<String, VBox>> checkBoxMap;
+
 
 	/*
 	 * (non-Javadoc)
@@ -258,21 +269,16 @@ public class GuardianBiometricsController extends BaseController implements Init
 	public void initialize(URL arg0, ResourceBundle arg1) {
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Loading of Guardian Biometric screen started");
-
+		comboBoxMap = new HashMap<>();
+		checkBoxMap = new HashMap<>();
 		fxUtils = FXUtils.getInstance();
-
 		applicationLabelBundle = applicationContext.getApplicationLanguageBundle();
-
-		HashMap<String, VBox> comboBoxMap = new HashMap<>();
-
-		HashMap<String, HashMap<String, VBox>> checkBoxMap = new HashMap<>();
-
 		HashMap<Entry<String, String>, HashMap<String, List<List<String>>>> mapToProcess = getconfigureAndNonConfiguredBioAttributes(
-				Arrays.asList(getValue("LEFT_SLAB", RegistrationConstants.leftHandUiAttributes),
-						getValue("RIGHT_SLAB", RegistrationConstants.rightHandUiAttributes),
-						getValue("THUMBS_SLAB", RegistrationConstants.twoThumbsUiAttributes),
-						getValue("IRIS", RegistrationConstants.eyesUiAttributes),
-						getValue("FACE", RegistrationConstants.faceUiAttributes)));
+				Arrays.asList(getValue(RegistrationConstants.FINGERPRINT_SLAB_LEFT, RegistrationConstants.leftHandUiAttributes),
+						getValue(RegistrationConstants.FINGERPRINT_SLAB_RIGHT, RegistrationConstants.rightHandUiAttributes),
+						getValue(RegistrationConstants.FINGERPRINT_SLAB_THUMBS, RegistrationConstants.twoThumbsUiAttributes),
+						getValue(RegistrationConstants.IRIS, RegistrationConstants.eyesUiAttributes),
+						getValue(RegistrationConstants.FACE, RegistrationConstants.faceUiAttributes)));
 
 		for (Entry<Entry<String, String>, HashMap<String, List<List<String>>>> subType : mapToProcess.entrySet()) {
 			VBox vb = new VBox();
@@ -281,6 +287,9 @@ public class GuardianBiometricsController extends BaseController implements Init
 			Label label = new Label(subType.getKey().getValue());
 			label.getStyleClass().add("paneHeader");
 			ComboBox<Entry<String, String>> comboBox = new ComboBox<>();
+			comboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) ->{
+				displayBiometric(newValue.getKey());
+			});
 			renderBiometrics(comboBox);
 			comboBox.getStyleClass().add("demographicCombobox");
 			comboBox.setId(subType.getKey() + "combobox");
@@ -328,14 +337,14 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		}
 
-		if (null != comboBoxMap.get("introducer")) {
-			comboBoxMap.get("introducer").setVisible(true);
-			comboBoxMap.get("introducer").setManaged(true);
-			if (null != checkBoxMap.get("introducer") && null != checkBoxMap.get("introducer").get("LEFT_SLAB")) {
-				checkBoxMap.get("introducer").get("LEFT_SLAB").setVisible(true);
-
-				checkBoxMap.get("introducer").get("LEFT_SLAB").setManaged(true);
-			}
+		sizeOfCombobox = comboBoxMap.size();
+		if(sizeOfCombobox>0)
+			currentPosition = 0;
+		
+		
+		if (null != findComboBox()) {
+			findComboBox().setVisible(true);
+			findComboBox().setManaged(true);
 		}
 
 		//
@@ -395,6 +404,33 @@ public class GuardianBiometricsController extends BaseController implements Init
 		// });
 	}
 
+	private VBox findComboBox() {
+		return comboBoxMap.get(getListOfBiometricSubTypess().get(currentPosition));
+	}
+
+	
+	private void goToNext() {
+		if(currentPosition+1<sizeOfCombobox) {
+			findComboBox().setVisible(false);
+			findComboBox().setManaged(false);
+			previousPosition = currentPosition;
+			currentPosition++;
+			findComboBox().setVisible(true);
+			findComboBox().setManaged(true);
+		}
+	}
+	
+	
+	private void goToPrevious() {
+		if(currentPosition-1>0) {
+			findComboBox().setVisible(false);
+			findComboBox().setManaged(false);
+			currentPosition--;
+			findComboBox().setVisible(true);
+			findComboBox().setManaged(true);
+		}
+	}
+	
 	public void intializeCaptureCount() {
 		leftSlapCount = 0;
 		rightSlapCount = 0;
@@ -452,6 +488,57 @@ public class GuardianBiometricsController extends BaseController implements Init
 				"Parent/Guardian Biometrics captured");
 	}
 
+	/**
+	 * Displays biometrics
+	 *
+	 * @param event
+	 *            the event for displaying biometrics
+	 */
+	private void displayBiometric(String modality) {
+
+		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+				"Displaying biometrics to capture");
+
+
+			this.currentModality = modality;
+			
+			//code to make check boxes visible invisible
+
+			ComboBox<Entry<String, String>> biometricTypecombo = (ComboBox<Entry<String, String>>) findComboBox().getChildren().get(1);
+			
+			if (biometricTypecombo.getValue().getKey().equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)) {
+				updateBiometric(biometricTypecombo.getValue().getKey(), RegistrationConstants.RIGHTPALM_IMG_PATH,
+						RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD,
+						RegistrationConstants.FINGERPRINT_RETRIES_COUNT);
+			} else if (biometricTypecombo.getValue().getKey().equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_LEFT)) {
+				updateBiometric(biometricTypecombo.getValue().getKey(), RegistrationConstants.LEFTPALM_IMG_PATH,
+						RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD,
+						RegistrationConstants.FINGERPRINT_RETRIES_COUNT);
+			} else if (biometricTypecombo.getValue().getKey().equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_THUMBS)) {
+				updateBiometric(biometricTypecombo.getValue().getKey(), RegistrationConstants.THUMB_IMG_PATH,
+						RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD,
+						RegistrationConstants.FINGERPRINT_RETRIES_COUNT);
+			} else if (biometricTypecombo.getValue().getKey().equalsIgnoreCase(RegistrationConstants.IRIS)) {
+				updateBiometric(biometricTypecombo.getValue().getKey(), RegistrationConstants.RIGHT_IRIS_IMG_PATH,
+						RegistrationConstants.IRIS_THRESHOLD, RegistrationConstants.IRIS_RETRY_COUNT);
+			} else if (biometricTypecombo.getValue().getKey().equalsIgnoreCase(RegistrationConstants.FACE)) {
+				updateBiometric(biometricTypecombo.getValue().getKey(), RegistrationConstants.LEFT_IRIS_IMG_PATH,
+						RegistrationConstants.IRIS_THRESHOLD, RegistrationConstants.IRIS_RETRY_COUNT);
+			}
+
+		if (!bioValue.equalsIgnoreCase(RegistrationUIConstants.SELECT)) {
+			scanBtn.setDisable(false);
+			continueBtn.setDisable(true);
+			biometricBox.setVisible(true);
+			retryBox.setVisible(true);
+		}
+
+		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+				"Parent/Guardian Biometrics captured");
+	}
+
+	
+	
 	/**
 	 * Scan the biometrics
 	 *
@@ -782,6 +869,11 @@ public class GuardianBiometricsController extends BaseController implements Init
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Navigates to previous section");
 
+		if(currentPosition!=0)
+		{
+			goToPrevious();
+			return;
+		}
 		webCameraController.closeWebcam();
 
 		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
@@ -813,6 +905,12 @@ public class GuardianBiometricsController extends BaseController implements Init
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Navigates to next section");
 
+		if(currentPosition!=sizeOfCombobox-1)
+		{
+			goToNext();
+			return;
+		}
+		
 		webCameraController.closeWebcam();
 
 		if (isChild() || getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {

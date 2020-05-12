@@ -242,10 +242,16 @@ public class BaseController {
 
 	private static Map<String, UiSchemaDTO> validationMap;
 
-	private static TreeMap<String, String> listOfbiometricSubtypes = new TreeMap<>();
+	private static TreeMap<String, String> mapOfbiometricSubtypes = new TreeMap<>();
+	
+	private static List<String> listOfBiometricSubTypes = new ArrayList<>();
 
-	public static TreeMap<String, String> getListOfbiometricSubtypes() {
-		return listOfbiometricSubtypes;
+	public static List<String> getListOfBiometricSubTypess() {
+		return listOfBiometricSubTypes;
+	}
+
+	public static TreeMap<String, String> getMapOfbiometricSubtypes() {
+		return mapOfbiometricSubtypes;
 	}
 
 	private static HashMap<String, String> labelMap = new HashMap<>();
@@ -1619,7 +1625,9 @@ public class BaseController {
 			for (UiSchemaDTO schemaField : schemaFields) {
 				validationsMap.put(schemaField.getId(), schemaField);
 				if (schemaField.getType().equals(PacketManagerConstants.BIOMETRICS_DATATYPE)) {
-					listOfbiometricSubtypes.put(schemaField.getSubType(), schemaField.getLabel().get("primary"));
+					mapOfbiometricSubtypes.put(schemaField.getSubType(), schemaField.getLabel().get("primary"));
+					if(!listOfBiometricSubTypes.contains(schemaField.getSubType()))
+						listOfBiometricSubTypes.add(schemaField.getSubType());
 				}
 			}
 			validations.setValidations(validationsMap); // Set Validations Map
@@ -1648,7 +1656,7 @@ public class BaseController {
 
 		HashMap<Entry<String, String>, HashMap<String, List<List<String>>>> mapToProcess = new HashMap<>();
 
-		for (Entry<String, String> uiSchemaSubType : getListOfbiometricSubtypes().entrySet()) {
+		for (Entry<String, String> uiSchemaSubType : getMapOfbiometricSubtypes().entrySet()) {
 
 			List<String> uiAttributes = getBioAttributesBySubType(uiSchemaSubType.getKey());
 
