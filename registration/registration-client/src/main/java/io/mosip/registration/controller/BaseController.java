@@ -1319,7 +1319,7 @@ public class BaseController {
 	 * Update UIN method flow.
 	 */
 	protected void updateUINMethodFlow() {
-		if ((Boolean) SessionContext.userContext().getUserMap()
+		/*if ((Boolean) SessionContext.userContext().getUserMap()
 				.get(RegistrationConstants.TOGGLE_BIO_METRIC_EXCEPTION)) {
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_BIOMETRICEXCEPTION, true);
 			return;
@@ -1342,10 +1342,10 @@ public class BaseController {
 		} else if (RegistrationConstants.ENABLE
 				.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.FACE_DISABLE_FLAG))) {
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_FACECAPTURE, true);
-		} else {
+		} else {*/
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_REGISTRATIONPREVIEW, true);
 			registrationPreviewController.setUpPreviewContent();
-		}
+	//	}
 	}
 
 	/**

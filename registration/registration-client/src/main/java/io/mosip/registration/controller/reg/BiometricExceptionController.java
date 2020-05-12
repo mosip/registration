@@ -172,7 +172,7 @@ public class BiometricExceptionController extends BaseController implements Init
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void initialize(URL arg0, ResourceBundle arg1) {/*
+	public void initialize(URL arg0, ResourceBundle arg1) {
 
 		Image backInWhite = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK_FOCUSED));
 		Image backImage = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK));
@@ -239,7 +239,7 @@ public class BiometricExceptionController extends BaseController implements Init
 						.getString(RegistrationConstants.UIN_UPDATE_UINUPDATENAVLBL));
 			}
 
-			if (!pageFlow.isVisibleInRegFlowMap(RegistrationConstants.BIOMETRIC_EXCEPTION,
+			/*if (!pageFlow.isVisibleInRegFlowMap(RegistrationConstants.BIOMETRIC_EXCEPTION,
 					RegistrationConstants.FINGER_PANE)) {
 				fingerPane.setManaged(false);
 				fingerPane.setVisible(false);
@@ -250,10 +250,10 @@ public class BiometricExceptionController extends BaseController implements Init
 				irisPane.setManaged(false);
 				irisPane.setVisible(false);
 				irisExceptionLabel.setVisible(false);
-			}
+			}*/
 			onboardTrackerImg.setVisible(false);
 			registrationTrackerImg.setVisible(true);
-			exceptionDocProof.setVisible(false);
+			//exceptionDocProof.setVisible(false);
 			registrationFooter.setVisible(true);
 			registrationExceptionHeader.setVisible(true);
 			spliterLine.setVisible(false);
@@ -261,7 +261,7 @@ public class BiometricExceptionController extends BaseController implements Init
 			operatorExceptionLayout.setVisible(false);
 			operatorExceptionHeader.setVisible(false);
 		}
-	*/}
+	}
 
 	private void irisException() {
 		irisExceptionListener(leftEye);

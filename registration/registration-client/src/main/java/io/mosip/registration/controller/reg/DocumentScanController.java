@@ -1072,11 +1072,13 @@ public class DocumentScanController extends BaseController {
 		
 		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
 			//TODO document pane validation Anusha 
-			if (registrationController.validateDemographicPane(documentScanPane)) {
+			if (true) {
 				SessionContext.map().put(RegistrationConstants.UIN_UPDATE_DOCUMENTSCAN, false);
 				updateUINMethodFlow();
 				demographicDetailController.saveDetail();
-				registrationController.showUINUpdateCurrentPage();
+				registrationController.showCurrentPage(RegistrationConstants.DOCUMENT_SCAN,
+						getPageByAction(RegistrationConstants.DOCUMENT_SCAN, RegistrationConstants.NEXT));
+				//registrationController.showUINUpdateCurrentPage();
 			}
 		} else {
 			if (RegistrationConstants.ENABLE

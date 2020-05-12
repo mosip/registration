@@ -135,12 +135,13 @@ public class RegistrationPreviewController extends BaseController implements Ini
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_REGISTRATIONPREVIEW, false);
 
 			updateUINFlowMethod();
-
-			registrationController.showUINUpdateCurrentPage();
-		} else {
+		}
 			registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
 					getPageByAction(RegistrationConstants.REGISTRATION_PREVIEW, RegistrationConstants.PREVIOUS));
-		}
+	/*	} else {
+			registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
+					getPageByAction(RegistrationConstants.REGISTRATION_PREVIEW, RegistrationConstants.PREVIOUS));
+		}*/
 	}
 
 	private void updateUINFlowMethod() {
@@ -287,11 +288,11 @@ public class RegistrationPreviewController extends BaseController implements Ini
 		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_REGISTRATIONPREVIEW, false);
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_DEMOGRAPHICDETAIL, true);
-			registrationController.showUINUpdateCurrentPage();
-		} else {
+			//registrationController.showUINUpdateCurrentPage();
+		} 
 			registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
 					RegistrationConstants.DEMOGRAPHIC_DETAIL);
-		}
+		
 	}
 
 	public void modifyDocuments() {
@@ -332,7 +333,7 @@ public class RegistrationPreviewController extends BaseController implements Ini
 		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_REGISTRATIONPREVIEW, false);
 
-			long fingerPrintCount = getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
+			/*long fingerPrintCount = getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
 					.getFingerprintDetailsDTO().stream().count();
 			long irisCount = getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
 					.getIrisDetailsDTO().stream().count();
@@ -350,10 +351,11 @@ public class RegistrationPreviewController extends BaseController implements Ini
 				SessionContext.map().put(RegistrationConstants.UIN_UPDATE_FACECAPTURE, true);
 			} else {
 				SessionContext.map().put(RegistrationConstants.UIN_UPDATE_REGISTRATIONPREVIEW, true);
-			}
-			registrationController.showUINUpdateCurrentPage();
+			}*/
+			registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
+					getPageByAction(RegistrationConstants.REGISTRATION_PREVIEW, RegistrationConstants.PREVIOUS));
 		} else {
-			if ((boolean) SessionContext.map().get(RegistrationConstants.IS_Child)) {
+			/*if ((boolean) SessionContext.map().get(RegistrationConstants.IS_Child)) {
 				registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
 						RegistrationConstants.GUARDIAN_BIOMETRIC);
 			} else {
@@ -373,7 +375,9 @@ public class RegistrationPreviewController extends BaseController implements Ini
 					registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
 							RegistrationConstants.FACE_CAPTURE);
 				}
-			}
+			}*/
+			registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
+					getPageByAction(RegistrationConstants.REGISTRATION_PREVIEW, RegistrationConstants.PREVIOUS));
 		}
 	}
 
