@@ -425,6 +425,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 		if(currentPosition-1>0) {
 			findComboBox().setVisible(false);
 			findComboBox().setManaged(false);
+			previousPosition = currentPosition;
 			currentPosition--;
 			findComboBox().setVisible(true);
 			findComboBox().setManaged(true);
@@ -500,9 +501,12 @@ public class GuardianBiometricsController extends BaseController implements Init
 				"Displaying biometrics to capture");
 
 
+			checkBoxMap.get(getListOfBiometricSubTypess().get(previousPosition)).get(this.currentModality).setVisible(true);
+			checkBoxMap.get(getListOfBiometricSubTypess().get(previousPosition)).get(this.currentModality).setManaged(true);
 			this.currentModality = modality;
+			checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality).setVisible(true);
+			checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality).setManaged(true);
 			
-			//code to make check boxes visible invisible
 
 			ComboBox<Entry<String, String>> biometricTypecombo = (ComboBox<Entry<String, String>>) findComboBox().getChildren().get(1);
 			
