@@ -233,6 +233,7 @@ public class PacketValidatorImpl implements PacketValidator{
 			object.setIsValid(Boolean.FALSE);
 			object.setInternalError(Boolean.TRUE);
 			object.setRid(registrationStatusDto.getRegistrationId());
+			throw new PacketValidatorException(e);
 		}  catch (BaseUncheckedException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			registrationStatusDto.setStatusComment(trimMessage
@@ -246,6 +247,7 @@ public class PacketValidatorImpl implements PacketValidator{
 			object.setIsValid(Boolean.FALSE);
 			object.setInternalError(Boolean.TRUE);
 			object.setRid(registrationStatusDto.getRegistrationId());
+			throw new PacketValidatorException(e);
 		} catch (IOException exc) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			registrationStatusDto.setStatusComment(
@@ -259,6 +261,7 @@ public class PacketValidatorImpl implements PacketValidator{
 			object.setIsValid(Boolean.FALSE);
 			object.setInternalError(Boolean.TRUE);
 			object.setRid(registrationStatusDto.getRegistrationId());
+			throw new PacketValidatorException(exc);
 		}catch (Exception ex) {
 			registrationStatusDto.setStatusComment(trimMessage
 					.trimExceptionMessage(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getMessage() + ex.getMessage()));
@@ -271,7 +274,7 @@ public class PacketValidatorImpl implements PacketValidator{
 			object.setIsValid(Boolean.FALSE);
 			object.setInternalError(Boolean.TRUE);
 			object.setRid(registrationStatusDto.getRegistrationId());
-
+			throw new PacketValidatorException(ex);
 		}
 		
 		return isvalidated;
