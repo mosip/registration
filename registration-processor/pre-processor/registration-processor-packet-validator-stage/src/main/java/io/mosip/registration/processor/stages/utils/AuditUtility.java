@@ -64,7 +64,8 @@ public class AuditUtility {
 		try {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", "AuditUtility::saveAuditDetails()::entry");
-			InputStream auditFileInputStream = fileSystemManager.getFile(registrationId, PacketFiles.AUDIT.name());
+			InputStream auditFileInputStream = null;// fileSystemManager.getFile(registrationId,
+													// PacketFiles.AUDIT.name());
 			CollectionType collectionType = mapper.getTypeFactory().constructCollectionType(List.class, AuditDTO.class);
 
 			List<AuditDTO> regClientAuditDTOs = mapper.readValue(auditFileInputStream, collectionType);
