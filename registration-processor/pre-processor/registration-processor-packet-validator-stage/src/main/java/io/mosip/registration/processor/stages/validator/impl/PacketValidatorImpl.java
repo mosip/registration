@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -131,8 +132,7 @@ public class PacketValidatorImpl implements PacketValidator{
 
 	@Override
 	public boolean validate(InternalRegistrationStatusDto registrationStatusDto, PacketMetaInfo packetMetaInfo,
-			MessageDTO object, IdentityIteratorUtil identityIteratorUtil, PacketValidationDto packetValidationDto,
-			TrimExceptionMessage trimMessage,LogDescription description) throws PacketValidatorException
+			MessageDTO object, PacketValidationDto packetValidationDto) throws PacketValidatorException
 			 {
 		Long uin = null;
 		JSONObject demographicIdentity = null;
@@ -204,77 +204,15 @@ public class PacketValidatorImpl implements PacketValidator{
 		}
 		// Check RegId & regType are same or not From PacketMetaInfo by comparing with
 				// Sync list table
-		isvalidated= validateRegIdAndTypeFromSyncTable(object.getRid(), metadataList, identityIteratorUtil,
+		isvalidated= validateRegIdAndTypeFromSyncTable(object.getRid(), metadataList, new IdentityIteratorUtil(),
 				packetValidationDto);
 			 
-		} catch(ApisResourceAccessException e) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-			registrationStatusDto.setStatusComment(trimMessage
-					.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
-					.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
-			description.setCode(PlatformErrorMessages.RPR_PVM_API_RESOUCE_ACCESS_FAILED.getCode());
-			description.setMessage(PlatformErrorMessages.RPR_PVM_API_RESOUCE_ACCESS_FAILED.getMessage());
-			object.setIsValid(Boolean.FALSE);
-			object.setInternalError(Boolean.TRUE);
-			throw new PacketValidatorException(e);
-		}
-		catch (BaseCheckedException e) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-			registrationStatusDto.setStatusComment(
-					trimMessage.trimExceptionMessage(StatusUtil.BASE_CHECKED_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.BASE_CHECKED_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION));
-			packetValidationDto.setTransactionSuccessful(false);
-			description.setMessage(PlatformErrorMessages.RPR_PVM_BASE_CHECKED_EXCEPTION.getMessage());
-			description.setCode(PlatformErrorMessages.RPR_PVM_BASE_CHECKED_EXCEPTION.getCode());
-			object.setIsValid(Boolean.FALSE);
-			object.setInternalError(Boolean.TRUE);
-			object.setRid(registrationStatusDto.getRegistrationId());
-			throw new PacketValidatorException(e);
-		}  catch (BaseUncheckedException e) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-			registrationStatusDto.setStatusComment(trimMessage
-					.trimExceptionMessage(StatusUtil.BASE_UNCHECKED_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.BASE_UNCHECKED_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BASE_UNCHECKED_EXCEPTION));
-			packetValidationDto.setTransactionSuccessful(false);
-			description.setMessage(PlatformErrorMessages.RPR_PVM_BASE_UNCHECKED_EXCEPTION.getMessage());
-			description.setCode(PlatformErrorMessages.RPR_PVM_BASE_UNCHECKED_EXCEPTION.getCode());
-			object.setIsValid(Boolean.FALSE);
-			object.setInternalError(Boolean.TRUE);
-			object.setRid(registrationStatusDto.getRegistrationId());
-			throw new PacketValidatorException(e);
-		} catch (IOException exc) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-			registrationStatusDto.setStatusComment(
-					trimMessage.trimExceptionMessage(StatusUtil.IO_EXCEPTION.getMessage() + exc.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.IO_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.IOEXCEPTION));
-			packetValidationDto.setTransactionSuccessful(false);
-			description.setMessage(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage());
-			description.setCode(PlatformErrorMessages.STRUCTURAL_VALIDATION_FAILED.getCode());
-			object.setIsValid(Boolean.FALSE);
-			object.setInternalError(Boolean.TRUE);
-			object.setRid(registrationStatusDto.getRegistrationId());
-			throw new PacketValidatorException(exc);
-		}catch (Exception ex) {
-			registrationStatusDto.setStatusComment(trimMessage
-					.trimExceptionMessage(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getMessage() + ex.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.EXCEPTION));
-			packetValidationDto.setTransactionSuccessful(false);
-			description.setMessage(PlatformErrorMessages.STRUCTURAL_VALIDATION_FAILED.getMessage());
-			description.setCode(PlatformErrorMessages.STRUCTURAL_VALIDATION_FAILED.getCode());
-			object.setIsValid(Boolean.FALSE);
-			object.setInternalError(Boolean.TRUE);
-			object.setRid(registrationStatusDto.getRegistrationId());
-			throw new PacketValidatorException(ex);
+		} catch (IOException | io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException 
+				| io.mosip.kernel.core.exception.IOException | ApiNotAccessibleException | ApisResourceAccessException | 
+				IdObjectValidationFailedException | IdObjectIOException | RegistrationProcessorCheckedException | 
+				io.mosip.registration.processor.core.exception.PacketDecryptionFailureException | ParseException | 
+				JSONException e) {
+			throw new PacketValidatorException (e);
 		}
 		
 		return isvalidated;

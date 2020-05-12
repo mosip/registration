@@ -12,6 +12,5 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 public interface PacketValidator {
 
 	boolean validate(InternalRegistrationStatusDto registrationStatusDto, PacketMetaInfo packetMetaInfo,
-			MessageDTO object, IdentityIteratorUtil identityIteratorUtil, PacketValidationDto packetValidationDto,
-			TrimExceptionMessage trimMessage, LogDescription description) throws PacketValidatorException;
+			MessageDTO object, PacketValidationDto packetValidationDto) throws PacketValidatorException;
 }
