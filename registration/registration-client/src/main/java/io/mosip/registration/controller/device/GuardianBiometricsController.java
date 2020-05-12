@@ -19,9 +19,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ResourceBundle;
 
-import org.hibernate.annotations.Check;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+
+import com.neurotec.event.ChangeListener;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -43,11 +44,11 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.mdm.dto.RequestDetail;
-import io.mosip.registration.packetmananger.constants.Biometric;
 import io.mosip.registration.packetmananger.dto.BiometricsDto;
 import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.security.AuthenticationService;
 import io.mosip.registration.service.sync.MasterSyncService;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -324,6 +325,23 @@ public class GuardianBiometricsController extends BaseController implements Init
 									checkBox.setDisable(true);
 								}
 								vboxForCheckBox.getChildren().add(checkBox);
+								checkBox.selectedProperty().addListener((obsValue, oldValue, newValue) -> {
+									
+									refreshContinueButton();
+									for (Node exceptionCheckBox : vboxForCheckBox.getChildren()) {
+										getRegistrationDTOFromSession().removeBiometric(currentModality,
+												exceptionCheckBox.getId());
+									}
+									if (checkBox.isSelected()) {
+										getRegistrationDTOFromSession().addBiometricException(currentSubType,
+												checkBox.getId(), "Temporary", "Temporary");
+									} else {
+										getRegistrationDTOFromSession().removeBiometricException(currentSubType,
+												checkBox.getId());
+									}
+								
+								});
+
 							}
 						}
 						checkBoxPane.add(vboxForCheckBox, 0, 0);
@@ -428,7 +446,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 	
 	
 	private void goToPrevious() {
-		if(currentPosition-1>0) {
+		if(currentPosition>0) {
 			findComboBox().setVisible(false);
 			findComboBox().setManaged(false);
 			previousPosition = currentPosition;
@@ -518,25 +536,24 @@ public class GuardianBiometricsController extends BaseController implements Init
 			checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality).setManaged(true);
 			
 
-			ComboBox<Entry<String, String>> biometricTypecombo = (ComboBox<Entry<String, String>>) findComboBox().getChildren().get(1);
 			
-			if (biometricTypecombo.getValue().getKey().equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)) {
-				updateBiometric(biometricTypecombo.getValue().getKey(), RegistrationConstants.RIGHTPALM_IMG_PATH,
+			if (modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)) {
+				updateBiometric(modality, RegistrationConstants.RIGHTPALM_IMG_PATH,
 						RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD,
 						RegistrationConstants.FINGERPRINT_RETRIES_COUNT);
-			} else if (biometricTypecombo.getValue().getKey().equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_LEFT)) {
-				updateBiometric(biometricTypecombo.getValue().getKey(), RegistrationConstants.LEFTPALM_IMG_PATH,
+			} else if (modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_LEFT)) {
+				updateBiometric(modality, RegistrationConstants.LEFTPALM_IMG_PATH,
 						RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD,
 						RegistrationConstants.FINGERPRINT_RETRIES_COUNT);
-			} else if (biometricTypecombo.getValue().getKey().equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_THUMBS)) {
-				updateBiometric(biometricTypecombo.getValue().getKey(), RegistrationConstants.THUMB_IMG_PATH,
+			} else if (modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_THUMBS)) {
+				updateBiometric(modality, RegistrationConstants.THUMB_IMG_PATH,
 						RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD,
 						RegistrationConstants.FINGERPRINT_RETRIES_COUNT);
-			} else if (biometricTypecombo.getValue().getKey().equalsIgnoreCase(RegistrationConstants.IRIS)) {
-				updateBiometric(biometricTypecombo.getValue().getKey(), RegistrationConstants.RIGHT_IRIS_IMG_PATH,
+			} else if (modality.equalsIgnoreCase(RegistrationConstants.IRIS_DOUBLE)) {
+				updateBiometric(modality, RegistrationConstants.RIGHT_IRIS_IMG_PATH,
 						RegistrationConstants.IRIS_THRESHOLD, RegistrationConstants.IRIS_RETRY_COUNT);
-			} else if (biometricTypecombo.getValue().getKey().equalsIgnoreCase(RegistrationConstants.FACE)) {
-				updateBiometric(biometricTypecombo.getValue().getKey(), RegistrationConstants.LEFT_IRIS_IMG_PATH,
+			} else if (modality.equalsIgnoreCase(RegistrationConstants.FACE)) {
+				updateBiometric(modality, RegistrationConstants.LEFT_IRIS_IMG_PATH,
 						RegistrationConstants.IRIS_THRESHOLD, RegistrationConstants.IRIS_RETRY_COUNT);
 			}
 
@@ -685,6 +702,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 			currentSubType = getListOfBiometricSubTypess().get(currentPosition);
 			captureBiometrics(currentSubType, currentModality);
+			refreshContinueButton();
 
 		} catch (RuntimeException runtimeException) {
 			LOGGER.error(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
@@ -882,6 +900,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 		if(currentPosition!=0)
 		{
 			goToPrevious();
+			refreshContinueButton();
 			return;
 		}
 		webCameraController.closeWebcam();
@@ -918,6 +937,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 		if(currentPosition!=sizeOfCombobox-1)
 		{
 			goToNext();
+			refreshContinueButton();
 			return;
 		}
 		
@@ -1814,7 +1834,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 	public void refreshContinueButton() {
 
 		// get bio attributes by subType ffrom schema
-		List<String> bioAttributes = getBioAttributesBySubType(currentSubType);
+		List<String> bioAttributes = getBioAttributesBySubType(getListOfBiometricSubTypess().get(currentPosition));
 
 		boolean isAllBiometricsCaptured = true;
 
@@ -1890,6 +1910,6 @@ public class GuardianBiometricsController extends BaseController implements Init
 			/* If no bio attributes */
 			isCaptured = true;
 		}
-		return true;
+		return isCaptured;
 	}
 }
