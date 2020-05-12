@@ -611,11 +611,11 @@ public class Utilities {
 	 *             Signals that an I/O exception has occurred.
 	 * @throws io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException 
 	 */
-	public PacketMetaInfo getPacketMetaInfo(String registrationId) throws ApiNotAccessibleException,
+	public PacketMetaInfo getPacketMetaInfo(String registrationId) throws ApiNotAccessibleException, 
 			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException, PacketDecryptionFailureException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getPacketMetaInfo():: entry");
-		InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId, PacketFiles.META_INFO.name(),defaultSource);
+		InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId, PacketFiles.PACKET_META_INFO.name(),defaultSource);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getPacketMetaInfo():: exit");
 		return (PacketMetaInfo) JsonUtil.inputStreamtoJavaObject(packetMetaInfoStream, PacketMetaInfo.class);
