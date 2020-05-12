@@ -142,7 +142,7 @@ public class PacketCreatorTest {
 		packetCreatorImpl.setAcknowledgement("test-receipt", "test ack content".getBytes());
 	}
 	
-	/*@Test
+	@Test
 	public void createPacketStep025Test() throws java.io.IOException {
 		List<BiometricsDto> list = new ArrayList<BiometricsDto>();
 		BiometricsDto dto = new BiometricsDto("leftEye", IOUtils.toByteArray(getClass().getClassLoader().getResourceAsStream("leftEye.iso")),
@@ -152,7 +152,7 @@ public class PacketCreatorTest {
 		dto.setSubType("applicant");
 		list.add(dto);
 		packetCreatorImpl.setBiometric("individualBiometrics", list);
-	}*/
+	}
 	
 	@Test
 	public void createPacketStep026Test() {
@@ -181,12 +181,11 @@ public class PacketCreatorTest {
 	
 	
 	@Test
-	public void createPacketStep999999Test() throws PacketCreatorException, IOException, java.io.IOException {
+	public void createPacketStep999Test() throws PacketCreatorException, IOException, java.io.IOException {
 		String registrationId = "10007103600000420200510150916";
 		byte[] packet = packetCreatorImpl.createPacket(registrationId, 1.0, schemaJson, categoryPacketMapping, publicKey.getBytes(), null);
-		assertNotNull(packet);
-		
-		FileUtils.writeByteArrayToFile(new File("/opt/mosip/packets/"+registrationId+".zip"), packet);
+		assertNotNull(packet);		
+		//FileUtils.writeByteArrayToFile(new File("/opt/mosip/packets/"+registrationId+".zip"), packet);
 	}
 
 }

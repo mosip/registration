@@ -189,7 +189,7 @@ public class PacketCreatorImpl implements PacketCreator {
 				}
 			}
 			
-			byte[] identityBytes = JsonUtils.javaObjectToJsonString(identity).getBytes();
+			byte[] identityBytes = getIdentity(identity).getBytes();
 			addEntryToZip(PacketManagerConstants.IDENTITY_FILENAME, identityBytes, subpacketZip);
 			addHashSequenceWithSource(PacketManagerConstants.DEMOGRAPHIC_SEQ, PacketManagerConstants.IDENTITY_FILENAME, identityBytes, 
 					hashSequences);			
@@ -276,8 +276,7 @@ public class PacketCreatorImpl implements PacketCreator {
 		
 		addPacketDataHash(hashSequences, metaInfo, zipOutputStream);	
 		
-		addEntryToZip(PacketManagerConstants.PACKET_META_FILENAME, 
-				JsonUtils.javaObjectToJsonString(metaInfo).getBytes(), zipOutputStream);
+		addEntryToZip(PacketManagerConstants.PACKET_META_FILENAME, getIdentity(metaInfo).getBytes(), zipOutputStream);
 	}
 	
 	private void addPacketDataHash(Map<String, HashSequenceMetaInfo> hashSequences, MetaInfo metaInfo,
@@ -409,6 +408,10 @@ public class PacketCreatorImpl implements PacketCreator {
 			throw new PacketCreatorException(ErrorCode.ADD_ZIP_ENTRY_ERROR.getErrorCode(), 
 					ErrorCode.ADD_ZIP_ENTRY_ERROR.getErrorMessage().concat(ExceptionUtils.getStackTrace(e)));
 		}		
-	}	
+	}
+	
+	private String getIdentity(Object object) throws JsonProcessingException {
+		return "{ \"identity\" : " + JsonUtils.javaObjectToJsonString(object) + "}";
+	}
 
 }
