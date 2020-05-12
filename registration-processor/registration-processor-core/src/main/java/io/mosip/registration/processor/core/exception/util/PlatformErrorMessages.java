@@ -395,6 +395,9 @@ public enum PlatformErrorMessages {
 	RPR_BIO_LOST_PACKET_MULTIPLE_MATCH_FOUND(PlatformConstants.RPR_BIO_DEDUPE_STAGE_MODULE + "003",
 			"Multiple Match was Found for the Biometrics Received"),
 
+	RPR_BIO_API_RESOUCE_ACCESS_FAILED(PlatformConstants.RPR_BIO_DEDUPE_STAGE_MODULE + "004",
+			"Unable to Access API Resource"),
+
 	/** The abis reference id not found. */
 	// stages - Abis Middleware
 	ABIS_REFERENCE_ID_NOT_FOUND(PlatformConstants.RPR_ABIS_MIDDLEWARE + "001", "Unable to Find ABIS Reference ID"),
@@ -1099,6 +1102,9 @@ public enum PlatformErrorMessages {
 	/** The rpr demo sending for manual. */
 	RPR_DEMO_SENDING_FOR_MANUAL(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "001",
 			"ABIS response Details found. Hence sending to manual adjudication"),
+	
+	RPR_DEMO_API_RESOUCE_ACCESS_FAILED(PlatformConstants.RPR_DEMO_DEDUPE_MODULE + "002",
+			"Unable to Access API Resource"),
 
 	RPR_SECUREZONE_FAILURE(PlatformConstants.RPR_SECUREZONE_NOTIFICATION_MODULE + "001",
 			"Exception occured in securezone notification stage. Check logs for more info"),

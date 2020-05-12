@@ -79,11 +79,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>io.mosip.registrationprocessor</groupId>
-			<artifactId>registration-processor-packet-manager</artifactId>
-			<version>${packet.manager.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-core</artifactId>
 			<version>${io.micrometer.prometheus.version}</version>

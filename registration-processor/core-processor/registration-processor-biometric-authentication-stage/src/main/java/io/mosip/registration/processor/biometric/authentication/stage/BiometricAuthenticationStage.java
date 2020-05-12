@@ -338,6 +338,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 			idaAuth = true;
 		} else {
 			List<io.mosip.registration.processor.core.auth.dto.ErrorDTO> errors = authResponseDTO.getErrors();
+			if (errors != null) {
 			if (errors.stream().anyMatch(error -> error.getErrorCode().equalsIgnoreCase("IDA-MLC-007"))) {
 				throw new AuthSystemException(PlatformErrorMessages.RPR_AUTH_SYSTEM_EXCEPTION.getMessage());
 			} else {
@@ -350,6 +351,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), "", registrationStatusDto.getRegistrationId(),
 					"IDA Authentiacation failed - " + authResponseDTO.getErrors());
 			idaAuth = false;
+				}
 			}
 
 		}

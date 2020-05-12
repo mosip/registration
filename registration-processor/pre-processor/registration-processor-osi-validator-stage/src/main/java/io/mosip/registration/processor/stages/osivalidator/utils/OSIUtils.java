@@ -4,7 +4,6 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Service;
 import io.mosip.kernel.core.exception.IOException;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.PacketFiles;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.Identity;
@@ -20,6 +18,7 @@ import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
 import io.mosip.registration.processor.core.packet.dto.RegOsiDto;
 import io.mosip.registration.processor.core.util.IdentityIteratorUtil;
 import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 
 @Service
@@ -54,7 +53,7 @@ public class OSIUtils {
 	}
 	
 	public String getOsiDataValue(String label,Identity identity) throws UnsupportedEncodingException {
-		List<FieldValue> osiData = identity.getOsiData();
+		List<FieldValue> osiData = identity.getOperationsData();
 		return identityIteratorUtil.getMetadataLabelValue(osiData, label);
 
 	}
@@ -68,7 +67,7 @@ public class OSIUtils {
 			throws PacketDecryptionFailureException, ApiNotAccessibleException, IOException, java.io.IOException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 		InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId,
-				PacketFiles.META_INFO.name(), defaultSource);
+				PacketFiles.PACKET_META_INFO.name(), defaultSource);
 		PacketMetaInfo packetMetaInfo = (PacketMetaInfo) JsonUtil.inputStreamtoJavaObject(packetMetaInfoStream,PacketMetaInfo.class);
 		return packetMetaInfo.getIdentity();
 

@@ -421,18 +421,18 @@ public class Utilities {
 	 *             the packet decryption failure exception
 	 * @throws ApisResourceAccessException
 	 *             the apis resource access exception
-	 * @throws ApiNotAccessibleException 
+	 * @throws ApiNotAccessibleException
 	 */
 	public JSONObject getDemographicIdentityJSONObject(String registrationId) throws IOException,
 			PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
 		
-		// To do use getDemographicIdentityJSONObject(String registrationId,String fieldLabel) this calling places
+	
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getDemographicIdentityJSONObject()::entry");
 		
 		
 
-		InputStream idJsonStream = packetReaderService.getFile(registrationId, PacketFiles.ID.name(),JsonConstant.ID);
+		InputStream idJsonStream = packetReaderService.getFile(registrationId, PacketFiles.ID.name(),defaultSource);
 		byte[] bytearray = IOUtils.toByteArray(idJsonStream);
 		String jsonString = new String(bytearray);
 		JSONObject demographicIdentityJson = (JSONObject) JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
@@ -611,11 +611,11 @@ public class Utilities {
 	 *             Signals that an I/O exception has occurred.
 	 * @throws io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException 
 	 */
-	public PacketMetaInfo getPacketMetaInfo(String registrationId) throws ApiNotAccessibleException,
+	public PacketMetaInfo getPacketMetaInfo(String registrationId) throws ApiNotAccessibleException, 
 			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException, PacketDecryptionFailureException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getPacketMetaInfo():: entry");
-		InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId, PacketFiles.META_INFO.name(),defaultSource);
+		InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId, PacketFiles.PACKET_META_INFO.name(),defaultSource);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getPacketMetaInfo():: exit");
 		return (PacketMetaInfo) JsonUtil.inputStreamtoJavaObject(packetMetaInfoStream, PacketMetaInfo.class);
