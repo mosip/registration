@@ -840,7 +840,7 @@ public class DemographicDetailController extends BaseController {
 					ComboBox<GenericDto> localField = listOfComboBoxWithObject.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE);					
 					registrationDTO.addDemographicField(schemaField.getId(), 
 							applicationContext.getApplicationLanguage(), platformField.getValue().getName(),
-							applicationContext.getLocalLanguage(), localField == null ? null : localField.getValue().getName());
+							applicationContext.getLocalLanguage(), (localField == null || localField.getValue() ==null) ? null : localField.getValue().getName());
 				}
 				else {
 					TextField platformField = listOfTextField.get(schemaField.getId());

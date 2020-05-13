@@ -54,5 +54,9 @@ public class PacketManagerConstants {
 	public static final String FINGERPRINT_SLAB_THUMBS = "FINGERPRINT_SLAB_THUMBS";
 	public static final String IRIS_DOUBLE = "IRIS_DOUBLE";
 	public static final String FACE_FULLFACE = "FACE_FULL FACE";
+	
+	public static final String PACKET_TYPE_NEW = "New";
+	public static final String PACKET_TYPE_UPDATE = "Update";
+	public static final String PACKET_TYPE_LOST = "Lost";
 
 }
