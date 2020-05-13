@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +49,7 @@ import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.packet.utility.utils.IdSchemaUtils;
 import io.mosip.registration.processor.stages.osivalidator.utils.OSIUtils;
@@ -111,10 +111,10 @@ public class OSIValidator {
 	@Value("${registration.processor.validate.introducer}")
 	private boolean introducerValidation;
 
-	@Value("${registration.processor.officer.biometric.source}")
+	@Value("${packet.default.source}")
 	private String officerBiometricFileSource;
 
-	@Value("${registration.processor.supervisor.biometric.source}")
+	@Value("${packet.default.source}")
 	private String supervisorBiometricFileSource;
 
 	@Autowired
