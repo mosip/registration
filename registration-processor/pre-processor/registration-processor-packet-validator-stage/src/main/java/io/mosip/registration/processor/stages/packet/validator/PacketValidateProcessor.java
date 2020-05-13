@@ -531,6 +531,11 @@ public class PacketValidateProcessor {
 
 	private void reverseDataSync(String preRegId, String registrationId, LogDescription description,
 			PacketValidationDto packetValidationDto) throws IOException {
+		if (preRegId == null || preRegId.trim().isEmpty()) {
+			regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+					"Pre-registration id not present.", "Reverse datasync is not applicable for the registration id");
+			return;
+		}
 		try {
 			if (registrationId != null) {
 				packetValidationDto.setTransactionSuccessful(false);

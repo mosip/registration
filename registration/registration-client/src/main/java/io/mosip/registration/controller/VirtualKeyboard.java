@@ -43,7 +43,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.PolygonBuilder;
+import javafx.scene.shape.Polygon;
 
 public class VirtualKeyboard {
 
@@ -97,7 +97,6 @@ public class VirtualKeyboard {
 		final Modifiers modifiers = new Modifiers();
 		KEY_LENGTHS.add(1);
 		KEY_LENGTHS.add(2);
-
 		String[][] unshifted = null;
 		try {
 			unshifted = new String[][] {
@@ -182,10 +181,15 @@ public class VirtualKeyboard {
 		final Button enter = createNonshiftableButton("Enter", KeyCode.ENTER, modifiers, target);
 		final Button tab = createNonshiftableButton("Tab", KeyCode.TAB, modifiers, target);
 
-		final Button cursorLeft = createCursorKey(KeyCode.LEFT, modifiers, target, 15.0, 5.0, 15.0, 15.0, 5.0, 10.0);
-		final Button cursorRight = createCursorKey(KeyCode.RIGHT, modifiers, target, 5.0, 5.0, 5.0, 15.0, 15.0, 10.0);
-		final Button cursorUp = createCursorKey(KeyCode.UP, modifiers, target, 10.0, 0.0, 15.0, 10.0, 5.0, 10.0);
-		final Button cursorDown = createCursorKey(KeyCode.DOWN, modifiers, target, 10.0, 10.0, 15.0, 0.0, 5.0, 0.0);
+		final double[] left = {15.0, 5.0, 15.0, 15.0, 5.0, 10.0};
+		final double[] right = {5.0, 5.0, 5.0, 15.0, 15.0, 10.0};
+		final double[] up = {10.0, 0.0, 15.0, 10.0, 5.0, 10.0};
+		final double[] down = {10.0, 10.0, 15.0, 0.0, 5.0, 0.0};
+
+		final Button cursorLeft = createCursorKey(KeyCode.LEFT, modifiers, target, left);
+		final Button cursorRight = createCursorKey(KeyCode.RIGHT, modifiers, target, right);
+		final Button cursorUp = createCursorKey(KeyCode.UP, modifiers, target, up);
+		final Button cursorDown = createCursorKey(KeyCode.DOWN, modifiers, target, down);
 		final VBox cursorUpDown = new VBox(2);
 		cursorUpDown.getChildren().addAll(cursorUp, cursorDown);
 
@@ -311,9 +315,9 @@ public class VirtualKeyboard {
 	}
 
 	private Button createCursorKey(KeyCode code, Modifiers modifiers, ReadOnlyObjectProperty<Node> target,
-			Double... points) {
+			double[] points) {
 		Button button = createNonshiftableButton("", code, modifiers, target);
-		final Node graphic = PolygonBuilder.create().points(points).build();
+		final Node graphic = new Polygon(points);
 		graphic.setStyle("-fx-fill: -fx-mark-color;");
 		button.setGraphic(graphic);
 		button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);

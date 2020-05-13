@@ -23,5 +23,7 @@ public interface IdentitySchemaDao {
 	public String getIDSchema(double idVersion) throws RegBaseCheckedException;
 	
 	public void createIdentitySchema(SchemaDto schemaDto) throws IOException;
+	
+	public SchemaDto getIdentitySchema(double idVersion) throws RegBaseCheckedException;
 
 }

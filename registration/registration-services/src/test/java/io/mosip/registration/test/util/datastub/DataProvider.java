@@ -33,6 +33,8 @@ import io.mosip.registration.dto.demographic.Identity;
 import io.mosip.registration.dto.demographic.IndividualIdentity;
 import io.mosip.registration.dto.demographic.ValuesDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.packetmananger.dto.AuditDto;
+import io.mosip.registration.packetmananger.dto.DocumentDto;
 
 public class DataProvider {
 
@@ -71,8 +73,7 @@ public class DataProvider {
 		//registrationDTO.setDemographicDTO(DataProvider.getDemographicDTO());
 		registrationDTO.setDemographics(new HashMap<String, Object>());
 		registrationDTO.setBiometricDTO(DataProvider.getBiometricDTO());
-		SelectionListDTO selectionListDTO=new SelectionListDTO();
-		selectionListDTO.setAge(true);
+		HashMap<String, Object> selectionListDTO=new HashMap<>();
 		registrationDTO.setSelectionListDTO(selectionListDTO);
 		return registrationDTO;
 
@@ -362,11 +363,11 @@ public class DataProvider {
 		return applicantDocumentDTO;
 	}
 
-	private static void getDocumentDetailsDTO(Identity identity, Map<String, DocumentDetailsDTO> documents) throws RegBaseCheckedException {
+	private static void getDocumentDetailsDTO(Identity identity, Map<String, DocumentDto> documents) throws RegBaseCheckedException {
 
 		IndividualIdentity individualIdentity = (IndividualIdentity) identity;
 
-		DocumentDetailsDTO documentDetailsDTO = new DocumentDetailsDTO();
+		DocumentDto documentDetailsDTO = new DocumentDto();
 		documentDetailsDTO.setDocument(DataProvider.getImageBytes("/proofOfAddress.jpg"));
 		documentDetailsDTO.setType("Passport");
 		documentDetailsDTO.setFormat("jpg");
@@ -376,7 +377,7 @@ public class DataProvider {
 		individualIdentity.setProofOfIdentity(documentDetailsDTO);
 		documents.put("POI", documentDetailsDTO);
 
-		DocumentDetailsDTO documentDetailsResidenceDTO = new DocumentDetailsDTO();
+		DocumentDto documentDetailsResidenceDTO = new DocumentDto();
 		documentDetailsResidenceDTO.setDocument(DataProvider.getImageBytes("/proofOfAddress.jpg"));
 		documentDetailsResidenceDTO.setType("Passport");
 		documentDetailsResidenceDTO.setFormat("jpg");
@@ -386,7 +387,7 @@ public class DataProvider {
 		individualIdentity.setProofOfAddress(documentDetailsResidenceDTO);
 		documents.put("POA", documentDetailsResidenceDTO);
 
-		documentDetailsDTO = new DocumentDetailsDTO();
+		documentDetailsDTO = new DocumentDto();
 		documentDetailsDTO.setDocument(DataProvider.getImageBytes("/proofOfAddress.jpg"));
 		documentDetailsDTO.setType("Passport");
 		documentDetailsDTO.setFormat("jpg");
@@ -396,7 +397,7 @@ public class DataProvider {
 		individualIdentity.setProofOfRelationship(documentDetailsDTO);
 		documents.put("POR", documentDetailsDTO);
 
-		documentDetailsResidenceDTO = new DocumentDetailsDTO();
+		documentDetailsResidenceDTO = new DocumentDto();
 		documentDetailsResidenceDTO.setDocument(DataProvider.getImageBytes("/proofOfAddress.jpg"));
 		documentDetailsResidenceDTO.setType("Passport");
 		documentDetailsResidenceDTO.setFormat("jpg");
@@ -433,8 +434,8 @@ public class DataProvider {
 		return osiDataDTO;
 	}
 
-	private static List<AuditDTO> getAuditDTOs() {
-		LinkedList<AuditDTO> auditDTOList = new LinkedList<>();
+	private static List<AuditDto> getAuditDTOs() {
+		LinkedList<AuditDto> auditDTOList = new LinkedList<>();
 
 		addAuditDTOToList(auditDTOList, "Capture Demographic Data", "Data Capture", "Caputured demographic data");
 		addAuditDTOToList(auditDTOList, "Capture Left Iris", "Iris Capture", "Caputured left iris");
@@ -446,11 +447,11 @@ public class DataProvider {
 		return auditDTOList;
 	}
 
-	private static void addAuditDTOToList(List<AuditDTO> auditDTOList, String eventName, String eventType,
+	private static void addAuditDTOToList(List<AuditDto> auditDTOList, String eventName, String eventType,
 			String description) {
 		LocalDateTime dateTime = LocalDateTime.now();
 
-		AuditDTO audit = new AuditDTO();
+		AuditDto audit = new AuditDto();
 
 		audit.setUuid(String.valueOf(UUID.randomUUID().getMostSignificantBits()));
 		audit.setCreatedAt(dateTime);

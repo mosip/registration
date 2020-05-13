@@ -3,12 +3,15 @@ package io.mosip.registration.dto.biometric;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.registration.builder.Builder;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dto.BaseDTO;
 import io.mosip.registration.dto.demographic.CBEFFFilePropertiesDTO;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -20,11 +23,27 @@ import lombok.Setter;
  */
 @Data
 public class BiometricDTO {
+	
+	private byte[] attributeISO;
+	private String bioAttribute;
+	private double qualityScore;
+	private boolean isForceCaptured;
+	private int numOfRetries;
+	private long formatType;	
+	private boolean isCaptured;
+	
+	//TODO need to remove below fields and handle them
 
 	private Map<String, BiometricInfoDTO> biometricsMap;
 	
 	private CBEFFFilePropertiesDTO applicantBiometrics;
 	private CBEFFFilePropertiesDTO introducerBiometrics;
+	
+	public BiometricDTO(String bioAttribute, byte[] attributeISO, double qualityScore) {
+		this.bioAttribute = bioAttribute;
+		this.attributeISO = attributeISO;
+		this.qualityScore = qualityScore;
+	}
 
 	public BiometricDTO() {
 		biometricsMap = new LinkedHashMap<>();

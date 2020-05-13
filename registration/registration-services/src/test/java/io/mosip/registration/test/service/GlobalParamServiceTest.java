@@ -35,7 +35,6 @@ import io.mosip.registration.entity.GlobalParam;
 import io.mosip.registration.entity.id.GlobalParamId;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.config.impl.GlobalParamServiceImpl;
-import io.mosip.registration.util.common.PageFlow;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
@@ -68,8 +67,6 @@ public class GlobalParamServiceTest {
 	@Mock
 	ServiceDelegateUtil serviceDelegateUtil;
 	
-	@Mock
-	PageFlow pageFlow;
 
 	@Test
 	public void getGlobalParamsTest() {
@@ -77,7 +74,7 @@ public class GlobalParamServiceTest {
 		doNothing().when(auditFactory).audit(Mockito.any(AuditEvent.class), Mockito.any(Components.class),
 				Mockito.anyString(), Mockito.anyString());
 		
-		doNothing().when(pageFlow).getInitialPageDetails();
+//		doNothing().when(pageFlow).getInitialPageDetails();
 
 		Map<String, Object> globalParamMap = new LinkedHashMap<>();
 		Mockito.when(globalParamDAOImpl.getGlobalParams()).thenReturn(globalParamMap);
@@ -89,7 +86,7 @@ public class GlobalParamServiceTest {
 
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
-		doNothing().when(pageFlow).getInitialPageDetails();
+//		doNothing().when(pageFlow).getInitialPageDetails();
 		HashMap<String, Object> globalParamJsonMap = new HashMap<>();
 		globalParamJsonMap.put("retryAttempts", "3");
 		globalParamJsonMap.put("kernel", "5");
@@ -122,7 +119,7 @@ public class GlobalParamServiceTest {
 
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
-		doNothing().when(pageFlow).getInitialPageDetails();
+//		doNothing().when(pageFlow).getInitialPageDetails();
 		HashMap<String, Object> globalParamJsonMap = new LinkedHashMap<>();
 		HashMap<String, Object> globalParamJsonMap1 = new LinkedHashMap<>();
 		globalParamJsonMap1.put("Retry", 3);
@@ -264,7 +261,7 @@ public class GlobalParamServiceTest {
 			throws RegBaseCheckedException, HttpClientErrorException, SocketTimeoutException {
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
-		doNothing().when(pageFlow).getInitialPageDetails();
+//		doNothing().when(pageFlow).getInitialPageDetails();
 		HashMap<String, Object> globalParamJsonMap = new LinkedHashMap<>();
 
 		globalParamJsonMap.put("kernel", "5");

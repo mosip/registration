@@ -32,6 +32,7 @@ import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
 import io.mosip.registration.dto.mastersync.BlacklistedWordsDto;
 import io.mosip.registration.entity.BlacklistedWords;
 import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.packetmananger.dto.DocumentDto;
 import io.mosip.registration.service.sync.MasterSyncService;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -220,10 +221,10 @@ public class Validations extends BaseController {
 	 */
 	public boolean validateTextField(Pane parentPane, TextField node, String id, boolean isPreviousValid) {
 		if (node.getId().contains(RegistrationConstants.LOCAL_LANGUAGE)) {
-			return languageSpecificValidation(parentPane, node, id, localLabelBundle, localMessageBundle,
+			return languageSpecificValidation(parentPane, node, id, localMessageBundle,
 					localLanguageblackListedWords, isPreviousValid);
 		} else {
-			return languageSpecificValidation(parentPane, node, id, applicationLabelBundle, applicationMessageBundle,
+			return languageSpecificValidation(parentPane, node, id, applicationMessageBundle,
 					applicationLanguageblackListedWords, isPreviousValid);
 		}
 	}
@@ -241,7 +242,7 @@ public class Validations extends BaseController {
 	 *            the flag to indicate for displaying consolidated message
 	 * @return true, if successful
 	 */
-	private boolean languageSpecificValidation(Pane parentPane, TextField node, String id, ResourceBundle labelBundle,
+	private boolean languageSpecificValidation(Pane parentPane, TextField node, String id,
 			ResourceBundle messageBundle, List<String> blackListedWords, boolean isPreviousValid) {
 		boolean isInputValid = true;
 
@@ -252,7 +253,9 @@ public class Validations extends BaseController {
 			if(isLostUIN && !id.contains("_ontype") ) {
 				return true;
 			}
-
+			
+			id = id.replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY);
+			
 			UiSchemaDTO uiSchemaDTO = getUiSchemaDTO(id, isLostUIN);
 
 			String regex = getRegex(uiSchemaDTO, RegistrationUIConstants.REGEX_TYPE);
@@ -269,7 +272,7 @@ public class Validations extends BaseController {
 					isInputValid = true;
 				} else if (isMandatory && (inputText == null || inputText.isEmpty()) && !isLostUIN) {
 					generateInvalidValueAlert(parentPane, id,
-							labelBundle.getString(label).concat(RegistrationConstants.SPACE)
+							getFromLabelMap(id).concat(RegistrationConstants.SPACE)
 									.concat(messageBundle.getString(RegistrationConstants.REG_LGN_001)),
 							showAlert);
 					if (isPreviousValid && !id.contains(RegistrationConstants.ON_TYPE)) {
@@ -282,12 +285,12 @@ public class Validations extends BaseController {
 				} else if (inputText.matches(regex)) {
 					isInputValid = validateBlackListedWords(parentPane, node, id, blackListedWords, showAlert,
 							String.format("%s %s %s", messageBundle.getString(RegistrationConstants.BLACKLISTED_1),
-									labelBundle.getString(label),
+									getFromLabelMap(id),
 									messageBundle.getString(RegistrationConstants.BLACKLISTED_2)),
 							messageBundle.getString(RegistrationConstants.BLACKLISTED_ARE),
 							messageBundle.getString(RegistrationConstants.BLACKLISTED_IS));
 				} else {
-					generateInvalidValueAlert(parentPane, id, labelBundle.getString(label) + " "
+					generateInvalidValueAlert(parentPane, id, getFromLabelMap(id) + " "
 							+ messageBundle.getString(RegistrationConstants.REG_DDC_004), showAlert);
 					if (isPreviousValid && !id.contains(RegistrationConstants.ON_TYPE)) {
 						Label nodeLabel = (Label) parentPane.lookup("#" + node.getId() + "Label");
@@ -357,16 +360,17 @@ public class Validations extends BaseController {
 	/**
 	 * Validate for the ComboBox type of node
 	 */
+	//TODO -- Anusha
 	private boolean validateComboBox(Pane parentPane, ComboBox<?> node, String id, boolean isPreviousValid) {
 		boolean isComboBoxValueValid = false;
 		try {
 			if (getRegistrationDTOFromSession().getSelectionListDTO() != null && ((id
 					.matches(RegistrationConstants.POA_DOCUMENT)
-					&& !getRegistrationDTOFromSession().getSelectionListDTO().isAddress())
+					&& getRegistrationDTOFromSession().getSelectionListDTO().get("AddressLine1")==null)
 					|| (id.matches(RegistrationConstants.POI_DOCUMENT)
-							&& !getRegistrationDTOFromSession().getSelectionListDTO().isName())
+							&& getRegistrationDTOFromSession().getSelectionListDTO().get("fullName")==null)
 					|| (id.matches(RegistrationConstants.POR_DOCUMENT)
-							&& !getRegistrationDTOFromSession().getSelectionListDTO().isParentOrGuardianDetails()))) {
+							&& getRegistrationDTOFromSession().getSelectionListDTO().get("parent")==null))) {
 				return true;
 			}
 			if (getRegistrationDTOFromSession().getSelectionListDTO() == null
@@ -389,9 +393,10 @@ public class Validations extends BaseController {
 						.asList(new String[] { RegistrationConstants.POA_DOCUMENT, RegistrationConstants.POI_DOCUMENT,
 								RegistrationConstants.POR_DOCUMENT, RegistrationConstants.DOB_DOCUMENT })
 						.contains(id))) {
-					generateAlert(parentPane, id,
+					//TODO Need to check here it is failing for Documents
+					/*generateAlert(parentPane, id,
 							applicationLabelBundle.getString(id).concat(RegistrationConstants.SPACE)
-									.concat(applicationMessageBundle.getString(RegistrationConstants.REG_LGN_001)));
+									.concat(applicationMessageBundle.getString(RegistrationConstants.REG_LGN_001)));*/
 					if (isPreviousValid) {
 						node.requestFocus();
 						node.getStyleClass().removeIf((s) -> {
@@ -405,7 +410,7 @@ public class Validations extends BaseController {
 						.asList(new String[] { RegistrationConstants.POA_DOCUMENT, RegistrationConstants.POI_DOCUMENT,
 								RegistrationConstants.POR_DOCUMENT, RegistrationConstants.DOB_DOCUMENT })
 						.contains(id)) {
-					Map<String, DocumentDetailsDTO> documents = getRegistrationDTOFromSession().getDocuments();
+					Map<String, DocumentDto> documents = getRegistrationDTOFromSession().getDocuments();
 					if (documents.containsKey(id) && documents.get(id) != null) {
 						isComboBoxValueValid = true;
 					}

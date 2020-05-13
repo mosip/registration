@@ -86,7 +86,7 @@ public class RegistrationConstants {
 	public static final String OPERATOR_AUTHENTICATION = "operatorAuthenticationPane";
 	public static final String ONBOARD_USER_PARENT = "onboardUser";
 	public static final String ONBOARD_USER_SUCCESS = "userOnboardSuccess";
-	public static final String BIOMETRIC_EXCEPTION_FLOW = "biometricExceptionFlow";
+//	public static final String BIOMETRIC_EXCEPTION_FLOW = "biometricExceptionFlow";
 	public static final String GUARDIAN_BIOMETRIC = "guardianBiometric";
 
 	// css for quality indicator
@@ -104,8 +104,8 @@ public class RegistrationConstants {
 
 	// Page Flow
 	public static final String VISIBILITY = "visibility";
-	public static final String ONBOARD_LIST = "onboardPageList";
-	public static final String ONBOARD_MAP = "onboardMap";
+//	public static final String ONBOARD_LIST = "onboardPageList";
+//	public static final String ONBOARD_MAP = "onboardMap";
 	public static final String REGISTRATION_MAP = "registrationMap";
 	public static final String ONBOARD = "onboard";
 
@@ -272,6 +272,21 @@ public class RegistrationConstants {
 	public static final String SECONDARY_LANGUAGE = "mosip.secondary-language";
 	public static final String LANGUAGE_ENGLISH = "english";
 	public static final String LANGUAGE_ARABIC = "arabic";
+	
+	public static final String SIMPLE_TYPE = "simpleType";
+	public static final String NUMBER = "number";
+	public static final String STRING="string";
+	public static final String AGE_DATE="ageDate";
+	public static final String DROPDOWN="dropdown";
+	public static final String TEXTBOX="textbox";
+	public static final String RESIDENCE_STATUS="residenceStatus";
+	public static final String PRIMARY="primary";
+	public static final String SECONDARY="secondary";
+	public static final String DemoGraphicFieldMessageLabel="demoGraphicFieldMessageLabel";
+	public static final String Parent="Parent";
+	public static final String updateUinCheckBox="updateUinCheckBox";
+	
+	
 
 	public static final String APPLICATION_LANGUAGE = "application_language";
 	public static final String REGISTRATION_LOCAL_LANGUAGE = "local_language";
@@ -915,6 +930,7 @@ public class RegistrationConstants {
 	public static final String IS_SOFTWARE_UPDATE_AVAILABLE = "mosip.registration.is_software_update_available";
 	public static final String PROVIDER_NAME = "mosip.registration.provider_name";
 	public static final String DISK_SPACE = "mosip.registration.disk_space_size";
+	
 
 	// Spring Batch-Jobs
 	public static final String JOB_TRIGGER_STARTED = "Trigger started";
@@ -1536,6 +1552,25 @@ public class RegistrationConstants {
 
 	};
 
+	public static final Map<String, String> uIToMDSExceptionMap = new HashMap<String, String>() {
+
+		{
+			put("leftIndex", "LF_INDEX");
+			put("leftLittle", "LF_LITTLE");
+			put("leftMiddle", "LF_MIDDLE");
+			put("leftRing", "LF_RING");
+			put("leftThumb", "LF_THUMB");
+			put("rightIndex", "RF_INDEX");
+			put("rightLittle", "RF_LITTLE");
+			put("rightMiddle", "RF_MIDDLE");
+			put("rightRing", "RF_RING");
+			put("rightThumb", "RF_THUMB");
+			put("leftEye", "L_IRIS");
+			put("rightEye", "R_IRIS");
+		}
+
+	};
+	
 	public static final Map<String, String> userOnBoardBioFlag = new HashMap<String, String>() {
 
 		{
@@ -1635,6 +1670,7 @@ public class RegistrationConstants {
 	public static final String rightMiddleUiAttribute = "rightMiddle";
 	public static final String rightThumbUiAttribute = "rightThumb";
 	public static final String rightRingUiAttribute = "rightRing";
+	
 
 	public static final String leftEyeUiAttribute = "leftEye";
 	public static final String rightEyeUiAttribute = "rightEye";
@@ -1648,6 +1684,8 @@ public class RegistrationConstants {
 	public static final List<String> twoThumbsUiAttributes = Arrays.asList(rightThumbUiAttribute,leftThumbUiAttribute);
 	
 	public static final List<String> eyesUiAttributes = Arrays.asList(leftEyeUiAttribute,rightEyeUiAttribute);
+	
+	public static final List<String> faceUiAttributes = Arrays.asList("face");
 	public static final String indBiometrics = "individualBiometrics";
 	
 	public static final String ID_SCHEMA_SYNC_SERVICE = "idschema_key";
@@ -1673,4 +1711,10 @@ public class RegistrationConstants {
 		}
 
 	};
+	
+	public static final String BIOMETRICS_TYPE = "biometricsType";
+	public static final String APPLICANT = "applicant";
+	
+	
+	
 }

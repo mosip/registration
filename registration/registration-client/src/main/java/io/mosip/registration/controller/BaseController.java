@@ -5,13 +5,13 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -19,13 +19,15 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.ResourceBundle;
 import java.util.Timer;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.javafx.scene.control.skin.TableHeaderRow;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -66,6 +68,7 @@ import io.mosip.registration.dto.biometric.FaceDetailsDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
+import io.mosip.registration.packetmananger.constants.PacketManagerConstants;
 import io.mosip.registration.scheduler.SchedulerUtil;
 import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.bio.BioService;
@@ -77,6 +80,7 @@ import io.mosip.registration.service.security.AuthenticationService;
 import io.mosip.registration.service.sync.SyncStatusValidatorService;
 import io.mosip.registration.service.template.TemplateService;
 import io.mosip.registration.util.acktemplate.TemplateGenerator;
+import io.mosip.registration.util.common.PageFlow;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 import javafx.animation.PauseTransition;
 import javafx.concurrent.Service;
@@ -199,6 +203,9 @@ public class BaseController {
 	@Autowired
 	private Validations validations;
 
+	@Autowired
+	protected PageFlow pageFlow;
+
 	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
 
 	public Text getScanningMsg() {
@@ -230,13 +237,33 @@ public class BaseController {
 	private IdentitySchemaService identitySchemaService;
 
 	private static boolean isAckOpened = false;
-	
+
 	private List<UiSchemaDTO> uiSchemaDTOs;
-	
+
 	private static Map<String, UiSchemaDTO> validationMap;
 
+	private static TreeMap<String, String> mapOfbiometricSubtypes = new TreeMap<>();
 	
-	
+	private static List<String> listOfBiometricSubTypes = new ArrayList<>();
+
+	public static List<String> getListOfBiometricSubTypess() {
+		return listOfBiometricSubTypes;
+	}
+
+	public static TreeMap<String, String> getMapOfbiometricSubtypes() {
+		return mapOfbiometricSubtypes;
+	}
+
+	private static HashMap<String, String> labelMap = new HashMap<>();
+
+	public static String getFromLabelMap(String key) {
+		return labelMap.get(key);
+	}
+
+	public static void putIntoLabelMap(String key, String value) {
+		labelMap.put(key, value);
+	}
+
 	private static List<String> ALL_BIO_ATTRIBUTES = null;
 
 	static {
@@ -251,8 +278,7 @@ public class BaseController {
 	/**
 	 * Set Validations map
 	 * 
-	 * @param validations
-	 *            is a map id's and regex validations
+	 * @param validations is a map id's and regex validations
 	 */
 	public void setValidations(Map<String, UiSchemaDTO> validations) {
 		validationMap = validations;
@@ -262,7 +288,6 @@ public class BaseController {
 		return validationMap;
 	}
 
-	
 	/**
 	 * @return the alertStage
 	 */
@@ -289,10 +314,8 @@ public class BaseController {
 	/**
 	 * Load screen.
 	 *
-	 * @param screen
-	 *            the screen
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @param screen the screen
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	protected void loadScreen(String screen) throws IOException {
 		Parent createRoot = BaseController.load(getClass().getResource(screen),
@@ -303,8 +326,7 @@ public class BaseController {
 	/**
 	 * Gets the scene.
 	 *
-	 * @param borderPane
-	 *            the border pane
+	 * @param borderPane the border pane
 	 * @return the scene
 	 */
 	protected Scene getScene(Parent borderPane) {
@@ -323,13 +345,10 @@ public class BaseController {
 	/**
 	 * Loading FXML files along with beans.
 	 *
-	 * @param <T>
-	 *            the generic type
-	 * @param url
-	 *            the url
+	 * @param <T> the generic type
+	 * @param url the url
 	 * @return T
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public static <T> T load(URL url) throws IOException {
 		FXMLLoader loader = new FXMLLoader(url, ApplicationContext.applicationLanguageBundle());
@@ -340,15 +359,11 @@ public class BaseController {
 	/**
 	 * Loading FXML files along with beans.
 	 *
-	 * @param <T>
-	 *            the generic type
-	 * @param url
-	 *            the url
-	 * @param resource
-	 *            the resource
+	 * @param <T>      the generic type
+	 * @param url      the url
+	 * @param resource the resource
 	 * @return T
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public static <T> T load(URL url, ResourceBundle resource) throws IOException {
 		FXMLLoader loader = new FXMLLoader(url, resource);
@@ -359,10 +374,8 @@ public class BaseController {
 	/**
 	 * /* Alert creation with specified title, header, and context.
 	 *
-	 * @param title
-	 *            alert title
-	 * @param context
-	 *            alert context
+	 * @param title   alert title
+	 * @param context alert context
 	 */
 	protected void generateAlert(String title, String context) {
 		try {
@@ -400,10 +413,8 @@ public class BaseController {
 	/**
 	 * /* Alert creation with specified title, header, and context.
 	 *
-	 * @param title
-	 *            alert title
-	 * @param context
-	 *            alert context
+	 * @param title   alert title
+	 * @param context alert context
 	 */
 	protected boolean generateAlert(String title, String context, ToRun<Boolean> run, BaseController controller) {
 		boolean isValid = false;
@@ -454,10 +465,8 @@ public class BaseController {
 	/**
 	 * /* Alert creation with specified title, header, and context.
 	 *
-	 * @param title
-	 *            the title
-	 * @param context
-	 *            alert context
+	 * @param title   the title
+	 * @param context alert context
 	 */
 	protected void generateAlertLanguageSpecific(String title, String context) {
 		generateAlert(title, RegistrationUIConstants.getMessageLanguageSpecific(context));
@@ -498,12 +507,9 @@ public class BaseController {
 	/**
 	 * Alert creation with specified context.
 	 *
-	 * @param parentPane
-	 *            the parent pane
-	 * @param id
-	 *            the id
-	 * @param context
-	 *            alert context
+	 * @param parentPane the parent pane
+	 * @param id         the id
+	 * @param context    alert context
 	 */
 	protected void generateAlert(Pane parentPane, String id, String context) {
 		String type = "#TYPE#";
@@ -541,8 +547,7 @@ public class BaseController {
 	/**
 	 * Validating Id for Screen Authorization.
 	 *
-	 * @param screenId
-	 *            the screenId
+	 * @param screenId the screenId
 	 * @return boolean
 	 */
 	protected boolean validateScreenAuthorization(String screenId) {
@@ -553,10 +558,8 @@ public class BaseController {
 	/**
 	 * Regex validation with specified field and pattern.
 	 *
-	 * @param field
-	 *            concerned field
-	 * @param regexPattern
-	 *            pattern need to checked
+	 * @param field        concerned field
+	 * @param regexPattern pattern need to checked
 	 * @return true, if successful
 	 */
 	protected boolean validateRegex(Control field, String regexPattern) {
@@ -576,8 +579,7 @@ public class BaseController {
 	 * {@code autoCloseStage} is to close the stage automatically by itself for a
 	 * configured amount of time.
 	 *
-	 * @param stage
-	 *            the stage
+	 * @param stage the stage
 	 */
 	protected void autoCloseStage(Stage stage) {
 		PauseTransition delay = new PauseTransition(Duration.seconds(5));
@@ -705,18 +707,21 @@ public class BaseController {
 		SessionContext.userMap().remove(RegistrationConstants.IS_LOW_QUALITY_BIOMETRICS);
 		SessionContext.map().remove(RegistrationConstants.DUPLICATE_FINGER);
 
-		updatePageFlow(RegistrationConstants.BIOMETRIC_EXCEPTION,
-				(boolean) ApplicationContext.map().get(RegistrationConstants.BIOMETRIC_EXCEPTION_FLOW));
+		pageFlow.loadPageFlow();
 
-		updatePageFlow(RegistrationConstants.FINGERPRINT_CAPTURE,
-				String.valueOf(ApplicationContext.map().get(RegistrationConstants.FINGERPRINT_DISABLE_FLAG))
-						.equalsIgnoreCase(RegistrationConstants.ENABLE));
-
-		updatePageFlow(RegistrationConstants.IRIS_CAPTURE,
-				String.valueOf(ApplicationContext.map().get(RegistrationConstants.IRIS_DISABLE_FLAG))
-						.equalsIgnoreCase(RegistrationConstants.ENABLE));
-
-		updatePageFlow(RegistrationConstants.GUARDIAN_BIOMETRIC, false);
+		// updatePageFlow(RegistrationConstants.BIOMETRIC_EXCEPTION,
+		// (boolean)
+		// ApplicationContext.map().get(RegistrationConstants.BIOMETRIC_EXCEPTION_FLOW));
+		//
+		// updatePageFlow(RegistrationConstants.FINGERPRINT_CAPTURE,
+		// String.valueOf(ApplicationContext.map().get(RegistrationConstants.FINGERPRINT_DISABLE_FLAG))
+		// .equalsIgnoreCase(RegistrationConstants.ENABLE));
+		//
+		// updatePageFlow(RegistrationConstants.IRIS_CAPTURE,
+		// String.valueOf(ApplicationContext.map().get(RegistrationConstants.IRIS_DISABLE_FLAG))
+		// .equalsIgnoreCase(RegistrationConstants.ENABLE));
+		//
+		// updatePageFlow(RegistrationConstants.GUARDIAN_BIOMETRIC, false);
 	}
 
 	/**
@@ -734,8 +739,7 @@ public class BaseController {
 	/**
 	 * Load child.
 	 *
-	 * @param url
-	 *            the url
+	 * @param url the url
 	 * @return the FXML loader
 	 */
 	public static FXMLLoader loadChild(URL url) {
@@ -755,8 +759,7 @@ public class BaseController {
 	/**
 	 * Scans documents.
 	 *
-	 * @param popupStage
-	 *            the stage
+	 * @param popupStage the stage
 	 */
 	public void scan(Stage popupStage) {
 
@@ -766,10 +769,8 @@ public class BaseController {
 	 * This method is for saving the Applicant Image and Exception Image which are
 	 * captured using webcam.
 	 *
-	 * @param capturedImage
-	 *            BufferedImage that is captured using webcam
-	 * @param imageType
-	 *            Type of image that is to be saved
+	 * @param capturedImage BufferedImage that is captured using webcam
+	 * @param imageType     Type of image that is to be saved
 	 */
 	public void saveApplicantPhoto(BufferedImage capturedImage, String imageType, CaptureResponseDto captureResponseDto,
 			String reponseTime, boolean isDuplicateFound) {
@@ -779,8 +780,7 @@ public class BaseController {
 	/**
 	 * This method used to clear the images that are captured using webcam.
 	 *
-	 * @param imageType
-	 *            Type of image that is to be cleared
+	 * @param imageType Type of image that is to be cleared
 	 */
 	public void clearPhoto(String imageType) {
 		// will be implemented in the derived class.
@@ -789,12 +789,9 @@ public class BaseController {
 	/**
 	 * it will wait for the mentioned time to get the capture image from Bio Device.
 	 *
-	 * @param count
-	 *            the count
-	 * @param waitTimeInSec
-	 *            the wait time in sec
-	 * @param fingerprintFacade
-	 *            the fingerprint facade
+	 * @param count             the count
+	 * @param waitTimeInSec     the wait time in sec
+	 * @param fingerprintFacade the fingerprint facade
 	 */
 	protected void waitToCaptureBioImage(int count, int waitTimeInSec, FingerprintFacade fingerprintFacade) {
 		int counter = 0;
@@ -818,8 +815,7 @@ public class BaseController {
 	/**
 	 * Convert bytes to image.
 	 *
-	 * @param imageBytes
-	 *            the image bytes
+	 * @param imageBytes the image bytes
 	 * @return the image
 	 */
 	protected Image convertBytesToImage(byte[] imageBytes) {
@@ -864,10 +860,8 @@ public class BaseController {
 	/**
 	 * to validate the password in case of password based authentication.
 	 *
-	 * @param username
-	 *            the username
-	 * @param password
-	 *            the password
+	 * @param username the username
+	 * @param password the password
 	 * @return the string
 	 */
 	protected String validatePwd(String username, String password) {
@@ -895,7 +889,7 @@ public class BaseController {
 			biometricExceptionController.clearSession();
 			fingerPrintCaptureController.clearFingerPrintDTO();
 			irisCaptureController.clearIrisData();
-			faceCaptureController.clearPhoto(RegistrationConstants.APPLICANT_IMAGE);
+			// faceCaptureController.clearPhoto(RegistrationConstants.APPLICANT_IMAGE);
 		} else {
 			if (SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA) != null) {
 				((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA)).getBiometricDTO()
@@ -905,8 +899,8 @@ public class BaseController {
 				biometricExceptionController.clearSession();
 				fingerPrintCaptureController.clearFingerPrintDTO();
 				irisCaptureController.clearIrisData();
-				faceCaptureController.clearPhoto(RegistrationConstants.APPLICANT_IMAGE);
-				faceCaptureController.clearPhoto(RegistrationConstants.EXCEPTION_IMAGE);
+				// faceCaptureController.clearPhoto(RegistrationConstants.APPLICANT_IMAGE);
+				// faceCaptureController.clearPhoto(RegistrationConstants.EXCEPTION_IMAGE);
 				guardianBiometricsController.clearCapturedBioData();
 			}
 		}
@@ -930,8 +924,7 @@ public class BaseController {
 	/**
 	 * Gets the notification template.
 	 *
-	 * @param templateCode
-	 *            the template code
+	 * @param templateCode the template code
 	 * @return the notification template
 	 */
 	protected Writer getNotificationTemplate(String templateCode) {
@@ -988,10 +981,8 @@ public class BaseController {
 	 * to return to the next page based on the current page and action for User
 	 * Onboarding.
 	 *
-	 * @param currentPage
-	 *            - Id of current Anchorpane
-	 * @param action
-	 *            - action to be performed previous/next
+	 * @param currentPage - Id of current Anchorpane
+	 * @param action      - action to be performed previous/next
 	 * @return id of next Anchorpane
 	 */
 
@@ -1001,48 +992,61 @@ public class BaseController {
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
 				"Updating OnBoard flow based on visibility and returning next page details");
 
-		return getReturnPage((List<String>) ApplicationContext.map().get(RegistrationConstants.ONBOARD_LIST),
-				currentPage, action);
+		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
+				"Returning Next page by action " + action);
+
+		String page = null;
+
+		if (action.equalsIgnoreCase(RegistrationConstants.NEXT)) {
+			/** Get Next Page if action is "NEXT" */
+			page = pageFlow.getNextOnboardPage(currentPage);
+		} else if (action.equalsIgnoreCase(RegistrationConstants.PREVIOUS)) {
+
+			/** Get Previous Page if action is "PREVIOUS" */
+			page = pageFlow.getPreviousOnboardPage(currentPage);
+		}
+
+		page = saveDetails(currentPage, page);
+		return page;
+
 	}
 
 	/**
 	 * to return to the next page based on the current page and action for New
 	 * Registration.
 	 *
-	 * @param currentPage
-	 *            - Id of current Anchorpane
-	 * @param action
-	 *            - action to be performed previous/next
+	 * @param currentPage - Id of current Anchorpane
+	 * @param action      - action to be performed previous/next
 	 * @return id of next Anchorpane
 	 */
 	@SuppressWarnings("unchecked")
-	protected String getPageDetails(String currentPage, String action) {
+	protected String getPageByAction(String currentPage, String action) {
 
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
-				"Updating RegistrationMap based on visibility");
+				"Returning Next page by action " + action);
 
-		for (Map.Entry<String, Map<String, Boolean>> entry : ((Map<String, Map<String, Boolean>>) ApplicationContext
-				.map().get(RegistrationConstants.REGISTRATION_MAP)).entrySet()) {
-			if (entry.getValue().get(RegistrationConstants.VISIBILITY)) {
-				pageDetails.add(entry.getKey());
-			}
+		String page = null;
+
+		if (action.equalsIgnoreCase(RegistrationConstants.NEXT)) {
+			/** Get Next Page if action is "NEXT" */
+			page = pageFlow.getNextRegPage(currentPage);
+		} else if (action.equalsIgnoreCase(RegistrationConstants.PREVIOUS)) {
+
+			/** Get Previous Page if action is "PREVIOUS" */
+			page = pageFlow.getPreviousRegPage(currentPage);
 		}
 
-		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID, "Returning Next page details");
-
-		return getReturnPage(pageDetails, currentPage, action);
+		page = saveDetails(currentPage, page);
+		return page;
 
 	}
 
 	/**
 	 * to return to the next page based on the current page and action.
 	 *
-	 * @param pageList
-	 *            - List of Anchorpane Ids
-	 * @param currentPage
-	 *            - Id of current Anchorpane
-	 * @param action
-	 *            - action to be performed previous/next
+	 * @param pageList    - List of Anchorpane Ids
+	 * @param currentPage - Id of current Anchorpane
+	 * @param action      - action to be performed previous/next
 	 * @return id of next Anchorpane
 	 */
 	private String getReturnPage(List<String> pageList, String currentPage, String action) {
@@ -1066,6 +1070,16 @@ public class BaseController {
 			returnPage = pageList.get((pageList.indexOf(currentPage)) - 1);
 		}
 
+		saveDetails(currentPage, returnPage);
+
+		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
+				"Returning the corresponding next page based on given action" + returnPage);
+
+		pageDetails.clear();
+		return returnPage;
+	}
+
+	private String saveDetails(String currentPage, String returnPage) {
 		if (returnPage.equalsIgnoreCase(RegistrationConstants.REGISTRATION_PREVIEW)) {
 
 			LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
@@ -1114,22 +1128,15 @@ public class BaseController {
 			}
 		}
 
-		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
-				"Returning the corresponding next page based on given action" + returnPage);
-
-		pageDetails.clear();
 		return returnPage;
 	}
 
 	/**
 	 * to navigate to the next page based on the current page.
 	 *
-	 * @param pageId
-	 *            - Parent Anchorpane where other panes are included
-	 * @param notTosShow
-	 *            - Id of Anchorpane which has to be hidden
-	 * @param show
-	 *            - Id of Anchorpane which has to be shown
+	 * @param pageId     - Parent Anchorpane where other panes are included
+	 * @param notTosShow - Id of Anchorpane which has to be hidden
+	 * @param show       - Id of Anchorpane which has to be shown
 	 * 
 	 */
 	protected void getCurrentPage(Pane pageId, String notTosShow, String show) {
@@ -1259,12 +1266,9 @@ public class BaseController {
 	/**
 	 * Popup statge.
 	 *
-	 * @param messgae
-	 *            the messgae
-	 * @param imageUrl
-	 *            the image url
-	 * @param styleClass
-	 *            the style class
+	 * @param messgae    the messgae
+	 * @param imageUrl   the image url
+	 * @param styleClass the style class
 	 */
 	public void onboardAlertMsg() {
 		packetHandlerController.getUserOnboardMessage().setVisible(true);
@@ -1281,14 +1285,10 @@ public class BaseController {
 	/**
 	 * Create alert with given title, header and context.
 	 *
-	 * @param alertType
-	 *            type of alert
-	 * @param title
-	 *            alert's title
-	 * @param header
-	 *            alert's header
-	 * @param context
-	 *            alert's context
+	 * @param alertType type of alert
+	 * @param title     alert's title
+	 * @param header    alert's header
+	 * @param context   alert's context
 	 * @return alert
 	 */
 	protected Alert createAlert(AlertType alertType, String title, String header, String context,
@@ -1325,7 +1325,7 @@ public class BaseController {
 	 * Update UIN method flow.
 	 */
 	protected void updateUINMethodFlow() {
-		if ((Boolean) SessionContext.userContext().getUserMap()
+		/*if ((Boolean) SessionContext.userContext().getUserMap()
 				.get(RegistrationConstants.TOGGLE_BIO_METRIC_EXCEPTION)) {
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_BIOMETRICEXCEPTION, true);
 			return;
@@ -1348,17 +1348,16 @@ public class BaseController {
 		} else if (RegistrationConstants.ENABLE
 				.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.FACE_DISABLE_FLAG))) {
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_FACECAPTURE, true);
-		} else {
+		} else {*/
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_REGISTRATIONPREVIEW, true);
 			registrationPreviewController.setUpPreviewContent();
-		}
+	//	}
 	}
 
 	/**
 	 * Update UIN next page.
 	 *
-	 * @param pageFlag
-	 *            the page flag
+	 * @param pageFlag the page flag
 	 * @return true, if successful
 	 */
 	protected boolean updateUINNextPage(String pageFlag) {
@@ -1378,8 +1377,7 @@ public class BaseController {
 	/**
 	 * Biomertic exception count.
 	 *
-	 * @param biometric
-	 *            the biometric
+	 * @param biometric the biometric
 	 * @return the long
 	 */
 	protected long biomerticExceptionCount(String biometric) {
@@ -1390,8 +1388,7 @@ public class BaseController {
 	/**
 	 * Gets the value from application context.
 	 *
-	 * @param key
-	 *            the key
+	 * @param key the key
 	 * @return the value from application context
 	 */
 	protected String getValueFromApplicationContext(String key) {
@@ -1405,8 +1402,7 @@ public class BaseController {
 	/**
 	 * Gets the quality score.
 	 *
-	 * @param qulaityScore
-	 *            the qulaity score
+	 * @param qulaityScore the qulaity score
 	 * @return the quality score
 	 */
 	protected String getQualityScore(Double qulaityScore) {
@@ -1420,10 +1416,8 @@ public class BaseController {
 	/**
 	 * Updates the Page Flow
 	 *
-	 * @param pageId
-	 *            id of the page
-	 * @param val
-	 *            value to be set
+	 * @param pageId id of the page
+	 * @param val    value to be set
 	 */
 	@SuppressWarnings("unchecked")
 	protected void updatePageFlow(String pageId, boolean val) {
@@ -1431,9 +1425,11 @@ public class BaseController {
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Updating page flow to navigate next or previous");
 
-		((Map<String, Map<String, Boolean>>) ApplicationContext.map().get(RegistrationConstants.REGISTRATION_MAP))
-				.get(pageId).put(RegistrationConstants.VISIBILITY, val);
+		// ((Map<String, Map<String, Boolean>>)
+		// ApplicationContext.map().get(RegistrationConstants.REGISTRATION_MAP))
+		// .get(pageId).put(RegistrationConstants.VISIBILITY, val);
 
+		pageFlow.updateRegMap(pageId, RegistrationConstants.VISIBILITY, val);
 	}
 
 	protected void restartApplication() {
@@ -1460,8 +1456,7 @@ public class BaseController {
 	/**
 	 * Any iris exception.
 	 *
-	 * @param iris
-	 *            the iris
+	 * @param iris the iris
 	 * @return true, if successful
 	 */
 	protected boolean anyIrisException(String iris) {
@@ -1486,9 +1481,8 @@ public class BaseController {
 	 * Restricts the re-ordering of the columns in {@link TableView}. This is
 	 * generic method.
 	 * 
-	 * @param table
-	 *            the instance of {@link TableView} for which re-ordering of columns
-	 *            had to be restricted
+	 * @param table the instance of {@link TableView} for which re-ordering of
+	 *              columns had to be restricted
 	 */
 	@SuppressWarnings("restriction")
 	protected void disableColumnsReorder(TableView<?> table) {
@@ -1630,13 +1624,21 @@ public class BaseController {
 			Map<String, UiSchemaDTO> validationsMap = new LinkedHashMap<>();
 			for (UiSchemaDTO schemaField : schemaFields) {
 				validationsMap.put(schemaField.getId(), schemaField);
+				if (schemaField.getType().equals(PacketManagerConstants.BIOMETRICS_DATATYPE)) {
+					mapOfbiometricSubtypes.put(schemaField.getSubType(), schemaField.getLabel().get("primary"));
+					if(!listOfBiometricSubTypes.contains(schemaField.getSubType()))
+						listOfBiometricSubTypes.add(schemaField.getSubType());
+				}
 			}
 			validations.setValidations(validationsMap); // Set Validations Map
 
-			ApplicationContext.map().put(RegistrationConstants.indBiometrics,
-					getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics));
-			ApplicationContext.map().put("parentOrGuardianBiometrics",
-					getSchemaFieldBioAttributes("parentOrGuardianBiometrics"));
+			// THIS IS NOT REQUIRED
+			/*
+			 * ApplicationContext.map().put(RegistrationConstants.indBiometrics,
+			 * getBioAttributesBySubType(RegistrationConstants.indBiometrics));
+			 * ApplicationContext.map().put("parentOrGuardianBiometrics",
+			 * getBioAttributesBySubType("parentOrGuardianBiometrics"));
+			 */
 
 		} catch (RegBaseCheckedException e) {
 			LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
@@ -1644,92 +1646,145 @@ public class BaseController {
 		}
 	}
 
-	protected void disablePaneOnBioAttributes(Node pane, List<String> constantBioAttributes) {
+	public SimpleEntry<String, List<String>> getValue(String bio, List<String> attributes) {
+		SimpleEntry<String, List<String>> entry = new SimpleEntry<String, List<String>>(bio, attributes);
+		return entry;
+	}
 
-		/** Put pane disable by default */
-		pane.setDisable(true);
+	protected HashMap<Entry<String, String>, HashMap<String, List<List<String>>>> getconfigureAndNonConfiguredBioAttributes(
+			List<Entry<String, List<String>>> entryListConstantAttributes) {
 
-		/** Get UI schema individual Biometrics Bio Attributes */
-		List<String> uiSchemaBioAttributes = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
+		HashMap<Entry<String, String>, HashMap<String, List<List<String>>>> mapToProcess = new HashMap<>();
 
-		/** If bio Attribute not mentioned for bio attribute then disable */
-		if (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
-			pane.setDisable(true);
-		} else {
+		for (Entry<String, String> uiSchemaSubType : getMapOfbiometricSubtypes().entrySet()) {
 
-			for (String attribute : constantBioAttributes) {
+			List<String> uiAttributes = getBioAttributesBySubType(uiSchemaSubType.getKey());
 
-				/** If bio attribute configured in UI Schema, then enable the pane */
-				if (uiSchemaBioAttributes.contains(attribute)) {
-					pane.setDisable(false);
+			HashMap<String, List<List<String>>> subMap = new HashMap<>();
+			for (Entry<String, List<String>> constantAttributes : entryListConstantAttributes) {
+				List<String> nonConfigBiometrics = new LinkedList<>();
+				List<String> configBiometrics = new LinkedList<>();
+				String slabType = constantAttributes.getKey();
+				for (String attribute : constantAttributes.getValue()) {
+					if (!uiAttributes.contains(attribute)) {
+						nonConfigBiometrics.add(attribute);
+					} else {
+						configBiometrics.add(attribute);
+					}
+				}
+				subMap.put(slabType, Arrays.asList(configBiometrics, nonConfigBiometrics));
+			}
+			mapToProcess.put(uiSchemaSubType, subMap);
+		}
 
-					/** Stop the iteration as we got the attribute */
-					break;
+		return mapToProcess;
+	}
+
+	/*
+	 * protected void disablePaneOnBioAttributes(Node pane, List<String>
+	 * constantBioAttributes) { return;
+	 *//** Put pane disable by default */
+	/*
+	 * 
+	 * pane.setDisable(true);
+	 * 
+	 *//** Get UI schema individual Biometrics Bio Attributes */
+	/*
+	 * 
+	 * List<String> uiSchemaBioAttributes =
+	 * getBioAttributesBySubType(RegistrationConstants.indBiometrics);
+	 * 
+	 *//** If bio Attribute not mentioned for bio attribute then disable */
+	/*
+	 * 
+	 * if (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
+	 * pane.setDisable(true); } else {
+	 * 
+	 * for (String attribute : constantBioAttributes) {
+	 * 
+	 *//** If bio attribute configured in UI Schema, then enable the pane */
+
+	/*
+	 * 
+	 * if (uiSchemaBioAttributes.contains(attribute)) { pane.setDisable(false);
+	 * 
+	 *//** Stop the iteration as we got the attribute *//*
+														 * break; } } }
+														 * 
+														 * }
+														 */
+
+	// protected void addExceptionDTOs() {
+	// List<String> bioAttributesFromSchema =
+	// getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
+	// List<String> bioList = new ArrayList<String>();
+	//
+	// /** If bio Attribute not mentioned for bio attribute then disable */
+	// bioList.addAll(ALL_BIO_ATTRIBUTES);
+	//
+	// /** If bio attribute configured in UI Schema, then enable the pane */
+	// if (bioAttributesFromSchema != null && !bioAttributesFromSchema.isEmpty())
+	// bioList.removeAll(bioAttributesFromSchema);
+	//
+	// List<BiometricExceptionDTO> biometricExceptionDTOs =
+	// biometricExceptionController
+	// .getBiometricsExceptionList(bioList);
+	//
+	// biometricExceptionController.addExceptionToRegistration(biometricExceptionDTOs);
+	//
+	// }
+
+	public List<String> getBioAttributesBySubType(String subType) {
+		List<String> bioAttributes = new ArrayList<String>();
+		if (subType != null) {
+			bioAttributes = getAttributesByTypeAndSubType(RegistrationConstants.BIOMETRICS_TYPE, subType);
+		}
+		return bioAttributes;
+	}
+
+	private List<String> getAttributesByTypeAndSubType(String type, String subType) {
+		List<String> bioAttributes = new LinkedList<>();
+		if (type != null && subType != null) {
+			for (Map.Entry<String, UiSchemaDTO> entry : validations.getValidationMap().entrySet()) {
+				if (type.equalsIgnoreCase(entry.getValue().getType())
+						&& subType.equalsIgnoreCase(entry.getValue().getSubType())
+						&& entry.getValue().getBioAttributes() != null) {
+					bioAttributes.addAll(entry.getValue().getBioAttributes());
 				}
 			}
 		}
+		return bioAttributes;
 	}
 
-//	protected void addExceptionDTOs() {
-//		List<String> bioAttributesFromSchema = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
-//		List<String> bioList = new ArrayList<String>();
-//
-//		/** If bio Attribute not mentioned for bio attribute then disable */
-//		bioList.addAll(ALL_BIO_ATTRIBUTES);
-//
-//		/** If bio attribute configured in UI Schema, then enable the pane */
-//		if (bioAttributesFromSchema != null && !bioAttributesFromSchema.isEmpty())
-//			bioList.removeAll(bioAttributesFromSchema);
-//
-//		List<BiometricExceptionDTO> biometricExceptionDTOs = biometricExceptionController
-//				.getBiometricsExceptionList(bioList);
-//
-//		biometricExceptionController.addExceptionToRegistration(biometricExceptionDTOs);
-//
-//	}
+	/*
+	 * protected boolean isAvailableInBioAttributes(List<String> constantAttributes)
+	 * { boolean isAvailable = false; List<String> uiSchemaBioAttributes =
+	 * getBioAttributesBySubType(RegistrationConstants.indBiometrics); // If bio
+	 * Attribute not mentioned for bio attribute then disable if
+	 * (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
+	 * isAvailable = false; } else {
+	 * 
+	 * for (String attribute : constantAttributes) {
+	 * 
+	 * // If bio attribute configured in UI Schema, then enable the pane if
+	 * (uiSchemaBioAttributes.contains(attribute)) {
+	 * 
+	 * isAvailable = true; } }
+	 * 
+	 * }
+	 * 
+	 * return isAvailable; }
+	 */
 
-	private List<String> getSchemaFieldBioAttributes(String fieldId) {
-		if (validations.getValidationMap().containsKey(fieldId)
-				&& validations.getValidationMap().get(fieldId).getType().equalsIgnoreCase("biometricsType")) {
-			
-			BioServiceImpl.setBioAttributes(validations.getValidationMap().get(fieldId).getBioAttributes());
-			return validations.getValidationMap().get(fieldId).getBioAttributes();
+	protected List<String> getNonConfigBioAttributes(String uiSchemaSubType, List<String> constantAttributes) {
 
-		}
-			
-		return null;
-	}
-
-	protected boolean isAvailableInBioAttributes(List<String> constantAttributes) {
-
-		boolean isAvailable = false;
-		List<String> uiSchemaBioAttributes = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
-
-		/** If bio Attribute not mentioned for bio attribute then disable */
-		if (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
-			isAvailable = false;
-		} else {
-
-			for (String attribute : constantAttributes) {
-
-				/** If bio attribute configured in UI Schema, then enable the pane */
-				if (uiSchemaBioAttributes.contains(attribute)) {
-
-					isAvailable = true;
-				}
-			}
-
-		}
-
-		return isAvailable;
-	}
-
-	protected List<String> getNonConfigBioAttributes(List<String> constantAttributes) {
+		if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER))
+			return constantAttributes;
 
 		List<String> nonConfigBiometrics = new LinkedList<>();
 
 		// Get Bio Attributes
-		List<String> uiAttributes = getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
+		List<String> uiAttributes = getBioAttributesBySubType(uiSchemaSubType);
 
 		for (String attribute : constantAttributes) {
 			if (!uiAttributes.contains(attribute)) {
@@ -1738,4 +1793,47 @@ public class BaseController {
 		}
 		return nonConfigBiometrics;
 	}
+
+	protected boolean isDemographicField(UiSchemaDTO schemaField) {
+		return (schemaField.isInputRequired()
+				&& !(PacketManagerConstants.BIOMETRICS_DATATYPE.equals(schemaField.getType())
+						|| PacketManagerConstants.DOCUMENTS_DATATYPE.equals(schemaField.getType())));
+	}
+
+	/*
+	 * protected List<String> getConstantConfigBioAttributes(String bioType) {
+	 * 
+	 * return bioType.equalsIgnoreCase(RegistrationUIConstants.RIGHT_SLAP) ?
+	 * RegistrationConstants.rightHandUiAttributes :
+	 * bioType.equalsIgnoreCase(RegistrationUIConstants.LEFT_SLAP) ?
+	 * RegistrationConstants.leftHandUiAttributes :
+	 * bioType.equalsIgnoreCase(RegistrationUIConstants.THUMBS) ?
+	 * RegistrationConstants.twoThumbsUiAttributes :
+	 * bioType.equalsIgnoreCase(RegistrationConstants.IRIS) ?
+	 * RegistrationConstants.eyesUiAttributes :
+	 * bioType.equalsIgnoreCase(RegistrationConstants.FACE) ?
+	 * Arrays.asList(RegistrationConstants.FACE) : null; }
+	 */
+
+	/*
+	 * protected List<String> getConfigBioAttributes(List<String>
+	 * constantAttributes) {
+	 * 
+	 * // Get Bio Attributes List<String> uiAttributes =
+	 * getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
+	 * 
+	 * return
+	 * constantAttributes.stream().filter(uiAttributes::contains).collect(Collectors
+	 * .toList());
+	 * 
+	 * 
+	 * }
+	 */
+
+	protected List<String> getContainsAllElements(List<String> source, List<String> target) {
+
+		return source.stream().filter(target::contains).collect(Collectors.toList());
+
+	}
+
 }

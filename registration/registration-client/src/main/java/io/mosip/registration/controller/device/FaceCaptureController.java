@@ -169,7 +169,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 		LOGGER.info("REGISTRATION - UI - FACE_CAPTURE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 				"Loading of FaceCapture screen started");
 
-		disablePaneOnBioAttributes(applicantImagePane, Arrays.asList(RegistrationConstants.FACE.toLowerCase()));
+		//disablePaneOnBioAttributes(applicantImagePane, Arrays.asList(RegistrationConstants.FACE.toLowerCase()));
 		setImagesOnHover();
 
 		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getSelectionListDTO() != null) {
@@ -185,7 +185,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 					ApplicationContext.applicationLanguageBundle().getString(RegistrationConstants.LOSTUINLBL));
 		}
 
-		disableNextButton();
+		//disableNextButton();
 
 		takePhoto.setDisable(true);
 
@@ -202,7 +202,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 			}
 		} else {
 			hasLowBiometrics = false;
-			hasBiometricException = bioService.hasBiometricExceptionToggleEnabled();
+			hasBiometricException =false; // bioService.hasBiometricExceptionToggleEnabled();
 
 			defaultExceptionImage = new Image(
 					getClass().getResourceAsStream(RegistrationConstants.DEFAULT_EXCEPTION_IMAGE_PATH));
@@ -391,7 +391,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 					registrationController.showUINUpdateCurrentPage();
 				} else {
 					registrationController.showCurrentPage(RegistrationConstants.FACE_CAPTURE,
-							getPageDetails(RegistrationConstants.FACE_CAPTURE, RegistrationConstants.PREVIOUS));
+							getPageByAction(RegistrationConstants.FACE_CAPTURE, RegistrationConstants.PREVIOUS));
 				}
 			} catch (RuntimeException runtimeException) {
 				LOGGER.error("REGISTRATION - COULD NOT GO TO DEMOGRAPHIC TITLE PANE ", APPLICATION_NAME,
@@ -415,7 +415,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 			String reponseTime, boolean isDuplicate) {
 
 		
-		saveBiometricDetailsBtn.setDisable(!isAvailableInBioAttributes(Arrays.asList(RegistrationConstants.FACE)));
+		//saveBiometricDetailsBtn.setDisable(!isAvailableInBioAttributes(Arrays.asList(RegistrationConstants.FACE)));
 
 		captureTimeValue.setText(reponseTime);
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
@@ -558,12 +558,13 @@ public class FaceCaptureController extends BaseController implements Initializab
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "validating applicant biometrics");
 
-		return isAvailableInBioAttributes(Arrays.asList(RegistrationConstants.FACE)) ? applicantImageCaptured
+		/*return isAvailableInBioAttributes(Arrays.asList(RegistrationConstants.FACE)) ? applicantImageCaptured
 				: true && ((bioService.hasBiometricExceptionToggleEnabled() && !BioServiceImpl.isChild()
 						&& !getRegistrationDTOFromSession().isUpdateUINNonBiometric())
 								? (exceptionImageCaptured ? true : false)
 								: true);
-
+		 */
+		return true;
 	}
 
 	private boolean validateOperatorPhoto() {
@@ -603,7 +604,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Enabling the capture button based on selected pane");
 
-		checkForException();
+		//checkForException();
 
 		/* get the selected pane to capture photo */
 		Pane sourcePane = (Pane) mouseEvent.getSource();

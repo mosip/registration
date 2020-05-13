@@ -1,521 +1,568 @@
 {
    "id": "36e60a08-7ff4-4bbd-b45c-d0116cb5716a",
     "idVersion": 0.1,
-    "schema": [
-      {
-        "id": "IDSchemaVersion",
-        "description": "ID Schema Version",
-        "labelName": "IDSchemaVersion",
-        "type": "number",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": null,
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "pvt",
-        "inputRequired": false,
-        "validators": [],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": true
-      },
-      {
-        "id": "UIN",
-        "description": "UIN",
-        "labelName": "UIN",
-        "type": "integer",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": null,
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "pvt",
-        "inputRequired": false,
-        "validators": [],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": true
-      },
-      {
-        "id": "fullName",
-        "description": "Full Name",
-        "labelName": "FullName",
-        "type": "simpleType",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "textbox",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "pvt",
-        "inputRequired": true,
-        "validators": [
-          {
-            "type": "regex",
-            "validator": "^(?=.{0,50}$).*",
-            "arguments": []
-          }
-        ],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": true
-      },
-      {
-        "id": "dateOfBirth",
-        "description": "dateOfBirth",
-        "labelName": "DateOfBirth",
-        "type": "string",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "ageDate",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "pvt",
-        "inputRequired": true,
-        "validators": [
-          {
-            "type": "regex",
-            "validator": "^(1869|18[7-9][0-9]|19[0-9][0-9]|20[0-9][0-9])/([0][1-9]|1[0-2])/([0][1-9]|[1-2][0-9]|3[01])$",
-            "arguments": []
-          }
-        ],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": true
-      },
-      {
-        "id": "gender",
-        "description": "gender",
-        "labelName": "Gender",
-        "type": "simpleType",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "dropdown",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "pvt",
-        "inputRequired": true,
-        "validators": [],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": true
-      },
-	  {
-        "id": "residenceStatus",
-        "description": "residenceStatus",
-        "labelName": "ResidenceStatus",
-        "type": "simpleType",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "dropdown",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "optional",
-        "inputRequired": true,
-        "validators": [],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": false
-      },
-      {
-        "id": "addressLine1",
-        "description": "addressLine1",
-        "labelName": "AddressLine1",
-        "type": "simpleType",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "textbox",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "pvt",
-        "inputRequired": true,
-        "validators": [
-          {
-            "type": "regex",
-            "validator": "^(?=.{0,50}$).*",
-            "arguments": []
-          }
-        ],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": true
-      },
-      {
-        "id": "addressLine2",
-        "description": "addressLine2",
-        "labelName": "AddressLine2",
-        "type": "simpleType",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "textbox",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "pvt",
-        "inputRequired": true,
-        "validators": [
-          {
-            "type": "regex",
-            "validator": "^(?=.{0,50}$).*",
-            "arguments": []
-          }
-        ],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": true
-      },
-      {
-        "id": "addressLine3",
-        "description": "addressLine3",
-        "labelName": "AddressLine3",
-        "type": "simpleType",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "textbox",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "pvt",
-        "inputRequired": true,
-        "validators": [
-          {
-            "type": "regex",
-            "validator": "^(?=.{0,50}$).*",
-            "arguments": []
-          }
-        ],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": true
-      },
-      {
-        "id": "region",
-        "description": "region",
-        "labelName": "Region",
-        "type": "simpleType",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "dropdown",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "pvt",
-        "inputRequired": true,
-        "validators": [
-          {
-            "type": "regex",
-            "validator": "^(?=.{0,50}$).*",
-            "arguments": []
-          }
-        ],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": true
-      },
-      {
-        "id": "province",
-        "description": "province",
-        "labelName": "Province",
-        "type": "simpleType",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "dropdown",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "pvt",
-        "inputRequired": true,
-        "validators": [
-          {
-            "type": "regex",
-            "validator": "^(?=.{0,50}$).*",
-            "arguments": []
-          }
-        ],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": true
-      },
-      {
-        "id": "city",
-        "description": "city",
-        "labelName": "City",
-        "type": "simpleType",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "dropdown",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "pvt",
-        "inputRequired": true,
-        "validators": [
-          {
-            "type": "regex",
-            "validator": "^(?=.{0,50}$).*",
-            "arguments": []
-          }
-        ],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": true
-      },
-	  {
-        "id": "zone",
-        "description": "zone",
-        "labelName": "Zone",
-        "type": "simpleType",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "dropdown",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "pvt",
-        "inputRequired": true,
-        "validators": [],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": true
-      },
-      {
-        "id": "postalCode",
-        "description": "postalCode",
-        "labelName": "PostalCode",
-        "type": "string",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "textbox",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "pvt",
-        "inputRequired": true,
-        "validators": [
-          {
-            "type": "regex",
-            "validator": "^[(?i)A-Z0-9]{5}$|^NA$",
-            "arguments": []
-          }
-        ],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": true
-      },
-      {
-        "id": "phone",
-        "description": "phone",
-        "labelName": "phone",
-        "type": "string",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "textbox",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "pvt",
-        "inputRequired": true,
-        "validators": [
-          {
-            "type": "regex",
-            "validator": "^([6-9]{1})([0-9]{9})$",
-            "arguments": []
-          }
-        ],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": true
-      },
-      {
-        "id": "email",
-        "description": "email",
-        "labelName": "Email",
-        "type": "string",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "textbox",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "pvt",
-        "inputRequired": true,
-        "validators": [
-          {
-            "type": "regex",
-            "validator": "^[a-zA-Z-\\+]+(\\.[a-zA-Z]+)*@[a-zA-Z-]+(\\.[a-zA-Z]+)*(\\.[a-zA-Z]{2,})$",
-            "arguments": []
-          }
-        ],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": true
-      },
-      {
-        "id": "parentOrGuardianName",
-        "description": "parentOrGuardianName",
-        "labelName": "parentOrGuardianName",
-        "type": "simpleType",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "textbox",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "evidence",
-        "inputRequired": true,
-        "validators": [],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": false
-      },
-      {
-        "id": "parentOrGuardianRID",
-        "description": "parentOrGuardianRID",
-        "labelName": "parentOrGuardianRID",
-        "type": "simpleType",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "textbox",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "evidence",
-        "inputRequired": true,
-        "validators": [],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": false
-      },
-      {
-        "id": "parentOrGuardianUIN",
-        "description": "parentOrGuardianUIN",
-        "labelName": "parentOrGuardianUIN",
-        "type": "simpleType",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "textbox",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "evidence",
-        "inputRequired": true,
-        "validators": [],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": false
-      },
-      {
-        "id": "POA",
-        "description": "proofOfAddress",
-        "labelName": "Proof Of Address",
-        "type": "documentType",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "fileupload",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "optional",
-        "inputRequired": true,
-        "validators": [],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": false
-      },
-      {
-        "id": "POI",
-        "description": "proofOfIdentity",
-        "labelName": "Proof Of Identity",
-        "type": "documentType",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "fileupload",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "evidence",
-        "inputRequired": true,
-        "validators": [],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": true
-      },
-      {
-        "id": "POR",
-        "description": "proofOfRelationship",
-        "labelName": "Proof Of Relationship",
-        "type": "documentType",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "fileupload",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "evidence",
-        "inputRequired": true,
-        "validators": [],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": true
-      },
-      {
-        "id": "POB",
-        "description": "proofOfDateOfBirth",
-        "labelName": "Proof Of DateOfBirth",
-        "type": "documentType",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "fileupload",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "evidence",
-        "inputRequired": true,
-        "validators": [],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": true
-      },
-      {
-        "id": "POE",
-        "description": "proofOfException",
-        "labelName": "Proof Of Exception",
-        "type": "documentType",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "fileupload",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "evidence",
-        "inputRequired": true,
-        "validators": [],
-        "bioAttributes": null,
-        "requiredOn": null,
-        "required": true
-      },
-      {
-        "id": "individualBiometrics",
-        "description": "",
-        "labelName": "individualBiometrics",
-        "type": "biometricsType",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "biometrics",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "pvt",
-        "inputRequired": true,
-        "validators": [],
-        "bioAttributes": [
-          "leftEye",
-          "face"
-        ],
-        "requiredOn": null,
-        "required": true
-      },
-      {
-        "id": "parentOrGuardianBiometrics",
-        "description": "",
-        "labelName": "parentOrGuardianBiometrics",
-        "type": "biometricsType",
-        "minimum": 0,
-        "maximum": 0,
-        "controlType": "biometrics",
-        "fieldType": "default",
-        "format": "none",
-        "fieldCategory": "evidence",
-        "inputRequired": true,
-        "validators": [],
-        "bioAttributes": [
-          "face"
-        ],
-        "requiredOn": null,
-        "required": false
-      }
-    ],
+    "schema": [{
+	"id": "IDSchemaVersion",
+	"inputRequired": false,
+	"type": "number",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "ID Schema Version",
+	"label": {
+		"primary": "IDSchemaVersion"
+	},
+	"controlType": null,
+	"fieldType": "default",
+	"subType": "IdSchemaVersion",
+	"format": "none",
+	"validators": [],
+	"fieldCategory": "pvt",
+	"required": true
+}, {
+	"id": "UIN",
+	"inputRequired": false,
+	"type": "integer",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "UIN",
+	"label": {
+		"primary": "UIN"
+	},
+	"controlType": null,
+	"fieldType": "default",
+	"format": "none",
+	"subType": "UIN",
+	"validators": [],
+	"fieldCategory": "pvt",
+	"required": true
+}, {
+	"id": "fullName",
+	"inputRequired": true,
+	"type": "simpleType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "Full Name",
+	"label": {
+		"primary": "Full Name",
+		"secondary": "الاسم الكامل"
+	},
+	"controlType": "textbox",
+	"fieldType": "default",
+	"format": "none",
+	"subType": "fullName",
+	"validators": [{
+		"type": "regex",
+		"validator": "^(?=.{0,50}$).*",
+		"arguments": []
+	}],
+	"fieldCategory": "pvt",
+	"required": true
+}, {
+	"id": "dateOfBirth",
+	"inputRequired": true,
+	"type": "string",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "dateOfBirth",
+	"label": {
+		"primary": "DOB",
+		"secondary": "دوب"
+	},
+	"controlType": "ageDate",
+	"fieldType": "default",
+	"format": "none",
+	"subType": "dateOfBirth",
+	"validators": [{
+		"type": "regex",
+		"validator": "^(1869|18[7-9][0-9]|19[0-9][0-9]|20[0-9][0-9])/([0][1-9]|1[0-2])/([0][1-9]|[1-2][0-9]|3[01])$",
+		"arguments": []
+	}],
+	"fieldCategory": "pvt",
+	"required": true
+}, {
+	"id": "gender",
+	"inputRequired": true,
+	"type": "simpleType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "gender",
+	"label": {
+		"primary": "Gender",
+		"secondary": "جنس"
+	},
+	"controlType": "dropdown",
+	"fieldType": "default",
+	"format": "",
+	"subType": "Gender",
+	"validators": [],
+	"fieldCategory": "pvt",
+	"required": true
+}, {
+	"id": "addressLine1",
+	"inputRequired": true,
+	"type": "simpleType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "addressLine1",
+	"label": {
+		"primary": "AddressLine1",
+		"secondary": "العنوان السطر 1"
+	},
+	"controlType": "textbox",
+	"fieldType": "default",
+	"format": "none",
+	"subType": "addressLine1",
+	"validators": [{
+		"type": "regex",
+		"validator": "^(?=.{0,50}$).*",
+		"arguments": []
+	}],
+	"fieldCategory": "pvt",
+	"required": true,
+	"contactType": "Postal"
+}, {
+	"id": "addressLine2",
+	"inputRequired": true,
+	"type": "simpleType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "addressLine2",
+	"label": {
+		"primary": "AddressLine2",
+		"secondary": "سطر العنوان 2"
+	},
+	"controlType": "textbox",
+	"fieldType": "default",
+	"format": "none",
+	"subType": "addressLine2",
+	"validators": [{
+		"type": "regex",
+		"validator": "^(?=.{0,50}$).*",
+		"arguments": []
+	}],
+	"fieldCategory": "pvt",
+	"required": true,
+	"contactType": "Postal"
+}, {
+	"id": "addressLine3",
+	"inputRequired": true,
+	"type": "simpleType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "addressLine3",
+	"label": {
+		"primary": "AddressLine3",
+		"secondary": "العنوانالخط 3"
+	},
+	"controlType": "textbox",
+	"fieldType": "default",
+	"format": "none",
+	"subType": "addressLine3",
+	"validators": [{
+		"type": "regex",
+		"validator": "^(?=.{0,50}$).*",
+		"arguments": []
+	}],
+	"fieldCategory": "pvt",
+	"required": true,
+	"contactType": "Postal"
+}, {
+	"id": "residenceStatus",
+	"inputRequired": true,
+	"type": "simpleType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "residenceStatus",
+	"label": {
+		"primary": "Residence Status",
+		"secondary": "حالة الإقامة"
+	},
+	"controlType": "dropdown",
+	"fieldType": "default",
+	"format": "none",
+	"subType": "residenceStatus",
+	"validators": [],
+	"fieldCategory": "optional",
+	"required": false
+}, {
+	"id": "region",
+	"inputRequired": true,
+	"type": "simpleType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "region",
+	"label": {
+		"primary": "Region",
+		"secondary": "منطقة"
+	},
+	"controlType": "dropdown",
+	"fieldType": "default",
+	"format": "none",
+	"subType": "Region",
+	"validators": [{
+		"type": "regex",
+		"validator": "^(?=.{0,50}$).*",
+		"arguments": []
+	}],
+	"fieldCategory": "pvt",
+	"required": true,
+	"contactType": "Postal"
+}, {
+	"id": "province",
+	"inputRequired": true,
+	"type": "simpleType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "province",
+	"label": {
+		"primary": "Province",
+		"secondary": "المحافظة"
+	},
+	"controlType": "dropdown",
+	"fieldType": "default",
+	"format": "none",
+	"validators": [{
+		"type": "regex",
+		"validator": "^(?=.{0,50}$).*",
+		"arguments": []
+	}],
+	"fieldCategory": "pvt",
+	"required": true,
+	"contactType": "Postal",
+	"subType": "Province"
+}, {
+	"id": "city",
+	"inputRequired": true,
+	"type": "simpleType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "city",
+	"label": {
+		"primary": "City",
+		"secondary": "مدينة"
+	},
+	"controlType": "dropdown",
+	"fieldType": "default",
+	"format": "none",
+	"validators": [{
+		"type": "regex",
+		"validator": "^(?=.{0,50}$).*",
+		"arguments": []
+	}],
+	"fieldCategory": "pvt",
+	"required": true,
+	"contactType": "Postal",
+	"subType": "City"
+}, {
+	"id": "postalCode",
+	"inputRequired": true,
+	"type": "string",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "postalCode",
+	"label": {
+		"primary": "Postal Code",
+		"secondary": "الكود البريدى"
+	},
+	"controlType": "textbox",
+	"fieldType": "default",
+	"format": "none",
+	"validators": [{
+		"type": "regex",
+		"validator": "^[(?i)A-Z0-9]{5}$|^NA$",
+		"arguments": []
+	}],
+	"fieldCategory": "pvt",
+	"required": true,
+	"contactType": "Postal",
+	"subType": "Postal Code"
+}, {
+	"id": "phone",
+	"inputRequired": true,
+	"type": "number",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "phone",
+	"label": {
+		"primary": "Phone",
+		"secondary": "هاتف"
+	},
+	"controlType": "textbox",
+	"fieldType": "default",
+	"format": "none",
+	"subType": "Phone",
+	"validators": [{
+		"type": "regex",
+		"validator": "^([6-9]{1})([0-9]{9})$",
+		"arguments": []
+	}],
+	"fieldCategory": "pvt",
+	"required": true,
+	"contactType": "email"
+}, {
+	"id": "email",
+	"inputRequired": true,
+	"type": "string",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "email",
+	"label": {
+		"primary": "Email",
+		"secondary": "البريد الإلكتروني"
+	},
+	"controlType": "textbox",
+	"fieldType": "default",
+	"format": "none",
+	"subType": "Email",
+	"validators": [{
+		"type": "regex",
+		"validator": "^[a-zA-Z-\\+]+(\\.[a-zA-Z]+)*@[a-zA-Z-]+(\\.[a-zA-Z]+)*(\\.[a-zA-Z]{2,})$",
+		"arguments": []
+	}],
+	"fieldCategory": "pvt",
+	"required": true,
+	"contactType": "email"
+}, {
+	"id": "zone",
+	"inputRequired": true,
+	"type": "simpleType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "zone",
+	"label": {
+		"primary": "Zone",
+		"secondary": "منطقة"
+	},
+	"controlType": "dropdown",
+	"fieldType": "default",
+	"format": "none",
+	"subType": "Zone",
+	"validators": [],
+	"fieldCategory": "pvt",
+	"required": true
+}, {
+	"id": "parentOrGuardianName",
+	"inputRequired": true,
+	"type": "simpleType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "parentOrGuardianName",
+	"label": {
+		"primary": "Parent Name",
+		"secondary": "اسم الوالدين"
+	},
+	"controlType": "textbox",
+	"fieldType": "default",
+	"format": "none",
+	"subType": "parentOrGuardianName",
+	"validators": [],
+	"fieldCategory": "evidence",
+	"required": false,
+	"requiredOn": "$age <= 5"
+}, {
+	"id": "parentOrGuardianRID",
+	"inputRequired": true,
+	"type": "simpleType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "parentOrGuardianRID",
+	"label": {
+		"primary": "Parent RID",
+		"secondary": "الوالد RID"
+	},
+	"controlType": "textbox",
+	"fieldType": "default",
+	"format": "none",
+	"subType": "parentOrGuardianRID",
+	"validators": [],
+	"fieldCategory": "evidence",
+	"required": false,
+	"requiredOn": "$age <= 5 && $parentOrGuardianUIN == null"
+}, {
+	"id": "parentOrGuardianUIN",
+	"inputRequired": true,
+	"type": "simpleType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "parentOrGuardianUIN",
+	"label": {
+		"primary": "Parent UIN",
+		"secondary": "الأصل UIN"
+	},
+	"controlType": "textbox",
+	"fieldType": "default",
+	"format": "none",
+	"subType": "parentOrGuardianUIN",
+	"validators": [],
+	"fieldCategory": "evidence",
+	"required": false
+}, {
+	"id": "proofOfAddress",
+	"inputRequired": true,
+	"type": "documentType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "proofOfAddress",
+	"label": {
+		"primary": "Address Proof",
+		"secondary": "إثبات العنوان"
+	},
+	"controlType": "fileupload",
+	"fieldType": "default",
+	"format": "none",
+	"validators": [],
+	"fieldCategory": "optional",
+	"required": false,
+	"subType": "POA"
+}, {
+	"id": "proofOfIdentity",
+	"inputRequired": true,
+	"type": "documentType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "proofOfIdentity",
+	"label": {
+		"primary": "Identity Proof",
+		"secondary": "إثبات الهوية"
+	},
+	"controlType": "fileupload",
+	"fieldType": "default",
+	"format": "none",
+	"validators": [],
+	"fieldCategory": "evidence",
+	"required": true,
+	"subType": "POI"
+}, {
+	"id": "proofOfRelationship",
+	"inputRequired": true,
+	"type": "documentType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "proofOfRelationship",
+	"label": {
+		"primary": "Relationship Proof",
+		"secondary": "إثبات العلاقة"
+	},
+	"controlType": "fileupload",
+	"fieldType": "default",
+	"format": "none",
+	"validators": [],
+	"fieldCategory": "evidence",
+	"required": true,
+	"subType": "POR"
+}, {
+	"id": "proofOfDateOfBirth",
+	"inputRequired": true,
+	"type": "documentType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "proofOfDateOfBirth",
+	"label": {
+		"primary": "DOB Proof",
+		"secondary": "دليل DOB"
+	},
+	"controlType": "fileupload",
+	"fieldType": "default",
+	"format": "none",
+	"validators": [],
+	"fieldCategory": "evidence",
+	"required": true,
+	"subType": "POB"
+}, {
+	"id": "proofOfException",
+	"inputRequired": true,
+	"type": "documentType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "proofOfException",
+	"label": {
+		"primary": "Exception Proof",
+		"secondary": "إثبات الاستثناء"
+	},
+	"controlType": "fileupload",
+	"fieldType": "default",
+	"format": "none",
+	"validators": [],
+	"fieldCategory": "evidence",
+	"required": true,
+	"subType": "POE"
+}, {
+	"id": "proofOfException-1",
+	"inputRequired": true,
+	"type": "documentType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "proofOfException",
+	"label": {
+		"primary": "Exception Proof",
+		"secondary": "إثبات الاستثناء 2"
+	},
+	"controlType": "fileupload",
+	"fieldType": "default",
+	"format": "none",
+	"validators": [],
+	"fieldCategory": "evidence",
+	"required": true,
+	"subType": "POE"
+}, {
+	"id": "individualBiometrics",
+	"inputRequired": true,
+	"type": "biometricsType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "",
+	"label": {
+		"primary": "Exception Proof",
+		"secondary": "القياسات الحيوية الفردية"
+	},
+	"controlType": "biometrics",
+	"fieldType": "default",
+	"format": "none",
+	"validators": [],
+	"fieldCategory": "pvt",
+	"required": true,
+	"requiredOn": "",
+	"bioAttributes": ["leftEye", "rightIndex","rightLittle","leftIndex","leftLittle","face"],
+	"subType": "applicant"
+}, {
+	"id": "individualBiometrics-2",
+	"inputRequired": true,
+	"type": "biometricsType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "",
+	"label": {
+		"primary": "Individual Biometrics 2",
+		"secondary": "القياسات الحيوية الفردية 2"
+	},
+	"controlType": "biometrics",
+	"fieldType": "default",
+	"format": "none",
+	"validators": [],
+	"fieldCategory": "evidence",
+	"required": true,
+	"bioAttributes": ["face"],
+	"subType": "applicant"
+}, {
+	"id": "parentOrGuardianBiometrics",
+	"inputRequired": true,
+	"type": "biometricsType",
+	"minimum": 0,
+	"maximum": 0,
+	"description": "",
+	"label": {
+		"primary": "Parent Biometrics",
+		"secondary": "القياسات الحيوية للوالدين"
+	},
+	"controlType": "biometrics",
+	"fieldType": "default",
+	"format": "none",
+	"validators": [],
+	"fieldCategory": "evidence",
+	"required": false,
+	"bioAttributes": ["face"],
+	"subType": "introducer"
+}],
     "schemaJson": "{\"$schema\":\"http:\\/\\/json-schema.org\\/draft-07\\/schema#\",\"description\":\"test mosip id schema\",\"additionalProperties\":false,\"title\":\"mosip id schema\",\"type\":\"object\",\"definitions\":{\"simpleType\":{\"uniqueItems\":true,\"additionalItems\":false,\"type\":\"array\",\"items\":{\"additionalProperties\":false,\"type\":\"object\",\"required\":[\"language\",\"value\"],\"properties\":{\"language\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}}}},\"documentType\":{\"additionalProperties\":false,\"type\":\"object\",\"properties\":{\"format\":{\"type\":\"string\"},\"type\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}}},\"biometricsType\":{\"additionalProperties\":false,\"type\":\"object\",\"properties\":{\"format\":{\"type\":\"string\"},\"version\":{\"type\":\"number\",\"minimum\":0},\"value\":{\"type\":\"string\"}}}},\"properties\":{\"identity\":{\"additionalProperties\":false,\"type\":\"object\",\"required\":[\"IDSchemaVersion\",\"UIN\",\"fullName\",\"dateOfBirth\",\"gender\",\"addressLine1\",\"addressLine2\",\"addressLine3\",\"region\",\"province\",\"city\",\"postalCode\",\"phone\",\"email\",\"zone\",\"proofOfIdentity\",\"proofOfRelationship\",\"proofOfDateOfBirth\",\"proofOfException\",\"proofOfException\",\"individualBiometrics\"],\"properties\":{\"proofOfAddress\":{\"fieldCategory\":\"optional\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/documentType\"},\"gender\":{\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"city\":{\"validators\":[{\"validator\":\"^(?=.{0,50}$).*\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"postalCode\":{\"validators\":[{\"validator\":\"^[(?i)A-Z0-9]{5}$|^NA$\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"type\":\"string\",\"fieldType\":\"default\"},\"individualBiometrics\":{\"bioAttributes\":\"[leftIris, face]\",\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/biometricsType\"},\"province\":{\"validators\":[{\"validator\":\"^(?=.{0,50}$).*\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"zone\":{\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"proofOfDateOfBirth\":{\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/documentType\"},\"addressLine1\":{\"validators\":[{\"validator\":\"^(?=.{0,50}$).*\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"addressLine2\":{\"validators\":[{\"validator\":\"^(?=.{0,50}$).*\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"residenceStatus\":{\"fieldCategory\":\"optional\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"addressLine3\":{\"validators\":[{\"validator\":\"^(?=.{0,50}$).*\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"email\":{\"validators\":[{\"validator\":\"^[a-zA-Z-\\\\+]+(\\\\.[a-zA-Z]+)*@[a-zA-Z-]+(\\\\.[a-zA-Z]+)*(\\\\.[a-zA-Z]{2,})$\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"type\":\"string\",\"fieldType\":\"default\"},\"parentOrGuardianRID\":{\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"parentOrGuardianBiometrics\":{\"bioAttributes\":\"[face]\",\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/biometricsType\"},\"fullName\":{\"validators\":[{\"validator\":\"^(?=.{0,50}$).*\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"dateOfBirth\":{\"validators\":[{\"validator\":\"^(1869|18[7-9][0-9]|19[0-9][0-9]|20[0-9][0-9])\\/([0][1-9]|1[0-2])\\/([0][1-9]|[1-2][0-9]|3[01])$\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"type\":\"string\",\"fieldType\":\"default\"},\"parentOrGuardianUIN\":{\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"proofOfIdentity\":{\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/documentType\"},\"IDSchemaVersion\":{\"fieldCategory\":\"pvt\",\"format\":\"none\",\"type\":\"number\",\"fieldType\":\"default\",\"minimum\":0},\"proofOfException\":{\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/documentType\"},\"phone\":{\"validators\":[{\"validator\":\"^([6-9]{1})([0-9]{9})$\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"type\":\"string\",\"fieldType\":\"default\"},\"parentOrGuardianName\":{\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"proofOfRelationship\":{\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/documentType\"},\"UIN\":{\"fieldCategory\":\"pvt\",\"format\":\"none\",\"type\":\"integer\",\"fieldType\":\"default\",\"minimum\":0},\"region\":{\"validators\":[{\"validator\":\"^(?=.{0,50}$).*\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"}}}}}",
     "effectiveFrom": "2021-04-25T20:05:55.171"
 }

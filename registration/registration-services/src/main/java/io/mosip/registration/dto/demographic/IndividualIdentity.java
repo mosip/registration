@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.mosip.registration.packetmananger.dto.DocumentDto;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -89,19 +90,19 @@ public class IndividualIdentity extends Identity {
 	 private List<ValuesDTO> parentOrGuardianName;
 	
 	 /** The proof of address. */
-	 private DocumentDetailsDTO proofOfAddress;
+	 private DocumentDto proofOfAddress;
 	
 	 /** The proof of identity. */
-	 private DocumentDetailsDTO proofOfIdentity;
+	 private DocumentDto proofOfIdentity;
 	
 	 /** The proof of relationship. */
-	 private DocumentDetailsDTO proofOfRelationship;
+	 private DocumentDto proofOfRelationship;
 	
 	 /** The date of birth proof. */
-	 private DocumentDetailsDTO proofOfDateOfBirth;
+	 private DocumentDto proofOfDateOfBirth;
 	
 	 /** The proof of exception. */
-	 private DocumentDetailsDTO proofOfException;
+	 private DocumentDto proofOfException;
 	
 	 /** The individual biometrics. */
 	 private CBEFFFilePropertiesDTO individualBiometrics;

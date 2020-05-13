@@ -108,11 +108,6 @@
                                       </rowConstraints>
                                        <children>
                                           <GridPane fx:id="ContentHeader">
-                                             <children>
-                                                <Label fx:id="guardianBiometricsLabel" alignment="CENTER" contentDisplay="CENTER" styleClass="paneHeader" text="%guardianBiometric" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.valignment="CENTER" />
-                                                <Label fx:id="dedupeMessage" alignment="CENTER" contentDisplay="CENTER" styleClass="paneHeader" text="%dedupeMessage" visible="false" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.valignment="CENTER" />
-                                                <ComboBox fx:id="biometricTypecombo" onAction="#displayBiometric" prefWidth="150.0" promptText="%select" styleClass="demographicCombobox" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="TOP" />
-                                             </children>
                                              <columnConstraints>
                                                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="20.0" prefWidth="100.0" />
                                                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="80.0" prefWidth="100.0" />
@@ -153,7 +148,7 @@
                                              <children>
                                                 <GridPane GridPane.rowIndex="1">
                                                    <children>
-                                                      <GridPane fx:id="biometricPane" styleClass="biometricPaneSelected">
+                                                      <GridPane fx:id="biometricPane" prefHeight="108.0" prefWidth="81.0" styleClass="biometricPaneSelected">
                                                          <children>
                                                             <ImageView fx:id="biometricImage" fitHeight="${biometricPane.height-10}" fitWidth="${biometricPane.width-10}" pickOnBounds="true" preserveRatio="false" GridPane.halignment="CENTER" GridPane.valignment="TOP" />
                                                          </children>
@@ -226,10 +221,18 @@
                                              </rowConstraints>
                                           </GridPane>
                                           <Label fx:id="photoAlert" styleClass="photoAlert" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                          <GridPane fx:id="checkBoxPane" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                            <columnConstraints>
+                                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                            </columnConstraints>
+                                            <rowConstraints>
+                                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                            </rowConstraints>
+                                          </GridPane>
                                        </children>
                                        <columnConstraints>
-                                          <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" percentWidth="60.0" prefWidth="100.0" />
-                                          <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" percentWidth="40.0" prefWidth="100.0" />
+                                          <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" percentWidth="70.0" prefWidth="100.0" />
+                                          <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" percentWidth="41.0" prefWidth="100.0" />
                                        </columnConstraints>
                                        <rowConstraints>
                                           <RowConstraints minHeight="10.0" percentHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />

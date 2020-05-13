@@ -46,9 +46,7 @@ public class PacketMetaInfoConverterTest {
 		sessionMap.put(RegistrationConstants.IS_Child, true);
 
 		RegistrationDTO registrationDTO = DataProvider.getPacketDTO();
-		SelectionListDTO selectionListDTO = new SelectionListDTO();
-		selectionListDTO.setAge(true);
-		selectionListDTO.setGender(true);
+		HashMap<String, Object> selectionListDTO = new HashMap<>();
 		registrationDTO.setSelectionListDTO(selectionListDTO);
 		registrationDTO.getRegistrationMetaDataDTO().setParentOrGuardianUINOrRID("10011100110015720190305142048");
 
@@ -107,7 +105,7 @@ public class PacketMetaInfoConverterTest {
 		registrationDTO.setOsiDataDTO(new OSIDataDTO());
 		registrationDTO.setRegistrationMetaDataDTO(new RegistrationMetaDataDTO());
 		registrationDTO.setRegistrationId("2018782130000128122018103836");
-		SelectionListDTO selectionListDTO = new SelectionListDTO();
+		HashMap<String, Object> selectionListDTO = new HashMap<>();
 		registrationDTO.setSelectionListDTO(selectionListDTO);
 
 		PowerMockito.mockStatic(SessionContext.class);

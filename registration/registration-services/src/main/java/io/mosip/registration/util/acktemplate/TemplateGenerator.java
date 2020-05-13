@@ -58,6 +58,7 @@ import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
 import io.mosip.registration.dto.demographic.IndividualIdentity;
 import io.mosip.registration.dto.demographic.ValuesDTO;
 import io.mosip.registration.exception.RegBaseUncheckedException;
+import io.mosip.registration.packetmananger.dto.DocumentDto;
 import io.mosip.registration.service.BaseService;
 
 /**
@@ -191,7 +192,7 @@ public class TemplateGenerator extends BaseService {
 			}
 
 			if (registration.getSelectionListDTO() != null) {
-				if (registration.getSelectionListDTO().isBiometrics()
+				if (registration.getSelectionListDTO().get("biometrics")==null
 						|| registration.getBiometricDTO().getApplicantBiometricDTO().getIrisDetailsDTO() != null) {
 					templateValues = countMissingIrises(templateValues, registration, isChild, templateType);
 				} else {
@@ -380,8 +381,8 @@ public class TemplateGenerator extends BaseService {
 		if (RegistrationConstants.ENABLE.equalsIgnoreCase(irisDisableFlag)
 				&& ((registration.getSelectionListDTO() == null && !isChild)
 						|| (registration.getSelectionListDTO() == null && isChild)
-						|| (registration.getSelectionListDTO() != null
-								&& registration.getSelectionListDTO().isBiometrics()))) {
+						|| (registration.getSelectionListDTO() != null &&
+							 registration.getSelectionListDTO().get("biometrics")==null))) {
 			if (isChild || registration.isUpdateUINNonBiometric()) {
 				if (registration.getBiometricDTO().getIntroducerBiometricDTO().getFace() == null
 						|| (registration.getBiometricDTO().getIntroducerBiometricDTO().getFace() != null && registration
@@ -455,7 +456,7 @@ public class TemplateGenerator extends BaseService {
 		}
 
 		if (RegistrationConstants.ENABLE.equalsIgnoreCase(fingerPrintDisableFlag)
-				&& ((registration.getSelectionListDTO() != null && registration.getSelectionListDTO().isBiometrics())
+				&& ((registration.getSelectionListDTO() != null && registration.getSelectionListDTO().get("biometrics")!=null)
 						|| (registration.getSelectionListDTO() == null && !isChild)
 						|| (registration.getSelectionListDTO() == null && isChild))) {
 			templateValues.put(RegistrationConstants.TEMPLATE_FINGERPRINTS_CAPTURED, null);
@@ -619,7 +620,7 @@ public class TemplateGenerator extends BaseService {
 		if (RegistrationConstants.ENABLE.equalsIgnoreCase(fingerPrintDisableFlag)) {
 
 			if (registration.getSelectionListDTO() != null) {
-				if (registration.getSelectionListDTO().isBiometrics() || registration.getBiometricDTO()
+				if (registration.getSelectionListDTO().get("biometrics")!=null || registration.getBiometricDTO()
 						.getApplicantBiometricDTO().getFingerprintDetailsDTO() != null) {
 					addToCapturedBiometrics(biometricsCaptured, biometricsCapturedLocalLang,
 							applicationLanguageProperties, "fingersCount", fingersAndIrises[0]);
@@ -631,7 +632,7 @@ public class TemplateGenerator extends BaseService {
 		}
 		if (RegistrationConstants.ENABLE.equalsIgnoreCase(irisDisableFlag)) {
 			if (registration.getSelectionListDTO() != null) {
-				if (registration.getSelectionListDTO().isBiometrics()
+				if (registration.getSelectionListDTO().get("biometrics")!=null
 						|| registration.getBiometricDTO().getApplicantBiometricDTO().getIrisDetailsDTO() != null) {
 					addToCapturedBiometrics(biometricsCaptured, biometricsCapturedLocalLang,
 							applicationLanguageProperties, "irisCount", fingersAndIrises[1]);
@@ -673,34 +674,21 @@ public class TemplateGenerator extends BaseService {
 	}
 
 	private void setUpDocuments(Map<String, Object> templateValues, ResourceBundle applicationLanguageProperties,
-			Map<String, DocumentDetailsDTO> documents, String documentDisableFlag) {
+			Map<String, DocumentDto> documents, String documentDisableFlag) {
 		if (RegistrationConstants.ENABLE.equalsIgnoreCase(documentDisableFlag)) {
 			templateValues.put(RegistrationConstants.TEMPLATE_DOCUMENTS_USER_LANG_LABEL,
 					applicationLanguageProperties.getString("documents"));
 			templateValues.put(RegistrationConstants.TEMPLATE_DOCUMENTS_LOCAL_LANG_LABEL,
 					getSecondaryLanguageLabel("documents"));
 			StringBuilder documentsList = new StringBuilder();
-			if (documents.get(RegistrationConstants.POI_DOCUMENT) != null) {
-				documentsList.append(documents.get(RegistrationConstants.POI_DOCUMENT).getValue());
-			}
-			if (documents.get(RegistrationConstants.POA_DOCUMENT) != null) {
+
+			for (String docName : documents.keySet()) {
+				documentsList.append(docName);
 				if (documentsList.length() > 0) {
 					documentsList.append(", ");
 				}
-				documentsList.append(documents.get(RegistrationConstants.POA_DOCUMENT).getValue());
 			}
-			if (documents.get(RegistrationConstants.POR_DOCUMENT) != null) {
-				if (documentsList.length() > 0) {
-					documentsList.append(", ");
-				}
-				documentsList.append(documents.get(RegistrationConstants.POR_DOCUMENT).getValue());
-			}
-			if (documents.get(RegistrationConstants.DOB_DOCUMENT) != null) {
-				if (documentsList.length() > 0) {
-					documentsList.append(", ");
-				}
-				documentsList.append(documents.get(RegistrationConstants.DOB_DOCUMENT).getValue());
-			}
+			
 			templateValues.put(RegistrationConstants.TEMPLATE_DOCUMENTS, documentsList.toString());
 			templateValues.put(RegistrationConstants.TEMPLATE_DOCUMENTS_LOCAL_LANG, RegistrationConstants.EMPTY);
 		} else {
@@ -1404,7 +1392,7 @@ public class TemplateGenerator extends BaseService {
 		if ((registration.getSelectionListDTO() == null
 				&& (boolean) SessionContext.map().get(RegistrationConstants.IS_Child))
 				|| (registration.getSelectionListDTO() != null
-						&& registration.getSelectionListDTO().isParentOrGuardianDetails())) {
+						&& registration.getSelectionListDTO().get("biometrics")!=null)) {
 			biometricExceptionDTOs = registration.getBiometricDTO().getIntroducerBiometricDTO()
 					.getBiometricExceptionDTO();
 			for (BiometricExceptionDTO biometricExceptionDTO : biometricExceptionDTOs) {

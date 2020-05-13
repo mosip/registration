@@ -4,6 +4,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Map.Entry;
 import java.util.OptionalInt;
 import java.util.function.IntPredicate;
 import java.util.stream.IntStream;
@@ -681,6 +682,8 @@ public class FXUtils {
 					value = ((BiometricAttributeDto) object).getName();
 				} else if (object instanceof GenericDto) {
 					value = ((GenericDto) object).getName();
+				} else if (object instanceof Entry<?, ?>) {
+					value = ((Entry<String,String>) object).getValue();
 				}
 				return value;
 			}
