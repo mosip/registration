@@ -134,7 +134,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	private Integer workerPoolSize;
 
 	/** The default source of the packet (Ex - id packet)*/
-	@Value("${registration.processor.default.source}")
+	@Value("${packet.default.source}")
 	private String defaultSource;
 
 	/** The core audit request builder. */
@@ -471,7 +471,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		List<Documents> applicantDocuments = new ArrayList<>();
 
 		JSONObject idJSON = getDemoIdentity(regId);
-		JSONObject  regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
+		JSONObject  regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
 		String proofOfAddressLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.POA), MappingJsonConstants.VALUE);
 		String proofOfDateOfBirthLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.POB), MappingJsonConstants.VALUE);
 		String proofOfIdentityLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.POI), MappingJsonConstants.VALUE);

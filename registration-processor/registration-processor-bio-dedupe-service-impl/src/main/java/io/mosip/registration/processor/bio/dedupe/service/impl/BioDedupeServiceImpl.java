@@ -340,7 +340,7 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "BioDedupeServiceImpl::getFile()::entry");
 		try {
-			JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
+			JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
 			String individualBiometricsLabel = JsonUtil.getJSONValue(
 					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 					MappingJsonConstants.VALUE);

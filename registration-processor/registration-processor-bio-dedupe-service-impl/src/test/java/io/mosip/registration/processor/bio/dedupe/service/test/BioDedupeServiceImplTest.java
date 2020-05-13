@@ -165,7 +165,7 @@ public class BioDedupeServiceImplTest {
 		InputStream inputStream = new FileInputStream(file);
 		String mappingJson = IOUtils.toString(inputStream);
 		JSONObject mappingJSONObject = JsonUtil.objectMapperReadValue(mappingJson, JSONObject.class);
-		Mockito.when(utility.getRegistrationProcessorIdentityJson())
+		Mockito.when(utility.getRegistrationProcessorMappingJson())
 				.thenReturn(JsonUtil.getJSONObject(mappingJSONObject, MappingJsonConstants.IDENTITY));
 		fooLogger = (Logger) LoggerFactory.getLogger(BioDedupeServiceImpl.class);
 		listAppender = new ListAppender<>();

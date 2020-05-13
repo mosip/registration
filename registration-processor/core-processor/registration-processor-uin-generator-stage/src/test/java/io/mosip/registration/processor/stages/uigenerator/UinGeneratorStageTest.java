@@ -247,7 +247,7 @@ public class UinGeneratorStageTest {
 		inputStream = new FileInputStream(file);
 		String mappingJson = IOUtils.toString(inputStream,"UTF-8");
 		JSONObject mappingJsonObject = JsonUtil.objectMapperReadValue(mappingJson, JSONObject.class);
-		Mockito.when(utility.getRegistrationProcessorIdentityJson()).thenReturn(mappingJsonObject);
+		Mockito.when(utility.getRegistrationProcessorMappingJson()).thenReturn(mappingJsonObject);
 
 	}
 

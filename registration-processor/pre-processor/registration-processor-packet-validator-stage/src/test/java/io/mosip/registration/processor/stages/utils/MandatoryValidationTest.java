@@ -28,7 +28,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
@@ -77,7 +76,7 @@ public class MandatoryValidationTest {
 
 		mandatoryValidation = new MandatoryValidation(adapter, registrationStatusDto, utility,"id");
 
-		Mockito.when(utility.getRegistrationProcessorIdentityJson()).thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(mappingJsonString, JSONObject.class), MappingJsonConstants.IDENTITY));
+		Mockito.when(utility.getRegistrationProcessorMappingJson()).thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(mappingJsonString, JSONObject.class), MappingJsonConstants.IDENTITY));
 		
 		Mockito.when(adapter.getFile(any(), any(),anyString())).thenReturn(inputStream);
 

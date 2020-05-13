@@ -10,4 +10,12 @@ public class IDschemaConstants {
 	public static final String FIELDCATEGORY = "fieldCategory";
 
 	public static final String PVT = "pvt";
+
+	public static final String PROPERTIES = "properties";
+	public static final String IDENTITY = "identity";
+	public static final String IDSCHEMA_URL = "IDSCHEMA";
+	public static final String SCHEMA_JSON = "schemaJson";
+	public static final String RESPONSE = "response";
+
+
 }

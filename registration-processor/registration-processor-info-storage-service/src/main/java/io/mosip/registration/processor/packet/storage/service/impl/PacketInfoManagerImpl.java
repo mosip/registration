@@ -194,7 +194,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 				"PacketInfoManagerImpl::getIdentityKeysAndFetchValuesFromJSON()::entry");
 		try {
 			// Get Identity Json from config server and map keys to Java Object
-			JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
+			JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
 
 
 			String[] names = ((String) JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "name"),

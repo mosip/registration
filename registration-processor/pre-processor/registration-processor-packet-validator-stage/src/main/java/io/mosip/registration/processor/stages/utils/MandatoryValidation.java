@@ -59,7 +59,7 @@ public class MandatoryValidation {
 			PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"MandatoryValidation::mandatoryFieldValidation()::entry");
-		JSONObject mapperIdentity = utility.getRegistrationProcessorIdentityJson();
+		JSONObject mapperIdentity = utility.getRegistrationProcessorMappingJson();
 		JSONObject idJsonObj = getDemoIdentity(regId);
 		List<String> list = new ArrayList<>();
 		for (Object key : mapperIdentity.keySet()) {

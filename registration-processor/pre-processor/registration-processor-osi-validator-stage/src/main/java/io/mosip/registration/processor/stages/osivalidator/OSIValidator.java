@@ -175,7 +175,7 @@ public class OSIValidator {
 				registrationId, "OSIValidator::isValidOSI()::entry");
 		boolean isValidOsi = false;
 
-		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
+		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
 		Identity identity = osiUtils.getIdentity(registrationId);
 		/** Getting data from packet MetadataInfo */
 		RegOsiDto regOsi = osiUtils.getOSIDetailsFromMetaInfo(registrationId, identity);

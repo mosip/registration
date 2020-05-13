@@ -137,7 +137,7 @@ public class PacketValidateProcessor {
 	@Autowired
 	private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
 	
-	@Value("${registration.processor.default.source}")
+	@Value("${packet.default.source}")
 	private String source;
 
 	private static final String PRE_REG_ID = "mosip.pre-registration.datasync.store";

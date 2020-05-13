@@ -38,14 +38,14 @@
 			<groupId>com.googlecode.json-simple</groupId>
 			<artifactId>json-simple</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-auth-adapter</artifactId>
-			<version>${kernel.auth.adapter.version}</version>
-		</dependency>
 		  <dependency>
 			  <groupId>com.google.code.gson</groupId>
 			  <artifactId>gson</artifactId>
+		  </dependency>
+		  <dependency>
+			  <groupId>org.apache.httpcomponents</groupId>
+			  <artifactId>httpclient</artifactId>
+			  <version>${apache.httpcomponents.version}</version>
 		  </dependency>
    </dependencies>
 </project>

@@ -34,7 +34,6 @@ import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
-import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PacketFiles;
@@ -156,7 +155,7 @@ public class Utilities {
 	@Value("${registration.processor.id.repo.vidVersion}")
 	private String vidVersion;
 
-	@Value("${registration.processor.default.source}")
+	@Value("${packet.default.source}")
 	private String defaultSource;
 	/** The packet info dao. */
 	@Autowired
@@ -202,6 +201,8 @@ public class Utilities {
 	
 	private static final String VALUE = "value";
 
+	private String mappingJsonString = null;
+
 	
 	@Autowired
 	private PacketReaderService packetReaderService;
@@ -246,7 +247,7 @@ public class Utilities {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "Utilities::getApplicantAge()::entry");
 
-		JSONObject regProcessorIdentityJson = getRegistrationProcessorIdentityJson();
+		JSONObject regProcessorIdentityJson = getRegistrationProcessorMappingJson();
 		String ageKey = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.AGE), VALUE);
 		String dobKey = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.DOB), VALUE);
 
@@ -395,15 +396,16 @@ public class Utilities {
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-	public JSONObject getRegistrationProcessorIdentityJson() throws IOException {
+	public JSONObject getRegistrationProcessorMappingJson() throws IOException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"Utilities::getRegistrationProcessorIdentityJson()::entry");
+				"Utilities::getRegistrationProcessorMappingJson()::entry");
 
-		String getIdentityJsonString = Utilities.getJson(configServerFileStorageURL, getRegProcessorIdentityJson);
+		mappingJsonString = (mappingJsonString != null && !mappingJsonString.isEmpty()) ?
+				mappingJsonString : Utilities.getJson(configServerFileStorageURL, getRegProcessorIdentityJson);
 		ObjectMapper mapIdentityJsonStringToObject = new ObjectMapper();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"Utilities::getRegistrationProcessorIdentityJson()::exit");
-		return JsonUtil.getJSONObject(mapIdentityJsonStringToObject.readValue(getIdentityJsonString, JSONObject.class), MappingJsonConstants.IDENTITY);
+				"Utilities::getRegistrationProcessorMappingJson()::exit");
+		return JsonUtil.getJSONObject(mapIdentityJsonStringToObject.readValue(mappingJsonString, JSONObject.class), MappingJsonConstants.IDENTITY);
 
 	}
 
@@ -424,7 +426,7 @@ public class Utilities {
 	 * @throws ApiNotAccessibleException
 	 */
 	public JSONObject getDemographicIdentityJSONObject(String registrationId) throws IOException,
-			PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
 		
 	
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -645,7 +647,7 @@ public class Utilities {
 
 		List<Documents> applicantDocuments = new ArrayList<>();
 		
-		JSONObject regProcessorIdentityJson = getRegistrationProcessorIdentityJson();
+		JSONObject regProcessorIdentityJson = getRegistrationProcessorMappingJson();
 		String proofOfAddressLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.POA), VALUE);
 		String proofOfDateOfBirthLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.POB), VALUE);
 		String proofOfIdentityLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.POI), VALUE);
