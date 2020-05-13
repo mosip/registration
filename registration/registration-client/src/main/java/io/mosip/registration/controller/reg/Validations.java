@@ -253,7 +253,9 @@ public class Validations extends BaseController {
 			if(isLostUIN && !id.contains("_ontype") ) {
 				return true;
 			}
-
+			
+			id = id.replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY);
+			
 			UiSchemaDTO uiSchemaDTO = getUiSchemaDTO(id, isLostUIN);
 
 			String regex = getRegex(uiSchemaDTO, RegistrationUIConstants.REGEX_TYPE);
