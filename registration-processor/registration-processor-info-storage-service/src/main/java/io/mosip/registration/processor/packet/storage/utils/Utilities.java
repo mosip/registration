@@ -203,7 +203,7 @@ public class Utilities {
 
 	private String mappingJsonString = null;
 
-	
+
 	@Autowired
 	private PacketReaderService packetReaderService;
 	
@@ -428,7 +428,7 @@ public class Utilities {
 	public JSONObject getDemographicIdentityJSONObject(String registrationId) throws IOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
 		
-	
+
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getDemographicIdentityJSONObject()::entry");
 		
