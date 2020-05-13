@@ -509,8 +509,9 @@ public class BioServiceImpl extends BaseService implements BioService {
 	@Override
 	public boolean isMdmEnabled() {
 
-		return RegistrationConstants.ENABLE
-				.equalsIgnoreCase(((String) ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
+		return true;
+//		return RegistrationConstants.ENABLE
+//				.equalsIgnoreCase(((String) ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
 	}
 
 	/*
@@ -1503,16 +1504,16 @@ public class BioServiceImpl extends BaseService implements BioService {
 			throw new RegBaseCheckedException(MDMError.MDM_REQUEST_FAILED.getErrorCode(), 
 					MDMError.MDM_REQUEST_FAILED.getErrorMessage());
 		
-		if (captureResponseDto.getError() != null)
-			throw new RegBaseCheckedException(captureResponseDto.getError().getErrorCode(),
-					captureResponseDto.getError().getErrorInfo());
+//		if (captureResponseDto.getError() != null)
+//			throw new RegBaseCheckedException(captureResponseDto.getError().getErrorCode(),
+//					captureResponseDto.getError().getErrorInfo());
 		
 		List<BiometricsDto> list = new ArrayList<BiometricsDto>();
 		Map<String, String> storedScores = new HashMap<String, String>();
 		for(CaptureResponseBioDto bioResponse : captureResponseDto.getMosipBioDeviceDataResponses()) {
 			CaptureResponsBioDataDto bioData = bioResponse.getCaptureResponseData();
 			
-			if(bioData != null && !isQualityScoreMaxInclusive(bioData.getQualityScore())) {
+			if(bioData != null && isQualityScoreMaxInclusive(bioData.getQualityScore())) {
 				//check if current is best than previously seen
 				if(storedScores.containsKey(bioData.getBioSubType())) {
 					if(Integer.parseInt(storedScores.get(bioData.getBioSubType())) > Integer.parseInt(bioData.getQualityScore()))
