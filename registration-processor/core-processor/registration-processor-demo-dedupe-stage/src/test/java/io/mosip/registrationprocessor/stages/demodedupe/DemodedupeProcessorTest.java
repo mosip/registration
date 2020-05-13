@@ -294,7 +294,7 @@ public class DemodedupeProcessorTest {
 		String mappingJsonString = IOUtils.toString(inputStream,"UTF-8");
 		JSONObject mappingJsonObj= new ObjectMapper().readValue(mappingJsonString, JSONObject.class);
 		
-		Mockito.when(utility.getRegistrationProcessorIdentityJson()).thenReturn(JsonUtil.getJSONObject(mappingJsonObj, MappingJsonConstants.IDENTITY));
+		Mockito.when(utility.getRegistrationProcessorMappingJson()).thenReturn(JsonUtil.getJSONObject(mappingJsonObj, MappingJsonConstants.IDENTITY));
 
 
 	}

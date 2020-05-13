@@ -467,7 +467,7 @@ public class MessageNotificationServiceImpl
 	private void setEmailAndPhone(JSONObject demographicIdentity, StringBuilder phoneNumber, StringBuilder emailId)
 			throws IOException {
 
-		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
+		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
 		String email = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.EMAIL),MappingJsonConstants.VALUE);
 		String phone = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PHONE),MappingJsonConstants.VALUE);
 
@@ -510,7 +510,7 @@ public class MessageNotificationServiceImpl
 				attribute.put(key, object);
 			}
 		}
-		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
+		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
 		String email = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.EMAIL),
 				MappingJsonConstants.VALUE);

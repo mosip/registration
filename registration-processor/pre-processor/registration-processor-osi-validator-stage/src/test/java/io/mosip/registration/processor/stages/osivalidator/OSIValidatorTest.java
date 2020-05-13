@@ -205,7 +205,7 @@ public class OSIValidatorTest {
 		InputStream inputStream = new FileInputStream(file);
 		String mappingJson = IOUtils.toString(inputStream);
 		JSONObject mappingJSONObject = JsonUtil.objectMapperReadValue(mappingJson, JSONObject.class);
-		Mockito.when(utility.getRegistrationProcessorIdentityJson())
+		Mockito.when(utility.getRegistrationProcessorMappingJson())
 				.thenReturn(JsonUtil.getJSONObject(mappingJSONObject, MappingJsonConstants.IDENTITY));
 		PowerMockito.mockStatic(Utilities.class);
 		PowerMockito.when(Utilities.class, "getJson", anyString(), anyString()).thenReturn(mappingJson);

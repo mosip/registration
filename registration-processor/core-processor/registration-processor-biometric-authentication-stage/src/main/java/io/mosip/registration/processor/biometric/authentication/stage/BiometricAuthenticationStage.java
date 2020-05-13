@@ -112,7 +112,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 	@Autowired
 	private IdSchemaUtils idSchemaUtils;
 
-	@Value("${registration.processor.default.source}")
+	@Value("${packet.default.source}")
 	private String defaultSource;
 
 	/** Mosip router for APIs */
@@ -169,7 +169,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 			}
 			if (isUpdateAdultPacket(registartionType, applicantType)) {
 
-				JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
+				JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
 
 				String individualBioMetricKey = JsonUtil.getJSONValue(
 						JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),

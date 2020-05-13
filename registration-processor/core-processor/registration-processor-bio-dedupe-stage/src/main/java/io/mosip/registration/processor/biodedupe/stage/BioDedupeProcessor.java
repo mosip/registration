@@ -328,7 +328,7 @@ public class BioDedupeProcessor {
 			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
 
-		JSONObject regProcessorIdentityJson = utilities.getRegistrationProcessorIdentityJson();
+		JSONObject regProcessorIdentityJson = utilities.getRegistrationProcessorMappingJson();
 		String individualBiometricsLabel = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 				MappingJsonConstants.VALUE);
@@ -640,7 +640,7 @@ public class BioDedupeProcessor {
 			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException,
 			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		Map<String, String> attribute = new LinkedHashMap<>();
-		JSONObject mapperIdentity = utilities.getRegistrationProcessorIdentityJson();
+		JSONObject mapperIdentity = utilities.getRegistrationProcessorMappingJson();
 		List<String> mapperJsonKeys = new ArrayList<>(mapperIdentity.keySet());
 
 		for (String key : mapperJsonKeys) {

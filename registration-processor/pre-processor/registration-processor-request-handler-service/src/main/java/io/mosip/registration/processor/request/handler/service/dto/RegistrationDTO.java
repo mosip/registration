@@ -28,48 +28,8 @@ public class RegistrationDTO extends BaseDTO implements Serializable {
 	private String registrationIdHash;
 
 	private Map<String, String> metadata;
-	private List<AuditDTO> auditDTOs;
-	private Timestamp auditLogStartTime;
-	
-	private Timestamp auditLogEndTime;
-	
+
 	//added for resident update service
 	private String regType;
-	
-	public Timestamp getAuditLogStartTime() {
-		if(this.auditLogStartTime!=null) {
-			return new Timestamp(this.auditLogStartTime.getTime());
-		}
-		else
-			return null;
-		
-	}
-	
-	public void setAuditLogStartTime(Timestamp auditLogStartTime) {
-		if(auditLogStartTime!=null) {
-			this.auditLogStartTime=new Timestamp(this.auditLogStartTime.getTime());
-		}
-		else
-			this.auditLogStartTime=null;
-		
-	}
-	
-	public Timestamp getAuditLogEndTime() {
-		if(this.auditLogEndTime!=null) {
-			return new Timestamp(this.auditLogEndTime.getTime());
-		}
-		else
-			return null;
-	}
-	
-	public void setAuditLogEndTime(Timestamp auditLogEndTime) {
-		if(auditLogEndTime!=null) {
-			this.auditLogEndTime=new Timestamp(this.auditLogEndTime.getTime());
-		}
-		else
-			this.auditLogEndTime=null;
-	
-	
-	}
 
 }

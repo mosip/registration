@@ -203,7 +203,7 @@ public class BiometricAuthenticationStageTest {
 		InputStream is = new FileInputStream(mappingJsonFile);
 		String value = IOUtils.toString(is, "UTF-8");
 		JSONObject mappingJsonObject = JsonUtil.objectMapperReadValue(value, JSONObject.class);
-		Mockito.when(utility.getRegistrationProcessorIdentityJson()).thenReturn(mappingJsonObject);
+		Mockito.when(utility.getRegistrationProcessorMappingJson()).thenReturn(mappingJsonObject);
 
 		File idJson = new File(classLoader.getResource("ID.json").getFile());
 		InputStream ip = new FileInputStream(idJson);

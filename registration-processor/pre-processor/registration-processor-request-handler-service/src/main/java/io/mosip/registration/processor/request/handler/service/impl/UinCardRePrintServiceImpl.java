@@ -304,7 +304,7 @@ public class UinCardRePrintServiceImpl {
 		DemographicInfoDTO demographicInfoDTO = new DemographicInfoDTO();
 		JSONObject jsonObject = new JSONObject();
 
-		JSONObject regProcessorIdentityJson = utilities.getRegistrationProcessorIdentityJson();
+		JSONObject regProcessorIdentityJson = utilities.getRegistrationProcessorMappingJson();
 		String schemaVersion = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.IDSCHEMA_VERSION),
 				MappingJsonConstants.VALUE);

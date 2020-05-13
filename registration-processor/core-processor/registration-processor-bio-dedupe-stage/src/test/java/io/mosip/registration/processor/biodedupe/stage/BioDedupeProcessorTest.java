@@ -193,7 +193,7 @@ public class BioDedupeProcessorTest {
 		File mappingJsonFile = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
 		InputStream is = new FileInputStream(mappingJsonFile);
 		String value = IOUtils.toString(is);
-		Mockito.when(utility.getRegistrationProcessorIdentityJson()).thenReturn(JsonUtil
+		Mockito.when(utility.getRegistrationProcessorMappingJson()).thenReturn(JsonUtil
 				.getJSONObject(JsonUtil.objectMapperReadValue(value, JSONObject.class), MappingJsonConstants.IDENTITY));
 		Mockito.when(bioDedupeService.getFileByRegId(anyString())).thenReturn("test".getBytes());
 

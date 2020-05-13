@@ -216,7 +216,7 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 			registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
 
 			// get the idobject individual biometrics key from mapping json
-			JSONObject mappingJson = utilities.getRegistrationProcessorIdentityJson();
+			JSONObject mappingJson = utilities.getRegistrationProcessorMappingJson();
 			String individualBiometrics = JsonUtil
 					.getJSONValue(JsonUtil.getJSONObject(mappingJson, INDIVIDUAL_BIOMETRICS), "value");
 			// get individual biometrics file name from id.json

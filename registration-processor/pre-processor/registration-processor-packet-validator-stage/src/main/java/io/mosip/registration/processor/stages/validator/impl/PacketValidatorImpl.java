@@ -100,7 +100,7 @@ public class PacketValidatorImpl implements PacketValidator{
 	@Autowired
 	RegistrationExceptionMapperUtil registrationStatusMapperUtil;
 	
-	@Value("${registration.processor.default.source}")
+	@Value("${packet.default.source}")
 	private String source;
 
 	/** The Constant APPLICANT_TYPE. */

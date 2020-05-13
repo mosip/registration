@@ -201,7 +201,7 @@ public class DemodedupeProcessor {
 				
 				IndividualDemographicDedupe demographicData = packetInfoManager
 						.getIdentityKeysAndFetchValuesFromJSON(registrationId);
-				JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
+				JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
 				Long uinFieldCheck = utility.getUIn(registrationId);
 				JSONObject jsonObject = utility.retrieveIdrepoJson(uinFieldCheck);
 				if (jsonObject == null) {

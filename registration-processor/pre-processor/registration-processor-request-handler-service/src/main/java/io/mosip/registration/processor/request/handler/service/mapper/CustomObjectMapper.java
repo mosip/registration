@@ -1,3 +1,4 @@
+/*
 package io.mosip.registration.processor.request.handler.service.mapper;
 
 import java.time.LocalDateTime;
@@ -13,25 +14,31 @@ import ma.glasnost.orika.converter.ConverterFactory;
 import ma.glasnost.orika.converter.builtin.PassThroughConverter;
 import ma.glasnost.orika.impl.ConfigurableMapper;
 
+*/
 /**
  * Class for Orika Object Mapper
  * 
  * @author Sowmya
  * @since 1.0.0
- */
+ *//*
+
 public class CustomObjectMapper extends ConfigurableMapper {
 
-	/**
+	*/
+/**
 	 * Instance of MapperFacade for object mapping
-	 */
+	 *//*
+
 	public static final MapperFacade MAPPER_FACADE = new CustomObjectMapper();
 
-	/**
+	*/
+/**
 	 * Method to configure the Orika Mapper for object conversions
 	 * 
 	 * @param mapperFactory
 	 *            the Orika MapperFactory
-	 */
+	 *//*
+
 	@Override
 	public void configure(MapperFactory mapperFactory) {
 
@@ -44,8 +51,11 @@ public class CustomObjectMapper extends ConfigurableMapper {
 
 		//mapperFactory.classMap(AddressDTO.class, Address.class).byDefault().register();
 
-		mapperFactory.classMap(DemographicDTO.class, Demographic.class).exclude("applicantDocumentDTO")
-				.exclude("introducerRID").exclude("introducerUIN").byDefault().register();
+		*/
+/*mapperFactory.classMap(DemographicDTO.class, Demographic.class).exclude("applicantDocumentDTO")
+				.exclude("introducerRID").exclude("introducerUIN").byDefault().register();*//*
+
 	}
 
 }
+*/

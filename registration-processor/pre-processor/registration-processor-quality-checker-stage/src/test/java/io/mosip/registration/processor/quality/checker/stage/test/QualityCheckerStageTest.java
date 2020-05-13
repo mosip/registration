@@ -195,7 +195,7 @@ public class QualityCheckerStageTest {
 		InputStream inputStream = new FileInputStream(file);
 		String mappingJson = IOUtils.toString(inputStream);
 		JSONObject mappingJSONObject = JsonUtil.objectMapperReadValue(mappingJson, JSONObject.class);
-		Mockito.when(utility.getRegistrationProcessorIdentityJson()).thenReturn(JsonUtil.getJSONObject(mappingJSONObject, "identity"));
+		Mockito.when(utility.getRegistrationProcessorMappingJson()).thenReturn(JsonUtil.getJSONObject(mappingJSONObject, "identity"));
 	}
 
 	@Test

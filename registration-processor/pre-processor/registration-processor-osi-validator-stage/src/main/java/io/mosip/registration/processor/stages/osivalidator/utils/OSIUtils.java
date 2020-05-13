@@ -23,7 +23,7 @@ import io.mosip.registration.processor.packet.utility.service.PacketReaderServic
 
 @Service
 public class OSIUtils {
-	@Value("${registration.processor.default.source}")
+	@Value("${packet.default.source}")
 	private String defaultSource;
 	/** The adapter. */
 	@Autowired

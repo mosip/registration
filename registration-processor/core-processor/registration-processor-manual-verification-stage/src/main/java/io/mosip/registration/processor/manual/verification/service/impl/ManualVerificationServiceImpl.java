@@ -85,7 +85,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	/** The Constant USER. */
 	private static final String USER = "MOSIP_SYSTEM";
 
-	@Value("${registration.processor.default.source}")
+	@Value("${packet.default.source}")
 	private String defaultSource;
 
 	/** The audit log request builder. */
