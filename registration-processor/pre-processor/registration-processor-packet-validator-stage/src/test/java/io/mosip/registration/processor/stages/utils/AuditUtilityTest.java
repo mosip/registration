@@ -60,12 +60,12 @@ public class AuditUtilityTest {
 		// Mockito.when(fileSystemManager.getFile("2018701130000410092018110735",PacketFiles.AUDIT.name())).thenReturn(auditStream);
 		
 		
-		auditUtility.saveAuditDetails("2018701130000410092018110735");
+		auditUtility.saveAuditDetails("2018701130000410092018110735","id");
 	}
 	
 	@Test
 	public void saveAuditDetailFailureTest() throws Exception {	
-		auditUtility.saveAuditDetails(null);
+		auditUtility.saveAuditDetails(null,null);
 	}
 	
 

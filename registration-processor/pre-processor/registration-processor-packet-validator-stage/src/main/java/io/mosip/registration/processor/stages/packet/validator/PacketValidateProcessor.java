@@ -112,23 +112,9 @@ public class PacketValidateProcessor {
 	/** The core audit request builder. */
 	@Autowired
 	AuditLogRequestBuilder auditLogRequestBuilder;
-
-	@Autowired
-	DocumentUtility documentUtility;
-
-	@Autowired
-	IdObjectsSchemaValidationOperationMapper idObjectsSchemaValidationOperationMapper;
-
+	
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> restClientService;
-
-	@Autowired(required = false)
-	@Qualifier("referenceValidator")
-	@Lazy
-	IdObjectValidator idObjectValidator;
-
-	@Autowired
-	ApplicantTypeDocument applicantTypeDocument;
 
 	@Autowired
 	private AuditUtility auditUtility;
@@ -172,7 +158,7 @@ public class PacketValidateProcessor {
 			boolean isValidSupervisorStatus = isValidSupervisorStatus();
 			if (isValidSupervisorStatus) {
 			InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId,
-					PacketFiles.META_INFO.name(),source);
+					PacketFiles.PACKET_META_INFO.name(),source);
 			PacketMetaInfo packetMetaInfo = (PacketMetaInfo) JsonUtil.inputStreamtoJavaObject(packetMetaInfoStream,
 					PacketMetaInfo.class);
 			IdentityIteratorUtil identityIteratorUtil = new IdentityIteratorUtil();
@@ -183,7 +169,7 @@ public class PacketValidateProcessor {
 				// save audit details
 				Runnable r = () -> {
 					try {
-						auditUtility.saveAuditDetails(registrationId);
+						auditUtility.saveAuditDetails(registrationId,source);
 					} catch (Exception e) {
 						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 								LoggerFileConstant.REGISTRATIONID.toString(),
@@ -267,24 +253,7 @@ public class PacketValidateProcessor {
 			}
 			registrationStatusDto.setUpdatedBy(USER);
 
-		} catch (FSAdapterException e) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-			registrationStatusDto.setStatusComment(
-					trimMessage.trimExceptionMessage(StatusUtil.FS_ADAPTER_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.FS_ADAPTER_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.FSADAPTER_EXCEPTION));
-			packetValidationDto.setTransactionSuccessful(false);
-			description.setMessage(PlatformErrorMessages.RPR_PVM_PACKET_STORE_NOT_ACCESSIBLE.getMessage());
-			description.setCode(PlatformErrorMessages.RPR_PVM_PACKET_STORE_NOT_ACCESSIBLE.getCode());
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					description.getCode() + " -- " + registrationId,
-					PlatformErrorMessages.RPR_PVM_PACKET_STORE_NOT_ACCESSIBLE.getMessage()
-							+ ExceptionUtils.getStackTrace(e));
-			object.setIsValid(Boolean.FALSE);
-			object.setInternalError(Boolean.TRUE);
-			object.setRid(registrationStatusDto.getRegistrationId());
-		} catch(PacketValidatorException e) {
+		}  catch(PacketValidatorException e) {
 			managePacketValidatorException(e, registrationStatusDto, trimMessage, description, object, packetValidationDto);
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), description.getCode(), registrationId,
 					description + e.getMessage() + ExceptionUtils.getStackTrace(e));
