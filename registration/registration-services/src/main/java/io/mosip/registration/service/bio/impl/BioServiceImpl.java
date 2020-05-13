@@ -373,7 +373,6 @@ public class BioServiceImpl extends BaseService implements BioService {
 
 		return fpDetailsDTO;
 	}
-	
 
 	/**
 	 * Gets the finger print image as DTO without MDM.
@@ -1318,21 +1317,22 @@ public class BioServiceImpl extends BaseService implements BioService {
 		if (exceptionFingers != null && !exceptionFingers.isEmpty()) {
 			isValid = true;
 
-			//TODO Temp fix
-			
-			isValid =  selectedSlap.size() - exceptionFingers.size() <= segmentedFingerPrints.size() ;
-			
-//			if (selectedSlap.size() - exceptionFingers.size() <= segmentedFingerPrints.size() ) {
-//				for (FingerprintDetailsDTO detailsDTO : segmentedFingerPrints) {
-//					if (exceptionFingers.contains(detailsDTO.getFingerType())
-//							|| !selectedSlap.contains(detailsDTO.getFingerType())) {
-//						isValid = false;
-//						break;
-//					}
-//				}
-//			} else {
-//				isValid = false;
-//			}
+			// TODO Temp fix
+
+			isValid = selectedSlap.size() - exceptionFingers.size() <= segmentedFingerPrints.size();
+
+			// if (selectedSlap.size() - exceptionFingers.size() <=
+			// segmentedFingerPrints.size() ) {
+			// for (FingerprintDetailsDTO detailsDTO : segmentedFingerPrints) {
+			// if (exceptionFingers.contains(detailsDTO.getFingerType())
+			// || !selectedSlap.contains(detailsDTO.getFingerType())) {
+			// isValid = false;
+			// break;
+			// }
+			// }
+			// } else {
+			// isValid = false;
+			// }
 
 		} else {
 			return selectedSlap.size() == segmentedFingerPrints.size();
@@ -1485,78 +1485,81 @@ public class BioServiceImpl extends BaseService implements BioService {
 		}
 		return nonConfigBiometrics;
 	}
-	
+
 	@Override
 	public List<BiometricsDto> captureModality(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException {
-		if(isMdmEnabled())
+		if (isMdmEnabled())
 			return captureRealModality(mdmRequestDto);
 		else
-			return captureMockModality(mdmRequestDto); 
+			return captureMockModality(mdmRequestDto);
 	}
-	
+
 	private List<BiometricsDto> captureRealModality(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException {
-		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID, "Entering into captureModality method.." +
-				System.currentTimeMillis());		
-		
-		CaptureResponseDto captureResponseDto = mosipBioDeviceManager.scanModality(mdmRequestDto);		
+		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+				"Entering into captureModality method.." + System.currentTimeMillis());
+
+		CaptureResponseDto captureResponseDto = mosipBioDeviceManager.scanModality(mdmRequestDto);
 		if (captureResponseDto == null)
-			throw new RegBaseCheckedException(MDMError.MDM_REQUEST_FAILED.getErrorCode(), 
+			throw new RegBaseCheckedException(MDMError.MDM_REQUEST_FAILED.getErrorCode(),
 					MDMError.MDM_REQUEST_FAILED.getErrorMessage());
-		
-		if (captureResponseDto.getError() != null)
-			throw new RegBaseCheckedException(captureResponseDto.getError().getErrorCode(),
-					captureResponseDto.getError().getErrorInfo());
-		
+
+		// if (captureResponseDto.getError() != null)
+		// throw new
+		// RegBaseCheckedException(captureResponseDto.getError().getErrorCode(),
+		// captureResponseDto.getError().getErrorInfo());
+
 		List<BiometricsDto> list = new ArrayList<BiometricsDto>();
 		Map<String, String> storedScores = new HashMap<String, String>();
-		for(CaptureResponseBioDto bioResponse : captureResponseDto.getMosipBioDeviceDataResponses()) {
+		for (CaptureResponseBioDto bioResponse : captureResponseDto.getMosipBioDeviceDataResponses()) {
 			CaptureResponsBioDataDto bioData = bioResponse.getCaptureResponseData();
-			
-			if(bioData != null && !isQualityScoreMaxInclusive(bioData.getQualityScore())) {
-				//check if current is best than previously seen
-				if(storedScores.containsKey(bioData.getBioSubType())) {
-					if(Integer.parseInt(storedScores.get(bioData.getBioSubType())) > Integer.parseInt(bioData.getQualityScore()))
+
+			if (bioData != null && isQualityScoreMaxInclusive(bioData.getQualityScore())) {
+				// check if current is best than previously seen
+				if (storedScores.containsKey(bioData.getBioSubType())) {
+					if (Integer.parseInt(storedScores.get(bioData.getBioSubType())) > Integer
+							.parseInt(bioData.getQualityScore()))
 						continue;
 				}
-				
+
 				storedScores.put(bioData.getBioSubType(), bioData.getQualityScore());
-				
-				BiometricsDto biometricDto = new BiometricsDto(bioData.getBioSubType(), 
-						Base64.getUrlDecoder().decode(bioData.getBioExtract()), Double.parseDouble(bioData.getQualityScore()));
+
+				BiometricsDto biometricDto = new BiometricsDto(bioData.getBioSubType(),
+						Base64.getUrlDecoder().decode(bioData.getBioExtract()),
+						Double.parseDouble(bioData.getQualityScore()));
 				biometricDto.setCaptured(true);
 				list.add(biometricDto);
 			}
-		}		
-		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID, "Ended captureModality method.." +
-				System.currentTimeMillis());
-		return list;		
+		}
+		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+				"Ended captureModality method.." + System.currentTimeMillis());
+		return list;
 	}
-	
+
 	private List<BiometricsDto> captureMockModality(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException {
 		LOGGER.info(LOG_REG_FINGERPRINT_FACADE, APPLICATION_NAME, APPLICATION_ID,
-				"Scanning of mock modality for user registration >>>>> " + mdmRequestDto.getModality());		
+				"Scanning of mock modality for user registration >>>>> " + mdmRequestDto.getModality());
 		List<BiometricsDto> list = new ArrayList<>();
-		try {	
-			
-			List<String> attributes = Biometric.getDefaultAttributes(mdmRequestDto.getModality());			
-			if(mdmRequestDto.getExceptions() != null)
+		try {
+
+			List<String> attributes = Biometric.getDefaultAttributes(mdmRequestDto.getModality());
+			if (mdmRequestDto.getExceptions() != null)
 				attributes.removeAll(Arrays.asList(mdmRequestDto.getExceptions()));
-			
-			for(String bioAttribute : attributes) {
-				BiometricsDto biometricDto = new BiometricsDto(bioAttribute, 
-						IOUtils.resourceToByteArray(getFilePath(mdmRequestDto.getModality(), bioAttribute)),
-						90.0);
+
+			for (String bioAttribute : attributes) {
+				BiometricsDto biometricDto = new BiometricsDto(bioAttribute,
+						IOUtils.resourceToByteArray(getFilePath(mdmRequestDto.getModality(), bioAttribute)), 90.0);
 				biometricDto.setCaptured(true);
 				list.add(biometricDto);
-			}		
-		} catch(Exception e) {
-			throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_FINGERPRINT_SCANNING_ERROR.getErrorCode(),
-					RegistrationExceptionConstants.REG_FINGERPRINT_SCANNING_ERROR.getErrorMessage() + 
-					ExceptionUtils.getStackTrace(e));
+			}
+		} catch (Exception e) {
+			throw new RegBaseCheckedException(
+					RegistrationExceptionConstants.REG_FINGERPRINT_SCANNING_ERROR.getErrorCode(),
+					RegistrationExceptionConstants.REG_FINGERPRINT_SCANNING_ERROR.getErrorMessage()
+							+ ExceptionUtils.getStackTrace(e));
 		}
 		return list;
 	}
-	
+
 	private String getFilePath(String modality, String bioAttribute) throws IOException {
 		String path = null;
 		switch (modality) {
@@ -1566,7 +1569,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 		case PacketManagerConstants.FINGERPRINT_SLAB_RIGHT:
 			path = String.format("/fingerprints/Srighthand/%s/ISOTemplate.iso", bioAttribute);
 			break;
-		case PacketManagerConstants.FINGERPRINT_SLAB_THUMBS:	
+		case PacketManagerConstants.FINGERPRINT_SLAB_THUMBS:
 			path = String.format("/fingerprints/thumb/%s/ISOTemplate.iso", bioAttribute);
 			break;
 		case PacketManagerConstants.IRIS_DOUBLE:
