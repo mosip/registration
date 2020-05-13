@@ -102,6 +102,11 @@
 			<artifactId>commons-fileupload</artifactId>
 			<version>1.2</version>
 		</dependency>
+		<dependency>
+			<groupId>io.mosip.registration</groupId>
+			<artifactId>registration-packetmanager</artifactId>
+			<version>${kernel.packetmanager.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
@@ -120,8 +125,13 @@
 			<artifactId>kernel-idvalidator-vid</artifactId>
 			<version>${kernel.idvalidator.vid.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>io.mosip.registrationprocessor</groupId>
+			<artifactId>registration-processor-packet-utility</artifactId>
+			<version>${registration.processor.packet.utility.version}</version>
+		</dependency>
    	
-			<dependency>
+		<dependency>
 			<groupId>io.mosip.registrationprocessor</groupId>
 			<artifactId>registration-processor-registration-status-service-impl</artifactId>
 			<version>${registration.status.service.version}</version>

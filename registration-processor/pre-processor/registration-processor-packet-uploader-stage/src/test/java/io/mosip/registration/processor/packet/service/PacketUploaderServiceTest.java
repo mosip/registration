@@ -372,9 +372,9 @@ public class PacketUploaderServiceTest {
 	}
 
 	@Test
-	public void testGetPacketFromNginxFailed() throws JschConnectionException, SftpFileOperationException, ApiNotAccessibleException, ApisResourceAccessException {
+	public void testGetPacketFromNginxFailed() throws JschConnectionException, SftpFileOperationException, ApisResourceAccessException {
 		HttpClientErrorException e = new HttpClientErrorException(HttpStatus.NOT_FOUND);
-		ApiNotAccessibleException apiException = new ApiNotAccessibleException("Packet not found in nginx", e);
+		ApisResourceAccessException apiException = new ApisResourceAccessException("Packet not found in nginx", e);
 
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
 		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(null);
@@ -385,8 +385,8 @@ public class PacketUploaderServiceTest {
 	}
 
 	@Test
-	public void testNginxServerException() throws JschConnectionException, SftpFileOperationException, ApiNotAccessibleException, ApisResourceAccessException {
-		ApiNotAccessibleException apiException = new ApiNotAccessibleException("Packet not found in nginx");
+	public void testNginxServerException() throws JschConnectionException, SftpFileOperationException, ApisResourceAccessException {
+		ApisResourceAccessException apiException = new ApisResourceAccessException("Packet not found in nginx");
 
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
 		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(null);

@@ -8,6 +8,8 @@ import io.mosip.registration.processor.packet.utility.dto.Metadata;
 import io.mosip.registration.processor.packet.utility.dto.PasswordRequest;
 import io.mosip.registration.processor.packet.utility.dto.SecretKeyRequest;
 import io.mosip.registration.processor.packet.utility.dto.TokenRequestDTO;
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -23,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.util.LinkedMultiValueMap;
@@ -31,6 +34,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
+import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -44,7 +48,7 @@ public class RestUtil {
 
     private static final String AUTHORIZATION = "Authorization=";
 
-    public <T> T postApi(String uri, MediaType mediaType, Object requestType, Class<?> responseClass) throws Exception {
+    public <T> T postApi(String uri, MediaType mediaType, Object requestType, Class<?> responseClass) throws ApiNotAccessibleException {
 
         RestTemplate restTemplate;
         T result = null;
@@ -53,7 +57,20 @@ public class RestUtil {
             result = (T) restTemplate.postForObject(uri, setRequestHeader(requestType, mediaType), responseClass);
 
         } catch (Exception e) {
-            throw e;
+            throw new ApiNotAccessibleException(e);
+        }
+        return result;
+    }
+
+    public <T> T getApi(URI uri, Class<?> responseType) throws ApiNotAccessibleException {
+        RestTemplate restTemplate;
+        T result = null;
+        try {
+            restTemplate = getRestTemplate();
+            result = (T) restTemplate.exchange(uri, HttpMethod.GET, setRequestHeader(null, null), responseType)
+                    .getBody();
+        } catch (Exception e) {
+            throw new ApiNotAccessibleException(e);
         }
         return result;
     }

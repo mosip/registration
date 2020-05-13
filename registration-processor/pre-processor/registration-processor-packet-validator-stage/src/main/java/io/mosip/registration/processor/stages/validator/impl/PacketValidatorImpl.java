@@ -270,8 +270,7 @@ public class PacketValidatorImpl implements PacketValidator{
 			PacketValidationDto packetValidationDto)
 			throws ApisResourceAccessException, IOException, IdObjectValidationFailedException, IdObjectIOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			RegistrationProcessorCheckedException, 
-			io.mosip.registration.processor.core.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+			RegistrationProcessorCheckedException, ApiNotAccessibleException {
 
 		if (env.getProperty(VALIDATESCHEMA).trim().equalsIgnoreCase(VALIDATIONFALSE)) {
 			packetValidationDto.setSchemaValidated(true);

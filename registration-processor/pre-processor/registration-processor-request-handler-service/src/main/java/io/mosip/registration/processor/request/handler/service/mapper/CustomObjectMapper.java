@@ -3,10 +3,8 @@ package io.mosip.registration.processor.request.handler.service.mapper;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
-import io.mosip.registration.processor.request.handler.service.dto.demo.Address;
 import io.mosip.registration.processor.request.handler.service.dto.demo.Demographic;
 import io.mosip.registration.processor.request.handler.service.dto.demo.DemographicInfo;
-import io.mosip.registration.processor.request.handler.service.dto.demographic.AddressDTO;
 import io.mosip.registration.processor.request.handler.service.dto.demographic.DemographicDTO;
 import io.mosip.registration.processor.request.handler.service.dto.demographic.DemographicInfoDTO;
 import ma.glasnost.orika.MapperFacade;
@@ -40,11 +38,11 @@ public class CustomObjectMapper extends ConfigurableMapper {
 		ConverterFactory converterFactory = mapperFactory.getConverterFactory();
 		converterFactory.registerConverter(new PassThroughConverter(LocalDateTime.class));
 		converterFactory.registerConverter(new PassThroughConverter(OffsetDateTime.class));
-		converterFactory.registerConverter("packetMetaInfo", new PacketMetaInfoConverter());
+		//converterFactory.registerConverter("packetMetaInfo", new PacketMetaInfoConverter());
 
 		mapperFactory.classMap(DemographicInfoDTO.class, DemographicInfo.class).byDefault().register();
 
-		mapperFactory.classMap(AddressDTO.class, Address.class).byDefault().register();
+		//mapperFactory.classMap(AddressDTO.class, Address.class).byDefault().register();
 
 		mapperFactory.classMap(DemographicDTO.class, Demographic.class).exclude("applicantDocumentDTO")
 				.exclude("introducerRID").exclude("introducerUIN").byDefault().register();
