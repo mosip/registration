@@ -169,8 +169,8 @@ public class IrisCaptureController extends BaseController {
 	@FXML
 	public void initialize() {
 
-		disablePaneOnBioAttributes(leftIrisPane, Arrays.asList(RegistrationConstants.leftEyeUiAttribute));
-		disablePaneOnBioAttributes(rightIrisPane, Arrays.asList(RegistrationConstants.rightEyeUiAttribute));
+		//disablePaneOnBioAttributes(leftIrisPane, Arrays.asList(RegistrationConstants.leftEyeUiAttribute));
+		//disablePaneOnBioAttributes(rightIrisPane, Arrays.asList(RegistrationConstants.rightEyeUiAttribute));
 		leftIrisCount = 0;
 		rightIrisCount = 0;
 		try {
@@ -856,15 +856,15 @@ public class IrisCaptureController extends BaseController {
 								.put(RegistrationConstants.UIN_UPDATE_REGISTRATIONPREVIEW, true);
 						registrationPreviewController.setUpPreviewContent();
 					}
-					faceCaptureController.checkForException();
+					//faceCaptureController.checkForException();
 					registrationController.showUINUpdateCurrentPage();
-					faceCaptureController.isExceptionPhotoMandatory();
+					//faceCaptureController.isExceptionPhotoMandatory();
 
 				} else {
-					faceCaptureController.checkForException();
+					//faceCaptureController.checkForException();
 					registrationController.showCurrentPage(RegistrationConstants.IRIS_CAPTURE,
-							getPageDetails(RegistrationConstants.IRIS_CAPTURE, RegistrationConstants.NEXT));
-					faceCaptureController.isExceptionPhotoMandatory();
+							getPageByAction(RegistrationConstants.IRIS_CAPTURE, RegistrationConstants.NEXT));
+					//faceCaptureController.isExceptionPhotoMandatory();
 				}
 			}
 
@@ -912,7 +912,7 @@ public class IrisCaptureController extends BaseController {
 				registrationController.showUINUpdateCurrentPage();
 			} else {
 				registrationController.showCurrentPage(RegistrationConstants.IRIS_CAPTURE,
-						getPageDetails(RegistrationConstants.IRIS_CAPTURE, RegistrationConstants.PREVIOUS));
+						getPageByAction(RegistrationConstants.IRIS_CAPTURE, RegistrationConstants.PREVIOUS));
 			}
 
 			LOGGER.debug(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
@@ -942,7 +942,7 @@ public class IrisCaptureController extends BaseController {
 
 			boolean isValid = false;
 
-			boolean isRightEyeCaptured = isAvailableInBioAttributes(
+			/*boolean isRightEyeCaptured = isAvailableInBioAttributes(
 					Arrays.asList(RegistrationConstants.rightEyeUiAttribute))
 							? !isRightEyeException(getIrisExceptions()) ? isValidRightEyeCaptured(irisDetailsDTOs)
 									: true
@@ -952,8 +952,8 @@ public class IrisCaptureController extends BaseController {
 					Arrays.asList(RegistrationConstants.leftEyeUiAttribute))
 							? !isLeftEyeException(getIrisExceptions()) ? isValidLeftEyeCaptured(irisDetailsDTOs) : true
 							: true;
-
-			isValid = isRightAndLeftBioValid(isRightEyeCaptured, isLeftEyeCaptured);
+			 */
+			isValid = isRightAndLeftBioValid(true, true); //isRightAndLeftBioValid(isRightEyeCaptured, isLeftEyeCaptured);
 
 			LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					"Validating the captured iris of individual is completed");
@@ -1129,7 +1129,7 @@ public class IrisCaptureController extends BaseController {
 		}
 
 		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getSelectionListDTO() != null
-				&& !getRegistrationDTOFromSession().getSelectionListDTO().isBiometrics()) {
+				&& getRegistrationDTOFromSession().getSelectionListDTO().get("biometrics")==null) {
 
 			if ((!getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
 					.getFingerprintDetailsDTO().isEmpty() && isForceCapturedFingerprint())
@@ -1240,7 +1240,7 @@ public class IrisCaptureController extends BaseController {
 
 		boolean isValid = false;
 		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getSelectionListDTO() != null
-				&& !getRegistrationDTOFromSession().getSelectionListDTO().isBiometrics()) {
+				&& getRegistrationDTOFromSession().getSelectionListDTO().get("biometrics")==null) {
 			if (isLeftEyeCaptured || isRightEyeCaptured) {
 				isValid = true;
 			}

@@ -466,7 +466,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 						ResponseDTO responseDTO;
 						responseDTO = validateSyncStatus();
 						List<ErrorResponseDTO> errorResponseDTOs = responseDTO.getErrorResponseDTOs();
-						if (errorResponseDTOs != null && !errorResponseDTOs.isEmpty()) {
+						if (false) {
 							for (ErrorResponseDTO errorResponseDTO : errorResponseDTOs) {
 								errorMessage.append(RegistrationUIConstants
 										.getMessageLanguageSpecific(errorResponseDTO.getMessage()) + "\n\n");
@@ -888,7 +888,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 			registrationDTO.setAcknowledgeReceiptName(
 					"RegistrationAcknowledgement." + RegistrationConstants.ACKNOWLEDGEMENT_FORMAT);
 		}
-
+		
 		//Clear all bio-captures data
 		BioServiceImpl.clearAllCaptures();
 		
@@ -925,7 +925,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 				FileUtils.copyToFile(new ByteArrayInputStream(ackInBytes),
 						new File(filePath.concat("_Ack.").concat(RegistrationConstants.ACKNOWLEDGEMENT_FORMAT)));
 
-				//TODO - can we send contact field attribute in schema ?
+				//TODO - Client should not send notification, save contact details 
+				// so that it can be sent out during RID sync.
 				sendNotification((String)registrationDTO.getDemographics().get("email"), 
 						(String)registrationDTO.getDemographics().get("phone"),
 						registrationDTO.getRegistrationId());
@@ -956,42 +957,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 				LOGGER.error("REGISTRATION - SAVE_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
 						APPLICATION_ID, runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 			}
-
-			//TODO this will not be part of current UI
-			/*if (registrationDTO.getSelectionListDTO() == null) {
-
-				AddressDTO addressDTO = Builder.build(AddressDTO.class)
-						.with(address -> address.setAddressLine1(individualIdentity.getAddressLine1() != null
-								? individualIdentity.getAddressLine1().get(0).getValue()
-								: null))
-						.with(address -> address.setAddressLine2(individualIdentity.getAddressLine2() != null
-								? individualIdentity.getAddressLine2().get(0).getValue()
-								: null))
-						.with(address -> address.setLine3(individualIdentity.getAddressLine3() != null
-								? individualIdentity.getAddressLine3().get(0).getValue()
-								: null))
-						.with(address -> address.setLocationDTO(Builder.build(LocationDTO.class)
-								.with(location -> location.setCity(individualIdentity.getCity() != null
-										? individualIdentity.getCity().get(0).getValue()
-										: null))
-								.with(location -> location.setProvince(individualIdentity.getProvince() != null
-										? individualIdentity.getProvince().get(0).getValue()
-										: null))
-								.with(location -> location.setRegion(individualIdentity.getRegion() != null
-										? individualIdentity.getRegion().get(0).getValue()
-										: null))
-								.with(location -> location
-										.setLocalAdministrativeAuthority(individualIdentity.getZone() != null
-												? individualIdentity.getZone().get(0).getValue()
-												: null))
-								.with(location -> location.setPostalCode(
-										individualIdentity.getPostalCode() != null ? individualIdentity.getPostalCode()
-												: null))
-								.get()))
-						.get();
-
-				SessionContext.map().put(RegistrationConstants.ADDRESS_KEY, addressDTO);
-			}*/
 		} else {
 			if (response.getErrorResponseDTOs() != null && response.getErrorResponseDTOs().get(0).getCode()
 					.equals(RegistrationExceptionConstants.AUTH_ADVICE_USR_ERROR.getErrorCode())) {

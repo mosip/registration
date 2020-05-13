@@ -6,9 +6,9 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.ResourceBundle;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,13 +22,14 @@ import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
-import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.FXUtils;
-import io.mosip.registration.dto.SelectionListDTO;
+import io.mosip.registration.dto.UiSchemaDTO;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -36,8 +37,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.RowConstraints;
 
 /**
  * UpdateUINController Class.
@@ -48,16 +52,6 @@ import javafx.scene.layout.HBox;
 @Controller
 public class UpdateUINController extends BaseController implements Initializable {
 
-	private static final List<String> UIN_UPDATE_CONFIGURED_DEMOGRAPHIC_FIELDS_LIST = Arrays.asList(
-			RegistrationConstants.UIN_UPDATE_NAME, RegistrationConstants.UIN_UPDATE_AGE,
-			RegistrationConstants.UIN_UPDATE_FOREIGNER, RegistrationConstants.UIN_UPDATE_GENDER,
-			RegistrationConstants.UIN_UPDATE_ADDRESS, RegistrationConstants.UIN_UPDATE_PHONE,
-			RegistrationConstants.UIN_UPDATE_EMAIL);
-
-	private static final List<String> UIN_UPDATE_CONFIGURED_BIO_FIELDS_LIST = Arrays.asList(
-			RegistrationConstants.UIN_UPDATE_CNIE_NUMBER, RegistrationConstants.UIN_UPDATE_PARENT_DETAILS,
-			RegistrationConstants.UIN_UPDATE_BIOMETRICS);
-
 	private static final Logger LOGGER = AppConfig.getLogger(UpdateUINController.class);
 
 	@Autowired
@@ -65,36 +59,7 @@ public class UpdateUINController extends BaseController implements Initializable
 
 	@FXML
 	private TextField uinId;
-	@FXML
-	private CheckBox name;
-	@FXML
-	private CheckBox age;
-	@FXML
-	private CheckBox gender;
-	@FXML
-	private CheckBox address;
-	@FXML
-	private CheckBox phone;
-	@FXML
-	private CheckBox email;
-	@FXML
-	private CheckBox biometrics;
-	@FXML
-	private CheckBox cnieNumber;
-	@FXML
-	private CheckBox parentOrGuardianDetails;
-	@FXML
-	private CheckBox foreigner;
-	@FXML
-	private Label toggleLabel1;
-	@FXML
-	private Label toggleLabel2;
-	@FXML
-	private HBox biometricBox;
-	@FXML
-	private HBox demographicHBox;
-	@FXML
-	private GridPane uinUpdateRoot;
+
 	@FXML
 	private Button backBtn;
 	@FXML
@@ -106,6 +71,16 @@ public class UpdateUINController extends BaseController implements Initializable
 	@Autowired
 	Validations validation;
 
+	@FXML
+	FlowPane parentFlowPane;
+	
+	private ObservableList<Node> parentFlow;
+
+
+	private HashMap<String, Object> checkBoxKeeper;
+
+	private FXUtils fxUtils;
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -115,10 +90,23 @@ public class UpdateUINController extends BaseController implements Initializable
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 
+		fxUtils = FXUtils.getInstance();
+		checkBoxKeeper = new HashMap<>();
+		Map<String, UiSchemaDTO> schemaMap = validation.getValidationMap();
+		parentFlow = parentFlowPane.getChildren();
+		for (Entry<String, UiSchemaDTO> entry : schemaMap.entrySet()) {
+			if (isDemographicField(entry.getValue())) {
+				GridPane checkBox = addCheckBox(entry.getValue());
+				if (checkBox != null) {
+					parentFlow.add(checkBox);
+				}
+			}
+		}
+
 		try {
 			Image backInWhite = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK_FOCUSED));
 			Image backImage = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK));
-			
+
 			backBtn.hoverProperty().addListener((ov, oldValue, newValue) -> {
 				if (newValue) {
 					backImageView.setImage(backInWhite);
@@ -126,105 +114,52 @@ public class UpdateUINController extends BaseController implements Initializable
 					backImageView.setImage(backImage);
 				}
 			});
-			FXUtils fxUtils = FXUtils.getInstance();
-			listenerOnFields(fxUtils);
-			listenerOnFieldsParentOrGuardian(fxUtils);
-			fxUtils.validateOnType(uinUpdateRoot, uinId, validation);
-			updateUINFieldsConfiguration();
-
-			if (getRegistrationDTOFromSession()!= null && getRegistrationDTOFromSession().getSelectionListDTO() != null) {
-				SelectionListDTO selectionListDTO = getRegistrationDTOFromSession().getSelectionListDTO();
-
-				uinId.setText(selectionListDTO.getUinId());
-				name.setSelected(selectionListDTO.isName());
-				age.setSelected(selectionListDTO.isAge());
-				gender.setSelected(selectionListDTO.isGender());
-				address.setSelected(selectionListDTO.isAddress());
-				phone.setSelected(selectionListDTO.isPhone());
-				email.setSelected(selectionListDTO.isEmail());
-				biometrics.setSelected(selectionListDTO.isBiometrics());
-				cnieNumber.setSelected(selectionListDTO.isCnieNumber());
-				parentOrGuardianDetails.setSelected(selectionListDTO.isParentOrGuardianDetails());
-				foreigner.setSelected(selectionListDTO.isForeigner());
-			}
 		} catch (RuntimeException runtimeException) {
 			LOGGER.error(LOG_REG_UIN_UPDATE, APPLICATION_NAME, APPLICATION_ID,
 					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 		}
 	}
 
-	/**
-	 * Update UIN fields configuration.
-	 */
-	private void updateUINFieldsConfiguration() {
+	
+	private GridPane addCheckBox(UiSchemaDTO schema) {
 
-		List<String> configuredFieldsfromDB = Arrays.asList(
-				getValueFromApplicationContext(RegistrationConstants.UIN_UPDATE_CONFIG_FIELDS_FROM_DB).toLowerCase().split(","));
+		CheckBox checkBox = new CheckBox(schema.getLabel().get(RegistrationConstants.PRIMARY));
+		checkBox.getStyleClass().add(RegistrationConstants.updateUinCheckBox);
+		fxUtils.listenOnSelectedCheckBox(checkBox);
+		checkBoxKeeper.put(schema.getId(), checkBox);
 
-		List<String> configvalues = new ArrayList<>();
-		configvalues.addAll(configuredFieldsfromDB);
+		GridPane gridPane = new GridPane();
+		gridPane.setPrefWidth(200);
+		gridPane.setPrefHeight(40);
 
-		for (String configureField : UIN_UPDATE_CONFIGURED_BIO_FIELDS_LIST) {
-			if (!configvalues.contains(configureField.toLowerCase())) {
-				biometricBox.getChildren().forEach(demographicNode -> {
-					if (demographicNode.getId().equalsIgnoreCase(configureField)) {
-						demographicNode.setVisible(false);
-						demographicNode.setManaged(false);
-					}
-				});
-			} else {
-				biometricBox.getChildren().forEach(demographicNode -> {
-					if (demographicNode.getId().equalsIgnoreCase(configureField) && configvalues.size() == 1) {
-						demographicNode.setDisable(true);
-						((CheckBox) demographicNode).setSelected(true);
-					}
-				});
-			}
-		}
+		ObservableList<ColumnConstraints> columnConstraints = gridPane.getColumnConstraints();
+		ColumnConstraints columnConstraint1 = new ColumnConstraints();
+		columnConstraint1.setPercentWidth(10);
+		ColumnConstraints columnConstraint2 = new ColumnConstraints();
+		columnConstraint2.setPercentWidth(85);
+		ColumnConstraints columnConstraint3 = new ColumnConstraints();
+		columnConstraint3.setPercentWidth(5);
+		columnConstraints.addAll(columnConstraint1, columnConstraint2, columnConstraint3);
 
-		for (String configureField : UIN_UPDATE_CONFIGURED_DEMOGRAPHIC_FIELDS_LIST) {
-			if (!configvalues.contains(configureField.toLowerCase())) {
-				demographicHBox.getChildren().forEach(demographicNode -> {
-					if (demographicNode.getId().equalsIgnoreCase(configureField)) {
-						demographicNode.setVisible(false);
-						demographicNode.setManaged(false);
-					}
-				});
-			} else {
-				demographicHBox.getChildren().forEach(demographicNode -> {
-					if (demographicNode.getId().equalsIgnoreCase(configureField) && configvalues.size() == 1) {
-						demographicNode.setDisable(true);
-						((CheckBox) demographicNode).setSelected(true);
-					}
-				});
+		ObservableList<RowConstraints> rowConstraints = gridPane.getRowConstraints();
+		RowConstraints rowConstraint1 = new RowConstraints();
+		columnConstraint1.setPercentWidth(20);
+		RowConstraints rowConstraint2 = new RowConstraints();
+		columnConstraint1.setPercentWidth(60);
+		RowConstraints rowConstraint3 = new RowConstraints();
+		columnConstraint1.setPercentWidth(20);
+		rowConstraints.addAll(rowConstraint1, rowConstraint2, rowConstraint3);
+		
+		gridPane.add(checkBox, 1, 1);
+		
+		return gridPane;
+}
 
-			}
-
-		}
-	}
-
-	private void listenerOnFields(FXUtils fxUtils) {
-		fxUtils.listenOnSelectedCheckBox(name);
-		fxUtils.listenOnSelectedCheckBox(age);
-		fxUtils.listenOnSelectedCheckBox(gender);
-		fxUtils.listenOnSelectedCheckBox(address);
-		fxUtils.listenOnSelectedCheckBox(phone);
-		fxUtils.listenOnSelectedCheckBox(email);
-		fxUtils.listenOnSelectedCheckBox(cnieNumber);
-		fxUtils.listenOnSelectedCheckBox(foreigner);
-	}
-
-	private void listenerOnFieldsParentOrGuardian(FXUtils fxUtils) {
-		fxUtils.listenOnSelectedCheckBoxParentOrGuardian(parentOrGuardianDetails, biometrics);
-		fxUtils.listenOnSelectedCheckBoxParentOrGuardian(parentOrGuardianDetails, biometrics);
-
-	}
 
 	/**
 	 * Submitting for UIN update after selecting the required fields.
 	 *
-	 * @param event
-	 *            the event
+	 * @param event the event
 	 */
 	@FXML
 	public void submitUINUpdate(ActionEvent event) {
@@ -237,46 +172,17 @@ public class UpdateUINController extends BaseController implements Initializable
 
 				if (uinValidatorImpl.validateId(uinId.getText())) {
 
-					if (name.isSelected() || age.isSelected() || gender.isSelected() || address.isSelected()
-							|| phone.isSelected() || email.isSelected() || biometrics.isSelected()
-							|| cnieNumber.isSelected() || parentOrGuardianDetails.isSelected()
-							|| foreigner.isSelected()) {
 
-						SelectionListDTO selectionListDTO = new SelectionListDTO();
-
-						
-						selectionListDTO.setName(name.isSelected());
-						selectionListDTO.setAge(age.isSelected());
-						selectionListDTO.setGender(gender.isSelected());
-						selectionListDTO.setAddress(address.isSelected());
-						selectionListDTO.setPhone(phone.isSelected());
-						selectionListDTO.setEmail(email.isSelected());
-						selectionListDTO.setBiometrics(biometrics.isSelected());
-						selectionListDTO.setCnieNumber(cnieNumber.isSelected());
-						selectionListDTO.setParentOrGuardianDetails(parentOrGuardianDetails.isSelected());
-						selectionListDTO.setForeigner(foreigner.isSelected());
-						
-						if(age.isSelected() || gender.isSelected()) {
-							selectionListDTO.setName(true);
-						}
-
-						selectionListDTO.setUinId(uinId.getText());
-
-						registrationController.init(selectionListDTO);
+						registrationController.init(checkBoxKeeper);
 
 						Parent createRoot = BaseController.load(
 								getClass().getResource(RegistrationConstants.CREATE_PACKET_PAGE),
 								applicationContext.getApplicationLanguageBundle());
 
 						getScene(createRoot).setRoot(createRoot);
-						if (!biometrics.isSelected()) {
-							getRegistrationDTOFromSession().setUpdateUINNonBiometric(true);
-						}						
-						getRegistrationDTOFromSession().setUpdateUINChild(parentOrGuardianDetails.isSelected());						
 					} else {
 						generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UPDATE_UIN_SELECTION_ALERT);
 					}
-				}
 			}
 		} catch (InvalidIDException invalidIdException) {
 			LOGGER.error(LOG_REG_UIN_UPDATE, APPLICATION_NAME, APPLICATION_ID,

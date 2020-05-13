@@ -59,6 +59,7 @@ import io.mosip.registration.entity.DocumentType;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
+import io.mosip.registration.packetmananger.dto.DocumentDto;
 import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.external.PreRegZipHandlingService;
 import io.mosip.registration.util.mastersync.MapperUtils;
@@ -98,7 +99,7 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 	public RegistrationDTO extractPreRegZipFile(byte[] preRegZipFile) throws RegBaseCheckedException {
 
 		RegistrationDTO registrationDTO = getRegistrationDtoContent();
-		DocumentDetailsDTO documentDetailsDTO;
+		DocumentDto documentDetailsDTO;
 		try (ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(preRegZipFile))) {
 			ZipInputStream inputStream= new ZipInputStream(new ByteArrayInputStream(preRegZipFile));
 			ZipEntry zipEntry;
@@ -115,7 +116,7 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 			while ((zipEntry = inputStream.getNextEntry()) != null) {
 				String docFileName = zipEntry.getName();
 				if (docFileName.contains("_")) {
-					documentDetailsDTO = new DocumentDetailsDTO();
+					documentDetailsDTO = new DocumentDto();
 					String docCategoryCode = docFileName.substring(0, docFileName.indexOf("_"));
 					documentDetailsDTO.setType(docCategoryCode);
 					getRegistrationDtoContent().getDocuments().put(docCategoryCode, documentDetailsDTO);
@@ -142,7 +143,7 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 		return registrationDTO;
 	}
 
-	private void attachDocument(DocumentDetailsDTO documentDetailsDTO, ZipInputStream zipInputStream, String fileName,
+	private void attachDocument(DocumentDto documentDetailsDTO, ZipInputStream zipInputStream, String fileName,
 			String docCatgory) throws IOException {
 		documentDetailsDTO.setDocument(IOUtils.toByteArray(zipInputStream));
 		documentDetailsDTO.setFormat(fileName.substring(fileName.lastIndexOf(RegistrationConstants.DOT) + 1));

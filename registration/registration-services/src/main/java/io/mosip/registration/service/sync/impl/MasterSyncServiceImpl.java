@@ -399,6 +399,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 			masterDocuments.forEach(document -> {
 
 				DocumentCategoryDto documents = new DocumentCategoryDto();
+				documents.setCode(document.getCode());
 				documents.setDescription(document.getDescription());
 				documents.setLangCode(document.getLangCode());
 				documents.setName(document.getName());

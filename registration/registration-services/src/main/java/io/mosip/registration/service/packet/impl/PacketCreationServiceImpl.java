@@ -257,9 +257,9 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 			// Generating HMAC File as byte array
 			HashSequence hashSequence = new HashSequence(new BiometricSequence(new LinkedList<>(), new LinkedList<>()),
 					new DemographicSequence(new LinkedList<>()), new LinkedList<>());
-			filesGeneratedForPacket.put(RegistrationConstants.PACKET_DATA_HASH_FILE_NAME,
+			/*filesGeneratedForPacket.put(RegistrationConstants.PACKET_DATA_HASH_FILE_NAME,
 					HMACGeneration.generatePacketDTOHash(registrationDTO, filesGeneratedForPacket, hashSequence));
-
+			 	*/
 			LOGGER.info(LOG_PKT_CREATION, APPLICATION_NAME, APPLICATION_ID,
 					String.format(loggerMessageForCBEFF, RegistrationConstants.PACKET_DATA_HASH_FILE_NAME));
 			auditFactory.audit(AuditEvent.PACKET_HMAC_FILE_CREATED, Components.PACKET_CREATOR, rid,

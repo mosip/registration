@@ -7,6 +7,8 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -17,15 +19,24 @@ import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.http.Consts;
+import org.apache.http.ParseException;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -42,15 +53,20 @@ import io.mosip.registration.dao.impl.RegisteredDeviceDAO;
 import io.mosip.registration.dto.json.metadata.DigitalId;
 import io.mosip.registration.entity.RegisteredDeviceMaster;
 import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.mdm.constants.MosipBioDeviceConstants;
 import io.mosip.registration.mdm.dto.BioDevice;
+import io.mosip.registration.mdm.dto.CaptureRequestDto;
 import io.mosip.registration.mdm.dto.CaptureResponseBioDto;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
 import io.mosip.registration.mdm.dto.DeviceDiscoveryResponsetDto;
 import io.mosip.registration.mdm.dto.DeviceInfo;
 import io.mosip.registration.mdm.dto.DeviceInfoResponseData;
+import io.mosip.registration.mdm.dto.MDMError;
+import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.mdm.dto.RequestDetail;
 import io.mosip.registration.mdm.integrator.IMosipBioDeviceIntegrator;
+import io.mosip.registration.mdm.util.MdmRequestResponseBuilder;
 import io.mosip.registration.mdm.util.MosioBioDeviceHelperUtil;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 
@@ -89,7 +105,7 @@ public class MosipBioDeviceManager {
 
 	private static final Logger LOGGER = AppConfig.getLogger(MosipBioDeviceManager.class);
 
-	ObjectMapper mapper = new ObjectMapper();
+	private ObjectMapper mapper = new ObjectMapper();
 
 	/**
 	 * This method will prepare the device registry, device registry contains all
@@ -610,5 +626,72 @@ public class MosipBioDeviceManager {
 			initByPort(bioDevice.getRunningPort());
 		}
 
+	}
+	
+	
+	public CaptureResponseDto scanModality(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException {
+		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID, "scanModality calling..." 
+					+ System.currentTimeMillis());
+		
+		BioDevice bioDevice = findDeviceToScan(mdmRequestDto.getModality());		
+		if(bioDevice == null)
+			throw new RegBaseCheckedException(MDMError.DEVICE_NOT_FOUND.getErrorCode(), 
+					MDMError.DEVICE_NOT_FOUND.getErrorMessage());		
+		
+		if(!bioDevice.isRegistered())
+			throw new RegBaseCheckedException(MDMError.DEVICE_NOT_REGISTERED.getErrorCode(), 
+					MDMError.DEVICE_NOT_REGISTERED.getErrorMessage());
+		
+		//TODO - support multiple spec versions, choose max version number from specVersions sorted array 
+		String[] specVersions = bioDevice.getSpecVersion();
+		Arrays.sort(specVersions);
+		String supportedSpecVersion = (String) ApplicationContext.getInstance().map().get("current_mdm_spec");
+		
+		if(!Arrays.asList(specVersions).contains(supportedSpecVersion))
+			throw new RegBaseCheckedException(MDMError.UNSUPPORTED_SPEC.getErrorCode(), 
+					MDMError.UNSUPPORTED_SPEC.getErrorMessage());		
+		
+		//TODO - need to handle multiple SpecVersion
+		CaptureRequestDto requestDto = MdmRequestResponseBuilder.getMDMCaptureRequestDto(supportedSpecVersion, 
+				bioDevice, mdmRequestDto);
+		String url = bioDevice.getRunningUrl() + ":" + bioDevice.getRunningPort() + "/" + MosipBioDeviceConstants.CAPTURE_ENDPOINT;			
+		CaptureResponseDto responseDto = (CaptureResponseDto) getMdmResponse(url, requestDto, 
+				mdmRequestDto.getMosipProcess().equals("Registration") ? "RCAPTURE" : "CAPTURE", CaptureResponseDto.class);
+		try {
+			bioDevice.decode(responseDto);
+		} catch (IOException e) {
+			throw new RegBaseCheckedException(MDMError.PARSE_ERROR.getErrorCode(), 
+					MDMError.PARSE_ERROR.getErrorMessage() + ExceptionUtils.getStackTrace(e));
+		}
+		return responseDto;
+	}
+	
+	//TODO - need to handle multiple SpecVersion
+	private Object getMdmResponse(String url, Object requestDto, String requestMethod, 
+			Class responseClass) throws RegBaseCheckedException {
+		Object responseDto = null;
+		try {
+			String requestBody = mapper.writeValueAsString(requestDto);
+			String response = invokeMDMRequest(url, requestBody, requestMethod);
+			responseDto = mapper.readValue(response.getBytes(StandardCharsets.UTF_8), responseClass);			
+		} catch (IOException e) {
+			throw new RegBaseCheckedException(MDMError.PARSE_ERROR.getErrorCode(), 
+					MDMError.PARSE_ERROR.getErrorMessage() + ExceptionUtils.getStackTrace(e));
+		}
+		return responseDto;
+	}
+	
+	
+	private String invokeMDMRequest(String url, String requestBody, String requestMethod) throws RegBaseCheckedException {
+		CloseableHttpClient client = HttpClients.createDefault();
+		StringEntity requestEntity = new StringEntity(requestBody, ContentType.create("Content-Type", Consts.UTF_8));
+		HttpUriRequest request = RequestBuilder.create(requestMethod).setUri(url).setEntity(requestEntity).build();		
+		try {
+			CloseableHttpResponse response = client.execute(request);
+			return EntityUtils.toString(response.getEntity());
+		} catch (IOException e) {
+			throw new RegBaseCheckedException(MDMError.MDM_REQUEST_FAILED.getErrorCode(), 
+					MDMError.MDM_REQUEST_FAILED.getErrorMessage() + ExceptionUtils.getStackTrace(e));
+		}
 	}
 }

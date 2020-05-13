@@ -145,16 +145,15 @@ public class RegistrationController extends BaseController {
 	 */
 	private void uinUpdate() {
 		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
-			//demographicDetailController.uinUpdate();
+			demographicDetailController.uinUpdate();
 		}
 	}
 
-	public void init(SelectionListDTO selectionListDTO) {
+	public void init(HashMap<String, Object> selectionListDTO) {
 		validation.updateAsLostUIN(false);
 		createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_UPDATE);
 		RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 		registrationDTO.setSelectionListDTO(selectionListDTO);
-		registrationDTO.setNameNotUpdated(!selectionListDTO.isName());
 	}
 
 	protected void initializeLostUIN() {
@@ -187,7 +186,7 @@ public class RegistrationController extends BaseController {
 	 *            the image that is captured as applicant photograph
 	 * @return BufferedImage the face that is detected from the applicant photograph
 	 */
-	public BufferedImage detectApplicantFace(BufferedImage applicantImage) {
+	public BufferedImage detectApplicantFace(BufferedImage applicantImage) { 
 		BufferedImage detectedFace = null;
 		CLMFaceDetector detector = new CLMFaceDetector();
 		List<CLMDetectedFace> faces = null;
@@ -258,13 +257,16 @@ public class RegistrationController extends BaseController {
 		LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "saving the details of applicant biometrics");
 		boolean isValid = true;
-		if (!(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
-			isValid = true; // demographicDetailController.validateThisPane();
+		// TODO This is not required at this stage as validation is complted during click of documant continue button
+		/*if (!(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
+			isValid = true; 
+			demographicDetailController.validateThisPane();
+			
 			if (isValid && RegistrationConstants.ENABLE
 					.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.DOC_DISABLE_FLAG))) {
 				isValid = validateDemographicPane(documentScanController.documentScanPane);
 			}
-		}
+		}*/
 		if (isValid) {
 			try {
 				BufferedImage detectedFace = detectApplicantFace(applicantBufferedImage);
@@ -329,7 +331,7 @@ public class RegistrationController extends BaseController {
 								showUINUpdateCurrentPage();
 							} else {
 								showCurrentPage(RegistrationConstants.FACE_CAPTURE,
-										getPageDetails(RegistrationConstants.FACE_CAPTURE, RegistrationConstants.NEXT));
+										getPageByAction(RegistrationConstants.FACE_CAPTURE, RegistrationConstants.NEXT));
 							}
 
 						} else {

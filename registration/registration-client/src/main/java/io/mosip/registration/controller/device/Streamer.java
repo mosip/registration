@@ -53,9 +53,15 @@ public class Streamer {
 
 	// Image View, which UI need to be shown
 	private static ImageView imageView;
+
 	// Set Streaming image
 	public void setStreamImage(Image streamImage) {
 		this.streamImage = streamImage;
+	}
+
+	// Get Streaming image
+	public Image getStreamImage() {
+		return streamImage;
 	}
 
 	// Set ImageView
@@ -83,10 +89,9 @@ public class Streamer {
 	}
 
 	public void startStream(String type, ImageView streamImage, ImageView scanImage) {
-  
-		
-	LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-			"Streamer Thread initiation started for : " + System.currentTimeMillis() + type);
+
+		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
+				"Streamer Thread initiation started for : " + System.currentTimeMillis() + type);
 
 		streamer_thread = new Thread(new Runnable() {
 
@@ -113,7 +118,7 @@ public class Streamer {
 					if (urlStream == null) {
 
 						LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-								"URL Stream was null for : "+ System.currentTimeMillis() + type);
+								"URL Stream was null for : " + System.currentTimeMillis() + type);
 						setPopViewControllerMessage(true,
 								RegistrationUIConstants.getMessageLanguageSpecific("202_MESSAGE"), false);
 
@@ -136,7 +141,7 @@ public class Streamer {
 						if (urlStream == null) {
 
 							LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-									"URL Stream was null for : "+ System.currentTimeMillis() + type);
+									"URL Stream was null for : " + System.currentTimeMillis() + type);
 
 							setPopViewControllerMessage(true,
 									RegistrationUIConstants.getMessageLanguageSpecific("202_MESSAGE"), false);
@@ -200,7 +205,7 @@ public class Streamer {
 		streamer_thread.start();
 
 		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-				"Streamer Thread initiated completed for : "+ System.currentTimeMillis() + type);
+				"Streamer Thread initiated completed for : " + System.currentTimeMillis() + type);
 
 	}
 

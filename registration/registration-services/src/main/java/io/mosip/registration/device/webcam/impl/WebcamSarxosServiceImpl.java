@@ -102,6 +102,18 @@ public class WebcamSarxosServiceImpl extends MosipWebcamServiceImpl {
 		LOGGER.info("REGISTRATION - WEBCAMDEVICE", APPLICATION_NAME, APPLICATION_ID, "capturing the image from webcam");
 		return webcam.getImage();
 	}
+	
+	/**
+	 * Gets the web cams.
+	 *
+	 * @return the web cams
+	 */
+	public List<Webcam> getWebCams() {
+
+		LOGGER.info("REGISTRATION - WEBCAMDEVICE", APPLICATION_NAME, APPLICATION_ID, "Get All Web cams");
+		return Webcam.getWebcams();
+	}
+	
 
 	@Override
 	public void close() {
@@ -111,5 +123,37 @@ public class WebcamSarxosServiceImpl extends MosipWebcamServiceImpl {
 			jPanelWindow = null;
 			webcam.close();
 		}
+	}
+	
+	@Override
+	public void openWebCam(Webcam webcam, int width, int height) {
+
+		LOGGER.info("REGISTRATION - WEBCAMDEVICE", APPLICATION_NAME, APPLICATION_ID,
+				"Opening web cam with width : " + width + " and height : " + height);
+
+		if (webcam != null && !webcam.isOpen()) {
+			Dimension requiredDimension = new Dimension(width, height);
+		
+			webcam.setCustomViewSizes(new Dimension[] {
+				   requiredDimension,         
+				});
+			webcam.setViewSize(requiredDimension);
+			webcam.getLock().disable();
+			
+			//Open Web camera
+			webcam.open();
+			this.webcam = webcam;
+
+			LOGGER.info("REGISTRATION - WEBCAMDEVICE", APPLICATION_NAME, APPLICATION_ID,
+					"Stopping web camera discovery");
+
+			Webcam.getDiscoveryService().stop();
+		}
+	}
+
+	@Override
+	public BufferedImage captureImage(Webcam webcam) {
+		LOGGER.info("REGISTRATION - WEBCAMDEVICE", APPLICATION_NAME, APPLICATION_ID, "capturing the image from webcam");
+		return webcam != null ? webcam.getImage() : null;
 	}
 }

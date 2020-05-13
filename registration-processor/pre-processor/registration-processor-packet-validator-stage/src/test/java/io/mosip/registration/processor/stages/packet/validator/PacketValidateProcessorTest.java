@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import org.apache.commons.io.IOUtils;
@@ -1004,5 +1005,23 @@ public class PacketValidateProcessorTest {
 		MessageDTO messageDto = packetValidateProcessor.process(dto, stageName);
 		assertFalse(messageDto.getIsValid());
 
+	}
+
+	@Test
+	public void reverseDataSyncNotApplicableTest() throws Exception {
+		identity.getMetaData().stream().map(fv -> {
+			if (fv.getLabel().equalsIgnoreCase("preRegistrationId"))
+				fv.setValue(null);
+			return fv;
+		}).collect(Collectors.toList());
+		packetMetaInfo.setIdentity(identity);
+		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
+				.thenReturn(packetMetaInfo);
+
+
+		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
+
+		MessageDTO messageDto = packetValidateProcessor.process(dto, stageName);
+		assertTrue(messageDto.getIsValid());
 	}
 }

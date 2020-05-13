@@ -2,6 +2,8 @@ package io.mosip.registration.repositories;
 
 import java.util.List;
 
+import org.springframework.data.jpa.repository.Query;
+
 import io.mosip.kernel.core.dataaccess.spi.repository.BaseRepository;
 import io.mosip.registration.entity.Location;
 
@@ -33,5 +35,14 @@ public interface LocationRepository extends BaseRepository<Location, String> {
 	
 	
 	List<Location> findAllByIsActiveTrue();
+	
+	/**
+	 * Find master location by language code.
+	 *
+	 * @param langCode      the lang code
+	 * @return the list
+	 */
+	List<Location> findByIsActiveTrueAndLangCode( String langCode);
+
 
 }

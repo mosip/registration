@@ -156,7 +156,7 @@ public class BiometricExceptionController extends BaseController implements Init
 
 	@Autowired
 	private GuardianBiometricsController guardianBiometricsController;
-	
+
 	@Autowired
 	private FaceCaptureController faceCaptureController;
 
@@ -205,13 +205,13 @@ public class BiometricExceptionController extends BaseController implements Init
 					.setText(SessionContext.userContext().getRegistrationCenterDetailDTO().getRegistrationCenterId());
 			employeeCode.setText(SessionContext.userContext().getUserId());
 			machineID.setText(getValueFromApplicationContext(RegistrationConstants.USER_STATION_ID));
-			if (!((Map<String, Map<String, Boolean>>) ApplicationContext.map().get(RegistrationConstants.ONBOARD_MAP))
-					.get(RegistrationConstants.BIOMETRIC_EXCEPTION).get(RegistrationConstants.FINGER_PANE)) {
+			if (!pageFlow.isVisibleInOnBoardFlowMap(RegistrationConstants.BIOMETRIC_EXCEPTION,
+					RegistrationConstants.FINGER_PANE)) {
 				fingerPane.setManaged(false);
 				fingerPane.setVisible(false);
 			}
-			if (!((Map<String, Map<String, Boolean>>) ApplicationContext.map().get(RegistrationConstants.ONBOARD_MAP))
-					.get(RegistrationConstants.BIOMETRIC_EXCEPTION).get(RegistrationConstants.IRIS_PANE)) {
+			if (!pageFlow.isVisibleInOnBoardFlowMap(RegistrationConstants.BIOMETRIC_EXCEPTION,
+					RegistrationConstants.IRIS_PANE)) {
 				irisPane.setManaged(false);
 				irisPane.setVisible(false);
 			}
@@ -239,23 +239,21 @@ public class BiometricExceptionController extends BaseController implements Init
 						.getString(RegistrationConstants.UIN_UPDATE_UINUPDATENAVLBL));
 			}
 
-			if (!((Map<String, Map<String, Boolean>>) ApplicationContext.map()
-					.get(RegistrationConstants.REGISTRATION_MAP)).get(RegistrationConstants.BIOMETRIC_EXCEPTION)
-							.get(RegistrationConstants.FINGER_PANE)) {
+			/*if (!pageFlow.isVisibleInRegFlowMap(RegistrationConstants.BIOMETRIC_EXCEPTION,
+					RegistrationConstants.FINGER_PANE)) {
 				fingerPane.setManaged(false);
 				fingerPane.setVisible(false);
 				fpExceptionLabel.setVisible(false);
 			}
-			if (!((Map<String, Map<String, Boolean>>) ApplicationContext.map()
-					.get(RegistrationConstants.REGISTRATION_MAP)).get(RegistrationConstants.BIOMETRIC_EXCEPTION)
-							.get(RegistrationConstants.IRIS_PANE)) {
+			if (!pageFlow.isVisibleInRegFlowMap(RegistrationConstants.BIOMETRIC_EXCEPTION,
+					RegistrationConstants.IRIS_PANE)) {
 				irisPane.setManaged(false);
 				irisPane.setVisible(false);
 				irisExceptionLabel.setVisible(false);
-			}
+			}*/
 			onboardTrackerImg.setVisible(false);
 			registrationTrackerImg.setVisible(true);
-			exceptionDocProof.setVisible(false);
+			//exceptionDocProof.setVisible(false);
 			registrationFooter.setVisible(true);
 			registrationExceptionHeader.setVisible(true);
 			spliterLine.setVisible(false);
@@ -300,7 +298,7 @@ public class BiometricExceptionController extends BaseController implements Init
 
 		LOGGER.info("REGISTRATION - FINGER_LABEL_LISTENER - BIOMETRIC_EXCEPTION_LISTENER", APPLICATION_NAME,
 				APPLICATION_ID, "It will listen the finger on click funtionality");
-	
+
 		SimpleBooleanProperty toggleFunctionForFinger = new SimpleBooleanProperty(false);
 		toggleFunctionForFinger.addListener(new ChangeListener<Boolean>() {
 			/*
@@ -407,18 +405,17 @@ public class BiometricExceptionController extends BaseController implements Init
 
 				if (isChild() || getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {
 					SessionContext.map().put(RegistrationConstants.UIN_UPDATE_PARENTGUARDIAN_DETAILS, true);
-				}
-				else if (RegistrationConstants.ENABLE.equalsIgnoreCase(
+				} else if (RegistrationConstants.ENABLE.equalsIgnoreCase(
 						getValueFromApplicationContext(RegistrationConstants.FINGERPRINT_DISABLE_FLAG)) && !isChild()) {
 					SessionContext.map().put(RegistrationConstants.UIN_UPDATE_FINGERPRINTCAPTURE, true);
 
 				} else if (RegistrationConstants.ENABLE.equalsIgnoreCase(
 						getValueFromApplicationContext(RegistrationConstants.IRIS_DISABLE_FLAG)) && !isChild()) {
 					SessionContext.map().put(RegistrationConstants.UIN_UPDATE_IRISCAPTURE, true);
-				} 
+				}
 				registrationController.showUINUpdateCurrentPage();
 			} else {
-				registrationController.showCurrentPage(RegistrationConstants.BIOMETRIC_EXCEPTION, getPageDetails(
+				registrationController.showCurrentPage(RegistrationConstants.BIOMETRIC_EXCEPTION, getPageByAction(
 						RegistrationConstants.UIN_UPDATE_BIOMETRICEXCEPTION, RegistrationConstants.NEXT));
 			}
 			fingerPrintCaptureController.clearImage();
@@ -437,12 +434,12 @@ public class BiometricExceptionController extends BaseController implements Init
 		List<String> bioList = new ArrayList<>();
 		bioList.addAll(fingerList);
 		bioList.addAll(irisList);
-		
+
 		List<BiometricExceptionDTO> biometricExceptionList = new ArrayList<>();
 		if (!bioList.isEmpty()) {
-		
+
 			biometricExceptionList = getBiometricsExceptionList(bioList);
-			
+
 			addExceptionToRegistration(biometricExceptionList);
 
 		} else {
@@ -463,8 +460,8 @@ public class BiometricExceptionController extends BaseController implements Init
 		SessionContext.map().put(RegistrationConstants.NEW_BIOMETRIC_EXCEPTION, biometricExceptionList);
 		if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)
 				|| (boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER_UPDATE)) {
-			((BiometricDTO) SessionContext.map().get(RegistrationConstants.USER_ONBOARD_DATA))
-					.getOperatorBiometricDTO().setBiometricExceptionDTO(biometricExceptionList);
+			((BiometricDTO) SessionContext.map().get(RegistrationConstants.USER_ONBOARD_DATA)).getOperatorBiometricDTO()
+					.setBiometricExceptionDTO(biometricExceptionList);
 		} else if ((boolean) SessionContext.map().get(RegistrationConstants.IS_Child)) {
 			((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA)).getBiometricDTO()
 					.getIntroducerBiometricDTO().setBiometricExceptionDTO(biometricExceptionList);
@@ -524,7 +521,7 @@ public class BiometricExceptionController extends BaseController implements Init
 				registrationController.showUINUpdateCurrentPage();
 			} else {
 				registrationController.showCurrentPage(RegistrationConstants.BIOMETRIC_EXCEPTION,
-						getPageDetails(RegistrationConstants.BIOMETRIC_EXCEPTION, RegistrationConstants.PREVIOUS));
+						getPageByAction(RegistrationConstants.BIOMETRIC_EXCEPTION, RegistrationConstants.PREVIOUS));
 			}
 		}
 	}
@@ -578,7 +575,6 @@ public class BiometricExceptionController extends BaseController implements Init
 		SessionContext.map().put(RegistrationConstants.OLD_BIOMETRIC_EXCEPTION, new ArrayList<>());
 		SessionContext.map().put(RegistrationConstants.NEW_BIOMETRIC_EXCEPTION, new ArrayList<>());
 		setExceptionImage();
-		
 
 		fingerException();
 		clearIrisException();

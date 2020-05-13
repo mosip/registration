@@ -27,16 +27,16 @@ import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 
 public class HMACGenerationTest {
 
-	@Test
+	/*@Test
 	public void generatePacketDTOTest() throws IOException, URISyntaxException, RegBaseCheckedException {
 		RegistrationDTO registrationDTO = DataProvider.getPacketDTO();
 		byte[] hashArray = HMACGeneration.generatePacketDTOHash(registrationDTO, new HashMap<>(),
 				new HashSequence(new BiometricSequence(new LinkedList<>(), new LinkedList<>()),
 						new DemographicSequence(new LinkedList<>()), new LinkedList<>()));
 		Assert.assertNotNull(hashArray);
-	}
+	}*/
 
-	@Test
+	/*@Test
 	public void generatePacketHashWithEmptyRegistrationTest()
 			throws IOException, URISyntaxException, RegBaseCheckedException {
 		RegistrationDTO registrationDTO = new RegistrationDTO();
@@ -55,7 +55,7 @@ public class HMACGenerationTest {
 				new HashSequence(new BiometricSequence(new LinkedList<>(), new LinkedList<>()),
 						new DemographicSequence(new LinkedList<>()), new LinkedList<>()));
 		Assert.assertNotNull(hashArray);
-	}
+	}*/
 
 	@Test
 	public void generatePacketOSIHashTest() {

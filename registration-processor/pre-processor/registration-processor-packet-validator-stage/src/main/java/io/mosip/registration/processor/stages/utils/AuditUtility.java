@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.Supplier;
 
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
@@ -54,7 +55,7 @@ public class AuditUtility {
 	/**
 	 * Save the audit Details.
 	 *
-	 * @param String
+	 * @param registrationId
 	 *            the registrationId
 	 * 
 	 *
@@ -77,11 +78,11 @@ public class AuditUtility {
 			});
 		} catch (RuntimeException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, "AuditUtility::saveAuditDetails()::error");
+					registrationId, "AuditUtility::saveAuditDetails::Runtime exception occurred " + ExceptionUtils.getStackTrace(e));
 
 		} catch (Exception e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, "AuditUtility::saveAuditDetails()::error");
+					registrationId, "AuditUtility::saveAuditDetails::Exception occurred " + ExceptionUtils.getStackTrace(e));
 		}
 
 	}
@@ -89,12 +90,8 @@ public class AuditUtility {
 	/**
 	 * Builds the request.
 	 *
-	 * @param restService
-	 *            the rest service
 	 * @param requestBody
 	 *            the request body
-	 * @param returnType
-	 *            the return type
 	 * @return the Async request DTO
 	 *
 	 */

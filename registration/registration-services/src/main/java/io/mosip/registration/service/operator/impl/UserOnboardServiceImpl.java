@@ -113,13 +113,9 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 						LinkedHashMap<String, Object> dataBlockFinger = new LinkedHashMap<>();
 						Map<String, Object> data = new HashMap<>();
 						data.put(RegistrationConstants.ON_BOARD_TIME_STAMP, DateUtils.getUTCCurrentDateTimeString());
-						// data.put(RegistrationConstants.TRANSACTION_ID,
-						// RegistrationConstants.TRANSACTION_ID_VALUE);
-						// data.put(RegistrationConstants.DEVICE_PROVIDER_ID,
-						// RegistrationConstants.ON_BOARD_COGENT);
 						data.put(RegistrationConstants.ON_BOARD_BIO_TYPE, RegistrationConstants.ON_BOARD_FINGER_ID);
-					    data.put(RegistrationConstants.ON_BOARD_BIO_SUB_TYPE,
-							RegistrationConstants.userOnBoardBioFlag.get(finger.getFingerType()));
+						data.put(RegistrationConstants.ON_BOARD_BIO_SUB_TYPE,
+								RegistrationConstants.userOnBoardBioFlag.get(finger.getFingerType()));
 						SplittedEncryptedData responseMap = getSessionKey(data, finger.getFingerPrintISOImage());
 						data.put(RegistrationConstants.ON_BOARD_BIO_VALUE, responseMap.getEncryptedData());
 						String dataBlockJsonString = RegistrationConstants.EMPTY;
@@ -145,24 +141,17 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 						previousHashArray[0] = finalHash;
 
 					});
-					requestMap.put(RegistrationConstants.ON_BOARD_BIOMETRICS, listOfBiometric);
 				});
 
 				biometricDTO.getOperatorBiometricDTO().getIrisDetailsDTO().forEach(iris -> {
-
 					LinkedHashMap<String, Object> dataBlockIris = new LinkedHashMap<>();
 					Map<String, Object> data = new HashMap<>();
 					data.put(RegistrationConstants.ON_BOARD_TIME_STAMP, DateUtils.getUTCCurrentDateTimeString());
-					// data.put(RegistrationConstants.TRANSACTION_ID,
-					// RegistrationConstants.TRANSACTION_ID_VALUE);
-					// data.put(RegistrationConstants.DEVICE_PROVIDER_ID,
-					// RegistrationConstants.ON_BOARD_COGENT);
 					data.put(RegistrationConstants.ON_BOARD_BIO_TYPE, RegistrationConstants.ON_BOARD_IRIS_ID);
-				    data.put(RegistrationConstants.ON_BOARD_BIO_SUB_TYPE,
-						RegistrationConstants.userOnBoardBioFlag.get(iris.getIrisImageName()));
+					data.put(RegistrationConstants.ON_BOARD_BIO_SUB_TYPE,
+							RegistrationConstants.userOnBoardBioFlag.get(iris.getIrisImageName()));
 					SplittedEncryptedData responseMap = getSessionKey(data, iris.getIrisIso());
 					data.put(RegistrationConstants.ON_BOARD_BIO_VALUE, responseMap.getEncryptedData());
-
 					String dataBlockJsonString = RegistrationConstants.EMPTY;
 					try {
 						dataBlockJsonString = new ObjectMapper().writeValueAsString(data);
@@ -174,7 +163,6 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 					}
 					String presentHash = HMACUtils
 							.digestAsPlainText(HMACUtils.generateHash(dataBlockJsonString.getBytes()));
-
 					String concatenatedHash = previousHashArray[0] + presentHash;
 					String finalHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash(concatenatedHash.getBytes()));
 					dataBlockIris.put(RegistrationConstants.AUTH_HASH, finalHash);
@@ -182,52 +170,14 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 					dataBlockIris.put(RegistrationConstants.SIGNATURE, "");
 					listOfBiometric.add(dataBlockIris);
 					previousHashArray[0] = finalHash;
-
 				});
-
-				requestMap.put(RegistrationConstants.ON_BOARD_BIOMETRICS, listOfBiometric);
-
-				LinkedHashMap<String, Object> faceData = new LinkedHashMap<>();
-				Map<String, Object> data = new HashMap<>();
-				data.put(RegistrationConstants.ON_BOARD_TIME_STAMP, DateUtils.getUTCCurrentDateTimeString());
-				// requestDataMap.put(RegistrationConstants.TRANSACTION_ID,
-				// RegistrationConstants.TRANSACTION_ID_VALUE);
-				// requestDataMap.put(RegistrationConstants.DEVICE_PROVIDER_ID,
-				// RegistrationConstants.ON_BOARD_COGENT);
-				data.put(RegistrationConstants.ON_BOARD_BIO_TYPE, RegistrationConstants.ON_BOARD_FACE);
-				data.put(RegistrationConstants.ON_BOARD_BIO_SUB_TYPE, RegistrationConstants.ON_BOARD_FACE);
-				SplittedEncryptedData responseMap = getSessionKey(data,
-						biometricDTO.getOperatorBiometricDTO().getFace().getFaceISO());
-				data.put(RegistrationConstants.ON_BOARD_BIO_VALUE, responseMap.getEncryptedData());
-				String dataBlockJsonString = RegistrationConstants.EMPTY;
-				try {
-					dataBlockJsonString = new ObjectMapper().writeValueAsString(data);
-					faceData.put(RegistrationConstants.ON_BOARD_BIO_DATA,
-							CryptoUtil.encodeBase64(dataBlockJsonString.getBytes()));
-				} catch (IOException exIoException) {
-					LOGGER.error(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
-							ExceptionUtils.getStackTrace(exIoException));
-					setErrorResponse(responseDTO, RegistrationConstants.USER_ON_BOARDING_EXCEPTION, null);
-				}
-
-				String presentHash = HMACUtils
-						.digestAsPlainText(HMACUtils.generateHash(dataBlockJsonString.getBytes()));
-
-				String concatenatedHash = previousHashArray[0] + presentHash;
-				String finalHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash(concatenatedHash.getBytes()));
-				faceData.put(RegistrationConstants.AUTH_HASH, finalHash);
-				faceData.put(RegistrationConstants.SESSION_KEY, responseMap.getEncryptedSessionKey());
-				faceData.put(RegistrationConstants.SIGNATURE, "");
-				listOfBiometric.add(faceData);
-
-				//requestMap.put(RegistrationConstants.TRANSACTION_ID, RegistrationConstants.TRANSACTION_ID_VALUE);
+				addFaceData(listOfBiometric, biometricDTO.getOperatorBiometricDTO().getFace().getFaceISO(),
+						previousHashArray, responseDTO);
 				requestMap.put(RegistrationConstants.ON_BOARD_BIOMETRICS, listOfBiometric);
 				requestMap.put(RegistrationConstants.ON_BOARD_TIME_STAMP, DateUtils.getUTCCurrentDateTimeString());
-
 				Map<String, String> requestParamMap = new LinkedHashMap<>();
 				requestParamMap.put(RegistrationConstants.REF_ID, RegistrationConstants.IDA_REFERENCE_ID);
 				requestParamMap.put(RegistrationConstants.TIME_STAMP, DateUtils.getUTCCurrentDateTimeString());
-
 				responseDTO = isIdaAuthRequired(idaRequestMap, requestMap, biometricDTO, requestParamMap);
 			} else {
 				LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, RegistrationConstants.NO_INTERNET);
@@ -240,6 +190,49 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 		}
 
 		return responseDTO;
+	}
+
+	
+	/**
+	 * Adds the face data.
+	 *
+	 * @param listOfBiometric the list of biometric
+	 * @param faceISO the face ISO
+	 * @param previousHashArray the previous hash array
+	 * @param responseDTO the response DTO
+	 */
+	private void addFaceData(List<Map<String, Object>> listOfBiometric, byte[] faceISO, String[] previousHashArray,
+			ResponseDTO responseDTO) {
+		if (null != faceISO) {
+			LinkedHashMap<String, Object> faceData = new LinkedHashMap<>();
+			Map<String, Object> data = new HashMap<>();
+			data.put(RegistrationConstants.ON_BOARD_TIME_STAMP, DateUtils.getUTCCurrentDateTimeString());
+			data.put(RegistrationConstants.ON_BOARD_BIO_TYPE, RegistrationConstants.ON_BOARD_FACE);
+			data.put(RegistrationConstants.ON_BOARD_BIO_SUB_TYPE, RegistrationConstants.ON_BOARD_FACE);
+			SplittedEncryptedData responseMap = getSessionKey(data, faceISO);
+			if (null != responseMap && null != responseMap.getEncryptedData()) {
+				data.put(RegistrationConstants.ON_BOARD_BIO_VALUE, responseMap.getEncryptedData());
+				faceData.put(RegistrationConstants.SESSION_KEY, responseMap.getEncryptedSessionKey());
+			}
+			String dataBlockJsonString = RegistrationConstants.EMPTY;
+			try {
+				dataBlockJsonString = new ObjectMapper().writeValueAsString(data);
+				faceData.put(RegistrationConstants.ON_BOARD_BIO_DATA,
+						CryptoUtil.encodeBase64(dataBlockJsonString.getBytes()));
+			} catch (IOException exIoException) {
+				LOGGER.error(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
+						ExceptionUtils.getStackTrace(exIoException));
+				setErrorResponse(responseDTO, RegistrationConstants.USER_ON_BOARDING_EXCEPTION, null);
+			}
+
+			String presentHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash(dataBlockJsonString.getBytes()));
+
+			String concatenatedHash = previousHashArray[0] + presentHash;
+			String finalHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash(concatenatedHash.getBytes()));
+			faceData.put(RegistrationConstants.AUTH_HASH, finalHash);
+			faceData.put(RegistrationConstants.SIGNATURE, "");
+			listOfBiometric.add(faceData);
+		}
 	}
 
 	/**
@@ -486,8 +479,8 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 	private synchronized SplittedEncryptedData getSessionKey(Map<String, Object> requestMap, byte[] data) {
 		ResponseDTO responseDTO = new ResponseDTO();
 		SplittedEncryptedData splittedData = null;
-		Map<String, Object> mapRequest = new HashMap<String, Object>();
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> mapRequest = new HashMap<>();
+		Map<String, Object> map = new HashMap<>();
 		String timestamp = (String) requestMap.get(RegistrationConstants.ON_BOARD_TIME_STAMP);
 		String aad = CryptoUtil.encodeBase64String(timestamp.substring(timestamp.length() - 16).getBytes());
 		String salt = CryptoUtil.encodeBase64String(timestamp.substring(timestamp.length() - 12).getBytes());

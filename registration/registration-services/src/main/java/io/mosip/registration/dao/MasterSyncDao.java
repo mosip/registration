@@ -173,6 +173,15 @@ public interface MasterSyncDao {
 	 * @return list of active {@link Location}
 	 */
 	List<Location> getLocationDetails();
+	
+	
+	/**
+	 * Get all the active locations from the DB
+	 * 	 @param langCode
+	 *        the language code
+	 * @return list of active {@link Location}
+	 */
+	List<Location> getLocationDetails(String langCode);
 
 	
 	/**
