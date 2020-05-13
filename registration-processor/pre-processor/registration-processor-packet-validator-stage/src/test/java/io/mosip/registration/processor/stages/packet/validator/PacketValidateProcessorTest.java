@@ -22,6 +22,7 @@ import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessible
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -1008,6 +1009,7 @@ public class PacketValidateProcessorTest {
 	}
 
 	@Test
+	@Ignore
 	public void reverseDataSyncNotApplicableTest() throws Exception {
 		identity.getMetaData().stream().map(fv -> {
 			if (fv.getLabel().equalsIgnoreCase("preRegistrationId"))
