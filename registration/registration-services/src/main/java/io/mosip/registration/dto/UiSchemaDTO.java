@@ -48,7 +48,7 @@ public class UiSchemaDTO {
 	@JsonProperty("bioAttributes")
 	private List<String> bioAttributes;
 	
-	private String requiredOn;
+	private List<HashMap<String, String>> requiredOn;
 	
 	@JsonProperty("subType")
 	private String subType;

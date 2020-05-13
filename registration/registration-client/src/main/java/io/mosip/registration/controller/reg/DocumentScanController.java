@@ -324,7 +324,8 @@ public class DocumentScanController extends BaseController {
 
 			String docCategoryCode = documentCategory.getSubType();
 
-			String docCategoryName = documentCategory.getDescription();
+			String docCategoryName = documentCategory.getLabel() != null ? 
+					documentCategory.getLabel().get("primary") : documentCategory.getDescription();
 
 			List<DocumentCategoryDto> documentCategoryDtos = null;
 
@@ -668,7 +669,7 @@ public class DocumentScanController extends BaseController {
 
 		documentDto.setFormat(docType);
 		documentDto.setCategory(selectedDocument);
-		documentDto.setOwner("Applicant");
+		documentDto.setOwner("applicant");
 		documentDto.setValue(selectedDocument.concat(RegistrationConstants.UNDER_SCORE).concat(document.getName()));
 		
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,

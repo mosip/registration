@@ -2,6 +2,8 @@ package io.mosip.registration.dto;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.Period;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
 import io.mosip.registration.packetmananger.dto.AuditDto;
@@ -57,6 +60,8 @@ public class RegistrationDTO {
 	private Timestamp auditLogStartTime;
 	private Timestamp auditLogEndTime;
 	
+	private int age;
+	
 	/** The acknowledge receipt. */
 	private byte[] acknowledgeReceipt;
 
@@ -87,6 +92,7 @@ public class RegistrationDTO {
 		if(day != null && month != null && year != null) {
 			LocalDate date = LocalDate.of(Integer.valueOf(year), Integer.valueOf(month), Integer.valueOf(day));
 			this.demographics.put(fieldId, date.format(DateTimeFormatter.ofPattern(DATE_FORMAT)));
+			this.age = Period.between(date, LocalDate.now(ZoneId.of("UTC"))).getYears();
 		}		
 	}
 	
@@ -171,5 +177,19 @@ public class RegistrationDTO {
 	public BiometricsDto removeBiometric(String subType, String bioAttribute) {
 		String key = String.format("%s_%s", subType, bioAttribute);
 		return this.biometrics.remove(key);
+	}
+	
+	public Map<String, Object> getMVELDataContext() {
+		Map<String, Object> allIdentityDetails = new LinkedHashMap<String, Object>();
+		allIdentityDetails.put("IDSchemaVersion", idSchemaVersion);
+		allIdentityDetails.put("isNew", RegistrationConstants.PACKET_TYPE_NEW.equals(registrationMetaDataDTO.getRegistrationCategory()));
+		allIdentityDetails.put("isUpdate", RegistrationConstants.PACKET_TYPE_UPDATE.equals(registrationMetaDataDTO.getRegistrationCategory()));
+		allIdentityDetails.put("isLost", RegistrationConstants.PACKET_TYPE_LOST.equals(registrationMetaDataDTO.getRegistrationCategory()));
+		allIdentityDetails.put("age", this.age);
+		this.demographics.put("UIN", registrationMetaDataDTO.getUin());
+		allIdentityDetails.putAll(this.demographics);
+		allIdentityDetails.putAll(this.documents);
+		allIdentityDetails.putAll(this.biometrics);
+		return allIdentityDetails;	
 	}
 }
