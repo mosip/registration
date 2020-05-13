@@ -84,8 +84,10 @@ public class RegistrationDTO {
 	}
 	
 	public void setDateField(String fieldId, String day, String month, String year) {
-		LocalDate date = LocalDate.of(Integer.valueOf(year), Integer.valueOf(month), Integer.valueOf(day));
-		this.demographics.put(fieldId, date.format(DateTimeFormatter.ofPattern(DATE_FORMAT)));
+		if(day != null && month != null && year != null) {
+			LocalDate date = LocalDate.of(Integer.valueOf(year), Integer.valueOf(month), Integer.valueOf(day));
+			this.demographics.put(fieldId, date.format(DateTimeFormatter.ofPattern(DATE_FORMAT)));
+		}		
 	}
 	
 	public String[] getDateField(String fieldId) {
@@ -112,19 +114,30 @@ public class RegistrationDTO {
 		return list;
 	}
 	
+	public void removeAllBiometrics(String subType, String bioAttribute) {
+		this.biometrics.remove(String.format("%s_%s", subType, bioAttribute));
+	}
+	
 	public void addBiometric(String subType, String bioAttribute, BiometricsDto value) {
 		String key = String.format("%s_%s", subType, bioAttribute);
+		int currentCount = 0;
+		if(this.biometrics.get(key) != null) {
+			currentCount = this.biometrics.get(key).getNumOfRetries();
+		}
+		value.setNumOfRetries(currentCount+1);
 		this.biometrics.put(key, value);
+		this.biometricExceptions.remove(key);
 	}
 	
 	public void addBiometricException(String subType, String bioAttribute, String reason, String exceptionType) {
 		String key = String.format("%s_%s", subType, bioAttribute);
-		biometricExceptions.put(key, new BiometricsException(null, bioAttribute, reason, exceptionType, 
+		this.biometrics.remove(String.format("%s_%s", subType, bioAttribute));
+		this.biometricExceptions.put(key, new BiometricsException(null, bioAttribute, reason, exceptionType, 
 				subType));
 	}
 	
 	public boolean isBiometricExceptionAvailable(String subType, String bioAttribute) {
-		return biometricExceptions.containsKey(String.format("%s_%s", subType, bioAttribute));
+		return this.biometricExceptions.containsKey(String.format("%s_%s", subType, bioAttribute));
 	}
 	
 	public void removeBiometricException(String subType, String bioAttribute) {

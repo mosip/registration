@@ -101,6 +101,9 @@ public class CbeffBIRBuilder implements BiometricDataBuilder {
 		List<String> subtypes = new ArrayList<>();			
 		switch (singleType) {
 		case FINGER:
+			subtypes.add(bioAttribute.contains("left") ? SingleAnySubtypeType.LEFT.value() : 
+				SingleAnySubtypeType.RIGHT.value());
+			
 			if(bioAttribute.toLowerCase().contains("thumb"))
 				subtypes.add(SingleAnySubtypeType.THUMB.value());
 			else {
