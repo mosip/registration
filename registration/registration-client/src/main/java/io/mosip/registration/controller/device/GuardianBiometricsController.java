@@ -441,6 +441,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 			currentPosition++;
 			findComboBox().setVisible(true);
 			findComboBox().setManaged(true);
+			currentSubType = getListOfBiometricSubTypess().get(currentPosition);
 		}
 	}
 	
@@ -453,6 +454,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 			currentPosition--;
 			findComboBox().setVisible(true);
 			findComboBox().setManaged(true);
+			currentSubType = getListOfBiometricSubTypess().get(currentPosition);
 		}
 	}
 	
@@ -524,18 +526,9 @@ public class GuardianBiometricsController extends BaseController implements Init
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Displaying biometrics to capture");
 
-			if(previousPosition!=-1)
-			{
-				if(this.currentModality!=null) {
-				checkBoxMap.get(getListOfBiometricSubTypess().get(previousPosition)).get(this.currentModality).setVisible(false);
-				checkBoxMap.get(getListOfBiometricSubTypess().get(previousPosition)).get(this.currentModality).setManaged(false);
-				}
-			}
+			disableLastCheckBoxSection();
 			this.currentModality = modality;
-			checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality).setVisible(true);
-			checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality).setManaged(true);
-			
-
+			enableCurrentCheckBoxSection();
 			
 			if (modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)) {
 				updateBiometric(modality, RegistrationConstants.RIGHTPALM_IMG_PATH,
@@ -566,6 +559,21 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Parent/Guardian Biometrics captured");
+	}
+
+	private void enableCurrentCheckBoxSection() {
+		checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality).setVisible(true);
+		checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality).setManaged(true);
+	}
+
+	private void disableLastCheckBoxSection() {
+		if(currentPosition!=-1)
+		{
+			if(this.currentModality!=null) {
+			checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality).setVisible(false);
+			checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality).setManaged(false);
+			}
+		}
 	}
 
 	
@@ -899,6 +907,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		if(currentPosition!=0)
 		{
+			disableLastCheckBoxSection();
 			goToPrevious();
 			refreshContinueButton();
 			return;
@@ -936,6 +945,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		if(currentPosition!=sizeOfCombobox-1)
 		{
+			disableLastCheckBoxSection();
 			goToNext();
 			refreshContinueButton();
 			return;
