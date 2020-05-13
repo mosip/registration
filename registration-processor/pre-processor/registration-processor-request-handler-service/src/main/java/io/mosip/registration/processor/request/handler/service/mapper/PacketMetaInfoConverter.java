@@ -1,8 +1,10 @@
+/*
 package io.mosip.registration.processor.request.handler.service.mapper;
 
 import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -15,21 +17,25 @@ import io.mosip.registration.processor.request.handler.service.exception.RegBase
 import ma.glasnost.orika.CustomConverter;
 import ma.glasnost.orika.metadata.Type;
 
+*/
 /**
  * The custom Orika Mapper converter class for converting the
  * {@link RegistrationDTO} object to {@link PacketMetaInfo}
  * 
  * @author Sowmya
  * @since 1.0.0
- */
+ *//*
+
 public class PacketMetaInfoConverter extends CustomConverter<RegistrationDTO, PacketMetaInfo> {
 
-	/*
+	*/
+/*
 	 * (non-Javadoc)
 	 * 
 	 * @see ma.glasnost.orika.Converter#convert(java.lang.Object,
 	 * ma.glasnost.orika.metadata.Type)
-	 */
+	 *//*
+
 	@Override
 	public PacketMetaInfo convert(RegistrationDTO source, Type<? extends PacketMetaInfo> destinationType) {
 		// Instantiate PacketMetaInfo object
@@ -50,28 +56,29 @@ public class PacketMetaInfoConverter extends CustomConverter<RegistrationDTO, Pa
 		return packetMetaInfo;
 	}
 
-	/**
+	*/
+/**
 	 * Set uin updated fields.
 	 *
 	 * @param source
 	 *            the source
 	 * @param identity
 	 *            the identity
-	 */
+	 *//*
 
-	private List<FieldValue> getMetaData(RegistrationDTO registrationDTO) {
-		List<FieldValue> metaData = new LinkedList<>();
 
+	*/
+/*private List<FieldValue> getMetaData(RegistrationDTO registrationDTO) {
 		// Get RegistrationMetaDataDTO
-		RegistrationMetaDataDTO metaDataDTO = registrationDTO.getRegistrationMetaDataDTO();
+		Map<String, String> metadata = registrationDTO.getMetadata();
 
 		// Add Registration Type
-		metaData.add(buildFieldValue("registrationType", metaDataDTO.getRegistrationCategory()));
+		metadata.put("registrationType", metaDataDTO.getRegistrationCategory()));
 
 		// Add Registration ID
-		metaData.add(buildFieldValue("registrationId", registrationDTO.getRegistrationId()));
+		metadata.add(buildFieldValue("registrationId", registrationDTO.getRegistrationId()));
 
-		metaData.add(buildFieldValue("uin", metaDataDTO.getUin()));
+		metadata.add(buildFieldValue("uin", metaDataDTO.getUin()));
 
 		// Add Registration Creation Date
 		metaData.add(buildFieldValue("creationDate", DateUtils.formatToISOString(LocalDateTime.now())));
@@ -81,13 +88,17 @@ public class PacketMetaInfoConverter extends CustomConverter<RegistrationDTO, Pa
 		metaData.add(buildFieldValue("cardType", metaDataDTO.getCardType()));
 
 		return metaData;
-	}
+	}*//*
 
-	private FieldValue buildFieldValue(String label, String value) {
+
+	*/
+/*private FieldValue buildFieldValue(String label, String value) {
 		FieldValue fieldValue = new FieldValue();
 		fieldValue.setLabel(label);
 		fieldValue.setValue(value);
 		return fieldValue;
-	}
+	}*//*
+
 
 }
+*/

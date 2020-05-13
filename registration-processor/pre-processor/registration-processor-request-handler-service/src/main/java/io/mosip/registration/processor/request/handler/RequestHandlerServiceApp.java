@@ -17,7 +17,10 @@ import io.mosip.registration.processor.status.config.RegistrationStatusBeanConfi
  */
 @SpringBootApplication
 @ComponentScan(basePackages = {
-		"io.mosip.registration.processor.request.handler.*,io.mosip.registration.processor.packet*,io.mosip.registration.processor.rest.client.*,io.mosip.registration.processor.core.*","io.mosip.kernel.auth.*","io.mosip.registration.processor.request.handler.service.impl"}, excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = {
+		"io.mosip.registration.processor.request.handler.*,io.mosip.registration.processor.packet*," +
+				"io.mosip.registration.processor.rest.client.*,io.mosip.registration.processor.core.*",
+		"io.mosip.kernel.auth.*","io.mosip.registration.packetmanager.*", "io.mosip.kernel.cbeffutil.*",
+		"io.mosip.registration.processor.request.handler.service.impl"}, excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = {
 				RestConfigBean.class,PacketStorageBeanConfig.class,RegistrationStatusBeanConfig.class }))
 
 public class RequestHandlerServiceApp {

@@ -3,6 +3,7 @@ package io.mosip.registration.processor.request.handler.service.dto;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 
 import io.mosip.registration.processor.request.handler.service.dto.demographic.DemographicDTO;
 import lombok.Data;
@@ -26,7 +27,7 @@ public class RegistrationDTO extends BaseDTO implements Serializable {
 	private String registrationId;
 	private String registrationIdHash;
 
-	private RegistrationMetaDataDTO registrationMetaDataDTO;
+	private Map<String, String> metadata;
 	private List<AuditDTO> auditDTOs;
 	private Timestamp auditLogStartTime;
 	

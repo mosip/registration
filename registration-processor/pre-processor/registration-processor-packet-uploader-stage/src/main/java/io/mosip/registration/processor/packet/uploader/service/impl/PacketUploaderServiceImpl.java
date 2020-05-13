@@ -381,25 +381,20 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         boolean isInputFileClean = false;
         try {
             // scanning the top level packet
-            isInputFileClean = virusScannerService.scanFile(new ByteArrayInputStream(inputStream));
+            isInputFileClean = virusScannerService.scanFile(getSourcePacket(registrationId, inputStream, null));
 
             if (isInputFileClean) {
                 String[] sources = packetSources.split(",");
 
                 // scanning the source packets (Like - id, evidence, optional packets).
                 for (String source : sources) {
-                    ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(inputStream);
-                    InputStream encryptedSourcePacket = packetReaderService.getEncryptedSourcePacket(registrationId, byteArrayInputStream, source);
-
-                    if (encryptedSourcePacket == null || encryptedSourcePacket.read() == 0)
+                    InputStream sourcePacket = getSourcePacket(registrationId, inputStream, source);
+                    if (sourcePacket == null)
                         continue;
-
-                    byte[] encryptedByteArray = IOUtils.toByteArray(encryptedSourcePacket);
-                    isInputFileClean = virusScannerService.scanFile(new ByteArrayInputStream(encryptedByteArray));
+                    isInputFileClean = virusScannerService.scanFile(sourcePacket);
                     if (isInputFileClean) {
-
                         InputStream decryptedData = packetDecryptor
-                                .decrypt(new ByteArrayInputStream(encryptedByteArray), registrationId);
+                                .decrypt(getSourcePacket(registrationId, inputStream, source), registrationId);
                         isInputFileClean = virusScannerService.scanFile(decryptedData);
                     }
                     if (!isInputFileClean)
@@ -434,6 +429,11 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 
         }
         return isInputFileClean;
+    }
+
+    private InputStream getSourcePacket(String rid, byte[] input, String source) throws IOException {
+        return (source == null) ? new ByteArrayInputStream(input) :
+                packetReaderService.getEncryptedSourcePacket(rid, new ByteArrayInputStream(input), source);
     }
 
     /**

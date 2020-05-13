@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.core.constant.PacketMetaInfoConstants;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -38,7 +39,6 @@ import io.mosip.registration.processor.request.handler.service.PacketGeneratorSe
 import io.mosip.registration.processor.request.handler.service.dto.PackerGeneratorFailureDto;
 import io.mosip.registration.processor.request.handler.service.dto.PacketGeneratorResDto;
 import io.mosip.registration.processor.request.handler.service.dto.RegistrationDTO;
-import io.mosip.registration.processor.request.handler.service.dto.RegistrationMetaDataDTO;
 import io.mosip.registration.processor.request.handler.service.dto.ResidentIndividialIDType;
 import io.mosip.registration.processor.request.handler.service.dto.ResidentUpdateDto;
 import io.mosip.registration.processor.request.handler.service.dto.demographic.ApplicantDocumentDTO;
@@ -123,7 +123,8 @@ public class ResidentUpdateServiceImpl implements PacketGeneratorService<Residen
 						registrationDTO.getDemographicDTO().getApplicantDocumentDTO().setDocuments(map);
 
 					registrationDTO.setRegType(RegistrationType.RES_UPDATE.toString());
-					packetZipBytes = packetCreationService.create(registrationDTO, demoJsonObject);
+					// TODO NEED TO COMPLETE THIS
+					packetZipBytes = null;//packetCreationService.create(registrationDTO, demoJsonObject);
 
 					String rid = registrationDTO.getRegistrationId();
 					String packetCreatedDateTime = rid.substring(rid.length() - 14);
@@ -195,26 +196,26 @@ public class ResidentUpdateServiceImpl implements PacketGeneratorService<Residen
 	private RegistrationDTO createRegistrationDTOObject(String uin, String registrationType, String centerId,
 			String machineId) throws RegBaseCheckedException {
 		RegistrationDTO registrationDTO = new RegistrationDTO();
-		RegistrationMetaDataDTO registrationMetaDataDTO = getRegistrationMetaDataDTO(registrationType, uin, centerId,
+		Map<String, String> metadata = getRegistrationMetaData(registrationType, uin, centerId,
 				machineId);
-		String registrationId = generateRegistrationId(registrationMetaDataDTO.getCenterId(),
-				registrationMetaDataDTO.getMachineId());
+		String registrationId = generateRegistrationId(centerId,
+				machineId);
 		registrationDTO.setRegistrationId(registrationId);
-		registrationDTO.setRegistrationMetaDataDTO(registrationMetaDataDTO);
+		registrationDTO.setMetadata(metadata);
 		return registrationDTO;
 
 	}
 
-	private RegistrationMetaDataDTO getRegistrationMetaDataDTO(String registrationType, String uin, String centerId,
+	private Map<String, String> getRegistrationMetaData(String registrationType, String uin, String centerId,
 			String machineId) {
-		RegistrationMetaDataDTO registrationMetaDataDTO = new RegistrationMetaDataDTO();
 
-		registrationMetaDataDTO.setCenterId(centerId);
-		registrationMetaDataDTO.setMachineId(machineId);
-		registrationMetaDataDTO.setRegistrationCategory(registrationType);
-		registrationMetaDataDTO.setUin(uin);
-		return registrationMetaDataDTO;
+		Map<String, String> metadata = new HashMap<>();
 
+		metadata.put(PacketMetaInfoConstants.CENTERID, centerId);
+		metadata.put(PacketMetaInfoConstants.MACHINEID, machineId);
+		metadata.put(PacketMetaInfoConstants.REGISTRATION_TYPE, registrationType);
+		metadata.put(PacketMetaInfoConstants.UIN, uin);
+		return metadata;
 	}
 
 	private String generateRegistrationId(String centerId, String machineId) throws RegBaseCheckedException {

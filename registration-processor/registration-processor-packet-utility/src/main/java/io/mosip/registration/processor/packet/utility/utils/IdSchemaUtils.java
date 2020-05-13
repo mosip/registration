@@ -6,13 +6,19 @@ package io.mosip.registration.processor.packet.utility.utils;
 import java.io.IOException;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
+import org.json.JSONException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import io.mosip.registration.processor.packet.utility.constants.IDschemaConstants;
-import lombok.Data;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 
 /**
@@ -24,16 +30,19 @@ import lombok.Data;
 /**
  * Instantiates a new id schema utils.
  */
-@Data
+@Component
 public class IdSchemaUtils {
 
-	/** The config server file storage URL. */
-	@Value("${config.server.file.storage.uri}")
-	private String configServerFileStorageURL;
+	@Autowired
+	private RestUtil restUtil;
 
-	/** The registration processor abis json. */
-	@Value("${idschema.json}")
-	private String idSchemaJson;
+	@Autowired
+	private Environment env;
+
+	@Autowired
+	ObjectMapper mapper;
+
+	private String idschema = null;
 
 	/**
 	 * Gets the source.
@@ -42,32 +51,49 @@ public class IdSchemaUtils {
 	 * @return the source
 	 * @throws IOException 
 	 */
-	public String getSource(String id) throws IOException{
+	public String getSource(String id) throws IOException, ApiNotAccessibleException {
 		String fieldCategory=null;
-		String idSchema =IdSchemaUtils.getJson(configServerFileStorageURL, idSchemaJson);
+		String idSchema = getIdSchema();
 
 		JSONObject idSchemaJsonObject;
-		try {
-			idSchemaJsonObject = JsonUtil.objectMapperReadValue(idSchema, JSONObject.class);
-			JSONArray schemaArray = JsonUtil.getJSONArray(idSchemaJsonObject, IDschemaConstants.SCHEMA);
+		idSchemaJsonObject = JsonUtil.objectMapperReadValue(idSchema, JSONObject.class);
+		JSONArray schemaArray = JsonUtil.getJSONArray(idSchemaJsonObject, IDschemaConstants.SCHEMA);
 
+		for (Object jsonObject : schemaArray) {
 
-			for (Object jsonObject : schemaArray) {
+			JSONObject json = new JSONObject((Map) jsonObject);
+			fieldCategory=IdSchemaUtils.getFieldCategory(json, id);
+			if(fieldCategory!=null)
+			 break;
 
-				JSONObject json = new JSONObject((Map) jsonObject);
-				fieldCategory=IdSchemaUtils.getFieldCategory(json, id);
-				if(fieldCategory!=null)
-				 break;
-
-			}
 		}
-		 catch (IOException e) {
-			 throw e;
-		}
-
 
 		return fieldCategory;
 	}
+
+	public String getIdSchema() throws ApiNotAccessibleException, IOException {
+		if (idschema != null && !idschema.isEmpty())
+			return idschema;
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(env.getProperty("IDSCHEMA"));
+		UriComponents uriComponents = builder.build(false).encode();
+		String response = restUtil.getApi(uriComponents.toUri(), String.class);
+		String responseString = null;
+		try {
+			org.json.JSONObject jsonObject = new org.json.JSONObject(response);
+			org.json.JSONObject respObj = (org.json.JSONObject) jsonObject.get("response");
+			responseString = respObj != null ? (String) respObj.get("schemaJson") : null;
+		} catch (JSONException e) {
+			throw new IOException(e);
+		}
+
+		if (responseString != null)
+			idschema = responseString;
+		else
+			throw new ApiNotAccessibleException("Could not get id schema");
+
+		return idschema;
+	}
+
 	/**
 	 * Gets the json.
 	 *
@@ -77,7 +103,7 @@ public class IdSchemaUtils {
 	 *            the uri
 	 * @return the json
 	 */
-	private static String getJson(String configServerFileStorageURL, String uri) {
+	public static String getJson(String configServerFileStorageURL, String uri) {
 		RestTemplate restTemplate = new RestTemplate();
 		return restTemplate.getForObject(configServerFileStorageURL + uri, String.class);
 	}

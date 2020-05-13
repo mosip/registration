@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>io.mosip</groupId>
 		<artifactId>registration</artifactId>
-		<version>1.0.6</version>
+		<version>1.0.9</version>
 	</parent>
 
 	<groupId>io.mosip.registrationprocessor</groupId>
@@ -137,6 +137,7 @@
 		<kernel.auth.adapter.version>1.0.6</kernel.auth.adapter.version>
 		<kernel.idvalidator.vid.version>1.0.6</kernel.idvalidator.vid.version>
 		<kernel.idobjectvalidator.version>1.0.7</kernel.idobjectvalidator.version>
+		<kernel.packetmanager.version>1.0.10-SNAPSHOT</kernel.packetmanager.version>
 			<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,

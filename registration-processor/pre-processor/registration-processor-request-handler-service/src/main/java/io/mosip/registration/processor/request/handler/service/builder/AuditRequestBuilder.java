@@ -2,9 +2,9 @@ package io.mosip.registration.processor.request.handler.service.builder;
 
 import java.time.LocalDateTime;
 
+import io.mosip.registration.packetmananger.dto.AuditDto;
 import org.springframework.stereotype.Service;
 
-import io.mosip.registration.processor.request.handler.service.dto.AuditDTO;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditRequestDto;
 
 /**
@@ -16,13 +16,13 @@ import io.mosip.registration.processor.rest.client.audit.dto.AuditRequestDto;
 public class AuditRequestBuilder {
 
 	/** The {@link AuditRequestDto} instance. */
-	private AuditDTO auditRequest = null;
+	private AuditDto auditRequest = null;
 
 	/**
 	 * Instantiate a new {@link AuditRequestDto}.
 	 */
 	public AuditRequestBuilder() {
-		auditRequest = new AuditDTO();
+		auditRequest = new AuditDto();
 	}
 
 	/**
@@ -246,7 +246,7 @@ public class AuditRequestBuilder {
 	 *
 	 * @return The {@link AuditRequestDto}
 	 */
-	public AuditDTO build() {
+	public AuditDto build() {
 		return auditRequest;
 	}
 }

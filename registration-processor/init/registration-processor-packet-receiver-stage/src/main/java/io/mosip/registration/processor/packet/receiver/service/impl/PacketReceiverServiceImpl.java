@@ -307,15 +307,16 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	private boolean scanFile(final byte[] inputStream, RegistrationExceptionMapperUtil registrationExceptionMapperUtil,
 			String registrationId, InternalRegistrationStatusDto dto, LogDescription description) throws IOException {
 		try {
-			boolean isInputFileClean = virusScannerService.scanFile(new ByteArrayInputStream(inputStream));
+			boolean isInputFileClean = virusScannerService.scanFile(getSourcePacket(registrationId, inputStream, null));
 
 			// scanning the source packets (Like - id, evidence, optional packets).
 			if (isInputFileClean) {
 				String[] sources = packetSources.split(",");
 				for (String source : sources) {
-					ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(inputStream);
-					InputStream encryptedSourcePacket = ZipUtils.unzipAndGetFile(byteArrayInputStream, registrationId + "_" + source);
-					isInputFileClean = virusScannerService.scanFile(encryptedSourcePacket);
+					InputStream sourcePacket = getSourcePacket(registrationId, inputStream, source);
+					if (sourcePacket == null)
+						continue;
+					isInputFileClean = virusScannerService.scanFile(sourcePacket);
 					if (!isInputFileClean)
 						break;
 				}
@@ -350,6 +351,11 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 			return false;
 		}
 
+	}
+
+	private InputStream getSourcePacket(String rid, byte[] input, String source) throws IOException {
+		return (source == null) ? new ByteArrayInputStream(input) :
+				ZipUtils.unzipAndGetFile(new ByteArrayInputStream(input), rid + "_" +source);
 	}
 
 	/**
