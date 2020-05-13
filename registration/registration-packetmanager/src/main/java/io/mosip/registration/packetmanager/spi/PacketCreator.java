@@ -8,6 +8,7 @@ import io.mosip.registration.packetmananger.dto.BiometricsDto;
 import io.mosip.registration.packetmananger.dto.DocumentDto;
 import io.mosip.registration.packetmananger.dto.SimpleDto;
 import io.mosip.registration.packetmananger.dto.metadata.BiometricsException;
+import io.mosip.registration.packetmananger.dto.metadata.FieldValue;
 import io.mosip.registration.packetmananger.exception.PacketCreatorException;
 
 
@@ -24,6 +25,8 @@ public interface PacketCreator {
 	public void setDocument(String fieldName, DocumentDto value);
 	
 	public void setMetaInfo(String key, String value);
+	
+	public void setCheckSum(String key, String value);
 	
 	public void setOperationsInfo(String key, String value);
 	

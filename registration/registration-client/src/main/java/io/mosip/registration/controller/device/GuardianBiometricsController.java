@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ResourceBundle;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
@@ -309,8 +310,14 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 					comboBox.getItems().add(new SimpleEntry<String, String>(biometric.getKey(),
 							applicationLabelBundle.getString(biometric.getKey())));
+					
+					if(listOfCheckBoxes.get(0).get(0).equals("face")) {
+						subMap.put(biometric.getKey(), null);
+						checkBoxMap.put(subType.getKey().getKey(), subMap);
+					}
+					else {
 
-					if (!listOfCheckBoxes.get(0).get(0).equals("face")) {
+					//if (!listOfCheckBoxes.get(0).get(0).equals("face")) {
 						VBox vboxForCheckBox = new VBox();
 						vboxForCheckBox.setSpacing(5);
 
@@ -347,9 +354,8 @@ public class GuardianBiometricsController extends BaseController implements Init
 						checkBoxPane.add(vboxForCheckBox, 0, 0);
 						vboxForCheckBox.setVisible(false);
 						vboxForCheckBox.setManaged(false);
-
-						checkBoxMap.put(subType.getKey().getKey(), subMap);
 						subMap.put(biometric.getKey(), vboxForCheckBox);
+						checkBoxMap.put(subType.getKey().getKey(), subMap);		
 
 					}
 				}
@@ -583,6 +589,8 @@ public class GuardianBiometricsController extends BaseController implements Init
 	}
 
 	private void disableLastCheckBoxSection() {
+		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+				this.currentModality + " currentPosition >> " + currentPosition + " checkBoxMap >>> " + new JSONObject(checkBoxMap));
 		if (currentPosition != -1) {
 			if (this.currentModality != null && !this.currentModality.toUpperCase().contains("FACE")) {
 				checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality)
@@ -672,7 +680,12 @@ public class GuardianBiometricsController extends BaseController implements Init
 	}
 
 	private List<String> getSelectedExceptionsByBioType(String subType, String modality) {
-
+		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+				"getSelectedExceptionsByBioType : " +subType + " modality : " + modality);
+		
+		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+				"checkBoxMap >>>>>>>>>>>>>>>>  : " + new JSONObject(checkBoxMap).toString());
+		
 		List<String> selectedExceptions = null;
 		// TODO Get Grid pane where check boxes created
 

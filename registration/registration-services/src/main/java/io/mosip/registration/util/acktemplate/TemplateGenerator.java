@@ -54,11 +54,9 @@ import io.mosip.registration.dto.SuccessResponseDTO;
 import io.mosip.registration.dto.biometric.BiometricExceptionDTO;
 import io.mosip.registration.dto.biometric.FingerprintDetailsDTO;
 import io.mosip.registration.dto.biometric.IrisDetailsDTO;
-import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
-import io.mosip.registration.dto.demographic.IndividualIdentity;
-import io.mosip.registration.dto.demographic.ValuesDTO;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.packetmananger.dto.DocumentDto;
+import io.mosip.registration.packetmananger.dto.SimpleDto;
 import io.mosip.registration.service.BaseService;
 
 /**
@@ -1317,7 +1315,7 @@ public class TemplateGenerator extends BaseService {
 		String value = RegistrationConstants.EMPTY;
 
 		if (fieldValue instanceof List<?>) {
-			Optional<ValuesDTO> demoValueInRequiredLang = ((List<ValuesDTO>) fieldValue).stream()
+			Optional<SimpleDto> demoValueInRequiredLang = ((List<SimpleDto>) fieldValue).stream()
 					.filter(valueDTO -> valueDTO.getLanguage().equals(lang)).findFirst();
 
 			if (demoValueInRequiredLang.isPresent() && demoValueInRequiredLang.get().getValue() != null) {
@@ -1340,7 +1338,7 @@ public class TemplateGenerator extends BaseService {
 		String value = RegistrationConstants.EMPTY;
 
 		if (fieldValue instanceof List<?>) {
-			Optional<ValuesDTO> demoValueInRequiredLang = ((List<ValuesDTO>) fieldValue).stream()
+			Optional<SimpleDto> demoValueInRequiredLang = ((List<SimpleDto>) fieldValue).stream()
 					.filter(valueDTO -> valueDTO.getLanguage().equals(lang)).findFirst();
 
 			if (demoValueInRequiredLang.isPresent() && demoValueInRequiredLang.get().getValue() != null) {

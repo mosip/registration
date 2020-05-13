@@ -621,29 +621,36 @@ public class PacketHandlerController extends BaseController implements Initializ
 						getScene(createRoot).setRoot(createRoot);
 
 						setIsAckOpened(true);
+						return;
 						
-					} else {
+					}/* else {
 						clearRegistrationData();
 						createPacket();
-					}
-				} else if (templateResponse != null && templateResponse.getErrorResponseDTOs() != null) {
+					}*/
+				} /*else if (templateResponse != null && templateResponse.getErrorResponseDTOs() != null) {
 					generateAlert(RegistrationConstants.ERROR,
 							RegistrationUIConstants.UNABLE_LOAD_ACKNOWLEDGEMENT_PAGE);
 					clearRegistrationData();
 					createPacket();
-				}
-			} else {
+				}*/
+			}/* else {
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_ACKNOWLEDGEMENT_PAGE);
 				clearRegistrationData();
 				createPacket();
-			}
+			}*/
+			
+			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_ACKNOWLEDGEMENT_PAGE);
+			createPacket();
+			
 		} catch (IOException ioException) {
 			LOGGER.error("REGISTRATION - UI- Officer Packet Create ", APPLICATION_NAME, APPLICATION_ID,
 					ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
 		} catch (RegBaseCheckedException regBaseCheckedException) {
 			LOGGER.error("REGISTRATION - UI- Officer Packet Create ", APPLICATION_NAME, APPLICATION_ID,
 					regBaseCheckedException.getMessage() + ExceptionUtils.getStackTrace(regBaseCheckedException));
-		}
+		} finally {
+			clearRegistrationData();			
+		}		
 		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Showing receipt ended.");
 	}
 

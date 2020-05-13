@@ -21,6 +21,7 @@ public class MetaInfo {
 		this.hashSequence1 = new LinkedList<HashSequenceMetaInfo>();
 		this.hashSequence2 = new LinkedList<HashSequenceMetaInfo>();	
 		this.operationsData = new ArrayList<FieldValue>();
+		
 	}
 	
 	private Map<String, Map<String, ModalityInfo>> biometrics;
@@ -55,12 +56,12 @@ public class MetaInfo {
 	}
 	
 	public void addMetaData(FieldValue fieldValue) {
-		if(!this.metaData.contains(fieldValue))
+		//if(!this.metaData.contains(fieldValue))
 			this.metaData.add(fieldValue);	
 	}
 	
 	public void addOperationsData(FieldValue fieldValue) {
-		if(!this.operationsData.contains(fieldValue))
+		//if(!this.operationsData.contains(fieldValue))
 			this.operationsData.add(fieldValue);	
 	}
 	
@@ -71,4 +72,5 @@ public class MetaInfo {
 	public void addHashSequence2(HashSequenceMetaInfo hashSequenceMetaInfo) {
 		this.hashSequence2.add(hashSequenceMetaInfo);
 	}
+	
 }

@@ -37,6 +37,7 @@ public class RegistrationDTO {
 	private double idSchemaVersion;	
 	private String registrationId;
 	private String preRegistrationId;
+	private String registrationCategory;
 	
 	private RegistrationMetaDataDTO registrationMetaDataDTO;
 	private OSIDataDTO osiDataDTO;
@@ -131,6 +132,7 @@ public class RegistrationDTO {
 			currentCount = this.biometrics.get(key).getNumOfRetries();
 		}
 		value.setNumOfRetries(currentCount+1);
+		value.setSubType(subType);
 		this.biometrics.put(key, value);
 		this.biometricExceptions.remove(key);
 	}

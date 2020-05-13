@@ -17,6 +17,7 @@ public class PacketInfoDto {
 	
 	private String registrationId;
 	private double idSchemaVersion;
+	private String creationDate;
 	private Map<String, Object> demographics;
 	private Map<String, DocumentDto> documents;
 	private Map<String, List<BiometricsDto>> biometrics;
@@ -40,6 +41,7 @@ public class PacketInfoDto {
 		this.exceptionBiometrics = new HashMap<String, List<BiometricsException>>();
 		this.metaData = new ArrayList<FieldValue>();
 		this.operationsData = new ArrayList<FieldValue>();
+		this.checkSum = new ArrayList<FieldValue>();
 	}
 	
 	public void setField(String fieldName, Object value) {
@@ -79,6 +81,11 @@ public class PacketInfoDto {
 	public void setOperationsData(String key, String value) {
 		if(!this.operationsData.contains(new FieldValue(key, value)))
 			this.operationsData.add(new FieldValue(key, value));
+	}
+	
+	public void addCheckSum(FieldValue fieldValue) {
+		if(!this.checkSum.contains(fieldValue))
+			this.checkSum.add(fieldValue);	
 	}
 	
 }

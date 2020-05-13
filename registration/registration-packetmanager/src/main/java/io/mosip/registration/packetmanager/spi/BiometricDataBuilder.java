@@ -8,7 +8,6 @@ public interface BiometricDataBuilder {
 	/**
 	 * 
 	 * @param bdb
-	 * @param formatType
 	 * @param qualityScore
 	 * @param type
 	 * @param subType

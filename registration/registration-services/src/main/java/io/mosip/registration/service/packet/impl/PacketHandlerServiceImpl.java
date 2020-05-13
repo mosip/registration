@@ -6,6 +6,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.exception.RegistrationExceptionConstants.REG_PACKET_CREATION_ERROR_CODE;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import io.mosip.kernel.auditmanager.entity.Audit;
@@ -33,6 +35,7 @@ import io.mosip.registration.dao.AuditLogControlDAO;
 import io.mosip.registration.dao.PolicySyncDAO;
 import io.mosip.registration.dao.RegistrationDAO;
 import io.mosip.registration.dto.ErrorResponseDTO;
+import io.mosip.registration.dto.RegistrationCenterDetailDTO;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.SuccessResponseDTO;
@@ -56,6 +59,8 @@ import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.external.StorageService;
 import io.mosip.registration.service.packet.PacketHandlerService;
+import io.mosip.registration.update.SoftwareUpdateHandler;
+import io.mosip.registration.util.checksum.CheckSumUtil;
 import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
 
 /**
@@ -71,6 +76,9 @@ import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecke
 public class PacketHandlerServiceImpl extends BaseService implements PacketHandlerService {
 
 	private static final Logger LOGGER = AppConfig.getLogger(PacketHandlerServiceImpl.class);
+	
+	@Value("${mosip.registration.gps_device_enable_flag}")
+	private String gpsEnabledFlag;
 
 	/**
 	 * Instance of {@code AuditFactory}
@@ -98,6 +106,10 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 	
 	@Autowired
 	private AuditDAO auditDAO;
+	
+	@Autowired
+	private SoftwareUpdateHandler softwareUpdateHandler;
+	
 	
 	private static Map<String, String> categoryPacketMapping = new HashMap<>();
 	
@@ -138,6 +150,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			setDemographics(registrationDTO.getDemographics());
 			setDocuments(registrationDTO.getDocuments());
 			setBiometrics(registrationDTO.getBiometrics(), registrationDTO.getBiometricExceptions(), schema);
+			setOtherDetails(registrationDTO);
 			
 			packetCreator.setAcknowledgement(registrationDTO.getAcknowledgeReceiptName(), registrationDTO.getAcknowledgeReceipt());			
 			collectAudits();
@@ -146,7 +159,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			
 			String filePath = savePacketToDisk(registrationDTO.getRegistrationId(), packetZip);
 			registrationDAO.save(filePath, registrationDTO);			
-			createAuditLog(registrationDTO);			
+			//createAuditLog(registrationDTO);		
 			SuccessResponseDTO successResponseDTO = new SuccessResponseDTO();
 			successResponseDTO.setCode("0000");
 			successResponseDTO.setMessage("Success");
@@ -249,6 +262,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			dto.setSessionUserId(audit.getSessionUserId());
 			dto.setSessionUserName(audit.getSessionUserName());
 			list.add(dto);
+			break;
 		}
 		packetCreator.setAudits(list);
 	}
@@ -286,5 +300,34 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 				.with(auditLogControl -> auditLogControl.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime())))
 				.with(auditLogControl -> auditLogControl.setCrBy(SessionContext.userContext().getUserId()))
 				.get());
+	}
+	
+	private void setOtherDetails(RegistrationDTO registrationDTO) {
+		packetCreator.setMetaInfo("centerId", (String) ApplicationContext.map().get(RegistrationConstants.USER_CENTER_ID));
+		packetCreator.setMetaInfo("machineId", (String) ApplicationContext.map().get(RegistrationConstants.USER_STATION_ID));
+		packetCreator.setMetaInfo("keyIndex", "");
+		packetCreator.setMetaInfo("Registration Client Version Number", softwareUpdateHandler.getCurrentVersion());	
+		packetCreator.setMetaInfo("preRegistrationId", registrationDTO.getPreRegistrationId());
+		packetCreator.setMetaInfo("consentOfApplicant",	registrationDTO.getRegistrationMetaDataDTO().getConsentOfApplicant());
+		RegistrationCenterDetailDTO registrationCenter = SessionContext.userContext().getRegistrationCenterDetailDTO();		
+		if (RegistrationConstants.ENABLE.equalsIgnoreCase(gpsEnabledFlag) && registrationCenter != null) {
+			packetCreator.setMetaInfo("geoLocLatitude", registrationCenter.getRegistrationCenterLatitude());
+			packetCreator.setMetaInfo("geoLoclongitude", registrationCenter.getRegistrationCenterLongitude());
+		}
+		
+		Map<String, String> checkSumMap = CheckSumUtil.getCheckSumMap();
+		checkSumMap.forEach((key, value) -> packetCreator.setCheckSum(key, value));
+		
+		//TODO - Need to change this logic
+		packetCreator.setOperationsInfo("officerId", registrationDTO.getOsiDataDTO().getOperatorID());
+		packetCreator.setOperationsInfo("supervisorId", registrationDTO.getOsiDataDTO().getSupervisorID());
+		packetCreator.setOperationsInfo("officerBiometricFileName", null);
+		packetCreator.setOperationsInfo("supervisorBiometricFileName", null);
+		packetCreator.setOperationsInfo("supervisorPassword", String.valueOf(registrationDTO.getOsiDataDTO().isSuperviorAuthenticatedByPassword()));
+		packetCreator.setOperationsInfo("officerPassword", String.valueOf(registrationDTO.getOsiDataDTO().isSuperviorAuthenticatedByPassword()));
+		packetCreator.setOperationsInfo("supervisorPIN", null);
+		packetCreator.setOperationsInfo("officerPIN", null);
+		packetCreator.setOperationsInfo("supervisorOTPAuthentication", String.valueOf(registrationDTO.getOsiDataDTO().isSuperviorAuthenticatedByPIN()));
+		packetCreator.setOperationsInfo("officerOTPAuthentication", String.valueOf(registrationDTO.getOsiDataDTO().isOperatorAuthenticatedByPIN()));
 	}
 }

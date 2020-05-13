@@ -1,12 +1,16 @@
 package io.mosip.registration.packetmananger.constants;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class PacketManagerConstants {
 	
-	public static final String IDENTITY_FILENAME = "ID.json";
-	public static final String AUDIT_FILENAME = "audit.json";
+	// Logger - Constants
+	public static final String APPLICATION_ID = "REG";
+	public static final String APPLICATION_NAME = "REGISTRATION-PACKAGE-MANAGER";
+	public static final String APPLICATION_METHOD = "PACKET_CREATOR";
+	
+	public static final String IDENTITY_FILENAME = "ID";
+	public static final String IDENTITY_FILENAME_WITH_EXT = "ID.json";
+	public static final String AUDIT_FILENAME = "audit";
+	public static final String AUDIT_FILENAME_WITH_EXT = AUDIT_FILENAME.concat(".json");
 	public static final String PACKET_META_FILENAME = "packet_meta_info.json";
 	public static final String PACKET_DATA_HASH_FILENAME = "packet_data_hash.txt";
 	public static final String PACKET_OPER_HASH_FILENAME = "packet_operations_hash.txt";
@@ -36,7 +40,6 @@ public class PacketManagerConstants {
 	public static final String SUBPACKET_ZIP_FILE_NAME = "%s_%s.zip";
 	
 	public static final String IDSCHEMA_VERSION = "IDSchemaVersion";
-	public static final String REGISTRATIONID = "registrationId";
 	
 	public static final String SCHEMA_ID = "id";
 	public static final String SCHEMA_TYPE = "type";
@@ -58,5 +61,8 @@ public class PacketManagerConstants {
 	public static final String PACKET_TYPE_NEW = "New";
 	public static final String PACKET_TYPE_UPDATE = "Update";
 	public static final String PACKET_TYPE_LOST = "Lost";
+	
+	public static final String REGISTRATIONID = "registrationId";
+	public static final String CREATION_DATE = "creationDate";
 
 }

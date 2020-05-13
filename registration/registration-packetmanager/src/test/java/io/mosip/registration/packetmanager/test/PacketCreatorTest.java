@@ -84,6 +84,9 @@ public class PacketCreatorTest {
 		SimpleDto indiviaulStatus = new SimpleDto("eng", "Non-Forienger");
 		indiviaulStatusList.add(indiviaulStatus);		
 		packetCreatorImpl.setField("residenceStatus", indiviaulStatusList);
+		List<SimpleDto> addressList = new ArrayList<>();
+		addressList.add(new SimpleDto("eng", "address test"));		
+		packetCreatorImpl.setField("addressLine1", addressList);
 	}
 	
 	@Test
@@ -91,8 +94,7 @@ public class PacketCreatorTest {
 		packetCreatorImpl.setField("dateOfBirth", "23/05/2000");
 		packetCreatorImpl.setField("postalCode", "NA");
 		packetCreatorImpl.setField("phone", "9090909090");
-		packetCreatorImpl.setField("email", "test@test.com");
-		packetCreatorImpl.setField("email", "test@test.com");
+		packetCreatorImpl.setField("email", "test@test.com");		
 	}
 	
 	@Test
@@ -118,7 +120,7 @@ public class PacketCreatorTest {
 		DocumentDto poe = new DocumentDto();
 		poe.setCategory("POE");
 		poe.setFormat("jpg");
-		poe.setOwner("user");
+		poe.setOwner("applicant");
 		poe.setValue("POE_Certification of Exception");
 		poe.setType("Certification of Exception");
 		poe.setDocument("test exception photograph".getBytes());
@@ -164,10 +166,15 @@ public class PacketCreatorTest {
 	
 	@Test
 	public void createPacketStep027Test() {
+		packetCreatorImpl.setMetaInfo("Registration Client Version Number", "1.0.10");
+		packetCreatorImpl.setMetaInfo("registrationType", "New");
+		packetCreatorImpl.setMetaInfo("centerId", "10007");
+		packetCreatorImpl.setMetaInfo("keyIndex", "ad:7a:54:be:c1:19:a0:49:f7:18:f7:e4:44:52:cb:02:22:74:82:2c:e3:8f:e6:26:e4:39:68:10:2b:45:06:bc");
+		packetCreatorImpl.setMetaInfo("machineId", "10360");
 		packetCreatorImpl.setMetaInfo("consentOfApplicant", "Yes");
 		packetCreatorImpl.setMetaInfo("creationDate", 
 				LocalDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")));
-		packetCreatorImpl.setOperationsInfo("officerId", "10007");
+		packetCreatorImpl.setOperationsInfo("officerId", "110058");
 		packetCreatorImpl.setOperationsInfo("supervisorId", null);
 		packetCreatorImpl.setOperationsInfo("supervisorPassword", "false");
 		packetCreatorImpl.setOperationsInfo("supervisorPIN", "false");

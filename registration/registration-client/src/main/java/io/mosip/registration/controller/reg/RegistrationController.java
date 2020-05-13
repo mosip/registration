@@ -388,6 +388,7 @@ public class RegistrationController extends BaseController {
 	 */
 	protected void createRegistrationDTOObject(String registrationCategory) {
 		RegistrationDTO registrationDTO = new RegistrationDTO();
+		registrationDTO.setRegistrationCategory(registrationCategory);
 		
 		//set id-schema version to be followed for this registration
 		try {

@@ -16,6 +16,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
+import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.registration.packetmanager.util.PacketManagerHelper;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -23,7 +24,10 @@ import io.mosip.registration.packetmanager.util.PacketManagerHelper;
 public class PacketManagerHelperTest {
 
 	@Autowired
-	private PacketManagerHelper packetManagerHelper;	
+	private PacketManagerHelper packetManagerHelper;
+	
+	@Autowired
+	private IdObjectValidator idObjectValidator;
 	
 	
 	@Test

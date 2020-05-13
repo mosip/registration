@@ -1,8 +1,13 @@
 package io.mosip.registration.packetmanager.impl;
 
+import static io.mosip.registration.packetmananger.constants.PacketManagerConstants.APPLICATION_ID;
+import static io.mosip.registration.packetmananger.constants.PacketManagerConstants.APPLICATION_NAME;
+import static io.mosip.registration.packetmananger.constants.PacketManagerConstants.APPLICATION_METHOD;
+
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -15,16 +20,23 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.packetmanager.spi.PacketCreator;
 import io.mosip.registration.packetmanager.spi.PacketSigner;
+import io.mosip.registration.packetmanager.util.LoggerFactory;
 import io.mosip.registration.packetmanager.util.PacketCryptoHelper;
 import io.mosip.registration.packetmanager.util.PacketManagerHelper;
 import io.mosip.registration.packetmananger.constants.Biometric;
@@ -46,9 +58,12 @@ import io.mosip.registration.packetmananger.dto.metadata.ModalityInfo;
 import io.mosip.registration.packetmananger.exception.PacketCreatorException;
 
 
+
 @Component
 public class PacketCreatorImpl implements PacketCreator {	
 	
+	private static final Logger LOGGER = LoggerFactory.getLogger(PacketCreatorImpl.class);
+		
 	@Autowired
 	private PacketManagerHelper helper;	
 	
@@ -59,8 +74,9 @@ public class PacketCreatorImpl implements PacketCreator {
 	private PacketCryptoHelper packetCryptoHelper;
 	
 	@Value("${mosip.kernel.packetmanager.default-subpacket-name:id}")
-	private String defaultSubpacketName;
+	private String defaultSubpacketName;	
 	
+	Map<String, Object> masterIdentity = null;
 	private PacketInfoDto packetInfoDto = null;	
 	
 	@Override
@@ -71,6 +87,8 @@ public class PacketCreatorImpl implements PacketCreator {
 	@Override
 	public void initialize() {		
 		this.packetInfoDto = new PacketInfoDto();
+		this.masterIdentity = new HashMap<String, Object>();
+		this.packetInfoDto.setCreationDate(DateUtils.formatToISOString(LocalDateTime.now()));
 	}	
 
 	@Override
@@ -92,7 +110,6 @@ public class PacketCreatorImpl implements PacketCreator {
 	public void setDocument(String fieldName, DocumentDto value) {
 		this.packetInfoDto.setDocumentField(fieldName, value);		
 	}
-
 	
 	@Override
 	public void setAudits(List<AuditDto> auditList) {
@@ -123,6 +140,7 @@ public class PacketCreatorImpl implements PacketCreator {
 	@Override
 	public byte[] createPacket(String registrationId, double version, String schemaJson, 
 			Map<String, String> categoryPacketMapping, byte[] publicKey, PacketSigner signer) throws PacketCreatorException {
+		LOGGER.info(APPLICATION_ID, APPLICATION_NAME, "createPacket", "RegistrationID : " + registrationId);		
 		
 		if(this.packetInfoDto == null)
 			throw new PacketCreatorException(ErrorCode.INITIALIZATION_ERROR.getErrorCode(),	
@@ -135,6 +153,7 @@ public class PacketCreatorImpl implements PacketCreator {
 			
 			for(String subpacketName : identityProperties.keySet()) {
 				List<Object> schemaFields = identityProperties.get(subpacketName);
+				LOGGER.info(APPLICATION_ID, APPLICATION_NAME, "BUILDING SUBPACKET",  subpacketName);				
 				byte[] subpacketBytes = createSubpacket(version, schemaFields, defaultSubpacketName.equalsIgnoreCase(subpacketName), 
 						registrationId);
 				
@@ -142,32 +161,34 @@ public class PacketCreatorImpl implements PacketCreator {
 				subpacketBytes = CryptoUtil.encodeBase64(packetCryptoHelper.encryptPacket(subpacketBytes, publicKey)).getBytes();
 				addEntryToZip(String.format(PacketManagerConstants.SUBPACKET_ZIP_FILE_NAME, registrationId, subpacketName), 
 						subpacketBytes, packetZip);
+				LOGGER.info(APPLICATION_ID, APPLICATION_NAME, "COMPLETED SUBPACKET", subpacketName);
 			}
 			
 		} catch (IOException e) {
 			throw new PacketCreatorException(ErrorCode.PKT_ZIP_ERROR.getErrorCode(), 
 					ErrorCode.PKT_ZIP_ERROR.getErrorMessage().concat(ExceptionUtils.getStackTrace(e)));
 		} finally {
+			//helper.validateIdObject(schemaJson, this.masterIdentity, "New", null);
 			this.packetInfoDto = null;
-		}
-		
+			this.masterIdentity = null;
+		}		
 		//TODO sign zip
 		return out.toByteArray();
 	}
 	
 	@SuppressWarnings("unchecked")
 	private byte[] createSubpacket(double version, List<Object> schemaFields, boolean isDefault, String registrationId) 
-			throws PacketCreatorException {		
-			
+			throws PacketCreatorException {			
+		LOGGER.info(APPLICATION_ID, APPLICATION_NAME, "BUILDING SUBPACKET", schemaFields.size() + " fields and is default : " + isDefault);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		try (ZipOutputStream subpacketZip = new ZipOutputStream(new BufferedOutputStream(out))) {
 			
 			Map<String, Object> identity = new HashMap<String, Object>();
 			Map<String, HashSequenceMetaInfo> hashSequences = new HashMap<>();
-			MetaInfo metaInfo = new MetaInfo();
-			
-			identity.put(PacketManagerConstants.IDSCHEMA_VERSION, version);			
-			metaInfo.addMetaData(new FieldValue(PacketManagerConstants.REGISTRATIONID, registrationId));					
+			MetaInfo metaInfo = new MetaInfo();			
+			identity.put(PacketManagerConstants.IDSCHEMA_VERSION, version);		
+			metaInfo.addMetaData(new FieldValue(PacketManagerConstants.REGISTRATIONID, registrationId));
+			metaInfo.addMetaData(new FieldValue(PacketManagerConstants.CREATION_DATE, this.packetInfoDto.getCreationDate()));
 						
 			for(Object obj : schemaFields) {
 				Map<String, Object> field = (Map<String, Object>) obj;
@@ -186,11 +207,12 @@ public class PacketCreatorImpl implements PacketCreator {
 					if(this.packetInfoDto.getDemographics().containsKey(fieldName))
 						identity.put(fieldName, this.packetInfoDto.getDemographics().get(fieldName));
 					break;
-				}
+				}				
 			}
-			
+			LOGGER.debug(APPLICATION_ID, APPLICATION_NAME, " identity.keySet() >>>>>>>>>>>> ", identity.keySet().toString());
+			LOGGER.debug(APPLICATION_ID, APPLICATION_NAME, "CURRENT STATE OF SUBPACKET", identity.toString());
 			byte[] identityBytes = getIdentity(identity).getBytes();
-			addEntryToZip(PacketManagerConstants.IDENTITY_FILENAME, identityBytes, subpacketZip);
+			addEntryToZip(PacketManagerConstants.IDENTITY_FILENAME_WITH_EXT, identityBytes, subpacketZip);
 			addHashSequenceWithSource(PacketManagerConstants.DEMOGRAPHIC_SEQ, PacketManagerConstants.IDENTITY_FILENAME, identityBytes, 
 					hashSequences);			
 			addOtherFilesToZip(isDefault, metaInfo, subpacketZip, hashSequences);			
@@ -202,17 +224,28 @@ public class PacketCreatorImpl implements PacketCreator {
 			throw new PacketCreatorException(ErrorCode.PKT_ZIP_ERROR.getErrorCode(), 
 					ErrorCode.PKT_ZIP_ERROR.getErrorMessage().concat(ExceptionUtils.getStackTrace(e)));
 		}
+		
 		return out.toByteArray();
 	}
 	
+	
+	/**
+	 * 1. File are named after fieldName, as for same category more than one field may exists
+	 * 
+	 * @param fieldName
+	 * @param identity
+	 * @param metaInfo
+	 * @param zipOutputStream
+	 * @param hashSequences
+	 * @throws PacketCreatorException
+	 */
 	private void addDocumentDetailsToZip(String fieldName, Map<String, Object> identity, MetaInfo metaInfo, 
 			ZipOutputStream zipOutputStream, Map<String, HashSequenceMetaInfo> hashSequences) throws PacketCreatorException {
-		DocumentDto dto = this.packetInfoDto.getDocuments().get(fieldName);						
-		identity.put(fieldName, new DocumentType(dto.getValue(), dto.getType(), dto.getFormat()));
-		String fileName = String.format("%s.%s", fieldName, dto.getFormat());
+		DocumentDto dto = this.packetInfoDto.getDocuments().get(fieldName);
+		identity.put(fieldName, new DocumentType(fieldName, dto.getType(), dto.getFormat()));
+		String fileName = String.format("%s.%s", fieldName, dto.getFormat());				
 		addEntryToZip(fileName, dto.getDocument(), zipOutputStream);					
-		metaInfo.addDocumentMetaInfo(new DocumentMetaInfo(fieldName, dto.getCategory(), 
-				dto.getOwner(), dto.getType()));
+		metaInfo.addDocumentMetaInfo(new DocumentMetaInfo(fieldName, dto.getCategory(), dto.getOwner(), dto.getType()));
 		
 		addHashSequenceWithSource(PacketManagerConstants.DEMOGRAPHIC_SEQ, fieldName, dto.getDocument(), 
 				hashSequences);
@@ -220,6 +253,7 @@ public class PacketCreatorImpl implements PacketCreator {
 	
 	private void addBiometricDetailsToZip(String fieldName, Map<String, Object> identity, MetaInfo metaInfo, 
 			ZipOutputStream zipOutputStream, Map<String, HashSequenceMetaInfo> hashSequences) throws PacketCreatorException {
+		LOGGER.info(APPLICATION_ID, APPLICATION_NAME, "BIOMETRIC FIELD", fieldName);
 		List<BIR> birs = getSerializedBiometrics(this.packetInfoDto.getBiometrics().get(fieldName), metaInfo);						
 		if(!birs.isEmpty()) {
 			byte[] xmlBytes;
@@ -234,7 +268,7 @@ public class PacketCreatorImpl implements PacketCreator {
 			identity.put(fieldName, new BiometricsType(PacketManagerConstants.CBEFF_FILE_FORMAT, 
 					PacketManagerConstants.CBEFF_VERSION, String.format(PacketManagerConstants.CBEFF_FILENAME, fieldName)));
 			addHashSequenceWithSource(PacketManagerConstants.BIOMETRIC_SEQ, String.format(PacketManagerConstants.CBEFF_FILENAME, 
-					fieldName), xmlBytes, hashSequences);			
+					fieldName), xmlBytes, hashSequences);		
 		}						
 		if(this.packetInfoDto.getExceptionBiometrics().containsKey(fieldName))
 			metaInfo.setBiometricException(this.packetInfoDto.getExceptionBiometrics().get(fieldName));
@@ -249,9 +283,10 @@ public class PacketCreatorImpl implements PacketCreator {
 	}
 	
 	//TODO - check if ACK files need to added ? if yes then add it in packet and also in hash sequence
+	//TODO - Add exceptionBiometrics into metainfo
 	private void addOtherFilesToZip(boolean isDefault, MetaInfo metaInfo, ZipOutputStream zipOutputStream, 
 			Map<String, HashSequenceMetaInfo> hashSequences) throws JsonProcessingException, PacketCreatorException {
-		
+		LOGGER.info(APPLICATION_ID, APPLICATION_NAME, "METAFINFO", "STARTED BUILDING .....");
 		if(isDefault) {  
 			fillAllMetaInfo(metaInfo);
 			addOperationsBiometricsToZip(this.packetInfoDto.getOfficerBiometrics(), PacketManagerConstants.OFFICER, 
@@ -263,7 +298,7 @@ public class PacketCreatorImpl implements PacketCreator {
 				throw new PacketCreatorException(ErrorCode.AUDITS_REQUIRED.getErrorCode(), ErrorCode.AUDITS_REQUIRED.getErrorMessage());
 			
 			byte[] auditBytes = JsonUtils.javaObjectToJsonString(this.packetInfoDto.getAudits()).getBytes();			
-			addEntryToZip(PacketManagerConstants.AUDIT_FILENAME, auditBytes, zipOutputStream);
+			addEntryToZip(PacketManagerConstants.AUDIT_FILENAME_WITH_EXT, auditBytes, zipOutputStream);
 			addHashSequenceWithSource(PacketManagerConstants.OPERATIONS_SEQ, PacketManagerConstants.AUDIT_FILENAME, auditBytes, 
 					hashSequences);
 			
@@ -274,14 +309,12 @@ public class PacketCreatorImpl implements PacketCreator {
 			metaInfo.addHashSequence2(hashSequenceMetaInfo);
 		}
 		
-		addPacketDataHash(hashSequences, metaInfo, zipOutputStream);	
-		
+		addPacketDataHash(hashSequences, metaInfo, zipOutputStream);
 		addEntryToZip(PacketManagerConstants.PACKET_META_FILENAME, getIdentity(metaInfo).getBytes(), zipOutputStream);
 	}
 	
 	private void addPacketDataHash(Map<String, HashSequenceMetaInfo> hashSequences, MetaInfo metaInfo,
 			ZipOutputStream zipOutputStream) throws PacketCreatorException  {
-		
 		LinkedList<String> sequence = new LinkedList<String>();
 		Map<String, byte[]> data = new HashMap<>();
 		if(hashSequences.containsKey(PacketManagerConstants.BIOMETRIC_SEQ)) {
@@ -382,7 +415,7 @@ public class PacketCreatorImpl implements PacketCreator {
 	}
 	
 	
-	public List<BIR> getSerializedBiometrics(List<BiometricsDto> list, MetaInfo metaInfo) {		
+	public List<BIR> getSerializedBiometrics(List<BiometricsDto> list, MetaInfo metaInfo) {			
 		List<BIR> birs = new ArrayList<BIR>();			
 		for(BiometricsDto bioDto : list) {
 			BIR bir = cbeffBIRBuilder.buildBIR(bioDto.getAttributeISO(), bioDto.getQualityScore(), 
@@ -412,6 +445,11 @@ public class PacketCreatorImpl implements PacketCreator {
 	
 	private String getIdentity(Object object) throws JsonProcessingException {
 		return "{ \"identity\" : " + JsonUtils.javaObjectToJsonString(object) + "}";
+	}
+
+	@Override
+	public void setCheckSum(String key, String value) {
+		this.packetInfoDto.addCheckSum(new FieldValue(key, value));		
 	}
 
 }

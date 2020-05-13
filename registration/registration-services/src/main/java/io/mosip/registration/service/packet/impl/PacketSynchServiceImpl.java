@@ -306,13 +306,17 @@ public class PacketSynchServiceImpl extends BaseService implements PacketSynchSe
 		if (StringUtils.isEmpty(rId)) {
 			throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_PKT_ID.getErrorCode(),
 					RegistrationExceptionConstants.REG_PKT_ID.getErrorMessage());
-		} else {
-			Registration registration = syncRegistrationDAO
-					.getRegistrationById(RegistrationClientStatusCode.APPROVED.getCode(), rId);
-			List<PacketStatusDTO> registrations = new ArrayList<>();
-			registrations.add(packetStatusDtoPreperation(registration));
-			return packetSync(registrations);
-		}
+		}// else {
+			Registration registration = syncRegistrationDAO.getRegistrationById(RegistrationClientStatusCode.APPROVED.getCode(), rId);
+			if(registration != null) {
+				List<PacketStatusDTO> registrations = new ArrayList<>();
+				registrations.add(packetStatusDtoPreperation(registration));
+				return packetSync(registrations);
+			}
+			
+			return "Packet is not approved";
+			
+		//}
 	}
 
 	/*
