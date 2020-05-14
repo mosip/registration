@@ -459,7 +459,7 @@ public class DocumentScanController extends BaseController {
 		} else {
 			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, "Displaying Scan window to scan Documents");
-			documents.getValue().setCode(document);
+			//documents.getValue().setCode(document);
 			selectedDocument = document;
 			selectedComboBox = documents;
 			selectedDocVBox = vboxElement;
