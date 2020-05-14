@@ -47,7 +47,6 @@ import io.mosip.registration.processor.request.handler.service.dto.PacketGenerat
 import io.mosip.registration.processor.request.handler.service.dto.PacketGeneratorResDto;
 import io.mosip.registration.processor.request.handler.service.dto.RegistrationDTO;
 import io.mosip.registration.processor.request.handler.service.dto.demographic.DemographicDTO;
-import io.mosip.registration.processor.request.handler.service.dto.demographic.DemographicInfoDTO;
 import io.mosip.registration.processor.request.handler.service.exception.RegBaseCheckedException;
 import io.mosip.registration.processor.request.handler.upload.SyncUploadEncryptionService;
 import io.mosip.registration.processor.request.handler.upload.validator.RequestHandlerRequestValidator;
@@ -191,7 +190,6 @@ public class PacketGeneratorServiceImpl implements PacketGeneratorService<Packet
 	 */
 	private DemographicDTO getDemographicDTO(String uin) throws IOException {
 		DemographicDTO demographicDTO = new DemographicDTO();
-		DemographicInfoDTO demographicInfoDTO = new DemographicInfoDTO();
 		JSONObject jsonObject = new JSONObject();
 
 		JSONObject regProcessorIdentityJson = utilities.getRegistrationProcessorMappingJson();
@@ -205,8 +203,7 @@ public class PacketGeneratorServiceImpl implements PacketGeneratorService<Packet
 
 		jsonObject.put(schemaVersion, Float.valueOf(idschemaVersion));
 		jsonObject.put(uinLabel, new BigInteger(uin));
-		demographicInfoDTO.setIdentity(jsonObject);
-		demographicDTO.setDemographicInfoDTO(demographicInfoDTO);
+		demographicDTO.setIdentity(jsonObject);
 
 		return demographicDTO;
 	}
