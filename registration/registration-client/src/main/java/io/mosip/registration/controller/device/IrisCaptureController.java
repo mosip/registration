@@ -953,7 +953,14 @@ public class IrisCaptureController extends BaseController {
 							? !isLeftEyeException(getIrisExceptions()) ? isValidLeftEyeCaptured(irisDetailsDTOs) : true
 							: true;
 			 */
-			isValid = isRightAndLeftBioValid(true, true); //isRightAndLeftBioValid(isRightEyeCaptured, isLeftEyeCaptured);
+			
+			boolean isRightEyeCaptured =  !isRightEyeException(getIrisExceptions()) ? isValidRightEyeCaptured(irisDetailsDTOs)
+					: true;
+
+			boolean isLeftEyeCaptured = 
+			!isLeftEyeException(getIrisExceptions()) ? isValidLeftEyeCaptured(irisDetailsDTOs) : true;
+
+			isValid = isRightAndLeftBioValid(isRightEyeCaptured, isLeftEyeCaptured); //isRightAndLeftBioValid(isRightEyeCaptured, isLeftEyeCaptured);
 
 			LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					"Validating the captured iris of individual is completed");
