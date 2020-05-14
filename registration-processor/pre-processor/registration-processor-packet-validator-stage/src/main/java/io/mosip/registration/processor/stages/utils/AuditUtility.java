@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
@@ -24,7 +25,7 @@ import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.AuditDTO;
 import io.mosip.registration.processor.core.packet.dto.AuditRespDTO;
-import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
+
 import io.mosip.registration.processor.stages.dto.AsyncRequestDTO;
 import io.mosip.registration.processor.stages.helper.RestHelper;
 import io.mosip.registration.processor.stages.packet.validator.PacketValidateProcessor;

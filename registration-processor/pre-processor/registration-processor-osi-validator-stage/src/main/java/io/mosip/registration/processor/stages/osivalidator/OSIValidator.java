@@ -10,6 +10,9 @@ import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,9 +52,7 @@ import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
-import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
-import io.mosip.registration.processor.packet.utility.utils.IdSchemaUtils;
+
 import io.mosip.registration.processor.stages.osivalidator.utils.OSIUtils;
 import io.mosip.registration.processor.stages.osivalidator.utils.StatusMessage;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -163,14 +164,14 @@ public class OSIValidator {
 	 * @throws ParentOnHoldException
 	 * @throws AuthSystemException
 	 * @throws RegistrationProcessorCheckedException
-	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
+	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	public boolean isValidOSI(String registrationId, InternalRegistrationStatusDto registrationStatusDto)
 			throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException,
 			ParserConfigurationException, SAXException, NumberFormatException, BiometricException, BioTypeException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ParentOnHoldException,
 			AuthSystemException, RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "OSIValidator::isValidOSI()::entry");
 		boolean isValidOsi = false;
@@ -299,7 +300,7 @@ public class OSIValidator {
 	 * @throws                                  io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
 	 * @throws AuthSystemException
-	 * @throws                                  io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
+	 * @throws                                  io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 * @throws Exception
 	 * 
 	 */
@@ -308,7 +309,7 @@ public class OSIValidator {
 			throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException,
 			BiometricException, BioTypeException, ParserConfigurationException, SAXException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, AuthSystemException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		boolean isValid = false;
 		String officerId = regOsi.getOfficerId();
 		if (officerId != null) {
@@ -380,7 +381,7 @@ public class OSIValidator {
 	 * @throws                                  io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
 	 * @throws AuthSystemException
-	 * @throws                                  io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
+	 * @throws                                  io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 * @throws Exception
 	 */
 	private boolean isValidSupervisor(RegOsiDto regOsi, String registrationId,
@@ -388,7 +389,7 @@ public class OSIValidator {
 			throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException,
 			BiometricException, BioTypeException, ParserConfigurationException, SAXException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, AuthSystemException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "OSIValidator::isValidSupervisor()::entry");
 		String supervisorId = regOsi.getSupervisorId();
@@ -453,7 +454,7 @@ public class OSIValidator {
 	 * @throws ParentOnHoldException
 	 * @throws AuthSystemException
 	 * @throws RegistrationProcessorCheckedException
-	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
+	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	private boolean isValidIntroducer(String registrationId,
 			JSONObject regProcessorIdentityJson, InternalRegistrationStatusDto registrationStatusDto)
@@ -461,7 +462,7 @@ public class OSIValidator {
 			ParserConfigurationException, SAXException, BiometricException, BioTypeException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ParentOnHoldException,
 			AuthSystemException, RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "OSIValidator::isValidIntroducer()::entry");
 
@@ -533,7 +534,7 @@ public class OSIValidator {
 			io.mosip.kernel.core.exception.IOException, InvalidKeySpecException, NoSuchAlgorithmException,
 			ParserConfigurationException, SAXException, BiometricException, BioTypeException, AuthSystemException,
 			ParentOnHoldException, ApiNotAccessibleException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
 		if (introducerBiometricsFileName != null && (!introducerBiometricsFileName.trim().isEmpty())) {
 			String source = idSchemaUtils.getSource(introducerBiometricsLabel);
 			InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId,

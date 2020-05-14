@@ -6,8 +6,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
-import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -70,7 +70,7 @@ public class ABISHandlerUtil {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
-	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
+	 * @throws PacketDecryptionFailureException
 	 */
 	public List<String> getUniqueRegIds(String registrationId, String registrationType)
 			throws ApisResourceAccessException, IOException, ApiNotAccessibleException,
@@ -165,7 +165,7 @@ public class ABISHandlerUtil {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
-	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
+	 * @throws PacketDecryptionFailureException
 	 */
 	private List<String> getUniqueRegIds(List<String> matchedRegistrationIds, String registrationId,
 			String registrationType) throws ApisResourceAccessException, IOException,

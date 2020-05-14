@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import org.apache.commons.io.IOUtils;
-import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +44,7 @@ import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
-import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
-import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
+
 import io.mosip.registration.processor.stages.dto.PacketValidationDto;
 import io.mosip.registration.processor.stages.exception.PacketValidatorException;
 import io.mosip.registration.processor.stages.utils.ApplicantDocumentValidation;
@@ -201,11 +201,9 @@ public class PacketValidatorImpl implements PacketValidator{
 		isvalidated= validateRegIdAndTypeFromSyncTable(object.getRid(), metadataList, new IdentityIteratorUtil(),
 				packetValidationDto);
 			 
-		} catch (IOException | io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException 
-				| io.mosip.kernel.core.exception.IOException | ApiNotAccessibleException | ApisResourceAccessException | 
-				IdObjectValidationFailedException | IdObjectIOException | RegistrationProcessorCheckedException | 
-				io.mosip.registration.processor.core.exception.PacketDecryptionFailureException | ParseException | 
-				JSONException e) {
+		} catch (IOException | io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
+				| io.mosip.kernel.core.exception.IOException | ApiNotAccessibleException | ApisResourceAccessException |
+				IdObjectValidationFailedException | IdObjectIOException | RegistrationProcessorCheckedException e) {
 			throw new PacketValidatorException (e);
 		}
 		
@@ -213,8 +211,7 @@ public class PacketValidatorImpl implements PacketValidator{
 	}
 
 	private boolean individualBiometricsValidation(InternalRegistrationStatusDto registrationStatusDto,
-			JSONObject demographicIdentity, PacketValidationDto packetValidationDto) throws RegistrationProcessorCheckedException,
-	io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			JSONObject demographicIdentity, PacketValidationDto packetValidationDto) throws RegistrationProcessorCheckedException {
 			try {
 				String registrationId = registrationStatusDto.getRegistrationId();
 
@@ -233,7 +230,7 @@ public class PacketValidatorImpl implements PacketValidator{
 						return true;
 
 				}
-			} catch (IOException | io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException 
+			} catch (IOException | io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 					| io.mosip.kernel.core.exception.IOException | ApiNotAccessibleException e) {
 				throw new RegistrationProcessorCheckedException(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
 						PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), e);
@@ -305,9 +302,9 @@ public class PacketValidatorImpl implements PacketValidator{
 	
 	private boolean applicantDocumentValidation(String jsonString, String registrationId,
 			PacketValidationDto packetValidationDto)
-			throws IOException, ApisResourceAccessException, org.json.simple.parser.ParseException,
+			throws IOException, ApisResourceAccessException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			RegistrationProcessorCheckedException, io.mosip.registration.processor.core.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+			RegistrationProcessorCheckedException, ApiNotAccessibleException {
 		if (env.getProperty(VALIDATEAPPLICANTDOCUMENT).trim().equalsIgnoreCase(VALIDATIONFALSE)) {
 			packetValidationDto.setApplicantDocumentValidation(true);
 			return packetValidationDto.isApplicantDocumentValidation();
@@ -348,7 +345,7 @@ public class PacketValidatorImpl implements PacketValidator{
 	}
 	
 	private boolean mandatoryValidation(InternalRegistrationStatusDto registrationStatusDto,
-			PacketValidationDto packetValidationDto) throws IOException, JSONException,
+			PacketValidationDto packetValidationDto) throws IOException,
 			PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
 		if (env.getProperty(VALIDATEMANDATORY).trim().equalsIgnoreCase(VALIDATIONFALSE))
 			return true;

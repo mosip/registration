@@ -7,10 +7,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
-import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
-import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
-import io.mosip.registration.processor.packet.utility.utils.IdSchemaUtils;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+
+import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
@@ -534,13 +535,13 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	 * @throws RegistrationProcessorCheckedException
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
-	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
+	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	private boolean uinUpdate(String regId, Long uin, MessageDTO object, JSONObject demographicIdentity,
 			LogDescription description)
 			throws ApisResourceAccessException, IOException, RegistrationProcessorCheckedException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, io.mosip.registration.processor.core.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, io.mosip.registration.processor.core.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		IdResponseDTO result;
 		boolean isTransactionSuccessful = Boolean.FALSE;
 		List<Documents> documentInfo = utility.getAllDocumentsByRegId(regId);

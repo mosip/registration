@@ -2,8 +2,8 @@ package io.mosip.registration.processor.stages.utils;
 
 import java.io.IOException;
 
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
-import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

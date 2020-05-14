@@ -7,7 +7,8 @@ import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +58,7 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
-import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
+
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.stages.dto.PacketValidationDto;
 import io.mosip.registration.processor.stages.exception.PacketValidatorException;
@@ -414,7 +415,7 @@ public class PacketValidateProcessor {
 
 	private void managePacketValidatorException(PacketValidatorException e,InternalRegistrationStatusDto registrationStatusDto,
 			TrimExceptionMessage trimMessage, LogDescription description, MessageDTO object, PacketValidationDto packetValidationDto) {
-		if ( e.getCause() instanceof ApisResourceAccessException || e.getCause() instanceof ApiNotAccessibleException ) {
+		if ( e.getCause() instanceof ApisResourceAccessException || e.getCause() instanceof ApiNotAccessibleException) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 			registrationStatusDto.setStatusComment(trimMessage
 					.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + e.getMessage()));

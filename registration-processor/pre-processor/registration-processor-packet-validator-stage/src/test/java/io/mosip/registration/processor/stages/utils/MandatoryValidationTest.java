@@ -11,8 +11,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import org.apache.commons.io.IOUtils;
-import org.json.JSONException;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,8 +31,7 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
-import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
+
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 
 @RunWith(PowerMockRunner.class)
@@ -88,7 +88,7 @@ public class MandatoryValidationTest {
 	}
 
 	@Test
-	public void mandatoryValidationSuccessTest() throws IOException, JSONException, PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+	public void mandatoryValidationSuccessTest() throws IOException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 
 		boolean result = mandatoryValidation.mandatoryFieldValidation(registrationStatusDto.getRegistrationId());
 		assertTrue("Test for mandate fields", result);

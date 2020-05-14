@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -419,13 +419,13 @@ public class BioDedupeProcessorTest {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
-	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
+	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	@Test
 	public void testBioDeDupUpdatePacketHandlerProcessingSuccess() throws ApisResourceAccessException, IOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
 			RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 
 		registrationStatusDto.setRegistrationId("reg1234");
 		registrationStatusDto.setRegistrationType("UPDATE");
@@ -448,13 +448,13 @@ public class BioDedupeProcessorTest {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
-	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
+	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	@Test
 	public void testBioDeDupUpdatePacketHandlerProcessingFailure() throws ApisResourceAccessException, IOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
 			RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		registrationStatusDto.setRegistrationId("reg1234");
 		registrationStatusDto.setRegistrationType("UPDATE");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
@@ -478,13 +478,13 @@ public class BioDedupeProcessorTest {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
-	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
+	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	@Test
 	public void testLostPacketValidationMatchedIdEmpty() throws ApisResourceAccessException, IOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
 			RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		registrationStatusDto.setRegistrationId("reg1234");
 		registrationStatusDto.setRegistrationType("LOST");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
@@ -506,13 +506,13 @@ public class BioDedupeProcessorTest {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
-	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
+	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	@Test
 	public void testLostPacketValidationSingleMatchedRegId() throws ApisResourceAccessException, IOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
 			RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		registrationStatusDto.setRegistrationId("reg1234");
 		registrationStatusDto.setRegistrationType("LOST");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);

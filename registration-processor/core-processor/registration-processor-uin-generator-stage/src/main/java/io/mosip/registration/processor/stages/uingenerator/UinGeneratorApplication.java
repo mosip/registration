@@ -20,7 +20,7 @@ public class UinGeneratorApplication {
 				"io.mosip.registration.processor.status.config", "io.mosip.registration.processor.rest.client.config",
 				"io.mosip.registration.processor.packet.storage.config",
 				"io.mosip.registration.processor.stages.config",
-				"io.mosip.registration.processor.packet.utility.config",
+				"io.mosip.kernel.packetmanager.config",
 				"io.mosip.registration.processor.packet.manager.config",
 				"io.mosip.registration.processor.core.kernel.beans");
 

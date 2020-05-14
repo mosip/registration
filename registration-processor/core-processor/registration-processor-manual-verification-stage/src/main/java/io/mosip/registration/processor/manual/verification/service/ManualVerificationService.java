@@ -1,7 +1,7 @@
 package io.mosip.registration.processor.manual.verification.service;
 
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
-import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import org.springframework.stereotype.Service;
 
 import io.mosip.kernel.core.exception.IOException;

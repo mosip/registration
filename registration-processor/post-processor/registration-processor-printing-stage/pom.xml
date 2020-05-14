@@ -98,8 +98,8 @@
 			<version>${kernel.idvalidator.uin.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.mosip.registrationprocessor</groupId>
-			<artifactId>registration-processor-packet-utility</artifactId>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-registration-packet-manager</artifactId>
 			<version>${registration.processor.packet.utility.version}</version>
 		</dependency>
 		<dependency>

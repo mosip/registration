@@ -9,7 +9,9 @@ import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
@@ -54,8 +56,6 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
-import io.mosip.registration.processor.packet.utility.utils.IdSchemaUtils;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -363,7 +363,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, InvalidKeySpecException,
 			NoSuchAlgorithmException, BiometricException, BioTypeException, ParserConfigurationException, SAXException,
 			AuthSystemException, RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		IdentityIteratorUtil identityIterator = new IdentityIteratorUtil();
 		String individualAuthentication = identityIterator.getFieldValue(metadata,
 				BiometricAuthenticationConstants.INDIVIDUALAUTHENTICATION);

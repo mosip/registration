@@ -9,10 +9,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
-import io.mosip.registration.processor.packet.utility.exception.FileNotFoundInDestinationException;
-import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
-import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.FileNotFoundInDestinationException;
+import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;

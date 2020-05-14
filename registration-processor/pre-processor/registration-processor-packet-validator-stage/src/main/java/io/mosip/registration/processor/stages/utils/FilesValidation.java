@@ -4,14 +4,15 @@ import java.io.IOException;
 import java.util.List;
 
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.FieldValueArray;
 import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
-import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
-import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
+
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 
 /**
@@ -119,7 +120,7 @@ public class FilesValidation {
 	}
 
 
-	private boolean validateFilesExistance(String registrationId, List<String> values) throws  ApisResourceAccessException, IOException, PacketDecryptionFailureException, ApiNotAccessibleException {
+	private boolean validateFilesExistance(String registrationId, List<String> values) throws  IOException, PacketDecryptionFailureException, ApiNotAccessibleException {
 		boolean areFilesValidated = true;
 		for(String file : values){
 			String fileName = file.toUpperCase();

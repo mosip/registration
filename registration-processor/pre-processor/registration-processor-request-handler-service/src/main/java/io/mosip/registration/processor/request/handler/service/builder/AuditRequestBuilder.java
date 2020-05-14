@@ -2,7 +2,7 @@ package io.mosip.registration.processor.request.handler.service.builder;
 
 import java.time.LocalDateTime;
 
-import io.mosip.registration.packetmananger.dto.AuditDto;
+import io.mosip.kernel.packetmanager.dto.AuditDto;
 import org.springframework.stereotype.Service;
 
 import io.mosip.registration.processor.rest.client.audit.dto.AuditRequestDto;

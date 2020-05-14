@@ -7,6 +7,10 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.HMACUtils;
 import io.mosip.kernel.core.virusscanner.exception.VirusScannerException;
 import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
+import io.mosip.kernel.packetmanager.spi.PacketDecryptor;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.EventId;
@@ -20,7 +24,6 @@ import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.JschConnectionException;
-import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.SftpFileOperationException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
@@ -33,9 +36,6 @@ import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil
 import io.mosip.registration.processor.packet.uploader.archiver.util.PacketArchiver;
 import io.mosip.registration.processor.packet.uploader.exception.PacketNotFoundException;
 import io.mosip.registration.processor.packet.uploader.service.PacketUploaderService;
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
-import io.mosip.registration.processor.packet.utility.service.PacketDecryptor;
-import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -377,7 +377,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
      * @throws PacketDecryptionFailureException
      */
     private boolean scanFile(final byte[] inputStream, String registrationId, InternalRegistrationStatusDto dto,
-                             LogDescription description) throws IOException, PacketDecryptionFailureException, ApiNotAccessibleException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+                             LogDescription description) throws IOException, ApiNotAccessibleException, PacketDecryptionFailureException {
         boolean isInputFileClean = false;
         try {
             // scanning the top level packet

@@ -17,7 +17,7 @@ import java.util.Set;
 
 import javax.jms.Message;
 
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.activemq.util.ByteSequence;
 import org.json.simple.JSONObject;
@@ -663,7 +663,7 @@ public class PrintStageTest {
 	@Test
 	public void testPrintStageSuccessForRes_Reprint() throws PacketDecryptionFailureException,
 			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		FieldValue fieldValue = new FieldValue();
 		FieldValue fieldValue1 = new FieldValue();
 		fieldValue1.setLabel("vid");
@@ -691,7 +691,7 @@ public class PrintStageTest {
 	@Test
 	public void testPrintStageSuccessForRes_ReprintUIN() throws PacketDecryptionFailureException,
 			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		FieldValue fieldValue = new FieldValue();
 		FieldValue fieldValue1 = new FieldValue();
 		fieldValue1.setLabel("vid");
