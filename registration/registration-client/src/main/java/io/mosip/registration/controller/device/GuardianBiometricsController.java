@@ -606,10 +606,10 @@ public class GuardianBiometricsController extends BaseController implements Init
 				headerText = RegistrationUIConstants.FINGERPRINT;
 				bioType = RegistrationConstants.FINGERPRINT_SLAB_THUMBS;
 				fingerException = thumbsexceptionList;
-			} else if (biometricType.getText().contains(applicationLabelBundle.getString(RegistrationConstants.FINGERPRINT_SLAB_RIGHT))) {
+			} else if (biometricType.getText().contains(applicationLabelBundle.getString(RegistrationConstants.IRIS_DOUBLE))) {
 				headerText = RegistrationUIConstants.IRIS_SCAN;
 				bioType = RegistrationConstants.IRIS_DOUBLE;
-			} else if (biometricType.getText().contains(applicationLabelBundle.getString(RegistrationConstants.FINGERPRINT_SLAB_RIGHT))) {
+			} else if (biometricType.getText().contains(applicationLabelBundle.getString(RegistrationConstants.FACE))) {
 				headerText = RegistrationUIConstants.PHOTO;
 				bioType = RegistrationConstants.FACE;
 			}
