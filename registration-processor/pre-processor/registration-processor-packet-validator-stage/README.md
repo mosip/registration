@@ -31,4 +31,4 @@ registration.processor.applicant.type=ApplicantType_Document_Mapping.json
 4. Internal Checksum Validation : Matching of checksum received by client with the checksum calculated inside registration-processor.
 5. Document Validation : Validation of Documents present in packet_meta_info in correspondance to the value of field 'registration.processor.document.category'.
 
-Note: All these validations can be turned on/off by changing appropriate keys in config server as true/false.
+Note: All these validations can be turned on/off by changing appropriate keys in config server as true/false.  
