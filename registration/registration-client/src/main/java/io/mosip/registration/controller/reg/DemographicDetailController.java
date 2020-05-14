@@ -824,6 +824,7 @@ public class DemographicDetailController extends BaseController {
 	}
 
 	private void addDemoGraphicDetailsToSession() {
+		try {
 		RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 		for (UiSchemaDTO schemaField : validation.getValidationMap().values()) {
 			if(schemaField.getControlType() == null)
@@ -836,7 +837,7 @@ public class DemographicDetailController extends BaseController {
 					ComboBox<GenericDto> localField = listOfComboBoxWithObject.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE);					
 					registrationDTO.addDemographicField(schemaField.getId(), 
 							applicationContext.getApplicationLanguage(), platformField.getValue().getName(),
-							applicationContext.getLocalLanguage(), localField == null ? null : localField.getValue().getName());
+							applicationContext.getLocalLanguage(), localField == null ? null : localField.getValue()!=null?localField.getValue().getName():null);
 				}
 				else {
 					TextField platformField = listOfTextField.get(schemaField.getId());
@@ -860,6 +861,9 @@ public class DemographicDetailController extends BaseController {
 			default:
 				break;
 			}			
+		}
+		}catch(Exception exception) {
+			exception.printStackTrace();
 		}
 	}
 
@@ -907,7 +911,7 @@ public class DemographicDetailController extends BaseController {
 
 			addDemoGraphicDetailsToSession();
 
-//			Map<String, Object> demographics = registrationDTO.getDemographics();
+			Map<String, Object> demographics = registrationDTO.getDemographics();
 
 			/*if (isChild) {
 				osiDataDTO.setIntroducerType(IntroducerType.PARENT.getCode());
