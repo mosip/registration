@@ -57,6 +57,7 @@ public class ClientJarEncryption {
 	private static final String MOSIP_BIN = "bin";
 	private static final String MOSIP_SERVICES = "mosip-services.jar";
 	private static final String MOSIP_CLIENT = "mosip-client.jar";
+	private static final String MOSIP_PACKET_MANAGER = "mosip-packet-manager.jar";
 	private static final String MOSIP_CER = "cer";
 
 	private static final String MOSIP_JRE = "jre";
@@ -174,8 +175,10 @@ public class ClientJarEncryption {
 							String regpath = files.getParentFile().getAbsolutePath() + SLASH;
 							if (files.getName().contains("client")) {
 								regpath += MOSIP_CLIENT;
-							} else {
+							} else if (files.getName().contains("services")){
 								regpath += MOSIP_SERVICES;
+							} else if (files.getName().contains("packetmanager")) {
+								regpath += MOSIP_PACKET_MANAGER;
 							}
 							byte[] encryptedRegFileBytes = aes.encyrpt(FileUtils.readFileToByteArray(files),
 									Base64.getDecoder().decode(args[1].getBytes()));

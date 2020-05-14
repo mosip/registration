@@ -69,6 +69,7 @@ public class ClientJarDecryption extends Application {
 	private static final String AES_ALGORITHM = "AES";
 	private static final String MOSIP_CLIENT = "mosip-client.jar";
 	private static final String MOSIP_SERVICES = "mosip-services.jar";
+	private static final String MOSIP_PACKET_MANAGER = "mosip-packet-manager.jar";
 	private static String libFolder = "lib/";
 	private static String binFolder = "bin/";
 	private static final String MOSIP_REGISTRATION_DB_KEY = "mosip.reg.db.key";
@@ -120,7 +121,7 @@ public class ClientJarDecryption extends Application {
 		// Generate AES Session Key
 		SecretKey symmetricKey = new SecretKeySpec(encodedString, AES_ALGORITHM);
 
-		return symmetricDecrypt(symmetricKey, data,null);
+		return symmetricDecrypt(symmetricKey, data, null);
 	}
 
 	/**
@@ -247,6 +248,8 @@ public class ClientJarDecryption extends Application {
 
 									File encryptedServicesJar = new File(binFolder + MOSIP_SERVICES);
 
+									File encryptedPacketManagerJar = new File(binFolder + MOSIP_PACKET_MANAGER);
+
 									tempPath = FileUtils.getTempDirectoryPath();
 									tempPath = tempPath + UUID.randomUUID();
 
@@ -276,10 +279,18 @@ public class ClientJarDecryption extends Application {
 										byte[] decryptedRegServiceBytes = aesDecrypt.decrypt(
 												FileUtils.readFileToByteArray(encryptedServicesJar), decryptedKey);
 
-										// Decrypt Services ka
+										// Decrypt Services Jar
 										FileUtils.writeByteArrayToFile(
 												new File(tempPath + SLASH + UUID.randomUUID() + ".jar"),
 												decryptedRegServiceBytes);
+
+										byte[] decryptedPacketManagerBytes = aesDecrypt.decrypt(
+												FileUtils.readFileToByteArray(encryptedPacketManagerJar), decryptedKey);
+
+										// Decrypt Packet manager Jar
+										FileUtils.writeByteArrayToFile(
+												new File(tempPath + SLASH + UUID.randomUUID() + ".jar"),
+												decryptedPacketManagerBytes);
 
 									} catch (RuntimeException | IOException runtimeException) {
 
@@ -321,8 +332,8 @@ public class ClientJarDecryption extends Application {
 
 										updateMessage(LAUNCHING_CLIENT);
 
-//										String libPath = "\"" + new File("lib").getAbsolutePath() + "\"";
-										
+										// String libPath = "\"" + new File("lib").getAbsolutePath() + "\"";
+
 										FileUtils.copyDirectory(new File("lib"), new File(tempPath));
 
 										LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION,
@@ -330,7 +341,7 @@ public class ClientJarDecryption extends Application {
 												"Preparing command to launch the reg-client");
 
 										String cmd = "java" + " -Dfile.encoding=UTF-8" + " -cp " + tempPath + "/*;"
-												 + "/* io.mosip.registration.controller.Initialization";
+												+ "/* io.mosip.registration.controller.Initialization";
 
 										Process process = Runtime.getRuntime().exec(cmd);
 
@@ -570,8 +581,6 @@ public class ClientJarDecryption extends Application {
 		});
 	}
 
-
-
 	private static byte[] symmetricDecrypt(SecretKey key, byte[] data, byte[] aad) {
 		Objects.requireNonNull(key, SecurityExceptionCodeConstant.MOSIP_INVALID_KEY_EXCEPTION.getErrorMessage());
 		CryptoUtils.verifyData(data);
@@ -610,8 +619,6 @@ public class ClientJarDecryption extends Application {
 		}
 		return output;
 	}
-
-
 
 	private static byte[] doFinal(byte[] data, Cipher cipher) {
 		try {
