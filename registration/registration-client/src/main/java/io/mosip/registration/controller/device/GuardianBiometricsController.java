@@ -611,10 +611,10 @@ public class GuardianBiometricsController extends BaseController implements Init
 				fingerException = thumbsexceptionList;
 			} else if (biometricType.getText().contains(RegistrationUIConstants.IRIS)) {
 				headerText = RegistrationUIConstants.IRIS_SCAN;
-				bioType = RegistrationUIConstants.IRIS;
+				bioType = RegistrationConstants.IRIS_DOUBLE;
 			} else if (biometricType.getText().contains(RegistrationUIConstants.FACE)) {
 				headerText = RegistrationUIConstants.FACE;
-				bioType = RegistrationUIConstants.FACE;
+				bioType = RegistrationConstants.FACE;
 			}
 
 			scanPopUpViewController.init(this, headerText);
