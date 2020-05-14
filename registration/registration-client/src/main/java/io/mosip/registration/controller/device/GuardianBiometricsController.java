@@ -595,23 +595,26 @@ public class GuardianBiometricsController extends BaseController implements Init
 		} else {
 			String headerText = "";
 			String bioType = "";
-			if (biometricType.getText().equalsIgnoreCase(RegistrationUIConstants.RIGHT_SLAP)) {
+			if (biometricType.getText().equalsIgnoreCase(RegistrationUIConstants.FINGERPRINT_SLAB_RIGHT)) {
 				headerText = RegistrationUIConstants.FINGERPRINT;
 				bioType = RegistrationConstants.FINGERPRINT_SLAB_RIGHT;
 				fingerException = rightSlapexceptionList;
 
-			} else if (biometricType.getText().equalsIgnoreCase(RegistrationUIConstants.LEFT_SLAP)) {
+			} else if (biometricType.getText().equalsIgnoreCase(RegistrationUIConstants.FINGERPRINT_SLAB_LEFT)) {
 				headerText = RegistrationUIConstants.FINGERPRINT;
 				bioType = RegistrationConstants.FINGERPRINT_SLAB_LEFT;
 				fingerException = leftSlapexceptionList;
-			} else if (biometricType.getText().equalsIgnoreCase(RegistrationUIConstants.THUMBS)) {
+			} else if (biometricType.getText().equalsIgnoreCase(RegistrationUIConstants.FINGERPRINT_SLAB_THUMBS)) {
 				SessionContext.map().put("CAPTURE_EXCEPTION", thumbsexceptionList);
 				headerText = RegistrationUIConstants.FINGERPRINT;
 				bioType = RegistrationConstants.FINGERPRINT_SLAB_THUMBS;
 				fingerException = thumbsexceptionList;
-			} else if (biometricType.getText().contains(RegistrationConstants.IRIS_LOWERCASE)) {
+			} else if (biometricType.getText().contains(RegistrationUIConstants.IRIS)) {
 				headerText = RegistrationUIConstants.IRIS_SCAN;
-				bioType = "IRIS_DOUBLE";
+				bioType = RegistrationUIConstants.IRIS;
+			} else if (biometricType.getText().contains(RegistrationUIConstants.FACE)) {
+				headerText = RegistrationUIConstants.FACE;
+				bioType = RegistrationUIConstants.FACE;
 			}
 
 			scanPopUpViewController.init(this, headerText);

@@ -509,8 +509,9 @@ public class BioServiceImpl extends BaseService implements BioService {
 	@Override
 	public boolean isMdmEnabled() {
 
-		return RegistrationConstants.ENABLE
-				.equalsIgnoreCase(((String) ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
+//		return RegistrationConstants.ENABLE
+//				.equalsIgnoreCase(((String) ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
+		return false;
 	}
 
 	/*
@@ -1500,12 +1501,11 @@ public class BioServiceImpl extends BaseService implements BioService {
 		
 		CaptureResponseDto captureResponseDto = mosipBioDeviceManager.scanModality(mdmRequestDto);		
 		if (captureResponseDto == null)
-			throw new RegBaseCheckedException(MDMError.MDM_REQUEST_FAILED.getErrorCode(), 
-					MDMError.MDM_REQUEST_FAILED.getErrorMessage());
-		
-		if (captureResponseDto.getError() != null)
+			throw new RegBaseCheckedException("202", "Decice is not available");
+		if (captureResponseDto.getError().getErrorCode().matches("102|101|202|403|404|409"))
 			throw new RegBaseCheckedException(captureResponseDto.getError().getErrorCode(),
 					captureResponseDto.getError().getErrorInfo());
+
 		
 		List<BiometricsDto> list = new ArrayList<BiometricsDto>();
 		Map<String, String> storedScores = new HashMap<String, String>();

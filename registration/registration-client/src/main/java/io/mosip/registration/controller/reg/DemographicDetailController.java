@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -32,7 +31,6 @@ import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.AuditEvent;
 import io.mosip.registration.constants.AuditReferenceIdTypes;
 import io.mosip.registration.constants.Components;
-import io.mosip.registration.constants.IntroducerType;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.ApplicationContext;
@@ -45,8 +43,6 @@ import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dto.OSIDataDTO;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
-import io.mosip.registration.dto.biometric.FaceDetailsDTO;
-import io.mosip.registration.dto.demographic.ValuesDTO;
 import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.mastersync.LocationDto;
 import io.mosip.registration.entity.Location;
@@ -296,9 +292,7 @@ public class DemographicDetailController extends BaseController {
 
 		gridPane.addColumn(2, secondary);
 
-		gridPane.setId(schemaDTO.getId());
-
-		gridPane.setId(schemaDTO.getId());
+		gridPane.setId(schemaDTO.getId()+"ParenetGridPane");
 
 		return gridPane;
 	}
@@ -503,14 +497,16 @@ public class DemographicDetailController extends BaseController {
 		dateValidation.validateYear(parentFlowPane, dd, mm, yyyy, validation, fxUtils, ageField, null,
 				dobMessage);
 
+		vB.setDisable(languageType.equals(RegistrationConstants.LOCAL_LANGUAGE));
+		
 		return vB;
 	}
 	
 	@Autowired
 	ResourceLoader resourceLoader;
 
-	public VBox addContentWithTextField(UiSchemaDTO schema, String fieldName, String languageType) {
 
+	public VBox addContentWithTextField(UiSchemaDTO schema, String fieldName, String languageType) {
 		TextField field = new TextField();
 		Label label = new Label();
 		Label validationMessage = new Label();
@@ -1061,7 +1057,7 @@ public class DemographicDetailController extends BaseController {
 			listOfTextField.get(node.getId() + "LocalLanguage").requestFocus();
 			keyboardNode.setVisible(true);
 			keyboardNode.setManaged(true);
-			addKeyboard(positionTracker.get((node.getId())) + 1);
+			addKeyboard(positionTracker.get((node.getId()+"ParenetGridPane")) + 1);
 
 		} catch (RuntimeException runtimeException) {
 			LOGGER.error("REGISTRATION - SETTING FOCUS ON LOCAL FIELD FAILED", APPLICATION_NAME,
