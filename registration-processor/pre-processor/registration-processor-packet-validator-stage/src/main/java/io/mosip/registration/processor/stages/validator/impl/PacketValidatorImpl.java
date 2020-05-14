@@ -16,15 +16,12 @@ import org.springframework.core.env.Environment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.mosip.kernel.core.exception.BaseCheckedException;
-import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.idobjectvalidator.constant.IdObjectValidatorSupportedOperations;
 import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectIOException;
 import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectValidationFailedException;
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
-import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.PacketFiles;
@@ -32,7 +29,6 @@ import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.Identity;
@@ -40,7 +36,6 @@ import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
 import io.mosip.registration.processor.core.packet.dto.applicantcategory.ApplicantTypeDocument;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
-import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.IdentityIteratorUtil;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
@@ -59,7 +54,6 @@ import io.mosip.registration.processor.stages.utils.IdObjectsSchemaValidationOpe
 import io.mosip.registration.processor.stages.utils.MandatoryValidation;
 import io.mosip.registration.processor.stages.utils.MasterDataValidation;
 import io.mosip.registration.processor.stages.validator.PacketValidator;
-import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
@@ -140,7 +134,7 @@ public class PacketValidatorImpl implements PacketValidator{
 		boolean isvalidated=true;
 		try {
 			if (!fileValidation(packetMetaInfo, registrationStatusDto, packetValidationDto)) {
-				isvalidated= false;
+				return false;
 			}
 
 		Identity identity = packetMetaInfo.getIdentity();
@@ -152,15 +146,15 @@ public class PacketValidatorImpl implements PacketValidator{
 		JSONObject idObject = mapper.readValue(bytearray, JSONObject.class);
 
 		if (!schemaValidation(idObject, registrationStatusDto, packetValidationDto)) {
-			isvalidated= false;
+			return false;
 		}
 
 		if (!checkSumValidation(identity, registrationStatusDto, packetValidationDto))
-			isvalidated= false;
+			return false;
 		
 		demographicIdentity = utility.getDemographicIdentityJSONObject(registrationId);
 		if (!individualBiometricsValidation(registrationStatusDto, demographicIdentity, packetValidationDto))
-			isvalidated= false;
+			return false;
 
 		List<FieldValue> metadataList = identity.getMetaData();
 		if (object.getReg_type().toString().equalsIgnoreCase(RegistrationType.UPDATE.toString())
@@ -181,11 +175,11 @@ public class PacketValidatorImpl implements PacketValidator{
 		}
 		if (!applicantDocumentValidation(jsonString, registrationId, packetValidationDto)) {
 			packetValidationDto.setPacketValidaionFailure(" applicant document validation failed ");
-			isvalidated= false;
+			return false;
 		}
 		if (!masterDataValidation(jsonString, packetValidationDto)) {
 			packetValidationDto.setPacketValidaionFailure(" master data validation failed ");
-			isvalidated= false;
+			return false;
 		}
 		// check if uin is in idrepisitory
 		if (RegistrationType.UPDATE.name().equalsIgnoreCase(object.getReg_type().name())
@@ -193,14 +187,14 @@ public class PacketValidatorImpl implements PacketValidator{
 
 			if (!uinPresentInIdRepo(String.valueOf(uin))) {
 				packetValidationDto.setPacketValidaionFailure(StatusUtil.UIN_NOT_FOUND_IDREPO.getMessage());
-				isvalidated= false;
+				return false;
 			}
 		}
 
 		if (RegistrationType.NEW.name().equalsIgnoreCase(registrationStatusDto.getRegistrationType())
 				&& !mandatoryValidation(registrationStatusDto, packetValidationDto)) {
 			packetValidationDto.setPacketValidaionFailure(StatusUtil.MANDATORY_VALIDATION_FAILED.getMessage());
-			isvalidated= false;
+			return false;
 		}
 		// Check RegId & regType are same or not From PacketMetaInfo by comparing with
 				// Sync list table
