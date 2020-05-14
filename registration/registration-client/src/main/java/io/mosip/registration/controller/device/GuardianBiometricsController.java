@@ -592,25 +592,25 @@ public class GuardianBiometricsController extends BaseController implements Init
 		} else {
 			String headerText = "";
 			String bioType = "";
-			if (biometricType.getText().equalsIgnoreCase(RegistrationUIConstants.FINGERPRINT_SLAB_RIGHT)) {
+			if (biometricType.getText().equalsIgnoreCase(applicationLabelBundle.getString(RegistrationConstants.FINGERPRINT_SLAB_RIGHT))) {
 				headerText = RegistrationUIConstants.FINGERPRINT;
 				bioType = RegistrationConstants.FINGERPRINT_SLAB_RIGHT;
 				fingerException = rightSlapexceptionList;
 
-			} else if (biometricType.getText().equalsIgnoreCase(RegistrationUIConstants.FINGERPRINT_SLAB_LEFT)) {
+			} else if (biometricType.getText().equalsIgnoreCase(applicationLabelBundle.getString(RegistrationConstants.FINGERPRINT_SLAB_LEFT))) {
 				headerText = RegistrationUIConstants.FINGERPRINT;
 				bioType = RegistrationConstants.FINGERPRINT_SLAB_LEFT;
 				fingerException = leftSlapexceptionList;
-			} else if (biometricType.getText().equalsIgnoreCase(RegistrationUIConstants.FINGERPRINT_SLAB_THUMBS)) {
+			} else if (biometricType.getText().equalsIgnoreCase(applicationLabelBundle.getString(RegistrationConstants.FINGERPRINT_SLAB_THUMBS))) {
 				SessionContext.map().put("CAPTURE_EXCEPTION", thumbsexceptionList);
 				headerText = RegistrationUIConstants.FINGERPRINT;
 				bioType = RegistrationConstants.FINGERPRINT_SLAB_THUMBS;
 				fingerException = thumbsexceptionList;
-			} else if (biometricType.getText().contains(RegistrationUIConstants.IRIS)) {
+			} else if (biometricType.getText().contains(applicationLabelBundle.getString(RegistrationConstants.FINGERPRINT_SLAB_RIGHT))) {
 				headerText = RegistrationUIConstants.IRIS_SCAN;
 				bioType = RegistrationConstants.IRIS_DOUBLE;
-			} else if (biometricType.getText().contains(RegistrationUIConstants.FACE)) {
-				headerText = RegistrationUIConstants.FACE;
+			} else if (biometricType.getText().contains(applicationLabelBundle.getString(RegistrationConstants.FINGERPRINT_SLAB_RIGHT))) {
+				headerText = RegistrationUIConstants.PHOTO;
 				bioType = RegistrationConstants.FACE;
 			}
 

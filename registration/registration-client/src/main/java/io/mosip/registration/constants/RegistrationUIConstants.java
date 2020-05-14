@@ -410,12 +410,5 @@ public class RegistrationUIConstants {
 	public static final String BIOMETRIC_CAPTURE_SUCCESS = bundle.getString("BIOMETRIC_CAPTURE_SUCCESS");
 	public static final String BIOMETRIC_CAPTURE_FAILURE = bundle.getString("BIOMETRIC_CAPTURE_FAILURE");
 
-
-	public static final String FINGERPRINT_SLAB_RIGHT = bundle.getString("FINGERPRINT_SLAB_RIGHT");
-	public static final String FINGERPRINT_SLAB_LEFT = bundle.getString("FINGERPRINT_SLAB_LEFT");
-	public static final String FINGERPRINT_SLAB_THUMBS = bundle.getString("FINGERPRINT_SLAB_THUMBS");
-	public static final String IRIS = bundle.getString("DOUBLE_IRIS");
-	public static final String FACE = bundle.getString("FACE");
-	
 	
 }
