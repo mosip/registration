@@ -14,8 +14,11 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
+import io.mosip.kernel.packetmanager.spi.PacketDecryptor;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -58,9 +61,7 @@ import io.mosip.registration.processor.packet.manager.dto.DirectoryPathDto;
 import io.mosip.registration.processor.packet.uploader.exception.PacketNotFoundException;
 import io.mosip.registration.processor.packet.uploader.service.PacketUploaderService;
 import io.mosip.registration.processor.packet.uploader.service.impl.PacketUploaderServiceImpl;
-import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
-import io.mosip.registration.processor.packet.utility.service.PacketDecryptor;
-import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
+
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -276,7 +277,7 @@ public class PacketUploaderServiceTest {
 
 	@Test
 	public void testIOException() throws JschConnectionException, SftpFileOperationException,
-			IOException, PacketDecryptionFailureException, ApiNotAccessibleException, io.mosip.registration.processor.core.exception.PacketDecryptionFailureException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			IOException, PacketDecryptionFailureException, ApiNotAccessibleException, io.mosip.registration.processor.core.exception.PacketDecryptionFailureException, io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
 		ReflectionTestUtils.setField(packetuploaderservice, "maxRetryCount", 3);
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
 		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(enrypteddata);
@@ -344,7 +345,7 @@ public class PacketUploaderServiceTest {
 	}
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testScannerServiceAPIResourceException() throws JschConnectionException, SftpFileOperationException, PacketDecryptionFailureException, ApiNotAccessibleException, io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+	public void testScannerServiceAPIResourceException() throws JschConnectionException, SftpFileOperationException, PacketDecryptionFailureException, ApiNotAccessibleException, io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
 		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(enrypteddata);
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class)))

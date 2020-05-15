@@ -14,8 +14,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
-import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -62,8 +64,6 @@ import io.mosip.registration.processor.packet.storage.exception.IdentityNotFound
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.exception.QueueConnectionNotFound;
 import io.mosip.registration.processor.packet.storage.exception.VidCreationException;
-import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
-import io.mosip.registration.processor.packet.utility.utils.IdSchemaUtils;
 import io.mosip.registration.processor.status.dao.RegistrationStatusDao;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
@@ -240,10 +240,9 @@ public class Utilities {
 	 * @throws PacketDecryptionFailureException
 	 *             the packet decryption failure exception
 	 * @throws RegistrationProcessorCheckedException 
-	 * @throws io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException 
 	 */
 	public int getApplicantAge(String registrationId) throws IOException, ApisResourceAccessException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException, ApiNotAccessibleException {
+            PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException, ApiNotAccessibleException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "Utilities::getApplicantAge()::entry");
 
@@ -472,7 +471,6 @@ public class Utilities {
 	 * @throws ApisResourceAccessException
 	 *             the apis resource access exception
 	 * @throws RegistrationProcessorCheckedException 
-	 * @throws io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException 
 	 */
 	public Long getUIn(String registrationId) throws IOException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException, PacketDecryptionFailureException {
@@ -611,7 +609,6 @@ public class Utilities {
 	 *             Signals that an I/O exception has occurred.
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
-	 * @throws io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException 
 	 */
 	public PacketMetaInfo getPacketMetaInfo(String registrationId) throws ApiNotAccessibleException, 
 			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException, PacketDecryptionFailureException {
@@ -638,7 +635,6 @@ public class Utilities {
 	 * @throws ApisResourceAccessException
 	 *             the apis resource access exception
 	 * @throws RegistrationProcessorCheckedException 
-	 * @throws io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException 
 	 */
 	public List<Documents> getAllDocumentsByRegId(String regId) throws IOException, PacketDecryptionFailureException,
 			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
@@ -706,7 +702,6 @@ public class Utilities {
 	 * @throws ApisResourceAccessException
 	 *             the apis resource access exception
 	 * @throws RegistrationProcessorCheckedException 
-	 * @throws io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException 
 	 */
 	private Documents getIdDocumnet(String registrationId, String folderPath, JSONObject idDocObj, String idDocLabel)
 			throws IOException, PacketDecryptionFailureException, ApiNotAccessibleException,
@@ -931,7 +926,6 @@ public class Utilities {
 	 *             the packet decryption failure exception
 	 * @throws ApisResourceAccessException
 	 *             the apis resource access exception
-	 * @throws io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException 
 	 */
 	public JSONObject getDemographicIdentityJSONObject(String registrationId,String fieldLabel) throws io.mosip.kernel.core.exception.IOException, IOException, ApiNotAccessibleException, PacketDecryptionFailureException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),

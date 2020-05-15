@@ -22,7 +22,7 @@
 		<module>registration-processor-external-stage</module>
 		<module>registration-processor-external-integration-service</module>
 		<module>registration-processor-quality-checker-stage</module>
-		<!--<module>registration-processor-request-handler-service</module>-->
+		<module>registration-processor-request-handler-service</module>
         <module>registration-processor-securezone-notification-stage</module>
     </modules>
 </project>

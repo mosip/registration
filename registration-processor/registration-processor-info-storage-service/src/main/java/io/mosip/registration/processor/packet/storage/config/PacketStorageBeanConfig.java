@@ -5,6 +5,8 @@ import java.security.PublicKey;
 
 import javax.crypto.SecretKey;
 
+import io.mosip.kernel.packetmanager.impl.PacketReaderServiceImpl;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -27,8 +29,6 @@ import io.mosip.registration.processor.packet.storage.service.impl.PacketInfoMan
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
-import io.mosip.registration.processor.packet.utility.service.impl.PacketReaderServiceImpl;
 
 @Configuration
 @PropertySource("classpath:bootstrap.properties")

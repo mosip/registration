@@ -10,7 +10,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.json.simple.JSONArray;
@@ -33,7 +34,6 @@ import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.TemplateProcessingFailureException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -141,9 +141,7 @@ public class MessageNotificationServiceImpl
 	@Override
 	public SmsResponseDto sendSmsNotification(String templateTypeCode, String id, IdType idType,
 			Map<String, Object> attributes, String regType) throws ApisResourceAccessException, IOException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException,
-			RegistrationProcessorCheckedException {
+			io.mosip.kernel.core.exception.IOException, PacketDecryptionFailureException {
 		SmsResponseDto response;
 		SmsRequestDto smsDto = new SmsRequestDto();
 		RequestWrapper<SmsRequestDto> requestWrapper = new RequestWrapper<>();
@@ -323,15 +321,14 @@ public class MessageNotificationServiceImpl
 	 * @throws ApisResourceAccessException
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
-	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
+	 * @throws                                       PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
 	 * @throws IdRepoAppException
 	 */
 	private Map<String, Object> setAttributes(String id, IdType idType, Map<String, Object> attributes, String regType,
 			StringBuilder phoneNumber, StringBuilder emailId) throws IOException, ApisResourceAccessException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+			ApiNotAccessibleException {
 
 		Long uin = 0l;
 		if (idType.toString().equalsIgnoreCase(UIN)) {
@@ -479,9 +476,8 @@ public class MessageNotificationServiceImpl
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> setAttributesFromIdJson(String id, Map<String, Object> attribute,
 			String regType, StringBuilder phoneNumber, StringBuilder emailId)
-			throws IOException, RegistrationProcessorCheckedException, PacketDecryptionFailureException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+			throws IOException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
 
 		String mapperJsonString = Utilities.getJson(utility.getConfigServerFileStorageURL(),
 				utility.getGetRegProcessorIdentityJson());

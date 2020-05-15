@@ -50,7 +50,6 @@ import io.mosip.registration.processor.request.handler.service.dto.PacketGenerat
 import io.mosip.registration.processor.request.handler.service.dto.RegistrationDTO;
 import io.mosip.registration.processor.request.handler.service.dto.UinCardRePrintRequestDto;
 import io.mosip.registration.processor.request.handler.service.dto.demographic.DemographicDTO;
-import io.mosip.registration.processor.request.handler.service.dto.demographic.DemographicInfoDTO;
 import io.mosip.registration.processor.request.handler.service.exception.RegBaseCheckedException;
 import io.mosip.registration.processor.request.handler.service.exception.VidCreationException;
 import io.mosip.registration.processor.request.handler.upload.SyncUploadEncryptionService;
@@ -301,7 +300,6 @@ public class UinCardRePrintServiceImpl {
 	 */
 	private DemographicDTO getDemographicDTO(String uin) throws IOException {
 		DemographicDTO demographicDTO = new DemographicDTO();
-		DemographicInfoDTO demographicInfoDTO = new DemographicInfoDTO();
 		JSONObject jsonObject = new JSONObject();
 
 		JSONObject regProcessorIdentityJson = utilities.getRegistrationProcessorMappingJson();
@@ -315,8 +313,7 @@ public class UinCardRePrintServiceImpl {
 
 		jsonObject.put(schemaVersion, 1.0);
 		jsonObject.put(uinLabel, new BigInteger(uin));
-		demographicInfoDTO.setIdentity(jsonObject);
-		demographicDTO.setDemographicInfoDTO(demographicInfoDTO);
+		demographicDTO.setIdentity(jsonObject);
 		return demographicDTO;
 	}
 

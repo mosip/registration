@@ -7,6 +7,8 @@ import java.util.Collections;
 
 import javax.annotation.PostConstruct;
 
+import io.mosip.kernel.packetmanager.impl.PacketReaderServiceImpl;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,8 +22,7 @@ import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectValidationFailed
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.core.packet.dto.applicantcategory.ApplicantTypeDocument;
-import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
-import io.mosip.registration.processor.packet.utility.service.impl.PacketReaderServiceImpl;
+
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.stages.helper.RestHelper;
 import io.mosip.registration.processor.stages.helper.RestHelperImpl;

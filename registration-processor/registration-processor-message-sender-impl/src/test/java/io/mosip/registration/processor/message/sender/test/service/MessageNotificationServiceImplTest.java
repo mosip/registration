@@ -14,7 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -232,14 +232,14 @@ public class MessageNotificationServiceImplTest {
 	 *                                               has occurred.
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
-	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
+	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testSendSmsNotificationSuccess() throws ApisResourceAccessException, IOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException,
 			RegistrationProcessorCheckedException {
 		ResponseWrapper<SmsResponseDto> wrapper = new ResponseWrapper<>();
 		smsResponseDto = new SmsResponseDto();
@@ -261,7 +261,7 @@ public class MessageNotificationServiceImplTest {
 	@Test
 	public void testUINTypeMessage() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
 			io.mosip.kernel.core.exception.IOException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException,
 			RegistrationProcessorCheckedException {
 		ResponseWrapper<SmsResponseDto> wrapper = new ResponseWrapper<>();
 		smsResponseDto = new SmsResponseDto();
@@ -316,13 +316,13 @@ public class MessageNotificationServiceImplTest {
 	 *                                               has occurred.
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
-	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
+	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
 	 */
 	@Test(expected = PhoneNumberNotFoundException.class)
 	public void testPhoneNumberNotFoundException() throws ApisResourceAccessException, IOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException,
 			RegistrationProcessorCheckedException, ApiNotAccessibleException {
 		ClassLoader classLoader = getClass().getClassLoader();
 		File demographicJsonFile = new File(classLoader.getResource("ID2.json").getFile());
@@ -366,13 +366,13 @@ public class MessageNotificationServiceImplTest {
 	 *                                               exception
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
-	 * @throws                                       io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException
+	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
 	 */
 	@Test(expected = TemplateGenerationFailedException.class)
 	public void testTemplateGenerationFailedException() throws IOException, ApisResourceAccessException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException,
 			RegistrationProcessorCheckedException {
 		Mockito.when(templateGenerator.getTemplate("RPR_UIN_GEN_SMS", attributes, "eng"))
 				.thenThrow(new TemplateNotFoundException());

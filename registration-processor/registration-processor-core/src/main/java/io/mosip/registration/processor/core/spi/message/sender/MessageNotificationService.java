@@ -35,8 +35,7 @@ public interface MessageNotificationService<T, U, V> {
 	public T sendSmsNotification(String templateTypeCode, String id, IdType idType,
 			Map<String, Object> attributes, String regType) throws ApisResourceAccessException, IOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException,
-			RegistrationProcessorCheckedException;
+			RegistrationProcessorCheckedException, io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 	
 	/**
 	 * Method to send email notification

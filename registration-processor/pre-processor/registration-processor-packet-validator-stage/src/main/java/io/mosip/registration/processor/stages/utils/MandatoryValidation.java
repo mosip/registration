@@ -8,8 +8,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import org.apache.commons.io.IOUtils;
-import org.json.JSONException;
 import org.json.simple.JSONObject;
 
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -21,9 +23,7 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
-import io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException;
-import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
+
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 
 /**
@@ -55,7 +55,7 @@ public class MandatoryValidation {
 		this.source=source;
 	}
 
-	public boolean mandatoryFieldValidation(String regId) throws IOException, JSONException,
+	public boolean mandatoryFieldValidation(String regId) throws IOException,
 			PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"MandatoryValidation::mandatoryFieldValidation()::entry");
@@ -88,7 +88,7 @@ public class MandatoryValidation {
 		return true;
 	}
 
-	private boolean checkEmptyString(Object obj) throws JSONException {
+	private boolean checkEmptyString(Object obj) {
 		ArrayList<HashMap> objArray;
 		if (obj instanceof String)
 			return ((String) obj).trim().isEmpty() ? true : false;

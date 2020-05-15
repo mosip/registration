@@ -20,7 +20,7 @@ public class BioDedupeApplication {
 				"io.mosip.registration.processor.packet.storage.config",
 				"io.mosip.registration.processor.core.kernel.beans",
 				"io.mosip.registration.processor.packet.manager.config",
-				"io.mosip.registration.processor.packet.utility.config");
+				"io.mosip.kernel.packetmanager.config");
 
 		configApplicationContext.refresh();
 		BioDedupeStage bioDedupeStage = configApplicationContext.getBean(BioDedupeStage.class);

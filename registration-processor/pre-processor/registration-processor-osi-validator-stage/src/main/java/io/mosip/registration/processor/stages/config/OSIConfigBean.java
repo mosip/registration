@@ -5,6 +5,8 @@ import java.security.PublicKey;
 
 import javax.crypto.SecretKey;
 
+import io.mosip.kernel.packetmanager.impl.PacketReaderServiceImpl;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -13,8 +15,7 @@ import io.mosip.kernel.core.crypto.spi.CryptoCoreSpec;
 import io.mosip.kernel.crypto.jce.core.CryptoCore;
 import io.mosip.kernel.keygenerator.bouncycastle.KeyGenerator;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
-import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
-import io.mosip.registration.processor.packet.utility.service.impl.PacketReaderServiceImpl;
+
 import io.mosip.registration.processor.stages.osivalidator.OSIValidator;
 import io.mosip.registration.processor.stages.osivalidator.OSIValidatorStage;
 import io.mosip.registration.processor.stages.osivalidator.UMCValidator;

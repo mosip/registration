@@ -37,5 +37,4 @@ public interface PacketCreationService {
 	 */
 	byte[] create(RegistrationDTO registrationDTO, String centerId, String machineId) throws RegBaseCheckedException, ParseException, IdObjectValidationFailedException, IdObjectIOException, JsonParseException, JsonMappingException, IOException;
 
-	String getCreationTime();
 }

@@ -17,6 +17,8 @@ import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -70,8 +72,6 @@ import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
-import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -326,7 +326,7 @@ public class BiometricAuthenticationStageTest {
 			io.mosip.kernel.core.exception.IOException, InvalidKeySpecException, NoSuchAlgorithmException,
 			BiometricException, BioTypeException, ParserConfigurationException, SAXException,
 			RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
 		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
 		responseDTO.setAuthStatus(false);
@@ -344,7 +344,7 @@ public class BiometricAuthenticationStageTest {
 	@Test
 	public void childPacketTest() throws ApisResourceAccessException, ApiNotAccessibleException, IOException, PacketDecryptionFailureException,
 			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
 		Mockito.when(regentity.getRegistrationType()).thenReturn("UPDATE");
 		Mockito.when(utility.getApplicantAge(any())).thenReturn(2);
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
@@ -365,7 +365,7 @@ public class BiometricAuthenticationStageTest {
 			io.mosip.kernel.core.exception.IOException, IOException, InvalidKeySpecException, NoSuchAlgorithmException,
 			BiometricException, BioTypeException, ParserConfigurationException, SAXException,
 			RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
 
 		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -384,7 +384,7 @@ public class BiometricAuthenticationStageTest {
 	@Test
 	public void testIOException() throws ApisResourceAccessException, ApiNotAccessibleException, IOException, PacketDecryptionFailureException,
 			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
 
 		Mockito.when(utility.getApplicantAge(any())).thenThrow(new IOException("IOException"));
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
@@ -395,7 +395,7 @@ public class BiometricAuthenticationStageTest {
 	public void testApisResourceAccessException() throws ApisResourceAccessException, ApiNotAccessibleException, IOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
 			RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
 
 		Mockito.when(utility.getApplicantAge(any()))
 				.thenThrow(new ApisResourceAccessException("ApisResourceAccessException"));
@@ -406,11 +406,11 @@ public class BiometricAuthenticationStageTest {
 	@Test
 	public void testException() throws ApisResourceAccessException, ApiNotAccessibleException, IOException, PacketDecryptionFailureException,
 			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
 
 		Mockito.when(utility.getApplicantAge(any()))
 				.thenThrow(
-						new io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException(
+						new io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException(
 								"test message"));
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getInternalError());
@@ -420,7 +420,7 @@ public class BiometricAuthenticationStageTest {
 	@Ignore
 	public void testEmptyJSONObject() throws IOException, PacketDecryptionFailureException, ApisResourceAccessException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
 		HashMap<String, String> hashMap = new HashMap<String, String>();
 
 		hashMap.put("value", "");
@@ -435,7 +435,7 @@ public class BiometricAuthenticationStageTest {
 	public void resupdatePacketTest() throws ApisResourceAccessException, ApiNotAccessibleException, InvalidKeySpecException,
 			NoSuchAlgorithmException, BiometricException, BioTypeException, IOException, ParserConfigurationException,
 			SAXException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
 		FieldValue fieldValue = new FieldValue();
 		FieldValue fieldValue1 = new FieldValue();
 		fieldValue1.setLabel("authenticationBiometricFileName");
@@ -463,7 +463,7 @@ public class BiometricAuthenticationStageTest {
 	public void testNewPacket() throws IOException, PacketDecryptionFailureException, ApisResourceAccessException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException, InvalidKeySpecException, NoSuchAlgorithmException,
 			BiometricException, BioTypeException, ParserConfigurationException, SAXException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
 		FieldValue fieldValue = new FieldValue();
 		FieldValue fieldValue1 = new FieldValue();
 		fieldValue1.setLabel("authenticationBiometricFileName");
@@ -498,7 +498,7 @@ public class BiometricAuthenticationStageTest {
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, InvalidKeySpecException,
 			NoSuchAlgorithmException, BiometricException, BioTypeException, ParserConfigurationException, SAXException,
 			RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
 		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
 		ErrorDTO error=new ErrorDTO();
 		error.setErrorCode("IDA-MLC-007");
@@ -521,7 +521,7 @@ public class BiometricAuthenticationStageTest {
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, InvalidKeySpecException,
 			NoSuchAlgorithmException, BiometricException, BioTypeException, ParserConfigurationException, SAXException,
 			RegistrationProcessorCheckedException,
-			io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException {
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
 		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
 		ErrorDTO error=new ErrorDTO();
 		error.setErrorCode("IDA-MLC-008");

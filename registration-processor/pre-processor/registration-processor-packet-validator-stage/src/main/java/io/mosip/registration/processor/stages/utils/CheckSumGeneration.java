@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -16,8 +18,6 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.FieldValueArray;
-import io.mosip.registration.processor.packet.utility.exception.ApiNotAccessibleException;
-import io.mosip.registration.processor.packet.utility.service.PacketReaderService;
 
 /**
  * The Class CheckSumGeneration.
@@ -62,7 +62,7 @@ public class CheckSumGeneration {
 
 					valuebyte = IOUtils.toByteArray(fileStream);
 					outputStream.write(valuebyte);
-				} catch (IOException | io.mosip.kernel.core.exception.IOException | io.mosip.registration.processor.packet.utility.exception.PacketDecryptionFailureException | ApiNotAccessibleException e) {
+				} catch (IOException | io.mosip.kernel.core.exception.IOException | io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException | ApiNotAccessibleException e) {
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.APPLICATIONID.toString(), StatusMessage.INPUTSTREAM_NOT_READABLE,
 							e.getMessage() + ExceptionUtils.getStackTrace(e));
