@@ -7,6 +7,8 @@ import java.util.List;
 import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
+
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
@@ -93,6 +95,9 @@ public class PacketValidatorImpl implements PacketValidator{
 	
 	@Autowired
 	RegistrationExceptionMapperUtil registrationStatusMapperUtil;
+	
+	@Autowired
+	private IdSchemaUtils idSchemaUtils;
 	
 	@Value("${packet.default.source}")
 	private String source;
@@ -196,10 +201,7 @@ public class PacketValidatorImpl implements PacketValidator{
 			packetValidationDto.setPacketValidaionFailure(StatusUtil.MANDATORY_VALIDATION_FAILED.getMessage());
 			return false;
 		}
-		// Check RegId & regType are same or not From PacketMetaInfo by comparing with
-				// Sync list table
-		isvalidated= validateRegIdAndTypeFromSyncTable(object.getRid(), metadataList, new IdentityIteratorUtil(),
-				packetValidationDto);
+		
 			 
 		} catch (IOException | io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 				| io.mosip.kernel.core.exception.IOException | ApiNotAccessibleException | ApisResourceAccessException |
@@ -309,10 +311,10 @@ public class PacketValidatorImpl implements PacketValidator{
 			packetValidationDto.setApplicantDocumentValidation(true);
 			return packetValidationDto.isApplicantDocumentValidation();
 		}
-		ApplicantDocumentValidation applicantDocumentValidation = new ApplicantDocumentValidation(utility, env,
-				applicantTypeDocument);
+		ApplicantDocumentValidation applicantDocumentValidation = new ApplicantDocumentValidation(utility, idSchemaUtils,
+				packetReaderService);
 		packetValidationDto.setApplicantDocumentValidation(
-				applicantDocumentValidation.validateDocument(registrationId, jsonString));
+				applicantDocumentValidation.validateDocument(registrationId));
 		if (!packetValidationDto.isApplicantDocumentValidation()) {
 			packetValidationDto.setPacketValidaionFailure(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getMessage());
 			packetValidationDto.setPacketValidatonStatusCode(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getCode());
@@ -360,21 +362,5 @@ public class PacketValidatorImpl implements PacketValidator{
 		return packetValidationDto.isMandatoryValidation();
 	}
 	
-	private boolean validateRegIdAndTypeFromSyncTable(String regId, List<FieldValue> metadataList,
-			IdentityIteratorUtil identityIteratorUtil, PacketValidationDto packetValidationDto) {
-		String regType = identityIteratorUtil.getFieldValue(metadataList, JsonConstant.REGISTRATIONTYPE);
-		List<SyncRegistrationEntity> syncRecordList = registrationRepositary.getSyncRecordsByRegIdAndRegType(regId,
-				regType.toUpperCase());
-
-		if (syncRecordList != null && !syncRecordList.isEmpty()) {
-			packetValidationDto.setRIdAndTypeSynched(true);
-			return packetValidationDto.isRIdAndTypeSynched();
-		}
-		packetValidationDto.setPacketValidaionFailure(StatusUtil.RID_AND_TYPE_SYNC_FAILED.getMessage());
-		packetValidationDto.setPacketValidatonStatusCode(StatusUtil.RID_AND_TYPE_SYNC_FAILED.getCode());
-		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), regId,
-				PlatformErrorMessages.RPR_PVM_RECORD_NOT_MATCHED_FROM_SYNC_TABLE.getCode(),
-				PlatformErrorMessages.RPR_PVM_RECORD_NOT_MATCHED_FROM_SYNC_TABLE.getMessage());
-		return packetValidationDto.isRIdAndTypeSynched();
-	}
+	
 }
