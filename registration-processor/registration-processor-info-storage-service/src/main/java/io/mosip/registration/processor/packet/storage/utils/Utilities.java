@@ -14,10 +14,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
-import io.mosip.kernel.packetmanager.spi.PacketReaderService;
-import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -31,8 +27,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
@@ -43,7 +42,6 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorUnCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.idrepo.dto.Documents;
 import io.mosip.registration.processor.core.idrepo.dto.IdRequestDto;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO1;
@@ -620,106 +618,8 @@ public class Utilities {
 		return (PacketMetaInfo) JsonUtil.inputStreamtoJavaObject(packetMetaInfoStream, PacketMetaInfo.class);
 	}
 
-	/**
-	 * Gets the all documents by reg id.
-	 *
-	 * @param regId
-	 *            the reg id
-	 * @return the all documents by reg id
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws PacketDecryptionFailureException
-	 *             the packet decryption failure exception
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws RegistrationProcessorCheckedException
-	 */
-	public List<Documents> getAllDocumentsByRegId(String regId) throws IOException, PacketDecryptionFailureException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				regId, "Utilities::getAllDocumentsByRegId():: entry");
+	
 
-		List<Documents> applicantDocuments = new ArrayList<>();
-		
-		JSONObject regProcessorIdentityJson = getRegistrationProcessorMappingJson();
-		String proofOfAddressLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.POA), VALUE);
-		String proofOfDateOfBirthLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.POB), VALUE);
-		String proofOfIdentityLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.POI), VALUE);
-		String proofOfRelationshipLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.POR), VALUE);
-		String applicantBiometricLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), VALUE);
-
-		JSONObject proofOfAddress = JsonUtil.getJSONObject(getDemographicIdentityJSONObject(regId,proofOfAddressLabel), proofOfAddressLabel);
-		JSONObject proofOfDateOfBirth = JsonUtil.getJSONObject(getDemographicIdentityJSONObject(regId,proofOfDateOfBirthLabel), proofOfDateOfBirthLabel);
-		JSONObject proofOfIdentity = JsonUtil.getJSONObject(getDemographicIdentityJSONObject(regId,proofOfIdentityLabel), proofOfIdentityLabel);
-		JSONObject proofOfRelationship = JsonUtil.getJSONObject(getDemographicIdentityJSONObject(regId,proofOfRelationshipLabel), proofOfRelationshipLabel);
-		JSONObject applicantBiometric = JsonUtil.getJSONObject(getDemographicIdentityJSONObject(regId,applicantBiometricLabel), applicantBiometricLabel);
-		if (proofOfAddress != null) {
-			applicantDocuments
-					.add(getIdDocumnet(regId, PacketFiles.DEMOGRAPHIC.name(), proofOfAddress, proofOfAddressLabel));
-		}
-		if (proofOfDateOfBirth != null) {
-			applicantDocuments.add(
-					getIdDocumnet(regId, PacketFiles.DEMOGRAPHIC.name(), proofOfDateOfBirth, proofOfDateOfBirthLabel));
-		}
-		if (proofOfIdentity != null) {
-			applicantDocuments
-					.add(getIdDocumnet(regId, PacketFiles.DEMOGRAPHIC.name(), proofOfIdentity, proofOfIdentityLabel));
-		}
-		if (proofOfRelationship != null) {
-			applicantDocuments.add(getIdDocumnet(regId, PacketFiles.DEMOGRAPHIC.name(), proofOfRelationship,
-					proofOfRelationshipLabel));
-		}
-		if (applicantBiometric != null) {
-			applicantDocuments.add(
-					getIdDocumnet(regId, PacketFiles.BIOMETRIC.name(), applicantBiometric, applicantBiometricLabel));
-		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				regId, "Utilities::getAllDocumentsByRegId():: exit");
-
-		return applicantDocuments;
-	}
-
-	/**
-	 * Gets the id documnet.
-	 *
-	 * @param registrationId
-	 *            the registration id
-	 * @param folderPath
-	 *            the folder path
-	 * @param idDocObj
-	 *            the id doc obj
-	 * @param idDocLabel
-	 *            the id doc label
-	 * @return the id documnet
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws PacketDecryptionFailureException
-	 *             the packet decryption failure exception
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws RegistrationProcessorCheckedException
-	 */
-	private Documents getIdDocumnet(String registrationId, String folderPath, JSONObject idDocObj, String idDocLabel)
-			throws IOException, PacketDecryptionFailureException, ApiNotAccessibleException,
-			io.mosip.kernel.core.exception.IOException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "Utilities::getIdDocumnet():: entry");
-     
-		Documents documentsInfoDto = new Documents();
-		String source=idSchemaUtils.getSource(idDocLabel);
-		InputStream poiStream = packetReaderService.getFile(registrationId,idDocObj.get("value").toString(),source);
-		documentsInfoDto.setValue(CryptoUtil.encodeBase64(IOUtils.toByteArray(poiStream)));
-		documentsInfoDto.setCategory(idDocLabel);
-		
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "Utilities::getIdDocumnet():: exit");
-
-		return null;
-	}
 
 	/**
 	 * Calculate age.
