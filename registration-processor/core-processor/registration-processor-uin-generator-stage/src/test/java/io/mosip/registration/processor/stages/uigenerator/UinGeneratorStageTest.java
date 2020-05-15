@@ -17,10 +17,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.spi.PacketReaderService;
-import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.json.simple.JSONObject;
@@ -37,14 +33,19 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
 import com.google.gson.Gson;
 
+import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.HMACUtils;
 import io.mosip.kernel.dataaccess.hibernate.constant.HibernateErrorCode;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -81,7 +82,6 @@ import io.mosip.registration.processor.stages.uingenerator.stage.UinGeneratorSta
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
-import org.springframework.test.util.ReflectionTestUtils;
 import io.vertx.core.Vertx;
 
 @RunWith(PowerMockRunner.class)
@@ -1112,8 +1112,12 @@ public class UinGeneratorStageTest {
 		messageDTO.setRid("10031100110005020190313110030");
 		messageDTO.setReg_type(RegistrationType.valueOf("UPDATE"));
 		IdResponseDTO responsedto = new IdResponseDTO();
-		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":4215839851}}";
-		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
+		ClassLoader classLoader1 = getClass().getClassLoader();
+		File idJsonFile2 = new File(classLoader1.getResource("ID2.json").getFile());
+		InputStream idJsonStream2 = new FileInputStream(idJsonFile2);
+
+		File idJsonFile3 = new File(classLoader1.getResource("ID2.json").getFile());
+		InputStream idJsonStream3 = new FileInputStream(idJsonFile3);
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -1126,7 +1130,7 @@ public class UinGeneratorStageTest {
 		idResponseDTO.setVersion("1.0");
 
 		Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
-				PacketFiles.ID.name(), "id")).thenReturn(idJsonStream1);
+				PacketFiles.ID.name(), "id")).thenReturn(idJsonStream2).thenReturn(idJsonStream3);
 		Mockito.when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
 				.thenReturn(responsedto);
 		Mockito.when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
@@ -1367,8 +1371,13 @@ public class UinGeneratorStageTest {
 		messageDTO.setReg_type(RegistrationType.UPDATE);
 
 		IdResponseDTO responsedto = new IdResponseDTO();
-		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":4215839851}}";
-		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
+		ClassLoader classLoader1 = getClass().getClassLoader();
+		File idJsonFile2 = new File(classLoader1.getResource("ID2.json").getFile());
+		InputStream idJsonStream2 = new FileInputStream(idJsonFile2);
+
+		File idJsonFile3 = new File(classLoader1.getResource("ID2.json").getFile());
+		InputStream idJsonStream3 = new FileInputStream(idJsonFile3);
+
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
 		ResponseDTO responseDTO = null;
@@ -1386,7 +1395,7 @@ public class UinGeneratorStageTest {
 		idResponseDTO.setVersion("1.0");
 
 		Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
-				PacketFiles.ID.name(), "id")).thenReturn(idJsonStream1);
+				PacketFiles.ID.name(), "id")).thenReturn(idJsonStream2).thenReturn(idJsonStream3);
 		Mockito.when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
 				.thenReturn(responsedto);
 
