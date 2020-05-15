@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import io.mosip.kernel.packetmanager.spi.PacketReaderService;
-import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +17,8 @@ import org.springframework.stereotype.Service;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import io.mosip.registration.processor.bio.dedupe.exception.ABISAbortException;
 import io.mosip.registration.processor.bio.dedupe.exception.ABISInternalError;
 import io.mosip.registration.processor.bio.dedupe.exception.UnableToServeRequestABISException;
@@ -47,7 +47,6 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
-
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 
 /**
@@ -349,9 +348,12 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 					utility.getDemographicIdentityJSONObject(registrationId, individualBiometricsLabel),
 					individualBiometricsLabel), MappingJsonConstants.VALUE);
 			String source = idSchemaUtils.getSource(individualBiometricsLabel);
+			if (source != null) {
 			InputStream fileInStream = packetReaderService.getFile(registrationId,
 					individualBiometricsFileName.toUpperCase(), source);
-			file = IOUtils.toByteArray(fileInStream);
+				file = IOUtils.toByteArray(fileInStream);
+			}
+
 
 		} catch (UnsupportedEncodingException exp) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
