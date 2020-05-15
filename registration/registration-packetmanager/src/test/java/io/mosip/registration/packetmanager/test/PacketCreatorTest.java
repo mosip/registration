@@ -186,7 +186,7 @@ public class PacketCreatorTest {
 		byte[] packet = packetCreatorImpl.createPacket(registrationId, 1.0, schemaJson, categoryPacketMapping, publicKey.getBytes(), null);
 		assertNotNull(packet);
 		
-		FileUtils.writeByteArrayToFile(new File("/opt/mosip/packets/"+registrationId+".zip"), packet);
+		//FileUtils.writeByteArrayToFile(new File("/opt/mosip/packets/"+registrationId+".zip"), packet);
 	}
 
 }
