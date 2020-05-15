@@ -754,10 +754,10 @@ public class MasterSyncServiceTest {
 		locattion.setParentLocCode("english");
 		locations.add(locattion);
 
-		Mockito.when(masterSyncDao.findLocationByLangCode(Mockito.anyString(), Mockito.anyString()))
+		Mockito.when(masterSyncDao.findLocationByLangCode(Mockito.anyInt(), Mockito.anyString()))
 				.thenReturn(locations);
 
-		masterSyncServiceImpl.findLocationByHierarchyCode("LOC01", "ENG");
+		masterSyncServiceImpl.findLocationByHierarchyCode(1, "ENG");
 
 	}
 

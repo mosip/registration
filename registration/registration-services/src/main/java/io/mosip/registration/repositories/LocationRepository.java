@@ -24,6 +24,17 @@ public interface LocationRepository extends BaseRepository<Location, String> {
 	 */
 	List<Location> findByIsActiveTrueAndHierarchyNameAndLangCode(String hierarchyName, String langCode);
 
+	
+	/**
+	 * Find master location by hierarchy name and language code.
+	 *
+	 * @param hierarchyName the hierarchy name
+	 * @param langCode      the lang code
+	 * @return the list
+	 */
+	List<Location> findByIsActiveTrueAndHierarchyLevelAndLangCode(int hierarchyLevel, String langCode);
+
+	
 	/**
 	 * Find master location by parent loc code.
 	 *

@@ -229,10 +229,10 @@ public class DemographicDetailController extends BaseController {
 				}
 			}
 			
-			addFirstOrderAddress(listOfComboBoxWithObject.get(orderOfAddress.get(0)), orderOfAddress.get(0),
+			addFirstOrderAddress(listOfComboBoxWithObject.get(orderOfAddress.get(0)), 1,
 					applicationContext.getApplicationLanguage());
 			addFirstOrderAddress(listOfComboBoxWithObject.get(orderOfAddress.get(0) + RegistrationConstants.LOCAL_LANGUAGE),
-					orderOfAddress.get(0), applicationContext.getLocalLanguage());
+					1, applicationContext.getLocalLanguage());
 
 			populateDropDowns();		
 			
@@ -788,13 +788,12 @@ public class DemographicDetailController extends BaseController {
 		}
 	}
 
-	private void addFirstOrderAddress(ComboBox<GenericDto> location, String id, String languageType) {
+	private void addFirstOrderAddress(ComboBox<GenericDto> location, int id, String languageType) {
 		if (location != null) {
 			location.getItems().clear();
 			try {
 				List<GenericDto> locations = null;
-				UiSchemaDTO field = validation.getValidationMap().get(id);
-				locations = masterSync.findLocationByHierarchyCode(field.getSubType(), languageType);				
+				locations = masterSync.findLocationByHierarchyCode(id, languageType);				
 				
 				if (locations.isEmpty()) {
 					GenericDto lC = new GenericDto();
