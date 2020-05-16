@@ -30,14 +30,17 @@ import io.mosip.registration.context.ApplicationContext;
 @Configuration
 @ComponentScan(excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = {
 		"io.mosip.kernel.idobjectvalidator.impl.IdObjectCompositeValidator",
-		"io.mosip.kernel.idobjectvalidator.impl.IdObjectMasterDataValidator" }), basePackages = {
+		"io.mosip.kernel.idobjectvalidator.impl.IdObjectMasterDataValidator",
+		"io.mosip.kernel.packetmanager.impl.PacketDecryptorImpl",
+		 "io.mosip.kernel.packetmanager.util.IdSchemaUtils"}), basePackages = {
 				"io.mosip.registration", "io.mosip.kernel.core", 
 				"io.mosip.kernel.idvalidator", "io.mosip.kernel.ridgenerator","io.mosip.kernel.qrcode",
 				"io.mosip.kernel.core.signatureutil", "io.mosip.kernel.crypto", "io.mosip.kernel.jsonvalidator",
 				"io.mosip.kernel.idgenerator", "io.mosip.kernel.virusscanner", "io.mosip.kernel.transliteration",
 				"io.mosip.kernel.applicanttype", "io.mosip.kernel.cbeffutil", "io.mosip.kernel.core.pdfgenerator.spi",
 				"io.mosip.kernel.pdfgenerator.itext.impl", "io.mosip.kernel.cryptosignature",
-				"io.mosip.kernel.core.signatureutil", "io.mosip.kernel.idobjectvalidator.impl" })
+				"io.mosip.kernel.core.signatureutil", "io.mosip.kernel.idobjectvalidator.impl", 
+				"io.mosip.kernel.packetmanager.impl", "io.mosip.kernel.packetmanager.util"})
 public class TestDaoConfig extends HibernateDaoConfig {
 
 	

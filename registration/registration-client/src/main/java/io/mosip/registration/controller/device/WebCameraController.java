@@ -36,7 +36,7 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.mdm.dto.RequestDetail;
-import io.mosip.registration.packetmananger.dto.BiometricsDto;
+import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.service.bio.BioService;
 import javafx.embed.swing.SwingNode;
 import javafx.event.ActionEvent;
