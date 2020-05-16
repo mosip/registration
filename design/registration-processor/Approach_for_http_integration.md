@@ -12,7 +12,7 @@ Technical stack used in Registration Processor gives ability to add or change or
 -	Once MOSIP as a product is released as an open source for anyone to use it, product should have sample code for stages and apache camel DSL xml along with document with the steps to add or remove them.
 
 **Apache Camel Bridge -**
-All the vertx stages in registration process are arranged in a particular sequence using apache camel bridge. Though technically it is possible to add or remove stages in the camel bridge but in some cases this sequece or order can not be altered due to highly dependent activity. For example Packet Receiver, Virous Scanner and Packet Uploader need to work in sequence. 
+All the vertx stages in registration process are arranged in a particular sequence using apache camel bridge. Though technically it is possible to add or remove stages in the camel bridge but in some cases this sequence or order can not be altered due to highly dependent activity. For example Packet Receiver, Virus Scanner and Packet Uploader need to work in sequence. 
 
 **The key non-functional requirements are**
 1.	Addition of a additional HTTP route should be done without updating any existing stages.
