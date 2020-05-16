@@ -9,13 +9,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.dto.OSIDataDTO;
+import io.mosip.registration.dto.RegistrationMetaDataDTO;
 import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
-import io.mosip.registration.packetmananger.dto.AuditDto;
-import io.mosip.registration.packetmananger.dto.BiometricsDto;
-import io.mosip.registration.packetmananger.dto.DocumentDto;
-import io.mosip.registration.packetmananger.dto.SimpleDto;
-import io.mosip.registration.packetmananger.dto.metadata.BiometricsException;
+import io.mosip.kernel.packetmanager.dto.AuditDto;
+import io.mosip.kernel.packetmanager.dto.BiometricsDto;
+import io.mosip.kernel.packetmanager.dto.DocumentDto;
+import io.mosip.kernel.packetmanager.dto.SimpleDto;
+import io.mosip.kernel.packetmanager.dto.metadata.BiometricsException;
 import lombok.Data;
 
 /**
@@ -29,11 +31,12 @@ import lombok.Data;
 @Data
 public class RegistrationDTO {
 	
-	private static final String DATE_FORMAT = "dd/MM/yyyy";
+	private static final String DATE_FORMAT = "yyyy/MM/dd";
 	
 	private double idSchemaVersion;	
 	private String registrationId;
 	private String preRegistrationId;
+	private String registrationCategory;
 	
 	private RegistrationMetaDataDTO registrationMetaDataDTO;
 	private OSIDataDTO osiDataDTO;
@@ -114,13 +117,16 @@ public class RegistrationDTO {
 	
 	public void addBiometric(String subType, String bioAttribute, BiometricsDto value) {
 		String key = String.format("%s_%s", subType, bioAttribute);
+		value.setSubType(subType);
 		this.biometrics.put(key, value);
+		this.biometricExceptions.remove(key);
 	}
 	
 	public void addBiometricException(String subType, String bioAttribute, String reason, String exceptionType) {
 		String key = String.format("%s_%s", subType, bioAttribute);
-		biometricExceptions.put(key, new BiometricsException(null, bioAttribute, reason, exceptionType, 
+		this.biometricExceptions.put(key, new BiometricsException(null, bioAttribute, reason, exceptionType, 
 				subType));
+		this.biometrics.remove(key);
 	}
 	
 	public boolean isBiometricExceptionAvailable(String subType, String bioAttribute) {

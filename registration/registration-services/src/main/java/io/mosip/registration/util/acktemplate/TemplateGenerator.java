@@ -58,7 +58,7 @@ import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
 import io.mosip.registration.dto.demographic.IndividualIdentity;
 import io.mosip.registration.dto.demographic.ValuesDTO;
 import io.mosip.registration.exception.RegBaseUncheckedException;
-import io.mosip.registration.packetmananger.dto.DocumentDto;
+import io.mosip.kernel.packetmanager.dto.DocumentDto;
 import io.mosip.registration.service.BaseService;
 
 /**
@@ -669,7 +669,7 @@ public class TemplateGenerator extends BaseService {
 		if (ApplicationContext.localLanguage().equalsIgnoreCase(ApplicationContext.applicationLanguage())) {
 			return RegistrationConstants.EMPTY;
 		} else {
-			return localProperties.getString(key);
+			return localProperties.containsKey(key) ? localProperties.getString(key) : RegistrationConstants.EMPTY;
 		}
 	}
 
@@ -717,10 +717,11 @@ public class TemplateGenerator extends BaseService {
 		for(String key : registration.getDemographics().keySet()) {
 			String value = getValue(registration.getDemographics().get(key));
 			
-			templateValues.put(key.toUpperCase()+"PrimLabel", applicationLanguageProperties.getString(key.toUpperCase()));
-			templateValues.put(key.toUpperCase()+"SecLabel", getSecondaryLanguageLabel(key.toUpperCase()));
-			templateValues.put(key.toUpperCase(), getValueForTemplate(value, platformLanguageCode));
-			templateValues.put(key.toUpperCase()+"Sec", getSecondaryLanguageValue(value, localLanguageCode));
+			templateValues.put(key+"PrimLabel", applicationLanguageProperties.containsKey(key) ?
+					applicationLanguageProperties.getString(key) : RegistrationConstants.EMPTY);
+			templateValues.put(key+"SecLabel", getSecondaryLanguageLabel(key));
+			templateValues.put(key, getValueForTemplate(value, platformLanguageCode));
+			templateValues.put(key+"Sec", getSecondaryLanguageValue(value, localLanguageCode));
 		}
 		
 		if (!isChild) {

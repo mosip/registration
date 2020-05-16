@@ -33,8 +33,8 @@ import io.mosip.registration.dto.demographic.Identity;
 import io.mosip.registration.dto.demographic.IndividualIdentity;
 import io.mosip.registration.dto.demographic.ValuesDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
-import io.mosip.registration.packetmananger.dto.AuditDto;
-import io.mosip.registration.packetmananger.dto.DocumentDto;
+import io.mosip.kernel.packetmanager.dto.AuditDto;
+import io.mosip.kernel.packetmanager.dto.DocumentDto;
 
 public class DataProvider {
 

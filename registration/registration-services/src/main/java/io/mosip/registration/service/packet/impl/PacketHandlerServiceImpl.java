@@ -6,6 +6,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.exception.RegistrationExceptionConstants.REG_PACKET_CREATION_ERROR_CODE;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import io.mosip.kernel.auditmanager.entity.Audit;
@@ -33,6 +35,7 @@ import io.mosip.registration.dao.AuditLogControlDAO;
 import io.mosip.registration.dao.PolicySyncDAO;
 import io.mosip.registration.dao.RegistrationDAO;
 import io.mosip.registration.dto.ErrorResponseDTO;
+import io.mosip.registration.dto.RegistrationCenterDetailDTO;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.SuccessResponseDTO;
@@ -45,17 +48,19 @@ import io.mosip.registration.entity.KeyStore;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
-import io.mosip.registration.packetmanager.spi.PacketCreator;
-import io.mosip.registration.packetmananger.constants.PacketManagerConstants;
-import io.mosip.registration.packetmananger.dto.AuditDto;
-import io.mosip.registration.packetmananger.dto.BiometricsDto;
-import io.mosip.registration.packetmananger.dto.DocumentDto;
-import io.mosip.registration.packetmananger.dto.metadata.BiometricsException;
-import io.mosip.registration.packetmananger.exception.PacketCreatorException;
+import io.mosip.kernel.packetmanager.spi.PacketCreator;
+import io.mosip.kernel.packetmanager.constants.PacketManagerConstants;
+import io.mosip.kernel.packetmanager.dto.AuditDto;
+import io.mosip.kernel.packetmanager.dto.BiometricsDto;
+import io.mosip.kernel.packetmanager.dto.DocumentDto;
+import io.mosip.kernel.packetmanager.dto.metadata.BiometricsException;
+import io.mosip.kernel.packetmanager.exception.PacketCreatorException;
 import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.external.StorageService;
 import io.mosip.registration.service.packet.PacketHandlerService;
+import io.mosip.registration.update.SoftwareUpdateHandler;
+import io.mosip.registration.util.checksum.CheckSumUtil;
 import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
 
 /**
@@ -71,10 +76,10 @@ import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecke
 public class PacketHandlerServiceImpl extends BaseService implements PacketHandlerService {
 
 	private static final Logger LOGGER = AppConfig.getLogger(PacketHandlerServiceImpl.class);
-
-	/**
-	 * Instance of {@code AuditFactory}
-	 */
+	
+	@Autowired
+	private Environment environment;
+	
 	@Autowired
 	private AuditManagerService auditFactory;
 	
@@ -98,6 +103,9 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 	
 	@Autowired
 	private AuditDAO auditDAO;
+	
+	@Autowired
+	private SoftwareUpdateHandler softwareUpdateHandler;
 	
 	private static Map<String, String> categoryPacketMapping = new HashMap<>();
 	
@@ -138,7 +146,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			setDemographics(registrationDTO.getDemographics());
 			setDocuments(registrationDTO.getDocuments());
 			setBiometrics(registrationDTO.getBiometrics(), registrationDTO.getBiometricExceptions(), schema);
-			
+			setOtherDetails(registrationDTO);			
 			packetCreator.setAcknowledgement(registrationDTO.getAcknowledgeReceiptName(), registrationDTO.getAcknowledgeReceipt());			
 			collectAudits();
 			byte[] packetZip = packetCreator.createPacket(registrationDTO.getRegistrationId(), registrationDTO.getIdSchemaVersion(),
@@ -249,6 +257,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			dto.setSessionUserId(audit.getSessionUserId());
 			dto.setSessionUserName(audit.getSessionUserName());
 			list.add(dto);
+			return; //TODO - need to fix the audits issue
 		}
 		packetCreator.setAudits(list);
 	}
@@ -286,5 +295,47 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 				.with(auditLogControl -> auditLogControl.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime())))
 				.with(auditLogControl -> auditLogControl.setCrBy(SessionContext.userContext().getUserId()))
 				.get());
+	}
+	
+	private void setOtherDetails(RegistrationDTO registrationDTO) {
+		packetCreator.setMetaInfo(PacketManagerConstants.META_CLIENT_VERSION, 
+				softwareUpdateHandler.getCurrentVersion());
+		packetCreator.setMetaInfo(PacketManagerConstants.META_REGISTRATION_TYPE, 
+				registrationDTO.getRegistrationMetaDataDTO().getRegistrationCategory());
+		packetCreator.setMetaInfo(PacketManagerConstants.META_PRE_REGISTRATION_ID, 
+				registrationDTO.getRegistrationMetaDataDTO().getPreviousRID());
+		packetCreator.setMetaInfo(PacketManagerConstants.META_MACHINE_ID, 
+				(String) ApplicationContext.map().get(RegistrationConstants.USER_STATION_ID));
+		packetCreator.setMetaInfo(PacketManagerConstants.META_CENTER_ID, 
+				(String) ApplicationContext.map().get(RegistrationConstants.USER_CENTER_ID));
+		packetCreator.setMetaInfo(PacketManagerConstants.META_DONGLE_ID, 
+				(String) ApplicationContext.map().get(RegistrationConstants.DONGLE_SERIAL_NUMBER));
+		packetCreator.setMetaInfo(PacketManagerConstants.META_KEYINDEX, "");
+		packetCreator.setMetaInfo(PacketManagerConstants.META_APPLICANT_CONSENT, 
+				registrationDTO.getRegistrationMetaDataDTO().getConsentOfApplicant());
+		
+		RegistrationCenterDetailDTO registrationCenter = SessionContext.userContext().getRegistrationCenterDetailDTO();
+		if (RegistrationConstants.ENABLE.equalsIgnoreCase(environment.getProperty(RegistrationConstants.GPS_DEVICE_DISABLE_FLAG))) {
+			packetCreator.setMetaInfo(PacketManagerConstants.META_LATITUDE, registrationCenter.getRegistrationCenterLatitude());
+			packetCreator.setMetaInfo(PacketManagerConstants.META_LONGITUDE, registrationCenter.getRegistrationCenterLongitude());
+		}
+		
+		packetCreator.setMetaInfo(PacketManagerConstants.META_OFFICER_ID, registrationDTO.getOsiDataDTO().getOperatorID());
+		packetCreator.setMetaInfo(PacketManagerConstants.META_OFFICER_BIOMETRIC_FILE, null);
+		packetCreator.setMetaInfo(PacketManagerConstants.META_SUPERVISOR_ID, registrationDTO.getOsiDataDTO().getSupervisorID());
+		packetCreator.setMetaInfo(PacketManagerConstants.META_SUPERVISOR_BIOMETRIC_FILE, null);
+		packetCreator.setMetaInfo(PacketManagerConstants.META_SUPERVISOR_PWD, 
+				String.valueOf(registrationDTO.getOsiDataDTO().isSuperviorAuthenticatedByPassword()));
+		packetCreator.setMetaInfo(PacketManagerConstants.META_OFFICER_PWD, 
+				String.valueOf(registrationDTO.getOsiDataDTO().isOperatorAuthenticatedByPassword()));
+		packetCreator.setMetaInfo(PacketManagerConstants.META_SUPERVISOR_PIN, null);
+		packetCreator.setMetaInfo(PacketManagerConstants.META_OFFICER_PIN, null);
+		packetCreator.setMetaInfo(PacketManagerConstants.META_SUPERVISOR_OTP, 
+				String.valueOf(registrationDTO.getOsiDataDTO().isSuperviorAuthenticatedByPIN()));
+		packetCreator.setMetaInfo(PacketManagerConstants.META_OFFICER_OTP, 
+				String.valueOf(registrationDTO.getOsiDataDTO().isOperatorAuthenticatedByPIN()));
+		
+		Map<String, String> checkSumMap = CheckSumUtil.getCheckSumMap();
+		checkSumMap.forEach((key, value) -> packetCreator.setChecksum(key, value));
 	}
 }
