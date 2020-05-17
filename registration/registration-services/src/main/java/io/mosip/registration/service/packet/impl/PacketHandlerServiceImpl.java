@@ -141,7 +141,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		try {			
 			SchemaDto schema = identitySchemaService.getIdentitySchema(registrationDTO.getIdSchemaVersion());			
 			//TODO validate idObject with IDSchema
-			
+						
 			packetCreator.initialize();		
 			setDemographics(registrationDTO.getDemographics());
 			setDocuments(registrationDTO.getDocuments());
@@ -154,7 +154,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			
 			String filePath = savePacketToDisk(registrationDTO.getRegistrationId(), packetZip);
 			registrationDAO.save(filePath, registrationDTO);			
-			createAuditLog(registrationDTO);			
+		//	createAuditLog(registrationDTO);			
 			SuccessResponseDTO successResponseDTO = new SuccessResponseDTO();
 			successResponseDTO.setCode("0000");
 			successResponseDTO.setMessage("Success");
@@ -185,7 +185,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 	
 	private void setDocuments(Map<String, DocumentDto> documents) {
 		for(String fieldName : documents.keySet()) {
-			packetCreator.setField(fieldName, documents.get(fieldName));
+			packetCreator.setDocument(fieldName, documents.get(fieldName));
 		}
 	}
 	
@@ -257,7 +257,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			dto.setSessionUserId(audit.getSessionUserId());
 			dto.setSessionUserName(audit.getSessionUserName());
 			list.add(dto);
-			return; //TODO - need to fix the audits issue
+			break; //TODO - need to fix the audits issue
 		}
 		packetCreator.setAudits(list);
 	}
@@ -320,19 +320,19 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			packetCreator.setMetaInfo(PacketManagerConstants.META_LONGITUDE, registrationCenter.getRegistrationCenterLongitude());
 		}
 		
-		packetCreator.setMetaInfo(PacketManagerConstants.META_OFFICER_ID, registrationDTO.getOsiDataDTO().getOperatorID());
-		packetCreator.setMetaInfo(PacketManagerConstants.META_OFFICER_BIOMETRIC_FILE, null);
-		packetCreator.setMetaInfo(PacketManagerConstants.META_SUPERVISOR_ID, registrationDTO.getOsiDataDTO().getSupervisorID());
-		packetCreator.setMetaInfo(PacketManagerConstants.META_SUPERVISOR_BIOMETRIC_FILE, null);
-		packetCreator.setMetaInfo(PacketManagerConstants.META_SUPERVISOR_PWD, 
+		packetCreator.setOperationsInfo(PacketManagerConstants.META_OFFICER_ID, registrationDTO.getOsiDataDTO().getOperatorID());
+		packetCreator.setOperationsInfo(PacketManagerConstants.META_OFFICER_BIOMETRIC_FILE, null);
+		packetCreator.setOperationsInfo(PacketManagerConstants.META_SUPERVISOR_ID, registrationDTO.getOsiDataDTO().getSupervisorID());
+		packetCreator.setOperationsInfo(PacketManagerConstants.META_SUPERVISOR_BIOMETRIC_FILE, null);
+		packetCreator.setOperationsInfo(PacketManagerConstants.META_SUPERVISOR_PWD, 
 				String.valueOf(registrationDTO.getOsiDataDTO().isSuperviorAuthenticatedByPassword()));
-		packetCreator.setMetaInfo(PacketManagerConstants.META_OFFICER_PWD, 
+		packetCreator.setOperationsInfo(PacketManagerConstants.META_OFFICER_PWD, 
 				String.valueOf(registrationDTO.getOsiDataDTO().isOperatorAuthenticatedByPassword()));
-		packetCreator.setMetaInfo(PacketManagerConstants.META_SUPERVISOR_PIN, null);
-		packetCreator.setMetaInfo(PacketManagerConstants.META_OFFICER_PIN, null);
-		packetCreator.setMetaInfo(PacketManagerConstants.META_SUPERVISOR_OTP, 
+		packetCreator.setOperationsInfo(PacketManagerConstants.META_SUPERVISOR_PIN, null);
+		packetCreator.setOperationsInfo(PacketManagerConstants.META_OFFICER_PIN, null);
+		packetCreator.setOperationsInfo(PacketManagerConstants.META_SUPERVISOR_OTP, 
 				String.valueOf(registrationDTO.getOsiDataDTO().isSuperviorAuthenticatedByPIN()));
-		packetCreator.setMetaInfo(PacketManagerConstants.META_OFFICER_OTP, 
+		packetCreator.setOperationsInfo(PacketManagerConstants.META_OFFICER_OTP, 
 				String.valueOf(registrationDTO.getOsiDataDTO().isOperatorAuthenticatedByPIN()));
 		
 		Map<String, String> checkSumMap = CheckSumUtil.getCheckSumMap();

@@ -420,8 +420,8 @@ public class RegistrationController extends BaseController {
 		registrationDTO.setRegistrationMetaDataDTO(registrationMetaDataDTO);
 
 		// Set RID
-		String registrationID = ridGeneratorImpl.generateId(registrationMetaDataDTO.getCenterId(),
-				registrationMetaDataDTO.getMachineId());
+		String registrationID = ridGeneratorImpl.generateId((String) ApplicationContext.map().get(RegistrationConstants.USER_CENTER_ID),
+				(String) ApplicationContext.map().get(RegistrationConstants.USER_STATION_ID));
 		registrationDTO.setRegistrationId(registrationID);
 
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID, 

@@ -306,15 +306,22 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 					comboBox.getItems().add(new SimpleEntry<String, String>(biometric.getKey(),
 							applicationLabelBundle.getString(biometric.getKey())));
+					
+					if (listOfCheckBoxes.get(0).get(0).equals("face")) {
+						checkBoxMap.put(subType.getKey().getKey(), subMap);
+						subMap.put(biometric.getKey(), null);
+						continue;
+					}
 
-					if (!listOfCheckBoxes.get(0).get(0).equals("face")) {
+					//if (!listOfCheckBoxes.get(0).get(0).equals("face")) {
 						VBox vboxForCheckBox = new VBox();
 						vboxForCheckBox.setSpacing(5);
 
 						for (int i = 0; i < listOfCheckBoxes.size(); i++) {
 
 							for (String exception : biometric.getValue().get(i)) {
-								CheckBox checkBox = new CheckBox(applicationLabelBundle.getString(exception));
+								CheckBox checkBox = new CheckBox(applicationLabelBundle.containsKey(exception) ? 
+										applicationLabelBundle.getString(exception) : exception);
 								checkBox.setId(exception);
 								checkBox.getStyleClass().add(RegistrationConstants.updateUinCheckBox);
 								if (i == 1) {
@@ -348,7 +355,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 						checkBoxMap.put(subType.getKey().getKey(), subMap);
 						subMap.put(biometric.getKey(), vboxForCheckBox);
 
-					}
+					//}
 				}
 
 			}
@@ -559,14 +566,17 @@ public class GuardianBiometricsController extends BaseController implements Init
 	}
 
 	private void enableCurrentCheckBoxSection() {
+		if(checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality) != null) {
 		checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality).setVisible(true);
 		checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality).setManaged(true);
+		}
 	}
 
 	private void disableLastCheckBoxSection() {
 		if(currentPosition!=-1)
 		{
-			if(this.currentModality!=null) {
+			if(this.currentModality!=null 
+					&& checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality) != null) {
 			checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality).setVisible(false);
 			checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality).setManaged(false);
 			}
@@ -659,17 +669,17 @@ public class GuardianBiometricsController extends BaseController implements Init
 		// TODO Get Grid pane where check boxes created
 
 		// TODO Get List of check boxes using the grid pane
-		List<Node> exceptionCheckBoxes = null;
+		//List<Node> exceptionCheckBoxes = null;
 
-		exceptionCheckBoxes = checkBoxMap.get(subType).get(modality).getChildren();
+		if( checkBoxMap.get(subType).get(modality) != null ) {
+			for (Node checkBoxx : checkBoxMap.get(subType).get(modality).getChildren()) {
+				CheckBox checkBox = (CheckBox) checkBoxx;
+				if (checkBox.isSelected()) {
 
-		for (Node checkBoxx : exceptionCheckBoxes) {
-			CheckBox checkBox = (CheckBox) checkBoxx;
-			if (checkBox.isSelected()) {
-
-				selectedExceptions = selectedExceptions != null ? selectedExceptions : new LinkedList<String>();
-				String exceptionName = RegistrationConstants.uIToMDSExceptionMap.get(checkBox.getId());
-				selectedExceptions.add(exceptionName!=null?exceptionName:checkBox.getId());
+					selectedExceptions = selectedExceptions != null ? selectedExceptions : new LinkedList<String>();
+					String exceptionName = RegistrationConstants.uIToMDSExceptionMap.get(checkBox.getId());
+					selectedExceptions.add(exceptionName!=null?exceptionName:checkBox.getId());
+				}
 			}
 		}
 
