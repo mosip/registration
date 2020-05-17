@@ -1558,6 +1558,8 @@ public class BioServiceImpl extends BaseService implements BioService {
 	}
 	
 	private String getFilePath(String modality, String bioAttribute) throws IOException {
+		LOGGER.info(LOG_REG_FINGERPRINT_FACADE, APPLICATION_NAME, APPLICATION_ID,
+				"Current Modality >>>>>>>>>>>>>>>>>>>>>>>>> " + modality + "  bioAttribute >>>>> " + bioAttribute);
 		String path = null;
 		switch (modality) {
 		case PacketManagerConstants.FINGERPRINT_SLAB_LEFT:
@@ -1572,8 +1574,9 @@ public class BioServiceImpl extends BaseService implements BioService {
 		case PacketManagerConstants.IRIS_DOUBLE:
 			path = String.format("/images/%s.iso", bioAttribute);
 			break;
+		case "FACE":
 		case PacketManagerConstants.FACE_FULLFACE:
-			path = String.format("/images/%s.iso", bioAttribute);
+			path = String.format("/images/%s.iso", "face");
 			break;
 		}
 		return path;

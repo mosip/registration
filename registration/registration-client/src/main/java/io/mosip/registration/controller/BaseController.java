@@ -1490,7 +1490,7 @@ public class BaseController {
 			table.widthProperty().addListener((source, oldWidth, newWidth) -> {
 				TableHeaderRow header = (TableHeaderRow) table.lookup("TableHeaderRow");
 				header.reorderingProperty()
-						.addListener((observable, oldValue, newValue) -> header.setReordering(false));
+					.addListener((observable, oldValue, newValue) -> header.setReordering(false));
 			});
 		}
 	}
@@ -1594,7 +1594,8 @@ public class BaseController {
 								? RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD
 								: bioType.toLowerCase().contains(RegistrationConstants.IRIS.toLowerCase())
 										? RegistrationConstants.IRIS_THRESHOLD
-										: RegistrationConstants.EMPTY;
+										:  bioType.toLowerCase().contains(RegistrationConstants.FACE.toLowerCase()) ?
+												RegistrationConstants.FACE_THRESHOLD : RegistrationConstants.EMPTY;
 	}
 
 	public interface ToRun<T> {
