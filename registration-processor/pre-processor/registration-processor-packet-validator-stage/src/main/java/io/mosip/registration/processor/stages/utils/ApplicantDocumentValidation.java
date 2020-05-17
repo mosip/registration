@@ -150,7 +150,7 @@ public class ApplicantDocumentValidation {
 		if (proofOfExceptions != null && proofOfExceptions.get("value")!=null) {
 			String source=idSchemaUtils.getSource(proofOfExceptionsLabel);
 			if(source!=null) {
-				if( packetReaderService.checkFileExistence(registrationId,proofOfExceptions.get("value").toString(),source)) {
+				if(! packetReaderService.checkFileExistence(registrationId,proofOfExceptions.get("value").toString(),source)) {
 				return false;
 			}
 			}
