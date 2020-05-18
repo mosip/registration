@@ -533,7 +533,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 				: AbisStatusCode.FAILED.toString());
 		abisReqEntity.setStatusComment(
 				abisCommonResponseDto.getReturnValue().equalsIgnoreCase("1") ? StatusUtil.INSERT_IDENTIFY_RESPONSE_SUCCESS.getMessage()
-						: getFaliureReason(abisCommonResponseDto.getFailureReason()));
+						: io.mosip.registartion.processor.abis.middleware.constants.FailureReason.getValueFromKey(abisCommonResponseDto.getFailureReason()));
 		abisReqEntity.setAbisAppCode(abisCommonRequestDto.getAbisAppCode());
 		abisReqEntity.setRequestType(abisCommonRequestDto.getRequestType());
 		abisReqEntity.setRequestDtimes(abisCommonRequestDto.getRequestDtimes());
@@ -600,28 +600,6 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 
 	}
 
-	/**
-	 * get the failure reason for given key
-	 * 
-	 * @param key
-	 * @return
-	 */
-	private static String getFaliureReason(String key) {
-		if (key == null)
-			return null;
-
-		Map<String, String> failureReason = new HashMap<>();
-		failureReason.put("1", "Internal error - Unknown");
-		failureReason.put("2", "Aborted");
-		failureReason.put("3", "Unexpected error - Unable to access biometric data");
-		failureReason.put("4", "Unable to serve the request");
-		failureReason.put("5", "Invalid request / Missing mandatory fields");
-		failureReason.put("6", "Unauthorized Access");
-		failureReason.put("7", "Unable to fetch biometric details");
-		return StatusUtil.INSERT_IDENTIFY_RESPONSE_FAILED.getMessage() + failureReason.get(key);
-
-	}
-
 	private AbisResponseDto updateAbisResponseEntity(AbisCommonResponseDto abisCommonResponseDto, String response) {
 		AbisResponseDto abisResponseDto = new AbisResponseDto();
 
@@ -631,7 +609,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 
 		abisResponseDto.setStatusCode(
 				responseStatus.equalsIgnoreCase("1") ? AbisStatusCode.SUCCESS.toString() : AbisStatusCode.FAILED.toString());
-		abisResponseDto.setStatusComment(getFaliureReason(abisCommonResponseDto.getFailureReason()));
+		abisResponseDto.setStatusComment(io.mosip.registartion.processor.abis.middleware.constants.FailureReason.getValueFromKey(abisCommonResponseDto.getFailureReason()));
 		abisResponseDto.setLangCode("eng");
 		abisResponseDto.setCrBy(SYSTEM);
 		abisResponseDto.setUpdBy(SYSTEM);
