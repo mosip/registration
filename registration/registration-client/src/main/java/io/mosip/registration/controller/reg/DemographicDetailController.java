@@ -292,7 +292,7 @@ public class DemographicDetailController extends BaseController {
 
 		gridPane.addColumn(2, secondary);
 
-		gridPane.setId(schemaDTO.getId()+"ParenetGridPane");
+		gridPane.setId(schemaDTO.getId()+"ParentGridPane");
 
 		return gridPane;
 	}
@@ -835,7 +835,7 @@ public class DemographicDetailController extends BaseController {
 					ComboBox<GenericDto> platformField = listOfComboBoxWithObject.get(schemaField.getId());
 					ComboBox<GenericDto> localField = listOfComboBoxWithObject.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE);					
 					registrationDTO.addDemographicField(schemaField.getId(), 
-							applicationContext.getApplicationLanguage(), platformField.getValue().getName(),
+							applicationContext.getApplicationLanguage(), platformField == null ? null : platformField.getValue()!=null?platformField.getValue().getName():null,
 							applicationContext.getLocalLanguage(), localField == null ? null : localField.getValue()!=null?localField.getValue().getName():null);
 				}
 				else {
@@ -937,12 +937,14 @@ public class DemographicDetailController extends BaseController {
 			disablePreRegFetch();
 			registrationNavlabel.setText(applicationLabelBundle.getString("uinUpdateNavLbl"));
 			for (Node pane : parentFlowPane.getChildren()) {
-				CheckBox checkBox = ((CheckBox) selectionList.get(pane.getId()));
+				if(!pane.getId().matches("preRegParentPane|languageLabelParentPane")) {
+				CheckBox checkBox = ((CheckBox) selectionList.get(pane.getId().replace("ParentGridPane", "")));
 				if(checkBox!=null && checkBox.isSelected()) {
 					pane.setDisable(false);
 				}else {
 					pane.setDisable(true);
 				}
+			}
 			}
 		}
 	}
@@ -1060,7 +1062,7 @@ public class DemographicDetailController extends BaseController {
 			listOfTextField.get(node.getId() + "LocalLanguage").requestFocus();
 			keyboardNode.setVisible(true);
 			keyboardNode.setManaged(true);
-			addKeyboard(positionTracker.get((node.getId()+"ParenetGridPane")) + 1);
+			addKeyboard(positionTracker.get((node.getId()+"ParentGridPane")) + 1);
 
 		} catch (RuntimeException runtimeException) {
 			LOGGER.error("REGISTRATION - SETTING FOCUS ON LOCAL FIELD FAILED", APPLICATION_NAME,

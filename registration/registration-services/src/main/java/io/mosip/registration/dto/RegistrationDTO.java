@@ -84,8 +84,12 @@ public class RegistrationDTO {
 	}
 	
 	public void setDateField(String fieldId, String day, String month, String year) {
+		try {
 		LocalDate date = LocalDate.of(Integer.valueOf(year), Integer.valueOf(month), Integer.valueOf(day));
 		this.demographics.put(fieldId, date.format(DateTimeFormatter.ofPattern(DATE_FORMAT)));
+		}catch(Exception exception) {
+			this.demographics.put(fieldId,null);
+		}
 	}
 	
 	public String[] getDateField(String fieldId) {

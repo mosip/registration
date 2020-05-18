@@ -92,7 +92,7 @@ public class UpdateUINController extends BaseController implements Initializable
 
 		fxUtils = FXUtils.getInstance();
 		checkBoxKeeper = new HashMap<>();
-		Map<String, UiSchemaDTO> schemaMap = validation.getValidationMap();
+		Map<String, UiSchemaDTO> schemaMap = getValidationMap();
 		parentFlow = parentFlowPane.getChildren();
 		for (Entry<String, UiSchemaDTO> entry : schemaMap.entrySet()) {
 			if (isDemographicField(entry.getValue())) {
