@@ -30,6 +30,7 @@ import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -71,11 +72,11 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	/** The max results. */
 	@Value("${registration.processor.abis.maxResults}")
-	private Integer maxResults;
+	private String maxResults;
 
 	/** The target FPIR. */
 	@Value("${registration.processor.abis.targetFPIR}")
-	private Integer targetFPIR;
+	private String targetFPIR;
 
 	/** server port number. */
 	@Value("${server.port}")
@@ -301,15 +302,14 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		AbisIdentifyRequestDto abisIdentifyRequestDto = new AbisIdentifyRequestDto();
 		Flag flag = new Flag();
 		abisIdentifyRequestDto.setId(AbisHandlerStageConstant.MOSIP_ABIS_IDENTIFY);
-		abisIdentifyRequestDto.setVer(AbisHandlerStageConstant.VERSION);
+		abisIdentifyRequestDto.setVersion(AbisHandlerStageConstant.VERSION);
 		abisIdentifyRequestDto.setRequestId(id);
 		abisIdentifyRequestDto.setReferenceId(bioRefId);
-		abisIdentifyRequestDto.setReferenceUrl(url + "/" + bioRefId);
+		abisIdentifyRequestDto.setReferenceUrl("");
 		abisIdentifyRequestDto.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		flag.setMaxResults(maxResults);
 		flag.setTargetFPIR(targetFPIR);
 		abisIdentifyRequestDto.setFlags(flag);
-
 
 		// Added Gallery data for demo dedupe
 		if (transactionTypeCode.equalsIgnoreCase(AbisHandlerStageConstant.DEMOGRAPHIC_VERIFICATION)) {
@@ -454,7 +454,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		abisInsertRequestDto.setReferenceURL(url + "/" + bioRefId);
 		abisInsertRequestDto.setRequestId(id);
 		abisInsertRequestDto.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
-		abisInsertRequestDto.setVer(AbisHandlerStageConstant.VERSION);
+		abisInsertRequestDto.setVersion(AbisHandlerStageConstant.VERSION);
 		try {
 			String jsonString = JsonUtils.javaObjectToJsonString(abisInsertRequestDto);
 			return jsonString.getBytes();

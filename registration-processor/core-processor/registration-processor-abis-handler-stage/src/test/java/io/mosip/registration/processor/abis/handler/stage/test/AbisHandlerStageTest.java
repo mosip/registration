@@ -91,8 +91,8 @@ public class AbisHandlerStageTest {
 
 	@Before
 	public void setUp() throws RegistrationProcessorCheckedException {
-		ReflectionTestUtils.setField(abisHandlerStage, "maxResults", 30);
-		ReflectionTestUtils.setField(abisHandlerStage, "targetFPIR", 30);
+		ReflectionTestUtils.setField(abisHandlerStage, "maxResults", "30");
+		ReflectionTestUtils.setField(abisHandlerStage, "targetFPIR", "30");
 		ReflectionTestUtils.setField(abisHandlerStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(abisHandlerStage, "clusterManagerUrl", "/dummyPath");
 		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern"))
