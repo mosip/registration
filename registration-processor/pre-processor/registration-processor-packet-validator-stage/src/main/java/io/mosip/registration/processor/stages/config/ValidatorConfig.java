@@ -9,6 +9,9 @@ import javax.annotation.PostConstruct;
 
 import io.mosip.kernel.packetmanager.impl.PacketReaderServiceImpl;
 import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+import io.mosip.registration.processor.stages.utils.CheckSumValidation;
+import io.mosip.registration.processor.stages.utils.FilesValidation;
+import io.mosip.registration.processor.stages.utils.MandatoryValidation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +35,7 @@ import io.mosip.registration.processor.stages.utils.AuditUtility;
 import io.mosip.registration.processor.stages.utils.DocumentUtility;
 import io.mosip.registration.processor.stages.utils.IdObjectsSchemaValidationOperationMapper;
 import io.mosip.registration.processor.stages.utils.RestTemplateInterceptor;
-import io.mosip.registration.processor.stages.validator.PacketValidator;
+import io.mosip.registration.processor.core.spi.packet.validator.PacketValidator;
 import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl;
 
 @Configuration
@@ -50,6 +53,21 @@ public class ValidatorConfig {
 	@Bean
 	public PacketValidatorStage getPacketValidatorStage() {
 		return new PacketValidatorStage();
+	}
+
+	@Bean
+	public FilesValidation filesValidation() {
+		return new FilesValidation();
+	}
+
+	@Bean
+	public MandatoryValidation mandatoryValidation() {
+		return new MandatoryValidation();
+	}
+
+	@Bean
+	public CheckSumValidation checkSumValidation() {
+		return new CheckSumValidation();
 	}
 
 	@Bean
@@ -111,7 +129,6 @@ public class ValidatorConfig {
 		if (StringUtils.isNotBlank(env.getProperty(PACKET_VALIDATOR_PROVIDER))) {
 			return (PacketValidator) Class.forName(env.getProperty(PACKET_VALIDATOR_PROVIDER)).newInstance();
 		} else {
-
 			return new PacketValidatorImpl();
 		}
 	}
