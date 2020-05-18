@@ -1,30 +1,25 @@
 # registration-processor-packet-validator-stage
 
-This stage validates the essentials of a packet before sending the packet for further processing.
+This stage validates the essentials of a packet before sending the packet for further processing. This API receives registration packet from reg-client. Before moving packet to landing zone virus scan is performed and then trustworthiness of the packet is validated using hash value and size.
 
 ## Design
 
 [Design - Approach for Packet Uploader Stage](https://github.com/mosip/registration/blob/master/design/registration-processor/Approach_for_packet_validator.md)
 
-## Default Context Path and Port
-```
-server.port=8088
-eventbus.port=5715
-server.servlet.path=/registrationprocessor/v1/packetvalidator
-```
-## Configurable Properties from Config Server
-```
-registration.processor.masterdata.validation.attributes = gender,region,province,city
-registration.processor.validateSchema=true
-registration.processor.validateFile=true
-registration.processor.validateChecksum=true
-registration.processor.validateApplicantDocument=false
-registration.processor.validateMasterData=false
-registration-processor.validatemandotary=true
-registration.processor.document.category=IDObject_DocumentCategory_Mapping.json
-registration.processor.applicant.type=ApplicantType_Document_Mapping.json
-```
+
+## Default Port and Context Path
+  
+  * server.port=8088
+  * eventbus.port=5715
+  * server.servlet.path=/registrationprocessor/v1/packetvalidator
+
+
+## URL
+
+ * https://{dns-name}:8088/registrationprocessor/v1/packetvalidator/swagger-ui.html
+ 
 ## Validations in Packet Validator
+
 1. Validation of ID Schema : ID Json Validation
 2. Validation of Master Data : Based on the key 'registration.processor.validateMasterData' in configuration, the values present in 'registration.processor.masterdata.validation.attributes' are validated against the Master data.
 3. Validation of Files : Checking of all files present in hashsequence of packet_meta_info to be actually present inside the packet.
@@ -32,3 +27,13 @@ registration.processor.applicant.type=ApplicantType_Document_Mapping.json
 5. Document Validation : Validation of Documents present in packet_meta_info in correspondance to the value of field 'registration.processor.document.category'.
 
 Note: All these validations can be turned on/off by changing appropriate keys in config server as true/false.
+
+## API Dependencies
+	
+|Dependent Module |  Dependent Services  | API |
+| ------------- | ------------- | ------------- |
+| commons/kernel  | kernel-masterdata-service | /gendertypes/validate/{gendername}|
+|   |  | /locations/validate/{locationname}|
+| commons/kernel  | kernel-auditmanager-service |/audits|
+| commons/id-repository | id-repository-identity-service | /uin/{uin} |
+| pre-registration  | pre-registration-datasync-service |/sync/consumedPreRegIds|
