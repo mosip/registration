@@ -1,5 +1,4 @@
 {
-	"identity": {
 		"name": {
 			"value": "fullName",
 			"isMandatory": true
@@ -64,4 +63,3 @@
 			"value": "parentOrGuardianBiometrics"
 		}
 	}
-}
