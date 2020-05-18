@@ -121,9 +121,8 @@ public class PacketCreationServiceImpl implements PacketCreationService {
 
 			// Meta-Info JSON creation
 			Map<String, String> metadata = registrationDTO.getMetadata();
-			for (String field : metadata.keySet()) {
-				packetCreator.setMetaInfo(field, metadata.get(field));
-			}
+			metadata.entrySet().iterator().forEachRemaining(iter -> packetCreator.setMetaInfo(iter.getKey(), iter.getValue()));
+
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					rid, String.format(loggerMessage, RegistrationConstants.PACKET_META_JSON_NAME));
 
