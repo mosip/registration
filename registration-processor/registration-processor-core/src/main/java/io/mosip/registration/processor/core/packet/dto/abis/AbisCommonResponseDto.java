@@ -23,8 +23,8 @@ public class AbisCommonResponseDto implements Serializable{
 	
 	private String responsetime;
 	
-	private Integer returnValue;
+	private String returnValue;
 	
-	private Integer failureReason;
+	private String failureReason;
 
 }

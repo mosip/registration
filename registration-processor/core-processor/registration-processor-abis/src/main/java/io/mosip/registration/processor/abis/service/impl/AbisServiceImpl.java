@@ -108,36 +108,36 @@ public class AbisServiceImpl implements AbisService {
 				NodeList faceNodeList = doc.getElementsByTagName(testFace);
 
 				if (fingerNodeList.getLength() > 0 || irisNodeList.getLength() > 0 || faceNodeList.getLength() > 0) {
-					response.setReturnValue(1);
+					response.setReturnValue("1");
 
 				} else {
-					response.setReturnValue(2);
-					response.setFailureReason(7);
+					response.setReturnValue("2");
+					response.setFailureReason("7");
 				}
 			} else {
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFFERENCEID.toString(),
 						referenceId, "AbisServiceImpl():: unable to fect CBEF file ");
-				response.setReturnValue(2);
-				response.setFailureReason(7);
+				response.setReturnValue("2");
+				response.setFailureReason("7");
 			}
 
 		} catch (ApisResourceAccessException | ParserConfigurationException | SAXException | IOException e) {
-			response.setReturnValue(2);
-			response.setFailureReason(7);
+			response.setReturnValue("2");
+			response.setFailureReason("7");
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					referenceId, "ApisResourceAccessException : Unable to acces getting cbef url."
 							+ ExceptionUtils.getStackTrace(e));
 
 		} catch (MissingMandatoryFieldsException e) {
-			response.setReturnValue(2);
-			response.setFailureReason(5);
+			response.setReturnValue("2");
+			response.setFailureReason("5");
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					referenceId, "MissingMandatoryFieldsException : Mandatory fields are missing in Request."
 							+ ExceptionUtils.getStackTrace(e));
 
 		} catch (Exception e) {
-			response.setReturnValue(2);
-			response.setFailureReason(3);
+			response.setReturnValue("2");
+			response.setFailureReason("3");
 
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFFERENCEID.toString(),
 					referenceId, "Due to some internal error, abis failed" + ExceptionUtils.getStackTrace(e));
@@ -195,7 +195,6 @@ public class AbisServiceImpl implements AbisService {
 		boolean duplicate = false;
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"AbisServiceImpl::performDedupe()::entry");
-
 		AbisIdentifyResponseDto response = new AbisIdentifyResponseDto();
 		String identifyReqId = identifyRequest.getReferenceId();
 		if (storedRefId.size() < 1000)
@@ -223,33 +222,33 @@ public class AbisServiceImpl implements AbisService {
 				if (faceNodeList != null) {
 					duplicate = checkDuplicate(duplicate, faceNodeList);
 				}
-				response.setReturnValue(1);
+				response.setReturnValue("1");
 
 				if (duplicate) {
 					addCandidateList(identifyReqId, identifyRequest, response);
 				}
 			} else {
-				response.setReturnValue(2);
-				response.setFailureReason(7);
+				response.setReturnValue("2");
+				response.setFailureReason("7");
 			}
 
 		} catch (ApisResourceAccessException | ParserConfigurationException | SAXException | IOException e) {
-			response.setReturnValue(2);
-			response.setFailureReason(7);
+			response.setReturnValue("2");
+			response.setFailureReason("7");
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					identifyReqId, "ApisResourceAccessException : Unable to acces getting cbef url."
 							+ ExceptionUtils.getStackTrace(e));
 
 		} catch (MissingMandatoryFieldsException e) {
-			response.setReturnValue(2);
-			response.setFailureReason(5);
+			response.setReturnValue("2");
+			response.setFailureReason("5");
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					identifyReqId, "MissingMandatoryFieldsException : Mandatory fields are missing in Request."
 							+ ExceptionUtils.getStackTrace(e));
 
 		} catch (Exception e) {
-			response.setReturnValue(2);
-			response.setFailureReason(3);
+			response.setReturnValue("2");
+			response.setFailureReason("3");
 
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					identifyReqId, "Due to some internal error, abis failed" + ExceptionUtils.getStackTrace(e));

@@ -79,11 +79,11 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 
 	/** The max results. */
 	@Value("${registration.processor.abis.maxResults}")
-	private Integer maxResults;
+	private String maxResults;
 
 	/** The target FPIR. */
 	@Value("${registration.processor.abis.targetFPIR}")
-	private Integer targetFPIR;
+	private String targetFPIR;
 
 
 
@@ -144,7 +144,7 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 				"BioDedupeServiceImpl::insertBiometrics():: BIODEDUPEPOTENTIAL POST SERVICE ended with reponse data : "
 						+ JsonUtil.objectMapperObjectToJson(authResponseDTO));
 
-		if (authResponseDTO.getReturnValue() == 1)
+		if (authResponseDTO.getReturnValue().equalsIgnoreCase("1"))
 			insertStatus = "success";
 		else
 			throwException(authResponseDTO.getFailureReason(), referenceId, requestId);
@@ -161,25 +161,24 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 	 * @param failureReason
 	 *            the failure reason
 	 * @param referenceId
-	 *            the reference id
 	 * @param requestId
 	 *            the request id
 	 */
-	private void throwException(int failureReason, String referenceId, String requestId) {
+	private void throwException(String failureReason, String referenceId, String requestId) {
 
-		if (failureReason == 1)
+		if (failureReason.equalsIgnoreCase("1"))
 			throw new ABISInternalError(
 					PlatformErrorMessages.RPR_BDD_ABIS_INTERNAL_ERROR.getMessage() + referenceId + " " + requestId);
 
-		else if (failureReason == 2)
+		else if (failureReason.equalsIgnoreCase("2"))
 			throw new ABISAbortException(
 					PlatformErrorMessages.RPR_BDD_ABIS_ABORT.getMessage() + referenceId + " " + requestId);
 
-		else if (failureReason == 3)
+		else if (failureReason.equalsIgnoreCase("3"))
 			throw new UnexceptedError(
 					PlatformErrorMessages.RPR_BDD_UNEXCEPTED_ERROR.getMessage() + referenceId + " " + requestId);
 
-		else if (failureReason == 4)
+		else if (failureReason.equalsIgnoreCase("4"))
 			throw new UnableToServeRequestABISException(
 					PlatformErrorMessages.RPR_BDD_UNABLE_TO_SERVE_REQUEST.getMessage() + referenceId + " " + requestId);
 
@@ -205,7 +204,7 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 		AbisIdentifyRequestDto identifyRequestDto = new AbisIdentifyRequestDto();
 		Flag flag = new Flag();
 		identifyRequestDto.setId(ABIS_IDENTIFY);
-		identifyRequestDto.setVer("1.0");
+		identifyRequestDto.setVersion("1.0");
 		identifyRequestDto.setRequestId(requestId);
 		identifyRequestDto.setReferenceId(referenceId);
 		identifyRequestDto.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
@@ -228,7 +227,7 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 
 		if (responsedto != null) {
 
-			if (responsedto.getReturnValue() == 2) {
+			if (responsedto.getReturnValue().equalsIgnoreCase("2")) {
 				throwException(responsedto.getFailureReason(), referenceId, requestId);
 			}
 
