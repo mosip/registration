@@ -47,7 +47,7 @@ import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.mastersync.LocationDto;
 import io.mosip.registration.entity.Location;
 import io.mosip.registration.exception.RegBaseCheckedException;
-import io.mosip.registration.packetmananger.dto.SimpleDto;
+import io.mosip.kernel.packetmanager.dto.SimpleDto;
 import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.sync.MasterSyncService;
 import javafx.collections.ObservableList;

@@ -168,22 +168,22 @@ public class ClientJarEncryption {
 					FileUtils.copyDirectory(rxtxJarFolder, listOfJars);
 
 					// Adding lib files into map
-					for (File files : listOfJars.listFiles()) {
-
+					for (File files : listOfJars.listFiles()) {						
 						if (files.getName().contains(REGISTRATION)) {
 
 							String regpath = files.getParentFile().getAbsolutePath() + SLASH;
-							if (files.getName().contains("client")) {
+							if (files.getName().contains("registration-client")) {
 								regpath += MOSIP_CLIENT;
-							} else if (files.getName().contains("services")){
+							} else if (files.getName().contains("registration-services")){
 								regpath += MOSIP_SERVICES;
-							} else if (files.getName().contains("packetmanager")) {
-								regpath += MOSIP_PACKET_MANAGER;
-							}
+						//	} else if (files.getName().contains("packetmanager")) {
+						//		regpath += MOSIP_PACKET_MANAGER;
+							} else
+								continue;
+							
 							byte[] encryptedRegFileBytes = aes.encyrpt(FileUtils.readFileToByteArray(files),
 									Base64.getDecoder().decode(args[1].getBytes()));
 							// fileNameByBytes.put(libraries + files.getName(), encryptedRegFileBytes);
-
 							File servicesJar = new File(regpath);
 							try (FileOutputStream regFileOutputStream = new FileOutputStream(servicesJar)) {
 								regFileOutputStream.write(encryptedRegFileBytes);
@@ -222,7 +222,7 @@ public class ClientJarEncryption {
 
 					System.out.println("Zip Creation ended with path :::" + zipFilename);
 				}
-			} catch(InvalidKeyException invalidKeyException) {
+			} catch(Throwable invalidKeyException) {
 				invalidKeyException.printStackTrace();
 			}
 		}

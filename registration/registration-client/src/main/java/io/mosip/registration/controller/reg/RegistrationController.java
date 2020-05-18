@@ -398,11 +398,13 @@ public class RegistrationController extends BaseController {
 
 		// Create object for OSIData DTO
 		registrationDTO.setOsiDataDTO(new OSIDataDTO());
+		registrationDTO.setRegistrationCategory(registrationCategory);
 
 		// Create RegistrationMetaData DTO & set default values in it
 		RegistrationMetaDataDTO registrationMetaDataDTO = new RegistrationMetaDataDTO();
-		registrationMetaDataDTO.setRegistrationCategory(registrationCategory);		
-		registrationMetaDataDTO.setRegClientVersionNumber(softwareUpdateHandler.getCurrentVersion());
+		registrationMetaDataDTO.setRegistrationCategory(registrationCategory); //TODO - remove its usage		
+		
+		/*registrationMetaDataDTO.setRegClientVersionNumber(softwareUpdateHandler.getCurrentVersion());
 		RegistrationCenterDetailDTO registrationCenter = SessionContext.userContext().getRegistrationCenterDetailDTO();
 		if (RegistrationConstants.ENABLE
 				.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.GPS_DEVICE_DISABLE_FLAG))) {
@@ -414,12 +416,12 @@ public class RegistrationController extends BaseController {
 
 		registrationMetaDataDTO.setCenterId((String) ApplicationContext.map().get(RegistrationConstants.USER_CENTER_ID));
 		registrationMetaDataDTO.setMachineId((String) ApplicationContext.map().get(RegistrationConstants.USER_STATION_ID));
-		registrationMetaDataDTO.setDeviceId((String) ApplicationContext.map().get(RegistrationConstants.DONGLE_SERIAL_NUMBER));
+		registrationMetaDataDTO.setDeviceId((String) ApplicationContext.map().get(RegistrationConstants.DONGLE_SERIAL_NUMBER));*/
 		registrationDTO.setRegistrationMetaDataDTO(registrationMetaDataDTO);
 
 		// Set RID
-		String registrationID = ridGeneratorImpl.generateId(registrationMetaDataDTO.getCenterId(),
-				registrationMetaDataDTO.getMachineId());
+		String registrationID = ridGeneratorImpl.generateId((String) ApplicationContext.map().get(RegistrationConstants.USER_CENTER_ID),
+				(String) ApplicationContext.map().get(RegistrationConstants.USER_STATION_ID));
 		registrationDTO.setRegistrationId(registrationID);
 
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID, 
