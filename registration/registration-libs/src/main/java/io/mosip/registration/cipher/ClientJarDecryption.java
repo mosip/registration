@@ -248,7 +248,7 @@ public class ClientJarDecryption extends Application {
 
 									File encryptedServicesJar = new File(binFolder + MOSIP_SERVICES);
 
-									File encryptedPacketManagerJar = new File(binFolder + MOSIP_PACKET_MANAGER);
+									//File encryptedPacketManagerJar = new File(binFolder + MOSIP_PACKET_MANAGER);
 
 									tempPath = FileUtils.getTempDirectoryPath();
 									tempPath = tempPath + UUID.randomUUID();
@@ -284,13 +284,13 @@ public class ClientJarDecryption extends Application {
 												new File(tempPath + SLASH + UUID.randomUUID() + ".jar"),
 												decryptedRegServiceBytes);
 
-										byte[] decryptedPacketManagerBytes = aesDecrypt.decrypt(
+										/*byte[] decryptedPacketManagerBytes = aesDecrypt.decrypt(
 												FileUtils.readFileToByteArray(encryptedPacketManagerJar), decryptedKey);
 
 										// Decrypt Packet manager Jar
 										FileUtils.writeByteArrayToFile(
 												new File(tempPath + SLASH + UUID.randomUUID() + ".jar"),
-												decryptedPacketManagerBytes);
+												decryptedPacketManagerBytes);*/
 
 									} catch (RuntimeException | IOException runtimeException) {
 
