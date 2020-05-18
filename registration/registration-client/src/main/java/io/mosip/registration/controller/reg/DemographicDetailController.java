@@ -932,6 +932,7 @@ public class DemographicDetailController extends BaseController {
 
 		HashMap<String, Object> selectionList = getRegistrationDTOFromSession().getSelectionListDTO();
 		
+		//added a comment
 		if (selectionList!=null) {
 
 			disablePreRegFetch();
