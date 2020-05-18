@@ -8,6 +8,7 @@ import java.util.List;
 import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+import io.mosip.registration.processor.core.packet.dto.packetvalidator.PacketValidationDto;
 import org.apache.commons.io.IOUtils;
 
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -17,43 +18,23 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.FieldValueArray;
 import io.mosip.registration.processor.core.packet.dto.Identity;
-import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * The Class CheckSumValidation.
  *
  * @author M1048358 Alok Ranjan
  */
-
+@Component
 public class CheckSumValidation {
 
-	/** The adapter. */
+	/** The PacketReaderService. */
+	@Autowired
 	private PacketReaderService packetReaderService;
 
-	/** The registration status dto. */
-	private InternalRegistrationStatusDto registrationStatusDto;
-
-	private String source;
-	
-	
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(CheckSumValidation.class);
-
-	/**
-	 * Instantiates a new check sum validation.
-	 *
-	 * @param adapter
-	 *            the adapter
-	 * @param registrationStatusDto
-	 *            the registration status dto
-	 */
-	public CheckSumValidation(PacketReaderService packetReaderService, InternalRegistrationStatusDto registrationStatusDto,
-			String source) {
-		this.registrationStatusDto = registrationStatusDto;
-		this.packetReaderService = packetReaderService;
-		this.source=source;
-
-	}
 
 	/**
 	 * Checksumvalidation.
@@ -70,7 +51,7 @@ public class CheckSumValidation {
 	 * @throws PacketDecryptionFailureException 
 	 * @throws ApiNotAccessibleException 
 	 */
-	public boolean checksumvalidation(String registrationId, Identity identity) throws IOException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, PacketDecryptionFailureException, ApiNotAccessibleException {
+	public boolean checksumvalidation(String registrationId, Identity identity, String source, PacketValidationDto packetValidationDto) throws IOException, io.mosip.kernel.core.exception.IOException, PacketDecryptionFailureException, ApiNotAccessibleException {
 		List<FieldValueArray> hashSequence1 = identity.getHashSequence1();
 		List<FieldValueArray> hashSequence2 = identity.getHashSequence2();
         regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -78,8 +59,8 @@ public class CheckSumValidation {
 		Boolean isValid = false;
 
 		// Getting hash bytes from packet
-		InputStream dataHashStream = packetReaderService.getFile(registrationId, PacketFiles.PACKET_DATA_HASH.name(),source);
-		InputStream operationsHashStream = packetReaderService.getFile(registrationId, PacketFiles.PACKET_OPERATIONS_HASH.name(),source);
+		InputStream dataHashStream = packetReaderService.getFile(registrationId, PacketFiles.PACKET_DATA_HASH.name(), source);
+		InputStream operationsHashStream = packetReaderService.getFile(registrationId, PacketFiles.PACKET_OPERATIONS_HASH.name(), source);
 
 		byte[] dataHashByte = IOUtils.toByteArray(dataHashStream);
 		byte[] operationsHashByte = IOUtils.toByteArray(operationsHashStream);
@@ -94,7 +75,7 @@ public class CheckSumValidation {
 		Boolean isoperationsCheckSumEqual = MessageDigest.isEqual(operationsHash, operationsHashByte);
 
 		if ((!isdataCheckSumEqual) || (!isoperationsCheckSumEqual)) {
-			registrationStatusDto.setStatusComment(StatusMessage.PACKET_CHECKSUM_VALIDATION_FAILURE);
+			packetValidationDto.setPacketValidaionFailureMessage(StatusMessage.PACKET_CHECKSUM_VALIDATION_FAILURE);
 		}
 
 		if (isdataCheckSumEqual && isoperationsCheckSumEqual) {

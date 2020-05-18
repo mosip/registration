@@ -9,7 +9,6 @@ import java.util.concurrent.Executors;
 
 import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import io.mosip.kernel.packetmanager.spi.PacketReaderService;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -23,8 +22,6 @@ import org.springframework.web.client.HttpServerErrorException;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
-import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
-import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -45,7 +42,6 @@ import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessag
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
-import io.mosip.registration.processor.core.packet.dto.applicantcategory.ApplicantTypeDocument;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.MainRequestDTO;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.MainResponseDTO;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.ReverseDataSyncRequestDTO;
@@ -60,12 +56,10 @@ import io.mosip.registration.processor.packet.storage.exception.IdentityNotFound
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
-import io.mosip.registration.processor.stages.dto.PacketValidationDto;
-import io.mosip.registration.processor.stages.exception.PacketValidatorException;
+import io.mosip.registration.processor.core.packet.dto.packetvalidator.PacketValidationDto;
+import io.mosip.registration.processor.core.exception.PacketValidatorException;
 import io.mosip.registration.processor.stages.utils.AuditUtility;
-import io.mosip.registration.processor.stages.utils.DocumentUtility;
-import io.mosip.registration.processor.stages.utils.IdObjectsSchemaValidationOperationMapper;
-import io.mosip.registration.processor.stages.validator.PacketValidator;
+import io.mosip.registration.processor.core.spi.packet.validator.PacketValidator;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
@@ -158,15 +152,8 @@ public class PacketValidateProcessor {
 			registrationStatusDto.setRegistrationStageName(stageName);
 			boolean isValidSupervisorStatus = isValidSupervisorStatus();
 			if (isValidSupervisorStatus) {
-			InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId,
-					PacketFiles.PACKET_META_INFO.name(),source);
-			PacketMetaInfo packetMetaInfo = (PacketMetaInfo) JsonUtil.inputStreamtoJavaObject(packetMetaInfoStream,
-					PacketMetaInfo.class);
-			IdentityIteratorUtil identityIteratorUtil = new IdentityIteratorUtil();
-			Boolean isValid = packetValidator.validate(registrationStatusDto, packetMetaInfo, object,
-					packetValidationDto);
+			Boolean isValid = packetValidator.validate(object.getRid(), object.getReg_type().toString(), packetValidationDto);
 			if (isValid) {
-			
 				// save audit details
 				Runnable r = () -> {
 					try {
@@ -188,7 +175,12 @@ public class PacketValidateProcessor {
 				registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_STRUCTURAL_VALIDATION_SUCCESS.getCode());
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 				// ReverseDataSync
+				InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId,
+						PacketFiles.PACKET_META_INFO.name(),source);
+				PacketMetaInfo packetMetaInfo = (PacketMetaInfo) JsonUtil.inputStreamtoJavaObject(packetMetaInfoStream,
+						PacketMetaInfo.class);
 
+				IdentityIteratorUtil identityIteratorUtil = new IdentityIteratorUtil();
 				preRegId = identityIteratorUtil.getFieldValue(packetMetaInfo.getIdentity().getMetaData(),
 						JsonConstant.PREREGISTRATIONID);
 				reverseDataSync(preRegId, registrationId, description, packetValidationDto);
@@ -221,7 +213,7 @@ public class PacketValidateProcessor {
 				packetValidationDto.setTransactionSuccessful(false);
 				registrationStatusDto.setRetryCount(retryCount);
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-				registrationStatusDto.setStatusComment(packetValidationDto.getPacketValidaionFailure());
+				registrationStatusDto.setStatusComment(packetValidationDto.getPacketValidaionFailureMessage());
 				registrationStatusDto.setSubStatusCode(packetValidationDto.getPacketValidatonStatusCode());
 
 				description.setMessage(PlatformErrorMessages.STRUCTURAL_VALIDATION_FAILED.getMessage());
