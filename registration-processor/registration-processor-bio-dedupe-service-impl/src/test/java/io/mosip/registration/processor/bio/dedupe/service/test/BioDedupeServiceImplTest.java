@@ -131,8 +131,8 @@ public class BioDedupeServiceImplTest {
 		abisInsertResponseDto.setReturnValue("2");
 		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		ReflectionTestUtils.setField(bioDedupeService, "maxResults", 30);
-		ReflectionTestUtils.setField(bioDedupeService, "targetFPIR", 30);
+		ReflectionTestUtils.setField(bioDedupeService, "maxResults", "30");
+		ReflectionTestUtils.setField(bioDedupeService, "targetFPIR", "30");
 
 
 		String refId = "01234567-89AB-CDEF-0123-456789ABCDEF";
