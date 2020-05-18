@@ -593,6 +593,7 @@ public class BioServiceTest {
 	}
 	
 	@Test
+	@Ignore
 	public void simpleCallForCoverage() throws Exception {
 		bioService.getBioQualityScores("",1);
 		bioService.getHighQualityScoreByBioType("",1.1);

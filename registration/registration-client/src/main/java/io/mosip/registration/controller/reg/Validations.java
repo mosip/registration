@@ -32,7 +32,7 @@ import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
 import io.mosip.registration.dto.mastersync.BlacklistedWordsDto;
 import io.mosip.registration.entity.BlacklistedWords;
 import io.mosip.registration.exception.RegBaseCheckedException;
-import io.mosip.registration.packetmananger.dto.DocumentDto;
+import io.mosip.kernel.packetmanager.dto.DocumentDto;
 import io.mosip.registration.service.sync.MasterSyncService;
 import javafx.scene.Node;
 import javafx.scene.control.Button;

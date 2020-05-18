@@ -414,7 +414,7 @@ public class MasterSyncDaoImplTest {
 		Mockito.when(masterSyncLocationRepository.findByIsActiveTrueAndHierarchyNameAndLangCode(Mockito.anyString(),
 				Mockito.anyString())).thenReturn(locations);
 
-		masterSyncDaoImpl.findLocationByLangCode("Region", "ENG");
+		masterSyncDaoImpl.findLocationByLangCode(1, "ENG");
 
 		assertTrue(locations != null);
 	}

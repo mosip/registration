@@ -69,8 +69,7 @@ public class StorageServiceImpl extends BaseService implements StorageService {
 					.concat(seperator).concat(registrationId);
 
 			// Storing the Encrypted Registration Packet as zip
-			FileUtils.copyToFile(new ByteArrayInputStream(CryptoUtil.encodeBase64(packet).getBytes()),
-					FileUtils.getFile(filePath.concat(ZIP_FILE_EXTENSION)));
+			FileUtils.copyToFile(new ByteArrayInputStream(packet), FileUtils.getFile(filePath.concat(ZIP_FILE_EXTENSION)));
 
 			LOGGER.info(LOG_PKT_STORAGE, APPLICATION_NAME, APPLICATION_ID, "Encrypted packet saved");
 

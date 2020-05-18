@@ -12,6 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.LinkedHashMap;
@@ -59,7 +60,8 @@ import io.mosip.registration.entity.DocumentType;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
-import io.mosip.registration.packetmananger.dto.DocumentDto;
+import io.mosip.kernel.packetmanager.dto.DocumentDto;
+import io.mosip.kernel.packetmanager.dto.SimpleDto;
 import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.external.PreRegZipHandlingService;
 import io.mosip.registration.util.mastersync.MapperUtils;
@@ -246,17 +248,21 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 	}
 	
 	
-	private Object getValueFromJson(String key, String fieldType, JSONObject jsonObject) throws IOException {
+	private Object getValueFromJson(String key, String fieldType, JSONObject jsonObject) throws IOException, JSONException {
 		if(!jsonObject.has(key))
 			return null;
 			
 		switch (fieldType) {
 		case "string":	return jsonObject.getString(key);
 		case "integer":	return jsonObject.getInt(key);
-		case "number": return jsonObject.getNumber(key);
-		case "simpleType": 	
-			return MapperUtils.convertJSONStringToDto(jsonObject.getJSONArray(key).toString(), 
-				new TypeReference<List<ValuesDTO>>() {});
+		case "number": return jsonObject.getLong(key);
+		case "simpleType": 
+			List<SimpleDto> list = new ArrayList<SimpleDto>(); 
+			for(int i=0;i<jsonObject.getJSONArray(key).length();i++) {
+				JSONObject object = jsonObject.getJSONArray(key).getJSONObject(i);
+				list.add(new SimpleDto(object.getString("language"), object.getString("value")));
+			}
+			return list;
 		}
 		return null;
 	}

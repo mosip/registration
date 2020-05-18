@@ -47,7 +47,7 @@ public interface MasterSyncDao {
 	 *            the lang code
 	 * @return the list
 	 */
-	List<Location> findLocationByLangCode(String hierarchyCode, String langCode);
+	List<Location> findLocationByLangCode(int hierarchyLevel, String langCode);
 
 	/**
 	 * Find location by parent loc code.

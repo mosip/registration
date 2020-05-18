@@ -11,7 +11,7 @@
 	</parent>
 
 	<groupId>io.mosip.registration</groupId>
-	<version>1.0.9</version>
+	<version>1.0.10-SNAPSHOT</version>
 	<artifactId>registration-parent</artifactId>
 	<packaging>pom</packaging>
 	<name>registration</name>
@@ -110,7 +110,6 @@
 		<module>registration-services</module>
 		<module>registration-client</module>
 		<module>registration-libs</module>
-		<module>registration-packetmanager</module>
 	</modules>
 
 	<dependencyManagement>

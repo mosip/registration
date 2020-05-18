@@ -9,13 +9,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.dto.OSIDataDTO;
+import io.mosip.registration.dto.RegistrationMetaDataDTO;
 import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
-import io.mosip.registration.packetmananger.dto.AuditDto;
-import io.mosip.registration.packetmananger.dto.BiometricsDto;
-import io.mosip.registration.packetmananger.dto.DocumentDto;
-import io.mosip.registration.packetmananger.dto.SimpleDto;
-import io.mosip.registration.packetmananger.dto.metadata.BiometricsException;
+import io.mosip.kernel.packetmanager.dto.AuditDto;
+import io.mosip.kernel.packetmanager.dto.BiometricsDto;
+import io.mosip.kernel.packetmanager.dto.DocumentDto;
+import io.mosip.kernel.packetmanager.dto.SimpleDto;
+import io.mosip.kernel.packetmanager.dto.metadata.BiometricsException;
 import lombok.Data;
 
 /**
@@ -29,12 +31,13 @@ import lombok.Data;
 @Data
 public class RegistrationDTO {
 	
-	private static final String DATE_FORMAT = "dd/MM/yyyy";
+	private static final String DATE_FORMAT = "yyyy/MM/dd";
 	
 	private double idSchemaVersion;	
 	private String registrationId;
 	private String preRegistrationId;
-	
+	private String registrationCategory;
+
 	private RegistrationMetaDataDTO registrationMetaDataDTO;
 	private OSIDataDTO osiDataDTO;
 	
@@ -84,10 +87,12 @@ public class RegistrationDTO {
 	}
 	
 	public void setDateField(String fieldId, String day, String month, String year) {
-		if(day != null && month != null && year != null) {
-			LocalDate date = LocalDate.of(Integer.valueOf(year), Integer.valueOf(month), Integer.valueOf(day));
-			this.demographics.put(fieldId, date.format(DateTimeFormatter.ofPattern(DATE_FORMAT)));
-		}		
+		try {
+		LocalDate date = LocalDate.of(Integer.valueOf(year), Integer.valueOf(month), Integer.valueOf(day));
+		this.demographics.put(fieldId, date.format(DateTimeFormatter.ofPattern(DATE_FORMAT)));
+		}catch(Exception exception) {
+			this.demographics.put(fieldId,null);
+		}
 	}
 	
 	public String[] getDateField(String fieldId) {
@@ -114,30 +119,22 @@ public class RegistrationDTO {
 		return list;
 	}
 	
-	public void removeAllBiometrics(String subType, String bioAttribute) {
-		this.biometrics.remove(String.format("%s_%s", subType, bioAttribute));
-	}
-	
 	public void addBiometric(String subType, String bioAttribute, BiometricsDto value) {
 		String key = String.format("%s_%s", subType, bioAttribute);
-		int currentCount = 0;
-		if(this.biometrics.get(key) != null) {
-			currentCount = this.biometrics.get(key).getNumOfRetries();
-		}
-		value.setNumOfRetries(currentCount+1);
+		value.setSubType(subType);
 		this.biometrics.put(key, value);
 		this.biometricExceptions.remove(key);
 	}
 	
 	public void addBiometricException(String subType, String bioAttribute, String reason, String exceptionType) {
 		String key = String.format("%s_%s", subType, bioAttribute);
-		this.biometrics.remove(String.format("%s_%s", subType, bioAttribute));
-		this.biometricExceptions.put(key, new BiometricsException(null, bioAttribute, reason, exceptionType, 
+		this.biometricExceptions.put(key, new BiometricsException(null, bioAttribute, reason, exceptionType,
 				subType));
+		this.biometrics.remove(key);
 	}
 	
 	public boolean isBiometricExceptionAvailable(String subType, String bioAttribute) {
-		return this.biometricExceptions.containsKey(String.format("%s_%s", subType, bioAttribute));
+		return biometricExceptions.containsKey(String.format("%s_%s", subType, bioAttribute));
 	}
 	
 	public void removeBiometricException(String subType, String bioAttribute) {

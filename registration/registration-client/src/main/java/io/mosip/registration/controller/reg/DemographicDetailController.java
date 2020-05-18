@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -32,7 +31,6 @@ import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.AuditEvent;
 import io.mosip.registration.constants.AuditReferenceIdTypes;
 import io.mosip.registration.constants.Components;
-import io.mosip.registration.constants.IntroducerType;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.ApplicationContext;
@@ -45,13 +43,11 @@ import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dto.OSIDataDTO;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
-import io.mosip.registration.dto.biometric.FaceDetailsDTO;
-import io.mosip.registration.dto.demographic.ValuesDTO;
 import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.mastersync.LocationDto;
 import io.mosip.registration.entity.Location;
 import io.mosip.registration.exception.RegBaseCheckedException;
-import io.mosip.registration.packetmananger.dto.SimpleDto;
+import io.mosip.kernel.packetmanager.dto.SimpleDto;
 import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.sync.MasterSyncService;
 import javafx.collections.ObservableList;
@@ -233,10 +229,10 @@ public class DemographicDetailController extends BaseController {
 				}
 			}
 			
-			addFirstOrderAddress(listOfComboBoxWithObject.get(orderOfAddress.get(0)), orderOfAddress.get(0),
+			addFirstOrderAddress(listOfComboBoxWithObject.get(orderOfAddress.get(0)), 1,
 					applicationContext.getApplicationLanguage());
 			addFirstOrderAddress(listOfComboBoxWithObject.get(orderOfAddress.get(0) + RegistrationConstants.LOCAL_LANGUAGE),
-					orderOfAddress.get(0), applicationContext.getLocalLanguage());
+					1, applicationContext.getLocalLanguage());
 
 			populateDropDowns();		
 			
@@ -296,9 +292,7 @@ public class DemographicDetailController extends BaseController {
 
 		gridPane.addColumn(2, secondary);
 
-		gridPane.setId(schemaDTO.getId());
-
-		gridPane.setId(schemaDTO.getId());
+		gridPane.setId(schemaDTO.getId()+"ParentGridPane");
 
 		return gridPane;
 	}
@@ -503,14 +497,16 @@ public class DemographicDetailController extends BaseController {
 		dateValidation.validateYear(parentFlowPane, dd, mm, yyyy, validation, fxUtils, ageField, null,
 				dobMessage);
 
+		vB.setDisable(languageType.equals(RegistrationConstants.LOCAL_LANGUAGE));
+
 		return vB;
 	}
 	
 	@Autowired
 	ResourceLoader resourceLoader;
 
-	public VBox addContentWithTextField(UiSchemaDTO schema, String fieldName, String languageType) {
 
+	public VBox addContentWithTextField(UiSchemaDTO schema, String fieldName, String languageType) {
 		TextField field = new TextField();
 		Label label = new Label();
 		Label validationMessage = new Label();
@@ -792,13 +788,12 @@ public class DemographicDetailController extends BaseController {
 		}
 	}
 
-	private void addFirstOrderAddress(ComboBox<GenericDto> location, String id, String languageType) {
+	private void addFirstOrderAddress(ComboBox<GenericDto> location, int id, String languageType) {
 		if (location != null) {
 			location.getItems().clear();
 			try {
 				List<GenericDto> locations = null;
-				UiSchemaDTO field = validation.getValidationMap().get(id);
-				locations = masterSync.findLocationByHierarchyCode(field.getSubType(), languageType);				
+				locations = masterSync.findLocationByHierarchyCode(id, languageType);
 				
 				if (locations.isEmpty()) {
 					GenericDto lC = new GenericDto();
@@ -828,6 +823,7 @@ public class DemographicDetailController extends BaseController {
 	}
 
 	private void addDemoGraphicDetailsToSession() {
+		try {
 		RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 		for (UiSchemaDTO schemaField : validation.getValidationMap().values()) {
 			if(schemaField.getControlType() == null)
@@ -839,8 +835,8 @@ public class DemographicDetailController extends BaseController {
 					ComboBox<GenericDto> platformField = listOfComboBoxWithObject.get(schemaField.getId());
 					ComboBox<GenericDto> localField = listOfComboBoxWithObject.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE);					
 					registrationDTO.addDemographicField(schemaField.getId(), 
-							applicationContext.getApplicationLanguage(), platformField.getValue().getName(),
-							applicationContext.getLocalLanguage(), (localField == null || localField.getValue() ==null) ? null : localField.getValue().getName());
+							applicationContext.getApplicationLanguage(), platformField == null ? null : platformField.getValue()!=null?platformField.getValue().getName():null,
+							applicationContext.getLocalLanguage(), localField == null ? null : localField.getValue()!=null?localField.getValue().getName():null);
 				}
 				else {
 					TextField platformField = listOfTextField.get(schemaField.getId());
@@ -864,6 +860,9 @@ public class DemographicDetailController extends BaseController {
 			default:
 				break;
 			}			
+		}
+		}catch(Exception exception) {
+			exception.printStackTrace();
 		}
 	}
 
@@ -911,7 +910,7 @@ public class DemographicDetailController extends BaseController {
 
 			addDemoGraphicDetailsToSession();
 
-//			Map<String, Object> demographics = registrationDTO.getDemographics();
+			Map<String, Object> demographics = registrationDTO.getDemographics();
 
 			/*if (isChild) {
 				osiDataDTO.setIntroducerType(IntroducerType.PARENT.getCode());
@@ -933,17 +932,20 @@ public class DemographicDetailController extends BaseController {
 
 		HashMap<String, Object> selectionList = getRegistrationDTOFromSession().getSelectionListDTO();
 		
+		//added a comment
 		if (selectionList!=null) {
 
 			disablePreRegFetch();
 			registrationNavlabel.setText(applicationLabelBundle.getString("uinUpdateNavLbl"));
 			for (Node pane : parentFlowPane.getChildren()) {
-				CheckBox checkBox = ((CheckBox) selectionList.get(pane.getId()));
+				if(!pane.getId().matches("preRegParentPane|languageLabelParentPane")) {
+				CheckBox checkBox = ((CheckBox) selectionList.get(pane.getId().replace("ParentGridPane", "")));
 				if(checkBox!=null && checkBox.isSelected()) {
 					pane.setDisable(false);
 				}else {
 					pane.setDisable(true);
 				}
+			}
 			}
 		}
 	}
@@ -1061,7 +1063,7 @@ public class DemographicDetailController extends BaseController {
 			listOfTextField.get(node.getId() + "LocalLanguage").requestFocus();
 			keyboardNode.setVisible(true);
 			keyboardNode.setManaged(true);
-			addKeyboard(positionTracker.get((node.getId())) + 1);
+			addKeyboard(positionTracker.get((node.getId()+"ParentGridPane")) + 1);
 
 		} catch (RuntimeException runtimeException) {
 			LOGGER.error("REGISTRATION - SETTING FOCUS ON LOCAL FIELD FAILED", APPLICATION_NAME,

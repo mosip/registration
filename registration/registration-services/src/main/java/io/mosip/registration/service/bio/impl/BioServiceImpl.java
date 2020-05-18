@@ -55,9 +55,9 @@ import io.mosip.registration.mdm.dto.MDMError;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.mdm.dto.RequestDetail;
 import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
-import io.mosip.registration.packetmananger.constants.Biometric;
-import io.mosip.registration.packetmananger.constants.PacketManagerConstants;
-import io.mosip.registration.packetmananger.dto.BiometricsDto;
+import io.mosip.kernel.packetmanager.constants.Biometric;
+import io.mosip.kernel.packetmanager.constants.PacketManagerConstants;
+import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.security.AuthenticationService;
@@ -509,8 +509,9 @@ public class BioServiceImpl extends BaseService implements BioService {
 	@Override
 	public boolean isMdmEnabled() {
 
-		return RegistrationConstants.ENABLE
-				.equalsIgnoreCase(((String) ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
+//		return RegistrationConstants.ENABLE
+//				.equalsIgnoreCase(((String) ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
+		return false;
 	}
 
 	/*
@@ -1500,12 +1501,11 @@ public class BioServiceImpl extends BaseService implements BioService {
 		
 		CaptureResponseDto captureResponseDto = mosipBioDeviceManager.scanModality(mdmRequestDto);		
 		if (captureResponseDto == null)
-			throw new RegBaseCheckedException(MDMError.MDM_REQUEST_FAILED.getErrorCode(), 
-					MDMError.MDM_REQUEST_FAILED.getErrorMessage());
-		
-		if (captureResponseDto.getError() != null)
+			throw new RegBaseCheckedException("202", "Decice is not available");
+		if (captureResponseDto.getError().getErrorCode().matches("102|101|202|403|404|409"))
 			throw new RegBaseCheckedException(captureResponseDto.getError().getErrorCode(),
 					captureResponseDto.getError().getErrorInfo());
+
 		
 		List<BiometricsDto> list = new ArrayList<BiometricsDto>();
 		Map<String, String> storedScores = new HashMap<String, String>();
@@ -1558,6 +1558,8 @@ public class BioServiceImpl extends BaseService implements BioService {
 	}
 	
 	private String getFilePath(String modality, String bioAttribute) throws IOException {
+		LOGGER.info(LOG_REG_FINGERPRINT_FACADE, APPLICATION_NAME, APPLICATION_ID,
+				"Current Modality >>>>>>>>>>>>>>>>>>>>>>>>> " + modality + "  bioAttribute >>>>> " + bioAttribute);
 		String path = null;
 		switch (modality) {
 		case PacketManagerConstants.FINGERPRINT_SLAB_LEFT:
@@ -1572,6 +1574,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 		case PacketManagerConstants.IRIS_DOUBLE:
 			path = String.format("/images/%s.iso", bioAttribute);
 			break;
+		case "FACE":
 		case PacketManagerConstants.FACE_FULLFACE:
 			path = String.format("/images/%s.iso", "face");
 			break;

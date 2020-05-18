@@ -44,7 +44,7 @@ import io.mosip.registration.device.webcam.impl.WebcamSarxosServiceImpl;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
-import io.mosip.registration.packetmananger.dto.DocumentDto;
+import io.mosip.kernel.packetmanager.dto.DocumentDto;
 import io.mosip.registration.service.bio.impl.BioServiceImpl;
 import io.mosip.registration.service.doc.category.DocumentCategoryService;
 import io.mosip.registration.service.sync.MasterSyncService;
@@ -459,7 +459,7 @@ public class DocumentScanController extends BaseController {
 		} else {
 			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, "Displaying Scan window to scan Documents");
-			documents.getValue().setCode(document);
+			//documents.getValue().setCode(document);
 			selectedDocument = document;
 			selectedComboBox = documents;
 			selectedDocVBox = vboxElement;

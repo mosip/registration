@@ -57,6 +57,7 @@ public class ClientJarEncryption {
 	private static final String MOSIP_BIN = "bin";
 	private static final String MOSIP_SERVICES = "mosip-services.jar";
 	private static final String MOSIP_CLIENT = "mosip-client.jar";
+	private static final String MOSIP_PACKET_MANAGER = "mosip-packet-manager.jar";
 	private static final String MOSIP_CER = "cer";
 
 	private static final String MOSIP_JRE = "jre";
@@ -112,6 +113,7 @@ public class ClientJarEncryption {
 					byte[] runExecutbale = FileUtils
 							.readFileToByteArray(new File(args[3] + MOSIP_REG_LIBS + args[2] + MOSIP_JAR));
 					File listOfJars = new File(file.getParent() + SLASH + MOSIP_LIB).getAbsoluteFile();
+					System.out.println("Path====>"+listOfJars);
 
 					// Add files to be archived into zip file
 					Map<String, byte[]> fileNameByBytes = new HashMap<>();
@@ -167,20 +169,22 @@ public class ClientJarEncryption {
 					FileUtils.copyDirectory(rxtxJarFolder, listOfJars);
 
 					// Adding lib files into map
-					for (File files : listOfJars.listFiles()) {
-
-						if (files.getName().contains(REGISTRATION)) {
+					for (File files : listOfJars.listFiles()) {						
+						if (files.getName().contains("registration-client") || files.getName().contains("registration-services")) {
 
 							String regpath = files.getParentFile().getAbsolutePath() + SLASH;
-							if (files.getName().contains("client")) {
+							if (files.getName().contains("registration-client")) {
 								regpath += MOSIP_CLIENT;
-							} else {
+							} else if (files.getName().contains("registration-services")){
 								regpath += MOSIP_SERVICES;
-							}
+						//	} else if (files.getName().contains("packetmanager")) {
+						//		regpath += MOSIP_PACKET_MANAGER;
+							} else
+								continue;
+							
 							byte[] encryptedRegFileBytes = aes.encyrpt(FileUtils.readFileToByteArray(files),
 									Base64.getDecoder().decode(args[1].getBytes()));
 							// fileNameByBytes.put(libraries + files.getName(), encryptedRegFileBytes);
-
 							File servicesJar = new File(regpath);
 							try (FileOutputStream regFileOutputStream = new FileOutputStream(servicesJar)) {
 								regFileOutputStream.write(encryptedRegFileBytes);
@@ -219,7 +223,7 @@ public class ClientJarEncryption {
 
 					System.out.println("Zip Creation ended with path :::" + zipFilename);
 				}
-			} catch(InvalidKeyException invalidKeyException) {
+			} catch(Throwable invalidKeyException) {
 				invalidKeyException.printStackTrace();
 			}
 		}

@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
@@ -490,8 +491,11 @@ public class MapperUtils {
 	 * @param jsonObject      which value is going to be mapped
 	 * @param destination where values is going to be mapped
 	 * @throws ParseException 
+	 * @throws JSONException 
+	 * @throws SecurityException 
+	 * @throws IllegalArgumentException 
 	 */
-	public static <D> D mapJSONObjectToEntity(final JSONObject jsonObject, Class<?> entityClass) throws IllegalAccessException, InstantiationException, ParseException {
+	public static <D> D mapJSONObjectToEntity(final JSONObject jsonObject, Class<?> entityClass) throws IllegalAccessException, InstantiationException, ParseException, IllegalArgumentException, SecurityException, JSONException {
 		LOGGER.debug(MAPPER_UTILL, APPLICATION_NAME, APPLICATION_ID, "Building entity of type : " + entityClass.getName());
 		
 		Objects.requireNonNull(jsonObject, SOURCE_NULL_MESSAGE);
@@ -519,9 +523,11 @@ public class MapperUtils {
 	 * @param destination where values is going to be mapped
 	 * @param fields         destination fields
 	 * @throws IllegalAccessException if provided fields are not accessible
+	 * @throws JSONException 
+	 * @throws IllegalArgumentException 
 	 */
 	private static <D> void mapJsonToEntity(JSONObject jsonObject, D destination, Field[] fields)
-			throws InstantiationException, IllegalAccessException, ParseException {
+			throws InstantiationException, IllegalAccessException, ParseException, IllegalArgumentException, JSONException {
 
 		for (Field dfield : fields) {
 			if (isIgnoreField(dfield)) {
@@ -609,7 +615,7 @@ public class MapperUtils {
 	}
 	
 	
-	private static <D> void setBaseFieldValueFromJsonObject(JSONObject source, D destination) throws InstantiationException, IllegalAccessException, ParseException {
+	private static <D> void setBaseFieldValueFromJsonObject(JSONObject source, D destination) throws InstantiationException, IllegalAccessException, ParseException, IllegalArgumentException, JSONException {
 
 		String destinationSupername = destination.getClass().getSuperclass().getName();// super class of destination object
 		String baseEntityClassName = RegistrationCommonFields.class.getName();// base entity fully qualified name

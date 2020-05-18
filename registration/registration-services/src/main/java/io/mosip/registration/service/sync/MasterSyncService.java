@@ -65,7 +65,7 @@ public interface MasterSyncService {
 	 * @return the list holds the Location data to be displayed in the UI.
 	 * @throws RegBaseCheckedException
 	 */
-	List<GenericDto> findLocationByHierarchyCode(String hierarchyCode, String langCode) throws RegBaseCheckedException;
+	List<GenericDto> findLocationByHierarchyCode(int hierarchyLevel, String langCode) throws RegBaseCheckedException;
 
 	/**
 	 * Find proviance by hierarchy code.

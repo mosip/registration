@@ -619,22 +619,21 @@ public class PacketHandlerController extends BaseController implements Initializ
 								getClass().getResource(RegistrationConstants.ACK_RECEIPT_PATH),
 								applicationContext.getApplicationLanguageBundle());
 						getScene(createRoot).setRoot(createRoot);
-
 						setIsAckOpened(true);
-						
+						return;
 					} else {
-						clearRegistrationData();
+						//clearRegistrationData();
 						createPacket();
 					}
 				} else if (templateResponse != null && templateResponse.getErrorResponseDTOs() != null) {
 					generateAlert(RegistrationConstants.ERROR,
 							RegistrationUIConstants.UNABLE_LOAD_ACKNOWLEDGEMENT_PAGE);
-					clearRegistrationData();
+					//clearRegistrationData();
 					createPacket();
 				}
 			} else {
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_ACKNOWLEDGEMENT_PAGE);
-				clearRegistrationData();
+				//clearRegistrationData();
 				createPacket();
 			}
 		} catch (IOException ioException) {
@@ -643,6 +642,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 		} catch (RegBaseCheckedException regBaseCheckedException) {
 			LOGGER.error("REGISTRATION - UI- Officer Packet Create ", APPLICATION_NAME, APPLICATION_ID,
 					regBaseCheckedException.getMessage() + ExceptionUtils.getStackTrace(regBaseCheckedException));
+		} finally {
+			clearRegistrationData();
 		}
 		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Showing receipt ended.");
 	}
@@ -927,9 +928,9 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 				//TODO - Client should not send notification, save contact details 
 				// so that it can be sent out during RID sync.
-				sendNotification((String)registrationDTO.getDemographics().get("email"), 
+				/*sendNotification((String)registrationDTO.getDemographics().get("email"), 
 						(String)registrationDTO.getDemographics().get("phone"),
-						registrationDTO.getRegistrationId());
+						registrationDTO.getRegistrationId());*/
 
 				// Sync and Uploads Packet when EOD Process Configuration is set to OFF
 				if (!getValueFromApplicationContext(RegistrationConstants.EOD_PROCESS_CONFIG_FLAG)

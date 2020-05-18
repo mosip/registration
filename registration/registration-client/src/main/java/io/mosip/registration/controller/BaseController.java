@@ -68,7 +68,7 @@ import io.mosip.registration.dto.biometric.FaceDetailsDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
-import io.mosip.registration.packetmananger.constants.PacketManagerConstants;
+import io.mosip.kernel.packetmanager.constants.PacketManagerConstants;
 import io.mosip.registration.scheduler.SchedulerUtil;
 import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.bio.BioService;
@@ -1490,7 +1490,7 @@ public class BaseController {
 			table.widthProperty().addListener((source, oldWidth, newWidth) -> {
 				TableHeaderRow header = (TableHeaderRow) table.lookup("TableHeaderRow");
 				header.reorderingProperty()
-						.addListener((observable, oldValue, newValue) -> header.setReordering(false));
+					.addListener((observable, oldValue, newValue) -> header.setReordering(false));
 			});
 		}
 	}
@@ -1594,7 +1594,8 @@ public class BaseController {
 								? RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD
 								: bioType.toLowerCase().contains(RegistrationConstants.IRIS.toLowerCase())
 										? RegistrationConstants.IRIS_THRESHOLD
-										: RegistrationConstants.EMPTY;
+										:  bioType.toLowerCase().contains(RegistrationConstants.FACE.toLowerCase()) ?
+												RegistrationConstants.FACE_THRESHOLD : RegistrationConstants.EMPTY;
 	}
 
 	public interface ToRun<T> {

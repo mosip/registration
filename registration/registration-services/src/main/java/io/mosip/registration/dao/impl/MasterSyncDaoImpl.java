@@ -163,8 +163,8 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 	 * String, java.lang.String)
 	 */
 	@Override
-	public List<Location> findLocationByLangCode(String hierarchyCode, String langCode) {
-		return locationRepository.findByIsActiveTrueAndHierarchyNameAndLangCode(hierarchyCode, langCode);
+	public List<Location> findLocationByLangCode(int hierarchyLevel, String langCode) {
+		return locationRepository.findByIsActiveTrueAndHierarchyLevelAndLangCode(hierarchyLevel, langCode);
 	}
 
 	/*

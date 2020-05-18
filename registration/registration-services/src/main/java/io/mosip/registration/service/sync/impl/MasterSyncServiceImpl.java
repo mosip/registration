@@ -213,12 +213,11 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	 * @throws RegBaseCheckedException
 	 */
 	@Override
-	public List<GenericDto> findLocationByHierarchyCode(String hierarchyCode, String langCode)
+	public List<GenericDto> findLocationByHierarchyCode(int hierarchyLevel, String langCode)
 			throws RegBaseCheckedException {
 
 		List<GenericDto> locationDto = new ArrayList<>();
-		if (codeAndlangCodeNullCheck(hierarchyCode, langCode)) {
-			List<Location> masterLocation = masterSyncDao.findLocationByLangCode(hierarchyCode, langCode);
+			List<Location> masterLocation = masterSyncDao.findLocationByLangCode(hierarchyLevel, langCode);
 
 			for (Location masLocation : masterLocation) {
 				GenericDto location = new GenericDto();
@@ -227,13 +226,6 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 				location.setLangCode(masLocation.getLangCode());
 				locationDto.add(location);
 			}
-		} else {
-			LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
-					RegistrationConstants.CODE_AND_LANG_CODE_MANDATORY);
-			throw new RegBaseCheckedException(
-					RegistrationExceptionConstants.REG_MASTER_SYNC_SERVICE_IMPL_CODE_AND_LANGCODE.getErrorCode(),
-					RegistrationExceptionConstants.REG_MASTER_SYNC_SERVICE_IMPL_CODE_AND_LANGCODE.getErrorMessage());
-		}
 		return locationDto;
 	}
 
