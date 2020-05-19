@@ -51,9 +51,6 @@ public class PacketCreationServiceImpl implements PacketCreationService {
 	private static final String loggerMessage = "Byte array of %s file generated successfully";
 
 	@Autowired
-	private IdObjectValidator idObjectSchemaValidator;
-
-	@Autowired
 	private Environment environment;
 
 	@Autowired

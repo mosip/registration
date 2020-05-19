@@ -342,7 +342,7 @@ public class CbeffToBiometricUtil {
 	 * @throws BiometricException 
 	 */
 	public BIR extractTemplate(BIR sample, KeyValuePair[] flags) throws BiometricException {
-		return bioAPi.extractTemplate(sample, flags);
+		return bioAPi.extractTemplate(sample, flags).getResponse();
 	}
 
 }
