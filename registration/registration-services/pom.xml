@@ -257,12 +257,6 @@
 			<artifactId>sourceafis</artifactId>
 			<version>${sourceafis.version}</version>
 		</dependency>
-		<!-- MANTRA Biometric device -->
-		<dependency>
-			<groupId>Mantra</groupId>
-			<artifactId>MFS100</artifactId>
-			<version>1.0</version>
-		</dependency>
 
 		<!-- QuartzJobBean in spring-context-support.jar -->
 		<dependency>
