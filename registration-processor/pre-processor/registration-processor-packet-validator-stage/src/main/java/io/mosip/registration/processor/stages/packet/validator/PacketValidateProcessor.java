@@ -11,9 +11,7 @@ import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,10 +81,8 @@ public class PacketValidateProcessor {
 	@Autowired
 	private PacketReaderService packetReaderService;
 
-	@Autowired(required = false)
-	@Qualifier("referencePacketValidator")
-	@Lazy
-	private PacketValidator packetValidator;
+	@Autowired
+	private PacketValidator compositePacketValidator;
 
 	/** The Constant USER. */
 	private static final String USER = "MOSIP_SYSTEM";
@@ -152,7 +148,7 @@ public class PacketValidateProcessor {
 			registrationStatusDto.setRegistrationStageName(stageName);
 			boolean isValidSupervisorStatus = isValidSupervisorStatus();
 			if (isValidSupervisorStatus) {
-			Boolean isValid = packetValidator.validate(object.getRid(), object.getReg_type().toString(), packetValidationDto);
+			Boolean isValid = compositePacketValidator.validate(object.getRid(), object.getReg_type().toString(), packetValidationDto);
 			if (isValid) {
 				// save audit details
 				Runnable r = () -> {

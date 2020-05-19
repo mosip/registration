@@ -42,13 +42,17 @@ import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
-@Qualifier("packetValidatorImpl")
-public class PacketValidatorImpl implements PacketValidator{
+
+@Component
+@RefreshScope
+public class PacketValidatorImpl implements PacketValidator {
 	
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(PacketValidatorImpl.class);
 	
