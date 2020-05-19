@@ -195,7 +195,7 @@ public interface BioService {
 	 * @return boolean the validation result. <code>true</code> if match is found,
 	 *         else <code>false</code>
 	 */
-	boolean validateFP(FingerprintDetailsDTO fingerprintDetailsDTO, List<UserBiometric> userFingerprintDetails);
+//	boolean validateFP(FingerprintDetailsDTO fingerprintDetailsDTO, List<UserBiometric> userFingerprintDetails);
 
 	/**
 	 * Captures the face

@@ -303,7 +303,7 @@
 		"primary": "Postal Code",
 		"secondary": "الكود البريدى"
 	},
-	"controlType": "textbox",
+	"controlType": "dropdown",
 	"fieldType": "default",
 	"format": "none",
 	"validators": [{

@@ -19,7 +19,7 @@ public class FingerprintFacade {
 
 	private List<MosipFingerprintProvider> fingerprintProviders;
 
-	@Autowired
+	//@Autowired
 	private MosipFingerprintProvider fingerprintProvider;
 
 	private byte[] isoTemplate;
@@ -92,7 +92,7 @@ public class FingerprintFacade {
 	 * @param fingerprintProviders
 	 *            the new list of {@link MosipFingerprintProvider}
 	 */
-	@Autowired
+	//@Autowired
 	public void setFingerprintProviders(List<MosipFingerprintProvider> fingerprintProviders) {
 		this.fingerprintProviders = fingerprintProviders;
 	}
