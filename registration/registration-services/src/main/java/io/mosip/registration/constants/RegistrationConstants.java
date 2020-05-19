@@ -120,7 +120,7 @@ public class RegistrationConstants {
 	public static final String DOC_STUB_PATH = "/images/PANStubbed.jpg";
 	public static final String FP_IMG_PATH = "/images/fingerprint.jpg";
 	public static final String IRIS_IMG_PATH = "/images/iris.jpg";
-	public static final String FACE_IMG_PATH = "/images/face.jpg";
+	public static final String FACE_IMG_PATH = "/images/Photo.png";
 	public static final String LEFTPALM_IMG_PATH = "/images/leftHand.png";
 	public static final String RIGHTPALM_IMG_PATH = "/images/rightHand.png";
 	public static final String THUMB_IMG_PATH = "/images/thumbs.png";
