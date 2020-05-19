@@ -23,9 +23,11 @@ import io.mosip.kernel.core.cbeffutil.entity.BIR.BIRBuilder;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
+import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.dao.UserDetailDAO;
 import io.mosip.registration.dto.AuthTokenDTO;
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
@@ -171,5 +173,42 @@ public class FaceValidatorImpl extends AuthenticationBaseValidator {
 		
 		return flag;
 		
+	}
+
+	@Override
+	public boolean bioMerticsValidator(List<BiometricsDto> listOfBiometrics) {
+
+		List<UserBiometric> userDetailsRecorded = userDetailDAO
+				.getUserSpecificBioDetails(SessionContext.userContext().getUserId(), RegistrationConstants.FACE);
+		boolean flag = false;
+		for (BiometricsDto biometricDTO : listOfBiometrics) {
+			BIR capturedBir = new BIRBuilder().withBdb(biometricDTO.getAttributeISO())
+					.withBdbInfo(
+							new BDBInfo.BDBInfoBuilder().withType(Collections.singletonList(SingleType.FACE)).build())
+					.build();
+			BIR[] registeredBir = new BIR[userDetailsRecorded.size()];
+			ApplicationContext.map().remove("IDENTY_SDK");
+			int i = 0;
+			for (UserBiometric userBiometric : userDetailsRecorded) {
+				registeredBir[i] = new BIRBuilder().withBdb(userBiometric.getBioIsoImage()).withBdbInfo(
+						new BDBInfo.BDBInfoBuilder().withType(Collections.singletonList(SingleType.FACE)).build())
+						.build();
+				i++;
+			}
+			try {
+				/*Response<MatchDecision[]> scores = ibioApi.match(capturedBir, registeredBir, null);
+				System.out.println(scores);*/
+
+			} catch (Exception exception) {
+				LOGGER.error(LOG_REG_FINGERPRINT_FACADE, APPLICATION_NAME, APPLICATION_ID,
+						String.format("Exception while validating the face with bio api: %s caused by %s",
+								exception.getMessage(), exception.getCause()));
+				ApplicationContext.map().put("IDENTY_SDK", "FAILED");
+				return false;
+
+			}
+		}
+		return flag;
+
 	}
 }
