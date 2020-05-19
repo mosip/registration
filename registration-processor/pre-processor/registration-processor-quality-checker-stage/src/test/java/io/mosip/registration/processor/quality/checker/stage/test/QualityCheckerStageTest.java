@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import io.mosip.kernel.core.bioapi.model.Response;
 import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import io.mosip.kernel.packetmanager.spi.PacketReaderService;
@@ -29,7 +30,6 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import io.mosip.kernel.core.bioapi.exception.BiometricException;
 import io.mosip.kernel.core.bioapi.model.QualityScore;
 import io.mosip.kernel.core.bioapi.spi.IBioApi;
 import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
@@ -204,10 +204,12 @@ public class QualityCheckerStageTest {
 	}
 
 	@Test
-	public void testQualityCheckerSuccess() throws BiometricException {
+	public void testQualityCheckerSuccess() {
 		QualityScore qualityScore = new QualityScore();
-		qualityScore.setInternalScore(90);
-		Mockito.when(fingerApi.checkQuality(any(), any())).thenReturn(qualityScore);
+		qualityScore.setScore(90);
+		Response<QualityScore> response = new Response();
+		response.setResponse(qualityScore);
+		Mockito.when(fingerApi.checkQuality(any(), any())).thenReturn(response);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -217,10 +219,12 @@ public class QualityCheckerStageTest {
 	}
 
 	@Test
-	public void testQualityCheckFailure() throws BiometricException {
+	public void testQualityCheckFailure() {
 		QualityScore qualityScore = new QualityScore();
-		qualityScore.setInternalScore(50);
-		Mockito.when(fingerApi.checkQuality(any(), any())).thenReturn(qualityScore);
+		qualityScore.setScore(50);
+		Response<QualityScore> response = new Response();
+		response.setResponse(qualityScore);
+		Mockito.when(fingerApi.checkQuality(any(), any())).thenReturn(response);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -276,17 +280,6 @@ public class QualityCheckerStageTest {
 		assertTrue(result.getInternalError());
 	}
 
-	@Test
-	public void testBiometricException() throws BiometricException {
-		BiometricException exception = new BiometricException("", "");
-		Mockito.when(fingerApi.checkQuality(any(), any())).thenThrow(exception);
-		MessageDTO dto = new MessageDTO();
-		dto.setRid("1234567890");
-		MessageDTO result = qualityCheckerStage.process(dto);
-
-		assertTrue(result.getInternalError());
-	}
-
 	private static List<BIR> getBIRList(List<BIRType> birTypeList) {
 		List<BIR> birList = new ArrayList<>();
 		for (BIRType birType : birTypeList) {
@@ -300,7 +293,7 @@ public class QualityCheckerStageTest {
 		return birList;
 	}
 	@Test
-	public void testQualityCheckfailureException() throws BiometricException, PacketDecryptionFailureException, ApiNotAccessibleException, io.mosip.kernel.core.exception.IOException, IOException {
+	public void testQualityCheckfailureException() throws PacketDecryptionFailureException, ApiNotAccessibleException, io.mosip.kernel.core.exception.IOException, IOException {
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
 		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenReturn(null);
 
