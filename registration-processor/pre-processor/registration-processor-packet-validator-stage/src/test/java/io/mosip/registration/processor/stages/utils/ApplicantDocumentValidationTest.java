@@ -14,6 +14,7 @@ import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -39,6 +40,7 @@ public class ApplicantDocumentValidationTest {
 
 	@Mock IdSchemaUtils idSchemaUtils;
 
+	@InjectMocks
 	private ApplicantDocumentValidation applicantDocumentValidation;
 
 	JSONObject regProcessorIdentityJson=mock(JSONObject.class);
@@ -72,7 +74,7 @@ public class ApplicantDocumentValidationTest {
 
 		when(idSchemaUtils.getSource(anyString())).thenReturn(source);
 		when(packetReaderService.checkFileExistence(anyString(),anyString(),anyString())).thenReturn(true);
-		applicantDocumentValidation = new ApplicantDocumentValidation(utility,idSchemaUtils,packetReaderService );
+		
 	}
 
 	/**
