@@ -40,10 +40,8 @@ import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
@@ -62,10 +60,8 @@ public class PacketValidatorImpl implements PacketValidator {
 	@Autowired
 	IdObjectsSchemaValidationOperationMapper idObjectsSchemaValidationOperationMapper;
 	
-	@Autowired(required = false)
-	@Qualifier("referenceValidator")
-	@Lazy
-	IdObjectValidator idObjectValidator;
+	@Autowired
+	IdObjectValidator idObjectCompositeValidator;
 	
 	@Autowired
 	private Utilities utility;
@@ -257,7 +253,7 @@ public class PacketValidatorImpl implements PacketValidator {
 		}
 		IdObjectValidatorSupportedOperations operation = idObjectsSchemaValidationOperationMapper
 				.getOperation(rid);
-		packetValidationDto.setSchemaValidated(idObjectValidator.validateIdObject(idObject, operation));
+		packetValidationDto.setSchemaValidated(idObjectCompositeValidator.validateIdObject(idObject, operation));
 
 		if (!packetValidationDto.isSchemaValidated()) {
 			packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.SCHEMA_VALIDATION_FAILED.getMessage());
