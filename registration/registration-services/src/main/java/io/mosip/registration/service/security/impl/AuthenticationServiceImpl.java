@@ -12,6 +12,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dto.AuthTokenDTO;
@@ -103,6 +104,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
 			return RegistrationConstants.PWD_MISMATCH;
 		}
+	}
+
+	@Override
+	public Boolean validateBiometrics(String validatorType, List<BiometricsDto> listOfBiometrics) {
+		for (AuthenticationBaseValidator validator : authenticationBaseValidators) {
+			if (validator.getClass().getName().toLowerCase().contains(validatorType.toLowerCase())) {
+				return validator.bioMerticsValidator(listOfBiometrics);
+			}
+		}
+
+		return false;
 	}
 
 }
