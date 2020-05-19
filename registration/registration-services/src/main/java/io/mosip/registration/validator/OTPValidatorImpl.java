@@ -1,8 +1,11 @@
 package io.mosip.registration.validator;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.dto.AuthTokenDTO;
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
 import io.mosip.registration.util.common.OTPManager;
@@ -38,6 +41,12 @@ public class OTPValidatorImpl extends AuthenticationBaseValidator {
 	@Override
 	public AuthTokenDTO validate(String userId, String otp, boolean haveToSaveAuthToken) {
 		return otpManager.validateOTP(userId, otp, haveToSaveAuthToken);
+	}
+
+	@Override
+	public boolean bioMerticsValidator(List<BiometricsDto> listOfBiometrics) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }
