@@ -328,6 +328,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 								checkBox.selectedProperty().addListener((obsValue, oldValue, newValue) -> {
 
 									for (Node exceptionCheckBox : vboxForCheckBox.getChildren()) {
+
 										getRegistrationDTOFromSession().removeBiometric(currentModality,
 												exceptionCheckBox.getId());
 									}
@@ -362,7 +363,9 @@ public class GuardianBiometricsController extends BaseController implements Init
 		sizeOfCombobox = comboBoxMap.size();
 		if (sizeOfCombobox > 0) {
 			currentPosition = 0;
+			currentSubType = getListOfBiometricSubTypess().get(currentPosition);
 			previousPosition = 0;
+
 		}
 
 		if (null != findComboBox()) {
@@ -425,6 +428,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 		//
 		// }
 		// });
+
 	}
 
 	private VBox findComboBox() {
@@ -442,6 +446,8 @@ public class GuardianBiometricsController extends BaseController implements Init
 			currentSubType = getListOfBiometricSubTypess().get(currentPosition);
 
 			refreshContinueButton();
+
+			clearUiElements();
 		}
 	}
 
@@ -456,6 +462,8 @@ public class GuardianBiometricsController extends BaseController implements Init
 			currentSubType = getListOfBiometricSubTypess().get(currentPosition);
 
 			refreshContinueButton();
+
+			clearUiElements();
 		}
 	}
 
@@ -547,16 +555,16 @@ public class GuardianBiometricsController extends BaseController implements Init
 			updateBiometric(modality, RegistrationConstants.RIGHT_IRIS_IMG_PATH, RegistrationConstants.IRIS_THRESHOLD,
 					RegistrationConstants.IRIS_RETRY_COUNT);
 		} else if (modality.equalsIgnoreCase(RegistrationConstants.FACE)) {
-			updateBiometric(modality, RegistrationConstants.LEFT_IRIS_IMG_PATH, RegistrationConstants.IRIS_THRESHOLD,
+			updateBiometric(modality, RegistrationConstants.FACE_IMG_PATH, RegistrationConstants.IRIS_THRESHOLD,
 					RegistrationConstants.IRIS_RETRY_COUNT);
 		}
 
-		if (!bioValue.equalsIgnoreCase(RegistrationUIConstants.SELECT)) {
-			scanBtn.setDisable(false);
-			continueBtn.setDisable(true);
-			biometricBox.setVisible(true);
-			retryBox.setVisible(true);
-		}
+//		if (!bioValue.equalsIgnoreCase(RegistrationUIConstants.SELECT)) {
+//			scanBtn.setDisable(false);
+//			continueBtn.setDisable(true);
+//			biometricBox.setVisible(true);
+//			retryBox.setVisible(true);
+//		}
 
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Parent/Guardian Biometrics captured");
@@ -1043,6 +1051,9 @@ public class GuardianBiometricsController extends BaseController implements Init
 			attemptSlap.setText(RegistrationConstants.HYPHEN);
 			duplicateCheckLbl.setText(RegistrationConstants.EMPTY);
 		}
+
+		retryBox.setVisible(true);
+		biometricBox.setVisible(true);
 		// getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().getFingerprintDetailsDTO()
 		// .clear();
 		// getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().getIrisDetailsDTO().clear();
@@ -1375,14 +1386,16 @@ public class GuardianBiometricsController extends BaseController implements Init
 		bioProgress.setProgress(
 				Double.valueOf(getQualityScore(qltyScore).split(RegistrationConstants.PERCENTAGE)[0]) / 100);
 		qualityText.setText(getQualityScore(qltyScore));
+
+		retry = retry == 0 ? 1 : retry;
 		if (Double.valueOf(getQualityScore(qltyScore).split(RegistrationConstants.PERCENTAGE)[0]) >= thresholdValue) {
-			// clearAttemptsBox(RegistrationConstants.QUALITY_LABEL_GREEN, retry);
+			clearAttemptsBox(RegistrationConstants.QUALITY_LABEL_GREEN, retry);
 			bioProgress.getStyleClass().removeAll(RegistrationConstants.PROGRESS_BAR_RED);
 			bioProgress.getStyleClass().add(RegistrationConstants.PROGRESS_BAR_GREEN);
 			qualityText.getStyleClass().removeAll(RegistrationConstants.LABEL_RED);
 			qualityText.getStyleClass().add(RegistrationConstants.LABEL_GREEN);
 		} else {
-			// clearAttemptsBox(RegistrationConstants.QUALITY_LABEL_RED, retry);
+			clearAttemptsBox(RegistrationConstants.QUALITY_LABEL_RED, retry);
 			bioProgress.getStyleClass().removeAll(RegistrationConstants.PROGRESS_BAR_GREEN);
 			bioProgress.getStyleClass().add(RegistrationConstants.PROGRESS_BAR_RED);
 			qualityText.getStyleClass().removeAll(RegistrationConstants.LABEL_GREEN);
@@ -1408,7 +1421,6 @@ public class GuardianBiometricsController extends BaseController implements Init
 	 *            threshold value
 	 */
 	private void createQualityBox(String retryCount, String biometricThreshold) {
-
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Updating Quality and threshold values of biometrics");
 
@@ -1464,6 +1476,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		};
 
+		bioRetryBox.getChildren().clear();
 		if (!(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
 			for (int retry = 0; retry < Integer.parseInt(getValueFromApplicationContext(retryCount)); retry++) {
 				Label label = new Label();
@@ -1509,17 +1522,17 @@ public class GuardianBiometricsController extends BaseController implements Init
 	 *
 	 */
 	private void clearCaptureData() {
-		bioProgress.setProgress(0);
-		bioProgress.getStyleClass().removeAll(RegistrationConstants.PROGRESS_BAR_RED);
-		bioProgress.getStyleClass().removeAll(RegistrationConstants.PROGRESS_BAR_GREEN);
 
-		qualityText.setText(RegistrationConstants.EMPTY);
-		qualityText.getStyleClass().removeAll(RegistrationConstants.LABEL_RED);
-		qualityText.getStyleClass().removeAll(RegistrationConstants.LABEL_GREEN);
-
-		bioRetryBox.getChildren().clear();
+		clearUiElements();
 
 		clearAllBiometrics();
+	}
+
+	private void clearUiElements() {
+
+		retryBox.setVisible(false);
+		biometricBox.setVisible(false);
+
 	}
 
 	/**
@@ -1951,7 +1964,12 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 			/* quality score check and force capture check */
 			if (isCaptured && !isForceCaptured) {
-				isCaptured = qualityScore / bioAttributes.size() - exceptionBioCount >= thresholdScore;
+
+				if (bioAttributes.size() == exceptionBioCount) {
+					isCaptured = true;
+				} else {
+					isCaptured = qualityScore / bioAttributes.size() - exceptionBioCount >= thresholdScore;
+				}
 			}
 		} else {
 
