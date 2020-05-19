@@ -118,7 +118,7 @@
 		<registration.processor.packet.utility.version>1.0.10-SNAPSHOT</registration.processor.packet.utility.version>
 		
 		<!-- Kernel -->
-		<kernel.core.version>1.0.8</kernel.core.version>
+		<kernel.core.version>1.0.9-SNAPSHOT</kernel.core.version>
 		<kernel.dataaccess.hibernate.version>1.0.6</kernel.dataaccess.hibernate.version>
 		<kernel.templatemanager.velocity.version>1.0.6</kernel.templatemanager.velocity.version>
 		<kernel.idvalidator.uin.version>1.0.6</kernel.idvalidator.uin.version>
@@ -136,7 +136,7 @@
 		<kernel.logger.logback.version>1.0.6</kernel.logger.logback.version>
 		<kernel.auth.adapter.version>1.0.6</kernel.auth.adapter.version>
 		<kernel.idvalidator.vid.version>1.0.6</kernel.idvalidator.vid.version>
-		<kernel.idobjectvalidator.version>1.0.7</kernel.idobjectvalidator.version>
+		<kernel.idobjectvalidator.version>1.0.9-SNAPSHOT</kernel.idobjectvalidator.version>
 		<kernel.packetmanager.version>1.0.10-SNAPSHOT</kernel.packetmanager.version>
 			<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,

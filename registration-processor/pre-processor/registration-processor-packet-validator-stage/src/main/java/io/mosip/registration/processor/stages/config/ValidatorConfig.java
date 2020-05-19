@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.stages.config;
 
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.idobjectvalidator.impl.IdObjectSchemaValidator;
 import io.mosip.kernel.packetmanager.impl.PacketReaderServiceImpl;
 import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -118,6 +119,24 @@ public class ValidatorConfig {
 	@Bean
 	public CompositePacketValidator compositePacketValidator() {
 		return new CompositePacketValidator();
+	}
+
+	/*@Bean
+	@Primary
+	public IdObjectValidator idObjectCompositeValidator() {
+		return new IdObjectCompositeValidator();
+	}
+
+	@Bean
+	public IdObjectPatternValidator idObjectPatternValidator() {
+		IdObjectPatternValidator idObjectPatternValidator = new IdObjectPatternValidator();
+		idObjectPatternValidator.setValidation(validation);
+		return new IdObjectPatternValidator();
+	}*/
+
+	@Bean
+	public IdObjectSchemaValidator idObjectSchemaValidator() {
+		return new IdObjectSchemaValidator();
 	}
 
 	@Bean
