@@ -1,4 +1,3 @@
-<<<<<<< Upstream, based on origin/1.0.10
 package io.mosip.registration.controller.device;
 
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER;
