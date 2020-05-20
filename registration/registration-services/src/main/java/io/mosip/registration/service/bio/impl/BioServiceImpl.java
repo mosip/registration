@@ -1512,7 +1512,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 		for(CaptureResponseBioDto bioResponse : captureResponseDto.getMosipBioDeviceDataResponses()) {
 			CaptureResponsBioDataDto bioData = bioResponse.getCaptureResponseData();
 			
-			if(bioData != null && !isQualityScoreMaxInclusive(bioData.getQualityScore())) {
+			if(bioData != null && isQualityScoreMaxInclusive(bioData.getQualityScore())) {
 				//check if current is best than previously seen
 				if(storedScores.containsKey(bioData.getBioSubType())) {
 					if(Integer.parseInt(storedScores.get(bioData.getBioSubType())) > Integer.parseInt(bioData.getQualityScore()))
