@@ -970,21 +970,21 @@ public class GuardianBiometricsController extends BaseController implements Init
 		}
 		webCameraController.closeWebcam();
 
-		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
-			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_PARENTGUARDIAN_DETAILS, false);
-
-			if ((boolean) SessionContext.getInstance().getUserContext().getUserMap()
-					.get(RegistrationConstants.TOGGLE_BIO_METRIC_EXCEPTION)) {
-				SessionContext.map().put(RegistrationConstants.UIN_UPDATE_BIOMETRICEXCEPTION, true);
-			} else {
-				SessionContext.map().put(RegistrationConstants.UIN_UPDATE_DOCUMENTSCAN, true);
-			}
-			registrationController.showUINUpdateCurrentPage();
-
-		} else {
+//		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
+//			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_PARENTGUARDIAN_DETAILS, false);
+//
+//			if ((boolean) SessionContext.getInstance().getUserContext().getUserMap()
+//					.get(RegistrationConstants.TOGGLE_BIO_METRIC_EXCEPTION)) {
+//				SessionContext.map().put(RegistrationConstants.UIN_UPDATE_BIOMETRICEXCEPTION, true);
+//			} else {
+//				SessionContext.map().put(RegistrationConstants.UIN_UPDATE_DOCUMENTSCAN, true);
+//			}
+//			registrationController.showUINUpdateCurrentPage();
+//
+//		} else {
 			registrationController.showCurrentPage(RegistrationConstants.GUARDIAN_BIOMETRIC,
 					getPageByAction(RegistrationConstants.GUARDIAN_BIOMETRIC, RegistrationConstants.PREVIOUS));
-		}
+//		}
 	}
 
 	/**
