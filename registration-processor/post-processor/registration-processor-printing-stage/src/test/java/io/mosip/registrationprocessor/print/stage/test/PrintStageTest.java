@@ -17,6 +17,7 @@ import java.util.Set;
 
 import javax.jms.Message;
 
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.activemq.util.ByteSequence;
 import org.json.simple.JSONObject;

@@ -10,6 +10,9 @@ import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +55,7 @@ import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+
 import io.mosip.registration.processor.stages.osivalidator.utils.OSIUtils;
 import io.mosip.registration.processor.stages.osivalidator.utils.StatusMessage;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -331,7 +335,7 @@ public class OSIValidator {
 							StatusMessage.PASSWORD_OTP_FAILURE);
 				}
 			} else {
-                
+
 				InputStream biometricStream = packetReaderService.getFile(registrationId,
 						officerBiometricFileName.toUpperCase(), officerBiometricFileSource);
 				byte[] officerbiometric = IOUtils.toByteArray(biometricStream);
@@ -541,7 +545,7 @@ public class OSIValidator {
 			String source = idSchemaUtils.getSource(introducerBiometricsLabel);
 			InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId,
 					introducerBiometricsFileName.toUpperCase(), source);
-			
+
 			byte[] introducerbiometric = IOUtils.toByteArray(packetMetaInfoStream);
 			return validateUserBiometric(registrationId, introducerUIN, introducerbiometric,
 					INDIVIDUAL_TYPE_UIN, registrationStatusDto);
@@ -759,5 +763,5 @@ public class OSIValidator {
 		return isValid;
 	}
 
-	
+
 }

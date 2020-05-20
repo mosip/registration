@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +56,7 @@ import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.stages.app.constants.DemoDedupeConstants;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -198,11 +201,11 @@ public class DemodedupeProcessor {
 					|| registrationStatusDto.getRegistrationType().equals(RegistrationType.RES_UPDATE.name())) {
 				IndividualDemographicDedupe demoDedupeData = new IndividualDemographicDedupe();
 
-				
+
 				IndividualDemographicDedupe demographicData = packetInfoManager
 						.getIdentityKeysAndFetchValuesFromJSON(registrationId);
 				JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
-				String uinFieldCheck = utility.getUIn(registrationId);
+				Long uinFieldCheck = utility.getUIn(registrationId);
 				JSONObject jsonObject = utility.retrieveIdrepoJson(uinFieldCheck);
 				if (jsonObject == null) {
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),

@@ -403,7 +403,7 @@
 }, {
 	"id": "parentOrGuardianRID",
 	"inputRequired": true,
-	"type": "simpleType",
+	"type": "string",
 	"minimum": 0,
 	"maximum": 0,
 	"description": "parentOrGuardianRID",
@@ -425,7 +425,7 @@
 }, {
 	"id": "parentOrGuardianUIN",
 	"inputRequired": true,
-	"type": "simpleType",
+	"type": "string",
 	"minimum": 0,
 	"maximum": 0,
 	"description": "parentOrGuardianUIN",
