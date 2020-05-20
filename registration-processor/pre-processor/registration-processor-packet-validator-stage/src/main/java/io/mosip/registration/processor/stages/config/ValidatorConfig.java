@@ -141,18 +141,18 @@ public class ValidatorConfig {
 		return new CompositePacketValidator();
 	}
 
-//	@Bean
-//	@Primary
-//	public IdObjectValidator idObjectCompositeValidator() {
-//		return new IdObjectCompositeValidator();
-//	}
-//
-//	@Bean
-//	public IdObjectPatternValidator idObjectPatternValidator() {
-//		IdObjectPatternValidator idObjectPatternValidator = new IdObjectPatternValidator();
-//		idObjectPatternValidator.setValidation(getValidationMap());
-//		return  idObjectPatternValidator;
-//	}
+/*	@Bean
+	@Primary
+	public IdObjectValidator idObjectCompositeValidator() {
+		return new IdObjectCompositeValidator();
+	}
+
+	@Bean
+	public IdObjectPatternValidator idObjectPatternValidator() {
+		IdObjectPatternValidator idObjectPatternValidator = new IdObjectPatternValidator();
+		idObjectPatternValidator.setValidation(getValidationMap());
+		return  idObjectPatternValidator;
+	}*/
 
 	@Bean
 	public IdObjectSchemaValidator idObjectSchemaValidator() {
@@ -196,9 +196,9 @@ public class ValidatorConfig {
 		}
 	}
 	
-//	public Map<String, String> getValidationMap(){
-//		Map<String, String> map=new HashMap<String, String>();
-//		return map;
-//		
-//	}
+/*	public Map<String, String> getValidationMap(){
+		Map<String, String> map=new HashMap<String, String>();
+		return map;
+		
+	}*/
 }
