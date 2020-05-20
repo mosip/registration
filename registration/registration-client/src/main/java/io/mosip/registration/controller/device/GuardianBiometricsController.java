@@ -290,8 +290,13 @@ public class GuardianBiometricsController extends BaseController implements Init
 			Label label = new Label(subType.getKey().getValue());
 			label.getStyleClass().add("paneHeader");
 			ComboBox<Entry<String, String>> comboBox = new ComboBox<>();
-			comboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
-				displayBiometric(newValue.getKey());
+			
+
+			comboBox.showingProperty().addListener((obs, wasShowing, isShowing) -> {
+				if (comboBox.getValue() != null) {
+					displayBiometric(comboBox.getValue().getKey());
+					
+				}
 			});
 			renderBiometrics(comboBox);
 			comboBox.getStyleClass().add("demographicCombobox");
@@ -559,12 +564,12 @@ public class GuardianBiometricsController extends BaseController implements Init
 					RegistrationConstants.IRIS_RETRY_COUNT);
 		}
 
-//		if (!bioValue.equalsIgnoreCase(RegistrationUIConstants.SELECT)) {
-//			scanBtn.setDisable(false);
-//			continueBtn.setDisable(true);
-//			biometricBox.setVisible(true);
-//			retryBox.setVisible(true);
-//		}
+		// if (!bioValue.equalsIgnoreCase(RegistrationUIConstants.SELECT)) {
+		// scanBtn.setDisable(false);
+		// continueBtn.setDisable(true);
+		// biometricBox.setVisible(true);
+		// retryBox.setVisible(true);
+		// }
 
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Parent/Guardian Biometrics captured");
@@ -821,7 +826,8 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 			// TODO if threshold values and local-dedup passed save into the registration
 			// DTO
-			//isMatchedWithLocalBiometrics=authenticationService.validateBiometrics(getBioType(currentModality), biometricDTOList);
+			// isMatchedWithLocalBiometrics=authenticationService.validateBiometrics(getBioType(currentModality),
+			// biometricDTOList);
 
 			if (isValidBiometric && !isMatchedWithLocalBiometrics) {
 
@@ -964,21 +970,21 @@ public class GuardianBiometricsController extends BaseController implements Init
 		}
 		webCameraController.closeWebcam();
 
-		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
-			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_PARENTGUARDIAN_DETAILS, false);
-
-			if ((boolean) SessionContext.getInstance().getUserContext().getUserMap()
-					.get(RegistrationConstants.TOGGLE_BIO_METRIC_EXCEPTION)) {
-				SessionContext.map().put(RegistrationConstants.UIN_UPDATE_BIOMETRICEXCEPTION, true);
-			} else {
-				SessionContext.map().put(RegistrationConstants.UIN_UPDATE_DOCUMENTSCAN, true);
-			}
-			registrationController.showUINUpdateCurrentPage();
-
-		} else {
+//		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
+//			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_PARENTGUARDIAN_DETAILS, false);
+//
+//			if ((boolean) SessionContext.getInstance().getUserContext().getUserMap()
+//					.get(RegistrationConstants.TOGGLE_BIO_METRIC_EXCEPTION)) {
+//				SessionContext.map().put(RegistrationConstants.UIN_UPDATE_BIOMETRICEXCEPTION, true);
+//			} else {
+//				SessionContext.map().put(RegistrationConstants.UIN_UPDATE_DOCUMENTSCAN, true);
+//			}
+//			registrationController.showUINUpdateCurrentPage();
+//
+//		} else {
 			registrationController.showCurrentPage(RegistrationConstants.GUARDIAN_BIOMETRIC,
 					getPageByAction(RegistrationConstants.GUARDIAN_BIOMETRIC, RegistrationConstants.PREVIOUS));
-		}
+//		}
 	}
 
 	/**
@@ -1979,11 +1985,12 @@ public class GuardianBiometricsController extends BaseController implements Init
 		}
 		return isCaptured;
 	}
-	
+
 	/**
 	 * Gets the bio type.
 	 *
-	 * @param bioType the bio type
+	 * @param bioType
+	 *            the bio type
 	 * @return the bio type
 	 */
 	private String getBioType(String bioType) {
