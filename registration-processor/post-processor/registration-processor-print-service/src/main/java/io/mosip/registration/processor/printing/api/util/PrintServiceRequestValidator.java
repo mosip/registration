@@ -273,7 +273,7 @@ public class PrintServiceRequestValidator implements Validator {
 		boolean isValidUIN = false;
 		try {
 			isValidUIN = uinValidatorImpl.validateId(idValue);
-			JSONObject jsonObject = utilities.retrieveIdrepoJson(Long.parseLong(idValue));
+			JSONObject jsonObject = utilities.retrieveIdrepoJson(idValue);
 			if (isValidUIN && jsonObject != null) {
 				isValidUIN = true;
 			} else {

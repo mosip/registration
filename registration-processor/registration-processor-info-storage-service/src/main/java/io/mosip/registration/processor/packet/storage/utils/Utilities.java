@@ -260,7 +260,7 @@ public class Utilities {
 
 		} else {
 			
-			Long uin = getUIn(registrationId);
+			String uin = getUIn(registrationId);
 			JSONObject identityJSONOject = retrieveIdrepoJson(uin);
 			String idRepoApplicantDob = JsonUtil.getJSONValue(identityJSONOject, dobKey);
 			if (idRepoApplicantDob != null) {
@@ -290,13 +290,13 @@ public class Utilities {
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-	public JSONObject retrieveIdrepoJson(Long uin) throws ApisResourceAccessException, IdRepoAppException, IOException {
+	public JSONObject retrieveIdrepoJson(String uin) throws ApisResourceAccessException, IdRepoAppException, IOException {
 
 		if (uin != null) {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 					"Utilities::retrieveIdrepoJson()::entry");
 			List<String> pathSegments = new ArrayList<>();
-			pathSegments.add(String.valueOf(uin));
+			pathSegments.add(uin);
 			IdResponseDTO1 idResponseDto;
 
 			idResponseDto = (IdResponseDTO1) restClientService.getApi(ApiName.IDREPOGETIDBYUIN, pathSegments, "", "",
@@ -470,19 +470,19 @@ public class Utilities {
 	 *             the apis resource access exception
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	public Long getUIn(String registrationId) throws IOException, ApiNotAccessibleException,
+	public String getUIn(String registrationId) throws IOException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException, PacketDecryptionFailureException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getUIn()::entry");
-		Number number;
+		String uin=null;
 		JSONObject demographicIdentity = getDemographicIdentityJSONObject(registrationId,UIN);
 
-		number = JsonUtil.getJSONValue(demographicIdentity, UIN);
+		uin = JsonUtil.getJSONValue(demographicIdentity, UIN);
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getUIn()::exit");
 
-		return number != null ? number.longValue() : null;
+		return uin;
 
 	}
 
@@ -730,7 +730,7 @@ public class Utilities {
 		if (uin != null) {
 
 			JSONObject identityObject = new JSONObject();
-			identityObject.put(UIN, Long.parseLong(uin));
+			identityObject.put(UIN, uin);
 
 			requestDto.setRegistrationId(registrationID);
 			requestDto.setIdentity(identityObject);
@@ -779,13 +779,13 @@ public class Utilities {
 	 * @throws IdRepoAppException
 	 *             the id repo app exception
 	 */
-	public String retrieveIdrepoJsonStatus(Long uin) throws ApisResourceAccessException, IdRepoAppException {
+	public String retrieveIdrepoJsonStatus(String uin) throws ApisResourceAccessException, IdRepoAppException {
 		String response = null;
 		if (uin != null) {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 					"Utilities::retrieveIdrepoJson()::entry");
 			List<String> pathSegments = new ArrayList<>();
-			pathSegments.add(String.valueOf(uin));
+			pathSegments.add(uin);
 			IdResponseDTO1 idResponseDto;
 
 			idResponseDto = (IdResponseDTO1) restClientService.getApi(ApiName.IDREPOGETIDBYUIN, pathSegments, "", "",

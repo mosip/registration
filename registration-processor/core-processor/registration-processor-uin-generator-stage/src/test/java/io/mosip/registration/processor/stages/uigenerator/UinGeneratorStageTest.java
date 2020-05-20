@@ -241,8 +241,8 @@ public class UinGeneratorStageTest {
 		Mockito.when(regLostUinDetRepository.getLostUinMatchedRegId(anyString()))
 				.thenReturn("27847657360002520181210094052");
 		demographicIdentity.put("UIN", Long.parseLong("9403107397"));
-		Number uin = new Long("9403107397");
-		Mockito.when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn(uin);
+
+		Mockito.when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn("9403107397");
 		File file = new File(classLoader.getResource("ID.json").getFile());
 		inputStream = new FileInputStream(file);
 		String mappingJson = IOUtils.toString(inputStream,"UTF-8");
@@ -508,7 +508,7 @@ public class UinGeneratorStageTest {
 		Mockito.when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO);
 
-		String idJsonData = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":4215839851}}";
+		String idJsonData = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
 		InputStream idJsonStream = new ByteArrayInputStream(idJsonData.getBytes(StandardCharsets.UTF_8));
 
 		Mockito.when(packetReaderService.getFile("27847657360002520181210094052",
@@ -728,7 +728,7 @@ public class UinGeneratorStageTest {
 		messageDTO.setRid("10031100110005020190313110030");
 		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
 		IdResponseDTO responsedto = new IdResponseDTO();
-		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":4215839851}}";
+		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
 		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();
@@ -952,7 +952,7 @@ public class UinGeneratorStageTest {
 		messageDTO.setRid("10031100110005020190313110030");
 		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
 		IdResponseDTO responsedto = new IdResponseDTO();
-		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":4215839851}}";
+		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
 		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
 
 		IdResponseDTO idResponseDTO = new IdResponseDTO();

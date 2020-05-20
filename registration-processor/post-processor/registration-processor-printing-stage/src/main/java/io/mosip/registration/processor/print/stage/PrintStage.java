@@ -276,8 +276,7 @@ public class PrintStage extends MosipVerticleAPIManager {
 				} else {
 					idType = IdType.UIN;
 					JSONObject jsonObject = utilities.retrieveUIN(regId);
-					Long value = JsonUtil.getJSONValue(jsonObject, IdType.UIN.toString());
-					idValue = Long.toString(value);
+					idValue = JsonUtil.getJSONValue(jsonObject, IdType.UIN.toString());
 
 				}
 			}

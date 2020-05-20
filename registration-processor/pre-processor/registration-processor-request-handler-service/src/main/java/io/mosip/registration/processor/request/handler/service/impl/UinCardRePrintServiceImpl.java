@@ -1,7 +1,6 @@
 package io.mosip.registration.processor.request.handler.service.impl;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -10,8 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.constant.PacketMetaInfoConstants;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +31,8 @@ import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.CardType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.PacketMetaInfoConstants;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.http.RequestWrapper;
@@ -312,7 +311,7 @@ public class UinCardRePrintServiceImpl {
 				MappingJsonConstants.VALUE);
 
 		jsonObject.put(schemaVersion, 1.0);
-		jsonObject.put(uinLabel, new BigInteger(uin));
+		jsonObject.put(uinLabel, uin);
 		demographicDTO.setIdentity(jsonObject);
 		return demographicDTO;
 	}

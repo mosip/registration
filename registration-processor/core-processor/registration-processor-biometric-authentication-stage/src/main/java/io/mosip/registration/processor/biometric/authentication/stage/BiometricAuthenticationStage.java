@@ -9,9 +9,6 @@ import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.spi.PacketReaderService;
-import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
@@ -22,6 +19,9 @@ import org.xml.sax.SAXException;
 
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import io.mosip.registration.processor.biometric.authentication.constants.BiometricAuthenticationConstants;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -325,14 +325,14 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 				&& applicantType.equalsIgnoreCase(BiometricAuthenticationConstants.ADULT);
 	}
 
-	private boolean idaAuthenticate(InputStream file, Long uin, InternalRegistrationStatusDto registrationStatusDto)
+	private boolean idaAuthenticate(InputStream file, String uin, InternalRegistrationStatusDto registrationStatusDto)
 			throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException,
 			BiometricException, BioTypeException, ParserConfigurationException, SAXException, AuthSystemException {
 		TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
-		String UIN = uin.toString();
+
 		byte[] officerbiometric = IOUtils.toByteArray(file);
 		boolean idaAuth = false;
-		AuthResponseDTO authResponseDTO = authUtil.authByIdAuthentication(UIN,
+		AuthResponseDTO authResponseDTO = authUtil.authByIdAuthentication(uin,
 				BiometricAuthenticationConstants.INDIVIDUAL_TYPE_USERID, officerbiometric);
 		if ((authResponseDTO.getErrors() == null || authResponseDTO.getErrors().isEmpty())
 				&& authResponseDTO.getResponse().isAuthStatus()) {
@@ -384,7 +384,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 			registrationStatusDto.setSubStatusCode(StatusUtil.BIOMETRIC_AUTHENTICATION_FAILED_FILE_NOT_FOUND.getCode());
 			return false;
 		}
-		Long uin = utility.getUIn(registrationId);
+		String uin = utility.getUIn(registrationId);
 
 		return idaAuthenticate(inputStream, uin, registrationStatusDto);
 

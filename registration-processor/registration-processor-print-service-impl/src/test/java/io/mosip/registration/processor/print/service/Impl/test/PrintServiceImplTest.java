@@ -244,8 +244,8 @@ public class PrintServiceImplTest {
 	public void testPdfGeneratedwithRIDSuccess() throws IdRepoAppException, ApisResourceAccessException, IOException {
 		List<String> uinList = new ArrayList<>();
 		uinList.add("2046958192");
-		Map<String, Long> map1 = new HashMap<>();
-		map1.put("UIN", 2046958192L);
+		Map<String, String> map1 = new HashMap<>();
+		map1.put("UIN", "2046958192");
 		JSONObject jsonObject = new JSONObject(map1);
 		Mockito.when(utility.retrieveUIN(any())).thenReturn(jsonObject);
 		byte[] expected = outputStream.toByteArray();
@@ -449,7 +449,7 @@ public class PrintServiceImplTest {
 		JSONObject obj = new JSONObject();
 		obj.put("fullName", arr);
 		obj.put("postalCode", "12345");
-		Mockito.when(utility.retrieveIdrepoJson(Long.parseLong("2046958192"))).thenReturn(obj);
+		Mockito.when(utility.retrieveIdrepoJson("2046958192")).thenReturn(obj);
 
 		byte[] expected = outputStream.toByteArray();
 		byte[] result = printService.getDocuments(IdType.VID, "2046958192", CardType.MASKED_UIN.toString(), true)

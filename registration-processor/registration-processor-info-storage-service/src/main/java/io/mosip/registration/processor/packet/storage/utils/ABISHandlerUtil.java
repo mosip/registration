@@ -6,13 +6,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.constant.AbisConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
@@ -176,11 +176,11 @@ public class ABISHandlerUtil {
 
 		for (String machedRegId : matchedRegistrationIds) {
 
-			Number matchedUin = idRepoService.getUinByRid(machedRegId,
+			String matchedUin = idRepoService.getUinByRid(machedRegId,
 					utilities.getGetRegProcessorDemographicIdentity());
 
 			if (registrationType.equalsIgnoreCase(SyncTypeDto.UPDATE.toString())) {
-				Number packetUin = utilities.getUIn(registrationId);
+				String packetUin = utilities.getUIn(registrationId);
 				if (matchedUin != null && !packetUin.equals(matchedUin)) {
 					filteredRegMap.put(matchedUin.toString(), machedRegId);
 				}

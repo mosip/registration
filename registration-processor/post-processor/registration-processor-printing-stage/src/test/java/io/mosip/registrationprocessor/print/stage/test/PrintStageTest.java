@@ -17,7 +17,6 @@ import java.util.Set;
 
 import javax.jms.Message;
 
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.activemq.util.ByteSequence;
 import org.json.simple.JSONObject;
@@ -37,6 +36,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.kernel.core.idvalidator.spi.UinValidator;
 import io.mosip.kernel.core.pdfgenerator.exception.PDFGeneratorException;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -244,7 +244,7 @@ public class PrintStageTest {
 				"test case description", EventId.RPR_401.toString(), EventName.ADD.toString(),
 				EventType.BUSINESS.toString(), "1234testcase", ApiName.AUDIT);
 		JSONObject obj1 = new JSONObject();
-		obj1.put("UIN", 877788787889l);
+		obj1.put("UIN", "877788787889");
 		Mockito.when(utilities.retrieveUIN(any())).thenReturn(obj1);
 		packetMetaInfo = new PacketMetaInfo();
 	}

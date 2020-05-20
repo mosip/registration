@@ -14,7 +14,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -36,6 +35,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
@@ -174,9 +174,9 @@ public class MessageNotificationServiceImplTest {
 				.thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(value, JSONObject.class),MappingJsonConstants.IDENTITY));
 		PowerMockito.mockStatic(Utilities.class);
 		PowerMockito.when(Utilities.class, "getJson", anyString(), anyString()).thenReturn(value);
-		Map<String, Long> map1 = new HashMap<>();
-		Long value1 = (long) 423072;
-		map1.put("UIN", value1);
+		Map<String, String> map1 = new HashMap<>();
+
+		map1.put("UIN", "423072");
 		JSONObject jsonObject1 = new JSONObject(map1);
 		Mockito.when(utility.retrieveUIN(any())).thenReturn(jsonObject1);
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");

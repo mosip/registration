@@ -49,7 +49,7 @@ public class IdRepoServiceImpl implements IdRepoService {
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public Number getUinByRid(String rid, String regProcessorDemographicIdentity)
+	public String getUinByRid(String rid, String regProcessorDemographicIdentity)
 			throws IOException, ApisResourceAccessException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
 				"IdRepoServiceImpl::getUinByRid()::entry");
@@ -76,7 +76,7 @@ public class IdRepoServiceImpl implements IdRepoService {
 	 *             the apis resource access exception
 	 */
 	@SuppressWarnings("unchecked")
-	private Number getUin(List<String> pathSegments, String regProcessorDemographicIdentity)
+	private String getUin(List<String> pathSegments, String regProcessorDemographicIdentity)
 			throws IOException, ApisResourceAccessException {
 		@SuppressWarnings("unchecked")
 		ResponseWrapper<IdResponseDTO> response;
@@ -102,7 +102,7 @@ public class IdRepoServiceImpl implements IdRepoService {
 	 * findUinFromIdrepo(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public Number findUinFromIdrepo(String uin, String regProcessorDemographicIdentity)
+	public String findUinFromIdrepo(String uin, String regProcessorDemographicIdentity)
 			throws IOException, ApisResourceAccessException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 				"IdRepoServiceImpl::findUinFromIdrepo()::entry");

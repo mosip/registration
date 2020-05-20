@@ -10,9 +10,6 @@ import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.spi.PacketReaderService;
-import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +20,9 @@ import org.xml.sax.SAXException;
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
@@ -52,7 +52,6 @@ import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
-
 import io.mosip.registration.processor.stages.osivalidator.utils.OSIUtils;
 import io.mosip.registration.processor.stages.osivalidator.utils.StatusMessage;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -477,11 +476,14 @@ public class OSIValidator {
 				String introducerRidLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PARENT_OR_GUARDIAN_RID), MappingJsonConstants.VALUE);
 				String introducerBiometricsLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PARENT_OR_GUARDIAN_BIO), MappingJsonConstants.VALUE);
 
-				Number introducerUinNumber = JsonUtil.getJSONValue(utility.getDemographicIdentityJSONObject(registrationId, introducerUinLabel), introducerUinLabel);
-				Number introducerRidNumber = JsonUtil.getJSONValue(utility.getDemographicIdentityJSONObject(registrationId, introducerRidLabel), introducerRidLabel);
+				String introducerUIN = JsonUtil.getJSONValue(
+						utility.getDemographicIdentityJSONObject(registrationId, introducerUinLabel),
+						introducerUinLabel);
+				String introducerRID = JsonUtil.getJSONValue(
+						utility.getDemographicIdentityJSONObject(registrationId, introducerRidLabel),
+						introducerRidLabel);
 				String introducerBiometricsFileName = JsonUtil.getJSONValue(JsonUtil.getJSONObject(utility.getDemographicIdentityJSONObject(registrationId, introducerBiometricsLabel), introducerBiometricsLabel), MappingJsonConstants.VALUE);
-				String introducerUIN = numberToString(introducerUinNumber);
-				String introducerRID = numberToString(introducerRidNumber);
+
 				if (isValidIntroducer(introducerUIN, introducerRID)) {
 					registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
 							.getStatusCode(RegistrationExceptionTypeCode.PARENT_UIN_AND_RID_NOT_IN_PACKET));
@@ -497,9 +499,9 @@ public class OSIValidator {
 				if (introducerUIN == null
 						&& validateIntroducerRid(introducerRID, registrationId, registrationStatusDto)) {
 
-					introducerUinNumber = idRepoService.getUinByRid(introducerRID,
+					introducerUIN = idRepoService.getUinByRid(introducerRID,
 							utility.getGetRegProcessorDemographicIdentity());
-					introducerUIN = numberToString(introducerUinNumber);
+
 					if (introducerUIN == null) {
 						registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
 								.getStatusCode(RegistrationExceptionTypeCode.PARENT_UIN_NOT_AVAIALBLE));

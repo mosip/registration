@@ -10,8 +10,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.json.simple.JSONArray;
@@ -29,6 +27,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
@@ -330,7 +330,7 @@ public class MessageNotificationServiceImpl
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
 			ApiNotAccessibleException {
 
-		Long uin = 0l;
+		String uin = "";
 		if (idType.toString().equalsIgnoreCase(UIN)) {
 			JSONObject jsonObject = utility.retrieveUIN(id);
 			uin = JsonUtil.getJSONValue(jsonObject, UIN);
@@ -369,10 +369,10 @@ public class MessageNotificationServiceImpl
 	 *             Signals that an I/O exception has occurred.
 	 */
 	@SuppressWarnings("rawtypes")
-	private Map<String, Object> setAttributesFromIdRepo(Long uin, Map<String, Object> attributes, String regType,
+	private Map<String, Object> setAttributesFromIdRepo(String uin, Map<String, Object> attributes, String regType,
 			StringBuilder phoneNumber, StringBuilder emailId) throws IOException {
 		List<String> pathsegments = new ArrayList<>();
-		pathsegments.add(uin.toString());
+		pathsegments.add(uin);
 		IdResponseDTO response;
 		try {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
@@ -385,7 +385,7 @@ public class MessageNotificationServiceImpl
 
 			if (response == null || response.getResponse() == null) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), uin.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), uin,
 						PlatformErrorMessages.RPR_PRT_IDREPO_RESPONSE_NULL.name());
 				throw new IDRepoResponseNull(PlatformErrorMessages.RPR_PRT_IDREPO_RESPONSE_NULL.getCode());
 			}
@@ -395,7 +395,7 @@ public class MessageNotificationServiceImpl
 
 		} catch (ApisResourceAccessException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					Long.toString(uin),
+					uin,
 					PlatformErrorMessages.RPR_PRT_IDREPO_RESPONSE_NULL.name() + ExceptionUtils.getStackTrace(e));
 			throw new IDRepoResponseNull(PlatformErrorMessages.RPR_PRT_IDREPO_RESPONSE_NULL.getCode());
 		}

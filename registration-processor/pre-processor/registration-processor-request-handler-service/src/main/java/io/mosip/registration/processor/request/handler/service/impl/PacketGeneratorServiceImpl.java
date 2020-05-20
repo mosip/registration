@@ -2,7 +2,6 @@ package io.mosip.registration.processor.request.handler.service.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -10,9 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.constant.PacketMetaInfoConstants;
-import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,6 +27,8 @@ import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.PacketMetaInfoConstants;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
@@ -40,6 +38,7 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.manager.dto.DirectoryPathDto;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.request.handler.service.PacketCreationService;
 import io.mosip.registration.processor.request.handler.service.PacketGeneratorService;
 import io.mosip.registration.processor.request.handler.service.dto.PackerGeneratorFailureDto;
@@ -202,7 +201,7 @@ public class PacketGeneratorServiceImpl implements PacketGeneratorService<Packet
 				MappingJsonConstants.VALUE);
 
 		jsonObject.put(schemaVersion, Float.valueOf(idschemaVersion));
-		jsonObject.put(uinLabel, new BigInteger(uin));
+		jsonObject.put(uinLabel, uin);
 		demographicDTO.setIdentity(jsonObject);
 
 		return demographicDTO;
