@@ -487,10 +487,10 @@ public class RegistrationController extends BaseController {
 
 		boolean gotoNext = true;
 		List<String> excludedIds = RegistrationConstants.fieldsToExclude();
-		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
+		/*if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
 			excludedIds.remove("cniOrPinNumber");
 			excludedIds.remove("cniOrPinNumberLocalLanguage");
-		}
+		}*/
 
 		validation.setValidationMessage();
 		gotoNext = validation.validate(paneToValidate, excludedIds, gotoNext, masterSync);

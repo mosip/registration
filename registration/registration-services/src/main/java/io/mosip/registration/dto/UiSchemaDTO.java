@@ -2,11 +2,13 @@ package io.mosip.registration.dto;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,8 +24,7 @@ import lombok.Setter;
  * @author YASWANTH S
  *
  */
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -48,7 +49,8 @@ public class UiSchemaDTO {
 	@JsonProperty("bioAttributes")
 	private List<String> bioAttributes;
 	
-	private String requiredOn;
+	@JsonProperty("requiredOn")
+	private List<RequiredOnExpr> requiredOn;
 	
 	@JsonProperty("subType")
 	private String subType;

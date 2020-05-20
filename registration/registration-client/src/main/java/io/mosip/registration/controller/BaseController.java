@@ -65,6 +65,7 @@ import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.dto.biometric.BiometricExceptionDTO;
 import io.mosip.registration.dto.biometric.BiometricInfoDTO;
 import io.mosip.registration.dto.biometric.FaceDetailsDTO;
+import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
@@ -99,6 +100,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -111,12 +113,14 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
+import javafx.util.StringConverter;
 
 /**
  * Base class for all controllers.
@@ -1835,6 +1839,42 @@ public class BaseController {
 
 		return source.stream().filter(target::contains).collect(Collectors.toList());
 
+	}
+	
+	
+	protected void helperMethodForComboBox(ComboBox<?> field, String fieldName, UiSchemaDTO schema, Label label,
+			Label validationMessage, VBox vbox, String languageType) {
+
+		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
+			field.setPromptText(schema.getLabel().get(RegistrationConstants.SECONDARY));
+			label.setText(schema.getLabel().get(RegistrationConstants.SECONDARY));
+			field.setDisable(true);
+			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.SECONDARY));
+		} else {
+			field.setPromptText(schema.getLabel().get(RegistrationConstants.PRIMARY));
+			label.setText(schema.getLabel().get(RegistrationConstants.PRIMARY));
+			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.PRIMARY));
+		}
+		// vbox.setStyle("-fx-background-color:BLUE");
+		vbox.setPrefWidth(500);
+		vbox.setId(fieldName + RegistrationConstants.Parent);
+		label.setId(fieldName + languageType + RegistrationConstants.LABEL);
+		label.setVisible(false);
+		label.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
+		field.getStyleClass().add("demographicCombobox");
+		validationMessage.setId(fieldName + languageType + RegistrationConstants.MESSAGE);
+		validationMessage.getStyleClass().add(RegistrationConstants.DemoGraphicFieldMessageLabel);
+		label.setPrefWidth(vbox.getPrefWidth());
+		validationMessage.setPrefWidth(vbox.getPrefWidth());
+		validationMessage.setVisible(false);
+		vbox.setSpacing(5);
+
+		vbox.getChildren().addAll(label, field, validationMessage);
+
+		if (applicationContext.getApplicationLanguage().equals(applicationContext.getLocalLanguage()) && 
+				languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
+			vbox.setDisable(true);
+		}
 	}
 
 }

@@ -78,8 +78,8 @@ public class BioServiceImpl extends BaseService implements BioService {
 	@Autowired
 	private AuthenticationService authService;
 
-	@Autowired
-	private FingerprintProvider fingerprintProvider;
+	//@Autowired
+	//private FingerprintProvider fingerprintProvider;
 
 	/**
 	 * Instance of {@link Logger}
@@ -980,7 +980,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	 * io.mosip.registration.service.bio.BioService#validateFP(io.mosip.registration
 	 * .dto.biometric.FingerprintDetailsDTO, java.util.List)
 	 */
-	@Override
+	/*@Override
 	public boolean validateFP(FingerprintDetailsDTO fingerprintDetailsDTO, List<UserBiometric> userFingerprintDetails) {
 		FingerprintTemplate fingerprintTemplate = new FingerprintTemplate()
 				.convert(fingerprintDetailsDTO.getFingerPrint());
@@ -995,7 +995,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 		});
 		return userFingerprintDetails.stream()
 				.anyMatch(bio -> fingerprintProvider.scoreCalculator(minutiae, bio.getBioMinutia()) > fingerPrintScore);
-	}
+	}*/
 
 	private CaptureResponsBioDataDto getBestCapture(CaptureResponsBioDataDto captureResponsBioDataDto) {
 
@@ -1512,7 +1512,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 		for(CaptureResponseBioDto bioResponse : captureResponseDto.getMosipBioDeviceDataResponses()) {
 			CaptureResponsBioDataDto bioData = bioResponse.getCaptureResponseData();
 			
-			if(bioData != null && !isQualityScoreMaxInclusive(bioData.getQualityScore())) {
+			if(bioData != null && isQualityScoreMaxInclusive(bioData.getQualityScore())) {
 				//check if current is best than previously seen
 				if(storedScores.containsKey(bioData.getBioSubType())) {
 					if(Integer.parseInt(storedScores.get(bioData.getBioSubType())) > Integer.parseInt(bioData.getQualityScore()))

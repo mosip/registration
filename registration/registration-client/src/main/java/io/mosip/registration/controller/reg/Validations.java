@@ -6,6 +6,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -14,6 +15,7 @@ import java.util.stream.Stream;
 
 import org.assertj.core.util.Arrays;
 import org.bridj.cpp.std.list;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -34,6 +36,7 @@ import io.mosip.registration.entity.BlacklistedWords;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.kernel.packetmanager.dto.DocumentDto;
 import io.mosip.registration.service.sync.MasterSyncService;
+import io.mosip.registration.validator.RequiredFieldValidator;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -68,7 +71,10 @@ public class Validations extends BaseController {
 	private List<String> localLanguageblackListedWords;
 	private List<String> noAlert;
 	private boolean isLostUIN = false;
-	private int maxAge;;
+	private int maxAge;
+	
+	@Autowired
+	private RequiredFieldValidator requiredFieldValidator;
 
 	/**
 	 * Instantiates a new validations.
@@ -254,23 +260,17 @@ public class Validations extends BaseController {
 				return true;
 			}
 			
-			id = id.replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY);
+			boolean showAlert = (noAlert.contains(node.getId()) && id.contains(RegistrationConstants.ON_TYPE));
+			String inputText = node.getText();			
+			UiSchemaDTO uiSchemaDTO = getValidationMap().get(id);
 			
-			UiSchemaDTO uiSchemaDTO = getUiSchemaDTO(id, isLostUIN);
-
-			String regex = getRegex(uiSchemaDTO, RegistrationUIConstants.REGEX_TYPE);
-			if (regex != null) {
-
-				isInputValid = false;
-				boolean isMandatory = uiSchemaDTO.isRequired();
-				if(isLostUIN)
-					isMandatory=false;
-				boolean showAlert = (noAlert.contains(node.getId()) && id.contains(RegistrationConstants.ON_TYPE));
-				String inputText = node.getText();
-
+			if (uiSchemaDTO != null) {
+				boolean isMandatory = requiredFieldValidator.isRequiredField(uiSchemaDTO, getRegistrationDTOFromSession());
+				
 				if (node.isDisabled() || (!isMandatory && inputText.isEmpty())) {
 					isInputValid = true;
 				} else if (isMandatory && (inputText == null || inputText.isEmpty()) && !isLostUIN) {
+					isInputValid = false;
 					generateInvalidValueAlert(parentPane, id,
 							getFromLabelMap(id).concat(RegistrationConstants.SPACE)
 									.concat(messageBundle.getString(RegistrationConstants.REG_LGN_001)),
@@ -282,7 +282,12 @@ public class Validations extends BaseController {
 						});
 						node.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
 					}
-				} else if (inputText.matches(regex)) {
+				} 
+			}
+				
+			String regex = getRegex(id, RegistrationUIConstants.REGEX_TYPE);
+			if(regex != null) {
+				if (inputText.matches(regex)) {
 					isInputValid = validateBlackListedWords(parentPane, node, id, blackListedWords, showAlert,
 							String.format("%s %s %s", messageBundle.getString(RegistrationConstants.BLACKLISTED_1),
 									getFromLabelMap(id),
@@ -290,6 +295,7 @@ public class Validations extends BaseController {
 							messageBundle.getString(RegistrationConstants.BLACKLISTED_ARE),
 							messageBundle.getString(RegistrationConstants.BLACKLISTED_IS));
 				} else {
+					isInputValid = false;
 					generateInvalidValueAlert(parentPane, id, getFromLabelMap(id) + " "
 							+ messageBundle.getString(RegistrationConstants.REG_DDC_004), showAlert);
 					if (isPreviousValid && !id.contains(RegistrationConstants.ON_TYPE)) {
@@ -308,17 +314,32 @@ public class Validations extends BaseController {
 					}
 				}
 			}
+				
 			if(label.equals("ageField")) {
 				maxAge=Integer.parseInt(getValueFromApplicationContext(RegistrationConstants.MAX_AGE));
-				if( Integer.parseInt(node.getText())>maxAge) {
+				if( node.getText()!= null && !node.getText().isBlank() && Integer.parseInt(node.getText())>maxAge) {
 					return false;
 				}
 			}
-		} catch (RuntimeException runtimeException) {
+		} catch (RuntimeException | RegBaseCheckedException runtimeException) {
 			LOGGER.error(RegistrationConstants.VALIDATION_LOGGER, APPLICATION_NAME, APPLICATION_ID,
 					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 		}
-
+		
+		if(isInputValid) {
+			Label nodeLabel = (Label) parentPane.lookup("#" + node.getId() + "Label");
+			//node.requestFocus();
+			node.getStyleClass().removeIf((s) -> {
+				return s.equals(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
+			});
+			node.getStyleClass().removeIf((s) -> {
+				return s.equals("demoGraphicTextFieldOnType");
+			});
+			nodeLabel.getStyleClass().removeIf((s) -> {
+				return s.equals("demoGraphicFieldLabelOnType");
+			});
+			node.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
+		}
 		return isInputValid;
 
 	}
@@ -364,7 +385,46 @@ public class Validations extends BaseController {
 	private boolean validateComboBox(Pane parentPane, ComboBox<?> node, String id, boolean isPreviousValid) {
 		boolean isComboBoxValueValid = false;
 		try {
-			if (getRegistrationDTOFromSession().getSelectionListDTO() != null && ((id
+			
+			String label = id.replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY)
+					.replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY);
+			boolean isMandatory = requiredFieldValidator.isRequiredField(getValidationMap().get(label),
+					getRegistrationDTOFromSession());
+			
+			if (node.isDisabled() || isLostUIN)
+				return true;
+			
+			if(isMandatory) {
+				if(node.getValue() == null) {
+					generateAlert(parentPane, id,
+							getFromLabelMap(label).concat(RegistrationConstants.SPACE)
+									.concat(applicationMessageBundle.getString(RegistrationConstants.REG_LGN_001)));
+					if (isPreviousValid) {
+						node.requestFocus();
+						node.getStyleClass().removeIf((s) -> {
+							return s.equals("demographicCombobox");
+						});
+						node.getStyleClass().add("demographicComboboxFocused");
+					}
+				}
+				else {
+					node.getStyleClass().removeIf((s) -> {
+						return s.equals("demographicComboboxFocused");
+					});
+					node.getStyleClass().add("demographicCombobox");
+
+					isComboBoxValueValid = true;
+				}
+			}
+			else {
+				node.getStyleClass().removeIf((s) -> {
+					return s.equals("demographicComboboxFocused");
+				});
+				node.getStyleClass().add("demographicCombobox");
+
+				isComboBoxValueValid = true;
+			}	
+			/*if (getRegistrationDTOFromSession().getSelectionListDTO() != null && ((id
 					.matches(RegistrationConstants.POA_DOCUMENT)
 					&& getRegistrationDTOFromSession().getSelectionListDTO().get("AddressLine1")==null)
 					|| (id.matches(RegistrationConstants.POI_DOCUMENT)
@@ -394,9 +454,9 @@ public class Validations extends BaseController {
 								RegistrationConstants.POR_DOCUMENT, RegistrationConstants.DOB_DOCUMENT })
 						.contains(id))) {
 					//TODO Need to check here it is failing for Documents
-					/*generateAlert(parentPane, id,
+					generateAlert(parentPane, id,
 							applicationLabelBundle.getString(id).concat(RegistrationConstants.SPACE)
-									.concat(applicationMessageBundle.getString(RegistrationConstants.REG_LGN_001)));*/
+									.concat(applicationMessageBundle.getString(RegistrationConstants.REG_LGN_001)));
 					if (isPreviousValid) {
 						node.requestFocus();
 						node.getStyleClass().removeIf((s) -> {
@@ -422,15 +482,14 @@ public class Validations extends BaseController {
 
 					isComboBoxValueValid = true;
 				}
-			}
-		} catch (
-
-		RuntimeException runtimeException) {
+			}*/
+		} catch (RuntimeException | RegBaseCheckedException runtimeException) {
 			LOGGER.error(RegistrationConstants.VALIDATION_LOGGER, APPLICATION_NAME, APPLICATION_ID,
 					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 		}
 		return isComboBoxValueValid;
 	}
+	
 
 	/**
 	 * Validates the Parent or Guardian's UIN or RID UI Field
@@ -522,7 +581,7 @@ public class Validations extends BaseController {
 	 */
 	public boolean validateSingleString(String value, String id) {
 
-		return value.matches(getRegex(getUiSchemaDTO(id, isLostUIN), RegistrationUIConstants.REGEX_TYPE));
+		return value.matches(getRegex(id,RegistrationUIConstants.REGEX_TYPE));
 	}
 
 	/**
@@ -560,7 +619,7 @@ public class Validations extends BaseController {
 		validationMessage.delete(0, validationMessage.length());
 	}
 
-	private UiSchemaDTO getUiSchemaDTO(String id, boolean isLostUIN) {
+	/*private UiSchemaDTO getUiSchemaDTO(String id, boolean isLostUIN) {
 		UiSchemaDTO uiSchemaDTO = null;
 
 		if (getValidationMap().containsKey(id)) {
@@ -584,5 +643,16 @@ public class Validations extends BaseController {
 		}
 
 		return regex;
+	}*/
+	
+	private String getRegex(String fieldId, String regexType) {
+		UiSchemaDTO uiSchemaDTO = getValidationMap().get(fieldId);
+		if(uiSchemaDTO != null && uiSchemaDTO.getValidators() != null) {
+			Optional<Validator> validator = uiSchemaDTO.getValidators().stream()
+					.filter(v -> v.getType().equalsIgnoreCase(regexType)).findFirst();
+			if(validator.isPresent())
+				return validator.get().getValidator();
+		}
+        return null;
 	}
 }
