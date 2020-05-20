@@ -199,8 +199,8 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 				break;
 			}
 			
-			if(demographics.get(printingNameFieldId) != null  && 
-					!registrationDTO.getSelectionListDTO().containsKey(printingNameFieldId)) {
+			if(demographics.get(printingNameFieldId) != null  && registrationDTO.getUpdatableFields() != null 
+					&& !registrationDTO.getUpdatableFields().contains(printingNameFieldId)) {
 				@SuppressWarnings("unchecked")
 				List<SimpleDto> value = (List<SimpleDto>) demographics.get(printingNameFieldId);
 				value.forEach(dto -> {

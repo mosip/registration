@@ -28,6 +28,7 @@ import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.controller.BaseController;
+import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.Validator;
 import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
@@ -124,9 +125,11 @@ public class Validations extends BaseController {
 		for (Node node : pane.getChildren()) {
 			if (node instanceof Pane) {
 				if (!validateTheFields((Pane) node, notTovalidate, isValid)) {
+					System.out.println("validateTheFields >>>>> isInputValid : " + false);
 					isValid = false;
 				}
 			} else if (nodeToValidate(notTovalidate, node) && !validateTheNode(pane, node, node.getId(), isValid)) {
+				System.out.println("validateTheNode >>>>> " + node.getId() + " isInputValid : " + false);
 				isValid = false;
 			}
 		}
@@ -158,7 +161,7 @@ public class Validations extends BaseController {
 	 */
 	private boolean nodeToValidate(List<String> notTovalidate, Node node) {
 		return !(node.getId() == null || notTovalidate.contains(node.getId()) || node instanceof ImageView
-				|| node instanceof Button || node instanceof Label || node instanceof Hyperlink);
+				|| node instanceof Button || node instanceof Label || node instanceof Hyperlink || node.isDisabled());
 	}
 
 	/**
@@ -256,20 +259,21 @@ public class Validations extends BaseController {
 			String label = id.replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY)
 					.replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY);
 			
-			if(isLostUIN && !id.contains("_ontype") ) {
+			RegistrationDTO registrationDto = getRegistrationDTOFromSession();
+			
+			//During lostUIN and during updateUIN & field is not part of the selection then donot do any validation
+			if(isLostUIN && !id.contains(RegistrationConstants.ON_TYPE)) {
 				return true;
-			}
+			}			
 			
 			boolean showAlert = (noAlert.contains(node.getId()) && id.contains(RegistrationConstants.ON_TYPE));
-			String inputText = node.getText();			
-			UiSchemaDTO uiSchemaDTO = getValidationMap().get(id);
+			String inputText = node.getText();
+			String ageDateFieldId = getAgeDateFieldId(label);
+			UiSchemaDTO uiSchemaDTO = getValidationMap().get(ageDateFieldId == null ? label : ageDateFieldId);
 			
-			if (uiSchemaDTO != null) {
-				boolean isMandatory = requiredFieldValidator.isRequiredField(uiSchemaDTO, getRegistrationDTOFromSession());
-				
-				if (node.isDisabled() || (!isMandatory && inputText.isEmpty())) {
-					isInputValid = true;
-				} else if (isMandatory && (inputText == null || inputText.isEmpty()) && !isLostUIN) {
+			if (uiSchemaDTO != null  && !isLostUIN) {
+				boolean isMandatory = requiredFieldValidator.isRequiredField(uiSchemaDTO, registrationDto);				
+				if (isMandatory && (inputText == null || inputText.isEmpty())) {
 					isInputValid = false;
 					generateInvalidValueAlert(parentPane, id,
 							getFromLabelMap(id).concat(RegistrationConstants.SPACE)
@@ -282,7 +286,8 @@ public class Validations extends BaseController {
 						});
 						node.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
 					}
-				} 
+				}
+				System.out.println("FIeld >>>>> " + id + " after isMandatory check isInputValid : " + isInputValid);
 			}
 				
 			String regex = getRegex(id, RegistrationUIConstants.REGEX_TYPE);
@@ -314,13 +319,14 @@ public class Validations extends BaseController {
 					}
 				}
 			}
-				
-			if(label.equals("ageField")) {
+			
+			/*if(label.equals("ageField")) {
 				maxAge=Integer.parseInt(getValueFromApplicationContext(RegistrationConstants.MAX_AGE));
-				if( node.getText()!= null && !node.getText().isEmpty() && Integer.parseInt(node.getText())>maxAge) {
+				if(Integer.parseInt(node.getText()) > maxAge) {
 					return false;
 				}
-			}
+			}*/
+			
 		} catch (RuntimeException | RegBaseCheckedException runtimeException) {
 			LOGGER.error(RegistrationConstants.VALIDATION_LOGGER, APPLICATION_NAME, APPLICATION_ID,
 					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
@@ -340,9 +346,24 @@ public class Validations extends BaseController {
 			});
 			node.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
 		}
+		System.out.println("FIeld >>>>> " + id + " isInputValid : " + isInputValid);
 		return isInputValid;
-
 	}
+	
+	private String getAgeDateFieldId(String nodeId) {
+		String [] parts = nodeId.split("__");
+		if(parts.length < 2)
+			return null;
+		
+		
+		List<String> ageDateNodeIds = new ArrayList<String>();
+		ageDateNodeIds.add("dd");
+		ageDateNodeIds.add("mm");
+		ageDateNodeIds.add("yyyy");
+		ageDateNodeIds.add("ageField");
+		return ageDateNodeIds.contains(parts[1]) ? parts[0] : null;
+	}
+	
 
 	private boolean validateBlackListedWords(Pane parentPane, TextField node, String id, List<String> blackListedWords,
 			boolean showAlert, String errorMessage, String are, String is) {
@@ -387,12 +408,15 @@ public class Validations extends BaseController {
 		try {
 			
 			String label = id.replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY)
-					.replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY);
+					.replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY);		
+			
+			if (node.isDisabled() || isLostUIN) {
+				System.out.println("Ignoring validations as its lostUIN or disabled for field >> "+ label);
+				return true;
+			}
+			
 			boolean isMandatory = requiredFieldValidator.isRequiredField(getValidationMap().get(label),
 					getRegistrationDTOFromSession());
-			
-			if (node.isDisabled() || isLostUIN)
-				return true;
 			
 			if(isMandatory) {
 				if(node.getValue() == null) {

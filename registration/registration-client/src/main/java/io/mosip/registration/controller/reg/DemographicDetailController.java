@@ -40,7 +40,6 @@ import io.mosip.registration.controller.FXUtils;
 import io.mosip.registration.controller.VirtualKeyboard;
 import io.mosip.registration.controller.device.FaceCaptureController;
 import io.mosip.registration.dao.MasterSyncDao;
-import io.mosip.registration.dto.OSIDataDTO;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.GenericDto;
@@ -371,7 +370,7 @@ public class DemographicDetailController extends BaseController {
 			content = addContentWithComboBoxObject(schemaDTO.getId(), schemaDTO, languageType);
 			break;
 		case RegistrationConstants.AGE_DATE:
-			content = addContentForDobAndAge(languageType);
+			content = addContentForDobAndAge(schemaDTO.getId(), languageType);
 			break;
 		case "age":
 			// TODO Not yet supported
@@ -386,47 +385,47 @@ public class DemographicDetailController extends BaseController {
 		return gridPane;
 	}
 
-	public VBox addContentForDobAndAge(String languageType) {
+	public VBox addContentForDobAndAge(String fieldId, String languageType) {
 
 		VBox vBoxDD = new VBox();
 
 		TextField dd = new TextField();
 		dd.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
-		dd.setId(RegistrationConstants.DD + languageType);
+		dd.setId(fieldId + "__" + RegistrationConstants.DD + languageType);
 		Label ddLabel = new Label();
 		ddLabel.setVisible(false);
-		ddLabel.setId(RegistrationConstants.DD + languageType + RegistrationConstants.LABEL);
+		ddLabel.setId(fieldId + "__" +RegistrationConstants.DD + languageType + RegistrationConstants.LABEL);
 		ddLabel.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
 		vBoxDD.getChildren().addAll(ddLabel, dd);
 
-		listOfTextField.put(RegistrationConstants.DD + languageType, dd);
+		listOfTextField.put(fieldId + "__" +RegistrationConstants.DD + languageType, dd);
 
 		VBox vBoxMM = new VBox();
 		TextField mm = new TextField();
 		mm.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
-		mm.setId(RegistrationConstants.MM + languageType);
+		mm.setId(fieldId + "__" +RegistrationConstants.MM + languageType);
 		Label mmLabel = new Label();
 		mmLabel.setVisible(false);
-		mmLabel.setId(RegistrationConstants.MM + languageType + RegistrationConstants.LABEL);
+		mmLabel.setId(fieldId + "__" +RegistrationConstants.MM + languageType + RegistrationConstants.LABEL);
 		mmLabel.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
 		vBoxMM.getChildren().addAll(mmLabel, mm);
 
-		listOfTextField.put(RegistrationConstants.MM + languageType, mm);
+		listOfTextField.put(fieldId + "__" +RegistrationConstants.MM + languageType, mm);
 
 		VBox vBoxYYYY = new VBox();
 		TextField yyyy = new TextField();
 		yyyy.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
-		yyyy.setId(RegistrationConstants.YYYY + languageType);
+		yyyy.setId(fieldId + "__" +RegistrationConstants.YYYY + languageType);
 		Label yyyyLabel = new Label();
 		yyyyLabel.setVisible(false);
-		yyyyLabel.setId(RegistrationConstants.YYYY + languageType + RegistrationConstants.LABEL);
+		yyyyLabel.setId(fieldId + "__" +RegistrationConstants.YYYY + languageType + RegistrationConstants.LABEL);
 		yyyyLabel.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
 		vBoxYYYY.getChildren().addAll(yyyyLabel, yyyy);
 
-		listOfTextField.put(RegistrationConstants.YYYY + languageType, yyyy);
+		listOfTextField.put(fieldId + "__" +RegistrationConstants.YYYY + languageType, yyyy);
 
 		Label dobMessage = new Label();
-		dobMessage.setId(RegistrationConstants.DOB_MESSAGE + languageType);
+		dobMessage.setId(fieldId + "__" +RegistrationConstants.DOB_MESSAGE + languageType);
 		dobMessage.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
 
 		boolean localLanguage = languageType.equals(RegistrationConstants.LOCAL_LANGUAGE);
@@ -453,10 +452,10 @@ public class DemographicDetailController extends BaseController {
 		HBox hB2 = new HBox();
 		VBox vboxAgeField = new VBox();
 		TextField ageField = new TextField();
-		ageField.setId(RegistrationConstants.AGE_FIELD + languageType);
+		ageField.setId(fieldId + "__" +RegistrationConstants.AGE_FIELD + languageType);
 		ageField.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
 		Label ageFieldLabel = new Label();
-		ageFieldLabel.setId(RegistrationConstants.AGE_FIELD + languageType + RegistrationConstants.LABEL);
+		ageFieldLabel.setId(fieldId + "__" +RegistrationConstants.AGE_FIELD + languageType + RegistrationConstants.LABEL);
 		ageFieldLabel.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
 		ageFieldLabel.setVisible(false);
 		vboxAgeField.getChildren().addAll(ageFieldLabel, ageField);
@@ -794,11 +793,11 @@ public class DemographicDetailController extends BaseController {
 		for (UiSchemaDTO schemaField : validation.getValidationMap().values()) {
 			if(schemaField.getControlType() == null)
 				continue;
-
-			if(registrationDTO.getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE) &&
+			
+			if(registrationDTO.getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE) && 
 					!registrationDTO.getSelectionListDTO().containsKey(schemaField.getId()))
 				continue;
-
+		
 			switch(schemaField.getType()) {
 			case RegistrationConstants.SIMPLE_TYPE:
 				if(schemaField.getControlType().equals(RegistrationConstants.DROPDOWN)) {
@@ -819,9 +818,10 @@ public class DemographicDetailController extends BaseController {
 			case RegistrationConstants.NUMBER:
 			case RegistrationConstants.STRING:
 				if(schemaField.getControlType().equalsIgnoreCase(RegistrationConstants.AGE_DATE))
-					registrationDTO.setDateField(schemaField.getId(), listOfTextField.get(RegistrationConstants.DD).getText(),
-						listOfTextField.get(RegistrationConstants.MM).getText(), 
-						listOfTextField.get(RegistrationConstants.YYYY).getText());
+					registrationDTO.setDateField(schemaField.getId(), 
+							listOfTextField.get(schemaField.getId()+ "__"+RegistrationConstants.DD).getText(),
+						listOfTextField.get(schemaField.getId()+ "__"+RegistrationConstants.MM).getText(), 
+						listOfTextField.get(schemaField.getId()+ "__"+RegistrationConstants.YYYY).getText());
 				else {
 					if(schemaField.getControlType().equals(RegistrationConstants.DROPDOWN)) {
 						ComboBox<GenericDto> platformField = listOfComboBoxWithObject.get(schemaField.getId());
@@ -837,7 +837,7 @@ public class DemographicDetailController extends BaseController {
 				break;
 			}			
 		}
-		}catch(Exception exception) {
+		}catch(Exception exception) {			
 			exception.printStackTrace();
 		}
 	}
@@ -959,9 +959,9 @@ public class DemographicDetailController extends BaseController {
 					if (schemaField.getControlType().equalsIgnoreCase(RegistrationConstants.AGE_DATE)) {
 						String[] dateParts = (String[]) value;
 						if (dateParts.length == 3) {
-							listOfTextField.get("dd").setText(dateParts[0]);
-							listOfTextField.get("mm").setText(dateParts[1]);
-							listOfTextField.get("yyyy").setText(dateParts[2]);
+							listOfTextField.get(schemaField.getId()+ "__"+"dd").setText(dateParts[0]);
+							listOfTextField.get(schemaField.getId()+ "__"+"mm").setText(dateParts[1]);
+							listOfTextField.get(schemaField.getId()+ "__"+"yyyy").setText(dateParts[2]);
 						}
 					} else {
 						TextField textField = listOfTextField.get(schemaField.getId());
@@ -1075,7 +1075,7 @@ public class DemographicDetailController extends BaseController {
 		if (preRegistrationId.getText().isEmpty()) {
 			preRegistrationId.clear();
 		}
-
+		
 		saveDetail(); //TODO need to check with taleev
 
 			if (validateThisPane()) {
@@ -1092,11 +1092,11 @@ public class DemographicDetailController extends BaseController {
 						AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 				// Set Exception Photo Type Description
-				boolean isParentOrGuardianBiometricsCaptured = getRegistrationDTOFromSession().isUpdateUINChild()
+				/*boolean isParentOrGuardianBiometricsCaptured = getRegistrationDTOFromSession().isUpdateUINChild()
 						|| (SessionContext.map().get(RegistrationConstants.IS_Child) != null
 								&& (boolean) SessionContext.map().get(RegistrationConstants.IS_Child));
 				documentScanController.setExceptionDescriptionText(isParentOrGuardianBiometricsCaptured);
-				faceCaptureController.setExceptionFaceDescriptionText(isParentOrGuardianBiometricsCaptured);
+				faceCaptureController.setExceptionFaceDescriptionText(isParentOrGuardianBiometricsCaptured);*/
 
 				if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
 					SessionContext.map().put(RegistrationConstants.UIN_UPDATE_DEMOGRAPHICDETAIL, false);
@@ -1160,10 +1160,6 @@ public class DemographicDetailController extends BaseController {
 					List<GenericDto> locationsSecondary = masterSync.findProvianceByHierarchyCode(
 							selectedLocationHierarchy.getCode(), ApplicationContext.localLanguage());
 					
-					System.out.println("selectedLocationHierarchy.getCode() >>> " + selectedLocationHierarchy.getCode());
-					System.out.println("locations in primry >>> " + locations.size());
-					System.out.println("locations in secondary >>> " + locationsSecondary.size());
-
 					if (locations.isEmpty()) {
 						GenericDto lC = new GenericDto();
 						lC.setCode(RegistrationConstants.AUDIT_DEFAULT_USER);

@@ -6,7 +6,9 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ResourceBundle;
@@ -127,6 +129,11 @@ public class UpdateUINController extends BaseController implements Initializable
 		checkBox.getStyleClass().add(RegistrationConstants.updateUinCheckBox);
 		fxUtils.listenOnSelectedCheckBox(checkBox);
 		checkBoxKeeper.put(schema.getId(), checkBox);
+		
+		if("name".equals(schema.getSubType())) {
+			checkBox.setSelected(true);
+			checkBox.disableProperty();
+		}
 
 		GridPane gridPane = new GridPane();
 		gridPane.setPrefWidth(200);
@@ -169,12 +176,14 @@ public class UpdateUINController extends BaseController implements Initializable
 			if (StringUtils.isEmpty(uinId.getText())) {
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UPDATE_UIN_ENTER_UIN_ALERT);
 			} else {
-
-				if (uinValidatorImpl.validateId(uinId.getText())) {
-
-
-						registrationController.init(checkBoxKeeper);
-
+				List<String> selectedFields = new ArrayList<String>();
+				checkBoxKeeper.forEach((key, checkbox) -> {
+					if(((CheckBox)checkbox).isSelected())
+						selectedFields.add(key);
+				});
+				
+				if (uinValidatorImpl.validateId(uinId.getText()) && !selectedFields.isEmpty()) {		
+						registrationController.init(checkBoxKeeper, selectedFields);
 						Parent createRoot = BaseController.load(
 								getClass().getResource(RegistrationConstants.CREATE_PACKET_PAGE),
 								applicationContext.getApplicationLanguageBundle());
