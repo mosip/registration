@@ -317,7 +317,7 @@ public class Validations extends BaseController {
 				
 			if(label.equals("ageField")) {
 				maxAge=Integer.parseInt(getValueFromApplicationContext(RegistrationConstants.MAX_AGE));
-				if( node.getText()!= null && !node.getText().isBlank() && Integer.parseInt(node.getText())>maxAge) {
+				if( node.getText()!= null && !node.getText().isEmpty() && Integer.parseInt(node.getText())>maxAge) {
 					return false;
 				}
 			}
