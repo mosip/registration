@@ -74,6 +74,11 @@ jobs:
           echo VERSION=$VERSION
           docker tag $SERVICE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION 
+      env:
+        NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
+        SERVICE_NAME: registration-processor-common-camel-bridge
+        SERVICE_LOCATION: registration-processor/registration-processor-common-camel-bridge
+
         
 
   client_build:
