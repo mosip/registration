@@ -230,11 +230,11 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 					Gson gsonObj = new Gson();
 					uinResponseDto = gsonObj.fromJson(test, UinGenResponseDto.class);
 
-
+					uinFieldCheck = uinResponseDto.getResponse().getUin();
 					demographicIdentity.put("UIN", uinFieldCheck);
 
 					idResponseDTO = sendIdRepoWithUin(registrationId, demographicIdentity,
-							uinResponseDto.getResponse().getUin(), description);
+							uinFieldCheck, description);
 
 					boolean isUinAlreadyPresent = isUinAlreadyPresent(idResponseDTO, registrationId);
 
