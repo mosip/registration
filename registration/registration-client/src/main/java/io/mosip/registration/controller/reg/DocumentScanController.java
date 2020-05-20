@@ -324,7 +324,8 @@ public class DocumentScanController extends BaseController {
 
 			String docCategoryCode = documentCategory.getSubType();
 
-			String docCategoryName = documentCategory.getDescription();
+			String docCategoryName = documentCategory.getLabel() != null ? 
+					documentCategory.getLabel().get("primary") : documentCategory.getDescription();
 
 			List<DocumentCategoryDto> documentCategoryDtos = null;
 
@@ -342,13 +343,11 @@ public class DocumentScanController extends BaseController {
 			}
 
 			if (documentCategoryDtos != null && !documentCategoryDtos.isEmpty()) {
-
 				HBox hBox = new HBox();
-
 				ComboBox<DocumentCategoryDto> comboBox = new ComboBox<>();
 				comboBox.setPrefWidth(docScanVbox.getWidth() / 2);
 				comboBox.setId(documentCategory.getId());
-
+				
 				comboBox.valueProperty().addListener((v, oldValue, newValue) -> {
 					validateDocumentsPane();
 				});
@@ -376,7 +375,7 @@ public class DocumentScanController extends BaseController {
 				 * the edit page
 				 */
 				documentComboBoxes.put(documentCategory.getId(), comboBox);
-
+				putIntoLabelMap(documentCategory.getId(), docCategoryName);
 				VBox documentVBox = new VBox();
 				documentVBox.getStyleClass().add(RegistrationConstants.SCAN_VBOX);
 				documentVBox.setId(documentCategory.getId());
@@ -1109,7 +1108,6 @@ public class DocumentScanController extends BaseController {
 				continueBtn.setDisable(true);
 			}
 		}
-		continueBtn.setDisable(false); //TODO as of now always enabling continue button
 	}
 
 	public List<BufferedImage> getScannedPages() {

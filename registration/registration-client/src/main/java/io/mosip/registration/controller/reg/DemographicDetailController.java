@@ -616,40 +616,6 @@ public class DemographicDetailController extends BaseController {
 		return vbox;
 	}
 
-	private void helperMethodForComboBox(ComboBox<?> field, String fieldName, UiSchemaDTO schema, Label label,
-			Label validationMessage, VBox vbox, String languageType) {
-
-		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
-			field.setPromptText(schema.getLabel().get(RegistrationConstants.SECONDARY));
-			label.setText(schema.getLabel().get(RegistrationConstants.SECONDARY));
-			field.setDisable(true);
-			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.SECONDARY));
-		} else {
-			field.setPromptText(schema.getLabel().get(RegistrationConstants.PRIMARY));
-			label.setText(schema.getLabel().get(RegistrationConstants.PRIMARY));
-			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.PRIMARY));
-		}
-		// vbox.setStyle("-fx-background-color:BLUE");
-		vbox.setPrefWidth(500);
-		vbox.setId(fieldName + RegistrationConstants.Parent);
-		label.setId(fieldName + languageType + RegistrationConstants.LABEL);
-		label.setVisible(false);
-		label.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
-		field.getStyleClass().add("demographicCombobox");
-		validationMessage.setId(fieldName + languageType + RegistrationConstants.MESSAGE);
-		validationMessage.getStyleClass().add(RegistrationConstants.DemoGraphicFieldMessageLabel);
-		label.setPrefWidth(vbox.getPrefWidth());
-		validationMessage.setPrefWidth(vbox.getPrefWidth());
-		validationMessage.setVisible(false);
-		vbox.setSpacing(5);
-
-		vbox.getChildren().addAll(label, field, validationMessage);
-
-		if (primaryLanguage.equals(secondaryLanguage) && languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
-			vbox.setDisable(true);
-		}
-	}
-
 	/**
 	 * setting the registration navigation label to lost uin
 	 */
@@ -828,6 +794,10 @@ public class DemographicDetailController extends BaseController {
 		for (UiSchemaDTO schemaField : validation.getValidationMap().values()) {
 			if(schemaField.getControlType() == null)
 				continue;
+			
+			if(registrationDTO.getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE) && 
+					!registrationDTO.getSelectionListDTO().containsKey(schemaField.getId()))
+				continue;
 		
 			switch(schemaField.getType()) {
 			case RegistrationConstants.SIMPLE_TYPE:
@@ -852,16 +822,22 @@ public class DemographicDetailController extends BaseController {
 					registrationDTO.setDateField(schemaField.getId(), listOfTextField.get(RegistrationConstants.DD).getText(),
 						listOfTextField.get(RegistrationConstants.MM).getText(), 
 						listOfTextField.get(RegistrationConstants.YYYY).getText());
-				else
-					registrationDTO.addDemographicField(schemaField.getId(),
+				else {
+					if(schemaField.getControlType().equals(RegistrationConstants.DROPDOWN)) {
+						ComboBox<GenericDto> platformField = listOfComboBoxWithObject.get(schemaField.getId());
+						registrationDTO.addDemographicField(schemaField.getId(),
+								platformField == null ? null : platformField.getValue()!=null?platformField.getValue().getName():null);
+					} else
+						registrationDTO.addDemographicField(schemaField.getId(),
 							listOfTextField.get(schemaField.getId()).getText());
+				}
 				break;
 
 			default:
 				break;
 			}			
 		}
-		}catch(Exception exception) {
+		}catch(Exception exception) {			
 			exception.printStackTrace();
 		}
 	}
@@ -904,19 +880,19 @@ public class DemographicDetailController extends BaseController {
 			if (preRegistrationId.getText().isEmpty()) {
 				registrationDTO.setPreRegistrationId("");
 			}
-			OSIDataDTO osiDataDTO = registrationDTO.getOsiDataDTO();
+			//OSIDataDTO osiDataDTO = registrationDTO.getOsiDataDTO();
 
 			SessionContext.map().put(RegistrationConstants.IS_Child, isChild);
 
 			addDemoGraphicDetailsToSession();
 
-			Map<String, Object> demographics = registrationDTO.getDemographics();
+			//Map<String, Object> demographics = registrationDTO.getDemographics();
 
 			/*if (isChild) {
 				osiDataDTO.setIntroducerType(IntroducerType.PARENT.getCode());
 			}*/
 
-			osiDataDTO.setOperatorID(SessionContext.userContext().getUserId());
+			registrationDTO.getOsiDataDTO().setOperatorID(SessionContext.userContext().getUserId());
 
 			LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, "Saved the demographic fields to DTO");
@@ -1099,6 +1075,8 @@ public class DemographicDetailController extends BaseController {
 		if (preRegistrationId.getText().isEmpty()) {
 			preRegistrationId.clear();
 		}
+		
+		saveDetail(); //TODO need to check with taleev
 
 			if (validateThisPane()) {
 				saveDetail();

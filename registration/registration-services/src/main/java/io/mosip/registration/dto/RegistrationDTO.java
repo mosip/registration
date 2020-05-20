@@ -2,6 +2,8 @@ package io.mosip.registration.dto;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.Period;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,6 +11,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.dto.OSIDataDTO;
 import io.mosip.registration.dto.RegistrationMetaDataDTO;
 import io.mosip.registration.dto.biometric.BiometricDTO;
@@ -31,12 +35,15 @@ import lombok.Data;
 @Data
 public class RegistrationDTO {
 	
+	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
 	private static final String DATE_FORMAT = "yyyy/MM/dd";
 	
 	private double idSchemaVersion;	
 	private String registrationId;
 	private String preRegistrationId;
 	private String registrationCategory;
+	private int age;
+	private boolean isChild;
 	
 	private RegistrationMetaDataDTO registrationMetaDataDTO;
 	private OSIDataDTO osiDataDTO;
@@ -72,7 +79,7 @@ public class RegistrationDTO {
 	
 	public void addDemographicField(String fieldId, String applicationLanguage, String value,
 			String localLanguage, String localValue) {
-		List<SimpleDto> values = new ArrayList<SimpleDto>();
+		List<SimpleDto> values = new ArrayList<SimpleDto>();				
 		if(value != null && !value.isEmpty())
 			values.add(new SimpleDto(applicationLanguage, value));
 		
@@ -87,11 +94,14 @@ public class RegistrationDTO {
 	}
 	
 	public void setDateField(String fieldId, String day, String month, String year) {
-		try {
-		LocalDate date = LocalDate.of(Integer.valueOf(year), Integer.valueOf(month), Integer.valueOf(day));
-		this.demographics.put(fieldId, date.format(DateTimeFormatter.ofPattern(DATE_FORMAT)));
-		}catch(Exception exception) {
-			this.demographics.put(fieldId,null);
+		if(isValidValue(day) && isValidValue(month) && isValidValue(year)) {
+			LocalDate date = LocalDate.of(Integer.valueOf(year), Integer.valueOf(month), Integer.valueOf(day));
+			this.demographics.put(fieldId, date.format(DateTimeFormatter.ofPattern(DATE_FORMAT)));
+			this.age = Period.between(date, LocalDate.now(ZoneId.of("UTC"))).getYears();
+			
+			int minAge = Integer.parseInt((String) applicationContext.getApplicationMap().get(RegistrationConstants.MIN_AGE));
+			int maxAge = Integer.parseInt((String) applicationContext.getApplicationMap().get(RegistrationConstants.MAX_AGE));
+			this.isChild = this.age < minAge;
 		}
 	}
 	
@@ -109,6 +119,14 @@ public class RegistrationDTO {
 		this.documents.put(fieldId, value);
 	}
 	
+	public void removeDocument(String fieldId) {
+		this.documents.remove(fieldId);
+	}
+	
+	public void removeAllDocuments() {
+		this.documents.clear();
+	}
+	
 	public List<BiometricsDto> getBiometric(String subType, List<String> bioAttributes) {
 		List<BiometricsDto> list = new ArrayList<BiometricsDto>();
 		for(String bioAttribute : bioAttributes) {
@@ -119,11 +137,17 @@ public class RegistrationDTO {
 		return list;
 	}
 	
-	public void addBiometric(String subType, String bioAttribute, BiometricsDto value) {
+	public BiometricsDto addBiometric(String subType, String bioAttribute, BiometricsDto value) {
 		String key = String.format("%s_%s", subType, bioAttribute);
+		int currentCount = 0;
+		if(this.biometrics.get(key) != null) {
+			currentCount = this.biometrics.get(key).getNumOfRetries();
+		}
+		value.setNumOfRetries(currentCount+1);
 		value.setSubType(subType);
 		this.biometrics.put(key, value);
 		this.biometricExceptions.remove(key);
+		return value;
 	}
 	
 	public void addBiometricException(String subType, String bioAttribute, String reason, String exceptionType) {
@@ -146,7 +170,12 @@ public class RegistrationDTO {
 		return this.biometrics.get(key);
 	}
 	
-	public Map<String, Object> getIdentity() {
+	public BiometricsDto removeBiometric(String subType, String bioAttribute) {
+		String key = String.format("%s_%s", subType, bioAttribute);
+		return this.biometrics.remove(key);
+	}
+	
+	/*public Map<String, Object> getIdentity() {
 		Map<String, Object> allIdentityDetails = new LinkedHashMap<String, Object>();
 		allIdentityDetails.put("IDSchemaVersion", idSchemaVersion);
 		if(registrationMetaDataDTO.getUin() != null)
@@ -163,10 +192,24 @@ public class RegistrationDTO {
 		Map<String, Object> identity = new LinkedHashMap<String, Object>();
 		identity.put("identity", allIdentityDetails);
 		return identity;	
+	}*/	
+	
+	public Map<String, Object> getMVELDataContext() {
+		Map<String, Object> allIdentityDetails = new LinkedHashMap<String, Object>();
+		allIdentityDetails.put("IDSchemaVersion", idSchemaVersion);
+		allIdentityDetails.put("isNew", RegistrationConstants.PACKET_TYPE_NEW.equals(registrationMetaDataDTO.getRegistrationCategory()));
+		allIdentityDetails.put("isUpdate", RegistrationConstants.PACKET_TYPE_UPDATE.equals(registrationMetaDataDTO.getRegistrationCategory()));
+		allIdentityDetails.put("isLost", RegistrationConstants.PACKET_TYPE_LOST.equals(registrationMetaDataDTO.getRegistrationCategory()));
+		allIdentityDetails.put("age", this.age);
+		allIdentityDetails.put("isChild", this.isChild);
+		this.demographics.put("UIN", registrationMetaDataDTO.getUin());
+		allIdentityDetails.putAll(this.demographics);
+		allIdentityDetails.putAll(this.documents);
+		allIdentityDetails.putAll(this.biometrics);
+		return allIdentityDetails;	
 	}
 	
-	public BiometricsDto removeBiometric(String subType, String bioAttribute) {
-		String key = String.format("%s_%s", subType, bioAttribute);
-		return this.biometrics.remove(key);
+	private boolean isValidValue(String value) {
+		return value != null && !value.isBlank();
 	}
 }
