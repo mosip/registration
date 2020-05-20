@@ -13,6 +13,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -46,12 +47,15 @@ public class MasterDataValidationTest {
 
 	@Mock
 	InternalRegistrationStatusDto registrationStatusDto;
+	
+	@InjectMocks
+	MasterDataValidation masterDataValidation;
 
 	StatusResponseDto statusResponseDto;
 
 	String jsonString = null;
 
-	MasterDataValidation masterDataValidation;
+	
 
 	private static final String PRIMARY_LANGUAGE = "mosip.primary-language";
 
@@ -78,7 +82,7 @@ public class MasterDataValidationTest {
 		when(env.getProperty(ATTRIBUTES)).thenReturn("gender,region,province,city,postalcode");
 		Mockito.when(registrationProcessorRestService.getApi(any(), any(), any(), any(), any()))
 				.thenReturn(responseWrapper);
-		masterDataValidation = new MasterDataValidation(env, registrationProcessorRestService, utility);
+		
 	}
 
 	@Test

@@ -3,6 +3,7 @@ package io.mosip.registration.processor.stages.utils;
 import java.io.IOException;
 
 import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
@@ -33,50 +34,18 @@ public class ApplicantDocumentValidation {
 	IdentityIteratorUtil identityIterator = new IdentityIteratorUtil();
 
 	/** The utility. */
+	@Autowired
 	private Utilities utility;
-	
+	@Autowired
 	private PacketReaderService packetReaderService;
-	
+	@Autowired
 	private IdSchemaUtils idSchemaUtils;
 	
 	private static final String VALUE = "value";
 
-	/**
-	 * Instantiates a new applicant document validation.
-	 *
-	 * @param utilities
-	 *            the utilities
-	 * @param env
-	 *            the env
-	 * @param applicantTypeDocument
-	 *            the applicant type document
-	 */
-	public ApplicantDocumentValidation(Utilities utilities, 
-			IdSchemaUtils idSchemaUtils,PacketReaderService packetReaderService) {
-		
-		this.utility = utilities;
-		this.idSchemaUtils = idSchemaUtils;
-		this.packetReaderService=packetReaderService;
-	}
+	
 
-	/**
-	 * Validate document.
-	 *
-	 * @param registrationId the registration id
-	 * @param jsonString     the json string
-	 * @return true, if successful
-	 * @throws ApisResourceAccessException           the apis resource access
-	 *                                               exception
-	 * @throws IOException                           Signals that an I/O exception
-	 *                                               has occurred.
-	 * @throws                                       io.mosip.kernel.core.exception.IOException
-	 * @throws PacketDecryptionFailureException
-	 * @throws RegistrationProcessorCheckedException
-	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
-	 * @throws io.mosip.kernel.core.exception.IOException 
-	 * @throws SecurityException                     the security exception
-	 * @throws IllegalArgumentException              the illegal argument exception
-	 */
+	
 	public boolean validateDocument(String registrationId)
 			throws   PacketDecryptionFailureException, IdentityNotFoundException,
 			 ApiNotAccessibleException, IOException, io.mosip.kernel.core.exception.IOException

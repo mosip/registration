@@ -30,6 +30,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import io.mosip.kernel.core.bioapi.exception.BiometricException;
 import io.mosip.kernel.core.bioapi.model.QualityScore;
 import io.mosip.kernel.core.bioapi.spi.IBioApi;
 import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
@@ -207,8 +208,9 @@ public class QualityCheckerStageTest {
 	public void testQualityCheckerSuccess() {
 		QualityScore qualityScore = new QualityScore();
 		qualityScore.setScore(90);
-		Response<QualityScore> response = new Response();
+		Response<QualityScore> response=new Response<>();
 		response.setResponse(qualityScore);
+		response.setStatusCode(200);
 		Mockito.when(fingerApi.checkQuality(any(), any())).thenReturn(response);
 
 		MessageDTO dto = new MessageDTO();
@@ -222,8 +224,9 @@ public class QualityCheckerStageTest {
 	public void testQualityCheckFailure() {
 		QualityScore qualityScore = new QualityScore();
 		qualityScore.setScore(50);
-		Response<QualityScore> response = new Response();
+		Response<QualityScore> response=new Response<>();
 		response.setResponse(qualityScore);
+		response.setStatusCode(200);
 		Mockito.when(fingerApi.checkQuality(any(), any())).thenReturn(response);
 
 		MessageDTO dto = new MessageDTO();
@@ -273,6 +276,22 @@ public class QualityCheckerStageTest {
 			io.mosip.kernel.core.exception.IOException, IOException {
 		FSAdapterException exception = new FSAdapterException("", "");
 		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenThrow(exception);
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890");
+		MessageDTO result = qualityCheckerStage.process(dto);
+
+		assertTrue(result.getInternalError());
+	}
+
+	@Test
+	public void testBiometricException() throws BiometricException {
+		QualityScore qualityScore = new QualityScore();
+		qualityScore.setScore(50);
+		Response<QualityScore> response=new Response<>();
+		response.setResponse(qualityScore);
+		response.setStatusCode(404);
+		response.setStatusMessage("score is missing from database");
+		Mockito.when(fingerApi.checkQuality(any(), any())).thenReturn(response);
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityCheckerStage.process(dto);

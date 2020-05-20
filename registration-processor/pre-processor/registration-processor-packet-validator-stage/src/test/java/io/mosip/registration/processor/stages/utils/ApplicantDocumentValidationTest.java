@@ -14,6 +14,7 @@ import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -34,26 +35,27 @@ public class ApplicantDocumentValidationTest {
 	/** The utility. */
 	@Mock
 	Utilities utility;
-	
+
 	@Mock PacketReaderService packetReaderService;
-	
+
 	@Mock IdSchemaUtils idSchemaUtils;
 
+	@InjectMocks
 	private ApplicantDocumentValidation applicantDocumentValidation;
-	
+
 	JSONObject regProcessorIdentityJson=mock(JSONObject.class);
 	JSONObject documentLabel=mock(JSONObject.class);
 	String label="label";
 	String source="source";
 	JSONObject demographicIdentityJSONObject=mock(JSONObject.class);
 	JSONObject proofOfDocument;
-	
+
 	/**
 	 * Sets the up.
 	 *
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	@Before
 	public void setUp()
@@ -62,36 +64,36 @@ public class ApplicantDocumentValidationTest {
 		map.put("value", "documentValue");
 		proofOfDocument=new JSONObject(map);
 		when(utility.getRegistrationProcessorMappingJson()).thenReturn(regProcessorIdentityJson);
-		
+
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.when(JsonUtil.class, "getJSONObject", any(), any())
 				.thenReturn(proofOfDocument);
 		PowerMockito.when(JsonUtil.class, "getJSONValue", any(), anyString())
 		.thenReturn(label);
 		when(utility.getDemographicIdentityJSONObject(any(),anyString())).thenReturn(demographicIdentityJSONObject);
-		
+
 		when(idSchemaUtils.getSource(anyString())).thenReturn(source);
 		when(packetReaderService.checkFileExistence(anyString(),anyString(),anyString())).thenReturn(true);
-		applicantDocumentValidation = new ApplicantDocumentValidation(utility,idSchemaUtils,packetReaderService );
+		
 	}
 
 	/**
 	 * Test applicant document validation  success.
 	 *
 	 * @throws Exception   exception
-	 * 
+	 *
 	 */
 	@Test
 	public void testApplicantDocumentValidationSuccess() throws Exception {
 		boolean isApplicantDocumentValidated = applicantDocumentValidation.validateDocument("1234");
 		assertTrue("Test for successful Applicant Document Validation success for adult", isApplicantDocumentValidated);
 	}
-	
+
 	/**
 	 * Test applicant document validation  success.
 	 *
 	 * @throws Exception   exception
-	 * 
+	 *
 	 */
 	@Test
 	public void testApplicantDocumentValidationFailure() throws Exception {
@@ -100,5 +102,5 @@ public class ApplicantDocumentValidationTest {
 		assertFalse(isApplicantDocumentValidated);
 	}
 
-	
+
 }
