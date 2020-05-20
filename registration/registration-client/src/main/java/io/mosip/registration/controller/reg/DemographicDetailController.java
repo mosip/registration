@@ -22,11 +22,14 @@ import org.springframework.stereotype.Controller;
 
 import io.mosip.kernel.core.applicanttype.exception.InvalidApplicantArgumentException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 import io.mosip.kernel.core.idvalidator.spi.PridValidator;
 import io.mosip.kernel.core.idvalidator.spi.RidValidator;
 import io.mosip.kernel.core.idvalidator.spi.UinValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.transliteration.spi.Transliteration;
+import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.kernel.packetmanager.dto.SimpleDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.AuditEvent;
 import io.mosip.registration.constants.AuditReferenceIdTypes;
@@ -40,20 +43,22 @@ import io.mosip.registration.controller.FXUtils;
 import io.mosip.registration.controller.VirtualKeyboard;
 import io.mosip.registration.controller.device.FaceCaptureController;
 import io.mosip.registration.dao.MasterSyncDao;
+import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.RegistrationDTO;
+import io.mosip.registration.dto.ResponseDTO;
+import io.mosip.registration.dto.SuccessResponseDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.mastersync.LocationDto;
 import io.mosip.registration.entity.Location;
 import io.mosip.registration.exception.RegBaseCheckedException;
-import io.mosip.kernel.packetmanager.dto.SimpleDto;
 import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.sync.MasterSyncService;
+import io.mosip.registration.service.sync.PreRegistrationDataSyncService;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -121,6 +126,8 @@ public class DemographicDetailController extends BaseController {
 	private DocumentScanController documentScanController;
 	@Autowired
 	private Transliteration<String> transliteration;
+	@Autowired
+    private PreRegistrationDataSyncService preRegistrationDataSyncService;
 
 	private FXUtils fxUtils;
 	private int minAge;
@@ -1022,7 +1029,43 @@ public class DemographicDetailController extends BaseController {
 	 */
 	@FXML
 	private void fetchPreRegistration() {
-		prepareEditPageContent();
+		
+		String preRegId = preRegistrationId.getText();
+
+		if (StringUtils.isEmpty(preRegId)) {
+			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.PRE_REG_ID_EMPTY);
+			return;
+		} else {
+			try {
+				pridValidatorImpl.validateId(preRegId);
+			} catch (InvalidIDException invalidIDException) {
+				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.PRE_REG_ID_NOT_VALID);
+				LOGGER.error("PRID VALIDATION FAILED", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						invalidIDException.getMessage() + ExceptionUtils.getStackTrace(invalidIDException));
+				return;
+			}
+		}
+
+		auditFactory.audit(AuditEvent.REG_DEMO_PRE_REG_DATA_FETCH, Components.REG_DEMO_DETAILS, SessionContext.userId(),
+				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+
+		registrationController.createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_NEW);
+		documentScanController.clearDocSection();
+
+		ResponseDTO responseDTO = preRegistrationDataSyncService.getPreRegistration(preRegId);
+
+		SuccessResponseDTO successResponseDTO = responseDTO.getSuccessResponseDTO();
+		List<ErrorResponseDTO> errorResponseDTOList = responseDTO.getErrorResponseDTOs();
+
+		if (successResponseDTO != null && successResponseDTO.getOtherAttributes() != null
+				&& successResponseDTO.getOtherAttributes().containsKey(RegistrationConstants.REGISTRATION_DTO)) {
+			SessionContext.map().put(RegistrationConstants.REGISTRATION_DATA,
+					successResponseDTO.getOtherAttributes().get(RegistrationConstants.REGISTRATION_DTO));
+			prepareEditPageContent();
+
+		} else if (errorResponseDTOList != null && !errorResponseDTOList.isEmpty()) {
+			generateAlertLanguageSpecific(RegistrationConstants.ERROR, errorResponseDTOList.get(0).getMessage());
+		}
 	}
 
 

@@ -272,6 +272,15 @@ public class GuardianBiometricsController extends BaseController implements Init
 		checkBoxMap = new HashMap<>();
 		fxUtils = FXUtils.getInstance();
 		applicationLabelBundle = applicationContext.getApplicationLanguageBundle();
+		
+		/* map to process data structure follows this structure
+		 * 
+		 * applicant(key)= HashMap<String,List<List<String>>
+		 * HashMap<String,List<List<String>> will be something like FINGERPRINT_SLAB_LEFT(key), List<List<String>>(value)
+		 * List<List<String>> will be something like [[leftIndex,leftMiddle],[leftRing,leftThumb,leftLittle]]
+		 * 
+		 */
+		
 		HashMap<Entry<String, String>, HashMap<String, List<List<String>>>> mapToProcess = getconfigureAndNonConfiguredBioAttributes(
 				Arrays.asList(
 						getValue(RegistrationConstants.FINGERPRINT_SLAB_LEFT,
