@@ -1,5 +1,8 @@
 package io.mosip.registration.validator;
 
+import java.util.List;
+
+import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.dto.AuthTokenDTO;
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
 
@@ -42,5 +45,13 @@ public abstract class AuthenticationBaseValidator {
 	 * @return the {@link AuthTokenDTO} after validation
 	 */
 	public abstract AuthTokenDTO validate(String userId, String otp, boolean haveToSaveAuthToken);
+	
+	/**
+	 * Bio mertics validator.
+	 *
+	 * @param listOfBiometrics the list of biometrics
+	 * @return true, if successful
+	 */
+	public abstract boolean bioMerticsValidator(List<BiometricsDto> listOfBiometrics);
 
 }

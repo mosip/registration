@@ -821,6 +821,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 			// TODO if threshold values and local-dedup passed save into the registration
 			// DTO
+			//isMatchedWithLocalBiometrics=authenticationService.validateBiometrics(getBioType(currentModality), biometricDTOList);
 
 			if (isValidBiometric && !isMatchedWithLocalBiometrics) {
 
@@ -1978,4 +1979,22 @@ public class GuardianBiometricsController extends BaseController implements Init
 		}
 		return isCaptured;
 	}
+	
+	/**
+	 * Gets the bio type.
+	 *
+	 * @param bioType the bio type
+	 * @return the bio type
+	 */
+	private String getBioType(String bioType) {
+
+		if (bioType.equalsIgnoreCase(RegistrationConstants.IRIS_DOUBLE)
+				|| bioType.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_LEFT)) {
+			String[] returnEye = bioType.split("_");
+			bioType = returnEye[0];
+		}
+		return bioType;
+
+	}
+
 }

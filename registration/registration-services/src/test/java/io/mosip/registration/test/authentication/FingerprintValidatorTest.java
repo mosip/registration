@@ -126,8 +126,8 @@ public class FingerprintValidatorTest {
 		ApplicationContext.map().put(RegistrationConstants.DEDUPLICATION_FINGERPRINT_ENABLE_FLAG, RegistrationConstants.ENABLE);
 
 		when(userDetailDAO.getUserSpecificBioDetails("mosip", "FIN")).thenReturn(userBiometrics);
-		when(bioService.validateFP(authenticationValidatorDTO.getFingerPrintDetails().get(0), userBiometrics))
-				.thenReturn(true);
+		//when(bioService.validateFP(authenticationValidatorDTO.getFingerPrintDetails().get(0), userBiometrics))
+		//		.thenReturn(true);
 		BIR bir = new BIR(new BIRBuilder().withBdb(minutiae.getBytes()));
 		BIR biType[] = new BIR[userBiometrics.size()];
 		BIR b = new BIR(new BIRBuilder().withBdb(minutiae.getBytes()));
@@ -163,8 +163,8 @@ public class FingerprintValidatorTest {
 		ApplicationContext.map().put(RegistrationConstants.DEDUPLICATION_FINGERPRINT_ENABLE_FLAG, RegistrationConstants.ENABLE);
 
 		when(userDetailDAO.getUserSpecificBioDetails("mosip", "FIN")).thenReturn(userBiometrics);
-		when(bioService.validateFP(authenticationValidatorDTO.getFingerPrintDetails().get(0), userBiometrics))
-				.thenReturn(true);
+		//when(bioService.validateFP(authenticationValidatorDTO.getFingerPrintDetails().get(0), userBiometrics))
+		//		.thenReturn(true);
 		BIR bir = new BIR(new BIRBuilder().withBdb(minutiae.getBytes()));
 		BIR biType[] = new BIR[userBiometrics.size()];
 		BIR b = new BIR(new BIRBuilder().withBdb(minutiae.getBytes()));
@@ -200,8 +200,8 @@ public class FingerprintValidatorTest {
 		ApplicationContext.map().put(RegistrationConstants.DEDUPLICATION_FINGERPRINT_ENABLE_FLAG, RegistrationConstants.ENABLE);
 
 		when(userDetailDAO.getUserSpecificBioDetails("mosip", "FIN")).thenReturn(userBiometrics);
-		when(bioService.validateFP(authenticationValidatorDTO.getFingerPrintDetails().get(0), userBiometrics))
-				.thenReturn(true);
+		//when(bioService.validateFP(authenticationValidatorDTO.getFingerPrintDetails().get(0), userBiometrics))
+		//		.thenReturn(true);
 		BIR bir = new BIR(new BIRBuilder().withBdb(minutiae.getBytes()));
 		BIR biType[] = new BIR[userBiometrics.size()];
 		BIR b = new BIR(new BIRBuilder().withBdb(minutiae.getBytes()));
@@ -236,8 +236,8 @@ public class FingerprintValidatorTest {
 		ApplicationContext.map().put(RegistrationConstants.DEDUPLICATION_FINGERPRINT_ENABLE_FLAG, RegistrationConstants.ENABLE);
 
 		when(userDetailDAO.getUserSpecificBioDetail("mosip", "FIN", "fingerType")).thenReturn(userBiometric);
-		when(bioService.validateFP(authenticationValidatorDTO.getFingerPrintDetails().get(0), userBiometrics))
-				.thenReturn(true);
+		//when(bioService.validateFP(authenticationValidatorDTO.getFingerPrintDetails().get(0), userBiometrics))
+		//		.thenReturn(true);
 		FingerprintTemplate fingerprintTemplate = new FingerprintTemplate()
 				.convert(authenticationValidatorDTO.getFingerPrintDetails().get(0).getFingerPrint());
 		String minutiae = fingerprintTemplate.serialize();
