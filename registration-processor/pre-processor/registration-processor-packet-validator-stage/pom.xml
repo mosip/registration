@@ -7,10 +7,10 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>pre-processor</artifactId>
-		<version>1.0.9</version>
+		<version>1.0.10</version>
 	</parent>
 	<artifactId>registration-processor-packet-validator-stage</artifactId>
-	 	<version>1.0.9</version>
+	 	<version>1.0.10-SNAPSHOT</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -114,6 +114,11 @@
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-registry-prometheus</artifactId>
 			<version>${io.micrometer.prometheus.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-registration-packet-manager</artifactId>
+			<version>${registration.processor.packet.utility.version}</version>
 		</dependency>
 	</dependencies>
 	<build>

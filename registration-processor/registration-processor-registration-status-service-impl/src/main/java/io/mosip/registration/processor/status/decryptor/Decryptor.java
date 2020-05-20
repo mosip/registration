@@ -119,7 +119,7 @@ public class Decryptor {
 			request.setVersion(env.getProperty(REG_PROC_APPLICATION_VERSION));
 
 			response = (ResponseWrapper<CryptomanagerResponseDto>) restClientService
-					.postApi(ApiName.DMZCRYPTOMANAGERDECRYPT, "", "", request, ResponseWrapper.class);
+					.postApi(ApiName.CRYPTOMANAGERDECRYPT, "", "", request, ResponseWrapper.class);
 			if (response.getResponse() != null) {
 				cryptomanagerResponseDto = mapper.readValue(mapper.writeValueAsString(response.getResponse()),
 						CryptomanagerResponseDto.class);

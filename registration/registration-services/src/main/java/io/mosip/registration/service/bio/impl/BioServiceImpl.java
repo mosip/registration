@@ -1534,7 +1534,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	
 	private List<BiometricsDto> captureMockModality(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException {
 		LOGGER.info(LOG_REG_FINGERPRINT_FACADE, APPLICATION_NAME, APPLICATION_ID,
-				"Scanning of mock modality for user registration");		
+				"Scanning of mock modality for user registration");
 		List<BiometricsDto> list = new ArrayList<>();
 		try {	
 			

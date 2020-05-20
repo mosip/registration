@@ -29,7 +29,8 @@ public class MessageSenderApplication {
 				"io.mosip.registration.processor.stages.config",
 				"io.mosip.registration.processor.message.sender.config",
 				"io.mosip.registration.processor.packet.manager.config",
-				"io.mosip.registration.processor.core.kernel.beans");
+				"io.mosip.registration.processor.core.kernel.beans",
+				"io.mosip.kernel.packetmanager.config");
 
 		ctx.refresh();
 

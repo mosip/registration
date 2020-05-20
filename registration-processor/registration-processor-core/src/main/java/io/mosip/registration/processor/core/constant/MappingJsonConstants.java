@@ -6,6 +6,7 @@ public class MappingJsonConstants {
 	public static final String POB = "pob";
 	public static final String POR = "por";
 	public static final String POI = "poi";
+	public static final String POE = "poe";
 	public static final String INDIVIDUAL_BIOMETRICS = "individualBiometrics";
 	public static final String PARENT_OR_GUARDIAN_UIN = "parentOrGuardianUIN";
 	public static final String PARENT_OR_GUARDIAN_RID = "parentOrGuardianRID";
@@ -20,6 +21,9 @@ public class MappingJsonConstants {
 	public static final String FORMAT = "format";
 	public static final String AGE = "age";
 	public static final String ADDRESS = "address";
+	public static final String INDIVIDUALAUTHENTICATION = "authenticationBiometricFileName";
+	public static final String IDSCHEMA_VERSION = "idschemaversion";
+	public static final String UIN = "uin";
 
 	
 

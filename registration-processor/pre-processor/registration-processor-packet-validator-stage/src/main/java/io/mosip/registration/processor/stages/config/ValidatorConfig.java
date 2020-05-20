@@ -4,36 +4,54 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import org.springframework.web.client.RestTemplate;
 
-import io.mosip.kernel.core.idobjectvalidator.constant.IdObjectValidatorSupportedOperations;
-import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectIOException;
-import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectValidationFailedException;
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
-import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.idobjectvalidator.impl.IdObjectCompositeValidator;
+import io.mosip.kernel.idobjectvalidator.impl.IdObjectPatternValidator;
+import io.mosip.kernel.idobjectvalidator.impl.IdObjectSchemaValidator;
+import io.mosip.kernel.packetmanager.impl.PacketReaderServiceImpl;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.applicantcategory.ApplicantTypeDocument;
+import io.mosip.registration.processor.core.packet.dto.packetvalidator.PacketValidationDto;
+import io.mosip.registration.processor.core.spi.packet.validator.PacketValidator;
 import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import io.mosip.registration.processor.stages.helper.RestHelper;
 import io.mosip.registration.processor.stages.helper.RestHelperImpl;
 import io.mosip.registration.processor.stages.packet.validator.PacketValidateProcessor;
 import io.mosip.registration.processor.stages.packet.validator.PacketValidatorStage;
+import io.mosip.registration.processor.stages.utils.ApplicantDocumentValidation;
 import io.mosip.registration.processor.stages.utils.AuditUtility;
+import io.mosip.registration.processor.stages.utils.CheckSumValidation;
 import io.mosip.registration.processor.stages.utils.DocumentUtility;
+import io.mosip.registration.processor.stages.utils.FilesValidation;
 import io.mosip.registration.processor.stages.utils.IdObjectsSchemaValidationOperationMapper;
+import io.mosip.registration.processor.stages.utils.MandatoryValidation;
+import io.mosip.registration.processor.stages.utils.MasterDataValidation;
 import io.mosip.registration.processor.stages.utils.RestTemplateInterceptor;
+import io.mosip.registration.processor.stages.validator.impl.CompositePacketValidator;
+import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl;
 
 @Configuration
 public class ValidatorConfig {
 
-	public static final String IDOBJECT_PROVIDER = "idobject.validator.provider";
+	public static final String PACKET_VALIDATOR_PROVIDER = "packet.validator.provider";
+	
+    private static Logger logger = RegProcessorLogger.getLogger(ValidatorConfig.class);
 
 	@Autowired
 	private RestApiClient restApiClient;
@@ -44,6 +62,31 @@ public class ValidatorConfig {
 	@Bean
 	public PacketValidatorStage getPacketValidatorStage() {
 		return new PacketValidatorStage();
+	}
+
+	@Bean
+	public FilesValidation filesValidation() {
+		return new FilesValidation();
+	}
+
+	@Bean
+	public MandatoryValidation mandatoryValidation() {
+		return new MandatoryValidation();
+	}
+
+	@Bean
+	public ApplicantDocumentValidation applicantDocumentValidation() {
+		return new ApplicantDocumentValidation();
+	}
+	
+	@Bean
+	public MasterDataValidation masterDataValidation() {
+		return new MasterDataValidation();
+	}
+	
+	@Bean
+	public CheckSumValidation checkSumValidation() {
+		return new CheckSumValidation();
 	}
 
 	@Bean
@@ -87,31 +130,75 @@ public class ValidatorConfig {
 	public AuditUtility getAuditUtility() {
 		return new AuditUtility();
 	}
+	
+	@Bean
+	public PacketReaderService getPacketReaderService() {
+		return new PacketReaderServiceImpl();
+	}
+
+	@Bean
+	public CompositePacketValidator compositePacketValidator() {
+		return new CompositePacketValidator();
+	}
+
+/*	@Bean
+	@Primary
+	public IdObjectValidator idObjectCompositeValidator() {
+		return new IdObjectCompositeValidator();
+	}
+
+	@Bean
+	public IdObjectPatternValidator idObjectPatternValidator() {
+		IdObjectPatternValidator idObjectPatternValidator = new IdObjectPatternValidator();
+		idObjectPatternValidator.setValidation(getValidationMap());
+		return  idObjectPatternValidator;
+	}*/
+
+	@Bean
+	public IdObjectSchemaValidator idObjectSchemaValidator() {
+		return new IdObjectSchemaValidator();
+	}
+
+	@Bean
+	public PacketValidatorImpl packetValidatorImpl() {
+		return new PacketValidatorImpl();
+	}
 
 	@PostConstruct
-	public void validateReferenceValidator() throws ClassNotFoundException {
-		if (StringUtils.isNotBlank(env.getProperty(IDOBJECT_PROVIDER))) {
-			Class.forName(env.getProperty(IDOBJECT_PROVIDER));
+	public void validateReferenceValidatorImpl() throws ClassNotFoundException {
+		if (org.apache.commons.lang3.StringUtils.isNotBlank(env.getProperty(PACKET_VALIDATOR_PROVIDER))) {
+			logger.debug("validating referenceValidatorImpl Class is present or not", env.getProperty(PACKET_VALIDATOR_PROVIDER),
+					"loading reference validator", "");
+			Class.forName(env.getProperty(PACKET_VALIDATOR_PROVIDER));
 		}
+		logger.debug("referenceValidatorImpl: referenceValidator Class is not provided", env.getProperty(PACKET_VALIDATOR_PROVIDER),
+				"failed to load reference validator", "");
 	}
 
 	@Bean
 	@Lazy
-	public IdObjectValidator referenceValidator()
+	public PacketValidator referenceValidatorImpl()
 			throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-		if (StringUtils.isNotBlank(env.getProperty(IDOBJECT_PROVIDER))) {
-			return (IdObjectValidator) Class.forName(env.getProperty(IDOBJECT_PROVIDER)).newInstance();
+		if (StringUtils.isNotBlank(env.getProperty(PACKET_VALIDATOR_PROVIDER))) {
+			logger.debug("instance of referenceValidator is created", env.getProperty(PACKET_VALIDATOR_PROVIDER),
+					"loading reference validator", "");
+			return (PacketValidator) Class.forName(env.getProperty(PACKET_VALIDATOR_PROVIDER)).newInstance();
 		} else {
-
-			return new IdObjectValidator() {
+			logger.debug("no reference validator is provided", env.getProperty(PACKET_VALIDATOR_PROVIDER),
+					"loading reference validator", "");
+			return new PacketValidator() {
 
 				@Override
-				public boolean validateIdObject(Object identityObject, IdObjectValidatorSupportedOperations operation)
-						throws IdObjectValidationFailedException, IdObjectIOException {
-					// TODO Auto-generated method stub
+				public boolean validate(String registrationId, String registrationType, PacketValidationDto packetValidationDto) {
 					return true;
 				}
 			};
 		}
 	}
+	
+/*	public Map<String, String> getValidationMap(){
+		Map<String, String> map=new HashMap<String, String>();
+		return map;
+		
+	}*/
 }

@@ -17,6 +17,7 @@ import java.util.Set;
 
 import javax.jms.Message;
 
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.activemq.util.ByteSequence;
 import org.json.simple.JSONObject;
@@ -55,7 +56,6 @@ import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
 import io.mosip.registration.processor.core.queue.factory.MosipQueue;
 import io.mosip.registration.processor.core.queue.factory.QueueListener;
 import io.mosip.registration.processor.core.queue.impl.exception.ConnectionUnavailableException;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.print.service.PrintService;
 import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
@@ -134,9 +134,6 @@ public class PrintStageTest {
 
 	@Mock
 	private PrintService<Map<String, byte[]>> printService;
-
-	@Mock
-	public PacketManager filesystemAdapter;
 
 	@Mock
 	private UinValidator<String> uinValidatorImpl;
@@ -665,7 +662,8 @@ public class PrintStageTest {
 
 	@Test
 	public void testPrintStageSuccessForRes_Reprint() throws PacketDecryptionFailureException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException {
+			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		FieldValue fieldValue = new FieldValue();
 		FieldValue fieldValue1 = new FieldValue();
 		fieldValue1.setLabel("vid");
@@ -692,7 +690,8 @@ public class PrintStageTest {
 
 	@Test
 	public void testPrintStageSuccessForRes_ReprintUIN() throws PacketDecryptionFailureException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException {
+			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		FieldValue fieldValue = new FieldValue();
 		FieldValue fieldValue1 = new FieldValue();
 		fieldValue1.setLabel("vid");

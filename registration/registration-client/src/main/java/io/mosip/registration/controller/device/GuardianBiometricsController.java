@@ -627,7 +627,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 		 * FINGERPRINT_SLAB_RIGHT))) { headerText = RegistrationUIConstants.FINGERPRINT;
 		 * bioType = RegistrationConstants.FINGERPRINT_SLAB_RIGHT; fingerException =
 		 * rightSlapexceptionList;
-		 * 
+		 *
 		 * } else if (biometricType.getText()
 		 * .equalsIgnoreCase(applicationLabelBundle.getString(RegistrationConstants.
 		 * FINGERPRINT_SLAB_LEFT))) { headerText = RegistrationUIConstants.FINGERPRINT;
@@ -644,7 +644,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 		 * (biometricType.getText().contains(applicationLabelBundle.getString(
 		 * RegistrationConstants.FACE))) { headerText = RegistrationUIConstants.PHOTO;
 		 * bioType = RegistrationConstants.FACE; }
-		 * 
+		 *
 		 * }
 		 */
 

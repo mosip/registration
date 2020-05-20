@@ -163,9 +163,6 @@ public enum ApiName {
 	/** The packetreceiver. */
 	PACKETRECEIVER,
 
-	/** The decryption api from DMZ *. */
-	DMZCRYPTOMANAGERDECRYPT,
-
 	/** The AUDIT api from DMZ *. */
 	DMZAUDIT,
 

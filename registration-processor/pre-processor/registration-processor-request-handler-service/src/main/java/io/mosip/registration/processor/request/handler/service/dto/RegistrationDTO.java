@@ -3,6 +3,7 @@ package io.mosip.registration.processor.request.handler.service.dto;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 
 import io.mosip.registration.processor.request.handler.service.dto.demographic.DemographicDTO;
 import lombok.Data;
@@ -26,49 +27,9 @@ public class RegistrationDTO extends BaseDTO implements Serializable {
 	private String registrationId;
 	private String registrationIdHash;
 
-	private RegistrationMetaDataDTO registrationMetaDataDTO;
-	private List<AuditDTO> auditDTOs;
-	private Timestamp auditLogStartTime;
-	
-	private Timestamp auditLogEndTime;
-	
+	private Map<String, String> metadata;
+
 	//added for resident update service
 	private String regType;
-	
-	public Timestamp getAuditLogStartTime() {
-		if(this.auditLogStartTime!=null) {
-			return new Timestamp(this.auditLogStartTime.getTime());
-		}
-		else
-			return null;
-		
-	}
-	
-	public void setAuditLogStartTime(Timestamp auditLogStartTime) {
-		if(auditLogStartTime!=null) {
-			this.auditLogStartTime=new Timestamp(this.auditLogStartTime.getTime());
-		}
-		else
-			this.auditLogStartTime=null;
-		
-	}
-	
-	public Timestamp getAuditLogEndTime() {
-		if(this.auditLogEndTime!=null) {
-			return new Timestamp(this.auditLogEndTime.getTime());
-		}
-		else
-			return null;
-	}
-	
-	public void setAuditLogEndTime(Timestamp auditLogEndTime) {
-		if(auditLogEndTime!=null) {
-			this.auditLogEndTime=new Timestamp(this.auditLogEndTime.getTime());
-		}
-		else
-			this.auditLogEndTime=null;
-	
-	
-	}
 
 }

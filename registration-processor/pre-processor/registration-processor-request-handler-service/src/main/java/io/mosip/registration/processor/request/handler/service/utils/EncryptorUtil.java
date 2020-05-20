@@ -14,6 +14,7 @@ import java.util.List;
 
 import javax.crypto.SecretKey;
 
+import io.mosip.kernel.core.util.DateUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -125,9 +126,6 @@ public class EncryptorUtil {
 
 	/**
 	 * Encrypt.
-	 *
-	 * @param streamToEncrypt
-	 *            the stream to encrypt
 	 * @param regId
 	 *            the reg id
 	 * @param creationTime
@@ -187,8 +185,6 @@ public class EncryptorUtil {
 	 *
 	 * @param sessionKey
 	 *            the session key
-	 * @param centerId
-	 *            the center id
 	 * @param creationTime
 	 *            the creation time
 	 * @return the byte[]
@@ -227,6 +223,21 @@ public class EncryptorUtil {
 
 		return encryptor.asymmetricEncrypt(publicKey, sessionKey);
 
+	}
+
+	public PublicKeyResponseDto getPublickey(String refId) throws IOException, ApisResourceAccessException {
+		List<String> pathsegments = new ArrayList<>();
+		pathsegments.add(APPLICATION_ID);
+		ResponseWrapper<?> responseWrapper;
+		PublicKeyResponseDto publicKeyResponsedto = null;
+		ObjectMapper mapper = new ObjectMapper();
+
+		responseWrapper = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(ApiName.ENCRYPTIONSERVICE,
+				pathsegments, "timeStamp,referenceId", DateUtils.getUTCCurrentDateTimeString() + ',' + refId, ResponseWrapper.class);
+		publicKeyResponsedto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
+				PublicKeyResponseDto.class);
+
+		return publicKeyResponsedto;
 	}
 
 }

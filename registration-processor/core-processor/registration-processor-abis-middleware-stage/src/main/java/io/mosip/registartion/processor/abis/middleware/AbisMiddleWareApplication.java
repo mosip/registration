@@ -3,7 +3,6 @@ package io.mosip.registartion.processor.abis.middleware;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import io.mosip.registartion.processor.abis.middleware.stage.AbisMiddleWareStage;
-import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 
 /**
  * @author Girish Yarru
@@ -19,7 +18,7 @@ public class AbisMiddleWareApplication {
                 "io.mosip.registration.processor.packet.storage.config",
                 "io.mosip.registration.processor.core.config",
                 "io.mosip.registration.processor.core.kernel.beans",
-                "io.mosip.registration.processor.packet.manager.config",
+				"io.mosip.kernel.packetmanager.config",
                 "io.mosip.registration.processor.stages.config");
 		configApplicationContext.refresh();
 		AbisMiddleWareStage demodedupeStage = configApplicationContext.getBean(AbisMiddleWareStage.class);

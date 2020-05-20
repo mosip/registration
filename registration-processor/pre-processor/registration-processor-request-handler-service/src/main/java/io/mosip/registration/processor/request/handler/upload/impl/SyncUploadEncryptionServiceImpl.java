@@ -113,22 +113,18 @@ public class SyncUploadEncryptionServiceImpl
 
 		String syncStatus = "";
 
-		InputStream decryptedFileStream = null;
 		try {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", "SyncUploadEncryptionServiceImpl ::uploadUinPacket()::entry");
-			decryptedFileStream = new ByteArrayInputStream(packetZipBytes);
 
-			byte[] encryptedbyte = encryptorUtil.encryptUinUpdatePacket(decryptedFileStream, registartionId,
-					creationTime);
-			ByteArrayResource contentsAsResource = new ByteArrayResource(encryptedbyte) {
+			ByteArrayResource contentsAsResource = new ByteArrayResource(packetZipBytes) {
 				@Override
 				public String getFilename() {
 					return registartionId + EXTENSION_OF_FILE;
 				}
 			};
 
-			RegSyncResponseDTO regSyncResponseDTO = packetSync(registartionId, regType, encryptedbyte, creationTime);
+			RegSyncResponseDTO regSyncResponseDTO = packetSync(registartionId, regType, packetZipBytes, creationTime);
 
 			if (regSyncResponseDTO != null) {
 				List<SyncResponseDto> synList = regSyncResponseDTO.getResponse();
@@ -192,11 +188,6 @@ public class SyncUploadEncryptionServiceImpl
 					PlatformErrorMessages.RPR_PGS_FILE_NOT_PRESENT.getMessage() + ExceptionUtils.getStackTrace(e));
 			throw new RegBaseCheckedException(PlatformErrorMessages.RPR_PGS_FILE_NOT_PRESENT, e);
 
-		} catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registartionId, PlatformErrorMessages.RPR_PGS_INVALID_KEY_ILLEGAL_ARGUMENT.getMessage()
-							+ ExceptionUtils.getStackTrace(e));
-			throw new RegBaseCheckedException(PlatformErrorMessages.RPR_PGS_INVALID_KEY_ILLEGAL_ARGUMENT, e);
 		} catch (IOException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registartionId,

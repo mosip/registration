@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
 import io.mosip.kernel.core.bioapi.model.QualityScore;
+import io.mosip.kernel.core.bioapi.model.Response;
 import io.mosip.kernel.core.bioapi.spi.IBioApi;
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
@@ -20,6 +21,9 @@ import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -34,11 +38,11 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCo
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.PacketFiles;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
@@ -120,9 +124,13 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
 
-	/** The adapter. */
+	/** The idschema utility.*/
 	@Autowired
-	private PacketManager adapter;
+	private IdSchemaUtils idSchemaUtils;
+
+	/** The PacketReaderService. */
+	@Autowired
+	private PacketReaderService packetReaderService;
 
 	/** The core audit request builder. */
 	@Autowired
@@ -168,6 +176,8 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 
 	private MosipEventBus mosipEventBus = null;
 
+	private TrimExceptionMessage trimExpMessage = new TrimExceptionMessage();
+
 	/**
 	 * Deploy verticle.
 	 */
@@ -205,15 +215,26 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 
 		try {
 			registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
-			InputStream idJsonStream = adapter.getFile(regId,
-					PacketFiles.DEMOGRAPHIC.name() + FILE_SEPARATOR + PacketFiles.ID.name());
+
+			// get the idobject individual biometrics key from mapping json
+			JSONObject mappingJson = utilities.getRegistrationProcessorMappingJson();
+			String individualBiometrics = JsonUtil
+					.getJSONValue(JsonUtil.getJSONObject(mappingJson, INDIVIDUAL_BIOMETRICS), "value");
+			// get individual biometrics file name from id.json
+			String source = idSchemaUtils.getSource(individualBiometrics);
+			InputStream idJsonStream = null;
+			if (source != null) {
+				idJsonStream = packetReaderService.getFile(regId,
+					PacketFiles.ID.name(), source);
+			}
+			if (idJsonStream == null)
+				throw new FileMissingException(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getCode(),
+						"The id json file is missing to get biometric reference file name");
 			String idJsonString = IOUtils.toString(idJsonStream, UTF_8);
 			JSONObject idJsonObject = JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class);
 			JSONObject identity = JsonUtil.getJSONObject(idJsonObject,
 					utilities.getGetRegProcessorDemographicIdentity());
-			JSONObject mappingJson = utilities.getRegistrationProcessorIdentityJson();
-			String individualBiometrics = JsonUtil
-					.getJSONValue(JsonUtil.getJSONObject(mappingJson, INDIVIDUAL_BIOMETRICS), "value");
+
 			JSONObject individualBiometricsObject = JsonUtil.getJSONObject(identity, individualBiometrics);
 			if (individualBiometricsObject == null) {
 				description.setCode(PlatformErrorMessages.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getCode());
@@ -238,8 +259,8 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 					throw new FileMissingException(PlatformErrorMessages.RPR_QCR_FILENAME_MISSING.getCode(),
 							PlatformErrorMessages.RPR_QCR_FILENAME_MISSING.getMessage());
 				}
-				InputStream cbeffStream = adapter.getFile(regId,
-						PacketFiles.BIOMETRIC.name() + FILE_SEPARATOR + biometricFileName);
+				InputStream cbeffStream = packetReaderService.getFile(regId,
+						biometricFileName, source);
 				if (cbeffStream == null) {
 					description.setCode(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getCode());
 					description.setMessage(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getMessage());
@@ -256,11 +277,14 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 					SingleType singleType = bir.getBdbInfo().getType().get(0);
 					List<String> subtype = bir.getBdbInfo().getSubtype();
 					Integer threshold = getThresholdBasedOnType(singleType, subtype);
-					QualityScore qualityScore;
+					Response<QualityScore> qualityScoreresponse;
 
-					qualityScore = getBioSdkInstance(singleType).checkQuality(bir, null);
+					qualityScoreresponse = getBioSdkInstance(singleType).checkQuality(bir, null);
+					if(qualityScoreresponse.getStatusCode()<200 || qualityScoreresponse.getStatusCode()>299) {
+						throw new BiometricException(qualityScoreresponse.getStatusCode().toString(),qualityScoreresponse.getStatusMessage());
+					}
 
-					if (qualityScore.getInternalScore() < threshold) {
+					if (qualityScoreresponse.getResponse().getScore() < threshold) {
 						object.setIsValid(Boolean.FALSE);
 						isTransactionSuccessful = Boolean.FALSE;
 						registrationStatusDto
@@ -308,6 +332,20 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 			description.setCode(PlatformErrorMessages.RPR_QCR_PACKET_STORE_NOT_ACCESSIBLE.getCode());
 			description.setMessage(PlatformErrorMessages.RPR_QCR_PACKET_STORE_NOT_ACCESSIBLE.getMessage());
 			object.setRid(regId);
+		} catch (ApisResourceAccessException | ApiNotAccessibleException e) {
+			registrationStatusDto.setLatestTransactionStatusCode(
+					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
+			registrationStatusDto.setStatusComment(trimExpMessage
+					.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
+			object.setInternalError(true);
+			object.setIsValid(false);
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId,
+					PlatformErrorMessages.RPR_PUM_NGINX_ACCESS_FAILED.name() + ExceptionUtils.getStackTrace(e));
+
+			description.setMessage(PlatformErrorMessages.RPR_PUM_NGINX_ACCESS_FAILED.getMessage());
+			description.setCode(PlatformErrorMessages.RPR_PUM_NGINX_ACCESS_FAILED.getCode());
 		} catch (FileMissingException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
 			registrationStatusDto.setStatusComment(StatusUtil.BIO_METRIC_FILE_MISSING.getMessage());

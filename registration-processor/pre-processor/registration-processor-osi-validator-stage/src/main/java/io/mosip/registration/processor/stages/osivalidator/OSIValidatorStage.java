@@ -2,6 +2,7 @@ package io.mosip.registration.processor.stages.osivalidator;
 
 import java.io.IOException;
 
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -198,7 +199,7 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 					description.getMessage() + e.getMessage() + ExceptionUtils.getStackTrace(e));
 			object.setInternalError(Boolean.TRUE);
 			object.setIsValid(Boolean.FALSE);
-		} catch (ApisResourceAccessException e) {
+		} catch (ApisResourceAccessException | ApiNotAccessibleException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
 			registrationStatusDto.setStatusComment(trimExceptionMessage
 					.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + e.getMessage()));

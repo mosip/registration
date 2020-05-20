@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.FileNotFoundInDestinationException;
+import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
@@ -181,6 +184,18 @@ public class ManualVerificationExceptionHandler {
 				PlatformErrorMessages.RPR_AUT_INVALID_TOKEN.getCode(),
 				PlatformErrorMessages.RPR_AUT_INVALID_TOKEN.getMessage());
 		return buildAssignDecisionExceptionResponse((Exception) ex);
+	}
+
+	public BaseRestResponseDTO fileNotFoundInDestinationException(FileNotFoundInDestinationException e) {
+		return buildAssignDecisionExceptionResponse(e);
+	}
+
+	public BaseRestResponseDTO packetDecryptionFailureException(PacketDecryptionFailureException e) {
+		return buildAssignDecisionExceptionResponse(e);
+	}
+
+	public BaseRestResponseDTO apiNotAccessibleException(ApiNotAccessibleException e) {
+		return buildAssignDecisionExceptionResponse(e);
 	}
 
 	public BaseRestResponseDTO unknownExceptionHandler(Exception e) {

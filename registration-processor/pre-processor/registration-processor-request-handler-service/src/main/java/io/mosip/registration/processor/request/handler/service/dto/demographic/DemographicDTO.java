@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.request.handler.service.dto.demographic;
 
 import java.io.Serializable;
+import java.util.Map;
 
 import io.mosip.registration.processor.request.handler.service.dto.BaseDTO;
 import lombok.Data;
@@ -19,9 +20,9 @@ public class DemographicDTO extends BaseDTO implements Serializable {
 	 *
 	 */
 	private static final long serialVersionUID = 215986462161184776L;
-	private ApplicantDocumentDTO applicantDocumentDTO;
+	private Map<String, ApplicantDocumentDTO> document;
 	private String introducerRID;
 	private String introducerUIN;
-	private DemographicInfoDTO demographicInfoDTO;
+	private Map<String, Object> identity;
 
 }

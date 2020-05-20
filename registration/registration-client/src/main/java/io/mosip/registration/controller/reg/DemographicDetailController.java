@@ -794,11 +794,11 @@ public class DemographicDetailController extends BaseController {
 		for (UiSchemaDTO schemaField : validation.getValidationMap().values()) {
 			if(schemaField.getControlType() == null)
 				continue;
-			
-			if(registrationDTO.getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE) && 
+
+			if(registrationDTO.getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE) &&
 					!registrationDTO.getSelectionListDTO().containsKey(schemaField.getId()))
 				continue;
-		
+
 			switch(schemaField.getType()) {
 			case RegistrationConstants.SIMPLE_TYPE:
 				if(schemaField.getControlType().equals(RegistrationConstants.DROPDOWN)) {
@@ -837,7 +837,7 @@ public class DemographicDetailController extends BaseController {
 				break;
 			}			
 		}
-		}catch(Exception exception) {			
+		}catch(Exception exception) {
 			exception.printStackTrace();
 		}
 	}
@@ -1075,7 +1075,7 @@ public class DemographicDetailController extends BaseController {
 		if (preRegistrationId.getText().isEmpty()) {
 			preRegistrationId.clear();
 		}
-		
+
 		saveDetail(); //TODO need to check with taleev
 
 			if (validateThisPane()) {

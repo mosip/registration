@@ -4,7 +4,6 @@ package io.mosip.registration.processor.core.spi.packetmanager;
 import java.util.List;
 
 import io.mosip.registration.processor.core.code.DedupeSourceName;
-import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.RegAbisRefDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisApplicationDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisRequestDto;
@@ -37,7 +36,7 @@ public interface PacketInfoManager<T, /** D, M, */
 	 * @param metaData
 	 *            the meta data
 	 */
-	public void saveDemographicInfoJson(byte[] bytes, String regId, List<FieldValue> metaData, String moduleId,
+	public void saveDemographicInfoJson(String regId, String moduleId,
 			String moduleName);
 
 	/**
