@@ -1,6 +1,27 @@
 package io.mosip.registration.processor.stages.config;
 
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.annotation.PostConstruct;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
+import org.springframework.web.client.RestTemplate;
+
+import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.idobjectvalidator.impl.IdObjectCompositeValidator;
+import io.mosip.kernel.idobjectvalidator.impl.IdObjectPatternValidator;
 import io.mosip.kernel.idobjectvalidator.impl.IdObjectSchemaValidator;
 import io.mosip.kernel.packetmanager.impl.PacketReaderServiceImpl;
 import io.mosip.kernel.packetmanager.spi.PacketReaderService;
@@ -13,34 +34,37 @@ import io.mosip.registration.processor.stages.helper.RestHelper;
 import io.mosip.registration.processor.stages.helper.RestHelperImpl;
 import io.mosip.registration.processor.stages.packet.validator.PacketValidateProcessor;
 import io.mosip.registration.processor.stages.packet.validator.PacketValidatorStage;
+import io.mosip.registration.processor.stages.utils.ApplicantDocumentValidation;
 import io.mosip.registration.processor.stages.utils.AuditUtility;
 import io.mosip.registration.processor.stages.utils.CheckSumValidation;
 import io.mosip.registration.processor.stages.utils.DocumentUtility;
 import io.mosip.registration.processor.stages.utils.FilesValidation;
 import io.mosip.registration.processor.stages.utils.IdObjectsSchemaValidationOperationMapper;
 import io.mosip.registration.processor.stages.utils.MandatoryValidation;
+import io.mosip.registration.processor.stages.utils.MasterDataValidation;
 import io.mosip.registration.processor.stages.utils.RestTemplateInterceptor;
 import io.mosip.registration.processor.stages.validator.impl.CompositePacketValidator;
 import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Primary;
-import org.springframework.core.env.Environment;
-import org.springframework.web.client.RestTemplate;
-
-import javax.annotation.PostConstruct;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Collections;
 
 @Configuration
 public class ValidatorConfig {
 
 	public static final String PACKET_VALIDATOR_PROVIDER = "packet.validator.provider";
+	public static final String IDENTITY = "mosip.id.validation.identity";
+	public static final String DOB=IDENTITY+".dateOfBirth";
+	public static final String PHONE=IDENTITY+".phone";
+	public static final String EMAIL=IDENTITY+".email";
+	public static final String POSTALCODE=IDENTITY+".postalCode";
+	public static final String AGE=IDENTITY+".age";
+	public static final String FULLNAME=IDENTITY+".fullName.[*].value";
+	public static final String ADDRESSLINE1=IDENTITY+".addressLine1.[*].value";
+	public static final String ADDRESSLINE2=IDENTITY+".addressLine2.[*].value";
+	public static final String ADDRESSLINE3=IDENTITY+".addressLine3.[*].value";
+	public static final String REGION=IDENTITY+".region.[*].value";
+	public static final String PROVINCE=IDENTITY+".province.[*].value";
+	public static final String CITY=IDENTITY+".city.[*].value";
+	public static final String LANGUAGE=IDENTITY+".[*].[*].language";
+	public static final String REF_ID=IDENTITY+".referenceIdentityNumber";
     private static Logger logger = RegProcessorLogger.getLogger(ValidatorConfig.class);
 
 	@Autowired
@@ -64,6 +88,16 @@ public class ValidatorConfig {
 		return new MandatoryValidation();
 	}
 
+	@Bean
+	public ApplicantDocumentValidation applicantDocumentValidation() {
+		return new ApplicantDocumentValidation();
+	}
+	
+	@Bean
+	public MasterDataValidation masterDataValidation() {
+		return new MasterDataValidation();
+	}
+	
 	@Bean
 	public CheckSumValidation checkSumValidation() {
 		return new CheckSumValidation();
@@ -121,7 +155,7 @@ public class ValidatorConfig {
 		return new CompositePacketValidator();
 	}
 
-	/*@Bean
+	@Bean
 	@Primary
 	public IdObjectValidator idObjectCompositeValidator() {
 		return new IdObjectCompositeValidator();
@@ -130,9 +164,9 @@ public class ValidatorConfig {
 	@Bean
 	public IdObjectPatternValidator idObjectPatternValidator() {
 		IdObjectPatternValidator idObjectPatternValidator = new IdObjectPatternValidator();
-		idObjectPatternValidator.setValidation(validation);
-		return new IdObjectPatternValidator();
-	}*/
+		idObjectPatternValidator.setValidation(getValidationMap());
+		return  idObjectPatternValidator;
+	}
 
 	@Bean
 	public IdObjectSchemaValidator idObjectSchemaValidator() {
@@ -174,5 +208,25 @@ public class ValidatorConfig {
 				}
 			};
 		}
+	}
+	
+	public Map<String, String> getValidationMap(){
+		Map<String, String> map=new HashMap<String, String>();
+		map.put(ADDRESSLINE1, env.getProperty(ADDRESSLINE1));
+		map.put(ADDRESSLINE2, env.getProperty(ADDRESSLINE2));
+		map.put(ADDRESSLINE3, env.getProperty(ADDRESSLINE3));
+		map.put(AGE, env.getProperty(AGE));
+		map.put(CITY, env.getProperty(CITY));
+		map.put(DOB, env.getProperty(DOB));
+		map.put(EMAIL, env.getProperty(EMAIL));
+		map.put(FULLNAME, env.getProperty(FULLNAME));
+		map.put(LANGUAGE, env.getProperty(LANGUAGE));
+		map.put(PHONE, env.getProperty(PHONE));
+		map.put(POSTALCODE, env.getProperty(POSTALCODE));
+		map.put(PROVINCE, env.getProperty(PROVINCE));
+		map.put(REF_ID, env.getProperty(REF_ID));
+		map.put(REGION, env.getProperty(REGION));
+		return map;
+		
 	}
 }

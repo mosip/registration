@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 
 import io.mosip.kernel.core.bioapi.model.QualityScore;
+import io.mosip.kernel.core.bioapi.model.Response;
 import io.mosip.kernel.core.bioapi.spi.IBioApi;
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
@@ -275,11 +276,14 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 					SingleType singleType = bir.getBdbInfo().getType().get(0);
 					List<String> subtype = bir.getBdbInfo().getSubtype();
 					Integer threshold = getThresholdBasedOnType(singleType, subtype);
-					QualityScore qualityScore;
+					Response<QualityScore> qualityScoreresponse;
 
-					qualityScore = getBioSdkInstance(singleType).checkQuality(bir, null).getResponse();
+					qualityScoreresponse = getBioSdkInstance(singleType).checkQuality(bir, null);
+					if(qualityScoreresponse.getStatusCode()<200 || qualityScoreresponse.getStatusCode()>299) {
+						throw new BiometricException(qualityScoreresponse.getStatusCode().toString(),qualityScoreresponse.getStatusMessage());
+					}
 
-					if (qualityScore.getScore() < threshold) {
+					if (qualityScoreresponse.getResponse().getScore() < threshold) {
 						object.setIsValid(Boolean.FALSE);
 						isTransactionSuccessful = Boolean.FALSE;
 						registrationStatusDto
@@ -356,7 +360,24 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 			description.setMessage(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage());
 			object.setRid(regId);
 
-		} catch (BioTypeException e) {
+		} catch (BiometricException e) {
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+			registrationStatusDto.setStatusComment(trimExceptionMsg
+					.trimExceptionMessage(StatusUtil.BIO_METRIC_EXCEPTION.getMessage() + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_METRIC_EXCEPTION.getCode());
+			registrationStatusDto.setLatestTransactionStatusCode(
+					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIOMETRIC_EXCEPTION));
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId,
+					PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage() + ExceptionUtils.getStackTrace(e));
+			object.setInternalError(Boolean.TRUE);
+			isTransactionSuccessful = false;
+			description.setCode(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getCode());
+			description.setMessage(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage());
+			object.setRid(regId);
+		}
+
+		catch (BioTypeException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
 			registrationStatusDto.setStatusComment(trimExceptionMsg
 					.trimExceptionMessage(StatusUtil.BIO_METRIC_TYPE_EXCEPTION.getMessage() + e.getMessage()));

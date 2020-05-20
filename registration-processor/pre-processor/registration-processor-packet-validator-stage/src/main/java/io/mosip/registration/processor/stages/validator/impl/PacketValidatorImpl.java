@@ -6,6 +6,7 @@ import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectIOException;
 import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectValidationFailedException;
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.idobjectvalidator.impl.IdObjectCompositeValidator;
 import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import io.mosip.kernel.packetmanager.spi.PacketReaderService;
@@ -61,7 +62,7 @@ public class PacketValidatorImpl implements PacketValidator {
 	IdObjectsSchemaValidationOperationMapper idObjectsSchemaValidationOperationMapper;
 	
 	@Autowired
-	IdObjectValidator idObjectSchemaValidator;
+	IdObjectValidator idObjectCompositeValidator;
 	
 	@Autowired
 	private Utilities utility;
@@ -98,6 +99,12 @@ public class PacketValidatorImpl implements PacketValidator {
 	
 	@Value("${packet.default.source}")
 	private String source;
+
+	@Autowired
+	private ApplicantDocumentValidation applicantDocumentValidation;
+
+	@Autowired
+	private MasterDataValidation masterDataValidation;
 
 	private static final String VALIDATIONFALSE = "false";
 
@@ -251,9 +258,8 @@ public class PacketValidatorImpl implements PacketValidator {
 			packetValidationDto.setSchemaValidated(true);
 			return packetValidationDto.isSchemaValidated();
 		}
-		IdObjectValidatorSupportedOperations operation = idObjectsSchemaValidationOperationMapper
-				.getOperation(rid);
-		packetValidationDto.setSchemaValidated(idObjectSchemaValidator.validateIdObject(idObject, operation));
+		IdObjectValidatorSupportedOperations operation = idObjectsSchemaValidationOperationMapper.getOperation(rid);
+		packetValidationDto.setSchemaValidated(idObjectCompositeValidator.validateIdObject(idObject, operation));
 
 		if (!packetValidationDto.isSchemaValidated()) {
 			packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.SCHEMA_VALIDATION_FAILED.getMessage());
@@ -289,8 +295,7 @@ public class PacketValidatorImpl implements PacketValidator {
 			packetValidationDto.setApplicantDocumentValidation(true);
 			return packetValidationDto.isApplicantDocumentValidation();
 		}
-		ApplicantDocumentValidation applicantDocumentValidation = new ApplicantDocumentValidation(utility, idSchemaUtils,
-				packetReaderService);
+		
 		packetValidationDto.setApplicantDocumentValidation(
 				applicantDocumentValidation.validateDocument(registrationId));
 		if (!packetValidationDto.isApplicantDocumentValidation()) {
@@ -307,8 +312,7 @@ public class PacketValidatorImpl implements PacketValidator {
 			packetValidationDto.setMasterDataValidation(true);
 			return packetValidationDto.isMasterDataValidation();
 		}
-		MasterDataValidation masterDataValidation = new MasterDataValidation(env, registrationProcessorRestService,
-				utility);
+		
 		packetValidationDto.setMasterDataValidation(masterDataValidation.validateMasterData(jsonString));
 		if (!packetValidationDto.isMasterDataValidation()) {
 			packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.MASTER_DATA_VALIDATION_FAILED.getMessage());
