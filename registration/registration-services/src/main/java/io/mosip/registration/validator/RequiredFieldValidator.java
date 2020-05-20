@@ -1,10 +1,8 @@
 package io.mosip.registration.validator;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.mvel2.MVEL;
 import org.mvel2.integration.VariableResolverFactory;
@@ -25,7 +23,6 @@ public class RequiredFieldValidator {
 	@Autowired
 	private IdentitySchemaService identitySchemaService;
 	
-	@SuppressWarnings("unchecked")
 	public boolean isRequiredField(String fieldId, RegistrationDTO registrationDTO) throws RegBaseCheckedException {
 		SchemaDto schema = identitySchemaService.getIdentitySchema(registrationDTO.getIdSchemaVersion());
 		Optional<UiSchemaDTO> schemaField = schema.getSchema().stream().filter(field -> field.getId().equals(fieldId)).findFirst();
@@ -46,6 +43,7 @@ public class RequiredFieldValidator {
 			"MVEL".equalsIgnoreCase(field.getEngine()) && field.getExpr() != null).findFirst();
 			
 			if(expression.isPresent()) {
+				@SuppressWarnings("rawtypes")
 				Map context = new HashMap();
 				context.put("identity", registrationDTO.getMVELDataContext());
 				VariableResolverFactory resolverFactory = new MapVariableResolverFactory(context);

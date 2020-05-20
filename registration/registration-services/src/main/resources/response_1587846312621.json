@@ -484,7 +484,7 @@
 	"subType": "POA",
 	"requiredOn": [{
 		"engine": "MVEL",
-		"expr": "identity.isNew || ( identity.isUpdate && identity.updatableFields contains 'addressLine1')"
+		"expr": "identity.isNew || ( identity.isUpdate && (identity.updatableFields contains 'addressLine1' || identity.updatableFields contains 'addressLine2' || identity.updatableFields contains 'addressLine3'))"
 	}],
 	"group" : "document"
 }, {
