@@ -62,7 +62,7 @@ public class PacketValidatorImpl implements PacketValidator {
 	IdObjectsSchemaValidationOperationMapper idObjectsSchemaValidationOperationMapper;
 	
 	@Autowired
-	IdObjectValidator idObjectCompositeValidator;
+	IdObjectValidator idObjectSchemaValidator;
 	
 	@Autowired
 	private Utilities utility;
@@ -259,7 +259,7 @@ public class PacketValidatorImpl implements PacketValidator {
 			return packetValidationDto.isSchemaValidated();
 		}
 		IdObjectValidatorSupportedOperations operation = idObjectsSchemaValidationOperationMapper.getOperation(rid);
-		packetValidationDto.setSchemaValidated(idObjectCompositeValidator.validateIdObject(idObject, operation));
+		packetValidationDto.setSchemaValidated(idObjectSchemaValidator.validateIdObject(idObject, operation));
 
 		if (!packetValidationDto.isSchemaValidated()) {
 			packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.SCHEMA_VALIDATION_FAILED.getMessage());
