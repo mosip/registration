@@ -11,11 +11,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -33,6 +32,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.ApiName;
@@ -545,10 +545,13 @@ public class BioDedupeProcessorTest {
 
 		InputStream inputStream = new FileInputStream("src/test/resources/ID.json");
 
-
-		Map<String, String> map = new HashMap<>();
-		map.put("language", "eng");
-		map.put("value", "aaa");
+		String idJsonString = IOUtils.toString(inputStream, "UTF-8");
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString()))
+				.thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class),
+						MappingJsonConstants.IDENTITY));
+		Map<String, String> map = new LinkedHashMap<>();
+		map.put("gender", "MALE");
+		map.put("dateOfBirth", "2016/01/01");
 		JSONObject j1 = new JSONObject(map);
 
 		Mockito.when(idRepoService.getIdJsonFromIDRepo(any(), any())).thenReturn(j1);
@@ -576,9 +579,12 @@ public class BioDedupeProcessorTest {
 		matchedRidList.add("27847657360002520190320095010");
 		matchedRidList.add("27847657360002520190320095011");
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any())).thenReturn(matchedRidList);
+		InputStream inputStream = new FileInputStream("src/test/resources/ID.json");
 
-		InputStream inputStream = new FileInputStream("src/test/resources/ID1.json");
-
+		String idJsonString = IOUtils.toString(inputStream, "UTF-8");
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString()))
+				.thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class),
+						MappingJsonConstants.IDENTITY));
 
 
 		JSONObject obj1 = new JSONObject();
@@ -607,8 +613,12 @@ public class BioDedupeProcessorTest {
 		matchedRidList.add("27847657360002520190320095012");
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any())).thenReturn(matchedRidList);
 
-		InputStream inputStream = new FileInputStream("src/test/resources/ID1.json");
+		InputStream inputStream = new FileInputStream("src/test/resources/ID.json");
 
+		String idJsonString = IOUtils.toString(inputStream, "UTF-8");
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString()))
+				.thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class),
+						MappingJsonConstants.IDENTITY));
 
 		JSONObject obj1 = new JSONObject();
 		obj1.put("dateOfBirth", "2016/01/01");
