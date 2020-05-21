@@ -188,7 +188,7 @@ public class UpdateUINController extends BaseController implements Initializable
 				LOGGER.debug(LOG_REG_UIN_UPDATE, APPLICATION_NAME, APPLICATION_ID, "selectedFields size : " + selectedFields.size());
 				
 				if (uinValidatorImpl.validateId(uinId.getText()) && !selectedFields.isEmpty()) {		
-						registrationController.init(checkBoxKeeper, selectedFields);
+						registrationController.init(uinId.getText(), checkBoxKeeper, selectedFields);
 						Parent createRoot = BaseController.load(
 								getClass().getResource(RegistrationConstants.CREATE_PACKET_PAGE),
 								applicationContext.getApplicationLanguageBundle());
