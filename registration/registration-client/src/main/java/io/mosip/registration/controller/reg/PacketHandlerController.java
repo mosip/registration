@@ -439,12 +439,12 @@ public class PacketHandlerController extends BaseController implements Initializ
 						RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
 				return;
 			}
-//			if (isMachineRemapProcessStarted()) {
-//
-//				LOGGER.info("REGISTRATION - CREATE_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
-//						APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
-//				return;
-//			}
+			if (isMachineRemapProcessStarted()) {
+
+				LOGGER.info("REGISTRATION - CREATE_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
+						APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
+				return;
+			}
 			ResponseDTO keyResponse = isKeyValid();
 			if (null != keyResponse.getSuccessResponseDTO()) {
 				LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Creation of Registration Starting.");
@@ -466,15 +466,15 @@ public class PacketHandlerController extends BaseController implements Initializ
 						ResponseDTO responseDTO;
 						responseDTO = validateSyncStatus();
 						List<ErrorResponseDTO> errorResponseDTOs = responseDTO.getErrorResponseDTOs();
-//						if (errorResponseDTOs != null && !errorResponseDTOs.isEmpty()) {
-//							for (ErrorResponseDTO errorResponseDTO : errorResponseDTOs) {
-//								errorMessage.append(RegistrationUIConstants
-//										.getMessageLanguageSpecific(errorResponseDTO.getMessage()) + "\n\n");
-//							}
-//							generateAlert(RegistrationConstants.ERROR, errorMessage.toString().trim());
-//						} else {
+						if (errorResponseDTOs != null && !errorResponseDTOs.isEmpty()) {
+							for (ErrorResponseDTO errorResponseDTO : errorResponseDTOs) {
+								errorMessage.append(RegistrationUIConstants
+										.getMessageLanguageSpecific(errorResponseDTO.getMessage()) + "\n\n");
+							}
+							generateAlert(RegistrationConstants.ERROR, errorMessage.toString().trim());
+						} else {
 							getScene(createRoot).setRoot(createRoot);
-	//					}
+						}
 					}
 
 				} catch (IOException ioException) {
