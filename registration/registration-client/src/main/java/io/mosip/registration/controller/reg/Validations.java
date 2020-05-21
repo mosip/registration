@@ -247,8 +247,8 @@ public class Validations extends BaseController {
 	//TODO validate for UIN and RID based on subtype
 	private boolean languageSpecificValidation(Pane parentPane, TextField node, String id,
 			ResourceBundle messageBundle, List<String> blackListedWords, boolean isPreviousValid) {
+		LOGGER.debug(RegistrationConstants.VALIDATION_LOGGER, APPLICATION_NAME, APPLICATION_ID, "started to validate :: " + id);
 		boolean isInputValid = true;
-
 		try {
 			String label = id.replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY)
 					.replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY);
