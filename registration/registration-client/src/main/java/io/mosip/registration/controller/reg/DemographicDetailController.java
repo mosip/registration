@@ -905,23 +905,21 @@ public class DemographicDetailController extends BaseController {
 	}
 
 	public void uinUpdate() {
-
-		HashMap<String, Object> selectionList = getRegistrationDTOFromSession().getSelectionListDTO();
-		
-		//added a comment
+		List<String> selectionList = getRegistrationDTOFromSession().getUpdatableFields();		
 		if (selectionList!=null) {
-
 			disablePreRegFetch();
 			registrationNavlabel.setText(applicationLabelBundle.getString("uinUpdateNavLbl"));
 			for (Node pane : parentFlowPane.getChildren()) {
 				if(!pane.getId().matches("preRegParentPane|languageLabelParentPane")) {
-				CheckBox checkBox = ((CheckBox) selectionList.get(pane.getId().replace("ParentGridPane", "")));
-				if(checkBox!=null && checkBox.isSelected()) {
-					pane.setDisable(false);
-				}else {
-					pane.setDisable(true);
+					String fieldId = pane.getId().replace("ParentGridPane", "");
+					if(selectionList.contains(fieldId)) {						
+						pane.setDisable(false);
+					}
+					else {
+						UiSchemaDTO schemaField = getValidationMap().get(fieldId);
+						pane.setDisable(schemaField != null && "name".equalsIgnoreCase(schemaField.getSubType()) ? false : true);
+					}
 				}
-			}
 			}
 		}
 	}
