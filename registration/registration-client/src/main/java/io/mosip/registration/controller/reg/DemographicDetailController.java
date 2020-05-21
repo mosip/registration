@@ -835,9 +835,11 @@ public class DemographicDetailController extends BaseController {
 							ComboBox<GenericDto> platformField = listOfComboBoxWithObject.get(schemaField.getId());
 							registrationDTO.addDemographicField(schemaField.getId(), platformField == null ? null
 									: platformField.getValue() != null ? platformField.getValue().getName() : null);
-						} else
-							registrationDTO.addDemographicField(schemaField.getId(),
-									listOfTextField.get(schemaField.getId()).getText());
+						} else {
+							TextField platformField = listOfTextField.get(schemaField.getId());
+							registrationDTO.addDemographicField(schemaField.getId(), platformField != null ?
+									platformField.getText() : null);
+						}
 					}
 					break;
 
