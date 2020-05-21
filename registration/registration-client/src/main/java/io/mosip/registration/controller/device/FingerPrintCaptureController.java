@@ -1968,9 +1968,6 @@ public class FingerPrintCaptureController extends BaseController implements Init
 		authenticationValidatorDTO.setFingerPrintDetails(fingerprintDetailsDTOs);
 		authenticationValidatorDTO.setAuthValidationType("multiple");
 		boolean isValid = !authenticationService.authValidator("Fingerprint", authenticationValidatorDTO);
-		if (null != getValueFromApplicationContext("IDENTY_SDK")) {
-			isValid = false;
-		}
 		return isValid;
 
 	}
