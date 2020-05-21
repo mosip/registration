@@ -116,7 +116,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 	static {
 		categoryPacketMapping.put("pvt", "id");
 		categoryPacketMapping.put("kyc", "id");
-		categoryPacketMapping.put("none", "id");
+		categoryPacketMapping.put("none", "id,evidence,optional");
 		categoryPacketMapping.put("evidence", "evidence");
 		categoryPacketMapping.put("optional", "optional");
 	}
