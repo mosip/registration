@@ -5,24 +5,21 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -32,7 +29,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.exception.IOException;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.constant.PacketFiles;
-import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
@@ -40,7 +36,6 @@ import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTO;
 import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTOWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.packet.dto.Identity;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
@@ -83,7 +78,7 @@ public class ManualVerificationServiceTest {
 	@Mock
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 	@Mock
-	PacketManager filesystemCephAdapterImpl;
+	PacketReaderService packetReaderService;
 
 	@Mock
 	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
@@ -307,17 +302,18 @@ public class ManualVerificationServiceTest {
 	}
 
 	@Test
-	public void getApplicantFileMethodCheck() throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException {
+	public void getApplicantFileMethodCheck() throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException, io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		String regId = "Id";
+		String source = "id";
 
 		byte[] file = "Str".getBytes();
 		InputStream fileInStream = new ByteArrayInputStream(file);
-		Mockito.when(filesystemCephAdapterImpl.getFile(anyString(), anyString())).thenReturn(fileInStream);
+		Mockito.when(packetReaderService.getFile(anyString(), anyString(), anyString())).thenReturn(fileInStream);
 
 		String fileName = PacketFiles.BIOMETRIC.name();
-		file = manualAdjudicationService.getApplicantFile(regId, fileName);
+		file = manualAdjudicationService.getApplicantFile(regId, fileName, source);
 		fileName = PacketFiles.DEMOGRAPHIC.name();
-		file = manualAdjudicationService.getApplicantFile(regId, fileName);
+		file = manualAdjudicationService.getApplicantFile(regId, fileName, source);
 
 	}
 
@@ -325,14 +321,16 @@ public class ManualVerificationServiceTest {
 	public void testExceptionIngetApplicantFile() throws Exception {
 		String regId = "Id";
 		String fileName = "";
-		manualAdjudicationService.getApplicantFile(regId, fileName);
+		String source = "id";
+		manualAdjudicationService.getApplicantFile(regId, fileName, source);
 	}
 
 	@Test(expected = InvalidFileNameException.class)
 	public void testExceptionIngetApplicantData() throws Exception {
 		String regId = "Id";
 		String fileName = "";
-		manualAdjudicationService.getApplicantFile(regId, fileName);
+		String source = "id";
+		manualAdjudicationService.getApplicantFile(regId, fileName, source);
 	}
 
 	@Test(expected = InvalidUpdateException.class)

@@ -6,7 +6,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,22 +31,20 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode
 import io.mosip.registration.processor.core.constant.AbisConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
+import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Identity;
-import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisResponseDetDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisResponseDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegDemoDedupeListDto;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.DemographicInfoDto;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.IndividualDemographicDedupe;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.JsonValue;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
@@ -55,6 +54,7 @@ import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.stages.app.constants.DemoDedupeConstants;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -92,9 +92,10 @@ public class DemodedupeProcessor {
 	@Autowired
 	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
 
-	/** The adapter. */
 	@Autowired
-	private PacketManager adapter;
+	private PacketReaderService packetReaderService;
+
+
 
 	/** The registration exception mapper util. */
 	RegistrationExceptionMapperUtil registrationExceptionMapperUtil = new RegistrationExceptionMapperUtil();
@@ -148,8 +149,7 @@ public class DemodedupeProcessor {
 		/** The demographic info stream. */
 		InputStream demographicInfoStream = null;
 
-		/** The bytes array. */
-		byte[] bytesArray = null;
+
 
 		boolean isTransactionSuccessful = false;
 
@@ -166,15 +166,8 @@ public class DemodedupeProcessor {
 				String packetStatus = abisHandlerUtil.getPacketStatus(registrationStatusDto);
 
 				if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
-					InputStream packetMetaInfoStream = adapter.getFile(registrationId,
-							PacketFiles.PACKET_META_INFO.name());
-					PacketMetaInfo packetMetaInfo = (PacketMetaInfo) JsonUtil
-							.inputStreamtoJavaObject(packetMetaInfoStream, PacketMetaInfo.class);
-					demographicInfoStream = adapter.getFile(registrationId, PacketFiles.DEMOGRAPHIC.name()
-							+ DemoDedupeConstants.FILE_SEPARATOR + PacketFiles.ID.name());
-					bytesArray = IOUtils.toByteArray(demographicInfoStream);
-					packetInfoManager.saveDemographicInfoJson(bytesArray, registrationId,
-							packetMetaInfo.getIdentity().getMetaData(), moduleId, moduleName);
+
+					packetInfoManager.saveDemographicInfoJson(registrationId, moduleId, moduleName);
 
 					if (env.getProperty(DEMODEDUPEENABLE).trim().equalsIgnoreCase(TRUE)) {
 						duplicateDtos = performDemoDedupe(registrationStatusDto, object, description);
@@ -206,13 +199,10 @@ public class DemodedupeProcessor {
 					|| registrationStatusDto.getRegistrationType().equals(RegistrationType.RES_UPDATE.name())) {
 				IndividualDemographicDedupe demoDedupeData = new IndividualDemographicDedupe();
 
-				demographicInfoStream = adapter.getFile(registrationId,
-						PacketFiles.DEMOGRAPHIC.name() + DemoDedupeConstants.FILE_SEPARATOR + PacketFiles.ID.name());
-				bytesArray = IOUtils.toByteArray(demographicInfoStream);
-				String demographicJsonString = new String(bytesArray);
+				
 				IndividualDemographicDedupe demographicData = packetInfoManager
-						.getIdentityKeysAndFetchValuesFromJSON(demographicJsonString);
-				JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorIdentityJson();
+						.getIdentityKeysAndFetchValuesFromJSON(registrationId);
+				JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
 				Long uinFieldCheck = utility.getUIn(registrationId);
 				JSONObject jsonObject = utility.retrieveIdrepoJson(uinFieldCheck);
 				if (jsonObject == null) {
@@ -308,6 +298,20 @@ public class DemodedupeProcessor {
 			description.setMessage(PlatformErrorMessages.PACKET_DEMO_DEDUPE_FAILED.getMessage());
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), description.getCode(), registrationId,
 					description.getMessage() + ExceptionUtils.getStackTrace(e));
+			object.setInternalError(Boolean.TRUE);
+			object.setIsValid(Boolean.FALSE);
+		} catch (ApisResourceAccessException | ApiNotAccessibleException e) {
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+			registrationStatusDto.setStatusComment(
+					trimExceptionMessage.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
+			registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
+					.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
+			description.setCode(PlatformErrorMessages.RPR_DEMO_API_RESOUCE_ACCESS_FAILED.getCode());
+			description.setMessage(PlatformErrorMessages.RPR_DEMO_API_RESOUCE_ACCESS_FAILED.getMessage());
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+					description.getCode() + " -- " + LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+					description + "\n" + ExceptionUtils.getStackTrace(e));
 			object.setInternalError(Boolean.TRUE);
 			object.setIsValid(Boolean.FALSE);
 		} catch (Exception ex) {
@@ -427,22 +431,24 @@ public class DemodedupeProcessor {
 	/**
 	 * Process demo dedupe requesthandler.
 	 *
-	 * @param registrationStatusDto
-	 *            the registration status dto
-	 * @param object
-	 *            the object
+	 * @param registrationStatusDto the registration status dto
+	 * @param object                the object
 	 * @param description
 	 * @return true, if successful
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws io.mosip.kernel.core.exception.IOException
+	 * @throws ApisResourceAccessException           the apis resource access
+	 *                                               exception
+	 * @throws IOException                           Signals that an I/O exception
+	 *                                               has occurred.
+	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
+	 * @throws RegistrationProcessorCheckedException
+	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	private boolean processDemoDedupeRequesthandler(InternalRegistrationStatusDto registrationStatusDto,
 			MessageDTO object, LogDescription description) throws ApisResourceAccessException, IOException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException {
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
+			RegistrationProcessorCheckedException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		boolean isTransactionSuccessful = false;
 		List<String> responsIds = new ArrayList<>();
 
@@ -565,18 +571,20 @@ public class DemodedupeProcessor {
 	/**
 	 * Save manual adjudication data.
 	 *
-	 * @param registrationStatusDto
-	 *            the registration status dto
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws io.mosip.kernel.core.exception.IOException
+	 * @param registrationStatusDto the registration status dto
+	 * @throws ApisResourceAccessException           the apis resource access
+	 *                                               exception
+	 * @throws IOException                           Signals that an I/O exception
+	 *                                               has occurred.
+	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
+	 * @throws RegistrationProcessorCheckedException
+	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	private void saveManualAdjudicationData(InternalRegistrationStatusDto registrationStatusDto)
 			throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException {
+			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		List<String> matchedRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
 				SyncTypeDto.NEW.toString());
 		if (!matchedRegIds.isEmpty()) {

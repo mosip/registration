@@ -131,7 +131,7 @@ public class DecryptorImpl implements Decryptor {
 			request.setRequesttime(localdatetime);
 			request.setVersion(env.getProperty(REG_PROC_APPLICATION_VERSION));
 			CryptomanagerResponseDto response;
-			response = (CryptomanagerResponseDto) restClientService.postApi(ApiName.DMZCRYPTOMANAGERDECRYPT, "", "",
+			response = (CryptomanagerResponseDto) restClientService.postApi(ApiName.CRYPTOMANAGERDECRYPT, "", "",
 					request, CryptomanagerResponseDto.class);
 			if (response.getErrors() != null && !response.getErrors().isEmpty()) {
 				ServiceError error = response.getErrors().get(0);

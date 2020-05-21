@@ -4,28 +4,30 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import io.mosip.kernel.core.exception.IOException;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.PacketFiles;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
 import io.mosip.registration.processor.core.packet.dto.RegOsiDto;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.util.IdentityIteratorUtil;
 import io.mosip.registration.processor.core.util.JsonUtil;
 
 @Service
 public class OSIUtils {
-
+	@Value("${packet.default.source}")
+	private String defaultSource;
 	/** The adapter. */
 	@Autowired
-	private PacketManager adapter;
+	private PacketReaderService packetReaderService;
 	
 	private IdentityIteratorUtil identityIteratorUtil = new IdentityIteratorUtil();
 	
@@ -51,7 +53,7 @@ public class OSIUtils {
 	}
 	
 	public String getOsiDataValue(String label,Identity identity) throws UnsupportedEncodingException {
-		List<FieldValue> osiData = identity.getOsiData();
+		List<FieldValue> osiData = identity.getOperationsData();
 		return identityIteratorUtil.getMetadataLabelValue(osiData, label);
 
 	}
@@ -61,8 +63,11 @@ public class OSIUtils {
 
 	}
 	
-	public Identity getIdentity(String registrationId) throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException {
-		InputStream packetMetaInfoStream = adapter.getFile(registrationId, PacketFiles.PACKET_META_INFO.name());
+	public Identity getIdentity(String registrationId)
+			throws PacketDecryptionFailureException, ApiNotAccessibleException, IOException, java.io.IOException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
+		InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId,
+				PacketFiles.PACKET_META_INFO.name(), defaultSource);
 		PacketMetaInfo packetMetaInfo = (PacketMetaInfo) JsonUtil.inputStreamtoJavaObject(packetMetaInfoStream,PacketMetaInfo.class);
 		return packetMetaInfo.getIdentity();
 

@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,7 +51,6 @@ import io.mosip.registration.processor.core.packet.dto.regcentermachine.Registra
 import io.mosip.registration.processor.core.packet.dto.regcentermachine.RegistrationCenterResponseDto;
 import io.mosip.registration.processor.core.packet.dto.regcentermachine.RegistrationCenterUserMachineMappingHistoryDto;
 import io.mosip.registration.processor.core.packet.dto.regcentermachine.RegistrationCenterUserMachineMappingHistoryResponseDto;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
@@ -73,9 +73,7 @@ public class UMCValidatorTest {
 	@Mock
 	PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
 
-	/** The adapter. */
-	@Mock
-	private PacketManager adapter;
+
 
 	/** The registration processor rest service. */
 	@Mock
@@ -135,7 +133,6 @@ public class UMCValidatorTest {
 		File idJsonFile = new File(classLoader.getResource("packet_meta_info.json").getFile());
 		InputStream packetMetaInfoStream = new FileInputStream(idJsonFile);
 
-		Mockito.when(adapter.getFile(any(), any())).thenReturn(packetMetaInfoStream);
 
 		metaData = new ArrayList<>();
 		FieldValue fv = new FieldValue();
@@ -173,21 +170,20 @@ public class UMCValidatorTest {
 	/**
 	 * Checks if is valid UMC success test.
 	 *
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws JsonParseException
-	 *             the json parse exception
-	 * @throws JsonMappingException
-	 *             the json mapping exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @throws ApisResourceAccessException      the apis resource access exception
+	 * @throws JsonParseException               the json parse exception
+	 * @throws JsonMappingException             the json mapping exception
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
 	 * @throws PacketDecryptionFailureException
+	 * @throws                                  io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	@Test
 	public void isValidUMCSuccessTest() throws ApisResourceAccessException, JsonParseException, JsonMappingException,
-			IOException, java.io.IOException, PacketDecryptionFailureException {
+			IOException, java.io.IOException, PacketDecryptionFailureException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		identity = new Identity();
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
@@ -383,21 +379,20 @@ public class UMCValidatorTest {
 	/**
 	 * UMC mapping not active test.
 	 *
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws JsonParseException
-	 *             the json parse exception
-	 * @throws JsonMappingException
-	 *             the json mapping exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @throws ApisResourceAccessException      the apis resource access exception
+	 * @throws JsonParseException               the json parse exception
+	 * @throws JsonMappingException             the json mapping exception
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
 	 * @throws PacketDecryptionFailureException
+	 * @throws                                  io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	@Test
 	public void UMCMappingNotActiveTest() throws ApisResourceAccessException, JsonParseException, JsonMappingException,
-			IOException, java.io.IOException, PacketDecryptionFailureException {
+			IOException, java.io.IOException, PacketDecryptionFailureException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
 		rcdto.setLongitude("80.24492");
@@ -454,21 +449,20 @@ public class UMCValidatorTest {
 	/**
 	 * Machine id not found test.
 	 *
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws JsonParseException
-	 *             the json parse exception
-	 * @throws JsonMappingException
-	 *             the json mapping exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @throws ApisResourceAccessException      the apis resource access exception
+	 * @throws JsonParseException               the json parse exception
+	 * @throws JsonMappingException             the json mapping exception
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
 	 * @throws PacketDecryptionFailureException
+	 * @throws                                  io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	@Test
 	public void machineIdNotFoundTest() throws ApisResourceAccessException, JsonParseException, JsonMappingException,
-			IOException, java.io.IOException, PacketDecryptionFailureException {
+			IOException, java.io.IOException, PacketDecryptionFailureException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
 		rcdto.setLongitude("80.24492");
@@ -521,21 +515,20 @@ public class UMCValidatorTest {
 	/**
 	 * Machine not active test.
 	 *
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws JsonParseException
-	 *             the json parse exception
-	 * @throws JsonMappingException
-	 *             the json mapping exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @throws ApisResourceAccessException      the apis resource access exception
+	 * @throws JsonParseException               the json parse exception
+	 * @throws JsonMappingException             the json mapping exception
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
 	 * @throws PacketDecryptionFailureException
+	 * @throws                                  io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	@Test
 	public void machineNotActiveTest() throws ApisResourceAccessException, JsonParseException, JsonMappingException,
-			IOException, java.io.IOException, PacketDecryptionFailureException {
+			IOException, java.io.IOException, PacketDecryptionFailureException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
 		rcdto.setLongitude("80.24492");
@@ -588,21 +581,20 @@ public class UMCValidatorTest {
 	/**
 	 * Wronggps data present in master test.
 	 *
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws JsonParseException
-	 *             the json parse exception
-	 * @throws JsonMappingException
-	 *             the json mapping exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @throws ApisResourceAccessException      the apis resource access exception
+	 * @throws JsonParseException               the json parse exception
+	 * @throws JsonMappingException             the json mapping exception
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
 	 * @throws PacketDecryptionFailureException
+	 * @throws                                  io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	@Test
 	public void WronggpsDataPresentInMasterTest() throws ApisResourceAccessException, JsonParseException,
-			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException {
+			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
 		rcdto.setId("12245");
@@ -654,21 +646,20 @@ public class UMCValidatorTest {
 	/**
 	 * Gps datanot present in packet test.
 	 *
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws JsonParseException
-	 *             the json parse exception
-	 * @throws JsonMappingException
-	 *             the json mapping exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @throws ApisResourceAccessException      the apis resource access exception
+	 * @throws JsonParseException               the json parse exception
+	 * @throws JsonMappingException             the json mapping exception
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
 	 * @throws PacketDecryptionFailureException
+	 * @throws                                  io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	@Test
 	public void gpsDatanotPresentInPacketTest() throws ApisResourceAccessException, JsonParseException,
-			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException {
+			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		RegistrationCenterMachineDto rcmDto = new RegistrationCenterMachineDto();
 		rcmDto.setIsActive(true);
 		rcmDto.setLatitude("13.0049");
@@ -729,21 +720,20 @@ public class UMCValidatorTest {
 	/**
 	 * Registration centernot active test.
 	 *
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws JsonParseException
-	 *             the json parse exception
-	 * @throws JsonMappingException
-	 *             the json mapping exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @throws ApisResourceAccessException      the apis resource access exception
+	 * @throws JsonParseException               the json parse exception
+	 * @throws JsonMappingException             the json mapping exception
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
 	 * @throws PacketDecryptionFailureException
+	 * @throws                                  io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	@Test
 	public void registrationCenternotActiveTest() throws ApisResourceAccessException, JsonParseException,
-			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException {
+			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(false);
@@ -796,21 +786,20 @@ public class UMCValidatorTest {
 	/**
 	 * Checks if is valid UMC failure for timestamp test.
 	 *
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws JsonParseException
-	 *             the json parse exception
-	 * @throws JsonMappingException
-	 *             the json mapping exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @throws ApisResourceAccessException      the apis resource access exception
+	 * @throws JsonParseException               the json parse exception
+	 * @throws JsonMappingException             the json mapping exception
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
 	 * @throws PacketDecryptionFailureException
+	 * @throws                                  io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	@Test
 	public void isValidUMCFailureForTimestampTest() throws ApisResourceAccessException, JsonParseException,
-			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException {
+			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
 		rcdto.setLongitude("80.24492");
@@ -874,21 +863,20 @@ public class UMCValidatorTest {
 	/**
 	 * Checks if is valid UMC failure for registration center ID test.
 	 *
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws JsonParseException
-	 *             the json parse exception
-	 * @throws JsonMappingException
-	 *             the json mapping exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @throws ApisResourceAccessException      the apis resource access exception
+	 * @throws JsonParseException               the json parse exception
+	 * @throws JsonMappingException             the json mapping exception
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
 	 * @throws PacketDecryptionFailureException
+	 * @throws                                  io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	@Test
 	public void isValidUMCFailureForRegistrationCenterIDTest() throws ApisResourceAccessException, JsonParseException,
-			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException {
+			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
 		rcdto.setLongitude("80.24492");
@@ -953,21 +941,20 @@ public class UMCValidatorTest {
 	/**
 	 * Checks if is valid UMC center id validation rejected test.
 	 *
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws JsonParseException
-	 *             the json parse exception
-	 * @throws JsonMappingException
-	 *             the json mapping exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @throws ApisResourceAccessException      the apis resource access exception
+	 * @throws JsonParseException               the json parse exception
+	 * @throws JsonMappingException             the json mapping exception
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
 	 * @throws PacketDecryptionFailureException
+	 * @throws                                  io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	@Test
 	public void isValidUMCCenterIdValidationRejectedTest() throws ApisResourceAccessException, JsonParseException,
-			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException {
+			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		identity = new Identity();
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
@@ -1052,21 +1039,20 @@ public class UMCValidatorTest {
 	/**
 	 * Validate device failure test.
 	 *
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws JsonParseException
-	 *             the json parse exception
-	 * @throws JsonMappingException
-	 *             the json mapping exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @throws ApisResourceAccessException      the apis resource access exception
+	 * @throws JsonParseException               the json parse exception
+	 * @throws JsonMappingException             the json mapping exception
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
+	 * @throws IOException                      Signals that an I/O exception has
+	 *                                          occurred.
 	 * @throws PacketDecryptionFailureException
+	 * @throws                                  io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	@Test
 	public void validateDeviceFailureTest() throws ApisResourceAccessException, JsonParseException,
-			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException {
+			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 
 		ApisResourceAccessException apisResourceAccessException = Mockito.mock(ApisResourceAccessException.class);
 		byte[] response = "{\"timestamp\":1548930810031,\"status\":404,\"errors\":[{\"errorCode\":\"KER-MSD-129\",\"errorMessage\":\"Device History not found\"}]}"
@@ -1146,7 +1132,8 @@ public class UMCValidatorTest {
 
 	@Test
 	public void isValidCenterHistroyTest() throws ApisResourceAccessException, JsonParseException, JsonMappingException,
-			IOException, java.io.IOException, PacketDecryptionFailureException {
+			IOException, java.io.IOException, PacketDecryptionFailureException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		identity = new Identity();
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
@@ -1260,7 +1247,8 @@ public class UMCValidatorTest {
 
 	@Test
 	public void isValidMachineHistroyTest() throws ApisResourceAccessException, JsonParseException,
-			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException {
+			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		identity = new Identity();
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
@@ -1400,7 +1388,8 @@ public class UMCValidatorTest {
 
 	@Test
 	public void isValidDeviceMappedWithCenterTest() throws ApisResourceAccessException, JsonParseException,
-			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException {
+			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		identity = new Identity();
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
@@ -1589,7 +1578,8 @@ public class UMCValidatorTest {
 
 	@Test
 	public void isValidDeviceTest() throws ApisResourceAccessException, JsonParseException, JsonMappingException,
-			IOException, java.io.IOException, PacketDecryptionFailureException {
+			IOException, java.io.IOException, PacketDecryptionFailureException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		identity = new Identity();
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
@@ -1788,7 +1778,8 @@ public class UMCValidatorTest {
 
 	@Test
 	public void isValidCenterIdAndTimestampTest() throws ApisResourceAccessException, JsonParseException,
-			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException {
+			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		identity = new Identity();
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);
@@ -1985,7 +1976,8 @@ public class UMCValidatorTest {
 
 	@Test
 	public void isValidCenterUserMachineMappingTest() throws ApisResourceAccessException, JsonParseException,
-			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException {
+			JsonMappingException, IOException, java.io.IOException, PacketDecryptionFailureException,
+			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 		identity = new Identity();
 		RegistrationCenterDto rcdto = new RegistrationCenterDto();
 		rcdto.setIsActive(true);

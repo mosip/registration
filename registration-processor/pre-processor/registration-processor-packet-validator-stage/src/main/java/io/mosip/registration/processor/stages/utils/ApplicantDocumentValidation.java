@@ -1,30 +1,23 @@
 package io.mosip.registration.processor.stages.utils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
 
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.springframework.core.env.Environment;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
-import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
+import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.packet.dto.applicantcategory.ApplicantCategory;
-import io.mosip.registration.processor.core.packet.dto.applicantcategory.ApplicantTypeDocument;
 import io.mosip.registration.processor.core.util.IdentityIteratorUtil;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
-import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 
 /**
@@ -41,267 +34,102 @@ public class ApplicantDocumentValidation {
 	IdentityIteratorUtil identityIterator = new IdentityIteratorUtil();
 
 	/** The utility. */
-	Utilities utility;
+	@Autowired
+	private Utilities utility;
+	@Autowired
+	private PacketReaderService packetReaderService;
+	@Autowired
+	private IdSchemaUtils idSchemaUtils;
+	
+	private static final String VALUE = "value";
 
-	/** The applicant type document. */
-	ApplicantTypeDocument applicantTypeDocument;
+	
 
-	/** The env. */
-	Environment env;
-
-	/** The reg id. */
-	String regId;
-
-	/** The Constant AGE_THRESHOLD. */
-	private static final String AGE_THRESHOLD = "mosip.kernel.applicant.type.age.limit";
-
-	private static final String DOCUMENT_CATEGORY = "documentCategory";
-
-	/** The Constant TYPE. */
-	private static final String TYPE = "type";
-
-	/** The Constant APPLICANTTYPECHILD. */
-	private static final String APPLICANTTYPECHILD = "Child";
-
-	/** The Constant APPLICANTTYPEADULT. */
-	private static final String APPLICANTTYPEADULT = "Adult";
-
-	/** The demographic identity. */
-	JSONObject demographicIdentity = null;
-
-	/**
-	 * Instantiates a new applicant document validation.
-	 *
-	 * @param utilities
-	 *            the utilities
-	 * @param env
-	 *            the env
-	 * @param applicantTypeDocument
-	 *            the applicant type document
-	 */
-	public ApplicantDocumentValidation(Utilities utilities, Environment env,
-			ApplicantTypeDocument applicantTypeDocument) {
-		this.env = env;
-		this.utility = utilities;
-		this.applicantTypeDocument = applicantTypeDocument;
-	}
-
-	/**
-	 * Validate document.
-	 *
-	 * @param registrationId
-	 *            the registration id
-	 * @param jsonString
-	 *            the json string
-	 * @return true, if successful
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws io.mosip.kernel.core.exception.IOException 
-	 * @throws PacketDecryptionFailureException 
-	 * @throws ParseException
-	 *             the parse exception
-	 * @throws ParseException
-	 *             the parse exception
-	 * @throws SecurityException
-	 *             the security exception
-	 * @throws IllegalArgumentException
-	 *             the illegal argument exception
-	 */
-	public boolean validateDocument(String registrationId, String jsonString)
-			throws ApisResourceAccessException, IOException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException {
-
-		boolean isApplicantDocumentVerified = false;
-		String applicantType = null;
-		regId = registrationId;
-		int age = utility.getApplicantAge(regId);
-		int ageThreshold = Integer.parseInt(env.getProperty(AGE_THRESHOLD));
-
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				regId, "ApplicantDocumentValidation::validateApplicantData::entry");
-		demographicIdentity = getDemographicJson(jsonString);
-
-		List<String> mapperJsonKeys = new ArrayList<>(demographicIdentity.keySet());
-
-		if (age < ageThreshold)
-			applicantType = APPLICANTTYPECHILD;
-		else
-			applicantType = APPLICANTTYPEADULT;
-
-		isApplicantDocumentVerified = applicantValidation(applicantType, mapperJsonKeys);
-
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				regId, "ApplicantDocumentValidation::validateApplicantData::exit");
-		return isApplicantDocumentVerified;
-	}
-
-	/**
-	 * Applicant validation.
-	 *
-	 * @param applicantType
-	 *            the applicant type
-	 * @param list
-	 *            the list
-	 * @return the boolean
-	 * @throws ParseException
-	 *             the parse exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 */
-	private Boolean applicantValidation(String applicantType, List<String> list) throws IOException {
-
-		Boolean isApplicantValidated = false;
-		String getIdentityJsonString = Utilities.getJson(utility.getConfigServerFileStorageURL(),
-				utility.getGetRegProcessorDocumentCategory());
-
-		JSONParser parser = new JSONParser();
-
-		JSONObject json;
-		try {
-			json = (JSONObject) parser.parse(getIdentityJsonString);
-		} catch (org.json.simple.parser.ParseException e) {
-			throw new ParsingException(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getCode(), e);
-		}
-		JSONObject identityJsonObject = (JSONObject) json.get("identity");
-
-		Set<String> documentCategoryList = new HashSet<>();
-
-		Iterator<String> it = list.iterator();
-
-		while (it.hasNext()) {
-			String key = it.next().trim();
-
-			JSONObject attributesJsonObject = (JSONObject) identityJsonObject.get(key);
-			if (attributesJsonObject != null) {
-				String documentCategory = attributesJsonObject.get(DOCUMENT_CATEGORY).toString();
-
-				if (documentCategory != null && !documentCategory.isEmpty())
-					documentCategoryList.add(documentCategory);
-			}
-
-		}
-
-		Iterator<String> iterator = documentCategoryList.iterator();
-		while (iterator.hasNext()) {
-			String key = iterator.next().trim();
-			if (!applicantTypeDocumentValidation(key, applicantType))
+	
+	public boolean validateDocument(String registrationId)
+			throws   PacketDecryptionFailureException, IdentityNotFoundException,
+			 ApiNotAccessibleException, IOException, io.mosip.kernel.core.exception.IOException
+			 {
+		
+		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
+		String proofOfAddressLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.POA), VALUE);
+		String proofOfDateOfBirthLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.POB), VALUE);
+		String proofOfIdentityLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.POI), VALUE);
+		String proofOfRelationshipLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.POR), VALUE);
+		String proofOfExceptionsLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.POE), VALUE);
+		String applicantBiometricLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), VALUE);
+		String introducerBiometricLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PARENT_OR_GUARDIAN_BIO), VALUE);
+		
+		JSONObject proofOfAddress = JsonUtil.getJSONObject(utility.getDemographicIdentityJSONObject(registrationId,proofOfAddressLabel), proofOfAddressLabel);
+		JSONObject proofOfDateOfBirth = JsonUtil.getJSONObject(utility.getDemographicIdentityJSONObject(registrationId,proofOfDateOfBirthLabel), proofOfDateOfBirthLabel);
+		JSONObject proofOfIdentity = JsonUtil.getJSONObject(utility.getDemographicIdentityJSONObject(registrationId,proofOfIdentityLabel), proofOfIdentityLabel);
+		JSONObject proofOfRelationship = JsonUtil.getJSONObject(utility.getDemographicIdentityJSONObject(registrationId,proofOfRelationshipLabel), proofOfRelationshipLabel);
+		JSONObject applicantBiometric = JsonUtil.getJSONObject(utility.getDemographicIdentityJSONObject(registrationId,applicantBiometricLabel), applicantBiometricLabel);
+		JSONObject proofOfExceptions = JsonUtil.getJSONObject(utility.getDemographicIdentityJSONObject(registrationId,proofOfExceptionsLabel), proofOfExceptionsLabel);
+		JSONObject introducerBiometric = JsonUtil.getJSONObject(utility.getDemographicIdentityJSONObject(registrationId,introducerBiometricLabel), introducerBiometricLabel);
+		
+		if (proofOfAddress != null && proofOfAddress.get("value")!=null) {
+			String source=idSchemaUtils.getSource(proofOfAddressLabel);
+			if(source!=null) {
+			if(! packetReaderService.checkFileExistence(registrationId,proofOfAddress.get("value").toString(),source)) {
 				return false;
-			else
-				isApplicantValidated = true;
-
-		}
-
-		return isApplicantValidated;
-	}
-
-	/**
-	 * Type code.
-	 *
-	 * @param key
-	 *            the key
-	 * @return the string
-	 */
-	private String typeCode(String key) {
-		JSONObject json = JsonUtil.getJSONObject(demographicIdentity, key);
-		return (String) json.get(TYPE);
-	}
-
-	/**
-	 * Applicant type document validation.
-	 *
-	 * @param documentCategory
-	 *            the document category
-	 * @param applicantType
-	 *            the applicant type
-	 * @return true, if successful
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 */
-	private boolean applicantTypeDocumentValidation(String documentCategory, String applicantType) throws IOException {
-
-		String getIdentityJsonString = Utilities.getJson(utility.getConfigServerFileStorageURL(),
-				utility.getGetRegProcessorApplicantType());
-		ObjectMapper mapIdentityJsonStringToObject = new ObjectMapper();
-		ApplicantTypeDocument applicantTypeDocument = mapIdentityJsonStringToObject.readValue(getIdentityJsonString,
-				ApplicantTypeDocument.class);
-		List<ApplicantCategory> applicanttype = applicantTypeDocument.getApplicantCategory();
-		Iterator<ApplicantCategory> it = applicanttype.iterator();
-
-		while (it.hasNext()) {
-			ApplicantCategory applicantCategory = it.next();
-			if (applicantCategory.getApplicantType().equalsIgnoreCase(applicantType)) {
-
-				return documentTypeValidation(applicantCategory, documentCategory);
+			}
 			}
 		}
-		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				regId, PlatformErrorMessages.RPR_PVM_APPLICANTDOCUMENT_VALIDATION_FAILED.getMessage() + " "
-						+ documentCategory + "and" + applicantType);
-
-		return false;
-	}
-
-	/**
-	 * Document type validation.
-	 *
-	 * @param applicantCategory
-	 *            the applicant category
-	 * @param documentCategory
-	 *            the document category
-	 * @return true, if successful
-	 */
-	private boolean documentTypeValidation(ApplicantCategory applicantCategory, String documentCategory) {
-		String documentType = typeCode(documentCategory);
-		List<io.mosip.registration.processor.core.packet.dto.applicantcategory.DocumentCategory> documentCategoryType = applicantCategory
-				.getDocumentCategory();
-		Iterator<io.mosip.registration.processor.core.packet.dto.applicantcategory.DocumentCategory> documentIt = documentCategoryType
-				.iterator();
-		while (documentIt.hasNext()) {
-			io.mosip.registration.processor.core.packet.dto.applicantcategory.DocumentCategory documentCategorykey = documentIt
-					.next();
-
-			if (documentCategorykey.getKey().equalsIgnoreCase(documentCategory)) {
-
-				List<String> values = documentCategorykey.getValues();
-				Iterator<String> valueIt = values.iterator();
-
-				while (valueIt.hasNext()) {
-					String value = valueIt.next();
-					if (value.equalsIgnoreCase(documentType))
-						return true;
-				}
-
+		if (proofOfDateOfBirth != null && proofOfDateOfBirth.get("value")!=null) {
+			String source=idSchemaUtils.getSource(proofOfDateOfBirthLabel);
+			if(source!=null) {
+			if(! packetReaderService.checkFileExistence(registrationId,proofOfDateOfBirth.get("value").toString(),source)) {
+				return false;
 			}
-
+			}
 		}
-		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				regId, PlatformErrorMessages.RPR_PVM_DOCUMENT_TYPE_INVALID.getMessage() + " " + documentType);
+		if (proofOfIdentity != null && proofOfIdentity.get("value")!=null) {
+			String source=idSchemaUtils.getSource(proofOfIdentityLabel);
+			if(source!=null) {
+			if(! packetReaderService.checkFileExistence(registrationId,proofOfIdentity.get("value").toString(),source)) {
+				return false;
+			}
+			}
+		}
+		if (proofOfRelationship != null && proofOfRelationship.get("value")!=null) {
+			String source=idSchemaUtils.getSource(proofOfRelationshipLabel);
+			if(source!=null) {
+			if(! packetReaderService.checkFileExistence(registrationId,proofOfRelationship.get("value").toString(),source)) {
+				return false;
+			}
+			}
+		}
+		if (applicantBiometric != null && applicantBiometric.get("value")!=null) {
+			String source=idSchemaUtils.getSource(applicantBiometricLabel);
+			if(source!=null) {
+			if(! packetReaderService.checkFileExistence(registrationId,applicantBiometric.get("value").toString(),source)) {
+				return false;
+			}
+			}
+		}
+		if (introducerBiometric != null && introducerBiometric.get("value")!=null) {
+			String source=idSchemaUtils.getSource(introducerBiometricLabel);
+			if(source!=null) {
+			if(! packetReaderService.checkFileExistence(registrationId,introducerBiometric.get("value").toString(),source)) {
+				return false;
+			}
+			}
+		}
+		if (proofOfExceptions != null && proofOfExceptions.get("value")!=null) {
+			String source=idSchemaUtils.getSource(proofOfExceptionsLabel);
+			if(source!=null) {
+				if(! packetReaderService.checkFileExistence(registrationId,proofOfExceptions.get("value").toString(),source)) {
+				return false;
+			}
+			}
+		}
+		
 
-		return false;
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				registrationId, "ApplicantDocumentValidation::validateApplicantData::exit");
+		return true;
 	}
 
-	/**
-	 * Gets the demographic json.
-	 *
-	 * @param jsonString
-	 *            the json string
-	 * @return the demographic json
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 */
-	private JSONObject getDemographicJson(String jsonString) throws IOException {
-
-		JSONObject demographicJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
-		demographicIdentity = JsonUtil.getJSONObject(demographicJson, utility.getGetRegProcessorDemographicIdentity());
-
-		if (demographicIdentity == null) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					"", PlatformErrorMessages.RPR_PVM_IDJSON_NOT_FOUND.getMessage());
-			throw new IdentityNotFoundException(PlatformErrorMessages.RPR_PVM_IDJSON_NOT_FOUND.getMessage());
-
-		}
-		return demographicIdentity;
-	}
-
+	
 }

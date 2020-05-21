@@ -3,6 +3,7 @@ package io.mosip.registration.processor.quality.checker.stage.test;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,6 +13,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import io.mosip.kernel.core.bioapi.model.Response;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -39,9 +45,6 @@ import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -72,7 +75,7 @@ public class QualityCheckerStageTest {
 	private Utilities utility;
 
 	@Mock
-	private PacketManager adapter;
+	private PacketReaderService packetReaderService;
 
 	/** The cbeff util. */
 	@Mock
@@ -80,6 +83,9 @@ public class QualityCheckerStageTest {
 
 	@Mock
 	private IBioApi fingerApi;
+
+	@Mock
+	private IdSchemaUtils idSchemaUtils;
 
 	@InjectMocks
 	private QualityCheckerStage qualityCheckerStage = new QualityCheckerStage() {
@@ -120,12 +126,13 @@ public class QualityCheckerStageTest {
 		InputStream idJsonStream = IOUtils.toInputStream(idJsonString, "UTF-8");
 
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
+		Mockito.when(idSchemaUtils.getSource(anyString())).thenReturn("id");
 
 		ClassLoader classLoader = getClass().getClassLoader();
 		File cbeff1 = new File(classLoader.getResource("CBEFF1.xml").getFile());
 		InputStream cbeff1Stream = new FileInputStream(cbeff1);
 
-		Mockito.when(adapter.getFile(any(), any())).thenReturn(idJsonStream).thenReturn(cbeff1Stream);
+		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenReturn(idJsonStream).thenReturn(cbeff1Stream);
 
 		List<BIRType> birTypeList = new ArrayList<>();
 		BIRType birType1 = new BIRType();
@@ -189,7 +196,7 @@ public class QualityCheckerStageTest {
 		InputStream inputStream = new FileInputStream(file);
 		String mappingJson = IOUtils.toString(inputStream);
 		JSONObject mappingJSONObject = JsonUtil.objectMapperReadValue(mappingJson, JSONObject.class);
-		Mockito.when(utility.getRegistrationProcessorIdentityJson()).thenReturn(JsonUtil.getJSONObject(mappingJSONObject, "identity"));
+		Mockito.when(utility.getRegistrationProcessorMappingJson()).thenReturn(JsonUtil.getJSONObject(mappingJSONObject, "identity"));
 	}
 
 	@Test
@@ -198,10 +205,13 @@ public class QualityCheckerStageTest {
 	}
 
 	@Test
-	public void testQualityCheckerSuccess() throws BiometricException {
+	public void testQualityCheckerSuccess() {
 		QualityScore qualityScore = new QualityScore();
-		qualityScore.setInternalScore(90);
-		Mockito.when(fingerApi.checkQuality(any(), any())).thenReturn(qualityScore);
+		qualityScore.setScore(90);
+		Response<QualityScore> response=new Response<>();
+		response.setResponse(qualityScore);
+		response.setStatusCode(200);
+		Mockito.when(fingerApi.checkQuality(any(), any())).thenReturn(response);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -211,10 +221,13 @@ public class QualityCheckerStageTest {
 	}
 
 	@Test
-	public void testQualityCheckFailure() throws BiometricException {
+	public void testQualityCheckFailure() {
 		QualityScore qualityScore = new QualityScore();
-		qualityScore.setInternalScore(50);
-		Mockito.when(fingerApi.checkQuality(any(), any())).thenReturn(qualityScore);
+		qualityScore.setScore(50);
+		Response<QualityScore> response=new Response<>();
+		response.setResponse(qualityScore);
+		response.setStatusCode(200);
+		Mockito.when(fingerApi.checkQuality(any(), any())).thenReturn(response);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -225,13 +238,13 @@ public class QualityCheckerStageTest {
 
 	@Test
 	public void testParameterMissing() throws IOException, PacketDecryptionFailureException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException {
+			ApiNotAccessibleException, io.mosip.kernel.core.exception.IOException, io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
 		String idJsonString = "{\n" + "  \"identity\" : {\n" + "    \"fullName\" : [ {\n"
 				+ "      \"language\" : \"eng\",\n" + "      \"value\" : \"Ragavendran V\"\n" + "    }, {\n"
 				+ "      \"language\" : \"ara\",\n" + "      \"value\" : \"قشلشرثىيقشى ر\"\n" + "    } ]\n" + "  }\n"
 				+ "}";
 		InputStream idJsonStream = IOUtils.toInputStream(idJsonString, "UTF-8");
-		Mockito.when(adapter.getFile(any(), any())).thenReturn(idJsonStream);
+		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenReturn(idJsonStream);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -241,7 +254,7 @@ public class QualityCheckerStageTest {
 	}
 
 	@Test
-	public void testFileNameMissing() throws IOException, PacketDecryptionFailureException, ApisResourceAccessException,
+	public void testFileNameMissing() throws IOException, PacketDecryptionFailureException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException {
 		String idJsonString = "{\n" + "  \"identity\" : {\n" + "    \"fullName\" : [ {\n"
 				+ "      \"language\" : \"eng\",\n" + "      \"value\" : \"Ragavendran V\"\n" + "    }, {\n"
@@ -249,7 +262,7 @@ public class QualityCheckerStageTest {
 				+ "    \"individualBiometrics\" : {\n" + "      \"format\" : \"cbeff\",\n"
 				+ "      \"version\" : 1.0,\n" + "      \"value\" : \"\"\n" + "    }\n" + "  }\n" + "}";
 		InputStream idJsonStream = IOUtils.toInputStream(idJsonString, "UTF-8");
-		Mockito.when(adapter.getFile(any(), any())).thenReturn(idJsonStream);
+		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenReturn(idJsonStream);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -259,10 +272,10 @@ public class QualityCheckerStageTest {
 	}
 
 	@Test
-	public void testFsAdapterException() throws PacketDecryptionFailureException, ApisResourceAccessException,
+	public void testFsAdapterException() throws PacketDecryptionFailureException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException, IOException {
 		FSAdapterException exception = new FSAdapterException("", "");
-		Mockito.when(adapter.getFile(any(), any())).thenThrow(exception);
+		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenThrow(exception);
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityCheckerStage.process(dto);
@@ -272,8 +285,13 @@ public class QualityCheckerStageTest {
 
 	@Test
 	public void testBiometricException() throws BiometricException {
-		BiometricException exception = new BiometricException("", "");
-		Mockito.when(fingerApi.checkQuality(any(), any())).thenThrow(exception);
+		QualityScore qualityScore = new QualityScore();
+		qualityScore.setScore(50);
+		Response<QualityScore> response=new Response<>();
+		response.setResponse(qualityScore);
+		response.setStatusCode(404);
+		response.setStatusMessage("score is missing from database");
+		Mockito.when(fingerApi.checkQuality(any(), any())).thenReturn(response);
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityCheckerStage.process(dto);
@@ -294,9 +312,9 @@ public class QualityCheckerStageTest {
 		return birList;
 	}
 	@Test
-	public void testQualityCheckfailureException() throws BiometricException, PacketDecryptionFailureException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException {
+	public void testQualityCheckfailureException() throws PacketDecryptionFailureException, ApiNotAccessibleException, io.mosip.kernel.core.exception.IOException, IOException {
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
-		Mockito.when(adapter.getFile(any(), any())).thenReturn(null);
+		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenReturn(null);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");

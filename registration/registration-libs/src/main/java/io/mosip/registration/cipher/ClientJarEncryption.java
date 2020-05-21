@@ -113,8 +113,7 @@ public class ClientJarEncryption {
 					byte[] runExecutbale = FileUtils
 							.readFileToByteArray(new File(args[3] + MOSIP_REG_LIBS + args[2] + MOSIP_JAR));
 					File listOfJars = new File(file.getParent() + SLASH + MOSIP_LIB).getAbsoluteFile();
-					System.out.println("Path====>"+listOfJars);
-
+					
 					// Add files to be archived into zip file
 					Map<String, byte[]> fileNameByBytes = new HashMap<>();
 

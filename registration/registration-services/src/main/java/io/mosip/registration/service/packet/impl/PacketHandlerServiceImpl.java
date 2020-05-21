@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +54,10 @@ import io.mosip.kernel.packetmanager.constants.PacketManagerConstants;
 import io.mosip.kernel.packetmanager.dto.AuditDto;
 import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.kernel.packetmanager.dto.DocumentDto;
+import io.mosip.kernel.packetmanager.dto.SimpleDto;
 import io.mosip.kernel.packetmanager.dto.metadata.BiometricsException;
+import io.mosip.kernel.packetmanager.dto.metadata.DeviceMetaInfo;
+import io.mosip.kernel.packetmanager.dto.metadata.DigitalId;
 import io.mosip.kernel.packetmanager.exception.PacketCreatorException;
 import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.IdentitySchemaService;
@@ -142,8 +146,8 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			SchemaDto schema = identitySchemaService.getIdentitySchema(registrationDTO.getIdSchemaVersion());			
 			//TODO validate idObject with IDSchema
 						
-			packetCreator.initialize();		
-			setDemographics(registrationDTO.getDemographics());
+			packetCreator.initialize();				
+			setDemographics(registrationDTO, schema);
 			setDocuments(registrationDTO.getDocuments());
 			setBiometrics(registrationDTO.getBiometrics(), registrationDTO.getBiometricExceptions(), schema);
 			setOtherDetails(registrationDTO);			
@@ -177,9 +181,32 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		return responseDTO;
 	}
 	
-	private void setDemographics(Map<String, Object> demographics) {
+	private void setDemographics(RegistrationDTO registrationDTO, SchemaDto schema) {
+		String printingNameFieldId = getPrintingNameFieldName(schema);
+		Map<String, Object> demographics = registrationDTO.getDemographics();				
 		for(String fieldName : demographics.keySet()) {
-			packetCreator.setField(fieldName, demographics.get(fieldName));
+			switch (registrationDTO.getRegistrationCategory()) {
+			case RegistrationConstants.PACKET_TYPE_UPDATE:
+				if(demographics.get(fieldName) != null && registrationDTO.getSelectionListDTO().containsKey(fieldName))
+					packetCreator.setField(fieldName, demographics.get(fieldName));				
+				break;
+			case RegistrationConstants.PACKET_TYPE_LOST:
+				if( demographics.get(fieldName) != null)
+					packetCreator.setField(fieldName, demographics.get(fieldName));
+				break;
+			case RegistrationConstants.PACKET_TYPE_NEW:
+				packetCreator.setField(fieldName, demographics.get(fieldName));
+				break;
+			}
+			
+			if(demographics.get(printingNameFieldId) != null  && registrationDTO.getUpdatableFields() != null 
+					&& !registrationDTO.getUpdatableFields().contains(printingNameFieldId)) {
+				@SuppressWarnings("unchecked")
+				List<SimpleDto> value = (List<SimpleDto>) demographics.get(printingNameFieldId);
+				value.forEach(dto -> {
+					packetCreator.setPrintingName(dto.getLanguage(), dto.getValue());
+				});				
+			}				
 		}
 	}
 	
@@ -262,18 +289,16 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		packetCreator.setAudits(list);
 	}
 	
-	private List<RegisteredDevice> getRegisteredDevices() {
-
-		List<RegisteredDevice> capturedRegisteredDevices = new ArrayList<>();
-
+	private void addRegisteredDevices() {
+		List<DeviceMetaInfo> capturedRegisteredDevices = new ArrayList<DeviceMetaInfo>();
 		MosipBioDeviceManager.getDeviceRegistry().forEach((deviceName, device) -> {
-			RegisteredDevice registerdDevice = new RegisteredDevice();
+			DeviceMetaInfo registerdDevice = new DeviceMetaInfo();
 			registerdDevice.setDeviceServiceVersion(device.getSerialVersion());
 			registerdDevice.setDeviceCode(device.getDigitalId().getSerialNo());
-			CustomDigitalId digitalId = new CustomDigitalId();
+			DigitalId digitalId = new DigitalId();
 			digitalId.setDateTime(device.getDigitalId().getDateTime());
-			digitalId.setDp(device.getDigitalId().getDeviceProvider());
-			digitalId.setDpId(device.getDigitalId().getDeviceProviderId());
+			digitalId.setDeviceProvider(device.getDigitalId().getDeviceProvider());
+			digitalId.setDeviceProviderId(device.getDigitalId().getDeviceProviderId());
 			digitalId.setMake(device.getDigitalId().getMake());
 			digitalId.setModel(device.getDigitalId().getModel());
 			digitalId.setSerialNo(device.getDigitalId().getSerialNo());
@@ -282,8 +307,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			registerdDevice.setDigitalId(digitalId);
 			capturedRegisteredDevices.add(registerdDevice);
 		});
-
-		return capturedRegisteredDevices;
+		this.packetCreator.setRegisteredDeviceDetails(capturedRegisteredDevices);
 	}
 	
 	private void createAuditLog(RegistrationDTO registrationDTO) {
@@ -320,6 +344,8 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			packetCreator.setMetaInfo(PacketManagerConstants.META_LONGITUDE, registrationCenter.getRegistrationCenterLongitude());
 		}
 		
+		addRegisteredDevices();
+		
 		packetCreator.setOperationsInfo(PacketManagerConstants.META_OFFICER_ID, registrationDTO.getOsiDataDTO().getOperatorID());
 		packetCreator.setOperationsInfo(PacketManagerConstants.META_OFFICER_BIOMETRIC_FILE, null);
 		packetCreator.setOperationsInfo(PacketManagerConstants.META_SUPERVISOR_ID, registrationDTO.getOsiDataDTO().getSupervisorID());
@@ -337,5 +363,15 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		
 		Map<String, String> checkSumMap = CheckSumUtil.getCheckSumMap();
 		checkSumMap.forEach((key, value) -> packetCreator.setChecksum(key, value));
+	}
+	
+	private String getPrintingNameFieldName(SchemaDto schema) {
+		Optional<UiSchemaDTO> result = schema.getSchema().stream().filter(field -> 
+			field.getSubType() != null && field.getSubType().equals("name")).findFirst();
+		
+		if(result.isPresent() && result.get() != null)
+			return result.get().getId();
+		
+		return null;
 	}
 }

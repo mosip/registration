@@ -6,8 +6,13 @@ import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.PacketMetaInfoConstants;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -41,10 +46,7 @@ import io.mosip.registration.processor.request.handler.service.dto.PackerGenerat
 import io.mosip.registration.processor.request.handler.service.dto.PacketGeneratorDto;
 import io.mosip.registration.processor.request.handler.service.dto.PacketGeneratorResDto;
 import io.mosip.registration.processor.request.handler.service.dto.RegistrationDTO;
-import io.mosip.registration.processor.request.handler.service.dto.RegistrationMetaDataDTO;
 import io.mosip.registration.processor.request.handler.service.dto.demographic.DemographicDTO;
-import io.mosip.registration.processor.request.handler.service.dto.demographic.DemographicInfoDTO;
-import io.mosip.registration.processor.request.handler.service.dto.demographic.MyCountryIdentity;
 import io.mosip.registration.processor.request.handler.service.exception.RegBaseCheckedException;
 import io.mosip.registration.processor.request.handler.upload.SyncUploadEncryptionService;
 import io.mosip.registration.processor.request.handler.upload.validator.RequestHandlerRequestValidator;
@@ -64,6 +66,12 @@ public class PacketGeneratorServiceImpl implements PacketGeneratorService<Packet
 	/** The sync upload encryption service. */
 	@Autowired
 	SyncUploadEncryptionService syncUploadEncryptionService;
+
+	@Autowired
+	private Utilities utilities;
+
+	@Value("${IDSchema.Version}")
+	private String idschemaVersion;
 
 	/** The rest client service. */
 	@Autowired
@@ -109,7 +117,7 @@ public class PacketGeneratorServiceImpl implements PacketGeneratorService<Packet
 							"Packet Generator Validation successfull");
 					RegistrationDTO registrationDTO = createRegistrationDTOObject(request.getUin(),
 							request.getRegistrationType(), request.getCenterId(), request.getMachineId());
-					packetZipBytes = packetCreationService.create(registrationDTO, null);
+					packetZipBytes = packetCreationService.create(registrationDTO, request.getCenterId(), request.getMachineId());
 					String rid = registrationDTO.getRegistrationId();
 					String packetCreatedDateTime = rid.substring(rid.length() - 14);
 					String formattedDate = packetCreatedDateTime.substring(0, 8) + "T"
@@ -155,22 +163,21 @@ public class PacketGeneratorServiceImpl implements PacketGeneratorService<Packet
 	 *
 	 * @param uin              the uin
 	 * @param registrationType the registration type
-	 * @param applicantType    the applicant type
 	 * @param centerId         the center id
 	 * @param machineId        the machine id
 	 * @return the registration DTO
 	 * @throws RegBaseCheckedException
 	 */
 	private RegistrationDTO createRegistrationDTOObject(String uin, String registrationType, String centerId,
-			String machineId) throws RegBaseCheckedException {
+			String machineId) throws RegBaseCheckedException, IOException {
 		RegistrationDTO registrationDTO = new RegistrationDTO();
 		registrationDTO.setDemographicDTO(getDemographicDTO(uin));
-		RegistrationMetaDataDTO registrationMetaDataDTO = getRegistrationMetaDataDTO(registrationType, uin, centerId,
+		Map<String, String> metadata = getRegistrationMetaData(registrationType, uin, centerId,
 				machineId);
-		String registrationId = generateRegistrationId(registrationMetaDataDTO.getCenterId(),
-				registrationMetaDataDTO.getMachineId());
+		String registrationId = generateRegistrationId(centerId,
+				machineId);
 		registrationDTO.setRegistrationId(registrationId);
-		registrationDTO.setRegistrationMetaDataDTO(registrationMetaDataDTO);
+		registrationDTO.setMetadata(metadata);
 		return registrationDTO;
 
 	}
@@ -181,14 +188,23 @@ public class PacketGeneratorServiceImpl implements PacketGeneratorService<Packet
 	 * @param uin the uin
 	 * @return the demographic DTO
 	 */
-	private DemographicDTO getDemographicDTO(String uin) {
+	private DemographicDTO getDemographicDTO(String uin) throws IOException {
 		DemographicDTO demographicDTO = new DemographicDTO();
-		DemographicInfoDTO demographicInfoDTO = new DemographicInfoDTO();
-		MyCountryIdentity identity = new MyCountryIdentity();
-		identity.setIdSchemaVersion(1.0);
-		identity.setUin(new BigInteger(uin));
-		demographicInfoDTO.setIdentity(identity);
-		demographicDTO.setDemographicInfoDTO(demographicInfoDTO);
+		JSONObject jsonObject = new JSONObject();
+
+		JSONObject regProcessorIdentityJson = utilities.getRegistrationProcessorMappingJson();
+		String schemaVersion = JsonUtil.getJSONValue(
+				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.IDSCHEMA_VERSION),
+				MappingJsonConstants.VALUE);
+
+		String uinLabel = JsonUtil.getJSONValue(
+				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.UIN),
+				MappingJsonConstants.VALUE);
+
+		jsonObject.put(schemaVersion, Float.valueOf(idschemaVersion));
+		jsonObject.put(uinLabel, new BigInteger(uin));
+		demographicDTO.setIdentity(jsonObject);
+
 		return demographicDTO;
 	}
 
@@ -196,22 +212,19 @@ public class PacketGeneratorServiceImpl implements PacketGeneratorService<Packet
 	 * Gets the registration meta data DTO.
 	 *
 	 * @param registrationType the registration type
-	 * @param applicantType    the applicant type
 	 * @param uin              the uin
 	 * @param centerId         the center id
 	 * @param machineId        the machine id
 	 * @return the registration meta data DTO
 	 */
-	private RegistrationMetaDataDTO getRegistrationMetaDataDTO(String registrationType, String uin, String centerId,
-			String machineId) {
-		RegistrationMetaDataDTO registrationMetaDataDTO = new RegistrationMetaDataDTO();
-
-		registrationMetaDataDTO.setCenterId(centerId);
-		registrationMetaDataDTO.setMachineId(machineId);
-		registrationMetaDataDTO.setRegistrationCategory(registrationType);
-		registrationMetaDataDTO.setUin(uin);
-		return registrationMetaDataDTO;
-
+	private Map<String, String> getRegistrationMetaData(String registrationType, String uin, String centerId,
+																 String machineId) {
+		Map<String, String> metadata = new HashMap<>();
+		metadata.put(PacketMetaInfoConstants.CENTERID, centerId);
+		metadata.put(PacketMetaInfoConstants.MACHINEID, machineId);
+		metadata.put(PacketMetaInfoConstants.REGISTRATION_TYPE, registrationType);
+		metadata.put(PacketMetaInfoConstants.UIN, uin);
+		return metadata;
 	}
 
 	private String generateRegistrationId(String centerId, String machineId) throws RegBaseCheckedException {

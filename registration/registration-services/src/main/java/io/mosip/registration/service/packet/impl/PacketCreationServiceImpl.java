@@ -211,7 +211,7 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 			//setDocumentCodes(registrationDTO);
 
 			// Generating Demographic JSON as byte array			
-			filesGeneratedForPacket.put(DEMOGRPAHIC_JSON_NAME, javaObjectToJsonString(registrationDTO.getIdentity()).getBytes());
+			//filesGeneratedForPacket.put(DEMOGRPAHIC_JSON_NAME, javaObjectToJsonString(registrationDTO.getIdentity()).getBytes());
 
 			LOGGER.info(LOG_PKT_CREATION, APPLICATION_NAME, APPLICATION_ID,
 					String.format(loggerMessageForCBEFF, RegistrationConstants.DEMOGRPAHIC_JSON_NAME));

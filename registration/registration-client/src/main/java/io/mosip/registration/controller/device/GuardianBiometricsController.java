@@ -627,7 +627,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 		 * FINGERPRINT_SLAB_RIGHT))) { headerText = RegistrationUIConstants.FINGERPRINT;
 		 * bioType = RegistrationConstants.FINGERPRINT_SLAB_RIGHT; fingerException =
 		 * rightSlapexceptionList;
-		 * 
+		 *
 		 * } else if (biometricType.getText()
 		 * .equalsIgnoreCase(applicationLabelBundle.getString(RegistrationConstants.
 		 * FINGERPRINT_SLAB_LEFT))) { headerText = RegistrationUIConstants.FINGERPRINT;
@@ -644,7 +644,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 		 * (biometricType.getText().contains(applicationLabelBundle.getString(
 		 * RegistrationConstants.FACE))) { headerText = RegistrationUIConstants.PHOTO;
 		 * bioType = RegistrationConstants.FACE; }
-		 * 
+		 *
 		 * }
 		 */
 
@@ -1462,15 +1462,13 @@ public class GuardianBiometricsController extends BaseController implements Init
 							FingerprintDetailsDTO fingerprintDetailsDTO = gurdianFingerPrints.isEmpty() ? null
 									: gurdianFingerPrints.get(0);
 							modality = fingerprintDetailsDTO != null ? fingerprintDetailsDTO.getFingerType() : null;
-						}
-
-						System.out.println(modality);
+						}						
 
 						updateByAttempt(modality, Character.getNumericValue(eventString.charAt(index)), biometricImage,
 								qualityText, bioProgress, qualityScore);
 
 						LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-								"Mouse Event by attempt Ended");
+								"Mouse Event by attempt Ended. modality : " + modality);
 
 					} catch (RuntimeException runtimeException) {
 						LOGGER.error(LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,

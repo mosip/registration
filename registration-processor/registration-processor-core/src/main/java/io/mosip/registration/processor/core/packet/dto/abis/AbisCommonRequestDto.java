@@ -23,7 +23,7 @@ public class AbisCommonRequestDto implements Serializable{
 	private String id;
 	
 	/** The ver. */
-	private String ver;
+	private String version;
 	
 	/** The request id. */
 	private String requestId;

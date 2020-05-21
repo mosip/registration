@@ -6,8 +6,12 @@ import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.PacketMetaInfoConstants;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,11 +48,8 @@ import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.request.handler.service.PacketCreationService;
 import io.mosip.registration.processor.request.handler.service.dto.PacketGeneratorResDto;
 import io.mosip.registration.processor.request.handler.service.dto.RegistrationDTO;
-import io.mosip.registration.processor.request.handler.service.dto.RegistrationMetaDataDTO;
 import io.mosip.registration.processor.request.handler.service.dto.UinCardRePrintRequestDto;
 import io.mosip.registration.processor.request.handler.service.dto.demographic.DemographicDTO;
-import io.mosip.registration.processor.request.handler.service.dto.demographic.DemographicInfoDTO;
-import io.mosip.registration.processor.request.handler.service.dto.demographic.MyCountryIdentity;
 import io.mosip.registration.processor.request.handler.service.exception.RegBaseCheckedException;
 import io.mosip.registration.processor.request.handler.service.exception.VidCreationException;
 import io.mosip.registration.processor.request.handler.upload.SyncUploadEncryptionService;
@@ -190,7 +191,8 @@ public class UinCardRePrintServiceImpl {
 						uinCardRePrintRequestDto.getRequest().getRegistrationType(),
 						uinCardRePrintRequestDto.getRequest().getCenterId(),
 						uinCardRePrintRequestDto.getRequest().getMachineId(), vid, cardType);
-				packetZipBytes = packetCreationService.create(registrationDTO, null);
+				packetZipBytes = packetCreationService.create(registrationDTO,
+						uinCardRePrintRequestDto.getRequest().getCenterId(), uinCardRePrintRequestDto.getRequest().getMachineId());
 				String rid = registrationDTO.getRegistrationId();
 				String packetCreatedDateTime = rid.substring(rid.length() - 14);
 				String formattedDate = packetCreatedDateTime.substring(0, 8) + "T"
@@ -253,15 +255,15 @@ public class UinCardRePrintServiceImpl {
 	 * @throws RegBaseCheckedException the reg base checked exception
 	 */
 	private RegistrationDTO createRegistrationDTOObject(String uin, String registrationType, String centerId,
-			String machineId, String vid, String cardType) throws RegBaseCheckedException {
+			String machineId, String vid, String cardType) throws RegBaseCheckedException, IOException {
 		RegistrationDTO registrationDTO = new RegistrationDTO();
 		registrationDTO.setDemographicDTO(getDemographicDTO(uin));
-		RegistrationMetaDataDTO registrationMetaDataDTO = getRegistrationMetaDataDTO(uin, registrationType, centerId,
+		Map<String, String> metadata = getRegistrationMetaData(uin, registrationType, centerId,
 				machineId, vid, cardType);
-		String registrationId = generateRegistrationId(registrationMetaDataDTO.getCenterId(),
-				registrationMetaDataDTO.getMachineId());
+		String registrationId = generateRegistrationId(centerId,
+				machineId);
 		registrationDTO.setRegistrationId(registrationId);
-		registrationDTO.setRegistrationMetaDataDTO(registrationMetaDataDTO);
+		registrationDTO.setMetadata(metadata);
 		return registrationDTO;
 
 	}
@@ -277,18 +279,17 @@ public class UinCardRePrintServiceImpl {
 	 * @param cardType         the card type
 	 * @return the registration meta data DTO
 	 */
-	private RegistrationMetaDataDTO getRegistrationMetaDataDTO(String uin, String registrationType, String centerId,
-			String machineId, String vid, String cardType) {
-		RegistrationMetaDataDTO registrationMetaDataDTO = new RegistrationMetaDataDTO();
+	private Map<String, String> getRegistrationMetaData(String uin, String registrationType, String centerId,
+														String machineId, String vid, String cardType) {
+		Map<String, String> metadata = new HashMap<>();
 
-		registrationMetaDataDTO.setCenterId(centerId);
-		registrationMetaDataDTO.setMachineId(machineId);
-		registrationMetaDataDTO.setRegistrationCategory(registrationType);
-		registrationMetaDataDTO.setUin(uin);
-		registrationMetaDataDTO.setVid(vid);
-		registrationMetaDataDTO.setCardType(cardType);
-		return registrationMetaDataDTO;
-
+		metadata.put(PacketMetaInfoConstants.CENTERID, centerId);
+		metadata.put(PacketMetaInfoConstants.MACHINEID, machineId);
+		metadata.put(PacketMetaInfoConstants.REGISTRATION_TYPE, registrationType);
+		metadata.put(PacketMetaInfoConstants.UIN, uin);
+		metadata.put(PacketMetaInfoConstants.VID, vid);
+		metadata.put(PacketMetaInfoConstants.CARD_TYPE, cardType);
+		return metadata;
 	}
 
 	/**
@@ -297,14 +298,22 @@ public class UinCardRePrintServiceImpl {
 	 * @param uin the uin
 	 * @return the demographic DTO
 	 */
-	private DemographicDTO getDemographicDTO(String uin) {
+	private DemographicDTO getDemographicDTO(String uin) throws IOException {
 		DemographicDTO demographicDTO = new DemographicDTO();
-		DemographicInfoDTO demographicInfoDTO = new DemographicInfoDTO();
-		MyCountryIdentity identity = new MyCountryIdentity();
-		identity.setIdSchemaVersion(1.0);
-		identity.setUin(new BigInteger(uin));
-		demographicInfoDTO.setIdentity(identity);
-		demographicDTO.setDemographicInfoDTO(demographicInfoDTO);
+		JSONObject jsonObject = new JSONObject();
+
+		JSONObject regProcessorIdentityJson = utilities.getRegistrationProcessorMappingJson();
+		String schemaVersion = JsonUtil.getJSONValue(
+				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.IDSCHEMA_VERSION),
+				MappingJsonConstants.VALUE);
+
+		String uinLabel = JsonUtil.getJSONValue(
+				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.UIN),
+				MappingJsonConstants.VALUE);
+
+		jsonObject.put(schemaVersion, 1.0);
+		jsonObject.put(uinLabel, new BigInteger(uin));
+		demographicDTO.setIdentity(jsonObject);
 		return demographicDTO;
 	}
 

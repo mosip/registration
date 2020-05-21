@@ -1,26 +1,5 @@
 package io.mosip.registration.processor.abis.service.impl;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.abis.exception.MissingMandatoryFieldsException;
@@ -30,7 +9,6 @@ import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
-import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisIdentifyRequestDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisIdentifyResponseDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisInsertRequestDto;
@@ -39,9 +17,26 @@ import io.mosip.registration.processor.core.packet.dto.abis.AbisPingRequestDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisPingResponseDto;
 import io.mosip.registration.processor.core.packet.dto.abis.CandidateListDto;
 import io.mosip.registration.processor.core.packet.dto.abis.CandidatesDto;
-import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
-import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * The Class AbisServiceImpl.
@@ -50,10 +45,6 @@ import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
  */
 @Service
 public class AbisServiceImpl implements AbisService {
-
-	/** The packet info manager. */
-	@Autowired
-	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
 
 	/** The rest client service. */
 	@Autowired
@@ -117,36 +108,36 @@ public class AbisServiceImpl implements AbisService {
 				NodeList faceNodeList = doc.getElementsByTagName(testFace);
 
 				if (fingerNodeList.getLength() > 0 || irisNodeList.getLength() > 0 || faceNodeList.getLength() > 0) {
-					response.setReturnValue(1);
+					response.setReturnValue("1");
 
 				} else {
-					response.setReturnValue(2);
-					response.setFailureReason(7);
+					response.setReturnValue("2");
+					response.setFailureReason("7");
 				}
 			} else {
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFFERENCEID.toString(),
 						referenceId, "AbisServiceImpl():: unable to fect CBEF file ");
-				response.setReturnValue(2);
-				response.setFailureReason(7);
+				response.setReturnValue("2");
+				response.setFailureReason("7");
 			}
 
 		} catch (ApisResourceAccessException | ParserConfigurationException | SAXException | IOException e) {
-			response.setReturnValue(2);
-			response.setFailureReason(7);
+			response.setReturnValue("2");
+			response.setFailureReason("7");
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					referenceId, "ApisResourceAccessException : Unable to acces getting cbef url."
 							+ ExceptionUtils.getStackTrace(e));
 
 		} catch (MissingMandatoryFieldsException e) {
-			response.setReturnValue(2);
-			response.setFailureReason(5);
+			response.setReturnValue("2");
+			response.setFailureReason("5");
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					referenceId, "MissingMandatoryFieldsException : Mandatory fields are missing in Request."
 							+ ExceptionUtils.getStackTrace(e));
 
 		} catch (Exception e) {
-			response.setReturnValue(2);
-			response.setFailureReason(3);
+			response.setReturnValue("2");
+			response.setFailureReason("3");
 
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFFERENCEID.toString(),
 					referenceId, "Due to some internal error, abis failed" + ExceptionUtils.getStackTrace(e));
@@ -204,7 +195,6 @@ public class AbisServiceImpl implements AbisService {
 		boolean duplicate = false;
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"AbisServiceImpl::performDedupe()::entry");
-
 		AbisIdentifyResponseDto response = new AbisIdentifyResponseDto();
 		String identifyReqId = identifyRequest.getReferenceId();
 		if (storedRefId.size() < 1000)
@@ -232,33 +222,33 @@ public class AbisServiceImpl implements AbisService {
 				if (faceNodeList != null) {
 					duplicate = checkDuplicate(duplicate, faceNodeList);
 				}
-				response.setReturnValue(1);
+				response.setReturnValue("1");
 
 				if (duplicate) {
 					addCandidateList(identifyReqId, identifyRequest, response);
 				}
 			} else {
-				response.setReturnValue(2);
-				response.setFailureReason(7);
+				response.setReturnValue("2");
+				response.setFailureReason("7");
 			}
 
 		} catch (ApisResourceAccessException | ParserConfigurationException | SAXException | IOException e) {
-			response.setReturnValue(2);
-			response.setFailureReason(7);
+			response.setReturnValue("2");
+			response.setFailureReason("7");
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					identifyReqId, "ApisResourceAccessException : Unable to acces getting cbef url."
 							+ ExceptionUtils.getStackTrace(e));
 
 		} catch (MissingMandatoryFieldsException e) {
-			response.setReturnValue(2);
-			response.setFailureReason(5);
+			response.setReturnValue("2");
+			response.setFailureReason("5");
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					identifyReqId, "MissingMandatoryFieldsException : Mandatory fields are missing in Request."
 							+ ExceptionUtils.getStackTrace(e));
 
 		} catch (Exception e) {
-			response.setReturnValue(2);
-			response.setFailureReason(3);
+			response.setReturnValue("2");
+			response.setFailureReason("3");
 
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					identifyReqId, "Due to some internal error, abis failed" + ExceptionUtils.getStackTrace(e));

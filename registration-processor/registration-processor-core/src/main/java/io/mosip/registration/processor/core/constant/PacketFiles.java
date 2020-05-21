@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.core.constant;
 
+
 /**
  * The Enum PacketFiles.
  */
@@ -109,8 +110,14 @@ public enum PacketFiles {
 	PACKET_DATA_HASH,
 	/** The packetOsiHash. */
 	PACKET_OSI_HASH,
+	/** The meta sequence. */
+	PACKET_OPERATIONS_HASH,
 	/** The otherFiles. */
 	OTHERFILES,
-	/**Audit Files */
-	AUDIT
+
+	/** Audit Files. */
+	AUDIT,
+
+	/** The meta info. */
+	META_INFO
 }

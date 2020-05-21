@@ -45,7 +45,7 @@ public class DocumentUtility {
 		JSONObject documentPOBnode;
 
 		String demographicJsonString = new String(bytes);
-		JSONObject mappingJson = utility.getRegistrationProcessorIdentityJson();
+		JSONObject mappingJson = utility.getRegistrationProcessorMappingJson();
 		JSONObject demographicJson = (JSONObject) JsonUtil.objectMapperReadValue(demographicJsonString,
 				JSONObject.class);
 		String poAValue = JsonUtil.getJSONValue(JsonUtil.getJSONObject(mappingJson, MappingJsonConstants.POA),MappingJsonConstants.VALUE);

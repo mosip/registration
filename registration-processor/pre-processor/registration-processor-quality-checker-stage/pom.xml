@@ -5,11 +5,11 @@
     <parent>
         <groupId>io.mosip.registrationprocessor</groupId>
         <artifactId>pre-processor</artifactId>
-        <version>1.0.9</version>
+        <version>1.0.10</version>
     </parent>
 
     <artifactId>registration-processor-quality-checker-stage</artifactId>
-    <version>1.0.9</version>
+    <version>1.0.10-SNAPSHOT</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -95,11 +95,6 @@
             <version>${powermock.api.mockito.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-			<groupId>io.mosip.registrationprocessor</groupId>
-			<artifactId>registration-processor-packet-manager</artifactId>
-			<version>${packet.manager.version}</version>
-		</dependency>
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>

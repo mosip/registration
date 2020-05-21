@@ -41,6 +41,7 @@ import io.mosip.registration.dto.RegistrationCenterDetailDTO;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.RegistrationMetaDataDTO;
 import io.mosip.registration.dto.SelectionListDTO;
+import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.dto.biometric.BiometricInfoDTO;
 import io.mosip.registration.dto.biometric.FaceDetailsDTO;
@@ -149,11 +150,13 @@ public class RegistrationController extends BaseController {
 		}
 	}
 
-	public void init(HashMap<String, Object> selectionListDTO) {
+	public void init(HashMap<String, Object> selectionListDTO, Map<String, UiSchemaDTO> selectedFields) {
 		validation.updateAsLostUIN(false);
 		createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_UPDATE);
 		RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 		registrationDTO.setSelectionListDTO(selectionListDTO);
+		List<String> fieldIds = new ArrayList<String>(selectedFields.keySet());
+		registrationDTO.setUpdatableFields(fieldIds);
 	}
 
 	protected void initializeLostUIN() {
@@ -487,10 +490,10 @@ public class RegistrationController extends BaseController {
 
 		boolean gotoNext = true;
 		List<String> excludedIds = RegistrationConstants.fieldsToExclude();
-		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
+		/*if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
 			excludedIds.remove("cniOrPinNumber");
 			excludedIds.remove("cniOrPinNumberLocalLanguage");
-		}
+		}*/
 
 		validation.setValidationMessage();
 		gotoNext = validation.validate(paneToValidate, excludedIds, gotoNext, masterSync);

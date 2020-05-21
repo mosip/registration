@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -44,9 +45,11 @@ public class MasterDataValidation {
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(MasterDataValidation.class);
 
 	/** The registration processor rest service. */
+	@Autowired
 	RegistrationProcessorRestClientService<Object> registrationProcessorRestService;
 
 	/** The env. */
+	@Autowired
 	Environment env;
 
 	/** The Constant VALID. */
@@ -56,6 +59,7 @@ public class MasterDataValidation {
 	JSONObject demographicIdentity = null;
 
 	/** The utility. */
+	@Autowired
 	private Utilities utility;
 
 	/** The Constant VALUE. */
@@ -67,25 +71,7 @@ public class MasterDataValidation {
 
 	private static final String ATTRIBUTES = "registration.processor.masterdata.validation.attributes";
 
-	/**
-	 * Instantiates a new master data validation.
-	 *
-	 * @param registrationStatusDto
-	 *            the registration status dto
-	 * @param env
-	 *            the env
-	 * @param registrationProcessorRestService
-	 *            the registration processor rest service
-	 * @param utility
-	 *            the utility
-	 */
-	public MasterDataValidation(Environment env,
-			RegistrationProcessorRestClientService<Object> registrationProcessorRestService, Utilities utility) {
-		this.env = env;
-		this.registrationProcessorRestService = registrationProcessorRestService;
-		this.utility = utility;
-
-	}
+	
 
 	/**
 	 * Validate master data.

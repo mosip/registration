@@ -9,9 +9,14 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.FileNotFoundInDestinationException;
+import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +37,6 @@ import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.util.PacketStructure;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
@@ -41,7 +45,6 @@ import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTOWra
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Identity;
-import io.mosip.registration.processor.core.spi.filesystem.manager.PacketManager;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
@@ -81,8 +84,11 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 	/** The Constant USER. */
 	private static final String USER = "MOSIP_SYSTEM";
-	/** The audit log request builder. */
 
+	@Value("${packet.default.source}")
+	private String defaultSource;
+
+	/** The audit log request builder. */
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
 
@@ -92,7 +98,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 	/** The filesystem ceph adapter impl. */
 	@Autowired
-	private PacketManager filesystemCephAdapterImpl;
+	private PacketReaderService packetReaderService;
 
 	/** The base packet repository. */
 	@Autowired
@@ -208,8 +214,8 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	 * java.lang.String)
 	 */
 	@Override
-	public byte[] getApplicantFile(String regId, String fileName) throws PacketDecryptionFailureException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException {
+	public byte[] getApplicantFile(String regId, String fileName, String source) throws
+			ApiNotAccessibleException, io.mosip.kernel.core.exception.IOException, IOException, PacketDecryptionFailureException {
 
 		byte[] file = null;
 		InputStream fileInStream = null;
@@ -223,11 +229,11 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 					PlatformErrorMessages.RPR_MVS_REG_ID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
 		}
 		if (PacketFiles.BIOMETRIC.name().equals(fileName)) {
-			fileInStream = getApplicantBiometricFile(regId, PacketFiles.APPLICANT_BIO_CBEFF.name());
+			fileInStream = getApplicantBiometricFile(regId, PacketFiles.APPLICANT_BIO_CBEFF.name(), source);
 		} else if (PacketFiles.DEMOGRAPHIC.name().equals(fileName)) {
-			fileInStream = getApplicantDemographicFile(regId, PacketFiles.ID.name());
+			fileInStream = getApplicantDemographicFile(regId, PacketFiles.ID.name(), source);
 		} else if (PacketFiles.PACKET_META_INFO.name().equals(fileName)) {
-			fileInStream = getApplicantMetaInfoFile(regId, PacketFiles.PACKET_META_INFO.name());
+			fileInStream = getApplicantMetaInfoFile(regId, PacketFiles.PACKET_META_INFO.name(), source);
 		} else {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					regId, "ManualVerificationServiceImpl::getApplicantFile()"
@@ -235,6 +241,8 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			throw new InvalidFileNameException(PlatformErrorMessages.RPR_MVS_INVALID_FILE_REQUEST.getCode(),
 					PlatformErrorMessages.RPR_MVS_INVALID_FILE_REQUEST.getMessage());
 		}
+		if (fileInStream == null)
+			throw new FileNotFoundInDestinationException("File not found inside packet");
 		try {
 			file = IOUtils.toByteArray(fileInStream);
 		} catch (IOException e) {
@@ -259,10 +267,10 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	 * @throws ApisResourceAccessException
 	 * @throws PacketDecryptionFailureException
 	 */
-	private InputStream getApplicantBiometricFile(String regId, String fileName)
-			throws PacketDecryptionFailureException, ApisResourceAccessException,
-			io.mosip.kernel.core.exception.IOException, IOException {
-		return filesystemCephAdapterImpl.getFile(regId, PacketStructure.BIOMETRIC + fileName);
+	private InputStream getApplicantBiometricFile(String regId, String fileName, String source)
+			throws ApiNotAccessibleException,
+			io.mosip.kernel.core.exception.IOException, IOException, PacketDecryptionFailureException {
+		return packetReaderService.getFile(regId, fileName, source != null ? source : defaultSource);
 	}
 
 	/**
@@ -278,15 +286,15 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	 * @throws ApisResourceAccessException
 	 * @throws PacketDecryptionFailureException
 	 */
-	private InputStream getApplicantDemographicFile(String regId, String fileName)
-			throws PacketDecryptionFailureException, ApisResourceAccessException,
+	private InputStream getApplicantDemographicFile(String regId, String fileName, String source)
+			throws PacketDecryptionFailureException, ApiNotAccessibleException,
 			io.mosip.kernel.core.exception.IOException, IOException {
-		return filesystemCephAdapterImpl.getFile(regId, PacketStructure.APPLICANTDEMOGRAPHIC + fileName);
+		return packetReaderService.getFile(regId, fileName, source != null ? source : defaultSource);
 	}
 
-	private InputStream getApplicantMetaInfoFile(String regId, String fileName) throws PacketDecryptionFailureException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException {
-		return filesystemCephAdapterImpl.getFile(regId, PacketStructure.PACKETMETAINFO);
+	private InputStream getApplicantMetaInfoFile(String regId, String fileName, String source) throws PacketDecryptionFailureException,
+			ApiNotAccessibleException, io.mosip.kernel.core.exception.IOException, IOException {
+		return packetReaderService.getFile(regId, PacketStructure.PACKETMETAINFO, source != null ? source : defaultSource);
 	}
 
 	/*

@@ -1,5 +1,7 @@
 package io.mosip.registration.processor.manual.verification.stage;
 
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +19,6 @@ import io.mosip.registration.processor.core.common.rest.dto.BaseRestResponseDTO;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.manual.verification.constants.ManualVerificationConstants;
 import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDTO;
@@ -110,7 +111,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 		router.handler(event -> {
 			try {
 				processBiometric(event);
-			} catch (PacketDecryptionFailureException | ApisResourceAccessException | IOException
+			} catch (PacketDecryptionFailureException | ApiNotAccessibleException | IOException
 					| java.io.IOException e2) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), "", "", ExceptionUtils.getStackTrace(e2));
 
@@ -126,7 +127,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 		router.handler(event -> {
 			try {
 				processDemographic(event);
-			} catch (PacketDecryptionFailureException | ApisResourceAccessException | IOException
+			} catch (PacketDecryptionFailureException | ApiNotAccessibleException | IOException
 					| java.io.IOException e1) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), "", "", ExceptionUtils.getStackTrace(e1));
 			}
@@ -162,7 +163,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 		router.handler(event -> {
 			try {
 				processPacketInfo(event);
-			} catch (PacketDecryptionFailureException | ApisResourceAccessException | IOException
+			} catch (PacketDecryptionFailureException | ApiNotAccessibleException | IOException
 					| java.io.IOException e) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), "", "", ExceptionUtils.getStackTrace(e));
 			}
@@ -178,7 +179,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	}
 
 	public void processBiometric(RoutingContext ctx)
-			throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException {
+			throws ApiNotAccessibleException, IOException, java.io.IOException, PacketDecryptionFailureException {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ManualVerificationStage::processBiometric::entry");
@@ -187,7 +188,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 				env.getProperty(ManualVerificationConstants.BIOMETRIC_SERVICE_ID));
 		ManualAppBiometricRequestDTO pojo = Json.mapper.convertValue(obj.getMap(), ManualAppBiometricRequestDTO.class);
 		byte[] packetInfo = manualAdjudicationService.getApplicantFile(pojo.getRequest().getRegId(),
-				PacketFiles.BIOMETRIC.name());
+				PacketFiles.BIOMETRIC.name(), pojo.getRequest().getSource());
 		if (packetInfo != null) {
 			String byteAsString = new String(packetInfo);
 			BaseRestResponseDTO responseData = ManualVerificationResponseBuilder.buildManualVerificationSuccessResponse(
@@ -201,7 +202,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	}
 
 	public void processDemographic(RoutingContext ctx)
-			throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException {
+			throws PacketDecryptionFailureException, ApiNotAccessibleException, IOException, java.io.IOException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ManualVerificationStage::processDemographic::entry");
 		JsonObject obj = ctx.getBodyAsJson();
@@ -209,7 +210,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 				env.getProperty(ManualVerificationConstants.DEMOGRAPHIC_SERVICE_ID));
 		ManualAppBiometricRequestDTO pojo = Json.mapper.convertValue(obj.getMap(), ManualAppBiometricRequestDTO.class);
 		byte[] packetInfo = manualAdjudicationService.getApplicantFile(pojo.getRequest().getRegId(),
-				PacketFiles.DEMOGRAPHIC.name());
+				PacketFiles.DEMOGRAPHIC.name(), pojo.getRequest().getSource());
 
 		if (packetInfo != null) {
 			String byteAsString = new String(packetInfo);
@@ -269,7 +270,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	}
 
 	public void processPacketInfo(RoutingContext ctx)
-			throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException {
+			throws PacketDecryptionFailureException, ApiNotAccessibleException, IOException, java.io.IOException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ManualVerificationStage::processpacketInfo::entry");
 		JsonObject obj = ctx.getBodyAsJson();
@@ -277,7 +278,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 				env.getProperty(ManualVerificationConstants.PACKETINFO_SERVICE_ID));
 		ManualAppBiometricRequestDTO pojo = Json.mapper.convertValue(obj.getMap(), ManualAppBiometricRequestDTO.class);
 		byte[] packetInfo = manualAdjudicationService.getApplicantFile(pojo.getRequest().getRegId(),
-				PacketFiles.PACKET_META_INFO.name());
+				PacketFiles.PACKET_META_INFO.name(), pojo.getRequest().getSource());
 		if (packetInfo != null) {
 			String byteAsString = new String(packetInfo);
 			BaseRestResponseDTO responseData = ManualVerificationResponseBuilder.buildManualVerificationSuccessResponse(

@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>io.mosip</groupId>
 		<artifactId>registration</artifactId>
-		<version>1.0.6</version>
+		<version>1.0.10</version>
 	</parent>
 
 	<groupId>io.mosip.registrationprocessor</groupId>
@@ -45,6 +45,7 @@
 		<hibernate.validator.version>6.0.12.Final</hibernate.validator.version>
 		<modelmapper.version>2.1.1</modelmapper.version>
 		<jcl.to.slf4j.version>1.7.25</jcl.to.slf4j.version>
+		<apache.httpcomponents.version>4.5.6</apache.httpcomponents.version>
 
 		<!-- Swagger -->
 		<swagger.version>2.9.2</swagger.version>
@@ -105,19 +106,19 @@
 		<jsch.version>0.1.55</jsch.version>
 
 		<!-- local -->
-		<registration.status.service.version>1.0.9</registration.status.service.version>
-		<registration.processor.core.version>1.0.9</registration.processor.core.version>
+		<registration.status.service.version>1.0.10</registration.status.service.version>
+		<registration.processor.core.version>1.0.10-SNAPSHOT</registration.processor.core.version>
 		<filesystem.adapter.ceph.version>1.0.9</filesystem.adapter.ceph.version>
-		<packet.manager.version>1.0.9</packet.manager.version>
-		<registration.processor.rest.client.version>1.0.9</registration.processor.rest.client.version>
-		<registration.processor.abis.handler.stage.version>1.0.9</registration.processor.abis.handler.stage.version>
-		<packet.info.storage.service.version>1.0.9</packet.info.storage.service.version>
-		<packet.bio.dedupe.service.impl.version>1.0.9</packet.bio.dedupe.service.impl.version>
-		<registration.processor.message.sender.version>1.0.9</registration.processor.message.sender.version>
-		<registration.processor.print.service.impl.version>1.0.9</registration.processor.print.service.impl.version>
+		<packet.manager.version>1.0.10-SNAPSHOT</packet.manager.version>
+		<registration.processor.rest.client.version>1.0.10</registration.processor.rest.client.version>
+		<packet.info.storage.service.version>1.0.10-SNAPSHOT</packet.info.storage.service.version>
+		<packet.bio.dedupe.service.impl.version>1.0.10-SNAPSHOT</packet.bio.dedupe.service.impl.version>
+		<registration.processor.message.sender.version>1.0.10-SNAPSHOT</registration.processor.message.sender.version>
+		<registration.processor.print.service.impl.version>1.0.10-SNAPSHOT</registration.processor.print.service.impl.version>
+		<registration.processor.packet.utility.version>1.0.10-SNAPSHOT</registration.processor.packet.utility.version>
 		
 		<!-- Kernel -->
-		<kernel.core.version>1.0.8-SNAPSHOT</kernel.core.version>
+		<kernel.core.version>1.0.9-SNAPSHOT</kernel.core.version>
 		<kernel.dataaccess.hibernate.version>1.0.6</kernel.dataaccess.hibernate.version>
 		<kernel.templatemanager.velocity.version>1.0.6</kernel.templatemanager.velocity.version>
 		<kernel.idvalidator.uin.version>1.0.6</kernel.idvalidator.uin.version>
@@ -127,7 +128,7 @@
 		<kernel.cbeffutil.version>1.1.0</kernel.cbeffutil.version>
 		<kernel.keygenerator.bouncycastle.version>1.0.6</kernel.keygenerator.bouncycastle.version>
         <kernel.crypto.jce.version>1.0.6</kernel.crypto.jce.version>
-        <kernel.bioapi.provider.version>1.0.6</kernel.bioapi.provider.version>
+        <kernel.bioapi.provider.version>1.0.8</kernel.bioapi.provider.version>
         <kernel.fsadapter.hdfs.version>1.0.6</kernel.fsadapter.hdfs.version>
         <kernel.auth.adapter.version>1.0.6</kernel.auth.adapter.version>
         <kernel.pdfgenerator.itext.version>1.0.6</kernel.pdfgenerator.itext.version>
@@ -135,7 +136,8 @@
 		<kernel.logger.logback.version>1.0.6</kernel.logger.logback.version>
 		<kernel.auth.adapter.version>1.0.6</kernel.auth.adapter.version>
 		<kernel.idvalidator.vid.version>1.0.6</kernel.idvalidator.vid.version>
-		<kernel.idobjectvalidator.version>1.0.7</kernel.idobjectvalidator.version>
+		<kernel.idobjectvalidator.version>1.0.9-SNAPSHOT</kernel.idobjectvalidator.version>
+		<kernel.packetmanager.version>1.0.10-SNAPSHOT</kernel.packetmanager.version>
 			<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,

@@ -17,7 +17,7 @@ public class Identity {
 	private Photograph exceptionPhotograph;
 	private List<Document> documents;
 	private List<FieldValue> metaData;
-	private List<FieldValue> osiData;
+	private List<FieldValue> operationsData;
 	private List<FieldValueArray> hashSequence1;
 	private List<FieldValueArray> hashSequence2;
 	private List<RegisteredDevice> capturedRegisteredDevices;
@@ -118,16 +118,16 @@ public class Identity {
 	/**
 	 * @return the osiData
 	 */
-	public List<FieldValue> getOsiData() {
-		return osiData;
+	public List<FieldValue> getOperationsData() {
+		return operationsData;
 	}
 
 	/**
 	 * @param osiData
 	 *            the osiData to set
 	 */
-	public void setOsiData(List<FieldValue> osiData) {
-		this.osiData = osiData;
+	public void setOsiData(List<FieldValue> operationsData) {
+		this.operationsData = operationsData;
 	}
 
 	/**

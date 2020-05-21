@@ -6,6 +6,7 @@ import java.util.Map;
 import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
+import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 
 /**
  * The Interface MessageNotificationService
@@ -32,8 +33,9 @@ public interface MessageNotificationService<T, U, V> {
 	 * @throws PacketDecryptionFailureException 
 	 */
 	public T sendSmsNotification(String templateTypeCode, String id, IdType idType,
-			Map<String, Object> attributes, String regType) throws ApisResourceAccessException, IOException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException;
-	
+			Map<String, Object> attributes, String regType) throws ApisResourceAccessException, IOException,
+			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
+			RegistrationProcessorCheckedException, io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 	
 	/**
 	 * Method to send email notification

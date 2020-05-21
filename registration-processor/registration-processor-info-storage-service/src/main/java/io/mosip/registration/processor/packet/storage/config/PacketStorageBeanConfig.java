@@ -5,7 +5,8 @@ import java.security.PublicKey;
 
 import javax.crypto.SecretKey;
 
-import org.json.simple.parser.JSONParser;
+import io.mosip.kernel.packetmanager.impl.PacketReaderServiceImpl;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -20,6 +21,8 @@ import io.mosip.kernel.dataaccess.hibernate.repository.impl.HibernateRepositoryI
 import io.mosip.kernel.keygenerator.bouncycastle.KeyGenerator;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
+import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
+import io.mosip.registration.processor.packet.manager.idreposervice.impl.IdRepoServiceImpl;
 import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.service.impl.PacketInfoManagerImpl;
@@ -69,4 +72,13 @@ public class PacketStorageBeanConfig {
 		return new CryptoCore();
 	}
 
+	@Bean
+	public PacketReaderService getPacketReaderService() {
+		return new PacketReaderServiceImpl();
+	}
+
+	@Bean
+	public IdRepoService getIdRepoService() {
+		return new IdRepoServiceImpl();
+	}
 }

@@ -67,7 +67,7 @@ public class DocumentUtilityTest {
 		JSONObject identityMappingJson = JsonUtil.getJSONObject(objMapper.readValue(identityMapping, JSONObject.class),
 				"identity");
 		;
-		Mockito.when(utility.getRegistrationProcessorIdentityJson()).thenReturn(identityMappingJson);
+		Mockito.when(utility.getRegistrationProcessorMappingJson()).thenReturn(identityMappingJson);
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn(MappingJsonConstants.IDENTITY);
 		FileInputStream fstream = new FileInputStream("src/test/resources/ID.json");
 		byte[] bytes = IOUtils.toByteArray(fstream);

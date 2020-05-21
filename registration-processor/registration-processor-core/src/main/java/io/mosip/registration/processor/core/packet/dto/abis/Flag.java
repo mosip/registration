@@ -19,8 +19,9 @@ public class Flag implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	/** The max results. */
-	private Integer maxResults;
+	private String maxResults;
 
 	/** The target FPIR. */
-	private Integer targetFPIR;
+	private String targetFPIR;
+
 }

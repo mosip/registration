@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>io.mosip</groupId>
 		<artifactId>registration</artifactId>
-		<version>1.0.9</version>
+		<version>1.0.10</version>
 	</parent>
 
 	<groupId>io.mosip.registration</groupId>
@@ -54,7 +54,7 @@
 		<jackson.version>2.10.1</jackson.version>
 		<jackson.mapper.asl.version>1.7.1</jackson.mapper.asl.version>
 
-		<mosip.core.kernel.version>1.0.6-SNAPSHOT</mosip.core.kernel.version>
+		<mosip.core.kernel.version>1.0.6</mosip.core.kernel.version>
 		<!-- Derby Version -->
 		<apache.derby.version>10.13.1.1</apache.derby.version>
 
