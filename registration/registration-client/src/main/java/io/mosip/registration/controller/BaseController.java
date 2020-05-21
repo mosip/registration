@@ -526,16 +526,17 @@ public class BaseController {
 			parentPane = (Pane) parentPane.getParent().getParent();
 		}
 		Label label = ((Label) (parentPane.lookup(RegistrationConstants.HASH + id + RegistrationConstants.MESSAGE)));
-		if (!(label.isVisible() && id.equals(RegistrationConstants.DOB))) {
-			String[] split = context.split(type);
-			label.setText(split[0]);
+		if(label != null) {
+			if (!(label.isVisible() && id.equals(RegistrationConstants.DOB))) {
+				String[] split = context.split(type);
+				label.setText(split[0]);
+			}
+
+			Tooltip tool = new Tooltip(context.contains(type) ? context.split(type)[0] : context);
+			tool.getStyleClass().add(RegistrationConstants.TOOLTIP);
+			label.setTooltip(tool);
+			label.setVisible(true);
 		}
-
-		Tooltip tool = new Tooltip(context.contains(type) ? context.split(type)[0] : context);
-		tool.getStyleClass().add(RegistrationConstants.TOOLTIP);
-		label.setTooltip(tool);
-		label.setVisible(true);
-
 	}
 
 	/**

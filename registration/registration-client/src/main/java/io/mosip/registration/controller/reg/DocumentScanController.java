@@ -348,9 +348,9 @@ public class DocumentScanController extends BaseController {
 				comboBox.setPrefWidth(docScanVbox.getWidth() / 2);
 				comboBox.setId(documentCategory.getId());
 				
-				comboBox.valueProperty().addListener((v, oldValue, newValue) -> {
+				/*comboBox.valueProperty().addListener((v, oldValue, newValue) -> {
 					validateDocumentsPane();
-				});
+				});*/
 				ImageView indicatorImage = new ImageView(
 						new Image(this.getClass().getResourceAsStream(RegistrationConstants.CLOSE_IMAGE_PATH), 15, 15,
 								true, true));
