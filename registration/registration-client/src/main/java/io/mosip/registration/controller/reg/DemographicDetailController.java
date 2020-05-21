@@ -1089,31 +1089,9 @@ public class DemographicDetailController extends BaseController {
 				auditFactory.audit(AuditEvent.REG_DEMO_NEXT, Components.REG_DEMO_DETAILS, SessionContext.userId(),
 						AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
-				// Set Exception Photo Type Description
-				/*boolean isParentOrGuardianBiometricsCaptured = getRegistrationDTOFromSession().isUpdateUINChild()
-						|| (SessionContext.map().get(RegistrationConstants.IS_Child) != null
-								&& (boolean) SessionContext.map().get(RegistrationConstants.IS_Child));
-				documentScanController.setExceptionDescriptionText(isParentOrGuardianBiometricsCaptured);
-				faceCaptureController.setExceptionFaceDescriptionText(isParentOrGuardianBiometricsCaptured);*/
-
-				if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
-					SessionContext.map().put(RegistrationConstants.UIN_UPDATE_DEMOGRAPHICDETAIL, false);
-					if (RegistrationConstants.ENABLE
-							.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.DOC_DISABLE_FLAG))
-							|| (RegistrationConstants.ENABLE.equalsIgnoreCase(
-									getValueFromApplicationContext(RegistrationConstants.FINGERPRINT_DISABLE_FLAG))
-									|| RegistrationConstants.ENABLE.equalsIgnoreCase(
-											getValueFromApplicationContext(RegistrationConstants.IRIS_DISABLE_FLAG)))) {
-						SessionContext.map().put(RegistrationConstants.UIN_UPDATE_DOCUMENTSCAN, true);
-					} else {
-						updateUINMethodFlow();
-					}
-					registrationController.showUINUpdateCurrentPage();
-				} else {
-					registrationController.showCurrentPage(RegistrationConstants.DEMOGRAPHIC_DETAIL,
-							getPageByAction(RegistrationConstants.DEMOGRAPHIC_DETAIL, RegistrationConstants.NEXT));
-					// addExceptionDTOs();
-				}
+				registrationController.showCurrentPage(RegistrationConstants.DEMOGRAPHIC_DETAIL,
+						getPageByAction(RegistrationConstants.DEMOGRAPHIC_DETAIL, RegistrationConstants.NEXT));
+				
 			}
 	}
 
