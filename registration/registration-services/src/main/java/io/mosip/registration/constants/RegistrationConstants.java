@@ -1705,8 +1705,8 @@ public class RegistrationConstants {
 			put("rightMiddle", RightMiddle);
 			put("rightRing", RightRing);
 			put("rightThumb", RightThumb);
-			put("LeftEye", LEFT_EYE);
-			put("RightEye", RIGHT_EYE);
+			put("leftEye", LEFT_EYE);
+			put("rightEye", RIGHT_EYE);
 			
 		}
 

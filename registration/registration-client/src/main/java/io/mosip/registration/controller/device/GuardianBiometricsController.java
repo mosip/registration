@@ -275,15 +275,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 		fxUtils = FXUtils.getInstance();
 		applicationLabelBundle = applicationContext.getApplicationLanguageBundle();
 
-		/*
-		 * map to process data structure follows this structure
-		 * 
-		 * applicant(key)= HashMap<String,List<List<String>>
-		 * HashMap<String,List<List<String>> will be something like
-		 * FINGERPRINT_SLAB_LEFT(key), List<List<String>>(value) List<List<String>> will
-		 * be something like [[leftIndex,leftMiddle],[leftRing,leftThumb,leftLittle]]
-		 * 
-		 */
+	
 
 		HashMap<Entry<String, String>, HashMap<String, List<List<String>>>> mapToProcess = getconfigureAndNonConfiguredBioAttributes(
 				Arrays.asList(
@@ -304,11 +296,8 @@ public class GuardianBiometricsController extends BaseController implements Init
 			label.getStyleClass().add("paneHeader");
 			ComboBox<Entry<String, String>> comboBox = new ComboBox<>();
 
-			comboBox.showingProperty().addListener((obs, wasShowing, isShowing) -> {
-				if (comboBox.getValue() != null) {
-					displayBiometric(comboBox.getValue().getKey());
-
-				}
+			comboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
+				displayBiometric(newValue.getKey());
 			});
 			renderBiometrics(comboBox);
 			comboBox.getStyleClass().add("demographicCombobox");
@@ -397,61 +386,12 @@ public class GuardianBiometricsController extends BaseController implements Init
 			findComboBox().setManaged(true);
 		}
 
-		//
-		// // TODO replace the value from the comboMap
-		// currentSubType = RegistrationConstants.INDIVIDUAL;
-		//
-		// if (getRegistrationDTOFromSession() != null &&
-		// getRegistrationDTOFromSession().getSelectionListDTO() != null) {
-		// registrationNavlabel.setText(ApplicationContext.applicationLanguageBundle()
-		// .getString(RegistrationConstants.UIN_UPDATE_UINUPDATENAVLBL));
-		// }
-		//
-		// if (getRegistrationDTOFromSession() != null
-		// &&
-		// getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory()
-		// != null
-		// &&
-		// getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory()
-		// .equals(RegistrationConstants.PACKET_TYPE_LOST)) {
-		// registrationNavlabel.setText(
-		// ApplicationContext.applicationLanguageBundle().getString(RegistrationConstants.LOSTUINLBL));
-		// }
-		// intializeCaptureCount();
-		// fxUtils.setTransliteration(transliteration);
-		// bioValue = RegistrationUIConstants.SELECT;
 		biometricBox.setVisible(false);
 		retryBox.setVisible(false);
 		continueBtn.setDisable(true);
-		// populateBiometrics();
-		//
-		// LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME,
-		// APPLICATION_ID,
-		// "Loading of Guardian Biometric screen ended");
-		//
-		// biometricTypecombo.valueProperty().addListener(new
-		// ChangeListener<BiometricAttributeDto>() {
-		//
-		// @Override
-		// public void changed(ObservableValue<? extends BiometricAttributeDto> arg0,
-		// BiometricAttributeDto previousValue, BiometricAttributeDto currentValue) {
-		// if (null != previousValue && null != currentValue
-		// && !previousValue.getName().equalsIgnoreCase(currentValue.getName())) {
-		// continueBtn.setDisable(true);
-		//
-		// getRegistrationDTOFromSession().getBiometricDTO().getApplicantBiometricDTO()
-		// .getFingerprintDetailsDTO().clear();
-		// getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
-		// .getFingerprintDetailsDTO().clear();
-		//
-		// getRegistrationDTOFromSession().getBiometricDTO().getApplicantBiometricDTO().getIrisDetailsDTO()
-		// .clear();
-		// getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().getIrisDetailsDTO()
-		// .clear();
-		// }
-		//
-		// }
-		// });
+		
+		displaycurrentUiElements();
+		
 
 	}
 
@@ -595,7 +535,10 @@ public class GuardianBiometricsController extends BaseController implements Init
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Displaying biometrics to capture");
 
+		retryBox.setVisible(true);
+		biometricBox.setVisible(true);
 		biometricType.setText(applicationLabelBundle.getString(modality));
+		
 		disableLastCheckBoxSection();
 		this.currentModality = modality;
 		enableCurrentCheckBoxSection();
@@ -700,6 +643,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 	}
 
 	private void disableLastCheckBoxSection() {
+		
 		if (currentPosition != -1) {
 			if (this.currentModality != null
 					&& checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)) != null
@@ -711,6 +655,15 @@ public class GuardianBiometricsController extends BaseController implements Init
 						.setManaged(false);
 			}
 		}
+		
+//		for (Entry<String, HashMap<String, VBox>> entry : checkBoxMap.entrySet()) {
+//			for (Entry<String, VBox> vBoxEntry : entry.getValue().entrySet()) {
+//				
+//				vBoxEntry.getValue().setVisible(false);
+//				vBoxEntry.getValue().setManaged(false);
+//			}
+//				
+//		}
 	}
 
 	/**
