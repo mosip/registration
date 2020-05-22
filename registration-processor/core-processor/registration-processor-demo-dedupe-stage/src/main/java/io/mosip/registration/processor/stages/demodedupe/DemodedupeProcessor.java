@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.AbisStatusCode;
@@ -90,9 +89,6 @@ public class DemodedupeProcessor {
 	/** The packet info manager. */
 	@Autowired
 	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
-
-	@Autowired
-	private PacketReaderService packetReaderService;
 
 
 
