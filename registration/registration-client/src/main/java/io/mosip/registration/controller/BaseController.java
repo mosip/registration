@@ -737,25 +737,14 @@ public class BaseController {
 
 		clearAllValues();
 
+		guardianBiometricsController.clearBioCaptureInfo();
+
 		SessionContext.userMap().remove(RegistrationConstants.TOGGLE_BIO_METRIC_EXCEPTION);
 		SessionContext.userMap().remove(RegistrationConstants.IS_LOW_QUALITY_BIOMETRICS);
 		SessionContext.map().remove(RegistrationConstants.DUPLICATE_FINGER);
 
 		pageFlow.loadPageFlow();
 
-		// updatePageFlow(RegistrationConstants.BIOMETRIC_EXCEPTION,
-		// (boolean)
-		// ApplicationContext.map().get(RegistrationConstants.BIOMETRIC_EXCEPTION_FLOW));
-		//
-		// updatePageFlow(RegistrationConstants.FINGERPRINT_CAPTURE,
-		// String.valueOf(ApplicationContext.map().get(RegistrationConstants.FINGERPRINT_DISABLE_FLAG))
-		// .equalsIgnoreCase(RegistrationConstants.ENABLE));
-		//
-		// updatePageFlow(RegistrationConstants.IRIS_CAPTURE,
-		// String.valueOf(ApplicationContext.map().get(RegistrationConstants.IRIS_DISABLE_FLAG))
-		// .equalsIgnoreCase(RegistrationConstants.ENABLE));
-		//
-		// updatePageFlow(RegistrationConstants.GUARDIAN_BIOMETRIC, false);
 	}
 
 	/**
@@ -1959,4 +1948,31 @@ public class BaseController {
 		}
 	}
 
+	protected void updateByAttempt(double qualityScore, Image streamImage, double thresholdScore,
+			ImageView streamImagePane, Label qualityText, ProgressBar progressBar, Label progressQualityScore) {
+
+		String qualityScoreLabelVal = getQualityScore(qualityScore);
+
+		if (qualityScoreLabelVal != null) {
+			// Set Stream image
+			streamImagePane.setImage(streamImage);
+
+			// Quality Label
+			qualityText.setText(qualityScoreLabelVal);
+
+			// Progress Bar
+			progressBar.setProgress(qualityScore / 100);
+
+			// Progress Bar Quality Score
+			progressQualityScore.setText(qualityScoreLabelVal);
+
+			if (qualityScore >= thresholdScore) {
+				progressBar.getStyleClass().removeAll(RegistrationConstants.PROGRESS_BAR_RED);
+				progressBar.getStyleClass().add(RegistrationConstants.PROGRESS_BAR_GREEN);
+			} else {
+				progressBar.getStyleClass().removeAll(RegistrationConstants.PROGRESS_BAR_GREEN);
+				progressBar.getStyleClass().add(RegistrationConstants.PROGRESS_BAR_RED);
+			}
+		}
+	}
 }
