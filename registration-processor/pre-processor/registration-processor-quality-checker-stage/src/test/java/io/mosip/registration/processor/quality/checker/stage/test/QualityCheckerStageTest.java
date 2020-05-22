@@ -219,6 +219,46 @@ public class QualityCheckerStageTest {
 
 		assertTrue(result.getIsValid());
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testException() throws Exception {
+		
+		Mockito.when(cbeffUtil.getBIRDataFromXML(any())).thenThrow(Exception.class);
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890");
+		MessageDTO result = qualityCheckerStage.process(dto);
+
+		
+	}
+	
+	@Test
+	public void testCbeffNotFound() throws PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException, IOException {
+		String idJsonString = "{\n" + "  \"identity\" : {\n" + "    \"fullName\" : [ {\n"
+				+ "      \"language\" : \"eng\",\n" + "      \"value\" : \"Ragavendran V\"\n" + "    }, {\n"
+				+ "      \"language\" : \"ara\",\n" + "      \"value\" : \"قشلشرثىيقشى ر\"\n" + "    } ],\n"
+				+ "    \"individualBiometrics\" : {\n" + "      \"format\" : \"cbeff\",\n"
+				+ "      \"version\" : 1.0,\n" + "      \"value\" : \"applicant_bio_CBEFF\"\n" + "    }\n" + "  }\n"
+				+ "}";
+		InputStream idJsonStream = IOUtils.toInputStream(idJsonString, "UTF-8");
+		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenReturn(idJsonStream).thenReturn(null);
+
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890");
+		MessageDTO result = qualityCheckerStage.process(dto);
+
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testApiNotAccessibleTest() throws PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException, IOException {
+		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenThrow(ApiNotAccessibleException.class);
+
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890");
+		qualityCheckerStage.process(dto);
+
+	}
 
 	@Test
 	public void testQualityCheckFailure() {

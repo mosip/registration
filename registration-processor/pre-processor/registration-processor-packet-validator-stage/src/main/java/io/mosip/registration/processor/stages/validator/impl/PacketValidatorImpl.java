@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.idobjectvalidator.constant.IdObjectValidatorSupportedOperations;
 import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectIOException;
 import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectValidationFailedException;
+import io.mosip.kernel.core.idobjectvalidator.exception.InvalidIdSchemaException;
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.idobjectvalidator.impl.IdObjectCompositeValidator;
@@ -100,6 +101,9 @@ public class PacketValidatorImpl implements PacketValidator {
 	@Value("${packet.default.source}")
 	private String source;
 
+	@Value("${registration.processor.sourcepackets}")
+	private String sourcepackets;
+
 	@Autowired
 	private ApplicantDocumentValidation applicantDocumentValidation;
 
@@ -124,7 +128,7 @@ public class PacketValidatorImpl implements PacketValidator {
 	@Override
 	public boolean validate(String rid, String regType, PacketValidationDto packetValidationDto) throws PacketValidatorException
 			 {
-		Long uin = null;
+		String uin = null;
 		JSONObject demographicIdentity = null;
 		boolean isvalidated=true;
 		try {
@@ -198,7 +202,7 @@ public class PacketValidatorImpl implements PacketValidator {
 			 
 		} catch (IOException | io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 				| io.mosip.kernel.core.exception.IOException | ApiNotAccessibleException | ApisResourceAccessException |
-				IdObjectValidationFailedException | IdObjectIOException | RegistrationProcessorCheckedException e) {
+				IdObjectValidationFailedException | IdObjectIOException | RegistrationProcessorCheckedException | InvalidIdSchemaException e) {
 			throw new PacketValidatorException (e);
 		}
 		
@@ -252,14 +256,16 @@ public class PacketValidatorImpl implements PacketValidator {
 	private boolean schemaValidation(String rid, JSONObject idObject, PacketValidationDto packetValidationDto)
 			throws ApisResourceAccessException, IOException, IdObjectValidationFailedException, IdObjectIOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			RegistrationProcessorCheckedException, ApiNotAccessibleException {
+			RegistrationProcessorCheckedException, ApiNotAccessibleException, InvalidIdSchemaException {
 
 		if (env.getProperty(VALIDATESCHEMA).trim().equalsIgnoreCase(VALIDATIONFALSE)) {
 			packetValidationDto.setSchemaValidated(true);
 			return packetValidationDto.isSchemaValidated();
 		}
 		IdObjectValidatorSupportedOperations operation = idObjectsSchemaValidationOperationMapper.getOperation(rid);
-		packetValidationDto.setSchemaValidated(idObjectSchemaValidator.validateIdObject(idObject, operation));
+		String schema=idSchemaUtils.getIdSchema();
+
+		packetValidationDto.setSchemaValidated(idObjectSchemaValidator.validateIdObject(schema,packetReaderService.getCompleteIdObject(rid, sourcepackets), operation));
 
 		if (!packetValidationDto.isSchemaValidated()) {
 			packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.SCHEMA_VALIDATION_FAILED.getMessage());

@@ -232,14 +232,14 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 
 			else {
 				JSONObject jsonObject = utilities.retrieveUIN(idValue);
-				Long value = JsonUtil.getJSONValue(jsonObject, IdType.UIN.toString());
-				if (value == null) {
+				uin = JsonUtil.getJSONValue(jsonObject, IdType.UIN.toString());
+				if (uin == null) {
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), null,
 							PlatformErrorMessages.RPR_PRT_UIN_NOT_FOUND_IN_DATABASE.name());
 					throw new UINNotFoundInDatabase(PlatformErrorMessages.RPR_PRT_UIN_NOT_FOUND_IN_DATABASE.getCode());
 				}
-				uin = Long.toString(value);
+
 				response = getIdRepoResponse(idType.toString(), idValue);
 			}
 
@@ -728,7 +728,7 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 	 *             Signals that an I/O exception has occurred.
 	 */
 	private String getPassword(String uin) throws ApisResourceAccessException, IOException {
-		JSONObject jsonObject = utilities.retrieveIdrepoJson(Long.parseLong(uin));
+		JSONObject jsonObject = utilities.retrieveIdrepoJson(uin);
 
 		String[] attributes = env.getProperty(UINCARDPASSWORD).split("\\|");
 		List<String> list = new ArrayList<>(Arrays.asList(attributes));

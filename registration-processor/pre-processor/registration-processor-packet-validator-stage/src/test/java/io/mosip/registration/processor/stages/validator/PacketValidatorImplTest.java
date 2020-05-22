@@ -46,6 +46,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import io.mosip.kernel.core.idobjectvalidator.constant.IdObjectValidatorSupportedOperations;
 import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectIOException;
 import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectValidationFailedException;
+import io.mosip.kernel.core.idobjectvalidator.exception.InvalidIdSchemaException;
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.util.HMACUtils;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -262,24 +263,25 @@ public class PacketValidatorImplTest {
 		when(env.getProperty(VALIDATEAPPLICANTDOCUMENT)).thenReturn("true");
 		when(env.getProperty(VALIDATEMASTERDATA)).thenReturn("true");
 		when(env.getProperty(VALIDATEMANDATORY)).thenReturn("true");
-		
+		JSONObject jsonObject = Mockito.mock(JSONObject.class);
 		Mockito.when(packetReaderService.checkFileExistence(anyString(), anyString(),anyString())).thenReturn(true);
-		
+		Mockito.when(idSchemaUtils.getIdSchema()).thenReturn("");
+		Mockito.when(packetReaderService.getCompleteIdObject(anyString(), anyString())).thenReturn(jsonObject);
 		Mockito.when(idObjectsSchemaValidationOperationMapper.getOperation(anyString())).thenReturn(IdObjectValidatorSupportedOperations.NEW_REGISTRATION);
-		Mockito.when(idObjectValidator.validateIdObject(any(), any())).thenReturn(true);
+		Mockito.when(idObjectValidator.validateIdObject(any(),any(), any())).thenReturn(true);
 		when(checkSumValidation.checksumvalidation(anyString(), any(), anyString(), any())).thenReturn(true);
 		
 		
-		JSONObject jsonObject = Mockito.mock(JSONObject.class);
+
 		Mockito.when(utility.getDemographicIdentityJSONObject(any())).thenReturn(jsonObject);
 		PowerMockito.when(JsonUtil.getJSONObject(jsonObject, "individualBiometrics")).thenReturn(jsonObject);
 		Mockito.when(jsonObject.get("value")).thenReturn("applicantCBEF");
 		
-		Mockito.when(utility.getUIn(any())).thenReturn(12345678l);
+		Mockito.when(utility.getUIn(any())).thenReturn("12345678l");
 		Mockito.when(utility.retrieveIdrepoJson(any())).thenReturn(jsonObject);
 		Mockito.when(utility.retrieveIdrepoJsonStatus(any())).thenReturn("ACTIVE");
 		when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
-		Mockito.when(idRepoService.findUinFromIdrepo(anyString(), any())).thenReturn(123456781);
+		Mockito.when(idRepoService.findUinFromIdrepo(anyString(), any())).thenReturn("123456781");
 	}
 	
 	@Test
@@ -323,8 +325,8 @@ public class PacketValidatorImplTest {
 	}
 	
 	@Test
-	public void testSchemaValidationFailure() throws PacketValidatorException, IdObjectValidationFailedException, IdObjectIOException {
-		Mockito.when(idObjectValidator.validateIdObject(any(), any())).thenReturn(false);
+	public void testSchemaValidationFailure() throws PacketValidatorException, IdObjectValidationFailedException, IdObjectIOException, InvalidIdSchemaException {
+		Mockito.when(idObjectValidator.validateIdObject(any(),any(), any())).thenReturn(false);
 		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 	
