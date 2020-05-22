@@ -100,7 +100,7 @@ public class PacketValidatorImpl implements PacketValidator {
 	
 	@Value("${packet.default.source}")
 	private String source;
-	
+
 	@Value("${registration.processor.sourcepackets}")
 	private String sourcepackets;
 
@@ -128,7 +128,7 @@ public class PacketValidatorImpl implements PacketValidator {
 	@Override
 	public boolean validate(String rid, String regType, PacketValidationDto packetValidationDto) throws PacketValidatorException
 			 {
-		Long uin = null;
+		String uin = null;
 		JSONObject demographicIdentity = null;
 		boolean isvalidated=true;
 		try {
@@ -264,7 +264,7 @@ public class PacketValidatorImpl implements PacketValidator {
 		}
 		IdObjectValidatorSupportedOperations operation = idObjectsSchemaValidationOperationMapper.getOperation(rid);
 		String schema=idSchemaUtils.getIdSchema();
-		
+
 		packetValidationDto.setSchemaValidated(idObjectSchemaValidator.validateIdObject(schema,packetReaderService.getCompleteIdObject(rid, sourcepackets), operation));
 
 		if (!packetValidationDto.isSchemaValidated()) {

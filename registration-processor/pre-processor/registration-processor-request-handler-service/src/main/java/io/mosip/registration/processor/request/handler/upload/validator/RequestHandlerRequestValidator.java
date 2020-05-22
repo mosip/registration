@@ -381,7 +381,7 @@ public class RequestHandlerRequestValidator {
 		boolean isValidUIN = false;
 		try {
 			isValidUIN = uinValidatorImpl.validateId(uin);
-			JSONObject jsonObject = utilities.retrieveIdrepoJson(Long.parseLong(uin));
+			JSONObject jsonObject = utilities.retrieveIdrepoJson(uin);
 			if (isValidUIN && jsonObject != null) {
 				isValidUIN = true;
 			} else {
@@ -444,7 +444,7 @@ public class RequestHandlerRequestValidator {
 							|| registrationType.equalsIgnoreCase(RegistrationType.DEACTIVATED.toString()))
 					|| registrationType != null && registrationType.equals(RegistrationType.RES_UPDATE.toString())) {
 				boolean isValidUin = uinValidatorImpl.validateId(uin);
-				String status = utilities.retrieveIdrepoJsonStatus(Long.parseLong(uin));
+				String status = utilities.retrieveIdrepoJsonStatus(uin);
 
 				if (isValidUin) {
 					if(registrationType.equals(RegistrationType.RES_UPDATE.toString())) {
@@ -473,7 +473,7 @@ public class RequestHandlerRequestValidator {
 
 	private boolean validateUINForResUpdate(String uin, String status)
 			throws ApisResourceAccessException, IOException, RegBaseCheckedException {
-		JSONObject idObject = utilities.retrieveIdrepoJson(Long.valueOf(uin));
+		JSONObject idObject = utilities.retrieveIdrepoJson(uin);
 		if(idObject!=null && status.equals("ACTIVATED"))
 			return true;
 		else

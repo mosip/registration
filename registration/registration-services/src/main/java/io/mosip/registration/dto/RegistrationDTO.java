@@ -43,7 +43,7 @@ public class RegistrationDTO {
 	private String registrationCategory;
 	private int age;
 	private boolean isChild;
-	
+
 	private RegistrationMetaDataDTO registrationMetaDataDTO;
 	private OSIDataDTO osiDataDTO;
 	
@@ -79,7 +79,7 @@ public class RegistrationDTO {
 	
 	public void addDemographicField(String fieldId, String applicationLanguage, String value,
 			String localLanguage, String localValue) {
-		List<SimpleDto> values = new ArrayList<SimpleDto>();				
+		List<SimpleDto> values = new ArrayList<SimpleDto>();
 		if(value != null && !value.isEmpty())
 			values.add(new SimpleDto(applicationLanguage, value));
 		
@@ -98,7 +98,7 @@ public class RegistrationDTO {
 			LocalDate date = LocalDate.of(Integer.valueOf(year), Integer.valueOf(month), Integer.valueOf(day));
 			this.demographics.put(fieldId, date.format(DateTimeFormatter.ofPattern(DATE_FORMAT)));
 			this.age = Period.between(date, LocalDate.now(ZoneId.of("UTC"))).getYears();
-			
+
 			int minAge = Integer.parseInt((String) applicationContext.getApplicationMap().get(RegistrationConstants.MIN_AGE));
 			int maxAge = Integer.parseInt((String) applicationContext.getApplicationMap().get(RegistrationConstants.MAX_AGE));
 			this.isChild = this.age < minAge;
@@ -122,11 +122,11 @@ public class RegistrationDTO {
 	public void removeDocument(String fieldId) {
 		this.documents.remove(fieldId);
 	}
-	
+
 	public void removeAllDocuments() {
 		this.documents.clear();
 	}
-	
+
 	public List<BiometricsDto> getBiometric(String subType, List<String> bioAttributes) {
 		List<BiometricsDto> list = new ArrayList<BiometricsDto>();
 		for(String bioAttribute : bioAttributes) {
@@ -174,7 +174,7 @@ public class RegistrationDTO {
 		String key = String.format("%s_%s", subType, bioAttribute);
 		return this.biometrics.remove(key);
 	}
-	
+
 	/*public Map<String, Object> getIdentity() {
 		Map<String, Object> allIdentityDetails = new LinkedHashMap<String, Object>();
 		allIdentityDetails.put("IDSchemaVersion", idSchemaVersion);
@@ -192,8 +192,8 @@ public class RegistrationDTO {
 		Map<String, Object> identity = new LinkedHashMap<String, Object>();
 		identity.put("identity", allIdentityDetails);
 		return identity;	
-	}*/	
-	
+	}*/
+
 	public Map<String, Object> getMVELDataContext() {
 		Map<String, Object> allIdentityDetails = new LinkedHashMap<String, Object>();
 		allIdentityDetails.put("IDSchemaVersion", idSchemaVersion);
@@ -204,11 +204,10 @@ public class RegistrationDTO {
 		allIdentityDetails.put("isChild", this.isChild);
 		allIdentityDetails.put("updatableFields", this.updatableFields != null ? 
 				this.updatableFields : Arrays.asList(new String[] {}));
-		this.demographics.put("UIN", registrationMetaDataDTO.getUin());
 		allIdentityDetails.putAll(this.demographics);
 		allIdentityDetails.putAll(this.documents);
 		allIdentityDetails.putAll(this.biometrics);
-		return allIdentityDetails;	
+		return allIdentityDetails;
 	}
 	
 	private boolean isValidValue(String value) {

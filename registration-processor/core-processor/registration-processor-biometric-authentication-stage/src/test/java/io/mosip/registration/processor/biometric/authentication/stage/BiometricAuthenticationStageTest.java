@@ -251,7 +251,7 @@ public class BiometricAuthenticationStageTest {
 				.thenReturn(statusResponseDto);
 
 		JSONObject jsonObject = Mockito.mock(JSONObject.class);
-		Mockito.when(utility.getUIn(any())).thenReturn(12345678l);
+		Mockito.when(utility.getUIn(any())).thenReturn("12345678");
 		Mockito.when(utility.retrieveIdrepoJson(any())).thenReturn(jsonObject);
 		FieldValue fieldValue = new FieldValue();
 		FieldValue fieldValue1 = new FieldValue();

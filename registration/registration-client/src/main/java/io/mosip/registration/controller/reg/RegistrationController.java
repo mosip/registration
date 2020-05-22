@@ -150,13 +150,14 @@ public class RegistrationController extends BaseController {
 		}
 	}
 
-	public void init(HashMap<String, Object> selectionListDTO, Map<String, UiSchemaDTO> selectedFields) {
+	public void init(String UIN, HashMap<String, Object> selectionListDTO, Map<String, UiSchemaDTO> selectedFields) {
 		validation.updateAsLostUIN(false);
 		createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_UPDATE);
 		RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 		registrationDTO.setSelectionListDTO(selectionListDTO);
 		List<String> fieldIds = new ArrayList<String>(selectedFields.keySet());
 		registrationDTO.setUpdatableFields(fieldIds);
+		registrationDTO.addDemographicField("UIN", UIN);
 	}
 
 	protected void initializeLostUIN() {

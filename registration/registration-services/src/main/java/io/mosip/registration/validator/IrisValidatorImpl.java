@@ -134,7 +134,6 @@ public class IrisValidatorImpl extends AuthenticationBaseValidator {
 				.build();
 		
 		BIR[] registeredBir = new BIR[userIrisDetails.size()];
-		ApplicationContext.map().remove("IDENTY_SDK");
 		Score[] scores = null;
 		boolean flag = false;
 		int i = 0;
@@ -158,7 +157,6 @@ public class IrisValidatorImpl extends AuthenticationBaseValidator {
 			LOGGER.error(LOG_REG_FINGERPRINT_FACADE, APPLICATION_NAME, APPLICATION_ID,
 					String.format("Exception while validating the iris with bio api: %s caused by %s",
 							exception.getMessage(), exception.getCause()));
-			ApplicationContext.map().put("IDENTY_SDK", "FAILED");
 			return false;
 
 		}
@@ -166,7 +164,6 @@ public class IrisValidatorImpl extends AuthenticationBaseValidator {
 			LOGGER.error(LOG_REG_FINGERPRINT_FACADE, APPLICATION_NAME, APPLICATION_ID,
 					String.format("Exception while validating the iris with bio api: %s caused by %s, Runtime",
 							exception.getMessage(), exception.getCause()));
-			ApplicationContext.map().put("IDENTY_SDK", "FAILED");
 			return false;
 
 		}
@@ -207,7 +204,6 @@ public class IrisValidatorImpl extends AuthenticationBaseValidator {
 					.build();
 
 			BIR[] registeredBir = new BIR[userDetailsRecorded.size()];
-			ApplicationContext.map().remove("IDENTY_SDK");
 
 			int i = 0;
 			for (UserBiometric userBiometric : userDetailsRecorded) {
@@ -224,7 +220,6 @@ public class IrisValidatorImpl extends AuthenticationBaseValidator {
 				LOGGER.error(LOG_REG_FINGERPRINT_FACADE, APPLICATION_NAME, APPLICATION_ID,
 						String.format("Exception while validating the iris with bio api: %s caused by %s",
 								exception.getMessage(), exception.getCause()));
-				ApplicationContext.map().put("IDENTY_SDK", "FAILED");
 				return false;
 
 			}

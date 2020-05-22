@@ -171,12 +171,12 @@ public class LostPacketServiceImpl implements LostPacketService {
 		try {
 			if (matchedRidList.size() == 1) {
 				JSONObject jsonObject = utilities.retrieveUIN(matchedRidList.get(0));
-				Long value = JsonUtil.getJSONValue(jsonObject, IdType.UIN.toString());
-				if (value == null) {
+				uin = JsonUtil.getJSONValue(jsonObject, IdType.UIN.toString());
+				if (uin == null) {
 					throw new RegBaseCheckedException(PlatformErrorMessages.RPR_PGS_NO_RECORDS_EXCEPTION,
 							PlatformErrorMessages.RPR_PGS_NO_RECORDS_EXCEPTION.getMessage(), new Throwable());
 				}
-				uin = value.toString();
+
 
 			} else {
 				uin = getUinForMultipleRids(matchedRidList);
@@ -300,9 +300,9 @@ public class LostPacketServiceImpl implements LostPacketService {
 		Set<String> uinSet = new HashSet<String>();
 		for (String regId : matchedRidList) {
 			JSONObject jsonObject = utilities.retrieveUIN(regId);
-			Long value = JsonUtil.getJSONValue(jsonObject, IdType.UIN.toString());
+			String value = JsonUtil.getJSONValue(jsonObject, IdType.UIN.toString());
 			if (value != null) {
-				uinSet.add(value.toString());
+				uinSet.add(value);
 			}
 		}
 		if (uinSet.isEmpty()) {

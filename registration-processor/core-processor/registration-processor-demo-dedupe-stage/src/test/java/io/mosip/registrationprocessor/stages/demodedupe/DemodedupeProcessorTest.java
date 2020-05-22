@@ -334,14 +334,14 @@ public class DemodedupeProcessorTest {
 		IdentityJsonValues identityJsonValues = new IdentityJsonValues();
 		identityJsonValues.setValue("fullName");
 
-		Mockito.when(utility.getUIn("2018701130000410092018110735")).thenReturn(Long.parseLong("2345"));
+		Mockito.when(utility.getUIn("2018701130000410092018110735")).thenReturn("2345");
 
 		JSONArray arr = new JSONArray();
 		arr.add("name");
 
 		JSONObject obj = new JSONObject();
 		obj.put("fullName", arr);
-		Mockito.when(utility.retrieveIdrepoJson(Long.parseLong("2345"))).thenReturn(obj);
+		Mockito.when(utility.retrieveIdrepoJson("2345")).thenReturn(obj);
 
 		byte[] b = "sds".getBytes();
 		List<DemographicInfoDto> emptyDuplicateDtoSet = new ArrayList<>();
