@@ -160,7 +160,7 @@ public class TemplateGenerator extends BaseService {
 			String faceDisableFlag = String
 					.valueOf(ApplicationContext.map().get(RegistrationConstants.FACE_DISABLE_FLAG));
 			
-			boolean isChild = (boolean) SessionContext.map().get(RegistrationConstants.IS_Child);
+			boolean isChild = registration.isChild();
 
 			int leftSlapCount = 0;
 			int rightSlapCount = 0;

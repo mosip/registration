@@ -798,7 +798,7 @@ public class DemographicDetailController extends BaseController {
 					continue;
 
 				if (registrationDTO.getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE)
-						&& !registrationDTO.getSelectionListDTO().containsKey(schemaField.getId()))
+						&& !registrationDTO.getUpdatableFields().contains(schemaField.getId()))
 					continue;
 
 				switch (schemaField.getType()) {
@@ -835,9 +835,11 @@ public class DemographicDetailController extends BaseController {
 							ComboBox<GenericDto> platformField = listOfComboBoxWithObject.get(schemaField.getId());
 							registrationDTO.addDemographicField(schemaField.getId(), platformField == null ? null
 									: platformField.getValue() != null ? platformField.getValue().getName() : null);
-						} else
-							registrationDTO.addDemographicField(schemaField.getId(),
-									listOfTextField.get(schemaField.getId()).getText());
+						} else {
+							TextField platformField = listOfTextField.get(schemaField.getId());
+							registrationDTO.addDemographicField(schemaField.getId(), platformField != null ?
+									platformField.getText() : null);
+						}
 					}
 					break;
 
@@ -846,7 +848,8 @@ public class DemographicDetailController extends BaseController {
 				}
 			}
 		} catch (Exception exception) {
-			exception.printStackTrace();
+			LOGGER.error("", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 		}
 	}
 
@@ -865,7 +868,7 @@ public class DemographicDetailController extends BaseController {
 						.clear();
 			}
 		} catch (RuntimeException runtimeException) {
-			LOGGER.info(" falied due to invalid field", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+			LOGGER.error(" falied due to invalid field", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 		}
 
@@ -884,22 +887,13 @@ public class DemographicDetailController extends BaseController {
 					SessionContext.userContext().getUserId(), RegistrationConstants.ONBOARD_DEVICES_REF_ID_TYPE);
 
 			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
-
-			if (preRegistrationId.getText().isEmpty()) {
+			if (preRegistrationId.getText() == null && preRegistrationId.getText().isEmpty()) {
 				registrationDTO.setPreRegistrationId("");
 			}
-			// OSIDataDTO osiDataDTO = registrationDTO.getOsiDataDTO();
-
-			SessionContext.map().put(RegistrationConstants.IS_Child, isChild);
-
+			
 			addDemoGraphicDetailsToSession();
-
-			// Map<String, Object> demographics = registrationDTO.getDemographics();
-
-			/*
-			 * if (isChild) { osiDataDTO.setIntroducerType(IntroducerType.PARENT.getCode());
-			 * }
-			 */
+			
+			SessionContext.map().put(RegistrationConstants.IS_Child, registrationDTO.isChild());
 
 			registrationDTO.getOsiDataDTO().setOperatorID(SessionContext.userContext().getUserId());
 

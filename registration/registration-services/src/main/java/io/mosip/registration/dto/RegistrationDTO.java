@@ -204,7 +204,6 @@ public class RegistrationDTO {
 		allIdentityDetails.put("isChild", this.isChild);
 		allIdentityDetails.put("updatableFields", this.updatableFields != null ? 
 				this.updatableFields : Arrays.asList(new String[] {}));
-		this.demographics.put("UIN", registrationMetaDataDTO.getUin());
 		allIdentityDetails.putAll(this.demographics);
 		allIdentityDetails.putAll(this.documents);
 		allIdentityDetails.putAll(this.biometrics);

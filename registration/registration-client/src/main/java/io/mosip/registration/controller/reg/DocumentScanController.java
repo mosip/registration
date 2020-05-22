@@ -633,9 +633,6 @@ public class DocumentScanController extends BaseController {
 				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 						RegistrationConstants.APPLICATION_ID, "Adding documents to Screen");
 
-				//DocumentDetailsDTO documentDetailsDTO = new DocumentDetailsDTO();
-
-				//getDocumentsMapFromSession().put(selectedComboBox.getValue().getName(), documentDetailsDTO);
 				attachDocuments(selectedComboBox.getValue(), selectedDocVBox, byteArray, false);
 
 				scannedPages.clear();
@@ -1063,8 +1060,11 @@ public class DocumentScanController extends BaseController {
 	private void next() {
 		auditFactory.audit(AuditEvent.REG_DOC_NEXT, Components.REG_DOCUMENTS, SessionContext.userId(),
 				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+		
+		registrationController.showCurrentPage(RegistrationConstants.DOCUMENT_SCAN,
+				getPageByAction(RegistrationConstants.DOCUMENT_SCAN, RegistrationConstants.NEXT));
 
-		biometricExceptionController.disableNextBtn();
+		/*biometricExceptionController.disableNextBtn();
 		fingerPrintCaptureController.clearImage();
 		irisCaptureController.clearIrisBasedOnExceptions();
 		//guardianBiometricsController.manageBiometricsListBasedOnExceptions();
@@ -1091,7 +1091,7 @@ public class DocumentScanController extends BaseController {
 						getPageByAction(RegistrationConstants.DOCUMENT_SCAN, RegistrationConstants.NEXT));
 
 			}
-		}
+		}*/
 
 	}
 

@@ -1,8 +1,11 @@
 package io.mosip.registration.validator;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.mvel2.MVEL;
 import org.mvel2.integration.VariableResolverFactory;
@@ -10,6 +13,7 @@ import org.mvel2.integration.impl.MapVariableResolverFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import io.mosip.kernel.packetmanager.constants.PacketManagerConstants;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.RequiredOnExpr;
 import io.mosip.registration.dto.UiSchemaDTO;
@@ -51,6 +55,21 @@ public class RequiredFieldValidator {
 			}
 		}		
 		return required;
+	}
+	
+	//TODO
+	public List<String> isRequiredBiometricField(String subType, RegistrationDTO registrationDTO) throws RegBaseCheckedException {
+		List<String> requiredAttributes = new ArrayList<String>();
+		SchemaDto schema = identitySchemaService.getIdentitySchema(registrationDTO.getIdSchemaVersion());
+		List<UiSchemaDTO> fields = schema.getSchema().stream().filter(field -> field.getType() != null 
+				&& PacketManagerConstants.BIOMETRICS_DATATYPE.equals(field.getType()) 
+				&& field.getSubType() != null && field.getSubType().equals(subType)).collect(Collectors.toList());
+		
+		for(UiSchemaDTO schemaField : fields) {
+			if(isRequiredField(schemaField, registrationDTO) && schemaField.getBioAttributes() != null)
+				requiredAttributes.addAll(schemaField.getBioAttributes());
+		}		
+		return requiredAttributes;
 	}
 
 }
