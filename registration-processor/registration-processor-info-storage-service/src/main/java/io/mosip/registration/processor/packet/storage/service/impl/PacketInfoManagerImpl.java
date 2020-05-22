@@ -55,6 +55,7 @@ import io.mosip.registration.processor.packet.storage.entity.RegDemoDedupeListEn
 import io.mosip.registration.processor.packet.storage.entity.RegLostUinDetEntity;
 import io.mosip.registration.processor.packet.storage.entity.RegLostUinDetPKEntity;
 import io.mosip.registration.processor.packet.storage.exception.MappingJsonException;
+import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.packet.storage.exception.UnableToInsertData;
 import io.mosip.registration.processor.packet.storage.mapper.PacketInfoMapper;
@@ -237,6 +238,12 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 			throw new MappingJsonException(PlatformErrorMessages.RPR_SYS_IDENTITY_JSON_MAPPING_EXCEPTION.getMessage(),
 					e);
 
+		}
+		catch (Exception e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+
+			throw new ParsingException(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getMessage(), e);
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"PacketInfoManagerImpl::getIdentityKeysAndFetchValuesFromJSON()::exit");
