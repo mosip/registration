@@ -40,6 +40,9 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.xml.sax.SAXException;
 
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import io.mosip.registration.processor.core.auth.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.JsonConstant;
@@ -541,7 +544,7 @@ public class OSIValidatorTest {
 				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
 		registrationStatusDto.setStatusCode("PROCESSED");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
-		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn(123456789);
+		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn("123456789");
 		boolean isValid = osiValidator.isValidOSI("reg1234", registrationStatusDto);
 
 		assertTrue(isValid);
@@ -577,7 +580,7 @@ public class OSIValidatorTest {
 		authResponseDTO1.setResponse(responseDTO);
 		Mockito.when(authUtil.authByIdAuthentication(anyString(), any(), any())).thenReturn(authResponseDTO)
 				.thenReturn(authResponseDTO1);
-		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn(123456789);
+		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn("123456789");
 		boolean isValid = osiValidator.isValidOSI("reg1234", registrationStatusDto);
 
 		assertFalse(isValid);

@@ -124,7 +124,7 @@ public class PacketValidatorImpl implements PacketValidator {
 	@Override
 	public boolean validate(String rid, String regType, PacketValidationDto packetValidationDto) throws PacketValidatorException
 			 {
-		Long uin = null;
+		String uin = null;
 		JSONObject demographicIdentity = null;
 		boolean isvalidated=true;
 		try {

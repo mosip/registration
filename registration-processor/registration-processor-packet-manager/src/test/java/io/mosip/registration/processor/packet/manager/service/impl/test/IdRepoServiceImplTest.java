@@ -19,7 +19,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO;
-import io.mosip.registration.processor.core.idrepo.dto.ResponseDTO;
 import io.mosip.registration.processor.core.packet.dto.demographicinfo.identify.IdentityJsonValues;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
@@ -85,7 +84,7 @@ public class IdRepoServiceImplTest {
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.when(JsonUtil.class, "objectMapperReadValue", any(), any()).thenReturn(demoJson);
 		PowerMockito.when(JsonUtil.class, "getJSONObject", any(), any()).thenReturn(demoJson);
-		Number matchedDemographicIdentity = idRepoService.getUinByRid("", "Identity");
+		String matchedDemographicIdentity = idRepoService.getUinByRid("", "Identity");
 		assertNull(matchedDemographicIdentity);
 
 	}
@@ -104,7 +103,7 @@ public class IdRepoServiceImplTest {
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.when(JsonUtil.class, "objectMapperReadValue", any(), any()).thenReturn(demoJson);
 		PowerMockito.when(JsonUtil.class, "getJSONObject", any(), any()).thenReturn(demoJson);
-		Number matchedDemographicIdentity = idRepoService.findUinFromIdrepo("", "Identity");
+		String matchedDemographicIdentity = idRepoService.findUinFromIdrepo("", "Identity");
 		assertNull(matchedDemographicIdentity);
 
 	}

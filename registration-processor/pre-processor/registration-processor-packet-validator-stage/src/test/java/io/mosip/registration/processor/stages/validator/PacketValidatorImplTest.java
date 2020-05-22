@@ -275,11 +275,11 @@ public class PacketValidatorImplTest {
 		PowerMockito.when(JsonUtil.getJSONObject(jsonObject, "individualBiometrics")).thenReturn(jsonObject);
 		Mockito.when(jsonObject.get("value")).thenReturn("applicantCBEF");
 		
-		Mockito.when(utility.getUIn(any())).thenReturn(12345678l);
+		Mockito.when(utility.getUIn(any())).thenReturn("12345678l");
 		Mockito.when(utility.retrieveIdrepoJson(any())).thenReturn(jsonObject);
 		Mockito.when(utility.retrieveIdrepoJsonStatus(any())).thenReturn("ACTIVE");
 		when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
-		Mockito.when(idRepoService.findUinFromIdrepo(anyString(), any())).thenReturn(123456781);
+		Mockito.when(idRepoService.findUinFromIdrepo(anyString(), any())).thenReturn("123456781");
 	}
 	
 	@Test
