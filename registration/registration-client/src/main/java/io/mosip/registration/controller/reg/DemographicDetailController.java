@@ -42,6 +42,7 @@ import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.FXUtils;
 import io.mosip.registration.controller.VirtualKeyboard;
 import io.mosip.registration.controller.device.FaceCaptureController;
+import io.mosip.registration.controller.device.GuardianBiometricsController;
 import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.RegistrationDTO;
@@ -169,6 +170,9 @@ public class DemographicDetailController extends BaseController {
 	int lastPosition;
 	private ObservableList<Node> parentFlow;
 	private boolean keyboardVisible = false;
+
+	@Autowired
+	private GuardianBiometricsController guardianBiometricsController;
 
 	/*
 	 * (non-Javadoc)
@@ -837,8 +841,8 @@ public class DemographicDetailController extends BaseController {
 									: platformField.getValue() != null ? platformField.getValue().getName() : null);
 						} else {
 							TextField platformField = listOfTextField.get(schemaField.getId());
-							registrationDTO.addDemographicField(schemaField.getId(), platformField != null ?
-									platformField.getText() : null);
+							registrationDTO.addDemographicField(schemaField.getId(),
+									platformField != null ? platformField.getText() : null);
 						}
 					}
 					break;
@@ -890,9 +894,9 @@ public class DemographicDetailController extends BaseController {
 			if (preRegistrationId.getText() == null && preRegistrationId.getText().isEmpty()) {
 				registrationDTO.setPreRegistrationId("");
 			}
-			
+
 			addDemoGraphicDetailsToSession();
-			
+
 			SessionContext.map().put(RegistrationConstants.IS_Child, registrationDTO.isChild());
 
 			registrationDTO.getOsiDataDTO().setOperatorID(SessionContext.userContext().getUserId());
@@ -1121,6 +1125,7 @@ public class DemographicDetailController extends BaseController {
 		if (validateThisPane()) {
 			saveDetail();
 
+			guardianBiometricsController.initialize(null, null);
 			/*
 			 * SessionContext.map().put("demographicDetail", false);
 			 * SessionContext.map().put("documentScan", true);
