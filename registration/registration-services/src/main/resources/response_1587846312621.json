@@ -36,7 +36,7 @@
 		"subType": "UIN",
 		"validators": [],
 		"fieldCategory": "none",
-		"required": true,
+		"required": false,
 		"requiredOn": [],
 		"group" : null
 	}, {
@@ -633,7 +633,7 @@
 	"format": "none",
 	"validators": [],
 	"fieldCategory": "evidence",
-	"required": true,
+	"required": false,
 	"bioAttributes": ["face"],
 	"subType": "applicant",
 	"requiredOn": [],

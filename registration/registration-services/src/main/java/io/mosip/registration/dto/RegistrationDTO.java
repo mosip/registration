@@ -16,6 +16,8 @@ import org.assertj.core.util.Arrays;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.dto.biometric.BiometricDTO;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
+import io.mosip.kernel.packetmanager.constants.Biometric;
 import io.mosip.kernel.packetmanager.dto.AuditDto;
 import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.kernel.packetmanager.dto.DocumentDto;
@@ -43,6 +45,7 @@ public class RegistrationDTO {
 	private String registrationCategory;
 	private int age;
 	private boolean isChild;
+	private boolean isBiometricMarkedForUpdate;
 
 	private RegistrationMetaDataDTO registrationMetaDataDTO;
 	private OSIDataDTO osiDataDTO;
@@ -152,7 +155,8 @@ public class RegistrationDTO {
 	
 	public void addBiometricException(String subType, String bioAttribute, String reason, String exceptionType) {
 		String key = String.format("%s_%s", subType, bioAttribute);
-		this.biometricExceptions.put(key, new BiometricsException(null, bioAttribute, reason, exceptionType, 
+		SingleType type = Biometric.getSingleTypeByAttribute(bioAttribute);
+		this.biometricExceptions.put(key, new BiometricsException(type == null ? null: type.value(), bioAttribute, reason, exceptionType, 
 				subType));
 		this.biometrics.remove(key);
 	}
