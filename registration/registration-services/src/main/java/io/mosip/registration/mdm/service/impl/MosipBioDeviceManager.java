@@ -334,11 +334,18 @@ public class MosipBioDeviceManager {
 				bioDevice.setDeviceProviderId(digitalId.getDeviceProviderId());
 				bioDevice.setDeviceModel(digitalId.getModel());
 				bioDevice.setDeviceMake(digitalId.getMake());
+				// For the local device validation
 				registeredDevice = registeredDeviceDAO.getRegisteredDevices(digitalId.getSerialNo(),
 						digitalId.getSerialNo());
 			}
 
 			bioDevice.setRegistered(registeredDevice != null ? registeredDevice.size() == 1 ? true : false : false);
+
+			/*
+			 * This particular section of code which hardcodes the registered value of the device
+			 * to be true needs to be taken care of once the device registration steps in the db
+			 * is straigten out
+			 */
 			String isDeviceValidationEnabled = ((String) ApplicationContext.getInstance().map()
 					.get("isDeviceValidationEnabled"));
 			if (isDeviceValidationEnabled == null)

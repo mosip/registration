@@ -11,12 +11,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.assertj.core.util.Arrays;
+
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
-import io.mosip.registration.dto.OSIDataDTO;
-import io.mosip.registration.dto.RegistrationMetaDataDTO;
 import io.mosip.registration.dto.biometric.BiometricDTO;
-import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
 import io.mosip.kernel.packetmanager.dto.AuditDto;
 import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.kernel.packetmanager.dto.DocumentDto;
@@ -49,6 +48,7 @@ public class RegistrationDTO {
 	private OSIDataDTO osiDataDTO;
 	
 	private HashMap<String, Object> selectionListDTO;
+	private List<String> updatableFields;
 	private boolean isUpdateUINNonBiometric;	
 	private boolean isNameNotUpdated;	
 	private boolean isUpdateUINChild;
@@ -202,7 +202,8 @@ public class RegistrationDTO {
 		allIdentityDetails.put("isLost", RegistrationConstants.PACKET_TYPE_LOST.equals(registrationMetaDataDTO.getRegistrationCategory()));
 		allIdentityDetails.put("age", this.age);
 		allIdentityDetails.put("isChild", this.isChild);
-		this.demographics.put("UIN", registrationMetaDataDTO.getUin());
+		allIdentityDetails.put("updatableFields", this.updatableFields != null ? 
+				this.updatableFields : Arrays.asList(new String[] {}));
 		allIdentityDetails.putAll(this.demographics);
 		allIdentityDetails.putAll(this.documents);
 		allIdentityDetails.putAll(this.biometrics);

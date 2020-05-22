@@ -1705,12 +1705,32 @@ public class RegistrationConstants {
 			put("rightMiddle", RightMiddle);
 			put("rightRing", RightRing);
 			put("rightThumb", RightThumb);
-			put("LeftEye", LEFT_EYE);
-			put("RightEye", RIGHT_EYE);
+			put("leftEye", LEFT_EYE);
+			put("rightEye", RIGHT_EYE);
 			
 		}
 
 	};
+	
+	public static final Map<String, String> mdsToRegBioMap = new HashMap<String, String>() {
+
+		{
+			put("LF_INDEX",LeftIndex);
+			put("LF_LITTLE",LeftLittle);
+			put("LF_MIDDLE",LeftMiddle);
+			put("LF_RING",LeftRing);
+			put("LF_THUMB",LeftThumb);
+			put("RF_INDEX",RightIndex);
+			put("RF_LITTLE",RightLittle);
+			put("RF_MIDDLE",RightMiddle);
+			put("RF_RING",RightRing);
+			put("RF_THUMB",RightThumb);
+			put("L_IRIS",LEFT_EYE);
+			put("R_IRIS",RIGHT_EYE);
+		}
+
+	};
+
 	
 	public static final String BIOMETRICS_TYPE = "biometricsType";
 	public static final String APPLICANT = "applicant";

@@ -6,10 +6,13 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -78,6 +81,8 @@ public class UpdateUINController extends BaseController implements Initializable
 
 
 	private HashMap<String, Object> checkBoxKeeper;
+	
+	private Map<String, List<UiSchemaDTO>> groupedMap;
 
 	private FXUtils fxUtils;
 	
@@ -93,15 +98,18 @@ public class UpdateUINController extends BaseController implements Initializable
 		fxUtils = FXUtils.getInstance();
 		checkBoxKeeper = new HashMap<>();
 		Map<String, UiSchemaDTO> schemaMap = getValidationMap();
+		
+		groupedMap = schemaMap.values().stream()
+			.filter(field -> field.getGroup() != null && field.isInputRequired())
+			.collect(Collectors.groupingBy(UiSchemaDTO::getGroup));
+		
 		parentFlow = parentFlowPane.getChildren();
-		for (Entry<String, UiSchemaDTO> entry : schemaMap.entrySet()) {
-			if (isDemographicField(entry.getValue())) {
-				GridPane checkBox = addCheckBox(entry.getValue());
-				if (checkBox != null) {
-					parentFlow.add(checkBox);
-				}
+		groupedMap.forEach((groupName, list) -> {
+			GridPane checkBox = addCheckBox(groupName);
+			if (checkBox != null) {
+				parentFlow.add(checkBox);
 			}
-		}
+		});		
 
 		try {
 			Image backInWhite = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK_FOCUSED));
@@ -119,15 +127,14 @@ public class UpdateUINController extends BaseController implements Initializable
 					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 		}
 	}
+		
+	private GridPane addCheckBox(String groupName) {
 
-	
-	private GridPane addCheckBox(UiSchemaDTO schema) {
-
-		CheckBox checkBox = new CheckBox(schema.getLabel().get(RegistrationConstants.PRIMARY));
+		CheckBox checkBox = new CheckBox(groupName);
 		checkBox.getStyleClass().add(RegistrationConstants.updateUinCheckBox);
 		fxUtils.listenOnSelectedCheckBox(checkBox);
-		checkBoxKeeper.put(schema.getId(), checkBox);
-
+		checkBoxKeeper.put(groupName, checkBox);
+		
 		GridPane gridPane = new GridPane();
 		gridPane.setPrefWidth(200);
 		gridPane.setPrefHeight(40);
@@ -153,7 +160,7 @@ public class UpdateUINController extends BaseController implements Initializable
 		gridPane.add(checkBox, 1, 1);
 		
 		return gridPane;
-}
+	}
 
 
 	/**
@@ -169,12 +176,19 @@ public class UpdateUINController extends BaseController implements Initializable
 			if (StringUtils.isEmpty(uinId.getText())) {
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UPDATE_UIN_ENTER_UIN_ALERT);
 			} else {
-
-				if (uinValidatorImpl.validateId(uinId.getText())) {
-
-
-						registrationController.init(checkBoxKeeper);
-
+				Map<String, UiSchemaDTO> selectedFields = new HashMap<String, UiSchemaDTO>();
+				checkBoxKeeper.forEach((key, checkbox) -> {
+					if(((CheckBox)checkbox).isSelected()) {
+						for(UiSchemaDTO field : groupedMap.get(key)) {							
+							selectedFields.put(field.getId(), field);
+						}
+					}
+				});
+				
+				LOGGER.debug(LOG_REG_UIN_UPDATE, APPLICATION_NAME, APPLICATION_ID, "selectedFields size : " + selectedFields.size());
+				
+				if (uinValidatorImpl.validateId(uinId.getText()) && !selectedFields.isEmpty()) {		
+						registrationController.init(uinId.getText(), checkBoxKeeper, selectedFields);
 						Parent createRoot = BaseController.load(
 								getClass().getResource(RegistrationConstants.CREATE_PACKET_PAGE),
 								applicationContext.getApplicationLanguageBundle());

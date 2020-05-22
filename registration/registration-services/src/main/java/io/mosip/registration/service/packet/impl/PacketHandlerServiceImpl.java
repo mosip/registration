@@ -116,7 +116,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 	static {
 		categoryPacketMapping.put("pvt", "id");
 		categoryPacketMapping.put("kyc", "id");
-		categoryPacketMapping.put("none", "id");
+		categoryPacketMapping.put("none", "id,evidence,optional");
 		categoryPacketMapping.put("evidence", "evidence");
 		categoryPacketMapping.put("optional", "optional");
 	}
@@ -183,11 +183,11 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 	
 	private void setDemographics(RegistrationDTO registrationDTO, SchemaDto schema) {
 		String printingNameFieldId = getPrintingNameFieldName(schema);
-		Map<String, Object> demographics = registrationDTO.getDemographics();				
+		Map<String, Object> demographics = registrationDTO.getDemographics();
 		for(String fieldName : demographics.keySet()) {
 			switch (registrationDTO.getRegistrationCategory()) {
 			case RegistrationConstants.PACKET_TYPE_UPDATE:
-				if(demographics.get(fieldName) != null && registrationDTO.getSelectionListDTO().containsKey(fieldName))
+				if(demographics.get(fieldName) != null && registrationDTO.getUpdatableFields().contains(fieldName))
 					packetCreator.setField(fieldName, demographics.get(fieldName));				
 				break;
 			case RegistrationConstants.PACKET_TYPE_LOST:
@@ -199,8 +199,12 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 				break;
 			}
 			
-			if(demographics.get(printingNameFieldId) != null  && 
-					!registrationDTO.getSelectionListDTO().containsKey(printingNameFieldId)) {
+			if(fieldName.equals("UIN") && demographics.get(fieldName) != null) {
+				packetCreator.setField(fieldName, demographics.get(fieldName));
+			}
+			
+			if(demographics.get(printingNameFieldId) != null  && registrationDTO.getUpdatableFields() != null 
+					&& !registrationDTO.getUpdatableFields().contains(printingNameFieldId)) {
 				@SuppressWarnings("unchecked")
 				List<SimpleDto> value = (List<SimpleDto>) demographics.get(printingNameFieldId);
 				value.forEach(dto -> {

@@ -16,13 +16,14 @@
 		"subType": "IdSchemaVersion",
 		"format": "none",
 		"validators": [],
-		"fieldCategory": "pvt",
+		"fieldCategory": "none",
 		"required": true,
-		"requiredOn": []
+		"requiredOn": [],
+		"group" : null
 	}, {
 		"id": "UIN",
 		"inputRequired": false,
-		"type": "integer",
+		"type": "string",
 		"minimum": 0,
 		"maximum": 0,
 		"description": "UIN",
@@ -34,9 +35,10 @@
 		"format": "none",
 		"subType": "UIN",
 		"validators": [],
-		"fieldCategory": "pvt",
+		"fieldCategory": "none",
 		"required": true,
-		"requiredOn": []
+		"requiredOn": [],
+		"group" : null
 	}, {
 		"id": "fullName",
 		"inputRequired": true,
@@ -53,13 +55,14 @@
 		"format": "none",
 		"validators": [{
 			"type": "regex",
-			"validator": "^(?=.{0,50}$).*",
+			"validator": "^(?=.{3,50}$).*",
 			"arguments": []
 		}],
 		"fieldCategory": "pvt",
 		"required": true,
 		"subType": "name",
-		"requiredOn": []
+		"requiredOn": [],
+		"group" : "FullName"
 	}, {
 		"id": "dateOfBirth",
 		"inputRequired": true,
@@ -82,7 +85,8 @@
 		}],
 		"fieldCategory": "pvt",
 		"required": true,
-		"requiredOn": []
+		"requiredOn": [],
+		"group" : "DateOfBirth"
 	},{
 	"id": "gender",
 	"inputRequired": true,
@@ -101,7 +105,8 @@
 	"validators": [],
 	"fieldCategory": "pvt",
 	"required": true,
-	"requiredOn": []
+	"requiredOn": [],
+	"group" : "Gender"
 }, {
 	"id": "addressLine1",
 	"inputRequired": true,
@@ -125,7 +130,8 @@
 	"fieldCategory": "pvt",
 	"required": true,
 	"contactType": "Postal",
-	"requiredOn": []
+	"requiredOn": [],
+	"group" : "Address"
 }, {
 	"id": "addressLine2",
 	"inputRequired": true,
@@ -143,13 +149,14 @@
 	"subType": "addressLine2",
 	"validators": [{
 		"type": "regex",
-		"validator": "^(?=.{0,50}$).*",
+		"validator": "^(?=.{3,50}$).*",
 		"arguments": []
 	}],
 	"fieldCategory": "pvt",
 	"required": true,
 	"contactType": "Postal",
-	"requiredOn": []
+	"requiredOn": [],
+	"group" : "Address"
 }, {
 	"id": "addressLine3",
 	"inputRequired": true,
@@ -167,13 +174,14 @@
 	"subType": "addressLine3",
 	"validators": [{
 		"type": "regex",
-		"validator": "^(?=.{0,50}$).*",
+		"validator": "^(?=.{3,50}$).*",
 		"arguments": []
 	}],
 	"fieldCategory": "pvt",
 	"required": true,
 	"contactType": "Postal",
-	"requiredOn": []
+	"requiredOn": [],
+	"group" : "Address"
 }, {
 	"id": "residenceStatus",
 	"inputRequired": true,
@@ -190,9 +198,10 @@
 	"format": "none",
 	"subType": "residenceStatus",
 	"validators": [],
-	"fieldCategory": "none",
+	"fieldCategory": "kyc",
 	"required": false,
-	"requiredOn": []
+	"requiredOn": [],
+	"group" : "ResidenceStatus"
 }, {
 	"id": "referenceIdentityNumber",
 	"inputRequired": true,
@@ -206,15 +215,16 @@
 	},
 	"controlType": "textbox",
 	"fieldType": "default",
-	"format": "none",
+	"format": "kyc",
 	"validators": [{
 		"type": "regex",
 		"validator": "^([0-9]{10,30})$",
 		"arguments": []
 	}],
-	"fieldCategory": "none",
+	"fieldCategory": "pvt",
 	"required": false,
-	"requiredOn": []
+	"requiredOn": [],
+	"group" : "ReferenceIdentityNumber"
 }, {
 	"id": "region",
 	"inputRequired": true,
@@ -238,7 +248,8 @@
 	"fieldCategory": "pvt",
 	"required": true,
 	"contactType": "Postal",
-	"requiredOn": []
+	"requiredOn": [],
+	"group" : "Location"
 }, {
 	"id": "province",
 	"inputRequired": true,
@@ -262,7 +273,8 @@
 	"required": true,
 	"contactType": "Postal",
 	"subType": "Province",
-	"requiredOn": []
+	"requiredOn": [],
+	"group" : "Location"
 }, {
 	"id": "city",
 	"inputRequired": true,
@@ -286,7 +298,8 @@
 	"required": true,
 	"contactType": "Postal",
 	"subType": "City",
-	"requiredOn": []
+	"requiredOn": [],
+	"group" : "Location"
 }, {
 	"id": "zone",
 	"inputRequired": true,
@@ -305,7 +318,8 @@
 	"validators": [],
 	"fieldCategory": "pvt",
 	"required": true,
-	"requiredOn": []
+	"requiredOn": [],
+	"group" : "Location"
 }, {
 	"id": "postalCode",
 	"inputRequired": true,
@@ -329,7 +343,8 @@
 	"required": true,
 	"contactType": "Postal",
 	"subType": "Postal Code",
-	"requiredOn": []
+	"requiredOn": [],
+	"group" : "Location"
 }, {
 	"id": "phone",
 	"inputRequired": true,
@@ -353,7 +368,8 @@
 	"fieldCategory": "pvt",
 	"required": true,
 	"contactType": "email",
-	"requiredOn": []
+	"requiredOn": [],
+	"group" : "Phone"
 }, {
 	"id": "email",
 	"inputRequired": true,
@@ -371,13 +387,14 @@
 	"subType": "Email",
 	"validators": [{
 		"type": "regex",
-		"validator": "^[a-zA-Z-\\+]+(\\.[a-zA-Z]+)*@[a-zA-Z-]+(\\.[a-zA-Z]+)*(\\.[a-zA-Z]{2,})$",
+		"validator": "^[A-Za-z0-9_-\\+]+(\\.[A-Za-z0-9_]+)*@[A-Za-z0-9_-]+(\\.[A-Za-z0-9_]+)*(\\.[a-zA-Z]{2,})$",
 		"arguments": []
 	}],
 	"fieldCategory": "pvt",
 	"required": true,
 	"contactType": "email",
-	"requiredOn": []
+	"requiredOn": [],
+	"group" : "Email"
 }, {
 	"id": "parentOrGuardianName",
 	"inputRequired": true,
@@ -398,8 +415,9 @@
 	"required": false,
 	"requiredOn": [{
 		"engine": "MVEL",
-		"expr": "( identity.isNew && identity.isChild )"
-	}]
+		"expr": "( identity.isNew && identity.isChild ) || ( identity.isUpdate && identity.isChild )"
+	}],
+	"group" : "GuardianDetails"
 }, {
 	"id": "parentOrGuardianRID",
 	"inputRequired": true,
@@ -420,8 +438,9 @@
 	"required": false,
 	"requiredOn": [{
 		"engine": "MVEL",
-		"expr": "( identity.isNew && identity.isChild && (identity.parentOrGuardianUIN == nil || identity.parentOrGuardianUIN == empty) )"
-	}]
+		"expr": "( identity.isChild && (identity.parentOrGuardianUIN == nil || identity.parentOrGuardianUIN == empty) )"
+	}],
+	"group" : "GuardianDetails"
 }, {
 	"id": "parentOrGuardianUIN",
 	"inputRequired": true,
@@ -442,8 +461,9 @@
 	"required": false,
 	"requiredOn": [{
 		"engine": "MVEL",
-		"expr": "( identity.isNew && identity.isChild && (identity.parentOrGuardianRID == nil || identity.parentOrGuardianRID == empty) )"
-	}]
+		"expr": "( identity.isChild && (identity.parentOrGuardianRID == nil || identity.parentOrGuardianRID == empty) )"
+	}],
+	"group" : "GuardianDetails"
 }, {
 	"id": "proofOfAddress",
 	"inputRequired": true,
@@ -464,8 +484,9 @@
 	"subType": "POA",
 	"requiredOn": [{
 		"engine": "MVEL",
-		"expr": "identity.isNew || ( identity.isUpdate && identity.addressLine1 != nil )"
-	}]
+		"expr": "identity.isNew || ( identity.isUpdate && (identity.updatableFields contains 'addressLine1' || identity.updatableFields contains 'addressLine2' || identity.updatableFields contains 'addressLine3'))"
+	}],
+	"group" : "Documents"
 }, {
 	"id": "proofOfIdentity",
 	"inputRequired": true,
@@ -486,8 +507,9 @@
 	"subType": "POI",
 	"requiredOn": [{
 		"engine": "MVEL",
-		"expr": "identity.isNew || ( identity.isUpdate && identity.fullName != nil )"
-	}]
+		"expr": "identity.isNew || ( identity.isUpdate && identity.updatableFields contains 'fullName')"
+	}],
+	"group" : "Documents"
 }, {
 	"id": "proofOfRelationship",
 	"inputRequired": true,
@@ -508,8 +530,9 @@
 	"subType": "POR",
 	"requiredOn": [{
 		"engine": "MVEL",
-		"expr": "( identity.isNew && identity.isChild ) || ( identity.isUpdate && identity.dateOfBirth != nil && identity.isChild )"
-	}]
+		"expr": "( identity.isNew && identity.isChild ) || ( identity.isUpdate && identity.updatableFields contains 'dateOfBirth' && identity.isChild )"
+	}],
+	"group" : "Documents"
 }, {
 	"id": "proofOfDateOfBirth",
 	"inputRequired": true,
@@ -528,7 +551,11 @@
 	"fieldCategory": "evidence",
 	"required": true,
 	"subType": "POB",
-	"requiredOn": []
+	"requiredOn": [{
+		"engine": "MVEL",
+		"expr": "identity.isNew || ( identity.isUpdate && identity.updatableFields contains 'dateOfBirth')"
+	}],
+	"group" : "Documents"
 }, {
 	"id": "proofOfException",
 	"inputRequired": true,
@@ -547,7 +574,8 @@
 	"fieldCategory": "evidence",
 	"required": false,
 	"subType": "POE",
-	"requiredOn": []
+	"requiredOn": [],
+	"group" : "Documents"
 }, {
 	"id": "proofOfException-1",
 	"inputRequired": true,
@@ -566,7 +594,8 @@
 	"fieldCategory": "evidence",
 	"required": false,
 	"subType": "POE",
-	"requiredOn": []
+	"requiredOn": [],
+	"group" : "Documents"
 }, {
 	"id": "individualBiometrics",
 	"inputRequired": true,
@@ -586,7 +615,8 @@
 	"required": true,
 	"requiredOn": [],
 	"bioAttributes": ["leftEye", "rightIndex", "rightLittle", "leftIndex", "leftLittle", "face"],
-	"subType": "applicant"
+	"subType": "applicant",
+	"group" : "Biometrics"
 }, {
 	"id": "individualBiometrics-2",
 	"inputRequired": true,
@@ -606,7 +636,8 @@
 	"required": true,
 	"bioAttributes": ["face"],
 	"subType": "applicant",
-	"requiredOn": []
+	"requiredOn": [],
+	"group" : "Biometrics"
 }, {
 	"id": "parentOrGuardianBiometrics",
 	"inputRequired": true,
@@ -628,10 +659,10 @@
 	"subType": "introducer",
 	"requiredOn": [{
 		"engine": "MVEL",
-		"expr": "( identity.isNew && identity.isChild ) || ( identity.isUpdate && identity.dateOfBirth != nil && identity.isChild )"
-	}]
-}
-],
-	"schemaJson": "{\"$schema\":\"http:\\/\\/json-schema.org\\/draft-07\\/schema#\",\"description\":\"test mosip id schema\",\"additionalProperties\":false,\"title\":\"mosip id schema\",\"type\":\"object\",\"definitions\":{\"simpleType\":{\"uniqueItems\":true,\"additionalItems\":false,\"type\":\"array\",\"items\":{\"additionalProperties\":false,\"type\":\"object\",\"required\":[\"language\",\"value\"],\"properties\":{\"language\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}}}},\"documentType\":{\"additionalProperties\":false,\"type\":\"object\",\"properties\":{\"format\":{\"type\":\"string\"},\"type\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}}},\"biometricsType\":{\"additionalProperties\":false,\"type\":\"object\",\"properties\":{\"format\":{\"type\":\"string\"},\"version\":{\"type\":\"number\",\"minimum\":0},\"value\":{\"type\":\"string\"}}}},\"properties\":{\"identity\":{\"additionalProperties\":false,\"type\":\"object\",\"required\":[\"IDSchemaVersion\",\"UIN\",\"fullName\",\"dateOfBirth\",\"gender\",\"addressLine1\",\"addressLine2\",\"addressLine3\",\"region\",\"province\",\"city\",\"postalCode\",\"phone\",\"email\",\"zone\",\"proofOfIdentity\",\"proofOfRelationship\",\"proofOfDateOfBirth\",\"proofOfException\",\"proofOfException\",\"individualBiometrics\"],\"properties\":{\"proofOfAddress\":{\"fieldCategory\":\"optional\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/documentType\"},\"gender\":{\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"city\":{\"validators\":[{\"validator\":\"^(?=.{0,50}$).*\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"postalCode\":{\"validators\":[{\"validator\":\"^[(?i)A-Z0-9]{5}$|^NA$\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"type\":\"string\",\"fieldType\":\"default\"},\"individualBiometrics\":{\"bioAttributes\":\"[leftIris, face]\",\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/biometricsType\"},\"province\":{\"validators\":[{\"validator\":\"^(?=.{0,50}$).*\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"zone\":{\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"proofOfDateOfBirth\":{\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/documentType\"},\"addressLine1\":{\"validators\":[{\"validator\":\"^(?=.{0,50}$).*\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"addressLine2\":{\"validators\":[{\"validator\":\"^(?=.{0,50}$).*\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"residenceStatus\":{\"fieldCategory\":\"none\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"referenceIdentityNumber\":{\"fieldCategory\":\"none\",\"format\":\"none\",\"fieldType\":\"default\",\"type\":\"string\"},\"addressLine3\":{\"validators\":[{\"validator\":\"^(?=.{0,50}$).*\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"email\":{\"validators\":[{\"validator\":\"^[a-zA-Z-\\\\+]+(\\\\.[a-zA-Z]+)*@[a-zA-Z-]+(\\\\.[a-zA-Z]+)*(\\\\.[a-zA-Z]{2,})$\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"type\":\"string\",\"fieldType\":\"default\"},\"parentOrGuardianRID\":{\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"parentOrGuardianBiometrics\":{\"bioAttributes\":\"[face]\",\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/biometricsType\"},\"fullName\":{\"validators\":[{\"validator\":\"^(?=.{0,50}$).*\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"dateOfBirth\":{\"validators\":[{\"validator\":\"^(1869|18[7-9][0-9]|19[0-9][0-9]|20[0-9][0-9])\\/([0][1-9]|1[0-2])\\/([0][1-9]|[1-2][0-9]|3[01])$\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"type\":\"string\",\"fieldType\":\"default\"},\"parentOrGuardianUIN\":{\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"proofOfIdentity\":{\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/documentType\"},\"IDSchemaVersion\":{\"fieldCategory\":\"pvt\",\"format\":\"none\",\"type\":\"number\",\"fieldType\":\"default\",\"minimum\":0},\"proofOfException\":{\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/documentType\"},\"phone\":{\"validators\":[{\"validator\":\"^([6-9]{1})([0-9]{9})$\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"type\":\"string\",\"fieldType\":\"default\"},\"parentOrGuardianName\":{\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"proofOfRelationship\":{\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/documentType\"},\"UIN\":{\"fieldCategory\":\"pvt\",\"format\":\"none\",\"type\":\"integer\",\"fieldType\":\"default\",\"minimum\":0},\"region\":{\"validators\":[{\"validator\":\"^(?=.{0,50}$).*\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"}}}}}",
+		"expr": "( identity.isChild )"
+	}],
+	"group" : "Biometrics"
+}],
+	"schemaJson": "{\"$schema\":\"http:\\/\\/json-schema.org\\/draft-07\\/schema#\",\"description\":\"test mosip id schema\",\"additionalProperties\":false,\"title\":\"mosip id schema\",\"type\":\"object\",\"definitions\":{\"simpleType\":{\"uniqueItems\":true,\"additionalItems\":false,\"type\":\"array\",\"items\":{\"additionalProperties\":false,\"type\":\"object\",\"required\":[\"language\",\"value\"],\"properties\":{\"language\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}}}},\"documentType\":{\"additionalProperties\":false,\"type\":\"object\",\"properties\":{\"format\":{\"type\":\"string\"},\"type\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}}},\"biometricsType\":{\"additionalProperties\":false,\"type\":\"object\",\"properties\":{\"format\":{\"type\":\"string\"},\"version\":{\"type\":\"number\",\"minimum\":0},\"value\":{\"type\":\"string\"}}}},\"properties\":{\"identity\":{\"additionalProperties\":false,\"type\":\"object\",\"required\":[\"IDSchemaVersion\",\"UIN\",\"fullName\",\"dateOfBirth\",\"gender\",\"addressLine1\",\"addressLine2\",\"addressLine3\",\"region\",\"province\",\"city\",\"postalCode\",\"phone\",\"email\",\"zone\",\"proofOfIdentity\",\"proofOfRelationship\",\"proofOfDateOfBirth\",\"proofOfException\",\"proofOfException\",\"individualBiometrics\"],\"properties\":{\"proofOfAddress\":{\"fieldCategory\":\"optional\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/documentType\"},\"gender\":{\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"city\":{\"validators\":[{\"validator\":\"^(?=.{0,50}$).*\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"postalCode\":{\"validators\":[{\"validator\":\"^[(?i)A-Z0-9]{5}$|^NA$\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"type\":\"string\",\"fieldType\":\"default\"},\"individualBiometrics\":{\"bioAttributes\":\"[leftIris, face]\",\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/biometricsType\"},\"province\":{\"validators\":[{\"validator\":\"^(?=.{0,50}$).*\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"zone\":{\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"proofOfDateOfBirth\":{\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/documentType\"},\"addressLine1\":{\"validators\":[{\"validator\":\"^(?=.{0,50}$).*\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"addressLine2\":{\"validators\":[{\"validator\":\"^(?=.{0,50}$).*\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"residenceStatus\":{\"fieldCategory\":\"kyc\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"referenceIdentityNumber\":{\"fieldCategory\":\"kyc\",\"format\":\"none\",\"fieldType\":\"default\",\"type\":\"string\"},\"addressLine3\":{\"validators\":[{\"validator\":\"^(?=.{0,50}$).*\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"email\":{\"validators\":[{\"validator\":\"^[a-zA-Z-\\\\+]+(\\\\.[a-zA-Z]+)*@[a-zA-Z-]+(\\\\.[a-zA-Z]+)*(\\\\.[a-zA-Z]{2,})$\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"type\":\"string\",\"fieldType\":\"default\"},\"parentOrGuardianRID\":{\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"parentOrGuardianBiometrics\":{\"bioAttributes\":\"[face]\",\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/biometricsType\"},\"fullName\":{\"validators\":[{\"validator\":\"^(?=.{0,50}$).*\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"dateOfBirth\":{\"validators\":[{\"validator\":\"^(1869|18[7-9][0-9]|19[0-9][0-9]|20[0-9][0-9])\\/([0][1-9]|1[0-2])\\/([0][1-9]|[1-2][0-9]|3[01])$\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"type\":\"string\",\"fieldType\":\"default\"},\"parentOrGuardianUIN\":{\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"proofOfIdentity\":{\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/documentType\"},\"IDSchemaVersion\":{\"fieldCategory\":\"none\",\"format\":\"none\",\"type\":\"number\",\"fieldType\":\"default\",\"minimum\":0},\"proofOfException\":{\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/documentType\"},\"phone\":{\"validators\":[{\"validator\":\"^([6-9]{1})([0-9]{9})$\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"type\":\"string\",\"fieldType\":\"default\"},\"parentOrGuardianName\":{\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"},\"proofOfRelationship\":{\"fieldCategory\":\"evidence\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/documentType\"},\"UIN\":{\"fieldCategory\":\"none\",\"format\":\"none\",\"type\":\"integer\",\"fieldType\":\"default\",\"minimum\":0},\"region\":{\"validators\":[{\"validator\":\"^(?=.{0,50}$).*\",\"arguments\":[],\"type\":\"regex\"}],\"fieldCategory\":\"pvt\",\"format\":\"none\",\"fieldType\":\"default\",\"$ref\":\"#\\/definitions\\/simpleType\"}}}}}",
 	"effectiveFrom": "2021-04-25T20:05:55.171"
 }
