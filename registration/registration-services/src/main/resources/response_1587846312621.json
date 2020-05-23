@@ -387,7 +387,7 @@
 	"subType": "Email",
 	"validators": [{
 		"type": "regex",
-		"validator": "^[A-Za-z0-9_-\\+]+(\\.[A-Za-z0-9_]+)*@[A-Za-z0-9_-]+(\\.[A-Za-z0-9_]+)*(\\.[a-zA-Z]{2,})$",
+		"validator": "^[A-Za-z0-9_\\-]+(\\.[A-Za-z0-9_]+)*@[A-Za-z0-9_-]+(\\.[A-Za-z0-9_]+)*(\\.[a-zA-Z]{2,})$",
 		"arguments": []
 	}],
 	"fieldCategory": "pvt",
@@ -659,7 +659,7 @@
 	"subType": "introducer",
 	"requiredOn": [{
 		"engine": "MVEL",
-		"expr": "( identity.isChild )"
+		"expr": "identity.isChild"
 	}],
 	"group" : "Biometrics"
 }],
