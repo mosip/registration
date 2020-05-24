@@ -28,6 +28,7 @@ import org.springframework.stereotype.Controller;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.transliteration.spi.Transliteration;
+import io.mosip.kernel.packetmanager.constants.PacketManagerConstants;
 import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
@@ -947,7 +948,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 						streamImage = streamer.getStreamImage();
 					} else {
 						streamImage = new Image(this.getClass()
-								.getResourceAsStream(RegistrationConstants.LEFTHAND_SLAP_FINGERPRINT_PATH));
+								.getResourceAsStream( getStubStreamImagePath(modality)));
 					}
 
 					addBioStreamImage(subType, currentModality, savedBiometrics.get(0).getNumOfRetries(), streamImage);
@@ -2176,6 +2177,29 @@ public class GuardianBiometricsController extends BaseController /* implements I
 
 		BIO_SCORES.clear();
 		STREAM_IMAGES.clear();
+	}
+	
+	private String getStubStreamImagePath(String modality) {
+		String path = "";
+		switch(modality) {
+		case PacketManagerConstants.FINGERPRINT_SLAB_LEFT:
+			path = RegistrationConstants.LEFTHAND_SLAP_FINGERPRINT_PATH;
+			break;
+		case PacketManagerConstants.FINGERPRINT_SLAB_RIGHT:
+			path = RegistrationConstants.RIGHTHAND_SLAP_FINGERPRINT_PATH;
+			break;
+		case PacketManagerConstants.FINGERPRINT_SLAB_THUMBS:	
+			path =  RegistrationConstants.BOTH_THUMBS_FINGERPRINT_PATH;
+			break;
+		case PacketManagerConstants.IRIS_DOUBLE:
+			path = RegistrationConstants.RIGHT_IRIS_IMG_PATH;
+			break;
+		case "FACE":
+		case PacketManagerConstants.FACE_FULLFACE:
+			path = RegistrationConstants.FACE_IMG_PATH;
+			break;		
+		}
+		return path;
 	}
 	
 }
