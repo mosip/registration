@@ -1811,7 +1811,7 @@ public class BaseController {
 	//
 	// }
 
-	public List<String> getBioAttributesBySubType(String subType) {
+	/*public List<String> getBioAttributesBySubType(String subType) {
 		List<String> bioAttributes = new ArrayList<String>();
 		if (subType != null) {
 			bioAttributes = getAttributesByTypeAndSubType(RegistrationConstants.BIOMETRICS_TYPE, subType);
@@ -1831,7 +1831,7 @@ public class BaseController {
 			}
 		}
 		return bioAttributes;
-	}
+	}*/
 
 	/*
 	 * protected boolean isAvailableInBioAttributes(List<String> constantAttributes)
@@ -1853,7 +1853,7 @@ public class BaseController {
 	 * return isAvailable; }
 	 */
 
-	protected List<String> getNonConfigBioAttributes(String uiSchemaSubType, List<String> constantAttributes) {
+	/*protected List<String> getNonConfigBioAttributes(String uiSchemaSubType, List<String> constantAttributes) {
 
 		if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER))
 			return constantAttributes;
@@ -1869,7 +1869,7 @@ public class BaseController {
 			}
 		}
 		return nonConfigBiometrics;
-	}
+	}*/
 
 	protected boolean isDemographicField(UiSchemaDTO schemaField) {
 		return (schemaField.isInputRequired()

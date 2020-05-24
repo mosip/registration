@@ -613,7 +613,10 @@
 	"validators": [],
 	"fieldCategory": "pvt",
 	"required": true,
-	"requiredOn": [],
+	"requiredOn": [{
+		"engine": "MVEL",
+		"expr": "identity.isChild == false"
+	}],
 	"bioAttributes": ["leftEye", "rightIndex", "rightLittle", "leftIndex", "leftLittle", "face"],
 	"subType": "applicant",
 	"group" : "Biometrics"
@@ -636,7 +639,10 @@
 	"required": false,
 	"bioAttributes": ["face"],
 	"subType": "applicant",
-	"requiredOn": [],
+	"requiredOn": [{
+		"engine": "MVEL",
+		"expr": "identity.isChild"
+	}],
 	"group" : "Biometrics"
 }, {
 	"id": "parentOrGuardianBiometrics",
@@ -655,7 +661,7 @@
 	"validators": [],
 	"fieldCategory": "evidence",
 	"required": false,
-	"bioAttributes": ["face"],
+	"bioAttributes": ["face", "leftThumb"],
 	"subType": "introducer",
 	"requiredOn": [{
 		"engine": "MVEL",
