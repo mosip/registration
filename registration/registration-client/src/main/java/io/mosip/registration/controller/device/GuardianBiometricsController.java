@@ -2192,7 +2192,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 			path =  RegistrationConstants.BOTH_THUMBS_FINGERPRINT_PATH;
 			break;
 		case PacketManagerConstants.IRIS_DOUBLE:
-			path = RegistrationConstants.RIGHT_IRIS_IMG_PATH;
+			path = RegistrationConstants.IRIS_IMAGE_LOCAL;
 			break;
 		case "FACE":
 		case PacketManagerConstants.FACE_FULLFACE:
