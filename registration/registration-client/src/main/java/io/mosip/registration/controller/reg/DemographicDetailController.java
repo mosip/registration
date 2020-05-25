@@ -1120,12 +1120,13 @@ public class DemographicDetailController extends BaseController {
 			preRegistrationId.clear();
 		}
 
-		saveDetail(); // TODO need to check with taleev
+		//Its required to save before validation as on spot check for values during MVEL validation
+		saveDetail();
 
 		if (validateThisPane()) {
-			saveDetail();
+			//saveDetail();
 
-			guardianBiometricsController.initialize(null, null);
+			guardianBiometricsController.populateBiometricPage();
 			/*
 			 * SessionContext.map().put("demographicDetail", false);
 			 * SessionContext.map().put("documentScan", true);

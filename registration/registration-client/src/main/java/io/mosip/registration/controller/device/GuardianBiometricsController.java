@@ -18,14 +18,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.mvel2.MVEL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.transliteration.spi.Transliteration;
+import io.mosip.kernel.packetmanager.constants.PacketManagerConstants;
 import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
@@ -77,7 +80,7 @@ import javafx.util.StringConverter;
  * @since 1.0
  */
 @Controller
-public class GuardianBiometricsController extends BaseController implements Initializable {
+public class GuardianBiometricsController extends BaseController /* implements Initializable */ {
 
 	/**
 	 * Instance of {@link Logger}
@@ -261,6 +264,8 @@ public class GuardianBiometricsController extends BaseController implements Init
 	private HashMap<String, VBox> comboBoxMap;
 
 	private HashMap<String, HashMap<String, VBox>> checkBoxMap;
+	
+	private HashMap<String, List<String>> currentMap;
 
 	/*
 	 * (non-Javadoc)
@@ -268,15 +273,21 @@ public class GuardianBiometricsController extends BaseController implements Init
 	 * @see javafx.fxml.Initializable#initialize(java.net.URL,
 	 * java.util.ResourceBundle)
 	 */
-	@Override
-	public void initialize(URL arg0, ResourceBundle arg1) {
+	@FXML
+	public void initialize() {
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Loading of Guardian Biometric screen started");
 		comboBoxMap = new HashMap<>();
 		checkBoxMap = new HashMap<>();
+		currentMap = new HashMap<>();
 		fxUtils = FXUtils.getInstance();
 		applicationLabelBundle = applicationContext.getApplicationLanguageBundle();
-
+	}
+	
+	public void populateBiometricPage() {
+		LOGGER.debug(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+				"populateBiometricPage invoked");	
+		
 		HashMap<Entry<String, String>, HashMap<String, List<List<String>>>> mapToProcess = getconfigureAndNonConfiguredBioAttributes(
 				Arrays.asList(
 						getValue(RegistrationConstants.FINGERPRINT_SLAB_LEFT,
@@ -287,30 +298,23 @@ public class GuardianBiometricsController extends BaseController implements Init
 								RegistrationConstants.twoThumbsUiAttributes),
 						getValue(RegistrationConstants.IRIS_DOUBLE, RegistrationConstants.eyesUiAttributes),
 						getValue(RegistrationConstants.FACE, RegistrationConstants.faceUiAttributes)));
-
+		
+		removeInapplicableCapturedData(mapToProcess);
+		
+		ContentHeader.getChildren().clear();
+		checkBoxPane.getChildren().clear();	
+		comboBoxMap.clear();			
+		checkBoxMap.clear();
+		currentMap.clear();
+		
 		for (Entry<Entry<String, String>, HashMap<String, List<List<String>>>> subType : mapToProcess.entrySet()) {
-			VBox vb = new VBox();
-			vb.setSpacing(10);
-			vb.setId(subType.getKey() + "vbox");
-			Label label = new Label(subType.getKey().getValue());
-			label.getStyleClass().add("paneHeader");
-			ComboBox<Entry<String, String>> comboBox = new ComboBox<>();
-
-			comboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
-				displayBiometric(newValue.getKey());
-			});
-			renderBiometrics(comboBox);
-			comboBox.getStyleClass().add("demographicCombobox");
-			comboBox.setId(subType.getKey() + "combobox");
-
-			vb.getChildren().addAll(label, comboBox);
-			ContentHeader.add(vb, 1, 1);
-			vb.setVisible(false);
-			vb.setManaged(false);
-			comboBoxMap.put(subType.getKey().getKey(), vb);
+			ComboBox<Entry<String, String>> comboBox = buildComboBox(subType.getKey());
 			HashMap<String, VBox> subMap = new HashMap<>();
-			for (Entry<String, List<List<String>>> biometric : subType.getValue().entrySet()) {
+			currentMap.put(subType.getKey().getKey(), new ArrayList<String>());
+			
+			for (Entry<String, List<List<String>>> biometric : subType.getValue().entrySet()) {				
 				List<List<String>> listOfCheckBoxes = biometric.getValue();
+				currentMap.get(subType.getKey().getKey()).addAll(listOfCheckBoxes.get(0));				
 				if (!listOfCheckBoxes.get(0).isEmpty()) {
 
 					comboBox.getItems().add(new SimpleEntry<String, String>(biometric.getKey(),
@@ -368,9 +372,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 					}
 				}
-
 			}
-
 		}
 
 		sizeOfCombobox = comboBoxMap.size();
@@ -388,10 +390,54 @@ public class GuardianBiometricsController extends BaseController implements Init
 
 		biometricBox.setVisible(false);
 		retryBox.setVisible(false);
-		continueBtn.setDisable(true);
-
+		refreshContinueButton();
 		displaycurrentUiElements();
+	}
+	
+	private void removeInapplicableCapturedData(HashMap<Entry<String, String>, HashMap<String, List<List<String>>>> mapToProcess) {
+		if(!getRegistrationDTOFromSession().getBiometrics().isEmpty() 
+				|| !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()) {
+			
+			List<String> applicableSubTypes = new ArrayList<String>();
+			for(Entry<String, String> subType : mapToProcess.keySet()) {
+				applicableSubTypes.add(String.format("%s_.*", subType.getKey()));
+			}			
+			String pattern = String.join("|", applicableSubTypes);
+			
+			List<String> keys = new ArrayList<String>();
+			keys.addAll(getRegistrationDTOFromSession().getBiometrics().keySet());
+			keys.addAll(getRegistrationDTOFromSession().getBiometricExceptions().keySet());
+						
+			for(String key : keys) {
+				if(!key.matches(pattern)) {
+					getRegistrationDTOFromSession().getBiometrics().remove(key);
+					getRegistrationDTOFromSession().getBiometricExceptions().remove(key);
+				}
+			}			
+		}
+	}
+	
+	private ComboBox<Entry<String, String>> buildComboBox(Entry<String, String> subMapKey) {
+		VBox vb = new VBox();
+		vb.setSpacing(10);
+		vb.setId(subMapKey + "vbox");
+		Label label = new Label(subMapKey.getValue());
+		label.getStyleClass().add("paneHeader");
+		ComboBox<Entry<String, String>> comboBox = new ComboBox<>();
 
+		comboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
+			displayBiometric(newValue.getKey());
+		});
+		renderBiometrics(comboBox);
+		comboBox.getStyleClass().add("demographicCombobox");
+		comboBox.setId(subMapKey + "combobox");
+
+		vb.getChildren().addAll(label, comboBox);
+		ContentHeader.add(vb, 1, 1);
+		vb.setVisible(false);
+		vb.setManaged(false);
+		comboBoxMap.put(subMapKey.getKey(), vb);
+		return comboBox;
 	}
 
 	private void setScanButtonVisibility(boolean isAllExceptions, Button scanBtn2) {
@@ -902,7 +948,7 @@ public class GuardianBiometricsController extends BaseController implements Init
 						streamImage = streamer.getStreamImage();
 					} else {
 						streamImage = new Image(this.getClass()
-								.getResourceAsStream(RegistrationConstants.LEFTHAND_SLAP_FINGERPRINT_PATH));
+								.getResourceAsStream( getStubStreamImagePath(modality)));
 					}
 
 					addBioStreamImage(subType, currentModality, savedBiometrics.get(0).getNumOfRetries(), streamImage);
@@ -1971,11 +2017,32 @@ public class GuardianBiometricsController extends BaseController implements Init
 	}
 
 	public void refreshContinueButton() {
+		String currentSubType = getListOfBiometricSubTypess().get(currentPosition);		
+		List<String> bioAttributes = currentMap.get(currentSubType);
+		
+		Map<String, Boolean> capturedDetails = new HashMap<String, Boolean>();
+		for(String bioAttribute : bioAttributes) {
+			capturedDetails.put(bioAttribute, isBiometricCaptured(bioAttribute));
+		}
+		
+		String operator = " && ";		
+		switch (getRegistrationDTOFromSession().getRegistrationCategory()) {
+		case RegistrationConstants.PACKET_TYPE_NEW:	
+			operator = "introducer".equalsIgnoreCase(currentSubType) ? " || " : " && ";
+			break;
+		case RegistrationConstants.PACKET_TYPE_UPDATE:
+			operator = getRegistrationDTOFromSession().isBiometricMarkedForUpdate() ? " && " : " || ";
+			break;
+		case RegistrationConstants.PACKET_TYPE_LOST:
+			operator = " || ";
+			break;
+		}
+		String expression = String.join(operator, bioAttributes);
+		boolean result = MVEL.evalToBoolean(expression, capturedDetails);
+		
+		continueBtn.setDisable(result ? false : true);
 
-		// get bio attributes by subType ffrom schema
-		List<String> bioAttributes = getBioAttributesBySubType(getListOfBiometricSubTypess().get(currentPosition));
-
-		boolean isAllBiometricsCaptured = true;
+		/*boolean isAllBiometricsCaptured = true;
 
 		List<String> leftHandBioAttributes = getContainsAllElements(RegistrationConstants.leftHandUiAttributes,
 				bioAttributes);
@@ -2001,8 +2068,20 @@ public class GuardianBiometricsController extends BaseController implements Init
 			// disable continue button
 			continueBtn.setDisable(true);
 		}
-
+		 */
 	}
+	
+	private boolean isBiometricCaptured(String bioAttribute) {
+		boolean isCaptured = false;
+		String attributeName = getRegistrationDTOBioAttribute(bioAttribute);
+		
+		if(getRegistrationDTOFromSession().getBiometric(currentSubType, attributeName) != null 
+				|| getRegistrationDTOFromSession().isBiometricExceptionAvailable(currentSubType, attributeName)) {
+			isCaptured = true;
+		}
+		return isCaptured;
+	}
+
 
 	private boolean isBiometricsCaptured(List<String> bioAttributes, int thresholdScore) {
 
@@ -2099,5 +2178,28 @@ public class GuardianBiometricsController extends BaseController implements Init
 		BIO_SCORES.clear();
 		STREAM_IMAGES.clear();
 	}
-
+	
+	private String getStubStreamImagePath(String modality) {
+		String path = "";
+		switch(modality) {
+		case PacketManagerConstants.FINGERPRINT_SLAB_LEFT:
+			path = RegistrationConstants.LEFTHAND_SLAP_FINGERPRINT_PATH;
+			break;
+		case PacketManagerConstants.FINGERPRINT_SLAB_RIGHT:
+			path = RegistrationConstants.RIGHTHAND_SLAP_FINGERPRINT_PATH;
+			break;
+		case PacketManagerConstants.FINGERPRINT_SLAB_THUMBS:	
+			path =  RegistrationConstants.BOTH_THUMBS_FINGERPRINT_PATH;
+			break;
+		case PacketManagerConstants.IRIS_DOUBLE:
+			path = RegistrationConstants.IRIS_IMAGE_LOCAL;
+			break;
+		case "FACE":
+		case PacketManagerConstants.FACE_FULLFACE:
+			path = RegistrationConstants.FACE_IMG_PATH;
+			break;		
+		}
+		return path;
+	}
+	
 }

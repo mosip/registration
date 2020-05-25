@@ -150,7 +150,8 @@ public class RegistrationController extends BaseController {
 		}
 	}
 
-	public void init(String UIN, HashMap<String, Object> selectionListDTO, Map<String, UiSchemaDTO> selectedFields) {
+	public void init(String UIN, HashMap<String, Object> selectionListDTO, Map<String, UiSchemaDTO> selectedFields, 
+			boolean biometricMarkedForUpdate) {
 		validation.updateAsLostUIN(false);
 		createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_UPDATE);
 		RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
@@ -158,6 +159,7 @@ public class RegistrationController extends BaseController {
 		List<String> fieldIds = new ArrayList<String>(selectedFields.keySet());
 		registrationDTO.setUpdatableFields(fieldIds);
 		registrationDTO.addDemographicField("UIN", UIN);
+		registrationDTO.setBiometricMarkedForUpdate(biometricMarkedForUpdate);
 	}
 
 	protected void initializeLostUIN() {

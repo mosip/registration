@@ -270,7 +270,7 @@ public class Validations extends BaseController {
 				if (isMandatory && (inputText == null || inputText.isEmpty())) {
 					isInputValid = false;
 					generateInvalidValueAlert(parentPane, id,
-							getFromLabelMap(id).concat(RegistrationConstants.SPACE)
+							getFromLabelMap(label).concat(RegistrationConstants.SPACE)
 									.concat(messageBundle.getString(RegistrationConstants.REG_LGN_001)),
 							showAlert);
 					if (isPreviousValid && !id.contains(RegistrationConstants.ON_TYPE)) {
