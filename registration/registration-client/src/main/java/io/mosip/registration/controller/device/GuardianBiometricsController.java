@@ -6,7 +6,6 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.io.IOException;
-import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.AbstractMap.SimpleEntry;
@@ -18,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ResourceBundle;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.mvel2.MVEL;
@@ -50,11 +48,9 @@ import io.mosip.registration.mdm.dto.RequestDetail;
 import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.security.AuthenticationService;
 import io.mosip.registration.service.sync.MasterSyncService;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -303,6 +299,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 
 		ContentHeader.getChildren().clear();
 		checkBoxPane.getChildren().clear();
+
 		comboBoxMap.clear();
 		checkBoxMap.clear();
 		currentMap.clear();
@@ -321,8 +318,8 @@ public class GuardianBiometricsController extends BaseController /* implements I
 							applicationLabelBundle.getString(biometric.getKey())));
 
 					if (!listOfCheckBoxes.get(0).get(0).equals("face")) {
+
 						VBox vboxForCheckBox = new VBox();
-						vboxForCheckBox.setSpacing(5);
 
 						for (int i = 0; i < listOfCheckBoxes.size(); i++) {
 
@@ -363,7 +360,11 @@ public class GuardianBiometricsController extends BaseController /* implements I
 
 							}
 						}
-						checkBoxPane.add(vboxForCheckBox, 0, 0);
+
+						checkBoxPane.add(vboxForCheckBox, 0, 1);
+						checkBoxPane.add(new Label(applicationLabelBundle.getString("exceptionCheckBoxPaneLabel")), 0,
+								0);
+
 						vboxForCheckBox.setVisible(false);
 						vboxForCheckBox.setManaged(false);
 
@@ -678,18 +679,21 @@ public class GuardianBiometricsController extends BaseController /* implements I
 	}
 
 	private void enableCurrentCheckBoxSection() {
+
 		if (checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)) != null && checkBoxMap
 				.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality) != null) {
 			checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality)
 					.setVisible(true);
 			checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality)
 					.setManaged(true);
+			checkBoxPane.setVisible(true);
+
 		}
 
 	}
 
 	private void disableLastCheckBoxSection() {
-
+		checkBoxPane.setVisible(false);
 		if (currentPosition != -1) {
 			if (this.currentModality != null
 					&& checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)) != null
@@ -923,10 +927,12 @@ public class GuardianBiometricsController extends BaseController /* implements I
 					} else {
 
 						qualityScore += biometricDTO.getQualityScore();
-						savedBiometrics.add(getRegistrationDTOFromSession().addBiometric(currentSubType,
-								getRegistrationDTOBioAttribute(biometricDTO.getBioAttribute()), biometricDTO));
+						savedBiometrics.add(biometricDTO);
 					}
 				}
+
+				savedBiometrics = getRegistrationDTOFromSession().addAllBiometrics(subType, savedBiometrics,
+						getThresholdScoreInDouble(getThresholdKeyByBioType(modality)), getMaxRetryByModality(modality));
 
 				if (!savedBiometrics.isEmpty()) {
 					// if all the above check success show alert capture success
@@ -976,10 +982,10 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Updating progress Bar,Text and attempts Box in UI");
 
-		setCapturedValues(getAverageQualityScore(biometricDTOList), biometricDTOList.get(0).getNumOfRetries(),
-				getThresholdScoreInInt(getThresholdKeyByBioType(modality)));
-
 		int retry = biometricDTOList.get(0).getNumOfRetries();
+
+		setCapturedValues(getAverageQualityScore(biometricDTOList), retry,
+				getThresholdScoreInInt(getThresholdKeyByBioType(modality)));
 
 		// Get the stream image from Bio ServiceImpl and load it in the image pane
 		biometricImage.setImage(getBioStreamImage(subType, modality, retry));
@@ -1032,6 +1038,14 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		String thresholdScore = getValueFromApplicationContext(thresholdKey);
 
 		return thresholdScore != null ? Integer.valueOf(thresholdScore) : 0;
+	}
+
+	private double getThresholdScoreInDouble(String thresholdKey) {
+		/* Get Configued threshold score for bio type */
+
+		String thresholdScore = getValueFromApplicationContext(thresholdKey);
+
+		return thresholdScore != null ? Double.valueOf(thresholdScore) : 0;
 	}
 
 	private String getCaptureTimeOut() {
@@ -1158,15 +1172,13 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		biometricPane.getStyleClass().add(RegistrationConstants.BIOMETRIC_PANES_SELECTED);
 		biometricImage.setImage(new Image(this.getClass().getResourceAsStream(bioImage)));
 
-		if (!bioType.equalsIgnoreCase(RegistrationUIConstants.PHOTO)) {
-			bioValue = bioType;
-			thresholdScoreLabel
-					.setText(getQualityScore(Double.parseDouble(getValueFromApplicationContext(biometricThreshold))));
-			createQualityBox(retryCount, biometricThreshold);
-			qualityScore.setText(RegistrationConstants.HYPHEN);
-			attemptSlap.setText(RegistrationConstants.HYPHEN);
-			duplicateCheckLbl.setText(RegistrationConstants.EMPTY);
-		}
+		bioValue = bioType;
+		thresholdScoreLabel
+				.setText(getQualityScore(Double.parseDouble(getValueFromApplicationContext(biometricThreshold))));
+		createQualityBox(retryCount, biometricThreshold);
+		qualityScore.setText(RegistrationConstants.HYPHEN);
+		attemptSlap.setText(RegistrationConstants.HYPHEN);
+		duplicateCheckLbl.setText(RegistrationConstants.EMPTY);
 
 		retryBox.setVisible(true);
 		biometricBox.setVisible(true);
@@ -1519,7 +1531,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 			qualityText.getStyleClass().add(RegistrationConstants.LABEL_RED);
 		}
 
-		if (retry == Integer.parseInt(getValueFromApplicationContext(RegistrationConstants.IRIS_RETRY_COUNT))) {
+		if (retry == getMaxRetryByModality(currentModality)) {
 			scanBtn.setDisable(true);
 		} else {
 			scanBtn.setDisable(false);
@@ -1527,6 +1539,27 @@ public class GuardianBiometricsController extends BaseController /* implements I
 
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Updated captured values of biometrics");
+	}
+
+	private int getMaxRetryByModality(String currentModality) {
+		String key = getMaxRetryKeyByModality(currentModality);
+
+		String val = getValueFromApplicationContext(key);
+		return val != null ? Integer.parseInt(val) : 0;
+	}
+
+	private String getMaxRetryKeyByModality(String modality) {
+		return modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)
+				? RegistrationConstants.FINGERPRINT_RETRIES_COUNT
+				: modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_LEFT)
+						? RegistrationConstants.FINGERPRINT_RETRIES_COUNT
+						: modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_THUMBS)
+								? RegistrationConstants.FINGERPRINT_RETRIES_COUNT
+								: modality.equalsIgnoreCase(RegistrationConstants.IRIS_DOUBLE)
+										? RegistrationConstants.IRIS_RETRY_COUNT
+										: modality.equalsIgnoreCase(RegistrationConstants.FACE)
+												? RegistrationConstants.IRIS_RETRY_COUNT
+												: modality;
 	}
 
 	/**
