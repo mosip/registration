@@ -6,7 +6,6 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.io.IOException;
-import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.AbstractMap.SimpleEntry;
@@ -18,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ResourceBundle;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.mvel2.MVEL;
@@ -50,11 +48,9 @@ import io.mosip.registration.mdm.dto.RequestDetail;
 import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.security.AuthenticationService;
 import io.mosip.registration.service.sync.MasterSyncService;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -303,6 +299,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 
 		ContentHeader.getChildren().clear();
 		checkBoxPane.getChildren().clear();
+
 		comboBoxMap.clear();
 		checkBoxMap.clear();
 		currentMap.clear();
@@ -321,8 +318,8 @@ public class GuardianBiometricsController extends BaseController /* implements I
 							applicationLabelBundle.getString(biometric.getKey())));
 
 					if (!listOfCheckBoxes.get(0).get(0).equals("face")) {
+
 						VBox vboxForCheckBox = new VBox();
-						vboxForCheckBox.setSpacing(5);
 
 						for (int i = 0; i < listOfCheckBoxes.size(); i++) {
 
@@ -363,7 +360,11 @@ public class GuardianBiometricsController extends BaseController /* implements I
 
 							}
 						}
-						checkBoxPane.add(vboxForCheckBox, 0, 0);
+
+						checkBoxPane.add(vboxForCheckBox, 0, 1);
+						checkBoxPane.add(new Label(applicationLabelBundle.getString("exceptionCheckBoxPaneLabel")), 0,
+								0);
+
 						vboxForCheckBox.setVisible(false);
 						vboxForCheckBox.setManaged(false);
 
@@ -678,18 +679,21 @@ public class GuardianBiometricsController extends BaseController /* implements I
 	}
 
 	private void enableCurrentCheckBoxSection() {
+
 		if (checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)) != null && checkBoxMap
 				.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality) != null) {
 			checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality)
 					.setVisible(true);
 			checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)).get(this.currentModality)
 					.setManaged(true);
+			checkBoxPane.setVisible(true);
+
 		}
 
 	}
 
 	private void disableLastCheckBoxSection() {
-
+		checkBoxPane.setVisible(false);
 		if (currentPosition != -1) {
 			if (this.currentModality != null
 					&& checkBoxMap.get(getListOfBiometricSubTypess().get(currentPosition)) != null
@@ -930,7 +934,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 				savedBiometrics = getRegistrationDTOFromSession().addAllBiometrics(subType, savedBiometrics,
 						getThresholdScoreInDouble(getThresholdKeyByBioType(modality)), getMaxRetryByModality(modality));
 
- 				if (!savedBiometrics.isEmpty()) {
+				if (!savedBiometrics.isEmpty()) {
 					// if all the above check success show alert capture success
 					generateAlert(RegistrationConstants.ALERT_INFORMATION,
 							RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
