@@ -36,7 +36,7 @@
 		"subType": "UIN",
 		"validators": [],
 		"fieldCategory": "none",
-		"required": true,
+		"required": false,
 		"requiredOn": [],
 		"group" : null
 	}, {
@@ -387,7 +387,7 @@
 	"subType": "Email",
 	"validators": [{
 		"type": "regex",
-		"validator": "^[A-Za-z0-9_-\\+]+(\\.[A-Za-z0-9_]+)*@[A-Za-z0-9_-]+(\\.[A-Za-z0-9_]+)*(\\.[a-zA-Z]{2,})$",
+		"validator": "^[A-Za-z0-9_\\-]+(\\.[A-Za-z0-9_]+)*@[A-Za-z0-9_-]+(\\.[A-Za-z0-9_]+)*(\\.[a-zA-Z]{2,})$",
 		"arguments": []
 	}],
 	"fieldCategory": "pvt",
@@ -613,7 +613,10 @@
 	"validators": [],
 	"fieldCategory": "pvt",
 	"required": true,
-	"requiredOn": [],
+	"requiredOn": [{
+		"engine": "MVEL",
+		"expr": "identity.isChild == false"
+	}],
 	"bioAttributes": ["leftEye", "rightIndex", "rightLittle", "leftIndex", "leftLittle", "face"],
 	"subType": "applicant",
 	"group" : "Biometrics"
@@ -633,10 +636,13 @@
 	"format": "none",
 	"validators": [],
 	"fieldCategory": "evidence",
-	"required": true,
+	"required": false,
 	"bioAttributes": ["face"],
 	"subType": "applicant",
-	"requiredOn": [],
+	"requiredOn": [{
+		"engine": "MVEL",
+		"expr": "identity.isChild"
+	}],
 	"group" : "Biometrics"
 }, {
 	"id": "parentOrGuardianBiometrics",
@@ -655,11 +661,11 @@
 	"validators": [],
 	"fieldCategory": "evidence",
 	"required": false,
-	"bioAttributes": ["face"],
+	"bioAttributes": ["face", "leftThumb"],
 	"subType": "introducer",
 	"requiredOn": [{
 		"engine": "MVEL",
-		"expr": "( identity.isChild )"
+		"expr": "identity.isChild"
 	}],
 	"group" : "Biometrics"
 }],

@@ -56,6 +56,8 @@ import javafx.scene.layout.RowConstraints;
 public class UpdateUINController extends BaseController implements Initializable {
 
 	private static final Logger LOGGER = AppConfig.getLogger(UpdateUINController.class);
+	
+	private static final String BIOMETRIC_GROUP = "Biometrics";
 
 	@Autowired
 	private RegistrationController registrationController;
@@ -171,24 +173,27 @@ public class UpdateUINController extends BaseController implements Initializable
 	@FXML
 	public void submitUINUpdate(ActionEvent event) {
 		LOGGER.info(LOG_REG_UIN_UPDATE, APPLICATION_NAME, APPLICATION_ID, "Updating UIN details");
-		try {
-
+		try {			
 			if (StringUtils.isEmpty(uinId.getText())) {
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UPDATE_UIN_ENTER_UIN_ALERT);
 			} else {
 				Map<String, UiSchemaDTO> selectedFields = new HashMap<String, UiSchemaDTO>();
-				checkBoxKeeper.forEach((key, checkbox) -> {
-					if(((CheckBox)checkbox).isSelected()) {
+				boolean isBiometricMarkedForUpdate = false;	
+				for(String key : checkBoxKeeper.keySet()) {
+					if(((CheckBox)checkBoxKeeper.get(key)).isSelected()) {
 						for(UiSchemaDTO field : groupedMap.get(key)) {							
 							selectedFields.put(field.getId(), field);
 						}
+						
+						if(BIOMETRIC_GROUP.equalsIgnoreCase(key))
+							isBiometricMarkedForUpdate = true;
 					}
-				});
+				}
 				
 				LOGGER.debug(LOG_REG_UIN_UPDATE, APPLICATION_NAME, APPLICATION_ID, "selectedFields size : " + selectedFields.size());
 				
 				if (uinValidatorImpl.validateId(uinId.getText()) && !selectedFields.isEmpty()) {		
-						registrationController.init(uinId.getText(), checkBoxKeeper, selectedFields);
+						registrationController.init(uinId.getText(), checkBoxKeeper, selectedFields, isBiometricMarkedForUpdate);
 						Parent createRoot = BaseController.load(
 								getClass().getResource(RegistrationConstants.CREATE_PACKET_PAGE),
 								applicationContext.getApplicationLanguageBundle());
