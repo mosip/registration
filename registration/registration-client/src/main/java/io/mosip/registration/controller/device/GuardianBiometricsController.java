@@ -923,12 +923,14 @@ public class GuardianBiometricsController extends BaseController /* implements I
 					} else {
 
 						qualityScore += biometricDTO.getQualityScore();
-						savedBiometrics.add(getRegistrationDTOFromSession().addBiometric(currentSubType,
-								getRegistrationDTOBioAttribute(biometricDTO.getBioAttribute()), biometricDTO));
+						savedBiometrics.add(biometricDTO);
 					}
 				}
 
-				if (!savedBiometrics.isEmpty()) {
+				savedBiometrics = getRegistrationDTOFromSession().addAllBiometrics(subType, savedBiometrics,
+						getThresholdScoreInDouble(getThresholdKeyByBioType(modality)), getMaxRetryByModality(modality));
+
+ 				if (!savedBiometrics.isEmpty()) {
 					// if all the above check success show alert capture success
 					generateAlert(RegistrationConstants.ALERT_INFORMATION,
 							RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
@@ -976,10 +978,10 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Updating progress Bar,Text and attempts Box in UI");
 
-		setCapturedValues(getAverageQualityScore(biometricDTOList), biometricDTOList.get(0).getNumOfRetries(),
-				getThresholdScoreInInt(getThresholdKeyByBioType(modality)));
-
 		int retry = biometricDTOList.get(0).getNumOfRetries();
+
+		setCapturedValues(getAverageQualityScore(biometricDTOList), retry,
+				getThresholdScoreInInt(getThresholdKeyByBioType(modality)));
 
 		// Get the stream image from Bio ServiceImpl and load it in the image pane
 		biometricImage.setImage(getBioStreamImage(subType, modality, retry));
@@ -1032,6 +1034,14 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		String thresholdScore = getValueFromApplicationContext(thresholdKey);
 
 		return thresholdScore != null ? Integer.valueOf(thresholdScore) : 0;
+	}
+
+	private double getThresholdScoreInDouble(String thresholdKey) {
+		/* Get Configued threshold score for bio type */
+
+		String thresholdScore = getValueFromApplicationContext(thresholdKey);
+
+		return thresholdScore != null ? Double.valueOf(thresholdScore) : 0;
 	}
 
 	private String getCaptureTimeOut() {
@@ -1158,15 +1168,13 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		biometricPane.getStyleClass().add(RegistrationConstants.BIOMETRIC_PANES_SELECTED);
 		biometricImage.setImage(new Image(this.getClass().getResourceAsStream(bioImage)));
 
-		if (!bioType.equalsIgnoreCase(RegistrationUIConstants.PHOTO)) {
-			bioValue = bioType;
-			thresholdScoreLabel
-					.setText(getQualityScore(Double.parseDouble(getValueFromApplicationContext(biometricThreshold))));
-			createQualityBox(retryCount, biometricThreshold);
-			qualityScore.setText(RegistrationConstants.HYPHEN);
-			attemptSlap.setText(RegistrationConstants.HYPHEN);
-			duplicateCheckLbl.setText(RegistrationConstants.EMPTY);
-		}
+		bioValue = bioType;
+		thresholdScoreLabel
+				.setText(getQualityScore(Double.parseDouble(getValueFromApplicationContext(biometricThreshold))));
+		createQualityBox(retryCount, biometricThreshold);
+		qualityScore.setText(RegistrationConstants.HYPHEN);
+		attemptSlap.setText(RegistrationConstants.HYPHEN);
+		duplicateCheckLbl.setText(RegistrationConstants.EMPTY);
 
 		retryBox.setVisible(true);
 		biometricBox.setVisible(true);
@@ -1519,7 +1527,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 			qualityText.getStyleClass().add(RegistrationConstants.LABEL_RED);
 		}
 
-		if (retry == Integer.parseInt(getValueFromApplicationContext(RegistrationConstants.IRIS_RETRY_COUNT))) {
+		if (retry == getMaxRetryByModality(currentModality)) {
 			scanBtn.setDisable(true);
 		} else {
 			scanBtn.setDisable(false);
@@ -1527,6 +1535,27 @@ public class GuardianBiometricsController extends BaseController /* implements I
 
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Updated captured values of biometrics");
+	}
+
+	private int getMaxRetryByModality(String currentModality) {
+		String key = getMaxRetryKeyByModality(currentModality);
+
+		String val = getValueFromApplicationContext(key);
+		return val != null ? Integer.parseInt(val) : 0;
+	}
+
+	private String getMaxRetryKeyByModality(String modality) {
+		return modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)
+				? RegistrationConstants.FINGERPRINT_RETRIES_COUNT
+				: modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_LEFT)
+						? RegistrationConstants.FINGERPRINT_RETRIES_COUNT
+						: modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_THUMBS)
+								? RegistrationConstants.FINGERPRINT_RETRIES_COUNT
+								: modality.equalsIgnoreCase(RegistrationConstants.IRIS_DOUBLE)
+										? RegistrationConstants.IRIS_RETRY_COUNT
+										: modality.equalsIgnoreCase(RegistrationConstants.FACE)
+												? RegistrationConstants.IRIS_RETRY_COUNT
+												: modality;
 	}
 
 	/**
