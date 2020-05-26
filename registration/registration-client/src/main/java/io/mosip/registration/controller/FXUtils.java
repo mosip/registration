@@ -634,6 +634,7 @@ public class FXUtils {
 			OptionalInt indexOfSelectedLocation = getIndexOfSelectedItem(comboBoxValues, findIndexOfSelectedItem);
 
 			if (indexOfSelectedLocation.isPresent()) {
+				((DocumentCategoryDto) comboBoxValues.get(indexOfSelectedLocation.getAsInt())).setScanned(true);
 				comboBox.getSelectionModel().select(indexOfSelectedLocation.getAsInt());
 			}
 		}
