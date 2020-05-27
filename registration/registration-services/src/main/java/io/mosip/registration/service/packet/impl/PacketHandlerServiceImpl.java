@@ -109,17 +109,8 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 	private AuditDAO auditDAO;
 	
 	@Autowired
-	private SoftwareUpdateHandler softwareUpdateHandler;
+	private SoftwareUpdateHandler softwareUpdateHandler;	
 	
-	private static Map<String, String> categoryPacketMapping = new HashMap<>();
-	
-	static {
-		categoryPacketMapping.put("pvt", "id");
-		categoryPacketMapping.put("kyc", "id");
-		categoryPacketMapping.put("none", "id,evidence,optional");
-		categoryPacketMapping.put("evidence", "evidence");
-		categoryPacketMapping.put("optional", "optional");
-	}
 
 	/*
 	 * (non-Javadoc)
@@ -154,7 +145,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			packetCreator.setAcknowledgement(registrationDTO.getAcknowledgeReceiptName(), registrationDTO.getAcknowledgeReceipt());			
 			collectAudits();
 			byte[] packetZip = packetCreator.createPacket(registrationDTO.getRegistrationId(), registrationDTO.getIdSchemaVersion(),
-					schema.getSchemaJson(), categoryPacketMapping, getPublicKeyToEncrypt(), null);				
+					schema.getSchemaJson(), null, getPublicKeyToEncrypt(), null);				
 			
 			String filePath = savePacketToDisk(registrationDTO.getRegistrationId(), packetZip);
 			registrationDAO.save(filePath, registrationDTO);			
