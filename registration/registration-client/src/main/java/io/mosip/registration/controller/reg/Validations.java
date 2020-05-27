@@ -29,6 +29,7 @@ import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.Validator;
 import io.mosip.registration.dto.mastersync.BlacklistedWordsDto;
+import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
 import io.mosip.registration.entity.BlacklistedWords;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.sync.MasterSyncService;
@@ -386,7 +387,7 @@ public class Validations extends BaseController {
 	 * Validate for the ComboBox type of node
 	 */
 	private boolean validateComboBox(Pane parentPane, ComboBox<?> node, String id, boolean isPreviousValid) {
-		boolean isComboBoxValueValid = false;
+		{		boolean isComboBoxValueValid = false;
 		try {
 			
 			String label = id.replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY)
@@ -419,8 +420,18 @@ public class Validations extends BaseController {
 						return s.equals("demographicComboboxFocused");
 					});
 					node.getStyleClass().add("demographicCombobox");
-
-					isComboBoxValueValid = true;
+					if(node.getValue().getClass().getSimpleName().equalsIgnoreCase("DocumentCategoryDto")) {
+						DocumentCategoryDto doc=(DocumentCategoryDto) node.getValue();
+						if(doc.isScanned()) {
+							isComboBoxValueValid = true;
+						}else {
+							isComboBoxValueValid = false;
+						}
+							
+					}else {
+						isComboBoxValueValid = true;	
+					}
+					
 				}
 			}
 			else {
@@ -435,7 +446,9 @@ public class Validations extends BaseController {
 			LOGGER.error(RegistrationConstants.VALIDATION_LOGGER, APPLICATION_NAME, APPLICATION_ID,
 					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 		}
+		
 		return isComboBoxValueValid;
+		}
 	}
 	
 

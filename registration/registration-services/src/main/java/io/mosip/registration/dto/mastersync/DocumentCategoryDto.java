@@ -38,6 +38,24 @@ public class DocumentCategoryDto extends MasterSyncBaseDto{
 	 */
 	
 	private Boolean isActive;
+	
+	
+	private boolean isScanned;
+	
+
+	/**
+	 * @return the isScanned
+	 */
+	public boolean isScanned() {
+		return isScanned;
+	}
+
+	/**
+	 * @param isScanned the isScanned to set
+	 */
+	public void setScanned(boolean isScanned) {
+		this.isScanned = isScanned;
+	}
 
 	/**
 	 * @return the code

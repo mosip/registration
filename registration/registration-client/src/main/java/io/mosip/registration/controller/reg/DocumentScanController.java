@@ -432,11 +432,30 @@ public class DocumentScanController extends BaseController {
 	 */
 	private void scanDocument(ComboBox<DocumentCategoryDto> documents, VBox vboxElement, String document,
 			String errorMessage) {
-		if (null!=documents.getValue() && documents.getValue().getCode().matches(proofOfExceptioPhotoFlag)) {
-			scanWindow();
-			selectedDocument = document;
-			selectedComboBox = documents;
-			selectedDocVBox = vboxElement;
+		if (null != documents.getValue() && documents.getValue().getCode().matches(proofOfExceptioPhotoFlag)) {
+			if (documents.getValue() == null) {
+				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+						RegistrationConstants.APPLICATION_ID, "Select atleast one document for scan");
+
+				generateAlert(RegistrationConstants.ERROR, errorMessage);
+				documents.requestFocus();
+			} else if (!vboxElement.getChildren().isEmpty()) {
+				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+						RegistrationConstants.APPLICATION_ID, "only One Document can be added to the Category");
+
+				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOC_CATEGORY_MULTIPLE);
+			} else if (!vboxElement.getChildren().isEmpty() && vboxElement.getChildren().stream()
+					.noneMatch(index -> index.getId().contains(documents.getValue().getName()))) {
+				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+						RegistrationConstants.APPLICATION_ID, "Select only one document category for scan");
+
+				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOC_CATEGORY_MULTIPLE);
+			} else {
+				selectedDocument = document;
+				selectedComboBox = documents;
+				selectedDocVBox = vboxElement;
+				scanWindow();
+			}
 		} else {
 		if (documents.getValue() == null) {
 			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
@@ -541,13 +560,14 @@ public class DocumentScanController extends BaseController {
 			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, "Adding documents to Screen");
 
+			selectedComboBox.getValue().setScanned(true);
 			//DocumentDetailsDTO documentDetailsDTO = new DocumentDetailsDTO();
 
 			//getDocumentsMapFromSession().put(selectedComboBox.getValue().getName(), documentDetailsDTO);
 			attachDocuments(selectedComboBox.getValue(), selectedDocVBox, byteArray, true);
 
 			popupStage.close();
-
+			selectedComboBox=null;
 			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, "Documents added successfully");
 
