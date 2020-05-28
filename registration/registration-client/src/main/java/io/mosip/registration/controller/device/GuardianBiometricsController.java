@@ -278,6 +278,21 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		currentMap = new HashMap<>();
 		fxUtils = FXUtils.getInstance();
 		applicationLabelBundle = applicationContext.getApplicationLanguageBundle();
+
+		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getSelectionListDTO() != null) {
+
+			registrationNavlabel.setText(ApplicationContext.applicationLanguageBundle()
+					.getString(RegistrationConstants.UIN_UPDATE_UINUPDATENAVLBL));
+
+		} else if (getRegistrationDTOFromSession() != null
+				&& getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory() != null
+				&& getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory()
+						.equals(RegistrationConstants.PACKET_TYPE_LOST)) {
+
+			registrationNavlabel.setText(
+					ApplicationContext.applicationLanguageBundle().getString(RegistrationConstants.LOSTUINLBL));
+
+		}
 	}
 
 	public void populateBiometricPage() {
@@ -2045,10 +2060,38 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		String currentSubType = getListOfBiometricSubTypess().get(currentPosition);
 		List<String> bioAttributes = currentMap.get(currentSubType);
 
+		boolean isAllBiometricsCaptured = true;
+
+		List<String> leftHandBioAttributes = getContainsAllElements(RegistrationConstants.leftHandUiAttributes,
+				bioAttributes);
+		List<String> rightHandBioAttributes = getContainsAllElements(RegistrationConstants.rightHandUiAttributes,
+				bioAttributes);
+		List<String> twoThumbsBioAttributes = getContainsAllElements(RegistrationConstants.twoThumbsUiAttributes,
+				bioAttributes);
+		List<String> faceBioAttributes = getContainsAllElements(RegistrationConstants.faceUiAttributes, bioAttributes);
+		List<String> irisBioAttributes = getContainsAllElements(RegistrationConstants.eyesUiAttributes, bioAttributes);
+
+		isAllBiometricsCaptured = isBiometricsCaptured(leftHandBioAttributes,
+				getThresholdScoreInInt(RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD))
+				&& isBiometricsCaptured(rightHandBioAttributes,
+						getThresholdScoreInInt(RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD))
+				&& isBiometricsCaptured(twoThumbsBioAttributes,
+						getThresholdScoreInInt(RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD))
+				&& isBiometricsCaptured(irisBioAttributes, getThresholdScoreInInt(RegistrationConstants.IRIS_THRESHOLD))
+				&& isBiometricsCaptured(faceBioAttributes, getThresholdScoreInInt(RegistrationConstants.FACE));
+
 		Map<String, Boolean> capturedDetails = new HashMap<String, Boolean>();
-		for (String bioAttribute : bioAttributes) {
-			capturedDetails.put(bioAttribute, isBiometricCaptured(bioAttribute));
-		}
+
+		capturedDetails = setCapturedDetailsMap(capturedDetails, leftHandBioAttributes, isBiometricsCaptured(
+				leftHandBioAttributes, getThresholdScoreInInt(RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD)));
+		capturedDetails = setCapturedDetailsMap(capturedDetails, rightHandBioAttributes, isBiometricsCaptured(
+				rightHandBioAttributes, getThresholdScoreInInt(RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD)));
+		capturedDetails = setCapturedDetailsMap(capturedDetails, twoThumbsBioAttributes, isBiometricsCaptured(
+				twoThumbsBioAttributes, getThresholdScoreInInt(RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD)));
+		capturedDetails = setCapturedDetailsMap(capturedDetails, irisBioAttributes,
+				isBiometricsCaptured(irisBioAttributes, getThresholdScoreInInt(RegistrationConstants.IRIS_THRESHOLD)));
+		capturedDetails = setCapturedDetailsMap(capturedDetails, faceBioAttributes,
+				isBiometricsCaptured(faceBioAttributes, getThresholdScoreInInt(RegistrationConstants.FACE)));
 
 		String operator = " && ";
 		switch (getRegistrationDTOFromSession().getRegistrationCategory()) {
@@ -2067,35 +2110,16 @@ public class GuardianBiometricsController extends BaseController /* implements I
 
 		continueBtn.setDisable(result ? false : true);
 
-		/*
-		 * boolean isAllBiometricsCaptured = true;
-		 * 
-		 * List<String> leftHandBioAttributes =
-		 * getContainsAllElements(RegistrationConstants.leftHandUiAttributes,
-		 * bioAttributes); List<String> rightHandBioAttributes =
-		 * getContainsAllElements(RegistrationConstants.rightHandUiAttributes,
-		 * bioAttributes); List<String> twoThumbsBioAttributes =
-		 * getContainsAllElements(RegistrationConstants.twoThumbsUiAttributes,
-		 * bioAttributes); List<String> faceBioAttributes =
-		 * getContainsAllElements(RegistrationConstants.faceUiAttributes,
-		 * bioAttributes); List<String> irisBioAttributes =
-		 * getContainsAllElements(RegistrationConstants.eyesUiAttributes,
-		 * bioAttributes);
-		 * 
-		 * isAllBiometricsCaptured = isBiometricsCaptured(leftHandBioAttributes,
-		 * getThresholdScoreInInt(RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD))
-		 * && isBiometricsCaptured(rightHandBioAttributes,
-		 * getThresholdScoreInInt(RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD)
-		 * ) && isBiometricsCaptured(twoThumbsBioAttributes,
-		 * getThresholdScoreInInt(RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD))
-		 * && isBiometricsCaptured(irisBioAttributes,
-		 * getThresholdScoreInInt(RegistrationConstants.IRIS_THRESHOLD)) &&
-		 * isBiometricsCaptured(faceBioAttributes,
-		 * getThresholdScoreInInt(RegistrationConstants.FACE));
-		 * 
-		 * if (isAllBiometricsCaptured) { continueBtn.setDisable(false); } else { //
-		 * disable continue button continueBtn.setDisable(true); }
-		 */
+		
+	}
+
+	private Map<String, Boolean> setCapturedDetailsMap(Map<String, Boolean> capturedDetails, List<String> bioAttributes,
+			boolean isBiometricsCaptured) {
+
+		for (String bioAttribute : bioAttributes) {
+			capturedDetails.put(bioAttribute, isBiometricsCaptured);
+		}
+		return capturedDetails;
 	}
 
 	private boolean isBiometricCaptured(String bioAttribute) {
