@@ -827,13 +827,13 @@ public class Utilities {
 	 * @throws ApisResourceAccessException
 	 *             the apis resource access exception
 	 */
-	public JSONObject getDemographicIdentityJSONObject(String registrationId,String fieldLabel) throws io.mosip.kernel.core.exception.IOException, IOException, ApiNotAccessibleException, PacketDecryptionFailureException {
+	public JSONObject getDemographicIdentityJSONObject(String registrationId, String fieldLabel) throws io.mosip.kernel.core.exception.IOException, IOException, ApiNotAccessibleException, PacketDecryptionFailureException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Utilities::getDemographicIdentityJSONObject()::entry");
-		String source = idSchemaUtils.getSource(fieldLabel);
+		String source = idSchemaUtils.getSource(fieldLabel, packetReaderService.getIdSchemaVersionFromPacket(registrationId));
 		JSONObject demographicIdentity=null;
-		if(source!=null) {
-		InputStream idJsonStream =packetReaderService.getFile(registrationId, PacketFiles.ID.name(), source);
+		if(source != null) {
+		InputStream idJsonStream = packetReaderService.getFile(registrationId, PacketFiles.ID.name(), source);
 
 		byte[] bytearray = IOUtils.toByteArray(idJsonStream);
 		String jsonString = new String(bytearray);

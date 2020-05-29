@@ -3,6 +3,7 @@ package io.mosip.registration.processor.stages.uigenerator;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyString;
 
 import java.io.ByteArrayInputStream;
@@ -186,7 +187,7 @@ public class UinGeneratorStageTest {
 
 		Mockito.when(packetReaderService.getFile(anyString(), anyString(), anyString()))
 				.thenReturn(new ByteArrayInputStream(new String("uingeneratorstage").getBytes()));
-		Mockito.when(idSchemaUtils.getSource(anyString())).thenReturn("id");
+		Mockito.when(idSchemaUtils.getSource(anyString(), anyDouble())).thenReturn("id");
 		Mockito.when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("EXCEPTION");
 		Mockito.doNothing().when(description).setCode(Mockito.anyString());
 		Mockito.doNothing().when(description).setMessage(Mockito.anyString());

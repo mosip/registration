@@ -69,7 +69,7 @@ public class ApplicantDocumentValidation {
 		JSONObject introducerBiometric = JsonUtil.getJSONObject(utility.getDemographicIdentityJSONObject(registrationId,introducerBiometricLabel), introducerBiometricLabel);
 		
 		if (proofOfAddress != null && proofOfAddress.get("value")!=null) {
-			String source=idSchemaUtils.getSource(proofOfAddressLabel);
+			String source=idSchemaUtils.getSource(proofOfAddressLabel, packetReaderService.getIdSchemaVersionFromPacket(registrationId));
 			if(source!=null) {
 			if(! packetReaderService.checkFileExistence(registrationId,proofOfAddress.get("value").toString(),source)) {
 				return false;
@@ -77,7 +77,7 @@ public class ApplicantDocumentValidation {
 			}
 		}
 		if (proofOfDateOfBirth != null && proofOfDateOfBirth.get("value")!=null) {
-			String source=idSchemaUtils.getSource(proofOfDateOfBirthLabel);
+			String source=idSchemaUtils.getSource(proofOfDateOfBirthLabel, packetReaderService.getIdSchemaVersionFromPacket(registrationId));
 			if(source!=null) {
 			if(! packetReaderService.checkFileExistence(registrationId,proofOfDateOfBirth.get("value").toString(),source)) {
 				return false;
@@ -85,7 +85,7 @@ public class ApplicantDocumentValidation {
 			}
 		}
 		if (proofOfIdentity != null && proofOfIdentity.get("value")!=null) {
-			String source=idSchemaUtils.getSource(proofOfIdentityLabel);
+			String source=idSchemaUtils.getSource(proofOfIdentityLabel, packetReaderService.getIdSchemaVersionFromPacket(registrationId));
 			if(source!=null) {
 			if(! packetReaderService.checkFileExistence(registrationId,proofOfIdentity.get("value").toString(),source)) {
 				return false;
@@ -93,7 +93,7 @@ public class ApplicantDocumentValidation {
 			}
 		}
 		if (proofOfRelationship != null && proofOfRelationship.get("value")!=null) {
-			String source=idSchemaUtils.getSource(proofOfRelationshipLabel);
+			String source=idSchemaUtils.getSource(proofOfRelationshipLabel, packetReaderService.getIdSchemaVersionFromPacket(registrationId));
 			if(source!=null) {
 			if(! packetReaderService.checkFileExistence(registrationId,proofOfRelationship.get("value").toString(),source)) {
 				return false;
@@ -101,7 +101,7 @@ public class ApplicantDocumentValidation {
 			}
 		}
 		if (applicantBiometric != null && applicantBiometric.get("value")!=null) {
-			String source=idSchemaUtils.getSource(applicantBiometricLabel);
+			String source=idSchemaUtils.getSource(applicantBiometricLabel, packetReaderService.getIdSchemaVersionFromPacket(registrationId));
 			if(source!=null) {
 			if(! packetReaderService.checkFileExistence(registrationId,applicantBiometric.get("value").toString(),source)) {
 				return false;
@@ -109,7 +109,7 @@ public class ApplicantDocumentValidation {
 			}
 		}
 		if (introducerBiometric != null && introducerBiometric.get("value")!=null) {
-			String source=idSchemaUtils.getSource(introducerBiometricLabel);
+			String source=idSchemaUtils.getSource(introducerBiometricLabel, packetReaderService.getIdSchemaVersionFromPacket(registrationId));
 			if(source!=null) {
 			if(! packetReaderService.checkFileExistence(registrationId,introducerBiometric.get("value").toString(),source)) {
 				return false;
@@ -117,7 +117,7 @@ public class ApplicantDocumentValidation {
 			}
 		}
 		if (proofOfExceptions != null && proofOfExceptions.get("value")!=null) {
-			String source=idSchemaUtils.getSource(proofOfExceptionsLabel);
+			String source=idSchemaUtils.getSource(proofOfExceptionsLabel, packetReaderService.getIdSchemaVersionFromPacket(registrationId));
 			if(source!=null) {
 				if(! packetReaderService.checkFileExistence(registrationId,proofOfExceptions.get("value").toString(),source)) {
 				return false;

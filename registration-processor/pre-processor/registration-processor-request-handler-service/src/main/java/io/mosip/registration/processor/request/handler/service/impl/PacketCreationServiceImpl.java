@@ -125,7 +125,7 @@ public class PacketCreationServiceImpl implements PacketCreationService {
 
 			String refId = centerId + "_" + machineId;
 			float idschema = Float.valueOf(idschemaVersion);
-			String idSchema = idSchemaUtils.getIdSchema();
+			String idSchema = idSchemaUtils.getIdSchema(Double.valueOf(idschemaVersion));
 
 			byte[] packetZip = packetCreator.createPacket(registrationDTO.getRegistrationId(), idschema,
 					idSchema, categoryPacketMapping, encryptorUtil.getPublickey(refId).getPublicKey().getBytes(), null);

@@ -263,7 +263,7 @@ public class PacketValidatorImpl implements PacketValidator {
 			return packetValidationDto.isSchemaValidated();
 		}
 		IdObjectValidatorSupportedOperations operation = idObjectsSchemaValidationOperationMapper.getOperation(rid);
-		String schema=idSchemaUtils.getIdSchema();
+		String schema=idSchemaUtils.getIdSchema(packetReaderService.getIdSchemaVersionFromPacket(rid));
 
 		packetValidationDto.setSchemaValidated(idObjectSchemaValidator.validateIdObject(schema,packetReaderService.getCompleteIdObject(rid, sourcepackets), operation));
 
