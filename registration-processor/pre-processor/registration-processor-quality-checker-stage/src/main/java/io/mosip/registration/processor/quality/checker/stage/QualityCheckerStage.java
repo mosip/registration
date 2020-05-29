@@ -221,7 +221,7 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 			String individualBiometrics = JsonUtil
 					.getJSONValue(JsonUtil.getJSONObject(mappingJson, INDIVIDUAL_BIOMETRICS), "value");
 			// get individual biometrics file name from id.json
-			String source = idSchemaUtils.getSource(individualBiometrics);
+			String source = idSchemaUtils.getSource(individualBiometrics, packetReaderService.getIdSchemaVersionFromPacket(regId));
 			InputStream idJsonStream = null;
 			if (source != null) {
 				idJsonStream = packetReaderService.getFile(regId,

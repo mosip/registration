@@ -3,6 +3,7 @@ package io.mosip.registration.processor.stages.utils;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -72,7 +73,7 @@ public class ApplicantDocumentValidationTest {
 		.thenReturn(label);
 		when(utility.getDemographicIdentityJSONObject(any(),anyString())).thenReturn(demographicIdentityJSONObject);
 
-		when(idSchemaUtils.getSource(anyString())).thenReturn(source);
+		when(idSchemaUtils.getSource(anyString(), anyDouble())).thenReturn(source);
 		when(packetReaderService.checkFileExistence(anyString(),anyString(),anyString())).thenReturn(true);
 		
 	}

@@ -511,7 +511,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			io.mosip.kernel.core.exception.IOException, ApisResourceAccessException, ApiNotAccessibleException {
 		Documents documentsInfoDto = new Documents();
 
-		String source = idSchemaUtils.getSource(idDocLabel);
+		String source = idSchemaUtils.getSource(idDocLabel, packetReaderService.getIdSchemaVersionFromPacket(registrationId));
 		InputStream poiStream = packetReaderService.getFile(registrationId,
 				idDocObj.get("value").toString(), defaultSource);
 		documentsInfoDto.setValue(CryptoUtil.encodeBase64(IOUtils.toByteArray(poiStream)));
