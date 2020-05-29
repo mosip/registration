@@ -15,7 +15,7 @@ import org.mockito.Mockito;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import io.mosip.kernel.core.idobjectvalidator.constant.IdObjectValidatorSupportedOperations;
+import io.mosip.registration.processor.core.constant.IdObjectValidatorSupportedOperations;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
@@ -74,7 +74,7 @@ public class IdObjectsSchemaValidationOperationMapperTest {
 		SyncRegistrationEntity regEntity=new SyncRegistrationEntity();
 		regEntity.setRegistrationType(SyncTypeDto.LOST.getValue());
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
-		assertEquals(IdObjectValidatorSupportedOperations.LOST_UIN.getOperation(),
+		assertEquals(IdObjectValidatorSupportedOperations.LOST.getOperation(),
 				idObjectsSchemaValidationOperationMapper.getOperation("1234567890").getOperation());
 	}
 
@@ -85,7 +85,7 @@ public class IdObjectsSchemaValidationOperationMapperTest {
 		SyncRegistrationEntity regEntity=new SyncRegistrationEntity();
 		regEntity.setRegistrationType(SyncTypeDto.UPDATE.getValue());
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
-		assertEquals(IdObjectValidatorSupportedOperations.UPDATE_UIN.getOperation(),
+		assertEquals(IdObjectValidatorSupportedOperations.OTHER.getOperation(),
 				idObjectsSchemaValidationOperationMapper.getOperation("1234567890").getOperation());
 	}
 
@@ -96,7 +96,7 @@ public class IdObjectsSchemaValidationOperationMapperTest {
 		SyncRegistrationEntity regEntity=new SyncRegistrationEntity();
 		regEntity.setRegistrationType(SyncTypeDto.RES_UPDATE.getValue());
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
-		assertEquals(IdObjectValidatorSupportedOperations.UPDATE_UIN.getOperation(),
+		assertEquals(IdObjectValidatorSupportedOperations.OTHER.getOperation(),
 				idObjectsSchemaValidationOperationMapper.getOperation("1234567890").getOperation());
 	}
 
@@ -107,7 +107,7 @@ public class IdObjectsSchemaValidationOperationMapperTest {
 		SyncRegistrationEntity regEntity=new SyncRegistrationEntity();
 		regEntity.setRegistrationType(SyncTypeDto.ACTIVATED.getValue());
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
-		assertEquals(IdObjectValidatorSupportedOperations.UPDATE_UIN.getOperation(),
+		assertEquals(IdObjectValidatorSupportedOperations.OTHER.getOperation(),
 				idObjectsSchemaValidationOperationMapper.getOperation("1234567890").getOperation());
 	}
 
@@ -118,7 +118,7 @@ public class IdObjectsSchemaValidationOperationMapperTest {
 		SyncRegistrationEntity regEntity=new SyncRegistrationEntity();
 		regEntity.setRegistrationType(SyncTypeDto.DEACTIVATED.getValue());
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
-		assertEquals(IdObjectValidatorSupportedOperations.UPDATE_UIN.getOperation(),
+		assertEquals(IdObjectValidatorSupportedOperations.OTHER.getOperation(),
 				idObjectsSchemaValidationOperationMapper.getOperation("1234567890").getOperation());
 	}
 	
