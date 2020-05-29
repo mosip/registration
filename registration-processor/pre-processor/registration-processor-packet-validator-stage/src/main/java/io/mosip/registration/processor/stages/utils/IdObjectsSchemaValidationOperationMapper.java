@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import io.mosip.kernel.core.idobjectvalidator.constant.IdObjectValidatorSupportedOperations;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.registration.processor.core.constant.IdObjectValidatorSupportedOperations;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
@@ -59,27 +59,27 @@ public class IdObjectsSchemaValidationOperationMapper {
 		else if(regEntity.getRegistrationType().matches(SyncTypeDto.LOST.getValue())) {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 					"IdObjectsSchemaValidationOperationMapper::getOperation()::exit-LOST");
-			return IdObjectValidatorSupportedOperations.LOST_UIN;
+			return IdObjectValidatorSupportedOperations.LOST;
 		}
 		else if(regEntity.getRegistrationType().matches(SyncTypeDto.UPDATE.getValue())) {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 					"IdObjectsSchemaValidationOperationMapper::getOperation()::exit-UPDATE");
-			return IdObjectValidatorSupportedOperations.UPDATE_UIN;
+			return IdObjectValidatorSupportedOperations.OTHER;
 		}
 		else if(regEntity.getRegistrationType().matches(SyncTypeDto.RES_UPDATE.getValue())) {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 					"IdObjectsSchemaValidationOperationMapper::getOperation()::exit-RES_UPDATE");
-			return IdObjectValidatorSupportedOperations.UPDATE_UIN;
+			return IdObjectValidatorSupportedOperations.OTHER;
 		}
 		else if(regEntity.getRegistrationType().matches(SyncTypeDto.ACTIVATED.getValue())) {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 					"IdObjectsSchemaValidationOperationMapper::getOperation()::exit-ACTIVATED");
-			return IdObjectValidatorSupportedOperations.UPDATE_UIN;
+			return IdObjectValidatorSupportedOperations.OTHER;
 		}
 		else if(regEntity.getRegistrationType().matches(SyncTypeDto.DEACTIVATED.getValue())) {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 					"IdObjectsSchemaValidationOperationMapper::getOperation()::exit-DEACTIVATED");
-			return IdObjectValidatorSupportedOperations.UPDATE_UIN;
+			return IdObjectValidatorSupportedOperations.OTHER;
 		}
 		return null;
 		
