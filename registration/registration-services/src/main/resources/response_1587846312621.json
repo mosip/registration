@@ -479,7 +479,7 @@
 	"fieldType": "default",
 	"format": "none",
 	"validators": [],
-	"fieldCategory": "optional",
+	"fieldCategory": "pvt",
 	"required": false,
 	"subType": "POA",
 	"requiredOn": [{
@@ -502,7 +502,7 @@
 	"fieldType": "default",
 	"format": "none",
 	"validators": [],
-	"fieldCategory": "evidence",
+	"fieldCategory": "pvt",
 	"required": true,
 	"subType": "POI",
 	"requiredOn": [{
@@ -525,12 +525,12 @@
 	"fieldType": "default",
 	"format": "none",
 	"validators": [],
-	"fieldCategory": "evidence",
+	"fieldCategory": "pvt",
 	"required": true,
 	"subType": "POR",
 	"requiredOn": [{
 		"engine": "MVEL",
-		"expr": "( identity.isNew && identity.isChild ) || ( identity.isUpdate && identity.updatableFields contains 'dateOfBirth' && identity.isChild )"
+		"expr": "( identity.isNew && identity.isChild ) || ( identity.isUpdate && identity.updatableFields contains 'parentOrGuardianName' && identity.isChild )"
 	}],
 	"group" : "Documents"
 }, {
@@ -548,13 +548,10 @@
 	"fieldType": "default",
 	"format": "none",
 	"validators": [],
-	"fieldCategory": "evidence",
-	"required": true,
+	"fieldCategory": "pvt",
+	"required": false,
 	"subType": "POB",
-	"requiredOn": [{
-		"engine": "MVEL",
-		"expr": "identity.isNew || ( identity.isUpdate && identity.updatableFields contains 'dateOfBirth')"
-	}],
+	"requiredOn": [],
 	"group" : "Documents"
 }, {
 	"id": "proofOfException",
@@ -617,7 +614,7 @@
 		"engine": "MVEL",
 		"expr": "identity.isChild == false"
 	}],
-	"bioAttributes": ["leftEye", "rightIndex", "rightLittle", "leftIndex", "leftLittle", "face"],
+	"bioAttributes": ["leftEye", "rightEye", "rightIndex", "rightLittle", "rightRing", "rightMiddle", "leftIndex", "leftLittle", "leftRing", "leftMiddle", "leftThumb", "rightThumb", "face"],
 	"subType": "applicant",
 	"group" : "Biometrics"
 }, {
@@ -641,7 +638,7 @@
 		"engine": "MVEL",
 		"expr": "( identity.isUpdate || identity.isLost ) && identity.isChild == false"
 	}],
-	"bioAttributes": ["leftEye", "rightIndex", "rightLittle", "leftIndex", "leftLittle", "face"],
+	"bioAttributes": ["leftEye", "rightEye", "rightIndex", "rightLittle", "rightRing", "rightMiddle", "leftIndex", "leftLittle", "leftRing", "leftMiddle", "leftThumb", "rightThumb", "face"],
 	"subType": "applicant-auth",
 	"group" : null
 }, {
@@ -659,9 +656,9 @@
 	"fieldType": "default",
 	"format": "none",
 	"validators": [],
-	"fieldCategory": "evidence",
+	"fieldCategory": "pvt",
 	"required": false,
-	"bioAttributes": ["face", "leftThumb"],
+	"bioAttributes": ["leftEye", "rightEye", "rightIndex", "rightLittle", "rightRing", "rightMiddle", "leftIndex", "leftLittle", "leftRing", "leftMiddle", "leftThumb", "rightThumb", "face"],
 	"subType": "introducer",
 	"requiredOn": [{
 		"engine": "MVEL",

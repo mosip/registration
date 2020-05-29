@@ -156,7 +156,7 @@ public class RegistrationDTO {
 		return value;
 	}
 
-	public void addBiometricException(String subType, String bioAttribute, String reason, String exceptionType) {
+	public void addBiometricException(String subType, String bioAttribute, String reason, String exceptionType) {		
 		String key = String.format("%s_%s", subType, bioAttribute);
 		SingleType type = Biometric.getSingleTypeByAttribute(bioAttribute);
 		this.biometricExceptions.put(key, new BiometricsException(type == null ? null : type.value(), bioAttribute,
@@ -227,7 +227,7 @@ public class RegistrationDTO {
 	}
 
 	public List<BiometricsDto> addAllBiometrics(String subType, List<BiometricsDto> biometricsDTOList,
-			double thresholdScore, int maxRetryAttempt) {
+			double thresholdScore, int maxRetryAttempt) {		
 
 		List<BiometricsDto> savedBiometrics = null;
 		if (subType != null && biometricsDTOList != null && !biometricsDTOList.isEmpty()) {
@@ -242,8 +242,8 @@ public class RegistrationDTO {
 				if (maxRetryAttempt == 1) {
 					isForceCaptured = true;
 				} else {
-					BiometricsDto biometricsDto = getBiometric(subType,
-							getRegistrationDTOBioAttribute(biometricsDTOList.get(0).getBioAttribute()));
+					BiometricsDto biometricsDto = getBiometric(subType, 
+							Biometric.getBiometricByMDMConstant(biometricsDTOList.get(0).getBioAttribute()).getAttributeName());
 
 					if (biometricsDto != null && biometricsDto.getNumOfRetries() + 1 >= maxRetryAttempt) {
 						isForceCaptured = true;
@@ -253,23 +253,25 @@ public class RegistrationDTO {
 
 			/** Modify the Biometrics DTO and save */
 			for (BiometricsDto value : biometricsDTOList) {
-
 				value.setForceCaptured(isForceCaptured);
-
-				savedBiometrics
-						.add(addBiometric(subType, getRegistrationDTOBioAttribute(value.getBioAttribute()), value));
+				
+				Biometric biometric = Biometric.getBiometricByMDMConstant(value.getBioAttribute());
+				value.setModalityName(biometric.getModalityName());
+				value.setSubType(subType);
+				value.setBioAttribute(biometric.getAttributeName());
+				savedBiometrics.add(addBiometric(subType, value.getBioAttribute(), value));
 			}
 		}
 
 		return savedBiometrics;
 	}
 
-	private String getRegistrationDTOBioAttribute(String attribute) {
+	/*private String getRegistrationDTOBioAttribute(String attribute) {
 
 		String bioAttributeByMap = RegistrationConstants.regBioMap.get(attribute);
 
 		return bioAttributeByMap != null ? bioAttributeByMap : attribute;
-	}
+	}*/
 
 	private double getQualityScore(List<BiometricsDto> biometrics) {
 		double qualityScore = 0.0;
