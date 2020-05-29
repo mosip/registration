@@ -77,8 +77,8 @@ public class RegistrationDTO {
 	/** The acknowledge receipt name. */
 	private String acknowledgeReceiptName;
 
-	public void addDemographicField(String fieldId, Object value) {
-		this.demographics.put(fieldId, (value != null) ? value : null);
+	public void addDemographicField(String fieldId, String value) {
+		this.demographics.put(fieldId, (value != null && !value.isEmpty()) ? value : null);
 	}
 
 	public void addDemographicField(String fieldId, String applicationLanguage, String value, String localLanguage,
@@ -90,7 +90,8 @@ public class RegistrationDTO {
 		if (localValue != null && !localValue.isEmpty())
 			values.add(new SimpleDto(localLanguage, localValue));
 
-		this.demographics.put(fieldId, values);
+		if(!values.isEmpty())
+			this.demographics.put(fieldId, values);
 	}
 
 	public void removeDemographicField(String fieldId) {
@@ -214,8 +215,14 @@ public class RegistrationDTO {
 				RegistrationConstants.PACKET_TYPE_LOST.equals(registrationMetaDataDTO.getRegistrationCategory()));
 		allIdentityDetails.put("age", this.age);
 		allIdentityDetails.put("isChild", this.isChild);
-		allIdentityDetails.put("updatableFields",
-				this.updatableFields != null ? this.updatableFields : Arrays.asList(new String[] {}));
+		
+		List<String> updatedFields = new ArrayList<>();
+		if(this.isBiometricMarkedForUpdate)
+			updatedFields.add("biometrics");		
+		if(this.updatableFields != null)
+			updatedFields.addAll(this.updatableFields);
+		
+		allIdentityDetails.put("updatableFields", updatedFields);
 		allIdentityDetails.putAll(this.demographics);
 		allIdentityDetails.putAll(this.documents);
 		allIdentityDetails.putAll(this.biometrics);

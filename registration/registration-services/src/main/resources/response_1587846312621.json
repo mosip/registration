@@ -348,7 +348,7 @@
 }, {
 	"id": "phone",
 	"inputRequired": true,
-	"type": "number",
+	"type": "string",
 	"minimum": 0,
 	"maximum": 0,
 	"description": "phone",
@@ -362,7 +362,7 @@
 	"subType": "Phone",
 	"validators": [{
 		"type": "regex",
-		"validator": "^([6-9]{1})([0-9]{9})$",
+		"validator": "^[+]*([0-9]{1})([0-9]{9})$",
 		"arguments": []
 	}],
 	"fieldCategory": "pvt",
@@ -530,7 +530,7 @@
 	"subType": "POR",
 	"requiredOn": [{
 		"engine": "MVEL",
-		"expr": "( identity.isNew && identity.isChild ) || ( identity.isUpdate && identity.updatableFields contains 'parentOrGuardianName' && identity.isChild )"
+		"expr": "( identity.isNew && identity.isChild ) || ( identity.isUpdate && (identity.updatableFields contains 'parentOrGuardianName' || identity.isChild))"
 	}],
 	"group" : "Documents"
 }, {
@@ -551,7 +551,10 @@
 	"fieldCategory": "pvt",
 	"required": false,
 	"subType": "POB",
-	"requiredOn": [],
+	"requiredOn": [{
+		"engine": "MVEL",
+		"expr": "identity.isUpdate && identity.updatableFields contains 'dateOfBirth'"
+	}],
 	"group" : "Documents"
 }, {
 	"id": "proofOfException",
@@ -612,7 +615,7 @@
 	"required": true,
 	"requiredOn": [{
 		"engine": "MVEL",
-		"expr": "identity.isChild == false"
+		"expr": "identity.isChild == false && (identity.isNew || ( identity.isUpdate && identity.updatableFields contains 'biometrics'))"
 	}],
 	"bioAttributes": ["leftEye", "rightEye", "rightIndex", "rightLittle", "rightRing", "rightMiddle", "leftIndex", "leftLittle", "leftRing", "leftMiddle", "leftThumb", "rightThumb", "face"],
 	"subType": "applicant",
@@ -636,7 +639,7 @@
 	"required": false,
 	"requiredOn": [{
 		"engine": "MVEL",
-		"expr": "( identity.isUpdate || identity.isLost ) && identity.isChild == false"
+		"expr": "identity.isChild == false && identity.isUpdate && !(identity.updatableFields contains 'biometrics')"
 	}],
 	"bioAttributes": ["leftEye", "rightEye", "rightIndex", "rightLittle", "rightRing", "rightMiddle", "leftIndex", "leftLittle", "leftRing", "leftMiddle", "leftThumb", "rightThumb", "face"],
 	"subType": "applicant-auth",
