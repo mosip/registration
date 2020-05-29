@@ -3,6 +3,7 @@ package io.mosip.registration.processor.biometric.authentication.stage;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyString;
 
 import java.io.File;
@@ -366,7 +367,7 @@ public class BiometricAuthenticationStageTest {
 						MappingJsonConstants.IDENTITY));
 
 		Mockito.when(packetReaderService.getFile(anyString(), anyString(), anyString())).thenReturn(null);
-		Mockito.when(idSchemaUtils.getSource((anyString()))).thenReturn("id");
+		Mockito.when(idSchemaUtils.getSource(anyString(), anyDouble())).thenReturn("id");
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertFalse(messageDto.getIsValid());
 	}
@@ -390,7 +391,7 @@ public class BiometricAuthenticationStageTest {
 		Mockito.when(utility.getDemographicIdentityJSONObject(any(), any())).thenReturn(jSONObject);
 		Mockito.when(regentity.getRegistrationType()).thenReturn("UPDATE");
 		Mockito.when(packetReaderService.getFile(anyString(), anyString(), anyString())).thenReturn(null);
-		Mockito.when(idSchemaUtils.getSource((anyString()))).thenReturn("id");
+		Mockito.when(idSchemaUtils.getSource(anyString(), anyDouble())).thenReturn("id");
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertFalse(messageDto.getIsValid());
 	}
@@ -452,7 +453,7 @@ public class BiometricAuthenticationStageTest {
 				.thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class),
 						MappingJsonConstants.IDENTITY));
 
-		Mockito.when(idSchemaUtils.getSource((anyString()))).thenReturn("id");
+		Mockito.when(idSchemaUtils.getSource(anyString(), anyDouble())).thenReturn("id");
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getIsValid());
 	}

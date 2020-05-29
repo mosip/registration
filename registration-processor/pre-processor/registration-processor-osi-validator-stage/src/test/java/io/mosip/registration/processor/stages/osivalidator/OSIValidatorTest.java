@@ -3,6 +3,7 @@ package io.mosip.registration.processor.stages.osivalidator;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyString;
 
 import java.io.File;
@@ -307,7 +308,7 @@ public class OSIValidatorTest {
 		File cbeffFile = new File(classLoader.getResource("cbeff.xml").getFile());
 		InputStream cbeffInputstream = new FileInputStream(cbeffFile);
 		Mockito.when(packetReaderService.getFile(anyString(), anyString(), anyString())).thenReturn(cbeffInputstream);
-		Mockito.when(idSchemaUtils.getSource((anyString()))).thenReturn("id");
+		Mockito.when(idSchemaUtils.getSource(anyString(), anyDouble())).thenReturn("id");
 	}
 
 	/**
