@@ -767,21 +767,15 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 		
 		if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {			
 			try {
-				/*syncResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil.get(
-						RegistrationConstants.ID_SCHEMA_SYNC_SERVICE, new HashMap<String, String>(), true, triggerPoint);*/
-				
-				syncResponse = new LinkedHashMap<String, Object>();
-				syncResponse.put(RegistrationConstants.RESPONSE, "test");
+				syncResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil.get(
+						RegistrationConstants.ID_SCHEMA_SYNC_SERVICE, new HashMap<String, String>(), true, triggerPoint);			
 				
 				if (null != syncResponse.get(RegistrationConstants.RESPONSE)) {
 					LOGGER.info(LOG_REG_SCHEMA_SYNC, APPLICATION_NAME, APPLICATION_ID, "ID Schema sync fetched from server.");
 						
-					//SchemaDto schemaDto = (SchemaDto) syncResponse.get(RegistrationConstants.RESPONSE);
-					String content = null;
-					try(InputStream in = AppConfig.class.getClassLoader().getResourceAsStream("response_1587846312621.json")) {
-						content = IOUtils.toString(in);
-					}
-					SchemaDto schemaDto = MapperUtils.convertJSONStringToDto(content, new TypeReference<SchemaDto>() {});
+					String jsonString = MapperUtils.convertObjectToJsonString(syncResponse.get(RegistrationConstants.RESPONSE));					
+					SchemaDto schemaDto = MapperUtils.convertJSONStringToDto(jsonString, new TypeReference<SchemaDto>() {});
+					
 					identitySchemaDao.createIdentitySchema(schemaDto);					
 					setSuccessResponse(responseDTO, RegistrationConstants.SUCCESS, null);
 				}

@@ -313,6 +313,13 @@ public class GuardianBiometricsController extends BaseController /* implements I
 						getValue(RegistrationConstants.IRIS_DOUBLE, RegistrationConstants.eyesUiAttributes),
 						getValue(RegistrationConstants.FACE, RegistrationConstants.faceUiAttributes)));
 
+		if(mapToProcess.isEmpty()) {
+			LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+					"populateBiometricPage mapToProcess is EMTPY");
+			updatePageFlow(RegistrationConstants.GUARDIAN_BIOMETRIC, false);
+			return;
+		}
+			
 		removeInapplicableCapturedData(mapToProcess);
 
 		ContentHeader.getChildren().clear();
@@ -2056,6 +2063,12 @@ public class GuardianBiometricsController extends BaseController /* implements I
 	public void refreshContinueButton() {
 		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
 				RegistrationConstants.APPLICATION_NAME, "refreshContinueButton invoked");
+		
+		if(getListOfBiometricSubTypes().isEmpty()) {
+			LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
+					RegistrationConstants.APPLICATION_NAME, "refreshContinueButton NON of the BIOMETRIC FIELD IS ENABLED");
+			return;
+		}
 		//if one or more biometric is marked as exception, then mandate collecting of POE
 		if(!isPOECollected()) {
 			continueBtn.setDisable(true);

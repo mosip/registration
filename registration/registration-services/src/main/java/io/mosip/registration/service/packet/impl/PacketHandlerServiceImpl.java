@@ -172,8 +172,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		return responseDTO;
 	}
 	
-	private void setDemographics(RegistrationDTO registrationDTO, SchemaDto schema) {
-		String printingNameFieldId = getPrintingNameFieldName(schema);
+	private void setDemographics(RegistrationDTO registrationDTO, SchemaDto schema) {		
 		Map<String, Object> demographics = registrationDTO.getDemographics();
 		for(String fieldName : demographics.keySet()) {
 			switch (registrationDTO.getRegistrationCategory()) {
@@ -192,16 +191,19 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			
 			if(fieldName.equals("UIN") && demographics.get(fieldName) != null) {
 				packetCreator.setField(fieldName, demographics.get(fieldName));
-			}
-			
-			if(demographics.get(printingNameFieldId) != null  && registrationDTO.getUpdatableFields() != null 
-					&& !registrationDTO.getUpdatableFields().contains(printingNameFieldId)) {
-				@SuppressWarnings("unchecked")
-				List<SimpleDto> value = (List<SimpleDto>) demographics.get(printingNameFieldId);
-				value.forEach(dto -> {
-					packetCreator.setPrintingName(dto.getLanguage(), dto.getValue());
-				});				
-			}				
+			}							
+		}
+		
+		String printingNameFieldId = getPrintingNameFieldName(schema);
+		LOGGER.info(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "printingNameFieldId >>>>> " + printingNameFieldId);		
+		if(demographics.get(printingNameFieldId) != null  && registrationDTO.getUpdatableFields() != null 
+				&& !registrationDTO.getUpdatableFields().contains(printingNameFieldId) 
+				&& demographics.containsKey(printingNameFieldId)) {
+			@SuppressWarnings("unchecked")
+			List<SimpleDto> value = (List<SimpleDto>) demographics.get(printingNameFieldId);
+			value.forEach(dto -> {
+				packetCreator.setPrintingName(dto.getLanguage(), dto.getValue());
+			});				
 		}
 	}
 	
