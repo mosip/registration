@@ -542,7 +542,7 @@ public class OSIValidator {
 			ParentOnHoldException, ApiNotAccessibleException,
 			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
 		if (introducerBiometricsFileName != null && (!introducerBiometricsFileName.trim().isEmpty())) {
-			String source = idSchemaUtils.getSource(introducerBiometricsLabel);
+			String source = idSchemaUtils.getSource(introducerBiometricsLabel, packetReaderService.getIdSchemaVersionFromPacket(registrationId));
 			InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId,
 					introducerBiometricsFileName.toUpperCase(), source);
 

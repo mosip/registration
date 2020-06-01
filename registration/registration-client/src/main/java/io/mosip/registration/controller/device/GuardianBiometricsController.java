@@ -278,6 +278,21 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		currentMap = new HashMap<>();
 		fxUtils = FXUtils.getInstance();
 		applicationLabelBundle = applicationContext.getApplicationLanguageBundle();
+
+		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getSelectionListDTO() != null) {
+
+			registrationNavlabel.setText(ApplicationContext.applicationLanguageBundle()
+					.getString(RegistrationConstants.UIN_UPDATE_UINUPDATENAVLBL));
+
+		} else if (getRegistrationDTOFromSession() != null
+				&& getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory() != null
+				&& getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory()
+						.equals(RegistrationConstants.PACKET_TYPE_LOST)) {
+
+			registrationNavlabel.setText(
+					ApplicationContext.applicationLanguageBundle().getString(RegistrationConstants.LOSTUINLBL));
+
+		}
 	}
 
 	public void populateBiometricPage() {
@@ -320,6 +335,11 @@ public class GuardianBiometricsController extends BaseController /* implements I
 					if (!listOfCheckBoxes.get(0).get(0).equals("face")) {
 
 						VBox vboxForCheckBox = new VBox();
+						vboxForCheckBox.setSpacing(5);
+						Label checkBoxTitle = new Label();
+						checkBoxTitle.setText(applicationLabelBundle.getString("exceptionCheckBoxPaneLabel"));
+						vboxForCheckBox.getChildren().addAll(checkBoxTitle);
+						checkBoxTitle.getStyleClass().add("demoGraphicFieldLabel");
 
 						for (int i = 0; i < listOfCheckBoxes.size(); i++) {
 
@@ -361,9 +381,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 							}
 						}
 
-						checkBoxPane.add(vboxForCheckBox, 0, 1);
-						checkBoxPane.add(new Label(applicationLabelBundle.getString("exceptionCheckBoxPaneLabel")), 0,
-								0);
+						checkBoxPane.add(vboxForCheckBox, 0, 0);
 
 						vboxForCheckBox.setVisible(false);
 						vboxForCheckBox.setManaged(false);

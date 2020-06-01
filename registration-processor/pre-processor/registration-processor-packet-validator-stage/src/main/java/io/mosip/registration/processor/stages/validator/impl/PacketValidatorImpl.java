@@ -1,7 +1,6 @@
 package io.mosip.registration.processor.stages.validator.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.mosip.kernel.core.idobjectvalidator.constant.IdObjectValidatorSupportedOperations;
 import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectIOException;
 import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectValidationFailedException;
 import io.mosip.kernel.core.idobjectvalidator.exception.InvalidIdSchemaException;
@@ -12,6 +11,7 @@ import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
+import io.mosip.registration.processor.core.constant.IdObjectValidatorSupportedOperations;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
@@ -49,6 +49,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 
 @Component
 @RefreshScope
@@ -124,6 +125,7 @@ public class PacketValidatorImpl implements PacketValidator {
 	private static final String VALIDATEAPPLICANTDOCUMENT = "registration.processor.validateApplicantDocument";
 	private static final String VALIDATEMASTERDATA = "registration.processor.validateMasterData";
 	private static final String VALIDATEMANDATORY = "registration-processor.validatemandotary";
+	public static final String FIELD_LIST = "mosip.kernel.idobjectvalidator.mandatory-attributes.reg-processor.%s";
 
 	@Override
 	public boolean validate(String rid, String regType, PacketValidationDto packetValidationDto) throws PacketValidatorException
@@ -263,10 +265,16 @@ public class PacketValidatorImpl implements PacketValidator {
 			return packetValidationDto.isSchemaValidated();
 		}
 		IdObjectValidatorSupportedOperations operation = idObjectsSchemaValidationOperationMapper.getOperation(rid);
-		String schema=idSchemaUtils.getIdSchema();
+		String schema=idSchemaUtils.getIdSchema(packetReaderService.getIdSchemaVersionFromPacket(rid));
 
-		packetValidationDto.setSchemaValidated(idObjectSchemaValidator.validateIdObject(schema,packetReaderService.getCompleteIdObject(rid, sourcepackets), operation));
-
+		String fields = env.getProperty(String.format(FIELD_LIST, operation.getOperation()));
+		if(fields !=null && !fields.isEmpty()) {
+		packetValidationDto.setSchemaValidated(idObjectSchemaValidator.validateIdObject(schema,
+				packetReaderService.getCompleteIdObject(rid, sourcepackets), Arrays.asList(fields.split(","))));
+		}else {
+			packetValidationDto.setSchemaValidated(idObjectSchemaValidator.validateIdObject(schema,
+					packetReaderService.getCompleteIdObject(rid, sourcepackets)));
+		}
 		if (!packetValidationDto.isSchemaValidated()) {
 			packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.SCHEMA_VALIDATION_FAILED.getMessage());
 			packetValidationDto.setPacketValidatonStatusCode(StatusUtil.SCHEMA_VALIDATION_FAILED.getCode());

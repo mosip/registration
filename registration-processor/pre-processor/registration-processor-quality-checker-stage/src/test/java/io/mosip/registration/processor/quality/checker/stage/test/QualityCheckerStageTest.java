@@ -3,6 +3,7 @@ package io.mosip.registration.processor.quality.checker.stage.test;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyString;
 
 import java.io.File;
@@ -126,7 +127,7 @@ public class QualityCheckerStageTest {
 		InputStream idJsonStream = IOUtils.toInputStream(idJsonString, "UTF-8");
 
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
-		Mockito.when(idSchemaUtils.getSource(anyString())).thenReturn("id");
+		Mockito.when(idSchemaUtils.getSource(anyString(), anyDouble())).thenReturn("id");
 
 		ClassLoader classLoader = getClass().getClassLoader();
 		File cbeff1 = new File(classLoader.getResource("CBEFF1.xml").getFile());

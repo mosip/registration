@@ -195,7 +195,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 
 					if (individualBiometricsFileName != null && !individualBiometricsFileName.isEmpty()) {
 						InputStream inputStream=null;
-						String source = idSchemaUtils.getSource(individualBioMetricKey);
+						String source = idSchemaUtils.getSource(individualBioMetricKey, packetReaderService.getIdSchemaVersionFromPacket(registrationId));
 						if(source!=null) {
 						 inputStream = packetReaderService.getFile(registrationId,
 								individualBiometricsFileName.toUpperCase(), source);
