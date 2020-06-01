@@ -1445,21 +1445,21 @@ public class BioServiceImpl extends BaseService implements BioService {
 		fingerBioAttributes.addAll(RegistrationConstants.rightHandUiAttributes);
 		fingerBioAttributes.addAll(RegistrationConstants.twoThumbsUiAttributes);
 
-		List<String> nonConfigFiongers = getNonConfigBioAttributes(fingerBioAttributes);
+		//List<String> nonConfigFiongers = getNonConfigBioAttributes(fingerBioAttributes);
 
-		nonConfigFiongers = nonConfigFiongers != null ? nonConfigFiongers : new LinkedList<>();
+		//nonConfigFiongers = nonConfigFiongers != null ? nonConfigFiongers : new LinkedList<>();
 
 		List<String> exceptionFingers = getAllExceptionFingers();
 
-		if (exceptionFingers != null) {
+		/*if (exceptionFingers != null) {
 			for (String exceptiopnFinger : exceptionFingers) {
 				if (!nonConfigFiongers.contains(exceptiopnFinger)) {
 					nonConfigFiongers.add(exceptiopnFinger);
 				}
 			}
-		}
+		}*/
 
-		if (!isAllNonExceptionBiometricsCaptured(segmentedFingerPrints, null, nonConfigFiongers)) {
+		if (!isAllNonExceptionBiometricsCaptured(segmentedFingerPrints, null, exceptionFingers)) {
 			return false;
 		}
 		return true;
@@ -1541,7 +1541,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 				attributes.removeAll(Arrays.asList(mdmRequestDto.getExceptions()));
 			
 			for(String bioAttribute : attributes) {
-				BiometricsDto biometricDto = new BiometricsDto(bioAttribute, 
+				BiometricsDto biometricDto = new BiometricsDto(Biometric.getBiometricByAttribute(bioAttribute).getMdmConstant(), 
 						IOUtils.resourceToByteArray(getFilePath(mdmRequestDto.getModality(), bioAttribute)),
 						90.0);
 				biometricDto.setCaptured(true);
