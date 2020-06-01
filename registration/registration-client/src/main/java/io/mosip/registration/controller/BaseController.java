@@ -253,11 +253,11 @@ public class BaseController {
 
 	private static TreeMap<String, String> mapOfbiometricSubtypes = new TreeMap<>();
 
-	private static List<String> listOfBiometricSubTypes = new ArrayList<>();
+	//private static List<String> listOfBiometricSubTypes = new ArrayList<>();
 
-	public static List<String> getListOfBiometricSubTypess() {
+	/*public static List<String> getListOfBiometricSubTypess() {
 		return listOfBiometricSubTypes;
-	}
+	}*/
 
 	public static TreeMap<String, String> getMapOfbiometricSubtypes() {
 		return mapOfbiometricSubtypes;
@@ -1691,8 +1691,8 @@ public class BaseController {
 				validationsMap.put(schemaField.getId(), schemaField);
 				if (schemaField.getType().equals(PacketManagerConstants.BIOMETRICS_DATATYPE)) {
 					mapOfbiometricSubtypes.put(schemaField.getSubType(), schemaField.getLabel().get("primary"));
-					if (!listOfBiometricSubTypes.contains(schemaField.getSubType()))
-						listOfBiometricSubTypes.add(schemaField.getSubType());
+					//if (!listOfBiometricSubTypes.contains(schemaField.getSubType()))
+					//	listOfBiometricSubTypes.add(schemaField.getSubType());
 				}
 			}
 			validations.setValidations(validationsMap); // Set Validations Map
@@ -1908,9 +1908,10 @@ public class BaseController {
 	 */
 
 	protected List<String> getContainsAllElements(List<String> source, List<String> target) {
-
-		return source.stream().filter(target::contains).collect(Collectors.toList());
-
+		if(target != null) {
+			return source.stream().filter(target::contains).collect(Collectors.toList());
+		}
+		return new ArrayList<String>();
 	}
 
 	protected void helperMethodForComboBox(ComboBox<?> field, String fieldName, UiSchemaDTO schema, Label label,
