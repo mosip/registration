@@ -840,11 +840,14 @@ public class GuardianBiometricsController extends BaseController /* implements I
 
 	private List<Node> getCheckBoxes(String subType, String modality) {
 
-		List<Node> exceptionCheckBoxes = null;
+		List<Node> exceptionCheckBoxes = new LinkedList<>();
 		if (checkBoxMap.get(subType) != null && checkBoxMap.get(subType).get(modality) != null) {
-			exceptionCheckBoxes = checkBoxMap.get(subType).get(modality).getChildren();
+			exceptionCheckBoxes.addAll(checkBoxMap.get(subType).get(modality).getChildren());
 		}
 
+		if (exceptionCheckBoxes != null) {
+			exceptionCheckBoxes.remove(0);
+		}
 		return exceptionCheckBoxes;
 
 	}
@@ -2113,7 +2116,6 @@ public class GuardianBiometricsController extends BaseController /* implements I
 
 		continueBtn.setDisable(result ? false : true);
 
-		
 	}
 
 	private Map<String, Boolean> setCapturedDetailsMap(Map<String, Boolean> capturedDetails, List<String> bioAttributes,
