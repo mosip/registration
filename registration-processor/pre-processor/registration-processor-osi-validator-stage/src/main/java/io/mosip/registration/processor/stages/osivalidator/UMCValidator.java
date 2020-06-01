@@ -6,7 +6,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -19,6 +18,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.exception.JsonMappingException;
 import io.mosip.kernel.core.util.exception.JsonParseException;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.JsonConstant;
@@ -66,6 +66,8 @@ public class UMCValidator {
 	/** The response from masterdata validate api. */
 	private static final String VALID = "Valid";
 
+	public static final String GLOBAL_CONFIG_TRUE_VALUE = "Y";
+
 	/** The umc client. */
 
 	@Value("${mosip.workinghour.validation.required}")
@@ -83,6 +85,9 @@ public class UMCValidator {
 
 	@Value("${mosip.kernel.device.validate.history.id}")
 	private String deviceValidateHistoryId;
+
+	@Value("${mosip.registration.gps_device_enable_flag}")
+	private String gpsEnable;
 
 	/** The identity iterator util. */
 	IdentityIteratorUtil identityIteratorUtil = new IdentityIteratorUtil();
@@ -365,8 +370,11 @@ public class UMCValidator {
 		RegOsiDto regOsi = osiUtils.getOSIDetailsFromMetaInfo(registrationId, identity);
 		boolean umc = false;
 
-		if (rcmDto.getLatitude() == null || rcmDto.getLongitude() == null || rcmDto.getLatitude().trim().isEmpty()
-				|| rcmDto.getLongitude().trim().isEmpty()) {
+		if ((gpsEnable.equalsIgnoreCase(GLOBAL_CONFIG_TRUE_VALUE))
+				&& (rcmDto.getLatitude() == null
+				|| rcmDto.getLongitude() == null
+				|| rcmDto.getLatitude().trim().isEmpty()
+				|| rcmDto.getLongitude().trim().isEmpty())) {
 			registrationStatusDto.setStatusComment(StatusUtil.GPS_DETAILS_NOT_FOUND.getMessage());
 			registrationStatusDto.setSubStatusCode(StatusUtil.GPS_DETAILS_NOT_FOUND.getCode());
 		}
