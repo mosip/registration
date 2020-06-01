@@ -66,12 +66,6 @@ public class ServiceDelegateUtil {
 	@Value("${HTTP_API_WRITE_TIMEOUT}")
 	private int connectTimeout;
 
-	@Value("${AUTH_CLIENT_ID:}")
-	private String clientId;
-
-	@Value("${AUTH_SECRET_KEY:}")
-	private String secretKey;
-
 	@Value("${validate_auth_token.service.url:}")
 	private String urlPath;
 
@@ -460,26 +454,28 @@ public class ServiceDelegateUtil {
 		switch (loginMode) {
 		case PASSWORD:
 			AuthNUserPasswordDTO authNUserPasswordDTO = new AuthNUserPasswordDTO();
-			authNUserPasswordDTO.setAppId(
-					String.valueOf(ApplicationContext.map().get(RegistrationConstants.REGISTRATION_CLIENT)));
+			authNUserPasswordDTO
+					.setAppId(String.valueOf(ApplicationContext.map().get(RegistrationConstants.REGISTRATION_CLIENT)));
 			authNUserPasswordDTO.setUserName(loginUserDTO.getUserId());
 			authNUserPasswordDTO.setPassword(loginUserDTO.getPassword());
 			authNRequestDTO.setRequest(authNUserPasswordDTO);
 			break;
 		case OTP:
 			AuthNUserOTPDTO authNUserOTPDTO = new AuthNUserOTPDTO();
-			authNUserOTPDTO.setAppId(
-					String.valueOf(ApplicationContext.map().get(RegistrationConstants.REGISTRATION_CLIENT)));
+			authNUserOTPDTO
+					.setAppId(String.valueOf(ApplicationContext.map().get(RegistrationConstants.REGISTRATION_CLIENT)));
 			authNUserOTPDTO.setUserId(loginUserDTO.getUserId());
 			authNUserOTPDTO.setOtp(loginUserDTO.getOtp());
 			authNRequestDTO.setRequest(authNUserOTPDTO);
 			break;
 		default:
 			AuthNClientIDDTO authNClientIDDTO = new AuthNClientIDDTO();
-			authNClientIDDTO.setAppId(
-					String.valueOf(ApplicationContext.map().get(RegistrationConstants.REGISTRATION_CLIENT)));
-			authNClientIDDTO.setClientId(clientId);
-			authNClientIDDTO.setSecretKey(secretKey);
+			authNClientIDDTO
+					.setAppId(String.valueOf(ApplicationContext.map().get(RegistrationConstants.REGISTRATION_CLIENT)));
+			authNClientIDDTO
+					.setClientId(String.valueOf(ApplicationContext.map().get(RegistrationConstants.MOSIP_CLEINT_ID)));
+			authNClientIDDTO
+					.setSecretKey(String.valueOf(ApplicationContext.map().get(RegistrationConstants.MOSIP_SECRET_KEY)));
 			authNRequestDTO.setRequest(authNClientIDDTO);
 			break;
 		}

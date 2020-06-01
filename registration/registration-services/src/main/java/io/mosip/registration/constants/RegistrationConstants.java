@@ -1735,6 +1735,8 @@ public class RegistrationConstants {
 	public static final String BIOMETRICS_TYPE = "biometricsType";
 	public static final String APPLICANT = "applicant";
 	
+	public static final String MOSIP_CLEINT_ID = "mosip.registration.client.id";
+	public static final String MOSIP_SECRET_KEY = "mosip.registration.secret.Key";
 	
 	
 }
