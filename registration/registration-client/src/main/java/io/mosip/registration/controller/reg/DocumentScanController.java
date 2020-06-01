@@ -1083,7 +1083,8 @@ public class DocumentScanController extends BaseController {
 		
 		registrationController.showCurrentPage(RegistrationConstants.DOCUMENT_SCAN,
 				getPageByAction(RegistrationConstants.DOCUMENT_SCAN, RegistrationConstants.NEXT));
-
+		
+		guardianBiometricsController.refreshContinueButton();
 		/*biometricExceptionController.disableNextBtn();
 		fingerPrintCaptureController.clearImage();
 		irisCaptureController.clearIrisBasedOnExceptions();
@@ -1127,7 +1128,7 @@ public class DocumentScanController extends BaseController {
 			} else {
 				continueBtn.setDisable(true);
 			}
-		}
+		}		
 	}
 
 	public List<BufferedImage> getScannedPages() {

@@ -10,9 +10,6 @@ import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.spi.PacketReaderService;
-import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +52,6 @@ import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
-
 import io.mosip.registration.processor.stages.osivalidator.utils.OSIUtils;
 import io.mosip.registration.processor.stages.osivalidator.utils.StatusMessage;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -500,7 +496,7 @@ public class OSIValidator {
 					throw new ParentOnHoldException(StatusUtil.UIN_RID_NOT_FOUND.getCode(),StatusUtil.UIN_RID_NOT_FOUND.getMessage());
 				}
 
-				if (introducerUIN == null
+				if ((introducerUIN == null || introducerUIN.isEmpty())
 						&& validateIntroducerRid(introducerRID, registrationId, registrationStatusDto)) {
 
 					introducerUIN = idRepoService.getUinByRid(introducerRID,
@@ -519,7 +515,7 @@ public class OSIValidator {
 					}
 
 				}
-				if (introducerUIN != null) {
+				if (introducerUIN != null && !introducerUIN.isEmpty()) {
 					return validateIntroducerBiometric(registrationId, registrationStatusDto,
 							introducerBiometricsFileName, introducerUIN, introducerBiometricsLabel);
 				} else {
@@ -568,9 +564,7 @@ public class OSIValidator {
 		return introducerUIN == null && introducerRID == null;
 	}
 
-	private String numberToString(Number number) {
-		return number != null ? number.toString() : null;
-	}
+
 
 	/**
 	 * Validate otp and pwd.

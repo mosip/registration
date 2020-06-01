@@ -68,8 +68,6 @@ public class ServiceDelegateUtilTest {
 
 		ReflectionTestUtils.setField(delegateUtil, "urlPath", "https://integ.mosip.io/authmanager/v1.0/authorize/validateToken");
 		ReflectionTestUtils.setField(delegateUtil, "invalidateUrlPath", "https://integ.mosip.io/authmanager/v1.0/authorize/invalidateToken");
-		ReflectionTestUtils.setField(delegateUtil, "clientId", "clientId");
-		ReflectionTestUtils.setField(delegateUtil, "secretKey", "secretKey");
 
 		LoginUserDTO loginDto = new LoginUserDTO();
 		loginDto.setUserId("super_admin");
