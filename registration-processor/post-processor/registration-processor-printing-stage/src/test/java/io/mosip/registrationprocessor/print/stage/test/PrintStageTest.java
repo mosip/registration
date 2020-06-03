@@ -6,6 +6,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.jms.JMSException;
 import javax.jms.Message;
 
 import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
@@ -37,6 +39,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.kernel.core.idvalidator.spi.UinValidator;
 import io.mosip.kernel.core.pdfgenerator.exception.PDFGeneratorException;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -244,7 +247,7 @@ public class PrintStageTest {
 				"test case description", EventId.RPR_401.toString(), EventName.ADD.toString(),
 				EventType.BUSINESS.toString(), "1234testcase", ApiName.AUDIT);
 		JSONObject obj1 = new JSONObject();
-		obj1.put("UIN", 877788787889l);
+		obj1.put("UIN", "877788787889");
 		Mockito.when(utilities.retrieveUIN(any())).thenReturn(obj1);
 		packetMetaInfo = new PacketMetaInfo();
 	}
@@ -256,6 +259,9 @@ public class PrintStageTest {
 		testResendPrintPdfSuccess();
 		testResendPrintPdfFailure();
 		testStart();
+		testconsumerListenerSuccess();
+		testconsumerListenerResend();
+		testconsumerListenerNullRegId();
 	}
 
 	public void testStart() {
@@ -312,6 +318,44 @@ public class PrintStageTest {
 		doNothing().when(printPostService).generatePrintandPostal(any(), any(), any());
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getIsValid());
+	}
+	
+	@Test
+	public void testconsumerListenerSuccess() throws JMSException {
+		registrationStatusDto=new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("123456789");
+		ActiveMQBytesMessage message = new ActiveMQBytesMessage();
+		String mes="{\"Status\":\"Success\",\"RegId\":\"123456789\"}";
+		ByteSequence byt=new ByteSequence(mes.getBytes());
+		message.setContent(byt);
+		when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		doNothing().when(registrationStatusService).updateRegistrationStatus(any(), anyString(), anyString());
+		stage.consumerListener( message); 
+	}
+	
+	@Test
+	public void testconsumerListenerResend() throws JMSException {
+		registrationStatusDto=new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("123456789");
+		registrationStatusDto.setRegistrationType("NEW");
+		ActiveMQBytesMessage message = new ActiveMQBytesMessage();
+		String mes="{\"Status\":\"Resend\",\"RegId\":\"123456789\"}";
+		ByteSequence byt=new ByteSequence(mes.getBytes());
+		message.setContent(byt);
+		when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		doNothing().when(registrationStatusService).updateRegistrationStatus(any(), anyString(), anyString());
+		stage.consumerListener( message); 
+	}
+	
+	@Test
+	public void testconsumerListenerNullRegId() throws JMSException {
+		
+		ActiveMQBytesMessage message = new ActiveMQBytesMessage();
+		String mes="{\"Status\":\"Resend\",\"RegId\":null}";
+		ByteSequence byt=new ByteSequence(mes.getBytes());
+		message.setContent(byt);
+		
+		stage.consumerListener( message); 
 	}
 
 	@Test

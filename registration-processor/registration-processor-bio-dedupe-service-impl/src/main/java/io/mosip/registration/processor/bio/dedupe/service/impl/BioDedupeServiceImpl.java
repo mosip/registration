@@ -346,7 +346,7 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 			String individualBiometricsFileName = JsonUtil.getJSONValue(JsonUtil.getJSONObject(
 					utility.getDemographicIdentityJSONObject(registrationId, individualBiometricsLabel),
 					individualBiometricsLabel), MappingJsonConstants.VALUE);
-			String source = idSchemaUtils.getSource(individualBiometricsLabel);
+			String source = idSchemaUtils.getSource(individualBiometricsLabel, packetReaderService.getIdSchemaVersionFromPacket(registrationId));
 			if (source != null) {
 			InputStream fileInStream = packetReaderService.getFile(registrationId,
 					individualBiometricsFileName.toUpperCase(), source);

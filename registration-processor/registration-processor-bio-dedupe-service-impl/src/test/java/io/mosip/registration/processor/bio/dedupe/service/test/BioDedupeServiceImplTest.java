@@ -4,6 +4,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyString;
 
 import java.io.File;
@@ -170,7 +171,7 @@ public class BioDedupeServiceImplTest {
 				.thenReturn(JsonUtil.getJSONObject(mappingJSONObject, MappingJsonConstants.IDENTITY));
 		fooLogger = (Logger) LoggerFactory.getLogger(BioDedupeServiceImpl.class);
 		listAppender = new ListAppender<>();
-		Mockito.when(idSchemaUtils.getSource((anyString()))).thenReturn("id");
+		Mockito.when(idSchemaUtils.getSource(anyString(), anyDouble())).thenReturn("id");
 		File idJson = new File(classLoader.getResource("ID.json").getFile());
 		InputStream ip = new FileInputStream(idJson);
 		String idJsonString = IOUtils.toString(ip, "UTF-8");

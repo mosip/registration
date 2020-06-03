@@ -57,7 +57,10 @@ public class DocumentScannerSaneServiceImpl extends DocumentScannerService {
 
 		BufferedImage bufferedImage = null;
 		try {
-			SaneSession session = SaneSession.withRemoteSane(InetAddress.getByName(scannerhost), scannerTimeout,
+			SaneSession session = SaneSession.withRemoteSane(
+					InetAddress.getByName(
+							(String) ApplicationContext.map().get(RegistrationConstants.DOCUMENT_SCANNER_HOST)),
+					(Long) ApplicationContext.map().get(RegistrationConstants.DOCUMENT_SCANNER_TIMEOUT),
 					TimeUnit.MILLISECONDS);
 			List<SaneDevice> saneDevices = session.listDevices();
 			if (isListNotEmpty(saneDevices)) {
@@ -89,13 +92,17 @@ public class DocumentScannerSaneServiceImpl extends DocumentScannerService {
 	 */
 	private void setScannerSettings(SaneDevice saneDevice) throws IOException, SaneException {
 		/* setting the resolution in dpi for the quality of the document */
-		saneDevice.getOption("resolution").setIntegerValue(Integer.parseInt(String.valueOf(ApplicationContext.map().get(RegistrationConstants.DOC_SCAN_DPI))));
-		
-		saneDevice.getOption("brightness").setIntegerValue(Integer.parseInt(String.valueOf(ApplicationContext.map().get(RegistrationConstants.DOC_SCAN_BRIGHTNESS))));
+		saneDevice.getOption("resolution").setIntegerValue(
+				Integer.parseInt(String.valueOf(ApplicationContext.map().get(RegistrationConstants.DOC_SCAN_DPI))));
 
-		saneDevice.getOption("contrast").setIntegerValue(Integer.parseInt(String.valueOf(ApplicationContext.map().get(RegistrationConstants.DOC_SCAN_CONTRAST))));
+		saneDevice.getOption("brightness").setIntegerValue(Integer
+				.parseInt(String.valueOf(ApplicationContext.map().get(RegistrationConstants.DOC_SCAN_BRIGHTNESS))));
 
-		saneDevice.getOption("depth").setIntegerValue(scannerDepth);
+		saneDevice.getOption("contrast").setIntegerValue(Integer
+				.parseInt(String.valueOf(ApplicationContext.map().get(RegistrationConstants.DOC_SCAN_CONTRAST))));
+
+		saneDevice.getOption("depth")
+				.setIntegerValue((Integer) ApplicationContext.map().get(RegistrationConstants.DOCUMENT_SCANNER_DEPTH));
 
 	}
 
@@ -107,7 +114,10 @@ public class DocumentScannerSaneServiceImpl extends DocumentScannerService {
 	private List<SaneDevice> getScannerDevices() {
 		List<SaneDevice> saneDevices = null;
 		try {
-			SaneSession session = SaneSession.withRemoteSane(InetAddress.getByName(scannerhost), scannerTimeout,
+			SaneSession session = SaneSession.withRemoteSane(
+					InetAddress.getByName(
+							(String) ApplicationContext.map().get(RegistrationConstants.DOCUMENT_SCANNER_HOST)),
+					(Long) ApplicationContext.map().get(RegistrationConstants.DOCUMENT_SCANNER_TIMEOUT),
 					TimeUnit.MILLISECONDS);
 			saneDevices = session.listDevices();
 			session.close();

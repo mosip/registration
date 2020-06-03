@@ -83,16 +83,14 @@ public class MosipBioDeviceManager {
 	@Autowired
 	private AuditManagerService auditFactory;
 
-	@Value("${mdm.host}")
-	private String host;
-
-	@Value("${mdm.hostProtocol}")
-	private String hostProtocol;
-
-	@Value("${mdm.portRangeFrom}")
+	// @Value("${mdm.host}")
+	// private String host;
+	//
+	// @Value("${mdm.hostProtocol}")
+	// private String hostProtocol;
+	//
 	private int portFrom;
 
-	@Value("${mdm.portRangeTo}")
 	private int portTo;
 
 	@Autowired
@@ -126,11 +124,18 @@ public class MosipBioDeviceManager {
 		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
 				"Entering init method for preparing device registry");
 
-		for (int port = portFrom; port <= portTo; port++) {
+		portFrom = ApplicationContext.map().get(RegistrationConstants.MDM_START_PORT_RANGE) != null
+				? Integer.parseInt((String) ApplicationContext.map().get(RegistrationConstants.MDM_START_PORT_RANGE))
+				: 0;
+		portTo = ApplicationContext.map().get(RegistrationConstants.MDM_END_PORT_RANGE) != null
+				? Integer.parseInt((String) ApplicationContext.map().get(RegistrationConstants.MDM_END_PORT_RANGE))
+				: 0;
 
-			
-				final int currentPort =port;
-				
+		if (portFrom != 0) {
+			for (int port = portFrom; port <= portTo; port++) {
+
+				final int currentPort = port;
+
 				/* An A-sync task to complete MDS initialization */
 				new Thread(() -> {
 					try {
@@ -141,9 +146,8 @@ public class MosipBioDeviceManager {
 										+ ExceptionUtils.getStackTrace(exception));
 					}
 				}).start();
-				
-			
 
+			}
 		}
 		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
 				"Exit init method for preparing device registry");
@@ -167,9 +171,8 @@ public class MosipBioDeviceManager {
 	 * Testing the network with method
 	 */
 	public static boolean checkServiceAvailability(String serviceUrl, String method) {
-		HttpUriRequest request = RequestBuilder
-				.create(method).setUri(serviceUrl).build();
-		
+		HttpUriRequest request = RequestBuilder.create(method).setUri(serviceUrl).build();
+
 		CloseableHttpClient client = HttpClients.createDefault();
 		try {
 			client.execute(request);
@@ -179,7 +182,7 @@ public class MosipBioDeviceManager {
 		return true;
 
 	}
-	
+
 	private void initByPortAndDeviceType(Integer availablePort, String deviceType) throws RegBaseCheckedException {
 
 		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
@@ -192,7 +195,7 @@ public class MosipBioDeviceManager {
 
 			url = buildUrl(availablePort, MosipBioDeviceConstants.DEVICE_INFO_ENDPOINT);
 			/* check if the service is available for the current port */
-			if (checkServiceAvailability(url,"MOSIPDINFO")) {
+			if (checkServiceAvailability(url, "MOSIPDINFO")) {
 				List<LinkedHashMap<String, String>> deviceInfoResponseDtos = null;
 				String response = (String) mosipBioDeviceIntegrator.getDeviceInfo(url, Object[].class);
 
@@ -334,11 +337,18 @@ public class MosipBioDeviceManager {
 				bioDevice.setDeviceProviderId(digitalId.getDeviceProviderId());
 				bioDevice.setDeviceModel(digitalId.getModel());
 				bioDevice.setDeviceMake(digitalId.getMake());
+				// For the local device validation
 				registeredDevice = registeredDeviceDAO.getRegisteredDevices(digitalId.getSerialNo(),
 						digitalId.getSerialNo());
 			}
 
 			bioDevice.setRegistered(registeredDevice != null ? registeredDevice.size() == 1 ? true : false : false);
+
+			/*
+			 * This particular section of code which hardcodes the registered value of the
+			 * device to be true needs to be taken care of once the device registration
+			 * steps in the db is straigten out
+			 */
 			String isDeviceValidationEnabled = ((String) ApplicationContext.getInstance().map()
 					.get("isDeviceValidationEnabled"));
 			if (isDeviceValidationEnabled == null)
@@ -365,7 +375,8 @@ public class MosipBioDeviceManager {
 	}
 
 	private String getRunningurl() {
-		return hostProtocol + "://" + host;
+		return (String) ApplicationContext.map().get(RegistrationConstants.MDM_HOST_PROTOCOL) + "://"
+				+ (String) ApplicationContext.map().get(RegistrationConstants.MDM_HOST);
 	}
 
 	/**
@@ -627,70 +638,72 @@ public class MosipBioDeviceManager {
 		}
 
 	}
-	
-	
+
 	public CaptureResponseDto scanModality(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException {
-		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID, "scanModality calling..." 
-					+ System.currentTimeMillis());
-		
-		BioDevice bioDevice = findDeviceToScan(mdmRequestDto.getModality());		
-		if(bioDevice == null)
-			throw new RegBaseCheckedException(MDMError.DEVICE_NOT_FOUND.getErrorCode(), 
-					MDMError.DEVICE_NOT_FOUND.getErrorMessage());		
-		
-		if(!bioDevice.isRegistered())
-			throw new RegBaseCheckedException(MDMError.DEVICE_NOT_REGISTERED.getErrorCode(), 
+		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
+				"scanModality calling..." + System.currentTimeMillis());
+
+		BioDevice bioDevice = findDeviceToScan(mdmRequestDto.getModality());
+		if (bioDevice == null)
+			throw new RegBaseCheckedException(MDMError.DEVICE_NOT_FOUND.getErrorCode(),
+					MDMError.DEVICE_NOT_FOUND.getErrorMessage());
+
+		if (!bioDevice.isRegistered())
+			throw new RegBaseCheckedException(MDMError.DEVICE_NOT_REGISTERED.getErrorCode(),
 					MDMError.DEVICE_NOT_REGISTERED.getErrorMessage());
-		
-		//TODO - support multiple spec versions, choose max version number from specVersions sorted array 
+
+		// TODO - support multiple spec versions, choose max version number from
+		// specVersions sorted array
 		String[] specVersions = bioDevice.getSpecVersion();
 		Arrays.sort(specVersions);
 		String supportedSpecVersion = (String) ApplicationContext.getInstance().map().get("current_mdm_spec");
-		
-		if(!Arrays.asList(specVersions).contains(supportedSpecVersion))
-			throw new RegBaseCheckedException(MDMError.UNSUPPORTED_SPEC.getErrorCode(), 
-					MDMError.UNSUPPORTED_SPEC.getErrorMessage());		
-		
-		//TODO - need to handle multiple SpecVersion
-		CaptureRequestDto requestDto = MdmRequestResponseBuilder.getMDMCaptureRequestDto(supportedSpecVersion, 
+
+		if (!Arrays.asList(specVersions).contains(supportedSpecVersion))
+			throw new RegBaseCheckedException(MDMError.UNSUPPORTED_SPEC.getErrorCode(),
+					MDMError.UNSUPPORTED_SPEC.getErrorMessage());
+
+		// TODO - need to handle multiple SpecVersion
+		CaptureRequestDto requestDto = MdmRequestResponseBuilder.getMDMCaptureRequestDto(supportedSpecVersion,
 				bioDevice, mdmRequestDto);
-		String url = bioDevice.getRunningUrl() + ":" + bioDevice.getRunningPort() + "/" + MosipBioDeviceConstants.CAPTURE_ENDPOINT;			
-		CaptureResponseDto responseDto = (CaptureResponseDto) getMdmResponse(url, requestDto, 
-				mdmRequestDto.getMosipProcess().equals("Registration") ? "RCAPTURE" : "CAPTURE", CaptureResponseDto.class);
+		String url = bioDevice.getRunningUrl() + ":" + bioDevice.getRunningPort() + "/"
+				+ MosipBioDeviceConstants.CAPTURE_ENDPOINT;
+		CaptureResponseDto responseDto = (CaptureResponseDto) getMdmResponse(url, requestDto,
+				mdmRequestDto.getMosipProcess().equals("Registration") ? "RCAPTURE" : "CAPTURE",
+				CaptureResponseDto.class);
 		try {
 			bioDevice.decode(responseDto);
 		} catch (IOException e) {
-			throw new RegBaseCheckedException(MDMError.PARSE_ERROR.getErrorCode(), 
+			throw new RegBaseCheckedException(MDMError.PARSE_ERROR.getErrorCode(),
 					MDMError.PARSE_ERROR.getErrorMessage() + ExceptionUtils.getStackTrace(e));
 		}
 		return responseDto;
 	}
-	
-	//TODO - need to handle multiple SpecVersion
-	private Object getMdmResponse(String url, Object requestDto, String requestMethod, 
-			Class responseClass) throws RegBaseCheckedException {
+
+	// TODO - need to handle multiple SpecVersion
+	private Object getMdmResponse(String url, Object requestDto, String requestMethod, Class responseClass)
+			throws RegBaseCheckedException {
 		Object responseDto = null;
 		try {
 			String requestBody = mapper.writeValueAsString(requestDto);
 			String response = invokeMDMRequest(url, requestBody, requestMethod);
-			responseDto = mapper.readValue(response.getBytes(StandardCharsets.UTF_8), responseClass);			
+			responseDto = mapper.readValue(response.getBytes(StandardCharsets.UTF_8), responseClass);
 		} catch (IOException e) {
-			throw new RegBaseCheckedException(MDMError.PARSE_ERROR.getErrorCode(), 
+			throw new RegBaseCheckedException(MDMError.PARSE_ERROR.getErrorCode(),
 					MDMError.PARSE_ERROR.getErrorMessage() + ExceptionUtils.getStackTrace(e));
 		}
 		return responseDto;
 	}
-	
-	
-	private String invokeMDMRequest(String url, String requestBody, String requestMethod) throws RegBaseCheckedException {
+
+	private String invokeMDMRequest(String url, String requestBody, String requestMethod)
+			throws RegBaseCheckedException {
 		CloseableHttpClient client = HttpClients.createDefault();
 		StringEntity requestEntity = new StringEntity(requestBody, ContentType.create("Content-Type", Consts.UTF_8));
-		HttpUriRequest request = RequestBuilder.create(requestMethod).setUri(url).setEntity(requestEntity).build();		
+		HttpUriRequest request = RequestBuilder.create(requestMethod).setUri(url).setEntity(requestEntity).build();
 		try {
 			CloseableHttpResponse response = client.execute(request);
 			return EntityUtils.toString(response.getEntity());
 		} catch (IOException e) {
-			throw new RegBaseCheckedException(MDMError.MDM_REQUEST_FAILED.getErrorCode(), 
+			throw new RegBaseCheckedException(MDMError.MDM_REQUEST_FAILED.getErrorCode(),
 					MDMError.MDM_REQUEST_FAILED.getErrorMessage() + ExceptionUtils.getStackTrace(e));
 		}
 	}

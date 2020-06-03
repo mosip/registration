@@ -220,8 +220,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 						JSONObject.class);
 				JSONObject demographicIdentity = JsonUtil.getJSONObject(identityJson,
 						utility.getGetRegProcessorDemographicIdentity());
-				Number number = JsonUtil.getJSONValue(demographicIdentity, UINConstants.UIN);
-				Long uinFieldCheck = number != null ? number.longValue() : null;
+				String uinFieldCheck = JsonUtil.getJSONValue(demographicIdentity, UINConstants.UIN);
+
 				if (uinFieldCheck == null) {
 
 					String test = (String) registrationProcessorRestClientService.getApi(ApiName.UINGENERATOR, null, "",
@@ -230,11 +230,11 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 					Gson gsonObj = new Gson();
 					uinResponseDto = gsonObj.fromJson(test, UinGenResponseDto.class);
 
-					long uinInLong = Long.parseLong(uinResponseDto.getResponse().getUin());
-					demographicIdentity.put("UIN", uinInLong);
+					uinFieldCheck = uinResponseDto.getResponse().getUin();
+					demographicIdentity.put("UIN", uinFieldCheck);
 
 					idResponseDTO = sendIdRepoWithUin(registrationId, demographicIdentity,
-							uinResponseDto.getResponse().getUin(), description);
+							uinFieldCheck, description);
 
 					boolean isUinAlreadyPresent = isUinAlreadyPresent(idResponseDTO, registrationId);
 
@@ -511,7 +511,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			io.mosip.kernel.core.exception.IOException, ApisResourceAccessException, ApiNotAccessibleException {
 		Documents documentsInfoDto = new Documents();
 
-		String source = idSchemaUtils.getSource(idDocLabel);
+		String source = idSchemaUtils.getSource(idDocLabel, packetReaderService.getIdSchemaVersionFromPacket(registrationId));
 		InputStream poiStream = packetReaderService.getFile(registrationId,
 				idDocObj.get("value").toString(), defaultSource);
 		documentsInfoDto.setValue(CryptoUtil.encodeBase64(IOUtils.toByteArray(poiStream)));
@@ -536,7 +536,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	 * @throws PacketDecryptionFailureException
 	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
-	private boolean uinUpdate(String regId, Long uin, MessageDTO object, JSONObject demographicIdentity,
+	private boolean uinUpdate(String regId, String uin, MessageDTO object, JSONObject demographicIdentity,
 			LogDescription description)
 			throws ApisResourceAccessException, IOException, RegistrationProcessorCheckedException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
@@ -634,7 +634,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	 *             the apis resource access exception
 	 * @throws IOException
 	 */
-	private boolean reActivateUin(IdResponseDTO idResponseDTO, String regId, Long uin, MessageDTO object,
+	private boolean reActivateUin(IdResponseDTO idResponseDTO, String regId, String uin, MessageDTO object,
 			JSONObject demographicIdentity, LogDescription description)
 			throws ApisResourceAccessException, IOException {
 		IdResponseDTO result = getIdRepoDataByUIN(uin, regId, description);
@@ -658,7 +658,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 				requestDto.setRegistrationId(regId);
 				requestDto.setStatus(RegistrationType.ACTIVATED.toString());
-				requestDto.setBiometricReferenceId(Long.toString(uin));
+				requestDto.setBiometricReferenceId(uin);
 				requestDto.setIdentity(demographicIdentity);
 
 				IdRequestDto idRequestDTO = new IdRequestDto();
@@ -747,7 +747,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	 * @throws ApisResourceAccessException
 	 * @throws IOException
 	 */
-	private IdResponseDTO deactivateUin(String regId, Long uin, MessageDTO object, JSONObject demographicIdentity,
+	private IdResponseDTO deactivateUin(String regId, String uin, MessageDTO object, JSONObject demographicIdentity,
 			LogDescription description) throws ApisResourceAccessException, IOException {
 		IdResponseDTO idResponseDto;
 		List<String> pathsegments = new ArrayList<>();
@@ -771,7 +771,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			requestDto.setRegistrationId(regId);
 			requestDto.setStatus(RegistrationType.DEACTIVATED.toString());
 			requestDto.setIdentity(demographicIdentity);
-			requestDto.setBiometricReferenceId(Long.toString(uin));
+			requestDto.setBiometricReferenceId(uin);
 
 			IdRequestDto idRequestDTO = new IdRequestDto();
 			idRequestDTO.setId(idRepoUpdate);
@@ -828,12 +828,12 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	 *             the apis resource access exception
 	 * @throws IOException
 	 */
-	private IdResponseDTO getIdRepoDataByUIN(Long uin, String regId, LogDescription description)
+	private IdResponseDTO getIdRepoDataByUIN(String uin, String regId, LogDescription description)
 			throws ApisResourceAccessException, IOException {
 		IdResponseDTO response;
 
 		List<String> pathsegments = new ArrayList<>();
-		pathsegments.add(Long.toString(uin));
+		pathsegments.add(uin);
 		try {
 
 			response = (IdResponseDTO) registrationProcessorRestClientService.getApi(ApiName.IDREPOGETIDBYUIN,
@@ -961,8 +961,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 		try {
 			if (isUinAlreadyPresent) {
-				Number number = idRepoService.getUinByRid(registrationId, utility.getGetRegProcessorDemographicIdentity());
-				vidRequestDto.setUIN(number.toString());
+				String uin = idRepoService.getUinByRid(registrationId, utility.getGetRegProcessorDemographicIdentity());
+				vidRequestDto.setUIN(uin);
 			} else {
 				vidRequestDto.setUIN(UIN);
 			}
@@ -1022,16 +1022,16 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			LogDescription description) throws ApisResourceAccessException, IOException {
 
 		IdResponseDTO idResponse = null;
-		Number number = idRepoService.getUinByRid(matchedRegId, utility.getGetRegProcessorDemographicIdentity());
+		String uin = idRepoService.getUinByRid(matchedRegId, utility.getGetRegProcessorDemographicIdentity());
 
-		Long uinFieldValue = number != null ? number.longValue() : null;
+
 		RequestDto requestDto = new RequestDto();
 		String statusComment = "";
 
-		if (uinFieldValue != null) {
+		if (uin != null) {
 
 			JSONObject identityObject = new JSONObject();
-			identityObject.put(UINConstants.UIN, uinFieldValue);
+			identityObject.put(UINConstants.UIN, uin);
 
 			requestDto.setRegistrationId(lostPacketRegId);
 			requestDto.setIdentity(identityObject);

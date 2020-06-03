@@ -15,7 +15,6 @@ import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.fsadapter.hdfs.constant.HDFSAdapterErrorCode;
 import io.mosip.registration.processor.core.common.rest.dto.BaseRestResponseDTO;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
@@ -174,8 +173,8 @@ public class ManualVerificationExceptionHandler {
 
 	public BaseRestResponseDTO fileNotFoundInFileStoreExceptionHandler(FSAdapterException e) {
 		FileNotFoundInFileStoreException ex = new FileNotFoundInFileStoreException(
-				HDFSAdapterErrorCode.FILE_NOT_FOUND_EXCEPTION.getErrorCode(),
-				HDFSAdapterErrorCode.FILE_NOT_FOUND_EXCEPTION.getErrorMessage());
+				PlatformErrorMessages.RPR_PIS_FILE_NOT_FOUND_IN_PACKET_STORE.getCode(),
+				PlatformErrorMessages.RPR_PIS_FILE_NOT_FOUND_IN_PACKET_STORE.getMessage());
 		return buildAssignDecisionExceptionResponse((Exception) ex);
 	}
 

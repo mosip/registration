@@ -26,7 +26,7 @@ public interface IdRepoService {
 	 * @throws ApisResourceAccessException
 	 *             the apis resource access exception
 	 */
-	Number getUinByRid(String machedRegId, String regProcessorDemographicIdentity)
+	String getUinByRid(String machedRegId, String regProcessorDemographicIdentity)
 			throws IOException, ApisResourceAccessException;
 
 	/**
@@ -42,7 +42,7 @@ public interface IdRepoService {
 	 * @throws ApisResourceAccessException
 	 *             the apis resource access exception
 	 */
-	public Number findUinFromIdrepo(String uin, String regProcessorDemographicIdentity)
+	public String findUinFromIdrepo(String uin, String regProcessorDemographicIdentity)
 			throws IOException, ApisResourceAccessException;
 
 	/**

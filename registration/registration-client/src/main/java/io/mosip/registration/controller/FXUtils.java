@@ -9,8 +9,6 @@ import java.util.OptionalInt;
 import java.util.function.IntPredicate;
 import java.util.stream.IntStream;
 
-import org.apache.commons.vfs2.provider.local.LocalFile;
-
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.transliteration.spi.Transliteration;
 import io.mosip.registration.config.AppConfig;
@@ -20,15 +18,11 @@ import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.reg.RegistrationController;
 import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dto.RegistrationDTO;
-import io.mosip.registration.dto.mastersync.BiometricAttributeDto;
-import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
-import io.mosip.registration.dto.mastersync.GenderDto;
-import io.mosip.registration.dto.mastersync.LocationDto;
+import io.mosip.registration.dto.mastersync.GenericDto;
 import javafx.collections.ObservableList;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Control;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -597,12 +591,6 @@ public class FXUtils {
 			 if (localComboBoxValues.get(0) instanceof GenericDto && selectedOption instanceof GenericDto) {
 					findIndexOfSelectedItem = index -> ((GenericDto) localComboBoxValues.get(index)).getCode()
 							.equals(((GenericDto) selectedOption).getCode());
-			}else if (localComboBoxValues.get(0) instanceof LocationDto && selectedOption instanceof LocationDto) {
-				findIndexOfSelectedItem = index -> ((LocationDto) localComboBoxValues.get(index)).getCode()
-						.equals(((LocationDto) selectedOption).getCode());
-			} else if (localComboBoxValues.get(0) instanceof GenderDto && selectedOption instanceof GenderDto) {
-				findIndexOfSelectedItem = index -> ((GenderDto) localComboBoxValues.get(index)).getCode()
-						.equals(((GenderDto) selectedOption).getCode());
 			} else if (localComboBoxValues.get(0) instanceof DocumentCategoryDto
 					&& selectedOption instanceof DocumentCategoryDto) {
 				findIndexOfSelectedItem = index -> ((DocumentCategoryDto) localComboBoxValues.get(index)).getCode()
@@ -635,13 +623,7 @@ public class FXUtils {
 
 		if (!comboBoxValues.isEmpty()) {
 			IntPredicate findIndexOfSelectedItem = null;
-			if (comboBoxValues.get(0) instanceof LocationDto) {
-				findIndexOfSelectedItem = index -> ((LocationDto) comboBoxValues.get(index)).getName().equals(
-						selectedValue) || ((LocationDto) comboBoxValues.get(index)).getCode().equals(selectedValue);
-			} else if (comboBoxValues.get(0) instanceof GenderDto) {
-				findIndexOfSelectedItem = index -> ((GenderDto) comboBoxValues.get(index)).getGenderName()
-						.equals(selectedValue);
-			} else if (comboBoxValues.get(0) instanceof DocumentCategoryDto) {
+			if (comboBoxValues.get(0) instanceof DocumentCategoryDto) {
 				findIndexOfSelectedItem = index -> ((DocumentCategoryDto) comboBoxValues.get(index)).getName()
 						.equals(selectedValue);
 			} else if (comboBoxValues.get(0) instanceof GenericDto) {
@@ -652,6 +634,7 @@ public class FXUtils {
 			OptionalInt indexOfSelectedLocation = getIndexOfSelectedItem(comboBoxValues, findIndexOfSelectedItem);
 
 			if (indexOfSelectedLocation.isPresent()) {
+				((DocumentCategoryDto) comboBoxValues.get(indexOfSelectedLocation.getAsInt())).setScanned(true);
 				comboBox.getSelectionModel().select(indexOfSelectedLocation.getAsInt());
 			}
 		}
@@ -672,16 +655,11 @@ public class FXUtils {
 			@Override
 			public String toString(T object) {
 				String value = null;
-				if (object instanceof LocationDto) {
-					value = ((LocationDto) object).getName();
-				} else if (object instanceof GenderDto) {
-					value = ((GenderDto) object).getGenderName();
-				} else if (object instanceof DocumentCategoryDto) {
+				if (object instanceof DocumentCategoryDto) {
 					value = ((DocumentCategoryDto) object).getName();
-				} else if (object instanceof BiometricAttributeDto) {
-					value = ((BiometricAttributeDto) object).getName();
 				} else if (object instanceof GenericDto) {
 					value = ((GenericDto) object).getName();
+				//this section is for combobox of Guardian biometric screen
 				} else if (object instanceof Entry<?, ?>) {
 					value = ((Entry<String,String>) object).getValue();
 				}

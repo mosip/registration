@@ -28,6 +28,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import io.mosip.kernel.core.exception.IOException;
 import io.mosip.kernel.core.util.exception.JsonMappingException;
 import io.mosip.kernel.core.util.exception.JsonParseException;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
@@ -126,6 +127,7 @@ public class UMCValidatorTest {
 
 		ReflectionTestUtils.setField(umcValidator, "isWorkingHourValidationRequired", true);
 		ReflectionTestUtils.setField(umcValidator, "deviceValidateHistoryId", "");
+		ReflectionTestUtils.setField(umcValidator, "gpsEnable", "y");
 		when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 

@@ -6,17 +6,18 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.biodedupe.constants.BioDedupeConstants;
 import io.mosip.registration.processor.biodedupe.stage.exception.CbeffNotFoundException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
@@ -108,6 +109,9 @@ public class BioDedupeProcessor {
 	@Autowired
 	private BioDedupeService biodedupeServiceImpl;
 
+	@Autowired
+	private Environment env;
+
 	/** The config server file storage URL. */
 	@Value("${config.server.file.storage.uri}")
 	private String configServerFileStorageURL;
@@ -122,6 +126,12 @@ public class BioDedupeProcessor {
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(BioDedupeProcessor.class);
+
+	private static final String ISINFANTBIOTOABIS = "registration.processor.infant.bio.to.abis";
+
+	private static final String VALIDATIONFALSE = "false";
+
+
 
 
 	/**
@@ -303,6 +313,9 @@ public class BioDedupeProcessor {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationStatusDto.getRegistrationId(), BioDedupeConstants.CBEFF_PRESENT_IN_PACKET);
 		} else {
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+			registrationStatusDto.setStatusComment(StatusUtil.BIO_DEDUPE_SUCCESS.getMessage());
+			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_DEDUPE_SUCCESS.getCode());
 			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
 			object.setIsValid(Boolean.TRUE);
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -430,38 +443,37 @@ public class BioDedupeProcessor {
 			IOException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
 			RegistrationProcessorCheckedException,
 			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+
 		List<String> pathSegments = new ArrayList<>();
 		pathSegments.add(registrationId);
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "BioDedupeProcessor::isValidCbeff()::get BIODEDUPE service call started");
-		byte[] bytefile = biodedupeServiceImpl.getFileByRegId(registrationId);
+		byte[] bytefile = null;
+		int age = utilities.getApplicantAge(registrationId);
+		int ageThreshold = Integer.parseInt(ageLimit);
+		if (age < ageThreshold) {
+			if (env.getProperty(ISINFANTBIOTOABIS).trim().equalsIgnoreCase(VALIDATIONFALSE)) {
+				return false;
+			} else {
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						registrationId, "BioDedupeProcessor::isValidCbeff()::get BIODEDUPE service call started");
+				bytefile = biodedupeServiceImpl.getFileByRegId(registrationId);
+			}
+
+		} else {
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, "BioDedupeProcessor::isValidCbeff()::get BIODEDUPE service call started");
+			 bytefile = biodedupeServiceImpl.getFileByRegId(registrationId);
+
+		}
 		if (bytefile != null) {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,
 					"BioDedupeProcessor::isValidCbeff()::get BIODEDUPE service call ended and Fetched ByteFile");
 			return true;
-		} else if (registrationType.equalsIgnoreCase(SyncTypeDto.LOST.toString())) {
+		} else {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId, "BioDedupeProcessor::isValidCbeff()::get BIODEDUPE service call ended successfully"
 							+ BioDedupeConstants.CBEFF_NOT_FOUND);
 			throw new CbeffNotFoundException(PlatformErrorMessages.PACKET_BIO_DEDUPE_CBEFF_NOT_PRESENT.getMessage());
-		} else {
-
-			int age = utilities.getApplicantAge(registrationId);
-			int ageThreshold = Integer.parseInt(ageLimit);
-			if (age < ageThreshold) {
-				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-						BioDedupeConstants.APPLICANT_TYPE_CHILD);
-				return false;
-			} else {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-						LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-						BioDedupeConstants.APPLICANT_TYPE_ADULT);
-				throw new CbeffNotFoundException(
-						PlatformErrorMessages.PACKET_BIO_DEDUPE_CBEFF_NOT_PRESENT.getMessage());
-			}
-
 		}
 
 	}
@@ -600,11 +612,8 @@ public class BioDedupeProcessor {
 	private Map<String, String> getIdJson(JSONObject demographicJsonIdentity) throws IOException {
 		Map<String, String> attribute = new LinkedHashMap<>();
 
-		String mapperJsonString = Utilities.getJson(utilities.getConfigServerFileStorageURL(),
-				utilities.getGetRegProcessorIdentityJson());
-		JSONObject mapperJson = JsonUtil.objectMapperReadValue(mapperJsonString, JSONObject.class);
-		JSONObject mapperIdentity = JsonUtil.getJSONObject(mapperJson,
-				utilities.getGetRegProcessorDemographicIdentity());
+
+		JSONObject mapperIdentity = utilities.getRegistrationProcessorMappingJson();
 		List<String> mapperJsonKeys = new ArrayList<>(mapperIdentity.keySet());
 
 		for (String key : mapperJsonKeys) {

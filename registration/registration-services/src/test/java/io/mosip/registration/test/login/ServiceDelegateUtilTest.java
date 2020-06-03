@@ -1,5 +1,8 @@
 package io.mosip.registration.test.login;
 
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.when;
+
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
@@ -42,9 +45,6 @@ import io.mosip.registration.util.restclient.RequestHTTPDTO;
 import io.mosip.registration.util.restclient.RestClientUtil;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.when;
-
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ ApplicationContext.class, SessionContext.class })
 public class ServiceDelegateUtilTest {
@@ -68,8 +68,6 @@ public class ServiceDelegateUtilTest {
 
 		ReflectionTestUtils.setField(delegateUtil, "urlPath", "https://integ.mosip.io/authmanager/v1.0/authorize/validateToken");
 		ReflectionTestUtils.setField(delegateUtil, "invalidateUrlPath", "https://integ.mosip.io/authmanager/v1.0/authorize/invalidateToken");
-		ReflectionTestUtils.setField(delegateUtil, "clientId", "clientId");
-		ReflectionTestUtils.setField(delegateUtil, "secretKey", "secretKey");
 
 		LoginUserDTO loginDto = new LoginUserDTO();
 		loginDto.setUserId("super_admin");
@@ -80,6 +78,9 @@ public class ServiceDelegateUtilTest {
 		Map<String, Object> globalParams = new HashMap<>();
 		globalParams.put(RegistrationConstants.USER_DTO, loginDto);
 		globalParams.put(RegistrationConstants.REGISTRATION_CLIENT, "registrationclient");
+		globalParams.put(RegistrationConstants.HTTP_API_READ_TIMEOUT, "60000");
+		globalParams.put(RegistrationConstants.HTTP_API_WRITE_TIMEOUT, "60000");
+		
 		PowerMockito.when(ApplicationContext.map()).thenReturn(globalParams);
 	}
 
@@ -238,10 +239,17 @@ public class ServiceDelegateUtilTest {
 		PowerMockito.mockStatic(ApplicationContext.class);
 		PowerMockito.doNothing().when(ApplicationContext.class, "setAuthTokenDTO", Mockito.any(AuthTokenDTO.class));
 
+		PowerMockito.mockStatic(ApplicationContext.class);
+		Map<String, Object> globalParams = new HashMap<>();
+		globalParams.put(RegistrationConstants.REGISTRATION_CLIENT, "registrationclient");
+		globalParams.put(RegistrationConstants.HTTP_API_READ_TIMEOUT, "60000");
+		globalParams.put(RegistrationConstants.HTTP_API_WRITE_TIMEOUT, "60000");
+		
+		PowerMockito.when(ApplicationContext.map()).thenReturn(globalParams);
 		delegateUtil.getAuthToken(LoginMode.CLIENTID, true);
 	}
 	
-	@Test(expected=RegBaseCheckedException.class)
+	@Test(expected=RegBaseUncheckedException.class)
 	public void getAuthTokenInvalidResponse() throws Exception {
 		// Return Object
 		Map<String, Object> responseMap = new HashMap<>();
@@ -271,7 +279,7 @@ public class ServiceDelegateUtilTest {
 		delegateUtil.getAuthToken(LoginMode.CLIENTID, true);
 	}
 	
-	@Test(expected=RegBaseCheckedException.class)
+	@Test(expected=RegBaseUncheckedException.class)
 	public void getAuthTokenCheckedException() throws Exception {
 
 		// Mocking Method Calls
