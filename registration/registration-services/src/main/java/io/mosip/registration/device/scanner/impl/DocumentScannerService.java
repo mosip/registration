@@ -41,17 +41,17 @@ import io.mosip.registration.device.scanner.IMosipDocumentScannerService;
 @Service
 public abstract class DocumentScannerService implements IMosipDocumentScannerService {
 
-	@Value("${DOCUMENT_SCANNER_DEPTH}")
-	protected int scannerDepth;
-
-	@Value("${DOCUMENT_SCANNER_HOST}")
-	protected String scannerhost;
-
-	@Value("${DOCUMENT_SCANNER_PORT}")
-	protected int scannerPort;
-
-	@Value("${DOCUMENT_SCANNER_TIMEOUT}")
-	protected long scannerTimeout;
+//	@Value("${DOCUMENT_SCANNER_DEPTH}")
+//	protected int scannerDepth;
+//
+//	@Value("${DOCUMENT_SCANNER_HOST}")
+//	protected String scannerhost;
+//
+//	@Value("${DOCUMENT_SCANNER_PORT}")
+//	protected int scannerPort;
+//
+//	@Value("${DOCUMENT_SCANNER_TIMEOUT}")
+//	protected long scannerTimeout;
 
 	private static final Logger LOGGER = AppConfig.getLogger(DocumentScannerService.class);
 
