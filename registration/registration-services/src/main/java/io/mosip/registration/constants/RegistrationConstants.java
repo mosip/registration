@@ -86,7 +86,8 @@ public class RegistrationConstants {
 	public static final String OPERATOR_AUTHENTICATION = "operatorAuthenticationPane";
 	public static final String ONBOARD_USER_PARENT = "onboardUser";
 	public static final String ONBOARD_USER_SUCCESS = "userOnboardSuccess";
-//	public static final String BIOMETRIC_EXCEPTION_FLOW = "biometricExceptionFlow";
+	// public static final String BIOMETRIC_EXCEPTION_FLOW =
+	// "biometricExceptionFlow";
 	public static final String GUARDIAN_BIOMETRIC = "guardianBiometric";
 
 	// css for quality indicator
@@ -104,8 +105,8 @@ public class RegistrationConstants {
 
 	// Page Flow
 	public static final String VISIBILITY = "visibility";
-//	public static final String ONBOARD_LIST = "onboardPageList";
-//	public static final String ONBOARD_MAP = "onboardMap";
+	// public static final String ONBOARD_LIST = "onboardPageList";
+	// public static final String ONBOARD_MAP = "onboardMap";
 	public static final String REGISTRATION_MAP = "registrationMap";
 	public static final String ONBOARD = "onboard";
 
@@ -272,21 +273,19 @@ public class RegistrationConstants {
 	public static final String SECONDARY_LANGUAGE = "mosip.secondary-language";
 	public static final String LANGUAGE_ENGLISH = "english";
 	public static final String LANGUAGE_ARABIC = "arabic";
-	
+
 	public static final String SIMPLE_TYPE = "simpleType";
 	public static final String NUMBER = "number";
-	public static final String STRING="string";
-	public static final String AGE_DATE="ageDate";
-	public static final String DROPDOWN="dropdown";
-	public static final String TEXTBOX="textbox";
-	public static final String RESIDENCE_STATUS="residenceStatus";
-	public static final String PRIMARY="primary";
-	public static final String SECONDARY="secondary";
-	public static final String DemoGraphicFieldMessageLabel="demoGraphicFieldMessageLabel";
-	public static final String Parent="Parent";
-	public static final String updateUinCheckBox="updateUinCheckBox";
-	
-	
+	public static final String STRING = "string";
+	public static final String AGE_DATE = "ageDate";
+	public static final String DROPDOWN = "dropdown";
+	public static final String TEXTBOX = "textbox";
+	public static final String RESIDENCE_STATUS = "residenceStatus";
+	public static final String PRIMARY = "primary";
+	public static final String SECONDARY = "secondary";
+	public static final String DemoGraphicFieldMessageLabel = "demoGraphicFieldMessageLabel";
+	public static final String Parent = "Parent";
+	public static final String updateUinCheckBox = "updateUinCheckBox";
 
 	public static final String APPLICATION_LANGUAGE = "application_language";
 	public static final String REGISTRATION_LOCAL_LANGUAGE = "local_language";
@@ -930,7 +929,6 @@ public class RegistrationConstants {
 	public static final String IS_SOFTWARE_UPDATE_AVAILABLE = "mosip.registration.is_software_update_available";
 	public static final String PROVIDER_NAME = "mosip.registration.provider_name";
 	public static final String DISK_SPACE = "mosip.registration.disk_space_size";
-	
 
 	// Spring Batch-Jobs
 	public static final String JOB_TRIGGER_STARTED = "Trigger started";
@@ -1570,7 +1568,7 @@ public class RegistrationConstants {
 		}
 
 	};
-	
+
 	public static final Map<String, String> userOnBoardBioFlag = new HashMap<String, String>() {
 
 		{
@@ -1653,7 +1651,6 @@ public class RegistrationConstants {
 	public static final String SERVER_NO_PROFILE = "NO_PROFILE";
 	public static final String SERVER_ACTIVE_PROFILE = "mosip.registration.server_profile";
 
-	
 	public static final String applicantBiometricDTO = "applicantBiometricDTO";
 	public static final String introducerBiometricDTO = "introducerBiometricDTO";
 	public static final String supervisorBiometricDTO = "supervisorBiometricDTO";
@@ -1670,34 +1667,31 @@ public class RegistrationConstants {
 	public static final String rightMiddleUiAttribute = "rightMiddle";
 	public static final String rightThumbUiAttribute = "rightThumb";
 	public static final String rightRingUiAttribute = "rightRing";
-	
 
 	public static final String leftEyeUiAttribute = "leftEye";
 	public static final String rightEyeUiAttribute = "rightEye";
 
-	public static final List<String> rightHandUiAttributes = Arrays.asList(rightIndexUiAttribute, rightLittleUiAttribute,
-			rightMiddleUiAttribute, rightRingUiAttribute);
-	
+	public static final List<String> rightHandUiAttributes = Arrays.asList(rightIndexUiAttribute,
+			rightLittleUiAttribute, rightMiddleUiAttribute, rightRingUiAttribute);
+
 	public static final List<String> leftHandUiAttributes = Arrays.asList(leftIndexUiAttribute, leftLittleUiAttribute,
 			leftMiddleUiAttribute, leftRingUiAttribute);
-	
-	public static final List<String> twoThumbsUiAttributes = Arrays.asList(rightThumbUiAttribute,leftThumbUiAttribute);
-	
-	public static final List<String> eyesUiAttributes = Arrays.asList(leftEyeUiAttribute,rightEyeUiAttribute);
-	
+
+	public static final List<String> twoThumbsUiAttributes = Arrays.asList(rightThumbUiAttribute, leftThumbUiAttribute);
+
+	public static final List<String> eyesUiAttributes = Arrays.asList(leftEyeUiAttribute, rightEyeUiAttribute);
+
 	public static final List<String> faceUiAttributes = Arrays.asList("face");
 	public static final String indBiometrics = "individualBiometrics";
-	
+
 	public static final String ID_SCHEMA_SYNC_SERVICE = "idschema_key";
-	
-	
-	
+
 	public static final Map<String, String> regBioMap = new HashMap<String, String>() {
 
 		{
 			put("leftIndex", LeftIndex);
 			put("leftLittle", LeftLittle);
-			put("leftMiddle",LeftMiddle);
+			put("leftMiddle", LeftMiddle);
 			put("leftRing", LeftRing);
 			put("leftThumb", LeftThumb);
 			put("rightIndex", RightIndex);
@@ -1707,36 +1701,65 @@ public class RegistrationConstants {
 			put("rightThumb", RightThumb);
 			put("leftEye", LEFT_EYE);
 			put("rightEye", RIGHT_EYE);
-			
+
 		}
 
 	};
-	
+
 	public static final Map<String, String> mdsToRegBioMap = new HashMap<String, String>() {
 
 		{
-			put("LF_INDEX",LeftIndex);
-			put("LF_LITTLE",LeftLittle);
-			put("LF_MIDDLE",LeftMiddle);
-			put("LF_RING",LeftRing);
-			put("LF_THUMB",LeftThumb);
-			put("RF_INDEX",RightIndex);
-			put("RF_LITTLE",RightLittle);
-			put("RF_MIDDLE",RightMiddle);
-			put("RF_RING",RightRing);
-			put("RF_THUMB",RightThumb);
-			put("L_IRIS",LEFT_EYE);
-			put("R_IRIS",RIGHT_EYE);
+			put("LF_INDEX", LeftIndex);
+			put("LF_LITTLE", LeftLittle);
+			put("LF_MIDDLE", LeftMiddle);
+			put("LF_RING", LeftRing);
+			put("LF_THUMB", LeftThumb);
+			put("RF_INDEX", RightIndex);
+			put("RF_LITTLE", RightLittle);
+			put("RF_MIDDLE", RightMiddle);
+			put("RF_RING", RightRing);
+			put("RF_THUMB", RightThumb);
+			put("L_IRIS", LEFT_EYE);
+			put("R_IRIS", RIGHT_EYE);
 		}
 
 	};
 
-	
 	public static final String BIOMETRICS_TYPE = "biometricsType";
 	public static final String APPLICANT = "applicant";
-	
+
 	public static final String MOSIP_CLEINT_ID = "mosip.registration.client.id";
 	public static final String MOSIP_SECRET_KEY = "mosip.registration.secret.Key";
-	
-	
+
+	/** BELOW WERE EXTERNALISING  Spring.properties to external configs */
+
+	// Timeout Configuartion
+	public static final String HTTP_API_READ_TIMEOUT = "mosip.registration.HTTP_API_READ_TIMEOUT";
+	public static final String HTTP_API_WRITE_TIMEOUT = "mosip.registration.HTTP_API_WRITE_TIMEOUT";
+
+	// Biometric Device Already present in configs
+	// public static final String PROVIDER_NAME =
+	// "mosip.registration.PROVIDER_NAME";
+	// public static final String WEBCAM_LIBRARY_NAME =
+	// "mosip.registration.WEBCAM_LIBRARY_NAME";
+
+	// document scanner properties
+	public static final String DOCUMENT_SCANNER_DEPTH = "mosip.registration.DOCUMENT_SCANNER_DEPTH";
+	public static final String DOCUMENT_SCANNER_HOST = "mosip.registration.DOCUMENT_SCANNER_HOST";
+	public static final String DOCUMENT_SCANNER_PORT = "mosip.registration.DOCUMENT_SCANNER_PORT";
+	public static final String DOCUMENT_SCANNER_TIMEOUT = "mosip.registration.DOCUMENT_SCANNER_TIMEOUT";
+
+	// #MDM
+	// #host has to be clarified whether nedd to be in config or hardcoded
+	// #portRangeFrom and portRangeTo are mandate,portRangeTo can be same are
+	// greater than then portRangeFrom
+	public static final String MDM_HOST = "mosip.registration.mdm.host";
+	public static final String MDM_START_PORT_RANGE = "mosip.registration.mdm.portRangeFrom";
+	public static final String MDM_END_PORT_RANGE = "mosip.registration.mdm.portRangeTo";
+	public static final String MDM_CONTEXT_PATH = "mosip.registration.mdm.contextPath";
+	public static final String MDM_HOST_PROTOCOL = "mosip.registration.mdm.hostProtocol";
+
+	// #Proof Of Exception Documents
+	public static final String POE_DOCUMENT_VALUE = "mosip.registration.doc_value";
+
 }

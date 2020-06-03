@@ -52,7 +52,8 @@ public class GlobalParamServiceImpl extends BaseService implements GlobalParamSe
 	private static final Set<String> NON_REMOVABLE_PARAMS = new HashSet<>(
 			Arrays.asList("mosip.registration.machinecenterchanged", "mosip.registration.initial_setup",
 					"mosip.reg.db.current.version", "mosip.reg.services.version",
-					RegistrationConstants.IS_SOFTWARE_UPDATE_AVAILABLE, RegistrationConstants.SERVICES_VERSION_KEY));
+					RegistrationConstants.IS_SOFTWARE_UPDATE_AVAILABLE, RegistrationConstants.SERVICES_VERSION_KEY,
+					RegistrationConstants.HTTP_API_READ_TIMEOUT, RegistrationConstants.HTTP_API_WRITE_TIMEOUT));
 	/**
 	 * Instance of LOGGER
 	 */
@@ -63,7 +64,6 @@ public class GlobalParamServiceImpl extends BaseService implements GlobalParamSe
 	 */
 	@Autowired
 	private GlobalParamDAO globalParamDAO;
-	
 
 	/*
 	 * (non-Javadoc)
@@ -134,66 +134,66 @@ public class GlobalParamServiceImpl extends BaseService implements GlobalParamSe
 	}
 
 	private void saveGlobalParams(ResponseDTO responseDTO, String triggerPoinnt) {
-		
+
 		if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
 			try {
 				boolean isToBeRestarted = false;
 				Map<String, String> requestParamMap = new HashMap<>();
-                if(validate(responseDTO, triggerPoinnt))
-                {
-				/* REST CALL */
-				@SuppressWarnings("unchecked")
-				LinkedHashMap<String, Object> globalParamJsonMap = (LinkedHashMap<String, Object>) serviceDelegateUtil
-						.get(RegistrationConstants.GET_GLOBAL_CONFIG, requestParamMap, true, triggerPoinnt);
-
-				// Check for response
-				if (null != globalParamJsonMap.get(RegistrationConstants.RESPONSE)) {
-
+				if (validate(responseDTO, triggerPoinnt)) {
+					/* REST CALL */
 					@SuppressWarnings("unchecked")
-					HashMap<String, Object> responseMap = (HashMap<String, Object>) globalParamJsonMap
-							.get(RegistrationConstants.RESPONSE);
-					@SuppressWarnings("unchecked")
-					HashMap<String, Object> configDetailJsonMap = (HashMap<String, Object>) responseMap
-							.get("configDetail");
+					LinkedHashMap<String, Object> globalParamJsonMap = (LinkedHashMap<String, Object>) serviceDelegateUtil
+							.get(RegistrationConstants.GET_GLOBAL_CONFIG, requestParamMap, true, triggerPoinnt);
 
-					HashMap<String, String> globalParamMap = new HashMap<>();
+					// Check for response
+					if (null != globalParamJsonMap.get(RegistrationConstants.RESPONSE)) {
 
-					parseToMap(configDetailJsonMap, globalParamMap);
+						@SuppressWarnings("unchecked")
+						HashMap<String, Object> responseMap = (HashMap<String, Object>) globalParamJsonMap
+								.get(RegistrationConstants.RESPONSE);
+						@SuppressWarnings("unchecked")
+						HashMap<String, Object> configDetailJsonMap = (HashMap<String, Object>) responseMap
+								.get("configDetail");
 
-					List<GlobalParam> globalParamList = globalParamDAO.getAllEntries();
+						HashMap<String, String> globalParamMap = new HashMap<>();
 
-					isToBeRestarted = parseGlobalParam(isToBeRestarted, globalParamMap, globalParamList);
+						parseToMap(configDetailJsonMap, globalParamMap);
 
-					for (Entry<String, String> key : globalParamMap.entrySet()) {
-						createNew(key.getKey(), globalParamMap.get(key.getKey()), globalParamList);
+						List<GlobalParam> globalParamList = globalParamDAO.getAllEntries();
 
-						isToBeRestarted = isPropertyRequireRestart(key.getKey());
-						/* Add in application map */
-						updateApplicationMap(key.getKey(), key.getValue());
-					}
+						isToBeRestarted = parseGlobalParam(isToBeRestarted, globalParamMap, globalParamList);
 
-					/* Save all Global Params */
-					globalParamDAO.saveAll(globalParamList);
-					if (isToBeRestarted) {
-						Map<String, Object> attributes = new HashMap<>();
-						attributes.put("Restart", RegistrationConstants.ENABLE);
-						setSuccessResponse(responseDTO, RegistrationConstants.POLICY_SYNC_SUCCESS_MESSAGE, attributes);
+						for (Entry<String, String> key : globalParamMap.entrySet()) {
+							createNew(key.getKey(), globalParamMap.get(key.getKey()), globalParamList);
+
+							isToBeRestarted = isPropertyRequireRestart(key.getKey());
+							/* Add in application map */
+							updateApplicationMap(key.getKey(), key.getValue());
+						}
+
+						/* Save all Global Params */
+						globalParamDAO.saveAll(globalParamList);
+						if (isToBeRestarted) {
+							Map<String, Object> attributes = new HashMap<>();
+							attributes.put("Restart", RegistrationConstants.ENABLE);
+							setSuccessResponse(responseDTO, RegistrationConstants.POLICY_SYNC_SUCCESS_MESSAGE,
+									attributes);
+						} else {
+							setSuccessResponse(responseDTO, RegistrationConstants.POLICY_SYNC_SUCCESS_MESSAGE, null);
+						}
+						// pageFlow.getInitialPageDetails();
 					} else {
-						setSuccessResponse(responseDTO, RegistrationConstants.POLICY_SYNC_SUCCESS_MESSAGE, null);
+						setErrorResponse(responseDTO, RegistrationConstants.POLICY_SYNC_ERROR_MESSAGE, null);
 					}
-//					pageFlow.getInitialPageDetails();
+				}
+			} catch (HttpServerErrorException | HttpClientErrorException | SocketTimeoutException
+					| RegBaseCheckedException | ClassCastException | ResourceAccessException exception) {
+				if (isAuthTokenEmptyException(exception)) {
+					setErrorResponse(responseDTO,
+							RegistrationExceptionConstants.AUTH_TOKEN_COOKIE_NOT_FOUND.getErrorCode(), null);
 				} else {
 					setErrorResponse(responseDTO, RegistrationConstants.POLICY_SYNC_ERROR_MESSAGE, null);
 				}
-                }
-                } catch (HttpServerErrorException | HttpClientErrorException | SocketTimeoutException
-					| RegBaseCheckedException | ClassCastException | ResourceAccessException exception) {
-                	if (isAuthTokenEmptyException(exception)) {
-					setErrorResponse(responseDTO,
-							RegistrationExceptionConstants.AUTH_TOKEN_COOKIE_NOT_FOUND.getErrorCode(), null);
-                	} else {
-                		setErrorResponse(responseDTO, RegistrationConstants.POLICY_SYNC_ERROR_MESSAGE, null);
-                	}
 				LOGGER.error("REGISTRATION_SYNC_CONFIG_DATA", APPLICATION_NAME, APPLICATION_ID,
 						exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 			}
@@ -315,7 +315,7 @@ public class GlobalParamServiceImpl extends BaseService implements GlobalParamSe
 		LOGGER.info(LoggerConstants.GLOBAL_PARAM_SERVICE_LOGGER_TITLE, APPLICATION_NAME, APPLICATION_ID,
 				"Update global param started");
 
-		if(code!=null && val!=null) {
+		if (code != null && val != null) {
 			// Primary Key
 			GlobalParamId globalParamId = new GlobalParamId();
 			globalParamId.setCode(code);
@@ -345,12 +345,10 @@ public class GlobalParamServiceImpl extends BaseService implements GlobalParamSe
 
 			LOGGER.info(LoggerConstants.GLOBAL_PARAM_SERVICE_LOGGER_TITLE, APPLICATION_NAME, APPLICATION_ID,
 					"Update global param ended");
+		} else {
+			LOGGER.info(LoggerConstants.GLOBAL_PARAM_SERVICE_LOGGER_TITLE, APPLICATION_NAME, APPLICATION_ID,
+					"Not Update global param because of code or val is null value");
 		}
-		else {
-		LOGGER.info(LoggerConstants.GLOBAL_PARAM_SERVICE_LOGGER_TITLE, APPLICATION_NAME, APPLICATION_ID,
-				"Not Update global param because of code or val is null value");
-		}
-		
 
 	}
 
@@ -359,25 +357,22 @@ public class GlobalParamServiceImpl extends BaseService implements GlobalParamSe
 		// getBaseGlobalMap().put(code, val);
 
 	}
-	
-	private boolean validate(ResponseDTO responseDTO,String triggerPoint) throws RegBaseCheckedException
-	{
-		
-		if(responseDTO!=null)
-		{
-			if(triggerPoint!=null)
-			{
+
+	private boolean validate(ResponseDTO responseDTO, String triggerPoint) throws RegBaseCheckedException {
+
+		if (responseDTO != null) {
+			if (triggerPoint != null) {
 				return true;
+			} else {
+				throw new RegBaseCheckedException(
+						RegistrationExceptionConstants.REG_GLOBALPARAM_SYNC_SERVICE_IMPL_TRIGGER_POINT.getErrorCode(),
+						RegistrationExceptionConstants.REG_POLICY_SYNC_SERVICE_IMPL_CENTERMACHINEID.getErrorMessage());
 			}
-			else
-			{
-				throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_GLOBALPARAM_SYNC_SERVICE_IMPL_TRIGGER_POINT.getErrorCode(),RegistrationExceptionConstants.REG_POLICY_SYNC_SERVICE_IMPL_CENTERMACHINEID.getErrorMessage());
-			}
+		} else {
+			throw new RegBaseCheckedException(
+					RegistrationExceptionConstants.REG_GLOBALPARAM_SYNC_SERVICE_IMPL.getErrorCode(),
+					RegistrationExceptionConstants.REG_POLICY_SYNC_SERVICE_IMPL.getErrorMessage());
 		}
-		else
-		{
-			throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_GLOBALPARAM_SYNC_SERVICE_IMPL.getErrorCode(),RegistrationExceptionConstants.REG_POLICY_SYNC_SERVICE_IMPL.getErrorMessage());
-		}
-		
+
 	}
 }

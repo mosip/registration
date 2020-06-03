@@ -58,18 +58,15 @@ import io.mosip.registration.service.config.GlobalParamService;
 @Component
 public class SoftwareUpdateHandler extends BaseService {
 
-	
-
 	private static String SLASH = "/";
 
 	private String manifestFile = "MANIFEST.MF";
 
 	@Value("${mosip.reg.rollback.path}")
 	private String backUpPath;
-	
+
 	@Value("${mosip.reg.client.url}")
 	private String serverRegClientURL;
-	
 
 	@Value("${mosip.reg.xml.file.url}")
 	private String serverMosipXmlFileUrl;
@@ -96,11 +93,11 @@ public class SoftwareUpdateHandler extends BaseService {
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
-	@Value("${HTTP_API_READ_TIMEOUT}")
-	private int readTimeout;
-
-	@Value("${HTTP_API_WRITE_TIMEOUT}")
-	private int connectTimeout;
+	// @Value("${HTTP_API_READ_TIMEOUT}")
+	// private int readTimeout;
+	//
+	// @Value("${HTTP_API_WRITE_TIMEOUT}")
+	// private int connectTimeout;
 
 	/**
 	 * Instance of {@link Logger}
@@ -350,7 +347,8 @@ public class SoftwareUpdateHandler extends BaseService {
 
 	}
 
-	private void checkJars(String version, List<String> checkableJars) throws IOException, io.mosip.kernel.core.exception.IOException {
+	private void checkJars(String version, List<String> checkableJars)
+			throws IOException, io.mosip.kernel.core.exception.IOException {
 
 		LOGGER.info(LoggerConstants.LOG_REG_UPDATE, APPLICATION_NAME, APPLICATION_ID, "Checking of jars started");
 		for (String jarFile : checkableJars) {
@@ -369,7 +367,6 @@ public class SoftwareUpdateHandler extends BaseService {
 			} else if ((!isCheckSumValid(jarInFolder,
 					(currentVersion.equals(version)) ? localManifest : serverManifest))) {
 
-			
 				FileUtils.forceDelete(jarInFolder);
 
 				LOGGER.info(LoggerConstants.LOG_REG_UPDATE, APPLICATION_NAME, APPLICATION_ID,
@@ -488,9 +485,10 @@ public class SoftwareUpdateHandler extends BaseService {
 	private InputStream getInputStreamOf(String url) throws IOException {
 		URLConnection connection = new URL(url).openConnection();
 
-		connection.setConnectTimeout(connectTimeout);
+		connection.setConnectTimeout(
+				Integer.valueOf(getGlobalConfigValueOf(RegistrationConstants.HTTP_API_WRITE_TIMEOUT)));
 
-		connection.setReadTimeout(readTimeout);
+		connection.setReadTimeout(Integer.valueOf(getGlobalConfigValueOf(RegistrationConstants.HTTP_API_READ_TIMEOUT)));
 
 		// Space Check
 		if (hasSpace(connection.getContentLength())) {
@@ -764,30 +762,31 @@ public class SoftwareUpdateHandler extends BaseService {
 
 	private void addProperties(String version) {
 
-//		LOGGER.info(LoggerConstants.LOG_REG_UPDATE, APPLICATION_NAME, APPLICATION_ID,
-//				"Started updating version property in mosip-application.properties");
-//
-//		try {
-//			Properties properties = new Properties();
-//			properties.load(new FileInputStream(propsFilePath));
-//
-//			properties.setProperty("mosip.reg.version", version);
-//
-//			// update mosip-Version in mosip-application.properties file
-//			try (FileOutputStream outputStream = new FileOutputStream(propsFilePath)) {
-//
-//				properties.store(outputStream, version);
-//			}
-//
-//		} catch (IOException ioException) {
-//
-//			LOGGER.error(LoggerConstants.LOG_REG_UPDATE, APPLICATION_NAME, APPLICATION_ID,
-//					ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
-//
-//		}
-//
-//		LOGGER.info(LoggerConstants.LOG_REG_UPDATE, APPLICATION_NAME, APPLICATION_ID,
-//				"Completed updating version property in mosip-application.properties");
+		// LOGGER.info(LoggerConstants.LOG_REG_UPDATE, APPLICATION_NAME, APPLICATION_ID,
+		// "Started updating version property in mosip-application.properties");
+		//
+		// try {
+		// Properties properties = new Properties();
+		// properties.load(new FileInputStream(propsFilePath));
+		//
+		// properties.setProperty("mosip.reg.version", version);
+		//
+		// // update mosip-Version in mosip-application.properties file
+		// try (FileOutputStream outputStream = new FileOutputStream(propsFilePath)) {
+		//
+		// properties.store(outputStream, version);
+		// }
+		//
+		// } catch (IOException ioException) {
+		//
+		// LOGGER.error(LoggerConstants.LOG_REG_UPDATE, APPLICATION_NAME,
+		// APPLICATION_ID,
+		// ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
+		//
+		// }
+		//
+		// LOGGER.info(LoggerConstants.LOG_REG_UPDATE, APPLICATION_NAME, APPLICATION_ID,
+		// "Completed updating version property in mosip-application.properties");
 
 	}
 
