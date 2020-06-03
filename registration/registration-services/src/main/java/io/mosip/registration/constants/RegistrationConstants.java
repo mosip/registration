@@ -1760,6 +1760,6 @@ public class RegistrationConstants {
 	public static final String MDM_HOST_PROTOCOL = "mosip.registration.mdm.hostProtocol";
 
 	// #Proof Of Exception Documents
-	public static final String POE_DOCUMENT_VALUE = "mosip.registration.mdm.doc_value";
+	public static final String POE_DOCUMENT_VALUE = "mosip.registration.doc_value";
 
 }

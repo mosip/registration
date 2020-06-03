@@ -432,8 +432,10 @@ public class DocumentScanController extends BaseController {
 	 */
 	private void scanDocument(ComboBox<DocumentCategoryDto> documents, VBox vboxElement, String document,
 			String errorMessage) {
-		if (null != documents.getValue() && documents.getValue().getCode()
-				.matches(getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE))) {
+		
+		String poeDocValue = getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE);
+		if (null != documents.getValue() && poeDocValue!=null && documents.getValue().getCode()
+				.matches(poeDocValue)) {
 			if (documents.getValue() == null) {
 				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 						RegistrationConstants.APPLICATION_ID, "Select atleast one document for scan");
@@ -541,8 +543,10 @@ public class DocumentScanController extends BaseController {
 	private void scanFromStubbed(Stage popupStage) throws IOException {
 
 		byte[] byteArray = null;
-		if (selectedComboBox.getValue().getCode()
-				.matches(getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE))) {
+		
+		String poeDocValue = getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE);
+		if (poeDocValue!=null && selectedComboBox.getValue().getCode()
+				.matches(poeDocValue)) {
 			webcamSarxosServiceImpl.openWebCam(webcamSarxosServiceImpl.getWebCams().get(0), 10, 50);
 			BufferedImage bufferedImage = webcamSarxosServiceImpl
 					.captureImage(webcamSarxosServiceImpl.getWebCams().get(0));
