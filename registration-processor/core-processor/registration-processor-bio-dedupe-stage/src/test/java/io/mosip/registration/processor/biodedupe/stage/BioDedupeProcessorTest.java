@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,6 +28,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -155,6 +157,11 @@ public class BioDedupeProcessorTest {
 	@Mock
 	LogDescription description;
 
+	@Mock
+	private Environment env;
+
+	private static final String ISINFANTBIOTOABIS = "registration.processor.infant.bio.to.abis";
+
 	/**
 	 * Sets the up.
 	 *
@@ -163,6 +170,7 @@ public class BioDedupeProcessorTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
+		when(env.getProperty(ISINFANTBIOTOABIS)).thenReturn("true");
 		ReflectionTestUtils.setField(bioDedupeProcessor, "ageLimit", "4");
 
 		AuditResponseDto auditResponseDto = new AuditResponseDto();
@@ -223,7 +231,7 @@ public class BioDedupeProcessorTest {
 	@Test
 	public void testNewInsertionToUinSuccess() throws Exception {
 		Mockito.when(bioDedupeService.getFileByRegId(anyString())).thenReturn(null);
-
+		when(env.getProperty(ISINFANTBIOTOABIS)).thenReturn("false");
 		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(null);
 		Mockito.when(utility.getApplicantAge(any())).thenReturn(2);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
@@ -555,7 +563,7 @@ public class BioDedupeProcessorTest {
 		JSONObject j1 = new JSONObject(map);
 
 		Mockito.when(idRepoService.getIdJsonFromIDRepo(any(), any())).thenReturn(j1);
-
+		Mockito.when(utility.getApplicantAge(any())).thenReturn(12);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getInternalError());
