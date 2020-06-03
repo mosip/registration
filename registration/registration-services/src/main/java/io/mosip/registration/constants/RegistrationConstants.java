@@ -212,7 +212,6 @@ public class RegistrationConstants {
 	public static final String USER_NAME_VALIDATION = "USER_NAME_VALIDATION";
 
 	// FingerPrint
-	public static final String FP_DEVICE = "Mantra";
 	public static final String FINGER_TYPE_MINUTIA = "minutia";
 	public static final String FP_TIMEOUT = "TIMEOUT";
 
