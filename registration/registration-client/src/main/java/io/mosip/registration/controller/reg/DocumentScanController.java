@@ -682,7 +682,7 @@ public class DocumentScanController extends BaseController {
 
 		DocumentDto documentDto = new DocumentDto();
 		documentDto.setDocument(byteArray);
-		documentDto.setType(document.getName());
+		documentDto.setType(document.getCode());
 
 		String docType = getValueFromApplicationContext(RegistrationConstants.DOC_TYPE);
 		if (isStubbed) {
@@ -1089,7 +1089,7 @@ public class DocumentScanController extends BaseController {
 		registrationController.showCurrentPage(RegistrationConstants.DOCUMENT_SCAN,
 				getPageByAction(RegistrationConstants.DOCUMENT_SCAN, RegistrationConstants.NEXT));
 
-		guardianBiometricsController.refreshContinueButton();
+		guardianBiometricsController.populateBiometricPage();
 		/*
 		 * biometricExceptionController.disableNextBtn();
 		 * fingerPrintCaptureController.clearImage();
