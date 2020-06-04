@@ -91,7 +91,7 @@ public class PageFlow {
 		onboardMap.put(RegistrationConstants.IRIS_CAPTURE, irisMap);
 
 		Map<String, Boolean> faceMap = new LinkedHashMap<>();
-		faceMap.put(RegistrationConstants.VISIBILITY, false);
+		faceMap.put(RegistrationConstants.VISIBILITY, true);
 		onboardMap.put(RegistrationConstants.FACE_CAPTURE, faceMap);
 
 		Map<String, Boolean> onBoardSuccessMap = new LinkedHashMap<>();

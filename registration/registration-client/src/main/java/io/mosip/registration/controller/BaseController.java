@@ -1186,7 +1186,7 @@ public class BaseController {
 	 */
 	protected void getCurrentPage(Pane pageId, String notTosShow, String show) {
 
-		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID, "Navigating to next page");
+		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID, "Navigating from current page >> " + notTosShow);
 
 		if (notTosShow != null) {
 			((Pane) pageId.lookup(RegistrationConstants.HASH + notTosShow)).setVisible(false);
@@ -1195,7 +1195,7 @@ public class BaseController {
 			((Pane) pageId.lookup(RegistrationConstants.HASH + show)).setVisible(true);
 		}
 
-		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID, "Navigated to next page");
+		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID, "Navigated to next page >> " + show);
 	}
 
 	/**
@@ -1454,7 +1454,7 @@ public class BaseController {
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Fetching value from application Context");
 
-		return (String) applicationContext.getApplicationMap().get(key);
+		return applicationContext.getApplicationMap().containsKey(key) ? (String) applicationContext.getApplicationMap().get(key) : null;
 	}
 
 	/**
