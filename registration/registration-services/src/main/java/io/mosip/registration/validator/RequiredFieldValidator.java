@@ -1,6 +1,7 @@
 package io.mosip.registration.validator;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.packetmanager.constants.PacketManagerConstants;
+import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.RequiredOnExpr;
 import io.mosip.registration.dto.UiSchemaDTO;
@@ -23,6 +25,9 @@ import io.mosip.registration.service.IdentitySchemaService;
 
 @Component
 public class RequiredFieldValidator {
+	
+	private static final String APPLICANT_SUBTYPE = "applicant";
+	
 	
 	@Autowired
 	private IdentitySchemaService identitySchemaService;
@@ -57,7 +62,7 @@ public class RequiredFieldValidator {
 		return required;
 	}
 	
-	//TODO
+	
 	public List<String> isRequiredBiometricField(String subType, RegistrationDTO registrationDTO) throws RegBaseCheckedException {
 		List<String> requiredAttributes = new ArrayList<String>();
 		SchemaDto schema = identitySchemaService.getIdentitySchema(registrationDTO.getIdSchemaVersion());
@@ -68,7 +73,14 @@ public class RequiredFieldValidator {
 		for(UiSchemaDTO schemaField : fields) {
 			if(isRequiredField(schemaField, registrationDTO) && schemaField.getBioAttributes() != null)
 				requiredAttributes.addAll(schemaField.getBioAttributes());
-		}		
+		}
+		
+		//Reg-client will capture the face of Infant and send it in Packet as part of IndividualBiometrics CBEFF (If Face is captured for the country)
+		if(registrationDTO.isChild() && RegistrationConstants.PACKET_TYPE_NEW.equals(registrationDTO.getRegistrationCategory()) && 
+				APPLICANT_SUBTYPE.equals(subType) && requiredAttributes.contains("face")) {
+			return Arrays.asList("face"); //Only capture face
+		}
+		
 		return requiredAttributes;
 	}
 

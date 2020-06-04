@@ -138,6 +138,7 @@ public class RegistrationPreviewController extends BaseController implements Ini
 //		}
 			registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
 					getPageByAction(RegistrationConstants.REGISTRATION_PREVIEW, RegistrationConstants.PREVIOUS));
+			guardianBiometricsController.populateBiometricPage();
 	/*	} else {
 			registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
 					getPageByAction(RegistrationConstants.REGISTRATION_PREVIEW, RegistrationConstants.PREVIOUS));
@@ -327,9 +328,10 @@ public class RegistrationPreviewController extends BaseController implements Ini
 				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 		SessionContext.map().put(RegistrationConstants.REGISTRATION_ISEDIT, true);
-		fingerPrintCaptureController.initializeCaptureCount();
-		irisCaptureController.initializeCaptureCount();
-		guardianBiometricsController.intializeCaptureCount();
+		//fingerPrintCaptureController.initializeCaptureCount();
+		//irisCaptureController.initializeCaptureCount();
+		guardianBiometricsController.populateBiometricPage();
+		
 		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_REGISTRATIONPREVIEW, false);
 
