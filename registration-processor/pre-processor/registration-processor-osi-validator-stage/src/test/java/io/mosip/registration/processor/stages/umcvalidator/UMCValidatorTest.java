@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

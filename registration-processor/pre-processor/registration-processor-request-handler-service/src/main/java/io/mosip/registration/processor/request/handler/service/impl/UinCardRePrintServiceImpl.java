@@ -67,6 +67,9 @@ public class UinCardRePrintServiceImpl {
 	@Autowired
 	private Environment env;
 
+	@Value("${IDSchema.Version}")
+	private String idschemaVersion;
+
 	/** The rest client service. */
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> restClientService;
@@ -312,7 +315,7 @@ public class UinCardRePrintServiceImpl {
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.UIN),
 				MappingJsonConstants.VALUE);
 
-		jsonObject.put(schemaVersion, 1.0);
+		jsonObject.put(schemaVersion, Float.valueOf(idschemaVersion));
 		jsonObject.put(uinLabel, uin);
 		demographicDTO.setIdentity(jsonObject);
 		return demographicDTO;
