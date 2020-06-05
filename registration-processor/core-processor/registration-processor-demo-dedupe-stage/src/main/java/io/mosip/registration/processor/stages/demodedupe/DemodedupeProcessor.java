@@ -177,7 +177,7 @@ public class DemodedupeProcessor {
 								isTransactionSuccessful = true;
 						}
 					}
-					else {	
+					else {
 						if (env.getProperty(DEMODEDUPEENABLE).trim().equalsIgnoreCase(TRUE)) {
 							isDemoDedupeSkip = false;
 						duplicateDtos = performDemoDedupe(registrationStatusDto, object, description);
