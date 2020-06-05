@@ -1,6 +1,5 @@
 package io.mosip.registration.test.service;
 
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -55,7 +54,7 @@ import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ RegistrationAppHealthCheckUtil.class, Base64.class})
+@PrepareForTest({ RegistrationAppHealthCheckUtil.class, Base64.class })
 @PowerMockIgnore("javax.net.ssl.*")
 public class MosipBioDeviceManagerTest {
 	public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -67,27 +66,30 @@ public class MosipBioDeviceManagerTest {
 	private AuditManagerService auditManagerService;
 	@Mock
 	private RegisteredDeviceDAO registeredDeviceDAO;
-	
-	private BioDevice device=null;
-	
+
+	private BioDevice device = null;
+
 	@Before
 	public void beforeClass() {
 		Map<String, Object> appMap = new HashMap<>();
 		appMap.put(RegistrationConstants.FINGER_PRINT_SCORE, 100);
 		appMap.put("mosip.mdm.enabled", "Y");
-		appMap.put("current_mdm_spec","0.9.2");
+		appMap.put("current_mdm_spec", "0.9.2");
+		appMap.put("mosip.mdm.enabled", "Y");
+		appMap.put(RegistrationConstants.MDM_HOST, "127.0.0.1");
+		appMap.put(RegistrationConstants.MDM_HOST_PROTOCOL, "http");
+		appMap.put(RegistrationConstants.MDM_START_PORT_RANGE, "8080");
+		appMap.put(RegistrationConstants.MDM_END_PORT_RANGE, "8090");
+		
 		ApplicationContext.getInstance().setApplicationMap(appMap);
 		mosipBioDeviceManager = PowerMockito.spy(mosipBioDeviceManager);
-		device =  PowerMockito.spy( new BioDevice() );
-		device.setSpecVersion(new String[] {"0.9.2"});
+		device = PowerMockito.spy(new BioDevice());
+		device.setSpecVersion(new String[] { "0.9.2" });
 	}
 
 	@Test
 	public void init() throws RegBaseCheckedException, IOException {
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "host", "127.0.0.1");
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "hostProtocol", "http");
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "portFrom", 8080);
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "portTo", 8090);
+	
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		PowerMockito.when(RegistrationAppHealthCheckUtil.checkServiceAvailability("http://127.0.0.1:8080/info"))
 				.thenReturn(true);
@@ -104,12 +106,12 @@ public class MosipBioDeviceManagerTest {
 		map.put("deviceSubId", null);
 
 		deviceInfoResponseDtos.add(map);
-		
+
 		Resource resource = new ClassPathResource("deviceInfo.txt");
 		File file = resource.getFile();
-		
+
 		String response = new String(Files.readAllBytes(Paths.get(file.getAbsolutePath())));
-		
+
 		Mockito.when(mosipBioDeviceIntegrator.getDeviceInfo("http://127.0.0.1:8080/info", Object[].class))
 				.thenReturn(response);
 		mosipBioDeviceManager.init();
@@ -118,10 +120,7 @@ public class MosipBioDeviceManagerTest {
 
 	@Test
 	public void single() throws RegBaseCheckedException {
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "host", "127.0.0.1");
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "hostProtocol", "http");
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "portFrom", 8080);
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "portTo", 8090);
+		
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		PowerMockito.when(RegistrationAppHealthCheckUtil.checkServiceAvailability("http://127.0.0.1:8080/deviceInfo"))
 				.thenReturn(true);
@@ -146,10 +145,7 @@ public class MosipBioDeviceManagerTest {
 
 	@Test
 	public void touchLess() throws RegBaseCheckedException {
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "host", "127.0.0.1");
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "hostProtocol", "http");
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "portFrom", 8080);
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "portTo", 8090);
+	
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		PowerMockito.when(RegistrationAppHealthCheckUtil.checkServiceAvailability("http://127.0.0.1:8080/deviceInfo"))
 				.thenReturn(true);
@@ -174,10 +170,7 @@ public class MosipBioDeviceManagerTest {
 
 	@Test
 	public void face() throws RegBaseCheckedException {
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "host", "127.0.0.1");
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "hostProtocol", "http");
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "portFrom", 8080);
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "portTo", 8090);
+	
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		PowerMockito.when(RegistrationAppHealthCheckUtil.checkServiceAvailability("http://127.0.0.1:8080/deviceInfo"))
 				.thenReturn(true);
@@ -202,10 +195,7 @@ public class MosipBioDeviceManagerTest {
 
 	@Test
 	public void irisDouble() throws RegBaseCheckedException {
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "host", "127.0.0.1");
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "hostProtocol", "http");
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "portFrom", 8080);
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "portTo", 8090);
+		
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		PowerMockito.when(RegistrationAppHealthCheckUtil.checkServiceAvailability("http://127.0.0.1:8080/deviceInfo"))
 				.thenReturn(true);
@@ -230,10 +220,7 @@ public class MosipBioDeviceManagerTest {
 
 	@Test
 	public void iris() throws RegBaseCheckedException {
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "host", "127.0.0.1");
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "hostProtocol", "http");
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "portFrom", 8080);
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "portTo", 8090);
+	
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		PowerMockito.when(RegistrationAppHealthCheckUtil.checkServiceAvailability("http://127.0.0.1:8080/deviceInfo"))
 				.thenReturn(true);
@@ -258,10 +245,7 @@ public class MosipBioDeviceManagerTest {
 
 	@Test
 	public void vein() throws RegBaseCheckedException {
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "host", "127.0.0.1");
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "hostProtocol", "http");
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "portFrom", 8080);
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "portTo", 8090);
+		
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		PowerMockito.when(RegistrationAppHealthCheckUtil.checkServiceAvailability("http://127.0.0.1:8080/deviceInfo"))
 				.thenReturn(true);
@@ -286,10 +270,7 @@ public class MosipBioDeviceManagerTest {
 
 	@Test
 	public void getDeviceDiscovery() throws RegBaseCheckedException {
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "host", "127.0.0.1");
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "hostProtocol", "http");
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "portFrom", 8080);
-		ReflectionTestUtils.setField(mosipBioDeviceManager, "portTo", 8090);
+	
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		PowerMockito
 				.when(RegistrationAppHealthCheckUtil.checkServiceAvailability("http://127.0.0.1:8082/deviceDiscovery"))
@@ -317,8 +298,7 @@ public class MosipBioDeviceManagerTest {
 		PowerMockito.doReturn(null).when(mosipBioDeviceManager, "stream", Mockito.anyString());
 		mosipBioDeviceManager.authScan(request);
 	}
- 
-	
+
 	@Test
 	public void getSingleBioExtract() {
 		CaptureResponseDto captureResponseDto = new CaptureResponseDto();

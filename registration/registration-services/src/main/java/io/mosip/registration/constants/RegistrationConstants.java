@@ -212,7 +212,6 @@ public class RegistrationConstants {
 	public static final String USER_NAME_VALIDATION = "USER_NAME_VALIDATION";
 
 	// FingerPrint
-	public static final String FP_DEVICE = "Mantra";
 	public static final String FINGER_TYPE_MINUTIA = "minutia";
 	public static final String FP_TIMEOUT = "TIMEOUT";
 
@@ -1761,5 +1760,6 @@ public class RegistrationConstants {
 
 	// #Proof Of Exception Documents
 	public static final String POE_DOCUMENT_VALUE = "mosip.registration.doc_value";
-
+	
+	public static final String LOST_REGISTRATION_BIO_CAPTURE_OPERATOR = "mosip.registration.lostuin.biocapture.operator";
 }
