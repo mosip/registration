@@ -5,7 +5,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -170,7 +169,7 @@ public class BioDedupeProcessorTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		when(env.getProperty(ISINFANTBIOTOABIS)).thenReturn("true");
+		ReflectionTestUtils.setField(bioDedupeProcessor, "infantDedupe", "Y");
 		ReflectionTestUtils.setField(bioDedupeProcessor, "ageLimit", "4");
 
 		AuditResponseDto auditResponseDto = new AuditResponseDto();
@@ -231,7 +230,7 @@ public class BioDedupeProcessorTest {
 	@Test
 	public void testNewInsertionToUinSuccess() throws Exception {
 		Mockito.when(bioDedupeService.getFileByRegId(anyString())).thenReturn(null);
-		when(env.getProperty(ISINFANTBIOTOABIS)).thenReturn("false");
+		ReflectionTestUtils.setField(bioDedupeProcessor, "infantDedupe", "N");
 		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(null);
 		Mockito.when(utility.getApplicantAge(any())).thenReturn(2);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);

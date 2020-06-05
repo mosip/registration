@@ -1,7 +1,6 @@
 package io.mosip.registration.processor.stages.demodedupe;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -9,6 +8,7 @@ import java.util.List;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -117,6 +117,15 @@ public class DemodedupeProcessor {
 
 	private static final String TRUE = "true";
 
+	private static final String GLOBAL_CONFIG_TRUE_VALUE = "Y";
+
+	/** The age limit. */
+	@Value("${mosip.kernel.applicant.type.age.limit}")
+	private String ageLimit;
+
+	@Value("${registration.processor.infant.dedupe}")
+	private String infantDedupe;
+
 	/**
 	 * Process.
 	 *
@@ -141,13 +150,8 @@ public class DemodedupeProcessor {
 		/** The duplicate dtos. */
 		List<DemographicInfoDto> duplicateDtos = new ArrayList<>();
 
-		/** The demographic info stream. */
-		InputStream demographicInfoStream = null;
-
-
-
 		boolean isTransactionSuccessful = false;
-
+		boolean isDemoDedupeSkip = true;
 		String moduleName = ModuleName.DEMO_DEDUPE.toString();
 		String moduleId = PlatformSuccessMessages.RPR_PKR_DEMO_DE_DUP.getCode();
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
@@ -163,12 +167,26 @@ public class DemodedupeProcessor {
 				if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
 
 					packetInfoManager.saveDemographicInfoJson(registrationId, moduleId, moduleName);
-
-					if (env.getProperty(DEMODEDUPEENABLE).trim().equalsIgnoreCase(TRUE)) {
+					int age = utility.getApplicantAge(registrationId);
+					int ageThreshold = Integer.parseInt(ageLimit);
+					if (age < ageThreshold) {
+						if (infantDedupe.equalsIgnoreCase(GLOBAL_CONFIG_TRUE_VALUE)) {
+							isDemoDedupeSkip = false;
+							duplicateDtos = performDemoDedupe(registrationStatusDto, object, description);
+							if (duplicateDtos.isEmpty())
+								isTransactionSuccessful = true;
+						}
+					}
+					else {	
+						if (env.getProperty(DEMODEDUPEENABLE).trim().equalsIgnoreCase(TRUE)) {
+							isDemoDedupeSkip = false;
 						duplicateDtos = performDemoDedupe(registrationStatusDto, object, description);
 						if (duplicateDtos.isEmpty())
 							isTransactionSuccessful = true;
-					} else {
+						}
+					}
+
+					if (isDemoDedupeSkip) {
 						object.setIsValid(Boolean.TRUE);
 						registrationStatusDto
 								.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
@@ -364,6 +382,7 @@ public class DemodedupeProcessor {
 
 		return object;
 	}
+
 
 	/**
 	 * Perform demo dedupe.

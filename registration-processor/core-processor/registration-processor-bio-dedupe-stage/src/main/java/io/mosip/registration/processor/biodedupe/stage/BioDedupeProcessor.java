@@ -127,9 +127,14 @@ public class BioDedupeProcessor {
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(BioDedupeProcessor.class);
 
-	private static final String ISINFANTBIOTOABIS = "registration.processor.infant.bio.to.abis";
+
 
 	private static final String VALIDATIONFALSE = "false";
+
+	@Value("${registration.processor.infant.dedupe}")
+	private String infantDedupe;
+
+	public static final String GLOBAL_CONFIG_TRUE_VALUE = "Y";
 
 
 
@@ -450,12 +455,12 @@ public class BioDedupeProcessor {
 		int age = utilities.getApplicantAge(registrationId);
 		int ageThreshold = Integer.parseInt(ageLimit);
 		if (age < ageThreshold) {
-			if (env.getProperty(ISINFANTBIOTOABIS).trim().equalsIgnoreCase(VALIDATIONFALSE)) {
-				return false;
-			} else {
+			if (infantDedupe.equalsIgnoreCase(GLOBAL_CONFIG_TRUE_VALUE)) {
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 						registrationId, "BioDedupeProcessor::isValidCbeff()::get BIODEDUPE service call started");
 				bytefile = biodedupeServiceImpl.getFileByRegId(registrationId);
+			} else {
+				return false;
 			}
 
 		} else {
