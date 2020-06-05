@@ -97,6 +97,9 @@ public class Utilities {
 	/** The Constant NEW_PACKET. */
 	private static final String NEW_PACKET = "New-packet";
 
+	@Value("${IDSchema.Version}")
+	private String idschemaVersion;
+
 	@Autowired
 	private ObjectMapper objMapper;
 
@@ -723,7 +726,7 @@ public class Utilities {
 	 *             the apis resource access exception
 	 */
 	@SuppressWarnings("unchecked")
-	public boolean linkRegIdWrtUin(String registrationID, String uin) throws ApisResourceAccessException {
+	public boolean linkRegIdWrtUin(String registrationID, String uin) throws ApisResourceAccessException, IOException {
 
 		IdResponseDTO idResponse = null;
 		RequestDto requestDto = new RequestDto();
@@ -731,6 +734,7 @@ public class Utilities {
 
 			JSONObject identityObject = new JSONObject();
 			identityObject.put(UIN, uin);
+			addSchemaVersion(identityObject);
 
 			requestDto.setRegistrationId(registrationID);
 			requestDto.setIdentity(identityObject);
@@ -852,6 +856,17 @@ public class Utilities {
 				registrationId, "Utilities::getDemographicIdentityJSONObject()::exit");
 		}
 		return demographicIdentity;
+
+	}
+
+	private void addSchemaVersion(JSONObject identityObject) throws IOException {
+
+		JSONObject regProcessorIdentityJson = getRegistrationProcessorMappingJson();
+		String schemaVersion = JsonUtil.getJSONValue(
+				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.IDSCHEMA_VERSION),
+				MappingJsonConstants.VALUE);
+
+		identityObject.put(schemaVersion, Float.valueOf(idschemaVersion));
 
 	}
 
