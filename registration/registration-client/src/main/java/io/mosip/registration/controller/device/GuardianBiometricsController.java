@@ -388,7 +388,6 @@ public class GuardianBiometricsController extends BaseController /* implements I
 								
 								vboxForCheckBox.getChildren().add(checkBox);
 								checkBox.selectedProperty().addListener((obsValue, oldValue, newValue) -> {
-									System.out.println("obsValue >>> " + obsValue + " oldValue >> " + oldValue + "  newValue >>> " + newValue);
 									updateBiometricData(vboxForCheckBox, checkBox);
 									setScanButtonVisibility(isAllExceptions(vboxForCheckBox.getChildren()), scanBtn);
 									refreshContinueButton();
