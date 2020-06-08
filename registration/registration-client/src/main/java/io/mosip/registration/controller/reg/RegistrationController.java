@@ -219,7 +219,7 @@ public class RegistrationController extends BaseController {
 	 * @param applicantImage
 	 *            the image that is captured as applicant photograph
 	 */
-	private void compressImageForQRCode(BufferedImage detectedFace) {
+	/*private void compressImageForQRCode(BufferedImage detectedFace) {
 		try {
 			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
@@ -253,12 +253,12 @@ public class RegistrationController extends BaseController {
 					RegistrationConstants.APPLICATION_ID,
 					ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
 		}
-	}
+	}*/
 
 	/**
 	 * This method is save the biometric details
 	 */
-	public boolean saveBiometricDetails(BufferedImage applicantBufferedImage, BufferedImage exceptionBufferedImage,
+	/*public boolean saveBiometricDetails(BufferedImage applicantBufferedImage, BufferedImage exceptionBufferedImage,
 			byte[] applicantIso, byte[] exceptionIso) {
 		LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "saving the details of applicant biometrics");
@@ -273,7 +273,7 @@ public class RegistrationController extends BaseController {
 				isValid = validateDemographicPane(documentScanController.documentScanPane);
 			}
 		}*/
-		if (isValid) {
+		/*if (isValid) {
 			try {
 				BufferedImage detectedFace = detectApplicantFace(applicantBufferedImage);
 				if (detectedFace != null) {
@@ -281,7 +281,7 @@ public class RegistrationController extends BaseController {
 						isValid = false;
 						generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.EXCEPTION_PHOTO_CAPTURE_ERROR);
 					} else {
-						compressImageForQRCode(detectedFace);
+						//compressImageForQRCode(detectedFace);
 						ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 						ImageIO.write(applicantBufferedImage, RegistrationConstants.WEB_CAMERA_IMAGE_TYPE,
 								byteArrayOutputStream);
@@ -365,7 +365,7 @@ public class RegistrationController extends BaseController {
 			}
 		}
 		return isValid;
-	}
+	}*/
 
 	/**
 	 * This method is to go to the operator authentication page

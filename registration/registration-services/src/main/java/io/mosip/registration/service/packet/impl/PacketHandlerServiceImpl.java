@@ -8,6 +8,7 @@ import static io.mosip.registration.exception.RegistrationExceptionConstants.REG
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,11 +16,16 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import io.mosip.kernel.auditmanager.entity.Audit;
 import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectIOException;
+import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectValidationFailedException;
+import io.mosip.kernel.core.idobjectvalidator.exception.InvalidIdSchemaException;
+import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.audit.AuditManagerService;
@@ -66,6 +72,7 @@ import io.mosip.registration.service.packet.PacketHandlerService;
 import io.mosip.registration.update.SoftwareUpdateHandler;
 import io.mosip.registration.util.checksum.CheckSumUtil;
 import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
+import io.mosip.registration.validator.RegIdObjectMasterDataValidator;
 
 /**
  * The implementation class of {@link PacketHandlerService} to handle the
@@ -109,7 +116,14 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 	private AuditDAO auditDAO;
 	
 	@Autowired
-	private SoftwareUpdateHandler softwareUpdateHandler;	
+	private SoftwareUpdateHandler softwareUpdateHandler;
+	
+	@Autowired
+	@Qualifier("schema")
+	private IdObjectValidator idObjectValidator;
+	
+	@Autowired
+	private RegIdObjectMasterDataValidator regIdObjectMasterDataValidator;
 	
 
 	/*
@@ -135,12 +149,14 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		
 		try {			
 			SchemaDto schema = identitySchemaService.getIdentitySchema(registrationDTO.getIdSchemaVersion());			
-			//TODO validate idObject with IDSchema
-						
+					
 			packetCreator.initialize();				
 			setDemographics(registrationDTO, schema);
 			setDocuments(registrationDTO.getDocuments());
 			setBiometrics(registrationDTO.getBiometrics(), registrationDTO.getBiometricExceptions(), schema);
+			
+			validateIdObject(schema.getSchemaJson(), packetCreator.getIdentityObject(), registrationDTO.getRegistrationCategory());
+			
 			setOtherDetails(registrationDTO);			
 			packetCreator.setAcknowledgement(registrationDTO.getAcknowledgeReceiptName(), registrationDTO.getAcknowledgeReceipt());			
 			collectAudits();
@@ -281,7 +297,6 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			dto.setSessionUserId(audit.getSessionUserId());
 			dto.setSessionUserName(audit.getSessionUserName());
 			list.add(dto);
-			break; //TODO - need to fix the audits issue
 		}
 		packetCreator.setAudits(list);
 	}
@@ -370,5 +385,27 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			return result.get().getId();
 		
 		return null;
+	}
+	
+	private void validateIdObject(String schemaJson, Object idObject, String category) throws RegBaseCheckedException {
+		LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "validateIdObject invoked >>>>> " + category);
+		LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "idObject >>>>> " + idObject);
+		try {
+			switch (category) {
+			case RegistrationConstants.PACKET_TYPE_UPDATE:
+				idObjectValidator.validateIdObject(schemaJson, idObject, Arrays.asList("UIN", "IDSchemaVersion"));
+				break;
+			case RegistrationConstants.PACKET_TYPE_LOST:
+				idObjectValidator.validateIdObject(schemaJson, idObject, Arrays.asList("IDSchemaVersion"));
+				break;
+			case RegistrationConstants.PACKET_TYPE_NEW:
+				idObjectValidator.validateIdObject(schemaJson, idObject);
+				break;
+			}
+			regIdObjectMasterDataValidator.validateIdObject(idObject);
+		} catch (IdObjectValidationFailedException | IdObjectIOException | InvalidIdSchemaException e) {
+			LOGGER.error(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(e));
+			//throw new RegBaseCheckedException(e.getErrorCode(), e.getErrorText());
+		}		
 	}
 }

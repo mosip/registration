@@ -180,7 +180,7 @@ public class HeaderController extends BaseController {
 				online.setVisible(flag);
 				offline.setVisible(!flag);
 			}
-		}, 0, 5000);
+		}, 0, 15*60*1000);
 	}
 
 	/**

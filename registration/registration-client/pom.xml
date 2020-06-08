@@ -12,9 +12,13 @@
 
 	<artifactId>registration-client</artifactId>
 	<packaging>jar</packaging>
-        <version>1.0.10-SNAPSHOT</version>
+    <version>1.0.10-SNAPSHOT</version>
 	<name>registration-client</name>
 	<description>Maven project of MOSIP Registration UI</description>
+	
+	<properties>
+   	<mosip.core.kernel.version>1.0.6</mosip.core.kernel.version>
+    </properties>
 
 	<dependencies>
 		<dependency>
@@ -57,6 +61,18 @@
 				<artifactId>commons-io</artifactId>
 				<version>2.6</version>
 			</dependency>
+			
+			<dependency>
+				<groupId>io.mosip.kernel</groupId>
+				<artifactId>kernel-core</artifactId>
+				<version>1.0.9-SNAPSHOT</version>
+			</dependency>
+			
+			<dependency>
+                       <groupId>io.mosip.kernel</groupId>
+                      <artifactId>kernel-idobjectvalidator</artifactId>
+                      <version>1.0.9-SNAPSHOT</version>
+              </dependency>
 	</dependencies>
 	<build>
 		<plugins>

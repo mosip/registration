@@ -12,10 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import io.mosip.kernel.bioapi.impl.BioApiImpl;
+//import io.mosip.kernel.bioapi.impl.BioApiImpl;
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
-import io.mosip.kernel.core.bioapi.model.CompositeScore;
-import io.mosip.kernel.core.bioapi.model.Score;
+//import io.mosip.kernel.core.bioapi.model.CompositeScore;
+//import io.mosip.kernel.core.bioapi.model.Score;
 import io.mosip.kernel.core.bioapi.spi.IBioApi;
 import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
@@ -47,9 +47,11 @@ public class FingerprintValidatorImpl extends AuthenticationBaseValidator {
 	@Autowired
 	private UserDetailDAO userDetailDAO;
 
-	@Autowired
-	@Qualifier("finger")
-	IBioApi ibioApi;
+	/*
+	 * @Autowired
+	 * 
+	 * @Qualifier("finger") IBioApi ibioApi;
+	 */
 
 	/**
 	 * Instance of LOGGER
@@ -63,7 +65,7 @@ public class FingerprintValidatorImpl extends AuthenticationBaseValidator {
 	public boolean validate(AuthenticationValidatorDTO authenticationValidatorDTO) {
 		LOGGER.info(LoggerConstants.FINGER_PRINT_AUTHENTICATION, APPLICATION_NAME, APPLICATION_ID,
 				"Validating Scanned Finger");
-		if (ibioApi instanceof BioApiImpl) {
+		/*if (ibioApi instanceof BioApiImpl) {
 			ApplicationContext.map().put(RegistrationConstants.DEDUPLICATION_FINGERPRINT_ENABLE_FLAG,
 					RegistrationConstants.DISABLE);
 		}
@@ -80,7 +82,7 @@ public class FingerprintValidatorImpl extends AuthenticationBaseValidator {
 		} else if (RegistrationConstants.MULTIPLE.equals(authenticationValidatorDTO.getAuthValidationType())) {
 			return validateManyToManyFP(authenticationValidatorDTO.getUserId(),
 					authenticationValidatorDTO.getFingerPrintDetails());
-		}
+		}*/
 		return false;
 	}
 
@@ -110,7 +112,7 @@ public class FingerprintValidatorImpl extends AuthenticationBaseValidator {
 			List<UserBiometric> userFingerprintDetails) {
 		boolean flag = true;
 
-		BIR[] capturedBir = new BIR[capturedFingerPrintDto.size()];
+		/*BIR[] capturedBir = new BIR[capturedFingerPrintDto.size()];
 
 		int i = 0;
 		for (FingerprintDetailsDTO userBiometric : capturedFingerPrintDto) {
@@ -152,7 +154,7 @@ public class FingerprintValidatorImpl extends AuthenticationBaseValidator {
 					String.format("Exception while validating the finger print with bio api: %s caused by %s Runtime",
 							exception.getMessage(), exception.getCause()));
 			return false;
-		}
+		}*/
 		
 
 		return flag;

@@ -13,9 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import io.mosip.kernel.bioapi.impl.BioApiImpl;
+//import io.mosip.kernel.bioapi.impl.BioApiImpl;
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
-import io.mosip.kernel.core.bioapi.model.Score;
+//import io.mosip.kernel.core.bioapi.model.Score;
 import io.mosip.kernel.core.bioapi.spi.IBioApi;
 import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
@@ -55,9 +55,11 @@ public class FaceValidatorImpl extends AuthenticationBaseValidator {
 	@Autowired
 	private UserDetailDAO userDetailDAO;
 	
-	@Autowired
-	@Qualifier("face")	
-	IBioApi ibioApi;
+	/*
+	 * @Autowired
+	 * 
+	 * @Qualifier("face") IBioApi ibioApi;
+	 */
 
 	/*
 	 * (non-Javadoc)
@@ -72,7 +74,7 @@ public class FaceValidatorImpl extends AuthenticationBaseValidator {
 		LOGGER.info(LOG_REG_FACE_VALIDATOR, APPLICATION_NAME, APPLICATION_ID,
 				"validating face capture details for user registration");
 		
-		if (ibioApi instanceof BioApiImpl) {
+		/*if (ibioApi instanceof BioApiImpl) {
 			ApplicationContext.map().put(RegistrationConstants.DEDUPLICATION_FACE_ENABLE_FLAG,
 					RegistrationConstants.DISABLE);
 		}
@@ -98,7 +100,7 @@ public class FaceValidatorImpl extends AuthenticationBaseValidator {
 		}
 
 		LOGGER.info(LOG_REG_FACE_VALIDATOR, APPLICATION_NAME, APPLICATION_ID,
-				"validated face capture details for user registration");
+				"validated face capture details for user registration");*/
 
 		return false;
 	}
@@ -132,15 +134,15 @@ public class FaceValidatorImpl extends AuthenticationBaseValidator {
 	 * registration.dto.biometric.FaceDetailsDTO, java.util.List)
 	 */
 	private boolean validateFaceAgainstDb(FaceDetailsDTO faceDetail, List<UserBiometric> userFaceDetails) {
-
-		LOGGER.info(LOG_REG_FACE_FACADE, APPLICATION_NAME, APPLICATION_ID,
+		boolean flag = false;
+	/*	LOGGER.info(LOG_REG_FACE_FACADE, APPLICATION_NAME, APPLICATION_ID,
 
 				"Stubbing face details for user registration");
 		
 		BIR capturedBir = new BIRBuilder().withBdb(faceDetail.getFaceISO()).withBdbInfo(new BDBInfo.BDBInfoBuilder().withType(Collections.singletonList(SingleType.FACE)).build()).build();
 		BIR[] registeredBir = new BIR[userFaceDetails.size()];
 		Score[] scores = null;
-		boolean flag = false;
+		
 		int i = 0;
 		for (UserBiometric userBiometric : userFaceDetails) {
 			registeredBir[i] = new BIRBuilder().withBdb(userBiometric.getBioIsoImage()).withBdbInfo(new BDBInfo.BDBInfoBuilder().withType(Collections.singletonList(SingleType.FACE)).build()).build();
@@ -166,7 +168,7 @@ public class FaceValidatorImpl extends AuthenticationBaseValidator {
 					exception.getMessage(), exception.getCause()));
 			return false;
 
-		}
+		}*/
 		
 		return flag;
 		
@@ -174,8 +176,8 @@ public class FaceValidatorImpl extends AuthenticationBaseValidator {
 
 	@Override
 	public boolean bioMerticsValidator(List<BiometricsDto> listOfBiometrics) {
-
-		List<UserBiometric> userDetailsRecorded = userDetailDAO
+		boolean flag = false;
+		/*List<UserBiometric> userDetailsRecorded = userDetailDAO
 				.getUserSpecificBioDetails(SessionContext.userContext().getUserId(), RegistrationConstants.FACE);
 		boolean flag = false;
 		for (BiometricsDto biometricDTO : listOfBiometrics) {
@@ -192,8 +194,8 @@ public class FaceValidatorImpl extends AuthenticationBaseValidator {
 				i++;
 			}
 			try {
-				/*Response<MatchDecision[]> scores = ibioApi.match(capturedBir, registeredBir, null);
-				System.out.println(scores);*/
+				//Response<MatchDecision[]> scores = ibioApi.match(capturedBir, registeredBir, null);
+				//System.out.println(scores);
 
 			} catch (Exception exception) {
 				LOGGER.error(LOG_REG_FINGERPRINT_FACADE, APPLICATION_NAME, APPLICATION_ID,
@@ -202,7 +204,7 @@ public class FaceValidatorImpl extends AuthenticationBaseValidator {
 				return false;
 
 			}
-		}
+		}*/
 		return flag;
 
 	}

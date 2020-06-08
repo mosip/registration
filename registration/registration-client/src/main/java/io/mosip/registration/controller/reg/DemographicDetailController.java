@@ -4,6 +4,8 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -964,7 +966,7 @@ public class DemographicDetailController extends BaseController {
 				case RegistrationConstants.NUMBER:
 				case RegistrationConstants.STRING:
 					if (schemaField.getControlType().equalsIgnoreCase(RegistrationConstants.AGE_DATE)) {
-						String[] dateParts = (String[]) value;
+						String[] dateParts = ((String)value).split("/");
 						if (dateParts.length == 3) {
 							listOfTextField.get(schemaField.getId() + "__" + "dd").setText(dateParts[0]);
 							listOfTextField.get(schemaField.getId() + "__" + "mm").setText(dateParts[1]);
@@ -1126,7 +1128,7 @@ public class DemographicDetailController extends BaseController {
 		if (validateThisPane()) {
 			//saveDetail();
 
-			guardianBiometricsController.populateBiometricPage();
+			guardianBiometricsController.populateBiometricPage(false);
 			/*
 			 * SessionContext.map().put("demographicDetail", false);
 			 * SessionContext.map().put("documentScan", true);

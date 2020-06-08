@@ -2,6 +2,7 @@ package io.mosip.registration.service.security;
 
 import java.util.List;
 
+import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.dto.AuthTokenDTO;
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
@@ -18,7 +19,8 @@ public interface AuthenticationService {
 	 *            The authentication validation inputs
 	 * @return Boolean returning whether it is matched or not
 	 */
-	Boolean authValidator(String validatorType, AuthenticationValidatorDTO authenticationValidatorDTO);
+	//Boolean authValidator(String validatorType, AuthenticationValidatorDTO authenticationValidatorDTO);
+	Boolean authValidator(String userId, String modality, List<BiometricsDto> biometrics);
 	
 	/**
 	 * Validator for OTP authentication
@@ -42,7 +44,7 @@ public interface AuthenticationService {
 	 * @param authBaseValidators
 	 *            List of validators
 	 */
-	void setAuthenticationBaseValidator(List<AuthenticationBaseValidator> authBaseValidators);
+//	void setAuthenticationBaseValidator(List<AuthenticationBaseValidator> authBaseValidators);
 	
 	/**
 	 * This method is used to validate pwd authentication
@@ -61,5 +63,5 @@ public interface AuthenticationService {
 	 *            The authentication validation inputs
 	 * @return Boolean returning whether it is matched or not
 	 */
-	Boolean validateBiometrics(String validatorType,List<BiometricsDto> listOfBiometrics);
+	//Boolean validateBiometrics(String validatorType,List<BiometricsDto> listOfBiometrics);
 }
