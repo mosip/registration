@@ -968,9 +968,9 @@ public class DemographicDetailController extends BaseController {
 					if (schemaField.getControlType().equalsIgnoreCase(RegistrationConstants.AGE_DATE)) {
 						String[] dateParts = ((String)value).split("/");
 						if (dateParts.length == 3) {
-							listOfTextField.get(schemaField.getId() + "__" + "dd").setText(dateParts[0]);
+							listOfTextField.get(schemaField.getId() + "__" + "dd").setText(dateParts[2]);
 							listOfTextField.get(schemaField.getId() + "__" + "mm").setText(dateParts[1]);
-							listOfTextField.get(schemaField.getId() + "__" + "yyyy").setText(dateParts[2]);
+							listOfTextField.get(schemaField.getId() + "__" + "yyyy").setText(dateParts[0]);
 						}
 					} else {
 						TextField textField = listOfTextField.get(schemaField.getId());
