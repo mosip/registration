@@ -569,8 +569,6 @@ public class GuardianBiometricsController extends BaseController /* implements I
 	}
 
 	private void goToPrevious() {
-		System.out.println("goToPrevious currentPosition >>>>>> " + currentPosition);
-		System.out.println("goToPrevious getListOfBiometricSubTypes() >>>>>> " + getListOfBiometricSubTypes());
 		if (currentPosition > 0) {
 			findComboBox().setVisible(false);
 			findComboBox().setManaged(false);
