@@ -195,8 +195,7 @@ public class FaceValidatorImpl extends AuthenticationBaseValidator {
 			}
 			try {
 				//Response<MatchDecision[]> scores = ibioApi.match(capturedBir, registeredBir, null);
-				//System.out.println(scores);
-
+				
 			} catch (Exception exception) {
 				LOGGER.error(LOG_REG_FINGERPRINT_FACADE, APPLICATION_NAME, APPLICATION_ID,
 						String.format("Exception while validating the face with bio api: %s caused by %s",
