@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.core.constant.RegistrationType;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -445,27 +446,19 @@ public class BioDedupeProcessor {
 	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	private Boolean isValidCbeff(String registrationId, String registrationType) throws ApisResourceAccessException,
-			IOException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			RegistrationProcessorCheckedException,
+			IOException, io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
 			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
 
-		List<String> pathSegments = new ArrayList<>();
-		pathSegments.add(registrationId);
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				registrationId, "BioDedupeProcessor::isValidCbeff()::get BIODEDUPE service call started");
 		byte[] bytefile = null;
-		int age = utilities.getApplicantAge(registrationId);
-		int ageThreshold = Integer.parseInt(ageLimit);
-		if (age < ageThreshold) {
+		boolean isInfant = infantCheck(registrationId, registrationType);
+		if (isInfant) {
 			if (infantDedupe.equalsIgnoreCase(GLOBAL_CONFIG_TRUE_VALUE)) {
-				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-						registrationId, "BioDedupeProcessor::isValidCbeff()::get BIODEDUPE service call started");
 				bytefile = biodedupeServiceImpl.getFileByRegId(registrationId);
-			} else {
+			} else
 				return false;
-			}
-
 		} else {
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, "BioDedupeProcessor::isValidCbeff()::get BIODEDUPE service call started");
 			 bytefile = biodedupeServiceImpl.getFileByRegId(registrationId);
 
 		}
@@ -481,6 +474,20 @@ public class BioDedupeProcessor {
 			throw new CbeffNotFoundException(PlatformErrorMessages.PACKET_BIO_DEDUPE_CBEFF_NOT_PRESENT.getMessage());
 		}
 
+	}
+
+	private boolean infantCheck(String registrationId, String registrationType) throws ApiNotAccessibleException,
+			RegistrationProcessorCheckedException, io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException,
+			IOException, ApisResourceAccessException, io.mosip.kernel.core.exception.IOException {
+		boolean isInfant = false;
+		if (RegistrationType.NEW.name().equalsIgnoreCase(registrationType)) {
+			int age = utilities.getApplicantAge(registrationId);
+			int ageThreshold = Integer.parseInt(ageLimit);
+			isInfant = age < ageThreshold;
+		} else {
+			isInfant = false;
+		}
+		return isInfant;
 	}
 
 	private void lostPacketPreAbisIdentification(InternalRegistrationStatusDto registrationStatusDto,
