@@ -13,8 +13,12 @@ import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import io.mosip.kernel.packetmanager.exception.FileNotFoundInDestinationException;
 import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -87,6 +91,13 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 	@Value("${packet.default.source}")
 	private String defaultSource;
+
+	/** The utilities. */
+	@Autowired
+	private Utilities utilities;
+
+    @Autowired
+    private IdSchemaUtils idSchemaUtils;
 
 	/** The audit log request builder. */
 	@Autowired
@@ -229,7 +240,30 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 					PlatformErrorMessages.RPR_MVS_REG_ID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
 		}
 		if (PacketFiles.BIOMETRIC.name().equals(fileName)) {
-			fileInStream = getApplicantBiometricFile(regId, PacketFiles.APPLICANT_BIO_CBEFF.name(), source);
+            JSONObject mappingJson = utilities.getRegistrationProcessorMappingJson();
+            String individualBiometrics = JsonUtil
+                    .getJSONValue(JsonUtil.getJSONObject(mappingJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), MappingJsonConstants.VALUE);
+            // get individual biometrics file name from id.json
+            String fileSource = idSchemaUtils.getSource(individualBiometrics, packetReaderService.getIdSchemaVersionFromPacket(regId));
+            InputStream idJsonStream = null;
+            if (fileSource != null) {
+                idJsonStream = packetReaderService.getFile(regId,
+                        PacketFiles.ID.name(), fileSource);
+            }
+            if (idJsonStream == null)
+				throw new FileNotFoundInDestinationException("Identity json not present inside packet");
+            String idJsonString = IOUtils.toString(idJsonStream, "UTF-8");
+            JSONObject idJsonObject = JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class);
+            JSONObject identity = JsonUtil.getJSONObject(idJsonObject,
+                    utilities.getGetRegProcessorDemographicIdentity());
+            if (identity == null)
+				throw new FileNotFoundInDestinationException("Identity json not present inside packet");
+
+            JSONObject individualBiometricsObject = JsonUtil.getJSONObject(identity, individualBiometrics);
+			if (individualBiometricsObject == null)
+				throw new FileNotFoundInDestinationException("Individual biometrics field not present inside identity");
+            String biometricFileName = JsonUtil.getJSONValue(individualBiometricsObject, MappingJsonConstants.VALUE);
+			fileInStream = getApplicantBiometricFile(regId, biometricFileName, fileSource);
 		} else if (PacketFiles.DEMOGRAPHIC.name().equals(fileName)) {
 			fileInStream = getApplicantDemographicFile(regId, PacketFiles.ID.name(), source);
 		} else if (PacketFiles.PACKET_META_INFO.name().equals(fileName)) {
