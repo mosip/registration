@@ -16,13 +16,13 @@ public class RCaptureResponseDataDTO {
 	private String env;
 	private String bioValue;
 	private String transactionId;
-	private String registrationId;
 	private String timestamp;
 	private String requestedScore;
 	private String qualityScore;
 
-	public String getDecodedBioValue() {
-		return new String(Base64.getUrlDecoder().decode(bioValue));
+	// TODO change to base64 url decoder
+	public byte[] getDecodedBioValue() {
+		return Base64.getDecoder().decode(bioValue);
 	}
 
 }

@@ -54,10 +54,10 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.MdmDeviceInfo;
 import io.mosip.registration.mdm.constants.MosipBioDeviceConstants;
 import io.mosip.registration.mdm.dto.BioDevice;
-import io.mosip.registration.mdm.dto.CaptureResponseBioDto;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
 import io.mosip.registration.mdm.dto.DeviceDiscoveryResponsetDto;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
+import io.mosip.registration.mdm.dto.MdmBioDevice;
 import io.mosip.registration.mdm.dto.RequestDetail;
 import io.mosip.registration.mdm.spec_0_9_2.service.impl.MDM_092_IntegratorImpl;
 import io.mosip.registration.mdm.spec_0_9_5.dto.request.RCaptureRequestBioDTO;
@@ -110,8 +110,8 @@ public class MosipBioDeviceManagerDuplicate {
 	@Autowired
 	private MDM_095_IntegratorImpl mdm_095_IntegratorImpl;
 
-	/** Key is modality value is (specVersion, Device Info) */
-	private static Map<String, Map<String, BioDevice>> deviceInfoMap = new LinkedHashMap<>();
+	/** Key is modality value is (specVersion, MdmBioDevice) */
+	private static Map<String, MdmBioDevice> deviceInfoMap = new LinkedHashMap<>();
 
 	/**
 	 * This method will prepare the device registry, device registry contains all
@@ -211,7 +211,7 @@ public class MosipBioDeviceManagerDuplicate {
 
 					try {
 
-						BioDevice bioDevice = getBioDevice(deviceInfo, availablePort);
+						MdmBioDevice bioDevice = getBioDevice(deviceInfo, availablePort);
 
 						for (String specVersion : deviceInfo.getSpecVersion()) {
 
@@ -240,25 +240,23 @@ public class MosipBioDeviceManagerDuplicate {
 		}
 	}
 
-	private BioDevice getBioDevice(MdmDeviceInfo deviceInfo, int port)
+	private MdmBioDevice getBioDevice(MdmDeviceInfo deviceInfo, int port)
 			throws JsonParseException, JsonMappingException, IOException {
 
-		BioDevice bioDevice = new BioDevice();
+		MdmBioDevice bioDevice = new MdmBioDevice();
 
 		if (deviceInfo != null) {
 
 			DigitalId digitalId = getDigitalId(deviceInfo.getDigitalId());
 
 			bioDevice.setRunningPort(port);
-			bioDevice.setRunningUrl(getRunningurl());
 			bioDevice.setDeviceId(deviceInfo.getDeviceId());
 			bioDevice.setFirmWare(deviceInfo.getFirmware());
 			bioDevice.setCertification(deviceInfo.getCertification());
 			bioDevice.setSerialVersion(deviceInfo.getServiceVersion());
-			bioDevice.setSpecVersion(deviceInfo.getSpecVersion());
+			bioDevice.setSpecVersion(getLatestSpecVersion(deviceInfo.getSpecVersion()));
 			bioDevice.setPurpose(deviceInfo.getPurpose());
 			bioDevice.setDeviceCode(deviceInfo.getDeviceCode());
-			bioDevice.setDigitalId(digitalId);
 
 			bioDevice.setDeviceSubType(digitalId.getSubType());
 			bioDevice.setDeviceType(digitalId.getType());
@@ -277,22 +275,21 @@ public class MosipBioDeviceManagerDuplicate {
 	private DigitalId getDigitalId(String digitalId) throws JsonParseException, JsonMappingException, IOException {
 		return (DigitalId) (mapper.readValue(new String(Base64.getUrlDecoder().decode((digitalId))), DigitalId.class));
 
-		// DigitalId digitalId = new DigitalId();
-		// digitalId.setType("Fingerprint");
-		//
-		// digitalId.setSubType("Slab");
-		// return digitalId;
 	}
 
-	private void addToDeviceInfoMap(String specVersion, String type, String subType, BioDevice bioDevice) {
+	private void addToDeviceInfoMap(String specVersion, String type, String subType, MdmBioDevice bioDevice) {
+
 		String key = String.format("%s_%s", type.toLowerCase(), subType.toLowerCase());
 
-		Map<String, BioDevice> val = null;
+		if (deviceInfoMap.containsKey(key)) {
+			MdmBioDevice mdmBioDevice = deviceInfoMap.get(key);
 
-		val = deviceInfoMap.containsKey(key) ? deviceInfoMap.get(key) : new LinkedHashMap<>();
-
-		val.put(specVersion, bioDevice);
-		deviceInfoMap.put(key, val);
+			if (specVersion.equals(getLatestVersion(specVersion, mdmBioDevice.getSpecVersion()))) {
+				deviceInfoMap.put(key, bioDevice);
+			}
+		} else {
+			deviceInfoMap.put(key, bioDevice);
+		}
 
 	}
 
@@ -377,43 +374,6 @@ public class MosipBioDeviceManagerDuplicate {
 
 	}
 
-	/**
-	 * Triggers the biometric capture based on the device type and returns the
-	 * biometric value from MDM
-	 * 
-	 * @param deviceType
-	 *            - The type of the device
-	 * @return CaptureResponseDto - captured biometric values from the device
-	 * @throws RegBaseCheckedException
-	 *             - generalised exception with errorCode and errorMessage
-	 * @throws IOException
-	 */
-	public CaptureResponseDto authScan(RequestDetail requestDetail) throws RegBaseCheckedException, IOException {
-		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
-				"Entering into Auth Scan Method..." + System.currentTimeMillis());
-
-		BioDevice bioDevice = findDeviceToScan(requestDetail.getType());
-		InputStream streaming = stream(requestDetail.getType());
-		if (bioDevice != null) {
-			LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
-					"Device found in the device registery");
-			CaptureResponseDto captureResponse = bioDevice.regCapture(requestDetail);
-			if (captureResponse.getError().getErrorCode().matches("202|403|404")) {
-				streaming.close();
-
-			}
-			LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
-					"Leaving Auth Scan Method..." + System.currentTimeMillis());
-			return captureResponse;
-
-		} else {
-			LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
-					"Device not found in the device registery - authScan" + System.currentTimeMillis());
-			return null;
-		}
-
-	}
-
 	private BioDevice findDeviceToScan(String deviceType) throws RegBaseCheckedException {
 		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
 				"Entering findDeviceToScan method...." + System.currentTimeMillis());
@@ -454,65 +414,6 @@ public class MosipBioDeviceManagerDuplicate {
 				: deviceType.contains("IRIS_DOUBLE") ? "IRIS_DOUBLE"
 						: deviceType.contains("FACE_FULL") ? "FACE_FULL FACE" : deviceType;
 
-	}
-
-	public InputStream stream(String bioType) throws RegBaseCheckedException, IOException {
-
-		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID, "Stream starting for : " + bioType);
-		BioDevice bioDevice = null;
-		bioDevice = findDeviceToScan(bioType);
-		if (bioDevice != null)
-			return bioDevice.stream();
-		return null;
-
-	}
-
-	/**
-	 * This method will return the scanned biometric data
-	 * <p>
-	 * When the biometric scan will happed the return will contain many detail such
-	 * as device code, quality score this method will extract the scanned biometric
-	 * from the captured response
-	 * </p>
-	 * 
-	 * 
-	 * @param captureResponseDto
-	 *            - Response Data object {@link CaptureResponseDto} which contains
-	 *            the captured biometrics from MDM
-	 * @return byte[] - captured bio image
-	 */
-	public byte[] getSingleBioValue(CaptureResponseDto captureResponseDto) {
-		byte[] capturedByte = null;
-		if (null != captureResponseDto && captureResponseDto.getMosipBioDeviceDataResponses() != null
-				&& !captureResponseDto.getMosipBioDeviceDataResponses().isEmpty()) {
-
-			CaptureResponseBioDto captureResponseBioDtos = captureResponseDto.getMosipBioDeviceDataResponses().get(0);
-			if (null != captureResponseBioDtos && null != captureResponseBioDtos.getCaptureResponseData()) {
-				return Base64.getUrlDecoder().decode(captureResponseBioDtos.getCaptureResponseData().getBioValue());
-			}
-		}
-		return capturedByte;
-	}
-
-	/**
-	 * This method will be used to get the scanned biometric value which will be
-	 * returned from the bio service as response
-	 * 
-	 * @param captureResponseDto
-	 *            - Response object which contains the capture biometrics from MDM
-	 * @return byte[] - captured bio extract
-	 */
-	public byte[] getSingleBiometricIsoTemplate(CaptureResponseDto captureResponseDto) {
-		byte[] capturedByte = null;
-		if (null != captureResponseDto && captureResponseDto.getMosipBioDeviceDataResponses() != null
-				&& !captureResponseDto.getMosipBioDeviceDataResponses().isEmpty()) {
-
-			CaptureResponseBioDto captureResponseBioDtos = captureResponseDto.getMosipBioDeviceDataResponses().get(0);
-			if (null != captureResponseBioDtos && null != captureResponseBioDtos.getCaptureResponseData()) {
-				return Base64.getUrlDecoder().decode(captureResponseBioDtos.getCaptureResponseData().getBioExtract());
-			}
-		}
-		return capturedByte;
 	}
 
 	/**
@@ -632,16 +533,13 @@ public class MosipBioDeviceManagerDuplicate {
 	}
 
 	public InputStream getStream(String modality) throws MalformedURLException, IOException {
-		List<BioDevice> bioDevices = getDeviceInfosByModality(modality);
+		MdmBioDevice bioDevice = getDeviceInfoByModality(modality);
 
-		if (bioDevices != null && !bioDevices.isEmpty()) {
-			// TODO find max Spec Version Device Info
-			BioDevice bioDevice = bioDevices.get(0);
-			String specVersion = getLatestSpecVersion(bioDevice.getSpecVersion());
+		if (bioDevice != null) {
 
 			String url = getRunningurl() + ":" + bioDevice.getRunningPort() + "/"
 					+ MosipBioDeviceConstants.STREAM_ENDPOINT;
-			switch (specVersion) {
+			switch (bioDevice.getSpecVersion()) {
 			case "0.9.5":
 				return mdm_095_IntegratorImpl.stream(url,
 						new StreamRequestDTO(bioDevice.getDeviceId(), getDeviceSubId(modality)));
@@ -656,18 +554,14 @@ public class MosipBioDeviceManagerDuplicate {
 			throws JsonParseException, JsonMappingException, IOException {
 
 		List<BiometricsDto> biometricDTOs = new LinkedList<>();
-		List<BioDevice> bioDevices = getDeviceInfosByModality(rCaptureRequest.getModality());
+		MdmBioDevice bioDevice = getDeviceInfoByModality(rCaptureRequest.getModality());
 
-		if (bioDevices != null && !bioDevices.isEmpty()) {
-			// TODO find max Spec Version Device Info
-			BioDevice bioDevice = bioDevices.get(0);
-
-			String latestSpecVersion = getLatestSpecVersion(bioDevice.getSpecVersion());
+		if (bioDevice != null) {
 
 			String url = getRunningurl() + ":" + bioDevice.getRunningPort() + "/"
 					+ MosipBioDeviceConstants.CAPTURE_ENDPOINT;
 
-			switch (latestSpecVersion) {
+			switch (bioDevice.getSpecVersion()) {
 			case "0.9.5":
 				List<RCaptureResponseBiometricsDTO> captureResponseBiometricsDTOs = (List<RCaptureResponseBiometricsDTO>) mdm_095_IntegratorImpl
 						.rCapture(url, get_095_RCaptureRequest(bioDevice, rCaptureRequest));
@@ -678,10 +572,8 @@ public class MosipBioDeviceManagerDuplicate {
 					RCaptureResponseDataDTO dataDTO = (RCaptureResponseDataDTO) (mapper.readValue(
 							new String(Base64.getUrlDecoder().decode(payLoad)), RCaptureResponseDataDTO.class));
 
-					//TODO change to base64 url decoder
 					BiometricsDto biometricDTO = new BiometricsDto(dataDTO.getBioSubType(),
-							Base64.getDecoder().decode(dataDTO.getBioValue()),
-							Double.parseDouble(dataDTO.getQualityScore()));
+							dataDTO.getDecodedBioValue(), Double.parseDouble(dataDTO.getQualityScore()));
 					biometricDTO.setCaptured(true);
 					biometricDTOs.add(biometricDTO);
 				}
@@ -692,7 +584,7 @@ public class MosipBioDeviceManagerDuplicate {
 		return biometricDTOs;
 	}
 
-	private RCaptureRequestDTO get_095_RCaptureRequest(BioDevice bioDevice, MDMRequestDto rCaptureRequest)
+	private RCaptureRequestDTO get_095_RCaptureRequest(MdmBioDevice bioDevice, MDMRequestDto rCaptureRequest)
 			throws JsonParseException, JsonMappingException, IOException {
 
 		List<RCaptureRequestBioDTO> captureRequestBioDTOs = new LinkedList<>();
@@ -738,31 +630,27 @@ public class MosipBioDeviceManagerDuplicate {
 		return latestSpecVersion;
 	}
 
-	private List<BioDevice> getDeviceInfosByModality(String modality) {
+	private MdmBioDevice getDeviceInfoByModality(String modality) {
 
 		// List<String> specVersions = Arrays.asList("0.9.2", "0.9.5");
 
 		modality = constructDeviceType(modality).toLowerCase();
-		List<BioDevice> bioDevices = new LinkedList<>();
 
 		if (deviceInfoMap.containsKey(modality)) {
-			bioDevices.addAll(deviceInfoMap.get(modality).values());
+			return deviceInfoMap.get(modality);
 		}
 
-		return bioDevices;
+		return null;
 	}
 
 	private String getDeviceIdByModality(String modality) {
 
 		String deviceId = null;
-		List<BioDevice> bioDevices = getDeviceInfosByModality(modality);
+		MdmBioDevice bioDevice = getDeviceInfoByModality(modality);
 
-		if (bioDevices != null && !bioDevices.isEmpty()) {
+		if (bioDevice != null) {
 
-			// TODO Find the latest spec deviceInfo
-			BioDevice deviceInfo = bioDevices.get(0);
-
-			deviceId = deviceInfo.getDeviceId();
+			deviceId = bioDevice.getDeviceId();
 		}
 
 		return deviceId;

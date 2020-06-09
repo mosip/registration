@@ -943,8 +943,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 					LOGGER.debug(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 							"BiometricDTO captured from mock/real MDM >>> " + biometricDTO.getBioAttribute());
 					
-					if (!exceptionBioAttributes.isEmpty() && exceptionBioAttributes.contains(
-							Biometric.getBiometricByMDMConstant(biometricDTO.getBioAttribute()).getAttributeName())) {
+					if (!exceptionBioAttributes.isEmpty() && exceptionBioAttributes.contains(biometricDTO.getBioAttribute())) {
 						continue;
 					} else {
 						qualityScore += biometricDTO.getQualityScore();
@@ -988,6 +987,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 						RegistrationUIConstants.BIOMETRIC_CAPTURE_FAILURE);
 			}
 		} catch (Exception exception) {
+			exception.printStackTrace();
 			LOGGER.error(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					String.format("Exception while capturing biometrics : ", exception.getMessage(), ExceptionUtils.getStackTrace(exception)));
 

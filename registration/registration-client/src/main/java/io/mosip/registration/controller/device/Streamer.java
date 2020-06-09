@@ -21,6 +21,7 @@ import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.StreamingRequestDetail;
 import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
+import io.mosip.registration.mdm.service.impl.MosipBioDeviceManagerDuplicate;
 import io.mosip.registration.service.bio.impl.BioServiceImpl;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -38,6 +39,9 @@ public class Streamer {
 
 	@Autowired
 	private MosipBioDeviceManager mosipBioDeviceManager;
+
+	@Autowired
+	private MosipBioDeviceManagerDuplicate mosipBioDeviceManagerDuplicate;
 
 	@Autowired
 	private ScanPopUpViewController scanPopUpViewController;
@@ -114,7 +118,7 @@ public class Streamer {
 					setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_PREP_MESSAGE, false);
 					LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
 							"Constructing Stream URL Started" + System.currentTimeMillis());
-					urlStream = mosipBioDeviceManager.stream(type);
+					urlStream = mosipBioDeviceManagerDuplicate.getStream(type);
 					if (urlStream == null) {
 
 						LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
@@ -127,7 +131,7 @@ public class Streamer {
 
 					setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_INIT_MESSAGE, true);
 
-				} catch (RegBaseCheckedException | IOException | NullPointerException exception) {
+				} catch (IOException | NullPointerException exception) {
 
 					LOGGER.error(STREAMER, RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 							exception.getMessage() + ExceptionUtils.getStackTrace(exception));
