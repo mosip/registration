@@ -2,7 +2,6 @@ package io.mosip.registration.processor.stages.osivalidator;
 
 import java.io.IOException;
 
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -129,11 +129,10 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 
 		registrationStatusDto.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.OSI_VALIDATE.toString());
 		registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
-		// osiValidator.registrationStatusDto = registrationStatusDto;
-		// umcValidator.setRegistrationStatusDto(registrationStatusDto);
+
 		try {
 			if(validateUMC)
-			    isValidUMC = umcValidator.isValidUMC(registrationId, registrationStatusDto);
+				isValidUMC = umcValidator.isValidUMC(registrationId, registrationStatusDto);
 			else
 				isValidUMC = true;
 			if (isValidUMC) {
@@ -153,13 +152,8 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 					int retryCount = registrationStatusDto.getRetryCount() != null
 							? registrationStatusDto.getRetryCount() + 1
 							: 1;
-					// registrationStatusDto.setLatestTransactionStatusCode(
-					// osiValidator.registrationStatusDto.getLatestTransactionStatusCode());
+
 					registrationStatusDto.setRetryCount(retryCount);
-
-					// registrationStatusDto.setStatusComment(osiValidator.registrationStatusDto.getStatusComment());
-					// registrationStatusDto.setStatusCode(osiValidator.registrationStatusDto.getStatusCode());
-
 					description.setCode(PlatformSuccessMessages.RPR_PKR_OSI_VALIDATE.getCode());
 					description.setMessage(PlatformSuccessMessages.RPR_PKR_OSI_VALIDATE.getMessage() + registrationId
 							+ "::" + "OSI(" + isValidOSI + ") is not valid");
