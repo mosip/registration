@@ -493,7 +493,7 @@ public class OSIValidator {
 					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 							StatusMessage.PARENT_UIN_AND_RID_NOT_IN_PACKET);
-					throw new ParentOnHoldException(StatusUtil.UIN_RID_NOT_FOUND.getCode(),StatusUtil.UIN_RID_NOT_FOUND.getMessage());
+					return false;
 				}
 
 				if ((introducerUIN == null || introducerUIN.isEmpty())
@@ -511,7 +511,7 @@ public class OSIValidator {
 						regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 								LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 								StatusMessage.PARENT_UIN_NOT_AVAIALBLE);
-						throw new ParentOnHoldException(StatusUtil.PARENT_UIN_NOT_FOUND.getCode(),StatusUtil.PARENT_UIN_NOT_FOUND.getMessage());
+						return false;
 					}
 
 				}
@@ -519,7 +519,7 @@ public class OSIValidator {
 					return validateIntroducerBiometric(registrationId, registrationStatusDto,
 							introducerBiometricsFileName, introducerUIN, introducerBiometricsLabel);
 				} else {
-					throw new ParentOnHoldException(StatusUtil.PARENT_UIN_NOT_FOUND.getCode(),StatusUtil.PARENT_UIN_NOT_FOUND.getMessage());
+					return false;
 				}
 			}
 
@@ -535,7 +535,7 @@ public class OSIValidator {
 			String introducerUIN,String introducerBiometricsLabel) throws IOException, PacketDecryptionFailureException, ApisResourceAccessException,
 			io.mosip.kernel.core.exception.IOException, InvalidKeySpecException, NoSuchAlgorithmException,
 			ParserConfigurationException, SAXException, BiometricException, BioTypeException, AuthSystemException,
-			ParentOnHoldException, ApiNotAccessibleException,
+			ApiNotAccessibleException,
 			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
 		if (introducerBiometricsFileName != null && (!introducerBiometricsFileName.trim().isEmpty())) {
 			String source = idSchemaUtils.getSource(introducerBiometricsLabel, packetReaderService.getIdSchemaVersionFromPacket(registrationId));
@@ -556,7 +556,7 @@ public class OSIValidator {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 					LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
 					StatusMessage.PARENT_BIOMETRIC_NOT_IN_PACKET);
-			throw new ParentOnHoldException(StatusUtil.PARENT_BIOMETRIC_FILE_NAME_NOT_FOUND.getCode(),StatusUtil.PARENT_BIOMETRIC_FILE_NAME_NOT_FOUND.getMessage());
+			return false;
 		}
 	}
 
@@ -672,15 +672,14 @@ public class OSIValidator {
 	/**
 	 * Validate introducer rid.
 	 *
-	 * @param introducerRid
-	 *            the introducer rid
-	 * @param registrationId
-	 *            the registration id
+	 * @param introducerRid         the introducer rid
+	 * @param registrationId        the registration id
 	 * @param registrationStatusDto
 	 * @return true, if successful
+	 * @throws ParentOnHoldException
 	 */
 	private boolean validateIntroducerRid(String introducerRid, String registrationId,
-			InternalRegistrationStatusDto registrationStatusDto) {
+			InternalRegistrationStatusDto registrationStatusDto) throws ParentOnHoldException {
 		InternalRegistrationStatusDto introducerRegistrationStatusDto = registrationStatusService
 				.getRegistrationStatus(introducerRid);
 		if (introducerRegistrationStatusDto != null) {
@@ -694,7 +693,8 @@ public class OSIValidator {
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), registrationId, StatusMessage.PACKET_IS_ON_HOLD);
-				return false;
+				throw new ParentOnHoldException(StatusUtil.PACKET_ON_HOLD.getCode(),
+						StatusUtil.PACKET_ON_HOLD.getMessage());
 
 			} else if (introducerRegistrationStatusDto.getStatusCode()
 					.equals(RegistrationStatusCode.REJECTED.toString())
@@ -725,7 +725,8 @@ public class OSIValidator {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId, StatusMessage.PACKET_IS_ON_HOLD);
-			return false;
+			throw new ParentOnHoldException(StatusUtil.PACKET_ON_HOLD.getCode(),
+					StatusUtil.PACKET_ON_HOLD.getMessage());
 		}
 
 	}

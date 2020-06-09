@@ -18,9 +18,6 @@ import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.spi.PacketReaderService;
-import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -480,14 +477,15 @@ public class OSIValidatorTest {
 	 * @throws IOException                  Signals that an I/O exception has
 	 *                                      occurred.
 	 */
-	@Test(expected = ParentOnHoldException.class)
+	@Test
 	public void testIntroducerRIDFailedOnHold() throws ApisResourceAccessException, IOException, Exception {
 		Mockito.when(osiUtils.getMetaDataValue(anyString(), any())).thenReturn("2015/01/01");
 		registrationStatusDto.setStatusCode("FAILED");
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString())).thenReturn(
 				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
-		osiValidator.isValidOSI("reg1234", registrationStatusDto);
+		boolean isValid = osiValidator.isValidOSI("reg1234", registrationStatusDto);
+		assertFalse(isValid);
 	}
 
 	@Test(expected = ParentOnHoldException.class)
@@ -520,17 +518,18 @@ public class OSIValidatorTest {
 		osiValidator.isValidOSI("reg1234", registrationStatusDto);
 	}
 
-	@Test(expected = ParentOnHoldException.class)
+	@Test
 	public void testIntroducerUINAndRIDNull() throws Exception {
 		Mockito.when(osiUtils.getMetaDataValue(anyString(), any())).thenReturn("2015/01/01");
-		osiValidator.isValidOSI("reg1234", registrationStatusDto);
-
+		boolean isValid = osiValidator.isValidOSI("reg1234", registrationStatusDto);
+		assertFalse(isValid);
 	}
 
-	@Test(expected = ParentOnHoldException.class)
+	@Test
 	public void testIntroducerBioFileNull() throws Exception {
 		Mockito.when(osiUtils.getMetaDataValue(anyString(), any())).thenReturn("2015/01/01");
-		osiValidator.isValidOSI("reg1234", registrationStatusDto);
+		boolean isValid = osiValidator.isValidOSI("reg1234", registrationStatusDto);
+		assertFalse(isValid);
 	}
 
 	@Test
@@ -587,7 +586,7 @@ public class OSIValidatorTest {
 		assertFalse(isValid);
 	}
 
-	@Test(expected = ParentOnHoldException.class)
+	@Test
 	public void testIntroducerUINNull() throws ApisResourceAccessException, IOException, Exception {
 		Mockito.when(osiUtils.getMetaDataValue(anyString(), any())).thenReturn("2015/01/01");
 		InternalRegistrationStatusDto introducerRegistrationStatusDto = new InternalRegistrationStatusDto();
@@ -597,7 +596,9 @@ public class OSIValidatorTest {
 		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString())).thenReturn(
 				JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(childMappingJson, JSONObject.class), "identity"));
 		Mockito.when(idRepoService.getUinByRid(any(), any())).thenReturn(null);
-		osiValidator.isValidOSI("reg1234", registrationStatusDto);
+		boolean isValid = osiValidator.isValidOSI("reg1234", registrationStatusDto);
+
+		assertFalse(isValid);
 	}
 	@Test(expected=AuthSystemException.class)
 	public void testoperatorAuthSystemException() throws Exception {
