@@ -1,7 +1,9 @@
 package io.mosip.registration.dao;
 
 import java.sql.Timestamp;
+import java.util.List;
 
+import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.entity.UserBiometric;
 import io.mosip.registration.entity.UserMachineMapping;
@@ -25,6 +27,8 @@ public interface UserOnboardDAO {
 	 * @return the success/error response.
 	 */
 	String insert(BiometricDTO biometricDTO);
+	
+	String insert(List<BiometricsDto> biometrics);
 	
 	/**
 	 * This method is used to get Station ID by giving machine name.

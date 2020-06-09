@@ -420,7 +420,7 @@ public class BiometricExceptionController extends BaseController implements Init
 			}
 			fingerPrintCaptureController.clearImage();
 			irisCaptureController.clearIrisBasedOnExceptions();
-			guardianBiometricsController.manageBiometricsListBasedOnExceptions();
+			//guardianBiometricsController.manageBiometricsListBasedOnExceptions();
 		}
 	}
 

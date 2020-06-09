@@ -12,9 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import io.mosip.kernel.bioapi.impl.BioApiImpl;
+//import io.mosip.kernel.bioapi.impl.BioApiImpl;
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
-import io.mosip.kernel.core.bioapi.model.Score;
+//import io.mosip.kernel.core.bioapi.model.Score;
 import io.mosip.kernel.core.bioapi.spi.IBioApi;
 import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
@@ -54,9 +54,11 @@ public class IrisValidatorImpl extends AuthenticationBaseValidator {
 	@Autowired
 	private UserDetailDAO userDetailDAO;
 
-	@Autowired
-	@Qualifier("iris")
-	IBioApi ibioApi;
+	/*
+	 * @Autowired
+	 * 
+	 * @Qualifier("iris") IBioApi ibioApi;
+	 */
 
 	/*
 	 * (non-Javadoc)
@@ -71,7 +73,7 @@ public class IrisValidatorImpl extends AuthenticationBaseValidator {
 		LOGGER.info(LOG_REG_IRIS_VALIDATOR, APPLICATION_NAME, APPLICATION_ID,
 				"Stubbing iris details for user registration");
 		
-		if (ibioApi instanceof BioApiImpl) {
+		/*if (ibioApi instanceof BioApiImpl) {
 			ApplicationContext.map().put(RegistrationConstants.DEDUPLICATION_IRIS_ENABLE_FLAG,
 					RegistrationConstants.DISABLE);
 		}
@@ -95,7 +97,7 @@ public class IrisValidatorImpl extends AuthenticationBaseValidator {
 		} catch (RegBaseCheckedException regBaseCheckedException) {
 			LOGGER.error(LOG_REG_IRIS_VALIDATOR, APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(regBaseCheckedException));
-		}
+		}*/
 		return false;
 	}
 
@@ -128,14 +130,14 @@ public class IrisValidatorImpl extends AuthenticationBaseValidator {
 	 * registration.dto.biometric.IrisDetailsDTO, java.util.List)
 	 */
 	private boolean validateOneToManyIris(IrisDetailsDTO irisDetailsDTO, List<UserBiometric> userIrisDetails) {
-
-		BIR capturedBir = new BIRBuilder().withBdb(irisDetailsDTO.getIrisIso())
+		boolean flag = false;
+	/*	BIR capturedBir = new BIRBuilder().withBdb(irisDetailsDTO.getIrisIso())
 				.withBdbInfo(new BDBInfo.BDBInfoBuilder().withType(Collections.singletonList(SingleType.IRIS)).build())
 				.build();
 		
 		BIR[] registeredBir = new BIR[userIrisDetails.size()];
 		Score[] scores = null;
-		boolean flag = false;
+		
 		int i = 0;
 		for (UserBiometric userBiometric : userIrisDetails) {
 			registeredBir[i] = new BIRBuilder().withBdb(userBiometric.getBioIsoImage())
@@ -166,7 +168,7 @@ public class IrisValidatorImpl extends AuthenticationBaseValidator {
 							exception.getMessage(), exception.getCause()));
 			return false;
 
-		}
+		}*/
 		return flag;
 
 	}
@@ -193,10 +195,10 @@ public class IrisValidatorImpl extends AuthenticationBaseValidator {
 
 	@Override
 	public boolean bioMerticsValidator(List<BiometricsDto> listOfBiometrics) {
-
-		List<UserBiometric> userDetailsRecorded = userDetailDAO
-				.getUserSpecificBioDetails(SessionContext.userContext().getUserId(), RegistrationConstants.IRS);
 		boolean flag = false;
+		/*List<UserBiometric> userDetailsRecorded = userDetailDAO
+				.getUserSpecificBioDetails(SessionContext.userContext().getUserId(), RegistrationConstants.IRS);
+		
 		for (BiometricsDto biometricDTO : listOfBiometrics) {
 			BIR capturedBir = new BIRBuilder().withBdb(biometricDTO.getAttributeISO())
 					.withBdbInfo(
@@ -213,8 +215,8 @@ public class IrisValidatorImpl extends AuthenticationBaseValidator {
 				i++;
 			}
 			try {
-				/*Response<MatchDecision[]> scores = ibioApi.match(capturedBir, registeredBir, null);
-				System.out.println(scores);*/
+				//Response<MatchDecision[]> scores = ibioApi.match(capturedBir, registeredBir, null);
+				//System.out.println(scores);
 
 			} catch (Exception exception) {
 				LOGGER.error(LOG_REG_FINGERPRINT_FACADE, APPLICATION_NAME, APPLICATION_ID,
@@ -223,7 +225,7 @@ public class IrisValidatorImpl extends AuthenticationBaseValidator {
 				return false;
 
 			}
-		}
+		}*/
 		return flag;
 
 	}

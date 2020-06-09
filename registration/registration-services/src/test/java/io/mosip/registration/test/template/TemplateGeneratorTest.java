@@ -129,7 +129,7 @@ public class TemplateGeneratorTest {
 
 	@Test
 	@Ignore
-	public void generateAckTemplateTest() throws IOException, URISyntaxException {
+	public void generateAckTemplateTest() throws IOException, URISyntaxException , RegBaseCheckedException{
 		PowerMockito.mockStatic(ApplicationContext.class);
 		SessionContext.map().put(RegistrationConstants.IS_Child, false);
 
@@ -145,7 +145,7 @@ public class TemplateGeneratorTest {
 	
 	@Test
 	@Ignore
-	public void generatePreviewTemplateTest() throws IOException, URISyntaxException {
+	public void generatePreviewTemplateTest() throws IOException, URISyntaxException, RegBaseCheckedException {
 		PowerMockito.mockStatic(ApplicationContext.class);
 		SessionContext.map().put(RegistrationConstants.IS_Child, false);
 		
@@ -161,7 +161,7 @@ public class TemplateGeneratorTest {
 	
 	@Test
 	@Ignore
-	public void generateAckTemplateChildTest() throws IOException, URISyntaxException {
+	public void generateAckTemplateChildTest() throws IOException, URISyntaxException, RegBaseCheckedException {
 		PowerMockito.mockStatic(ApplicationContext.class);
 		SessionContext.map().put(RegistrationConstants.IS_Child, true);
 
@@ -177,7 +177,7 @@ public class TemplateGeneratorTest {
 	
 	@Test
 	@Ignore
-	public void generatePreviewTemplateChildTest() throws IOException, URISyntaxException {
+	public void generatePreviewTemplateChildTest() throws IOException, URISyntaxException, RegBaseCheckedException {
 		PowerMockito.mockStatic(ApplicationContext.class);
 		SessionContext.map().put(RegistrationConstants.IS_Child, true);
 		

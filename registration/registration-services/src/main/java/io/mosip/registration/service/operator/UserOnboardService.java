@@ -1,8 +1,10 @@
 package io.mosip.registration.service.operator;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Map;
 
+import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
@@ -48,7 +50,9 @@ public interface UserOnboardService {
 	 *         formed and return to the caller.
 	 * @throws RegBaseCheckedException 
 	 */
-	ResponseDTO validate(BiometricDTO biometricDTO) throws RegBaseCheckedException;
+	//ResponseDTO validate(BiometricDTO biometricDTO) throws RegBaseCheckedException;
+	
+	ResponseDTO validateWithIDAuthAndSave(List<BiometricsDto> biometrics) throws RegBaseCheckedException;
 	
 	/**
 	 * This method performs to get center-id and machine-id from db.
@@ -69,5 +73,22 @@ public interface UserOnboardService {
 	 */
 	Timestamp getLastUpdatedTime(String usrId);
 	
+	void initializeOperatorBiometric();
+	
+	BiometricsDto addOperatorBiometrics(String operatorType, String bioAttribute, BiometricsDto value);
+	
+	void addOperatorBiometricException(String operatorType, String bioAttribute);
+	
+	void removeOperatorBiometrics(String operatorType, String bioAttribute);
+	
+	void removeOperatorBiometricException(String operatorType, String bioAttribute);
+	
+	List<BiometricsDto> getAllBiometrics();
+	
+	List<BiometricsDto> getAllBiometricExceptions();
+	
+	 List<BiometricsDto> getBiometrics(String operatorType, List<String> attributeNames);
+	
+	boolean isBiometricException(String operatorType, String bioAttribute);	
 	
 }
