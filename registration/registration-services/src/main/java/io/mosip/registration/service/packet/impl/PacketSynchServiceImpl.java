@@ -8,6 +8,7 @@ import java.io.File;
 import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -109,7 +110,7 @@ public class PacketSynchServiceImpl extends BaseService implements PacketSynchSe
 					}
 				}
 				RegistrationPacketSyncDTO registrationPacketSyncDTO = new RegistrationPacketSyncDTO();
-				registrationPacketSyncDTO.setRequesttime(DateUtils.getUTCCurrentDateTimeString());
+				registrationPacketSyncDTO.setRequesttime(DateUtils.formatToISOString(LocalDateTime.now()));
 				registrationPacketSyncDTO.setSyncRegistrationDTOs(syncDtoList);
 				registrationPacketSyncDTO.setId(RegistrationConstants.PACKET_SYNC_STATUS_ID);
 				registrationPacketSyncDTO.setVersion(RegistrationConstants.PACKET_SYNC_VERSION);

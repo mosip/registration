@@ -31,7 +31,6 @@ import com.jayway.jsonpath.Option;
 
 import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.idobjectvalidator.constant.IdObjectValidatorErrorConstant;
-import io.mosip.kernel.core.idobjectvalidator.constant.IdObjectValidatorSupportedOperations;
 import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectIOException;
 import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectValidationFailedException;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -122,7 +121,7 @@ public class RegIdObjectMasterDataValidator {
 	 * io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator#validateIdObject
 	 * (java.lang.Object)
 	 */
-	public boolean validateIdObject(Object identityObject, IdObjectValidatorSupportedOperations operation)
+	public boolean validateIdObject(Object identityObject)
 			throws IdObjectIOException, IdObjectValidationFailedException {
 
 		LOGGER.info(REG_ID_OBJECT_MASTER_DATA_VALIDATOR, APPLICATION_NAME, APPLICATION_ID,
@@ -144,6 +143,8 @@ public class RegIdObjectMasterDataValidator {
 			if (errorList.isEmpty()) {
 				return true;
 			} else {
+				LOGGER.info(REG_ID_OBJECT_MASTER_DATA_VALIDATOR, APPLICATION_NAME, APPLICATION_ID,
+						"errorList >>>> " + errorList);
 				throw new IdObjectValidationFailedException(IdObjectValidatorErrorConstant.ID_OBJECT_VALIDATION_FAILED,
 						errorList);
 			}
@@ -227,7 +228,7 @@ public class RegIdObjectMasterDataValidator {
 				List<DocumentType> masterDocuments = masterSyncDao.getDocumentTypes(validDocuments, langCode);
 				if (!masterDocuments.isEmpty()) {
 					masterDocuments.forEach(docType -> {
-						docTypeMap.put(docCat, docType.getName());
+						docTypeMap.put(docCat, docType.getCode());
 					});
 				}
 			}));

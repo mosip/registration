@@ -8,6 +8,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,13 +19,16 @@ import org.springframework.stereotype.Controller;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
+import io.mosip.registration.controller.device.GuardianBiometricsController;
 import io.mosip.registration.dto.biometric.BiometricDTO;
+import io.mosip.registration.service.operator.UserOnboardService;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
@@ -77,6 +84,12 @@ public class UserOnboardController extends BaseController implements Initializab
 
 	@Autowired
 	private UserOnboardParentController userOnboardParentController;
+	
+	@Autowired
+	private GuardianBiometricsController guardianBiometricsController;
+	
+	@Autowired
+	private UserOnboardService userOnboardService;
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
@@ -88,10 +101,12 @@ public class UserOnboardController extends BaseController implements Initializab
 	@FXML
 	public void initUserOnboard() {
 		clearOnboard();
-		BiometricDTO biometricDTO = new BiometricDTO();
-		biometricDTO.setOperatorBiometricDTO(createBiometricInfoDTO());
-		SessionContext.map().put(RegistrationConstants.USER_ONBOARD_DATA, biometricDTO);
+		//BiometricDTO biometricDTO = new BiometricDTO();
+		//biometricDTO.setOperatorBiometricDTO(createBiometricInfoDTO());
+		userOnboardService.initializeOperatorBiometric();
 		SessionContext.map().put(RegistrationConstants.ISPAGE_NAVIGATION_ALERT_REQ, RegistrationConstants.DISABLE);
+		
+		guardianBiometricsController.populateBiometricPage(true);
 		userOnboardParentController.showCurrentPage(RegistrationConstants.ONBOARD_USER_PARENT,
 				getOnboardPageDetails(RegistrationConstants.ONBOARD_USER_PARENT, RegistrationConstants.NEXT));
 		clearAllValues();

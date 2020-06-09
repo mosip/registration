@@ -147,8 +147,8 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 			// validate the input against the schema, mandatory, pattern and master data. if
 			// any error then stop the rest of the process
 			// and display error message to the user.
-			idObjectValidator.validateIdObject(registrationDTO.getDemographics(),
-					registrationDTO.getRegistrationMetaDataDTO().getRegistrationCategory());
+		//	idObjectValidator.validateIdObject(registrationDTO.getDemographics(),
+			//		registrationDTO.getRegistrationMetaDataDTO().getRegistrationCategory());
 
 			// Map object to store the UUID's generated for BIR in CBEFF
 			Map<String, String> birUUIDs = new HashMap<>();

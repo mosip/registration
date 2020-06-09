@@ -8,6 +8,7 @@ import java.io.File;
 import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -253,7 +254,7 @@ public class RegPacketStatusServiceImpl extends BaseService implements RegPacket
 			PacketStatusReaderDTO packetStatusReaderDTO = new PacketStatusReaderDTO();
 			packetStatusReaderDTO.setId(RegistrationConstants.PACKET_STATUS_READER_ID);
 			packetStatusReaderDTO.setVersion(RegistrationConstants.PACKET_SYNC_VERSION);
-			packetStatusReaderDTO.setRequesttime(DateUtils.getUTCCurrentDateTimeString());
+			packetStatusReaderDTO.setRequesttime(DateUtils.formatToISOString(LocalDateTime.now()));
 
 			List<RegistrationIdDTO> registrationIdDTOs = new ArrayList<>();
 			for (String packetId : packetIds) {
@@ -459,7 +460,7 @@ public class RegPacketStatusServiceImpl extends BaseService implements RegPacket
 					syncDtoList.add(syncDto);
 				}
 				RegistrationPacketSyncDTO registrationPacketSyncDTO = new RegistrationPacketSyncDTO();
-				registrationPacketSyncDTO.setRequesttime(DateUtils.getUTCCurrentDateTimeString());
+				registrationPacketSyncDTO.setRequesttime(DateUtils.formatToISOString(LocalDateTime.now()));
 				registrationPacketSyncDTO.setSyncRegistrationDTOs(syncDtoList);
 				registrationPacketSyncDTO.setId(RegistrationConstants.PACKET_SYNC_STATUS_ID);
 				registrationPacketSyncDTO.setVersion(RegistrationConstants.PACKET_SYNC_VERSION);

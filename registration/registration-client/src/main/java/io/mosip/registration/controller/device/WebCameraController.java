@@ -159,7 +159,7 @@ public class WebCameraController extends BaseController implements Initializable
 				"Staging", Integer.valueOf(getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT)),
 				1,  Integer.valueOf(getValueFromApplicationContext(RegistrationConstants.FACE_THRESHOLD)));
 		
-		List<BiometricsDto> list = bioService.captureModality(requestDto);
+		List<BiometricsDto> list = null;//bioService.captureModality(requestDto);
 		
 		if(!list.isEmpty()) {
 			AuthenticationValidatorDTO authenticationValidatorDTO = new AuthenticationValidatorDTO();
@@ -171,7 +171,7 @@ public class WebCameraController extends BaseController implements Initializable
 					RegistrationUIConstants.FACE_CAPTURE_SUCCESS, () -> {
 						if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER))
 							return false;
-						return bioService.validateFace(authenticationValidatorDTO);
+						return false;//bioService.validateFace(authenticationValidatorDTO);
 					}, this);
 			
 			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();

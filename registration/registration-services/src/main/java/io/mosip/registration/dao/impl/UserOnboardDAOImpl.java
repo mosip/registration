@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
@@ -298,6 +299,50 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 			throw new RegBaseUncheckedException(RegistrationConstants.USER_ON_BOARDING_EXCEPTION,
 					runtimeException.getMessage());
 		}
+	}
+
+	@Override
+	public String insert(List<BiometricsDto> biometrics) {
+		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "Entering insert method");
+		String response = RegistrationConstants.EMPTY;
+		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
+				"Biometric information insertion into table");
+		List<UserBiometric> bioMetricsList = new ArrayList<>();
+		
+		try {
+			biometrics.forEach( dto -> {
+				UserBiometric bioMetrics = new UserBiometric();
+				UserBiometricId biometricId = new UserBiometricId();
+				biometricId.setBioAttributeCode(dto.getBioAttribute());
+				biometricId.setBioTypeCode(dto.getModalityName());
+				biometricId.setUsrId(SessionContext.userContext().getUserId());
+				bioMetrics.setBioIsoImage(dto.getAttributeISO());
+				bioMetrics.setNumberOfRetry(dto.getNumOfRetries());
+				bioMetrics.setUserBiometricId(biometricId);
+				Double qualitySocre = dto.getQualityScore();
+				bioMetrics.setQualityScore(qualitySocre.intValue());
+				bioMetrics.setCrBy(SessionContext.userContext().getUserId());
+				bioMetrics.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
+				bioMetrics.setIsActive(true);
+				bioMetricsList.add(bioMetrics);
+			});
+			
+			userBiometricRepository.deleteByUserBiometricIdUsrId(SessionContext.userContext().getUserId());
+			userBiometricRepository.saveAll(bioMetricsList);
+			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
+					"Biometric information insertion successful");
+	
+			response = RegistrationConstants.SUCCESS;
+		} catch (RuntimeException runtimeException) {
+	
+			LOGGER.error(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
+					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
+			response = RegistrationConstants.USER_ON_BOARDING_ERROR_RESPONSE;
+			throw new RegBaseUncheckedException(RegistrationConstants.USER_ON_BOARDING_EXCEPTION + response,
+					runtimeException.getMessage());
+		}
+		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "Leaving insert method");
+		return response;
 	}
 
 }
