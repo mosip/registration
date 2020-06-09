@@ -322,7 +322,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		this.packetCreator.setRegisteredDeviceDetails(capturedRegisteredDevices);
 	}
 	
-	private void createAuditLog(RegistrationDTO registrationDTO) {
+	/*private void createAuditLog(RegistrationDTO registrationDTO) {
 		auditLogControlDAO.save(Builder.build(AuditLogControl.class)
 				.with(auditLogControl -> auditLogControl.setAuditLogFromDateTime(registrationDTO.getAuditLogStartTime()))
 				.with(auditLogControl -> auditLogControl.setAuditLogToDateTime(registrationDTO.getAuditLogEndTime()))
@@ -331,7 +331,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 				.with(auditLogControl -> auditLogControl.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime())))
 				.with(auditLogControl -> auditLogControl.setCrBy(SessionContext.userContext().getUserId()))
 				.get());
-	}
+	}*/
 	
 	private void setOtherDetails(RegistrationDTO registrationDTO) {
 		packetCreator.setMetaInfo(PacketManagerConstants.META_CLIENT_VERSION, 
@@ -389,7 +389,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 	
 	private void validateIdObject(String schemaJson, Object idObject, String category) throws RegBaseCheckedException {
 		LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "validateIdObject invoked >>>>> " + category);
-		LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "idObject >>>>> " + idObject);
+		//LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "idObject >>>>> " + idObject);
 		try {
 			switch (category) {
 			case RegistrationConstants.PACKET_TYPE_UPDATE:
