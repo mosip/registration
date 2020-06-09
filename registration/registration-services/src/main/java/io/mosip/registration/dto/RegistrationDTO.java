@@ -262,10 +262,9 @@ public class RegistrationDTO {
 			for (BiometricsDto value : biometricsDTOList) {
 				value.setForceCaptured(isForceCaptured);
 				
-				Biometric biometric = Biometric.getBiometricByMDMConstant(value.getBioAttribute());
-				value.setModalityName(biometric.getModalityName());
+//				Biometric biometric = Biometric.getBiometricByMDMConstant(value.getBioAttribute());
 				value.setSubType(subType);
-				value.setBioAttribute(biometric.getAttributeName());
+//				value.setBioAttribute(biometric.getAttributeName());
 				savedBiometrics.add(addBiometric(subType, value.getBioAttribute(), value));
 			}
 		}
