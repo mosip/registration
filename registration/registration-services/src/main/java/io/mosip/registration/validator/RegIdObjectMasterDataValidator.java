@@ -143,6 +143,8 @@ public class RegIdObjectMasterDataValidator {
 			if (errorList.isEmpty()) {
 				return true;
 			} else {
+				LOGGER.info(REG_ID_OBJECT_MASTER_DATA_VALIDATOR, APPLICATION_NAME, APPLICATION_ID,
+						"errorList >>>> " + errorList);
 				throw new IdObjectValidationFailedException(IdObjectValidatorErrorConstant.ID_OBJECT_VALIDATION_FAILED,
 						errorList);
 			}
@@ -226,7 +228,7 @@ public class RegIdObjectMasterDataValidator {
 				List<DocumentType> masterDocuments = masterSyncDao.getDocumentTypes(validDocuments, langCode);
 				if (!masterDocuments.isEmpty()) {
 					masterDocuments.forEach(docType -> {
-						docTypeMap.put(docCat, docType.getName());
+						docTypeMap.put(docCat, docType.getCode());
 					});
 				}
 			}));

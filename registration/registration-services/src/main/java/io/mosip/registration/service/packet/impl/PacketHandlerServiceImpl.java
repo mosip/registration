@@ -405,7 +405,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			regIdObjectMasterDataValidator.validateIdObject(idObject);
 		} catch (IdObjectValidationFailedException | IdObjectIOException | InvalidIdSchemaException e) {
 			LOGGER.error(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(e));
-			//throw new RegBaseCheckedException(e.getErrorCode(), e.getErrorText());
+			throw new RegBaseCheckedException(e.getErrorCode(), e.getErrorText());
 		}		
 	}
 }
