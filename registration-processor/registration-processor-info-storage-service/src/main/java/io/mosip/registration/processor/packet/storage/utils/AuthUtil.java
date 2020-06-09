@@ -42,7 +42,6 @@ import io.mosip.registration.processor.core.auth.dto.BioInfo;
 import io.mosip.registration.processor.core.auth.dto.DataInfoDTO;
 import io.mosip.registration.processor.core.auth.dto.PublicKeyResponseDto;
 import io.mosip.registration.processor.core.auth.dto.RequestDTO;
-import io.mosip.registration.processor.core.auth.util.BioTypeMapperUtil;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.BioType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
@@ -184,19 +183,6 @@ public class AuthUtil {
 
 	}
 
-	private DataInfoDTO getBioType(DataInfoDTO dataInfoDTO, String bioType) {
-
-		BioTypeMapperUtil bioTypeMapperUtil = new BioTypeMapperUtil();
-		if (bioType.equalsIgnoreCase(BioType.FINGER.toString())) {
-			dataInfoDTO.setBioType(bioTypeMapperUtil.getStatusCode(BioType.FINGER));
-		} else if (bioType.equalsIgnoreCase(BioType.FACE.toString())) {
-			dataInfoDTO.setBioType(bioTypeMapperUtil.getStatusCode(BioType.FACE));
-		} else if (bioType.equalsIgnoreCase(BioType.IRIS.toString())) {
-			dataInfoDTO.setBioType(bioTypeMapperUtil.getStatusCode(BioType.IRIS));
-		}
-		return dataInfoDTO;
-	}
-
 	private List<BioInfo> getBiometricsList(byte[] cbefByteFile) throws BiometricException, BioTypeException {
 
 		String previousHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash("".getBytes()));
@@ -211,7 +197,7 @@ public class AuthUtil {
 				DataInfoDTO dataInfoDTO = new DataInfoDTO();
 				BIR birApiResponse = CbeffToBiometricUtil.extractTemplate(bir, null);
 
-				getBioType(dataInfoDTO, birApiResponse.getBdbInfo().getType().get(0).toString());
+				dataInfoDTO.setBioType(birApiResponse.getBdbInfo().getType().get(0).toString());
 				List<String> bioSubType = birApiResponse.getBdbInfo().getSubtype();
 				// converting list to string
 				String bioSubTypeValue = StringUtils.join(bioSubType, " ");

@@ -1,7 +1,9 @@
 package io.mosip.registration.processor.manual.verification.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyString;
 
 import java.io.ByteArrayInputStream;
@@ -11,22 +13,26 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 
+import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.mosip.kernel.core.exception.IOException;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
@@ -60,7 +66,9 @@ import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 
-@RunWith(SpringRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ Utilities.class, JsonUtil.class })
+@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
 public class ManualVerificationServiceTest {
 
 	private List<ManualVerificationEntity> entities;
@@ -79,6 +87,10 @@ public class ManualVerificationServiceTest {
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 	@Mock
 	PacketReaderService packetReaderService;
+	@Mock
+	private Utilities utilities;
+	@Mock
+	private IdSchemaUtils idSchemaUtils;
 
 	@Mock
 	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
@@ -302,18 +314,31 @@ public class ManualVerificationServiceTest {
 	}
 
 	@Test
-	public void getApplicantFileMethodCheck() throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException, io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+	public void getApplicantFileMethodCheck() throws Exception {
 		String regId = "Id";
 		String source = "id";
+		JSONObject jsonObject = Mockito.mock(JSONObject.class);
 
 		byte[] file = "Str".getBytes();
 		InputStream fileInStream = new ByteArrayInputStream(file);
+		PowerMockito.mockStatic(JsonUtil.class);
+		PowerMockito.when(JsonUtil.class, "getJSONObject", any(), any()).thenReturn(jsonObject);
+		PowerMockito.when(JsonUtil.class, "objectMapperReadValue", anyString(), any()).thenReturn(jsonObject);
+
+		Mockito.when(idSchemaUtils.getSource(anyString(), anyDouble())).thenReturn(source);
+		Mockito.when(utilities.getRegistrationProcessorMappingJson()).thenReturn(jsonObject);
 		Mockito.when(packetReaderService.getFile(anyString(), anyString(), anyString())).thenReturn(fileInStream);
 
 		String fileName = PacketFiles.BIOMETRIC.name();
-		file = manualAdjudicationService.getApplicantFile(regId, fileName, source);
+		byte[] biometricFile = manualAdjudicationService.getApplicantFile(regId, fileName, source);
 		fileName = PacketFiles.DEMOGRAPHIC.name();
-		file = manualAdjudicationService.getApplicantFile(regId, fileName, source);
+		byte[] demographicFile = manualAdjudicationService.getApplicantFile(regId, fileName, source);
+		fileName = PacketFiles.PACKET_META_INFO.name();
+		byte[] metainfoFile = manualAdjudicationService.getApplicantFile(regId, fileName, source);
+
+		assertNotNull(biometricFile);
+		assertNotNull(demographicFile);
+		assertNotNull(metainfoFile);
 
 	}
 
