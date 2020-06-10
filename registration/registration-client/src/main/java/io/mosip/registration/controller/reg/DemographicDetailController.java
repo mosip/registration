@@ -106,10 +106,7 @@ public class DemographicDetailController extends BaseController {
 	private Node keyboardNode;
 	@Autowired
 	private PridValidator<String> pridValidatorImpl;
-	@Autowired
-	private UinValidator<String> uinValidator;
-	@Autowired
-	private RidValidator<String> ridValidator;
+	
 	@Autowired
 	private Validations validation;
 	@Autowired
@@ -801,7 +798,7 @@ public class DemographicDetailController extends BaseController {
 			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 			for (UiSchemaDTO schemaField : validation.getValidationMap().values()) {
 				if (schemaField.getControlType() == null)
-					continue;
+					continue;			
 
 				if (registrationDTO.getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE)
 						&& !registrationDTO.getUpdatableFields().contains(schemaField.getId()))
@@ -843,6 +840,10 @@ public class DemographicDetailController extends BaseController {
 									: platformField.getValue() != null ? platformField.getValue().getName() : null);
 						} else {
 							TextField platformField = listOfTextField.get(schemaField.getId());
+							
+							if (schemaField.getSubType() == "UIN" || schemaField.getSubType() == "RID")
+								validation.validateUinOrRidField(registrationDTO, schemaField, platformField);							
+							
 							registrationDTO.addDemographicField(schemaField.getId(),
 									platformField != null ? platformField.getText() : null);
 						}

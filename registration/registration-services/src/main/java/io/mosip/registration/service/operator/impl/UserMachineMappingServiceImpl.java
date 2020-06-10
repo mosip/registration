@@ -85,7 +85,7 @@ public class UserMachineMappingServiceImpl extends BaseService implements UserMa
 				requestMap.put("metadata", new HashMap<>());
 				RegCenterMachineUserReqDto<RegistrationCenterUserMachineMappingDto> regCenterMachineUserReqDto = new RegCenterMachineUserReqDto<>();
 				regCenterMachineUserReqDto.setId("REGISTRATION");
-				regCenterMachineUserReqDto.setRequesttime(DateUtils.formatToISOString(LocalDateTime.now()));
+				regCenterMachineUserReqDto.setRequesttime(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 				for (UserMachineMapping userMachineMapping : userMachineMappingList) {
 					Map<String, Object> userMap = new HashMap<>();
 					userMap.put("cntrId", centerId);
