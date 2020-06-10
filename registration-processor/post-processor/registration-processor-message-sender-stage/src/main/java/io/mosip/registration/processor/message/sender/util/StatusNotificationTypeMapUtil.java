@@ -45,6 +45,8 @@ public class StatusNotificationTypeMapUtil {
 		statusMap.put(NotificationStageStatus.UIN_GENERATOR_PROCESSED, NotificationTemplateType.UIN_CREATED);
 		statusMap.put(NotificationStageStatus.BIOGRAPHIC_VERIFICATION_FAILED, NotificationTemplateType.DUPLICATE_UIN);
 		statusMap.put(NotificationStageStatus.DEMOGRAPHIC_VERIFICATION_FAILED, NotificationTemplateType.DUPLICATE_UIN);
+		statusMap.put(NotificationStageStatus.BIOMETRIC_AUTHENTICATION_FAILED,
+				NotificationTemplateType.TECHNICAL_ISSUE);
 
 		return unmodifiableMap;
 	}
