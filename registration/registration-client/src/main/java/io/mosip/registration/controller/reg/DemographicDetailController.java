@@ -16,6 +16,9 @@ import java.util.ResourceBundle;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import org.joda.time.LocalDate;
+import org.joda.time.Period;
+import org.joda.time.PeriodType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Controller;
@@ -646,8 +649,10 @@ public class DemographicDetailController extends BaseController {
 					RegistrationConstants.APPLICATION_ID, "Validating the age given by age field");
 			fxUtils.validateLabelFocusOut(parentPane, ageField);
 			ageField.focusedProperty().addListener((obsValue, oldValue, newValue) -> {
-				if (oldValue) {
-					ageValidation(parentPane, ageField, dobMessage, oldValue, dd, mm, yyyy);
+				if (!getAge(yyyy.getText(), mm.getText(), dd.getText()).equals(ageField.getText())) {
+					if (oldValue) {
+						ageValidation(parentPane, ageField, dobMessage, oldValue, dd, mm, yyyy);
+					}
 				}
 			});
 			LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
@@ -657,6 +662,29 @@ public class DemographicDetailController extends BaseController {
 					RegistrationConstants.APPLICATION_ID,
 					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 		}
+	}
+	
+	/**
+	 * Gets the age.
+	 *
+	 * @param year the year
+	 * @param month the month
+	 * @param date the date
+	 * @return the age
+	 */
+	String getAge(String year, String month, String date) {
+		if (year != null && !year.isEmpty() && month != null && !month.isEmpty() && date != null && !date.isEmpty()) {
+			LocalDate birthdate = new LocalDate(Integer.parseInt(year), Integer.parseInt(month),
+					Integer.parseInt(date)); // Birth
+												// date
+			LocalDate now = new LocalDate(); // Today's date
+
+			Period period = new Period(birthdate, now, PeriodType.yearMonthDay());
+			return String.valueOf(period.getYears());
+		} else {
+			return "";
+		}
+
 	}
 
 	public void ageValidation(Pane dobParentPane, TextField ageField, Label dobMessage, Boolean oldValue, TextField dd,
