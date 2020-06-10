@@ -6,9 +6,15 @@ import static io.mosip.registration.constants.LoggerConstants.MOSIP_BIO_DEVICE_M
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
@@ -29,6 +35,7 @@ import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +43,8 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.Payload;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -68,6 +77,7 @@ import io.mosip.registration.mdm.spec_0_9_5.dto.response.RCaptureResponseBiometr
 import io.mosip.registration.mdm.spec_0_9_5.dto.response.RCaptureResponseDataDTO;
 import io.mosip.registration.mdm.spec_0_9_5.service.impl.MDM_095_IntegratorImpl;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
+import net.minidev.json.JSONArray;
 
 /**
  * 
@@ -266,6 +276,8 @@ public class MosipBioDeviceManagerDuplicate {
 			bioDevice.setDeviceModel(digitalId.getModel());
 			bioDevice.setDeviceMake(digitalId.getMake());
 
+			bioDevice.setCallbackId(deviceInfo.getCallbackId());
+
 		}
 
 		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID, "Adding Device to Registry : ");
@@ -273,7 +285,8 @@ public class MosipBioDeviceManagerDuplicate {
 	}
 
 	private DigitalId getDigitalId(String digitalId) throws JsonParseException, JsonMappingException, IOException {
-		return (DigitalId) (mapper.readValue(new String(Base64.getUrlDecoder().decode((digitalId))), DigitalId.class));
+		return (DigitalId) (mapper.readValue(new String(Base64.getUrlDecoder().decode(getPayLoad(digitalId))),
+				DigitalId.class));
 
 	}
 
@@ -517,7 +530,10 @@ public class MosipBioDeviceManagerDuplicate {
 					}));
 
 			for (MdmDeviceInfoResponse deviceInfoResponse : deviceInfoResponses) {
-				mdmDeviceInfos.add(getDeviceInfoDecoded(deviceInfoResponse.getDeviceInfo()));
+
+				if (deviceInfoResponse.getDeviceInfo() != null && !deviceInfoResponse.getDeviceInfo().isEmpty()) {
+					mdmDeviceInfos.add(getDeviceInfoDecoded(deviceInfoResponse.getDeviceInfo()));
+				}
 			}
 
 		} catch (IOException exception) {
@@ -687,4 +703,51 @@ public class MosipBioDeviceManagerDuplicate {
 		return version1;
 	}
 
+//	public String getJwtPayload(String signedJWTData) {
+//
+//		{
+//			try {
+//				String[] parts = signedJWTData.split(".");
+//				String header = parts[0];
+//				// string payload = parts [1];
+//
+//				byte[] signedSignature = Base64.getUrlDecoder().decode(parts[2]);
+//
+//				String headerJson = new String(Base64.getUrlDecoder().decode(header));
+//
+//				JSONObject headerData = new JSONObject(headerJson);
+//
+//				// string payloadJson = Encoding.UTF8.GetString (SBStringUtility.Base64UrlDecode
+//				// (payload));
+//
+//				org.json.JSONArray array = headerData.getJSONArray("x5c");
+//
+//				CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+//
+//				X509Certificate certificate = (X509Certificate) certificateFactory.generateCertificate(
+//						new ByteArrayInputStream(Base64.getDecoder().decode((String) array.get(0))));
+//
+////				RSACryptoServiceProvider rsaProvider = (RSACryptoServiceProvider) cert2.PublicKey.Key;
+////				String decodeData = Jose.JWT.Decode(signedJWTData, rsaProvider, null);
+////				Logger.Info("DecryptJWTSignedData>>decodeData>>>" + decodeData);
+////				return decodeData;
+//			} catch (Exception ex) {
+////				throw new Exception("DecryptJWTSignedData", ex);
+//			}
+//		}
+//		//
+//		// try {
+//		// Payload payLoad = JWSObject.parse(signedJWTData).getPayload();
+//		// System.out.println(payLoad);
+//		// } catch (ParseException e) {
+//		// // TODO Auto-generated catch block
+//		// e.printStackTrace();
+//		// }
+//		//
+//		//// payLoad.ge
+//		//// DecodedJWT decode = JWT.decode(signedJWTData);
+//		////
+//		// System.out.println(decode.getPayload());
+//		return "";
+//	}
 }
