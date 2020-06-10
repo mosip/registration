@@ -6,15 +6,9 @@ import static io.mosip.registration.constants.LoggerConstants.MOSIP_BIO_DEVICE_M
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
@@ -35,7 +29,6 @@ import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,8 +36,6 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jose.JWSObject;
-import com.nimbusds.jose.Payload;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -77,7 +68,6 @@ import io.mosip.registration.mdm.spec_0_9_5.dto.response.RCaptureResponseBiometr
 import io.mosip.registration.mdm.spec_0_9_5.dto.response.RCaptureResponseDataDTO;
 import io.mosip.registration.mdm.spec_0_9_5.service.impl.MDM_095_IntegratorImpl;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
-import net.minidev.json.JSONArray;
 
 /**
  * 
