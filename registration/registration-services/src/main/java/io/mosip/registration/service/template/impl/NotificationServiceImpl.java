@@ -86,7 +86,7 @@ public class NotificationServiceImpl implements NotificationService {
 			requestMap.put("message", message);
 			requestMap.put("number", number);
 			smsdto.setRequest(requestMap);
-			smsdto.setRequesttime(DateUtils.formatToISOString(LocalDateTime.now()));
+			smsdto.setRequesttime(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 			sendNotification(regId, responseDTO, smsdto, SMS_SERVICE, RegistrationConstants.OTP_VALIDATION_SUCCESS);
 		} else {
 			LOGGER.error(NOTIFICATION_SERVICE, APPLICATION_NAME, APPLICATION_ID,"Message and Number can not be null");
