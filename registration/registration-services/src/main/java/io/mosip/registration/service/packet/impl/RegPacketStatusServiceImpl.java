@@ -254,7 +254,7 @@ public class RegPacketStatusServiceImpl extends BaseService implements RegPacket
 			PacketStatusReaderDTO packetStatusReaderDTO = new PacketStatusReaderDTO();
 			packetStatusReaderDTO.setId(RegistrationConstants.PACKET_STATUS_READER_ID);
 			packetStatusReaderDTO.setVersion(RegistrationConstants.PACKET_SYNC_VERSION);
-			packetStatusReaderDTO.setRequesttime(DateUtils.formatToISOString(LocalDateTime.now()));
+			packetStatusReaderDTO.setRequesttime(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 
 			List<RegistrationIdDTO> registrationIdDTOs = new ArrayList<>();
 			for (String packetId : packetIds) {
@@ -460,7 +460,7 @@ public class RegPacketStatusServiceImpl extends BaseService implements RegPacket
 					syncDtoList.add(syncDto);
 				}
 				RegistrationPacketSyncDTO registrationPacketSyncDTO = new RegistrationPacketSyncDTO();
-				registrationPacketSyncDTO.setRequesttime(DateUtils.formatToISOString(LocalDateTime.now()));
+				registrationPacketSyncDTO.setRequesttime(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 				registrationPacketSyncDTO.setSyncRegistrationDTOs(syncDtoList);
 				registrationPacketSyncDTO.setId(RegistrationConstants.PACKET_SYNC_STATUS_ID);
 				registrationPacketSyncDTO.setVersion(RegistrationConstants.PACKET_SYNC_VERSION);

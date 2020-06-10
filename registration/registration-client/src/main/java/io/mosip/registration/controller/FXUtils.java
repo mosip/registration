@@ -626,16 +626,19 @@ public class FXUtils {
 			if (comboBoxValues.get(0) instanceof DocumentCategoryDto) {
 				findIndexOfSelectedItem = index -> ((DocumentCategoryDto) comboBoxValues.get(index)).getName()
 						.equals(selectedValue);
+				OptionalInt indexOfSelectedLocation = getIndexOfSelectedItem(comboBoxValues, findIndexOfSelectedItem);
+				if (indexOfSelectedLocation.isPresent()) {
+					((DocumentCategoryDto) comboBoxValues.get(indexOfSelectedLocation.getAsInt())).setScanned(true);
+					comboBox.getSelectionModel().select(indexOfSelectedLocation.getAsInt());
+				}
+				
 			} else if (comboBoxValues.get(0) instanceof GenericDto) {
 				findIndexOfSelectedItem = index -> ((GenericDto) comboBoxValues.get(index)).getCode()
 						.equals(selectedValue);
-			}
-
-			OptionalInt indexOfSelectedLocation = getIndexOfSelectedItem(comboBoxValues, findIndexOfSelectedItem);
-
-			if (indexOfSelectedLocation.isPresent()) {
-				((DocumentCategoryDto) comboBoxValues.get(indexOfSelectedLocation.getAsInt())).setScanned(true);
-				comboBox.getSelectionModel().select(indexOfSelectedLocation.getAsInt());
+				OptionalInt indexOfSelectedLocation = getIndexOfSelectedItem(comboBoxValues, findIndexOfSelectedItem);
+				if (indexOfSelectedLocation.isPresent()) {
+					comboBox.getSelectionModel().select(indexOfSelectedLocation.getAsInt());
+				}
 			}
 		}
 	}
