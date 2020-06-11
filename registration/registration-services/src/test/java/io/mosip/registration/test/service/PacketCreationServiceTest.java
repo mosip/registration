@@ -166,6 +166,7 @@ public class PacketCreationServiceTest {
 		packetCreationServiceImpl.create(registrationDTO);
 	}
 
+	@Ignore
 	@SuppressWarnings("unchecked")
 	@Test(expected = RegBaseCheckedException.class)
 	public void testCBEFFException() throws Exception {
