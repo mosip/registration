@@ -468,8 +468,14 @@ public class MessageNotificationServiceImpl
 		String email = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.EMAIL),MappingJsonConstants.VALUE);
 		String phone = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PHONE),MappingJsonConstants.VALUE);
 
-		emailId.append(JsonUtil.getJSONValue(demographicIdentity, email).toString());
-		phoneNumber.append(JsonUtil.getJSONValue(demographicIdentity, phone).toString());
+		String emailValue = JsonUtil.getJSONValue(demographicIdentity, email);
+		String phoneNumberValue = JsonUtil.getJSONValue(demographicIdentity, phone);
+		if (emailValue != null) {
+			emailId.append(emailValue);
+		}
+		if (phoneNumberValue != null) {
+			phoneNumber.append(phoneNumberValue);
+		}
 
 	}
 
