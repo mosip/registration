@@ -22,7 +22,7 @@
 		<main.basedir>${project.basedir}</main.basedir>
 		<maven.jacoco.version>0.8.2</maven.jacoco.version>
 		<javafx.version>2.2</javafx.version>
-		<maven.sonar.version>3.7.0.1746</maven.sonar.version>
+		<maven.sonar.version>3.2</maven.sonar.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
@@ -389,7 +389,7 @@
 				</configuration>
 			</plugin>
 			
-			<plugin>
+			<!-- <plugin>
 					<groupId>org.sonarsource.scanner.maven</groupId>
 					<artifactId>sonar-maven-plugin</artifactId>
 					<version>${maven.sonar.version}</version>
@@ -401,7 +401,7 @@
 								</goals>
 							</execution>
 					   </executions>
-				</plugin>
+				</plugin> -->
 
 			<plugin>
 				<groupId>org.jacoco</groupId>
@@ -430,7 +430,7 @@
 			</plugin>
 		</plugins>
 	</build>
-<!--	<profiles>
+	<profiles>
 		<profile>
 			<id>DEV</id>
 			<properties>
@@ -439,7 +439,7 @@
 				<sonar.projectName>Registration-DEV</sonar.projectName>
 				<sonar.projectVersion>master</sonar.projectVersion>
 				<sonar.test.exclusions>**/test/**/*.*</sonar.test.exclusions>
-			        <sonar.exclusions>**/ai/**/*.*,**/jdbc/**/*.*,**/mpt/**/*.*,**/jcr/**/*.*,**/JDBC*</sonar.exclusions>
+			       <!-- <sonar.exclusions>**/ai/**/*.*,**/jdbc/**/*.*,**/mpt/**/*.*,**/jcr/**/*.*,**/JDBC*</sonar.exclusions> -->
 				<sonar.jacoco.reportPaths>
 					target/jacoco.exec
 				</sonar.jacoco.reportPaths>
@@ -453,12 +453,11 @@
 				<sonar.projectName>Registration</sonar.projectName>
 				<sonar.projectVersion>master</sonar.projectVersion>
 				<sonar.test.exclusions>**/test/**/*.*</sonar.test.exclusions>
-				<sonar.exclusions>**/ai/**/*.*,**/jdbc/**/*.*,**/mpt/**/*.*,**/jcr/**/*.*,**/JDBC*</sonar.exclusions>
+				<!-- <sonar.exclusions>**/ai/**/*.*,**/jdbc/**/*.*,**/mpt/**/*.*,**/jcr/**/*.*,**/JDBC*</sonar.exclusions> -->
 				<sonar.jacoco.reportPaths>
 					target/jacoco.exec
 				</sonar.jacoco.reportPaths>
 			</properties>
 		</profile>
 	</profiles>
--->
 </project>
