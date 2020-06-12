@@ -2,6 +2,7 @@ package io.mosip.registartion.processor.abis.middleware.stage;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doThrow;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +18,7 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import io.mosip.kernel.core.exception.IOException;
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -337,6 +339,8 @@ public class AbisMiddleWareStageTest {
 		stage.process(dto);
 		assertFalse(dto.getIsValid());
 	}
+		
+	
 
 	@Test
 	public void testConsumerListener() throws RegistrationProcessorCheckedException {
@@ -369,7 +373,28 @@ public class AbisMiddleWareStageTest {
 		stage.consumerListener(amq, "abis1_inboundAddress", queue, evenBus);
 
 	}
+	
 
+	@Test
+	public void testConsumerListenerForIdentifyReq() throws RegistrationProcessorCheckedException {
+
+
+		String failedInsertResponse = "{\"id\":\"mosip.id.identify\",\"requestId\":\"01234567-89AB-CDEF-0123-456789ABCDEF\",\"responsetime\":\"2020-03-29T07:01:24.692Z\",\"returnValue\":\"2\",\"failureReason\":\"7\"}";
+		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
+		ByteSequence byteSeq = new ByteSequence();
+		byteSeq.setData(failedInsertResponse.getBytes());
+		amq.setContent(byteSeq);
+		Vertx vertx = Mockito.mock(Vertx.class);
+		MosipEventBus evenBus = new MosipEventBus(vertx);
+		MosipQueue queue = Mockito.mock(MosipQueue.class);
+		AbisRequestDto abisCommonRequestDto = new AbisRequestDto();
+		abisCommonRequestDto.setRequestType("IDENTIFY");
+		Mockito.when(packetInfoManager.getAbisRequestByRequestId(Mockito.any())).thenReturn(abisCommonRequestDto);
+		stage.consumerListener(amq, "abis1_inboundAddress", queue, evenBus);
+
+
+	}
+	
 	@Test
 	public void batchIdNull() throws RegistrationProcessorCheckedException {
 		String sucessfulResponse = "{\"id\":\"mosip.abis.insert\",\"requestId\":\"5b64e806-8d5f-4ba1-b641-0b55cf40c0e1\",\"responsetime\":"
