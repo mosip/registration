@@ -18,6 +18,8 @@ public enum NotificationStageStatus {
 
 	QUALITY_CHECK_FAILED,
 
+	VALIDATE_PACKET_ERROR,
+
 	BIOMETRIC_AUTHENTICATION_FAILED
 
 }
