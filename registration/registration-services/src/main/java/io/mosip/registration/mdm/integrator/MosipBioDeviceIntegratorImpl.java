@@ -5,11 +5,14 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.http.ParseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
@@ -238,5 +241,25 @@ public class MosipBioDeviceIntegratorImpl implements IMosipBioDeviceIntegrator {
 	@Override
 	public boolean jwsValidation(String jwsResponse) throws RegBaseCheckedException {
 		return jwsValidation.verifySignature(jwsResponse);
+	}
+
+	@Override
+	public Object decodeRCaptureData(String data) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object rCapture(String url, Object registrationCaptureRequestDto)
+			throws JsonParseException, JsonMappingException, ParseException, IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public InputStream stream(String url, Object registrationStreamRequestDto)
+			throws MalformedURLException, IOException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

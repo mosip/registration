@@ -37,8 +37,8 @@ public class Streamer {
 
 	private final String CONTENT_LENGTH = "Content-Length:";
 
-	@Autowired
-	private MosipBioDeviceManager mosipBioDeviceManager;
+//	@Autowired
+//	private MosipBioDeviceManager mosipBioDeviceManager;
 
 	@Autowired
 	private MosipBioDeviceManagerDuplicate mosipBioDeviceManagerDuplicate;
@@ -126,6 +126,7 @@ public class Streamer {
 						setPopViewControllerMessage(true,
 								RegistrationUIConstants.getMessageLanguageSpecific("202_MESSAGE"), false);
 
+						mosipBioDeviceManagerDuplicate.init();
 						return;
 					}
 
@@ -138,10 +139,10 @@ public class Streamer {
 					try {
 
 						// Refreshing Device info, for checking of new connection
-						mosipBioDeviceManager.refreshBioDeviceByDeviceType(type);
+						mosipBioDeviceManagerDuplicate.init();
 
 						// Start stream with new device
-						urlStream = mosipBioDeviceManager.stream(type);
+						urlStream = mosipBioDeviceManagerDuplicate.getStream(type);
 						if (urlStream == null) {
 
 							LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
@@ -157,7 +158,7 @@ public class Streamer {
 						}
 						setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_INIT_MESSAGE, true);
 
-					} catch (RegBaseCheckedException | IOException regBaseCheckedException) {
+					} catch (IOException regBaseCheckedException) {
 
 						LOGGER.error(STREAMER, RegistrationConstants.APPLICATION_NAME,
 								RegistrationConstants.APPLICATION_ID, regBaseCheckedException.getMessage()

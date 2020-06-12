@@ -313,13 +313,13 @@ public class GuardianBiometricsController extends BaseController /* implements I
 						getValue(RegistrationConstants.IRIS_DOUBLE, RegistrationConstants.eyesUiAttributes),
 						getValue(RegistrationConstants.FACE, RegistrationConstants.faceUiAttributes)));
 
-		if(mapToProcess.isEmpty()) {
+		if (mapToProcess.isEmpty()) {
 			LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					"populateBiometricPage mapToProcess is EMTPY");
 			updatePageFlow(RegistrationConstants.GUARDIAN_BIOMETRIC, false);
 			return;
 		}
-			
+
 		removeInapplicableCapturedData(mapToProcess);
 
 		ContentHeader.getChildren().clear();
@@ -342,7 +342,8 @@ public class GuardianBiometricsController extends BaseController /* implements I
 					comboBox.getItems().add(new SimpleEntry<String, String>(biometric.getKey(),
 							applicationLabelBundle.getString(biometric.getKey())));
 
-					if (!listOfCheckBoxes.get(0).get(0).equals("face") && !"introducer".equalsIgnoreCase(subType.getKey().getKey())) {
+					if (!listOfCheckBoxes.get(0).get(0).equals("face")
+							&& !"introducer".equalsIgnoreCase(subType.getKey().getKey())) {
 
 						VBox vboxForCheckBox = new VBox();
 						vboxForCheckBox.setSpacing(5);
@@ -365,16 +366,20 @@ public class GuardianBiometricsController extends BaseController /* implements I
 								checkBox.selectedProperty().addListener((obsValue, oldValue, newValue) -> {
 
 									if (checkBox.isSelected()) {
-										getRegistrationDTOFromSession().addBiometricException(currentSubType,
-												checkBox.getId(), "Temporary", "Temporary");
+										getRegistrationDTOFromSession().addBiometricException(
+												currentSubType, io.mosip.registration.mdm.dto.Biometric
+														.getSpecConstantByAttributeName(checkBox.getId()),
+												"Temporary", "Temporary");
 									} else {
 										getRegistrationDTOFromSession().removeBiometricException(currentSubType,
-												checkBox.getId());
+												io.mosip.registration.mdm.dto.Biometric
+														.getSpecConstantByAttributeName(checkBox.getId()));
 									}
 
 									for (Node exceptionCheckBox : vboxForCheckBox.getChildren()) {
 										getRegistrationDTOFromSession().removeBiometric(currentSubType,
-												exceptionCheckBox.getId());
+												io.mosip.registration.mdm.dto.Biometric
+														.getSpecConstantByAttributeName(exceptionCheckBox.getId()));
 
 									}
 
@@ -478,10 +483,11 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		if (checkBoxNodes != null && !checkBoxNodes.isEmpty()) {
 
 			for (Node exceptionCheckBox : checkBoxNodes) {
-				if(exceptionCheckBox instanceof CheckBox) {
+				if (exceptionCheckBox instanceof CheckBox) {
 					isAllExceptions = !((CheckBox) exceptionCheckBox).isDisable() ? isAllExceptions
 							? getRegistrationDTOFromSession().isBiometricExceptionAvailable(currentSubType,
-									exceptionCheckBox.getId())
+									io.mosip.registration.mdm.dto.Biometric
+									.getSpecConstantByAttributeName(exceptionCheckBox.getId()))
 							: isAllExceptions : isAllExceptions;
 				}
 			}
@@ -622,19 +628,20 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		if (!isFace(modality)) {
 			List<Node> checkBoxNodes = getCheckBoxes(currentSubType, currentModality);
 
-			/*List<Node> exceptionCheckBoxNodes = checkBoxNodes.stream().filter((node) -> {
-
-				CheckBox checkBox = (CheckBox) node;
-				return checkBox.isDisabled() || checkBox.isSelected();
-			}).collect(Collectors.toList());*/
+			/*
+			 * List<Node> exceptionCheckBoxNodes = checkBoxNodes.stream().filter((node) -> {
+			 * 
+			 * CheckBox checkBox = (CheckBox) node; return checkBox.isDisabled() ||
+			 * checkBox.isSelected(); }).collect(Collectors.toList());
+			 */
 
 			List<String> exceptionBioAttributes = null;
 			List<String> nonExceptionBioAttributes = null;
 
 			for (Node node : checkBoxNodes) {
-				if(node instanceof CheckBox) {
+				if (node instanceof CheckBox) {
 					CheckBox checkBox = (CheckBox) node;
-	
+
 					if (checkBox.isSelected() || checkBox.isDisable()) {
 						exceptionBioAttributes = exceptionBioAttributes != null ? exceptionBioAttributes
 								: new LinkedList<String>();
@@ -692,19 +699,21 @@ public class GuardianBiometricsController extends BaseController /* implements I
 				"Parent/Guardian Biometrics captured");
 	}
 
-	/*private String getRegistrationDTOBioAttribute(String attribute) {
-
-		String bioAttributeByMap = RegistrationConstants.regBioMap.get(attribute);
-
-		return bioAttributeByMap != null ? bioAttributeByMap : attribute;
-	}
-
-	private String getRegistrationDTOBioAttributeByMdsAttribute(String attribute) {
-
-		String bioAttributeByMap = RegistrationConstants.mdsToRegBioMap.get(attribute);
-
-		return bioAttributeByMap != null ? bioAttributeByMap : attribute;
-	}*/
+	/*
+	 * private String getRegistrationDTOBioAttribute(String attribute) {
+	 * 
+	 * String bioAttributeByMap = RegistrationConstants.regBioMap.get(attribute);
+	 * 
+	 * return bioAttributeByMap != null ? bioAttributeByMap : attribute; }
+	 * 
+	 * private String getRegistrationDTOBioAttributeByMdsAttribute(String attribute)
+	 * {
+	 * 
+	 * String bioAttributeByMap =
+	 * RegistrationConstants.mdsToRegBioMap.get(attribute);
+	 * 
+	 * return bioAttributeByMap != null ? bioAttributeByMap : attribute; }
+	 */
 
 	private void enableCurrentCheckBoxSection() {
 
@@ -724,9 +733,8 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		checkBoxPane.setVisible(false);
 		if (currentPosition != -1) {
 			if (this.currentModality != null
-					&& checkBoxMap.get(getListOfBiometricSubTypes().get(currentPosition)) != null
-					&& checkBoxMap.get(getListOfBiometricSubTypes().get(currentPosition))
-							.get(this.currentModality) != null) {
+					&& checkBoxMap.get(getListOfBiometricSubTypes().get(currentPosition)) != null && checkBoxMap
+							.get(getListOfBiometricSubTypes().get(currentPosition)).get(this.currentModality) != null) {
 				checkBoxMap.get(getListOfBiometricSubTypes().get(currentPosition)).get(this.currentModality)
 						.setVisible(false);
 				checkBoxMap.get(getListOfBiometricSubTypes().get(currentPosition)).get(this.currentModality)
@@ -794,37 +802,37 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		return currentModality.toUpperCase().contains(RegistrationConstants.FACE.toUpperCase());
 	}
 
-	/*private List<String> getExceptionBioAttributesByBioType(String subType, String bioType) {
-
-		// Exception fingers
-		List<String> exceptionBioAttributes = null;
-
-		// Get Non configured bio attributes Using Ui Schema
-		// List<String> nonConfigBioAttributesByBioType =
-		// getNonConfigBioAttributes(currentSubType,
-		// Biometric.getDefaultAttributes(bioType));
-		//
-		// if (nonConfigBioAttributesByBioType != null &&
-		// !nonConfigBioAttributesByBioType.isEmpty()) {
-		// exceptionBioAttributes = exceptionBioAttributes != null ?
-		// exceptionBioAttributes : new LinkedList<String>();
-		//
-		// exceptionBioAttributes.addAll(nonConfigBioAttributesByBioType);
-		//
-		// }
-
-		// Get Operator selected Exception biometric attributes
-		List<String> selectedExceptionBioAttributes = getSelectedExceptionsByBioType(subType, bioType);
-
-		if (selectedExceptionBioAttributes != null && !selectedExceptionBioAttributes.isEmpty()) {
-			exceptionBioAttributes = exceptionBioAttributes != null ? exceptionBioAttributes : new LinkedList<String>();
-
-			exceptionBioAttributes.addAll(selectedExceptionBioAttributes);
-
-		}
-
-		return exceptionBioAttributes;
-	}*/
+	/*
+	 * private List<String> getExceptionBioAttributesByBioType(String subType,
+	 * String bioType) {
+	 * 
+	 * // Exception fingers List<String> exceptionBioAttributes = null;
+	 * 
+	 * // Get Non configured bio attributes Using Ui Schema // List<String>
+	 * nonConfigBioAttributesByBioType = //
+	 * getNonConfigBioAttributes(currentSubType, //
+	 * Biometric.getDefaultAttributes(bioType)); // // if
+	 * (nonConfigBioAttributesByBioType != null && //
+	 * !nonConfigBioAttributesByBioType.isEmpty()) { // exceptionBioAttributes =
+	 * exceptionBioAttributes != null ? // exceptionBioAttributes : new
+	 * LinkedList<String>(); // //
+	 * exceptionBioAttributes.addAll(nonConfigBioAttributesByBioType); // // }
+	 * 
+	 * // Get Operator selected Exception biometric attributes List<String>
+	 * selectedExceptionBioAttributes = getSelectedExceptionsByBioType(subType,
+	 * bioType);
+	 * 
+	 * if (selectedExceptionBioAttributes != null &&
+	 * !selectedExceptionBioAttributes.isEmpty()) { exceptionBioAttributes =
+	 * exceptionBioAttributes != null ? exceptionBioAttributes : new
+	 * LinkedList<String>();
+	 * 
+	 * exceptionBioAttributes.addAll(selectedExceptionBioAttributes);
+	 * 
+	 * }
+	 * 
+	 * return exceptionBioAttributes; }
+	 */
 
 	private List<String> getSelectedExceptionsByBioType(String subType, String modality) {
 		List<String> selectedExceptions = new LinkedList<String>();
@@ -833,11 +841,13 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		List<Node> exceptionCheckBoxes = getCheckBoxes(subType, modality);
 		if (exceptionCheckBoxes != null && !exceptionCheckBoxes.isEmpty()) {
 			for (Node checkBoxx : exceptionCheckBoxes) {
-				if(checkBoxx instanceof CheckBox) {
-				CheckBox checkBox = (CheckBox) checkBoxx;
+				if (checkBoxx instanceof CheckBox) {
+					CheckBox checkBox = (CheckBox) checkBoxx;
 					if (checkBox.isSelected()) {
-						//String exceptionName = RegistrationConstants.uIToMDSExceptionMap.get(checkBox.getId());
-						selectedExceptions.add(checkBox.getId());
+						// String exceptionName =
+						// RegistrationConstants.uIToMDSExceptionMap.get(checkBox.getId());
+						selectedExceptions.add(
+								io.mosip.registration.mdm.dto.Biometric.getSpecConstantByAttributeName(checkBox.getId()));
 					}
 				}
 			}
@@ -890,18 +900,19 @@ public class GuardianBiometricsController extends BaseController /* implements I
 
 		// Get Exception attributes
 		List<String> exceptionBioAttributes = getSelectedExceptionsByBioType(subType, modality);
-				
+
 		// TODO prepare bio attributes
-		//String[] bioAttributes = null;
+		// String[] bioAttributes = null;
 
 		// Check count
 		int count = 1;
 
-		//modality = isFace(currentModality) ? RegistrationConstants.FACE_FULLFACE : modality;
+		// modality = isFace(currentModality) ? RegistrationConstants.FACE_FULLFACE :
+		// modality;
 
-		//TODO need to take env from global_params
-		MDMRequestDto mdmRequestDto = new MDMRequestDto(currentModality, exceptionBioAttributes.toArray(new String[0]), 
-				"Registration", "Staging", Integer.valueOf(getCaptureTimeOut()), count, 
+		// TODO need to take env from global_params
+		MDMRequestDto mdmRequestDto = new MDMRequestDto(currentModality, exceptionBioAttributes.toArray(new String[0]),
+				"Registration", "Staging", Integer.valueOf(getCaptureTimeOut()), count,
 				getThresholdScoreInInt(getThresholdKeyByBioType(currentModality)));
 
 		LOGGER.debug(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
@@ -942,8 +953,9 @@ public class GuardianBiometricsController extends BaseController /* implements I
 				for (BiometricsDto biometricDTO : biometricDTOList) {
 					LOGGER.debug(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 							"BiometricDTO captured from mock/real MDM >>> " + biometricDTO.getBioAttribute());
-					
-					if (!exceptionBioAttributes.isEmpty() && exceptionBioAttributes.contains(biometricDTO.getBioAttribute())) {
+
+					if (!exceptionBioAttributes.isEmpty()
+							&& exceptionBioAttributes.contains(biometricDTO.getBioAttribute())) {
 						continue;
 					} else {
 						qualityScore += biometricDTO.getQualityScore();
@@ -952,7 +964,8 @@ public class GuardianBiometricsController extends BaseController /* implements I
 				}
 
 				savedBiometrics = getRegistrationDTOFromSession().addAllBiometrics(subType, savedBiometrics,
-						getThresholdScoreInDouble(getThresholdKeyByBioType(currentModality)), getMaxRetryByModality(currentModality));
+						getThresholdScoreInDouble(getThresholdKeyByBioType(currentModality)),
+						getMaxRetryByModality(currentModality));
 
 				if (!savedBiometrics.isEmpty()) {
 					// if all the above check success show alert capture success
@@ -969,8 +982,8 @@ public class GuardianBiometricsController extends BaseController /* implements I
 					addBioStreamImage(subType, currentModality, savedBiometrics.get(0).getNumOfRetries(), streamImage);
 
 					addBioScores(subType, currentModality, String.valueOf(savedBiometrics.get(0).getNumOfRetries()),
-							qualityScore / savedBiometrics.size());					
-					
+							qualityScore / savedBiometrics.size());
+
 					// using captured response fill the fields like quality score and progress
 					// bar,,etc,.. UI
 					loadBiometricsUIElements(savedBiometrics, subType, currentModality);
@@ -989,7 +1002,8 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		} catch (Exception exception) {
 			exception.printStackTrace();
 			LOGGER.error(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-					String.format("Exception while capturing biometrics : ", exception.getMessage(), ExceptionUtils.getStackTrace(exception)));
+					String.format("Exception while capturing biometrics : ", exception.getMessage(),
+							ExceptionUtils.getStackTrace(exception)));
 
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.BIOMETRIC_CAPTURE_FAILURE);
 		}
@@ -2063,25 +2077,27 @@ public class GuardianBiometricsController extends BaseController /* implements I
 	public void refreshContinueButton() {
 		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
 				RegistrationConstants.APPLICATION_NAME, "refreshContinueButton invoked");
-		
-		if(getListOfBiometricSubTypes().isEmpty()) {
+
+		if (getListOfBiometricSubTypes().isEmpty()) {
 			LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
-					RegistrationConstants.APPLICATION_NAME, "refreshContinueButton NON of the BIOMETRIC FIELD IS ENABLED");
+					RegistrationConstants.APPLICATION_NAME,
+					"refreshContinueButton NON of the BIOMETRIC FIELD IS ENABLED");
 			return;
 		}
-		//if one or more biometric is marked as exception, then mandate collecting of POE
-		if(!isPOECollected()) {
+		// if one or more biometric is marked as exception, then mandate collecting of
+		// POE
+		if (!isPOECollected()) {
 			continueBtn.setDisable(true);
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.EXCEPTION_PHOTO_MANDATORY);
 			LOGGER.error("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
 					RegistrationConstants.APPLICATION_NAME, "POE documents required");
 			return;
 		}
-				
+
 		String currentSubType = getListOfBiometricSubTypes().get(currentPosition);
-		List<String> bioAttributes = currentMap.get(currentSubType);		
-	
-		//boolean isAllBiometricsCaptured = true;
+		List<String> bioAttributes = currentMap.get(currentSubType);
+
+		// boolean isAllBiometricsCaptured = true;
 
 		List<String> leftHandBioAttributes = getContainsAllElements(RegistrationConstants.leftHandUiAttributes,
 				bioAttributes);
@@ -2092,27 +2108,34 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		List<String> faceBioAttributes = getContainsAllElements(RegistrationConstants.faceUiAttributes, bioAttributes);
 		List<String> irisBioAttributes = getContainsAllElements(RegistrationConstants.eyesUiAttributes, bioAttributes);
 
-		/*isAllBiometricsCaptured = isBiometricsCaptured(leftHandBioAttributes,
-				getThresholdScoreInInt(RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD))
-				&& isBiometricsCaptured(rightHandBioAttributes,
-						getThresholdScoreInInt(RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD))
-				&& isBiometricsCaptured(twoThumbsBioAttributes,
-						getThresholdScoreInInt(RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD))
-				&& isBiometricsCaptured(irisBioAttributes, getThresholdScoreInInt(RegistrationConstants.IRIS_THRESHOLD))
-				&& isBiometricsCaptured(faceBioAttributes, getThresholdScoreInInt(RegistrationConstants.FACE));*/
+		/*
+		 * isAllBiometricsCaptured = isBiometricsCaptured(leftHandBioAttributes,
+		 * getThresholdScoreInInt(RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD))
+		 * && isBiometricsCaptured(rightHandBioAttributes,
+		 * getThresholdScoreInInt(RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD)
+		 * ) && isBiometricsCaptured(twoThumbsBioAttributes,
+		 * getThresholdScoreInInt(RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD))
+		 * && isBiometricsCaptured(irisBioAttributes,
+		 * getThresholdScoreInInt(RegistrationConstants.IRIS_THRESHOLD)) &&
+		 * isBiometricsCaptured(faceBioAttributes,
+		 * getThresholdScoreInInt(RegistrationConstants.FACE));
+		 */
 
 		Map<String, Boolean> capturedDetails = new HashMap<String, Boolean>();
 
-		capturedDetails = setCapturedDetailsMap(capturedDetails, leftHandBioAttributes, isBiometricsCaptured(currentSubType,
-				leftHandBioAttributes, getThresholdScoreInInt(RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD)));
-		capturedDetails = setCapturedDetailsMap(capturedDetails, rightHandBioAttributes, isBiometricsCaptured(currentSubType,
-				rightHandBioAttributes, getThresholdScoreInInt(RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD)));
-		capturedDetails = setCapturedDetailsMap(capturedDetails, twoThumbsBioAttributes, isBiometricsCaptured(currentSubType,
-				twoThumbsBioAttributes, getThresholdScoreInInt(RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD)));
-		capturedDetails = setCapturedDetailsMap(capturedDetails, irisBioAttributes,
-				isBiometricsCaptured(currentSubType, irisBioAttributes, getThresholdScoreInInt(RegistrationConstants.IRIS_THRESHOLD)));
-		capturedDetails = setCapturedDetailsMap(capturedDetails, faceBioAttributes,
-				isBiometricsCaptured(currentSubType, faceBioAttributes, getThresholdScoreInInt(RegistrationConstants.FACE)));
+		capturedDetails = setCapturedDetailsMap(capturedDetails, leftHandBioAttributes,
+				isBiometricsCaptured(currentSubType, leftHandBioAttributes,
+						getThresholdScoreInInt(RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD)));
+		capturedDetails = setCapturedDetailsMap(capturedDetails, rightHandBioAttributes,
+				isBiometricsCaptured(currentSubType, rightHandBioAttributes,
+						getThresholdScoreInInt(RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD)));
+		capturedDetails = setCapturedDetailsMap(capturedDetails, twoThumbsBioAttributes,
+				isBiometricsCaptured(currentSubType, twoThumbsBioAttributes,
+						getThresholdScoreInInt(RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD)));
+		capturedDetails = setCapturedDetailsMap(capturedDetails, irisBioAttributes, isBiometricsCaptured(currentSubType,
+				irisBioAttributes, getThresholdScoreInInt(RegistrationConstants.IRIS_THRESHOLD)));
+		capturedDetails = setCapturedDetailsMap(capturedDetails, faceBioAttributes, isBiometricsCaptured(currentSubType,
+				faceBioAttributes, getThresholdScoreInInt(RegistrationConstants.FACE)));
 
 		String operator = " && ";
 		switch (getRegistrationDTOFromSession().getRegistrationCategory()) {
@@ -2126,41 +2149,41 @@ public class GuardianBiometricsController extends BaseController /* implements I
 			operator = " || ";
 			break;
 		}
-		
+
 		String expression = String.join(operator, bioAttributes);
 		boolean result = MVEL.evalToBoolean(expression, capturedDetails);
 		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
-				RegistrationConstants.APPLICATION_NAME, "biometrics >>> " + getRegistrationDTOFromSession().getBiometrics().keySet());
+				RegistrationConstants.APPLICATION_NAME,
+				"biometrics >>> " + getRegistrationDTOFromSession().getBiometrics().keySet());
 		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
-				RegistrationConstants.APPLICATION_NAME, "getBiometricExceptions >>> " + getRegistrationDTOFromSession().getBiometricExceptions().keySet());
+				RegistrationConstants.APPLICATION_NAME,
+				"getBiometricExceptions >>> " + getRegistrationDTOFromSession().getBiometricExceptions().keySet());
 		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
 				RegistrationConstants.APPLICATION_NAME, "biometrics captured >>> " + capturedDetails);
 		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
-				RegistrationConstants.APPLICATION_NAME, "Expression >> "+expression+" :: result >> " + result);
-		continueBtn.setDisable(result ? false : true);		
+				RegistrationConstants.APPLICATION_NAME, "Expression >> " + expression + " :: result >> " + result);
+		continueBtn.setDisable(result ? false : true);
 	}
-	
-	private boolean isPOECollected() {		
-		if(getRegistrationDTOFromSession().getBiometricExceptions().isEmpty())
+
+	private boolean isPOECollected() {
+		if (getRegistrationDTOFromSession().getBiometricExceptions().isEmpty())
 			return true;
-		
+
 		boolean collected = false;
-		List<String> poeFields = getValidationMap().values().stream().filter(field -> 
-			field.getSubType() != null && "POE".equalsIgnoreCase(field.getSubType()))
-			.map(UiSchemaDTO::getId)
-			.collect(Collectors.toList());
-		
-		if(poeFields != null && poeFields.size() > 0) {
-			for(String fieldId : poeFields) {
-				if(getRegistrationDTOFromSession().getDocuments().containsKey(fieldId)) {
+		List<String> poeFields = getValidationMap().values().stream()
+				.filter(field -> field.getSubType() != null && "POE".equalsIgnoreCase(field.getSubType()))
+				.map(UiSchemaDTO::getId).collect(Collectors.toList());
+
+		if (poeFields != null && poeFields.size() > 0) {
+			for (String fieldId : poeFields) {
+				if (getRegistrationDTOFromSession().getDocuments().containsKey(fieldId)) {
 					collected = true;
 					break;
 				}
 			}
-		}
-		else
+		} else
 			collected = true;
-		
+
 		return collected;
 	}
 
@@ -2173,18 +2196,17 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		return capturedDetails;
 	}
 
-	/*private boolean isBiometricCaptured(String bioAttribute) {
-		boolean isCaptured = false;
-		if (getRegistrationDTOFromSession().getBiometric(currentSubType, bioAttribute) != null
-				|| getRegistrationDTOFromSession().isBiometricExceptionAvailable(currentSubType, bioAttribute)) {
-			isCaptured = true;
-		}
-		return isCaptured;
-	}*/
+	/*
+	 * private boolean isBiometricCaptured(String bioAttribute) { boolean isCaptured
+	 * = false; if (getRegistrationDTOFromSession().getBiometric(currentSubType,
+	 * bioAttribute) != null ||
+	 * getRegistrationDTOFromSession().isBiometricExceptionAvailable(currentSubType,
+	 * bioAttribute)) { isCaptured = true; } return isCaptured; }
+	 */
 
 	private boolean isBiometricsCaptured(String subType, List<String> bioAttributes, int thresholdScore) {
 		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
-				RegistrationConstants.APPLICATION_NAME, "isBiometricsCaptured invoked  subType >> "+subType);
+				RegistrationConstants.APPLICATION_NAME, "isBiometricsCaptured invoked  subType >> " + subType);
 		boolean isCaptured = false;
 
 		if (bioAttributes != null && !bioAttributes.isEmpty()) {
@@ -2196,7 +2218,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 			boolean isForceCaptured = false;
 			for (String bioAttribute : bioAttributes) {
 
-				BiometricsDto biometricDTO = getRegistrationDTOFromSession().getBiometric(subType,bioAttribute);
+				BiometricsDto biometricDTO = getRegistrationDTOFromSession().getBiometric(subType, bioAttribute);
 				if (biometricDTO != null) {
 
 					/* Captures check */
@@ -2205,7 +2227,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 					isCaptured = true;
 					isForceCaptured = biometricDTO.isForceCaptured();
 
-				} else if (getRegistrationDTOFromSession().isBiometricExceptionAvailable(subType,bioAttribute)) {
+				} else if (getRegistrationDTOFromSession().isBiometricExceptionAvailable(subType, bioAttribute)) {
 
 					/* Exception bio check */
 					isCaptured = true;
@@ -2218,12 +2240,14 @@ public class GuardianBiometricsController extends BaseController /* implements I
 			}
 
 			LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
-					RegistrationConstants.APPLICATION_NAME, "isBiometricsCaptured - isCaptured >> "+ isCaptured);
+					RegistrationConstants.APPLICATION_NAME, "isBiometricsCaptured - isCaptured >> " + isCaptured);
 			LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
-					RegistrationConstants.APPLICATION_NAME, "isBiometricsCaptured - isForceCaptured >> "+ isForceCaptured);
+					RegistrationConstants.APPLICATION_NAME,
+					"isBiometricsCaptured - isForceCaptured >> " + isForceCaptured);
 			LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
-					RegistrationConstants.APPLICATION_NAME, "isBiometricsCaptured - bioAttributes.size() == exceptionBioCount >> "+ 
-							( bioAttributes.size() == exceptionBioCount));
+					RegistrationConstants.APPLICATION_NAME,
+					"isBiometricsCaptured - bioAttributes.size() == exceptionBioCount >> "
+							+ (bioAttributes.size() == exceptionBioCount));
 			/* quality score check and force capture check */
 			if (isCaptured && !isForceCaptured) {
 
@@ -2248,16 +2272,16 @@ public class GuardianBiometricsController extends BaseController /* implements I
 	 *            the bio type
 	 * @return the bio type
 	 */
-/*	private String getBioType(String bioType) {
-
-		if (bioType.equalsIgnoreCase(RegistrationConstants.IRIS_DOUBLE)
-				|| bioType.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_LEFT)) {
-			String[] returnEye = bioType.split("_");
-			bioType = returnEye[0];
-		}
-		return bioType;
-
-	}*/
+	/*
+	 * private String getBioType(String bioType) {
+	 * 
+	 * if (bioType.equalsIgnoreCase(RegistrationConstants.IRIS_DOUBLE) ||
+	 * bioType.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_LEFT)) {
+	 * String[] returnEye = bioType.split("_"); bioType = returnEye[0]; } return
+	 * bioType;
+	 * 
+	 * }
+	 */
 
 	public void addBioScores(String subType, String modality, String attempt, double qualityScore) {
 
@@ -2306,7 +2330,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		}
 		return path;
 	}
-	
+
 	private List<String> getListOfBiometricSubTypes() {
 		return new ArrayList<String>(currentMap.keySet());
 	}

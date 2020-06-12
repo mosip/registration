@@ -159,7 +159,7 @@ public class RegistrationDTO {
 
 	public void addBiometricException(String subType, String bioAttribute, String reason, String exceptionType) {		
 		String key = String.format("%s_%s", subType, bioAttribute);
-		SingleType type = Biometric.getSingleTypeByAttribute(bioAttribute);
+		SingleType type = io.mosip.registration.mdm.dto.Biometric.getSingleTypeBySpecConstant(bioAttribute);
 		this.biometricExceptions.put(key, new BiometricsException(type == null ? null : type.value(), bioAttribute,
 				reason, exceptionType, subType));
 		this.biometrics.remove(key);

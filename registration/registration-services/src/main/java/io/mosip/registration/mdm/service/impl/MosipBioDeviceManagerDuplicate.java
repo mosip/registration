@@ -49,7 +49,6 @@ import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.dao.impl.RegisteredDeviceDAO;
-import io.mosip.registration.dto.json.metadata.DigitalId;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.MdmDeviceInfo;
 import io.mosip.registration.mdm.constants.MosipBioDeviceConstants;
@@ -63,6 +62,7 @@ import io.mosip.registration.mdm.spec_0_9_2.service.impl.MDM_092_IntegratorImpl;
 import io.mosip.registration.mdm.spec_0_9_5.dto.request.RCaptureRequestBioDTO;
 import io.mosip.registration.mdm.spec_0_9_5.dto.request.RCaptureRequestDTO;
 import io.mosip.registration.mdm.spec_0_9_5.dto.request.StreamRequestDTO;
+import io.mosip.registration.mdm.spec_0_9_5.dto.response.DigitalId;
 import io.mosip.registration.mdm.spec_0_9_5.dto.response.MdmDeviceInfoResponse;
 import io.mosip.registration.mdm.spec_0_9_5.dto.response.RCaptureResponseBiometricsDTO;
 import io.mosip.registration.mdm.spec_0_9_5.dto.response.RCaptureResponseDataDTO;
@@ -258,7 +258,7 @@ public class MosipBioDeviceManagerDuplicate {
 			bioDevice.setPurpose(deviceInfo.getPurpose());
 			bioDevice.setDeviceCode(deviceInfo.getDeviceCode());
 
-			bioDevice.setDeviceSubType(digitalId.getSubType());
+			bioDevice.setDeviceSubType(digitalId.getDeviceSubType());
 			bioDevice.setDeviceType(digitalId.getType());
 			bioDevice.setTimestamp(digitalId.getDateTime());
 			bioDevice.setDeviceProviderName(digitalId.getDeviceProvider());
@@ -543,7 +543,7 @@ public class MosipBioDeviceManagerDuplicate {
 
 		if (bioDevice != null) {
 
-			String url = getRunningurl() + ":" + bioDevice.getRunningPort() + "/"
+			String url = bioDevice.getCallbackId()
 					+ MosipBioDeviceConstants.STREAM_ENDPOINT;
 			switch (bioDevice.getSpecVersion()) {
 			case "0.9.5":
@@ -564,7 +564,7 @@ public class MosipBioDeviceManagerDuplicate {
 
 		if (bioDevice != null) {
 
-			String url = getRunningurl() + ":" + bioDevice.getRunningPort() + "/"
+			String url = bioDevice.getCallbackId()
 					+ MosipBioDeviceConstants.CAPTURE_ENDPOINT;
 
 			switch (bioDevice.getSpecVersion()) {
