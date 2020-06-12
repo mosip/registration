@@ -66,6 +66,7 @@ import io.mosip.registration.mdm.dto.MDMError;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.mdm.dto.RequestDetail;
 import io.mosip.registration.mdm.integrator.IMosipBioDeviceIntegrator;
+import io.mosip.registration.mdm.integrator.MosipBioDeviceIntegratorImpl;
 import io.mosip.registration.mdm.util.MdmRequestResponseBuilder;
 import io.mosip.registration.mdm.util.MosioBioDeviceHelperUtil;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
@@ -94,7 +95,7 @@ public class MosipBioDeviceManager {
 	private int portTo;
 
 	@Autowired
-	private IMosipBioDeviceIntegrator mosipBioDeviceIntegrator;
+	private MosipBioDeviceIntegratorImpl mosipBioDeviceIntegrator;
 
 	@Autowired
 	private RegisteredDeviceDAO registeredDeviceDAO;
