@@ -313,7 +313,7 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 			biometrics.forEach( dto -> {
 				UserBiometric bioMetrics = new UserBiometric();
 				UserBiometricId biometricId = new UserBiometricId();
-				biometricId.setBioAttributeCode(dto.getBioAttribute());
+				biometricId.setBioAttributeCode(getBioAttribute(dto.getBioAttribute()));
 				biometricId.setBioTypeCode(dto.getModalityName());
 				biometricId.setUsrId(SessionContext.userContext().getUserId());
 				bioMetrics.setBioIsoImage(dto.getAttributeISO());
@@ -343,6 +343,28 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 		}
 		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "Leaving insert method");
 		return response;
+	}
+	
+	/**
+	 * Gets the bio attribute.
+	 *
+	 * @param bioAttribute the bio attribute
+	 * @return the bio attribute
+	 */
+	private String getBioAttribute(String bioAttribute) {
+
+		if (bioAttribute.contains(RegistrationConstants.FINGERPRINT_SLAB_LEFT)
+				|| bioAttribute.contains(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)
+
+				|| bioAttribute.contains(RegistrationConstants.FINGERPRINT_SLAB_THUMBS)) {
+			bioAttribute = "FINGER";
+		} else if (bioAttribute.contains(RegistrationConstants.IRIS_DOUBLE)) {
+			bioAttribute = "IRIS";
+		} else if (bioAttribute.contains(RegistrationConstants.FACE_FULLFACE)) {
+			bioAttribute = "FACE";
+		}
+		return bioAttribute;
+
 	}
 
 }

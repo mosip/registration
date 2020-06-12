@@ -3,6 +3,9 @@ package io.mosip.registration.service.security.impl;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import java.text.FieldPosition;
+import java.text.Format;
+import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,6 +22,7 @@ import io.mosip.kernel.core.bioapi.exception.BiometricException;
 import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.kernel.core.cbeffutil.entity.BIR.BIRBuilder;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -74,7 +78,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		try {		
 			BiometricType biometricType = BiometricType.fromValue(modality);
 			List<BIR> record = new ArrayList<>();
-			List<UserBiometric> userBiometrics = userDetailDAO.getUserSpecificBioDetails(userId, biometricType.name());
+			List<UserBiometric> userBiometrics = userDetailDAO.getUserSpecificBioDetails(userId, biometricType.value());
+			if(userBiometrics.isEmpty())
+				return false;
 			userBiometrics.forEach(userBiometric -> {
 				record.add(buildBir(userBiometric.getBioIsoImage(), biometricType));
 			});
@@ -99,8 +105,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	
 	private BIR buildBir(byte[] biometricImageISO, BiometricType modality) {
 		return new BIRBuilder().withBdb(biometricImageISO)
-				.withBdbInfo(new BDBInfo.BDBInfoBuilder()
-						.withType(Collections.singletonList(SingleType.fromValue(modality.name())))
+				.withBdbInfo(new BDBInfo.BDBInfoBuilder().withFormat(new RegistryIDType())
+						.withType(Collections.singletonList(SingleType.fromValue(modality.value())))
 						.build())
 				.build();
 	}
