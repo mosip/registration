@@ -388,6 +388,20 @@
 					<aggregate>true</aggregate>
 				</configuration>
 			</plugin>
+			
+			<!-- <plugin>
+					<groupId>org.sonarsource.scanner.maven</groupId>
+					<artifactId>sonar-maven-plugin</artifactId>
+					<version>${maven.sonar.version}</version>
+					   <executions>
+							<execution>
+								<phase>verify</phase>
+								<goals>
+									<goal>sonar</goal>
+								</goals>
+							</execution>
+					   </executions>
+				</plugin> -->
 
 			<plugin>
 				<groupId>org.jacoco</groupId>
@@ -425,7 +439,7 @@
 				<sonar.projectName>Registration-DEV</sonar.projectName>
 				<sonar.projectVersion>master</sonar.projectVersion>
 				<sonar.test.exclusions>**/test/**/*.*</sonar.test.exclusions>
-				<!-- <sonar.exclusions>**/ai/**/*.*,**/jdbc/**/*.*,**/mpt/**/*.*,**/jcr/**/*.*,**/JDBC*</sonar.exclusions> -->
+			       <!-- <sonar.exclusions>**/ai/**/*.*,**/jdbc/**/*.*,**/mpt/**/*.*,**/jcr/**/*.*,**/JDBC*</sonar.exclusions> -->
 				<sonar.jacoco.reportPaths>
 					target/jacoco.exec
 				</sonar.jacoco.reportPaths>

@@ -8,6 +8,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,13 +19,16 @@ import org.springframework.stereotype.Controller;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
+import io.mosip.registration.controller.device.GuardianBiometricsController;
 import io.mosip.registration.dto.biometric.BiometricDTO;
+import io.mosip.registration.service.operator.UserOnboardService;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
@@ -30,7 +37,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 
 /**
- * {@code UserOnboardController} is to initialize user onboard 
+ * {@code UserOnboardController} is to initialize user onboard
  * 
  * @author Dinesh Ashokan
  * @version 1.0
@@ -78,6 +85,12 @@ public class UserOnboardController extends BaseController implements Initializab
 	@Autowired
 	private UserOnboardParentController userOnboardParentController;
 
+	@Autowired
+	private GuardianBiometricsController guardianBiometricsController;
+
+	@Autowired
+	private UserOnboardService userOnboardService;
+
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		setImagesOnHover();
@@ -88,13 +101,17 @@ public class UserOnboardController extends BaseController implements Initializab
 	@FXML
 	public void initUserOnboard() {
 		clearOnboard();
-		BiometricDTO biometricDTO = new BiometricDTO();
-		biometricDTO.setOperatorBiometricDTO(createBiometricInfoDTO());
-		SessionContext.map().put(RegistrationConstants.USER_ONBOARD_DATA, biometricDTO);
+		// BiometricDTO biometricDTO = new BiometricDTO();
+		// biometricDTO.setOperatorBiometricDTO(createBiometricInfoDTO());
+		userOnboardService.initializeOperatorBiometric();
 		SessionContext.map().put(RegistrationConstants.ISPAGE_NAVIGATION_ALERT_REQ, RegistrationConstants.DISABLE);
 		userOnboardParentController.showCurrentPage(RegistrationConstants.ONBOARD_USER_PARENT,
 				getOnboardPageDetails(RegistrationConstants.ONBOARD_USER_PARENT, RegistrationConstants.NEXT));
+
 		clearAllValues();
+		
+		guardianBiometricsController.populateBiometricPage(true);
+		
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "User Onboard Controller initUserOnboard Method Exit");
 	}
@@ -104,163 +121,171 @@ public class UserOnboardController extends BaseController implements Initializab
 		SessionContext.map().remove(RegistrationConstants.OLD_BIOMETRIC_EXCEPTION);
 		SessionContext.map().remove(RegistrationConstants.NEW_BIOMETRIC_EXCEPTION);
 	}
-	
+
 	@FXML
 	public void onboardingYourself() {
 		onboardGridPane.setOnMouseClicked(e -> {
-		    if(Desktop.isDesktopSupported())
-		    {
-		        try {
-		            Desktop.getDesktop().browse(new URI(RegistrationConstants.MOSIP_URL));
-		        } catch (IOException ioException) {
-		        	LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+			if (Desktop.isDesktopSupported()) {
+				try {
+					Desktop.getDesktop().browse(new URI(RegistrationConstants.MOSIP_URL));
+				} catch (IOException ioException) {
+					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 							ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
-		        } catch (URISyntaxException uriSyntaxException) {
-		        	LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-		        			uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
-		        }
-		    }
+				} catch (URISyntaxException uriSyntaxException) {
+					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+							uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
+				}
+			}
 		});
 	}
-	
+
 	@FXML
 	public void registeringIndividual() {
 		registerGridPane.setOnMouseClicked(e -> {
-		    if(Desktop.isDesktopSupported())
-		    {
-		        try {
-		            Desktop.getDesktop().browse(new URI(RegistrationConstants.MOSIP_URL));
-		        } catch (IOException ioException) {
-		        	LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+			if (Desktop.isDesktopSupported()) {
+				try {
+					Desktop.getDesktop().browse(new URI(RegistrationConstants.MOSIP_URL));
+				} catch (IOException ioException) {
+					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 							ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
-		        } catch (URISyntaxException uriSyntaxException) {
-		        	LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-		        			uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
-		        }
-		    }
+				} catch (URISyntaxException uriSyntaxException) {
+					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+							uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
+				}
+			}
 		});
 	}
-	
+
 	@FXML
 	public void synchronizingData() {
 		syncDataGridPane.setOnMouseClicked(e -> {
-		    if(Desktop.isDesktopSupported())
-		    {
-		        try {
-		            Desktop.getDesktop().browse(new URI(RegistrationConstants.MOSIP_URL));
-		        } catch (IOException ioException) {
-		        	LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+			if (Desktop.isDesktopSupported()) {
+				try {
+					Desktop.getDesktop().browse(new URI(RegistrationConstants.MOSIP_URL));
+				} catch (IOException ioException) {
+					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 							ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
-		        } catch (URISyntaxException uriSyntaxException) {
-		        	LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-		        			uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
-		        }
-		    }
+				} catch (URISyntaxException uriSyntaxException) {
+					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+							uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
+				}
+			}
 		});
 	}
-	
+
 	@FXML
 	public void mappingDevices() {
 		mapDevicesGridPane.setOnMouseClicked(e -> {
-		    if(Desktop.isDesktopSupported())
-		    {
-		        try {
-		            Desktop.getDesktop().browse(new URI(RegistrationConstants.MOSIP_URL));
-		        } catch (IOException ioException) {
-		        	LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+			if (Desktop.isDesktopSupported()) {
+				try {
+					Desktop.getDesktop().browse(new URI(RegistrationConstants.MOSIP_URL));
+				} catch (IOException ioException) {
+					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 							ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
-		        } catch (URISyntaxException uriSyntaxException) {
-		        	LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-		        			uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
-		        }
-		    }
+				} catch (URISyntaxException uriSyntaxException) {
+					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+							uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
+				}
+			}
 		});
 	}
-	
+
 	@FXML
 	public void uploadingData() {
 		uploadDataGridPane.setOnMouseClicked(e -> {
-		    if(Desktop.isDesktopSupported())
-		    {
-		        try {
-		            Desktop.getDesktop().browse(new URI(RegistrationConstants.MOSIP_URL));
-		        } catch (IOException ioException) {
-		        	LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+			if (Desktop.isDesktopSupported()) {
+				try {
+					Desktop.getDesktop().browse(new URI(RegistrationConstants.MOSIP_URL));
+				} catch (IOException ioException) {
+					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 							ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
-		        } catch (URISyntaxException uriSyntaxException) {
-		        	LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-		        			uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
-		        }
-		    }
+				} catch (URISyntaxException uriSyntaxException) {
+					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+							uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
+				}
+			}
 		});
 	}
-	
+
 	@FXML
 	public void updatingBiometrics() {
 		updateBiometricsGridPane.setOnMouseClicked(e -> {
-		    if(Desktop.isDesktopSupported())
-		    {
-		        try {
-		            Desktop.getDesktop().browse(new URI(RegistrationConstants.MOSIP_URL));
-		        } catch (IOException ioException) {
-		        	LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+			if (Desktop.isDesktopSupported()) {
+				try {
+					Desktop.getDesktop().browse(new URI(RegistrationConstants.MOSIP_URL));
+				} catch (IOException ioException) {
+					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 							ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
-		        } catch (URISyntaxException uriSyntaxException) {
-		        	LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-		        			uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
-		        }
-		    }
+				} catch (URISyntaxException uriSyntaxException) {
+					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+							uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
+				}
+			}
 		});
 	}
-	
+
 	private void setImagesOnHover() {
 		getOnboardedPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				getOnboardedImageView.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.GET_ONBOARDED_FOCUSED)));
+				getOnboardedImageView.setImage(
+						new Image(getClass().getResourceAsStream(RegistrationConstants.GET_ONBOARDED_FOCUSED)));
 			} else {
-				getOnboardedImageView.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.GET_ONBOARDED_IMG_PATH)));
+				getOnboardedImageView.setImage(
+						new Image(getClass().getResourceAsStream(RegistrationConstants.GET_ONBOARDED_IMG_PATH)));
 			}
 		});
 		onboardGridPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				onboardImageView.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.ONBOARDING_FOCUSED)));
+				onboardImageView
+						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.ONBOARDING_FOCUSED)));
 			} else {
-				onboardImageView.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.ONBOARDING_IMG_PATH)));
+				onboardImageView
+						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.ONBOARDING_IMG_PATH)));
 			}
 		});
 		registerGridPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				registerImageView.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.REGISTERING_FOCUSED)));
+				registerImageView
+						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.REGISTERING_FOCUSED)));
 			} else {
-				registerImageView.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.REGISTERING_IMG_PATH)));
+				registerImageView.setImage(
+						new Image(getClass().getResourceAsStream(RegistrationConstants.REGISTERING_IMG_PATH)));
 			}
 		});
 		syncDataGridPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				syncDataImageView.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_FOCUSED)));
+				syncDataImageView
+						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_FOCUSED)));
 			} else {
-				syncDataImageView.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_IMAGE)));
+				syncDataImageView
+						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_IMAGE)));
 			}
 		});
 		mapDevicesGridPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				mapDevicesImageView.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_FOCUSED)));
+				mapDevicesImageView
+						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_FOCUSED)));
 			} else {
-				mapDevicesImageView.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_IMAGE)));
+				mapDevicesImageView
+						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_IMAGE)));
 			}
 		});
 		uploadDataGridPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				uploadDataImageView.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_OP_BIOMETRICS_FOCUSED)));
+				uploadDataImageView.setImage(
+						new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_OP_BIOMETRICS_FOCUSED)));
 			} else {
-				uploadDataImageView.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_OP_BIOMETRICS_IMAGE)));
+				uploadDataImageView.setImage(
+						new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_OP_BIOMETRICS_IMAGE)));
 			}
 		});
 		updateBiometricsGridPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				updateBiometricsImageView.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_BIOMETRICS_FOCUSED)));
+				updateBiometricsImageView.setImage(
+						new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_BIOMETRICS_FOCUSED)));
 			} else {
-				updateBiometricsImageView.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_BIOMETRICS_IMG_PATH)));
+				updateBiometricsImageView.setImage(
+						new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_BIOMETRICS_IMG_PATH)));
 			}
 		});
 	}

@@ -3,19 +3,11 @@ package io.mosip.registration.controller.reg;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import javax.imageio.IIOImage;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
-import javax.imageio.stream.ImageOutputStream;
 
 import org.openimaj.image.FImage;
 import org.openimaj.image.ImageUtilities;
@@ -37,18 +29,9 @@ import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.auth.AuthenticationController;
 import io.mosip.registration.dto.OSIDataDTO;
-import io.mosip.registration.dto.RegistrationCenterDetailDTO;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.RegistrationMetaDataDTO;
-import io.mosip.registration.dto.SelectionListDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
-import io.mosip.registration.dto.biometric.BiometricDTO;
-import io.mosip.registration.dto.biometric.BiometricInfoDTO;
-import io.mosip.registration.dto.biometric.FaceDetailsDTO;
-import io.mosip.registration.dto.demographic.ApplicantDocumentDTO;
-import io.mosip.registration.dto.demographic.DemographicDTO;
-import io.mosip.registration.dto.demographic.DemographicInfoDTO;
-import io.mosip.registration.dto.demographic.Identity;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.sync.MasterSyncService;
@@ -219,7 +202,7 @@ public class RegistrationController extends BaseController {
 	 * @param applicantImage
 	 *            the image that is captured as applicant photograph
 	 */
-	private void compressImageForQRCode(BufferedImage detectedFace) {
+	/*private void compressImageForQRCode(BufferedImage detectedFace) {
 		try {
 			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
@@ -253,12 +236,12 @@ public class RegistrationController extends BaseController {
 					RegistrationConstants.APPLICATION_ID,
 					ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
 		}
-	}
+	}*/
 
 	/**
 	 * This method is save the biometric details
 	 */
-	public boolean saveBiometricDetails(BufferedImage applicantBufferedImage, BufferedImage exceptionBufferedImage,
+	/*public boolean saveBiometricDetails(BufferedImage applicantBufferedImage, BufferedImage exceptionBufferedImage,
 			byte[] applicantIso, byte[] exceptionIso) {
 		LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "saving the details of applicant biometrics");
@@ -273,7 +256,7 @@ public class RegistrationController extends BaseController {
 				isValid = validateDemographicPane(documentScanController.documentScanPane);
 			}
 		}*/
-		if (isValid) {
+		/*if (isValid) {
 			try {
 				BufferedImage detectedFace = detectApplicantFace(applicantBufferedImage);
 				if (detectedFace != null) {
@@ -281,7 +264,7 @@ public class RegistrationController extends BaseController {
 						isValid = false;
 						generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.EXCEPTION_PHOTO_CAPTURE_ERROR);
 					} else {
-						compressImageForQRCode(detectedFace);
+						//compressImageForQRCode(detectedFace);
 						ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 						ImageIO.write(applicantBufferedImage, RegistrationConstants.WEB_CAMERA_IMAGE_TYPE,
 								byteArrayOutputStream);
@@ -365,7 +348,7 @@ public class RegistrationController extends BaseController {
 			}
 		}
 		return isValid;
-	}
+	}*/
 
 	/**
 	 * This method is to go to the operator authentication page

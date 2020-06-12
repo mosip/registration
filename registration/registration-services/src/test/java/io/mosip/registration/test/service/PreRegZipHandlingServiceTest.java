@@ -124,9 +124,9 @@ public class PreRegZipHandlingServiceTest {
 
 	@Test
 	public void extractPreRegZipFileTest() throws Exception {
-		Mockito.doAnswer((idObject) -> {
+		/*Mockito.doAnswer((idObject) -> {
 			return "Success";
-		}).when(idObjectValidator).validateIdObject(Mockito.any(), Mockito.any());
+		}).when(idObjectValidator).validateIdObject(Mockito.any(), Mockito.any());*/
 		Mockito.when(documentTypeDAO.getDocTypeByName(Mockito.anyString())).thenReturn(new ArrayList<>());
 		Mockito.when(identitySchemaService.getLatestEffectiveUISchema()).thenReturn(schemaFields);
 		
@@ -147,9 +147,9 @@ public class PreRegZipHandlingServiceTest {
 			zipOutputStream.flush();
 			zipOutputStream.closeEntry();
 
-			Mockito.doAnswer((idObject) -> {
+			/*Mockito.doAnswer((idObject) -> {
 				return "Success";
-			}).when(idObjectValidator).validateIdObject(Mockito.any(), Mockito.any());
+			}).when(idObjectValidator).validateIdObject(Mockito.any(), Mockito.any());*/
 			Mockito.when(documentTypeDAO.getDocTypeByName(Mockito.anyString())).thenReturn(new ArrayList<>());
 			Mockito.when(identitySchemaService.getLatestEffectiveUISchema()).thenReturn(schemaFields);
 			preRegZipHandlingServiceImpl.extractPreRegZipFile(byteArrayOutputStream.toByteArray());

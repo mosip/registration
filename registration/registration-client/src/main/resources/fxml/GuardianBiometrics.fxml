@@ -356,7 +356,7 @@
             </GridPane>
          </children>
       </GridPane>
-      <GridPane styleClass="headerFooter">
+      <GridPane fx:id="gheaderfooter" styleClass="headerFooter">
          <children>
             <HBox alignment="CENTER" spacing="5.0" styleClass="homeBox" GridPane.rowIndex="1">
                <children>

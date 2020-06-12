@@ -503,7 +503,7 @@ public class BioServiceTest {
 
 		Boolean res = bioService.validateFP(fingerprintDTO, userBiometrics);
 		assertTrue(res);
-	}*/
+	}
 
 	@Test
 	public void validateFaceTest1() throws RegBaseCheckedException, IOException {
@@ -518,7 +518,7 @@ public class BioServiceTest {
 		Mockito.when(mosipBioDeviceManager.regScan(Mockito.any())).thenReturn(getFingerPritnCaptureResponse());
 		requestDetail.setType(RegistrationConstants.FACE_FULLFACE);
 		bioService.validateFace(bioService.getFaceAuthenticationDto("userId",requestDetail));
-	}
+	}*/
 
 	@Test
 	public void nonMdmTest() throws RegBaseCheckedException, IOException {
@@ -549,7 +549,7 @@ public class BioServiceTest {
 		bioService.getFingerPrintImageAsDTO(requestDetail,2);
 	}
 
-	@Test
+	/*@Test
 	public void validateFingerPrintTest() throws RegBaseCheckedException, IOException {
 
 		CaptureResponseDto captureResponseDto = getFingerPritnCaptureResponse();
@@ -590,7 +590,7 @@ public class BioServiceTest {
 		Mockito.when(mosipBioDeviceManager.getSingleBiometricIsoTemplate(captureResponseDto))
 				.thenReturn("value".getBytes());
 		bioService.validateIris(bioService.getIrisAuthenticationDto("userId", requestDetail));
-	}
+	}*/
 	
 	@Test
 	@Ignore

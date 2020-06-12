@@ -25,8 +25,8 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.auditmanager.config.AuditConfig;
-import io.mosip.kernel.bioapi.impl.BioApiImpl;
-import io.mosip.kernel.core.bioapi.spi.IBioApi;
+//import io.mosip.kernel.bioapi.impl.BioApiImpl;
+//import io.mosip.kernel.core.bioapi.spi.IBioApi;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.templatemanager.spi.TemplateManagerBuilder;
 import io.mosip.kernel.dataaccess.hibernate.repository.impl.HibernateRepositoryImpl;
@@ -56,10 +56,11 @@ import io.mosip.registration.context.ApplicationContext;
 				"io.mosip.kernel.idvalidator", "io.mosip.kernel.ridgenerator","io.mosip.kernel.qrcode",
 				"io.mosip.kernel.core.signatureutil", "io.mosip.kernel.crypto", "io.mosip.kernel.jsonvalidator",
 				"io.mosip.kernel.idgenerator", "io.mosip.kernel.virusscanner", "io.mosip.kernel.transliteration",
-				"io.mosip.kernel.applicanttype", "io.mosip.kernel.cbeffutil", "io.mosip.kernel.core.pdfgenerator.spi",
+				"io.mosip.kernel.applicanttype", "io.mosip.kernel.core.pdfgenerator.spi",
 				"io.mosip.kernel.pdfgenerator.itext.impl", "io.mosip.kernel.cryptosignature",
 				"io.mosip.kernel.core.signatureutil", "io.mosip.kernel.idobjectvalidator.impl",
-				"io.mosip.kernel.packetmanager.impl", "io.mosip.kernel.packetmanager.util"})
+				"io.mosip.kernel.packetmanager.impl", "io.mosip.kernel.packetmanager.util",
+				"io.mosip.kernel.biosdk.provider.impl", "io.mosip.kernel.biosdk.provider.factory"})
 @PropertySource(value = { "classpath:spring.properties" })
 @ImportAutoConfiguration(RefreshAutoConfiguration.class)
 @EnableConfigurationProperties
@@ -71,14 +72,14 @@ public class AppConfig {
 	@Qualifier("dataSource")
 	private DataSource datasource;
 
-	@Value("${mosip.registration.face.provider}")
+	/*@Value("${mosip.registration.face.provider}")
 	private String faceSdk;
 	
 	@Value("${mosip.registration.iris.provider}")
 	private String irisSdk;
 	
 	@Value("${mosip.registration.finger.provider}")
-	private String fingerSdk;
+	private String fingerSdk;*/
 	static {
 		
 		MOSIP_ROLLING_APPENDER.setAppend(true);
@@ -111,7 +112,7 @@ public class AppConfig {
 		return new TemplateManagerBuilderImpl();
 	}
 	
-	@Bean("face")
+	/*@Bean("face")
 	public IBioApi faceApi()
 			throws NoSuchAlgorithmException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 		IBioApi iBioApi = null;
@@ -153,5 +154,5 @@ public class AppConfig {
 		ApplicationContext.map().put(RegistrationConstants.DEDUPLICATION_FACE_ENABLE_FLAG,
 				RegistrationConstants.DISABLE);
 		return new BioApiImpl();
-	}
+	}*/
 }

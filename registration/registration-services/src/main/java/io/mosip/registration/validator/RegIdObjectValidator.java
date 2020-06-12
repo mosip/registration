@@ -4,6 +4,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.util.AbstractMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -20,12 +21,12 @@ import com.google.gson.JsonParser;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
-import io.mosip.kernel.core.idobjectvalidator.constant.IdObjectValidatorSupportedOperations;
+//import io.mosip.kernel.core.idobjectvalidator.constant.IdObjectValidatorSupportedOperations;
 import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectIOException;
 import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectValidationFailedException;
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.idobjectvalidator.impl.IdObjectPatternValidator;
+//import io.mosip.kernel.idobjectvalidator.impl.IdObjectPatternValidator;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
@@ -33,6 +34,7 @@ import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
+import io.mosip.registration.service.IdentitySchemaService;
 
 /**
  * The class to validate the Schema of Identity Object. This class internally
@@ -45,30 +47,33 @@ import io.mosip.registration.exception.RegistrationExceptionConstants;
 @Service
 public class RegIdObjectValidator {
 
-	private static final String MOSIP_ID_VALIDATIONS = "mosip.id.validation.identity";
+	/*private static final String MOSIP_ID_VALIDATIONS = "mosip.id.validation.identity";
 	private static final String APPLICATION_ID_VALUE = "reg-client";
 	private static final String APPLICATION_ID_KEY = "application.id";
-	private static final String MOSIP_KERNEL_ID_MANDATORY_KEY = "mosip.kernel.idobjectvalidator.mandatory-attributes.reg-client"; 
+	private static final String MOSIP_KERNEL_ID_MANDATORY_KEY = "mosip.kernel.idobjectvalidator.mandatory-attributes.reg-client";*/
 	
 	private static final Logger LOGGER = AppConfig.getLogger(RegIdObjectValidator.class);
 	
-	@Autowired
-	private Environment environment;
+	//@Autowired
+	//private Environment environment;
 	
 	
 	@Autowired
 	@Qualifier("schema")
 	private IdObjectValidator idObjectValidator;
 
-	@Autowired
-	@Qualifier("pattern")
-	private IdObjectValidator idOjectPatternvalidator;
+	//@Autowired
+	//@Qualifier("pattern")
+	//private IdObjectValidator idOjectPatternvalidator;
 
 	@Autowired
 	private ObjectMapper mapper;
 
 	@Autowired
 	private RegIdObjectMasterDataValidator regIdObjectMasterDataValidator;
+	
+	@Autowired
+	private IdentitySchemaService identitySchemaService;
 
 	/**
 	 * This method validates the input object against the schema, mandatory, pattern
@@ -84,13 +89,13 @@ public class RegIdObjectValidator {
 	 * @throws BaseCheckedException
 	 *             the base checked exception
 	 */
-	public void validateIdObject(Object idObject, String registrationCategory) throws BaseCheckedException {
+	public void validateIdObject(String schemaJson, Object idObject, List<String> requiredFields) throws BaseCheckedException {
 		LOGGER.info(LoggerConstants.ID_OBJECT_SCHEMA_VALIDATOR, APPLICATION_NAME, APPLICATION_ID,
 				"Validating schema of Identity Object");
-		IdObjectValidatorSupportedOperations operationType = null;
+		//IdObjectValidatorSupportedOperations operationType = null;
 
 		try {
-			if (registrationCategory.equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_NEW)) {
+			/*if (registrationCategory.equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_NEW)) {
 				operationType = IdObjectValidatorSupportedOperations.NEW_REGISTRATION;
 			} else if (registrationCategory.equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_UPDATE)) {
 				operationType = IdObjectValidatorSupportedOperations.UPDATE_UIN;
@@ -98,19 +103,19 @@ public class RegIdObjectValidator {
 				operationType = IdObjectValidatorSupportedOperations.LOST_UIN;
 			} else if ((Boolean) SessionContext.map().get(RegistrationConstants.IS_Child)) {
 				operationType = IdObjectValidatorSupportedOperations.CHILD_REGISTRATION;
-			}
+			}*/
 
-			setPatternValidatorProps();
-			setSchemaValidatorProps();
+			//setPatternValidatorProps();
+			//setSchemaValidatorProps();
 			
-			if (idObjectValidator.validateIdObject(idObject, operationType)) {
+			if (idObjectValidator.validateIdObject(schemaJson, idObject, requiredFields)) {
 				LOGGER.info(LoggerConstants.ID_OBJECT_SCHEMA_VALIDATOR, APPLICATION_NAME, APPLICATION_ID,
 						"ID object shema validation is successful");
-				if (idOjectPatternvalidator.validateIdObject(idObject, operationType)
+				/*if (idOjectPatternvalidator.validateIdObject(idObject, operationType)
 						&& ageValidation(idObject, operationType)) {
 					LOGGER.info(LoggerConstants.ID_OBJECT_PATTERN_VALIDATOR, APPLICATION_NAME, APPLICATION_ID,
-							"ID object pattern validation is successful");
-					if (regIdObjectMasterDataValidator.validateIdObject(idObject, operationType)) {
+							"ID object pattern validation is successful");*/
+					if (regIdObjectMasterDataValidator.validateIdObject(idObject)) {
 						LOGGER.info(LoggerConstants.ID_OBJECT_PATTERN_VALIDATOR, APPLICATION_NAME, APPLICATION_ID,
 								"ID object master data validation is successful");
 					} else {
@@ -118,11 +123,11 @@ public class RegIdObjectValidator {
 								RegistrationExceptionConstants.ID_OBJECT_MASTER_DATA_VALIDATOR.getErrorCode(),
 								RegistrationExceptionConstants.ID_OBJECT_MASTER_DATA_VALIDATOR.getErrorMessage());
 					}
-				} else {
+				/*} else {
 					throw new RegBaseCheckedException(
 							RegistrationExceptionConstants.ID_OBJECT_PATTERN_VALIDATOR.getErrorCode(),
 							RegistrationExceptionConstants.ID_OBJECT_PATTERN_VALIDATOR.getErrorMessage());
-				}
+				}*/
 			} else {
 				throw new RegBaseCheckedException(
 						RegistrationExceptionConstants.ID_OBJECT_SCHEMA_VALIDATOR.getErrorCode(),
@@ -132,11 +137,6 @@ public class RegIdObjectValidator {
 			LOGGER.error(LoggerConstants.ID_OBJECT_SCHEMA_VALIDATOR, APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(idObjectValidatorException));
 			throw idObjectValidatorException;
-		} catch (JsonProcessingException jsonProcessingException) {
-			LOGGER.error(LoggerConstants.ID_OBJECT_SCHEMA_VALIDATOR, APPLICATION_NAME, APPLICATION_ID,
-					ExceptionUtils.getStackTrace(jsonProcessingException));
-			throw new RegBaseCheckedException("REG-PAV-001", "Registrtaion Pattern Validator for age",
-					jsonProcessingException);
 		} catch (RuntimeException runtimeException) {
 			LOGGER.error(LoggerConstants.ID_OBJECT_SCHEMA_VALIDATOR, APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(runtimeException));
@@ -147,7 +147,7 @@ public class RegIdObjectValidator {
 
 	}
 
-	private boolean ageValidation(Object identityObject, IdObjectValidatorSupportedOperations operationType)
+	/*private boolean ageValidation(Object identityObject, IdObjectValidatorSupportedOperations operationType)
 			throws JsonProcessingException {
 		LOGGER.info(LoggerConstants.ID_OBJECT_SCHEMA_VALIDATOR, APPLICATION_NAME, APPLICATION_ID,
 				"Completed validating age from global param starting");
@@ -191,6 +191,6 @@ public class RegIdObjectValidator {
 		ConfigurableEnvironment configurableEnvironment = (ConfigurableEnvironment)environment;
 		configurableEnvironment.getSystemProperties().put(APPLICATION_ID_KEY, APPLICATION_ID_VALUE);
 		configurableEnvironment.getSystemProperties().putAll(schemaValidaitons);
-	}
+	}*/
 
 }

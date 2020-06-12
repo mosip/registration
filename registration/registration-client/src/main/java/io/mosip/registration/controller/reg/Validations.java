@@ -72,6 +72,10 @@ public class Validations extends BaseController {
 	
 	@Autowired
 	private RequiredFieldValidator requiredFieldValidator;
+	@Autowired
+	private UinValidator<String> uinValidator;
+	@Autowired
+	private RidValidator<String> ridValidator;
 
 	/**
 	 * Instantiates a new validations.
@@ -529,6 +533,47 @@ public class Validations extends BaseController {
 		}
 
 		return isIdValid;
+	}
+	
+	public void validateUinOrRidField(RegistrationDTO registrationDto, UiSchemaDTO schemaField, TextField platformField) {
+		String value = (String) registrationDto.getDemographics().get(schemaField.getId());
+		if(value != null && !value.isEmpty()) {
+			boolean isValid = true;	
+			String message = null;
+			if("UIN".equals(schemaField.getSubType())) {
+				try {
+					message = RegistrationUIConstants.UIN_INVALID;
+					String updateUIN = RegistrationConstants.PACKET_TYPE_UPDATE.equals(registrationDto.getRegistrationCategory()) ?
+							(String) registrationDto.getDemographics().get("UIN") : null;
+							
+					if(updateUIN != null && value.equals(updateUIN))
+						isValid = false;
+					
+					if(isValid)
+						isValid = uinValidator.validateId(value);
+					
+				} catch (InvalidIDException invalidRidException) {
+					LOGGER.error("RID VALIDATION FAILED", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID, invalidRidException.getMessage()
+									+ ExceptionUtils.getStackTrace(invalidRidException));
+				}
+			}
+			
+			if("RID".equals(schemaField.getSubType())) {
+				try {
+					message = RegistrationUIConstants.RID_INVALID;
+					isValid = ridValidator.validateId(value);
+				} catch (InvalidIDException invalidRidException) {
+					LOGGER.error("RID VALIDATION FAILED", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID, invalidRidException.getMessage()
+									+ ExceptionUtils.getStackTrace(invalidRidException));
+				}
+			}
+			
+			if(!isValid) {
+				generateAlert(RegistrationConstants.ERROR, message);
+				platformField.getStyleClass().remove(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
+				platformField.requestFocus();
+			}
+		}
 	}
 
 	/**

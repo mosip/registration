@@ -5,7 +5,6 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -16,7 +15,9 @@ import java.util.UUID;
 
 import org.springframework.context.ApplicationContext;
 
+import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.LoginMode;
@@ -28,7 +29,7 @@ import io.mosip.registration.dto.AuthorizationDTO;
 import io.mosip.registration.dto.RegistrationCenterDetailDTO;
 import io.mosip.registration.dto.UserDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
-import io.mosip.registration.mdm.dto.RequestDetail;
+import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.login.LoginService;
 import io.mosip.registration.service.security.AuthenticationService;
@@ -303,6 +304,7 @@ public class SessionContext {
 			return false;
 		}
 	}
+	
 
 	/**
 	 * Validating login with Fingerprint
@@ -319,22 +321,21 @@ public class SessionContext {
 	 * @throws IOException
 	 * @throws RegBaseCheckedException
 	 */
+	//TODO fetch environment for MDM request from applicationContext
 	private static boolean validateFingerprint(String loginMethod, UserDTO userDTO,
 			AuthenticationValidatorDTO authenticationValidatorDTO) throws RegBaseCheckedException, IOException {
 		BioService bioService = applicationContext.getBean(BioService.class);
-		if (bioService
-				.validateFingerPrint(
-						bioService
-								.getFingerPrintAuthenticationDto(authenticationValidatorDTO.getUserId(),
-										new RequestDetail("Staging", "Registration",
-												RegistrationConstants.FINGERPRINT_SLAB_LEFT,
-												(String) io.mosip.registration.context.ApplicationContext.map()
-														.get(RegistrationConstants.CAPTURE_TIME_OUT),
-												1, (String) io.mosip.registration.context.ApplicationContext.map()
-												.get(RegistrationConstants.FINGERPRINT_AUTHENTICATION_THRESHHOLD), null)))) {
+		AuthenticationService authService = applicationContext.getBean(AuthenticationService.class);
+		
+		MDMRequestDto mdmRequestDto = new MDMRequestDto(RegistrationConstants.FINGERPRINT_SLAB_LEFT, null, "Registration", "Staging", 
+				(Integer) io.mosip.registration.context.ApplicationContext.map()
+				.get(RegistrationConstants.CAPTURE_TIME_OUT), 1, (Integer) io.mosip.registration.context.ApplicationContext.map()
+				.get(RegistrationConstants.FINGERPRINT_AUTHENTICATION_THRESHHOLD));
+		
+		List<BiometricsDto> biometrics = bioService.captureModalityForAuth(mdmRequestDto);
+		if(authService.authValidator(authenticationValidatorDTO.getUserId(), BiometricType.FINGER.name(), biometrics)) {		
 			createSessionContext();
 			SessionContext.authTokenDTO().setLoginMode(loginMethod);
-
 			validAuthModes.add(loginMethod);
 			createSecurityContext(userDTO, false);
 			return true;
@@ -360,16 +361,19 @@ public class SessionContext {
 	 * @throws IOException
 	 * @throws RegBaseCheckedException
 	 */
+	//TODO fetch environment for MDM request from applicationContext
 	private static boolean validateIris(String loginMethod, UserDTO userDTO,
 			AuthenticationValidatorDTO authenticationValidatorDTO) throws RegBaseCheckedException, IOException {
 		BioService bioService = applicationContext.getBean(BioService.class);
-		if (bioService.validateIris(bioService.getIrisAuthenticationDto(authenticationValidatorDTO.getUserId(),
-				new RequestDetail(RegistrationConstants.IRIS_DOUBLE,
-						(String) io.mosip.registration.context.ApplicationContext.map()
-								.get(RegistrationConstants.CAPTURE_TIME_OUT),
-						2, (String) io.mosip.registration.context.ApplicationContext.map()
-								.get(RegistrationConstants.IRIS_THRESHOLD),
-						null)))) {
+		AuthenticationService authService = applicationContext.getBean(AuthenticationService.class);
+		
+		MDMRequestDto mdmRequestDto = new MDMRequestDto(RegistrationConstants.IRIS_DOUBLE, null, "Registration", "Staging", 
+				(Integer) io.mosip.registration.context.ApplicationContext.map()
+				.get(RegistrationConstants.CAPTURE_TIME_OUT), 2, (Integer) io.mosip.registration.context.ApplicationContext.map()
+				.get(RegistrationConstants.IRIS_THRESHOLD));
+
+		List<BiometricsDto> biometrics = bioService.captureModalityForAuth(mdmRequestDto);
+		if(authService.authValidator(authenticationValidatorDTO.getUserId(), BiometricType.IRIS.name(), biometrics)) {
 			createSessionContext();
 			SessionContext.authTokenDTO().setLoginMode(loginMethod);
 			validAuthModes.add(loginMethod);
@@ -398,16 +402,19 @@ public class SessionContext {
 	 * @throws IOException
 	 * @throws RegBaseCheckedException
 	 */
+	//TODO fetch environment for MDM request from applicationContext
 	private static boolean validateFace(String loginMethod, UserDTO userDTO,
 			AuthenticationValidatorDTO authenticationValidatorDTO) throws RegBaseCheckedException, IOException {
 		BioService bioService = applicationContext.getBean(BioService.class);
-		if (bioService.validateFace(bioService.getFaceAuthenticationDto(authenticationValidatorDTO.getUserId(),
-				new RequestDetail(RegistrationConstants.FACE_FULLFACE,
-						(String) io.mosip.registration.context.ApplicationContext.map()
-								.get(RegistrationConstants.CAPTURE_TIME_OUT),
-						1, (String) io.mosip.registration.context.ApplicationContext.map()
-								.get(RegistrationConstants.FACE_THRESHOLD),
-						null)))) {
+		AuthenticationService authService = applicationContext.getBean(AuthenticationService.class);
+		
+		MDMRequestDto mdmRequestDto = new MDMRequestDto(RegistrationConstants.FACE_FULLFACE, null, "Registration", "Staging", 
+				(Integer) io.mosip.registration.context.ApplicationContext.map()
+				.get(RegistrationConstants.CAPTURE_TIME_OUT), 1, (Integer) io.mosip.registration.context.ApplicationContext.map()
+				.get(RegistrationConstants.FACE_THRESHOLD));
+		
+		List<BiometricsDto> biometrics = bioService.captureModalityForAuth(mdmRequestDto);
+		if(authService.authValidator(authenticationValidatorDTO.getUserId(), BiometricType.FACE.name(), biometrics)) {
 			createSessionContext();
 			SessionContext.authTokenDTO().setLoginMode(loginMethod);
 			validAuthModes.add(loginMethod);

@@ -4,6 +4,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -16,6 +17,9 @@ import java.util.ResourceBundle;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import org.joda.time.LocalDate;
+import org.joda.time.Period;
+import org.joda.time.PeriodType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Controller;
@@ -104,10 +108,7 @@ public class DemographicDetailController extends BaseController {
 	private Node keyboardNode;
 	@Autowired
 	private PridValidator<String> pridValidatorImpl;
-	@Autowired
-	private UinValidator<String> uinValidator;
-	@Autowired
-	private RidValidator<String> ridValidator;
+	
 	@Autowired
 	private Validations validation;
 	@Autowired
@@ -646,8 +647,10 @@ public class DemographicDetailController extends BaseController {
 					RegistrationConstants.APPLICATION_ID, "Validating the age given by age field");
 			fxUtils.validateLabelFocusOut(parentPane, ageField);
 			ageField.focusedProperty().addListener((obsValue, oldValue, newValue) -> {
-				if (oldValue) {
-					ageValidation(parentPane, ageField, dobMessage, oldValue, dd, mm, yyyy);
+				if (!getAge(yyyy.getText(), mm.getText(), dd.getText()).equals(ageField.getText())) {
+					if (oldValue) {
+						ageValidation(parentPane, ageField, dobMessage, oldValue, dd, mm, yyyy);
+					}
 				}
 			});
 			LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
@@ -657,6 +660,29 @@ public class DemographicDetailController extends BaseController {
 					RegistrationConstants.APPLICATION_ID,
 					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 		}
+	}
+	
+	/**
+	 * Gets the age.
+	 *
+	 * @param year the year
+	 * @param month the month
+	 * @param date the date
+	 * @return the age
+	 */
+	String getAge(String year, String month, String date) {
+		if (year != null && !year.isEmpty() && month != null && !month.isEmpty() && date != null && !date.isEmpty()) {
+			LocalDate birthdate = new LocalDate(Integer.parseInt(year), Integer.parseInt(month),
+					Integer.parseInt(date)); // Birth
+												// date
+			LocalDate now = new LocalDate(); // Today's date
+
+			Period period = new Period(birthdate, now, PeriodType.yearMonthDay());
+			return String.valueOf(period.getYears());
+		} else {
+			return "";
+		}
+
 	}
 
 	public void ageValidation(Pane dobParentPane, TextField ageField, Label dobMessage, Boolean oldValue, TextField dd,
@@ -799,7 +825,7 @@ public class DemographicDetailController extends BaseController {
 			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 			for (UiSchemaDTO schemaField : validation.getValidationMap().values()) {
 				if (schemaField.getControlType() == null)
-					continue;
+					continue;			
 
 				if (registrationDTO.getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE)
 						&& !registrationDTO.getUpdatableFields().contains(schemaField.getId()))
@@ -841,6 +867,10 @@ public class DemographicDetailController extends BaseController {
 									: platformField.getValue() != null ? platformField.getValue().getName() : null);
 						} else {
 							TextField platformField = listOfTextField.get(schemaField.getId());
+							
+							if (schemaField.getSubType() == "UIN" || schemaField.getSubType() == "RID")
+								validation.validateUinOrRidField(registrationDTO, schemaField, platformField);							
+							
 							registrationDTO.addDemographicField(schemaField.getId(),
 									platformField != null ? platformField.getText() : null);
 						}
@@ -964,11 +994,11 @@ public class DemographicDetailController extends BaseController {
 				case RegistrationConstants.NUMBER:
 				case RegistrationConstants.STRING:
 					if (schemaField.getControlType().equalsIgnoreCase(RegistrationConstants.AGE_DATE)) {
-						String[] dateParts = (String[]) value;
+						String[] dateParts = ((String)value).split("/");
 						if (dateParts.length == 3) {
-							listOfTextField.get(schemaField.getId() + "__" + "dd").setText(dateParts[0]);
+							listOfTextField.get(schemaField.getId() + "__" + "dd").setText(dateParts[2]);
 							listOfTextField.get(schemaField.getId() + "__" + "mm").setText(dateParts[1]);
-							listOfTextField.get(schemaField.getId() + "__" + "yyyy").setText(dateParts[2]);
+							listOfTextField.get(schemaField.getId() + "__" + "yyyy").setText(dateParts[0]);
 						}
 					} else {
 						TextField textField = listOfTextField.get(schemaField.getId());
@@ -1126,7 +1156,7 @@ public class DemographicDetailController extends BaseController {
 		if (validateThisPane()) {
 			//saveDetail();
 
-			guardianBiometricsController.populateBiometricPage();
+			guardianBiometricsController.populateBiometricPage(false);
 			/*
 			 * SessionContext.map().put("demographicDetail", false);
 			 * SessionContext.map().put("documentScan", true);

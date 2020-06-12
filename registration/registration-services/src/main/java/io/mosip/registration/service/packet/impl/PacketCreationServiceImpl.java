@@ -107,8 +107,8 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 	@Autowired
 	private ZipCreationService zipCreationService;
 	private static final Logger LOGGER = AppConfig.getLogger(PacketCreationServiceImpl.class);
-	@Autowired
-	private CbeffImpl cbeffI;
+	//@Autowired
+	//private CbeffImpl cbeffI;
 	@Autowired
 	private RegIdObjectValidator idObjectValidator;
 	private static SecureRandom random = new SecureRandom(String.valueOf(5000).getBytes());
@@ -147,8 +147,8 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 			// validate the input against the schema, mandatory, pattern and master data. if
 			// any error then stop the rest of the process
 			// and display error message to the user.
-			idObjectValidator.validateIdObject(registrationDTO.getDemographics(),
-					registrationDTO.getRegistrationMetaDataDTO().getRegistrationCategory());
+		//	idObjectValidator.validateIdObject(registrationDTO.getDemographics(),
+			//		registrationDTO.getRegistrationMetaDataDTO().getRegistrationCategory());
 
 			// Map object to store the UUID's generated for BIR in CBEFF
 			Map<String, String> birUUIDs = new HashMap<>();
@@ -422,7 +422,7 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 				byte[] bytesArray = new byte[(int) file.available()];
 				file.read(bytesArray);
 				file.close();
-				cbeffXMLInBytes = cbeffI.createXML(birs, bytesArray);
+				//cbeffXMLInBytes = cbeffI.createXML(birs, bytesArray);
 			}
 
 			LOGGER.info(LOG_PKT_CREATION, APPLICATION_NAME, APPLICATION_ID,

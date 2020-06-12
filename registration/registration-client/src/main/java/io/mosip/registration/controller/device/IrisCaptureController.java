@@ -224,9 +224,10 @@ public class IrisCaptureController extends BaseController {
 			scanIris.setDisable(true);
 
 			// Display the Captured Iris
-			if (getBiometricDTOFromSession() != null || getRegistrationDTOFromSession() != null) {
-				displayCapturedIris();
-			}
+			/*
+			 * if (getBiometricDTOFromSession() != null || getRegistrationDTOFromSession()
+			 * != null) { displayCapturedIris(); }
+			 */
 
 			LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					"Initializing Iris Capture page for user registration completed");
@@ -277,11 +278,14 @@ public class IrisCaptureController extends BaseController {
 		rightIrisException.setText(RegistrationConstants.HYPHEN);
 
 		if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
-			if (getBiometricDTOFromSession() != null && getBiometricDTOFromSession().getOperatorBiometricDTO() != null
-					&& getBiometricDTOFromSession().getOperatorBiometricDTO().getBiometricExceptionDTO() != null) {
-				getBiometricDTOFromSession().getOperatorBiometricDTO().getBiometricExceptionDTO().stream()
-						.forEach(bio -> setExceptionIris(bio));
-			}
+			/*
+			 * if (getBiometricDTOFromSession() != null &&
+			 * getBiometricDTOFromSession().getOperatorBiometricDTO() != null &&
+			 * getBiometricDTOFromSession().getOperatorBiometricDTO().
+			 * getBiometricExceptionDTO() != null) {
+			 * getBiometricDTOFromSession().getOperatorBiometricDTO().
+			 * getBiometricExceptionDTO().stream() .forEach(bio -> setExceptionIris(bio)); }
+			 */
 		} else if (getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {
 			if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getBiometricDTO() != null
 					&& getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO() != null
@@ -812,8 +816,9 @@ public class IrisCaptureController extends BaseController {
 		authenticationValidatorDTO.setUserId(SessionContext.userContext().getUserId());
 		authenticationValidatorDTO.setIrisDetails(irises);
 		authenticationValidatorDTO.setAuthValidationType("multiple");
-		boolean isValid = authenticationService.authValidator(RegistrationConstants.IRIS, authenticationValidatorDTO);
-		return isValid;
+		//boolean isValid = authenticationService.authValidator(RegistrationConstants.IRIS, authenticationValidatorDTO);
+		//return isValid;
+		return false;
 	}
 
 	/**
@@ -1006,7 +1011,7 @@ public class IrisCaptureController extends BaseController {
 
 	private List<IrisDetailsDTO> getIrises() {
 		if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
-			return getBiometricDTOFromSession().getOperatorBiometricDTO().getIrisDetailsDTO();
+			return null;//return getBiometricDTOFromSession().getOperatorBiometricDTO().getIrisDetailsDTO();
 		} else if (getRegistrationDTOFromSession().isUpdateUINNonBiometric()) {
 			return getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO().getIrisDetailsDTO();
 		} else {

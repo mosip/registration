@@ -10,8 +10,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.json.simple.JSONArray;
@@ -344,11 +342,11 @@ public class MessageNotificationServiceImpl
 
 
 
-		if (regType.equalsIgnoreCase(RegistrationType.ACTIVATED.name())
+		if (idType.toString().equalsIgnoreCase(UIN) && (regType.equalsIgnoreCase(RegistrationType.ACTIVATED.name())
 				|| regType.equalsIgnoreCase(RegistrationType.DEACTIVATED.name())
 				|| regType.equalsIgnoreCase(RegistrationType.UPDATE.name())
 				|| regType.equalsIgnoreCase(RegistrationType.RES_UPDATE.name())
-				||regType.equalsIgnoreCase(RegistrationType.LOST.name())) {
+				|| regType.equalsIgnoreCase(RegistrationType.LOST.name()))) {
 			setAttributesFromIdRepo(uin, attributes, regType, phoneNumber, emailId);
 		} else {
 			setAttributesFromIdJson(id, attributes, regType, phoneNumber, emailId);
@@ -470,8 +468,14 @@ public class MessageNotificationServiceImpl
 		String email = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.EMAIL),MappingJsonConstants.VALUE);
 		String phone = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PHONE),MappingJsonConstants.VALUE);
 
-		emailId.append(JsonUtil.getJSONValue(demographicIdentity, email).toString());
-		phoneNumber.append(JsonUtil.getJSONValue(demographicIdentity, phone).toString());
+		String emailValue = JsonUtil.getJSONValue(demographicIdentity, email);
+		String phoneNumberValue = JsonUtil.getJSONValue(demographicIdentity, phone);
+		if (emailValue != null) {
+			emailId.append(emailValue);
+		}
+		if (phoneNumberValue != null) {
+			phoneNumber.append(phoneNumberValue);
+		}
 
 	}
 
@@ -515,10 +519,15 @@ public class MessageNotificationServiceImpl
 		String phone = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PHONE),
 				MappingJsonConstants.VALUE);
+		String emailValue = JsonUtil.getJSONValue(utility.getDemographicIdentityJSONObject(id, email), email);
+		String phoneNumberValue = JsonUtil.getJSONValue(utility.getDemographicIdentityJSONObject(id, phone), phone);
+		if (emailValue != null) {
+			emailId.append(emailValue);
+		}
+		if (phoneNumberValue != null) {
+			phoneNumber.append(phoneNumberValue);
+		}
 
-		emailId.append(JsonUtil.getJSONValue(utility.getDemographicIdentityJSONObject(id, email), email).toString());
-		phoneNumber
-				.append(JsonUtil.getJSONValue(utility.getDemographicIdentityJSONObject(id, phone), phone).toString());
 
 
 		return attribute;

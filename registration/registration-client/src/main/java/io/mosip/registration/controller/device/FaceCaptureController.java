@@ -192,14 +192,14 @@ public class FaceCaptureController extends BaseController implements Initializab
 		// for applicant biometrics
 		if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
 
-			if (getBiometricDTOFromSession() != null
+			/*if (getBiometricDTOFromSession() != null
 					&& getBiometricDTOFromSession().getOperatorBiometricDTO().getFace().getFace() != null) {
 				applicantImage.setImage(convertBytesToImage(
 						getBiometricDTOFromSession().getOperatorBiometricDTO().getFace().getFace()));
-			} else {
+			} else {*/
 				defaultImage = applicantImage.getImage();
 				applicantImageCaptured = false;
-			}
+			//}
 		} else {
 			hasLowBiometrics = false;
 			hasBiometricException =false; // bioService.hasBiometricExceptionToggleEnabled();
@@ -306,25 +306,26 @@ public class FaceCaptureController extends BaseController implements Initializab
 				RegistrationConstants.APPLICATION_ID, "saving the details of applicant biometrics");
 		if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
 			if (validateOperatorPhoto()) {
-				if (registrationController.saveBiometricDetails(applicantBufferedImage, exceptionBufferedImage,
-						applicantImageIso, exceptionImageIso)) {
-					if (getBiometricDTOFromSession().getOperatorBiometricDTO().getFace().getFace() != null) {
-						userOnboardParentController.showCurrentPage(RegistrationConstants.FACE_CAPTURE,
-								getOnboardPageDetails(RegistrationConstants.FACE_CAPTURE, RegistrationConstants.NEXT));
-					}
-				} else {
+				//if (registrationController.saveBiometricDetails(applicantBufferedImage, exceptionBufferedImage,
+					//	applicantImageIso, exceptionImageIso)) {
+					//if (getBiometricDTOFromSession().getOperatorBiometricDTO().getFace().getFace() != null) {
+						//userOnboardParentController.showCurrentPage(RegistrationConstants.FACE_CAPTURE,
+							//	getOnboardPageDetails(RegistrationConstants.FACE_CAPTURE, RegistrationConstants.NEXT));
+					//}
+				//} else {
 					applicantBufferedImage = null;
 					applicantImageIso = null;
 					saveBiometricDetailsBtn.setDisable(true);
-				}
+				//}
 			}
 		} else {
-			if (validateApplicantImage()) {
-				registrationController.saveBiometricDetails(applicantBufferedImage, exceptionBufferedImage,
-						applicantImageIso, exceptionImageIso);
-				applicantFaceTrackerImg.setVisible(false);
-				exceptionFaceTrackerImg.setVisible(true);
-			}
+			/*
+			 * if (validateApplicantImage()) {
+			 * registrationController.saveBiometricDetails(applicantBufferedImage,
+			 * exceptionBufferedImage, applicantImageIso, exceptionImageIso);
+			 * applicantFaceTrackerImg.setVisible(false);
+			 * exceptionFaceTrackerImg.setVisible(true); }
+			 */
 			if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
 				demographicDetailController.saveDetail();
 			}
@@ -447,10 +448,10 @@ public class FaceCaptureController extends BaseController implements Initializab
 					ImageIO.write(applicantBufferedImage, RegistrationConstants.WEB_CAMERA_IMAGE_TYPE,
 							byteArrayOutputStream);
 					byte[] photoInBytes = byteArrayOutputStream.toByteArray();
-					((BiometricDTO) SessionContext.map().get(RegistrationConstants.USER_ONBOARD_DATA))
-							.getOperatorBiometricDTO().getFace().setFace(photoInBytes);
-					((BiometricDTO) SessionContext.map().get(RegistrationConstants.USER_ONBOARD_DATA))
-							.getOperatorBiometricDTO().getFace().setFaceISO(isoBytes);
+					//((BiometricDTO) SessionContext.map().get(RegistrationConstants.USER_ONBOARD_DATA))
+						//	.getOperatorBiometricDTO().getFace().setFace(photoInBytes);
+					//((BiometricDTO) SessionContext.map().get(RegistrationConstants.USER_ONBOARD_DATA))
+						//	.getOperatorBiometricDTO().getFace().setFaceISO(isoBytes);
 				}
 
 			} else if (photoType.equals(RegistrationConstants.EXCEPTION_IMAGE) && capturedImage != null) {
@@ -568,7 +569,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 	}
 
 	private boolean validateOperatorPhoto() {
-		return getBiometricDTOFromSession().getOperatorBiometricDTO().getFace().getFace() != null ? true : false;
+		return false;//return getBiometricDTOFromSession().getOperatorBiometricDTO().getFace().getFace() != null ? true : false;
 	}
 
 	public void clearExceptionImage() {

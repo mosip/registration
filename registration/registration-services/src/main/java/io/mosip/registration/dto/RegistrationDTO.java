@@ -64,9 +64,10 @@ public class RegistrationDTO {
 	private Map<String, BiometricsDto> biometrics = new HashMap<>();
 	private Map<String, BiometricsException> biometricExceptions = new HashMap<>();
 
-	private List<BiometricDTO> supervisorBiometrics;
-	private List<BiometricDTO> officerBiometrics;
-
+	private List<BiometricsDto> supervisorBiometrics = new ArrayList<>();
+	private List<BiometricsDto> officerBiometrics = new ArrayList<>();
+	private Map<String, BiometricsException> osBioExceptions = new HashMap<>();
+	
 	private List<AuditDto> auditDTOs;
 	private Timestamp auditLogStartTime;
 	private Timestamp auditLogEndTime;
@@ -181,6 +182,14 @@ public class RegistrationDTO {
 	public BiometricsDto removeBiometric(String subType, String bioAttribute) {
 		String key = String.format("%s_%s", subType, bioAttribute);
 		return this.biometrics.remove(key);
+	}
+	
+	public void addSupervisorBiometrics(List<BiometricsDto> biometrics) {
+		this.supervisorBiometrics.addAll(biometrics);
+	}
+	
+	public void addOfficerBiometrics(List<BiometricsDto> biometrics) {
+		this.officerBiometrics.addAll(biometrics);
 	}
 
 	/*
