@@ -2256,7 +2256,11 @@ public class GuardianBiometricsController extends BaseController /* implements I
 
 		for (String bioAttribute : bioAttributes) {
 
-			bioAttribute = io.mosip.registration.mdm.dto.Biometric.getSpecConstantByAttributeName(bioAttribute);
+			// TODO Change bio Attribute names of proxy
+			if (bioService.isMdmEnabled()) {
+				bioAttribute = io.mosip.registration.mdm.dto.Biometric.getSpecConstantByAttributeName(bioAttribute);
+			}
+
 			BiometricsDto biometricDTO = getBiometrics(subType, bioAttribute);
 			if (biometricDTO != null) {
 				/* Captures check */
