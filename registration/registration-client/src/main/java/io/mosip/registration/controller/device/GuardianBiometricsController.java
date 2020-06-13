@@ -2255,6 +2255,8 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		int qualityScore = 0, exceptionBioCount = 0;
 
 		for (String bioAttribute : bioAttributes) {
+
+			bioAttribute = io.mosip.registration.mdm.dto.Biometric.getSpecConstantByAttributeName(bioAttribute);
 			BiometricsDto biometricDTO = getBiometrics(subType, bioAttribute);
 			if (biometricDTO != null) {
 				/* Captures check */
