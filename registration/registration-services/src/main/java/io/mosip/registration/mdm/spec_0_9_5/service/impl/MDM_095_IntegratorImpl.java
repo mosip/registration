@@ -107,6 +107,7 @@ public class MDM_095_IntegratorImpl implements IMosipBioDeviceIntegrator {
 		String requestBody = null;
 		ObjectMapper mapper = new ObjectMapper();
 		requestBody = mapper.writeValueAsString(rCaptureRequestDTO);
+		
 		CloseableHttpClient client = HttpClients.createDefault();
 		StringEntity requestEntity = new StringEntity(requestBody, ContentType.create("Content-Type", Consts.UTF_8));
 		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
@@ -120,7 +121,6 @@ public class MDM_095_IntegratorImpl implements IMosipBioDeviceIntegrator {
 
 		String val = EntityUtils.toString(response.getEntity());
 
-		System.out.println(val);
 		RCaptureResponseDTO captureResponse = mapper.readValue(val.getBytes(StandardCharsets.UTF_8),
 				RCaptureResponseDTO.class);
 		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,

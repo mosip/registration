@@ -82,11 +82,7 @@ public class MosipBioDeviceManagerDuplicate {
 	@Autowired
 	private AuditManagerService auditFactory;
 
-	// @Value("${mdm.host}")
-	// private String host;
-	//
-	// @Value("${mdm.hostProtocol}")
-	// private String hostProtocol;
+
 	//
 	private int portFrom;
 
@@ -399,7 +395,7 @@ public class MosipBioDeviceManagerDuplicate {
 
 	private String constructDeviceType(String deviceType) {
 
-		return deviceType.contains("FINGERPRINT_SLAB") ? "FINGERPRINT_SLAB"
+		return deviceType.contains("FINGERPRINT_SLAB") ? "FINGER_SLAB"
 				: deviceType.contains("IRIS_DOUBLE") ? "IRIS_DOUBLE"
 						: deviceType.contains("FACE_FULL") ? "FACE_FULL FACE" : deviceType;
 
@@ -565,6 +561,7 @@ public class MosipBioDeviceManagerDuplicate {
 					BiometricsDto biometricDTO = new BiometricsDto(dataDTO.getBioSubType(),
 							dataDTO.getDecodedBioValue(), Double.parseDouble(dataDTO.getQualityScore()));
 					biometricDTO.setCaptured(true);
+					biometricDTO.setModalityName(bioDevice.getDeviceType());
 					biometricDTOs.add(biometricDTO);
 				}
 			case "0.9.2":
@@ -577,11 +574,9 @@ public class MosipBioDeviceManagerDuplicate {
 	private RCaptureRequestDTO get_095_RCaptureRequest(MdmBioDevice bioDevice, MDMRequestDto rCaptureRequest)
 			throws JsonParseException, JsonMappingException, IOException {
 
-		// TODO bioType should be from digital Id
-		String bioType = bioDevice.getDeviceType().toLowerCase().contains("finger") ? "FIR"
-				: bioDevice.getDeviceType().toLowerCase().contains("iris") ? "IIR" : "FACE";
+
 		List<RCaptureRequestBioDTO> captureRequestBioDTOs = new LinkedList<>();
-		captureRequestBioDTOs.add(new RCaptureRequestBioDTO(bioType, "1", null,
+		captureRequestBioDTOs.add(new RCaptureRequestBioDTO(bioDevice.getDeviceType(), "1", null,
 				rCaptureRequest.getExceptions(), String.valueOf(rCaptureRequest.getRequestedScore()),
 				bioDevice.getDeviceId(), getDeviceSubId(rCaptureRequest.getModality()), null));
 
@@ -610,7 +605,7 @@ public class MosipBioDeviceManagerDuplicate {
 		return modality.contains("left") ? "1"
 				: modality.contains("right") ? "2"
 						: (modality.contains("double") || modality.contains("thumbs") || modality.contains("two")) ? "3"
-								: "3";
+								: "0";
 	}
 
 	private String getLatestSpecVersion(String[] specVersion) {
