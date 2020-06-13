@@ -5,11 +5,8 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 import static io.mosip.registration.exception.RegistrationExceptionConstants.REG_PACKET_CREATION_ERROR_CODE;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,9 +24,17 @@ import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectValidationFailed
 import io.mosip.kernel.core.idobjectvalidator.exception.InvalidIdSchemaException;
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.packetmanager.constants.PacketManagerConstants;
+import io.mosip.kernel.packetmanager.dto.AuditDto;
+import io.mosip.kernel.packetmanager.dto.BiometricsDto;
+import io.mosip.kernel.packetmanager.dto.DocumentDto;
+import io.mosip.kernel.packetmanager.dto.SimpleDto;
+import io.mosip.kernel.packetmanager.dto.metadata.BiometricsException;
+import io.mosip.kernel.packetmanager.dto.metadata.DeviceMetaInfo;
+import io.mosip.kernel.packetmanager.dto.metadata.DigitalId;
+import io.mosip.kernel.packetmanager.exception.PacketCreatorException;
+import io.mosip.kernel.packetmanager.spi.PacketCreator;
 import io.mosip.registration.audit.AuditManagerService;
-import io.mosip.registration.builder.Builder;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.AuditEvent;
 import io.mosip.registration.constants.AuditReferenceIdTypes;
@@ -47,24 +52,11 @@ import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.SuccessResponseDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
-import io.mosip.registration.dto.json.metadata.CustomDigitalId;
-import io.mosip.registration.dto.json.metadata.RegisteredDevice;
 import io.mosip.registration.dto.response.SchemaDto;
-import io.mosip.registration.entity.AuditLogControl;
 import io.mosip.registration.entity.KeyStore;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
-import io.mosip.kernel.packetmanager.spi.PacketCreator;
-import io.mosip.kernel.packetmanager.constants.PacketManagerConstants;
-import io.mosip.kernel.packetmanager.dto.AuditDto;
-import io.mosip.kernel.packetmanager.dto.BiometricsDto;
-import io.mosip.kernel.packetmanager.dto.DocumentDto;
-import io.mosip.kernel.packetmanager.dto.SimpleDto;
-import io.mosip.kernel.packetmanager.dto.metadata.BiometricsException;
-import io.mosip.kernel.packetmanager.dto.metadata.DeviceMetaInfo;
-import io.mosip.kernel.packetmanager.dto.metadata.DigitalId;
-import io.mosip.kernel.packetmanager.exception.PacketCreatorException;
 import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.external.StorageService;
@@ -278,11 +270,12 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 	private void collectAudits() {
 		List<AuditDto> list = new ArrayList<>();
 		List<Audit> audits = auditDAO.getAudits(auditLogControlDAO.getLatestRegistrationAuditDates());
-		for(Audit audit : audits) {
+		for (Audit audit : audits) {
 			AuditDto dto = new AuditDto();
 			dto.setActionTimeStamp(audit.getActionTimeStamp());
-			dto.setApplicationId(audit.getApplicationId());
-			dto.setApplicationName(audit.getApplicationName());
+			dto.setApplicationId(!audit.getApplicationId().equalsIgnoreCase("null") ? audit.getApplicationId() : null);
+			dto.setApplicationName(
+					!audit.getApplicationName().equalsIgnoreCase("null") ? audit.getApplicationName() : null);
 			dto.setCreatedBy(audit.getCreatedBy());
 			dto.setDescription(audit.getDescription());
 			dto.setEventId(audit.getEventId());
