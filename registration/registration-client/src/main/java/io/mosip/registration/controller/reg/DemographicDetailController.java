@@ -1095,6 +1095,7 @@ public class DemographicDetailController extends BaseController {
 				&& successResponseDTO.getOtherAttributes().containsKey(RegistrationConstants.REGISTRATION_DTO)) {
 			SessionContext.map().put(RegistrationConstants.REGISTRATION_DATA,
 					successResponseDTO.getOtherAttributes().get(RegistrationConstants.REGISTRATION_DTO));
+			getRegistrationDTOFromSession().setPreRegistrationId(preRegId);
 			prepareEditPageContent();
 
 		} else if (errorResponseDTOList != null && !errorResponseDTOList.isEmpty()) {
