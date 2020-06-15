@@ -6,6 +6,7 @@ import java.time.Period;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -53,6 +54,7 @@ public class RegistrationDTO {
 
 	private HashMap<String, Object> selectionListDTO;
 	private List<String> updatableFields;
+	private List<String> updatableFieldGroups;
 	private boolean isUpdateUINNonBiometric;
 	private boolean isNameNotUpdated;
 	private boolean isUpdateUINChild;
@@ -217,21 +219,16 @@ public class RegistrationDTO {
 		Map<String, Object> allIdentityDetails = new LinkedHashMap<String, Object>();
 		allIdentityDetails.put("IDSchemaVersion", idSchemaVersion);
 		allIdentityDetails.put("isNew",
-				RegistrationConstants.PACKET_TYPE_NEW.equals(registrationMetaDataDTO.getRegistrationCategory()));
+				RegistrationConstants.PACKET_TYPE_NEW.equals(this.registrationCategory));
 		allIdentityDetails.put("isUpdate",
-				RegistrationConstants.PACKET_TYPE_UPDATE.equals(registrationMetaDataDTO.getRegistrationCategory()));
+				RegistrationConstants.PACKET_TYPE_UPDATE.equals(this.registrationCategory));
 		allIdentityDetails.put("isLost",
-				RegistrationConstants.PACKET_TYPE_LOST.equals(registrationMetaDataDTO.getRegistrationCategory()));
+				RegistrationConstants.PACKET_TYPE_LOST.equals(this.registrationCategory));
 		allIdentityDetails.put("age", this.age);
 		allIdentityDetails.put("isChild", this.isChild);
 
-		List<String> updatedFields = new ArrayList<>();
-		if(this.isBiometricMarkedForUpdate)
-			updatedFields.add("Biometrics");		
-		if(this.updatableFields != null)
-			updatedFields.addAll(this.updatableFields);
-
-		allIdentityDetails.put("updatableFields", updatedFields);
+		allIdentityDetails.put("updatableFields", this.updatableFields == null ? Collections.EMPTY_LIST : this.updatableFields);
+		allIdentityDetails.put("updatableFieldGroups", this.updatableFieldGroups == null ? Collections.EMPTY_LIST : this.updatableFieldGroups);
 		allIdentityDetails.putAll(this.demographics);
 		allIdentityDetails.putAll(this.documents);
 		allIdentityDetails.putAll(this.biometrics);

@@ -1765,4 +1765,6 @@ public class RegistrationConstants {
 	public static final String UPDATE_REGISTRATION_BIO_MVEL_OPERATOR = "mosip.registration.updateuin.biometrics.mvel.operator";
 	public static final String LOST_REGISTRATION_BIO_MVEL_EXPR = "mosip.registration.lostuin.biometrics.mvel.expr";
 	public static final String UPDATE_REGISTRATION_BIO_MVEL_EXPR = "mosip.registration.updateuin.biometrics.mvel.expr";
+	
+	public static final String BIOMETRICS_GROUP = "Biometrics";
 }

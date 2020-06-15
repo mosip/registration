@@ -1687,7 +1687,7 @@ public class TemplateGenerator extends BaseService {
 		String value = RegistrationConstants.EMPTY;
 
 		if (fieldValue instanceof List<?>) {
-			Optional<ValuesDTO> demoValueInRequiredLang = ((List<ValuesDTO>) fieldValue).stream()
+			Optional<SimpleDto> demoValueInRequiredLang = ((List<SimpleDto>) fieldValue).stream()
 					.filter(valueDTO -> valueDTO.getLanguage().equals(lang)).findFirst();
 
 			if (demoValueInRequiredLang.isPresent() && demoValueInRequiredLang.get().getValue() != null) {

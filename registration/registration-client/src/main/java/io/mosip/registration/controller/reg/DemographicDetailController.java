@@ -833,7 +833,7 @@ public class DemographicDetailController extends BaseController {
 		return listOfValues;
 	}
 
-	private void addDemoGraphicDetailsToSession() {
+	private void addDemoGraphicDetailsToSession() {		
 		try {
 			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 			for (UiSchemaDTO schemaField : validation.getValidationMap().values()) {
@@ -880,10 +880,6 @@ public class DemographicDetailController extends BaseController {
 									: platformField.getValue() != null ? platformField.getValue().getName() : null);
 						} else {
 							TextField platformField = listOfTextField.get(schemaField.getId());
-							
-							if (schemaField.getSubType() == "UIN" || schemaField.getSubType() == "RID")
-								validation.validateUinOrRidField(registrationDTO, schemaField, platformField);							
-							
 							registrationDTO.addDemographicField(schemaField.getId(),
 									platformField != null ? platformField.getText() : null);
 						}
@@ -895,7 +891,7 @@ public class DemographicDetailController extends BaseController {
 				}
 			}
 		} catch (Exception exception) {
-			LOGGER.error("", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+			LOGGER.error("addDemoGraphicDetailsToSession", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 		}
 	}
@@ -933,10 +929,12 @@ public class DemographicDetailController extends BaseController {
 			auditFactory.audit(AuditEvent.SAVE_DETAIL_TO_DTO, Components.REGISTRATION_CONTROLLER,
 					SessionContext.userContext().getUserId(), RegistrationConstants.ONBOARD_DEVICES_REF_ID_TYPE);
 
-			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
-			if (preRegistrationId.getText() == null && preRegistrationId.getText().isEmpty()) {
-				registrationDTO.setPreRegistrationId("");
-			}
+			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();			
+			/*
+			 * if (preRegistrationId.getText() == null &&
+			 * preRegistrationId.getText().isEmpty()) {
+			 * registrationDTO.setPreRegistrationId(""); }
+			 */
 
 			addDemoGraphicDetailsToSession();
 
@@ -1173,7 +1171,7 @@ public class DemographicDetailController extends BaseController {
 		//Its required to save before validation as on spot check for values during MVEL validation
 		saveDetail();
 
-		if (validateThisPane()) {
+		if (registrationController.validateDemographicPane(parentFlowPane)) {
 			//saveDetail();
 
 			guardianBiometricsController.populateBiometricPage(false);
@@ -1191,21 +1189,6 @@ public class DemographicDetailController extends BaseController {
 					getPageByAction(RegistrationConstants.DEMOGRAPHIC_DETAIL, RegistrationConstants.NEXT));
 
 		}
-	}
-
-	/**
-	 * Disables the messages once the pane is validated
-	 */
-	public boolean validateThisPane() {
-		boolean isValid = true;
-		isValid = registrationController.validateDemographicPane(parentFlowPane);
-		// if (isValid)
-		// isValid = validation.validateUinOrRid(parentFlowPane, parentUinId,
-		// parentRegId, isChild, uinValidator,
-		// ridValidator);
-
-		return isValid;
-
 	}
 
 	/**
