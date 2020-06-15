@@ -771,12 +771,14 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 		LOGGER.debug(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "addOperatorBiometrics >>> operatorType :: " + operatorType + " bioAttribute :: " + 
 				bioAttribute);
 		Biometric biometric = Biometric.getBiometricByMDMConstant(bioAttribute);
+		
+		//TODO Anusha please verify modality will be like IRIS/FINGER/FACE
 		value.setModalityName(biometric.getModalityName());
 		value.setSubType(operatorType);
-		value.setBioAttribute(biometric.getAttributeName());
-		operatorBiometrics.put(String.format(BIOMETRIC_KEY_PATTERN, operatorType, biometric.getAttributeName(), ""), value);
+		value.setBioAttribute(bioAttribute);
+		operatorBiometrics.put(String.format(BIOMETRIC_KEY_PATTERN, operatorType, bioAttribute, ""), value);
 		return value;
-	}
+	} 
 
 	@Override
 	public void addOperatorBiometricException(String operatorType, String bioAttribute) {
