@@ -326,14 +326,17 @@ public class SessionContext {
 			AuthenticationValidatorDTO authenticationValidatorDTO) throws RegBaseCheckedException, IOException {
 		BioService bioService = applicationContext.getBean(BioService.class);
 		AuthenticationService authService = applicationContext.getBean(AuthenticationService.class);
-		
-		MDMRequestDto mdmRequestDto = new MDMRequestDto(RegistrationConstants.FINGERPRINT_SLAB_LEFT, null, "Registration", "Staging", 
-				(Integer) io.mosip.registration.context.ApplicationContext.map()
-				.get(RegistrationConstants.CAPTURE_TIME_OUT), 1, (Integer) io.mosip.registration.context.ApplicationContext.map()
-				.get(RegistrationConstants.FINGERPRINT_AUTHENTICATION_THRESHHOLD));
-		
+
+		MDMRequestDto mdmRequestDto = new MDMRequestDto(RegistrationConstants.FINGERPRINT_SLAB_LEFT, null,
+				"Registration", "Staging",
+				io.mosip.registration.context.ApplicationContext
+						.getIntValueFromApplicationMap(RegistrationConstants.CAPTURE_TIME_OUT),
+				1, io.mosip.registration.context.ApplicationContext
+						.getIntValueFromApplicationMap(RegistrationConstants.FINGERPRINT_AUTHENTICATION_THRESHHOLD));
+
 		List<BiometricsDto> biometrics = bioService.captureModalityForAuth(mdmRequestDto);
-		if(authService.authValidator(authenticationValidatorDTO.getUserId(), BiometricType.FINGER.name(), biometrics)) {		
+		if (authService.authValidator(authenticationValidatorDTO.getUserId(), BiometricType.FINGER.value(),
+				biometrics)) {
 			createSessionContext();
 			SessionContext.authTokenDTO().setLoginMode(loginMethod);
 			validAuthModes.add(loginMethod);
@@ -366,14 +369,16 @@ public class SessionContext {
 			AuthenticationValidatorDTO authenticationValidatorDTO) throws RegBaseCheckedException, IOException {
 		BioService bioService = applicationContext.getBean(BioService.class);
 		AuthenticationService authService = applicationContext.getBean(AuthenticationService.class);
-		
-		MDMRequestDto mdmRequestDto = new MDMRequestDto(RegistrationConstants.IRIS_DOUBLE, null, "Registration", "Staging", 
-				(Integer) io.mosip.registration.context.ApplicationContext.map()
-				.get(RegistrationConstants.CAPTURE_TIME_OUT), 2, (Integer) io.mosip.registration.context.ApplicationContext.map()
-				.get(RegistrationConstants.IRIS_THRESHOLD));
+
+		MDMRequestDto mdmRequestDto = new MDMRequestDto(RegistrationConstants.IRIS_DOUBLE, null, "Registration",
+				"Staging",
+				io.mosip.registration.context.ApplicationContext
+						.getIntValueFromApplicationMap(RegistrationConstants.CAPTURE_TIME_OUT),
+				2, io.mosip.registration.context.ApplicationContext
+						.getIntValueFromApplicationMap(RegistrationConstants.IRIS_THRESHOLD));
 
 		List<BiometricsDto> biometrics = bioService.captureModalityForAuth(mdmRequestDto);
-		if(authService.authValidator(authenticationValidatorDTO.getUserId(), BiometricType.IRIS.name(), biometrics)) {
+		if (authService.authValidator(authenticationValidatorDTO.getUserId(), BiometricType.IRIS.value(), biometrics)) {
 			createSessionContext();
 			SessionContext.authTokenDTO().setLoginMode(loginMethod);
 			validAuthModes.add(loginMethod);
@@ -409,12 +414,12 @@ public class SessionContext {
 		AuthenticationService authService = applicationContext.getBean(AuthenticationService.class);
 		
 		MDMRequestDto mdmRequestDto = new MDMRequestDto(RegistrationConstants.FACE_FULLFACE, null, "Registration", "Staging", 
-				(Integer) io.mosip.registration.context.ApplicationContext.map()
-				.get(RegistrationConstants.CAPTURE_TIME_OUT), 1, (Integer) io.mosip.registration.context.ApplicationContext.map()
-				.get(RegistrationConstants.FACE_THRESHOLD));
+				io.mosip.registration.context.ApplicationContext
+				.getIntValueFromApplicationMap(RegistrationConstants.CAPTURE_TIME_OUT), 1, io.mosip.registration.context.ApplicationContext
+				.getIntValueFromApplicationMap(RegistrationConstants.FACE_THRESHOLD));
 		
 		List<BiometricsDto> biometrics = bioService.captureModalityForAuth(mdmRequestDto);
-		if(authService.authValidator(authenticationValidatorDTO.getUserId(), BiometricType.FACE.name(), biometrics)) {
+		if(authService.authValidator(authenticationValidatorDTO.getUserId(), BiometricType.FACE.value(), biometrics)) {
 			createSessionContext();
 			SessionContext.authTokenDTO().setLoginMode(loginMethod);
 			validAuthModes.add(loginMethod);

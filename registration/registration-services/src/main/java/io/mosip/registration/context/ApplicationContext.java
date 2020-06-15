@@ -418,4 +418,16 @@ public class ApplicationContext {
 		applicationMap.remove(code);
 
 	}
+	
+	/**
+	 * Gets the integer value.
+	 *
+	 * @param code the code
+	 * @return the integer value
+	 */
+	public static int getIntValueFromApplicationMap(String code) {
+
+		return Integer.parseInt((String) applicationMap.get(code));
+
+	}
 }
