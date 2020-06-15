@@ -675,18 +675,19 @@ public class GuardianBiometricsController extends BaseController /* implements I
 			for (Node node : checkBoxNodes) {
 				if (node instanceof CheckBox) {
 					CheckBox checkBox = (CheckBox) node;
-
-					if (isBiometricExceptionAvailable(currentSubType, checkBox.getId()))
+					String bioAttribute = io.mosip.registration.mdm.dto.Biometric
+							.getSpecConstantByAttributeName(checkBox.getId());
+					if (isBiometricExceptionAvailable(currentSubType, bioAttribute))
 						checkBox.setSelected(true);
 
 					if (checkBox.isSelected() || checkBox.isDisable()) {
 						exceptionBioAttributes = exceptionBioAttributes != null ? exceptionBioAttributes
 								: new LinkedList<String>();
-						exceptionBioAttributes.add(checkBox.getId());
+						exceptionBioAttributes.add(bioAttribute);
 					} else {
 						nonExceptionBioAttributes = nonExceptionBioAttributes != null ? nonExceptionBioAttributes
 								: new LinkedList<String>();
-						nonExceptionBioAttributes.add(checkBox.getId());
+						nonExceptionBioAttributes.add(bioAttribute);
 					}
 				}
 			}
@@ -696,8 +697,8 @@ public class GuardianBiometricsController extends BaseController /* implements I
 			}
 
 		} else {
-			capturedBiometrics = getBiometrics(currentSubType,
-					Arrays.asList(RegistrationConstants.faceUiAttributes.get(0)));
+			capturedBiometrics = getBiometrics(currentSubType, Arrays.asList(io.mosip.registration.mdm.dto.Biometric
+					.getSpecConstantByAttributeName(RegistrationConstants.faceUiAttributes.get(0))));
 		}
 
 		if (capturedBiometrics == null || capturedBiometrics.isEmpty()) {
@@ -947,8 +948,10 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		// modality;
 
 		// TODO need to take env from global_params
-		MDMRequestDto mdmRequestDto = new MDMRequestDto(currentModality, exceptionBioAttributes.toArray(new String[0]),
-				"Registration", "Staging", Integer.valueOf(getCaptureTimeOut()), count,
+		MDMRequestDto mdmRequestDto = new MDMRequestDto(
+				isFace(currentModality) ? RegistrationConstants.FACE_FULLFACE : currentModality,
+				exceptionBioAttributes.toArray(new String[0]), "Registration", "Staging",
+				Integer.valueOf(getCaptureTimeOut()), count,
 				getThresholdScoreInInt(getThresholdKeyByBioType(currentModality)));
 
 		LOGGER.debug(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
@@ -958,7 +961,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 			List<BiometricsDto> biometricDTOList = bioService.captureModality(mdmRequestDto);
 
 			// TODO Validate the biometricDTO from the MDS with threshold values
-			boolean isValidBiometric = true;
+			boolean isValidBiometric = biometricDTOList != null && !biometricDTOList.isEmpty();
 			// if (biometricDTOList != null && !biometricDTOList.isEmpty()) {
 			// for (BiometricDTO biometricDTO : biometricDTOList) {
 			//
@@ -990,11 +993,12 @@ public class GuardianBiometricsController extends BaseController /* implements I
 					LOGGER.debug(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 							"BiometricDTO captured from mock/real MDM >>> " + biometricDTO.getBioAttribute());
 
-					if (!exceptionBioAttributes.isEmpty() && exceptionBioAttributes.contains(
-							Biometric.getBiometricByMDMConstant(biometricDTO.getBioAttribute()).getAttributeName())) {
+					if (!exceptionBioAttributes.isEmpty()
+							&& exceptionBioAttributes.contains(biometricDTO.getBioAttribute())) {
 						continue;
 					} else {
 						qualityScore += biometricDTO.getQualityScore();
+						biometricDTO.setSubType(currentSubType);
 						savedBiometrics.add(biometricDTO);
 					}
 				}
@@ -2256,7 +2260,11 @@ public class GuardianBiometricsController extends BaseController /* implements I
 
 		for (String bioAttribute : bioAttributes) {
 
-			bioAttribute = io.mosip.registration.mdm.dto.Biometric.getSpecConstantByAttributeName(bioAttribute);
+			// TODO Change bio Attribute names of proxy
+			if (bioService.isMdmEnabled()) {
+				bioAttribute = io.mosip.registration.mdm.dto.Biometric.getSpecConstantByAttributeName(bioAttribute);
+			}
+
 			BiometricsDto biometricDTO = getBiometrics(subType, bioAttribute);
 			if (biometricDTO != null) {
 				/* Captures check */

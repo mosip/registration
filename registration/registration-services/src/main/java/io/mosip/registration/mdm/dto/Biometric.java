@@ -17,7 +17,7 @@ public enum Biometric {
 	RIGHT_THUMB("FINGERPRINT_SLAB_THUMBS", "Thumbs", "rightThumb", SingleType.FINGER, "RF_THUMB","Right Thumb"),
 	RIGHT_IRIS("IRIS_DOUBLE", "Iris", "rightEye", SingleType.IRIS, "R_IRIS","Left"),
 	LEFT_IRIS("IRIS_DOUBLE", "Iris", "leftEye", SingleType.IRIS, "L_IRIS","Right"),
-	FACE("FACE_FULL FACE", "Face", "face", SingleType.FACE, "FACE",null);
+	FACE("FACE_FULL FACE", "Face", "face", SingleType.FACE, "FACE","Face");
 	
 	Biometric(String modalityName, String modalityShortName, String attributeName, SingleType singleType, String mdmConstant,String specConstant) {
 		this.modalityName = modalityName;
