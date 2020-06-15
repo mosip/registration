@@ -351,8 +351,8 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 			List<Gender> masterDocuments = masterSyncDao.getGenderDtls(langCode);
 			masterDocuments.forEach(gender -> {
 				GenericDto comboBox = new GenericDto();
-				comboBox.setCode(gender.getCode());
-				comboBox.setName(gender.getGenderName());
+				comboBox.setCode(gender.getCode().trim());
+				comboBox.setName(gender.getGenderName().trim());
 				comboBox.setLangCode(gender.getLangCode());
 				gendetDtoList.add(comboBox);
 			});
@@ -426,7 +426,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 			masterDocuments.forEach(individual -> {
 				IndividualTypeDto individualDto = new IndividualTypeDto();
 				individualDto.setName(individual.getName());
-				individualDto.setCode(individual.getIndividualTypeId().getCode());
+				individualDto.setCode(individual.getIndividualTypeId().getCode().trim());
 				individualDto.setLangCode(individual.getIndividualTypeId().getLangCode());
 				listOfIndividualDTO.add(individualDto);
 			});
