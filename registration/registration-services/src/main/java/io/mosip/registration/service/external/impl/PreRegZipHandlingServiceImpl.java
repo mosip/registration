@@ -227,11 +227,11 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 				JSONObject jsonObject = (JSONObject) new JSONObject(jsonString.toString()).get("identity");
 				List<UiSchemaDTO> fieldList = identitySchemaService.getLatestEffectiveUISchema();	
 				
-				if(jsonObject.has("IdSchemaVersion"))
-					getRegistrationDtoContent().setIdSchemaVersion(jsonObject.getDouble("IdSchemaVersion"));
+				if(jsonObject.has("IDSchemaVersion"))
+					getRegistrationDtoContent().setIdSchemaVersion(jsonObject.getDouble("IDSchemaVersion"));
 				
 				for(UiSchemaDTO field : fieldList) {
-					if(field.getId().equalsIgnoreCase("IdSchemaVersion"))
+					if(field.getId().equalsIgnoreCase("IDSchemaVersion"))
 						continue;
 					
 					if(field.getType() != "documentType" && field.getType() != "biometricsType") {
