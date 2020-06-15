@@ -244,9 +244,6 @@ public class TemplateGenerator extends BaseService {
 				LOGGER.debug(LOG_TEMPLATE_GENERATOR, APPLICATION_NAME, APPLICATION_ID,
 						"merge method of TemplateManager had been called for preparing Acknowledgement Template.");
 				
-				LOGGER.debug(LOG_TEMPLATE_GENERATOR, APPLICATION_NAME, APPLICATION_ID,
-						"templateValues >>> " + templateValues);
-
 				TemplateManager templateManager = templateManagerBuilder.build();
 				InputStream inputStream = templateManager.merge(is, templateValues);
 				String defaultEncoding = null;
