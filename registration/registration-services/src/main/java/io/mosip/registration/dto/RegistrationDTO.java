@@ -226,9 +226,9 @@ public class RegistrationDTO {
 		allIdentityDetails.put("isChild", this.isChild);
 
 		List<String> updatedFields = new ArrayList<>();
-		if (this.isBiometricMarkedForUpdate)
-			updatedFields.add("biometrics");
-		if (this.updatableFields != null)
+		if(this.isBiometricMarkedForUpdate)
+			updatedFields.add("Biometrics");		
+		if(this.updatableFields != null)
 			updatedFields.addAll(this.updatableFields);
 
 		allIdentityDetails.put("updatableFields", updatedFields);
