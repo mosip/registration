@@ -938,42 +938,24 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		// Get Exception attributes
 		List<String> exceptionBioAttributes = getSelectedExceptionsByBioType(subType, modality);
 
-		// TODO prepare bio attributes
-		// String[] bioAttributes = null;
-
 		// Check count
 		int count = 1;
 
-		// modality = isFace(currentModality) ? RegistrationConstants.FACE_FULLFACE :
-		// modality;
-
 		// TODO need to take env from global_params
 		MDMRequestDto mdmRequestDto = new MDMRequestDto(
-				isFace(currentModality) ? RegistrationConstants.FACE_FULLFACE : currentModality,
+				isFace(modality) ? RegistrationConstants.FACE_FULLFACE : modality,
 				exceptionBioAttributes.toArray(new String[0]), "Registration", "Staging",
 				Integer.valueOf(getCaptureTimeOut()), count,
-				getThresholdScoreInInt(getThresholdKeyByBioType(currentModality)));
+				getThresholdScoreInInt(getThresholdKeyByBioType(modality)));
 
 		LOGGER.debug(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"exceptionBioAttributes passed to mock/real MDM >>> " + exceptionBioAttributes);
 		try {
-			// TODO Get Response from the MDS
-			List<BiometricsDto> biometricDTOList = bioService.captureModality(mdmRequestDto);
+			//  Get Response from the MDS
+			List<BiometricsDto> mdsCapturedBiometricsList = bioService.captureModality(mdmRequestDto);
 
-			// TODO Validate the biometricDTO from the MDS with threshold values
-			boolean isValidBiometric = biometricDTOList != null && !biometricDTOList.isEmpty();
-			// if (biometricDTOList != null && !biometricDTOList.isEmpty()) {
-			// for (BiometricDTO biometricDTO : biometricDTOList) {
-			//
-			// if (biometricDTO.isForceCaptured()
-			// || biometricDTO.getQualityScore() >=
-			// Double.valueOf(getThresholdScore(bioType))) {
-			// isValidBiometric = true;
-			// } else {
-			// isValidBiometric = false;
-			// }
-			// }
-			// }
+			boolean isValidBiometric = mdsCapturedBiometricsList != null && !mdsCapturedBiometricsList.isEmpty();
+			
 
 			// TODO validate local de-dup check
 			boolean isMatchedWithLocalBiometrics = false;
@@ -985,11 +967,11 @@ public class GuardianBiometricsController extends BaseController /* implements I
 
 			if (isValidBiometric && !isMatchedWithLocalBiometrics) {
 
-				List<BiometricsDto> savedBiometrics = new LinkedList<>();
+				List<BiometricsDto> registrationDTOBiometricsList = new LinkedList<>();
 
 				double qualityScore = 0;
 				// save to registration DTO
-				for (BiometricsDto biometricDTO : biometricDTOList) {
+				for (BiometricsDto biometricDTO : mdsCapturedBiometricsList) {
 					LOGGER.debug(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 							"BiometricDTO captured from mock/real MDM >>> " + biometricDTO.getBioAttribute());
 
@@ -999,13 +981,13 @@ public class GuardianBiometricsController extends BaseController /* implements I
 					} else {
 						qualityScore += biometricDTO.getQualityScore();
 						biometricDTO.setSubType(currentSubType);
-						savedBiometrics.add(biometricDTO);
+						registrationDTOBiometricsList.add(biometricDTO);
 					}
 				}
 
-				savedBiometrics = saveCapturedBiometricData(subType, savedBiometrics);
+				registrationDTOBiometricsList = saveCapturedBiometricData(subType, registrationDTOBiometricsList);
 
-				if (!savedBiometrics.isEmpty()) {
+				if (!registrationDTOBiometricsList.isEmpty()) {
 					// if all the above check success show alert capture success
 					generateAlert(RegistrationConstants.ALERT_INFORMATION,
 							RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
@@ -1017,14 +999,14 @@ public class GuardianBiometricsController extends BaseController /* implements I
 						streamImage = new Image(this.getClass().getResourceAsStream(getStubStreamImagePath(modality)));
 					}
 
-					addBioStreamImage(subType, currentModality, savedBiometrics.get(0).getNumOfRetries(), streamImage);
+					addBioStreamImage(subType, currentModality, registrationDTOBiometricsList.get(0).getNumOfRetries(), streamImage);
 
-					addBioScores(subType, currentModality, String.valueOf(savedBiometrics.get(0).getNumOfRetries()),
-							qualityScore / savedBiometrics.size());
+					addBioScores(subType, currentModality, String.valueOf(registrationDTOBiometricsList.get(0).getNumOfRetries()),
+							qualityScore / registrationDTOBiometricsList.size());
 
 					// using captured response fill the fields like quality score and progress
 					// bar,,etc,.. UI
-					loadBiometricsUIElements(savedBiometrics, subType, currentModality);
+					loadBiometricsUIElements(registrationDTOBiometricsList, subType, currentModality);
 				} else {
 					// request response mismatch
 					generateAlert(RegistrationConstants.ALERT_INFORMATION,

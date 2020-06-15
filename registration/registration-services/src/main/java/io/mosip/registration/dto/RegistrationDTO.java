@@ -67,7 +67,7 @@ public class RegistrationDTO {
 	private List<BiometricsDto> supervisorBiometrics = new ArrayList<>();
 	private List<BiometricsDto> officerBiometrics = new ArrayList<>();
 	private Map<String, BiometricsException> osBioExceptions = new HashMap<>();
-	
+
 	private List<AuditDto> auditDTOs;
 	private Timestamp auditLogStartTime;
 	private Timestamp auditLogEndTime;
@@ -91,7 +91,7 @@ public class RegistrationDTO {
 		if (localValue != null && !localValue.isEmpty())
 			values.add(new SimpleDto(localLanguage, localValue));
 
-		if(!values.isEmpty())
+		if (!values.isEmpty())
 			this.demographics.put(fieldId, values);
 	}
 
@@ -158,7 +158,7 @@ public class RegistrationDTO {
 		return value;
 	}
 
-	public void addBiometricException(String subType, String bioAttribute, String reason, String exceptionType) {		
+	public void addBiometricException(String subType, String bioAttribute, String reason, String exceptionType) {
 		String key = String.format("%s_%s", subType, bioAttribute);
 		SingleType type = io.mosip.registration.mdm.dto.Biometric.getSingleTypeBySpecConstant(bioAttribute);
 		this.biometricExceptions.put(key, new BiometricsException(type == null ? null : type.value(), bioAttribute,
@@ -183,11 +183,11 @@ public class RegistrationDTO {
 		String key = String.format("%s_%s", subType, bioAttribute);
 		return this.biometrics.remove(key);
 	}
-	
+
 	public void addSupervisorBiometrics(List<BiometricsDto> biometrics) {
 		this.supervisorBiometrics.addAll(biometrics);
 	}
-	
+
 	public void addOfficerBiometrics(List<BiometricsDto> biometrics) {
 		this.officerBiometrics.addAll(biometrics);
 	}
@@ -224,13 +224,13 @@ public class RegistrationDTO {
 				RegistrationConstants.PACKET_TYPE_LOST.equals(registrationMetaDataDTO.getRegistrationCategory()));
 		allIdentityDetails.put("age", this.age);
 		allIdentityDetails.put("isChild", this.isChild);
-		
+
 		List<String> updatedFields = new ArrayList<>();
-		if(this.isBiometricMarkedForUpdate)
-			updatedFields.add("biometrics");		
-		if(this.updatableFields != null)
+		if (this.isBiometricMarkedForUpdate)
+			updatedFields.add("biometrics");
+		if (this.updatableFields != null)
 			updatedFields.addAll(this.updatableFields);
-		
+
 		allIdentityDetails.put("updatableFields", updatedFields);
 		allIdentityDetails.putAll(this.demographics);
 		allIdentityDetails.putAll(this.documents);
@@ -243,7 +243,7 @@ public class RegistrationDTO {
 	}
 
 	public List<BiometricsDto> addAllBiometrics(String subType, List<BiometricsDto> biometricsDTOList,
-			double thresholdScore, int maxRetryAttempt) {		
+			double thresholdScore, int maxRetryAttempt) {
 
 		List<BiometricsDto> savedBiometrics = null;
 		if (subType != null && biometricsDTOList != null && !biometricsDTOList.isEmpty()) {
@@ -258,8 +258,8 @@ public class RegistrationDTO {
 				if (maxRetryAttempt == 1) {
 					isForceCaptured = true;
 				} else {
-					BiometricsDto biometricsDto = getBiometric(subType, 
-							Biometric.getBiometricByMDMConstant(biometricsDTOList.get(0).getBioAttribute()).getAttributeName());
+					BiometricsDto biometricsDto = getBiometric(subType, Biometric
+							.getBiometricByMDMConstant(biometricsDTOList.get(0).getBioAttribute()).getAttributeName());
 
 					if (biometricsDto != null && biometricsDto.getNumOfRetries() + 1 >= maxRetryAttempt) {
 						isForceCaptured = true;
@@ -269,24 +269,31 @@ public class RegistrationDTO {
 
 			/** Modify the Biometrics DTO and save */
 			for (BiometricsDto value : biometricsDTOList) {
+
+				BiometricsDto savedRegistrationBiometric = getBiometric(subType, value.getBioAttribute());
+
+				if (savedRegistrationBiometric != null
+						&& savedRegistrationBiometric.getQualityScore() > value.getQualityScore()) {
+					value = savedRegistrationBiometric;
+				}
 				value.setForceCaptured(isForceCaptured);
-				
-//				Biometric biometric = Biometric.getBiometricByMDMConstant(value.getBioAttribute());
+
 				value.setSubType(subType);
-//				value.setBioAttribute(biometric.getAttributeName());
 				savedBiometrics.add(addBiometric(subType, value.getBioAttribute(), value));
+
 			}
 		}
 
 		return savedBiometrics;
 	}
 
-	/*private String getRegistrationDTOBioAttribute(String attribute) {
-
-		String bioAttributeByMap = RegistrationConstants.regBioMap.get(attribute);
-
-		return bioAttributeByMap != null ? bioAttributeByMap : attribute;
-	}*/
+	/*
+	 * private String getRegistrationDTOBioAttribute(String attribute) {
+	 * 
+	 * String bioAttributeByMap = RegistrationConstants.regBioMap.get(attribute);
+	 * 
+	 * return bioAttributeByMap != null ? bioAttributeByMap : attribute; }
+	 */
 
 	private double getQualityScore(List<BiometricsDto> biometrics) {
 		double qualityScore = 0.0;
