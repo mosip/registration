@@ -332,7 +332,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		packetCreator.setMetaInfo(PacketManagerConstants.META_REGISTRATION_TYPE, 
 				registrationDTO.getRegistrationMetaDataDTO().getRegistrationCategory());
 		packetCreator.setMetaInfo(PacketManagerConstants.META_PRE_REGISTRATION_ID, 
-				registrationDTO.getRegistrationMetaDataDTO().getPreviousRID());
+				registrationDTO.getPreRegistrationId());
 		packetCreator.setMetaInfo(PacketManagerConstants.META_MACHINE_ID, 
 				(String) ApplicationContext.map().get(RegistrationConstants.USER_STATION_ID));
 		packetCreator.setMetaInfo(PacketManagerConstants.META_CENTER_ID, 

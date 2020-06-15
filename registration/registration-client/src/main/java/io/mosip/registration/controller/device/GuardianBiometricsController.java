@@ -2182,7 +2182,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 					: OR_OPERATOR;
 			break;
 		case RegistrationConstants.PACKET_TYPE_LOST:
-			operator = getValueFromApplicationContext(RegistrationConstants.LOST_REGISTRATION_BIO_CAPTURE_OPERATOR);
+			operator = getValueFromApplicationContext(RegistrationConstants.LOST_REGISTRATION_BIO_MVEL_OPERATOR);
 			operator = operator == null ? AND_OPERATOR : operator;
 			break;
 		}

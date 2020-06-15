@@ -1761,5 +1761,8 @@ public class RegistrationConstants {
 	// #Proof Of Exception Documents
 	public static final String POE_DOCUMENT_VALUE = "mosip.registration.doc_value";
 	
-	public static final String LOST_REGISTRATION_BIO_CAPTURE_OPERATOR = "mosip.registration.lostuin.biocapture.operator";
+	public static final String LOST_REGISTRATION_BIO_MVEL_OPERATOR = "mosip.registration.lostuin.biometrics.mvel.operator";
+	public static final String UPDATE_REGISTRATION_BIO_MVEL_OPERATOR = "mosip.registration.updateuin.biometrics.mvel.operator";
+	public static final String LOST_REGISTRATION_BIO_MVEL_EXPR = "mosip.registration.lostuin.biometrics.mvel.expr";
+	public static final String UPDATE_REGISTRATION_BIO_MVEL_EXPR = "mosip.registration.updateuin.biometrics.mvel.expr";
 }
