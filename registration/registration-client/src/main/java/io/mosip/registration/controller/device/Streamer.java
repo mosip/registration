@@ -21,6 +21,7 @@ import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.StreamingRequestDetail;
 import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
+import io.mosip.registration.mdm.service.impl.MosipBioDeviceManagerDuplicate;
 import io.mosip.registration.service.bio.impl.BioServiceImpl;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -36,8 +37,11 @@ public class Streamer {
 
 	private final String CONTENT_LENGTH = "Content-Length:";
 
+	// @Autowired
+	// private MosipBioDeviceManager mosipBioDeviceManager;
+
 	@Autowired
-	private MosipBioDeviceManager mosipBioDeviceManager;
+	private MosipBioDeviceManagerDuplicate mosipBioDeviceManagerDuplicate;
 
 	@Autowired
 	private ScanPopUpViewController scanPopUpViewController;
@@ -114,11 +118,13 @@ public class Streamer {
 					setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_PREP_MESSAGE, false);
 					LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
 							"Constructing Stream URL Started" + System.currentTimeMillis());
-					urlStream = mosipBioDeviceManager.stream(type);
+					urlStream = mosipBioDeviceManagerDuplicate.getStream(type);
+
 					if (urlStream == null) {
 
 						LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
 								"URL Stream was null for : " + System.currentTimeMillis() + type);
+
 						setPopViewControllerMessage(true,
 								RegistrationUIConstants.getMessageLanguageSpecific("202_MESSAGE"), false);
 
@@ -127,44 +133,16 @@ public class Streamer {
 
 					setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_INIT_MESSAGE, true);
 
-				} catch (RegBaseCheckedException | IOException | NullPointerException exception) {
+				} catch (IOException | NullPointerException exception) {
 
 					LOGGER.error(STREAMER, RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 							exception.getMessage() + ExceptionUtils.getStackTrace(exception));
-					try {
+					setPopViewControllerMessage(true, RegistrationUIConstants.getMessageLanguageSpecific("202_MESSAGE"),
+							false);
 
-						// Refreshing Device info, for checking of new connection
-						mosipBioDeviceManager.refreshBioDeviceByDeviceType(type);
-
-						// Start stream with new device
-						urlStream = mosipBioDeviceManager.stream(type);
-						if (urlStream == null) {
-
-							LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-									"URL Stream was null for : " + System.currentTimeMillis() + type);
-
-							setPopViewControllerMessage(true,
-									RegistrationUIConstants.getMessageLanguageSpecific("202_MESSAGE"), false);
-
-							// Enable Auto-Logout
-							SessionContext.setAutoLogout(true);
-
-							return;
-						}
-						setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_INIT_MESSAGE, true);
-
-					} catch (RegBaseCheckedException | IOException regBaseCheckedException) {
-
-						LOGGER.error(STREAMER, RegistrationConstants.APPLICATION_NAME,
-								RegistrationConstants.APPLICATION_ID, regBaseCheckedException.getMessage()
-										+ ExceptionUtils.getStackTrace(regBaseCheckedException));
-
-						setPopViewControllerMessage(true,
-								RegistrationUIConstants.getMessageLanguageSpecific("202_MESSAGE"), false);
-
-						// Enable Auto-Logout
-						SessionContext.setAutoLogout(true);
-					}
+					// Enable Auto-Logout
+					SessionContext.setAutoLogout(true);
+					return;
 
 				}
 				while (isRunning && null != urlStream) {
