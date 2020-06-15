@@ -1019,7 +1019,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	 */
 	@SuppressWarnings("unchecked")
 	private IdResponseDTO linkRegIdWrtUin(String lostPacketRegId, String matchedRegId, MessageDTO object,
-			LogDescription description) throws ApisResourceAccessException, IOException {
+			LogDescription description) throws ApisResourceAccessException, IOException, PacketDecryptionFailureException, ApiNotAccessibleException {
 
 		IdResponseDTO idResponse = null;
 		String uin = idRepoService.getUinByRid(matchedRegId, utility.getGetRegProcessorDemographicIdentity());
@@ -1030,8 +1030,12 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 		if (uin != null) {
 
+			JSONObject  regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
+			String idschemaversion = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.IDSCHEMA_VERSION), MappingJsonConstants.VALUE);
+
 			JSONObject identityObject = new JSONObject();
 			identityObject.put(UINConstants.UIN, uin);
+			identityObject.put(idschemaversion, packetReaderService.getIdSchemaVersionFromPacket(lostPacketRegId));
 
 			requestDto.setRegistrationId(lostPacketRegId);
 			requestDto.setIdentity(identityObject);
