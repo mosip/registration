@@ -925,10 +925,10 @@ public class PacketHandlerController extends BaseController implements Initializ
 						new File(filePath.concat("_Ack.").concat(RegistrationConstants.ACKNOWLEDGEMENT_FORMAT)));
 
 				//TODO - Client should not send notification, save contact details 
-				// so that it can be sent out during RID sync.
-				/*sendNotification((String)registrationDTO.getDemographics().get("email"), 
+				//TODO - so that it can be sent out during RID sync.
+				sendNotification((String)registrationDTO.getDemographics().get("email"), 
 						(String)registrationDTO.getDemographics().get("phone"),
-						registrationDTO.getRegistrationId());*/
+						registrationDTO.getRegistrationId());
 
 				// Sync and Uploads Packet when EOD Process Configuration is set to OFF
 				if (!getValueFromApplicationContext(RegistrationConstants.EOD_PROCESS_CONFIG_FLAG)
