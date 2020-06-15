@@ -2096,6 +2096,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 				RegistrationConstants.APPLICATION_NAME, "refreshContinueButton invoked");
 
 		if (getListOfBiometricSubTypes().isEmpty()) {
+
 			LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
 					RegistrationConstants.APPLICATION_NAME,
 					"refreshContinueButton NON of the BIOMETRIC FIELD IS ENABLED");
@@ -2152,6 +2153,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
 				RegistrationConstants.APPLICATION_NAME, "capturedDetails >> " + capturedDetails);
 		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
+
 				RegistrationConstants.APPLICATION_NAME, "Expression >> " + expression + " :: result >> " + result);
 		continueBtn.setDisable(result ? false : true);
 	}
