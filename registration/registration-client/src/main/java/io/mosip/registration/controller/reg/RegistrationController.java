@@ -128,13 +128,13 @@ public class RegistrationController extends BaseController {
 	 * This method is prepare the screen for uin update
 	 */
 	private void uinUpdate() {
-		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
+		if (getRegistrationDTOFromSession().getUpdatableFields() != null) {
 			demographicDetailController.uinUpdate();
 		}
 	}
 
 	public void init(String UIN, HashMap<String, Object> selectionListDTO, Map<String, UiSchemaDTO> selectedFields, 
-			boolean biometricMarkedForUpdate) {
+			List<String> selectedFieldGroups) {
 		validation.updateAsLostUIN(false);
 		createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_UPDATE);
 		RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
@@ -142,7 +142,8 @@ public class RegistrationController extends BaseController {
 		List<String> fieldIds = new ArrayList<String>(selectedFields.keySet());
 		registrationDTO.setUpdatableFields(fieldIds);
 		registrationDTO.addDemographicField("UIN", UIN);
-		registrationDTO.setBiometricMarkedForUpdate(biometricMarkedForUpdate);
+		registrationDTO.setUpdatableFieldGroups(selectedFieldGroups);
+		registrationDTO.setBiometricMarkedForUpdate(selectedFieldGroups.contains(RegistrationConstants.BIOMETRICS_GROUP) ? true : false);
 	}
 
 	protected void initializeLostUIN() {
@@ -480,12 +481,20 @@ public class RegistrationController extends BaseController {
 			excludedIds.remove("cniOrPinNumber");
 			excludedIds.remove("cniOrPinNumberLocalLanguage");
 		}*/
+		
+		if(getRegistrationDTOFromSession().getUpdatableFields() != null && !getRegistrationDTOFromSession().getUpdatableFields().isEmpty()) {
+			if(getRegistrationDTOFromSession().isChild() && !getRegistrationDTOFromSession().getUpdatableFieldGroups().contains("GuardianDetails")) {
+				gotoNext = false;
+				generateAlert(RegistrationConstants.ERROR, "Parent or Guardian should have been selected");
+			}
+		}
 
 		validation.setValidationMessage();
 		gotoNext = validation.validate(paneToValidate, excludedIds, gotoNext, masterSync);
 		displayValidationMessage(validation.getValidationMessage().toString());
 		LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Validated the fields");
+				
 		return gotoNext;
 	}
 

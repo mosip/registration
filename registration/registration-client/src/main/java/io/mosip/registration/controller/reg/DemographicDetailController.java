@@ -592,20 +592,33 @@ public class DemographicDetailController extends BaseController {
 	}
 
 	private void populateDropDowns() {
-		try {
-
-			listOfComboBoxWithObject.get("gender").getItems()
+		try {			
+			for(String k : listOfComboBoxWithObject.keySet()) {
+				switch (k.toLowerCase()) {
+				case "gender":
+					listOfComboBoxWithObject.get("gender").getItems()
 					.addAll(masterSyncService.getGenderDtls(ApplicationContext.applicationLanguage()).stream()
 							.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList()));
-			listOfComboBoxWithObject.get("genderLocalLanguage").getItems()
+					listOfComboBoxWithObject.get("genderLocalLanguage").getItems()
 					.addAll(masterSyncService.getGenderDtls(ApplicationContext.localLanguage()).stream()
-							.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList()));
-			listOfComboBoxWithObject.get("residenceStatus").getItems()
+							.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList()));			
+					break;
+
+				case "residencestatus":	
+					listOfComboBoxWithObject.get("residenceStatus").getItems()
 					.addAll(masterSyncService.getIndividualType(ApplicationContext.applicationLanguage()));
-			listOfComboBoxWithObject.get("residenceStatusLocalLanguage").getItems()
+					listOfComboBoxWithObject.get("residenceStatusLocalLanguage").getItems()
 					.addAll(masterSyncService.getIndividualType(ApplicationContext.localLanguage()));
+					break;
+					
+				default:
+					//TODO
+					break;
+				}
+			}			
 		} catch (RegBaseCheckedException e) {
-			e.printStackTrace();
+			LOGGER.error("populateDropDowns", APPLICATION_NAME,
+							RegistrationConstants.APPLICATION_ID, ExceptionUtils.getStackTrace(e));
 		}
 	}
 
@@ -820,7 +833,7 @@ public class DemographicDetailController extends BaseController {
 		return listOfValues;
 	}
 
-	private void addDemoGraphicDetailsToSession() {
+	private void addDemoGraphicDetailsToSession() {		
 		try {
 			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 			for (UiSchemaDTO schemaField : validation.getValidationMap().values()) {
@@ -867,10 +880,6 @@ public class DemographicDetailController extends BaseController {
 									: platformField.getValue() != null ? platformField.getValue().getName() : null);
 						} else {
 							TextField platformField = listOfTextField.get(schemaField.getId());
-							
-							if (schemaField.getSubType() == "UIN" || schemaField.getSubType() == "RID")
-								validation.validateUinOrRidField(registrationDTO, schemaField, platformField);							
-							
 							registrationDTO.addDemographicField(schemaField.getId(),
 									platformField != null ? platformField.getText() : null);
 						}
@@ -882,7 +891,7 @@ public class DemographicDetailController extends BaseController {
 				}
 			}
 		} catch (Exception exception) {
-			LOGGER.error("", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+			LOGGER.error("addDemoGraphicDetailsToSession", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 		}
 	}
@@ -920,10 +929,12 @@ public class DemographicDetailController extends BaseController {
 			auditFactory.audit(AuditEvent.SAVE_DETAIL_TO_DTO, Components.REGISTRATION_CONTROLLER,
 					SessionContext.userContext().getUserId(), RegistrationConstants.ONBOARD_DEVICES_REF_ID_TYPE);
 
-			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
-			if (preRegistrationId.getText() == null && preRegistrationId.getText().isEmpty()) {
-				registrationDTO.setPreRegistrationId("");
-			}
+			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();			
+			/*
+			 * if (preRegistrationId.getText() == null &&
+			 * preRegistrationId.getText().isEmpty()) {
+			 * registrationDTO.setPreRegistrationId(""); }
+			 */
 
 			addDemoGraphicDetailsToSession();
 
@@ -980,10 +991,9 @@ public class DemographicDetailController extends BaseController {
 				switch (schemaField.getType()) {
 				case RegistrationConstants.SIMPLE_TYPE:
 					if (schemaField.getControlType().equals(RegistrationConstants.DROPDOWN)
-							|| Arrays.asList(orderOfAddress).contains(schemaField.getSubType())) {
+							|| Arrays.asList(orderOfAddress).contains(schemaField.getId())) {
 						populateFieldValue(listOfComboBoxWithObject.get(schemaField.getId()),
-								listOfComboBoxWithObject
-										.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE),
+								listOfComboBoxWithObject.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE),
 								(List<SimpleDto>) value);
 					} else
 						populateFieldValue(listOfTextField.get(schemaField.getId()),
@@ -993,19 +1003,26 @@ public class DemographicDetailController extends BaseController {
 
 				case RegistrationConstants.NUMBER:
 				case RegistrationConstants.STRING:
-					if (schemaField.getControlType().equalsIgnoreCase(RegistrationConstants.AGE_DATE)) {
+					if(RegistrationConstants.AGE_DATE.equalsIgnoreCase(schemaField.getControlType())) {
 						String[] dateParts = ((String)value).split("/");
 						if (dateParts.length == 3) {
 							listOfTextField.get(schemaField.getId() + "__" + "dd").setText(dateParts[2]);
 							listOfTextField.get(schemaField.getId() + "__" + "mm").setText(dateParts[1]);
 							listOfTextField.get(schemaField.getId() + "__" + "yyyy").setText(dateParts[0]);
 						}
-					} else {
+					}
+					else if (RegistrationConstants.DROPDOWN.equalsIgnoreCase(schemaField.getControlType()) || 
+							Arrays.asList(orderOfAddress).contains(schemaField.getId())) {
+						ComboBox<GenericDto> platformField = listOfComboBoxWithObject.get(schemaField.getId());
+						if(platformField != null) {
+							platformField.setValue(new GenericDto((String) value, (String) value, "eng"));
+						}
+					}
+					else {
 						TextField textField = listOfTextField.get(schemaField.getId());
 						if (textField != null)
 							textField.setText((String) value);
 					}
-					break;
 				}
 			}
 
@@ -1154,7 +1171,7 @@ public class DemographicDetailController extends BaseController {
 		//Its required to save before validation as on spot check for values during MVEL validation
 		saveDetail();
 
-		if (validateThisPane()) {
+		if (registrationController.validateDemographicPane(parentFlowPane)) {
 			//saveDetail();
 
 			guardianBiometricsController.populateBiometricPage(false);
@@ -1172,21 +1189,6 @@ public class DemographicDetailController extends BaseController {
 					getPageByAction(RegistrationConstants.DEMOGRAPHIC_DETAIL, RegistrationConstants.NEXT));
 
 		}
-	}
-
-	/**
-	 * Disables the messages once the pane is validated
-	 */
-	public boolean validateThisPane() {
-		boolean isValid = true;
-		isValid = registrationController.validateDemographicPane(parentFlowPane);
-		// if (isValid)
-		// isValid = validation.validateUinOrRid(parentFlowPane, parentUinId,
-		// parentRegId, isChild, uinValidator,
-		// ridValidator);
-
-		return isValid;
-
 	}
 
 	/**

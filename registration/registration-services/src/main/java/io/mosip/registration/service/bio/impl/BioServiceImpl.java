@@ -1533,9 +1533,8 @@ public class BioServiceImpl extends BaseService implements BioService {
 				attributes.removeAll(Arrays.asList(mdmRequestDto.getExceptions()));
 
 			for (String bioAttribute : attributes) {
-				BiometricsDto biometricDto = new BiometricsDto(
-						Biometric.getBiometricByAttribute(bioAttribute).getMdmConstant(), IOUtils.resourceToByteArray(
-								getFilePath(mdmRequestDto.getModality(), bioAttribute, isUserOnboarding)),
+				BiometricsDto biometricDto = new BiometricsDto(Biometric.getBiometricByAttribute(bioAttribute).getAttributeName(), 
+						IOUtils.resourceToByteArray(getFilePath(mdmRequestDto.getModality(), bioAttribute, isUserOnboarding)),
 						90.0);
 				biometricDto.setCaptured(true);
 				list.add(biometricDto);
