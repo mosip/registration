@@ -1,146 +1,174 @@
 package io.mosip.registration.mdm.dto;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
+import io.mosip.registration.constants.RegistrationConstants;
 
 public enum Biometric {
 	
 
-	LEFT_INDEX("FINGERPRINT_SLAB_LEFT", "Left Slab", "leftIndex", SingleType.FINGER, "LF_INDEX","Left IndexFinger"),
-	LEFT_MIDDLE("FINGERPRINT_SLAB_LEFT", "Left Slab",  "leftMiddle", SingleType.FINGER, "LF_MIDDLE","Left MiddleFinger"),
-	LEFT_RING("FINGERPRINT_SLAB_LEFT", "Left Slab", "leftRing", SingleType.FINGER, "LF_RING","Left RingFinger"),
-	LEFT_LITTLE("FINGERPRINT_SLAB_LEFT", "Left Slab", "leftLittle", SingleType.FINGER, "LF_LITTLE","Left LittleFinger"),
-	RIGHT_INDEX("FINGERPRINT_SLAB_RIGHT", "Right Slab", "rightIndex", SingleType.FINGER, "RF_INDEX","Right IndexFinger"),
-	RIGHT_MIDDLE("FINGERPRINT_SLAB_RIGHT", "Right Slab", "rightMiddle", SingleType.FINGER, "RF_MIDDLE","Right MiddleFinger"),
-	RIGHT_RING("FINGERPRINT_SLAB_RIGHT", "Right Slab", "rightRing", SingleType.FINGER, "RF_RING","Right RingFinger"),
-	RIGHT_LITTLE("FINGERPRINT_SLAB_RIGHT", "Right Slab", "rightLittle", SingleType.FINGER, "RF_LITTLE","Right LittleFinger"),
-	LEFT_THUMB("FINGERPRINT_SLAB_THUMBS", "Thumbs", "leftThumb", SingleType.FINGER, "LF_THUMB","Left Thumb"),
-	RIGHT_THUMB("FINGERPRINT_SLAB_THUMBS", "Thumbs", "rightThumb", SingleType.FINGER, "RF_THUMB","Right Thumb"),
-	RIGHT_IRIS("IRIS_DOUBLE", "Iris", "rightEye", SingleType.IRIS, "R_IRIS","Left"),
-	LEFT_IRIS("IRIS_DOUBLE", "Iris", "leftEye", SingleType.IRIS, "L_IRIS","Right"),
-	FACE("FACE_FULL FACE", "Face", "face", SingleType.FACE, "FACE","Face");
+	//095 Spec Constants
+	LEFT_INDEX_095("FINGERPRINT_SLAB_LEFT", "Left Slab", "leftIndex", SingleType.FINGER, "Left IndexFinger","Left IndexFinger",RegistrationConstants.SPEC_VERSION_095),
+	LEFT_MIDDLE_095("FINGERPRINT_SLAB_LEFT", "Left Slab",  "leftMiddle", SingleType.FINGER, "Left MiddleFinger","Left MiddleFinger",RegistrationConstants.SPEC_VERSION_095),
+	LEFT_RING_095("FINGERPRINT_SLAB_LEFT", "Left Slab", "leftRing", SingleType.FINGER, "Left RingFinger","Left RingFinger",RegistrationConstants.SPEC_VERSION_095),
+	LEFT_LITTLE_095("FINGERPRINT_SLAB_LEFT", "Left Slab", "leftLittle", SingleType.FINGER, "Left LittleFinger","Left LittleFinger",RegistrationConstants.SPEC_VERSION_095),
+	RIGHT_INDEX_095("FINGERPRINT_SLAB_RIGHT", "Right Slab", "rightIndex", SingleType.FINGER, "Right IndexFinger","Right IndexFinger",RegistrationConstants.SPEC_VERSION_095),
+	RIGHT_MIDDLE_095("FINGERPRINT_SLAB_RIGHT", "Right Slab", "rightMiddle", SingleType.FINGER, "Right MiddleFinger","Right MiddleFinger",RegistrationConstants.SPEC_VERSION_095),
+	RIGHT_RING_095("FINGERPRINT_SLAB_RIGHT", "Right Slab", "rightRing", SingleType.FINGER, "Right RingFinger","Right RingFinger",RegistrationConstants.SPEC_VERSION_095),
+	RIGHT_LITTLE_095("FINGERPRINT_SLAB_RIGHT", "Right Slab", "rightLittle", SingleType.FINGER, "Right LittleFinger","Right LittleFinger",RegistrationConstants.SPEC_VERSION_095),
+	LEFT_THUMB_095("FINGERPRINT_SLAB_THUMBS", "Thumbs", "leftThumb", SingleType.FINGER, "Left Thumb","Left Thumb",RegistrationConstants.SPEC_VERSION_095),
+	RIGHT_THUMB_095("FINGERPRINT_SLAB_THUMBS", "Thumbs", "rightThumb", SingleType.FINGER, "Right Thumb","Right Thumb",RegistrationConstants.SPEC_VERSION_095),
+	RIGHT_IRIS_095("IRIS_DOUBLE", "Iris", "rightEye", SingleType.IRIS, "Right","Right",RegistrationConstants.SPEC_VERSION_095),
+	LEFT_IRIS_095("IRIS_DOUBLE", "Iris", "leftEye", SingleType.IRIS, "Left","Left",RegistrationConstants.SPEC_VERSION_095),
+	FACE_095("FACE_FULL FACE", "Face", "face", SingleType.FACE, "FACE","Face",RegistrationConstants.SPEC_VERSION_095),
 	
-	Biometric(String modalityName, String modalityShortName, String attributeName, SingleType singleType, String mdmConstant,String specConstant) {
+	//092 Spec Constants
+	LEFT_INDEX_092("FINGERPRINT_SLAB_LEFT", "Left Slab", "leftIndex", SingleType.FINGER, "LF_INDEX","leftIndex",RegistrationConstants.SPEC_VERSION_092),
+	LEFT_MIDDLE_092("FINGERPRINT_SLAB_LEFT", "Left Slab",  "leftMiddle", SingleType.FINGER, "LF_MIDDLE","leftMiddle",RegistrationConstants.SPEC_VERSION_092),
+	LEFT_RING_092("FINGERPRINT_SLAB_LEFT", "Left Slab", "leftRing", SingleType.FINGER, "LF_RING","leftRing",RegistrationConstants.SPEC_VERSION_092),
+	LEFT_LITTLE_092("FINGERPRINT_SLAB_LEFT", "Left Slab", "leftLittle", SingleType.FINGER, "LF_LITTLE","leftLittle",RegistrationConstants.SPEC_VERSION_092),
+	RIGHT_INDEX_092("FINGERPRINT_SLAB_RIGHT", "Right Slab", "rightIndex", SingleType.FINGER, "RF_INDEX","rightIndex",RegistrationConstants.SPEC_VERSION_092),
+	RIGHT_MIDDLE_092("FINGERPRINT_SLAB_RIGHT", "Right Slab", "rightMiddle", SingleType.FINGER, "RF_MIDDLE","rightMiddle",RegistrationConstants.SPEC_VERSION_092),
+	RIGHT_RING_092("FINGERPRINT_SLAB_RIGHT", "Right Slab", "rightRing", SingleType.FINGER, "RF_RING","rightRing",RegistrationConstants.SPEC_VERSION_092),
+	RIGHT_LITTLE_092("FINGERPRINT_SLAB_RIGHT", "Right Slab", "rightLittle", SingleType.FINGER, "RF_LITTLE","rightLittle",RegistrationConstants.SPEC_VERSION_092),
+	LEFT_THUMB_092("FINGERPRINT_SLAB_THUMBS", "Thumbs", "leftThumb", SingleType.FINGER, "LF_THUMB","leftThumb",RegistrationConstants.SPEC_VERSION_092),
+	RIGHT_THUMB_092("FINGERPRINT_SLAB_THUMBS", "Thumbs", "rightThumb", SingleType.FINGER, "RF_THUMB","rightThumb",RegistrationConstants.SPEC_VERSION_092),
+	RIGHT_IRIS_092("IRIS_DOUBLE", "Iris", "rightEye", SingleType.IRIS, "R_IRIS","rightEye",RegistrationConstants.SPEC_VERSION_092),
+	LEFT_IRIS_092("IRIS_DOUBLE", "Iris", "leftEye", SingleType.IRIS, "L_IRIS","leftEye",RegistrationConstants.SPEC_VERSION_092),
+	FACE_092("FACE_FULL FACE", "Face", "face", SingleType.FACE, "FACE","Face",RegistrationConstants.SPEC_VERSION_092),
+	;
+	
+	Biometric(String modalityName, String modalityShortName, String uiSchemaAttributeName, SingleType singleType, String mdmRequestAttributeName,String mdmResponseAttributeName, String specVersion) {
 		this.modalityName = modalityName;
-		this.setModalityShortName(modalityShortName);
-		this.attributeName = attributeName;
+		this.modalityShortName = modalityShortName;
+		this.uiSchemaAttributeName = uiSchemaAttributeName;
 		this.singleType = singleType;
-		this.mdmConstant = mdmConstant;
-		this.specConstant = specConstant;
+		this.mdmRequestAttributeName = mdmRequestAttributeName;
+		this.mdmResponseAttributeName = mdmResponseAttributeName;
+		this.specVersion = specVersion;
 	}
 	
 	private String modalityName;
 	private String modalityShortName;
-	private String attributeName;
+	private String uiSchemaAttributeName;
 	private SingleType singleType;
-	private String mdmConstant;
-	private String specConstant;
+	private String mdmRequestAttributeName;
+	private String mdmResponseAttributeName;
+	private String specVersion;
 	
-	public String getSpecConstant() {
-		return specConstant;
+	public String getSpecVersion() {
+		return specVersion;
 	}
-	public void setSpecConstant(String specConstant) {
-		this.specConstant = specConstant;
+
+	public void setSpecVersion(String specVersion) {
+		this.specVersion = specVersion;
 	}
+
 	public String getModalityName() {
 		return modalityName;
 	}
+
 	public void setModalityName(String modalityName) {
 		this.modalityName = modalityName;
 	}
-	public String getAttributeName() {
-		return attributeName;
-	}
-	public void setAttributes(String attributeName) {
-		this.attributeName = attributeName;
-	}
-	public SingleType getSingleType() {
-		return singleType;
-	}
-	public void setSingleType(SingleType singleType) {
-		this.singleType = singleType;
-	}
-	
+
 	public String getModalityShortName() {
 		return modalityShortName;
 	}
+
 	public void setModalityShortName(String modalityShortName) {
 		this.modalityShortName = modalityShortName;
 	}
-	public String getMdmConstant() {
-		return mdmConstant;
+
+	public String getUiSchemaAttributeName() {
+		return uiSchemaAttributeName;
 	}
-	public void setMdsConstant(String mdmConstant) {
-		this.mdmConstant = mdmConstant;
+
+	public void setUiSchemaAttributeName(String uiSchemaAttributeName) {
+		this.uiSchemaAttributeName = uiSchemaAttributeName;
 	}
-	
-	public static String getModalityNameByAttribute(String attributeName) {
-		String modalityName = null;
+
+	public SingleType getSingleType() {
+		return singleType;
+	}
+
+	public void setSingleType(SingleType singleType) {
+		this.singleType = singleType;
+	}
+
+	public String getMdmRequestAttributeName() {
+		return mdmRequestAttributeName;
+	}
+
+	public void setMdmRequestAttributeName(String mdmRequestAttributeName) {
+		this.mdmRequestAttributeName = mdmRequestAttributeName;
+	}
+
+	public String getMdmResponseAttributeName() {
+		return mdmResponseAttributeName;
+	}
+
+	public void setMdmResponseAttributeName(String mdmResponseAttributeName) {
+		this.mdmResponseAttributeName = mdmResponseAttributeName;
+	}
+
+	public static String getmdmRequestAttributeName(String uiSchemaAttribute, String specVersion) {
+		String mdmRequestAttribute = null;
 		for(Biometric biometric : Biometric.values()) {
-			if(biometric.getAttributeName().equalsIgnoreCase(attributeName)) {
-				modalityName = biometric.getModalityName();
+			if(biometric.getUiSchemaAttributeName().equalsIgnoreCase(uiSchemaAttribute) && biometric.getSpecVersion().equalsIgnoreCase(specVersion)) {
+				mdmRequestAttribute = biometric.getMdmRequestAttributeName();
 				break;
 			}
 		}
-		return modalityName;
-	}	
-
-
-	
-	public static Biometric getBiometricByAttribute(String attributeName) {
-		Biometric constant = null;
-		for(Biometric biometric : Biometric.values()) {
-			if(biometric.getMdmConstant().equalsIgnoreCase(attributeName) || 
-					biometric.getAttributeName().equalsIgnoreCase(attributeName)) {
-				constant = biometric;
-				break;
-			}
-		}
-		return constant;
+		return mdmRequestAttribute;
 	}
 	
-	public static Biometric getBiometricByMDMConstant(String mdmConstant) {
-		Biometric constant = null;
-		for(Biometric biometric : Biometric.values()) {
-			if(biometric.getMdmConstant().equalsIgnoreCase(mdmConstant)) {
-				constant = biometric;
-				break;
-			}
-		}
-		return constant;
-	}
-	
-
-	public static String getSpecConstantByMDMConstant(String mdmConstant) {
+	public static String getUiSchemaAttributeName(String mdmResponseAttributeName, String specVersion) {
 		String constant = null;
 		for(Biometric biometric : Biometric.values()) {
-			if(biometric.getMdmConstant().equalsIgnoreCase(mdmConstant)) {
-				constant = biometric.getSpecConstant();
+			if(biometric.getMdmResponseAttributeName().equalsIgnoreCase(mdmResponseAttributeName) && biometric.getSpecVersion().equalsIgnoreCase(specVersion)) {
+				constant = biometric.getUiSchemaAttributeName();
 				break;
 			}
 		}
 		return constant;
 	}
 	
-	public static String getSpecConstantByAttributeName(String attributeName) {
-		String constant = null;
+	public static String getmdmResponseAttributeName(String uiSchemaAttribute, String specVersion) {
+		String mdmRequestAttribute = null;
 		for(Biometric biometric : Biometric.values()) {
-			if(biometric.getAttributeName().equalsIgnoreCase(attributeName)) {
-				constant = biometric.getSpecConstant();
+			if(biometric.getUiSchemaAttributeName().equalsIgnoreCase(uiSchemaAttribute) && biometric.getSpecVersion().equalsIgnoreCase(specVersion)) {
+				mdmRequestAttribute = biometric.getMdmResponseAttributeName();
 				break;
 			}
 		}
-		return constant;
+		return mdmRequestAttribute;
 	}
 	
-	public static SingleType getSingleTypeBySpecConstant(String specConstant) {
+	public static List<String> getAvailableSpecVersions() {
+		List<String> specVersionsList = new LinkedList<>();
+		for(Biometric biometric : Biometric.values()) {
+			if(!specVersionsList.contains(biometric.getSpecVersion())) {
+				specVersionsList.add(biometric.getSpecVersion());
+			}
+		}
+		return specVersionsList;
+	}
+
+	public static SingleType getSingleTypeBySpecConstant(String uiSchemaAttribute) {
 		SingleType singleType = null;
 		for(Biometric biometric : Biometric.values()) {
-			if(biometric.getSpecConstant().equalsIgnoreCase(specConstant)) {
+			if(biometric.getUiSchemaAttributeName().equalsIgnoreCase(uiSchemaAttribute)) {
 				singleType = biometric.getSingleType();
 				break;
 			}
 		}
 		return singleType;
 	}
+	
+
+	
 	
 }

@@ -509,7 +509,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	 */
 	@Override
 	public boolean isMdmEnabled() {
-//		return true;
+//		 return true;
 		return RegistrationConstants.ENABLE
 				.equalsIgnoreCase(((String) ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
 	}
@@ -1481,10 +1481,33 @@ public class BioServiceImpl extends BaseService implements BioService {
 
 	@Override
 	public List<BiometricsDto> captureModality(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException {
-		if (isMdmEnabled())
-			return captureRealModality(mdmRequestDto);
-		else
-			return captureMockModality(mdmRequestDto, false);
+
+		List<BiometricsDto> biometricsDtos = null;
+		String specVersion = null;
+		if (isMdmEnabled()) {
+			biometricsDtos = captureRealModality(mdmRequestDto);
+			
+			specVersion = mosipBioDeviceManagerDuplicate.getSpecVersionByModality(mdmRequestDto.getModality());
+		} else {
+			biometricsDtos = captureMockModality(mdmRequestDto, false);
+			
+			specVersion = RegistrationConstants.SPEC_VERSION_092;
+		}
+		
+		if (biometricsDtos != null && !biometricsDtos.isEmpty()) {
+
+			for (BiometricsDto biometricsDto : biometricsDtos) {
+
+				String uiSchemaAttributeName = io.mosip.registration.mdm.dto.Biometric
+						.getUiSchemaAttributeName(biometricsDto.getBioAttribute(), specVersion);
+
+				if (uiSchemaAttributeName != null) {
+					biometricsDto.setBioAttribute(io.mosip.registration.mdm.dto.Biometric.getmdmResponseAttributeName(
+							uiSchemaAttributeName, mosipBioDeviceManagerDuplicate.getLatestSpecVersion()));
+				}
+			}
+		}
+		return biometricsDtos;
 	}
 
 	private List<BiometricsDto> captureRealModality(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException {
@@ -1495,19 +1518,10 @@ public class BioServiceImpl extends BaseService implements BioService {
 		try {
 			List<BiometricsDto> biometricsDtos = mosipBioDeviceManagerDuplicate.getRCaptureBiometrics(mdmRequestDto);
 
-			Map<String, String> storedScores = new HashMap<String, String>();
 			for (BiometricsDto biometricsDto : biometricsDtos) {
 
 				if (biometricsDto != null
 						&& isQualityScoreMaxInclusive(String.valueOf(biometricsDto.getQualityScore()))) {
-					// check if current is best than previously seen
-					if (storedScores.containsKey(biometricsDto.getBioAttribute())) {
-						if (Integer.parseInt(storedScores.get(biometricsDto.getBioAttribute())) > biometricsDto
-								.getQualityScore())
-							continue;
-					}
-
-					storedScores.put(biometricsDto.getBioAttribute(), String.valueOf(biometricsDto.getQualityScore()));
 
 					list.add(biometricsDto);
 				}
@@ -1533,8 +1547,9 @@ public class BioServiceImpl extends BaseService implements BioService {
 				attributes.removeAll(Arrays.asList(mdmRequestDto.getExceptions()));
 
 			for (String bioAttribute : attributes) {
-				BiometricsDto biometricDto = new BiometricsDto(Biometric.getBiometricByAttribute(bioAttribute).getAttributeName(), 
-						IOUtils.resourceToByteArray(getFilePath(mdmRequestDto.getModality(), bioAttribute, isUserOnboarding)),
+				BiometricsDto biometricDto = new BiometricsDto(
+						Biometric.getBiometricByAttribute(bioAttribute).getAttributeName(), IOUtils.resourceToByteArray(
+								getFilePath(mdmRequestDto.getModality(), bioAttribute, isUserOnboarding)),
 						90.0);
 				biometricDto.setCaptured(true);
 				list.add(biometricDto);
