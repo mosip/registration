@@ -509,7 +509,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	 */
 	@Override
 	public boolean isMdmEnabled() {
-//		 return true;
+//		return true;
 		return RegistrationConstants.ENABLE
 				.equalsIgnoreCase(((String) ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
 	}
@@ -1486,14 +1486,14 @@ public class BioServiceImpl extends BaseService implements BioService {
 		String specVersion = null;
 		if (isMdmEnabled()) {
 			biometricsDtos = captureRealModality(mdmRequestDto);
-			
+
 			specVersion = mosipBioDeviceManagerDuplicate.getSpecVersionByModality(mdmRequestDto.getModality());
 		} else {
 			biometricsDtos = captureMockModality(mdmRequestDto, false);
-			
+
 			specVersion = RegistrationConstants.SPEC_VERSION_092;
 		}
-		
+
 		if (biometricsDtos != null && !biometricsDtos.isEmpty()) {
 
 			for (BiometricsDto biometricsDto : biometricsDtos) {
@@ -1501,10 +1501,14 @@ public class BioServiceImpl extends BaseService implements BioService {
 				String uiSchemaAttributeName = io.mosip.registration.mdm.dto.Biometric
 						.getUiSchemaAttributeName(biometricsDto.getBioAttribute(), specVersion);
 
-				if (uiSchemaAttributeName != null) {
-					biometricsDto.setBioAttribute(io.mosip.registration.mdm.dto.Biometric.getmdmResponseAttributeName(
-							uiSchemaAttributeName, mosipBioDeviceManagerDuplicate.getLatestSpecVersion()));
-				}
+				// TODO Check @Anusha whether to save ui Schema attribute or Spec attribute in
+				// BiometricsDTO
+				biometricsDto.setBioAttribute(uiSchemaAttributeName);
+				// if (uiSchemaAttributeName != null) {
+				// biometricsDto.setBioAttribute(io.mosip.registration.mdm.dto.Biometric.getmdmResponseAttributeName(
+				// uiSchemaAttributeName,
+				// mosipBioDeviceManagerDuplicate.getLatestSpecVersion()));
+				// }
 			}
 		}
 		return biometricsDtos;

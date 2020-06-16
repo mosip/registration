@@ -989,8 +989,11 @@ public class GuardianBiometricsController extends BaseController /* implements I
 			for (BiometricsDto value : biometrics) {
 				LOGGER.debug(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 						"updating userOnboard biometric data >> " + value.getModalityName());
-				savedCaptures.add(userOnboardService.addOperatorBiometrics(subType, io.mosip.registration.mdm.dto.Biometric.getUiSchemaAttributeName(
-						value.getBioAttribute(), mosipBioDeviceManger.getLatestSpecVersion()), value));
+				savedCaptures.add(userOnboardService.addOperatorBiometrics(subType, 
+						value.getBioAttribute(), value));
+//				savedCaptures.add(userOnboardService.addOperatorBiometrics(subType, io.mosip.registration.mdm.dto.Biometric.getUiSchemaAttributeName(
+//						value.getBioAttribute(), mosipBioDeviceManger.getLatestSpecVersion()), value));
+
 			}
 			return savedCaptures;
 		} else {
@@ -999,9 +1002,12 @@ public class GuardianBiometricsController extends BaseController /* implements I
 
 			for (BiometricsDto biometricsDto : biometrics) {
 				biometricsMap.put(
-						io.mosip.registration.mdm.dto.Biometric.getUiSchemaAttributeName(
-								biometricsDto.getBioAttribute(), mosipBioDeviceManger.getLatestSpecVersion()),
+						biometricsDto.getBioAttribute(),
 						biometricsDto);
+//				biometricsMap.put(
+//						io.mosip.registration.mdm.dto.Biometric.getUiSchemaAttributeName(
+//								biometricsDto.getBioAttribute(), mosipBioDeviceManger.getLatestSpecVersion()),
+//						biometricsDto);
 
 			}
 
