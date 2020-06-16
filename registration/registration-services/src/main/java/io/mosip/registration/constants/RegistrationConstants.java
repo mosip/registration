@@ -1767,4 +1767,7 @@ public class RegistrationConstants {
 	public static final String UPDATE_REGISTRATION_BIO_MVEL_EXPR = "mosip.registration.updateuin.biometrics.mvel.expr";
 	
 	public static final String BIOMETRICS_GROUP = "Biometrics";
+	
+	public static final String SPEC_VERSION_095 = "0.9.5";
+	public static final String SPEC_VERSION_092 = "0.9.2";
 }

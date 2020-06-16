@@ -44,6 +44,7 @@ import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.UserDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
+import io.mosip.registration.mdm.service.impl.MosipBioDeviceManagerDuplicate;
 import io.mosip.registration.scheduler.SchedulerUtil;
 import io.mosip.registration.service.config.JobConfigurationService;
 import io.mosip.registration.service.login.LoginService;
@@ -185,6 +186,9 @@ public class LoginController extends BaseController implements Initializable {
 	
 	@FXML
 	private Label versionValueLabel;
+	
+	@Autowired
+	private MosipBioDeviceManagerDuplicate mosipBioDeviceManagerDuplicate;
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
@@ -295,8 +299,11 @@ public class LoginController extends BaseController implements Initializable {
 					return;
 				}
 				jobConfigurationService.startScheduler();
+				
+//				mosipBioDeviceManagerDuplicate.init();
 			}
 
+			mosipBioDeviceManagerDuplicate.init();
 		} catch (IOException ioException) {
 
 			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,

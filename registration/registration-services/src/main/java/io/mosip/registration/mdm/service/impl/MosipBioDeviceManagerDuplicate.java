@@ -53,6 +53,7 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.MdmDeviceInfo;
 import io.mosip.registration.mdm.constants.MosipBioDeviceConstants;
 import io.mosip.registration.mdm.dto.BioDevice;
+import io.mosip.registration.mdm.dto.Biometric;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
 import io.mosip.registration.mdm.dto.DeviceDiscoveryResponsetDto;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
@@ -81,7 +82,6 @@ public class MosipBioDeviceManagerDuplicate {
 
 	@Autowired
 	private AuditManagerService auditFactory;
-
 
 	//
 	private int portFrom;
@@ -123,7 +123,6 @@ public class MosipBioDeviceManagerDuplicate {
 	 * @throws RegBaseCheckedException
 	 *             - generalised exception with errorCode and errorMessage
 	 */
-	@PostConstruct
 	public void init() {
 		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
 				"Entering init method for preparing device registry");
@@ -134,8 +133,7 @@ public class MosipBioDeviceManagerDuplicate {
 		portTo = ApplicationContext.map().get(RegistrationConstants.MDM_END_PORT_RANGE) != null
 				? Integer.parseInt((String) ApplicationContext.map().get(RegistrationConstants.MDM_END_PORT_RANGE))
 				: 0;
-		portFrom = 4501;
-		portTo = 4501;
+
 		if (portFrom != 0) {
 			for (int port = portFrom; port <= portTo; port++) {
 
@@ -574,7 +572,6 @@ public class MosipBioDeviceManagerDuplicate {
 	private RCaptureRequestDTO get_095_RCaptureRequest(MdmBioDevice bioDevice, MDMRequestDto rCaptureRequest)
 			throws JsonParseException, JsonMappingException, IOException {
 
-
 		List<RCaptureRequestBioDTO> captureRequestBioDTOs = new LinkedList<>();
 		captureRequestBioDTOs.add(new RCaptureRequestBioDTO(bioDevice.getDeviceType(), "1", null,
 				rCaptureRequest.getExceptions(), String.valueOf(rCaptureRequest.getRequestedScore()),
@@ -686,55 +683,20 @@ public class MosipBioDeviceManagerDuplicate {
 		return version1;
 	}
 
-	// public String getJwtPayload(String signedJWTData) {
-	//
-	// {
-	// try {
-	// String[] parts = signedJWTData.split(".");
-	// String header = parts[0];
-	// // string payload = parts [1];
-	//
-	// byte[] signedSignature = Base64.getUrlDecoder().decode(parts[2]);
-	//
-	// String headerJson = new String(Base64.getUrlDecoder().decode(header));
-	//
-	// JSONObject headerData = new JSONObject(headerJson);
-	//
-	// // string payloadJson = Encoding.UTF8.GetString
-	// (SBStringUtility.Base64UrlDecode
-	// // (payload));
-	//
-	// org.json.JSONArray array = headerData.getJSONArray("x5c");
-	//
-	// CertificateFactory certificateFactory =
-	// CertificateFactory.getInstance("X.509");
-	//
-	// X509Certificate certificate = (X509Certificate)
-	// certificateFactory.generateCertificate(
-	// new ByteArrayInputStream(Base64.getDecoder().decode((String) array.get(0))));
-	//
-	//// RSACryptoServiceProvider rsaProvider = (RSACryptoServiceProvider)
-	// cert2.PublicKey.Key;
-	//// String decodeData = Jose.JWT.Decode(signedJWTData, rsaProvider, null);
-	//// Logger.Info("DecryptJWTSignedData>>decodeData>>>" + decodeData);
-	//// return decodeData;
-	// } catch (Exception ex) {
-	//// throw new Exception("DecryptJWTSignedData", ex);
-	// }
-	// }
-	// //
-	// // try {
-	// // Payload payLoad = JWSObject.parse(signedJWTData).getPayload();
-	// // System.out.println(payLoad);
-	// // } catch (ParseException e) {
-	// // // TODO Auto-generated catch block
-	// // e.printStackTrace();
-	// // }
-	// //
-	// //// payLoad.ge
-	// //// DecodedJWT decode = JWT.decode(signedJWTData);
-	// ////
-	// // System.out.println(decode.getPayload());
-	// return "";
-	// }
+	public String getLatestSpecVersion() {
+
+		return getLatestSpecVersion(Biometric.getAvailableSpecVersions().toArray(new String[0]));
+
+	}
+
+	public String getSpecVersionByModality(String modality) {
+
+		MdmBioDevice bioDevice = getDeviceInfoByModality(modality);
+
+		if (bioDevice != null) {
+			return bioDevice.getSpecVersion();
+		}
+		return null;
+
+	}
 }
