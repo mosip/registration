@@ -580,6 +580,7 @@ public class AuthenticationController extends BaseController implements Initiali
 		LOGGER.info("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
 				"Loading next authentication screen");
 		try {
+			Set<String> roleSet = new HashSet<>(SessionContext.userContext().getRoles());
 			Boolean toogleBioException = false;
 			if (!SessionContext.userMap().isEmpty()) {
 				if (SessionContext.userMap().get(RegistrationConstants.IS_LOW_QUALITY_BIOMETRICS) == null) {
@@ -626,9 +627,10 @@ public class AuthenticationController extends BaseController implements Initiali
 					 * Check whether the biometric exceptions are enabled and supervisor
 					 * authentication is required
 					 */
-					if ((toogleBioException != null && toogleBioException.booleanValue())
+					if (!getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()
 							&& RegistrationConstants.ENABLE.equalsIgnoreCase(
-									getValueFromApplicationContext(RegistrationConstants.SUPERVISOR_AUTH_CONFIG))) {
+									getValueFromApplicationContext(RegistrationConstants.SUPERVISOR_AUTH_CONFIG))
+							&& !roleSet.contains(RegistrationConstants.SUPERVISOR)) {
 						authCount = 0;
 						isSupervisor = true;
 						getAuthenticationModes(ProcessNames.EXCEPTION.getType());
