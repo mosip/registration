@@ -389,6 +389,7 @@ public class BioServiceTest {
 	}
 
 	// //Remove this Functionality as we dont use anymore, and decoder was different
+	@Ignore
 	@Test(expected = IllegalArgumentException.class)
 	public void testGetIrisImageAsDTONoMdm() throws RegBaseCheckedException, IOException {
 		PowerMockito.mockStatic(ImageIO.class);
