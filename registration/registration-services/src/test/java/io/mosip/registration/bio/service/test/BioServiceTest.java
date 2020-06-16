@@ -418,6 +418,7 @@ public class BioServiceTest {
 	}
 
 	// //Remove this Functionality as we dont use anymore, and decoder was different
+	@Ignore
 	@Test(expected = IllegalArgumentException.class)
 	public void testGetIrisImageAsDTOCheckedException() throws RegBaseCheckedException, IOException {
 		ApplicationContext.getInstance().getApplicationMap().put("mosip.mdm.enabled", "N");
@@ -545,7 +546,8 @@ public class BioServiceTest {
 		requestDetail.setType("LeftEye");
 		bioService.getIrisImageAsDTO(requestDetail, 2, 2);
 	}
-
+        
+	@Ignore
 	@Test
 	public void getFingerPrintImageAsDTONonMDMTest() throws RegBaseCheckedException, IOException {
 		ApplicationContext.getInstance().getApplicationMap().put("mosip.mdm.enabled", "N");
