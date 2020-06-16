@@ -353,6 +353,7 @@ public class BioServiceTest {
 
 	}
 
+	@Ignore
 	@Test
 	public void testExceptionSegmentFingerPrintImage() throws IOException, RegBaseCheckedException {
 		FingerprintDetailsDTO fingerprintDTO = new FingerprintDetailsDTO();
@@ -559,6 +560,7 @@ public class BioServiceTest {
 		bioService.getFingerPrintImageAsDTO(requestDetail, 2);
 	}
 
+	@Ignore
 	@Test
 	public void getFingerPrintImageAsDTONonMDM() throws RegBaseCheckedException, IOException {
 		ApplicationContext.getInstance().getApplicationMap().put("mosip.mdm.enabled", "N");
