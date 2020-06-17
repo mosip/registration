@@ -236,7 +236,7 @@ public class GlobalParamServiceImpl extends BaseService implements GlobalParamSe
 	}
 
 	private boolean isPropertyRequireRestart(String key) {
-		return (key.contains("kernel") || key.contains("mosip.primary"));
+		return (key.contains("kernel") || key.contains("mosip.primary") || key.contains("mosip.biometric.sdk"));
 	}
 
 	private void updateVal(GlobalParam globalParam, String val) {
