@@ -19,9 +19,11 @@ import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.mdm.dto.MdmBioDevice;
 import io.mosip.registration.mdm.dto.StreamingRequestDetail;
+import io.mosip.registration.mdm.integrator.MosipDeviceSpecificationProvider;
 import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
-import io.mosip.registration.mdm.service.impl.MosipBioDeviceManagerDuplicate;
+import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
 import io.mosip.registration.service.bio.impl.BioServiceImpl;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -41,7 +43,7 @@ public class Streamer {
 	// private MosipBioDeviceManager mosipBioDeviceManager;
 
 	@Autowired
-	private MosipBioDeviceManagerDuplicate mosipBioDeviceManagerDuplicate;
+	private MosipDeviceSpecificationFactory deviceSpecificationFactory;
 
 	@Autowired
 	private ScanPopUpViewController scanPopUpViewController;
@@ -118,7 +120,13 @@ public class Streamer {
 					setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_PREP_MESSAGE, false);
 					LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
 							"Constructing Stream URL Started" + System.currentTimeMillis());
-					urlStream = mosipBioDeviceManagerDuplicate.getStream(type);
+
+					MdmBioDevice bioDevice = deviceSpecificationFactory.getDeviceInfoByModality(type);
+
+					MosipDeviceSpecificationProvider deviceSpecificationProvider = deviceSpecificationFactory
+							.getMdsProvider(bioDevice.getSpecVersion());
+
+					urlStream = deviceSpecificationProvider.stream(bioDevice, type);
 
 					if (urlStream == null) {
 

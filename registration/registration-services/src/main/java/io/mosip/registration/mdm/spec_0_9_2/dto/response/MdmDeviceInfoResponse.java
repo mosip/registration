@@ -4,12 +4,8 @@ import io.mosip.registration.mdm.dto.Error;
 import lombok.Data;
 
 @Data
-public class DeviceInfoResponse {
-
-	private String deviceInfo;
+public class MdmDeviceInfoResponse {
 
 	private Error error;
-	
-	
-
+	private String deviceInfo;
 }

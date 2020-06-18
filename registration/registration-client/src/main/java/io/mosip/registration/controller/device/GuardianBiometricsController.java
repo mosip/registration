@@ -40,7 +40,7 @@ import io.mosip.registration.dto.mastersync.BiometricAttributeDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
-import io.mosip.registration.mdm.service.impl.MosipBioDeviceManagerDuplicate;
+import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
 import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.operator.UserOnboardService;
 import io.mosip.registration.service.sync.MasterSyncService;
@@ -277,7 +277,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 	private UserOnboardParentController userOnboardParentController;
 
 	@Autowired
-	private MosipBioDeviceManagerDuplicate mosipBioDeviceManger;
+	private MosipDeviceSpecificationFactory mosipBioDeviceManger;
 
 	/*
 	 * (non-Javadoc)
