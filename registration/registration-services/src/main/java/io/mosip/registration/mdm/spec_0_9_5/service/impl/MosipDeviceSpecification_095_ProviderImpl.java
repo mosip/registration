@@ -165,7 +165,7 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 			biometricDTO.setModalityName(mdmRequestDto.getModality());
 			biometricDTOs.add(biometricDTO);
 		}
-		return null;
+		return biometricDTOs;
 	}
 
 	private String[] getExceptions(String[] exceptions) {
