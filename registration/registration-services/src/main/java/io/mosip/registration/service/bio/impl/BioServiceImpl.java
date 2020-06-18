@@ -509,7 +509,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	 */
 	@Override
 	public boolean isMdmEnabled() {
-//		return true;
+//		return false;
 		return RegistrationConstants.ENABLE
 				.equalsIgnoreCase(((String) ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
 	}
@@ -1485,32 +1485,38 @@ public class BioServiceImpl extends BaseService implements BioService {
 		List<BiometricsDto> biometricsDtos = null;
 		String specVersion = null;
 		if (isMdmEnabled()) {
-			biometricsDtos = captureRealModality(mdmRequestDto);
 
 			specVersion = mosipBioDeviceManagerDuplicate.getSpecVersionByModality(mdmRequestDto.getModality());
+
+			String[] exceptions = mdmRequestDto.getExceptions();
+			for (int index = 0; index < mdmRequestDto.getExceptions().length; index++) {
+				exceptions[index] = io.mosip.registration.mdm.dto.Biometric
+						.getmdmRequestAttributeName(exceptions[index], specVersion);
+			}
+			if (specVersion == null) {
+				throw new RegBaseCheckedException("No Spec Version Found", "No Spec Version Found");
+			}
+
+			biometricsDtos = captureRealModality(mdmRequestDto);
+
+			if (biometricsDtos != null && !biometricsDtos.isEmpty()) {
+
+				for (BiometricsDto biometricsDto : biometricsDtos) {
+
+					String uiSchemaAttributeName = io.mosip.registration.mdm.dto.Biometric
+							.getUiSchemaAttributeName(biometricsDto.getBioAttribute(), specVersion);
+
+					biometricsDto.setBioAttribute(uiSchemaAttributeName);
+
+				}
+			}
+
 		} else {
 			biometricsDtos = captureMockModality(mdmRequestDto, false);
 
 			specVersion = RegistrationConstants.SPEC_VERSION_092;
 		}
 
-		if (biometricsDtos != null && !biometricsDtos.isEmpty()) {
-
-			for (BiometricsDto biometricsDto : biometricsDtos) {
-
-				String uiSchemaAttributeName = io.mosip.registration.mdm.dto.Biometric
-						.getUiSchemaAttributeName(biometricsDto.getBioAttribute(), specVersion);
-
-				// TODO Check @Anusha whether to save ui Schema attribute or Spec attribute in
-				// BiometricsDTO
-				biometricsDto.setBioAttribute(uiSchemaAttributeName);
-				// if (uiSchemaAttributeName != null) {
-				// biometricsDto.setBioAttribute(io.mosip.registration.mdm.dto.Biometric.getmdmResponseAttributeName(
-				// uiSchemaAttributeName,
-				// mosipBioDeviceManagerDuplicate.getLatestSpecVersion()));
-				// }
-			}
-		}
 		return biometricsDtos;
 	}
 

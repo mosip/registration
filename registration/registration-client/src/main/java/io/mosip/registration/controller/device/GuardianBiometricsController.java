@@ -426,9 +426,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 				userOnboardService.addOperatorBiometricException(currentSubType, checkBox.getId());
 			else
 				getRegistrationDTOFromSession().addBiometricException(currentSubType, checkBox.getId(),
-						io.mosip.registration.mdm.dto.Biometric.getmdmResponseAttributeName(checkBox.getId(),
-								mosipBioDeviceManger.getLatestSpecVersion()),
-						"Temporary", "Temporary");
+						checkBox.getId(), "Temporary", "Temporary");
 		} else {
 			if (isUserOnboardFlag)
 				userOnboardService.removeOperatorBiometricException(currentSubType, checkBox.getId());
@@ -824,16 +822,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 					CheckBox checkBox = (CheckBox) checkBoxx;
 					if (checkBox.isSelected()) {
 
-						String specVersion = bioService.isMdmEnabled() ? mosipBioDeviceManger.getLatestSpecVersion()
-								: RegistrationConstants.SPEC_VERSION_092;
-
-						if (specVersion == null) {
-							throw new RegBaseCheckedException("No Spec Version Found", "No Spec Version Found");
-						}
-						// String exceptionName =
-						// RegistrationConstants.uIToMDSExceptionMap.get(checkBox.getId());
-						selectedExceptions.add(io.mosip.registration.mdm.dto.Biometric
-								.getmdmRequestAttributeName(checkBox.getId(), specVersion));
+						selectedExceptions.add(checkBox.getId());
 
 					}
 				}
@@ -989,10 +978,11 @@ public class GuardianBiometricsController extends BaseController /* implements I
 			for (BiometricsDto value : biometrics) {
 				LOGGER.debug(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 						"updating userOnboard biometric data >> " + value.getModalityName());
-				savedCaptures.add(userOnboardService.addOperatorBiometrics(subType, 
-						value.getBioAttribute(), value));
-//				savedCaptures.add(userOnboardService.addOperatorBiometrics(subType, io.mosip.registration.mdm.dto.Biometric.getUiSchemaAttributeName(
-//						value.getBioAttribute(), mosipBioDeviceManger.getLatestSpecVersion()), value));
+				savedCaptures.add(userOnboardService.addOperatorBiometrics(subType, value.getBioAttribute(), value));
+				// savedCaptures.add(userOnboardService.addOperatorBiometrics(subType,
+				// io.mosip.registration.mdm.dto.Biometric.getUiSchemaAttributeName(
+				// value.getBioAttribute(), mosipBioDeviceManger.getLatestSpecVersion()),
+				// value));
 
 			}
 			return savedCaptures;
@@ -1001,13 +991,12 @@ public class GuardianBiometricsController extends BaseController /* implements I
 			Map<String, BiometricsDto> biometricsMap = new LinkedHashMap<>();
 
 			for (BiometricsDto biometricsDto : biometrics) {
-				biometricsMap.put(
-						biometricsDto.getBioAttribute(),
-						biometricsDto);
-//				biometricsMap.put(
-//						io.mosip.registration.mdm.dto.Biometric.getUiSchemaAttributeName(
-//								biometricsDto.getBioAttribute(), mosipBioDeviceManger.getLatestSpecVersion()),
-//						biometricsDto);
+				biometricsMap.put(biometricsDto.getBioAttribute(), biometricsDto);
+				// biometricsMap.put(
+				// io.mosip.registration.mdm.dto.Biometric.getUiSchemaAttributeName(
+				// biometricsDto.getBioAttribute(),
+				// mosipBioDeviceManger.getLatestSpecVersion()),
+				// biometricsDto);
 
 			}
 
