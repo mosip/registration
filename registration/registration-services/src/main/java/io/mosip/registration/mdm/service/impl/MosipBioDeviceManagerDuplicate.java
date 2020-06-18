@@ -37,6 +37,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.packetmanager.dto.BiometricsDto;
@@ -87,12 +88,6 @@ public class MosipBioDeviceManagerDuplicate {
 	private int portFrom;
 
 	private int portTo;
-
-	// @Autowired
-	// private IMosipBioDeviceIntegrator mosipBioDeviceIntegrator;
-
-	@Autowired
-	// private RegisteredDeviceDAO registeredDeviceDAO;
 
 	private static Map<String, BioDevice> deviceRegistry = new HashMap<>();
 
@@ -196,8 +191,8 @@ public class MosipBioDeviceManagerDuplicate {
 						for (String specVersion : deviceInfo.getSpecVersion()) {
 
 							// Add to Device Info Map
-							addToDeviceInfoMap(specVersion, bioDevice.getDeviceType(), bioDevice.getDeviceSubType(),
-									bioDevice);
+							addToDeviceInfoMap(specVersion, getDeviceType(bioDevice.getDeviceType()).toLowerCase(),
+									getDeviceSubType(bioDevice.getDeviceSubType()), bioDevice);
 						}
 					} catch (Exception exception) {
 						LOGGER.error(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_GET, APPLICATION_NAME, APPLICATION_ID,
@@ -274,6 +269,41 @@ public class MosipBioDeviceManagerDuplicate {
 			deviceInfoMap.put(key, bioDevice);
 		}
 
+	}
+
+	private String getDeviceType(String type) {
+
+		type = type.toLowerCase();
+
+		if (type.contains("finger") || type.contains("fir")) {
+			return SingleType.FINGER.value();
+		}
+		if (type.contains("iris") || type.contains("iir")) {
+			return SingleType.IRIS.value();
+		}
+		if (type.contains("face")) {
+			return SingleType.FACE.value();
+		}
+		return null;
+	}
+
+	private String getDeviceSubType(String subType) {
+
+		subType = subType.toLowerCase();
+
+		if (subType.contains("slab") || subType.contains("slap")) {
+			return "slab";
+		}
+		if (subType.contains("single")) {
+			return "single";
+		}
+		if (subType.contains("double")) {
+			return "double";
+		}
+		if (subType.contains("face")) {
+			return "face";
+		}
+		return null;
 	}
 
 	private MdmDeviceInfo getDeviceInfoDecoded(String deviceInfo) {
@@ -602,7 +632,7 @@ public class MosipBioDeviceManagerDuplicate {
 		return modality.contains("left") ? "1"
 				: modality.contains("right") ? "2"
 						: (modality.contains("double") || modality.contains("thumbs") || modality.contains("two")) ? "3"
-								: "0";
+								: modality.contains("face") ? "0" : "0";
 	}
 
 	private String getLatestSpecVersion(String[] specVersion) {
@@ -617,17 +647,16 @@ public class MosipBioDeviceManagerDuplicate {
 
 	private MdmBioDevice getDeviceInfoByModality(String modality) {
 
-		// List<String> specVersions = Arrays.asList("0.9.2", "0.9.5");
+		String key = String.format("%s_%s", getDeviceType(modality).toLowerCase(),
+				getDeviceSubType(modality).toLowerCase());
 
-		modality = constructDeviceType(modality).toLowerCase();
-
-		if (deviceInfoMap.containsKey(modality)) {
-			return deviceInfoMap.get(modality);
+		if (deviceInfoMap.containsKey(key)) {
+			return deviceInfoMap.get(key);
 		} else {
 			try {
 				initByPort(null);
-				if (deviceInfoMap.containsKey(modality)) {
-					return deviceInfoMap.get(modality);
+				if (deviceInfoMap.containsKey(key)) {
+					return deviceInfoMap.get(key);
 				}
 			} catch (RegBaseCheckedException e) {
 				// TODO Auto-generated catch block
