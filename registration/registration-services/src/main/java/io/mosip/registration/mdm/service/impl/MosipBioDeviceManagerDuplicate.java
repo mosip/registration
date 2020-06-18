@@ -308,6 +308,13 @@ public class MosipBioDeviceManagerDuplicate {
 	public static Map<String, BioDevice> getDeviceRegistry() {
 		return deviceRegistry;
 	}
+	
+	/**
+	 * @return the deviceRegistry
+	 */
+	public static Map<String, MdmBioDevice> getDeviceRegistryInfo() {
+		return deviceInfoMap;
+	}
 
 	private String buildUrl(int port, String endPoint) {
 		return getRunningurl() + ":" + port + "/" + endPoint;

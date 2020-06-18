@@ -880,10 +880,11 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		// Check count
 		int count = 1;
 
-		// TODO need to take env from global_params
 		MDMRequestDto mdmRequestDto = new MDMRequestDto(
 				isFace(modality) ? RegistrationConstants.FACE_FULLFACE : modality,
-				exceptionBioAttributes.toArray(new String[0]), "Registration", "Staging",
+				exceptionBioAttributes.toArray(new String[0]), "Registration",
+				io.mosip.registration.context.ApplicationContext.getStringValueFromApplicationMap(
+						RegistrationConstants.SERVER_ACTIVE_PROFILE),
 				Integer.valueOf(getCaptureTimeOut()), count,
 				getThresholdScoreInInt(getThresholdKeyByBioType(modality)));
 
