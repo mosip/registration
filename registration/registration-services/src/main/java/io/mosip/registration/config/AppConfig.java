@@ -1,14 +1,9 @@
 package io.mosip.registration.config;
 
-import java.io.File;
-import java.lang.reflect.Constructor;
-import java.security.NoSuchAlgorithmException;
-
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
@@ -33,8 +28,6 @@ import io.mosip.kernel.dataaccess.hibernate.repository.impl.HibernateRepositoryI
 import io.mosip.kernel.logger.logback.appender.RollingFileAppender;
 import io.mosip.kernel.logger.logback.factory.Logfactory;
 import io.mosip.kernel.templatemanager.velocity.builder.TemplateManagerBuilderImpl;
-import io.mosip.registration.constants.RegistrationConstants;
-import io.mosip.registration.context.ApplicationContext;
 
 /**
  * Spring Configuration class for Registration-Service Module
