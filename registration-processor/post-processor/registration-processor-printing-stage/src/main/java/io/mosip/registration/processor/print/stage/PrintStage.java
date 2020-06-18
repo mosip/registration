@@ -98,6 +98,10 @@ public class PrintStage extends MosipVerticleAPIManager {
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
 
+	/** Enable proxy postal service response. */
+	@Value("${registration.processor.enable.proxy.postalservice}")
+	private boolean isProxyAbisEnabled;
+
 	/** The core audit request builder. */
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
@@ -315,7 +319,9 @@ public class PrintStage extends MosipVerticleAPIManager {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					regId, description.getMessage());
 			registrationStatusDto.setUpdatedBy(USER);
-			printPostService.generatePrintandPostal(regId, queue, mosipQueueManager);
+
+			if (isProxyAbisEnabled)
+				printPostService.generatePrintandPostal(regId, queue, mosipQueueManager);
 
 		} catch (PDFGeneratorException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
