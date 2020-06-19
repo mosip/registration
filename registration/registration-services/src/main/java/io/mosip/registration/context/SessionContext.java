@@ -328,7 +328,7 @@ public class SessionContext {
 		AuthenticationService authService = applicationContext.getBean(AuthenticationService.class);
 
 		MDMRequestDto mdmRequestDto = new MDMRequestDto(RegistrationConstants.FINGERPRINT_SLAB_LEFT, null,
-				"Registration", "Staging",
+				"Registration", io.mosip.registration.context.ApplicationContext.getStringValueFromApplicationMap(RegistrationConstants.SERVER_ACTIVE_PROFILE),
 				io.mosip.registration.context.ApplicationContext
 						.getIntValueFromApplicationMap(RegistrationConstants.CAPTURE_TIME_OUT),
 				1, io.mosip.registration.context.ApplicationContext
@@ -371,7 +371,7 @@ public class SessionContext {
 		AuthenticationService authService = applicationContext.getBean(AuthenticationService.class);
 
 		MDMRequestDto mdmRequestDto = new MDMRequestDto(RegistrationConstants.IRIS_DOUBLE, null, "Registration",
-				"Staging",
+				io.mosip.registration.context.ApplicationContext.getStringValueFromApplicationMap(RegistrationConstants.SERVER_ACTIVE_PROFILE),
 				io.mosip.registration.context.ApplicationContext
 						.getIntValueFromApplicationMap(RegistrationConstants.CAPTURE_TIME_OUT),
 				2, io.mosip.registration.context.ApplicationContext
@@ -413,7 +413,7 @@ public class SessionContext {
 		BioService bioService = applicationContext.getBean(BioService.class);
 		AuthenticationService authService = applicationContext.getBean(AuthenticationService.class);
 		
-		MDMRequestDto mdmRequestDto = new MDMRequestDto(RegistrationConstants.FACE_FULLFACE, null, "Registration", "Staging", 
+		MDMRequestDto mdmRequestDto = new MDMRequestDto(RegistrationConstants.FACE_FULLFACE, null, "Registration", io.mosip.registration.context.ApplicationContext.getStringValueFromApplicationMap(RegistrationConstants.SERVER_ACTIVE_PROFILE), 
 				io.mosip.registration.context.ApplicationContext
 				.getIntValueFromApplicationMap(RegistrationConstants.CAPTURE_TIME_OUT), 1, io.mosip.registration.context.ApplicationContext
 				.getIntValueFromApplicationMap(RegistrationConstants.FACE_THRESHOLD));
