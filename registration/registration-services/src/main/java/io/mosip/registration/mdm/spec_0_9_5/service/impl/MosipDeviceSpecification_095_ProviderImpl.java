@@ -1,5 +1,6 @@
 package io.mosip.registration.mdm.spec_0_9_5.service.impl;
 
+import static io.mosip.registration.constants.LoggerConstants.MOSIP_BIO_DEVICE_MANAGER;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
@@ -30,14 +31,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.mdm.MdmDeviceInfo;
 import io.mosip.registration.mdm.constants.MosipBioDeviceConstants;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
 import io.mosip.registration.mdm.dto.DeviceDiscoveryResponsetDto;
@@ -50,6 +55,7 @@ import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
 import io.mosip.registration.mdm.spec_0_9_5.dto.request.RCaptureRequestBioDTO;
 import io.mosip.registration.mdm.spec_0_9_5.dto.request.RCaptureRequestDTO;
 import io.mosip.registration.mdm.spec_0_9_5.dto.request.StreamRequestDTO;
+import io.mosip.registration.mdm.spec_0_9_5.dto.response.DigitalId;
 import io.mosip.registration.mdm.spec_0_9_5.dto.response.MdmDeviceInfoResponse;
 import io.mosip.registration.mdm.spec_0_9_5.dto.response.RCaptureResponseBiometricsDTO;
 import io.mosip.registration.mdm.spec_0_9_5.dto.response.RCaptureResponseDTO;
@@ -72,8 +78,41 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 
 	@Override
 	public List<MdmBioDevice> getMdmDevices(String deviceInfoResponse) {
-		// TODO Auto-generated method stub
-		return null;
+
+		List<MdmBioDevice> mdmBioDevices = new LinkedList<>();
+
+		List<MdmDeviceInfo> mdmDeviceInfos = new LinkedList<>();
+
+		List<MdmDeviceInfoResponse> deviceInfoResponses;
+		try {
+			deviceInfoResponses = (deviceSpecificationFactory.getMapper().readValue(deviceInfoResponse,
+					new TypeReference<List<MdmDeviceInfoResponse>>() {
+					}));
+
+			for (MdmDeviceInfoResponse mdmDeviceInfoResponse : deviceInfoResponses) {
+
+				if (mdmDeviceInfoResponse.getDeviceInfo() != null && !mdmDeviceInfoResponse.getDeviceInfo().isEmpty()) {
+					mdmDeviceInfos.add(getDeviceInfoDecoded(mdmDeviceInfoResponse.getDeviceInfo()));
+				}
+			}
+
+			for (MdmDeviceInfo deviceInfo : mdmDeviceInfos) {
+
+				MdmBioDevice bioDevice = getBioDevice(deviceInfo);
+
+				if (bioDevice != null) {
+					mdmBioDevices.add(bioDevice);
+
+				}
+
+			}
+		} catch (Exception exception) {
+			LOGGER.error(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_GET, APPLICATION_NAME, APPLICATION_ID,
+					String.format(" Exception while mapping the response ",
+							exception.getMessage() + ExceptionUtils.getStackTrace(exception)));
+		}
+
+		return mdmBioDevices;
 	}
 
 	@Override
@@ -209,5 +248,60 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 				: modality.contains("right") ? "2"
 						: (modality.contains("double") || modality.contains("thumbs") || modality.contains("two")) ? "3"
 								: modality.contains("face") ? "0" : "0";
+	}
+
+	private MdmDeviceInfo getDeviceInfoDecoded(String deviceInfo) {
+		try {
+			String result = new String(
+					Base64.getUrlDecoder().decode(deviceSpecificationFactory.getPayLoad(deviceInfo)));
+			return (MdmDeviceInfo) (deviceSpecificationFactory.getMapper().readValue(result, MdmDeviceInfo.class));
+		} catch (Exception exception) {
+			LOGGER.error(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_GET, APPLICATION_NAME, APPLICATION_ID,
+					String.format("%s -> Exception while trying to extract the response through regex  %s",
+							exception.getMessage() + ExceptionUtils.getStackTrace(exception)));
+
+		}
+		return null;
+
+	}
+
+	private MdmBioDevice getBioDevice(MdmDeviceInfo deviceInfo)
+			throws JsonParseException, JsonMappingException, IOException {
+
+		MdmBioDevice bioDevice = null;
+
+		if (deviceInfo != null) {
+
+			DigitalId digitalId = getDigitalId(deviceInfo.getDigitalId());
+
+			bioDevice = new MdmBioDevice();
+			bioDevice.setDeviceId(deviceInfo.getDeviceId());
+			bioDevice.setFirmWare(deviceInfo.getFirmware());
+			bioDevice.setCertification(deviceInfo.getCertification());
+			bioDevice.setSerialVersion(deviceInfo.getServiceVersion());
+			bioDevice.setSpecVersion(deviceSpecificationFactory.getLatestSpecVersion(deviceInfo.getSpecVersion()));
+			bioDevice.setPurpose(deviceInfo.getPurpose());
+			bioDevice.setDeviceCode(deviceInfo.getDeviceCode());
+
+			bioDevice.setDeviceSubType(digitalId.getDeviceSubType());
+			bioDevice.setDeviceType(digitalId.getType());
+			bioDevice.setTimestamp(digitalId.getDateTime());
+			bioDevice.setDeviceProviderName(digitalId.getDeviceProvider());
+			bioDevice.setDeviceProviderId(digitalId.getDeviceProviderId());
+			bioDevice.setDeviceModel(digitalId.getModel());
+			bioDevice.setDeviceMake(digitalId.getMake());
+
+			bioDevice.setCallbackId(deviceInfo.getCallbackId());
+		}
+
+		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID, "Adding Device to Registry : ");
+		return bioDevice;
+	}
+
+	private DigitalId getDigitalId(String digitalId) throws JsonParseException, JsonMappingException, IOException {
+		return (DigitalId) (deviceSpecificationFactory.getMapper().readValue(
+				new String(Base64.getUrlDecoder().decode(deviceSpecificationFactory.getPayLoad(digitalId))),
+				DigitalId.class));
+
 	}
 }

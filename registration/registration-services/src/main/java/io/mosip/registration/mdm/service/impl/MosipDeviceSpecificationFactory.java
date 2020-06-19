@@ -81,6 +81,14 @@ public class MosipDeviceSpecificationFactory {
 	// @Autowired
 	// private MosipDeviceSpecification_095_ProviderImpl mdm_095_IntegratorImpl;
 
+	public ObjectMapper getMapper() {
+		return mapper;
+	}
+
+	public void setMapper(ObjectMapper mapper) {
+		this.mapper = mapper;
+	}
+
 	@Autowired
 	private List<MosipDeviceSpecificationProvider> deviceSpecificationProviders;
 
@@ -163,13 +171,12 @@ public class MosipDeviceSpecificationFactory {
 			/* check if the service is available for the current port */
 			if (checkServiceAvailability(url, "MOSIPDINFO")) {
 
-				List<MdmDeviceInfo> deviceInfoResponseList = getDeviceInfo(url);
+				String deviceInfoResponse = getDeviceInfoResponse(url);
 
-				for (MdmDeviceInfo deviceInfo : deviceInfoResponseList) {
+				for (MosipDeviceSpecificationProvider deviceSpecificationProvider : deviceSpecificationProviders) {
 
-					try {
-
-						MdmBioDevice bioDevice = getBioDevice(deviceInfo, availablePort);
+					List<MdmBioDevice> mdmBioDevices = deviceSpecificationProvider.getMdmDevices(deviceInfoResponse);
+					for (MdmBioDevice bioDevice : mdmBioDevices) {
 
 						if (bioDevice != null) {
 							// Add to Device Info Map
@@ -177,19 +184,19 @@ public class MosipDeviceSpecificationFactory {
 									getDeviceSubType(bioDevice.getDeviceSubType()), bioDevice);
 
 						}
-					} catch (Exception exception) {
-						LOGGER.error(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_GET, APPLICATION_NAME, APPLICATION_ID,
-								String.format(" Exception while mapping the response ",
-										exception.getMessage() + ExceptionUtils.getStackTrace(exception)));
 					}
 
 				}
-			} else {
+			}
+
+			else {
 				LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID,
 						"No device is running at port number " + availablePort);
 			}
 
-		} else {
+		} else
+
+		{
 			for (int port = portFrom; port <= portTo; port++) {
 
 				initByPort(port);
@@ -198,7 +205,7 @@ public class MosipDeviceSpecificationFactory {
 		}
 	}
 
-	private MdmBioDevice getBioDevice(MdmDeviceInfo deviceInfo, int port)
+	private MdmBioDevice getBioDevice(MdmDeviceInfo deviceInfo)
 			throws JsonParseException, JsonMappingException, IOException {
 
 		MdmBioDevice bioDevice = null;
@@ -210,7 +217,6 @@ public class MosipDeviceSpecificationFactory {
 			if (getLatestSpecVersion(deviceInfo.getSpecVersion()) != null) {
 
 				bioDevice = new MdmBioDevice();
-				bioDevice.setRunningPort(port);
 				bioDevice.setDeviceId(deviceInfo.getDeviceId());
 				bioDevice.setFirmWare(deviceInfo.getFirmware());
 				bioDevice.setCertification(deviceInfo.getCertification());
@@ -404,6 +410,29 @@ public class MosipDeviceSpecificationFactory {
 		return mdmDeviceInfos;
 	}
 
+	private String getDeviceInfoResponse(String url) {
+
+		HttpUriRequest request = RequestBuilder.create("MOSIPDINFO").setUri(url).build();
+		CloseableHttpClient client = HttpClients.createDefault();
+		CloseableHttpResponse clientResponse = null;
+		String response = null;
+
+		try {
+			clientResponse = client.execute(request);
+			response = EntityUtils.toString(clientResponse.getEntity());
+		} catch (IOException exception) {
+			LOGGER.error(MOSIP_BIO_DEVICE_INTEGERATOR, APPLICATION_NAME, APPLICATION_ID,
+					String.format(
+							"%s -> Exception while initializing Fingerprint Capture page for user registration  %s",
+							RegistrationConstants.USER_REG_FINGERPRINT_PAGE_LOAD_EXP,
+							exception.getMessage() + ExceptionUtils.getStackTrace(exception)));
+
+		}
+
+		return response;
+
+	}
+
 	public static long generateID() {
 
 		Random rnd = new Random();
@@ -415,21 +444,24 @@ public class MosipDeviceSpecificationFactory {
 		return Long.parseLong(new String(digits));
 	}
 
-	private String getLatestSpecVersion(String[] specVersion) {
+	public String getLatestSpecVersion(String[] specVersion) {
 
-		String latestSpecVersion = specVersion[0];
-		for (int index = 1; index < specVersion.length; index++) {
+		String latestSpecVersion = null;
+		if (specVersion != null && specVersion.length > 0) {
+			latestSpecVersion = specVersion[0];
+			for (int index = 1; index < specVersion.length; index++) {
 
-			latestSpecVersion = getLatestVersion(latestSpecVersion, specVersion[index]);
-		}
+				latestSpecVersion = getLatestVersion(latestSpecVersion, specVersion[index]);
+			}
 
-		if (getMdsProvider(latestSpecVersion) == null) {
-			List<String> specVersions = Arrays.asList(specVersion);
+			if (getMdsProvider(latestSpecVersion) == null) {
+				List<String> specVersions = Arrays.asList(specVersion);
 
-			specVersions.remove(latestSpecVersion);
+				specVersions.remove(latestSpecVersion);
 
-			if (!specVersions.isEmpty()) {
-				latestSpecVersion = getLatestSpecVersion(specVersions.toArray(new String[0]));
+				if (!specVersions.isEmpty()) {
+					latestSpecVersion = getLatestSpecVersion(specVersions.toArray(new String[0]));
+				}
 			}
 		}
 
