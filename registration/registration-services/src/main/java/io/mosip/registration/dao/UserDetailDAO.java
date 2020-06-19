@@ -80,5 +80,12 @@ public interface UserDetailDAO {
 	 *            the user details response
 	 */
 	void save(UserDetailResponseDto userDetailsResponse);
+	
+	/**
+	 * 
+	 * @param bioType
+	 * @return
+	 */
+	List<UserBiometric> findAllActiveUsers(String bioType);
 
 }

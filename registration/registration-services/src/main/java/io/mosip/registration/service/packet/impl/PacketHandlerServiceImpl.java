@@ -56,7 +56,7 @@ import io.mosip.registration.dto.response.SchemaDto;
 import io.mosip.registration.entity.KeyStore;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
-import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
+import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
 import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.external.StorageService;
@@ -296,19 +296,19 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 	
 	private void addRegisteredDevices() {
 		List<DeviceMetaInfo> capturedRegisteredDevices = new ArrayList<DeviceMetaInfo>();
-		MosipBioDeviceManager.getDeviceRegistry().forEach((deviceName, device) -> {
+		MosipDeviceSpecificationFactory.getDeviceRegistryInfo().forEach((deviceName, device) -> {
 			DeviceMetaInfo registerdDevice = new DeviceMetaInfo();
 			registerdDevice.setDeviceServiceVersion(device.getSerialVersion());
-			registerdDevice.setDeviceCode(device.getDigitalId().getSerialNo());
+			registerdDevice.setDeviceCode(device.getDeviceCode());
 			DigitalId digitalId = new DigitalId();
-			digitalId.setDateTime(device.getDigitalId().getDateTime());
-			digitalId.setDeviceProvider(device.getDigitalId().getDeviceProvider());
-			digitalId.setDeviceProviderId(device.getDigitalId().getDeviceProviderId());
-			digitalId.setMake(device.getDigitalId().getMake());
-			digitalId.setModel(device.getDigitalId().getModel());
-			digitalId.setSerialNo(device.getDigitalId().getSerialNo());
-			digitalId.setSubType(device.getDigitalId().getSubType());
-			digitalId.setType(device.getDigitalId().getType());
+			digitalId.setDateTime(device.getTimestamp());
+			digitalId.setDeviceProvider(device.getDeviceProviderName());
+			digitalId.setDeviceProviderId(device.getDeviceProviderId());
+			digitalId.setMake(device.getDeviceMake());
+			digitalId.setModel(device.getDeviceModel());
+			digitalId.setSerialNo(device.getSerialNumber());
+			digitalId.setSubType(device.getDeviceSubType());
+			digitalId.setType(device.getDeviceType());
 			registerdDevice.setDigitalId(digitalId);
 			capturedRegisteredDevices.add(registerdDevice);
 		});
@@ -339,7 +339,8 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 				(String) ApplicationContext.map().get(RegistrationConstants.USER_CENTER_ID));
 		packetCreator.setMetaInfo(PacketManagerConstants.META_DONGLE_ID, 
 				(String) ApplicationContext.map().get(RegistrationConstants.DONGLE_SERIAL_NUMBER));
-		packetCreator.setMetaInfo(PacketManagerConstants.META_KEYINDEX, "");
+		packetCreator.setMetaInfo(PacketManagerConstants.META_KEYINDEX,
+				ApplicationContext.getStringValueFromApplicationMap(RegistrationConstants.KEY_INDEX));
 		packetCreator.setMetaInfo(PacketManagerConstants.META_APPLICANT_CONSENT, 
 				registrationDTO.getRegistrationMetaDataDTO().getConsentOfApplicant());
 		

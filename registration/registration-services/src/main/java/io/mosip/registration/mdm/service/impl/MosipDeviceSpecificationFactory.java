@@ -7,6 +7,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.LinkedHashMap;
@@ -42,6 +43,7 @@ import io.mosip.registration.constants.Components;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
+import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.MdmDeviceInfo;
 import io.mosip.registration.mdm.constants.MosipBioDeviceConstants;
@@ -514,6 +516,11 @@ public class MosipDeviceSpecificationFactory {
 			}
 		}
 		return deviceSpecificationProvider;
+	}
+
+	public static Map<String,MdmBioDevice> getDeviceRegistryInfo() {
+		
+		return deviceInfoMap;
 	}
 
 }
