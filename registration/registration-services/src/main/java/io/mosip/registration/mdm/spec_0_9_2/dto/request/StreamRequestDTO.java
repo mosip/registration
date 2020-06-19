@@ -12,8 +12,8 @@ import lombok.Data;
 public class StreamRequestDTO {
 
 	private String env;
-	private String mosipProcess;
-	private String version;
+	private String purpose;
+	private String specVersion;
 	private int timeout;
 	@JsonIgnore
 	private String captureTime;

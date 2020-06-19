@@ -150,45 +150,31 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 
 	private StreamRequestDTO getStreamRequestDTO(MdmBioDevice bioDevice, String modality) {
 
-		StreamRequestDTO streamRequestDTO = new StreamRequestDTO();
+		StreamRequestDTO bioCaptureRequestDto = new StreamRequestDTO();
 
-		streamRequestDTO.setEnv(RegistrationConstants.MDM_ENVIRONMENT);
-		streamRequestDTO.setMosipProcess("Registration");
-		streamRequestDTO.setTimeout(RegistrationConstants.MDM_TIMEOUT);
-		streamRequestDTO.setVersion(RegistrationConstants.MDM_VERSION);
-		streamRequestDTO.setRegistrationID(String.valueOf(deviceSpecificationFactory.generateID()));
+		bioCaptureRequestDto.setEnv("Staging");
+		bioCaptureRequestDto.setPurpose(bioDevice.getPurpose());
+		bioCaptureRequestDto.setSpecVersion(bioDevice.getSpecVersion());
+		bioCaptureRequestDto.setTimeout(1000000);
+		bioCaptureRequestDto.setRegistrationID(String.valueOf(deviceSpecificationFactory.generateID()));
 
-		StreamBioRequestDTO bioRequestDTO = new StreamBioRequestDTO();
+		StreamBioRequestDTO mosipBioRequest = new StreamBioRequestDTO();
+		mosipBioRequest.setType(getDevicCode(bioDevice.getDeviceType()));
+		mosipBioRequest.setCount(1);
+		mosipBioRequest.setRequestedScore(40);
+		String exception[] = new String[0];
 
-		bioRequestDTO.setType(getDevicCode(bioDevice.getDeviceType()));
-		bioRequestDTO.setCount(1);
-
-		String[] excptions = {};
-		List<String> ls = (ArrayList<String>) ApplicationContext.map().get("CAPTURE_EXCEPTION");
-		if (ls != null) {
-			excptions = (ls).toArray(excptions);
-		} else {
-			ls = (ArrayList<String>) SessionContext.map().get("CAPTURE_EXCEPTION");
-		}
-		if (ls != null) {
-			excptions = (ls).toArray(excptions);
-		}
-		bioRequestDTO.setException(excptions);
-		if (bioRequestDTO.getType().equalsIgnoreCase("FACE")) {
-			bioRequestDTO.setType("FACE");
-			bioRequestDTO.setRequestedScore(60);
-		} else {
-			bioRequestDTO.setRequestedScore(40);
-		}
-		bioRequestDTO.setDeviceId(bioDevice.getDeviceId());
-		bioRequestDTO.setDeviceSubId(Integer.parseInt(getDeviceSubId(modality)));
-		bioRequestDTO.setPreviousHash("");
-		streamRequestDTO.setCaptureTime(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).toString());
+		mosipBioRequest.setException(exception);
+		mosipBioRequest.setDeviceId(bioDevice.getDeviceId());
+		mosipBioRequest.setDeviceSubId(getDeviceSubId(modality));
+		mosipBioRequest.setPreviousHash("");
+		bioCaptureRequestDto
+				.setCaptureTime(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).toString());
 
 		List<StreamBioRequestDTO> bioRequests = new ArrayList<>();
-		bioRequests.add(bioRequestDTO);
+		bioRequests.add(mosipBioRequest);
 
-		streamRequestDTO.setMosipBioRequest(bioRequests);
+		bioCaptureRequestDto.setMosipBioRequest(bioRequests);
 
 		Map<String, String> customOpts = new HashMap<String, String>() {
 			/**
@@ -202,9 +188,9 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 			}
 		};
 
-		streamRequestDTO.setCustomOpts(Arrays.asList(customOpts));
+		bioCaptureRequestDto.setCustomOpts(Arrays.asList(customOpts));
 
-		return streamRequestDTO;
+		return bioCaptureRequestDto;
 
 	}
 
