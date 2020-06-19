@@ -22,6 +22,8 @@ import io.mosip.kernel.core.bioapi.exception.BiometricException;
 import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.kernel.core.cbeffutil.entity.BIR.BIRBuilder;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.ProcessedLevelType;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.PurposeType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -107,6 +109,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		return new BIRBuilder().withBdb(biometricImageISO)
 				.withBdbInfo(new BDBInfo.BDBInfoBuilder().withFormat(new RegistryIDType())
 						.withType(Collections.singletonList(SingleType.fromValue(modality.value())))
+						.withPurpose(PurposeType.VERIFY)
 						.build())
 				.build();
 	}
