@@ -121,7 +121,7 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 	@Override
 	public InputStream stream(MdmBioDevice bioDevice, String modality) throws MalformedURLException, IOException {
 
-		String url = bioDevice.getCallbackId() + MosipBioDeviceConstants.STREAM_ENDPOINT;
+		String url = bioDevice.getCallbackId() +"/"+ MosipBioDeviceConstants.STREAM_ENDPOINT;
 
 		StreamRequestDTO streamRequestDTO = getStreamRequestDTO(bioDevice, modality);
 
