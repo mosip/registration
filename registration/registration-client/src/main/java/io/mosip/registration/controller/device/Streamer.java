@@ -123,7 +123,7 @@ public class Streamer {
 
 					MdmBioDevice bioDevice = deviceSpecificationFactory.getDeviceInfoByModality(type);
 
-					MosipDeviceSpecificationProvider deviceSpecificationProvider = deviceSpecificationFactory
+ 					MosipDeviceSpecificationProvider deviceSpecificationProvider = deviceSpecificationFactory
 							.getMdsProvider(bioDevice.getSpecVersion());
 
 					urlStream = deviceSpecificationProvider.stream(bioDevice, type);

@@ -8,23 +8,21 @@ import lombok.Data;
 public class RCaptureRequestDTO {
 
 	private String env;
-	private String purpose;
 	private String specVersion;
 	private String timeout;
 	private String captureTime;
-	private String transactionId;
+	private String registrationId;
 	private List<RCaptureRequestBioDTO> bio;
 	private Object customOpts;
 
 	public RCaptureRequestDTO(String env, String purpose, String specVersion, String timeout, String captureTime,
-			String transactionId, List<RCaptureRequestBioDTO> bio, Object customOpts) {
+			String registrationId, List<RCaptureRequestBioDTO> bio, Object customOpts) {
 		super();
 		this.env = env;
-		this.purpose = purpose;
 		this.specVersion = specVersion;
 		this.timeout = timeout;
 		this.captureTime = captureTime;
-		this.transactionId = transactionId;
+		this.registrationId = registrationId;
 		this.bio = bio;
 		this.customOpts = customOpts;
 	}

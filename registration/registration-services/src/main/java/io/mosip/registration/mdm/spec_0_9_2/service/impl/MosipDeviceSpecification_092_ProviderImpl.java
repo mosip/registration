@@ -13,13 +13,9 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.http.Consts;
 import org.apache.http.ParseException;
@@ -45,18 +41,14 @@ import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
-import io.mosip.registration.context.ApplicationContext;
-import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.mdm.MdmDeviceInfo;
 import io.mosip.registration.mdm.constants.MosipBioDeviceConstants;
-import io.mosip.registration.mdm.dto.CaptureRequestDeviceDetailDto;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.mdm.dto.MdmBioDevice;
 import io.mosip.registration.mdm.integrator.MosipDeviceSpecificationProvider;
 import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
 import io.mosip.registration.mdm.spec_0_9_2.dto.request.RCaptureRequestBioDTO;
 import io.mosip.registration.mdm.spec_0_9_2.dto.request.RCaptureRequestDTO;
-import io.mosip.registration.mdm.spec_0_9_2.dto.request.StreamBioRequestDTO;
 import io.mosip.registration.mdm.spec_0_9_2.dto.request.StreamRequestDTO;
 import io.mosip.registration.mdm.spec_0_9_2.dto.response.DigitalId;
 import io.mosip.registration.mdm.spec_0_9_2.dto.response.MdmDeviceInfoResponse;
@@ -121,13 +113,18 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 	@Override
 	public InputStream stream(MdmBioDevice bioDevice, String modality) throws MalformedURLException, IOException {
 
-		String url = bioDevice.getCallbackId() +"/"+ MosipBioDeviceConstants.STREAM_ENDPOINT;
+		String url = "http://127.0.0.1:4501/" + MosipBioDeviceConstants.STREAM_ENDPOINT;
 
-		StreamRequestDTO streamRequestDTO = getStreamRequestDTO(bioDevice, modality);
+		StreamRequestDTO streamRequestDTO = new StreamRequestDTO();
+
+		streamRequestDTO.setDeviceId(bioDevice.getDeviceId());
+		streamRequestDTO.setDeviceSubId(getDeviceSubId(modality));
 
 		HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
 		con.setRequestMethod("POST");
 		String request = new ObjectMapper().writeValueAsString(streamRequestDTO);
+
+		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Request for Stream...." + request);
 
 		con.setDoOutput(true);
 		DataOutputStream wr = new DataOutputStream(con.getOutputStream());
@@ -148,52 +145,6 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 
 	}
 
-	private StreamRequestDTO getStreamRequestDTO(MdmBioDevice bioDevice, String modality) {
-
-		StreamRequestDTO bioCaptureRequestDto = new StreamRequestDTO();
-
-		bioCaptureRequestDto.setEnv("Staging");
-		bioCaptureRequestDto.setPurpose(bioDevice.getPurpose());
-		bioCaptureRequestDto.setSpecVersion(bioDevice.getSpecVersion());
-		bioCaptureRequestDto.setTimeout(1000000);
-		bioCaptureRequestDto.setRegistrationID(String.valueOf(deviceSpecificationFactory.generateID()));
-
-		StreamBioRequestDTO mosipBioRequest = new StreamBioRequestDTO();
-		mosipBioRequest.setType(getDevicCode(bioDevice.getDeviceType()));
-		mosipBioRequest.setCount(1);
-		mosipBioRequest.setRequestedScore(40);
-		String exception[] = new String[0];
-
-		mosipBioRequest.setException(exception);
-		mosipBioRequest.setDeviceId(bioDevice.getDeviceId());
-		mosipBioRequest.setDeviceSubId(getDeviceSubId(modality));
-		mosipBioRequest.setPreviousHash("");
-		bioCaptureRequestDto
-				.setCaptureTime(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).toString());
-
-		List<StreamBioRequestDTO> bioRequests = new ArrayList<>();
-		bioRequests.add(mosipBioRequest);
-
-		bioCaptureRequestDto.setMosipBioRequest(bioRequests);
-
-		Map<String, String> customOpts = new HashMap<String, String>() {
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
-			{
-				put("Name", "name1");
-				put("Value", "value1");
-			}
-		};
-
-		bioCaptureRequestDto.setCustomOpts(Arrays.asList(customOpts));
-
-		return bioCaptureRequestDto;
-
-	}
-
 	@Override
 	public List<BiometricsDto> rCapture(MdmBioDevice bioDevice, MDMRequestDto mdmRequestDto)
 			throws JsonParseException, JsonMappingException, ParseException, IOException {
@@ -201,6 +152,8 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 		if (mdmRequestDto.getExceptions() != null) {
 			mdmRequestDto.setExceptions(getExceptions(mdmRequestDto.getExceptions()));
 		}
+
+		String url = "http://127.0.0.1:4501/" + MosipBioDeviceConstants.CAPTURE_ENDPOINT;
 
 		RCaptureRequestDTO rCaptureRequestDTO = getRCaptureRequest(bioDevice, mdmRequestDto);
 
@@ -218,7 +171,7 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
 				"Bulding capture url...." + System.currentTimeMillis());
 		HttpUriRequest request = RequestBuilder.create("RCAPTURE")
-				.setUri(bioDevice.getCallbackId() + MosipBioDeviceConstants.CAPTURE_ENDPOINT).setEntity(requestEntity)
+				.setUri(url).setEntity(requestEntity)
 				.build();
 		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
 				"Requesting capture url...." + System.currentTimeMillis());
@@ -228,6 +181,7 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 
 		String val = EntityUtils.toString(response.getEntity());
 
+		System.out.println(val);
 		RCaptureResponseDTO captureResponse = mapper.readValue(val.getBytes(StandardCharsets.UTF_8),
 				RCaptureResponseDTO.class);
 		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
@@ -277,17 +231,23 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 
 		if (bioDevice != null) {
 			List<RCaptureRequestBioDTO> captureRequestBioDTOs = new LinkedList<>();
-			captureRequestBioDTOs.add(new RCaptureRequestBioDTO(bioDevice.getDeviceType(), "1", null,
+			captureRequestBioDTOs.add(new RCaptureRequestBioDTO(getDeviceType(bioDevice.getDeviceType()), "1",
 					mdmRequestDto.getExceptions(), String.valueOf(mdmRequestDto.getRequestedScore()),
 					bioDevice.getDeviceId(), getDeviceSubId(mdmRequestDto.getModality()), null));
 
-			rCaptureRequestDTO = new RCaptureRequestDTO(mdmRequestDto.getEnvironment(), "Registration", "0.9.5",
+			rCaptureRequestDTO = new RCaptureRequestDTO(mdmRequestDto.getEnvironment(), "Registration", "0.9.2",
 					String.valueOf(mdmRequestDto.getTimeout()),
 					LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).toString(),
 					String.valueOf(deviceSpecificationFactory.generateID()), captureRequestBioDTOs, null);
 		}
 
 		return rCaptureRequestDTO;
+	}
+
+	private String getDeviceType(String deviceType) {
+		deviceType = deviceType.toLowerCase();
+
+		return deviceType.contains("fingerprint") ? "FIR" : deviceType.contains("iris") ? "IIR" : "face";
 	}
 
 	private String getDeviceSubId(String modality) {
