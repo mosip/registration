@@ -34,7 +34,6 @@ import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.packetmanager.constants.Biometric;
 import io.mosip.kernel.packetmanager.constants.PacketManagerConstants;
 import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.config.AppConfig;
@@ -53,7 +52,6 @@ import io.mosip.registration.entity.UserBiometric;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
-import io.mosip.registration.mdm.service.impl.MosipBioDeviceManagerDuplicate;
 import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.operator.UserOnboardService;
 import io.mosip.registration.service.sync.MasterSyncService;
@@ -289,14 +287,14 @@ public class GuardianBiometricsController extends BaseController /* implements I
 	@Autowired
 	private UserOnboardParentController userOnboardParentController;
 
-	@Autowired
-	private MosipBioDeviceManagerDuplicate mosipBioDeviceManger;
+
 	
 	@Autowired
 	private BioAPIFactory bioAPIFactory;
 	
 	@Autowired
 	private UserDetailDAO userDetailDAO;
+
 
 	/*
 	 * (non-Javadoc)

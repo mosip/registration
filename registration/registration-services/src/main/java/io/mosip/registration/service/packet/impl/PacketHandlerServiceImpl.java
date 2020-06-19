@@ -56,8 +56,7 @@ import io.mosip.registration.dto.response.SchemaDto;
 import io.mosip.registration.entity.KeyStore;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
-import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
-import io.mosip.registration.mdm.service.impl.MosipBioDeviceManagerDuplicate;
+import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
 import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.external.StorageService;
@@ -297,7 +296,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 	
 	private void addRegisteredDevices() {
 		List<DeviceMetaInfo> capturedRegisteredDevices = new ArrayList<DeviceMetaInfo>();
-		MosipBioDeviceManagerDuplicate.getDeviceRegistryInfo().forEach((deviceName, device) -> {
+		MosipDeviceSpecificationFactory.getDeviceRegistryInfo().forEach((deviceName, device) -> {
 			DeviceMetaInfo registerdDevice = new DeviceMetaInfo();
 			registerdDevice.setDeviceServiceVersion(device.getSerialVersion());
 			registerdDevice.setDeviceCode(device.getDeviceCode());
