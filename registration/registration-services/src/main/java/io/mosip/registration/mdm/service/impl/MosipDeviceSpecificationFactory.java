@@ -205,43 +205,6 @@ public class MosipDeviceSpecificationFactory {
 		}
 	}
 
-	private MdmBioDevice getBioDevice(MdmDeviceInfo deviceInfo)
-			throws JsonParseException, JsonMappingException, IOException {
-
-		MdmBioDevice bioDevice = null;
-
-		if (deviceInfo != null) {
-
-			DigitalId digitalId = getDigitalId(deviceInfo.getDigitalId());
-
-			if (getLatestSpecVersion(deviceInfo.getSpecVersion()) != null) {
-
-				bioDevice = new MdmBioDevice();
-				bioDevice.setDeviceId(deviceInfo.getDeviceId());
-				bioDevice.setFirmWare(deviceInfo.getFirmware());
-				bioDevice.setCertification(deviceInfo.getCertification());
-				bioDevice.setSerialVersion(deviceInfo.getServiceVersion());
-				bioDevice.setSpecVersion(getLatestSpecVersion(deviceInfo.getSpecVersion()));
-				bioDevice.setPurpose(deviceInfo.getPurpose());
-				bioDevice.setDeviceCode(deviceInfo.getDeviceCode());
-
-				bioDevice.setDeviceSubType(digitalId.getDeviceSubType());
-				bioDevice.setDeviceType(digitalId.getType());
-				bioDevice.setTimestamp(digitalId.getDateTime());
-				bioDevice.setDeviceProviderName(digitalId.getDeviceProvider());
-				bioDevice.setDeviceProviderId(digitalId.getDeviceProviderId());
-				bioDevice.setDeviceModel(digitalId.getModel());
-				bioDevice.setDeviceMake(digitalId.getMake());
-
-				bioDevice.setCallbackId(deviceInfo.getCallbackId());
-			}
-
-		}
-
-		LOGGER.info(MOSIP_BIO_DEVICE_MANAGER, APPLICATION_NAME, APPLICATION_ID, "Adding Device to Registry : ");
-		return bioDevice;
-	}
-
 	private DigitalId getDigitalId(String digitalId) throws JsonParseException, JsonMappingException, IOException {
 		return (DigitalId) (mapper.readValue(new String(Base64.getUrlDecoder().decode(getPayLoad(digitalId))),
 				DigitalId.class));
