@@ -13,9 +13,13 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.Consts;
 import org.apache.http.ParseException;
@@ -40,14 +44,19 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.LoggerConstants;
+import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.context.ApplicationContext;
+import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.mdm.MdmDeviceInfo;
 import io.mosip.registration.mdm.constants.MosipBioDeviceConstants;
+import io.mosip.registration.mdm.dto.CaptureRequestDeviceDetailDto;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.mdm.dto.MdmBioDevice;
 import io.mosip.registration.mdm.integrator.MosipDeviceSpecificationProvider;
 import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
 import io.mosip.registration.mdm.spec_0_9_2.dto.request.RCaptureRequestBioDTO;
 import io.mosip.registration.mdm.spec_0_9_2.dto.request.RCaptureRequestDTO;
+import io.mosip.registration.mdm.spec_0_9_2.dto.request.StreamBioRequestDTO;
 import io.mosip.registration.mdm.spec_0_9_2.dto.request.StreamRequestDTO;
 import io.mosip.registration.mdm.spec_0_9_2.dto.response.DigitalId;
 import io.mosip.registration.mdm.spec_0_9_2.dto.response.MdmDeviceInfoResponse;
@@ -114,7 +123,7 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 
 		String url = bioDevice.getCallbackId() + MosipBioDeviceConstants.STREAM_ENDPOINT;
 
-		StreamRequestDTO streamRequestDTO = new StreamRequestDTO("2", getDeviceSubId(modality));
+		StreamRequestDTO streamRequestDTO = getStreamRequestDTO(bioDevice, modality);
 
 		HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
 		con.setRequestMethod("POST");
@@ -136,6 +145,66 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
 				"Leaving into Stream Method.... " + System.currentTimeMillis());
 		return urlStream;
+
+	}
+
+	private StreamRequestDTO getStreamRequestDTO(MdmBioDevice bioDevice, String modality) {
+
+		StreamRequestDTO streamRequestDTO = new StreamRequestDTO();
+
+		streamRequestDTO.setEnv(RegistrationConstants.MDM_ENVIRONMENT);
+		streamRequestDTO.setMosipProcess("Registration");
+		streamRequestDTO.setTimeout(RegistrationConstants.MDM_TIMEOUT);
+		streamRequestDTO.setVersion(RegistrationConstants.MDM_VERSION);
+		streamRequestDTO.setRegistrationID(String.valueOf(deviceSpecificationFactory.generateID()));
+
+		StreamBioRequestDTO bioRequestDTO = new StreamBioRequestDTO();
+
+		bioRequestDTO.setType(getDevicCode(bioDevice.getDeviceType()));
+		bioRequestDTO.setCount(1);
+
+		String[] excptions = {};
+		List<String> ls = (ArrayList<String>) ApplicationContext.map().get("CAPTURE_EXCEPTION");
+		if (ls != null) {
+			excptions = (ls).toArray(excptions);
+		} else {
+			ls = (ArrayList<String>) SessionContext.map().get("CAPTURE_EXCEPTION");
+		}
+		if (ls != null) {
+			excptions = (ls).toArray(excptions);
+		}
+		bioRequestDTO.setException(excptions);
+		if (bioRequestDTO.getType().equalsIgnoreCase("FACE")) {
+			bioRequestDTO.setType("FACE");
+			bioRequestDTO.setRequestedScore(60);
+		} else {
+			bioRequestDTO.setRequestedScore(40);
+		}
+		bioRequestDTO.setDeviceId(bioDevice.getDeviceId());
+		bioRequestDTO.setDeviceSubId(Integer.parseInt(getDeviceSubId(modality)));
+		bioRequestDTO.setPreviousHash("");
+		streamRequestDTO.setCaptureTime(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).toString());
+
+		List<StreamBioRequestDTO> bioRequests = new ArrayList<>();
+		bioRequests.add(bioRequestDTO);
+
+		streamRequestDTO.setMosipBioRequest(bioRequests);
+
+		Map<String, String> customOpts = new HashMap<String, String>() {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			{
+				put("Name", "name1");
+				put("Value", "value1");
+			}
+		};
+
+		streamRequestDTO.setCustomOpts(Arrays.asList(customOpts));
+
+		return streamRequestDTO;
 
 	}
 
@@ -296,6 +365,21 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 		return (DigitalId) (deviceSpecificationFactory.getMapper().readValue(
 				new String(Base64.getUrlDecoder().decode(deviceSpecificationFactory.getPayLoad(digitalId))),
 				DigitalId.class));
+
+	}
+
+	private static String getDevicCode(String deviceType) {
+		switch (deviceType.toUpperCase()) {
+		case RegistrationConstants.FINGERPRINT_UPPERCASE:
+			deviceType = "FIR";
+			break;
+
+		case RegistrationConstants.IRIS:
+			deviceType = "IIR";
+			break;
+		}
+
+		return deviceType;
 
 	}
 }
