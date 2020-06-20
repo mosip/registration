@@ -8,20 +8,20 @@ import lombok.Data;
 public class RCaptureResponseDataDTO {
 
 	private String deviceCode;
-	private String bioType;
 	private String digitalId;
 	private String deviceServiceVersion;
 	private String bioSubType;
 	private String purpose;
 	private String env;
 	private String bioValue;
-	private String transactionId;
+	private String bioExtract;
+	private String registrationId;
 	private String timestamp;
 	private String requestedScore;
 	private String qualityScore;
 
 	public byte[] getDecodedBioValue() {
-		return Base64.getUrlDecoder().decode(bioValue);
+		return Base64.getUrlDecoder().decode(bioExtract);
 	}
 
 }

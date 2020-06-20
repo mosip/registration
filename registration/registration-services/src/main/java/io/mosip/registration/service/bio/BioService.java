@@ -274,8 +274,8 @@ public interface BioService {
 	
 //	public void remove
 	
-	public List<BiometricsDto> captureModality(MDMRequestDto mdmRequestDto)  throws RegBaseCheckedException ;
+	public List<BiometricsDto> captureModality(MDMRequestDto mdmRequestDto)  throws RegBaseCheckedException, IOException ;
 	
-	public List<BiometricsDto> captureModalityForAuth(MDMRequestDto mdmRequestDto)  throws RegBaseCheckedException ;
+	public List<BiometricsDto> captureModalityForAuth(MDMRequestDto mdmRequestDto)  throws RegBaseCheckedException, IOException ;
 
 }

@@ -26,5 +26,6 @@ public class MdmBioDevice {
 	private String purpose;
 	private String specVersion;
 	private String timestamp;
+	private int port;
 
 }

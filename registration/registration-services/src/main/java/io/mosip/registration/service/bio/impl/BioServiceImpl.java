@@ -509,9 +509,10 @@ public class BioServiceImpl extends BaseService implements BioService {
 	 */
 	@Override
 	public boolean isMdmEnabled() {
-		// return false;
-		return RegistrationConstants.ENABLE
-				.equalsIgnoreCase(((String) ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
+		return true;
+		// return RegistrationConstants.ENABLE
+		// .equalsIgnoreCase(((String)
+		// ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
 	}
 
 	/*
@@ -1480,7 +1481,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	}
 
 	@Override
-	public List<BiometricsDto> captureModality(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException {
+	public List<BiometricsDto> captureModality(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException, IOException {
 
 		List<BiometricsDto> biometricsDtos = null;
 		if (isMdmEnabled()) {
@@ -1495,12 +1496,12 @@ public class BioServiceImpl extends BaseService implements BioService {
 		return biometricsDtos;
 	}
 
-	private List<BiometricsDto> captureRealModality(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException {
+	private List<BiometricsDto> captureRealModality(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException, IOException {
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 				"Entering into captureModality method.." + System.currentTimeMillis());
 
 		List<BiometricsDto> list = new ArrayList<BiometricsDto>();
-		try {
+		
 
 			MdmBioDevice bioDevice = deviceSpecificationFactory.getDeviceInfoByModality(mdmRequestDto.getModality());
 
@@ -1517,9 +1518,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 					list.add(biometricsDto);
 				}
 			}
-		} catch (IOException exception) {
-			throw new RegBaseCheckedException("202", "Device is not available");
-		}
+		
 
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 				"Ended captureModality method.." + System.currentTimeMillis());
@@ -1583,7 +1582,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	}
 
 	@Override
-	public List<BiometricsDto> captureModalityForAuth(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException {
+	public List<BiometricsDto> captureModalityForAuth(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException, IOException {
 		if (isMdmEnabled())
 			return captureRealModality(mdmRequestDto);
 		else
