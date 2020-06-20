@@ -8,6 +8,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.net.MalformedURLException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -103,36 +104,18 @@ public class Streamer {
 
 			public void run() {
 
-				LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-						"Streamer Thread started for : " + System.currentTimeMillis() + type);
-
-				// Disable Auto-Logout
-				SessionContext.setAutoLogout(false);
-
-				scanPopUpViewController.disableCloseButton();
-				isRunning = true;
 				try {
-					if (urlStream != null) {
-						urlStream.close();
-						urlStream = null;
-					}
-
 					setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_PREP_MESSAGE, false);
 					LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
 							"Constructing Stream URL Started" + System.currentTimeMillis());
 
-					MdmBioDevice bioDevice = deviceSpecificationFactory.getDeviceInfoByModality(type);
-
- 					MosipDeviceSpecificationProvider deviceSpecificationProvider = deviceSpecificationFactory
-							.getMdsProvider(bioDevice.getSpecVersion());
-
-					urlStream = deviceSpecificationProvider.stream(bioDevice, type);
-
+					urlStream = getStream(type);
 					if (urlStream == null) {
 
 						LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
 								"URL Stream was null for : " + System.currentTimeMillis() + type);
 
+						deviceSpecificationFactory.init();
 						setPopViewControllerMessage(true,
 								RegistrationUIConstants.getMessageLanguageSpecific("202_MESSAGE"), false);
 
@@ -279,6 +262,34 @@ public class Streamer {
 		}
 		scanPopUpViewController.setScanningMsg(message);
 		this.isRunning = isRunning;
+	}
+
+	public InputStream getStream(String modality) throws MalformedURLException, IOException {
+		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
+				"Streamer Thread started for : " + System.currentTimeMillis() + modality);
+
+		// Disable Auto-Logout
+		SessionContext.setAutoLogout(false);
+
+		scanPopUpViewController.disableCloseButton();
+		isRunning = true;
+
+		if (urlStream != null) {
+			urlStream.close();
+			urlStream = null;
+		}
+
+		setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_PREP_MESSAGE, false);
+		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
+				"Constructing Stream URL Started" + System.currentTimeMillis());
+
+		MdmBioDevice bioDevice = deviceSpecificationFactory.getDeviceInfoByModality(modality);
+
+		MosipDeviceSpecificationProvider deviceSpecificationProvider = deviceSpecificationFactory
+				.getMdsProvider(bioDevice.getSpecVersion());
+
+		return deviceSpecificationProvider.stream(bioDevice, modality);
+
 	}
 
 }

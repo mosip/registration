@@ -174,11 +174,11 @@ public class AuthenticationController extends BaseController implements Initiali
 
 	@Autowired
 	private BioService bioService;
-	
+
 	private int fingerPrintAuthCount;
 	private int irisPrintAuthCount;
 	private int facePrintAuthCount;
-	
+
 	@FXML
 	private Label authCounter;
 
@@ -338,7 +338,7 @@ public class AuthenticationController extends BaseController implements Initiali
 				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 		authCounter = new Label();
-		
+
 		LOGGER.info("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
 				"Validating Fingerprint for Fingerprint based Authentication");
 
@@ -346,14 +346,15 @@ public class AuthenticationController extends BaseController implements Initiali
 			if (!fpUserId.getText().isEmpty()) {
 				if (fetchUserRole(fpUserId.getText())) {
 					try {
-						if (captureAndValidateFP(fpUserId.getText(),
-								new MDMRequestDto(RegistrationConstants.FINGERPRINT_SLAB_LEFT, null, "Registration",
-										io.mosip.registration.context.ApplicationContext.getStringValueFromApplicationMap(RegistrationConstants.SERVER_ACTIVE_PROFILE),
-										io.mosip.registration.context.ApplicationContext.getIntValueFromApplicationMap(
-												RegistrationConstants.CAPTURE_TIME_OUT),
-										1,
-										io.mosip.registration.context.ApplicationContext.getIntValueFromApplicationMap(
-												RegistrationConstants.FINGERPRINT_AUTHENTICATION_THRESHHOLD)))) {
+
+						if (captureAndValidateFP(fpUserId.getText(), new MDMRequestDto(
+								RegistrationConstants.FINGERPRINT_SLAB_RIGHT, null, "Registration",
+								io.mosip.registration.context.ApplicationContext
+										.getStringValueFromApplicationMap(RegistrationConstants.SERVER_ACTIVE_PROFILE),
+								io.mosip.registration.context.ApplicationContext
+										.getIntValueFromApplicationMap(RegistrationConstants.CAPTURE_TIME_OUT),
+								1, io.mosip.registration.context.ApplicationContext.getIntValueFromApplicationMap(
+										RegistrationConstants.FINGERPRINT_AUTHENTICATION_THRESHHOLD)))) {
 							userAuthenticationTypeListValidation.remove(0);
 							userNameField = fpUserId.getText();
 							if (!isEODAuthentication) {
@@ -378,7 +379,9 @@ public class AuthenticationController extends BaseController implements Initiali
 		} else {
 			try {
 				if (captureAndValidateFP(fpUserId.getText(),
-						new MDMRequestDto(RegistrationConstants.FINGERPRINT_SLAB_LEFT, null, "Registration", io.mosip.registration.context.ApplicationContext.getStringValueFromApplicationMap(RegistrationConstants.SERVER_ACTIVE_PROFILE),
+						new MDMRequestDto(RegistrationConstants.FINGERPRINT_SLAB_LEFT, null, "Registration",
+								io.mosip.registration.context.ApplicationContext
+										.getStringValueFromApplicationMap(RegistrationConstants.SERVER_ACTIVE_PROFILE),
 								io.mosip.registration.context.ApplicationContext
 										.getIntValueFromApplicationMap(RegistrationConstants.CAPTURE_TIME_OUT),
 								1, io.mosip.registration.context.ApplicationContext.getIntValueFromApplicationMap(
@@ -408,7 +411,7 @@ public class AuthenticationController extends BaseController implements Initiali
 				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 		authCounter = new Label();
-		
+
 		LOGGER.info("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
 				"Validating Iris for Iris based Authentication");
 
@@ -427,7 +430,10 @@ public class AuthenticationController extends BaseController implements Initiali
 							generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.IRIS_MATCH);
 						}
 					} catch (RegBaseCheckedException | IOException exception) {
-						generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)+RegistrationConstants.UNDER_SCORE+RegistrationConstants.MESSAGE.toUpperCase()));
+						generateAlert(RegistrationConstants.ALERT_INFORMATION,
+								RegistrationUIConstants.getMessageLanguageSpecific(
+										exception.getMessage().substring(0, 3) + RegistrationConstants.UNDER_SCORE
+												+ RegistrationConstants.MESSAGE.toUpperCase()));
 					}
 				} else {
 					generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.USER_NOT_AUTHORIZED);
@@ -447,7 +453,7 @@ public class AuthenticationController extends BaseController implements Initiali
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_DEVICE_FOUND);
 			}
 		}
-		authCounter.setText(++irisPrintAuthCount+"");
+		authCounter.setText(++irisPrintAuthCount + "");
 	}
 
 	@FXML
@@ -476,7 +482,7 @@ public class AuthenticationController extends BaseController implements Initiali
 				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 		authCounter = new Label();
-		
+
 		LOGGER.info("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
 				"Validating Face for Face based Authentication");
 		try {
@@ -512,8 +518,8 @@ public class AuthenticationController extends BaseController implements Initiali
 					RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)
 							+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
 		}
-		
-		authCounter.setText(++facePrintAuthCount+"");
+
+		authCounter.setText(++facePrintAuthCount + "");
 
 	}
 
@@ -655,7 +661,8 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * to enable the respective authentication mode
 	 * 
-	 * @param loginMode - name of authentication mode
+	 * @param loginMode
+	 *            - name of authentication mode
 	 */
 	public void loadAuthenticationScreen(String loginMode) {
 		LOGGER.info("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
@@ -834,8 +841,8 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * to check the role of supervisor in case of biometric exception
 	 * 
-	 * @param userId - username entered by the supervisor in the authentication
-	 *               screen
+	 * @param userId
+	 *            - username entered by the supervisor in the authentication screen
 	 * @return boolean variable "true", if the person is authenticated as supervisor
 	 *         or "false", if not
 	 */
@@ -847,7 +854,8 @@ public class AuthenticationController extends BaseController implements Initiali
 		if (userDTO != null) {
 			return userDTO.getUserRole().stream()
 					.anyMatch(userRole -> userRole.getRoleCode().equalsIgnoreCase(RegistrationConstants.SUPERVISOR)
-							|| userRole.getRoleCode().equalsIgnoreCase(RegistrationConstants.ADMIN_ROLE) || userRole.getRoleCode().equalsIgnoreCase(RegistrationConstants.ROLE_DEFAULT));
+							|| userRole.getRoleCode().equalsIgnoreCase(RegistrationConstants.ADMIN_ROLE)
+							|| userRole.getRoleCode().equalsIgnoreCase(RegistrationConstants.ROLE_DEFAULT));
 		}
 		return false;
 	}
@@ -855,43 +863,46 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * to capture and validate the fingerprint for authentication
 	 * 
-	 * @param userId - username entered in the textfield
+	 * @param userId
+	 *            - username entered in the textfield
 	 * @return true/false after validating fingerprint
 	 * @throws IOException
 	 * @throws RegBaseCheckedException
 	 */
 	private boolean captureAndValidateFP(String userId, MDMRequestDto mdmRequestDto)
 			throws RegBaseCheckedException, IOException {
-		
-		List<BiometricsDto> biometrics = bioService.captureModalityForAuth(mdmRequestDto);		
-		//AuthenticationValidatorDTO authenticationValidatorDTO = bioService.getFingerPrintAuthenticationDto(userId,requestDetail);
-		//List<FingerprintDetailsDTO> fingerPrintDetailsDTOs = authenticationValidatorDTO.getFingerPrintDetails();
+		List<BiometricsDto> biometrics = null;
+		if (!bioService.isMdmEnabled() || streamer.getStream(mdmRequestDto.getModality()) != null) {
+			biometrics = bioService.captureModalityForAuth(mdmRequestDto);
+		}
+		// AuthenticationValidatorDTO authenticationValidatorDTO =
+		// bioService.getFingerPrintAuthenticationDto(userId,requestDetail);
+		// List<FingerprintDetailsDTO> fingerPrintDetailsDTOs =
+		// authenticationValidatorDTO.getFingerPrintDetails();
 		boolean fpMatchStatus;
 		if (!isEODAuthentication) {
 			if (isSupervisor) {
 				RegistrationDTO registrationDTO = (RegistrationDTO) SessionContext.getInstance().getMapObject()
 						.get(RegistrationConstants.REGISTRATION_DATA);
-				//registrationDTO.getBiometricDTO().getSupervisorBiometricDTO().setFingerprintDetailsDTO(fingerPrintDetailsDTOs);
-				registrationDTO.addSupervisorBiometrics(biometrics);				
+				// registrationDTO.getBiometricDTO().getSupervisorBiometricDTO().setFingerprintDetailsDTO(fingerPrintDetailsDTOs);
+				registrationDTO.addSupervisorBiometrics(biometrics);
 			} else {
 				RegistrationDTO registrationDTO = (RegistrationDTO) SessionContext.getInstance().getMapObject()
 						.get(RegistrationConstants.REGISTRATION_DATA);
-				//registrationDTO.getBiometricDTO().getOperatorBiometricDTO().setFingerprintDetailsDTO(fingerPrintDetailsDTOs);
+				// registrationDTO.getBiometricDTO().getOperatorBiometricDTO().setFingerprintDetailsDTO(fingerPrintDetailsDTOs);
 				registrationDTO.addOfficerBiometrics(biometrics);
 			}
 		}
-		//FingerprintDetailsDTO fingerPrintDetailsDto = fingerPrintDetailsDTOs.get(0);
-		//fpMatchStatus = bioService.validateFingerPrint(authenticationValidatorDTO);
+		// FingerprintDetailsDTO fingerPrintDetailsDto = fingerPrintDetailsDTOs.get(0);
+		// fpMatchStatus = bioService.validateFingerPrint(authenticationValidatorDTO);
 		fpMatchStatus = authenticationService.authValidator(userId, SingleType.FINGER.value(), biometrics);
-		/*if (fpMatchStatus) {
-			if (isSupervisor) {
-				fingerPrintDetailsDto.setFingerprintImageName(
-						"supervisor".concat(fingerPrintDetailsDto.getFingerType()).concat(".jpg"));
-			} else {
-				fingerPrintDetailsDto.setFingerprintImageName(
-						"officer".concat(fingerPrintDetailsDto.getFingerType()).concat(".jpg"));
-			}
-		}*/
+		/*
+		 * if (fpMatchStatus) { if (isSupervisor) {
+		 * fingerPrintDetailsDto.setFingerprintImageName(
+		 * "supervisor".concat(fingerPrintDetailsDto.getFingerType()).concat(".jpg")); }
+		 * else { fingerPrintDetailsDto.setFingerprintImageName(
+		 * "officer".concat(fingerPrintDetailsDto.getFingerType()).concat(".jpg")); } }
+		 */
 
 		return fpMatchStatus;
 	}
@@ -899,7 +910,8 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * to capture and validate the iris for authentication
 	 * 
-	 * @param userId - username entered in the textfield
+	 * @param userId
+	 *            - username entered in the textfield
 	 * @return true/false after validating iris
 	 * @throws IOException
 	 */
@@ -911,7 +923,10 @@ public class AuthenticationController extends BaseController implements Initiali
 						.getIntValueFromApplicationMap(RegistrationConstants.CAPTURE_TIME_OUT),
 				2, io.mosip.registration.context.ApplicationContext
 						.getIntValueFromApplicationMap(RegistrationConstants.IRIS_THRESHOLD));
-		List<BiometricsDto> biometrics = bioService.captureModalityForAuth(mdmRequestDto);
+		List<BiometricsDto> biometrics = null;
+		if (!bioService.isMdmEnabled() || streamer.getStream(mdmRequestDto.getModality()) != null) {
+			biometrics = bioService.captureModalityForAuth(mdmRequestDto);
+		}
 
 		/*
 		 * AuthenticationValidatorDTO authenticationValidatorDTO =
@@ -944,7 +959,8 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * to capture and validate the iris for authentication
 	 * 
-	 * @param userId - username entered in the textfield
+	 * @param userId
+	 *            - username entered in the textfield
 	 * @return true/false after validating face
 	 * @throws IOException
 	 * @throws RegBaseCheckedException
@@ -957,7 +973,11 @@ public class AuthenticationController extends BaseController implements Initiali
 						.getIntValueFromApplicationMap(RegistrationConstants.CAPTURE_TIME_OUT),
 				1, io.mosip.registration.context.ApplicationContext
 						.getIntValueFromApplicationMap(RegistrationConstants.FACE_THRESHOLD));
-		List<BiometricsDto> biometrics = bioService.captureModalityForAuth(mdmRequestDto);
+		
+		List<BiometricsDto> biometrics = null;
+		if(!bioService.isMdmEnabled() || streamer.getStream(mdmRequestDto.getModality())!=null) {
+		biometrics = bioService.captureModalityForAuth(mdmRequestDto);	
+		}
 
 		/*
 		 * AuthenticationValidatorDTO authenticationValidatorDTO =
@@ -998,7 +1018,8 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * event class to exit from authentication window. pop up window.
 	 * 
-	 * @param event - the action event
+	 * @param event
+	 *            - the action event
 	 */
 	public void exitWindow(ActionEvent event) {
 		Stage primaryStage = (Stage) ((Node) event.getSource()).getParent().getScene().getWindow();
@@ -1009,8 +1030,10 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * Setting the init method to the Basecontroller
 	 * 
-	 * @param parentControllerObj - Parent Controller name
-	 * @param authType            - Authentication Type
+	 * @param parentControllerObj
+	 *            - Parent Controller name
+	 * @param authType
+	 *            - Authentication Type
 	 * @throws RegBaseCheckedException
 	 */
 	public void init(BaseController parentControllerObj, String authType) throws RegBaseCheckedException {
@@ -1044,10 +1067,10 @@ public class AuthenticationController extends BaseController implements Initiali
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 
-		int FingerPrintAuthCount=0;
-		int IrisPrintAuthCount=0;
-		int FacePrintAuthCount=0;
-		
+		int FingerPrintAuthCount = 0;
+		int IrisPrintAuthCount = 0;
+		int FacePrintAuthCount = 0;
+
 		setImageOnHover();
 
 		irisImageView.setImage(
@@ -1132,9 +1155,12 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * This method will remove the auth method from list
 	 * 
-	 * @param authList    authentication list
-	 * @param disableFlag configuration flag
-	 * @param authCode    auth mode
+	 * @param authList
+	 *            authentication list
+	 * @param disableFlag
+	 *            configuration flag
+	 * @param authCode
+	 *            auth mode
 	 */
 	private void removeAuthModes(List<String> authList, String flag, String authCode) {
 

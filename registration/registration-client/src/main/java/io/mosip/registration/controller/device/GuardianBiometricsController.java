@@ -916,7 +916,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 			// validate local de-dup check
 			boolean isMatchedWithLocalBiometrics = false;
 			if(bioService.isMdmEnabled()) {
-				isMatchedWithLocalBiometrics = identifyInLocalGallery(mdsCapturedBiometricsList, modality);
+//				isMatchedWithLocalBiometrics = identifyInLocalGallery(mdsCapturedBiometricsList, modality);
 			}
 			
 			if (isValidBiometric && !isMatchedWithLocalBiometrics) {

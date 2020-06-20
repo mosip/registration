@@ -216,20 +216,22 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 					"Getting data payload of biometric" + System.currentTimeMillis());
 
-			String payLoad = deviceSpecificationFactory.getPayLoad(rCaptureResponseBiometricsDTO.getData());
+			if (rCaptureResponseBiometricsDTO.getData() != null && !rCaptureResponseBiometricsDTO.getData().isEmpty()) {
+				String payLoad = deviceSpecificationFactory.getPayLoad(rCaptureResponseBiometricsDTO.getData());
 
-			RCaptureResponseDataDTO dataDTO = (RCaptureResponseDataDTO) (mapper
-					.readValue(new String(Base64.getUrlDecoder().decode(payLoad)), RCaptureResponseDataDTO.class));
+				RCaptureResponseDataDTO dataDTO = (RCaptureResponseDataDTO) (mapper
+						.readValue(new String(Base64.getUrlDecoder().decode(payLoad)), RCaptureResponseDataDTO.class));
 
-			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-					"Parsed decoded payload" + System.currentTimeMillis());
+				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+						"Parsed decoded payload" + System.currentTimeMillis());
 
-			String uiAttribute = Biometric.getUiSchemaAttributeName(dataDTO.getBioSubType(), SPEC_VERSION);
-			BiometricsDto biometricDTO = new BiometricsDto(uiAttribute, dataDTO.getDecodedBioValue(),
-					Double.parseDouble(dataDTO.getQualityScore()));
-			biometricDTO.setCaptured(true);
-			biometricDTO.setModalityName(mdmRequestDto.getModality());
-			biometricDTOs.add(biometricDTO);
+				String uiAttribute = Biometric.getUiSchemaAttributeName(dataDTO.getBioSubType(), SPEC_VERSION);
+				BiometricsDto biometricDTO = new BiometricsDto(uiAttribute, dataDTO.getDecodedBioValue(),
+						Double.parseDouble(dataDTO.getQualityScore()));
+				biometricDTO.setCaptured(true);
+				biometricDTO.setModalityName(mdmRequestDto.getModality());
+				biometricDTOs.add(biometricDTO);
+			}
 		}
 		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 				"rCapture Completed" + System.currentTimeMillis());
