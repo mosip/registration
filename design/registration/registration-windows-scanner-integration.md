@@ -23,7 +23,7 @@ As windows by default providing this [WIA] service to communicate with the scann
 
 ### Command to create the Com4j Wrapper class from dll file
 - java -jar tlbimp.jar -o wia -p wia %WINDIR%\system32\wiaaut.dll
-- https://windows10dll.nirsoft.net/wiaaut_dll.html - entire wrapper classes and the respective interface is available here.
+- The entire wrapper classes and the respective interface is available [here](https://windows10dll.nirsoft.net/wiaaut_dll.html).
 
 ### If No Scanner found then get the below error
 [WIA_S_NO_DEVICE_AVAILABLE](https://docs.microsoft.com/en-us/windows/desktop/wia/-wia-error-codes) - No scanner device was found. Make sure the device is online, connected to the PC, and has the correct driver installed on the PC.	0x80210015
