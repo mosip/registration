@@ -33,27 +33,27 @@ The administrator has the ability to remap a registration machine to any desiere
 	
 ## Solution
 
-* As part of the master sync using the machine id + Center Id, if the response contains the string which relevant to the center re-mapping or changed:
-	* Then update the property[**'mosip.registrtaion.centermappedchanged'**] value as true in the GLOBAL_PARAM table.
-   	* Display the alert message as 'You machine has been re-mapped to another center, kindly complete the pending activities' .  
-   	* Stop the auto sync process by updating the de-activation flag. Henceforth only manual sync process can only be performed until the machine mapping completed.
+* As part of the master sync using the Machine ID + Center ID, if the response contains the string which relevant to the center re-mapping:
+	* Then update the property [**'mosip.registrtaion.centermappedchanged'**] value as 'true' in the GLOBAL_PARAM table.
+   	* Display the alert message as 'You machine has been re-mapped to another center, kindly complete the pending activities'.  
+   	* Stop the auto sync process by updating the de-activation flag. Henceforth, only manual sync process can only be performed until the machine mapping completed.
 	* Maintain this status flag in the session context to identify the 'Center Mapping' state.
-* When user clicks on the [New Registration/UIN Update/Lost UIN], if the property [**'mosip.registrtaion.centermappedchanged'**] value as 'true' then don't allow them to proceed.  
-* **Triggering Point:** When user clicks on the 'Machine Re-mapping' option in the menu or initiates [New Registration/UIN Update/Lost UIN] the process, if remapping flag is 'true' then invoke the CenterRemappingService - with processCenterMapped() method and display the message as 'Machine cleanup process has been started due to remapping'.  
+* When operator clicks on the [New Registration/UIN Update/Lost UIN], if the property [**'mosip.registrtaion.centermappedchanged'**] has value 'true', then don't allow the operator to proceed.
+* **Triggering Point:** When the operator clicks on the 'Machine Re-mapping' option in the menu or initiates [New Registration/UIN Update/Lost UIN] the process, if remapping flag is 'true' then invoke the CenterRemappingService - with processCenterMapped() method and display the message as 'Machine cleanup process has been started due to remapping'.  
 * Create the CenterRemappingService - with processCenterMapped() method, which does the following functionalities. If the system is online and the operator is not in middle between any of the operations [New Registration/UIN Update/Lost UIN] then do the below process as sequence steps.
   	* Check for any pending packets to be uploaded to the server and waiting for 'PROCESSING' status.   
   	* Check for any packets to be approved/ rejected/ upload / sync to the server based on 'Server Status' flag.    
   	* Delete the packets and records in the table as below :  
-  	* Pre-registration : all packets can be deleted from hard disk and the respective data can be cleaned from tables.  
-    		* Registration {New / Update/ Lost}: packets in the state of [Server Status] 'PROCESSING', 'PROCESSED', 'RE-REGISTER' can be deleted.  
+  		* Pre-registration: all packets can be deleted from hard disk and the respective data can be cleaned from tables.
+    		* Registration {New/Update/Lost}: all packets in the state of [Server Status] 'PROCESSING', 'PROCESSED', 'RE-REGISTER' can be deleted.  
     		* Center specific master tables can be deleted.   
    		* Don't delete the data from 'GLOBAL_PARAM' table as this is not specific to any center.   
     		* Don't delete record in AUDIT table.  
-  	* Once all deletion completed :    
-    	* Then remove all Users and their respective detail with respect to the current center.  
-    	* Update the 'mosip.registrtaion.centermappedchanged' flag as false.  
-    	* Enable the sync process.  
-    	* Display valid alert [information type] message to inform the user as process completed.  
+  	* Once all deletion completed:    
+    		* Remove all users and their respective detail with respect to the current center.  
+    		* Update the 'mosip.registrtaion.centermappedchanged' flag as false.  
+    		* Enable the sync process.  
+    		* Display valid alert [information type] message to inform the user as process completed.  
 * If the system is offline we should wait until the system is online and then only this process should initiate.  
 * While doing this process we should display the alert stating  **'Upload is going on. Please don't close the application'**.   
 * Progress bar or uploading image should be displayed in the screen and the background should be fade out. 
