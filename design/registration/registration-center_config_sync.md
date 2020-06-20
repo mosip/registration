@@ -18,7 +18,7 @@ As part of the launch of the application, the center configuration details will 
 	
 ## Solution
 1. Registration center configuration from server to be pulled if the system is in online,always before start of the application.
-	- Frequency of execution – will be configurable for batch JOB automatic and manually also the user can click on the **Sync Data** to sync.
+	- Frequency of execution – will be configurable for batch JOB automatic and manually also the user can click on the **Sync Data** button to sync.
 2. Global PARAM table: Holds the key/value pair for each configuration elements.
 3. Get the latest configuration by passing the center id as input parameter. 
 	- If the configuration not available, the application should not start initially. This sync has to be initialed before launch of the application.
