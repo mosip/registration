@@ -1,7 +1,7 @@
 # Design - Pre-Registration Sync
 
 ## Background
-As part of the registration process, the resident can provide the pre-registration id so that the system can fetch the resident's details from the pre-registration application. As part of the sync process the operator can also trigger retrival of the pre-registration ids and the subsequent pre-registration packets for their center from the pre-registration application.
+As part of the registration process, the resident can provide the pre-registration ID so that the system can fetch the resident's details from the pre-registration application. As part of the sync process the operator can also trigger retrival of the pre-registration IDs and the subsequent pre-registration packets for their center from the pre-registration application.
 
 ## Target Users
 - System (Registration Client) using the Pre-registration ID
@@ -16,7 +16,7 @@ As part of the registration process, the resident can provide the pre-registrati
         - System should fetch the pre-registration ID call to get the pre-registration ID's as a response and save the list in the DB
         - System should fetch the each packet \[ZIP\] file WRT the pre-registration ID and save to desire location and same thing should be updated to the DB
         - While saving the pre-registration packet, the system need to encrypt using the symmetric key and save the packet
-        - System should fetch the data based on the pre-registration id and populate the same in the registration screen
+        - System should fetch the data based on the pre-registration ID and populate the same in the registration screen
         - Resident should be able to modify the data and save the information
         - Once the registration ID is generated, the system need to delete the pre-registration packet and updated the status in DB
     - If the data is not available and system is offline, system should display an alert, "**The Details are not available**".
@@ -30,14 +30,14 @@ As part of the registration process, the resident can provide the pre-registrati
 
 ## Key Non-Functional Requirements
 - Security:
-    - We should not store the RO/RS plain text credentials or any sensitive information
+    - We should not store the operator's plain text credentials or any sensitive information
     - The password should be not stored as raw data. It should be stored in hashed format
     - The session key should be stored in the DB for each pre-registration packet
     - The data resided in the database should be encrypted
--   Network:
+- Network:
     - URL should be communicated using the SSL mode
     - As a security measures the UIN or any sensitive individual information should not be logged
--   Other standard NFR, need to be taken care:
+- Other standard NFR, need to be taken care:
     - Logging, audit, exception handling
 
 ## Solution
