@@ -51,8 +51,7 @@ public interface MosipDeviceSpecificationProvider {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	public InputStream stream(MdmBioDevice bioDevice, String modality)
-			throws MalformedURLException, IOException;
+	public InputStream stream(MdmBioDevice bioDevice, String modality) throws MalformedURLException, IOException;
 
 	/**
 	 * @param BioDevice
@@ -73,6 +72,6 @@ public interface MosipDeviceSpecificationProvider {
 	 *            received from mds
 	 * @return list of mdmBio Devices
 	 */
-	public List<MdmBioDevice> getMdmDevices(String deviceInfoResponse);
+	public List<MdmBioDevice> getMdmDevices(String deviceInfoResponse, int port);
 
 }

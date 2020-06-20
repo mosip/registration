@@ -44,6 +44,7 @@ import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.MdmDeviceInfo;
 import io.mosip.registration.mdm.constants.MosipBioDeviceConstants;
+import io.mosip.registration.mdm.dto.Biometric;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
 import io.mosip.registration.mdm.dto.DeviceDiscoveryResponsetDto;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
@@ -68,6 +69,8 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 
 	private static final String SPEC_VERSION = "0.9.5";
 
+	private static final String loggerClassName = "MosipDeviceSpecification_095_ProviderImpl";
+
 	@Autowired
 	private MosipDeviceSpecificationFactory deviceSpecificationFactory;
 
@@ -77,7 +80,10 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 	}
 
 	@Override
-	public List<MdmBioDevice> getMdmDevices(String deviceInfoResponse) {
+	public List<MdmBioDevice> getMdmDevices(String deviceInfoResponse, int port) {
+
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+				"received device info response : " + deviceInfoResponse);
 
 		List<MdmBioDevice> mdmBioDevices = new LinkedList<>();
 
@@ -85,6 +91,9 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 
 		List<MdmDeviceInfoResponse> deviceInfoResponses;
 		try {
+
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "parsing device info response to 095 dto");
+
 			deviceInfoResponses = (deviceSpecificationFactory.getMapper().readValue(deviceInfoResponse,
 					new TypeReference<List<MdmDeviceInfoResponse>>() {
 					}));
@@ -101,6 +110,9 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 				MdmBioDevice bioDevice = getBioDevice(deviceInfo);
 
 				if (bioDevice != null) {
+
+					LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "prepared bio Device");
+
 					mdmBioDevices.add(bioDevice);
 
 				}
@@ -118,6 +130,8 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 	@Override
 	public InputStream stream(MdmBioDevice bioDevice, String modality) throws MalformedURLException, IOException {
 
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Started Strema for modality : " + modality);
+
 		String url = bioDevice.getCallbackId() + MosipBioDeviceConstants.STREAM_ENDPOINT;
 
 		StreamRequestDTO streamRequestDTO = new StreamRequestDTO(bioDevice.getDeviceId(), getDeviceSubId(modality));
@@ -126,12 +140,15 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 		con.setRequestMethod("POST");
 		String request = new ObjectMapper().writeValueAsString(streamRequestDTO);
 
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Request for Stream...." + request);
+
 		con.setDoOutput(true);
 		DataOutputStream wr = new DataOutputStream(con.getOutputStream());
 
-		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 				"Stream Request Started : " + System.currentTimeMillis());
-		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Stream Request :" + streamRequestDTO.toString());
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+				"Stream Request :" + streamRequestDTO.toString());
 
 		wr.writeBytes(request);
 		wr.flush();
@@ -139,7 +156,7 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 		con.setReadTimeout(5000);
 		con.connect();
 		InputStream urlStream = con.getInputStream();
-		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 				"Leaving into Stream Method.... " + System.currentTimeMillis());
 		return urlStream;
 
@@ -149,42 +166,45 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 	public List<BiometricsDto> rCapture(MdmBioDevice bioDevice, MDMRequestDto mdmRequestDto)
 			throws JsonParseException, JsonMappingException, ParseException, IOException {
 
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Entering into rCapture method for moadlity : "
+				+ mdmRequestDto.getModality() + "  ....." + System.currentTimeMillis());
+
 		if (mdmRequestDto.getExceptions() != null) {
 			mdmRequestDto.setExceptions(getExceptions(mdmRequestDto.getExceptions()));
 		}
 
 		RCaptureRequestDTO rCaptureRequestDTO = getRCaptureRequest(bioDevice, mdmRequestDto);
 
-		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 				"Entering into Capture method....." + System.currentTimeMillis());
 
 		String requestBody = null;
 		ObjectMapper mapper = new ObjectMapper();
 		requestBody = mapper.writeValueAsString(rCaptureRequestDTO);
 
-		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID, "Request for RCapture...." + requestBody);
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Request for RCapture...." + requestBody);
 
 		CloseableHttpClient client = HttpClients.createDefault();
 		StringEntity requestEntity = new StringEntity(requestBody, ContentType.create("Content-Type", Consts.UTF_8));
-		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 				"Bulding capture url...." + System.currentTimeMillis());
 		HttpUriRequest request = RequestBuilder.create("RCAPTURE")
 				.setUri(bioDevice.getCallbackId() + MosipBioDeviceConstants.CAPTURE_ENDPOINT).setEntity(requestEntity)
 				.build();
-		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 				"Requesting capture url...." + System.currentTimeMillis());
 		CloseableHttpResponse response = client.execute(request);
-		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 				"Request completed.... " + System.currentTimeMillis());
 
 		String val = EntityUtils.toString(response.getEntity());
 
 		RCaptureResponseDTO captureResponse = mapper.readValue(val.getBytes(StandardCharsets.UTF_8),
 				RCaptureResponseDTO.class);
-		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 				"Response Recived.... " + System.currentTimeMillis());
 
-		LOGGER.info("BioDevice", APPLICATION_NAME, APPLICATION_ID,
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 				"Response Decode and leaving the method.... " + System.currentTimeMillis());
 
 		List<RCaptureResponseBiometricsDTO> captureResponseBiometricsDTOs = captureResponse.getBiometrics();
@@ -193,17 +213,27 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 
 		for (RCaptureResponseBiometricsDTO rCaptureResponseBiometricsDTO : captureResponseBiometricsDTOs) {
 
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					"Getting data payload of biometric" + System.currentTimeMillis());
+
 			String payLoad = deviceSpecificationFactory.getPayLoad(rCaptureResponseBiometricsDTO.getData());
 
 			RCaptureResponseDataDTO dataDTO = (RCaptureResponseDataDTO) (mapper
 					.readValue(new String(Base64.getUrlDecoder().decode(payLoad)), RCaptureResponseDataDTO.class));
 
-			BiometricsDto biometricDTO = new BiometricsDto(dataDTO.getBioSubType(), dataDTO.getDecodedBioValue(),
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					"Parsed decoded payload" + System.currentTimeMillis());
+
+			String uiAttribute = Biometric.getUiSchemaAttributeName(dataDTO.getBioSubType(), SPEC_VERSION);
+			BiometricsDto biometricDTO = new BiometricsDto(uiAttribute, dataDTO.getDecodedBioValue(),
 					Double.parseDouble(dataDTO.getQualityScore()));
 			biometricDTO.setCaptured(true);
 			biometricDTO.setModalityName(mdmRequestDto.getModality());
 			biometricDTOs.add(biometricDTO);
 		}
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+				"rCapture Completed" + System.currentTimeMillis());
+
 		return biometricDTOs;
 	}
 
