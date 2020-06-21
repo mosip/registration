@@ -287,9 +287,9 @@ public class DocumentScanController extends BaseController {
 				if (documentDetailsDTO != null) {
 					addDocumentsToScreen(documentDetailsDTO.getValue(), documentDetailsDTO.getFormat(),
 							documentVBoxes.get(docCategoryKey));
+					
 					FXUtils.getInstance().selectComboBoxValue(documentComboBoxes.get(docCategoryKey),
-							documentDetailsDTO.getValue().substring(
-									documentDetailsDTO.getValue().indexOf(RegistrationConstants.UNDER_SCORE) + 1));
+							documentDetailsDTO.getValue().substring(documentDetailsDTO.getValue().lastIndexOf(RegistrationConstants.UNDER_SCORE) + 1));
 				}
 			}
 		} else if (documentVBoxes.isEmpty() && documentsMap != null) {
@@ -311,7 +311,7 @@ public class DocumentScanController extends BaseController {
 	 * To prepare the document section
 	 */
 	@SuppressWarnings("unchecked")
-	private <T> void prepareDocumentScanSection(List<UiSchemaDTO> documentCategories) {
+	private <T> void prepareDocumentScanSection(List<UiSchemaDTO> documentFields) {
 
 		/* show the scan doc info label for format and size */
 		Label fileSizeInfoLabel = new Label();
@@ -319,7 +319,7 @@ public class DocumentScanController extends BaseController {
 		fileSizeInfoLabel.setText(RegistrationUIConstants.SCAN_DOC_INFO);
 		docScanVbox.getChildren().add(fileSizeInfoLabel);
 
-		for (UiSchemaDTO documentCategory : documentCategories) {
+		for (UiSchemaDTO documentCategory : documentFields) {
 
 			String docCategoryCode = documentCategory.getSubType();
 
