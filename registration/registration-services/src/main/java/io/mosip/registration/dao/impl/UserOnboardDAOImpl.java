@@ -314,7 +314,7 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 			biometrics.forEach( dto -> {
 				UserBiometric bioMetrics = new UserBiometric();
 				UserBiometricId biometricId = new UserBiometricId();
-				biometricId.setBioAttributeCode(dto.getModalityName());
+				biometricId.setBioAttributeCode(dto.getBioAttribute());
 				biometricId.setBioTypeCode(getBioAttribute(dto.getBioAttribute()));
 				biometricId.setUsrId(SessionContext.userContext().getUserId());
 				bioMetrics.setBioIsoImage(dto.getAttributeISO());

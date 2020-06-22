@@ -114,6 +114,14 @@ public class RegistrationDTO {
 			this.isChild = this.age < minAge;
 		}
 	}
+	
+	public void setDateField(String fieldId, String dateString) {
+		if (isValidValue(dateString)) {
+			LocalDate date = LocalDate.parse(dateString, DateTimeFormatter.ofPattern(DATE_FORMAT));
+			setDateField(fieldId, String.valueOf(date.getDayOfMonth()), String.valueOf(date.getMonthValue()),
+					String.valueOf(date.getYear()));
+		}
+	}
 
 	public String[] getDateField(String fieldId) {
 		if (this.demographics.containsKey(fieldId)) {

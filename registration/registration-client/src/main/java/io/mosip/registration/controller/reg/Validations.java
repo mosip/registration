@@ -304,20 +304,16 @@ public class Validations extends BaseController {
 									messageBundle.getString(RegistrationConstants.BLACKLISTED_IS));
 						} else {
 							isInputValid = false;
-							generateInvalidValueAlert(parentPane, id, getFromLabelMap(id) + " "
-									+ messageBundle.getString(RegistrationConstants.REG_DDC_004), showAlert);
-							if (isPreviousValid && !id.contains(RegistrationConstants.ON_TYPE)) {
-								addInvalidInputStyleClass(parentPane, node, false);
-							}
 						}
-					} else if(isMandatory && Arrays.asList("UIN", "RID").contains(uiSchemaDTO.getSubType())) {
+					} else if( (inputText != null && !inputText.isEmpty()) && Arrays.asList("UIN", "RID").contains(uiSchemaDTO.getSubType())) {
 						isInputValid = validateUinOrRidField(inputText, registrationDto, uiSchemaDTO);
-						if(!isInputValid) {
-							generateInvalidValueAlert(parentPane, id, getFromLabelMap(id) + " "
-									+ messageBundle.getString(RegistrationConstants.REG_DDC_004), showAlert);
-							if (isPreviousValid && !id.contains(RegistrationConstants.ON_TYPE)) {
-								addInvalidInputStyleClass(parentPane, node, false);
-							}
+					}
+					
+					if(!isInputValid) {
+						generateInvalidValueAlert(parentPane, id, getFromLabelMap(label).concat(RegistrationConstants.SPACE)
+								.concat(messageBundle.getString(RegistrationConstants.REG_DDC_004)), showAlert);
+						if (isPreviousValid && !id.contains(RegistrationConstants.ON_TYPE)) {
+							addInvalidInputStyleClass(parentPane, node, false);
 						}
 					}
 				}				
