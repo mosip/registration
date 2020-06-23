@@ -322,7 +322,7 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 			bioDevice.setDeviceProviderId(digitalId.getDeviceProviderId());
 			bioDevice.setDeviceModel(digitalId.getModel());
 			bioDevice.setDeviceMake(digitalId.getMake());
-
+			bioDevice.setSerialNumber(digitalId.getSerialNo());
 			bioDevice.setCallbackId(deviceInfo.getCallbackId());
 		}
 

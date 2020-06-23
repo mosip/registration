@@ -163,8 +163,8 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 	public List<BiometricsDto> rCapture(MdmBioDevice bioDevice, MDMRequestDto mdmRequestDto)
 			throws JsonParseException, JsonMappingException, ParseException, IOException {
 
-		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-				"Entering into rCapture method for moadlity : "+mdmRequestDto.getModality()+"  ....." + System.currentTimeMillis());
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Entering into rCapture method for moadlity : "
+				+ mdmRequestDto.getModality() + "  ....." + System.currentTimeMillis());
 
 		if (mdmRequestDto.getExceptions() != null) {
 			mdmRequestDto.setExceptions(getExceptions(mdmRequestDto.getExceptions()));
@@ -229,7 +229,8 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 			biometricDTOs.add(biometricDTO);
 		}
 
-		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "rCapture Completed" + System.currentTimeMillis());
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+				"rCapture Completed" + System.currentTimeMillis());
 		return biometricDTOs;
 	}
 
@@ -323,6 +324,7 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 			bioDevice.setDeviceModel(digitalId.getModel());
 			bioDevice.setDeviceMake(digitalId.getMake());
 
+			bioDevice.setSerialNumber(digitalId.getSerialNo());
 			bioDevice.setCallbackId(deviceInfo.getCallbackId());
 		}
 

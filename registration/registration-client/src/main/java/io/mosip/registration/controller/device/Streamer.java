@@ -8,7 +8,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.net.MalformedURLException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,12 +18,9 @@ import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.SessionContext;
-import io.mosip.registration.exception.RegBaseCheckedException;
-import io.mosip.registration.mdm.dto.MdmBioDevice;
 import io.mosip.registration.mdm.dto.StreamingRequestDetail;
-import io.mosip.registration.mdm.integrator.MosipDeviceSpecificationProvider;
-import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
 import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
+import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.bio.impl.BioServiceImpl;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -48,6 +44,9 @@ public class Streamer {
 
 	@Autowired
 	private ScanPopUpViewController scanPopUpViewController;
+	
+	@Autowired
+	private BioService bioService;
 
 	private Thread streamer_thread = null;
 
@@ -109,7 +108,18 @@ public class Streamer {
 					LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
 							"Constructing Stream URL Started" + System.currentTimeMillis());
 
-					urlStream = getStream(type);
+					// Disable Auto-Logout
+					SessionContext.setAutoLogout(false);
+
+					scanPopUpViewController.disableCloseButton();
+
+					if (urlStream != null) {
+						urlStream.close();
+						urlStream = null;
+					}
+
+					setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_PREP_MESSAGE, false);
+					urlStream = bioService.getStream(type);
 					if (urlStream == null) {
 
 						LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
@@ -262,34 +272,6 @@ public class Streamer {
 		}
 		scanPopUpViewController.setScanningMsg(message);
 		this.isRunning = isRunning;
-	}
-
-	public InputStream getStream(String modality) throws MalformedURLException, IOException {
-		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-				"Streamer Thread started for : " + System.currentTimeMillis() + modality);
-
-		// Disable Auto-Logout
-		SessionContext.setAutoLogout(false);
-
-		scanPopUpViewController.disableCloseButton();
-		isRunning = true;
-
-		if (urlStream != null) {
-			urlStream.close();
-			urlStream = null;
-		}
-
-		setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_PREP_MESSAGE, false);
-		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-				"Constructing Stream URL Started" + System.currentTimeMillis());
-
-		MdmBioDevice bioDevice = deviceSpecificationFactory.getDeviceInfoByModality(modality);
-
-		MosipDeviceSpecificationProvider deviceSpecificationProvider = deviceSpecificationFactory
-				.getMdsProvider(bioDevice.getSpecVersion());
-
-		return deviceSpecificationProvider.stream(bioDevice, modality);
-
 	}
 
 }
