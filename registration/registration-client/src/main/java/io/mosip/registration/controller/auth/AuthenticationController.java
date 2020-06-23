@@ -871,10 +871,8 @@ public class AuthenticationController extends BaseController implements Initiali
 	 */
 	private boolean captureAndValidateFP(String userId, MDMRequestDto mdmRequestDto)
 			throws RegBaseCheckedException, IOException {
-		List<BiometricsDto> biometrics = null;
-		if (!bioService.isMdmEnabled() || streamer.getStream(mdmRequestDto.getModality()) != null) {
-			biometrics = bioService.captureModalityForAuth(mdmRequestDto);
-		}
+		List<BiometricsDto> biometrics = bioService.captureModalityForAuth(mdmRequestDto);
+
 		// AuthenticationValidatorDTO authenticationValidatorDTO =
 		// bioService.getFingerPrintAuthenticationDto(userId,requestDetail);
 		// List<FingerprintDetailsDTO> fingerPrintDetailsDTOs =
@@ -923,10 +921,7 @@ public class AuthenticationController extends BaseController implements Initiali
 						.getIntValueFromApplicationMap(RegistrationConstants.CAPTURE_TIME_OUT),
 				2, io.mosip.registration.context.ApplicationContext
 						.getIntValueFromApplicationMap(RegistrationConstants.IRIS_THRESHOLD));
-		List<BiometricsDto> biometrics = null;
-		if (!bioService.isMdmEnabled() || streamer.getStream(mdmRequestDto.getModality()) != null) {
-			biometrics = bioService.captureModalityForAuth(mdmRequestDto);
-		}
+		List<BiometricsDto> biometrics = bioService.captureModalityForAuth(mdmRequestDto);
 
 		/*
 		 * AuthenticationValidatorDTO authenticationValidatorDTO =
@@ -973,11 +968,8 @@ public class AuthenticationController extends BaseController implements Initiali
 						.getIntValueFromApplicationMap(RegistrationConstants.CAPTURE_TIME_OUT),
 				1, io.mosip.registration.context.ApplicationContext
 						.getIntValueFromApplicationMap(RegistrationConstants.FACE_THRESHOLD));
-		
-		List<BiometricsDto> biometrics = null;
-		if(!bioService.isMdmEnabled() || streamer.getStream(mdmRequestDto.getModality())!=null) {
-		biometrics = bioService.captureModalityForAuth(mdmRequestDto);	
-		}
+
+		List<BiometricsDto> biometrics = bioService.captureModalityForAuth(mdmRequestDto);
 
 		/*
 		 * AuthenticationValidatorDTO authenticationValidatorDTO =

@@ -4,12 +4,15 @@ import static io.mosip.registration.constants.LoggerConstants.BIO_SERVICE;
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER;
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_FINGERPRINT_FACADE;
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_IRIS_FACADE;
+import static io.mosip.registration.constants.LoggerConstants.STREAMER;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -510,8 +513,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	@Override
 	public boolean isMdmEnabled() {
 		return RegistrationConstants.ENABLE
-		 .equalsIgnoreCase(((String)
-		 ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
+				.equalsIgnoreCase(((String) ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
 	}
 
 	/*
@@ -1480,7 +1482,8 @@ public class BioServiceImpl extends BaseService implements BioService {
 	}
 
 	@Override
-	public List<BiometricsDto> captureModality(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException, IOException {
+	public List<BiometricsDto> captureModality(MDMRequestDto mdmRequestDto)
+			throws RegBaseCheckedException, IOException {
 
 		List<BiometricsDto> biometricsDtos = null;
 		if (isMdmEnabled()) {
@@ -1495,29 +1498,27 @@ public class BioServiceImpl extends BaseService implements BioService {
 		return biometricsDtos;
 	}
 
-	private List<BiometricsDto> captureRealModality(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException, IOException {
+	private List<BiometricsDto> captureRealModality(MDMRequestDto mdmRequestDto)
+			throws RegBaseCheckedException, IOException {
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 				"Entering into captureModality method.." + System.currentTimeMillis());
 
 		List<BiometricsDto> list = new ArrayList<BiometricsDto>();
-		
 
-			MdmBioDevice bioDevice = deviceSpecificationFactory.getDeviceInfoByModality(mdmRequestDto.getModality());
+		MdmBioDevice bioDevice = deviceSpecificationFactory.getDeviceInfoByModality(mdmRequestDto.getModality());
 
-			MosipDeviceSpecificationProvider deviceSpecificationProvider = deviceSpecificationFactory
-					.getMdsProvider(bioDevice.getSpecVersion());
+		MosipDeviceSpecificationProvider deviceSpecificationProvider = deviceSpecificationFactory
+				.getMdsProvider(bioDevice.getSpecVersion());
 
-			List<BiometricsDto> biometricsDtos = deviceSpecificationProvider.rCapture(bioDevice, mdmRequestDto);
+		List<BiometricsDto> biometricsDtos = deviceSpecificationProvider.rCapture(bioDevice, mdmRequestDto);
 
-			for (BiometricsDto biometricsDto : biometricsDtos) {
+		for (BiometricsDto biometricsDto : biometricsDtos) {
 
-				if (biometricsDto != null
-						&& isQualityScoreMaxInclusive(String.valueOf(biometricsDto.getQualityScore()))) {
+			if (biometricsDto != null && isQualityScoreMaxInclusive(String.valueOf(biometricsDto.getQualityScore()))) {
 
-					list.add(biometricsDto);
-				}
+				list.add(biometricsDto);
 			}
-		
+		}
 
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 				"Ended captureModality method.." + System.currentTimeMillis());
@@ -1581,11 +1582,36 @@ public class BioServiceImpl extends BaseService implements BioService {
 	}
 
 	@Override
-	public List<BiometricsDto> captureModalityForAuth(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException, IOException {
-		if (isMdmEnabled())
-			return captureRealModality(mdmRequestDto);
-		else
-			return captureMockModality(mdmRequestDto, true);
+	public List<BiometricsDto> captureModalityForAuth(MDMRequestDto mdmRequestDto)
+			throws RegBaseCheckedException, IOException {
+
+		List<BiometricsDto> biometrics = null;
+
+		if (isMdmEnabled()) {
+			if (getStream(mdmRequestDto.getModality()) != null) {
+
+				biometrics = captureRealModality(mdmRequestDto);
+			}
+		} else {
+			biometrics = captureMockModality(mdmRequestDto, true);
+		}
+		return biometrics;
 	}
 
+	@Override
+	public InputStream getStream(String modality) throws MalformedURLException, IOException {
+		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+				"Stream request : " + System.currentTimeMillis() + modality);
+
+		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
+				"Constructing Stream URL Started" + System.currentTimeMillis());
+
+		MdmBioDevice bioDevice = deviceSpecificationFactory.getDeviceInfoByModality(modality);
+
+		MosipDeviceSpecificationProvider deviceSpecificationProvider = deviceSpecificationFactory
+				.getMdsProvider(bioDevice.getSpecVersion());
+
+		return deviceSpecificationProvider.stream(bioDevice, modality);
+
+	}
 }
