@@ -1,19 +1,15 @@
-**Design - On board User**
+# Design - On board User
 
-**Background**
+## Background
 
-The user can able to self on board to the registered machine.
-Users along with their bio-metric will be captured and validate against the Authentication module [IDA] at server. 
-Through Admin portal all the users, machines and devices are configured per center. But mapping of the users and their
-Bio-metric information to a particular machine would happen through this screen. These bio-metric detail would be used later to perform the
-de-duplication and authentication validation.
+Through the administrative portal operator and machines are mapped to the respective centers; but in-order to use the registration client application installed in the machines the users need to first on-board into the registration client. During this on-boarding process the operators have to provide their biometrics which would be verified against their UINs using the authentication module [IDA]. After authentication is successful the biometrics of the opertors are stored in the local storage to perform local authentication and de-duplication in registration client.
 
-The **target users** are
+## Target Users
 
--   Registration officer
--   Registration Supervisor
+- Registration Officer
+- Registration Supervisor
 
-The key **requirements** are
+## Key Requirements
 
 User Mapping:
 
