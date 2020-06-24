@@ -72,6 +72,8 @@ public class ServiceDelegateUtil {
 	@Value("${invalidate_auth_token.service.url:}")
 	private String invalidateUrlPath;
 
+	private String mosipHostNamePlaceHolder = "${mosip.hostname}";
+
 	private static final Logger LOGGER = AppConfig.getLogger(ServiceDelegateUtil.class);
 
 	/**
@@ -119,9 +121,9 @@ public class ServiceDelegateUtil {
 
 			// URI creation
 			String url = getEnvironmentProperty(serviceName, RegistrationConstants.SERVICE_URL);
-			url = url != null && System.getenv("mosip.hostname") != null
-					? url.replace("${mosip.hostname}", System.getenv("mosip.hostname"))
-					: url;
+
+			url = prepareUrlByHostName(url);
+			
 			Map<String, String> queryParams = new HashMap<>();
 			for (String key : requestParams.keySet()) {
 				if (!url.contains("{" + key + "}")) {
@@ -162,6 +164,22 @@ public class ServiceDelegateUtil {
 				"Get method has been ended");
 
 		return responseBody;
+	}
+
+	private String prepareUrlByHostName(String url) {
+		String mosipHostNameVal = System.getenv("mosip.hostname");
+
+		LOGGER.info(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_PREPARE_POST, APPLICATION_NAME, APPLICATION_ID,
+				"Mosip Host name in environment variables : " + mosipHostNameVal);
+		if (mosipHostNameVal == null || mosipHostNameVal.isEmpty()) {
+			mosipHostNameVal = getEnvironmentProperty("mosip", "hostname");
+			LOGGER.info(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_PREPARE_POST, APPLICATION_NAME, APPLICATION_ID,
+					"Mosip Host name in Default spring propertries variables : " + mosipHostNameVal);
+
+		}
+
+		return (url != null && mosipHostNameVal != null) ? url.replace(mosipHostNamePlaceHolder, mosipHostNameVal)
+				: url;
 	}
 
 	/**
@@ -755,4 +773,5 @@ public class ServiceDelegateUtil {
 
 		return requestHTTPDTO;
 	}
+
 }

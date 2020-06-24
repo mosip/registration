@@ -18,14 +18,11 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
-
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.config.DaoConfig;
-import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.util.restclient.RestClientUtil;
 import oshi.SystemInfo;
 import oshi.software.os.FileSystem;
@@ -49,6 +46,10 @@ public class RegistrationAppHealthCheckUtil {
 
 	/** The operating system. */
 	private static OperatingSystem operatingSystem;
+
+	private static String defaultHost;
+	
+	private static String mosipHostNamePlaceHolder = "${mosip.hostname}";
 
 
 	static {
@@ -79,16 +80,18 @@ public class RegistrationAppHealthCheckUtil {
 	public static boolean isNetworkAvailable() {
 		LOGGER.info("REGISTRATION - REGISTRATION APP HEALTHCHECK UTIL - ISNETWORKAVAILABLE", APPLICATION_NAME,
 				APPLICATION_ID, "Registration Network Checker had been called.");
-		
+
 		try (InputStream keyStream = DaoConfig.class.getClassLoader().getResourceAsStream("spring.properties")) {
-			
+
 			Properties keys = new Properties();
 			keys.load(keyStream);
 			
-		return checkServiceAvailability(keys.getProperty("mosip.reg.healthcheck.url"));
+			defaultHost = keys.getProperty("mosip.hostname");
+			
+			return checkServiceAvailability(keys.getProperty("mosip.reg.healthcheck.url"));
 		} catch (IOException exception) {
-			LOGGER.error("REGISTRATION - REGISTRATIONAPPHEALTHCHECKUTIL - ISNETWORKAVAILABLE" + false,
-					APPLICATION_NAME, APPLICATION_ID, "No Internet Access." + ExceptionUtils.getStackTrace(exception));
+			LOGGER.error("REGISTRATION - REGISTRATIONAPPHEALTHCHECKUTIL - ISNETWORKAVAILABLE" + false, APPLICATION_NAME,
+					APPLICATION_ID, "No Internet Access." + ExceptionUtils.getStackTrace(exception));
 			return false;
 
 		}
@@ -112,7 +115,12 @@ public class RegistrationAppHealthCheckUtil {
 	public static boolean checkServiceAvailability(String serviceUrl) {
 		boolean isNWAvailable = false;
 		try {
-			serviceUrl = serviceUrl != null && System.getenv("mosip.hostname") != null ? serviceUrl.replace("${mosip.hostname}", System.getenv("mosip.hostname")) : serviceUrl;
+
+			serviceUrl = prepareURLByHostName(serviceUrl);
+
+//			serviceUrl = serviceUrl != null && System.getenv("mosip.hostname") != null
+//					? serviceUrl.replace("${mosip.hostname}", System.getenv("mosip.hostname"))
+//					: serviceUrl;
 			RestClientUtil.turnOffSslChecking();
 			// acceptAnySSLCerticficate();
 			// System.setProperty("java.net.useSystemProxies", "true");
@@ -138,6 +146,23 @@ public class RegistrationAppHealthCheckUtil {
 					APPLICATION_NAME, APPLICATION_ID, "No Internet Access." + ExceptionUtils.getStackTrace(exception));
 		}
 		return isNWAvailable;
+	}
+
+	private static String prepareURLByHostName(String url) {
+		String mosipHostNameVal = System.getenv("mosip.hostname");
+
+		LOGGER.info(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_PREPARE_POST, APPLICATION_NAME, APPLICATION_ID,
+				"Mosip Host name in environment variables : " + mosipHostNameVal);
+		if (mosipHostNameVal == null || mosipHostNameVal.isEmpty()) {
+			mosipHostNameVal = defaultHost;
+			LOGGER.info(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_PREPARE_POST, APPLICATION_NAME, APPLICATION_ID,
+					"Mosip Host name in Default spring propertries variables : " + mosipHostNameVal);
+
+		}
+
+		return (url != null && mosipHostNameVal != null) ? url.replace(mosipHostNamePlaceHolder, mosipHostNameVal)
+				: url;
+
 	}
 
 	/**
