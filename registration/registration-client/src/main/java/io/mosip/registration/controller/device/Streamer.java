@@ -18,10 +18,9 @@ import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.SessionContext;
-import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.StreamingRequestDetail;
-import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
-import io.mosip.registration.mdm.service.impl.MosipBioDeviceManagerDuplicate;
+import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
+import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.bio.impl.BioServiceImpl;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -41,10 +40,13 @@ public class Streamer {
 	// private MosipBioDeviceManager mosipBioDeviceManager;
 
 	@Autowired
-	private MosipBioDeviceManagerDuplicate mosipBioDeviceManagerDuplicate;
+	private MosipDeviceSpecificationFactory deviceSpecificationFactory;
 
 	@Autowired
 	private ScanPopUpViewController scanPopUpViewController;
+	
+	@Autowired
+	private BioService bioService;
 
 	private Thread streamer_thread = null;
 
@@ -101,30 +103,29 @@ public class Streamer {
 
 			public void run() {
 
-				LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-						"Streamer Thread started for : " + System.currentTimeMillis() + type);
-
-				// Disable Auto-Logout
-				SessionContext.setAutoLogout(false);
-
-				scanPopUpViewController.disableCloseButton();
-				isRunning = true;
 				try {
+					setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_PREP_MESSAGE, false);
+					LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
+							"Constructing Stream URL Started" + System.currentTimeMillis());
+
+					// Disable Auto-Logout
+					SessionContext.setAutoLogout(false);
+
+					scanPopUpViewController.disableCloseButton();
+
 					if (urlStream != null) {
 						urlStream.close();
 						urlStream = null;
 					}
 
 					setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_PREP_MESSAGE, false);
-					LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-							"Constructing Stream URL Started" + System.currentTimeMillis());
-					urlStream = mosipBioDeviceManagerDuplicate.getStream(type);
-
+					urlStream = bioService.getStream(type);
 					if (urlStream == null) {
 
 						LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
 								"URL Stream was null for : " + System.currentTimeMillis() + type);
 
+						deviceSpecificationFactory.init();
 						setPopViewControllerMessage(true,
 								RegistrationUIConstants.getMessageLanguageSpecific("202_MESSAGE"), false);
 

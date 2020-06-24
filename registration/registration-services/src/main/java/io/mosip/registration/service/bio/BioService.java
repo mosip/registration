@@ -1,19 +1,18 @@
 package io.mosip.registration.service.bio;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.registration.dto.AuthenticationValidatorDTO;
-import io.mosip.registration.dto.biometric.BiometricDTO;
+import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.dto.biometric.FingerprintDetailsDTO;
 import io.mosip.registration.dto.biometric.IrisDetailsDTO;
-import io.mosip.registration.entity.UserBiometric;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.mdm.dto.RequestDetail;
-import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 
 /**
  * This class {@code BioService} handles all the biometric captures and
@@ -274,8 +273,9 @@ public interface BioService {
 	
 //	public void remove
 	
-	public List<BiometricsDto> captureModality(MDMRequestDto mdmRequestDto)  throws RegBaseCheckedException ;
+	public List<BiometricsDto> captureModality(MDMRequestDto mdmRequestDto)  throws RegBaseCheckedException, IOException ;
 	
-	public List<BiometricsDto> captureModalityForAuth(MDMRequestDto mdmRequestDto)  throws RegBaseCheckedException ;
+	public List<BiometricsDto> captureModalityForAuth(MDMRequestDto mdmRequestDto)  throws RegBaseCheckedException, IOException ;
 
+	public InputStream getStream(String modality) throws MalformedURLException, IOException ;
 }

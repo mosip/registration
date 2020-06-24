@@ -10,7 +10,7 @@ import javax.sql.DataSource;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -53,8 +53,7 @@ public class DaoConfig extends HibernateDaoConfig {
 	private static Properties keys;
 	private static DataSource dataSource;	
 	private static ClientSecurity clientSecurity;
-	
-	
+		
 	static {
 		try (InputStream keyStream = DaoConfig.class.getClassLoader().getResourceAsStream("spring.properties")) {
 			
@@ -94,7 +93,7 @@ public class DaoConfig extends HibernateDaoConfig {
 	 * @return JdbcTemplate
 	 */
 	@Bean
-	public JdbcTemplate jdbcTemplate() {
+	public static JdbcTemplate jdbcTemplate() {
 		return new JdbcTemplate(dataSource);
 	}
 
@@ -104,7 +103,7 @@ public class DaoConfig extends HibernateDaoConfig {
 	 * @return PropertiesConfig
 	 */
 	@Bean(name = "propertiesConfig")
-	public PropertiesConfig propertiesConfig() {
+	public static PropertiesConfig propertiesConfig() {
 		return new PropertiesConfig(jdbcTemplate());
 	}
 
@@ -115,10 +114,10 @@ public class DaoConfig extends HibernateDaoConfig {
 	 * @return the {@link PropertyPlaceholderConfigurer} after setting the properties
 	 */
 	@Bean
-	@Lazy(false)
-	public PropertyPlaceholderConfigurer properties() {
+	//@Lazy(false)
+	public static PropertySourcesPlaceholderConfigurer properties() {
 		
-		PropertyPlaceholderConfigurer ppc = new PropertyPlaceholderConfigurer();
+		PropertySourcesPlaceholderConfigurer ppc = new PropertySourcesPlaceholderConfigurer();
 		Resource[] resources = new ClassPathResource[] {new ClassPathResource("spring.properties")};
 		ppc.setLocations(resources);
 
@@ -127,7 +126,6 @@ public class DaoConfig extends HibernateDaoConfig {
 
 		ppc.setProperties(properties);
 		ppc.setTrimValues(true);
-
 		return ppc;
 	}
 	
@@ -208,4 +206,5 @@ public class DaoConfig extends HibernateDaoConfig {
 		driverManagerDataSource.setUrl(dbConnectionURL);
 		return driverManagerDataSource;
 	}
+	
 }

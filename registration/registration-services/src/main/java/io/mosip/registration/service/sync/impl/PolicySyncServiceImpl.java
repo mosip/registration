@@ -95,19 +95,18 @@ public class PolicySyncServiceImpl extends BaseService implements PolicySyncServ
 								&& isVaildKey(centerMachineId)) {
 							
 							
-							getPublicKey(responseDTO, centerMachineId, LocalDateTime.from(validDate.toInstant().atZone(ZoneId.of("UTC"))).plusDays(1).toString()+"Z");
+							getPublicKey(responseDTO, centerMachineId, DateUtils.formatToISOString(LocalDateTime.from(validDate.toInstant().atZone(ZoneId.of("UTC"))).plusDays(1)));
 						} else if (validDate.compareTo(
 								new Date(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()).getTime())) <= 0) {
-							getPublicKey(responseDTO, centerMachineId, DateUtils.getUTCCurrentDateTimeString());
+							getPublicKey(responseDTO, centerMachineId, DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 						}
-
 					}
 
 					responseDTO = setSuccessResponse(responseDTO, RegistrationConstants.POLICY_SYNC_SUCCESS_MESSAGE,
 							null);
 				} else {
 
-					getPublicKey(responseDTO, centerMachineId, DateUtils.getUTCCurrentDateTimeString());
+					getPublicKey(responseDTO, centerMachineId, DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 
 				}
 			}
@@ -145,6 +144,7 @@ public class PolicySyncServiceImpl extends BaseService implements PolicySyncServ
 		requestParams.put(RegistrationConstants.TIME_STAMP, validDate);
 		requestParams.put(RegistrationConstants.REF_ID, centerMachineId);
 		try {
+			
 			LinkedHashMap<String, Object> publicKeySyncResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil
 					.get(RegistrationConstants.SERVICE_NAME, requestParams, false,
 							RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);

@@ -430,4 +430,11 @@ public class ApplicationContext {
 		return Integer.parseInt((String) applicationMap.get(code));
 
 	}
+	
+	
+	public static String getStringValueFromApplicationMap(String code) {
+
+		return String.valueOf(applicationMap.get(code));
+
+	}
 }
