@@ -654,7 +654,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 		mapRequest.put(RegistrationConstants.REQ_TIME, DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 		try {
 			Map<String, Object> responseResult = (Map<String, Object>) serviceDelegateUtil.post(
-					RegistrationConstants.SESSION_KEY_URL, mapRequest, RegistrationConstants.JOB_TRIGGER_POINT_USER);
+					"ida_session_key", mapRequest, RegistrationConstants.JOB_TRIGGER_POINT_USER);
 			if (null != responseResult && null != responseResult.get(RegistrationConstants.RESPONSE)) {
 				LinkedHashMap<String, Object> splitData = (LinkedHashMap<String, Object>) responseResult
 						.get(RegistrationConstants.RESPONSE);

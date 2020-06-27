@@ -72,6 +72,10 @@ public enum ApiName {
 	
 	ENCRYPTURL,
 
+	IDAUTHENCRYPTION,
+
+	IDAUTHPUBLICKEY,
+
 	/** The ReverseDataSync *. */
 	REVERSEDATASYNC,
 

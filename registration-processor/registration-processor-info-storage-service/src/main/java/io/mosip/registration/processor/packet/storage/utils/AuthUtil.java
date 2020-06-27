@@ -168,7 +168,7 @@ public class AuthUtil {
 		ResponseWrapper<?> responseWrapper;
 		PublicKeyResponseDto publicKeyResponsedto;
 
-		responseWrapper = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(ApiName.ENCRYPTIONSERVICE,
+		responseWrapper = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(ApiName.IDAUTHPUBLICKEY,
 				pathsegments, "timeStamp,referenceId", creationTime + ',' + refId, ResponseWrapper.class);
 		publicKeyResponsedto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
 				PublicKeyResponseDto.class);
@@ -292,7 +292,7 @@ public class AuthUtil {
 		try {
 
 			CryptomanagerResponseDto response = (CryptomanagerResponseDto) registrationProcessorRestClientService
-					.postApi(ApiName.ENCRYPTURL, "", "", request, CryptomanagerResponseDto.class);
+					.postApi(ApiName.IDAUTHENCRYPTION, "", "", request, CryptomanagerResponseDto.class);
 			splittedData = splitEncryptedData((String) response.getResponse().getData());
 
 		} catch (ApisResourceAccessException e) {
