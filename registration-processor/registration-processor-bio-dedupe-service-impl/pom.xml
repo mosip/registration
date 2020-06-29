@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>registration-processor-bio-dedupe-service-impl</artifactId>
-  <version>1.0.10-SNAPSHOT</version>
+  <version>1.0.10-rc1</version>
   <name>registration-processor-bio-dedupe-service-impl</name>
 
   <properties>
