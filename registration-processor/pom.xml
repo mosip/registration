@@ -107,18 +107,18 @@
 
 		<!-- local -->
 		<registration.status.service.version>1.0.10</registration.status.service.version>
-		<registration.processor.core.version>1.0.10-SNAPSHOT</registration.processor.core.version>
+		<registration.processor.core.version>1.0.10-rc1</registration.processor.core.version>
 		<filesystem.adapter.ceph.version>1.0.9</filesystem.adapter.ceph.version>
-		<packet.manager.version>1.0.10-SNAPSHOT</packet.manager.version>
+		<packet.manager.version>1.0.10-rc1</packet.manager.version>
 		<registration.processor.rest.client.version>1.0.10</registration.processor.rest.client.version>
-		<packet.info.storage.service.version>1.0.10-SNAPSHOT</packet.info.storage.service.version>
-		<packet.bio.dedupe.service.impl.version>1.0.10-SNAPSHOT</packet.bio.dedupe.service.impl.version>
-		<registration.processor.message.sender.version>1.0.10-SNAPSHOT</registration.processor.message.sender.version>
-		<registration.processor.print.service.impl.version>1.0.10-SNAPSHOT</registration.processor.print.service.impl.version>
-		<registration.processor.packet.utility.version>1.0.10-SNAPSHOT</registration.processor.packet.utility.version>
+		<packet.info.storage.service.version>1.0.10-rc1</packet.info.storage.service.version>
+		<packet.bio.dedupe.service.impl.version>1.0.10-rc1</packet.bio.dedupe.service.impl.version>
+		<registration.processor.message.sender.version>1.0.10-rc1</registration.processor.message.sender.version>
+		<registration.processor.print.service.impl.version>1.0.10-rc1</registration.processor.print.service.impl.version>
+		<registration.processor.packet.utility.version>1.0.10-rc1</registration.processor.packet.utility.version>
 		
 		<!-- Kernel -->
-		<kernel.core.version>1.0.9-SNAPSHOT</kernel.core.version>
+		<kernel.core.version>1.0.9-rc1</kernel.core.version>
 		<kernel.dataaccess.hibernate.version>1.0.6</kernel.dataaccess.hibernate.version>
 		<kernel.templatemanager.velocity.version>1.0.6</kernel.templatemanager.velocity.version>
 		<kernel.idvalidator.uin.version>1.0.6</kernel.idvalidator.uin.version>
@@ -136,8 +136,8 @@
 		<kernel.logger.logback.version>1.0.6</kernel.logger.logback.version>
 		<kernel.auth.adapter.version>1.0.6</kernel.auth.adapter.version>
 		<kernel.idvalidator.vid.version>1.0.6</kernel.idvalidator.vid.version>
-		<kernel.idobjectvalidator.version>1.0.9-SNAPSHOT</kernel.idobjectvalidator.version>
-		<kernel.packetmanager.version>1.0.10-SNAPSHOT</kernel.packetmanager.version>
+		<kernel.idobjectvalidator.version>1.0.9-rc1</kernel.idobjectvalidator.version>
+		<kernel.packetmanager.version>1.0.10-rc1</kernel.packetmanager.version>
 			<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,
