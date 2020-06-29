@@ -9,7 +9,7 @@
 		<version>1.0.10</version>
 	</parent>
 	<artifactId>registration-processor-printing-stage</artifactId>
-	 <version>1.0.10-SNAPSHOT</version>
+	 <version>1.0.10-rc1</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

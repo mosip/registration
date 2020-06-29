@@ -10,7 +10,7 @@
 		<version>1.0.10</version>
 	</parent>
 	<artifactId>registration-processor-core</artifactId>
-	<version>1.0.10-SNAPSHOT</version>
+	<version>1.0.10-rc1</version>
 	<dependencies>
 		<dependency>
 			<groupId>org.mockito</groupId>
