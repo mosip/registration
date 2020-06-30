@@ -126,13 +126,6 @@ jobs:
         cd registration
         mvn -B package -s $GITHUB_WORKSPACE/settings.xml -DskipTests --file pom.xml
 
-    - name: Publish the maven package
-      run: |
-        chmod +x ./deploy.sh
-        ./deploy.sh registration $GITHUB_WORKSPACE/settings.xml rc2
-      env:
-        GITHUB_TOKEN: ${{ secrets.access_token }}
-        GPG_TTY: $(tty)
 
 
   publish_to_nexus:
@@ -178,13 +171,12 @@ jobs:
     
     - name: Build with Maven
       run: |
-        cd registration-processor
         mvn -B package --file pom.xml -s $GITHUB_WORKSPACE/settings.xml
 
     - name: Publish the maven package
       run: |
         chmod +x ./deploy.sh
-        ./deploy.sh registration-processor $GITHUB_WORKSPACE/settings.xml rc2
+        ./deploy.sh . GITHUB_WORKSPACE/settings.xml rc2
       env:
         GITHUB_TOKEN: ${{ secrets.access_token }}
         GPG_TTY: $(tty)
