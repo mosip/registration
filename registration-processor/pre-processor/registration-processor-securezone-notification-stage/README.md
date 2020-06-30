@@ -17,4 +17,4 @@ server.servlet.path=/registrationprocessor/v1/securezone
 <to uri="${mosip.base.url}/registrationprocessor/v1/securezone/notification" />
 ```
 ## Operations in Securezone Notification Stage
-registration-processor-securezone-notification-stage acts as a connector between "DMZ zone" and "secure zone". This stage publishes a rest endpoint which is being called from dmz camel bridge to transfer the message to secure zone for further processing. The stage will route the message to next stage(as configured in camel xml) upon receiving, for further processing. This stage does not have any business logic related to packet processing.
+registration-processor-securezone-notification-stage acts as a connector between "DMZ zone" and "secure zone". This stage publishes a rest endpoint which is being called from dmz camel bridge to transfer the message to secure zone for further processing. The stage will route the message to next stage(as configured in camel xml) upon receiving it. This stage does not have any business logic related to packet processing.
