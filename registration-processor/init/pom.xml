@@ -8,7 +8,7 @@
     <artifactId>registration-processor</artifactId>
     <version>1.0.7-rc2</version>
   </parent>
-  <version>1.0.10</version>
+  <version>1.0.10-rc2</version>
   <artifactId>init</artifactId>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
