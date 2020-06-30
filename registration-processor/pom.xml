@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>io.mosip</groupId>
 		<artifactId>registration</artifactId>
-		<version>1.0.6</version>
+		<version>1.0.7-rc2</version>
 	</parent>
 
 	<groupId>io.mosip.registrationprocessor</groupId>
 	<artifactId>registration-processor</artifactId>
-	<version>1.0.6</version>
+	<version>1.0.7-rc2</version>
 	<packaging>pom</packaging>
 
 	<name>registration-processor</name>
@@ -106,15 +106,15 @@
 		<jsch.version>0.1.55</jsch.version>
 
 		<!-- local -->
-		<registration.status.service.version>1.0.10</registration.status.service.version>
-		<registration.processor.core.version>1.0.10-rc1</registration.processor.core.version>
+		<registration.status.service.version>1.0.10-rc2</registration.status.service.version>
+		<registration.processor.core.version>1.0.10-rc2</registration.processor.core.version>
 		<filesystem.adapter.ceph.version>1.0.9</filesystem.adapter.ceph.version>
-		<packet.manager.version>1.0.10-rc1</packet.manager.version>
-		<registration.processor.rest.client.version>1.0.10</registration.processor.rest.client.version>
-		<packet.info.storage.service.version>1.0.10-rc1</packet.info.storage.service.version>
-		<packet.bio.dedupe.service.impl.version>1.0.10-rc1</packet.bio.dedupe.service.impl.version>
-		<registration.processor.message.sender.version>1.0.10-rc1</registration.processor.message.sender.version>
-		<registration.processor.print.service.impl.version>1.0.10-rc1</registration.processor.print.service.impl.version>
+		<packet.manager.version>1.0.10-rc2</packet.manager.version>
+		<registration.processor.rest.client.version>1.0.10-rc2</registration.processor.rest.client.version>
+		<packet.info.storage.service.version>1.0.10-rc2</packet.info.storage.service.version>
+		<packet.bio.dedupe.service.impl.version>1.0.10-rc2</packet.bio.dedupe.service.impl.version>
+		<registration.processor.message.sender.version>1.0.10-rc2</registration.processor.message.sender.version>
+		<registration.processor.print.service.impl.version>1.0.10-rc2</registration.processor.print.service.impl.version>
 		<registration.processor.packet.utility.version>1.0.10-rc1</registration.processor.packet.utility.version>
 		
 		<!-- Kernel -->
