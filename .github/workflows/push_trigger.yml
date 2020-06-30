@@ -124,19 +124,8 @@ jobs:
     - name: Build with Maven
       run: |
         cd registration
-        mvn -B package -s $GITHUB_WORKSPACE/settings.xml -DskipTests --file pom.xml
-        cd registration-client/
-        mvn -B deploy -s $GITHUB_WORKSPACE/settings.xml -DskipTests --file pom.xml
-        cd target
-        mv *.zip reg-client.zip
-        zip  reg-client.zip MANIFEST.MF
-        zip -r reg-client.zip lib/
+        mvn -B package -s $GITHUB_WORKSPACE/settings.xml -DskipTests --file pom.xml    
     
-    - name: Upload the client reg-client 
-      uses: actions/upload-artifact@v1
-      with:
-        name: reg-client
-        path: registration/registration-client/target/reg-client.zip
 
   publish_to_nexus:
 
@@ -186,10 +175,21 @@ jobs:
     - name: Publish the maven package
       run: |
         chmod +x ./deploy.sh
-        ./deploy.sh . $GITHUB_WORKSPACE/settings.xml rc2
+        mvn deploy -DskipTests -s $GITHUB_WORKSPACE/settings.xml -f pom.xml
+        cd registration/registration-client/target
+        mv *.zip reg-client.zip
+        zip  reg-client.zip MANIFEST.MF
+        zip -r reg-client.zip lib/
       env:
         GITHUB_TOKEN: ${{ secrets.access_token }}
         GPG_TTY: $(tty)
+    
+    - name: Upload the client reg-client 
+      uses: actions/upload-artifact@v1
+      with:
+        name: reg-client
+        path: registration/registration-client/target/reg-client.zip
+      
     - name: Analyze with SonarCloud
       run: |
         cd registration-processor
