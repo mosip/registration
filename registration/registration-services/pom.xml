@@ -6,12 +6,12 @@
 	<parent>
 		<groupId>io.mosip.registration</groupId>
 		<artifactId>registration-parent</artifactId>
-		<version>1.0.6</version>
+		<version>1.0.7-rc2</version>
 	</parent>
 	<artifactId>registration-services</artifactId>
 	<name>registration-services</name>
 	<description>Maven project of MOSIP Registration Service</description>
-    <version>1.0.10-rc1</version>
+    <version>1.0.10-rc2</version>
 	<dependencies>
 		<!-- Lombok -->
 		<dependency>
@@ -376,7 +376,7 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-registration-packet-manager</artifactId>
-			<version>1.0.10-rc1</version>
+			<version>1.0.10-rc2</version>
 		</dependency>
 		
 		<dependency>

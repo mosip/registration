@@ -12,7 +12,7 @@
 	<artifactId>registration-processor-request-handler-service</artifactId>
 
 	<name>registration-processor-request-handler-service</name>
-	<version>1.0.10-rc1</version>
+	<version>1.0.10-rc2</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
