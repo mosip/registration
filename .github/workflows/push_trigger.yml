@@ -125,7 +125,9 @@ jobs:
       run: |
         cd registration
         mvn -B package -s $GITHUB_WORKSPACE/settings.xml -DskipTests --file pom.xml
-        cd registration-client/target
+        cd registration-client/
+        mvn -B deploy -s $GITHUB_WORKSPACE/settings.xml -DskipTests --file pom.xml
+        cd target
         mv *.zip reg-client.zip
         zip  reg-client.zip MANIFEST.MF
         zip -r reg-client.zip lib/
