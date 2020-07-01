@@ -692,7 +692,7 @@ public class DocumentScanController extends BaseController {
 		documentDto.setFormat(docType);
 		documentDto.setCategory(selectedDocument);
 		documentDto.setOwner("Applicant");
-		documentDto.setValue(selectedDocument.concat(RegistrationConstants.UNDER_SCORE).concat(document.getName()));
+		documentDto.setValue(selectedDocument.concat(RegistrationConstants.UNDER_SCORE).concat(document.getCode()));
 
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Set details to DocumentDetailsDTO");
