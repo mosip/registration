@@ -183,10 +183,10 @@ public class LoginController extends BaseController implements Initializable {
 
 	@Autowired
 	private HeaderController headerController;
-	
+
 	@FXML
 	private Label versionValueLabel;
-	
+
 	@Autowired
 	private MosipDeviceSpecificationFactory deviceSpecificationFactory;
 
@@ -194,7 +194,7 @@ public class LoginController extends BaseController implements Initializable {
 	public void initialize(URL arg0, ResourceBundle arg1) {
 
 		versionValueLabel.setText(softwareUpdateHandler.getCurrentVersion());
-		
+
 		if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
 
 			// Check for updates
@@ -232,8 +232,7 @@ public class LoginController extends BaseController implements Initializable {
 		} catch (RuntimeException runtimeExceptionexception) {
 			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 					runtimeExceptionexception.getMessage() + ExceptionUtils.getStackTrace(runtimeExceptionexception));
-		}
-		catch (Exception exception) {
+		} catch (Exception exception) {
 			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 		}
@@ -259,7 +258,7 @@ public class LoginController extends BaseController implements Initializable {
 		try {
 
 			LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, "Retrieve Login mode");
-			
+
 			fXComponents.setStage(primaryStage);
 
 			validations.setResourceBundle();
@@ -852,6 +851,26 @@ public class LoginController extends BaseController implements Initializable {
 
 		if (!loginList.isEmpty()) {
 			loginList.remove(RegistrationConstants.PARAM_ZERO);
+		}
+	}
+
+	/**
+	 * Redirects to mosip username page
+	 * 
+	 * @param event
+	 *            event for go back to username page
+	 */
+	public void back(ActionEvent event) {
+		
+		LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, "Started navigating back to user name page");
+
+		String usrId = userId.getText();
+		loadInitialScreen(Initialization.getPrimaryStage());
+		
+		if(usrId!=null) {
+
+			LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, "Setting previous username after navigate");
+			userId.setText(usrId);
 		}
 	}
 
