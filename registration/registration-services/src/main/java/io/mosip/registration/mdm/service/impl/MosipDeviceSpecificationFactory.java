@@ -149,7 +149,7 @@ public class MosipDeviceSpecificationFactory {
 		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 				"Initializing device " + " on Port : " + availablePort);
 
-		if (availablePort != null) {
+		if (availablePort != null && availablePort!=0) {
 
 			String url;
 
@@ -190,10 +190,17 @@ public class MosipDeviceSpecificationFactory {
 		} else
 
 		{
-			for (int port = portFrom; port <= portTo; port++) {
+			portFrom = ApplicationContext.map().get(RegistrationConstants.MDM_START_PORT_RANGE) != null ? Integer
+					.parseInt((String) ApplicationContext.map().get(RegistrationConstants.MDM_START_PORT_RANGE)) : 0;
+			portTo = ApplicationContext.map().get(RegistrationConstants.MDM_END_PORT_RANGE) != null
+					? Integer.parseInt((String) ApplicationContext.map().get(RegistrationConstants.MDM_END_PORT_RANGE))
+					: 0;
 
-				initByPort(port);
+			if (portFrom != 0 && portTo != 0) {
+				for (int port = portFrom; port <= portTo; port++) {
 
+					initByPort(port);
+				}
 			}
 		}
 	}
@@ -240,8 +247,6 @@ public class MosipDeviceSpecificationFactory {
 		}
 		return null;
 	}
-
-
 
 	public String getPayLoad(String data) {
 
@@ -303,8 +308,6 @@ public class MosipDeviceSpecificationFactory {
 		return deviceDiscoveryResponsetDtos;
 
 	}
-
-	
 
 	private String getDeviceInfoResponse(String url) {
 
