@@ -4,7 +4,6 @@ import static io.mosip.registration.constants.LoggerConstants.BIO_SERVICE;
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER;
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_FINGERPRINT_FACADE;
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_IRIS_FACADE;
-import static io.mosip.registration.constants.LoggerConstants.STREAMER;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
@@ -512,10 +511,9 @@ public class BioServiceImpl extends BaseService implements BioService {
 	 */
 	@Override
 	public boolean isMdmEnabled() {
-		return true;
-		// return RegistrationConstants.ENABLE
-		// .equalsIgnoreCase(((String)
-		// ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
+		// return true;
+		return RegistrationConstants.ENABLE
+				.equalsIgnoreCase(((String) ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
 	}
 
 	/*
