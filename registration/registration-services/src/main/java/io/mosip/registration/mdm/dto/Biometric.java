@@ -247,4 +247,15 @@ public enum Biometric {
 		return singleType;
 	}
 
+	public static SingleType getSingleTypeByModality(String modality) {
+		SingleType singleType = null;
+		for (Biometric biometric : Biometric.values()) {
+			if (biometric.getModalityName().equalsIgnoreCase(modality)) {
+				singleType = biometric.getSingleType();
+				break;
+			}
+		}
+		return singleType;
+	}
+
 }
