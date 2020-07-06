@@ -255,7 +255,7 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 					AuditReferenceIdTypes.APPLICATION_ID.getReferenceTypeId());
 
 			LOGGER.info(LoggerConstants.LOG_REG_LOGIN_SERVICE, APPLICATION_NAME, APPLICATION_ID,
-					"Completed fetching list of Screens to be Authorized");
+					"Completed fetching  list of Screens to be Authorized");
 			
 			authorizationDTO = screenAuthorizationDAO.getScreenAuthorizationDetails(roleCode);
 
