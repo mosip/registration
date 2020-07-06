@@ -12,6 +12,7 @@ import io.mosip.registration.dto.biometric.IrisDetailsDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
+import io.mosip.registration.mdm.dto.MdmBioDevice;
 import io.mosip.registration.mdm.dto.RequestDetail;
 
 /**
@@ -268,14 +269,33 @@ public interface BioService {
 	//public boolean isAllNonExceptionFingerprintsCaptured();
 
 	public Map<String, List<String>> getLowQualityBiometrics();
-	
-	public boolean hasBiometricExceptionToggleEnabled() ;
-	
-//	public void remove
-	
-	public List<BiometricsDto> captureModality(MDMRequestDto mdmRequestDto)  throws RegBaseCheckedException, IOException ;
-	
-	public List<BiometricsDto> captureModalityForAuth(MDMRequestDto mdmRequestDto)  throws RegBaseCheckedException, IOException ;
 
-	public InputStream getStream(String modality) throws MalformedURLException, IOException ;
+	public boolean hasBiometricExceptionToggleEnabled();
+
+	// public void remove
+
+	public List<BiometricsDto> captureModality(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException, IOException;
+
+	public List<BiometricsDto> captureModalityForAuth(MDMRequestDto mdmRequestDto)
+			throws RegBaseCheckedException, IOException;
+
+	/**
+	 * @param modality
+	 *            modality to find device subId
+	 * @return live stream
+	 * @throws MalformedURLException
+	 * @throws IOException
+	 */
+	public InputStream getStream(String modality) throws MalformedURLException, IOException;
+
+	/**
+	 * @param mdmBioDevice
+	 *            bio Device info
+	 * @param modality
+	 *            modality to find device subId
+	 * @return live stream
+	 * @throws MalformedURLException
+	 * @throws IOException
+	 */
+	public InputStream getStream(MdmBioDevice mdmBioDevice, String modality) throws MalformedURLException, IOException;
 }
