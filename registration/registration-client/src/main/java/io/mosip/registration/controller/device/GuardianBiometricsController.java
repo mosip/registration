@@ -717,27 +717,27 @@ public class GuardianBiometricsController extends BaseController /* implements I
 					Arrays.asList(RegistrationConstants.faceUiAttributes.get(0)));
 		}
 
-		if (capturedBiometrics == null || capturedBiometrics.isEmpty()) {
-			if (modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)) {
-				updateBiometric(modality, RegistrationConstants.RIGHTPALM_IMG_PATH,
-						RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD,
-						RegistrationConstants.FINGERPRINT_RETRIES_COUNT);
-			} else if (modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_LEFT)) {
-				updateBiometric(modality, RegistrationConstants.LEFTPALM_IMG_PATH,
-						RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD,
-						RegistrationConstants.FINGERPRINT_RETRIES_COUNT);
-			} else if (modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_THUMBS)) {
-				updateBiometric(modality, RegistrationConstants.THUMB_IMG_PATH,
-						RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD,
-						RegistrationConstants.FINGERPRINT_RETRIES_COUNT);
-			} else if (modality.equalsIgnoreCase(RegistrationConstants.IRIS_DOUBLE)) {
-				updateBiometric(modality, RegistrationConstants.RIGHT_IRIS_IMG_PATH,
-						RegistrationConstants.IRIS_THRESHOLD, RegistrationConstants.IRIS_RETRY_COUNT);
-			} else if (modality.equalsIgnoreCase(RegistrationConstants.FACE)) {
-				updateBiometric(modality, RegistrationConstants.FACE_IMG_PATH, RegistrationConstants.IRIS_THRESHOLD,
-						RegistrationConstants.IRIS_RETRY_COUNT);
-			}
-		} else {
+		if (modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)) {
+			updateBiometric(modality, RegistrationConstants.RIGHTPALM_IMG_PATH,
+					RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD,
+					RegistrationConstants.FINGERPRINT_RETRIES_COUNT);
+		} else if (modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_LEFT)) {
+			updateBiometric(modality, RegistrationConstants.LEFTPALM_IMG_PATH,
+					RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD,
+					RegistrationConstants.FINGERPRINT_RETRIES_COUNT);
+		} else if (modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_THUMBS)) {
+			updateBiometric(modality, RegistrationConstants.THUMB_IMG_PATH,
+					RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD,
+					RegistrationConstants.FINGERPRINT_RETRIES_COUNT);
+		} else if (modality.equalsIgnoreCase(RegistrationConstants.IRIS_DOUBLE)) {
+			updateBiometric(modality, RegistrationConstants.RIGHT_IRIS_IMG_PATH, RegistrationConstants.IRIS_THRESHOLD,
+					RegistrationConstants.IRIS_RETRY_COUNT);
+		} else if (modality.equalsIgnoreCase(RegistrationConstants.FACE)) {
+			updateBiometric(modality, RegistrationConstants.FACE_IMG_PATH, RegistrationConstants.IRIS_THRESHOLD,
+					RegistrationConstants.IRIS_RETRY_COUNT);
+		}
+		if (capturedBiometrics != null && !capturedBiometrics.isEmpty()) {
+
 			loadBiometricsUIElements(capturedBiometrics, currentSubType, modality);
 		}
 
