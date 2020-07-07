@@ -51,6 +51,7 @@ import io.mosip.registration.dto.mastersync.BiometricAttributeDto;
 import io.mosip.registration.entity.UserBiometric;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
+import io.mosip.registration.mdm.dto.Biometric;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.operator.UserOnboardService;
@@ -287,14 +288,11 @@ public class GuardianBiometricsController extends BaseController /* implements I
 	@Autowired
 	private UserOnboardParentController userOnboardParentController;
 
-
-	
 	@Autowired
 	private BioAPIFactory bioAPIFactory;
-	
+
 	@Autowired
 	private UserDetailDAO userDetailDAO;
-
 
 	/*
 	 * (non-Javadoc)
@@ -915,10 +913,11 @@ public class GuardianBiometricsController extends BaseController /* implements I
 
 			// validate local de-dup check
 			boolean isMatchedWithLocalBiometrics = false;
-			if(bioService.isMdmEnabled()) {
-//				isMatchedWithLocalBiometrics = identifyInLocalGallery(mdsCapturedBiometricsList, modality);
+			if (bioService.isMdmEnabled()) {
+				isMatchedWithLocalBiometrics = identifyInLocalGallery(mdsCapturedBiometricsList,
+						Biometric.getSingleTypeByModality(isFace(modality) ? "FACE_FULL FACE" : modality).value());
 			}
-			
+
 			if (isValidBiometric && !isMatchedWithLocalBiometrics) {
 
 				List<BiometricsDto> registrationDTOBiometricsList = new LinkedList<>();
@@ -2348,41 +2347,41 @@ public class GuardianBiometricsController extends BaseController /* implements I
 	private List<String> getListOfBiometricSubTypes() {
 		return new ArrayList<String>(currentMap.keySet());
 	}
-	
+
 	private boolean identifyInLocalGallery(List<BiometricsDto> biometrics, String modality) {
 		BiometricType biometricType = BiometricType.fromValue(modality);
 		Map<String, List<BIR>> gallery = new HashMap<>();
 		List<UserBiometric> userBiometrics = userDetailDAO.findAllActiveUsers(biometricType.value());
-		if(userBiometrics.isEmpty())
+		if (userBiometrics.isEmpty())
 			return false;
-		
+
 		userBiometrics.forEach(userBiometric -> {
 			String userId = userBiometric.getUserBiometricId().getUsrId();
-			gallery.computeIfAbsent(userId, k -> new ArrayList<BIR>()).add(buildBir(userBiometric.getBioIsoImage(), biometricType));
+			gallery.computeIfAbsent(userId, k -> new ArrayList<BIR>())
+					.add(buildBir(userBiometric.getBioIsoImage(), biometricType));
 		});
-					
+
 		List<BIR> sample = new ArrayList<>(biometrics.size());
-		biometrics.forEach( biometricDto -> {
+		biometrics.forEach(biometricDto -> {
 			sample.add(buildBir(biometricDto.getAttributeISO(), biometricType));
 		});
-		
+
 		try {
-			Map<String, Boolean> result = bioAPIFactory.getBioProvider(biometricType, BiometricFunction.MATCH).
-					identify(sample, gallery, biometricType, null);
+			Map<String, Boolean> result = bioAPIFactory.getBioProvider(biometricType, BiometricFunction.MATCH)
+					.identify(sample, gallery, biometricType, null);
 			return result.entrySet().stream().anyMatch(e -> e.getValue() == true);
-		} catch(BiometricException e) {
+		} catch (BiometricException e) {
 			LOGGER.error(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					"Failed to dedupe >> " + ExceptionUtils.getStackTrace(e));
 		}
 		return false;
 	}
-	
+
 	private BIR buildBir(byte[] biometricImageISO, BiometricType modality) {
 		return new BIRBuilder().withBdb(biometricImageISO)
 				.withBdbInfo(new BDBInfo.BDBInfoBuilder().withFormat(new RegistryIDType())
 						.withType(Collections.singletonList(SingleType.fromValue(modality.value())))
-						.withPurpose(PurposeType.IDENTIFY)
-						.build())
+						.withPurpose(PurposeType.IDENTIFY).build())
 				.build();
 	}
 
