@@ -4,7 +4,6 @@ import static io.mosip.registration.constants.LoggerConstants.BIO_SERVICE;
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER;
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_FINGERPRINT_FACADE;
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_IRIS_FACADE;
-import static io.mosip.registration.constants.LoggerConstants.STREAMER;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
@@ -512,6 +511,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	 */
 	@Override
 	public boolean isMdmEnabled() {
+		// return true;
 		return RegistrationConstants.ENABLE
 				.equalsIgnoreCase(((String) ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
 	}
@@ -1603,15 +1603,40 @@ public class BioServiceImpl extends BaseService implements BioService {
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 				"Stream request : " + System.currentTimeMillis() + modality);
 
-		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-				"Constructing Stream URL Started" + System.currentTimeMillis());
-
 		MdmBioDevice bioDevice = deviceSpecificationFactory.getDeviceInfoByModality(modality);
 
+		if (bioDevice != null) {
+			LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+					"Bio Device found for modality : " + modality + "  " + System.currentTimeMillis() + modality);
+
+			return getStream(bioDevice, modality);
+		}
+
+		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+				"Bio Device not found for modality : " + modality + "  " + System.currentTimeMillis() + modality);
+
+		return null;
+	}
+
+	@Override
+	public InputStream getStream(MdmBioDevice mdmBioDevice, String modality) throws MalformedURLException, IOException {
+		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID, "Starting stream");
+
 		MosipDeviceSpecificationProvider deviceSpecificationProvider = deviceSpecificationFactory
-				.getMdsProvider(bioDevice.getSpecVersion());
+				.getMdsProvider(mdmBioDevice.getSpecVersion());
 
-		return deviceSpecificationProvider.stream(bioDevice, modality);
+		if (deviceSpecificationProvider != null) {
+			LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+					"MosipDeviceSpecificationProvider found for spec version : " + mdmBioDevice.getSpecVersion() + "  "
+							+ System.currentTimeMillis() + deviceSpecificationProvider);
 
+			return deviceSpecificationProvider.stream(mdmBioDevice, modality);
+		}
+
+		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+				"MosipDeviceSpecificationProvider not found for spec version : " + mdmBioDevice.getSpecVersion() + "  "
+						+ System.currentTimeMillis());
+
+		return null;
 	}
 }

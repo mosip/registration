@@ -18,7 +18,7 @@ import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.SessionContext;
-import io.mosip.registration.mdm.dto.StreamingRequestDetail;
+import io.mosip.registration.mdm.dto.MdmBioDevice;
 import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
 import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.bio.impl.BioServiceImpl;
@@ -44,7 +44,7 @@ public class Streamer {
 
 	@Autowired
 	private ScanPopUpViewController scanPopUpViewController;
-	
+
 	@Autowired
 	private BioService bioService;
 
@@ -54,8 +54,6 @@ public class Streamer {
 
 	// Last streaming image
 	private static Image streamImage;
-
-	private static StreamingRequestDetail streamRequest;
 
 	// Image View, which UI need to be shown
 	private static ImageView imageView;
@@ -104,7 +102,6 @@ public class Streamer {
 			public void run() {
 
 				try {
-					setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_PREP_MESSAGE, false);
 					LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
 							"Constructing Stream URL Started" + System.currentTimeMillis());
 
@@ -113,13 +110,25 @@ public class Streamer {
 
 					scanPopUpViewController.disableCloseButton();
 
+					setPopViewControllerMessage(true, RegistrationUIConstants.SEARCHING_DEVICE_MESSAGE, false);
+
 					if (urlStream != null) {
 						urlStream.close();
 						urlStream = null;
 					}
 
+					// Get Device
+					MdmBioDevice mdmBioDevice = deviceSpecificationFactory.getDeviceInfoByModality(type);
+
+					if (mdmBioDevice == null) {
+						setPopViewControllerMessage(true, RegistrationUIConstants.NO_DEVICE_FOUND, false);
+
+						return;
+					}
+
+					// Start Stream
 					setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_PREP_MESSAGE, false);
-					urlStream = bioService.getStream(type);
+					urlStream = bioService.getStream(mdmBioDevice, type);
 					if (urlStream == null) {
 
 						LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
@@ -146,6 +155,7 @@ public class Streamer {
 					return;
 
 				}
+
 				while (isRunning && null != urlStream) {
 					try {
 						imageBytes = retrieveNextImage();
@@ -182,6 +192,7 @@ public class Streamer {
 		}, "STREAMER_THREAD");
 
 		streamer_thread.start();
+		setPopViewControllerMessage(true, RegistrationUIConstants.SEARCHING_DEVICE_MESSAGE, false);
 
 		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
 				"Streamer Thread initiated completed for : " + System.currentTimeMillis() + type);
