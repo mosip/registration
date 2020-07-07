@@ -132,15 +132,52 @@ public class MosipDeviceSpecificationFactory {
 	}
 
 	private int getPortTo() {
-		return ApplicationContext.map().get(RegistrationConstants.MDM_END_PORT_RANGE) != null
-				? Integer.parseInt((String) ApplicationContext.map().get(RegistrationConstants.MDM_END_PORT_RANGE))
-				: 4506;
+
+		if (ApplicationContext.map().get(RegistrationConstants.MDM_END_PORT_RANGE) != null) {
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					"Found port To configuration in application context map");
+
+			try {
+				return Integer
+						.parseInt((String) ApplicationContext.map().get(RegistrationConstants.MDM_END_PORT_RANGE));
+			} catch (RuntimeException runtimeException) {
+				LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+						"Exception while mapping the response : " + runtimeException.getMessage()
+								+ ExceptionUtils.getStackTrace(runtimeException));
+				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+						"Found port To configuration in application context map but exception while parsing to integer, returning default value of 4506");
+				return 4506;
+			}
+		} else {
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					"Not Found port To configuration in application context map so intializing default  value");
+
+			return 4506;
+		}
 	}
 
 	private int getPortFrom() {
-		return ApplicationContext.map().get(RegistrationConstants.MDM_START_PORT_RANGE) != null
-				? Integer.parseInt((String) ApplicationContext.map().get(RegistrationConstants.MDM_START_PORT_RANGE))
-				: 4500;
+		if (ApplicationContext.map().get(RegistrationConstants.MDM_START_PORT_RANGE) != null) {
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					"Found port from configuration in application context map");
+
+			try {
+				return Integer
+						.parseInt((String) ApplicationContext.map().get(RegistrationConstants.MDM_START_PORT_RANGE));
+			} catch (RuntimeException runtimeException) {
+				LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+						"Exception while mapping the response : " + runtimeException.getMessage()
+								+ ExceptionUtils.getStackTrace(runtimeException));
+				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+						"Found port From configuration in application context map but exception while parsing to integer, returning default value of 4500");
+				return 4500;
+			}
+		} else {
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					"Not Found port from configuration in application context map so intializing default  value");
+
+			return 4500;
+		}
 	}
 
 	/*
@@ -228,11 +265,9 @@ public class MosipDeviceSpecificationFactory {
 		} else
 
 		{
-			portFrom = ApplicationContext.map().get(RegistrationConstants.MDM_START_PORT_RANGE) != null ? Integer
-					.parseInt((String) ApplicationContext.map().get(RegistrationConstants.MDM_START_PORT_RANGE)) : 0;
-			portTo = ApplicationContext.map().get(RegistrationConstants.MDM_END_PORT_RANGE) != null
-					? Integer.parseInt((String) ApplicationContext.map().get(RegistrationConstants.MDM_END_PORT_RANGE))
-					: 0;
+			portFrom = getPortFrom();
+
+			portTo = getPortTo();
 
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 					"Checking device info from port : " + portFrom + " to port : " + portTo);
