@@ -4,12 +4,15 @@ import static io.mosip.registration.constants.LoggerConstants.BIO_SERVICE;
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER;
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_FINGERPRINT_FACADE;
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_IRIS_FACADE;
+import static io.mosip.registration.constants.LoggerConstants.STREAMER;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -19,7 +22,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
-import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 
@@ -29,12 +31,14 @@ import org.springframework.stereotype.Service;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.packetmanager.constants.Biometric;
+import io.mosip.kernel.packetmanager.constants.PacketManagerConstants;
+import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
-import io.mosip.registration.dto.AuthenticationValidatorDTO;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.dto.biometric.BiometricExceptionDTO;
@@ -47,12 +51,11 @@ import io.mosip.registration.mdm.dto.CaptureResponsBioDataDto;
 import io.mosip.registration.mdm.dto.CaptureResponseBioDto;
 import io.mosip.registration.mdm.dto.CaptureResponseDto;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
+import io.mosip.registration.mdm.dto.MdmBioDevice;
 import io.mosip.registration.mdm.dto.RequestDetail;
+import io.mosip.registration.mdm.integrator.MosipDeviceSpecificationProvider;
 import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
-import io.mosip.registration.mdm.service.impl.MosipBioDeviceManagerDuplicate;
-import io.mosip.kernel.packetmanager.constants.Biometric;
-import io.mosip.kernel.packetmanager.constants.PacketManagerConstants;
-import io.mosip.kernel.packetmanager.dto.BiometricsDto;
+import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
 import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.bio.BioService;
 
@@ -70,7 +73,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	private MosipBioDeviceManager mosipBioDeviceManager;
 
 	@Autowired
-	private MosipBioDeviceManagerDuplicate mosipBioDeviceManagerDuplicate;
+	private MosipDeviceSpecificationFactory deviceSpecificationFactory;
 
 	// @Autowired
 	// private AuthenticationService authService;
@@ -509,7 +512,6 @@ public class BioServiceImpl extends BaseService implements BioService {
 	 */
 	@Override
 	public boolean isMdmEnabled() {
-//		return false;
 		return RegistrationConstants.ENABLE
 				.equalsIgnoreCase(((String) ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
 	}
@@ -1480,64 +1482,42 @@ public class BioServiceImpl extends BaseService implements BioService {
 	}
 
 	@Override
-	public List<BiometricsDto> captureModality(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException {
+	public List<BiometricsDto> captureModality(MDMRequestDto mdmRequestDto)
+			throws RegBaseCheckedException, IOException {
 
 		List<BiometricsDto> biometricsDtos = null;
-		String specVersion = null;
 		if (isMdmEnabled()) {
 
-			specVersion = mosipBioDeviceManagerDuplicate.getSpecVersionByModality(mdmRequestDto.getModality());
-
-			String[] exceptions = mdmRequestDto.getExceptions();
-			for (int index = 0; index < mdmRequestDto.getExceptions().length; index++) {
-				exceptions[index] = io.mosip.registration.mdm.dto.Biometric
-						.getmdmRequestAttributeName(exceptions[index], specVersion);
-			}
-			if (specVersion == null) {
-				throw new RegBaseCheckedException("No Spec Version Found", "No Spec Version Found");
-			}
-
 			biometricsDtos = captureRealModality(mdmRequestDto);
-
-			if (biometricsDtos != null && !biometricsDtos.isEmpty()) {
-
-				for (BiometricsDto biometricsDto : biometricsDtos) {
-
-					String uiSchemaAttributeName = io.mosip.registration.mdm.dto.Biometric
-							.getUiSchemaAttributeName(biometricsDto.getBioAttribute(), specVersion);
-
-					biometricsDto.setBioAttribute(uiSchemaAttributeName);
-
-				}
-			}
 
 		} else {
 			biometricsDtos = captureMockModality(mdmRequestDto, false);
 
-			specVersion = RegistrationConstants.SPEC_VERSION_092;
 		}
 
 		return biometricsDtos;
 	}
 
-	private List<BiometricsDto> captureRealModality(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException {
+	private List<BiometricsDto> captureRealModality(MDMRequestDto mdmRequestDto)
+			throws RegBaseCheckedException, IOException {
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 				"Entering into captureModality method.." + System.currentTimeMillis());
 
 		List<BiometricsDto> list = new ArrayList<BiometricsDto>();
-		try {
-			List<BiometricsDto> biometricsDtos = mosipBioDeviceManagerDuplicate.getRCaptureBiometrics(mdmRequestDto);
 
-			for (BiometricsDto biometricsDto : biometricsDtos) {
+		MdmBioDevice bioDevice = deviceSpecificationFactory.getDeviceInfoByModality(mdmRequestDto.getModality());
 
-				if (biometricsDto != null
-						&& isQualityScoreMaxInclusive(String.valueOf(biometricsDto.getQualityScore()))) {
+		MosipDeviceSpecificationProvider deviceSpecificationProvider = deviceSpecificationFactory
+				.getMdsProvider(bioDevice.getSpecVersion());
 
-					list.add(biometricsDto);
-				}
+		List<BiometricsDto> biometricsDtos = deviceSpecificationProvider.rCapture(bioDevice, mdmRequestDto);
+
+		for (BiometricsDto biometricsDto : biometricsDtos) {
+
+			if (biometricsDto != null && isQualityScoreMaxInclusive(String.valueOf(biometricsDto.getQualityScore()))) {
+
+				list.add(biometricsDto);
 			}
-		} catch (IOException exception) {
-			throw new RegBaseCheckedException("202", "Device is not available");
 		}
 
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
@@ -1602,11 +1582,36 @@ public class BioServiceImpl extends BaseService implements BioService {
 	}
 
 	@Override
-	public List<BiometricsDto> captureModalityForAuth(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException {
-		if (isMdmEnabled())
-			return captureRealModality(mdmRequestDto);
-		else
-			return captureMockModality(mdmRequestDto, true);
+	public List<BiometricsDto> captureModalityForAuth(MDMRequestDto mdmRequestDto)
+			throws RegBaseCheckedException, IOException {
+
+		List<BiometricsDto> biometrics = null;
+
+		if (isMdmEnabled()) {
+			if (getStream(mdmRequestDto.getModality()) != null) {
+
+				biometrics = captureRealModality(mdmRequestDto);
+			}
+		} else {
+			biometrics = captureMockModality(mdmRequestDto, true);
+		}
+		return biometrics;
 	}
 
+	@Override
+	public InputStream getStream(String modality) throws MalformedURLException, IOException {
+		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+				"Stream request : " + System.currentTimeMillis() + modality);
+
+		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
+				"Constructing Stream URL Started" + System.currentTimeMillis());
+
+		MdmBioDevice bioDevice = deviceSpecificationFactory.getDeviceInfoByModality(modality);
+
+		MosipDeviceSpecificationProvider deviceSpecificationProvider = deviceSpecificationFactory
+				.getMdsProvider(bioDevice.getSpecVersion());
+
+		return deviceSpecificationProvider.stream(bioDevice, modality);
+
+	}
 }

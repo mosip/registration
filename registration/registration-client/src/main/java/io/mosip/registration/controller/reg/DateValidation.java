@@ -162,7 +162,7 @@ public class DateValidation extends BaseController {
 						dobMessage.setVisible(true);						
 						generateAlert(parentPane, RegistrationConstants.DOB, dobMessage.getText());						
 					}
-				} catch (Exception exception) {
+				} catch (Throwable exception) {
 					setErrorMsg(parentPane, date, month, year, ageField, dobMessage);
 					generateAlert(parentPane, RegistrationConstants.DOB, dobMessage.getText());
 					LOGGER.error(LoggerConstants.DATE_VALIDATION, APPLICATION_NAME,

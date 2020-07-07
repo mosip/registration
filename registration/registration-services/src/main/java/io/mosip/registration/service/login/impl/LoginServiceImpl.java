@@ -321,6 +321,9 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 			validateResponse(responseDTO, PUBLIC_KEY_SYNC_STEP);
 			
 			String keyIndex = verifyMachinePublicKeyMapping(isInitialSetUp);
+			if(null!=keyIndex) {
+				ApplicationContext.map().put(RegistrationConstants.KEY_INDEX, keyIndex);
+			}
 			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "Initial Verifiation Done : " + MACHINE_KEY_VERIFICATION_STEP);
 						
 			responseDTO = globalParamService.synchConfigData(false);

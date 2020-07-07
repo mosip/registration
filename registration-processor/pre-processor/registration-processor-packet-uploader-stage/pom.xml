@@ -11,7 +11,7 @@
 		<artifactId>pre-processor</artifactId>
 		<version>1.0.10</version>
 	</parent>
-	<version>1.0.10-SNAPSHOT</version>
+	<version>1.0.10</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>

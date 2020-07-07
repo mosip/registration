@@ -46,7 +46,7 @@ ENV artifactory_url_env=${artifactory_url}
 
 # copying shaded jar into docker image
 ADD ./target/*.jar /target/
-RUN find /target -regextype posix-extended -regex '.*registration-processor-common-camel-bridge-[0-9\.]+[-A-Z]*\.jar' -type f  "-print0" | xargs "-0" cp -t / \
+RUN find /target -regextype posix-extended -regex '.*registration-processor-common-camel-bridge-[0-9\.]+[-A-Zrc0-9]*\.jar' -type f  "-print0" | xargs "-0" cp -t / \
   && rm -rf /target \
   && rm -rf original*.jar \
   && mv *.jar registration-processor-common-camel-bridge.jar 

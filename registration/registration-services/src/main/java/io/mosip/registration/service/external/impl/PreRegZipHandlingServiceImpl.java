@@ -18,6 +18,11 @@ import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -56,7 +61,9 @@ import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
 import io.mosip.registration.dto.demographic.IndividualIdentity;
 import io.mosip.registration.dto.demographic.ValuesDTO;
+import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
 import io.mosip.registration.entity.DocumentType;
+import io.mosip.registration.entity.ValidDocument;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
@@ -99,36 +106,58 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 	 */
 	@Override
 	public RegistrationDTO extractPreRegZipFile(byte[] preRegZipFile) throws RegBaseCheckedException {
-
-		RegistrationDTO registrationDTO = getRegistrationDtoContent();
-		DocumentDto documentDetailsDTO;
-		try (ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(preRegZipFile))) {
-			ZipInputStream inputStream= new ZipInputStream(new ByteArrayInputStream(preRegZipFile));
-			ZipEntry zipEntry;
+		LOGGER.debug("PRE_REG_ZIP_HANDLING_SERVICE_IMPL", RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"extractPreRegZipFile invoked");
+		try{
 			BufferedReader bufferedReader = null;
-			while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-				String jsoFileName = zipEntry.getName();
-				if (jsoFileName.endsWith(".json")) {
-					bufferedReader = new BufferedReader(new InputStreamReader(zipInputStream, StandardCharsets.UTF_8));
-					parseDemographicJson(bufferedReader, zipEntry);
-					break;
-				} 
+			try (ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(preRegZipFile))) {
+				ZipEntry zipEntry;
+				while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+					if (zipEntry.getName().equalsIgnoreCase("ID.json")) {
+						bufferedReader = new BufferedReader(new InputStreamReader(zipInputStream, StandardCharsets.UTF_8));
+						parseDemographicJson(bufferedReader, zipEntry);						
+					}	
+				}
+			}finally {
+				if(bufferedReader != null) {
+					bufferedReader.close();
+					bufferedReader = null;
+				}				
 			}
 			
-			while ((zipEntry = inputStream.getNextEntry()) != null) {
-				String docFileName = zipEntry.getName();
-				if (docFileName.contains("_")) {
-					documentDetailsDTO = new DocumentDto();
-					String docCategoryCode = docFileName.substring(0, docFileName.indexOf("_"));
-					documentDetailsDTO.setType(docCategoryCode);
-					getRegistrationDtoContent().getDocuments().put(docCategoryCode, documentDetailsDTO);
-					attachDocument(documentDetailsDTO, inputStream, docFileName, docCategoryCode);
-
+			try (ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(preRegZipFile))) {
+				ZipEntry zipEntry;
+				while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+					String fileName = zipEntry.getName();
+					//if (zipEntry.getName().contains("_")) {
+					LOGGER.debug("PRE_REG_ZIP_HANDLING_SERVICE_IMPL", RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+							"extractPreRegZipFile zipEntry >>>> " + fileName);				
+						Optional<Map.Entry<String, DocumentDto>> result = getRegistrationDtoContent().getDocuments().entrySet().stream()
+								.filter(e -> fileName.equals(e.getValue().getValue().concat(".").concat(e.getValue().getFormat()))).findFirst();
+						if(result.isPresent()) {
+							DocumentDto documentDto = result.get().getValue();
+							documentDto.setDocument(IOUtils.toByteArray(zipInputStream));
+							
+							List<DocumentType> documentTypes = documentTypeDAO.getDocTypeByName(documentDto.getType());
+							if(Objects.nonNull(documentTypes) && !documentTypes.isEmpty()) {
+								LOGGER.debug("PRE_REG_ZIP_HANDLING_SERVICE_IMPL", RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+										documentDto.getType() + " >>>> documentTypes.get(0).getCode() >>>> " + documentTypes.get(0).getCode());	
+								documentDto.setType(documentTypes.get(0).getCode());
+								documentDto.setValue(documentDto.getCategory().concat("_").concat(documentDto.getType()));
+							}							
+							getRegistrationDtoContent().addDocument(result.get().getKey(), result.get().getValue());
+							LOGGER.debug("PRE_REG_ZIP_HANDLING_SERVICE_IMPL", RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+									"Added zip entry as document for field >>>> " + result.get().getKey());	
+						}
+					//}	
 				}
 			}
-			if (bufferedReader != null) {
-				bufferedReader.close();
-			}
+			
+			Set<Entry<String, DocumentDto>> entries = getRegistrationDtoContent().getDocuments().entrySet();
+			entries.stream()
+				.filter(e -> e.getValue().getDocument() == null || e.getValue().getDocument().length == 0)
+				.forEach(e -> { getRegistrationDtoContent().removeDocument(e.getKey()); });
+		
 		} catch (IOException exception) {
 			exception.printStackTrace();
 			LOGGER.error("REGISTRATION - PRE_REG_ZIP_HANDLING_SERVICE_IMPL", RegistrationConstants.APPLICATION_NAME,
@@ -142,9 +171,10 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 			throw new RegBaseUncheckedException(RegistrationConstants.PACKET_ZIP_CREATION, exception.getMessage());
 		}
-		return registrationDTO;
+		return getRegistrationDtoContent();
 	}
-
+	
+	
 	private void attachDocument(DocumentDto documentDetailsDTO, ZipInputStream zipInputStream, String fileName,
 			String docCatgory) throws IOException {
 		documentDetailsDTO.setDocument(IOUtils.toByteArray(zipInputStream));
@@ -169,7 +199,7 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 				List<DocumentType> docTypesForPrimaryLanguage = masterSyncDao.getDocumentTypes(
 						Arrays.asList(documentTypes.get(0).getCode()), ApplicationContext.applicationLanguage());
 				if (isListNotEmpty(docTypesForPrimaryLanguage)) {
-					docTypeName = docTypesForPrimaryLanguage.get(0).getName();
+					docTypeName = docTypesForPrimaryLanguage.get(0).getCode();
 				}
 			}
 		}
@@ -225,24 +255,62 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 			
 			if (!StringUtils.isEmpty(jsonString) && validateDemographicInfoObject()) {
 				JSONObject jsonObject = (JSONObject) new JSONObject(jsonString.toString()).get("identity");
-				List<UiSchemaDTO> fieldList = identitySchemaService.getLatestEffectiveUISchema();	
 				
-				if(jsonObject.has("IDSchemaVersion"))
-					getRegistrationDtoContent().setIdSchemaVersion(jsonObject.getDouble("IDSchemaVersion"));
+				LOGGER.debug("REGISTRATION - PRE_REG_ZIP_HANDLING_SERVICE_IMPL", RegistrationConstants.APPLICATION_NAME,
+						RegistrationConstants.APPLICATION_ID, jsonString.toString());
 				
+				if(!jsonObject.has("IDSchemaVersion"))
+					throw new RegBaseCheckedException("IDSchemaVersion not found", "IDSchemaVersion not found");
+				
+				List<UiSchemaDTO> fieldList = identitySchemaService.getUISchema(jsonObject.getDouble("IDSchemaVersion"));	
+				getRegistrationDtoContent().setIdSchemaVersion(jsonObject.getDouble("IDSchemaVersion"));
+							
 				for(UiSchemaDTO field : fieldList) {
 					if(field.getId().equalsIgnoreCase("IDSchemaVersion"))
 						continue;
 					
+					switch (field.getType()) {
+					case "documentType":
+						DocumentDto documentDto = new DocumentDto();
+						if(jsonObject.has(field.getId()) && jsonObject.get(field.getId()) != null) {
+							JSONObject fieldValue = jsonObject.getJSONObject(field.getId());							
+							documentDto.setCategory(field.getSubType());
+							documentDto.setOwner("Applicant");
+							documentDto.setFormat(fieldValue.getString("format"));
+							documentDto.setType(fieldValue.getString("type"));
+							documentDto.setValue(fieldValue.getString("value"));
+							getRegistrationDtoContent().addDocument(field.getId(), documentDto);
+						}
+						break;
+						
+					case "biometricsType":						
+						break;
+
+					default:
+						Object fieldValue = getValueFromJson(field.getId(), field.getType(), jsonObject);
+						if(fieldValue != null) {
+							if(field.getControlType().equalsIgnoreCase("ageDate"))
+								getRegistrationDtoContent().setDateField(field.getId(), (String)fieldValue);
+							else
+								getRegistrationDtoContent().getDemographics().put(field.getId(), fieldValue);
+						}
+						break;
+					}
+					
 					if(field.getType() != "documentType" && field.getType() != "biometricsType") {
 						Object fieldValue = getValueFromJson(field.getId(), field.getType(), jsonObject);
-						if(fieldValue != null)
-							getRegistrationDtoContent().getDemographics().put(field.getId(), fieldValue);
+						if(fieldValue != null) {
+							if(field.getControlType().equalsIgnoreCase("ageDate"))
+								getRegistrationDtoContent().setDateField(field.getId(), (String)fieldValue);
+							else
+								getRegistrationDtoContent().getDemographics().put(field.getId(), fieldValue);
+						}
 					}
 				}
 			}
 		} catch (JSONException | IOException e) {
-			e.printStackTrace();
+			LOGGER.error("REGISTRATION - PRE_REG_ZIP_HANDLING_SERVICE_IMPL", RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, ExceptionUtils.getStackTrace(e));
 			throw new RegBaseCheckedException(REG_IO_EXCEPTION.getErrorCode(), e.getMessage());
 		}
 	}

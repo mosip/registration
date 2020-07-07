@@ -6,12 +6,12 @@
 	<parent>
 		<groupId>io.mosip.registration</groupId>
 		<artifactId>registration-parent</artifactId>
-		<version>1.0.10-SNAPSHOT</version>
+		<version>1.0.7</version>
 	</parent>
 	<artifactId>registration-services</artifactId>
 	<name>registration-services</name>
 	<description>Maven project of MOSIP Registration Service</description>
-    <version>1.0.10-SNAPSHOT</version>
+    <version>1.0.10</version>
 	<dependencies>
 		<!-- Lombok -->
 		<dependency>
@@ -123,7 +123,7 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-core</artifactId>
-			<version>1.0.9-SNAPSHOT</version>
+			<version>1.0.9</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
@@ -192,7 +192,7 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-dataaccess-hibernate</artifactId>
-			<version>1.0.7-SNAPSHOT</version>
+			<version>1.0.7</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
@@ -364,7 +364,7 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idobjectvalidator</artifactId>
-			<version>1.0.9-SNAPSHOT</version>
+			<version>1.0.9</version>
 		</dependency>
 		
 		<dependency>
@@ -376,29 +376,29 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-registration-packet-manager</artifactId>
-			<version>1.0.10-SNAPSHOT</version>
+			<version>1.0.10</version>
 		</dependency>
 		
 		<dependency>
            <artifactId>kernel-biosdk-provider</artifactId>
           <groupId>io.mosip.kernel</groupId>
-           <version>0.9-SNAPSHOT</version>
+           <version>0.9</version>
          </dependency>
              
          <dependency>
                 <artifactId>mock-sdk</artifactId>
                 <groupId>io.mosip.mock.sdk</groupId>
-                <version>0.9-SNAPSHOT</version>
+                <version>0.9</version>
         </dependency>
 	
 	</dependencies>
 
-	<repositories>
+	<!-- <repositories>
 		<repository>
 			<id>local-maven-repo</id>
 			<url>file:///${basedir}/lib</url>
 		</repository>
-	</repositories>
+	</repositories> -->
 
 
 	<profiles>

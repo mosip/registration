@@ -7,12 +7,12 @@
 	<parent>
 		<groupId>io.mosip.registration</groupId>
 		<artifactId>registration-parent</artifactId>
-		<version>1.0.10-SNAPSHOT</version>
+		<version>1.0.7</version>
 	</parent>
 
 	<artifactId>registration-client</artifactId>
 	<packaging>jar</packaging>
-    <version>1.0.10-SNAPSHOT</version>
+    <version>1.0.10</version>
 	<name>registration-client</name>
 	<description>Maven project of MOSIP Registration UI</description>
 	
@@ -24,7 +24,7 @@
 		<dependency>
 			<groupId>io.mosip.registration</groupId>
 			<artifactId>registration-services</artifactId>
-			<version>1.0.10-SNAPSHOT</version>
+			<version>1.0.10</version>
 		</dependency>
 
 		<dependency>
@@ -65,13 +65,13 @@
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-core</artifactId>
-				<version>1.0.9-SNAPSHOT</version>
+				<version>1.0.9</version>
 			</dependency>
 			
 			<dependency>
                        <groupId>io.mosip.kernel</groupId>
                       <artifactId>kernel-idobjectvalidator</artifactId>
-                      <version>1.0.9-SNAPSHOT</version>
+                      <version>1.0.9</version>
               </dependency>
 	</dependencies>
 	<build>

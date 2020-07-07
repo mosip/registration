@@ -240,4 +240,10 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 				.findByUserBiometricIdUsrIdAndIsActiveTrueAndUserBiometricIdBioTypeCodeAndUserBiometricIdBioAttributeCodeIgnoreCase(userId, bioType, subType);
 	}
 
+	@Override
+	public List<UserBiometric> findAllActiveUsers(String bioType) {
+		LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "Fetching all local users for bioType >>> " + bioType);
+		return userBiometricRepository.findByUserBiometricIdBioTypeCodeAndIsActiveTrue(bioType);
+	}
+
 }
