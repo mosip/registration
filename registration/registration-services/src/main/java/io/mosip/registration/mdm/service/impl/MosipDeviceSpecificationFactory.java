@@ -21,6 +21,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -63,6 +64,11 @@ public class MosipDeviceSpecificationFactory {
 
 	private int portTo;
 
+	@Value("${mosip.registration.mdm.default.portRangeFrom}")
+	private int defaultMDSPortFrom;
+
+	@Value("${mosip.registration.mdm.default.portRangeTo}")
+	private int defaultMDSPortTo;
 	private static final Logger LOGGER = AppConfig.getLogger(MosipDeviceSpecificationFactory.class);
 
 	private ObjectMapper mapper = new ObjectMapper();
@@ -145,14 +151,14 @@ public class MosipDeviceSpecificationFactory {
 						"Exception while mapping the response : " + runtimeException.getMessage()
 								+ ExceptionUtils.getStackTrace(runtimeException));
 				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-						"Found port To configuration in application context map but exception while parsing to integer, returning default value of 4506");
-				return 4506;
+						"Found port To configuration in application context map but exception while parsing to integer, returning default");
+				return defaultMDSPortTo;
 			}
 		} else {
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 					"Not Found port To configuration in application context map so intializing default  value");
 
-			return 4506;
+			return defaultMDSPortTo;
 		}
 	}
 
@@ -169,14 +175,14 @@ public class MosipDeviceSpecificationFactory {
 						"Exception while mapping the response : " + runtimeException.getMessage()
 								+ ExceptionUtils.getStackTrace(runtimeException));
 				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-						"Found port From configuration in application context map but exception while parsing to integer, returning default value of 4500");
-				return 4500;
+						"Found port From configuration in application context map but exception while parsing to integer, returning default value");
+				return defaultMDSPortFrom;
 			}
 		} else {
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 					"Not Found port from configuration in application context map so intializing default  value");
 
-			return 4500;
+			return defaultMDSPortFrom;
 		}
 	}
 
