@@ -183,10 +183,10 @@ public class LoginController extends BaseController implements Initializable {
 
 	@Autowired
 	private HeaderController headerController;
-	
+
 	@FXML
 	private Label versionValueLabel;
-	
+
 	@Autowired
 	private MosipDeviceSpecificationFactory deviceSpecificationFactory;
 
@@ -194,7 +194,7 @@ public class LoginController extends BaseController implements Initializable {
 	public void initialize(URL arg0, ResourceBundle arg1) {
 
 		versionValueLabel.setText(softwareUpdateHandler.getCurrentVersion());
-		
+
 		if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
 
 			// Check for updates
@@ -232,8 +232,7 @@ public class LoginController extends BaseController implements Initializable {
 		} catch (RuntimeException runtimeExceptionexception) {
 			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 					runtimeExceptionexception.getMessage() + ExceptionUtils.getStackTrace(runtimeExceptionexception));
-		}
-		catch (Exception exception) {
+		} catch (Exception exception) {
 			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 		}
@@ -259,30 +258,14 @@ public class LoginController extends BaseController implements Initializable {
 		try {
 
 			LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, "Retrieve Login mode");
-			
-			fXComponents.setStage(primaryStage);
 
-			validations.setResourceBundle();
-			loginRoot = BaseController.load(getClass().getResource(RegistrationConstants.INITIAL_PAGE));
-
-			scene = getScene(loginRoot);
-			loadUIElementsFromSchema();
-			pageFlow.loadPageFlow();
-			Screen screen = Screen.getPrimary();
-			Rectangle2D bounds = screen.getVisualBounds();
-			primaryStage.setX(bounds.getMinX());
-			primaryStage.setY(bounds.getMinY());
-			primaryStage.setWidth(bounds.getWidth());
-			primaryStage.setHeight(bounds.getHeight());
-			primaryStage.setResizable(false);
-			primaryStage.setScene(scene);
-			primaryStage.getIcons().add(new Image(getClass().getResource(RegistrationConstants.LOGO).toExternalForm()));
-			primaryStage.show();
+			showUserNameScreen(primaryStage);
 
 			org.apache.log4j.Logger.getLogger(Initialization.class).info("Mosip client Screen loaded");
 
 			// Execute SQL file (Script files on update)
 			executeSQLFile();
+			deviceSpecificationFactory.init();
 
 			if (hasUpdate) {
 
@@ -300,7 +283,6 @@ public class LoginController extends BaseController implements Initializable {
 				}
 				jobConfigurationService.startScheduler();
 
-				deviceSpecificationFactory.init();
 			}
 
 		} catch (IOException ioException) {
@@ -316,6 +298,27 @@ public class LoginController extends BaseController implements Initializable {
 
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN);
 		}
+	}
+
+	private void showUserNameScreen(Stage primaryStage) throws IOException {
+		fXComponents.setStage(primaryStage);
+
+		validations.setResourceBundle();
+		loginRoot = BaseController.load(getClass().getResource(RegistrationConstants.INITIAL_PAGE));
+
+		scene = getScene(loginRoot);
+		loadUIElementsFromSchema();
+		pageFlow.loadPageFlow();
+		Screen screen = Screen.getPrimary();
+		Rectangle2D bounds = screen.getVisualBounds();
+		primaryStage.setX(bounds.getMinX());
+		primaryStage.setY(bounds.getMinY());
+		primaryStage.setWidth(bounds.getWidth());
+		primaryStage.setHeight(bounds.getHeight());
+		primaryStage.setResizable(false);
+		primaryStage.setScene(scene);
+		primaryStage.getIcons().add(new Image(getClass().getResource(RegistrationConstants.LOGO).toExternalForm()));
+		primaryStage.show();
 	}
 
 	private void executeSQLFile() {
@@ -1103,4 +1106,33 @@ public class LoginController extends BaseController implements Initializable {
 
 	}
 
+	/**
+	 * Redirects to mosip username page
+	 * 
+	 * @param event
+	 *            event for go back to username page
+	 */
+	public void back(ActionEvent event) {
+
+		LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+				"Started navigating back to user name page");
+
+		String usrId = userId.getText();
+		try {
+			showUserNameScreen(Initialization.getPrimaryStage());
+			if (usrId != null) {
+
+				LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+						"Setting previous username after navigate");
+				userId.setText(usrId);
+			}
+		} catch (IOException ioException) {
+
+			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+					ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
+
+			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN);
+		}
+
+	}
 }
