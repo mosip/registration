@@ -1773,4 +1773,6 @@ public class RegistrationConstants {
 	public static final String SPEC_VERSION_092 = "0.9.2";
 
 	public static final String TEMPLATE_FACE_IMAGE_SOURCE = "FaceImageSource";
+	
+	public static final String REGISTRATION_EVENTS = "REG-EVT";
 }
