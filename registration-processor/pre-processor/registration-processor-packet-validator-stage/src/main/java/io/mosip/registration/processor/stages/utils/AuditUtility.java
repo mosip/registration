@@ -96,8 +96,6 @@ public class AuditUtility {
 	 *
 	 */
 	public AsyncRequestDTO buildRequest(Object requestBody) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"AuditUtility::buildRequest()::entry" + requestBody);
 		RequestWrapper<AuditDTO> auditRequest = new RequestWrapper<>();
 		auditRequest.setRequest((AuditDTO) requestBody);
 		auditRequest.setId("String");
