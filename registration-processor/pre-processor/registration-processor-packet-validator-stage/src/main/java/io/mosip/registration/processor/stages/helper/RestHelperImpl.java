@@ -13,6 +13,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLException;
 import javax.validation.Valid;
 
+import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
@@ -55,6 +56,9 @@ public class RestHelperImpl implements RestHelper {
 
 	@Autowired
 	private Environment env;
+
+	@Autowired
+	private RestApiClient restApiClient;
 
 	@Autowired
 	private ObjectMapper mapper;
@@ -109,7 +113,7 @@ public class RestHelperImpl implements RestHelper {
 			uri = method.uri(builder -> builder.build());
 		}
 
-		uri.cookie("Authorization", getAuthToken());
+		uri.cookie("Authorization", restApiClient.getToken());
 
 		if (request.getRequestBody() != null) {
 			exchange = uri.syncBody(request.getRequestBody()).retrieve();
@@ -120,78 +124,6 @@ public class RestHelperImpl implements RestHelper {
 		monoResponse = exchange.bodyToMono(request.getResponseType());
 
 		return monoResponse;
-	}
-
-	private String getAuthToken() throws IOException {
-		if (EmptyCheckUtils.isNullEmpty(authToken)) {
-			String existingToken = System.getProperty("test");
-			String token = validate(existingToken) ? existingToken : generateAuthToken();
-			return token;
-		} else {
-			return authToken;
-		}
-	}
-
-	public boolean validate(String token) throws IOException {
-
-		if (token == null)
-			return false;
-		URL obj = new URL(env.getProperty("TOKENVALIDATE"));
-		URLConnection urlConnection = obj.openConnection();
-		HttpsURLConnection con = (HttpsURLConnection) urlConnection;
-
-		con.setRequestProperty("Cookie", token);
-		con.setRequestMethod("POST");
-
-		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-		String inputLine;
-		StringBuffer response = new StringBuffer();
-
-		while ((inputLine = in.readLine()) != null) {
-			response.append(inputLine);
-		}
-		in.close();
-
-		InputStream responseStream = new ByteArrayInputStream(response.toString().getBytes());
-		TokenResponseDTO tokenResponseDTO = (TokenResponseDTO) JsonUtil.inputStreamtoJavaObject(responseStream,
-				TokenResponseDTO.class);
-		if (tokenResponseDTO == null)
-			return false;
-
-		if (tokenResponseDTO.getErrors() != null)
-			return false;
-		return true;
-
-	}
-
-	private String generateAuthToken() {
-
-		ObjectNode requestBody = mapper.createObjectNode();
-		requestBody.put("clientId", env.getProperty("token.request.clientId"));
-		requestBody.put("secretKey", env.getProperty("token.request.secretKey"));
-		requestBody.put("appId", env.getProperty("token.request.appid"));
-		RequestWrapper<ObjectNode> request = new RequestWrapper<>();
-		request.setRequesttime(DateUtils.getUTCCurrentDateTime());
-		request.setRequest(requestBody);
-		ClientResponse response = WebClient.create(env.getProperty("KEYBASEDTOKENAPI")).post().syncBody(request)
-				.exchange().block();
-		if (response.statusCode() == HttpStatus.OK) {
-			ObjectNode responseBody = response.bodyToMono(ObjectNode.class).block();
-			if (responseBody != null
-					&& responseBody.get("response").get("status").asText().equalsIgnoreCase("success")) {
-				ResponseCookie responseCookie = response.cookies().get("Authorization").get(0);
-				authToken = responseCookie.getValue();
-				return authToken;
-			} else {
-				mosipLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-						"", "Auth token generation failed: " + response);
-			}
-		} else {
-			mosipLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-					"AuthResponse : status-" + response.statusCode() + " :\n"
-							+ response.toEntity(String.class).block().getBody());
-		}
-		return authToken;
 	}
 
 }
