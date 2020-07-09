@@ -512,6 +512,7 @@ public class RegistrationConstants {
 	public static final String TEMPLATE_PRE_REG_ID_USER_LANG_LABEL = "PreRegIDPrimLabel";
 	public static final String TEMPLATE_PRE_REG_ID_LOCAL_LANG_LABEL = "PreRegIDSecLabel";
 	public static final String TEMPLATE_PRE_REG_ID = "PreRegID";
+	public static final String TEMPLATE_PRE_REG = "IsPreRegIDPresent";
 	public static final String TEMPLATE_DEMO_INFO = "DemographicInfo";
 	public static final String DEMOGRAPHIC_TEXTFIELD_FOCUSED = "demoGraphicTextFieldFocused";
 	public static final String DEMOGRAPHIC_TEXTFIELD = "demoGraphicTextField";
@@ -1770,4 +1771,6 @@ public class RegistrationConstants {
 	
 	public static final String SPEC_VERSION_095 = "0.9.5";
 	public static final String SPEC_VERSION_092 = "0.9.2";
+
+	public static final String TEMPLATE_FACE_IMAGE_SOURCE = "FaceImageSource";
 }
