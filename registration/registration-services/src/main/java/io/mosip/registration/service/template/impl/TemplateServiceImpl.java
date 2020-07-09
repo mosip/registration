@@ -24,7 +24,7 @@ import io.mosip.registration.service.template.TemplateService;
 
 /**
  * Implementation class for {@link TemplateService}
- * 
+ *
  * @author Himaja Dhanyamraju
  *
  */
@@ -40,7 +40,7 @@ public class TemplateServiceImpl implements TemplateService {
 	 * This method takes the list of templates, template file formats and template
 	 * types from database and chooses the required template for creation of
 	 * specific template
-	 * 
+	 *
 	 * @param templateTypeCode
 	 *            the specified template type code
 	 * @param langCode
@@ -84,7 +84,7 @@ public class TemplateServiceImpl implements TemplateService {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * io.mosip.registration.service.template.TemplateService#getHtmlTemplate(java.
 	 * lang.String, java.lang.String)
@@ -105,7 +105,8 @@ public class TemplateServiceImpl implements TemplateService {
 			throw new RegBaseCheckedException(RegistrationExceptionConstants.TEMPLATE_CHECK_EXCEPTION.getErrorCode(),
 					RegistrationExceptionConstants.TEMPLATE_CHECK_EXCEPTION.getErrorMessage());
 		}
-
+		LOGGER.error("REGISTRATION - TEMPLATE_GENERATION - TEMPLATE_SERVICE_IMPL", APPLICATION_NAME, APPLICATION_ID,
+				templateTypeCode + " >>>>>>>>>>>> " + templateText);
 		return templateText;
 	}
 
