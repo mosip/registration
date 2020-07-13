@@ -272,28 +272,25 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		List<AuditDto> list = new ArrayList<>();
 		List<Audit> audits = auditDAO.getAudits(auditLogControlDAO.getLatestRegistrationAuditDates());
 		for (Audit audit : audits) {
-			if (audit.getEventId().contains(RegistrationConstants.REGISTRATION_EVENTS)) {
-				AuditDto dto = new AuditDto();
-				dto.setActionTimeStamp(audit.getActionTimeStamp());
-				dto.setApplicationId(
-						!audit.getApplicationId().equalsIgnoreCase("null") ? audit.getApplicationId() : null);
-				dto.setApplicationName(
-						!audit.getApplicationName().equalsIgnoreCase("null") ? audit.getApplicationName() : null);
-				dto.setCreatedBy(audit.getCreatedBy());
-				dto.setDescription(audit.getDescription());
-				dto.setEventId(audit.getEventId());
-				dto.setEventName(audit.getEventName());
-				dto.setEventType(audit.getEventType());
-				dto.setHostIp(audit.getHostIp());
-				dto.setHostName(audit.getHostName());
-				dto.setId(audit.getId());
-				dto.setIdType(audit.getIdType());
-				dto.setModuleId(audit.getModuleId());
-				dto.setModuleName(audit.getModuleName());
-				dto.setSessionUserId(audit.getSessionUserId());
-				dto.setSessionUserName(audit.getSessionUserName());
-				list.add(dto);
-			}
+			AuditDto dto = new AuditDto();
+			dto.setActionTimeStamp(audit.getActionTimeStamp());
+			dto.setApplicationId(!audit.getApplicationId().equalsIgnoreCase("null") ? audit.getApplicationId() : null);
+			dto.setApplicationName(
+					!audit.getApplicationName().equalsIgnoreCase("null") ? audit.getApplicationName() : null);
+			dto.setCreatedBy(audit.getCreatedBy());
+			dto.setDescription(audit.getDescription());
+			dto.setEventId(audit.getEventId());
+			dto.setEventName(audit.getEventName());
+			dto.setEventType(audit.getEventType());
+			dto.setHostIp(audit.getHostIp());
+			dto.setHostName(audit.getHostName());
+			dto.setId(audit.getId());
+			dto.setIdType(audit.getIdType());
+			dto.setModuleId(audit.getModuleId());
+			dto.setModuleName(audit.getModuleName());
+			dto.setSessionUserId(audit.getSessionUserId());
+			dto.setSessionUserName(audit.getSessionUserName());
+			list.add(dto);
 		}
 		packetCreator.setAudits(list);
 	}

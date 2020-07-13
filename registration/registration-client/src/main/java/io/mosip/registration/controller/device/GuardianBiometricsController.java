@@ -2146,6 +2146,10 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
 
 				RegistrationConstants.APPLICATION_NAME, "Expression >> " + expression + " :: result >> " + result);
+		if (result) {
+			auditFactory.audit(AuditEvent.REG_BIO_CAPTURE_NEXT, Components.REG_BIOMETRICS, SessionContext.userId(),
+					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+		}
 		continueBtn.setDisable(result ? false : true);
 	}
 
