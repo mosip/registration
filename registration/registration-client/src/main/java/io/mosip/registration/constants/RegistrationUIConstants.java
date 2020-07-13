@@ -410,6 +410,8 @@ public class RegistrationUIConstants {
 
 	public static final String BIOMETRIC_CAPTURE_SUCCESS = bundle.getString("BIOMETRIC_CAPTURE_SUCCESS");
 	public static final String BIOMETRIC_CAPTURE_FAILURE = bundle.getString("BIOMETRIC_CAPTURE_FAILURE");
+	
+	public static final String LOCAL_DEDUP_CHECK_FAILED = bundle.getString("LOCAL_DEDUP_CHECK_FAILED");
 
 	
 }

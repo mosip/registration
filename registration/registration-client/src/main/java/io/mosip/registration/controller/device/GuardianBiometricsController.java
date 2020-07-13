@@ -909,65 +909,102 @@ public class GuardianBiometricsController extends BaseController /* implements I
 			// Get Response from the MDS
 			List<BiometricsDto> mdsCapturedBiometricsList = bioService.captureModality(mdmRequestDto);
 
+			LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+					"biometrics captured from mock/real MDM");
+
 			boolean isValidBiometric = mdsCapturedBiometricsList != null && !mdsCapturedBiometricsList.isEmpty();
 
-			// validate local de-dup check
-			boolean isMatchedWithLocalBiometrics = false;
-			if (bioService.isMdmEnabled()) {
-				isMatchedWithLocalBiometrics = identifyInLocalGallery(mdsCapturedBiometricsList,
-						Biometric.getSingleTypeByModality(isFace(modality) ? "FACE_FULL FACE" : modality).value());
-			}
+			LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+					"biometrics captured from mock/real MDM was valid : " + isValidBiometric);
 
-			if (isValidBiometric && !isMatchedWithLocalBiometrics) {
+			if (isValidBiometric) {
+				// validate local de-dup check
+				boolean isMatchedWithLocalBiometrics = false;
+				if (bioService.isMdmEnabled() && !isUserOnboardFlag) {
 
-				List<BiometricsDto> registrationDTOBiometricsList = new LinkedList<>();
+					LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+							"Doing local de-dup validation");
 
-				double qualityScore = 0;
-				// save to registration DTO
-				for (BiometricsDto biometricDTO : mdsCapturedBiometricsList) {
-					LOGGER.debug(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-							"BiometricDTO captured from mock/real MDM >>> " + biometricDTO.getBioAttribute());
-
-					if (!exceptionBioAttributes.isEmpty()
-							&& exceptionBioAttributes.contains(biometricDTO.getBioAttribute())) {
-						continue;
-					} else {
-						qualityScore += biometricDTO.getQualityScore();
-						biometricDTO.setSubType(currentSubType);
-						registrationDTOBiometricsList.add(biometricDTO);
-					}
+					isMatchedWithLocalBiometrics = identifyInLocalGallery(mdsCapturedBiometricsList,
+							Biometric.getSingleTypeByModality(isFace(modality) ? "FACE_FULL FACE" : modality).value());
 				}
 
-				registrationDTOBiometricsList = saveCapturedBiometricData(subType, registrationDTOBiometricsList);
+				LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+						"Doing local de-dup validation : " + isMatchedWithLocalBiometrics);
 
-				if (!registrationDTOBiometricsList.isEmpty()) {
-					// if all the above check success show alert capture success
-					generateAlert(RegistrationConstants.ALERT_INFORMATION,
-							RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
+				if (!isMatchedWithLocalBiometrics) {
 
-					Image streamImage = null;
-					if (bioService.isMdmEnabled()) {
-						streamImage = streamer.getStreamImage();
-					} else {
-						streamImage = new Image(this.getClass().getResourceAsStream(getStubStreamImagePath(modality)));
+					List<BiometricsDto> registrationDTOBiometricsList = new LinkedList<>();
+
+					double qualityScore = 0;
+					// save to registration DTO
+					for (BiometricsDto biometricDTO : mdsCapturedBiometricsList) {
+						LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+								"BiometricDTO captured from mock/real MDM >>> " + biometricDTO.getBioAttribute());
+
+						if (!exceptionBioAttributes.isEmpty()
+								&& exceptionBioAttributes.contains(biometricDTO.getBioAttribute())) {
+							LOGGER.debug(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+									"As bio atrribute marked as exception not storing into registration DTO : "
+											+ biometricDTO.getBioAttribute());
+							continue;
+						} else {
+							qualityScore += biometricDTO.getQualityScore();
+							biometricDTO.setSubType(currentSubType);
+							registrationDTOBiometricsList.add(biometricDTO);
+						}
 					}
 
-					addBioStreamImage(subType, currentModality, registrationDTOBiometricsList.get(0).getNumOfRetries(),
-							streamImage);
+					LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+							"started Saving filtered biometrics into registration DTO");
+					registrationDTOBiometricsList = saveCapturedBiometricData(subType, registrationDTOBiometricsList);
 
-					addBioScores(subType, currentModality,
-							String.valueOf(registrationDTOBiometricsList.get(0).getNumOfRetries()),
-							qualityScore / registrationDTOBiometricsList.size());
+					LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+							"Completed Saving filtered biometrics into registration DTO");
 
-					// using captured response fill the fields like quality score and progress
-					// bar,,etc,.. UI
-					loadBiometricsUIElements(registrationDTOBiometricsList, subType, currentModality);
+					if (!registrationDTOBiometricsList.isEmpty()) {
+						// if all the above check success show alert capture success
+						generateAlert(RegistrationConstants.ALERT_INFORMATION,
+								RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
+
+						Image streamImage = null;
+						if (bioService.isMdmEnabled()) {
+							streamImage = streamer.getStreamImage();
+						} else {
+							streamImage = new Image(
+									this.getClass().getResourceAsStream(getStubStreamImagePath(modality)));
+						}
+
+						LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+								"Adding streaming image into local map");
+
+						addBioStreamImage(subType, currentModality,
+								registrationDTOBiometricsList.get(0).getNumOfRetries(), streamImage);
+
+						LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+								"Adding bio scores into local map");
+
+						addBioScores(subType, currentModality,
+								String.valueOf(registrationDTOBiometricsList.get(0).getNumOfRetries()),
+								qualityScore / registrationDTOBiometricsList.size());
+
+						LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+								"using captured response fill the fields like quality score and progress bar,,etc,.. UI");
+						loadBiometricsUIElements(registrationDTOBiometricsList, subType, currentModality);
+					} else {
+						// request response mismatch
+						generateAlert(RegistrationConstants.ALERT_INFORMATION,
+								RegistrationUIConstants.BIOMETRIC_CAPTURE_FAILURE);
+					}
+
 				} else {
-					// request response mismatch
-					generateAlert(RegistrationConstants.ALERT_INFORMATION,
-							RegistrationUIConstants.BIOMETRIC_CAPTURE_FAILURE);
-				}
 
+					LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+							"Local De-Dup check failed");
+					// if any above checks failed show alert capture failure
+					generateAlert(RegistrationConstants.ALERT_INFORMATION,
+							RegistrationUIConstants.LOCAL_DEDUP_CHECK_FAILED);
+				}
 			} else {
 
 				// if any above checks failed show alert capture failure
@@ -975,7 +1012,6 @@ public class GuardianBiometricsController extends BaseController /* implements I
 						RegistrationUIConstants.BIOMETRIC_CAPTURE_FAILURE);
 			}
 		} catch (Exception exception) {
-			exception.printStackTrace();
 			LOGGER.error(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					String.format("Exception while capturing biometrics : ", exception.getMessage(),
 							ExceptionUtils.getStackTrace(exception)));
@@ -994,10 +1030,6 @@ public class GuardianBiometricsController extends BaseController /* implements I
 				LOGGER.debug(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 						"updating userOnboard biometric data >> " + value.getModalityName());
 				savedCaptures.add(userOnboardService.addOperatorBiometrics(subType, value.getBioAttribute(), value));
-				// savedCaptures.add(userOnboardService.addOperatorBiometrics(subType,
-				// io.mosip.registration.mdm.dto.Biometric.getUiSchemaAttributeName(
-				// value.getBioAttribute(), mosipBioDeviceManger.getLatestSpecVersion()),
-				// value));
 
 			}
 			return savedCaptures;
@@ -1006,13 +1038,10 @@ public class GuardianBiometricsController extends BaseController /* implements I
 			Map<String, BiometricsDto> biometricsMap = new LinkedHashMap<>();
 
 			for (BiometricsDto biometricsDto : biometrics) {
-				biometricsMap.put(biometricsDto.getBioAttribute(), biometricsDto);
-				// biometricsMap.put(
-				// io.mosip.registration.mdm.dto.Biometric.getUiSchemaAttributeName(
-				// biometricsDto.getBioAttribute(),
-				// mosipBioDeviceManger.getLatestSpecVersion()),
-				// biometricsDto);
 
+				LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+						"Adding registration biometric data >> " + biometricsDto.getBioAttribute());
+				biometricsMap.put(biometricsDto.getBioAttribute(), biometricsDto);
 			}
 
 			return getRegistrationDTOFromSession().addAllBiometrics(subType, biometricsMap,

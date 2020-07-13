@@ -1,6 +1,7 @@
 
 package io.mosip.registration.mdm.service.impl;
 
+import static io.mosip.registration.constants.LoggerConstants.BIO_SERVICE;
 import static io.mosip.registration.constants.LoggerConstants.MOSIP_BIO_DEVICE_INTEGERATOR;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
@@ -39,6 +40,7 @@ import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.dao.impl.RegisteredDeviceDAO;
 import io.mosip.registration.entity.RegisteredDeviceMaster;
 import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.mdm.constants.MosipBioDeviceConstants;
 import io.mosip.registration.mdm.dto.Biometric;
 import io.mosip.registration.mdm.dto.DeviceDiscoveryResponsetDto;
@@ -434,7 +436,17 @@ public class MosipDeviceSpecificationFactory {
 				latestSpecVersion = getLatestVersion(latestSpecVersion, specVersion[index]);
 			}
 
-			if (getMdsProvider(latestSpecVersion) == null) {
+			try {
+				if (getMdsProvider(latestSpecVersion) == null) {
+					List<String> specVersions = Arrays.asList(specVersion);
+
+					specVersions.remove(latestSpecVersion);
+
+					if (!specVersions.isEmpty()) {
+						latestSpecVersion = getLatestSpecVersion(specVersions.toArray(new String[0]));
+					}
+				}
+			} catch (RegBaseCheckedException regBaseCheckedException) {
 				List<String> specVersions = Arrays.asList(specVersion);
 
 				specVersions.remove(latestSpecVersion);
@@ -448,7 +460,7 @@ public class MosipDeviceSpecificationFactory {
 		return latestSpecVersion;
 	}
 
-	public MdmBioDevice getDeviceInfoByModality(String modality) {
+	public MdmBioDevice getDeviceInfoByModality(String modality) throws RegBaseCheckedException {
 
 		String key = String.format("%s_%s", getDeviceType(modality).toLowerCase(),
 				getDeviceSubType(modality).toLowerCase());
@@ -461,15 +473,21 @@ public class MosipDeviceSpecificationFactory {
 				if (deviceInfoMap.containsKey(key)) {
 					return deviceInfoMap.get(key);
 				}
+
+				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Bio Device not found for modality : "
+						+ modality + "  " + System.currentTimeMillis() + modality);
+				throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
+						RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage());
+
 			} catch (RegBaseCheckedException exception) {
-				LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-						exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+
+				throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
+						RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage(), exception);
 
 			}
 
 		}
 
-		return null;
 	}
 
 	private String getLatestVersion(String version1, String version2) {
@@ -509,7 +527,7 @@ public class MosipDeviceSpecificationFactory {
 
 	}
 
-	public String getSpecVersionByModality(String modality) {
+	public String getSpecVersionByModality(String modality) throws RegBaseCheckedException {
 
 		MdmBioDevice bioDevice = getDeviceInfoByModality(modality);
 
@@ -520,7 +538,7 @@ public class MosipDeviceSpecificationFactory {
 
 	}
 
-	public MosipDeviceSpecificationProvider getMdsProvider(String specVersion) {
+	public MosipDeviceSpecificationProvider getMdsProvider(String specVersion) throws RegBaseCheckedException {
 
 		MosipDeviceSpecificationProvider deviceSpecificationProvider = null;
 
@@ -530,6 +548,14 @@ public class MosipDeviceSpecificationFactory {
 				deviceSpecificationProvider = provider;
 				break;
 			}
+		}
+
+		if (deviceSpecificationProvider == null) {
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					"MosipDeviceSpecificationProvider not found for spec version : " + specVersion + "  "
+							+ System.currentTimeMillis());
+			throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_PROVIDER_NOT_FOUND.getErrorCode(),
+					RegistrationExceptionConstants.MDS_PROVIDER_NOT_FOUND.getErrorMessage());
 		}
 		return deviceSpecificationProvider;
 	}
