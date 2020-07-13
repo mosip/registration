@@ -18,6 +18,7 @@ import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.SessionContext;
+import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.MdmBioDevice;
 import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
 import io.mosip.registration.service.bio.BioService;
@@ -143,7 +144,7 @@ public class Streamer {
 
 					setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_INIT_MESSAGE, true);
 
-				} catch (IOException | NullPointerException exception) {
+				} catch (IOException | NullPointerException | RegBaseCheckedException exception) {
 
 					LOGGER.error(STREAMER, RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 							exception.getMessage() + ExceptionUtils.getStackTrace(exception));
@@ -152,6 +153,7 @@ public class Streamer {
 
 					// Enable Auto-Logout
 					SessionContext.setAutoLogout(true);
+					deviceSpecificationFactory.init();
 					return;
 
 				}
