@@ -436,17 +436,7 @@ public class MosipDeviceSpecificationFactory {
 				latestSpecVersion = getLatestVersion(latestSpecVersion, specVersion[index]);
 			}
 
-			try {
-				if (getMdsProvider(latestSpecVersion) == null) {
-					List<String> specVersions = Arrays.asList(specVersion);
-
-					specVersions.remove(latestSpecVersion);
-
-					if (!specVersions.isEmpty()) {
-						latestSpecVersion = getLatestSpecVersion(specVersions.toArray(new String[0]));
-					}
-				}
-			} catch (RegBaseCheckedException regBaseCheckedException) {
+			if (getMdsProvider(deviceSpecificationProviders, latestSpecVersion) == null) {
 				List<String> specVersions = Arrays.asList(specVersion);
 
 				specVersions.remove(latestSpecVersion);
@@ -455,6 +445,7 @@ public class MosipDeviceSpecificationFactory {
 					latestSpecVersion = getLatestSpecVersion(specVersions.toArray(new String[0]));
 				}
 			}
+
 		}
 
 		return latestSpecVersion;
@@ -540,22 +531,38 @@ public class MosipDeviceSpecificationFactory {
 
 	public MosipDeviceSpecificationProvider getMdsProvider(String specVersion) throws RegBaseCheckedException {
 
-		MosipDeviceSpecificationProvider deviceSpecificationProvider = null;
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+				"Finding MosipDeviceSpecificationProvider for spec version : " + specVersion);
 
-		// Get Implemented provider
-		for (MosipDeviceSpecificationProvider provider : deviceSpecificationProviders) {
-			if (provider.getSpecVersion().equals(specVersion)) {
-				deviceSpecificationProvider = provider;
-				break;
-			}
-		}
+		MosipDeviceSpecificationProvider deviceSpecificationProvider = getMdsProvider(deviceSpecificationProviders,
+				specVersion);
 
 		if (deviceSpecificationProvider == null) {
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-					"MosipDeviceSpecificationProvider not found for spec version : " + specVersion + "  "
-							+ System.currentTimeMillis());
+					"MosipDeviceSpecificationProvider not found for spec version : " + specVersion);
 			throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_PROVIDER_NOT_FOUND.getErrorCode(),
 					RegistrationExceptionConstants.MDS_PROVIDER_NOT_FOUND.getErrorMessage());
+		}
+		return deviceSpecificationProvider;
+	}
+
+	private MosipDeviceSpecificationProvider getMdsProvider(
+			List<MosipDeviceSpecificationProvider> deviceSpecificationProviders, String specVersion) {
+
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+				"Finding MosipDeviceSpecificationProvider for spec version : " + specVersion + " in providers : "
+						+ deviceSpecificationProviders);
+
+		MosipDeviceSpecificationProvider deviceSpecificationProvider = null;
+
+		if (deviceSpecificationProviders != null) {
+			// Get Implemented provider
+			for (MosipDeviceSpecificationProvider provider : deviceSpecificationProviders) {
+				if (provider.getSpecVersion().equals(specVersion)) {
+					deviceSpecificationProvider = provider;
+					break;
+				}
+			}
 		}
 		return deviceSpecificationProvider;
 	}
