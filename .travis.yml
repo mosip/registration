@@ -1,4 +1,6 @@
 language: java
+before_script:
+  - chmod +x ./install-jdk.sh
 before_install:
   ##########
   # TEMPORARY hack to get around Travis not installing Java
