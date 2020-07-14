@@ -29,7 +29,6 @@ import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.RestartController;
 import io.mosip.registration.controller.auth.LoginController;
 import io.mosip.registration.controller.device.Streamer;
-import io.mosip.registration.controller.device.WebCameraController;
 import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.ResponseDTO;
@@ -143,8 +142,6 @@ public class HeaderController extends BaseController {
 	@Autowired
 	private LoginController loginController;
 
-	@Autowired
-	private WebCameraController webCameraController;
 	
 	@Autowired
 	private Streamer streamer;
@@ -684,7 +681,7 @@ public class HeaderController extends BaseController {
 	 * This method closes the webcam, if opened, whenever the menu bar is clicked.
 	 */
 	public void closeOperations() {
-		webCameraController.closeWebcam();
+//		webCameraController.closeWebcam();
 	}
 
 	public void executeDownloadPreRegDataTask(Pane pane, ProgressIndicator progressIndicator) {
