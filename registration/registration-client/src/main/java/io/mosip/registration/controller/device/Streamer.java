@@ -69,6 +69,10 @@ public class Streamer {
 		return streamImage;
 	}
 
+	public byte[] getStreamImageBytes() {
+		return imageBytes;
+	}
+
 	// Set ImageView
 	public static void setImageView(ImageView imageView) {
 		Streamer.imageView = imageView;

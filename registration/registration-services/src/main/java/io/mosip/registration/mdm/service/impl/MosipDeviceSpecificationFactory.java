@@ -206,31 +206,28 @@ public class MosipDeviceSpecificationFactory {
 
 	public void initByPort(Integer availablePort) throws RegBaseCheckedException {
 
-		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 				"Initializing device " + " on Port : " + availablePort);
 
 		if (availablePort != null && availablePort != 0) {
 
-			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 					"Initializing device " + " on Port : " + availablePort);
 
 			String url;
 
 			url = buildUrl(availablePort, MosipBioDeviceConstants.DEVICE_INFO_ENDPOINT);
 
-			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Checking device info on url : " + url);
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Checking device info on url : " + url);
 
 			/* check if the service is available for the current port */
 			if (checkServiceAvailability(url, "MOSIPDINFO")) {
 
 				String deviceInfoResponse = getDeviceInfoResponse(url);
 
-				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-						"******** Device info response : " + deviceInfoResponse);
-
 				for (MosipDeviceSpecificationProvider deviceSpecificationProvider : deviceSpecificationProviders) {
 
-					LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 							"Decoding deice info response with provider : " + deviceSpecificationProvider);
 
 					try {
@@ -240,15 +237,15 @@ public class MosipDeviceSpecificationFactory {
 
 							if (bioDevice != null) {
 
-								LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-										"Checking for device registratrion : " + bioDevice.toString());
+								LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+										"Checking for device registratrion : " + bioDevice.getDeviceCode());
 
 								List<RegisteredDeviceMaster> registeredDevices = registeredDeviceDAO
 										.getRegisteredDevices(bioDevice.getDeviceCode(), bioDevice.getSerialNumber());
 
 								if (registeredDevices != null && !registeredDevices.isEmpty()) {
-									LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-											"Device Registration found : " + bioDevice.toString());
+									LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+											"Device Registration found : " + bioDevice.getDeviceCode());
 
 									// Add to Device Info Map
 									addToDeviceInfoMap(getDeviceType(bioDevice.getDeviceType()).toLowerCase(),

@@ -5,6 +5,8 @@ import static io.mosip.registration.constants.LoggerConstants.LOG_REG_GUARDIAN_B
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,6 +20,8 @@ import java.util.Map.Entry;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
+import javafx.scene.image.PixelFormat;
+import org.apache.commons.io.IOUtils;
 import org.mvel2.MVEL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -986,19 +990,20 @@ public class GuardianBiometricsController extends BaseController /* implements I
 						generateAlert(RegistrationConstants.ALERT_INFORMATION,
 								RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
 
-						Image streamImage = null;
+						/*byte[] streamImageBytes = null;
 						if (bioService.isMdmEnabled()) {
-							streamImage = streamer.getStreamImage();
+							streamImageBytes = streamer.getStreamImageBytes();
 						} else {
-							streamImage = new Image(
+							streamImageBytes = new Image(
 									this.getClass().getResourceAsStream(getStubStreamImagePath(modality)));
-						}
+						}*/
 
 						LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 								"Adding streaming image into local map");
 
 						addBioStreamImage(subType, currentModality,
-								registrationDTOBiometricsList.get(0).getNumOfRetries(), streamImage);
+								registrationDTOBiometricsList.get(0).getNumOfRetries(), (bioService.isMdmEnabled())  ?
+										streamer.getStreamImageBytes() : null);
 
 						LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 								"Adding bio scores into local map");
@@ -1032,8 +1037,7 @@ public class GuardianBiometricsController extends BaseController /* implements I
 			}
 		} catch (Exception exception) {
 			LOGGER.error(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-					String.format("Exception while capturing biometrics : ", exception.getMessage(),
-							ExceptionUtils.getStackTrace(exception)));
+					String.format("Exception while capturing biometrics : %s", ExceptionUtils.getStackTrace(exception)));
 
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.BIOMETRIC_CAPTURE_FAILURE);
 		}
@@ -2101,13 +2105,21 @@ public class GuardianBiometricsController extends BaseController /* implements I
 	// streamImageBytes);
 	// }
 
-	public void addBioStreamImage(String subType, String modality, int attempt, Image streamImage) {
-
-		STREAM_IMAGES.put(String.format("%s_%s_%s", subType, modality, attempt), streamImage);
+	public void addBioStreamImage(String subType, String modality, int attempt, byte[] streamImage) throws IOException {
+		if(streamImage == null) {
+			String imagePath = getStubStreamImagePath(modality);
+			STREAM_IMAGES.put(String.format("%s_%s_%s", subType, modality, attempt), new Image(this.getClass().getResourceAsStream(imagePath)));
+			getRegistrationDTOFromSession().streamImages.put(String.format("%s_%s_%s", subType, modality, attempt),
+					IOUtils.toByteArray(this.getClass().getResourceAsStream(imagePath)));
+		}
+		else {
+			STREAM_IMAGES.put(String.format("%s_%s_%s", subType, modality, attempt), new Image(new ByteArrayInputStream(streamImage)));
+			getRegistrationDTOFromSession().streamImages.put(String.format("%s_%s_%s", subType, modality, attempt),
+					streamImage);
+		}
 	}
 
 	public Image getBioStreamImage(String subType, String modality, int attempt) {
-
 		return STREAM_IMAGES.get(String.format("%s_%s_%s", subType, modality, attempt));
 	}
 

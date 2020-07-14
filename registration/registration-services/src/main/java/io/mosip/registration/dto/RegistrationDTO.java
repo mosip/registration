@@ -80,6 +80,8 @@ public class RegistrationDTO {
 	/** The acknowledge receipt name. */
 	private String acknowledgeReceiptName;
 
+	public Map<String, byte[]> streamImages = new HashMap<>();
+
 	public void addDemographicField(String fieldId, String value) {
 		this.demographics.put(fieldId, (value != null && !value.isEmpty()) ? value : null);
 	}
