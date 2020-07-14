@@ -37,6 +37,9 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.packetmanager.constants.PacketManagerConstants;
 import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.constants.AuditEvent;
+import io.mosip.registration.constants.AuditReferenceIdTypes;
+import io.mosip.registration.constants.Components;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.ApplicationContext;
@@ -147,6 +150,9 @@ public class GuardianBiometricsController extends BaseController /* implements I
 
 	@FXML
 	private Label guardianBiometricsLabel;
+	
+	@FXML
+	private ImageView backImageView;
 
 	public Label getGuardianBiometricsLabel() {
 		return guardianBiometricsLabel;
@@ -292,6 +298,17 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		checkBoxMap = new HashMap<>();
 		currentMap = new LinkedHashMap<>();
 		fxUtils = FXUtils.getInstance();
+		
+		Image backInWhite = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK_FOCUSED));
+		Image backImage = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK));
+		backButton.hoverProperty().addListener((ov, oldValue, newValue) -> {
+			if (newValue) {
+				backImageView.setImage(backInWhite);
+			} else {
+				backImageView.setImage(backImage);
+			}
+		});
+		
 		applicationLabelBundle = applicationContext.getApplicationLanguageBundle();
 
 		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getSelectionListDTO() != null) {
@@ -863,6 +880,8 @@ public class GuardianBiometricsController extends BaseController /* implements I
 							qualityScore += biometricDTO.getQualityScore();
 							biometricDTO.setSubType(currentSubType);
 							registrationDTOBiometricsList.add(biometricDTO);
+							auditFactory.audit(getAuditEventForScan(modality), Components.REG_BIOMETRICS,
+									SessionContext.userId(), AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 						}
 					}
 
@@ -932,6 +951,22 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		scanPopUpViewController.getPopupStage().close();
 	}
 
+	private AuditEvent getAuditEventForScan(String modality) {
+		AuditEvent auditEvent = AuditEvent.REG_DOC_NEXT;
+		if (modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)) {
+			auditEvent = AuditEvent.REG_BIO_RIGHT_SLAP_SCAN;
+		} else if (modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_LEFT)) {
+			auditEvent = AuditEvent.REG_BIO_LEFT_SLAP_SCAN;
+		} else if (modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_THUMBS)) {
+			auditEvent = AuditEvent.REG_BIO_THUMBS_SCAN;
+		} else if (modality.equalsIgnoreCase(RegistrationConstants.IRIS_DOUBLE)) {
+			auditEvent = AuditEvent.REG_BIO_IRIS_SCAN;
+		} else if (modality.equalsIgnoreCase(RegistrationConstants.FACE)) {
+			auditEvent = AuditEvent.REG_BIO_FACE_CAPTURE;
+		}
+		return auditEvent;
+	}
+	
 	private List<BiometricsDto> saveCapturedBiometricData(String subType, List<BiometricsDto> biometrics) {
 		LOGGER.debug(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"saveCapturedBiometricData invoked size >> " + biometrics.size());
@@ -1440,6 +1475,10 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
 
 				RegistrationConstants.APPLICATION_NAME, "Expression >> " + expression + " :: result >> " + result);
+		if (result) {
+			auditFactory.audit(AuditEvent.REG_BIO_CAPTURE_NEXT, Components.REG_BIOMETRICS, SessionContext.userId(),
+					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+		}
 		continueBtn.setDisable(result ? false : true);
 	}
 

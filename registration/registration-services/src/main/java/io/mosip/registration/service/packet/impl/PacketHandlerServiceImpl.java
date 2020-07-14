@@ -162,6 +162,8 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			successResponseDTO.setCode("0000");
 			successResponseDTO.setMessage("Success");
 			responseDTO.setSuccessResponseDTO(successResponseDTO);
+			auditFactory.audit(AuditEvent.PACKET_CREATION_SUCCESS, Components.PACKET_HANDLER,
+					registrationDTO.getRegistrationId(), AuditReferenceIdTypes.REGISTRATION_ID.getReferenceTypeId());
 			
 		} catch (PacketCreatorException | RegBaseCheckedException e) {
 			LOGGER.info(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID,
