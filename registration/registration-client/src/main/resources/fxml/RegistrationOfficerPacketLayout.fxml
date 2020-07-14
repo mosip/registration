@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.text.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.shape.*?>
 <?import javafx.scene.control.*?>
@@ -388,7 +389,6 @@
                   </GridPane>
                </children>
             </GridPane>
-            <Label styleClass="powerdBy" text="© 2019, Powered by MOSIP" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
             <GridPane GridPane.columnIndex="4">
               <columnConstraints>
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -502,6 +502,38 @@
                   <Insets right="40.0" />
                </GridPane.margin>
             </GridPane>
+            <HBox prefHeight="56.0" prefWidth="264.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
+               <children>
+                  <HBox prefHeight="56.0" prefWidth="123.0">
+                     <children>
+                        <Label prefHeight="30.0" prefWidth="134.0" styleClass="powerdBy" text="%mosip.io" textAlignment="CENTER">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Label>
+                     </children>
+                  </HBox>
+                  <HBox prefHeight="100.0" prefWidth="200.0">
+                     <children>
+            		   <Label prefHeight="30.0" prefWidth="204.0" styleClass="powerdBy" text="%regClientVersion" textAlignment="CENTER">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Label>
+            				<Label prefHeight="27.0" prefWidth="29.0" text=":" />
+                     </children>
+                  </HBox>
+                  <HBox prefHeight="56.0" prefWidth="109.0">
+                     <children>
+                       <Label fx:id="versionValueLabel" prefHeight="30.0" prefWidth="103.0" styleClass="powerdBy" text="  " textAlignment="RIGHT">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Label>
+                     </children>
+                  </HBox>
+               </children>
+            </HBox>
          </children>
       </GridPane>
    </children>

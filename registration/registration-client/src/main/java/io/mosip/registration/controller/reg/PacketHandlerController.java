@@ -68,6 +68,7 @@ import io.mosip.registration.service.sync.PolicySyncService;
 import io.mosip.registration.service.sync.PreRegistrationDataSyncService;
 import io.mosip.registration.service.template.NotificationService;
 import io.mosip.registration.service.template.TemplateService;
+import io.mosip.registration.update.SoftwareUpdateHandler;
 import io.mosip.registration.util.acktemplate.TemplateGenerator;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import javafx.fxml.FXML;
@@ -272,6 +273,10 @@ public class PacketHandlerController extends BaseController implements Initializ
 	private GridPane viewReportsPane;
 	@FXML
 	private ImageView viewReportsImageView;
+	@Autowired
+	private SoftwareUpdateHandler softwareUpdateHandler;
+	@FXML
+	private Label versionValueLabel;
 
 	@Autowired
 	HeaderController headerController;
@@ -285,6 +290,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
+		versionValueLabel.setText(softwareUpdateHandler.getCurrentVersion());
 
 		try {
 			setImagesOnHover();
