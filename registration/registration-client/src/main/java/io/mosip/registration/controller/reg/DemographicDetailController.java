@@ -4,7 +4,6 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -28,8 +27,6 @@ import io.mosip.kernel.core.applicanttype.exception.InvalidApplicantArgumentExce
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 import io.mosip.kernel.core.idvalidator.spi.PridValidator;
-import io.mosip.kernel.core.idvalidator.spi.RidValidator;
-import io.mosip.kernel.core.idvalidator.spi.UinValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.transliteration.spi.Transliteration;
 import io.mosip.kernel.core.util.StringUtils;
@@ -45,7 +42,6 @@ import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.FXUtils;
 import io.mosip.registration.controller.VirtualKeyboard;
-import io.mosip.registration.controller.device.FaceCaptureController;
 import io.mosip.registration.controller.device.GuardianBiometricsController;
 import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dto.ErrorResponseDTO;
@@ -108,7 +104,7 @@ public class DemographicDetailController extends BaseController {
 	private Node keyboardNode;
 	@Autowired
 	private PridValidator<String> pridValidatorImpl;
-	
+
 	@Autowired
 	private Validations validation;
 	@Autowired
@@ -152,8 +148,6 @@ public class DemographicDetailController extends BaseController {
 	private boolean lostUIN = false;
 	private ResourceBundle applicationLabelBundle;
 	private ResourceBundle localLabelBundle;
-	@Autowired
-	private FaceCaptureController faceCaptureController;
 	private String primaryLanguage;
 	private String secondaryLanguage;
 	private List<String> orderOfAddress;
@@ -592,33 +586,33 @@ public class DemographicDetailController extends BaseController {
 	}
 
 	private void populateDropDowns() {
-		try {			
-			for(String k : listOfComboBoxWithObject.keySet()) {
+		try {
+			for (String k : listOfComboBoxWithObject.keySet()) {
 				switch (k.toLowerCase()) {
 				case "gender":
 					listOfComboBoxWithObject.get("gender").getItems()
-					.addAll(masterSyncService.getGenderDtls(ApplicationContext.applicationLanguage()).stream()
-							.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList()));
+							.addAll(masterSyncService.getGenderDtls(ApplicationContext.applicationLanguage()).stream()
+									.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList()));
 					listOfComboBoxWithObject.get("genderLocalLanguage").getItems()
-					.addAll(masterSyncService.getGenderDtls(ApplicationContext.localLanguage()).stream()
-							.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList()));			
+							.addAll(masterSyncService.getGenderDtls(ApplicationContext.localLanguage()).stream()
+									.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList()));
 					break;
 
-				case "residencestatus":	
+				case "residencestatus":
 					listOfComboBoxWithObject.get("residenceStatus").getItems()
-					.addAll(masterSyncService.getIndividualType(ApplicationContext.applicationLanguage()));
+							.addAll(masterSyncService.getIndividualType(ApplicationContext.applicationLanguage()));
 					listOfComboBoxWithObject.get("residenceStatusLocalLanguage").getItems()
-					.addAll(masterSyncService.getIndividualType(ApplicationContext.localLanguage()));
+							.addAll(masterSyncService.getIndividualType(ApplicationContext.localLanguage()));
 					break;
-					
+
 				default:
-					//TODO
+					// TODO
 					break;
 				}
-			}			
+			}
 		} catch (RegBaseCheckedException e) {
-			LOGGER.error("populateDropDowns", APPLICATION_NAME,
-							RegistrationConstants.APPLICATION_ID, ExceptionUtils.getStackTrace(e));
+			LOGGER.error("populateDropDowns", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					ExceptionUtils.getStackTrace(e));
 		}
 	}
 
@@ -674,13 +668,16 @@ public class DemographicDetailController extends BaseController {
 					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 		}
 	}
-	
+
 	/**
 	 * Gets the age.
 	 *
-	 * @param year the year
-	 * @param month the month
-	 * @param date the date
+	 * @param year
+	 *            the year
+	 * @param month
+	 *            the month
+	 * @param date
+	 *            the date
 	 * @return the age
 	 */
 	String getAge(String year, String month, String date) {
@@ -833,12 +830,12 @@ public class DemographicDetailController extends BaseController {
 		return listOfValues;
 	}
 
-	private void addDemoGraphicDetailsToSession() {		
+	private void addDemoGraphicDetailsToSession() {
 		try {
 			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 			for (UiSchemaDTO schemaField : validation.getValidationMap().values()) {
 				if (schemaField.getControlType() == null)
-					continue;			
+					continue;
 
 				if (registrationDTO.getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE)
 						&& !registrationDTO.getUpdatableFields().contains(schemaField.getId()))
@@ -929,7 +926,7 @@ public class DemographicDetailController extends BaseController {
 			auditFactory.audit(AuditEvent.SAVE_DETAIL_TO_DTO, Components.REGISTRATION_CONTROLLER,
 					SessionContext.userContext().getUserId(), RegistrationConstants.ONBOARD_DEVICES_REF_ID_TYPE);
 
-			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();			
+			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 			/*
 			 * if (preRegistrationId.getText() == null &&
 			 * preRegistrationId.getText().isEmpty()) {
@@ -993,7 +990,8 @@ public class DemographicDetailController extends BaseController {
 					if (schemaField.getControlType().equals(RegistrationConstants.DROPDOWN)
 							|| Arrays.asList(orderOfAddress).contains(schemaField.getId())) {
 						populateFieldValue(listOfComboBoxWithObject.get(schemaField.getId()),
-								listOfComboBoxWithObject.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE),
+								listOfComboBoxWithObject
+										.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE),
 								(List<SimpleDto>) value);
 					} else
 						populateFieldValue(listOfTextField.get(schemaField.getId()),
@@ -1003,22 +1001,20 @@ public class DemographicDetailController extends BaseController {
 
 				case RegistrationConstants.NUMBER:
 				case RegistrationConstants.STRING:
-					if(RegistrationConstants.AGE_DATE.equalsIgnoreCase(schemaField.getControlType())) {
-						String[] dateParts = ((String)value).split("/");
+					if (RegistrationConstants.AGE_DATE.equalsIgnoreCase(schemaField.getControlType())) {
+						String[] dateParts = ((String) value).split("/");
 						if (dateParts.length == 3) {
 							listOfTextField.get(schemaField.getId() + "__" + "dd").setText(dateParts[2]);
 							listOfTextField.get(schemaField.getId() + "__" + "mm").setText(dateParts[1]);
 							listOfTextField.get(schemaField.getId() + "__" + "yyyy").setText(dateParts[0]);
 						}
-					}
-					else if (RegistrationConstants.DROPDOWN.equalsIgnoreCase(schemaField.getControlType()) || 
-							Arrays.asList(orderOfAddress).contains(schemaField.getId())) {
+					} else if (RegistrationConstants.DROPDOWN.equalsIgnoreCase(schemaField.getControlType())
+							|| Arrays.asList(orderOfAddress).contains(schemaField.getId())) {
 						ComboBox<GenericDto> platformField = listOfComboBoxWithObject.get(schemaField.getId());
-						if(platformField != null) {
+						if (platformField != null) {
 							platformField.setValue(new GenericDto((String) value, (String) value, "eng"));
 						}
-					}
-					else {
+					} else {
 						TextField textField = listOfTextField.get(schemaField.getId());
 						if (textField != null)
 							textField.setText((String) value);
@@ -1168,11 +1164,12 @@ public class DemographicDetailController extends BaseController {
 			preRegistrationId.clear();
 		}
 
-		//Its required to save before validation as on spot check for values during MVEL validation
+		// Its required to save before validation as on spot check for values during
+		// MVEL validation
 		saveDetail();
 
 		if (registrationController.validateDemographicPane(parentFlowPane)) {
-			//saveDetail();
+			// saveDetail();
 
 			guardianBiometricsController.populateBiometricPage(false);
 			/*
