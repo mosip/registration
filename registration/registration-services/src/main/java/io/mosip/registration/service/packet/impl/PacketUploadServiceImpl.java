@@ -23,7 +23,11 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.FileUtils;
 import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.constants.AuditEvent;
+import io.mosip.registration.constants.AuditReferenceIdTypes;
+import io.mosip.registration.constants.Components;
 import io.mosip.registration.constants.RegistrationClientStatusCode;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dao.RegistrationDAO;
@@ -60,6 +64,9 @@ public class PacketUploadServiceImpl extends BaseService implements PacketUpload
 
 	/** The Constant LOGGER. */
 	private static final Logger LOGGER = AppConfig.getLogger(PacketUploadServiceImpl.class);
+	
+	@Autowired
+	private AuditManagerService auditFactory;
 
 	/*
 	 * (non-Javadoc)
@@ -99,6 +106,9 @@ public class PacketUploadServiceImpl extends BaseService implements PacketUpload
 					successResponseDTO.setCode(RegistrationConstants.SUCCESS);
 					successResponseDTO.setMessage((String) response.get(RegistrationConstants.UPLOAD_STATUS));
 					responseDTO.setSuccessResponseDTO(successResponseDTO);
+					auditFactory.audit(AuditEvent.PACKET_UPLOADED, Components.PACKET_UPLOAD,
+							RegistrationConstants.APPLICATION_NAME,
+							AuditReferenceIdTypes.REGISTRATION_ID.getReferenceTypeId());
 				} else if (response.get(RegistrationConstants.ERRORS) != null) {
 					ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO();
 					errorResponseDTO.setCode(RegistrationConstants.ERROR);
