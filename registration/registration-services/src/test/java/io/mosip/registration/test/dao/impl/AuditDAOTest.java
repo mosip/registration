@@ -21,6 +21,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import io.mosip.kernel.auditmanager.entity.Audit;
+import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dao.impl.AuditDAOImpl;
 import io.mosip.registration.entity.RegistrationAuditDates;
 import io.mosip.registration.exception.RegBaseUncheckedException;
@@ -52,22 +53,24 @@ public class AuditDAOTest {
 
 	@Test
 	public void testGetAudits() {
-		when(auditRepository.findAllByOrderByCreatedAtAsc()).thenReturn(audits);
+		when(auditRepository.findByEventIdStartsWithOrderByCreatedAtAsc(RegistrationConstants.REGISTRATION_EVENTS))
+				.thenReturn(audits);
 
 		Assert.assertThat(auditDAO.getAudits(null), is(audits));
 	}
 
 	@Test
 	public void testGetAuditsByNullAuditLogToTime() {
-		when(auditRepository.findAllByOrderByCreatedAtAsc()).thenReturn(audits);
+		when(auditRepository.findByEventIdStartsWithOrderByCreatedAtAsc(RegistrationConstants.REGISTRATION_EVENTS))
+				.thenReturn(audits);
 
 		Assert.assertThat(auditDAO.getAudits(new RegistrationAuditDates() {
-			
+
 			@Override
 			public Timestamp getAuditLogToDateTime() {
 				return null;
 			}
-			
+
 			@Override
 			public Timestamp getAuditLogFromDateTime() {
 				return null;
@@ -81,12 +84,12 @@ public class AuditDAOTest {
 				.thenReturn(audits);
 
 		Assert.assertThat(auditDAO.getAudits(new RegistrationAuditDates() {
-			
+
 			@Override
 			public Timestamp getAuditLogToDateTime() {
 				return Timestamp.valueOf(LocalDateTime.now().minusDays(1));
 			}
-			
+
 			@Override
 			public Timestamp getAuditLogFromDateTime() {
 				return null;
@@ -96,19 +99,20 @@ public class AuditDAOTest {
 
 	@Test(expected = RegBaseUncheckedException.class)
 	public void testGetAuditsRuntimeException() {
-		when(auditRepository.findAllByOrderByCreatedAtAsc()).thenThrow(new RuntimeException("SQL exception"));
+		when(auditRepository.findByEventIdStartsWithOrderByCreatedAtAsc(RegistrationConstants.REGISTRATION_EVENTS))
+				.thenThrow(new RuntimeException("SQL exception"));
 
 		auditDAO.getAudits(null);
 	}
-	
+
 	@Test
 	public void deleteAllTest() {
-		LocalDateTime fromTime=new  Timestamp(System.currentTimeMillis()).toLocalDateTime();
-		LocalDateTime toTime=new  Timestamp(System.currentTimeMillis()).toLocalDateTime();
-		
-		Mockito.doNothing().when(auditRepository).deleteAllInBatchBycreatedAtBetween(fromTime,toTime);
+		LocalDateTime fromTime = new Timestamp(System.currentTimeMillis()).toLocalDateTime();
+		LocalDateTime toTime = new Timestamp(System.currentTimeMillis()).toLocalDateTime();
+
+		Mockito.doNothing().when(auditRepository).deleteAllInBatchBycreatedAtBetween(fromTime, toTime);
 		auditDAO.deleteAll(fromTime, toTime);
-		
+
 	}
 
 }

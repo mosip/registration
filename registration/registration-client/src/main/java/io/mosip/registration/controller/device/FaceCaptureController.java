@@ -299,7 +299,7 @@ public class FaceCaptureController extends BaseController implements Initializab
 	 */
 	@FXML
 	private void saveBiometricDetails() {
-		auditFactory.audit(AuditEvent.REG_BIO_FACE_CAPTURE_NEXT, Components.REG_BIOMETRICS, SessionContext.userId(),
+		auditFactory.audit(AuditEvent.REG_BIO_CAPTURE_NEXT, Components.REG_BIOMETRICS, SessionContext.userId(),
 				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
