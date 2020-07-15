@@ -87,12 +87,12 @@ import javafx.util.StringConverter;
  * @since 1.0
  */
 @Controller
-public class GuardianBiometricsController extends BaseController /* implements Initializable */ {
+public class BiometricsController extends BaseController /* implements Initializable */ {
 
 	/**
 	 * Instance of {@link Logger}
 	 */
-	private static final Logger LOGGER = AppConfig.getLogger(GuardianBiometricsController.class);
+	private static final Logger LOGGER = AppConfig.getLogger(BiometricsController.class);
 
 	@FXML
 	private GridPane biometricBox;

@@ -309,7 +309,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			digitalId.setMake(device.getDeviceMake());
 			digitalId.setModel(device.getDeviceModel());
 			digitalId.setSerialNo(device.getSerialNumber());
-			digitalId.setSubType(device.getDeviceSubType());
+			digitalId.setDeviceSubType(device.getDeviceSubType());
 			digitalId.setType(device.getDeviceType());
 			registerdDevice.setDigitalId(digitalId);
 			capturedRegisteredDevices.add(registerdDevice);

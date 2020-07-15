@@ -84,7 +84,7 @@ public class RegistrationController extends BaseController {
 	@FXML
 	private GridPane irisCapture;
 	@FXML
-	private GridPane guardianBiometric;
+	private GridPane biometric;
 	@FXML
 	private GridPane operatorAuthenticationPane;
 	@FXML
@@ -435,7 +435,7 @@ public class RegistrationController extends BaseController {
 		}
 		
 		biometricException.setVisible(getVisiblity(RegistrationConstants.UIN_UPDATE_BIOMETRICEXCEPTION));
-		guardianBiometric.setVisible(getVisiblity(RegistrationConstants.UIN_UPDATE_PARENTGUARDIAN_DETAILS));
+		biometric.setVisible(getVisiblity(RegistrationConstants.UIN_UPDATE_PARENTGUARDIAN_DETAILS));
 		faceCapture.setVisible(getVisiblity(RegistrationConstants.UIN_UPDATE_FACECAPTURE));
 		registrationPreview.setVisible(getVisiblity(RegistrationConstants.UIN_UPDATE_REGISTRATIONPREVIEW));
 		operatorAuthenticationPane
