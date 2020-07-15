@@ -57,9 +57,6 @@ public class RegistrationConstants {
 	public static final String DOCUMENT_SCAN = "documentScan";
 	public static final String DOCUMENT_PANE = "documentPane";
 	public static final String EXCEPTION_PANE = "exceptionPane";
-	public static final String BIOMETRIC_EXCEPTION = "biometricException";
-	public static final String FINGER_PANE = "fingerPane";
-	public static final String FINGER_SINGLE = "FINGERPRINT_SINGLE";
 	public static final String FIN = "FIN";
 	public static final String FINGER_SLAB = "FINGERPRINT_SLAB";
 	public static final String FINGERPRINT_SLAB_LEFT = "FINGERPRINT_SLAB_LEFT";
@@ -69,14 +66,10 @@ public class RegistrationConstants {
 	public static final int MDM_TIMEOUT = 10000;
 	public static final String MDM_VERSION = "1.0";
 
-	public static final String IRIS_PANE = "irisPane";
 	public static final String IRIS_IMAGE_LOCAL = "/images/leftEye.png";
 	public static final String IRIS_IMAGE_LOCAL_RIGHT = "/images/rightEye.png";
 	public static final String IRIS_SINGLE = "IRIS_SINGLE";
 	public static final String IRIS_DOUBLE = "IRIS_DOUBLE";
-	public static final String FINGERPRINT_CAPTURE = "fingerPrintCapture";
-	public static final String IRIS_CAPTURE = "irisCapture";
-	public static final String FACE_CAPTURE = "faceCapture";
 	public static final String REGISTRATION_PREVIEW = "registrationPreview";
 	public static final String OPERATOR_AUTHENTICATION = "operatorAuthenticationPane";
 	public static final String ONBOARD_USER_PARENT = "onboardUser";
@@ -95,9 +88,7 @@ public class RegistrationConstants {
 	public static final String PROGRESS_BAR_GREEN = "progress-barGreen";
 	public static final String LABEL_RED = "labelRed";
 	public static final String LABEL_GREEN = "labelGreen";
-	public static final String IRIS_PANES_SELECTED = "IrisPanesSelected";
-	public static final String BIO_IRIS_SELECTED = "bioIris";
-
+	
 	// Page Flow
 	public static final String VISIBILITY = "visibility";
 	// public static final String ONBOARD_LIST = "onboardPageList";
@@ -299,12 +290,6 @@ public class RegistrationConstants {
 	public static final String TOGGLE_BIO_METRIC_EXCEPTION = "toggleBiometricException";
 	public static final String IS_LOW_QUALITY_BIOMETRICS = "Low Quality Biometrics";
 
-	// Reasons for Exception
-	public static final String MISSING_BIOMETRICS = "Missing biometrics";
-	public static final String LOW_QUALITY_BIOMETRICS = "Low quality of biometrics";
-	public static final String PERMANENT_EXCEPTION = "Permanent";
-	public static final String TEMPORARY_EXCEPTION = "Temporary";
-
 	// Lost UIN
 	public static final String PACKET_TYPE_LOST = "Lost";
 	public static final String LOST_UIN_CONFIG_FLAG = "mosip.registration.lost_uin_disable_flag";
@@ -445,13 +430,6 @@ public class RegistrationConstants {
 	public static final String ACKNOWLEDGEMENT_FORMAT = "html";
 
 	public static final String IMAGE_FORMAT_PNG = "png";
-
-	// Constants for Registration ID Generator - will be removed after Kernel
-	// Integration
-	public static final String AGENCY_CODE = "2018";
-	public static final String STATION_NUMBER = "78213";
-	public static final String RID_DATE_FORMAT = "ddMMyyyyHHmmss";
-	public static final String DATE_FORMAT_REG = "dd-MM-yyyy";
 
 	// Logger - Constants
 	public static final String APPLICATION_ID = "REG";
@@ -715,27 +693,14 @@ public class RegistrationConstants {
 	public static final String WEB_CAMERA_IMAGE_TYPE = "jpg";
 	public static final String APPLICANT_PHOTOGRAPH_NAME = "Applicant Photograph.jpg";
 	public static final String EXCEPTION_PHOTOGRAPH_NAME = "Exception Photograph.jpg";
-	public static final String APPLICANT_IMAGE = "Applicant Image";
-	public static final String EXCEPTION_IMAGE = "Exception Image";
-	public static final String GUARDIAN_IMAGE = "Guardian Image";
-	public static final String APPLICANT_PHOTO_PANE = "applicantImagePane";
-	public static final String EXCEPTION_PHOTO_PANE = "exceptionImagePane";
-	public static final String WEB_CAMERA_PAGE_TITLE = "Applicant Biometrics";
 	public static final String WEBCAM_NAME = "mosip.registration.webcam_name";
 	public static final String WEBCAM_LIBRARY_NAME = "mosip.registration.webcam_library_name";
-	public static final String PHOTO_CAPTUREPANES_SELECTED = "photoCapturePanesSelected";
 	public static final String DEFAULT_EXCEPTION_IMAGE_PATH = "/images/ExceptionPhoto.png";
 	public static final String IMAGE_PATH = "/images/Photo.png";
 
-	// Acknowledgement Form
-	public static final String ACKNOWLEDGEMENT_FORM_TITLE = "Registration Acknowledgement";
-	public static final String REGISTRATION = "Registration";
-
 	// logos for new registration
 	public static final String DEMOGRAPHIC_DETAILS_LOGO = "file:src/main/resources/images/Pre-Registration.png";
-	public static final String APPLICANT_BIOMETRICS_LOGO = "file:src/main/resources/images/ApplicantBiometrics.png";
-	public static final String OPERATOR_AUTHENTICATION_LOGO = "file:src/main/resources/images/OperatorAuthentication.png";
-
+	
 	// Exception Code for Components
 	public static final String PACKET_CREATION_EXP_CODE = "PCC-";
 	public static final String PACKET_UPLOAD_EXP_CODE = "PAU-";
@@ -757,7 +722,6 @@ public class RegistrationConstants {
 	public static final String DEVICE_MAPPING_ERROR_CODE = "REG-DVO‌-002";
 
 	// Upload Packet
-
 	public static final String UPLOAD_STATUS = "status";
 	public static final List<String> PACKET_UPLOAD_STATUS = Arrays.asList("SYNCED", "EXPORTED", "RESEND", "E");
 
@@ -812,7 +776,6 @@ public class RegistrationConstants {
 	public static final String DSC_CODE_ONE = "REG-DSC‌-001";
 
 	/** Packet Status Sync Constants */
-	public static final String SYNC_PROGRESS_BAR_VALUE = "syncProgressVlaue";
 	public static final String PACKET_STATUS_SYNC_RESPONSE_ENTITY = "registrations";
 	public static final String PACKET_STATUS_SYNC_SERVICE_NAME = "packet_status";
 	public static final String PACKET_STATUS_READER_URL_PARAMETER = "request";
@@ -1440,7 +1403,6 @@ public class RegistrationConstants {
 
 	public static final String OTP_EXPIRY_TIME = "mosip.kernel.otp.expiry-time";
 
-	// TODO Need to discuss with Sravya about code
 	public static String INITIAL_SETUP = "mosip.registration.initial_setup";
 
 	public static final String SIGNED_KEY = "signed-key";
