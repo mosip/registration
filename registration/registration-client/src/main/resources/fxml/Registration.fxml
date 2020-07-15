@@ -44,7 +44,7 @@
          <children>
            	<fx:include fx:id="demographicDetail" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="DemographicDetail.fxml" visible="true" />
          	<fx:include fx:id="documentScan" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="DocumentScan.fxml" visible="false" />
-         	<fx:include fx:id="guardianBiometric" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="GuardianBiometrics.fxml" visible="false" />
+         	<fx:include fx:id="biometric" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="Biometrics.fxml" visible="false" />
             <fx:include fx:id="registrationPreview" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="RegistrationPreview.fxml" visible="false" />
             <fx:include fx:id="operatorAuthenticationPane" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="OperatorAuthentication.fxml" visible="false" />
          </children>

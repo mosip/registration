@@ -31,7 +31,7 @@ import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
-import io.mosip.registration.controller.device.GuardianBiometricsController;
+import io.mosip.registration.controller.device.BiometricsController;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.template.TemplateService;
@@ -72,7 +72,7 @@ public class RegistrationPreviewController extends BaseController implements Ini
 	private RegistrationController registrationController;
 
 	@Autowired
-	private GuardianBiometricsController guardianBiometricsController;
+	private BiometricsController guardianBiometricsController;
 
 	@FXML
 	private Text registrationNavlabel;
