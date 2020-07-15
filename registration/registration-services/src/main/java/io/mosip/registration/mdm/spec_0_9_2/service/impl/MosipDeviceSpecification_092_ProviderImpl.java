@@ -315,7 +315,7 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 	}
 
 	private MdmBioDevice getBioDevice(MdmDeviceInfo deviceInfo)
-			throws JsonParseException, JsonMappingException, IOException {
+			throws JsonParseException, JsonMappingException, IOException, RegBaseCheckedException {
 
 		MdmBioDevice bioDevice = null;
 
@@ -348,7 +348,8 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 		return bioDevice;
 	}
 
-	private DigitalId getDigitalId(String digitalId) throws JsonParseException, JsonMappingException, IOException {
+	private DigitalId getDigitalId(String digitalId)
+			throws JsonParseException, JsonMappingException, IOException, RegBaseCheckedException {
 		return (DigitalId) (deviceSpecificationFactory.getMapper().readValue(
 				new String(Base64.getUrlDecoder().decode(deviceSpecificationFactory.getPayLoad(digitalId))),
 				DigitalId.class));
