@@ -2109,13 +2109,17 @@ public class GuardianBiometricsController extends BaseController /* implements I
 		if(streamImage == null) {
 			String imagePath = getStubStreamImagePath(modality);
 			STREAM_IMAGES.put(String.format("%s_%s_%s", subType, modality, attempt), new Image(this.getClass().getResourceAsStream(imagePath)));
-			getRegistrationDTOFromSession().streamImages.put(String.format("%s_%s_%s", subType, modality, attempt),
+			if (getRegistrationDTOFromSession() != null) {
+				getRegistrationDTOFromSession().streamImages.put(String.format("%s_%s_%s", subType, modality, attempt),
 					IOUtils.toByteArray(this.getClass().getResourceAsStream(imagePath)));
+			}
 		}
 		else {
 			STREAM_IMAGES.put(String.format("%s_%s_%s", subType, modality, attempt), new Image(new ByteArrayInputStream(streamImage)));
-			getRegistrationDTOFromSession().streamImages.put(String.format("%s_%s_%s", subType, modality, attempt),
+			if (getRegistrationDTOFromSession() != null) {
+				getRegistrationDTOFromSession().streamImages.put(String.format("%s_%s_%s", subType, modality, attempt),
 					streamImage);
+			}
 		}
 	}
 
