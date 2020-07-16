@@ -216,7 +216,9 @@ public enum RegistrationExceptionConstants {
 	MDS_BIODEVICE_NOT_FOUND("REG-MDS-001","Bio Device not found"),
 	MDS_STREAM_ERROR("REG-MDS-002","Unable to start Stream"),
 	MDS_RCAPTURE_ERROR("REG-MDS-003","RCapture Failed"),
-	MDS_PROVIDER_NOT_FOUND("REG-MDS-004","MDS provider not found");
+	MDS_PROVIDER_NOT_FOUND("REG-MDS-004","MDS provider not found"),
+	MDS_JWT_INVALID("REG-MDS-005","Invalid JWT value (Header.Payload.Signature)"),
+	MDS_PAYLOAD_EMPTY("REG-MDS-006","Payload is Empty");
 
 	
 	/**
