@@ -408,6 +408,11 @@ public class BiometricsController extends BaseController /* implements Initializ
 								}
 
 								vboxForCheckBox.getChildren().add(checkBox);
+
+								if (!isUserOnboardFlag && getRegistrationDTOFromSession()
+										.isBiometricExceptionAvailable(currentSubType, checkBox.getId())) {
+									checkBox.setSelected(true);
+								}
 								checkBox.selectedProperty().addListener((obsValue, oldValue, newValue) -> {
 									updateBiometricData(vboxForCheckBox, checkBox);
 									setScanButtonVisibility(isAllExceptions(vboxForCheckBox.getChildren()), scanBtn);
@@ -416,9 +421,6 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 								});
 
-								if (!isUserOnboardFlag && getRegistrationDTOFromSession()
-										.isBiometricExceptionAvailable(currentSubType, checkBox.getId()))
-									checkBox.setSelected(true);
 							}
 						}
 
@@ -640,8 +642,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 				if (node instanceof CheckBox) {
 					CheckBox checkBox = (CheckBox) node;
 					String bioAttribute = checkBox.getId();
-					if (isBiometricExceptionAvailable(currentSubType, bioAttribute))
-						checkBox.setSelected(true);
+					// if (isBiometricExceptionAvailable(currentSubType, bioAttribute))
+					// checkBox.setSelected(true);
 
 					if (checkBox.isSelected() || checkBox.isDisable()) {
 						exceptionBioAttributes = exceptionBioAttributes != null ? exceptionBioAttributes
