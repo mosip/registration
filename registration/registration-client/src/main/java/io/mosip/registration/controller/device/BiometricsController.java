@@ -900,20 +900,18 @@ public class BiometricsController extends BaseController /* implements Initializ
 						generateAlert(RegistrationConstants.ALERT_INFORMATION,
 								RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
 
-						/*Image streamImage = null;
-						if (bioService.isMdmEnabled()) {
-							streamImage = streamer.getStreamImage();
-						} else {
-							streamImage = new Image(
-									this.getClass().getResourceAsStream(getStubStreamImagePath(modality)));
-						}*/
+						/*
+						 * Image streamImage = null; if (bioService.isMdmEnabled()) { streamImage =
+						 * streamer.getStreamImage(); } else { streamImage = new Image(
+						 * this.getClass().getResourceAsStream(getStubStreamImagePath(modality))); }
+						 */
 
 						LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 								"Adding streaming image into local map");
 
 						addBioStreamImage(subType, currentModality,
-								registrationDTOBiometricsList.get(0).getNumOfRetries(), (bioService.isMdmEnabled())  ?
-										streamer.getStreamImageBytes() : null);
+								registrationDTOBiometricsList.get(0).getNumOfRetries(),
+								(bioService.isMdmEnabled()) ? streamer.getStreamImageBytes() : null);
 
 						LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 								"Adding bio scores into local map");
@@ -1066,6 +1064,9 @@ public class BiometricsController extends BaseController /* implements Initializ
 			goToPrevious();
 			return;
 		}
+
+		registrationController.showCurrentPage(RegistrationConstants.GUARDIAN_BIOMETRIC,
+				getPageByAction(RegistrationConstants.GUARDIAN_BIOMETRIC, RegistrationConstants.PREVIOUS));
 
 	}
 
