@@ -328,8 +328,12 @@ public class MosipDeviceSpecificationFactory {
 		return null;
 	}
 
-	public String getPayLoad(String data) {
+	public String getPayLoad(String data) throws RegBaseCheckedException {
 
+		if (data == null || data.isEmpty()) {
+			throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_JWT_INVALID.getErrorCode(),
+					RegistrationExceptionConstants.MDS_JWT_INVALID.getErrorMessage());
+		}
 		String payLoad = null;
 		Pattern pattern = Pattern.compile(RegistrationConstants.BIOMETRIC_SEPERATOR);
 		Matcher matcher = pattern.matcher(data);
@@ -337,6 +341,10 @@ public class MosipDeviceSpecificationFactory {
 			payLoad = matcher.group(1);
 		}
 
+		if(payLoad==null) {
+			throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_PAYLOAD_EMPTY.getErrorCode(),
+					RegistrationExceptionConstants.MDS_PAYLOAD_EMPTY.getErrorMessage());
+		}
 		return payLoad;
 	}
 
