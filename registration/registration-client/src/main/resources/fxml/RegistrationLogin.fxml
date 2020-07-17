@@ -65,7 +65,9 @@
                   <Button fx:id="getOTP" layoutX="53.0" layoutY="144.0" mnemonicParsing="false" onAction="#generateOtp" styleClass="loginSubmitStyle" text="%getotp" visible="true" />
                   <Button fx:id="resend" layoutX="53.0" layoutY="144.0" mnemonicParsing="false" onAction="#generateOtp" styleClass="loginSubmitStyle" text="%resendotp" visible="false" />
                   <Button fx:id="otpSubmit" disable="true" layoutX="53.0" layoutY="195.0" mnemonicParsing="false" onAction="#validateOTP" styleClass="loginSubmitStyle" text="%submit" />
-                  <Label fx:id="otpValidity" layoutX="54.0" layoutY="245.0" styleClass="loginOtpValidStyle" visible="false" />
+                  <Label fx:id="otpValidity" layoutX="60.0" layoutY="245.0" styleClass="loginOtpValidStyle" visible="false" />
+              <Hyperlink layoutX="52.0" layoutY="234.0" mnemonicParsing="false" onAction="#back" styleClass="hyperLinkStyle" text="%back" />
+             
                </children>
             </AnchorPane>
             <AnchorPane fx:id="fingerprintPane" layoutX="72.0" layoutY="220.0" prefHeight="192.0" prefWidth="207.0" styleClass="loginAnchorPaneStyle" visible="false">
@@ -78,6 +80,8 @@
       						<Image url="@../images/FingerprintScan.png" />
       					</image>
       				</ImageView>
+      				 <Hyperlink layoutX="52.0" layoutY="222.0" mnemonicParsing="false" onAction="#back" styleClass="hyperLinkStyle" text="%back" />
+      				
                </children>
             </AnchorPane>
             <AnchorPane fx:id="irisPane" layoutX="55.0" layoutY="231.0" prefHeight="242.0" prefWidth="379.0" styleClass="loginAnchorPaneStyle" visible="false">
@@ -90,6 +94,8 @@
       						<Image url="@../images/Eyescan.png" />
       					</image>
       				</ImageView>
+      				 <Hyperlink layoutX="52.0" layoutY="222.0" mnemonicParsing="false" onAction="#back" styleClass="hyperLinkStyle" text="%back" />
+             
                </children>
             </AnchorPane>
             <AnchorPane fx:id="facePane" layoutX="10.0" layoutY="38.0" prefHeight="510.0" prefWidth="458.0" styleClass="loginAnchorPaneStyle" visible="false"> 
@@ -103,6 +109,8 @@
       						<Image url="@../images/FaceScan.png" />
       					</image>
       				</ImageView>
+      				 <Hyperlink layoutX="52.0" layoutY="476.0" mnemonicParsing="false" onAction="#back" styleClass="hyperLinkStyle" text="%back" />
+             
                </children>
             </AnchorPane>
             <AnchorPane fx:id="errorPane" layoutX="108.0" layoutY="153.0" styleClass="loginAnchorPaneStyle" visible="false">
