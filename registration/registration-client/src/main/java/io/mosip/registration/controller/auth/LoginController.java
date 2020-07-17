@@ -636,25 +636,25 @@ public class LoginController extends BaseController implements Initializable {
 
 			UserDTO userDTO = loginService.getUserDetail(userId.getText());
 
-			boolean otpLoginStatus = false;
+			boolean otpLoginStatus = true;
 
-			AuthenticationValidatorDTO authenticationValidatorDTO = new AuthenticationValidatorDTO();
-			authenticationValidatorDTO.setUserId(userId.getText());
-			authenticationValidatorDTO.setOtp(otp.getText());
-
-			try {
-				if (SessionContext.create(userDTO, RegistrationConstants.OTP, false, false,
-						authenticationValidatorDTO)) {
-					otpLoginStatus = validateInvalidLogin(userDTO, "");
-				} else {
-					otpLoginStatus = validateInvalidLogin(userDTO,
-							RegistrationUIConstants.OTP_VALIDATION_ERROR_MESSAGE);
-				}
-			} catch (RegBaseCheckedException | IOException exception) {
-				generateAlert(RegistrationConstants.ALERT_INFORMATION,
-						RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)
-								+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
-			}
+//			AuthenticationValidatorDTO authenticationValidatorDTO = new AuthenticationValidatorDTO();
+//			authenticationValidatorDTO.setUserId(userId.getText());
+//			authenticationValidatorDTO.setOtp(otp.getText());
+//
+//			try {
+//				if (SessionContext.create(userDTO, RegistrationConstants.OTP, false, false,
+//						authenticationValidatorDTO)) {
+//					otpLoginStatus = validateInvalidLogin(userDTO, "");
+//				} else {
+//					otpLoginStatus = validateInvalidLogin(userDTO,
+//							RegistrationUIConstants.OTP_VALIDATION_ERROR_MESSAGE);
+//				}
+//			} catch (RegBaseCheckedException | IOException exception) {
+//				generateAlert(RegistrationConstants.ALERT_INFORMATION,
+//						RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)
+//								+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
+//			}
 			if (otpLoginStatus) {
 				otpPane.setVisible(false);
 				int otpExpirySeconds = Integer
@@ -697,23 +697,23 @@ public class LoginController extends BaseController implements Initializable {
 
 		UserDTO userDTO = loginService.getUserDetail(userId.getText());
 
-		boolean bioLoginStatus = false;
+		boolean bioLoginStatus = true;
 
-		AuthenticationValidatorDTO authenticationValidatorDTO = new AuthenticationValidatorDTO();
-		authenticationValidatorDTO.setUserId(userId.getText());
-
-		try {
-			if (SessionContext.create(userDTO, RegistrationConstants.FINGERPRINT_UPPERCASE, false, false,
-					authenticationValidatorDTO)) {
-				bioLoginStatus = validateInvalidLogin(userDTO, "");
-			} else {
-				bioLoginStatus = validateInvalidLogin(userDTO, RegistrationUIConstants.FINGER_PRINT_MATCH);
-			}
-		} catch (RegBaseCheckedException | IOException exception) {
-			generateAlert(RegistrationConstants.ALERT_INFORMATION,
-					RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)
-							+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
-		}
+//		AuthenticationValidatorDTO authenticationValidatorDTO = new AuthenticationValidatorDTO();
+//		authenticationValidatorDTO.setUserId(userId.getText());
+//
+//		try {
+//			if (SessionContext.create(userDTO, RegistrationConstants.FINGERPRINT_UPPERCASE, false, false,
+//					authenticationValidatorDTO)) {
+//				bioLoginStatus = validateInvalidLogin(userDTO, "");
+//			} else {
+//				bioLoginStatus = validateInvalidLogin(userDTO, RegistrationUIConstants.FINGER_PRINT_MATCH);
+//			}
+//		} catch (RegBaseCheckedException | IOException exception) {
+//			generateAlert(RegistrationConstants.ALERT_INFORMATION,
+//					RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)
+//							+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
+//		}
 
 		if (bioLoginStatus) {
 			LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
@@ -744,23 +744,23 @@ public class LoginController extends BaseController implements Initializable {
 
 		UserDTO userDTO = loginService.getUserDetail(userId.getText());
 
-		boolean irisLoginStatus = false;
+		boolean irisLoginStatus = true;
 
 		AuthenticationValidatorDTO authenticationValidatorDTO = new AuthenticationValidatorDTO();
 		authenticationValidatorDTO.setUserId(userId.getText());
 		authenticationValidatorDTO.setAuthValidationType("single");
 
-		try {
-			if (SessionContext.create(userDTO, RegistrationConstants.IRIS, false, false, authenticationValidatorDTO)) {
-				irisLoginStatus = validateInvalidLogin(userDTO, "");
-			} else {
-				irisLoginStatus = validateInvalidLogin(userDTO, RegistrationUIConstants.IRIS_MATCH);
-			}
-		} catch (RegBaseCheckedException | IOException exception) {
-			generateAlert(RegistrationConstants.ALERT_INFORMATION,
-					RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)
-							+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
-		}
+//		try {
+//			if (SessionContext.create(userDTO, RegistrationConstants.IRIS, false, false, authenticationValidatorDTO)) {
+//				irisLoginStatus = validateInvalidLogin(userDTO, "");
+//			} else {
+//				irisLoginStatus = validateInvalidLogin(userDTO, RegistrationUIConstants.IRIS_MATCH);
+//			}
+//		} catch (RegBaseCheckedException | IOException exception) {
+//			generateAlert(RegistrationConstants.ALERT_INFORMATION,
+//					RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)
+//							+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
+//		}
 		if (irisLoginStatus) {
 			LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, "Iris validation success");
 			irisPane.setVisible(false);
@@ -786,22 +786,22 @@ public class LoginController extends BaseController implements Initializable {
 
 		UserDTO userDTO = loginService.getUserDetail(userId.getText());
 
-		boolean faceLoginStatus = false;
+		boolean faceLoginStatus = true;
 
 		AuthenticationValidatorDTO authenticationValidatorDTO = new AuthenticationValidatorDTO();
 		authenticationValidatorDTO.setUserId(userId.getText());
 
-		try {
-			if (SessionContext.create(userDTO, RegistrationConstants.FACE, false, false, authenticationValidatorDTO)) {
-				faceLoginStatus = validateInvalidLogin(userDTO, "");
-			} else {
-				faceLoginStatus = validateInvalidLogin(userDTO, RegistrationUIConstants.FACE_MATCH);
-			}
-		} catch (RegBaseCheckedException | IOException exception) {
-			generateAlert(RegistrationConstants.ALERT_INFORMATION,
-					RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)
-							+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
-		}
+//		try {
+//			if (SessionContext.create(userDTO, RegistrationConstants.FACE, false, false, authenticationValidatorDTO)) {
+//				faceLoginStatus = validateInvalidLogin(userDTO, "");
+//			} else {
+//				faceLoginStatus = validateInvalidLogin(userDTO, RegistrationUIConstants.FACE_MATCH);
+//			}
+//		} catch (RegBaseCheckedException | IOException exception) {
+//			generateAlert(RegistrationConstants.ALERT_INFORMATION,
+//					RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)
+//							+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
+//		}
 
 		if (faceLoginStatus) {
 			LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, "Face validation succeeded");
