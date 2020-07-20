@@ -110,7 +110,7 @@ public class UserOnboardController extends BaseController implements Initializab
 
 		clearAllValues();
 		
-		guardianBiometricsController.populateBiometricPage(true);
+		guardianBiometricsController.populateBiometricPage(true, false);
 		
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "User Onboard Controller initUserOnboard Method Exit");
