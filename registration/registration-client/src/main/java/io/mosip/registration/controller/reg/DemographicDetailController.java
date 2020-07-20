@@ -1171,7 +1171,7 @@ public class DemographicDetailController extends BaseController {
 		if (registrationController.validateDemographicPane(parentFlowPane)) {
 			// saveDetail();
 
-			guardianBiometricsController.populateBiometricPage(false);
+			guardianBiometricsController.populateBiometricPage(false, false);
 			/*
 			 * SessionContext.map().put("demographicDetail", false);
 			 * SessionContext.map().put("documentScan", true);
