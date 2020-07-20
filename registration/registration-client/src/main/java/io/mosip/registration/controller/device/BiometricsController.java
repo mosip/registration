@@ -65,6 +65,7 @@ import io.mosip.registration.service.sync.MasterSyncService;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -75,10 +76,16 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
@@ -148,8 +155,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 	@FXML
 	private Button continueBtn;
 
-	@FXML
-	private Label duplicateCheckLbl;
+	// @FXML
+	// private Label duplicateCheckLbl;
 
 	@FXML
 	private Label guardianBiometricsLabel;
@@ -260,6 +267,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 	private HashMap<String, HashMap<String, VBox>> checkBoxMap;
 
+	private HashMap<String, GridPane> leftHandImageBoxMap;
+
 	private HashMap<String, List<String>> currentMap;
 
 	private static final String AND_OPERATOR = " && ";
@@ -287,6 +296,11 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 	private String bioType;
 
+	@FXML
+	private GridPane leftPanelImageGridPane;
+
+	private int rowIndex = 0;
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -301,6 +315,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 		checkBoxMap = new HashMap<>();
 		currentMap = new LinkedHashMap<>();
 		fxUtils = FXUtils.getInstance();
+		leftHandImageBoxMap = new HashMap<>();
 
 		Image backInWhite = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK_FOCUSED));
 		Image backImage = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK));
@@ -369,16 +384,23 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		ContentHeader.getChildren().clear();
 		checkBoxPane.getChildren().clear();
+		leftPanelImageGridPane.getChildren().clear();
 
 		comboBoxMap.clear();
 		checkBoxMap.clear();
 		currentMap.clear();
+		leftHandImageBoxMap.clear();
 
+		rowIndex = 0;
+		leftPanelImageGridPane.setAlignment(Pos.TOP_LEFT);
+		leftPanelImageGridPane.setPadding(new Insets(10, 100, 100, 10)); // margins around the whole grid
+		// (top/right/bottom/left)
 		for (Entry<Entry<String, String>, Map<String, List<List<String>>>> subType : mapToProcess.entrySet()) {
+			GridPane gridPane = getGridPane(subType.getKey());
+
 			ComboBox<Entry<String, String>> comboBox = buildComboBox(subType.getKey());
 			HashMap<String, VBox> subMap = new HashMap<>();
 			currentMap.put(subType.getKey().getKey(), new ArrayList<String>());
-
 			for (Entry<String, List<List<String>>> biometric : subType.getValue().entrySet()) {
 				List<List<String>> listOfCheckBoxes = biometric.getValue();
 				currentMap.get(subType.getKey().getKey()).addAll(listOfCheckBoxes.get(0));
@@ -387,6 +409,11 @@ public class BiometricsController extends BaseController /* implements Initializ
 					comboBox.getItems().add(new SimpleEntry<String, String>(biometric.getKey(),
 							applicationLabelBundle.getString(biometric.getKey())));
 
+					gridPane.add(getImageVBox(biometric.getKey()), 1, rowIndex);
+
+					rowIndex++;
+
+					// gridPane.getChildren().add(getImageVBox(biometric.getKey()));
 					if (!listOfCheckBoxes.get(0).get(0).equals("face")) {
 
 						VBox vboxForCheckBox = new VBox();
@@ -463,10 +490,14 @@ public class BiometricsController extends BaseController /* implements Initializ
 				getRegistrationDTOFromSession().removeBiometric(currentSubType, exceptionCheckBox.getId());
 
 		}
+
+		addImageInUIPane(currentSubType, currentModality, null, false);
 	}
 
 	private void initializeState(boolean isGoingBack) {
-		sizeOfCombobox = comboBoxMap.size();
+
+		sizeOfCombobox = leftHandImageBoxMap.size();
+
 		if (sizeOfCombobox > 0) {
 			if (isGoingBack) {
 				currentPosition = comboBoxMap.size() - 1;
@@ -478,14 +509,21 @@ public class BiometricsController extends BaseController /* implements Initializ
 				previousPosition = 0;
 			}
 		}
-		if (null != findComboBox()) {
-			findComboBox().setVisible(true);
-			findComboBox().setManaged(true);
+
+		GridPane gridPane = findImageListGridPane();
+		if (gridPane != null) {
+			gridPane.setVisible(true);
+			gridPane.setManaged(true);
 		}
 		biometricBox.setVisible(false);
 		retryBox.setVisible(false);
 		refreshContinueButton();
 		displaycurrentUiElements();
+	}
+
+	private GridPane findImageListGridPane() {
+
+		return leftHandImageBoxMap.get(getListOfBiometricSubTypes().get(currentPosition));
 	}
 
 	private void removeInapplicableCapturedData(
@@ -586,9 +624,17 @@ public class BiometricsController extends BaseController /* implements Initializ
 	@SuppressWarnings("unchecked")
 	private void displaycurrentUiElements() {
 		try {
-			ComboBox<Object> comboBox = (ComboBox<Object>) findComboBox().getChildren().get(1);
 
-			comboBox.setValue((SimpleEntry<String, String>) comboBox.getItems().get(0));
+			GridPane gridPane = findImageListGridPane();
+
+			if (gridPane.getChildren() != null) {
+
+				displayBiometric(gridPane.getChildren().get(0).getId());
+			}
+			// ComboBox<Object> comboBox = (ComboBox<Object>)
+			// findComboBox().getChildren().get(1);
+			//
+			// comboBox.setValue((SimpleEntry<String, String>) comboBox.getItems().get(0));
 		} catch (NullPointerException | ClassCastException exception) {
 			LOGGER.error(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(exception));
@@ -669,39 +715,108 @@ public class BiometricsController extends BaseController /* implements Initializ
 					Arrays.asList(RegistrationConstants.faceUiAttributes.get(0)));
 		}
 
-		if (modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)) {
-			updateBiometric(modality, RegistrationConstants.RIGHTPALM_IMG_PATH,
-					RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD,
-					RegistrationConstants.FINGERPRINT_RETRIES_COUNT);
-		} else if (modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_LEFT)) {
-			updateBiometric(modality, RegistrationConstants.LEFTPALM_IMG_PATH,
-					RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD,
-					RegistrationConstants.FINGERPRINT_RETRIES_COUNT);
-		} else if (modality.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_SLAB_THUMBS)) {
-			updateBiometric(modality, RegistrationConstants.THUMB_IMG_PATH,
-					RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD,
-					RegistrationConstants.FINGERPRINT_RETRIES_COUNT);
-		} else if (modality.equalsIgnoreCase(RegistrationConstants.IRIS_DOUBLE)) {
-			updateBiometric(modality, RegistrationConstants.RIGHT_IRIS_IMG_PATH, RegistrationConstants.IRIS_THRESHOLD,
-					RegistrationConstants.IRIS_RETRY_COUNT);
-		} else if (modality.equalsIgnoreCase(RegistrationConstants.FACE)) {
-			updateBiometric(modality, RegistrationConstants.FACE_IMG_PATH, RegistrationConstants.IRIS_THRESHOLD,
-					RegistrationConstants.IRIS_RETRY_COUNT);
-		}
+		updateBiometric(modality, getImageIconPath(modality), getBiometricThreshold(modality), getRetryCount(modality));
+
 		if (capturedBiometrics != null && !capturedBiometrics.isEmpty()) {
 
 			loadBiometricsUIElements(capturedBiometrics, currentSubType, modality);
 		}
 
-		// if (!bioValue.equalsIgnoreCase(RegistrationUIConstants.SELECT)) {
-		// scanBtn.setDisable(false);
-		// continueBtn.setDisable(true);
-		// biometricBox.setVisible(true);
-		// retryBox.setVisible(true);
-		// }
-
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Parent/Guardian Biometrics captured");
+	}
+
+	private String getRetryCount(String modality) {
+		// modality = modality.toLowerCase();
+
+		String irisRetryCount = null;
+
+		if (modality != null) {
+			switch (modality) {
+
+			case RegistrationConstants.FACE:
+				irisRetryCount = RegistrationConstants.IRIS_RETRY_COUNT;
+				break;
+			case RegistrationConstants.IRIS_DOUBLE:
+				irisRetryCount = RegistrationConstants.IRIS_RETRY_COUNT;
+				break;
+
+			case RegistrationConstants.FINGERPRINT_SLAB_RIGHT:
+				irisRetryCount = RegistrationConstants.FINGERPRINT_RETRIES_COUNT;
+				break;
+			case RegistrationConstants.FINGERPRINT_SLAB_LEFT:
+				irisRetryCount = RegistrationConstants.FINGERPRINT_RETRIES_COUNT;
+				break;
+			case RegistrationConstants.FINGERPRINT_SLAB_THUMBS:
+				irisRetryCount = RegistrationConstants.FINGERPRINT_RETRIES_COUNT;
+				break;
+
+			}
+		}
+
+		return irisRetryCount;
+
+	}
+
+	private String getBiometricThreshold(String modality) {
+		// modality = modality.toLowerCase();
+
+		String biomnetricThreshold = null;
+		if (modality != null) {
+			switch (modality) {
+
+			case RegistrationConstants.FACE:
+				biomnetricThreshold = RegistrationConstants.IRIS_THRESHOLD;
+				break;
+			case RegistrationConstants.IRIS_DOUBLE:
+				biomnetricThreshold = RegistrationConstants.IRIS_THRESHOLD;
+				break;
+
+			case RegistrationConstants.FINGERPRINT_SLAB_RIGHT:
+				biomnetricThreshold = RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD;
+				break;
+			case RegistrationConstants.FINGERPRINT_SLAB_LEFT:
+				biomnetricThreshold = RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD;
+				break;
+			case RegistrationConstants.FINGERPRINT_SLAB_THUMBS:
+				biomnetricThreshold = RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD;
+				break;
+
+			}
+		}
+
+		return biomnetricThreshold;
+
+	}
+
+	private String getImageIconPath(String modality) {
+		// modality = modality.toLowerCase();
+
+		String imageIconPath = null;
+		if (modality != null) {
+			switch (modality) {
+
+			case RegistrationConstants.FACE:
+				imageIconPath = RegistrationConstants.FACE_IMG_PATH;
+				break;
+			case RegistrationConstants.IRIS_DOUBLE:
+				imageIconPath = RegistrationConstants.RIGHT_IRIS_IMG_PATH;
+				break;
+
+			case RegistrationConstants.FINGERPRINT_SLAB_RIGHT:
+				imageIconPath = RegistrationConstants.RIGHTPALM_IMG_PATH;
+				break;
+			case RegistrationConstants.FINGERPRINT_SLAB_LEFT:
+				imageIconPath = RegistrationConstants.LEFTPALM_IMG_PATH;
+				break;
+			case RegistrationConstants.FINGERPRINT_SLAB_THUMBS:
+				imageIconPath = RegistrationConstants.THUMB_IMG_PATH;
+				break;
+
+			}
+		}
+
+		return imageIconPath;
 	}
 
 	private void enableCurrentCheckBoxSection() {
@@ -1014,6 +1129,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		// Get the stream image from Bio ServiceImpl and load it in the image pane
 		biometricImage.setImage(getBioStreamImage(subType, modality, retry));
+
+		addImageInUIPane(subType, modality, getBioStreamImage(subType, modality, retry), true);
 	}
 
 	private double getAverageQualityScore(List<BiometricsDto> biometricDTOList) {
@@ -1133,7 +1250,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 		createQualityBox(retryCount, biometricThreshold);
 		qualityScore.setText(RegistrationConstants.HYPHEN);
 		attemptSlap.setText(RegistrationConstants.HYPHEN);
-		duplicateCheckLbl.setText(RegistrationConstants.EMPTY);
+		// duplicateCheckLbl.setText(RegistrationConstants.EMPTY);
 
 		retryBox.setVisible(true);
 		biometricBox.setVisible(true);
@@ -1379,7 +1496,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 			getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
 					.setIrisDetailsDTO(new ArrayList<>());
 		}
-		duplicateCheckLbl.setText(RegistrationConstants.EMPTY);
+		// duplicateCheckLbl.setText(RegistrationConstants.EMPTY);
 		clearCaptureData();
 		biometricBox.setVisible(false);
 		retryBox.setVisible(false);
@@ -1744,4 +1861,98 @@ public class BiometricsController extends BaseController /* implements Initializ
 				.build();
 	}
 
+	private VBox getImageVBox(String modality) {
+
+		VBox vBox = new VBox();
+
+		vBox.setAlignment(Pos.BASELINE_LEFT);
+		vBox.setId(modality);
+
+		// Create Label with modality
+		Label label = new Label();
+		label.setText(applicationLabelBundle.getString(modality));
+		vBox.getChildren().add(label);
+
+		HBox hBox = new HBox();
+		// hBox.setAlignment(Pos.BOTTOM_RIGHT);
+
+		// Image modalityImage = getImage(modality);
+		ImageView imageView = new ImageView(new Image(this.getClass().getResourceAsStream(getImageIconPath(modality))));
+		imageView.setFitHeight(46);
+		imageView.setFitWidth(46);
+		hBox.getChildren().add(imageView);
+
+		vBox.getChildren().add(hBox);
+
+		// vBox.getChildren().add(imageView);
+
+		vBox.setOnMouseClicked((event) -> {
+			displayBiometric(vBox.getId());
+		});
+
+		vBox.setFillWidth(true);
+		vBox.setMinWidth(100);
+
+		// vBox.setMinHeight(100);
+		vBox.getStyleClass().add(RegistrationConstants.ONBOARD_STYLE_CLASS);
+		vBox.setBorder(new Border(
+				new BorderStroke(Color.PINK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
+
+		return vBox;
+	}
+
+	private void addImageInUIPane(String subType, String modality, Image uiImage, boolean isCaptured) {
+		for (GridPane gridPane : leftHandImageBoxMap.values()) {
+			if (gridPane.getId().equals(subType)) {
+
+				for (Node node : gridPane.getChildren()) {
+
+					if (node.getId().equalsIgnoreCase(modality)) {
+						VBox vBox = (VBox) node;
+						HBox hBox = (HBox) vBox.getChildren().get(1);
+						// hBox.getChildren().clear();
+						((ImageView) (hBox.getChildren().get(0))).setImage(uiImage != null ? uiImage
+								: new Image(this.getClass().getResourceAsStream(getImageIconPath(modality))));
+
+						if (isCaptured) {
+							if (hBox.getChildren().size() == 1) {
+								ImageView imageView = new ImageView(new Image(
+										this.getClass().getResourceAsStream(RegistrationConstants.ONBOARD_IMG_PATH)));
+
+								imageView.setFitWidth(10);
+								imageView.setFitHeight(10);
+								hBox.getChildren().add(imageView);
+							}
+						} else {
+
+							if (hBox.getChildren().size() > 1) {
+								hBox.getChildren().remove(1);
+							}
+						}
+
+					}
+				}
+
+			}
+		}
+
+	}
+
+	private GridPane getGridPane(Entry<String, String> subMapKey) {
+
+		GridPane gridPane = new GridPane();
+
+		gridPane.setId(subMapKey.getKey());
+		Label label = new Label(subMapKey.getValue());
+		label.getStyleClass().add("paneHeader");
+
+		leftPanelImageGridPane.add(gridPane, 1, 1);
+
+		leftHandImageBoxMap.put(subMapKey.getKey(), gridPane);
+		gridPane.setVisible(false);
+		gridPane.setManaged(false);
+
+		return gridPane;
+
+	}
 }

@@ -354,7 +354,7 @@ public class RegistrationConstants {
 
 	// onBoard User
 	public static final String ONBOARD_STYLE_CLASS = "onboardAlertMsg";
-	public static final String ONBOARD_IMG_PATH = "images/tick.png";
+	public static final String ONBOARD_IMG_PATH = "/images/tick.png";
 	public static final String ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT = "EEEE dd MMM hh:mm a";
 
 	// RegistrationApproval
