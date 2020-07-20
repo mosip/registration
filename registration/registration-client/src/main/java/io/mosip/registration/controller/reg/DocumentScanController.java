@@ -967,7 +967,7 @@ public class DocumentScanController extends BaseController {
 		registrationController.showCurrentPage(RegistrationConstants.DOCUMENT_SCAN,
 				getPageByAction(RegistrationConstants.DOCUMENT_SCAN, RegistrationConstants.NEXT));
 
-		guardianBiometricsController.populateBiometricPage(false);
+		guardianBiometricsController.populateBiometricPage(false, false);
 		/*
 		 * biometricExceptionController.disableNextBtn();
 		 * fingerPrintCaptureController.clearImage();
