@@ -219,6 +219,7 @@
                                                 </GridPane>
                                              </children>
                                           </GridPane>
+                                          <Label fx:id="subTypeLabel" styleClass="qualityBoxLabel"  GridPane.halignment="LEFT" GridPane.valignment="BOTTOM" />
                                        </children>
                                        <columnConstraints>
                                           <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" percentWidth="70.0" prefWidth="100.0" />
