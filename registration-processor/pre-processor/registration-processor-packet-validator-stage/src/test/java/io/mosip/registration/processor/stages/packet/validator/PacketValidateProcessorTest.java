@@ -196,12 +196,12 @@ public class PacketValidateProcessorTest {
 		fieldValueArrayListSequence.add(hashsequence2);
 		identity.setHashSequence2(fieldValueArrayListSequence);
 		packetMetaInfo.setIdentity(identity);
-		Mockito.when(packetReaderService.getFile(anyString(),anyString(),anyString())).thenReturn(packetMetaInfoStream);
+		Mockito.when(packetReaderService.getFile(any(),any(),any())).thenReturn(packetMetaInfoStream);
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", packetMetaInfoStream, PacketMetaInfo.class)
 				.thenReturn(packetMetaInfo);
 		Mockito.when(packetValidator.validate(any(), any(),any())).thenReturn(true);
-		Mockito.doNothing().when(auditUtility).saveAuditDetails(anyString(), anyString());
+		Mockito.doNothing().when(auditUtility).saveAuditDetails(any(), any());
 		
 		MainResponseDTO<ReverseDatasyncReponseDTO> mainResponseDTO = new MainResponseDTO<>();
 		ReverseDatasyncReponseDTO reverseDatasyncReponseDTO = new ReverseDatasyncReponseDTO();
@@ -302,8 +302,8 @@ public class PacketValidateProcessorTest {
 	@Test
 	public void ReverseDataSyncAPIResourceEsxceptionClientTest() throws ApisResourceAccessException {
 		
-		Mockito.when(restClientService.postApi(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any(),
-				Matchers.any())).thenThrow(new ApisResourceAccessException("",new HttpClientErrorException(HttpStatus.GATEWAY_TIMEOUT, "")));
+		Mockito.when(restClientService.postApi(any(), any(), any(), any(),
+				any())).thenThrow(new ApisResourceAccessException("",new HttpClientErrorException(HttpStatus.GATEWAY_TIMEOUT, "")));
 		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
 	}
 	
@@ -364,8 +364,8 @@ public class PacketValidateProcessorTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void BaseCheckedExceptionTest() throws Exception  {
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
-				.thenThrow( BaseCheckedException.class);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any()))
+				.thenThrow(BaseUncheckedException.class);
 		
 		assertFalse(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
 	}

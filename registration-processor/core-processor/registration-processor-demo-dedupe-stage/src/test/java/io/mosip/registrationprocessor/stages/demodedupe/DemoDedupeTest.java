@@ -38,7 +38,7 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
  * The Class DemoDedupeTest.
  */
 @RunWith(PowerMockRunner.class)
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
+@PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.ssl.*" })
 @PrepareForTest({ IOUtils.class, HMACUtils.class })
 public class DemoDedupeTest {
 
@@ -105,14 +105,14 @@ public class DemoDedupeTest {
 		// Mockito.when(packetInfoManager.getApplicantIrisImageNameById(anyString())).thenReturn(iris);
 
 
-		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(anyString())).thenReturn(true);
+		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
 
 		byte[] data = "1234567890".getBytes();
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(data);
 
 		// authResponseDTO.setStatus("y");
-		Mockito.when(restClientService.postApi(any(), anyString(), anyString(), anyString(), any()))
+		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any()))
 				.thenReturn(authResponseDTO);
 	}
 
