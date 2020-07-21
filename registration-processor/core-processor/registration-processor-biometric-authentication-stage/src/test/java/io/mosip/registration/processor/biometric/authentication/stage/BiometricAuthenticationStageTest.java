@@ -86,7 +86,7 @@ import io.vertx.core.Vertx;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ IOUtils.class, HMACUtils.class, Utilities.class })
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.ssl.*" })
 public class BiometricAuthenticationStageTest {
 
 	/** The input stream. */
@@ -147,7 +147,7 @@ public class BiometricAuthenticationStageTest {
 
 	/** The audit log request builder. */
 	@Mock
-	private AuditLogRequestBuilder auditLogRequestBuilder = new AuditLogRequestBuilder();
+	private AuditLogRequestBuilder auditLogRequestBuilder;
 
 	@Mock
 	private Environment env;
@@ -227,8 +227,8 @@ public class BiometricAuthenticationStageTest {
 		registrationStatusDto.setStatusCode("");
 		listAppender.start();
 		list.add(registrationStatusDto);
-		Mockito.when(registrationStatusService.getByStatus(anyString())).thenReturn(list);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getByStatus(any())).thenReturn(list);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
 
 		Mockito.when(identityIteratorUtil.getFieldValue(any(), any())).thenReturn("UPDATE");
@@ -265,7 +265,7 @@ public class BiometricAuthenticationStageTest {
 
 		File cbeffFile = new File(classLoader.getResource("cbeff.xml").getFile());
 		InputStream cbeffInputstream = new FileInputStream(cbeffFile);
-		Mockito.when(packetReaderService.getFile(anyString(), anyString(), anyString())).thenReturn(cbeffInputstream);
+		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenReturn(cbeffInputstream);
 		regentity.setRegistrationType("update");
 		Mockito.when(syncRegistrationservice.findByRegistrationId(any())).thenReturn(regentity);
 
@@ -502,7 +502,7 @@ public class BiometricAuthenticationStageTest {
 		File idJson = new File(classLoader.getResource("ID2.json").getFile());
 		InputStream ip = new FileInputStream(idJson);
 		String idJsonString = IOUtils.toString(ip, "UTF-8");
-		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString()))
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.any(), Mockito.any()))
 				.thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class),
 						MappingJsonConstants.IDENTITY));
 		Mockito.when(regentity.getRegistrationType()).thenReturn("UPDATE");

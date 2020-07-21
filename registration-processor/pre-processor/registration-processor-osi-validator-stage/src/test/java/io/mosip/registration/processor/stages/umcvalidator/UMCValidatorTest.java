@@ -18,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -63,6 +64,7 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
  * The Class UMCValidatorTest.
  */
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.ssl.*" })
 public class UMCValidatorTest {
 
 	/** The umc validator. */

@@ -88,7 +88,7 @@ import io.mosip.registration.processor.status.service.TransactionService;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Utilities.class, IOUtils.class })
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
+@PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.ssl.*" })
 public class OSIValidatorTest {
 
 	/** The input stream. */
