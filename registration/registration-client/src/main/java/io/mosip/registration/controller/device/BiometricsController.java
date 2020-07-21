@@ -486,6 +486,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 				getRegistrationDTOFromSession().removeBiometricException(currentSubType, checkBox.getId());
 		}
 
+		boolean isAllMarked = true;
 		for (Node exceptionCheckBox : vboxForCheckBox.getChildren()) {
 
 			if (isUserOnboardFlag)
@@ -493,9 +494,16 @@ public class BiometricsController extends BaseController /* implements Initializ
 			else
 				getRegistrationDTOFromSession().removeBiometric(currentSubType, exceptionCheckBox.getId());
 
+			if (isAllMarked) {
+				if (exceptionCheckBox instanceof CheckBox) {
+					CheckBox cB = (CheckBox) exceptionCheckBox;
+					isAllMarked = cB.isSelected();
+				}
+			}
+
 		}
 
-		addImageInUIPane(currentSubType, currentModality, null, false);
+		addImageInUIPane(currentSubType, currentModality, null, isAllMarked);
 	}
 
 	private void initializeState(boolean isGoingBack) {
@@ -513,7 +521,6 @@ public class BiometricsController extends BaseController /* implements Initializ
 				previousPosition = 0;
 			}
 		}
-
 
 		currentSubType = getListOfBiometricSubTypes().get(currentPosition);
 		enableGridPane(findImageListGridPane());
@@ -611,10 +618,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 			previousPosition = currentPosition;
 			++currentPosition;
 
-
 			currentSubType = getListOfBiometricSubTypes().get(currentPosition);
 			enableGridPane(findImageListGridPane());
-
 
 			refreshContinueButton();
 
@@ -1918,7 +1923,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 						if (isCaptured) {
 							if (hBox.getChildren().size() == 1) {
 								ImageView imageView = new ImageView(new Image(
-										this.getClass().getResourceAsStream(RegistrationConstants.ONBOARD_IMG_PATH)));
+										this.getClass().getResourceAsStream(RegistrationConstants.TICK_CIRICLE_IMG_PATH)));
 
 								imageView.setFitWidth(10);
 								imageView.setFitHeight(10);
