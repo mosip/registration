@@ -987,7 +987,7 @@ public class RegistrationConstants {
 
 	public static final List<String> PACKET_STATUS_UPLOAD = Arrays.asList("APPROVED", "REJECTED", "SYNCED", "EXPORTED");
 
-	public static final List<String> PACKET_EXPORT_STATUS = Arrays.asList("EXPORTED", "SYNCED");
+	public static final List<String> PACKET_EXPORT_STATUS = Arrays.asList("APPROVED", "EXPORTED", "SYNCED");
 
 	// Pre Registration
 	public static final String PRE_REGISTRATION_ID = "pre_registration_id";
