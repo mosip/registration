@@ -7,7 +7,6 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -261,9 +260,9 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 	private int previousPosition = -1;
 
-	private int sizeOfCombobox = -1;
+	private int sizeOfLeftGridPaneImageList = -1;
 
-	private HashMap<String, VBox> comboBoxMap;
+	// private HashMap<String, VBox> comboBoxMap;
 
 	private HashMap<String, HashMap<String, VBox>> checkBoxMap;
 
@@ -311,7 +310,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 	public void initialize() {
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Loading of Guardian Biometric screen started");
-		comboBoxMap = new HashMap<>();
+		// comboBoxMap = new HashMap<>();
 		checkBoxMap = new HashMap<>();
 		currentMap = new LinkedHashMap<>();
 		fxUtils = FXUtils.getInstance();
@@ -386,7 +385,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 		checkBoxPane.getChildren().clear();
 		leftPanelImageGridPane.getChildren().clear();
 
-		comboBoxMap.clear();
+		// comboBoxMap.clear();
 		checkBoxMap.clear();
 		currentMap.clear();
 		leftHandImageBoxMap.clear();
@@ -396,9 +395,11 @@ public class BiometricsController extends BaseController /* implements Initializ
 		leftPanelImageGridPane.setPadding(new Insets(10, 100, 100, 10)); // margins around the whole grid
 		// (top/right/bottom/left)
 		for (Entry<Entry<String, String>, Map<String, List<List<String>>>> subType : mapToProcess.entrySet()) {
+			
+//			leftPanelImageGridPane.getChildren().add(new Label("Biometrics"));
 			GridPane gridPane = getGridPane(subType.getKey());
 
-			ComboBox<Entry<String, String>> comboBox = buildComboBox(subType.getKey());
+			// ComboBox<Entry<String, String>> comboBox = buildComboBox(subType.getKey());
 			HashMap<String, VBox> subMap = new HashMap<>();
 			currentMap.put(subType.getKey().getKey(), new ArrayList<String>());
 			for (Entry<String, List<List<String>>> biometric : subType.getValue().entrySet()) {
@@ -406,8 +407,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 				currentMap.get(subType.getKey().getKey()).addAll(listOfCheckBoxes.get(0));
 				if (!listOfCheckBoxes.get(0).isEmpty()) {
 
-					comboBox.getItems().add(new SimpleEntry<String, String>(biometric.getKey(),
-							applicationLabelBundle.getString(biometric.getKey())));
+					// comboBox.getItems().add(new SimpleEntry<String, String>(biometric.getKey(),
+					// applicationLabelBundle.getString(biometric.getKey())));
 
 					gridPane.add(getImageVBox(biometric.getKey()), 1, rowIndex);
 
@@ -496,11 +497,11 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 	private void initializeState(boolean isGoingBack) {
 
-		sizeOfCombobox = leftHandImageBoxMap.size();
+		sizeOfLeftGridPaneImageList = leftHandImageBoxMap.size();
 
-		if (sizeOfCombobox > 0) {
+		if (sizeOfLeftGridPaneImageList > 0) {
 			if (isGoingBack) {
-				currentPosition = comboBoxMap.size() - 1;
+				currentPosition = leftHandImageBoxMap.size() - 1;
 				currentSubType = getListOfBiometricSubTypes().get(currentPosition);
 				previousPosition = currentPosition - 1;
 			} else {
@@ -555,29 +556,6 @@ public class BiometricsController extends BaseController /* implements Initializ
 		}
 	}
 
-	private ComboBox<Entry<String, String>> buildComboBox(Entry<String, String> subMapKey) {
-		VBox vb = new VBox();
-		vb.setSpacing(10);
-		vb.setId(subMapKey + "vbox");
-		Label label = new Label(subMapKey.getValue());
-		label.getStyleClass().add("paneHeader");
-		ComboBox<Entry<String, String>> comboBox = new ComboBox<>();
-
-		comboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
-			displayBiometric(newValue.getKey());
-		});
-		renderBiometrics(comboBox);
-		comboBox.getStyleClass().add("demographicCombobox");
-		comboBox.setId(subMapKey + "combobox");
-
-		vb.getChildren().addAll(label, comboBox);
-		ContentHeader.add(vb, 1, 1);
-		vb.setVisible(false);
-		vb.setManaged(false);
-		comboBoxMap.put(subMapKey.getKey(), vb);
-		return comboBox;
-	}
-
 	private void setScanButtonVisibility(boolean isAllExceptions, Button scanBtn2) {
 		scanBtn.setDisable(isAllExceptions);
 
@@ -600,18 +578,14 @@ public class BiometricsController extends BaseController /* implements Initializ
 		return isAllExceptions;
 	}
 
-	private VBox findComboBox() {
-		return comboBoxMap.get(getListOfBiometricSubTypes().get(currentPosition));
-	}
-
 	private void goToNext() {
-		if (currentPosition + 1 < sizeOfCombobox) {
-			findComboBox().setVisible(false);
-			findComboBox().setManaged(false);
+		if (currentPosition + 1 < sizeOfLeftGridPaneImageList) {
+			findImageListGridPane().setVisible(false);
+			findImageListGridPane().setManaged(false);
 			previousPosition = currentPosition;
 			currentPosition++;
-			findComboBox().setVisible(true);
-			findComboBox().setManaged(true);
+			findImageListGridPane().setVisible(true);
+			findImageListGridPane().setManaged(true);
 			currentSubType = getListOfBiometricSubTypes().get(currentPosition);
 
 			refreshContinueButton();
@@ -645,12 +619,12 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 	private void goToPrevious() {
 		if (currentPosition > 0) {
-			findComboBox().setVisible(false);
-			findComboBox().setManaged(false);
+			findImageListGridPane().setVisible(false);
+			findImageListGridPane().setManaged(false);
 			previousPosition = currentPosition;
 			currentPosition--;
-			findComboBox().setVisible(true);
-			findComboBox().setManaged(true);
+			findImageListGridPane().setVisible(true);
+			findImageListGridPane().setManaged(true);
 			currentSubType = getListOfBiometricSubTypes().get(currentPosition);
 
 			refreshContinueButton();
@@ -1204,7 +1178,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 		LOGGER.info(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Navigates to next section");
 
-		if (currentPosition != sizeOfCombobox - 1) {
+		if (currentPosition != sizeOfLeftGridPaneImageList - 1) {
 			disableLastCheckBoxSection();
 			goToNext();
 			return;
