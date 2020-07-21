@@ -26,7 +26,7 @@
 		<maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
 		<maven.jacoco.plugin.version>0.8.1</maven.jacoco.plugin.version>
 		<maven.sonar.plugin.version>3.7.0.1746</maven.sonar.plugin.version>
-		<maven.javadoc.version>3.0.1</maven.javadoc.version>
+		<maven.javadoc.version>3.2.0</maven.javadoc.version>
 
 		<!-- Core -->
 		<spring-framework.version>5.0.6.RELEASE</spring-framework.version>
@@ -266,6 +266,7 @@
 		</sonar.coverage.exclusions>
 		<sonar.cpd.exclusions>**/dto/**,**/entity/**,**/config/**,**/handler/**,**/utilities/**,
 			**/validator/**, **/utils/**,**/util/**,**/code/**</sonar.cpd.exclusions>
+			<doclint>none</doclint>
 	</properties>
 
 	<dependencyManagement>
@@ -490,6 +491,7 @@
 				<version>${maven.javadoc.version}</version>
 				<configuration>
 					<aggregate>true</aggregate>
+					<doclint>none</doclint>
 				</configuration>
 			</plugin>
 		</plugins>
