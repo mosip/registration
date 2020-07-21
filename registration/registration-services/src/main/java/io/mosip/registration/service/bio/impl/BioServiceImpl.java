@@ -511,7 +511,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	 */
 	@Override
 	public boolean isMdmEnabled() {
-//		 return true;
+		//return true;
 		return RegistrationConstants.ENABLE
 				.equalsIgnoreCase(((String) ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
 	}
