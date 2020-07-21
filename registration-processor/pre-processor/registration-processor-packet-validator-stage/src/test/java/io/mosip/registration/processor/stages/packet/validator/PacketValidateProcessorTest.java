@@ -28,6 +28,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.client.HttpClientErrorException;
@@ -58,7 +59,7 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 import io.mosip.registration.processor.core.exception.PacketValidatorException;
 import io.mosip.registration.processor.stages.utils.AuditUtility;
 import io.mosip.registration.processor.stages.utils.MasterDataValidation;
-import io.mosip.registration.processor.core.spi.packet.validator.PacketValidator;
+import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
@@ -71,19 +72,22 @@ import io.mosip.registration.processor.status.service.SyncRegistrationService;
 /**
  * The Class PacketValidatorStageTest.
  */
+@RefreshScope
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ JsonUtil.class, IOUtils.class, HMACUtils.class, Utilities.class, MasterDataValidation.class,
 		MessageDigest.class })
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
+@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*","com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*" })
 @TestPropertySource(locations = "classpath:application.properties")
 public class PacketValidateProcessorTest {
+	
 	@InjectMocks
 	private PacketValidateProcessor packetValidateProcessor;
+	
 	@Mock
 	private PacketReaderService packetReaderService;
 
 	@Mock
-	private PacketValidator packetValidator;
+	private PacketValidatorImpl packetValidator;
 
 	@Mock
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
@@ -196,7 +200,7 @@ public class PacketValidateProcessorTest {
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", packetMetaInfoStream, PacketMetaInfo.class)
 				.thenReturn(packetMetaInfo);
-		Mockito.when(packetValidator.validate(anyString(), anyString(),any())).thenReturn(true);
+		Mockito.when(packetValidator.validate(any(), any(),any())).thenReturn(true);
 		Mockito.doNothing().when(auditUtility).saveAuditDetails(anyString(), anyString());
 		
 		MainResponseDTO<ReverseDatasyncReponseDTO> mainResponseDTO = new MainResponseDTO<>();
@@ -226,7 +230,7 @@ public class PacketValidateProcessorTest {
 	@Test
 	public void PacketValidationFailureTest() throws PacketValidatorException {
 		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.EXCEPTION)).thenReturn("ERROR");
-		Mockito.when(packetValidator.validate(anyString(), anyString(),any())).thenReturn(false);
+		Mockito.when(packetValidator.validate(any(), any(),any())).thenReturn(false);
 		assertFalse(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
 	}
 	
@@ -241,35 +245,35 @@ public class PacketValidateProcessorTest {
 	@Test
 	public void PacketValidationAPIResourceExceptionTest() throws PacketValidatorException {
 		PacketValidatorException exc=new PacketValidatorException(new ApiNotAccessibleException(""));
-		Mockito.when(packetValidator.validate(anyString(), anyString(),any())).thenThrow(exc);
+		Mockito.when(packetValidator.validate(any(), any(),any())).thenThrow(exc);
 		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getInternalError());
 	}
 	
 	@Test
 	public void PacketValidationIOExceptionTest() throws PacketValidatorException {
 		PacketValidatorException exc=new PacketValidatorException(new IOException(""));
-		Mockito.when(packetValidator.validate(anyString(), anyString(),any())).thenThrow(exc);
+		Mockito.when(packetValidator.validate(any(), any(),any())).thenThrow(exc);
 		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getInternalError());
 	}
 	
 	@Test
 	public void PacketValidationBaseCheckedExceptionTest() throws PacketValidatorException {
 		PacketValidatorException exc=new PacketValidatorException(new BaseCheckedException());
-		Mockito.when(packetValidator.validate(anyString(), anyString(),any())).thenThrow(exc);
+		Mockito.when(packetValidator.validate(any(), anyString(),any())).thenThrow(exc);
 		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getInternalError());
 	}
 	
 	@Test
 	public void PacketValidationBaseUncheckedExceptionTest() throws PacketValidatorException {
 		PacketValidatorException exc=new PacketValidatorException(new BaseUncheckedException());
-		Mockito.when(packetValidator.validate(anyString(), anyString(),any())).thenThrow(exc);
+		Mockito.when(packetValidator.validate(any(), any(),any())).thenThrow(exc);
 		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getInternalError());
 	}
 	
 	@Test
 	public void PacketValidationExceptionTest() throws PacketValidatorException {
 		PacketValidatorException exc=new PacketValidatorException(new Exception());
-		Mockito.when(packetValidator.validate(anyString(), anyString(),any())).thenThrow(exc);
+		Mockito.when(packetValidator.validate(any(), any(),any())).thenThrow(exc);
 		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getInternalError());
 	}
 	
