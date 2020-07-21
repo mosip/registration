@@ -300,6 +300,9 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 	private int rowIndex = 0;
 
+	@FXML
+	private Label subTypeLabel;
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -395,8 +398,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 		leftPanelImageGridPane.setPadding(new Insets(10, 100, 100, 10)); // margins around the whole grid
 		// (top/right/bottom/left)
 		for (Entry<Entry<String, String>, Map<String, List<List<String>>>> subType : mapToProcess.entrySet()) {
-			
-//			leftPanelImageGridPane.getChildren().add(new Label("Biometrics"));
+
+			// leftPanelImageGridPane.getChildren().add(new Label("Biometrics"));
 			GridPane gridPane = getGridPane(subType.getKey());
 
 			// ComboBox<Entry<String, String>> comboBox = buildComboBox(subType.getKey());
@@ -511,11 +514,9 @@ public class BiometricsController extends BaseController /* implements Initializ
 			}
 		}
 
-		GridPane gridPane = findImageListGridPane();
-		if (gridPane != null) {
-			gridPane.setVisible(true);
-			gridPane.setManaged(true);
-		}
+
+		currentSubType = getListOfBiometricSubTypes().get(currentPosition);
+		enableGridPane(findImageListGridPane());
 		biometricBox.setVisible(false);
 		retryBox.setVisible(false);
 		refreshContinueButton();
@@ -525,6 +526,30 @@ public class BiometricsController extends BaseController /* implements Initializ
 	private GridPane findImageListGridPane() {
 
 		return leftHandImageBoxMap.get(getListOfBiometricSubTypes().get(currentPosition));
+	}
+
+	private void enableGridPane(GridPane gridPane) {
+		if (gridPane != null) {
+			gridPane.setVisible(true);
+			gridPane.setManaged(true);
+
+			if (!isUserOnboardFlag) {
+				subTypeLabel.setText(getMapOfbiometricSubtypes().get(currentSubType));
+			} else {
+
+				subTypeLabel.setText("Operator/Supervisor Biometrics");
+			}
+
+		}
+	}
+
+	private void disableGridPane(GridPane gridPane) {
+		if (gridPane != null) {
+			gridPane.setVisible(false);
+			gridPane.setManaged(false);
+			subTypeLabel.setText(RegistrationConstants.EMPTY);
+
+		}
 	}
 
 	private void removeInapplicableCapturedData(
@@ -580,13 +605,16 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 	private void goToNext() {
 		if (currentPosition + 1 < sizeOfLeftGridPaneImageList) {
-			findImageListGridPane().setVisible(false);
-			findImageListGridPane().setManaged(false);
+
+			disableGridPane(findImageListGridPane());
+
 			previousPosition = currentPosition;
-			currentPosition++;
-			findImageListGridPane().setVisible(true);
-			findImageListGridPane().setManaged(true);
+			++currentPosition;
+
+
 			currentSubType = getListOfBiometricSubTypes().get(currentPosition);
+			enableGridPane(findImageListGridPane());
+
 
 			refreshContinueButton();
 
@@ -619,13 +647,12 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 	private void goToPrevious() {
 		if (currentPosition > 0) {
-			findImageListGridPane().setVisible(false);
-			findImageListGridPane().setManaged(false);
+			disableGridPane(findImageListGridPane());
 			previousPosition = currentPosition;
 			currentPosition--;
-			findImageListGridPane().setVisible(true);
-			findImageListGridPane().setManaged(true);
+
 			currentSubType = getListOfBiometricSubTypes().get(currentPosition);
+			enableGridPane(findImageListGridPane());
 
 			refreshContinueButton();
 
@@ -1923,8 +1950,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 		leftPanelImageGridPane.add(gridPane, 1, 1);
 
 		leftHandImageBoxMap.put(subMapKey.getKey(), gridPane);
-		gridPane.setVisible(false);
-		gridPane.setManaged(false);
+
+		disableGridPane(gridPane);
 
 		return gridPane;
 
