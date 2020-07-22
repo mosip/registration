@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<GridPane fx:id="exceptionBiometricsPane" alignment="CENTER" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Pane fx:id="leftHandPane" nodeOrientation="LEFT_TO_RIGHT" styleClass="biometricExceptionPaneFinger">
+         <children>
+            <ImageView fitHeight="144.0" fitWidth="163.0" layoutX="6.0" layoutY="7.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../images/leftHand.png" />
+               </image>
+            </ImageView>
+            <ImageView fx:id="leftMiddle" fitHeight="92.0" fitWidth="27.0" layoutX="70.0" layoutY="41.0" onMouseClicked="#addException" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../images/exceptionmarks/leftMiddle.png" />
+               </image>
+            </ImageView>
+            <ImageView fx:id="leftIndex" fitHeight="75.0" fitWidth="28.0" layoutX="97.0" layoutY="55.0" onMouseClicked="#addException" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../images/exceptionmarks/leftIndex.png" />
+               </image>
+            </ImageView>
+            <ImageView fx:id="leftRing" fitHeight="75.0" fitWidth="28.0" layoutX="45.0" layoutY="55.0" onMouseClicked="#addException" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../images/exceptionmarks/leftRing.png" />
+               </image>
+            </ImageView>
+            <ImageView fx:id="leftLittle" fitHeight="49.0" fitWidth="26.0" layoutX="19.0" layoutY="82.0" onMouseClicked="#addException" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../images/exceptionmarks/leftLittle.png" />
+               </image>
+            </ImageView>
+         </children>
+      </Pane>
+      <Pane fx:id="rightHandPane" nodeOrientation="LEFT_TO_RIGHT" styleClass="biometricExceptionPaneFinger" GridPane.rowIndex="1">
+         <children>
+            <ImageView fitHeight="144.0" fitWidth="163.0" layoutX="3.0" layoutY="4.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../images/rightHand.png" />
+               </image>
+            </ImageView>
+            <ImageView fx:id="rightMiddle" fitHeight="92.0" fitWidth="30.0" layoutX="72.0" layoutY="37.0" onMouseClicked="#addException" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../images/exceptionmarks/leftMiddle.png" />
+               </image>
+            </ImageView>
+            <ImageView fx:id="rightRing" fitHeight="82.0" fitWidth="27.0" layoutX="99.0" layoutY="54.0" onMouseClicked="#addException" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../images/exceptionmarks/leftRing.png" />
+               </image>
+            </ImageView>
+            <ImageView fx:id="rightIndex" fitHeight="75.0" fitWidth="30.0" layoutX="46.0" layoutY="54.0" onMouseClicked="#addException" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../images/exceptionmarks/leftIndex.png" />
+               </image>
+            </ImageView>
+            <ImageView fx:id="rightLittle" fitHeight="57.0" fitWidth="28.0" layoutX="125.0" layoutY="75.0" onMouseClicked="#addException" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../images/exceptionmarks/leftLittle.png" />
+               </image>
+            </ImageView>
+         </children>
+      </Pane>
+      <Pane fx:id="thumbsPane" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="2">
+         <children>
+            <ImageView fitHeight="144.0" fitWidth="171.0" layoutX="14.0" layoutY="7.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../images/thumbs.png" />
+               </image>
+            </ImageView>
+            <ImageView fx:id="leftThumb" fitHeight="92.0" fitWidth="28.0" layoutX="55.0" layoutY="37.0" onMouseClicked="#addException" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../images/exceptionmarks/leftThumb.png" />
+               </image>
+            </ImageView>
+            <ImageView fx:id="rightThumb" fitHeight="99.0" fitWidth="28.0" layoutX="115.0" layoutY="38.0" onMouseClicked="#addException" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../images/exceptionmarks/leftThumb.png" />
+               </image>
+            </ImageView>
+         </children>
+      </Pane>
+      <Pane fx:id="irisPane" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="3">
+         <children>
+            <ImageView fitHeight="144.0" fitWidth="189.0" layoutX="7.0" layoutY="4.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../images/Eyes.png" />
+               </image>
+            </ImageView>
+            <ImageView fx:id="rightEye" fitHeight="43.0" fitWidth="48.0" layoutX="118.0" layoutY="54.0" onMouseClicked="#addException" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../images/exceptionmarks/lightBlueCrossMark.png" />
+               </image>
+            </ImageView>
+            <ImageView fx:id="leftEye" fitHeight="43.0" fitWidth="48.0" layoutX="35.0" layoutY="54.0" onMouseClicked="#addException" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../images/exceptionmarks/lightBlueCrossMark.png" />
+               </image>
+            </ImageView>
+         </children>
+      </Pane>
+   </children>
+   <columnConstraints>
+      <ColumnConstraints hgrow="SOMETIMES" percentWidth="100.0" />
+   </columnConstraints>
+   <rowConstraints>
+      <RowConstraints percentHeight="100.0" vgrow="SOMETIMES" />
+      <RowConstraints percentHeight="100.0" vgrow="SOMETIMES" />
+      <RowConstraints minHeight="10.0" percentHeight="100.0" prefHeight="30.0" vgrow="SOMETIMES" />
+      <RowConstraints minHeight="10.0" percentHeight="100.0" prefHeight="30.0" vgrow="SOMETIMES" />
+   </rowConstraints>
+</GridPane>
