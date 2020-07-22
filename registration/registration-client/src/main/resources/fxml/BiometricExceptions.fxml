@@ -14,7 +14,7 @@
    <children>
       <Pane fx:id="leftHandPane" nodeOrientation="LEFT_TO_RIGHT" styleClass="biometricExceptionPaneFinger">
          <children>
-            <ImageView fx:id="leftHandImage" fitHeight="144.0" fitWidth="163.0" layoutX="6.0" layoutY="7.0" pickOnBounds="true" preserveRatio="true">
+            <ImageView fitHeight="144.0" fitWidth="163.0" layoutX="6.0" layoutY="7.0" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@../images/leftHand.png" />
                </image>
@@ -43,7 +43,7 @@
       </Pane>
       <Pane fx:id="rightHandPane" nodeOrientation="LEFT_TO_RIGHT" styleClass="biometricExceptionPaneFinger" GridPane.rowIndex="1">
          <children>
-            <ImageView fx:id="rightHandImage" fitHeight="144.0" fitWidth="163.0" layoutX="3.0" layoutY="4.0" pickOnBounds="true" preserveRatio="true">
+            <ImageView fitHeight="144.0" fitWidth="163.0" layoutX="3.0" layoutY="4.0" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@../images/rightHand.png" />
                </image>
@@ -72,17 +72,17 @@
       </Pane>
       <Pane fx:id="thumbsPane" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="2">
          <children>
-            <ImageView fx:id="thumbsImage" fitHeight="144.0" fitWidth="171.0" layoutX="14.0" layoutY="7.0" pickOnBounds="true" preserveRatio="true">
+            <ImageView fitHeight="144.0" fitWidth="171.0" layoutX="14.0" layoutY="7.0" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@../images/thumbs.png" />
                </image>
             </ImageView>
-            <ImageView fx:id="leftThumb" fitHeight="68.0" fitWidth="28.0" layoutX="51.0" layoutY="54.0" onMouseClicked="#addException" pickOnBounds="true" preserveRatio="true">
+            <ImageView fx:id="leftThumb" fitHeight="92.0" fitWidth="28.0" layoutX="55.0" layoutY="37.0" onMouseClicked="#addException" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@../images/exceptionmarks/leftThumb.png" />
                </image>
             </ImageView>
-            <ImageView fx:id="rightThumb" fitHeight="54.0" fitWidth="28.0" layoutX="112.0" layoutY="54.0" onMouseClicked="#addException" pickOnBounds="true" preserveRatio="true">
+            <ImageView fx:id="rightThumb" fitHeight="99.0" fitWidth="28.0" layoutX="115.0" layoutY="38.0" onMouseClicked="#addException" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@../images/exceptionmarks/leftThumb.png" />
                </image>
@@ -91,19 +91,19 @@
       </Pane>
       <Pane fx:id="irisPane" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="3">
          <children>
-            <ImageView fx:id="eyesImage" fitHeight="144.0" fitWidth="189.0" layoutX="7.0" layoutY="4.0" pickOnBounds="true" preserveRatio="true">
+            <ImageView fitHeight="144.0" fitWidth="189.0" layoutX="7.0" layoutY="4.0" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@../images/Eyes.png" />
                </image>
             </ImageView>
-            <ImageView fx:id="rightIris" fitHeight="43.0" fitWidth="48.0" layoutX="118.0" layoutY="54.0" onMouseClicked="#addException" pickOnBounds="true" preserveRatio="true">
+            <ImageView fx:id="rightEye" fitHeight="43.0" fitWidth="48.0" layoutX="118.0" layoutY="54.0" onMouseClicked="#addException" pickOnBounds="true" preserveRatio="true">
                <image>
-                  <Image url="@../images/exceptionmarks/blueCrossMark.png" />
+                  <Image url="@../images/exceptionmarks/lightBlueCrossMark.png" />
                </image>
             </ImageView>
-            <ImageView fx:id="leftIris" fitHeight="43.0" fitWidth="48.0" layoutX="35.0" layoutY="54.0" onMouseClicked="#addException" pickOnBounds="true" preserveRatio="true">
+            <ImageView fx:id="leftEye" fitHeight="43.0" fitWidth="48.0" layoutX="35.0" layoutY="54.0" onMouseClicked="#addException" pickOnBounds="true" preserveRatio="true">
                <image>
-                  <Image url="@../images/exceptionmarks/blueCrossMark.png" />
+                  <Image url="@../images/exceptionmarks/lightBlueCrossMark.png" />
                </image>
             </ImageView>
          </children>
