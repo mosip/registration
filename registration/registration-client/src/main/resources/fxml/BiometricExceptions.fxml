@@ -10,11 +10,11 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<GridPane fx:id="exceptionBiometricsPane" alignment="CENTER" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<GridPane fx:id="exceptionBiometricsPane" alignment="CENTER" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.mosip.registration.controller.device.BiometricsExceptionController">
    <children>
       <Pane fx:id="leftHandPane" nodeOrientation="LEFT_TO_RIGHT" styleClass="biometricExceptionPaneFinger">
          <children>
-            <ImageView fitHeight="144.0" fitWidth="163.0" layoutX="6.0" layoutY="7.0" pickOnBounds="true" preserveRatio="true">
+            <ImageView fx:id="FINGERPRINT_SLAB_LEFT" fitHeight="144.0" fitWidth="163.0" layoutX="6.0" layoutY="7.0" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@../images/leftHand.png" />
                </image>
@@ -43,7 +43,7 @@
       </Pane>
       <Pane fx:id="rightHandPane" nodeOrientation="LEFT_TO_RIGHT" styleClass="biometricExceptionPaneFinger" GridPane.rowIndex="1">
          <children>
-            <ImageView fitHeight="144.0" fitWidth="163.0" layoutX="3.0" layoutY="4.0" pickOnBounds="true" preserveRatio="true">
+            <ImageView fx:id="FINGERPRINT_SLAB_RIGHT" fitHeight="144.0" fitWidth="163.0" layoutX="3.0" layoutY="4.0" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@../images/rightHand.png" />
                </image>
@@ -72,7 +72,7 @@
       </Pane>
       <Pane fx:id="thumbsPane" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="2">
          <children>
-            <ImageView fitHeight="144.0" fitWidth="171.0" layoutX="14.0" layoutY="7.0" pickOnBounds="true" preserveRatio="true">
+            <ImageView fx:id="FINGERPRINT_SLAB_THUMBS" fitHeight="144.0" fitWidth="171.0" layoutX="14.0" layoutY="7.0" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@../images/thumbs.png" />
                </image>
@@ -91,7 +91,7 @@
       </Pane>
       <Pane fx:id="irisPane" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="3">
          <children>
-            <ImageView fitHeight="144.0" fitWidth="189.0" layoutX="7.0" layoutY="4.0" pickOnBounds="true" preserveRatio="true">
+            <ImageView fx:id="IRIS_DOUBLE" fitHeight="144.0" fitWidth="189.0" layoutX="7.0" layoutY="4.0" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@../images/Eyes.png" />
                </image>
