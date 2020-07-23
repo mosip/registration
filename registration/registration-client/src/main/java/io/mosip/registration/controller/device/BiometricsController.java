@@ -677,21 +677,20 @@ public class BiometricsController extends BaseController /* implements Initializ
 			List<String> exceptionBioAttributes = null;
 			List<String> nonExceptionBioAttributes = null;
 
-			for (Node node : checkBoxNodes) {
-				if (node instanceof CheckBox) {
-					CheckBox checkBox = (CheckBox) node;
-					String bioAttribute = checkBox.getId();
-					// if (isBiometricExceptionAvailable(currentSubType, bioAttribute))
-					// checkBox.setSelected(true);
-
-					if (checkBox.isSelected() || checkBox.isDisable()) {
-						exceptionBioAttributes = exceptionBioAttributes != null ? exceptionBioAttributes
-								: new LinkedList<String>();
-						exceptionBioAttributes.add(bioAttribute);
-					} else {
-						nonExceptionBioAttributes = nonExceptionBioAttributes != null ? nonExceptionBioAttributes
-								: new LinkedList<String>();
-						nonExceptionBioAttributes.add(bioAttribute);
+			for (Node node : ((Pane) checkBoxNodes.get(1)).getChildren()) {
+				if (node instanceof ImageView) {
+					ImageView imageView = (ImageView) node;
+					String bioAttribute = imageView.getId();
+					if (bioAttribute != null && !bioAttribute.isEmpty()) {
+						if (imageView.getOpacity() == 1) {
+							exceptionBioAttributes = exceptionBioAttributes != null ? exceptionBioAttributes
+									: new LinkedList<String>();
+							exceptionBioAttributes.add(bioAttribute);
+						} else {
+							nonExceptionBioAttributes = nonExceptionBioAttributes != null ? nonExceptionBioAttributes
+									: new LinkedList<String>();
+							nonExceptionBioAttributes.add(bioAttribute);
+						}
 					}
 				}
 			}
@@ -1870,9 +1869,9 @@ public class BiometricsController extends BaseController /* implements Initializ
 		vBox.setId(modality);
 
 		// Create Label with modality
-//		Label label = new Label();
-//		label.setText(applicationLabelBundle.getString(modality));
-		//vBox.getChildren().add(label);
+		// Label label = new Label();
+		// label.setText(applicationLabelBundle.getString(modality));
+		// vBox.getChildren().add(label);
 
 		HBox hBox = new HBox();
 		// hBox.setAlignment(Pos.BOTTOM_RIGHT);
@@ -1899,8 +1898,9 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		// vBox.setMinHeight(100);
 		vBox.getStyleClass().add(RegistrationConstants.BIOMETRICS_DISPLAY);
-//		vBox.setBorder(new Border(
-//				new BorderStroke(Color.PINK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.FULL)));
+		// vBox.setBorder(new Border(
+		// new BorderStroke(Color.PINK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
+		// BorderWidths.FULL)));
 
 		return vBox;
 	}
