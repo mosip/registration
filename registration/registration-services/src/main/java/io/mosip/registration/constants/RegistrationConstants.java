@@ -97,6 +97,7 @@ public class RegistrationConstants {
 	public static final String LABEL_GREEN = "labelGreen";
 	public static final String IRIS_PANES_SELECTED = "IrisPanesSelected";
 	public static final String BIO_IRIS_SELECTED = "bioIris";
+	public static final String BIOMETRICS_DISPLAY = "biometricsDisplay";
 
 	// Page Flow
 	public static final String VISIBILITY = "visibility";

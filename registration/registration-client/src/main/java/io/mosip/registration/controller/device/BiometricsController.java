@@ -1,7 +1,7 @@
 package io.mosip.registration.controller.device;
 
-import static io.mosip.registration.constants.LoggerConstants.LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER;
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_BIOMETRIC_CONTROLLER;
+import static io.mosip.registration.constants.LoggerConstants.LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
@@ -72,20 +72,15 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
@@ -406,7 +401,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		rowIndex = 0;
 		leftPanelImageGridPane.setAlignment(Pos.TOP_LEFT);
-		leftPanelImageGridPane.setPadding(new Insets(10, 100, 100, 10)); // margins around the whole grid
+		leftPanelImageGridPane.setPadding(new Insets(70, 100, 100, 70)); // margins around the whole grid
 		// (top/right/bottom/left)
 		for (Entry<Entry<String, String>, Map<String, List<List<String>>>> subType : mapToProcess.entrySet()) {
 
@@ -1875,17 +1870,18 @@ public class BiometricsController extends BaseController /* implements Initializ
 		vBox.setId(modality);
 
 		// Create Label with modality
-		Label label = new Label();
-		label.setText(applicationLabelBundle.getString(modality));
-		vBox.getChildren().add(label);
+//		Label label = new Label();
+//		label.setText(applicationLabelBundle.getString(modality));
+		//vBox.getChildren().add(label);
 
 		HBox hBox = new HBox();
 		// hBox.setAlignment(Pos.BOTTOM_RIGHT);
 
 		// Image modalityImage = getImage(modality);
 		ImageView imageView = new ImageView(new Image(this.getClass().getResourceAsStream(getImageIconPath(modality))));
-		imageView.setFitHeight(46);
-		imageView.setFitWidth(46);
+		imageView.setFitHeight(80);
+		imageView.setFitWidth(85);
+		Tooltip.install(imageView, new Tooltip(applicationLabelBundle.getString(modality)));
 		hBox.getChildren().add(imageView);
 
 		vBox.getChildren().add(hBox);
@@ -1900,9 +1896,9 @@ public class BiometricsController extends BaseController /* implements Initializ
 		vBox.setMinWidth(100);
 
 		// vBox.setMinHeight(100);
-		vBox.getStyleClass().add(RegistrationConstants.ONBOARD_STYLE_CLASS);
-		vBox.setBorder(new Border(
-				new BorderStroke(Color.PINK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
+		vBox.getStyleClass().add(RegistrationConstants.BIOMETRICS_DISPLAY);
+//		vBox.setBorder(new Border(
+//				new BorderStroke(Color.PINK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.FULL)));
 
 		return vBox;
 	}
@@ -1915,7 +1911,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 					if (node.getId().equalsIgnoreCase(modality)) {
 						VBox vBox = (VBox) node;
-						HBox hBox = (HBox) vBox.getChildren().get(1);
+						HBox hBox = (HBox) vBox.getChildren().get(0);
 						// hBox.getChildren().clear();
 						((ImageView) (hBox.getChildren().get(0))).setImage(uiImage != null ? uiImage
 								: new Image(this.getClass().getResourceAsStream(getImageIconPath(modality))));
@@ -1925,8 +1921,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 								ImageView imageView = new ImageView(new Image(this.getClass()
 										.getResourceAsStream(RegistrationConstants.TICK_CIRICLE_IMG_PATH)));
 
-								imageView.setFitWidth(10);
-								imageView.setFitHeight(10);
+								imageView.setFitWidth(30);
+								imageView.setFitHeight(30);
 								hBox.getChildren().add(imageView);
 							}
 						} else {
