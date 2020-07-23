@@ -884,14 +884,18 @@ public class BiometricsController extends BaseController /* implements Initializ
 		List<String> selectedExceptions = new LinkedList<String>();
 
 		// Get List of check boxes using the grid pane
-		List<Node> exceptionCheckBoxes = getCheckBoxes(subType, modality);
-		if (exceptionCheckBoxes != null && !exceptionCheckBoxes.isEmpty()) {
-			for (Node checkBoxx : exceptionCheckBoxes) {
-				if (checkBoxx instanceof CheckBox) {
-					CheckBox checkBox = (CheckBox) checkBoxx;
-					if (checkBox.isSelected()) {
+		List<Node> paneList = getCheckBoxes(subType, modality);
+		if (paneList != null && !paneList.isEmpty()) {
 
-						selectedExceptions.add(checkBox.getId());
+			Pane pane = (Pane) paneList.get(1);
+
+			for (Node exceptionImage : pane.getChildren()) {
+				if (exceptionImage instanceof ImageView && exceptionImage.getId() != null
+						&& !exceptionImage.getId().isEmpty()) {
+					ImageView image = (ImageView) exceptionImage;
+					if (image.getOpacity() == 1) {
+
+						selectedExceptions.add(image.getId());
 
 					}
 				}
@@ -1898,7 +1902,17 @@ public class BiometricsController extends BaseController /* implements Initializ
 		hBox.setOnMouseExited(event -> tooltip.hide());
 		hBox.getChildren().add(imageView);
 
-		if (image != null) {
+		boolean isAllExceptions = true;
+		for (String configBioAttribute : configBioAttributes) {
+
+			isAllExceptions = isBiometricExceptionAvailable(currentSubType, configBioAttribute) ? isAllExceptions
+					: false;
+
+			if (!isAllExceptions) {
+				break;
+			}
+		}
+		if (image != null || isAllExceptions) {
 			if (hBox.getChildren().size() == 1) {
 				ImageView tickImageView = new ImageView(
 						new Image(this.getClass().getResourceAsStream(RegistrationConstants.TICK_CIRICLE_IMG_PATH)));
@@ -2059,6 +2073,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		}
 
+		displayBiometric(currentModality);
 		addImageInUIPane(currentSubType, currentModality, null, isAllMarked);
 		setScanButtonVisibility(isAllMarked, scanBtn);
 		refreshContinueButton();
@@ -2082,7 +2097,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 						node.setVisible(true);
 						node.setDisable(false);
-						node.setOpacity(0.0);
+						node.setOpacity(isBiometricExceptionAvailable(subType, node.getId()) ? 1 : 0);
+
 					}
 					if (nonConfigBioAttributes.contains(node.getId())) {
 						LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
