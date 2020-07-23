@@ -91,8 +91,8 @@
                               <GridPane GridPane.rowIndex="1">
                                 <columnConstraints>
                                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="22.0" prefWidth="100.0" />
-                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="22.0" prefWidth="100.0" />
-                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="96.0" prefWidth="100.0" />
+                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="33.0" prefWidth="100.0" />
+                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="85.0" prefWidth="100.0" />
                                 </columnConstraints>
                                 <rowConstraints>
                                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
@@ -139,8 +139,8 @@
                                                       </GridPane>
                                                    </children>
                                                    <columnConstraints>
-                                                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="50.0" prefWidth="100.0" />
-                                                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="50.0" prefWidth="100.0" />
+                                                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="52.0" prefWidth="100.0" />
+                                                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="48.0" prefWidth="100.0" />
                                                    </columnConstraints>
                                                    <rowConstraints>
                                                       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
@@ -191,8 +191,8 @@
                                                 </Button>
                                              </children>
                                              <columnConstraints>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="15.0" prefWidth="100.0" />
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="85.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="19.0" prefWidth="100.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="81.0" />
                                              </columnConstraints>
                                              <rowConstraints>
                                                 <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
