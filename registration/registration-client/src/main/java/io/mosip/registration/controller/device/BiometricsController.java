@@ -419,7 +419,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 					// comboBox.getItems().add(new SimpleEntry<String, String>(biometric.getKey(),
 					// applicationLabelBundle.getString(biometric.getKey())));
 
-					gridPane.add(getImageVBox(biometric.getKey()), 1, rowIndex);
+					gridPane.add(getImageVBox(biometric.getKey(), subType.getKey().getKey(), listOfCheckBoxes.get(0)),
+							1, rowIndex);
 
 					rowIndex++;
 
@@ -434,7 +435,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 						checkBoxTitle.getStyleClass().add("demoGraphicFieldLabel");
 
 						vboxForCheckBox.getChildren().add(getExceptionImagePane(biometric.getKey(),
-								listOfCheckBoxes.get(0), listOfCheckBoxes.get(1)));
+								listOfCheckBoxes.get(0), listOfCheckBoxes.get(1), subType.getKey().getKey()));
 
 						vboxForCheckBox.setVisible(false);
 						vboxForCheckBox.setManaged(false);
@@ -883,14 +884,18 @@ public class BiometricsController extends BaseController /* implements Initializ
 		List<String> selectedExceptions = new LinkedList<String>();
 
 		// Get List of check boxes using the grid pane
-		List<Node> exceptionCheckBoxes = getCheckBoxes(subType, modality);
-		if (exceptionCheckBoxes != null && !exceptionCheckBoxes.isEmpty()) {
-			for (Node checkBoxx : exceptionCheckBoxes) {
-				if (checkBoxx instanceof CheckBox) {
-					CheckBox checkBox = (CheckBox) checkBoxx;
-					if (checkBox.isSelected()) {
+		List<Node> paneList = getCheckBoxes(subType, modality);
+		if (paneList != null && !paneList.isEmpty()) {
 
-						selectedExceptions.add(checkBox.getId());
+			Pane pane = (Pane) paneList.get(1);
+
+			for (Node exceptionImage : pane.getChildren()) {
+				if (exceptionImage instanceof ImageView && exceptionImage.getId() != null
+						&& !exceptionImage.getId().isEmpty()) {
+					ImageView image = (ImageView) exceptionImage;
+					if (image.getOpacity() == 1) {
+
+						selectedExceptions.add(image.getId());
 
 					}
 				}
@@ -1861,7 +1866,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 				.build();
 	}
 
-	private VBox getImageVBox(String modality) {
+	private VBox getImageVBox(String modality, String subtype, List<String> configBioAttributes) {
 
 		VBox vBox = new VBox();
 
@@ -1877,15 +1882,46 @@ public class BiometricsController extends BaseController /* implements Initializ
 		// hBox.setAlignment(Pos.BOTTOM_RIGHT);
 
 		// Image modalityImage = getImage(modality);
-		ImageView imageView = new ImageView(new Image(this.getClass().getResourceAsStream(getImageIconPath(modality))));
+		List<BiometricsDto> biometricsDtos = getBiometrics(currentSubType, configBioAttributes);
+
+		Image image = null;
+		if (biometricsDtos != null && !biometricsDtos.isEmpty()) {
+
+			image = getBioStreamImage(subtype, modality, biometricsDtos.get(0).getNumOfRetries());
+		}
+
+		ImageView imageView = new ImageView(
+				image != null ? image : new Image(this.getClass().getResourceAsStream(getImageIconPath(modality))));
 		imageView.setFitHeight(80);
 		imageView.setFitWidth(85);
+
 		Tooltip tooltip = new Tooltip(applicationLabelBundle.getString(modality));
 		tooltip.getStyleClass().add(RegistrationConstants.TOOLTIP_STYLE);
-		//Tooltip.install(hBox, tooltip);
+		// Tooltip.install(hBox, tooltip);
 		hBox.setOnMouseEntered(event -> tooltip.show(hBox, event.getScreenX(), event.getScreenY() + 15));
 		hBox.setOnMouseExited(event -> tooltip.hide());
 		hBox.getChildren().add(imageView);
+
+		boolean isAllExceptions = true;
+		for (String configBioAttribute : configBioAttributes) {
+
+			isAllExceptions = isBiometricExceptionAvailable(currentSubType, configBioAttribute) ? isAllExceptions
+					: false;
+
+			if (!isAllExceptions) {
+				break;
+			}
+		}
+		if (image != null || isAllExceptions) {
+			if (hBox.getChildren().size() == 1) {
+				ImageView tickImageView = new ImageView(
+						new Image(this.getClass().getResourceAsStream(RegistrationConstants.TICK_CIRICLE_IMG_PATH)));
+
+				tickImageView.setFitWidth(30);
+				tickImageView.setFitHeight(30);
+				hBox.getChildren().add(tickImageView);
+			}
+		}
 
 		vBox.getChildren().add(hBox);
 
@@ -1963,7 +1999,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 	}
 
 	private Pane getExceptionImagePane(String modality, List<String> configBioAttributes,
-			List<String> nonConfigBioAttributes) {
+			List<String> nonConfigBioAttributes, String subType) {
 
 		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Getting exception image pane for modality : " + modality);
@@ -1992,7 +2028,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		}
 
-		addExceptionsUiPane(exceptionImagePane, configBioAttributes, nonConfigBioAttributes);
+		addExceptionsUiPane(exceptionImagePane, configBioAttributes, nonConfigBioAttributes, modality, subType);
 
 		exceptionImagePane.setVisible(true);
 		exceptionImagePane.setManaged(true);
@@ -2037,12 +2073,14 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		}
 
+		displayBiometric(currentModality);
 		addImageInUIPane(currentSubType, currentModality, null, isAllMarked);
 		setScanButtonVisibility(isAllMarked, scanBtn);
 		refreshContinueButton();
 	}
 
-	private void addExceptionsUiPane(Pane pane, List<String> configBioAttributes, List<String> nonConfigBioAttributes) {
+	private void addExceptionsUiPane(Pane pane, List<String> configBioAttributes, List<String> nonConfigBioAttributes,
+			String modality, String subType) {
 
 		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"started adding exception images in ui pane");
@@ -2059,7 +2097,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 						node.setVisible(true);
 						node.setDisable(false);
-						node.setOpacity(0.0);
+						node.setOpacity(isBiometricExceptionAvailable(subType, node.getId()) ? 1 : 0);
+
 					}
 					if (nonConfigBioAttributes.contains(node.getId())) {
 						LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
@@ -2068,10 +2107,17 @@ public class BiometricsController extends BaseController /* implements Initializ
 						node.setVisible(true);
 						node.setDisable(true);
 						node.setOpacity(1.0);
+
+						if (isUserOnboardFlag)
+							userOnboardService.addOperatorBiometricException(currentSubType, node.getId());
+						else
+							getRegistrationDTOFromSession().addBiometricException(currentSubType, node.getId(),
+									node.getId(), "Temporary", "Temporary");
 					}
 				}
 			}
 		}
+
 		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Completed adding exception images in ui pane");
 
