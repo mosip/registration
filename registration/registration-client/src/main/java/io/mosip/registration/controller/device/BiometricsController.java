@@ -1881,7 +1881,9 @@ public class BiometricsController extends BaseController /* implements Initializ
 		ImageView imageView = new ImageView(new Image(this.getClass().getResourceAsStream(getImageIconPath(modality))));
 		imageView.setFitHeight(80);
 		imageView.setFitWidth(85);
-		Tooltip.install(imageView, new Tooltip(applicationLabelBundle.getString(modality)));
+		Tooltip tooltip = new Tooltip(applicationLabelBundle.getString(modality));
+		tooltip.getStyleClass().add(RegistrationConstants.TOOLTIP_STYLE);
+		Tooltip.install(imageView, tooltip);
 		hBox.getChildren().add(imageView);
 
 		vBox.getChildren().add(hBox);
