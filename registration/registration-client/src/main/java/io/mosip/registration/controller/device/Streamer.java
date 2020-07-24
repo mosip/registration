@@ -33,6 +33,32 @@ public class Streamer {
 
 	private InputStream urlStream;
 
+	public void setUrlStream(InputStream inputStream) {
+
+		if (urlStream != null) {
+			try {
+				urlStream.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			urlStream = null;
+		}
+
+		if (inputStream != null) {
+			this.urlStream = inputStream;
+			isRunning = true;
+		} else {
+			this.urlStream = null;
+			isRunning = false;
+		}
+
+	}
+
+	public InputStream getUrlStream() {
+		return urlStream;
+	}
+
 	private boolean isRunning = true;
 
 	private final String CONTENT_LENGTH = "Content-Length:";
@@ -97,74 +123,20 @@ public class Streamer {
 
 	}
 
-	public void startStream(String type, ImageView streamImage, ImageView scanImage) {
+	public void startStream(InputStream inputStream, ImageView streamImage, ImageView scanImage) {
 
 		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-				"Streamer Thread initiation started for : " + System.currentTimeMillis() + type);
+				"Streamer Thread initiation started for : " + System.currentTimeMillis());
 
 		streamer_thread = new Thread(new Runnable() {
 
 			public void run() {
 
-				try {
-					LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-							"Constructing Stream URL Started" + System.currentTimeMillis());
+				setUrlStream(inputStream);
 
-					// Disable Auto-Logout
-					SessionContext.setAutoLogout(false);
-
-					scanPopUpViewController.disableCloseButton();
-
-					setPopViewControllerMessage(true, RegistrationUIConstants.SEARCHING_DEVICE_MESSAGE, false);
-
-					if (urlStream != null) {
-						urlStream.close();
-						urlStream = null;
-					}
-
-					// Get Device
-					MdmBioDevice mdmBioDevice = deviceSpecificationFactory.getDeviceInfoByModality(type);
-
-					if (mdmBioDevice == null) {
-						setPopViewControllerMessage(true, RegistrationUIConstants.NO_DEVICE_FOUND, false);
-
-						return;
-					}
-
-					// Start Stream
-					setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_PREP_MESSAGE, false);
-					urlStream = bioService.getStream(mdmBioDevice, type);
-					if (urlStream == null) {
-
-						LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-								"URL Stream was null for : " + System.currentTimeMillis() + type);
-
-						deviceSpecificationFactory.init();
-						setPopViewControllerMessage(true,
-								RegistrationUIConstants.getMessageLanguageSpecific("202_MESSAGE"), false);
-
-						return;
-					}
-
-					setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_INIT_MESSAGE, true);
-
-				} catch (IOException | NullPointerException | RegBaseCheckedException exception) {
-
-					LOGGER.error(STREAMER, RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-							exception.getMessage() + ExceptionUtils.getStackTrace(exception));
-					setPopViewControllerMessage(true, RegistrationUIConstants.getMessageLanguageSpecific("202_MESSAGE"),
-							false);
-
-					// Enable Auto-Logout
-					SessionContext.setAutoLogout(true);
-					deviceSpecificationFactory.init();
-					return;
-
-				}
-
-				while (isRunning && null != urlStream) {
+				while (null != urlStream) {
 					try {
-						imageBytes = retrieveNextImage();
+						imageBytes = retrieveNextImage(urlStream);
 						ByteArrayInputStream imageStream = new ByteArrayInputStream(imageBytes);
 						Image img = new Image(imageStream);
 						streamImage.setImage(img);
@@ -179,17 +151,7 @@ public class Streamer {
 						LOGGER.error(STREAMER, RegistrationConstants.APPLICATION_NAME,
 								RegistrationConstants.APPLICATION_ID,
 								exception.getMessage() + ExceptionUtils.getStackTrace(exception));
-
-						// Enable Auto-Logout
-						SessionContext.setAutoLogout(true);
-
-						if (exception.getMessage().contains("Stream closed")) {
-
-							setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_CLOSED_MESSAGE, false);
-						}
-
 						urlStream = null;
-						isRunning = false;
 
 					}
 				}
@@ -201,7 +163,7 @@ public class Streamer {
 		setPopViewControllerMessage(true, RegistrationUIConstants.SEARCHING_DEVICE_MESSAGE, false);
 
 		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-				"Streamer Thread initiated completed for : " + System.currentTimeMillis() + type);
+				"Streamer Thread initiated completed for : " + System.currentTimeMillis());
 
 	}
 
@@ -211,7 +173,7 @@ public class Streamer {
 	 * @return byte[] of the JPEG
 	 * @throws IOException
 	 */
-	private byte[] retrieveNextImage() throws IOException {
+	public byte[] retrieveNextImage(InputStream urlStream) throws IOException {
 
 		int currByte = -1;
 

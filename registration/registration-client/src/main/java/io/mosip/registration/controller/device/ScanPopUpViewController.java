@@ -132,27 +132,26 @@ public class ScanPopUpViewController extends BaseController {
 			} else {
 				isDocumentScan = false;
 			}
-			
+
+			if (title.equalsIgnoreCase("Biometrics")) {
+				captureBtn.setVisible(false);
+				scanningMsg.setVisible(false);
+			}
 			scanningMsg.textProperty().addListener((observable, oldValue, newValue) -> {
-			 
+
 				Platform.runLater(() -> {
 					if (RegistrationUIConstants.NO_DEVICE_FOUND.contains(newValue)) {
 
-						captureBtn.setDisable(false);
-						
-						generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_DEVICE_FOUND);
+						// captureBtn.setDisable(false);
 
-					} else if(RegistrationUIConstants.STREAMING_INIT_MESSAGE.contains(newValue)) {
-						captureBtn.setDisable(false);
-					}
-					else if(RegistrationUIConstants.STREAMING_PREP_MESSAGE.contains(newValue)) {
-						captureBtn.setDisable(true);
+						generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_DEVICE_FOUND);
+						popupStage.close();
+
 					}
 				});
 
 			});
-			
-			
+
 			LOGGER.info(LOG_REG_SCAN_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					"Opening pop-up screen to scan for user registration");
 
