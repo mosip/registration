@@ -54,8 +54,8 @@ import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*","javax.net.ssl.*"})
 @PrepareForTest({ RegistrationAppHealthCheckUtil.class, Base64.class })
-@PowerMockIgnore("javax.net.ssl.*")
 public class MosipBioDeviceManagerTest {
 	public MockitoRule mockitoRule = MockitoJUnit.rule();
 	@InjectMocks

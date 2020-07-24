@@ -11,7 +11,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.castor.util.concurrent.Sync;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -24,6 +23,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.quartz.JobDetail;
@@ -33,6 +33,7 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
+import org.springframework.scheduling.SchedulingException;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
 import io.mosip.registration.constants.RegistrationConstants;
@@ -53,6 +54,7 @@ import io.mosip.registration.service.config.GlobalParamService;
 import io.mosip.registration.service.config.impl.JobConfigurationServiceImpl;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ io.mosip.registration.jobs.BaseJob.class })
 public class JobConfigurationServiceTest {
 
@@ -239,8 +241,8 @@ public class JobConfigurationServiceTest {
 	}
 
 	@Test
-	public void stopJobsSchedulerExceptionTest() throws SchedulerException {
-		Mockito.when(schedulerFactoryBean.isRunning()).thenThrow(SchedulerException.class);
+	public void stopJobsSchedulerExceptionTest() throws SchedulingException {
+		Mockito.when(schedulerFactoryBean.isRunning()).thenThrow(SchedulingException.class);
 		Assert.assertSame(RegistrationConstants.STOP_SCHEDULER_ERROR_MESSAGE,
 				jobConfigurationService.stopScheduler().getErrorResponseDTOs().get(0).getMessage());
 
@@ -276,7 +278,7 @@ public class JobConfigurationServiceTest {
 		List<JobExecutionContext> jobExecutionContexts = new ArrayList<>();
 
 		startJobs();
-		Mockito.when(schedulerFactoryBean.getScheduler()).thenThrow(SchedulerException.class);
+		Mockito.when(schedulerFactoryBean.getScheduler().getCurrentlyExecutingJobs()).thenThrow(SchedulerException.class);
 		Assert.assertSame(RegistrationConstants.CURRENT_JOB_DETAILS_ERROR_MESSAGE,
 				jobConfigurationService.getCurrentRunningJobDetails().getErrorResponseDTOs().get(0).getMessage());
 	}
@@ -284,7 +286,7 @@ public class JobConfigurationServiceTest {
 	@Test
 	public void executeJobTest() throws SchedulerException {
 		initiateJobTest();
-		Mockito.when(applicationContext.getBean(Mockito.anyString())).thenReturn(packetSyncJob);
+		//Mockito.when(applicationContext.getBean(Mockito.anyString())).thenReturn(packetSyncJob);
 		Mockito.when(packetSyncJob.executeJob(Mockito.anyString(), Mockito.anyString())).thenReturn(new ResponseDTO());
 		Assert.assertNotNull(
 				jobConfigurationService.executeJob("1234", RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM));

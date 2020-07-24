@@ -70,37 +70,11 @@ public class IdentitySchemaDaoTest {
 
 	@Test
 	public void testSuccessSchemaSync() throws IOException {
-		
-
-
-
-
-		SchemaDto dto = getSchemaDto("response_1587846312621.json");		
-		
+		SchemaDto dto = getSchemaDto("response_1587846312621.json");
 		Double version = identitySchemaRepository.findLatestEffectiveIdVersion(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
-		 
 		assertNull(version);
-		
-		identitySchemaDao.createIdentitySchema(dto);		
-
-
-
-
-
-		
+		identitySchemaDao.createIdentitySchema(dto);
 		version = identitySchemaRepository.findLatestEffectiveIdVersion(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
-
-
-
-
-
-
-
-
-
-
-
-
 		assertNotNull(version);
 	}
 	

@@ -15,6 +15,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.test.context.ContextConfiguration;
@@ -30,6 +31,7 @@ import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.service.external.impl.StorageServiceImpl;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ FileUtils.class, ApplicationContext.class })
 public class StorageServiceTest {
 	@Rule
@@ -60,7 +62,7 @@ public class StorageServiceTest {
 	@Test(expected = RegBaseUncheckedException.class)
 	public void testRuntimeException() throws Exception {
 		PowerMockito.doThrow(new RuntimeException("Unable to save")).when(FileUtils.class, "copyToFile",
-				Mockito.any(InputStream.class), Mockito.any(File.class));
+				Mockito.any(InputStream.class), Mockito.any());
 
 		storageService.storeToDisk("1213242422", "packet.zip".getBytes());
 	}
@@ -68,7 +70,7 @@ public class StorageServiceTest {
 	@Test(expected = RegBaseCheckedException.class)
 	public void testIOException() throws Exception {
 		PowerMockito.doThrow(new IOException("PCM", "File Not Found")).when(FileUtils.class, "copyToFile",
-				Mockito.any(InputStream.class), Mockito.any(File.class));
+				Mockito.any(InputStream.class), Mockito.any());
 
 		storageService.storeToDisk("12343455657676787", "packet.zip".getBytes());
 	}

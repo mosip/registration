@@ -17,6 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -26,6 +27,7 @@ import io.mosip.registration.service.security.impl.LocalClientSecurityImpl;
 
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ LocalClientSecurityImpl.class})
 public class ClientSecurityTest {
 	
@@ -50,9 +52,9 @@ public class ClientSecurityTest {
 			File directoy = new File(path.toAbsolutePath().toString()+ File.separator + KEYS_DIR);
 			directoy.mkdirs();			
 			
-			PowerMockito.mockStatic(System.class);
-			PowerMockito.doReturn(path.toAbsolutePath().toString()).when(System.class, "getProperty", "user.home", 
-					path.toAbsolutePath().toString());
+//			PowerMockito.mockStatic(System.class);
+//			PowerMockito.when(System.class, "getProperty", "user.home", 
+//					path.toAbsolutePath().toString()).thenReturn(path.toAbsolutePath().toString());
 			
 			tempDirectory = directoy.getAbsolutePath();
 			

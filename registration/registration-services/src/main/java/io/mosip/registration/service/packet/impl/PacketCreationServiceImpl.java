@@ -4,7 +4,6 @@ import static io.mosip.kernel.core.util.JsonUtils.javaObjectToJsonString;
 import static io.mosip.registration.constants.LoggerConstants.LOG_PKT_CREATION;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
-import static io.mosip.registration.constants.RegistrationConstants.DEMOGRPAHIC_JSON_NAME;
 import static io.mosip.registration.mapper.CustomObjectMapper.MAPPER_FACADE;
 
 import java.io.InputStream;
@@ -15,7 +14,6 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import io.mosip.kernel.auditmanager.entity.Audit;
-import io.mosip.kernel.cbeffutil.impl.CbeffImpl;
 import io.mosip.kernel.core.cbeffutil.constant.CbeffConstant;
 import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
@@ -56,8 +53,6 @@ import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.dao.AuditDAO;
 import io.mosip.registration.dao.AuditLogControlDAO;
-import io.mosip.registration.dao.DocumentTypeDAO;
-import io.mosip.registration.dao.impl.RegisteredDeviceDAO;
 import io.mosip.registration.dto.BaseDTO;
 import io.mosip.registration.dto.OSIDataDTO;
 import io.mosip.registration.dto.RegistrationDTO;
@@ -67,9 +62,6 @@ import io.mosip.registration.dto.biometric.BiometricInfoDTO;
 import io.mosip.registration.dto.biometric.FaceDetailsDTO;
 import io.mosip.registration.dto.biometric.FingerprintDetailsDTO;
 import io.mosip.registration.dto.biometric.IrisDetailsDTO;
-import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
-import io.mosip.registration.dto.demographic.IndividualIdentity;
-import io.mosip.registration.dto.json.metadata.BiometricException;
 import io.mosip.registration.dto.json.metadata.BiometricSequence;
 import io.mosip.registration.dto.json.metadata.CustomDigitalId;
 import io.mosip.registration.dto.json.metadata.DemographicSequence;
@@ -78,20 +70,16 @@ import io.mosip.registration.dto.json.metadata.HashSequence;
 import io.mosip.registration.dto.json.metadata.PacketMetaInfo;
 import io.mosip.registration.dto.json.metadata.RegisteredDevice;
 import io.mosip.registration.dto.mastersync.AuditRequestDto;
-import io.mosip.registration.entity.DocumentType;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
 import io.mosip.registration.service.BaseService;
-import io.mosip.registration.service.bio.BioService;
-import io.mosip.registration.service.bio.impl.BioServiceImpl;
 import io.mosip.registration.service.external.ZipCreationService;
 import io.mosip.registration.service.packet.PacketCreationService;
 import io.mosip.registration.util.advice.AuthenticationAdvice;
 import io.mosip.registration.util.advice.PreAuthorizeUserId;
 import io.mosip.registration.util.hmac.HMACGeneration;
-import io.mosip.registration.validator.RegIdObjectValidator;
 
 /**
  * Implementation class of {@link PacketCreationService} for creating the
@@ -107,10 +95,6 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 	@Autowired
 	private ZipCreationService zipCreationService;
 	private static final Logger LOGGER = AppConfig.getLogger(PacketCreationServiceImpl.class);
-	//@Autowired
-	//private CbeffImpl cbeffI;
-	@Autowired
-	private RegIdObjectValidator idObjectValidator;
 	private static SecureRandom random = new SecureRandom(String.valueOf(5000).getBytes());
 	@Autowired
 	private AuditManagerService auditFactory;
@@ -118,12 +102,6 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 	private AuditLogControlDAO auditLogControlDAO;
 	@Autowired
 	private AuditDAO auditDAO;
-	@Autowired
-	private DocumentTypeDAO documentTypeDAO;
-
-	@Autowired
-	private BioService bioService;
-
 	/*
 	 * (non-Javadoc)
 	 * 
