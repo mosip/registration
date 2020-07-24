@@ -1416,14 +1416,14 @@ public class BiometricsController extends BaseController /* implements Initializ
 			STREAM_IMAGES.put(String.format("%s_%s_%s", subType, modality, attempt),
 					new Image(this.getClass().getResourceAsStream(imagePath)));
 			if (getRegistrationDTOFromSession() != null) {
-				getRegistrationDTOFromSession().streamImages.put(String.format("%s_%s_%s", subType, modality, attempt),
+				getRegistrationDTOFromSession().streamImages.put(String.format("%s_%s_%s", subType, isFace(modality) ? RegistrationConstants.FACE_FULLFACE : modality, attempt),
 						IOUtils.toByteArray(this.getClass().getResourceAsStream(imagePath)));
 			}
 		} else {
 			STREAM_IMAGES.put(String.format("%s_%s_%s", subType, modality, attempt),
 					new Image(new ByteArrayInputStream(streamImage)));
 			if (getRegistrationDTOFromSession() != null) {
-				getRegistrationDTOFromSession().streamImages.put(String.format("%s_%s_%s", subType, modality, attempt),
+				getRegistrationDTOFromSession().streamImages.put(String.format("%s_%s_%s", subType, isFace(modality) ? RegistrationConstants.FACE_FULLFACE : modality, attempt),
 						streamImage);
 			}
 		}
