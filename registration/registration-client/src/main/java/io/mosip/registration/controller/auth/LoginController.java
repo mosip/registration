@@ -46,6 +46,7 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
 import io.mosip.registration.scheduler.SchedulerUtil;
+import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.config.JobConfigurationService;
 import io.mosip.registration.service.login.LoginService;
 import io.mosip.registration.service.operator.UserMachineMappingService;
@@ -677,8 +678,17 @@ public class LoginController extends BaseController implements Initializable {
 	@Autowired
 	Streamer streamer;
 
+	@Autowired
+	private BioService bioService;
+
 	public void streamFace() {
-		streamer.startStream(RegistrationConstants.FACE_FULLFACE, faceImage, null);
+
+		try {
+			streamer.startStream(bioService.getStream(RegistrationConstants.FACE_FULLFACE), faceImage, null);
+		} catch (RegBaseCheckedException regBaseCheckedException) {
+			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+					ExceptionUtils.getStackTrace(regBaseCheckedException));
+		}
 	}
 
 	/**

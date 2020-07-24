@@ -465,7 +465,13 @@ public class AuthenticationController extends BaseController implements Initiali
 	@FXML
 	private void startStream() {
 		faceImage.setImage(null);
-		streamer.startStream(RegistrationConstants.FACE_FULLFACE, faceImage, null);
+
+		try {
+			streamer.startStream(bioService.getStream(RegistrationConstants.FACE_FULLFACE), faceImage, null);
+		} catch (RegBaseCheckedException regBaseCheckedException) {
+			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+					ExceptionUtils.getStackTrace(regBaseCheckedException));
+		}
 	}
 
 	/**

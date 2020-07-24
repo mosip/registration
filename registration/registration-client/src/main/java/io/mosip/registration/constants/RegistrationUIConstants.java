@@ -413,5 +413,6 @@ public class RegistrationUIConstants {
 	
 	public static final String LOCAL_DEDUP_CHECK_FAILED = bundle.getString("LOCAL_DEDUP_CHECK_FAILED");
 
+	public static final String STREAMING_ERROR = bundle.getString("STREAMING_ERROR");
 	
 }
