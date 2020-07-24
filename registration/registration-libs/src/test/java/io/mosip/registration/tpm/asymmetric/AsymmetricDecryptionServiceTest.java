@@ -31,8 +31,8 @@ public class AsymmetricDecryptionServiceTest {
 		PowerMockito.when(asymmetricKeyCreationService.createPersistentKey(Mockito.any(Tpm.class)))
 				.thenReturn(PowerMockito.mock(TPM_HANDLE.class));
 
-		PowerMockito.when(mockedTPM.RSA_Decrypt(Mockito.any(TPM_HANDLE.class), Mockito.anyString().getBytes(),
-				Mockito.any(TPMU_ASYM_SCHEME.class), Mockito.anyString().getBytes())).thenReturn(decryptedData);
+		PowerMockito.when(mockedTPM.RSA_Decrypt(Mockito.any(TPM_HANDLE.class), Mockito.any(byte[].class),
+				Mockito.any(TPMU_ASYM_SCHEME.class), Mockito.any(byte[].class))).thenReturn(decryptedData);
 
 		Assert.assertArrayEquals(decryptedData,
 				asymmetricDecryptionService.decryptUsingTPM(mockedTPM, "encryptedData".getBytes()));

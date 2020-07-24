@@ -47,57 +47,66 @@
 			<systemPath>${project.basedir}/src/main/resources/fx_lib/jfxrt.jar</systemPath>
 			<scope>system</scope>
 		</dependency> -->
+		
+		<!-- https://mvnrepository.com/artifact/org.powermock/powermock-api-mockito -->
+<!-- 		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito</artifactId>
+			<scope>test</scope>
+		</dependency> -->
+		<!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
+		<dependency>
+		    <groupId>org.mockito</groupId>
+		    <artifactId>mockito-core</artifactId>
+		    <version>2.9.0</version>
+		    <scope>test</scope>
+		</dependency>		
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
 			<version>1.10.19</version>
 			<scope>test</scope>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.powermock/powermock-api-mockito -->
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito</artifactId>
-			<scope>test</scope>
-		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-core</artifactId>
+			<version>2.0.7</version>
 			<scope>test</scope>
 		</dependency>
-
+		<dependency>
+		  <groupId>org.mockito</groupId>
+		  <artifactId>mockito-core</artifactId>
+		  <version>2.18.0</version> <!-- or higher, correspondning to powermock-version -->
+		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-api-mockito2</artifactId>
+			<version>2.0.7</version>
 			<scope>test</scope>
 		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/org.powermock/powermock-module-junit4 -->
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-module-junit4</artifactId>
-			<scope>test</scope>
+			<version>2.0.0-beta.5</version>
 		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/org.powermock/powermock-module-junit4 -->
+		<!-- <dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<scope>test</scope>
+		</dependency> -->
 
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-web</artifactId>
 			<version>5.0.3.RELEASE</version>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-api-mockito</artifactId>
 			<version>1.7.4</version>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-module-junit4</artifactId>
-			<version>2.0.0-RC.3</version>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-core</artifactId>
-			<version>1.7.0</version>
-		</dependency>
+		</dependency> -->		
 		<!-- https://mvnrepository.com/artifact/com.github.microsoft/TSS.Java -->
 		<dependency>
 			<groupId>com.github.microsoft</groupId>
@@ -189,6 +198,13 @@
 				<artifactId>kernel-applicanttype-api</artifactId>
 				<version>${mosip.core.kernel.version}</version>
 			</dependency>
+			
+			<!-- https://mvnrepository.com/artifact/org.javassist/javassist -->
+			<dependency>
+			    <groupId>org.javassist</groupId>
+			    <artifactId>javassist</artifactId>
+			    <version>3.24.0-GA</version>
+			</dependency>		
 			
 		<!--  java 11 -->
 		<dependency>
