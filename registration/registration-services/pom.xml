@@ -12,26 +12,21 @@
 	<name>registration-services</name>
 	<description>Maven project of MOSIP Registration Service</description>
     <version>1.0.11-SNAPSHOT</version>
-	<dependencies>
-		<!-- Lombok -->
+	<dependencies>		
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-		</dependency>		
- 
-		<!-- JUnit -->
+		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.powermock/powermock-module-junit4 -->
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-module-junit4</artifactId>
+			<version>2.0.0-RC.3</version>
 			<scope>test</scope>
 		</dependency>
-		
-		<!-- https://mvnrepository.com/artifact/org.mvel/mvel2 -->
 		<dependency>
 		    <groupId>org.mvel</groupId>
 		    <artifactId>mvel2</artifactId>
@@ -88,7 +83,6 @@
 		    <artifactId>byte-buddy</artifactId>
 		    <version>1.10.13</version>
 		</dependency>
-		<!-- Mockito -->
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
@@ -119,7 +113,6 @@
 			<artifactId>kernel-idvalidator-uin</artifactId>
 			<version>${mosip.core.kernel.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idvalidator-prid</artifactId>
@@ -134,22 +127,14 @@
 			<groupId>ma.glasnost.orika</groupId>
 			<artifactId>orika-core</artifactId>
 		</dependency>
-
-		<!-- <dependency> <groupId>org.springframework</groupId> <artifactId>spring-context</artifactId> 
-			</dependency> -->
-
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 		</dependency>
-
-		<!-- Apache Commons DBCP -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-dbcp2</artifactId>
 		</dependency>
-
-		<!-- Apache Derby -->
 		<dependency>
 			<groupId>org.apache.derby</groupId>
 			<artifactId>derby</artifactId>
@@ -167,12 +152,6 @@
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-dataaccess-hibernate</artifactId>
 			<version>1.0.7-SNAPSHOT</version>
-			<exclusions>
-				<exclusion>
-					<groupId>dom4j</groupId>
-					<artifactId>dom4j</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
@@ -189,7 +168,6 @@
 			<artifactId>kernel-qrcodegenerator-zxing</artifactId>
 			<version>${mosip.core.kernel.version}</version>
 		</dependency>
-		<!-- FTP Packet Upload -->
 		<dependency>
 			<groupId>com.jcraft</groupId>
 			<artifactId>jsch</artifactId>
@@ -213,12 +191,10 @@
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.codehaus.jackson/jackson-mapper-asl -->
 		<dependency>
 			<groupId>org.codehaus.jackson</groupId>
 			<artifactId>jackson-mapper-asl</artifactId>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.datatype/jackson-datatype-jsr310 -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.datatype</groupId>
 			<artifactId>jackson-datatype-jsr310</artifactId>
@@ -229,33 +205,24 @@
 			<artifactId>oshi-core</artifactId>
 			<version>3.6.2</version>
 		</dependency>
-		<!-- <dependency> <groupId>org.slf4j</groupId> <artifactId>slf4j-jdk14</artifactId> 
-			<version>1.7.13</version> </dependency> -->
 		<dependency>
 			<groupId>org.rxtx</groupId>
 			<artifactId>rxtx</artifactId>
 			<version>2.1.7</version>
 		</dependency>
-
 		<dependency>
 			<groupId>com.machinezoo.sourceafis</groupId>
 			<artifactId>sourceafis</artifactId>
 			<version>${sourceafis.version}</version>
 		</dependency>
-
-		<!-- QuartzJobBean in spring-context-support.jar -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context-support</artifactId>
-		</dependency>
-
-		<!-- Quartz framework -->
+		</dependency>		
 		<dependency>
 			<groupId>org.quartz-scheduler</groupId>
 			<artifactId>quartz</artifactId>
-		</dependency>
-
-		<!-- Webcam Device -->
+		</dependency>		
 		<dependency>
 			<groupId>com.github.sarxos</groupId>
 			<artifactId>webcam-capture</artifactId>
@@ -288,7 +255,6 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-templatemanager-velocity</artifactId>
@@ -303,9 +269,7 @@
 					<artifactId>dom4j</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-
-		<!-- scanner dependencies -->
+		</dependency>		
 		<dependency>
 			<groupId>com.googlecode.jfreesane</groupId>
 			<artifactId>jfreesane</artifactId>
@@ -316,7 +280,6 @@
 			<artifactId>com4j</artifactId>
 			<version>2.1</version>
 		</dependency>
-
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-crypto-jce</artifactId>
@@ -327,7 +290,6 @@
 			<artifactId>pdfbox</artifactId>
 			<version>1.8.3</version>
 		</dependency>
-
 		<dependency>
 			<groupId>com.cronutils</groupId>
 			<artifactId>cron-utils</artifactId>
@@ -344,7 +306,6 @@
 			<version>1.1.1</version>
 			<scope>test</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-transliteration-icu4j</artifactId>
@@ -359,25 +320,21 @@
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-cbeffutil-api</artifactId>
 			<version>1.1.0</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.github.microsoft/TSS.Java -->
+		</dependency>		
 		<dependency>
 			<groupId>com.github.microsoft</groupId>
 			<artifactId>TSS.Java</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idobjectvalidator</artifactId>
 			<version>1.0.9-SNAPSHOT</version>
-		</dependency>
-		
+		</dependency>		
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-pdfgenerator-itext</artifactId>
 			<version>${mosip.core.kernel.version}</version>
-		</dependency>
-		
+		</dependency>		
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-registration-packet-manager</artifactId>
@@ -399,7 +356,6 @@
 		    <version>2.3.1</version>
 		</dependency>	
 	</dependencies>
-
 	<repositories>
 		<repository>
 			<id>local-maven-repo</id>
@@ -417,13 +373,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-surefire-plugin</artifactId>
-						<version>2.12.4</version>	
-						<configuration>
-						<skipTests>false</skipTests>
-							<excludes>
-								<exclude>**/integrationtest/*.java</exclude>
-							</excludes>					
-						</configuration>					
+						<version>2.12.4</version>
 					</plugin>
 				</plugins>
 			</build>
