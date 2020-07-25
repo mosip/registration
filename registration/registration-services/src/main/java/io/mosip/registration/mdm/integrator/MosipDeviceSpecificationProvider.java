@@ -11,6 +11,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
 import io.mosip.kernel.packetmanager.dto.BiometricsDto;
+import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.mdm.dto.MdmBioDevice;
 
@@ -51,7 +52,7 @@ public interface MosipDeviceSpecificationProvider {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	public InputStream stream(MdmBioDevice bioDevice, String modality) throws MalformedURLException, IOException;
+	public InputStream stream(MdmBioDevice bioDevice, String modality) throws RegBaseCheckedException;
 
 	/**
 	 * @param BioDevice
@@ -65,7 +66,7 @@ public interface MosipDeviceSpecificationProvider {
 	 * @throws JsonParseException
 	 */
 	public List<BiometricsDto> rCapture(MdmBioDevice bioDevice, MDMRequestDto mdmRequestDto)
-			throws JsonParseException, JsonMappingException, ParseException, IOException;
+			throws RegBaseCheckedException;
 
 	/**
 	 * @param deviceInfoResponse

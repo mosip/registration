@@ -1,6 +1,7 @@
 
 package io.mosip.registration.mdm.service.impl;
 
+import static io.mosip.registration.constants.LoggerConstants.BIO_SERVICE;
 import static io.mosip.registration.constants.LoggerConstants.MOSIP_BIO_DEVICE_INTEGERATOR;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
@@ -39,6 +40,7 @@ import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.dao.impl.RegisteredDeviceDAO;
 import io.mosip.registration.entity.RegisteredDeviceMaster;
 import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.mdm.constants.MosipBioDeviceConstants;
 import io.mosip.registration.mdm.dto.Biometric;
 import io.mosip.registration.mdm.dto.DeviceDiscoveryResponsetDto;
@@ -204,31 +206,28 @@ public class MosipDeviceSpecificationFactory {
 
 	public void initByPort(Integer availablePort) throws RegBaseCheckedException {
 
-		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 				"Initializing device " + " on Port : " + availablePort);
 
 		if (availablePort != null && availablePort != 0) {
 
-			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 					"Initializing device " + " on Port : " + availablePort);
 
 			String url;
 
 			url = buildUrl(availablePort, MosipBioDeviceConstants.DEVICE_INFO_ENDPOINT);
 
-			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Checking device info on url : " + url);
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Checking device info on url : " + url);
 
 			/* check if the service is available for the current port */
 			if (checkServiceAvailability(url, "MOSIPDINFO")) {
 
 				String deviceInfoResponse = getDeviceInfoResponse(url);
 
-				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-						"******** Device info response : " + deviceInfoResponse);
-
 				for (MosipDeviceSpecificationProvider deviceSpecificationProvider : deviceSpecificationProviders) {
 
-					LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 							"Decoding deice info response with provider : " + deviceSpecificationProvider);
 
 					try {
@@ -238,15 +237,15 @@ public class MosipDeviceSpecificationFactory {
 
 							if (bioDevice != null) {
 
-								LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-										"Checking for device registratrion : " + bioDevice.toString());
+								LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+										"Checking for device registratrion : " + bioDevice.getDeviceCode());
 
 								List<RegisteredDeviceMaster> registeredDevices = registeredDeviceDAO
 										.getRegisteredDevices(bioDevice.getDeviceCode(), bioDevice.getSerialNumber());
 
 								if (registeredDevices != null && !registeredDevices.isEmpty()) {
-									LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-											"Device Registration found : " + bioDevice.toString());
+									LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+											"Device Registration found : " + bioDevice.getDeviceCode());
 
 									// Add to Device Info Map
 									addToDeviceInfoMap(getDeviceType(bioDevice.getDeviceType()).toLowerCase(),
@@ -329,8 +328,12 @@ public class MosipDeviceSpecificationFactory {
 		return null;
 	}
 
-	public String getPayLoad(String data) {
+	public String getPayLoad(String data) throws RegBaseCheckedException {
 
+		if (data == null || data.isEmpty()) {
+			throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_JWT_INVALID.getErrorCode(),
+					RegistrationExceptionConstants.MDS_JWT_INVALID.getErrorMessage());
+		}
 		String payLoad = null;
 		Pattern pattern = Pattern.compile(RegistrationConstants.BIOMETRIC_SEPERATOR);
 		Matcher matcher = pattern.matcher(data);
@@ -338,6 +341,10 @@ public class MosipDeviceSpecificationFactory {
 			payLoad = matcher.group(1);
 		}
 
+		if(payLoad==null) {
+			throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_PAYLOAD_EMPTY.getErrorCode(),
+					RegistrationExceptionConstants.MDS_PAYLOAD_EMPTY.getErrorMessage());
+		}
 		return payLoad;
 	}
 
@@ -434,7 +441,7 @@ public class MosipDeviceSpecificationFactory {
 				latestSpecVersion = getLatestVersion(latestSpecVersion, specVersion[index]);
 			}
 
-			if (getMdsProvider(latestSpecVersion) == null) {
+			if (getMdsProvider(deviceSpecificationProviders, latestSpecVersion) == null) {
 				List<String> specVersions = Arrays.asList(specVersion);
 
 				specVersions.remove(latestSpecVersion);
@@ -443,12 +450,13 @@ public class MosipDeviceSpecificationFactory {
 					latestSpecVersion = getLatestSpecVersion(specVersions.toArray(new String[0]));
 				}
 			}
+
 		}
 
 		return latestSpecVersion;
 	}
 
-	public MdmBioDevice getDeviceInfoByModality(String modality) {
+	public MdmBioDevice getDeviceInfoByModality(String modality) throws RegBaseCheckedException {
 
 		String key = String.format("%s_%s", getDeviceType(modality).toLowerCase(),
 				getDeviceSubType(modality).toLowerCase());
@@ -461,15 +469,21 @@ public class MosipDeviceSpecificationFactory {
 				if (deviceInfoMap.containsKey(key)) {
 					return deviceInfoMap.get(key);
 				}
+
+				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Bio Device not found for modality : "
+						+ modality + "  " + System.currentTimeMillis() + modality);
+				throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
+						RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage());
+
 			} catch (RegBaseCheckedException exception) {
-				LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-						exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+
+				throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
+						RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage(), exception);
 
 			}
 
 		}
 
-		return null;
 	}
 
 	private String getLatestVersion(String version1, String version2) {
@@ -509,7 +523,7 @@ public class MosipDeviceSpecificationFactory {
 
 	}
 
-	public String getSpecVersionByModality(String modality) {
+	public String getSpecVersionByModality(String modality) throws RegBaseCheckedException {
 
 		MdmBioDevice bioDevice = getDeviceInfoByModality(modality);
 
@@ -520,15 +534,39 @@ public class MosipDeviceSpecificationFactory {
 
 	}
 
-	public MosipDeviceSpecificationProvider getMdsProvider(String specVersion) {
+	public MosipDeviceSpecificationProvider getMdsProvider(String specVersion) throws RegBaseCheckedException {
+
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+				"Finding MosipDeviceSpecificationProvider for spec version : " + specVersion);
+
+		MosipDeviceSpecificationProvider deviceSpecificationProvider = getMdsProvider(deviceSpecificationProviders,
+				specVersion);
+
+		if (deviceSpecificationProvider == null) {
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					"MosipDeviceSpecificationProvider not found for spec version : " + specVersion);
+			throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_PROVIDER_NOT_FOUND.getErrorCode(),
+					RegistrationExceptionConstants.MDS_PROVIDER_NOT_FOUND.getErrorMessage());
+		}
+		return deviceSpecificationProvider;
+	}
+
+	private MosipDeviceSpecificationProvider getMdsProvider(
+			List<MosipDeviceSpecificationProvider> deviceSpecificationProviders, String specVersion) {
+
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+				"Finding MosipDeviceSpecificationProvider for spec version : " + specVersion + " in providers : "
+						+ deviceSpecificationProviders);
 
 		MosipDeviceSpecificationProvider deviceSpecificationProvider = null;
 
-		// Get Implemented provider
-		for (MosipDeviceSpecificationProvider provider : deviceSpecificationProviders) {
-			if (provider.getSpecVersion().equals(specVersion)) {
-				deviceSpecificationProvider = provider;
-				break;
+		if (deviceSpecificationProviders != null) {
+			// Get Implemented provider
+			for (MosipDeviceSpecificationProvider provider : deviceSpecificationProviders) {
+				if (provider.getSpecVersion().equals(specVersion)) {
+					deviceSpecificationProvider = provider;
+					break;
+				}
 			}
 		}
 		return deviceSpecificationProvider;

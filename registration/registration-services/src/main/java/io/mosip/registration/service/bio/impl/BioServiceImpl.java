@@ -511,7 +511,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	 */
 	@Override
 	public boolean isMdmEnabled() {
-		// return true;
+//		 return true;
 		return RegistrationConstants.ENABLE
 				.equalsIgnoreCase(((String) ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
 	}
@@ -1498,8 +1498,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 		return biometricsDtos;
 	}
 
-	private List<BiometricsDto> captureRealModality(MDMRequestDto mdmRequestDto)
-			throws RegBaseCheckedException, IOException {
+	private List<BiometricsDto> captureRealModality(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException {
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 				"Entering into captureModality method.." + System.currentTimeMillis());
 
@@ -1585,6 +1584,9 @@ public class BioServiceImpl extends BaseService implements BioService {
 	public List<BiometricsDto> captureModalityForAuth(MDMRequestDto mdmRequestDto)
 			throws RegBaseCheckedException, IOException {
 
+		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+				"Started capture for authentication" + System.currentTimeMillis() + mdmRequestDto.getModality());
+
 		List<BiometricsDto> biometrics = null;
 
 		if (isMdmEnabled()) {
@@ -1599,44 +1601,39 @@ public class BioServiceImpl extends BaseService implements BioService {
 	}
 
 	@Override
-	public InputStream getStream(String modality) throws MalformedURLException, IOException {
+	public InputStream getStream(String modality) throws RegBaseCheckedException {
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 				"Stream request : " + System.currentTimeMillis() + modality);
 
 		MdmBioDevice bioDevice = deviceSpecificationFactory.getDeviceInfoByModality(modality);
 
-		if (bioDevice != null) {
-			LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
-					"Bio Device found for modality : " + modality + "  " + System.currentTimeMillis() + modality);
-
-			return getStream(bioDevice, modality);
-		}
-
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
-				"Bio Device not found for modality : " + modality + "  " + System.currentTimeMillis() + modality);
+				"Bio Device found for modality : " + modality + "  " + System.currentTimeMillis() + modality);
 
-		return null;
+		return getStream(bioDevice, modality);
+
 	}
 
 	@Override
-	public InputStream getStream(MdmBioDevice mdmBioDevice, String modality) throws MalformedURLException, IOException {
+	public InputStream getStream(MdmBioDevice mdmBioDevice, String modality) throws RegBaseCheckedException {
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID, "Starting stream");
 
-		MosipDeviceSpecificationProvider deviceSpecificationProvider = deviceSpecificationFactory
-				.getMdsProvider(mdmBioDevice.getSpecVersion());
+		if (mdmBioDevice != null) {
+			MosipDeviceSpecificationProvider deviceSpecificationProvider = deviceSpecificationFactory
+					.getMdsProvider(mdmBioDevice.getSpecVersion());
 
-		if (deviceSpecificationProvider != null) {
 			LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 					"MosipDeviceSpecificationProvider found for spec version : " + mdmBioDevice.getSpecVersion() + "  "
 							+ System.currentTimeMillis() + deviceSpecificationProvider);
 
 			return deviceSpecificationProvider.stream(mdmBioDevice, modality);
+
+		} else {
+			LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID, "Bio Device is null");
+
+			throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
+					RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage());
 		}
 
-		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
-				"MosipDeviceSpecificationProvider not found for spec version : " + mdmBioDevice.getSpecVersion() + "  "
-						+ System.currentTimeMillis());
-
-		return null;
 	}
 }

@@ -22,7 +22,7 @@
         </rowConstraints>
          <children>       
       		<fx:include fx:id="onboardUser" prefHeight="${userOnboardId.height}" prefWidth="${userOnboardId.width}" source="UserOnboard.fxml" visible="true" />  	
-         	<fx:include fx:id="guardianBiometric" prefHeight="${userOnboardId.height}" prefWidth="${userOnboardId.width}" source="GuardianBiometrics.fxml" visible="false" />
+         	<fx:include fx:id="biometric" prefHeight="${userOnboardId.height}" prefWidth="${userOnboardId.width}" source="Biometrics.fxml" visible="false" />
          </children>
       </GridPane>
       <GridPane fx:id="headerInclude">

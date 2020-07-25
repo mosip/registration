@@ -26,7 +26,7 @@ import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
-import io.mosip.registration.controller.device.GuardianBiometricsController;
+import io.mosip.registration.controller.device.BiometricsController;
 import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.service.operator.UserOnboardService;
 import javafx.fxml.FXML;
@@ -86,7 +86,7 @@ public class UserOnboardController extends BaseController implements Initializab
 	private UserOnboardParentController userOnboardParentController;
 
 	@Autowired
-	private GuardianBiometricsController guardianBiometricsController;
+	private BiometricsController guardianBiometricsController;
 
 	@Autowired
 	private UserOnboardService userOnboardService;
@@ -110,7 +110,7 @@ public class UserOnboardController extends BaseController implements Initializab
 
 		clearAllValues();
 		
-		guardianBiometricsController.populateBiometricPage(true);
+		guardianBiometricsController.populateBiometricPage(true, false);
 		
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "User Onboard Controller initUserOnboard Method Exit");
