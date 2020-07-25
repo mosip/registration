@@ -6,6 +6,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.registration.processor.core.packet.dto.DigitalId;
+import io.mosip.registration.processor.core.packet.dto.NewDigitalId;
+import io.mosip.registration.processor.core.packet.dto.RegisteredDevice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -31,7 +34,7 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.RegOsiDto;
-import io.mosip.registration.processor.core.packet.dto.RegisteredDevice;
+import io.mosip.registration.processor.core.packet.dto.NewRegisteredDevice;
 import io.mosip.registration.processor.core.packet.dto.RegistrationCenterMachineDto;
 import io.mosip.registration.processor.core.packet.dto.regcentermachine.DeviceValidateHistoryRequest;
 import io.mosip.registration.processor.core.packet.dto.regcentermachine.DeviceValidateHistoryResponse;
@@ -494,9 +497,9 @@ public class UMCValidator {
 	private boolean isDeviceMappedWithCenter(RegistrationCenterMachineDto rcmDto,
 			InternalRegistrationStatusDto registrationStatusDto) throws ApisResourceAccessException, IOException {
 		boolean isDeviceMappedWithCenter = false;
-		List<RegisteredDevice> registreredDevices = identity.getCapturedRegisteredDevices();
+		List<NewRegisteredDevice> registreredDevices = identity.getCapturedRegisteredDevices();
 		if (registreredDevices != null && !registreredDevices.isEmpty()) {
-			for (RegisteredDevice deviceDetails : registreredDevices) {
+			for (NewRegisteredDevice deviceDetails : registreredDevices) {
 				String deviceCode = null;
 				deviceCode = deviceDetails.getDeviceCode();
 				RegistrationCenterDeviceHistoryResponseDto registrationCenterDeviceHistoryResponseDto;
@@ -592,13 +595,14 @@ public class UMCValidator {
 			throws JsonProcessingException, IOException, ApisResourceAccessException {
 		boolean isDeviceValid = false;
 
-		List<RegisteredDevice> registreredDevices = identity.getCapturedRegisteredDevices();
+		List<NewRegisteredDevice> registreredDevices = identity.getCapturedRegisteredDevices();
 		if (registreredDevices != null && !registreredDevices.isEmpty()) {
-			for (RegisteredDevice deviceDetails : registreredDevices) {
+			for (NewRegisteredDevice deviceDetails : registreredDevices) {
+				RegisteredDevice registeredDevice = convert(deviceDetails);
 				DeviceValidateHistoryRequest deviceValidateHistoryRequest = new DeviceValidateHistoryRequest();
-				deviceValidateHistoryRequest.setDeviceCode(deviceDetails.getDeviceCode());
-				deviceValidateHistoryRequest.setDeviceServiceVersion(deviceDetails.getDeviceServiceVersion());
-				deviceValidateHistoryRequest.setDigitalId(deviceDetails.getDigitalId());
+				deviceValidateHistoryRequest.setDeviceCode(registeredDevice.getDeviceCode());
+				deviceValidateHistoryRequest.setDeviceServiceVersion(registeredDevice.getDeviceServiceVersion());
+				deviceValidateHistoryRequest.setDigitalId(registeredDevice.getDigitalId());
 				deviceValidateHistoryRequest.setTimeStamp(rcmDto.getPacketCreationDate());
 				RequestWrapper<DeviceValidateHistoryRequest> request = new RequestWrapper<>();
 
@@ -651,6 +655,29 @@ public class UMCValidator {
 			isDeviceValid = true;
 		}
 		return isDeviceValid;
+	}
+
+	/**
+	 * Converts new registered device to masterdata registered device
+	 *
+	 * @param deviceDetails
+	 * @return
+	 */
+	private RegisteredDevice convert(NewRegisteredDevice deviceDetails) {
+		DigitalId digitalId = new DigitalId();
+		NewDigitalId newDigitalId = deviceDetails.getDigitalId();
+		if (newDigitalId != null) {
+			digitalId.setDateTime(newDigitalId.getDateTime());
+			digitalId.setDeviceSubType(newDigitalId.getDeviceSubType());
+			digitalId.setDp(newDigitalId.getDeviceProvider());
+			digitalId.setDpId(newDigitalId.getDeviceProviderId());
+			digitalId.setMake(newDigitalId.getMake());
+			digitalId.setModel(newDigitalId.getModel());
+			digitalId.setSerialNo(newDigitalId.getSerialNo());
+			digitalId.setType(newDigitalId.getType());
+		}
+		RegisteredDevice registeredDevice = new RegisteredDevice(deviceDetails.getDeviceCode(), deviceDetails.getDeviceServiceVersion(), digitalId);
+		return registeredDevice;
 	}
 
 	/**
