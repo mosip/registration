@@ -1,4 +1,4 @@
-package io.mosip.registration.mdm;
+package io.mosip.registration.mdm.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

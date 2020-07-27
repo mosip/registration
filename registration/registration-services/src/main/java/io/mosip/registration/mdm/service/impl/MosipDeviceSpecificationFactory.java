@@ -45,7 +45,6 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.mdm.constants.MosipBioDeviceConstants;
 import io.mosip.registration.mdm.dto.Biometric;
-import io.mosip.registration.mdm.dto.DeviceDiscoveryResponsetDto;
 import io.mosip.registration.mdm.dto.MdmBioDevice;
 import io.mosip.registration.mdm.integrator.MosipDeviceSpecificationProvider;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
@@ -92,6 +91,10 @@ public class MosipDeviceSpecificationFactory {
 
 	/** Key is modality value is (specVersion, MdmBioDevice) */
 	private static Map<String, MdmBioDevice> deviceInfoMap = new LinkedHashMap<>();
+
+	public static Map<String, MdmBioDevice> getDeviceInfoMap() {
+		return deviceInfoMap;
+	}
 
 	@Autowired
 	private RegisteredDeviceDAO registeredDeviceDAO;
@@ -372,47 +375,6 @@ public class MosipDeviceSpecificationFactory {
 
 	private String getRunningurl() {
 		return "http" + "://" + "127.0.0.1";
-	}
-
-	/**
-	 * This method will loop through the specified port to find the active devices
-	 * at any instant of time
-	 * 
-	 * @param deviceType
-	 *            - type of bio device
-	 * @return List - list of device details
-	 * @throws RegBaseCheckedException
-	 *             - generalized exception with errorCode and errorMessage
-	 */
-	public List<DeviceDiscoveryResponsetDto> getDeviceDiscovery(String deviceType) throws RegBaseCheckedException {
-
-		List<DeviceDiscoveryResponsetDto> deviceDiscoveryResponsetDtos = null;
-		String url;
-		for (int port = portFrom; port <= portTo; port++) {
-
-			url = buildUrl(port, MosipBioDeviceConstants.DEVICE_DISCOVERY_ENDPOINT);
-
-			if (RegistrationAppHealthCheckUtil.checkServiceAvailability(url)) {
-				// deviceDiscoveryResponsetDtos =
-				// mosipBioDeviceIntegrator.getDeviceDiscovery(url, deviceType, null);
-
-				auditFactory.audit(AuditEvent.MDM_DEVICE_FOUND, Components.MDM_DEVICE_FOUND,
-						RegistrationConstants.APPLICATION_NAME,
-						AuditReferenceIdTypes.APPLICATION_ID.getReferenceTypeId());
-				break;
-			} else {
-				LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "this" + url + " is unavailable");
-				auditFactory.audit(AuditEvent.MDM_NO_DEVICE_AVAILABLE, Components.MDM_NO_DEVICE_AVAILABLE,
-						RegistrationConstants.APPLICATION_NAME,
-						AuditReferenceIdTypes.APPLICATION_ID.getReferenceTypeId());
-
-			}
-
-		}
-		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Device discovery completed");
-
-		return deviceDiscoveryResponsetDtos;
-
 	}
 
 	private String getDeviceInfoResponse(String url) {
