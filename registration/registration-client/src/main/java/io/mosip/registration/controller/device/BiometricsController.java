@@ -874,9 +874,11 @@ public class BiometricsController extends BaseController /* implements Initializ
 				};
 			}
 		};
-
-		deviceSearchTask.start();
-
+		if (!bioService.isMdmEnabled()) {
+			rCaptureTaskService();
+		} else {
+			deviceSearchTask.start();
+		}
 		// mdmBioDevice = null;
 		deviceSearchTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
@@ -922,6 +924,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 						streamer.startStream(urlStream, scanPopUpViewController.getScanImage(), biometricImage);
 
+					} else {
+						rCaptureTaskService();
 					}
 				} catch (RegBaseCheckedException | IOException exception) {
 
@@ -1139,6 +1143,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 										"using captured response fill the fields like quality score and progress bar,,etc,.. UI");
 								loadBiometricsUIElements(registrationDTOBiometricsList, currentSubType,
 										currentModality);
+								
+								refreshContinueButton();
 							} else {
 								// request response mismatch
 								generateAlert(RegistrationConstants.ALERT_INFORMATION,
