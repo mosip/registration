@@ -160,7 +160,6 @@ public class Streamer {
 		}, "STREAMER_THREAD");
 
 		streamer_thread.start();
-		setPopViewControllerMessage(true, RegistrationUIConstants.SEARCHING_DEVICE_MESSAGE, false);
 
 		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
 				"Streamer Thread initiated completed for : " + System.currentTimeMillis());

@@ -62,7 +62,6 @@ import io.mosip.registration.mdm.dto.MdmBioDevice;
 import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
 import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.operator.UserOnboardService;
-import io.mosip.registration.service.sync.MasterSyncService;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
@@ -86,7 +85,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 
 /**
  * {@code GuardianBiometricscontroller} is to capture and display the captured
@@ -854,68 +852,104 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		scanPopUpViewController.init(this, "Biometrics");
 
-		try {
-			if (bioService.isMdmEnabled()) {
+		Service<MdmBioDevice> deviceSearchTask = new Service<MdmBioDevice>() {
+			@Override
+			protected Task<MdmBioDevice> createTask() {
+				return new Task<MdmBioDevice>() {
+					/*
+					 * (non-Javadoc)
+					 * 
+					 * @see javafx.concurrent.Task#call()
+					 */
+					@Override
+					protected MdmBioDevice call() throws RegBaseCheckedException {
 
-				// Disable Auto-Logout
-				SessionContext.setAutoLogout(false);
+						LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+								"Capture request started" + System.currentTimeMillis());
 
-				// setPopViewControllerMessage(true,
-				// RegistrationUIConstants.SEARCHING_DEVICE_MESSAGE);
+						return deviceSpecificationFactory.getDeviceInfoByModality(
+								isFace(currentModality) ? RegistrationConstants.FACE_FULLFACE : currentModality);
 
-				// Get Device
-				MdmBioDevice mdmBioDevice;
+					}
+				};
+			}
+		};
 
-				mdmBioDevice = deviceSpecificationFactory.getDeviceInfoByModality(
-						isFace(currentModality) ? RegistrationConstants.FACE_FULLFACE : currentModality);
+		deviceSearchTask.start();
 
-				if (mdmBioDevice == null) {
-					setPopViewControllerMessage(true, RegistrationUIConstants.NO_DEVICE_FOUND);
+		// mdmBioDevice = null;
+		deviceSearchTask.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+			@Override
+			public void handle(WorkerStateEvent t) {
 
-					return;
-				}
+				MdmBioDevice mdmBioDevice = deviceSearchTask.getValue();
 
-				// Start Stream
-				// setPopViewControllerMessage(true,
-				// RegistrationUIConstants.STREAMING_PREP_MESSAGE);
+				try {
+					if (bioService.isMdmEnabled()) {
 
-				InputStream urlStream = bioService.getStream(mdmBioDevice,
-						isFace(currentModality) ? RegistrationConstants.FACE_FULLFACE : currentModality);
+						// Disable Auto-Logout
+						SessionContext.setAutoLogout(false);
 
-				if (urlStream == null) {
+						if (mdmBioDevice == null) {
+							setPopViewControllerMessage(true, RegistrationUIConstants.NO_DEVICE_FOUND);
+
+							return;
+						}
+
+						// Start Stream
+						setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_PREP_MESSAGE);
+
+						InputStream urlStream = bioService.getStream(mdmBioDevice,
+								isFace(currentModality) ? RegistrationConstants.FACE_FULLFACE : currentModality);
+
+						boolean isStreamStarted = urlStream != null && urlStream.read() != -1;
+						if (!isStreamStarted) {
+
+							LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+									"URL Stream was null for : " + System.currentTimeMillis());
+
+							deviceSpecificationFactory.init();
+
+							generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.STREAMING_ERROR);
+							scanPopUpViewController.getPopupStage().close();
+
+							return;
+						}
+
+						setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_INIT_MESSAGE);
+
+						rCaptureTaskService();
+
+						streamer.startStream(urlStream, scanPopUpViewController.getScanImage(), biometricImage);
+
+					}
+				} catch (RegBaseCheckedException | IOException exception) {
 
 					LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-							"URL Stream was null for : " + System.currentTimeMillis());
-
-					deviceSpecificationFactory.init();
+							"Error while streaming : " + ExceptionUtils.getStackTrace(exception));
 
 					generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.STREAMING_ERROR);
 					scanPopUpViewController.getPopupStage().close();
 
-					return;
-				}
-
-				setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_INIT_MESSAGE);
-
-				if (streamer.retrieveNextImage(urlStream) != null) {
-					rCaptureTaskService();
-
-					streamer.startStream(urlStream, scanPopUpViewController.getScanImage(), biometricImage);
-
+					// Enable Auto-Logout
+					SessionContext.setAutoLogout(true);
 				}
 
 			}
-		} catch (RegBaseCheckedException | IOException exception) {
+		});
 
-			LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-					"Error while streaming : " + ExceptionUtils.getStackTrace(exception));
+		// mdmBioDevice = null;
+		deviceSearchTask.setOnFailed(new EventHandler<WorkerStateEvent>() {
+			@Override
+			public void handle(WorkerStateEvent t) {
 
-			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.STREAMING_ERROR);
-			scanPopUpViewController.getPopupStage().close();
+				LOGGER.error(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+						"Exception while finding bio device");
 
-			// Enable Auto-Logout
-			SessionContext.setAutoLogout(true);
-		}
+				setPopViewControllerMessage(true, RegistrationUIConstants.NO_DEVICE_FOUND);
+
+			}
+		});
 
 	}
 
@@ -966,11 +1000,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 		Service<List<BiometricsDto>> taskService = new Service<List<BiometricsDto>>() {
 			@Override
 			protected Task<List<BiometricsDto>> createTask() {
-				return /**
-						 * @author SaravanaKumar
-						 *
-						 */
-				new Task<List<BiometricsDto>>() {
+				return new Task<List<BiometricsDto>>() {
 					/*
 					 * (non-Javadoc)
 					 * 

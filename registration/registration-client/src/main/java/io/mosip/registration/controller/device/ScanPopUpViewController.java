@@ -135,7 +135,7 @@ public class ScanPopUpViewController extends BaseController {
 
 			if (title.equalsIgnoreCase("Biometrics")) {
 				captureBtn.setVisible(false);
-				scanningMsg.setVisible(false);
+//				scanningMsg.setVisible(false);
 			}
 			scanningMsg.textProperty().addListener((observable, oldValue, newValue) -> {
 
