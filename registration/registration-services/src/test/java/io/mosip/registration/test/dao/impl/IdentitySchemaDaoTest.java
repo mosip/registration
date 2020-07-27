@@ -5,21 +5,7 @@ import static org.junit.Assert.assertNull;
 
 import java.io.File;
 import java.io.IOException;
-
-
-
-
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.Calendar;
-
-
-
-
-
-
-
 
 import org.junit.Before;
 import org.junit.Test;
@@ -32,14 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-
-
-
-
-
-
 import io.mosip.kernel.core.util.DateUtils;
-
 import io.mosip.registration.dao.IdentitySchemaDao;
 import io.mosip.registration.dto.response.SchemaDto;
 import io.mosip.registration.repositories.IdentitySchemaRepository;

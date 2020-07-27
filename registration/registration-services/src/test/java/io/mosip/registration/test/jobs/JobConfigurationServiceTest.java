@@ -275,7 +275,6 @@ public class JobConfigurationServiceTest {
 
 	@Test
 	public void getCurrentRunningJobDetailsExceptionTest() throws SchedulerException {
-		List<JobExecutionContext> jobExecutionContexts = new ArrayList<>();
 
 		startJobs();
 		Mockito.when(schedulerFactoryBean.getScheduler().getCurrentlyExecutingJobs()).thenThrow(SchedulerException.class);
