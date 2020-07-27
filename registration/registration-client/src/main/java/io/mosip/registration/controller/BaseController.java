@@ -3,7 +3,6 @@ package io.mosip.registration.controller;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
-import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -62,11 +61,9 @@ import io.mosip.registration.dto.biometric.BiometricInfoDTO;
 import io.mosip.registration.dto.biometric.FaceDetailsDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
-import io.mosip.registration.mdm.dto.CaptureResponseDto;
 import io.mosip.registration.scheduler.SchedulerUtil;
 import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.bio.BioService;
-import io.mosip.registration.service.bio.impl.BioServiceImpl;
 import io.mosip.registration.service.config.GlobalParamService;
 import io.mosip.registration.service.operator.UserOnboardService;
 import io.mosip.registration.service.remap.CenterMachineReMapService;
@@ -632,9 +629,6 @@ public class BaseController {
 					clearOnboardData();
 					clearRegistrationData();
 
-					// Clear Captured images data
-					BioServiceImpl.clearAllCaptures();
-
 				} else {
 					SessionContext.map().put(RegistrationConstants.ISPAGE_NAVIGATION_ALERT_REQ,
 							RegistrationConstants.ENABLE);
@@ -767,20 +761,6 @@ public class BaseController {
 	 */
 	public void scan(Stage popupStage) {
 
-	}
-
-	/**
-	 * This method is for saving the Applicant Image and Exception Image which are
-	 * captured using webcam.
-	 *
-	 * @param capturedImage
-	 *            BufferedImage that is captured using webcam
-	 * @param imageType
-	 *            Type of image that is to be saved
-	 */
-	public void saveApplicantPhoto(BufferedImage capturedImage, String imageType, CaptureResponseDto captureResponseDto,
-			String reponseTime, boolean isDuplicateFound) {
-		// will be implemented in the derived class.
 	}
 
 	/**
@@ -1551,74 +1531,6 @@ public class BaseController {
 			alertStageFromSession.close();
 
 		}
-	}
-
-	protected void clearBiometrics(String bioType) {
-
-		LOGGER.info("REGISTRATION - BASE_CONTROLLER", RegistrationConstants.APPLICATION_NAME,
-				RegistrationConstants.APPLICATION_ID,
-				"Clearing Bio Data (Capture Response,bio scores, bio stream images) of : " + bioType);
-
-		if (bioType.equalsIgnoreCase(RegistrationConstants.FINGERPRINT)) {
-			BioServiceImpl.clearCaptures(RegistrationConstants.LEFT_SLAP);
-			BioServiceImpl.clearCaptures(RegistrationConstants.RIGHT_SLAP);
-			BioServiceImpl.clearCaptures(RegistrationConstants.TWO_THUMBS);
-
-			BioServiceImpl.clearBIOScoreByBioType(Arrays.asList(RegistrationConstants.FINGERPRINT_SLAB_LEFT,
-					RegistrationConstants.FINGERPRINT_SLAB_RIGHT, RegistrationConstants.FINGERPRINT_SLAB_THUMBS));
-
-			BioServiceImpl.clearBIOStreamImagesByBioType(Arrays.asList(RegistrationConstants.FINGERPRINT_SLAB_LEFT,
-					RegistrationConstants.FINGERPRINT_SLAB_RIGHT, RegistrationConstants.FINGERPRINT_SLAB_THUMBS));
-
-		} else if (bioType.equalsIgnoreCase(RegistrationConstants.IRIS)) {
-			BioServiceImpl.clearCaptures(RegistrationConstants.TWO_IRIS);
-			BioServiceImpl.clearBIOScoreByBioType(RegistrationConstants.TWO_IRIS);
-
-			BioServiceImpl.clearBIOStreamImagesByBioType(RegistrationConstants.TWO_IRIS);
-
-		}
-
-		LOGGER.info("REGISTRATION - BASE_CONTROLLER", RegistrationConstants.APPLICATION_NAME,
-				RegistrationConstants.APPLICATION_ID,
-				"Cleared Bio Data (Capture Response,bio scores, bio stream images) of : " + bioType);
-	}
-
-	protected void clearAllBiometrics() {
-		BioServiceImpl.clearAllCaptures();
-
-	}
-
-	protected void updateByAttempt(String bioType, int attempt, ImageView streamImage, Label qualityText,
-			ProgressBar progressBar, Label progressQualityScore) {
-
-		double qualityScoreValue = bioService.getBioQualityScores(bioType, attempt);
-		String qualityScore = getQualityScore(qualityScoreValue);
-
-		if (qualityScore != null) {
-			Image image = convertBytesToImage(bioService.getBioStreamImage(bioType, attempt));
-			// Set Stream image
-			streamImage.setImage(image);
-
-			// Quality Label
-			qualityText.setText(qualityScore);
-
-			// Progress BAr
-			progressBar.setProgress(qualityScoreValue / 100);
-
-			// Progress Bar Quality Score
-			progressQualityScore.setText(qualityScore);
-
-			if (qualityScoreValue >= Double
-					.parseDouble(getValueFromApplicationContext(getThresholdKeyByBioType(bioType)))) {
-				progressBar.getStyleClass().removeAll(RegistrationConstants.PROGRESS_BAR_RED);
-				progressBar.getStyleClass().add(RegistrationConstants.PROGRESS_BAR_GREEN);
-			} else {
-				progressBar.getStyleClass().removeAll(RegistrationConstants.PROGRESS_BAR_GREEN);
-				progressBar.getStyleClass().add(RegistrationConstants.PROGRESS_BAR_RED);
-			}
-
-		}
-
 	}
 
 	public boolean isPrimaryOrSecondaryLanguageEmpty() {

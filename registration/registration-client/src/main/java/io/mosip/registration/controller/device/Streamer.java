@@ -9,20 +9,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
-import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.SessionContext;
-import io.mosip.registration.exception.RegBaseCheckedException;
-import io.mosip.registration.mdm.dto.MdmBioDevice;
-import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
-import io.mosip.registration.service.bio.BioService;
-import io.mosip.registration.service.bio.impl.BioServiceImpl;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -38,9 +31,9 @@ public class Streamer {
 		if (urlStream != null) {
 			try {
 				urlStream.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (IOException exception) {
+				LOGGER.error(STREAMER, RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 			}
 			urlStream = null;
 		}
@@ -62,18 +55,6 @@ public class Streamer {
 	private boolean isRunning = true;
 
 	private final String CONTENT_LENGTH = "Content-Length:";
-
-	// @Autowired
-	// private MosipBioDeviceManager mosipBioDeviceManager;
-
-	@Autowired
-	private MosipDeviceSpecificationFactory deviceSpecificationFactory;
-
-	@Autowired
-	private ScanPopUpViewController scanPopUpViewController;
-
-	@Autowired
-	private BioService bioService;
 
 	private Thread streamer_thread = null;
 
@@ -107,20 +88,6 @@ public class Streamer {
 	// Set Streaming image to ImageView
 	public void setStreamImageToImageView() {
 		imageView.setImage(streamImage);
-	}
-
-	public void setBioStreamImages(Image image, String bioType, int attempt) {
-
-		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-				"Started Set Stream image of : " + bioType + " for attempt : " + attempt);
-
-		image = image == null ? streamImage : image;
-
-		BioServiceImpl.setBioStreamImages(imageBytes, bioType, attempt);
-
-		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-				"Completed Set Stream image of : " + bioType + " for attempt : " + attempt);
-
 	}
 
 	public void startStream(InputStream inputStream, ImageView streamImage, ImageView scanImage) {
@@ -242,14 +209,6 @@ public class Streamer {
 				e.printStackTrace();
 			}
 		}
-	}
-
-	private void setPopViewControllerMessage(boolean enableCloseButton, String message, boolean isRunning) {
-		if (enableCloseButton) {
-			scanPopUpViewController.enableCloseButton();
-		}
-		scanPopUpViewController.setScanningMsg(message);
-		this.isRunning = isRunning;
 	}
 
 }

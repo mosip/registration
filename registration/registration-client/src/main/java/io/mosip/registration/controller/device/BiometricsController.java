@@ -1143,7 +1143,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 										"using captured response fill the fields like quality score and progress bar,,etc,.. UI");
 								loadBiometricsUIElements(registrationDTOBiometricsList, currentSubType,
 										currentModality);
-								
+
 								refreshContinueButton();
 							} else {
 								// request response mismatch
@@ -1604,7 +1604,6 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		clearUiElements();
 
-		clearAllBiometrics();
 	}
 
 	private void clearUiElements() {
