@@ -342,7 +342,7 @@ public class AuthenticationController extends BaseController implements Initiali
 					try {
 
 						if (captureAndValidateFP(fpUserId.getText(), new MDMRequestDto(
-								RegistrationConstants.FINGERPRINT_SLAB_RIGHT, null, "Registration",
+								RegistrationConstants.FINGERPRINT_SLAB_LEFT, null, "Registration",
 								io.mosip.registration.context.ApplicationContext
 										.getStringValueFromApplicationMap(RegistrationConstants.SERVER_ACTIVE_PROFILE),
 								io.mosip.registration.context.ApplicationContext
