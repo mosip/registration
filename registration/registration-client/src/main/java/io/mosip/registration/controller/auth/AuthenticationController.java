@@ -874,10 +874,7 @@ public class AuthenticationController extends BaseController implements Initiali
 			throws RegBaseCheckedException, IOException {
 		List<BiometricsDto> biometrics = bioService.captureModalityForAuth(mdmRequestDto);
 
-		// AuthenticationValidatorDTO authenticationValidatorDTO =
-		// bioService.getFingerPrintAuthenticationDto(userId,requestDetail);
-		// List<FingerprintDetailsDTO> fingerPrintDetailsDTOs =
-		// authenticationValidatorDTO.getFingerPrintDetails();
+
 		boolean fpMatchStatus;
 		if (!isEODAuthentication) {
 			if (isSupervisor) {
@@ -892,16 +889,8 @@ public class AuthenticationController extends BaseController implements Initiali
 				registrationDTO.addOfficerBiometrics(biometrics);
 			}
 		}
-		// FingerprintDetailsDTO fingerPrintDetailsDto = fingerPrintDetailsDTOs.get(0);
-		// fpMatchStatus = bioService.validateFingerPrint(authenticationValidatorDTO);
 		fpMatchStatus = authenticationService.authValidator(userId, SingleType.FINGER.value(), biometrics);
-		/*
-		 * if (fpMatchStatus) { if (isSupervisor) {
-		 * fingerPrintDetailsDto.setFingerprintImageName(
-		 * "supervisor".concat(fingerPrintDetailsDto.getFingerType()).concat(".jpg")); }
-		 * else { fingerPrintDetailsDto.setFingerprintImageName(
-		 * "officer".concat(fingerPrintDetailsDto.getFingerType()).concat(".jpg")); } }
-		 */
+		
 
 		return fpMatchStatus;
 	}
