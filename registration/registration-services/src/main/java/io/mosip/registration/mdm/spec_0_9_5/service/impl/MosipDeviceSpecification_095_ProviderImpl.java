@@ -221,7 +221,14 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 
 				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 						"Getting data payload of biometric" + System.currentTimeMillis());
-
+				if (rCaptureResponseBiometricsDTO.getData() == null
+						|| rCaptureResponseBiometricsDTO.getData().isEmpty()) {
+					throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_RCAPTURE_ERROR.getErrorCode(),
+							RegistrationExceptionConstants.MDS_RCAPTURE_ERROR.getErrorMessage()
+									+ " : Data is empty in RCapture " + " error Code  : "
+									+ rCaptureResponseBiometricsDTO.getError().getErrorCode() + " error message : "
+									+ rCaptureResponseBiometricsDTO.getError().getErrorInfo());
+				}
 				if (rCaptureResponseBiometricsDTO.getData() != null
 						&& !rCaptureResponseBiometricsDTO.getData().isEmpty()) {
 					String payLoad = deviceSpecificationFactory.getPayLoad(rCaptureResponseBiometricsDTO.getData());
