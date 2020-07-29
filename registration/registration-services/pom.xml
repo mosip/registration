@@ -384,12 +384,6 @@
           <groupId>io.mosip.kernel</groupId>
            <version>0.9-SNAPSHOT</version>
          </dependency>
-             
-         <dependency>
-                <artifactId>mock-sdk</artifactId>
-                <groupId>io.mosip.mock.sdk</groupId>
-                <version>0.9-SNAPSHOT</version>
-        </dependency>
 	
 	</dependencies>
 

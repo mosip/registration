@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -98,6 +99,7 @@ public class MasterSyncDaoImplNonMockTest {
 		userDetailRepository.saveAll(users);
 	}
 	
+	@Ignore
 	@Test
 	public void testSuccessBiometricSave() {
 		SyncDataResponseDto syncDataResponseDto = getSyncDataResponseDto("biometricJson.json");	
@@ -107,6 +109,7 @@ public class MasterSyncDaoImplNonMockTest {
 		assertEquals(RegistrationConstants.SUCCESS, response);
 	}
 	
+	@Ignore
 	@Test
 	public void testSuccessSave() {
 		String response=null;

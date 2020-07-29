@@ -9,20 +9,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
-import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.SessionContext;
-import io.mosip.registration.exception.RegBaseCheckedException;
-import io.mosip.registration.mdm.dto.MdmBioDevice;
-import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
-import io.mosip.registration.service.bio.BioService;
-import io.mosip.registration.service.bio.impl.BioServiceImpl;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -33,21 +26,35 @@ public class Streamer {
 
 	private InputStream urlStream;
 
+	public void setUrlStream(InputStream inputStream) {
+
+		if (urlStream != null) {
+			try {
+				urlStream.close();
+			} catch (IOException exception) {
+				LOGGER.error(STREAMER, RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+			}
+			urlStream = null;
+		}
+
+		if (inputStream != null) {
+			this.urlStream = inputStream;
+			isRunning = true;
+		} else {
+			this.urlStream = null;
+			isRunning = false;
+		}
+
+	}
+
+	public InputStream getUrlStream() {
+		return urlStream;
+	}
+
 	private boolean isRunning = true;
 
 	private final String CONTENT_LENGTH = "Content-Length:";
-
-	// @Autowired
-	// private MosipBioDeviceManager mosipBioDeviceManager;
-
-	@Autowired
-	private MosipDeviceSpecificationFactory deviceSpecificationFactory;
-
-	@Autowired
-	private ScanPopUpViewController scanPopUpViewController;
-
-	@Autowired
-	private BioService bioService;
 
 	private Thread streamer_thread = null;
 
@@ -83,88 +90,20 @@ public class Streamer {
 		imageView.setImage(streamImage);
 	}
 
-	public void setBioStreamImages(Image image, String bioType, int attempt) {
+	public void startStream(InputStream inputStream, ImageView streamImage, ImageView scanImage) {
 
 		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-				"Started Set Stream image of : " + bioType + " for attempt : " + attempt);
-
-		image = image == null ? streamImage : image;
-
-		BioServiceImpl.setBioStreamImages(imageBytes, bioType, attempt);
-
-		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-				"Completed Set Stream image of : " + bioType + " for attempt : " + attempt);
-
-	}
-
-	public void startStream(String type, ImageView streamImage, ImageView scanImage) {
-
-		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-				"Streamer Thread initiation started for : " + System.currentTimeMillis() + type);
+				"Streamer Thread initiation started for : " + System.currentTimeMillis());
 
 		streamer_thread = new Thread(new Runnable() {
 
 			public void run() {
 
-				try {
-					LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-							"Constructing Stream URL Started" + System.currentTimeMillis());
+				setUrlStream(inputStream);
 
-					// Disable Auto-Logout
-					SessionContext.setAutoLogout(false);
-
-					scanPopUpViewController.disableCloseButton();
-
-					setPopViewControllerMessage(true, RegistrationUIConstants.SEARCHING_DEVICE_MESSAGE, false);
-
-					if (urlStream != null) {
-						urlStream.close();
-						urlStream = null;
-					}
-
-					// Get Device
-					MdmBioDevice mdmBioDevice = deviceSpecificationFactory.getDeviceInfoByModality(type);
-
-					if (mdmBioDevice == null) {
-						setPopViewControllerMessage(true, RegistrationUIConstants.NO_DEVICE_FOUND, false);
-
-						return;
-					}
-
-					// Start Stream
-					setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_PREP_MESSAGE, false);
-					urlStream = bioService.getStream(mdmBioDevice, type);
-					if (urlStream == null) {
-
-						LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-								"URL Stream was null for : " + System.currentTimeMillis() + type);
-
-						deviceSpecificationFactory.init();
-						setPopViewControllerMessage(true,
-								RegistrationUIConstants.getMessageLanguageSpecific("202_MESSAGE"), false);
-
-						return;
-					}
-
-					setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_INIT_MESSAGE, true);
-
-				} catch (IOException | NullPointerException | RegBaseCheckedException exception) {
-
-					LOGGER.error(STREAMER, RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-							exception.getMessage() + ExceptionUtils.getStackTrace(exception));
-					setPopViewControllerMessage(true, RegistrationUIConstants.getMessageLanguageSpecific("202_MESSAGE"),
-							false);
-
-					// Enable Auto-Logout
-					SessionContext.setAutoLogout(true);
-					deviceSpecificationFactory.init();
-					return;
-
-				}
-
-				while (isRunning && null != urlStream) {
+				while (null != urlStream) {
 					try {
-						imageBytes = retrieveNextImage();
+						imageBytes = retrieveNextImage(urlStream);
 						ByteArrayInputStream imageStream = new ByteArrayInputStream(imageBytes);
 						Image img = new Image(imageStream);
 						streamImage.setImage(img);
@@ -179,17 +118,7 @@ public class Streamer {
 						LOGGER.error(STREAMER, RegistrationConstants.APPLICATION_NAME,
 								RegistrationConstants.APPLICATION_ID,
 								exception.getMessage() + ExceptionUtils.getStackTrace(exception));
-
-						// Enable Auto-Logout
-						SessionContext.setAutoLogout(true);
-
-						if (exception.getMessage().contains("Stream closed")) {
-
-							setPopViewControllerMessage(true, RegistrationUIConstants.STREAMING_CLOSED_MESSAGE, false);
-						}
-
 						urlStream = null;
-						isRunning = false;
 
 					}
 				}
@@ -198,10 +127,9 @@ public class Streamer {
 		}, "STREAMER_THREAD");
 
 		streamer_thread.start();
-		setPopViewControllerMessage(true, RegistrationUIConstants.SEARCHING_DEVICE_MESSAGE, false);
 
 		LOGGER.info(STREAMER, APPLICATION_NAME, APPLICATION_ID,
-				"Streamer Thread initiated completed for : " + System.currentTimeMillis() + type);
+				"Streamer Thread initiated completed for : " + System.currentTimeMillis());
 
 	}
 
@@ -211,7 +139,7 @@ public class Streamer {
 	 * @return byte[] of the JPEG
 	 * @throws IOException
 	 */
-	private byte[] retrieveNextImage() throws IOException {
+	public byte[] retrieveNextImage(InputStream urlStream) throws IOException {
 
 		int currByte = -1;
 
@@ -281,14 +209,6 @@ public class Streamer {
 				e.printStackTrace();
 			}
 		}
-	}
-
-	private void setPopViewControllerMessage(boolean enableCloseButton, String message, boolean isRunning) {
-		if (enableCloseButton) {
-			scanPopUpViewController.enableCloseButton();
-		}
-		scanPopUpViewController.setScanningMsg(message);
-		this.isRunning = isRunning;
 	}
 
 }

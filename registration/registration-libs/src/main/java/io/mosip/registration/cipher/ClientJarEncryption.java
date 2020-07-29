@@ -164,8 +164,10 @@ public class ClientJarEncryption {
 					// saveLibJars(clientJarEncryptedBytes, clientJar.getName(), regLibFile);
 
 					File rxtxJarFolder = new File(args[7]);
+					File mockSdkJarFolder = new File(args[11]);
 
 					FileUtils.copyDirectory(rxtxJarFolder, listOfJars);
+					FileUtils.copyDirectory(mockSdkJarFolder, listOfJars);
 
 					// Adding lib files into map
 					for (File files : listOfJars.listFiles()) {						

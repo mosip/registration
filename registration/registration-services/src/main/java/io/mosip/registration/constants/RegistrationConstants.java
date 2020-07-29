@@ -97,6 +97,8 @@ public class RegistrationConstants {
 	public static final String LABEL_GREEN = "labelGreen";
 	public static final String IRIS_PANES_SELECTED = "IrisPanesSelected";
 	public static final String BIO_IRIS_SELECTED = "bioIris";
+	public static final String BIOMETRICS_DISPLAY = "biometricsDisplay";
+	public static final String TOOLTIP_STYLE = "tooltipStyle";
 
 	// Page Flow
 	public static final String VISIBILITY = "visibility";
@@ -354,7 +356,9 @@ public class RegistrationConstants {
 
 	// onBoard User
 	public static final String ONBOARD_STYLE_CLASS = "onboardAlertMsg";
-	public static final String ONBOARD_IMG_PATH = "images/tick.png";
+	public static final String ONBOARD_IMG_PATH = "/images/tick.png";
+
+	public static final String TICK_CIRICLE_IMG_PATH = "/images/tick-circle.png";
 	public static final String ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT = "EEEE dd MMM hh:mm a";
 
 	// RegistrationApproval
@@ -983,11 +987,12 @@ public class RegistrationConstants {
 	public static final String SERVER_STATUS_RESEND = "RESEND";
 	public static final String CLIENT_STATUS_APPROVED = "APPROVED";
 	public static final String SYNCED_STATUS = "SYNCED";
+	
 	public static final List<String> PACKET_STATUS = Arrays.asList("APPROVED", "REJECTED", "RE_REGISTER_APPROVED");
 
 	public static final List<String> PACKET_STATUS_UPLOAD = Arrays.asList("APPROVED", "REJECTED", "SYNCED", "EXPORTED");
 
-	public static final List<String> PACKET_EXPORT_STATUS = Arrays.asList("EXPORTED", "SYNCED");
+	public static final List<String> PACKET_EXPORT_STATUS = Arrays.asList("APPROVED", "EXPORTED", "SYNCED");
 
 	// Pre Registration
 	public static final String PRE_REGISTRATION_ID = "pre_registration_id";

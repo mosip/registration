@@ -32,18 +32,12 @@ import io.mosip.registration.controller.device.Streamer;
 import io.mosip.registration.controller.reg.PacketHandlerController;
 import io.mosip.registration.controller.reg.RegistrationController;
 import io.mosip.registration.controller.reg.Validations;
-import io.mosip.registration.dto.AuthenticationValidatorDTO;
 import io.mosip.registration.dto.OSIDataDTO;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.UserDTO;
-import io.mosip.registration.dto.biometric.FaceDetailsDTO;
-import io.mosip.registration.dto.biometric.FingerprintDetailsDTO;
-import io.mosip.registration.dto.biometric.IrisDetailsDTO;
-import io.mosip.registration.entity.BiometricType;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
-import io.mosip.registration.mdm.dto.RequestDetail;
 import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.login.LoginService;
 import io.mosip.registration.service.security.AuthenticationService;
@@ -365,10 +359,11 @@ public class AuthenticationController extends BaseController implements Initiali
 							generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.FINGER_PRINT_MATCH);
 						}
 					} catch (RegBaseCheckedException | IOException exception) {
-						generateAlert(RegistrationConstants.ALERT_INFORMATION,
-								RegistrationUIConstants.getMessageLanguageSpecific(
-										exception.getMessage().substring(0, 3) + RegistrationConstants.UNDER_SCORE
-												+ RegistrationConstants.MESSAGE.toUpperCase()));
+
+						LOGGER.error("AuthenticationController", APPLICATION_NAME, APPLICATION_ID,
+								"Exception while getting the scanned biometrics for user authentication: %s caused by %s"
+										+ ExceptionUtils.getStackTrace(exception));
+						generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.BIOMETRIC_SCANNING_ERROR);
 					}
 				} else {
 					generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.USER_NOT_AUTHORIZED);
@@ -465,7 +460,13 @@ public class AuthenticationController extends BaseController implements Initiali
 	@FXML
 	private void startStream() {
 		faceImage.setImage(null);
-		streamer.startStream(RegistrationConstants.FACE_FULLFACE, faceImage, null);
+
+		try {
+			streamer.startStream(bioService.getStream(RegistrationConstants.FACE_FULLFACE), faceImage, null);
+		} catch (RegBaseCheckedException regBaseCheckedException) {
+			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+					ExceptionUtils.getStackTrace(regBaseCheckedException));
+		}
 	}
 
 	/**

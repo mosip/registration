@@ -1,7 +1,6 @@
 
 package io.mosip.registration.mdm.service.impl;
 
-import static io.mosip.registration.constants.LoggerConstants.BIO_SERVICE;
 import static io.mosip.registration.constants.LoggerConstants.MOSIP_BIO_DEVICE_INTEGERATOR;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
@@ -12,6 +11,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,7 +45,6 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.mdm.constants.MosipBioDeviceConstants;
 import io.mosip.registration.mdm.dto.Biometric;
-import io.mosip.registration.mdm.dto.DeviceDiscoveryResponsetDto;
 import io.mosip.registration.mdm.dto.MdmBioDevice;
 import io.mosip.registration.mdm.integrator.MosipDeviceSpecificationProvider;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
@@ -91,6 +92,10 @@ public class MosipDeviceSpecificationFactory {
 	/** Key is modality value is (specVersion, MdmBioDevice) */
 	private static Map<String, MdmBioDevice> deviceInfoMap = new LinkedHashMap<>();
 
+	public static Map<String, MdmBioDevice> getDeviceInfoMap() {
+		return deviceInfoMap;
+	}
+
 	@Autowired
 	private RegisteredDeviceDAO registeredDeviceDAO;
 
@@ -126,7 +131,7 @@ public class MosipDeviceSpecificationFactory {
 				new Thread(() -> {
 					try {
 						initByPort(currentPort);
-					} catch (RuntimeException | RegBaseCheckedException exception) {
+					} catch (RuntimeException exception) {
 						LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 								"Exception while mapping the response : " + exception.getMessage()
 										+ ExceptionUtils.getStackTrace(exception));
@@ -204,7 +209,7 @@ public class MosipDeviceSpecificationFactory {
 
 	}
 
-	public void initByPort(Integer availablePort) throws RegBaseCheckedException {
+	public void initByPort(Integer availablePort) {
 
 		LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 				"Initializing device " + " on Port : " + availablePort);
@@ -223,14 +228,14 @@ public class MosipDeviceSpecificationFactory {
 			/* check if the service is available for the current port */
 			if (checkServiceAvailability(url, "MOSIPDINFO")) {
 
-				String deviceInfoResponse = getDeviceInfoResponse(url);
+				try {
+					String deviceInfoResponse = getDeviceInfoResponse(url);
 
-				for (MosipDeviceSpecificationProvider deviceSpecificationProvider : deviceSpecificationProviders) {
+					for (MosipDeviceSpecificationProvider deviceSpecificationProvider : deviceSpecificationProviders) {
 
-					LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-							"Decoding deice info response with provider : " + deviceSpecificationProvider);
+						LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+								"Decoding deice info response with provider : " + deviceSpecificationProvider);
 
-					try {
 						List<MdmBioDevice> mdmBioDevices = deviceSpecificationProvider.getMdmDevices(deviceInfoResponse,
 								availablePort);
 						for (MdmBioDevice bioDevice : mdmBioDevices) {
@@ -253,13 +258,13 @@ public class MosipDeviceSpecificationFactory {
 								}
 							}
 						}
-					} catch (RuntimeException runtimeException) {
-						LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-								runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
-
 					}
+				} catch (RuntimeException runtimeException) {
+					LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+							runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 
 				}
+
 			}
 
 			else {
@@ -267,19 +272,35 @@ public class MosipDeviceSpecificationFactory {
 						"No device is running at port number " + availablePort);
 			}
 
-		} else
-
-		{
+		} else {
 			portFrom = getPortFrom();
 
 			portTo = getPortTo();
 
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 					"Checking device info from port : " + portFrom + " to port : " + portTo);
+			ExecutorService executorService = Executors.newFixedThreadPool(5);
 
 			for (int port = portFrom; port <= portTo; port++) {
 
-				initByPort(port);
+				int currentPort = port;
+				executorService.execute(new Runnable() {
+					public void run() {
+
+						initByPort(currentPort);
+
+					}
+				});
+
+			}
+
+			try {
+				executorService.shutdown();
+				executorService.awaitTermination(500, TimeUnit.SECONDS);
+			} catch (Exception exception) {
+				executorService.shutdown();
+				LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+						exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 
 			}
 		}
@@ -341,7 +362,7 @@ public class MosipDeviceSpecificationFactory {
 			payLoad = matcher.group(1);
 		}
 
-		if(payLoad==null) {
+		if (payLoad == null) {
 			throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_PAYLOAD_EMPTY.getErrorCode(),
 					RegistrationExceptionConstants.MDS_PAYLOAD_EMPTY.getErrorMessage());
 		}
@@ -354,47 +375,6 @@ public class MosipDeviceSpecificationFactory {
 
 	private String getRunningurl() {
 		return "http" + "://" + "127.0.0.1";
-	}
-
-	/**
-	 * This method will loop through the specified port to find the active devices
-	 * at any instant of time
-	 * 
-	 * @param deviceType
-	 *            - type of bio device
-	 * @return List - list of device details
-	 * @throws RegBaseCheckedException
-	 *             - generalized exception with errorCode and errorMessage
-	 */
-	public List<DeviceDiscoveryResponsetDto> getDeviceDiscovery(String deviceType) throws RegBaseCheckedException {
-
-		List<DeviceDiscoveryResponsetDto> deviceDiscoveryResponsetDtos = null;
-		String url;
-		for (int port = portFrom; port <= portTo; port++) {
-
-			url = buildUrl(port, MosipBioDeviceConstants.DEVICE_DISCOVERY_ENDPOINT);
-
-			if (RegistrationAppHealthCheckUtil.checkServiceAvailability(url)) {
-				// deviceDiscoveryResponsetDtos =
-				// mosipBioDeviceIntegrator.getDeviceDiscovery(url, deviceType, null);
-
-				auditFactory.audit(AuditEvent.MDM_DEVICE_FOUND, Components.MDM_DEVICE_FOUND,
-						RegistrationConstants.APPLICATION_NAME,
-						AuditReferenceIdTypes.APPLICATION_ID.getReferenceTypeId());
-				break;
-			} else {
-				LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "this" + url + " is unavailable");
-				auditFactory.audit(AuditEvent.MDM_NO_DEVICE_AVAILABLE, Components.MDM_NO_DEVICE_AVAILABLE,
-						RegistrationConstants.APPLICATION_NAME,
-						AuditReferenceIdTypes.APPLICATION_ID.getReferenceTypeId());
-
-			}
-
-		}
-		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Device discovery completed");
-
-		return deviceDiscoveryResponsetDtos;
-
 	}
 
 	private String getDeviceInfoResponse(String url) {
