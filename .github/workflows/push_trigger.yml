@@ -139,12 +139,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.access_token }}
         GPG_TTY: $(tty)
 
-    - name: Get version info from pom
-        id: getPomVersion
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: ./${{ env.SERVICE_LOCATION }}/pom.xml
-          xpath: /*[local-name()="project"]/*[local-name()="version"]
+
 
     - name: Build image
       run: |
@@ -160,7 +155,7 @@ jobs:
 
         # Change all uppercase to lowercase
         IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-        echo "push version ${{steps.getPomVersion.outputs.info}}"
+        # echo "push version ${{steps.getPomVersion.outputs.info}}"
         VERSION=$BRANCH_NAME
         echo IMAGE_ID=$IMAGE_ID
         echo VERSION=$VERSION
