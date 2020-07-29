@@ -30,7 +30,7 @@ public class RegistrationUIConstants {
 		} catch (Exception runtimeException) {
 			LOGGER.error("REGISTRATION_UI_CONSTANTS", APPLICATION_NAME, APPLICATION_ID,
 					String.format(
-							"%s -> Exception while initializing Fingerprint Capture page for user registration  %s",
+							"Exception while initializing Fingerprint Capture page for user registration  %s",
 							runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException)));
 		}
 		return message;
