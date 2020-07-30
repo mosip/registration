@@ -471,10 +471,15 @@ public class TemplateGenerator extends BaseService {
 							RegistrationConstants.TEMPLATE_LEFT_SLAP_IMAGE_PATH, response);
 				}
 				else {
+					byte[] imageBytes = null;					
+					if (!capturedFingers.isEmpty()) {
+						Optional<BiometricsDto> biometrics = capturedFingers.stream().filter(b-> b.getModalityName().equalsIgnoreCase("FINGERPRINT_SLAB_LEFT")).findFirst();
+						if (biometrics.isPresent()) {
+							imageBytes = getStreamImageBytes(biometrics.get(),	registration);
+						}
+					}
 					setPreviewBiometricImage(templateValues, RegistrationConstants.TEMPLATE_CAPTURED_LEFT_SLAP,
-							RegistrationConstants.LEFTPALM_IMG_PATH, response, getStreamImageBytes(
-									capturedFingers.stream().filter(b-> b.getModalityName().equalsIgnoreCase("FINGERPRINT_SLAB_LEFT")).findFirst().get(),
-									registration));
+							RegistrationConstants.LEFTPALM_IMG_PATH, response, imageBytes);
 				}
 			}
 
@@ -494,10 +499,15 @@ public class TemplateGenerator extends BaseService {
 							RegistrationConstants.TEMPLATE_RIGHT_SLAP_IMAGE_PATH, response);
 				}
 				else {
+					byte[] imageBytes = null;
+					if (!capturedFingers.isEmpty()) {
+						Optional<BiometricsDto> biometrics = capturedFingers.stream().filter(b-> b.getModalityName().equalsIgnoreCase("FINGERPRINT_SLAB_RIGHT")).findFirst();
+						if (biometrics.isPresent()) {
+							imageBytes = getStreamImageBytes(biometrics.get(), registration);
+						}
+					}
 					setPreviewBiometricImage(templateValues, RegistrationConstants.TEMPLATE_CAPTURED_RIGHT_SLAP,
-							RegistrationConstants.RIGHTPALM_IMG_PATH, response, getStreamImageBytes(
-									capturedFingers.stream().filter(b-> b.getModalityName().equalsIgnoreCase("FINGERPRINT_SLAB_RIGHT")).findFirst().get(),
-									registration));
+							RegistrationConstants.RIGHTPALM_IMG_PATH, response, imageBytes);
 				}
 			}
 
@@ -517,10 +527,15 @@ public class TemplateGenerator extends BaseService {
 							RegistrationConstants.TEMPLATE_THUMBS_IMAGE_PATH, response);
 				}
 				else {
+					byte[] imageBytes = null;
+					if (!capturedFingers.isEmpty()) {
+						Optional<BiometricsDto> biometrics = capturedFingers.stream().filter(b-> b.getModalityName().toLowerCase().contains("thumb")).findFirst();
+						if (biometrics.isPresent()) {
+							imageBytes = getStreamImageBytes(biometrics.get(), registration);
+						}
+					}
 					setPreviewBiometricImage(templateValues, RegistrationConstants.TEMPLATE_CAPTURED_THUMBS,
-							RegistrationConstants.THUMB_IMG_PATH, response, getStreamImageBytes(
-									capturedFingers.stream().filter(b-> b.getModalityName().toLowerCase().contains("thumb")).findFirst().get(),
-									registration));
+							RegistrationConstants.THUMB_IMG_PATH, response, imageBytes);
 				}
 			}
 		}

@@ -511,7 +511,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	 */
 	@Override
 	public boolean isMdmEnabled() {
-//		 return true;
+		// return true;
 		return RegistrationConstants.ENABLE
 				.equalsIgnoreCase(((String) ApplicationContext.map().get(RegistrationConstants.MDM_ENABLED)));
 	}
@@ -1590,10 +1590,10 @@ public class BioServiceImpl extends BaseService implements BioService {
 		List<BiometricsDto> biometrics = null;
 
 		if (isMdmEnabled()) {
-			if (getStream(mdmRequestDto.getModality()) != null) {
+			// if (getStream(mdmRequestDto.getModality()) != null) {
 
-				biometrics = captureRealModality(mdmRequestDto);
-			}
+			biometrics = captureRealModality(mdmRequestDto);
+			// }
 		} else {
 			biometrics = captureMockModality(mdmRequestDto, true);
 		}

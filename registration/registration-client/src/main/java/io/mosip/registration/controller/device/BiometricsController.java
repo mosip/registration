@@ -330,7 +330,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 		}
 	}
 
-	public void populateBiometricPage(boolean isUserOnboard) {
+	public void populateBiometricPage(boolean isUserOnboard, boolean isGoingBack) {
 		LOGGER.debug(LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"populateBiometricPage invoked, isUserOnboard : " + isUserOnboard);
 		isUserOnboardFlag = isUserOnboard;
@@ -437,7 +437,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 			}
 		}
 
-		initializeState();
+		initializeState(isGoingBack);
 	}
 
 	private void updateBiometricData(VBox vboxForCheckBox, CheckBox checkBox) {
@@ -465,20 +465,23 @@ public class BiometricsController extends BaseController /* implements Initializ
 		}
 	}
 
-	private void initializeState() {
+	private void initializeState(boolean isGoingBack) {
 		sizeOfCombobox = comboBoxMap.size();
 		if (sizeOfCombobox > 0) {
-			currentPosition = 0;
-			currentSubType = getListOfBiometricSubTypes().get(currentPosition);
-			previousPosition = 0;
-
+			if (isGoingBack) {
+				currentPosition = comboBoxMap.size() - 1;
+				currentSubType = getListOfBiometricSubTypes().get(currentPosition);
+				previousPosition = currentPosition - 1;
+			} else {
+				currentPosition = 0;
+				currentSubType = getListOfBiometricSubTypes().get(currentPosition);
+				previousPosition = 0;
+			}
 		}
-
 		if (null != findComboBox()) {
 			findComboBox().setVisible(true);
 			findComboBox().setManaged(true);
 		}
-
 		biometricBox.setVisible(false);
 		retryBox.setVisible(false);
 		refreshContinueButton();
@@ -1098,7 +1101,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 					getPageByAction(RegistrationConstants.GUARDIAN_BIOMETRIC, RegistrationConstants.NEXT));
 		}
 
-		initializeState();
+		initializeState(false);
 
 	}
 
@@ -1412,13 +1415,17 @@ public class BiometricsController extends BaseController /* implements Initializ
 			String imagePath = getStubStreamImagePath(modality);
 			STREAM_IMAGES.put(String.format("%s_%s_%s", subType, modality, attempt),
 					new Image(this.getClass().getResourceAsStream(imagePath)));
-			getRegistrationDTOFromSession().streamImages.put(String.format("%s_%s_%s", subType, modality, attempt),
-					IOUtils.toByteArray(this.getClass().getResourceAsStream(imagePath)));
+			if (getRegistrationDTOFromSession() != null) {
+				getRegistrationDTOFromSession().streamImages.put(String.format("%s_%s_%s", subType, isFace(modality) ? RegistrationConstants.FACE_FULLFACE : modality, attempt),
+						IOUtils.toByteArray(this.getClass().getResourceAsStream(imagePath)));
+			}
 		} else {
 			STREAM_IMAGES.put(String.format("%s_%s_%s", subType, modality, attempt),
 					new Image(new ByteArrayInputStream(streamImage)));
-			getRegistrationDTOFromSession().streamImages.put(String.format("%s_%s_%s", subType, modality, attempt),
-					streamImage);
+			if (getRegistrationDTOFromSession() != null) {
+				getRegistrationDTOFromSession().streamImages.put(String.format("%s_%s_%s", subType, isFace(modality) ? RegistrationConstants.FACE_FULLFACE : modality, attempt),
+						streamImage);
+			}
 		}
 	}
 
