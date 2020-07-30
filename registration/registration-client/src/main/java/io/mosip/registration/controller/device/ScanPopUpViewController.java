@@ -8,6 +8,8 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import java.io.IOException;
 import java.net.MalformedURLException;
 
+import javax.swing.JPanel;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
@@ -18,7 +20,9 @@ import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.reg.DocumentScanController;
+import io.mosip.registration.device.webcam.impl.WebcamSarxosServiceImpl;
 import javafx.application.Platform;
+import javafx.embed.swing.SwingNode;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -29,6 +33,7 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -43,6 +48,9 @@ public class ScanPopUpViewController extends BaseController {
 
 	@Autowired
 	private DocumentScanController documentScanController;
+
+	@Autowired
+	private WebcamSarxosServiceImpl webcamSarxosServiceImpl;
 
 	@FXML
 	private ImageView scanImage;
@@ -61,6 +69,15 @@ public class ScanPopUpViewController extends BaseController {
 
 	@FXML
 	private Text scanningMsg;
+
+	@FXML
+	private GridPane imageParent;
+
+	@FXML
+	private GridPane webcamParent;
+
+	@FXML
+	private SwingNode webcamNode;
 
 	private boolean isDocumentScan;
 
@@ -97,6 +114,30 @@ public class ScanPopUpViewController extends BaseController {
 	 */
 	public void setPopupStage(Stage popupStage) {
 		this.popupStage = popupStage;
+	}	
+
+	public GridPane getImageParent() {
+		return imageParent;
+	}
+
+	public void setImageParent(GridPane imageParent) {
+		this.imageParent = imageParent;
+	}
+
+	public GridPane getWebcamParent() {
+		return webcamParent;
+	}
+
+	public void setWebcamParent(GridPane webcamParent) {
+		this.webcamParent = webcamParent;
+	}
+
+	public SwingNode getWebcamNode() {
+		return webcamNode;
+	}
+
+	public void setWebcamNode(SwingNode webcamNode) {
+		this.webcamNode = webcamNode;
 	}
 
 	/**
@@ -111,6 +152,7 @@ public class ScanPopUpViewController extends BaseController {
 
 			LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					"Opening pop-up screen to scan for user registration");
+			closeWebcam();
 			streamerValue = new TextField();
 			baseController = parentControllerObj;
 			popupStage = new Stage();
@@ -132,27 +174,25 @@ public class ScanPopUpViewController extends BaseController {
 			} else {
 				isDocumentScan = false;
 			}
-			
+
 			scanningMsg.textProperty().addListener((observable, oldValue, newValue) -> {
-			 
+
 				Platform.runLater(() -> {
 					if (RegistrationUIConstants.NO_DEVICE_FOUND.contains(newValue)) {
 
 						captureBtn.setDisable(false);
-						
+
 						generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_DEVICE_FOUND);
 
-					} else if(RegistrationUIConstants.STREAMING_INIT_MESSAGE.contains(newValue)) {
+					} else if (RegistrationUIConstants.STREAMING_INIT_MESSAGE.contains(newValue)) {
 						captureBtn.setDisable(false);
-					}
-					else if(RegistrationUIConstants.STREAMING_PREP_MESSAGE.contains(newValue)) {
+					} else if (RegistrationUIConstants.STREAMING_PREP_MESSAGE.contains(newValue)) {
 						captureBtn.setDisable(true);
 					}
 				});
 
 			});
-			
-			
+
 			LOGGER.info(LOG_REG_SCAN_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					"Opening pop-up screen to scan for user registration");
 
@@ -193,6 +233,9 @@ public class ScanPopUpViewController extends BaseController {
 				"Calling exit window to close the popup");
 
 		streamer.stop();
+		if (webcamSarxosServiceImpl.isWebcamConnected()) {
+			webcamSarxosServiceImpl.close();
+		}
 		popupStage = (Stage) ((Node) event.getSource()).getParent().getScene().getWindow();
 		popupStage.close();
 
@@ -254,6 +297,17 @@ public class ScanPopUpViewController extends BaseController {
 			scanningMsg.setText(msg);
 			scanningMsg.getStyleClass().add("scanButton");
 		}
+	}
+
+	public void closeWebcam() {
+		webcamParent.setVisible(false);
+		imageParent.setVisible(true);
+	}
+
+	public void setWebCamPanel(JPanel jPanelWindow) {
+		webcamNode.setContent(jPanelWindow);
+		imageParent.setVisible(false);
+		webcamParent.setVisible(true);
 	}
 
 }

@@ -39,12 +39,12 @@ public class WebcamSarxosServiceImpl extends MosipWebcamServiceImpl {
 	@Override
 	public JPanel getCameraPanel() {
 		if (jPanelWindow == null) {
-			getJPanel();
+			getJPanel(webcam);
 		}
 		return jPanelWindow;
 	}
 
-	private JPanel getJPanel() {
+	public JPanel getJPanel(Webcam webcam) {
 		WebcamPanel cameraPanel = new WebcamPanel(webcam);
 		jPanelWindow = new JPanel();
 		jPanelWindow.add(cameraPanel);
@@ -54,6 +54,10 @@ public class WebcamSarxosServiceImpl extends MosipWebcamServiceImpl {
 
 	@Override
 	public boolean isWebcamConnected() {
+		return webcam != null ? webcam.isOpen() : false;
+	}
+	
+	public boolean isWebcamConnected(Webcam webcam) {
 		return webcam != null ? webcam.isOpen() : false;
 	}
 
@@ -88,7 +92,7 @@ public class WebcamSarxosServiceImpl extends MosipWebcamServiceImpl {
 				webcam = webcams.get(0);
 			}
 			if (!webcam.isOpen()) {
-				Dimension requiredDimension = new Dimension(640, 480);
+				Dimension requiredDimension = new Dimension(width, height);
 				webcam.setViewSize(requiredDimension);
 				webcam.getLock().disable();
 				webcam.open();
@@ -100,7 +104,7 @@ public class WebcamSarxosServiceImpl extends MosipWebcamServiceImpl {
 	@Override
 	public BufferedImage captureImage() {
 		LOGGER.info("REGISTRATION - WEBCAMDEVICE", APPLICATION_NAME, APPLICATION_ID, "capturing the image from webcam");
-		return webcam.getImage();
+		return webcam != null ? webcam.getImage() : null;
 	}
 	
 	/**
@@ -155,5 +159,14 @@ public class WebcamSarxosServiceImpl extends MosipWebcamServiceImpl {
 	public BufferedImage captureImage(Webcam webcam) {
 		LOGGER.info("REGISTRATION - WEBCAMDEVICE", APPLICATION_NAME, APPLICATION_ID, "capturing the image from webcam");
 		return webcam != null ? webcam.getImage() : null;
+	}
+	
+	public void close(Webcam webcam) {
+		LOGGER.info("REGISTRATION - WEBCAMDEVICE", APPLICATION_NAME, APPLICATION_ID, "closing the webcam");
+
+		if (webcam != null && webcam.isOpen()) {
+			jPanelWindow = null;
+			webcam.close();
+		}
 	}
 }
