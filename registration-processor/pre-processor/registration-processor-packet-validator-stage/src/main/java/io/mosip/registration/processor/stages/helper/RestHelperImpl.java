@@ -113,7 +113,7 @@ public class RestHelperImpl implements RestHelper {
 			uri = method.uri(builder -> builder.build());
 		}
 
-		uri.cookie("Authorization", restApiClient.getToken());
+		uri.header("cookie", restApiClient.getToken());
 
 		if (request.getRequestBody() != null) {
 			exchange = uri.syncBody(request.getRequestBody()).retrieve();
