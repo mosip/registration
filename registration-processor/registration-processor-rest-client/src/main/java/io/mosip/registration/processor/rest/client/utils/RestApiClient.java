@@ -313,8 +313,6 @@ public class RestApiClient {
 			if (cookie.length == 0)
 				throw new TokenGenerationFailedException();
 			token = response.getHeaders("Set-Cookie")[0].getValue();
-			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-					LoggerFileConstant.APPLICATIONID.toString(), "Cookie => " + cookie[0]);
 				System.setProperty("token", token.substring(14, token.indexOf(';')));
 			return token.substring(0, token.indexOf(';'));
 		} catch (IOException e) {
