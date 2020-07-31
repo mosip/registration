@@ -501,14 +501,14 @@ public class DocumentScanController extends BaseController {
 							RegistrationConstants.APPLICATION_ID, "Webcam stream started");
 				} else {
 					generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_DEVICE_FOUND);
-					scanPopUpViewController.closeWebcam();
+					scanPopUpViewController.setDefaultImageGridPaneVisibility();
 					
 					LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 							RegistrationConstants.APPLICATION_ID, "No webcam found");
 				}
 			} else {
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_DEVICE_FOUND);
-				scanPopUpViewController.closeWebcam();
+				scanPopUpViewController.setDefaultImageGridPaneVisibility();
 				return;
 			}			
 		} else {
@@ -564,7 +564,7 @@ public class DocumentScanController extends BaseController {
 			BufferedImage bufferedImage = webcamSarxosServiceImpl.captureImage(webcam);
 			byteArray = getImageBytesFromBufferedImage(bufferedImage);
 			webcamSarxosServiceImpl.close(webcam);
-			scanPopUpViewController.closeWebcam();
+			scanPopUpViewController.setDefaultImageGridPaneVisibility();
 		} else {
 			byteArray = documentScanFacade.getScannedDocument();
 		}
@@ -618,7 +618,7 @@ public class DocumentScanController extends BaseController {
 				.matches(getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE))) {
 			bufferedImage = webcamSarxosServiceImpl.captureImage(webcam);
 			webcamSarxosServiceImpl.close(webcam);
-			scanPopUpViewController.closeWebcam();
+			scanPopUpViewController.setDefaultImageGridPaneVisibility();
 		} else {
 			bufferedImage = documentScanFacade.getScannedDocumentFromScanner();
 		}
