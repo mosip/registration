@@ -376,7 +376,7 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-registration-packet-manager</artifactId>
-			<version>1.0.10-rc1</version>
+			<version>1.0.10-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
