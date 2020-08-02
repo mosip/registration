@@ -1,5 +1,7 @@
 # Registration
 
+[![Join the chat at https://gitter.im/mosip/registration](https://badges.gitter.im/mosip/registration.svg)](https://gitter.im/mosip/registration?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 This repository contains the two components of registration:
 1. Registration Client
 1. Registration Processor 
