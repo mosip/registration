@@ -152,12 +152,15 @@ public class ScanPopUpViewController extends BaseController {
 
 			LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					"Opening pop-up screen to scan for user registration");
-			closeWebcam();
+			
 			streamerValue = new TextField();
 			baseController = parentControllerObj;
 			popupStage = new Stage();
 			popupStage.initStyle(StageStyle.UNDECORATED);
+			
+			LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "loading scan.fxml");			
 			Parent scanPopup = BaseController.load(getClass().getResource(RegistrationConstants.SCAN_PAGE));
+			setDefaultImageGridPaneVisibility();
 			popupStage.setResizable(false);
 			popupTitle.setText(title);
 			Scene scene = new Scene(scanPopup);
@@ -167,6 +170,8 @@ public class ScanPopUpViewController extends BaseController {
 			popupStage.initModality(Modality.WINDOW_MODAL);
 			popupStage.initOwner(fXComponents.getStage());
 			popupStage.show();
+			
+			LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "scan screen launched");
 			if (!isDocumentScan) {
 				totalScannedPages.setVisible(false);
 				saveBtn.setVisible(false);
@@ -299,15 +304,23 @@ public class ScanPopUpViewController extends BaseController {
 		}
 	}
 
-	public void closeWebcam() {
+	public void setDefaultImageGridPaneVisibility() {
+		LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+				"Setting default visibilities for webCamParent and imageParent");
+		
 		webcamParent.setVisible(false);
 		imageParent.setVisible(true);
 	}
 
 	public void setWebCamPanel(JPanel jPanelWindow) {
+		LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+				"Setting jPanel : " + jPanelWindow);
+		
 		webcamNode.setContent(jPanelWindow);
 		imageParent.setVisible(false);
 		webcamParent.setVisible(true);
+		
+		LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "Setting jPanel completed");
 	}
 
 }
