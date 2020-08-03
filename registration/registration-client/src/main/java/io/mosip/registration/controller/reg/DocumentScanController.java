@@ -15,15 +15,18 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
+import javax.swing.JPanel;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
+
+import com.github.sarxos.webcam.Webcam;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.pdfgenerator.spi.PDFGenerator;
 import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.kernel.packetmanager.dto.DocumentDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.AuditEvent;
 import io.mosip.registration.constants.AuditReferenceIdTypes;
@@ -41,14 +44,9 @@ import io.mosip.registration.device.webcam.impl.WebcamSarxosServiceImpl;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
-import io.mosip.kernel.packetmanager.dto.DocumentDto;
-import io.mosip.registration.service.bio.impl.BioServiceImpl;
 import io.mosip.registration.service.doc.category.DocumentCategoryService;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.util.scan.DocumentScanFacade;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
@@ -164,6 +162,16 @@ public class DocumentScanController extends BaseController {
 
 	@Autowired
 	private WebcamSarxosServiceImpl webcamSarxosServiceImpl;
+
+	private Webcam webcam;
+
+	public Webcam getWebcam() {
+		return webcam;
+	}
+
+	public void setWebcam(Webcam webcam) {
+		this.webcam = webcam;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -457,7 +465,52 @@ public class DocumentScanController extends BaseController {
 				.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.DOC_SCANNER_ENABLED))) {
 			scanPopUpViewController.setDocumentScan(true);
 		}
-		scanPopUpViewController.init(this, RegistrationUIConstants.SCAN_DOC_TITLE);
+
+		String poeDocValue = getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE);
+		if (poeDocValue != null && selectedComboBox.getValue().getCode().matches(poeDocValue)) {
+			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "Searching for webcams");
+			
+			List<Webcam> webcams = webcamSarxosServiceImpl.getWebCams();
+			
+			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "Found webcams: " + webcams);
+			
+			if (webcams != null && !webcams.isEmpty()) {
+				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+						RegistrationConstants.APPLICATION_ID, "Initializing scan window to capture Exception photo");
+				
+				scanPopUpViewController.init(this, RegistrationUIConstants.SCAN_DOC_TITLE);
+				webcam = webcams.get(0);
+				
+				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+						RegistrationConstants.APPLICATION_ID, "Checking webcam connectivity");
+				
+				if (!webcamSarxosServiceImpl.isWebcamConnected(webcam)) {
+					LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+							RegistrationConstants.APPLICATION_ID, "Opening webcam");
+					
+					webcamSarxosServiceImpl.openWebCam(webcam, 640, 480);
+					JPanel jPanelWindow = webcamSarxosServiceImpl.getJPanel(webcam);
+					scanPopUpViewController.setWebCamPanel(jPanelWindow);
+					
+					LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+							RegistrationConstants.APPLICATION_ID, "Webcam stream started");
+				} else {
+					generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_DEVICE_FOUND);
+					scanPopUpViewController.setDefaultImageGridPaneVisibility();
+					
+					LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+							RegistrationConstants.APPLICATION_ID, "No webcam found");
+				}
+			} else {
+				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_DEVICE_FOUND);
+				scanPopUpViewController.setDefaultImageGridPaneVisibility();
+				return;
+			}			
+		} else {
+			scanPopUpViewController.init(this, RegistrationUIConstants.SCAN_DOC_TITLE);
+		}
 
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Scan window displayed to scan and upload documents");
@@ -505,11 +558,10 @@ public class DocumentScanController extends BaseController {
 
 		String poeDocValue = getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE);
 		if (poeDocValue != null && selectedComboBox.getValue().getCode().matches(poeDocValue)) {
-			webcamSarxosServiceImpl.openWebCam(webcamSarxosServiceImpl.getWebCams().get(0), 10, 50);
-			BufferedImage bufferedImage = webcamSarxosServiceImpl
-					.captureImage(webcamSarxosServiceImpl.getWebCams().get(0));
+			BufferedImage bufferedImage = webcamSarxosServiceImpl.captureImage(webcam);
 			byteArray = getImageBytesFromBufferedImage(bufferedImage);
-			webcamSarxosServiceImpl.close();
+			webcamSarxosServiceImpl.close(webcam);
+			scanPopUpViewController.setDefaultImageGridPaneVisibility();
 		} else {
 			byteArray = documentScanFacade.getScannedDocument();
 		}
@@ -561,9 +613,9 @@ public class DocumentScanController extends BaseController {
 
 		if (selectedComboBox.getValue().getCode()
 				.matches(getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE))) {
-			webcamSarxosServiceImpl.openWebCam(webcamSarxosServiceImpl.getWebCams().get(0), 10, 50);
-			bufferedImage = webcamSarxosServiceImpl.captureImage(webcamSarxosServiceImpl.getWebCams().get(0));
-			webcamSarxosServiceImpl.close();
+			bufferedImage = webcamSarxosServiceImpl.captureImage(webcam);
+			webcamSarxosServiceImpl.close(webcam);
+			scanPopUpViewController.setDefaultImageGridPaneVisibility();
 		} else {
 			bufferedImage = documentScanFacade.getScannedDocumentFromScanner();
 		}
