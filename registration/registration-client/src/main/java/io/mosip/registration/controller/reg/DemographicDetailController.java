@@ -235,10 +235,13 @@ public class DemographicDetailController extends BaseController {
 
 			addFirstOrderAddress(listOfComboBoxWithObject.get(orderOfAddress.get(0)), 1,
 					applicationContext.getApplicationLanguage());
-			addFirstOrderAddress(
-					listOfComboBoxWithObject.get(orderOfAddress.get(0) + RegistrationConstants.LOCAL_LANGUAGE), 1,
-					applicationContext.getLocalLanguage());
 
+			if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
+
+				addFirstOrderAddress(
+						listOfComboBoxWithObject.get(orderOfAddress.get(0) + RegistrationConstants.LOCAL_LANGUAGE), 1,
+						applicationContext.getLocalLanguage());
+			}
 			populateDropDowns();
 
 			for (int j = 0; j < orderOfAddress.size() - 1; j++) {
@@ -294,11 +297,15 @@ public class DemographicDetailController extends BaseController {
 		GridPane gridPane = prepareMainGridPane();
 
 		GridPane primary = subGridPane(schemaDTO, "");
-		GridPane secondary = subGridPane(schemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
 
 		gridPane.addColumn(0, primary);
 
-		gridPane.addColumn(2, secondary);
+		if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
+
+			GridPane secondary = subGridPane(schemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
+
+			gridPane.addColumn(2, secondary);
+		}
 
 		gridPane.setId(schemaDTO.getId() + "ParentGridPane");
 
@@ -593,16 +600,22 @@ public class DemographicDetailController extends BaseController {
 					listOfComboBoxWithObject.get("gender").getItems()
 							.addAll(masterSyncService.getGenderDtls(ApplicationContext.applicationLanguage()).stream()
 									.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList()));
-					listOfComboBoxWithObject.get("genderLocalLanguage").getItems()
-							.addAll(masterSyncService.getGenderDtls(ApplicationContext.localLanguage()).stream()
-									.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList()));
+					if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
+
+						listOfComboBoxWithObject.get("genderLocalLanguage").getItems()
+								.addAll(masterSyncService.getGenderDtls(ApplicationContext.localLanguage()).stream()
+										.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList()));
+					}
 					break;
 
 				case "residencestatus":
 					listOfComboBoxWithObject.get("residenceStatus").getItems()
 							.addAll(masterSyncService.getIndividualType(ApplicationContext.applicationLanguage()));
-					listOfComboBoxWithObject.get("residenceStatusLocalLanguage").getItems()
-							.addAll(masterSyncService.getIndividualType(ApplicationContext.localLanguage()));
+					if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
+
+						listOfComboBoxWithObject.get("residenceStatusLocalLanguage").getItems()
+								.addAll(masterSyncService.getIndividualType(ApplicationContext.localLanguage()));
+					}
 					break;
 
 				default:
@@ -1247,11 +1260,13 @@ public class DemographicDetailController extends BaseController {
 				"Retrieving and populating of location by selected hirerachy ended");
 	}
 
-	/*
-	 * private void updateBioPageFlow(String flag, String pageId) { if
-	 * (RegistrationConstants.DISABLE.equalsIgnoreCase(String.valueOf(
-	 * ApplicationContext.map().get(flag)))) { updatePageFlow(pageId, false); } else
-	 * { updatePageFlow(pageId, true); } }
-	 */
+	private boolean isAppLangAndLocalLangSame() {
+
+		return primaryLanguage.equals(secondaryLanguage);
+	}
+
+	private boolean isLocalLanguageAvailable() {
+		return secondaryLanguage != null && !secondaryLanguage.isEmpty();
+	}
 
 }
