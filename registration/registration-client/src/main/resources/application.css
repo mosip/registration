@@ -248,6 +248,7 @@
 	-fx-border-radius: 4.0 4.0 4.0 4.0;
   	-fx-background-radius: 4.0 4.0 4.0 4.0;
   	-fx-text-alignment: center;
+  	-fx-pref-width: 485px;
 }
 .residence{
 	-fx-background-color:#FFFFFF;
@@ -258,6 +259,7 @@
 	-fx-border-radius: 4.0 4.0 4.0 4.0;
   	-fx-background-radius: 4.0 4.0 4.0 4.0;
   	-fx-text-alignment: center;
+  	-fx-pref-width: 485px;
 }
 .consent{
 	-fx-background-color: #ffffff;
@@ -796,6 +798,14 @@ Working on new Css by taleev
 		-fx-border-width: 0.0;
 		-fx-text-fill : #666666;
 		-fx-font-size: 1em;
+}
+
+.buttonsLabel{
+		-fx-background-color:#ffffff;
+		-fx-border-width: 0.0;
+		-fx-text-fill : black;
+		-fx-font-size: 1.2em;
+		-fx-wrap-text: true;
 }
 
 .demoGraphicTextFieldFocused{
