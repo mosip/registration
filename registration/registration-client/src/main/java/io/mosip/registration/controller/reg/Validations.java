@@ -6,10 +6,10 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -44,6 +44,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 
 /**
  * Class for validation of the Registration Field
@@ -160,6 +161,10 @@ public class Validations extends BaseController {
 	 * @return true, if successful
 	 */
 	private boolean nodeToValidate(List<String> notTovalidate, Node node) {
+		if (node.getId() != null && (node.getId().contains("gender") || node.getId().contains("residence"))) {
+			return !(node.getId() == null || notTovalidate.contains(node.getId()) || node instanceof ImageView
+					|| node instanceof Label || node instanceof Hyperlink || node.isDisabled());
+		}
 		return !(node.getId() == null || notTovalidate.contains(node.getId()) || node instanceof ImageView
 				|| node instanceof Button || node instanceof Label || node instanceof Hyperlink || node.isDisabled());
 	}
@@ -211,8 +216,45 @@ public class Validations extends BaseController {
 	public boolean validateTheNode(Pane parentPane, Node node, String id, boolean isPreviousValid) {
 		if (node instanceof ComboBox<?>) {
 			return validateComboBox(parentPane, (ComboBox<?>) node, id, isPreviousValid);
+		} else if (node instanceof Button) {
+			return validateButtons(parentPane, (Button) node, id);
 		}
 		return validateTextField(parentPane, (TextField) node, id, isPreviousValid);
+	}
+
+	private boolean validateButtons(Pane parentPane, Button node, String id) {
+		AtomicReference<Boolean> buttonSelected = new AtomicReference<>(false);
+		try {
+			VBox parent = (VBox) parentPane.getParent();
+			String label = parentPane.getId();
+
+			if (node.isDisabled() || isLostUIN) {
+				LOGGER.debug(RegistrationConstants.VALIDATION_LOGGER, APPLICATION_NAME, APPLICATION_ID,
+						"Ignoring validations as its lostUIN or disabled for field >> " + label);
+				return true;
+			}
+
+			boolean isMandatory = requiredFieldValidator.isRequiredField(getValidationMap().get(label),
+					getRegistrationDTOFromSession());
+
+			if (isMandatory && (node.getId().contains("gender") || node.getId().contains("residence"))) {
+				node.getParent().getChildrenUnmodifiable().forEach(child -> {
+					if (child instanceof Button && child.getStyleClass().contains("selectedResidence")) {
+						buttonSelected.set(true);
+					}
+				});
+			} else {
+				buttonSelected.set(true);
+			}
+			if (!buttonSelected.get()) {
+				generateAlert(parent, label, getFromLabelMap(label).concat(RegistrationConstants.SPACE)
+						.concat(applicationMessageBundle.getString(RegistrationConstants.REG_LGN_001)));
+			}
+		} catch (RuntimeException | RegBaseCheckedException runtimeException) {
+			LOGGER.error(RegistrationConstants.VALIDATION_LOGGER, APPLICATION_NAME, APPLICATION_ID,
+					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
+		}
+		return buttonSelected.get();
 	}
 
 	/**

@@ -21,12 +21,15 @@ import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
 import io.mosip.registration.dto.mastersync.GenericDto;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
 
@@ -675,4 +678,28 @@ public class FXUtils {
 		};
 	}
 
+	public void populateLocalButton(FlowPane parentPane, Button applicationField, Button localField) {
+		applicationField.addEventHandler(ActionEvent.ACTION, event -> {
+			if (applicationField.getStyleClass().contains("residence")) {
+				applicationField.getStyleClass().clear();
+				localField.getStyleClass().clear();
+				applicationField.getStyleClass().addAll("selectedResidence", "button");
+				localField.getStyleClass().addAll("selectedResidence", "button");
+				applicationField.getParent().getChildrenUnmodifiable().forEach(node -> {
+					if (node instanceof Button && !node.getId().equals(applicationField.getId())) {
+						node.getStyleClass().clear();
+						node.getStyleClass().addAll("residence", "button");
+					}
+				});
+				localField.getParent().getChildrenUnmodifiable().forEach(node -> {
+					if (node instanceof Button && !node.getId().equals(localField.getId())) {
+						node.getStyleClass().clear();
+						node.getStyleClass().addAll("residence", "button");
+					}
+				});
+			}		
+			toggleUIField(parentPane, applicationField.getParent().getId() + RegistrationConstants.MESSAGE, false);
+			toggleUIField(parentPane, localField.getParent().getId() + RegistrationConstants.MESSAGE, false);
+		});
+	}
 }
