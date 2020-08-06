@@ -101,6 +101,9 @@ public class ScanPopUpViewController extends BaseController {
 	@FXML
 	private Button captureBtn;
 
+	@Autowired
+	private BiometricsController biometricsController;
+
 	/**
 	 * @return the popupStage
 	 */
@@ -183,7 +186,7 @@ public class ScanPopUpViewController extends BaseController {
 
 			if (title.equalsIgnoreCase("Biometrics")) {
 				captureBtn.setVisible(false);
-//				scanningMsg.setVisible(false);
+				// scanningMsg.setVisible(false);
 			}
 			scanningMsg.textProperty().addListener((observable, oldValue, newValue) -> {
 
@@ -239,6 +242,7 @@ public class ScanPopUpViewController extends BaseController {
 		LOGGER.info(LOG_REG_SCAN_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Calling exit window to close the popup");
 
+		biometricsController.stopRCaptureService();
 		streamer.stop();
 		if (webcamSarxosServiceImpl.isWebcamConnected()) {
 			webcamSarxosServiceImpl.close();
