@@ -4,9 +4,8 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.dto.ResponseDTO;
-import io.mosip.registration.dto.biometric.BiometricDTO;
+import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 
 /**
