@@ -29,11 +29,11 @@ import org.springframework.stereotype.Component;
 
 import com.sun.javafx.scene.control.skin.TableHeaderRow;
 
+import io.mosip.commons.packet.constants.PacketManagerConstants;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.templatemanager.spi.TemplateManagerBuilder;
 import io.mosip.kernel.core.util.StringUtils;
-import io.mosip.kernel.packetmanager.constants.PacketManagerConstants;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.LoggerConstants;
