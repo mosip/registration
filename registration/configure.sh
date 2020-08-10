@@ -29,18 +29,20 @@ echo "mosip.reg.client.tpm.availability=${client_tpm_enabled}" >> mosip-applicat
 
 echo "created mosip-application.properties"
 
-/usr/local/openjdk-8/bin/java -cp /registration-libs/target/*:/registration-client/target/lib/* io.mosip.registration.cipher.ClientJarEncryption "/registration-client/target/registration-client-${client_version_env}.jar" "${crypto_key_env}" "${client_version_env}" "/registration-libs/target/" "/build_files/${client_certificate}" "/registration-libs/resources/db/reg" "/registration-client/target/registration-client-${client_version_env}.jar" "/registration-libs/resources/rxtx" "/registration-libs/resources/jre" "/registration-libs/resources/batch/run.bat" "/mosip-application.properties"
+mkdir -p /sdkdependency
+
+/usr/local/openjdk-8/bin/java -cp /registration-libs/target/*:/registration-client/target/lib/* io.mosip.registration.cipher.ClientJarEncryption "/registration-client/target/registration-client-${client_version_env}.jar" "${crypto_key_env}" "${client_version_env}" "/registration-libs/target/" "/build_files/${client_certificate}" "/registration-libs/resources/db/reg" "/registration-client/target/registration-client-${client_version_env}.jar" "/registration-libs/resources/rxtx" "/registration-libs/resources/jre" "/registration-libs/resources/batch/run.bat" "/mosip-application.properties" "/sdkdependency"
 
 echo "encryption completed"
 
-mv "/registration-client/target/mosip-sw-${client_version_env}.zip" reg-client.zip
+cd /registration-client/target/
+mv "mosip-sw-${client_version_env}.zip" reg-client.zip
 mkdir -p /registration-client/target/bin
 cp /registration-client/target/lib/mosip-client.jar /registration-client/target/bin/
 cp /registration-client/target/lib/mosip-services.jar /registration-client/target/bin/
-/usr/bin/zip -r reg-client.zip /registration-client/target/bin/
-/usr/bin/zip -r reg-client.zip /registration-client/target/lib/
-/usr/bin/zip reg-client.zip /registration-client/target/MANIFEST.MF
-
+/usr/bin/zip -r reg-client.zip bin
+/usr/bin/zip -r reg-client.zip lib
+/usr/bin/zip reg-client.zip MANIFEST.MF
 
 echo "setting up nginx static content"
 
