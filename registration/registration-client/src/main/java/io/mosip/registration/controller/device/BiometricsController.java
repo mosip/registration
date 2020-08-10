@@ -39,6 +39,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.packetmanager.constants.PacketManagerConstants;
 import io.mosip.kernel.packetmanager.dto.BiometricsDto;
+import io.mosip.kernel.packetmanager.dto.DocumentDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.AuditEvent;
 import io.mosip.registration.constants.AuditReferenceIdTypes;
@@ -49,6 +50,7 @@ import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.FXUtils;
+import io.mosip.registration.controller.reg.DocumentScanController;
 import io.mosip.registration.controller.reg.RegistrationController;
 import io.mosip.registration.controller.reg.UserOnboardParentController;
 import io.mosip.registration.dao.UserDetailDAO;
@@ -85,6 +87,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
 /**
  * {@code GuardianBiometricscontroller} is to capture and display the captured
@@ -300,7 +303,12 @@ public class BiometricsController extends BaseController /* implements Initializ
 	@Autowired
 	private BiometricExceptionsController biometricExceptionsController;
 
+	@Autowired
+	private DocumentScanController documentScanController;
+
 	private GridPane exceptionBiometricsPane;
+
+	private Node exceptionVBox;
 
 	/*
 	 * (non-Javadoc)
@@ -451,9 +459,113 @@ public class BiometricsController extends BaseController /* implements Initializ
 					}
 				}
 			}
+
+			if (subType.getKey().getKey().equalsIgnoreCase("applicant")) {
+
+				gridPane.add(getExceptionImageVBox("Exception_Photo", subType.getKey().getKey(), null), 1, rowIndex);
+
+				rowIndex++;
+
+			}
 		}
 
 		initializeState(isGoingBack);
+	}
+
+	private VBox getExceptionImageVBox(String modality, String key, Object object) {
+
+		VBox vBox = new VBox();
+
+		vBox.setAlignment(Pos.BASELINE_LEFT);
+		vBox.setId(modality);
+
+		// Create Label with modality
+		// Label label = new Label();
+		// label.setText(applicationLabelBundle.getString(modality));
+		// vBox.getChildren().add(label);
+
+		HBox hBox = new HBox();
+		// hBox.setAlignment(Pos.BOTTOM_RIGHT);
+		Image image = null;
+		if (getRegistrationDTOFromSession().getDocuments().containsKey("POE")) {
+			byte[] documentBytes = getRegistrationDTOFromSession().getDocuments().get("POE").getDocument();
+			image = convertBytesToImage(documentBytes);
+		} else {
+			vBox.setDisable(true);
+		}
+
+		ImageView imageView = new ImageView(
+				image != null ? image : new Image(this.getClass().getResourceAsStream(getImageIconPath(modality))));
+		imageView.setFitHeight(80);
+		imageView.setFitWidth(85);
+
+		Tooltip tooltip = new Tooltip(applicationLabelBundle.getString(modality));
+		tooltip.getStyleClass().add(RegistrationConstants.TOOLTIP_STYLE);
+		// Tooltip.install(hBox, tooltip);
+		hBox.setOnMouseEntered(event -> tooltip.show(hBox, event.getScreenX(), event.getScreenY() + 15));
+		hBox.setOnMouseExited(event -> tooltip.hide());
+		hBox.getChildren().add(imageView);
+
+		if (image != null) {
+			if (hBox.getChildren().size() == 1) {
+				ImageView tickImageView = new ImageView(
+						new Image(this.getClass().getResourceAsStream(RegistrationConstants.TICK_CIRICLE_IMG_PATH)));
+
+				tickImageView.setFitWidth(30);
+				tickImageView.setFitHeight(30);
+				hBox.getChildren().add(tickImageView);
+			}
+		}
+
+		vBox.getChildren().add(hBox);
+
+		// vBox.getChildren().add(imageView);
+
+		vBox.setOnMouseClicked((event) -> {
+			displayExceptionBiometric(vBox.getId());
+		});
+
+		vBox.setFillWidth(true);
+		vBox.setMinWidth(100);
+
+		// vBox.setMinHeight(100);
+		vBox.getStyleClass().add(RegistrationConstants.BIOMETRICS_DISPLAY);
+		// vBox.setBorder(new Border(
+		// new BorderStroke(Color.PINK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
+		// BorderWidths.FULL)));
+
+		exceptionVBox = vBox;
+		return vBox;
+	}
+
+	private void displayExceptionBiometric(String modality) {
+
+		retryBox.setVisible(true);
+		biometricBox.setVisible(true);
+		biometricType.setText(applicationLabelBundle.getString(modality));
+
+		disableLastCheckBoxSection();
+		this.currentModality = modality;
+		enableCurrentCheckBoxSection();
+
+		// Get the stream image from Bio ServiceImpl and load it in the image pane
+
+		if (getRegistrationDTOFromSession().getBiometricExceptions() != null
+				&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty() && getRegistrationDTOFromSession().getDocuments().containsKey("POE")) {
+
+			DocumentDto documentDto = getRegistrationDTOFromSession().getDocuments().get("POE");
+
+			Image image = convertBytesToImage(documentDto.getDocument());
+			biometricImage.setImage(image);
+			
+			addImageInUIPane(currentSubType, currentModality, convertBytesToImage(documentDto.getDocument()), true);
+
+		} else {
+			biometricImage.setImage(new Image(this.getClass().getResourceAsStream(getImageIconPath(modality))));
+			
+
+			addImageInUIPane(currentModality, currentModality, null,false);
+		}
 	}
 
 	private void updateBiometricData(VBox vboxForCheckBox, CheckBox checkBox) {
@@ -782,6 +894,11 @@ public class BiometricsController extends BaseController /* implements Initializ
 		// modality = modality.toLowerCase();
 
 		String imageIconPath = null;
+
+		if (modality.equalsIgnoreCase(RegistrationConstants.EXCEPTION_PHOTO)) {
+			return RegistrationConstants.DEFAULT_EXCEPTION_IMAGE_PATH;
+		}
+
 		if (modality != null) {
 			switch (modality) {
 
@@ -839,6 +956,43 @@ public class BiometricsController extends BaseController /* implements Initializ
 	}
 
 	/**
+	 * This method will allow to scan and upload documents
+	 */
+	@Override
+	public void scan(Stage popupStage) {
+		if (currentModality.equalsIgnoreCase(RegistrationConstants.EXCEPTION_PHOTO)) {
+			try {
+				byte[] byteArray = documentScanController.captureAndConvertBufferedImage();
+
+				DocumentDto documentDto = new DocumentDto();
+				documentDto.setDocument(byteArray);
+				documentDto.setType("EOP");
+
+				String docType = getValueFromApplicationContext(RegistrationConstants.DOC_TYPE);
+
+				docType = RegistrationConstants.SCANNER_IMG_TYPE;
+
+				documentDto.setFormat(docType);
+				documentDto.setCategory("POE");
+				documentDto.setOwner("Applicant");
+				documentDto.setValue("POE".concat(RegistrationConstants.UNDER_SCORE).concat("EOP"));
+
+				getRegistrationDTOFromSession().addDocument("POE", documentDto);
+
+				scanPopUpViewController.getPopupStage().close();
+
+				displayExceptionBiometric(currentModality);
+				
+
+
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
 	 * Scan the biometrics
 	 *
 	 * @param event
@@ -850,6 +1004,12 @@ public class BiometricsController extends BaseController /* implements Initializ
 		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Displaying Scan popup for capturing biometrics");
 
+		if (currentModality.equalsIgnoreCase(RegistrationConstants.EXCEPTION_PHOTO)) {
+			scanPopUpViewController.init(this, RegistrationUIConstants.SCAN_DOC_TITLE);
+			documentScanController.startStream(this);
+
+			return;
+		}
 		scanPopUpViewController.init(this, "Biometrics");
 
 		Service<MdmBioDevice> deviceSearchTask = new Service<MdmBioDevice>() {
@@ -1683,13 +1843,13 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		// if one or more biometric is marked as exception, then mandate collecting of
 		// POE
-		if (!isPOECollected(currentSubType)) {
-			continueBtn.setDisable(true);
-			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.EXCEPTION_PHOTO_MANDATORY);
-			LOGGER.error("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
-					RegistrationConstants.APPLICATION_NAME, "POE documents required");
-			return;
-		}
+//		if (!isPOECollected(currentSubType)) {
+//			continueBtn.setDisable(true);
+//			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.EXCEPTION_PHOTO_MANDATORY);
+//			LOGGER.error("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
+//					RegistrationConstants.APPLICATION_NAME, "POE documents required");
+//			return;
+//		}
 
 		List<String> bioAttributes = currentMap.get(currentSubType);
 
@@ -1726,6 +1886,14 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		String expression = String.join(operator, bioAttributes);
 		boolean result = MVEL.evalToBoolean(expression, capturedDetails);
+
+		if (result && considerExceptionAsCaptured) {
+			if (getRegistrationDTOFromSession().getBiometricExceptions() != null
+					&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()) {
+
+				result = getRegistrationDTOFromSession().getDocuments().containsKey("POE");
+			}
+		}
 		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
 				RegistrationConstants.APPLICATION_NAME, "capturedDetails >> " + capturedDetails);
 		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
@@ -2155,6 +2323,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		if (clickedImageView.getOpacity() == 0) {
 			clickedImageView.setOpacity(1);
+
 			if (isUserOnboardFlag)
 				userOnboardService.addOperatorBiometricException(currentSubType, clickedImageView.getId());
 			else
@@ -2166,6 +2335,21 @@ public class BiometricsController extends BaseController /* implements Initializ
 				userOnboardService.removeOperatorBiometricException(currentSubType, clickedImageView.getId());
 			else
 				getRegistrationDTOFromSession().removeBiometricException(currentSubType, clickedImageView.getId());
+
+			
+		}
+		
+		if (getRegistrationDTOFromSession().getBiometricExceptions() != null
+				&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()) {
+
+			setBiometricExceptionVBox(true);
+		} else {
+			
+			
+			getRegistrationDTOFromSession().getDocuments().remove("POE");
+			
+			addImageInUIPane("applicant", RegistrationConstants.EXCEPTION_PHOTO, null, false);
+			setBiometricExceptionVBox(false);
 		}
 
 		boolean isAllMarked = true;
@@ -2188,6 +2372,17 @@ public class BiometricsController extends BaseController /* implements Initializ
 		addImageInUIPane(currentSubType, currentModality, null, isAllMarked);
 		setScanButtonVisibility(isAllMarked, scanBtn);
 		refreshContinueButton();
+	}
+
+	private void setBiometricExceptionVBox(boolean disable) {
+		if (exceptionVBox != null) {
+			exceptionVBox.setVisible(disable);
+			exceptionVBox.setDisable(false);
+		}
+	}
+
+	private VBox getBiometricExceptionVBox() {
+		return null;
 	}
 
 	private void addExceptionsUiPane(Pane pane, List<String> configBioAttributes, List<String> nonConfigBioAttributes,
@@ -2242,5 +2437,4 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 	}
 
- 
 }

@@ -987,7 +987,7 @@ public class RegistrationConstants {
 	public static final String SERVER_STATUS_RESEND = "RESEND";
 	public static final String CLIENT_STATUS_APPROVED = "APPROVED";
 	public static final String SYNCED_STATUS = "SYNCED";
-	
+
 	public static final List<String> PACKET_STATUS = Arrays.asList("APPROVED", "REJECTED", "RE_REGISTER_APPROVED");
 
 	public static final List<String> PACKET_STATUS_UPLOAD = Arrays.asList("APPROVED", "REJECTED", "SYNCED", "EXPORTED");
@@ -1731,7 +1731,7 @@ public class RegistrationConstants {
 	public static final String MOSIP_CLEINT_ID = "mosip.registration.client.id";
 	public static final String MOSIP_SECRET_KEY = "mosip.registration.secret.Key";
 
-	/** BELOW WERE EXTERNALISING  Spring.properties to external configs */
+	/** BELOW WERE EXTERNALISING Spring.properties to external configs */
 
 	// Timeout Configuartion
 	public static final String HTTP_API_READ_TIMEOUT = "mosip.registration.HTTP_API_READ_TIMEOUT";
@@ -1761,18 +1761,21 @@ public class RegistrationConstants {
 
 	// #Proof Of Exception Documents
 	public static final String POE_DOCUMENT_VALUE = "mosip.registration.doc_value";
-	
+
 	public static final String LOST_REGISTRATION_BIO_MVEL_OPERATOR = "mosip.registration.lostuin.biometrics.mvel.operator";
 	public static final String UPDATE_REGISTRATION_BIO_MVEL_OPERATOR = "mosip.registration.updateuin.biometrics.mvel.operator";
 	public static final String LOST_REGISTRATION_BIO_MVEL_EXPR = "mosip.registration.lostuin.biometrics.mvel.expr";
 	public static final String UPDATE_REGISTRATION_BIO_MVEL_EXPR = "mosip.registration.updateuin.biometrics.mvel.expr";
-	
+
 	public static final String BIOMETRICS_GROUP = "Biometrics";
-	
+
 	public static final String SPEC_VERSION_095 = "0.9.5";
 	public static final String SPEC_VERSION_092 = "0.9.2";
 
 	public static final String TEMPLATE_FACE_IMAGE_SOURCE = "FaceImageSource";
-	
+
 	public static final String REGISTRATION_EVENTS = "REG-EVT";
+
+	public static final String EXCEPTION_PHOTO = "Exception_Photo";
+
 }
