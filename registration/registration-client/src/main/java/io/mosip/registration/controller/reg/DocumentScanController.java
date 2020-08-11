@@ -508,6 +508,8 @@ public class DocumentScanController extends BaseController {
 				JPanel jPanelWindow = webcamSarxosServiceImpl.getJPanel(webcam);
 				scanPopUpViewController.setWebCamPanel(jPanelWindow);
 
+				// Enable Auto-Logout
+				SessionContext.setAutoLogout(false);
 				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 						RegistrationConstants.APPLICATION_ID, "Webcam stream started");
 			} else {
@@ -567,7 +569,7 @@ public class DocumentScanController extends BaseController {
 		String poeDocValue = getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE);
 		if (poeDocValue != null && selectedComboBox.getValue().getCode().matches(poeDocValue)) {
 
-			 byteArray = captureAndConvertBufferedImage();
+			byteArray = captureAndConvertBufferedImage();
 
 		} else {
 			byteArray = documentScanFacade.getScannedDocument();
@@ -604,7 +606,8 @@ public class DocumentScanController extends BaseController {
 		byte[] byteArray = getImageBytesFromBufferedImage(bufferedImage);
 		webcamSarxosServiceImpl.close(webcam);
 		scanPopUpViewController.setDefaultImageGridPaneVisibility();
-
+		// Enable Auto-Logout
+		SessionContext.setAutoLogout(true);
 		return byteArray;
 	}
 

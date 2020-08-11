@@ -295,10 +295,11 @@ public class BiometricsController extends BaseController /* implements Initializ
 	@FXML
 	private GridPane leftPanelImageGridPane;
 
-	private int rowIndex = 0;
-
 	@FXML
 	private Label subTypeLabel;
+
+	@FXML
+	private GridPane parentProgressPane;
 
 	@Autowired
 	private BiometricExceptionsController biometricExceptionsController;
@@ -406,12 +407,12 @@ public class BiometricsController extends BaseController /* implements Initializ
 		leftHandImageBoxMap.clear();
 		exceptionMap.clear();
 
-		rowIndex = 0;
 		leftPanelImageGridPane.setAlignment(Pos.TOP_LEFT);
 		leftPanelImageGridPane.setPadding(new Insets(70, 100, 100, 70)); // margins around the whole grid
 		// (top/right/bottom/left)
 		for (Entry<Entry<String, String>, Map<String, List<List<String>>>> subType : mapToProcess.entrySet()) {
 
+			int rowIndex = 0;
 			// leftPanelImageGridPane.getChildren().add(new Label("Biometrics"));
 			GridPane gridPane = getGridPane(subType.getKey());
 
@@ -460,11 +461,16 @@ public class BiometricsController extends BaseController /* implements Initializ
 				}
 			}
 
-			if (subType.getKey().getKey().equalsIgnoreCase("applicant")) {
+			if (subType.getKey().getKey().equalsIgnoreCase("applicant") && rowIndex>1) {
 
-				gridPane.add(getExceptionImageVBox("Exception_Photo", subType.getKey().getKey(), null), 1, rowIndex);
+				gridPane.add(
+						getExceptionImageVBox(RegistrationConstants.EXCEPTION_PHOTO, subType.getKey().getKey(), null),
+						1, rowIndex);
 
-				rowIndex++;
+				if (rowIndex >= 5) {
+
+					gridPane.setPadding(new Insets(100, 10, 10, 10));
+				}
 
 			}
 		}
@@ -478,11 +484,6 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		vBox.setAlignment(Pos.BASELINE_LEFT);
 		vBox.setId(modality);
-
-		// Create Label with modality
-		// Label label = new Label();
-		// label.setText(applicationLabelBundle.getString(modality));
-		// vBox.getChildren().add(label);
 
 		HBox hBox = new HBox();
 		// hBox.setAlignment(Pos.BOTTOM_RIGHT);
@@ -548,23 +549,36 @@ public class BiometricsController extends BaseController /* implements Initializ
 		this.currentModality = modality;
 		enableCurrentCheckBoxSection();
 
+		setScanButtonVisibility(false, scanBtn);
 		// Get the stream image from Bio ServiceImpl and load it in the image pane
 
+		clearBioLabels();
+
+		clearRetryAttemptsBox();
+
+		thresholdScoreLabel.setText(RegistrationConstants.HYPHEN);
+
+		thresholdPane1.setPercentWidth(Double.parseDouble("0"));
+		thresholdPane2.setPercentWidth(100.00 - (Double.parseDouble("0")));
+
+		thresholdLabel.setText(
+				RegistrationUIConstants.THRESHOLD.concat("  ").concat("0").concat(RegistrationConstants.PERCENTAGE));
+
 		if (getRegistrationDTOFromSession().getBiometricExceptions() != null
-				&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty() && getRegistrationDTOFromSession().getDocuments().containsKey("POE")) {
+				&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()
+				&& getRegistrationDTOFromSession().getDocuments().containsKey("POE")) {
 
 			DocumentDto documentDto = getRegistrationDTOFromSession().getDocuments().get("POE");
 
 			Image image = convertBytesToImage(documentDto.getDocument());
 			biometricImage.setImage(image);
-			
+
 			addImageInUIPane(currentSubType, currentModality, convertBytesToImage(documentDto.getDocument()), true);
 
 		} else {
 			biometricImage.setImage(new Image(this.getClass().getResourceAsStream(getImageIconPath(modality))));
-			
 
-			addImageInUIPane(currentModality, currentModality, null,false);
+			addImageInUIPane(currentModality, currentModality, null, false);
 		}
 	}
 
@@ -979,16 +993,20 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 				getRegistrationDTOFromSession().addDocument("POE", documentDto);
 
-				scanPopUpViewController.getPopupStage().close();
-
 				displayExceptionBiometric(currentModality);
-				
 
+				refreshContinueButton();
 
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (RuntimeException | IOException exception) {
+				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.BIOMETRIC_SCANNING_ERROR);
+
+				LOGGER.error(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+						"Error while capturing exception photo : " + ExceptionUtils.getStackTrace(exception));
+
 			}
+
+			scanPopUpViewController.getPopupStage().close();
+
 		}
 	}
 
@@ -1089,7 +1107,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 					}
 				} catch (RegBaseCheckedException | IOException exception) {
 
-					LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+					LOGGER.error(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 							"Error while streaming : " + ExceptionUtils.getStackTrace(exception));
 
 					generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.STREAMING_ERROR);
@@ -1536,15 +1554,29 @@ public class BiometricsController extends BaseController /* implements Initializ
 		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Updating biometrics and clearing previous data");
 		this.bioType = constructBioType(bioType);
-		clearCaptureData();
-		biometricPane.getStyleClass().clear();
-		biometricPane.getStyleClass().add(RegistrationConstants.BIOMETRIC_PANES_SELECTED);
-		biometricImage.setImage(new Image(this.getClass().getResourceAsStream(bioImage)));
 
 		bioValue = bioType;
+		biometricImage.setImage(new Image(this.getClass().getResourceAsStream(bioImage)));
+
 		thresholdScoreLabel
 				.setText(getQualityScore(Double.parseDouble(getValueFromApplicationContext(biometricThreshold))));
 		createQualityBox(retryCount, biometricThreshold);
+
+		clearBioLabels();
+		if (!isFace(currentModality)) {
+			setScanButtonVisibility(isAllExceptions(getCheckBoxes(currentSubType, currentModality)), scanBtn);
+		} else {
+			setScanButtonVisibility(false, scanBtn);
+		}
+
+		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+				"Updated biometrics and cleared previous data");
+	}
+
+	private void clearBioLabels() {
+		clearCaptureData();
+		biometricPane.getStyleClass().clear();
+		biometricPane.getStyleClass().add(RegistrationConstants.BIOMETRIC_PANES_SELECTED);
 		qualityScore.setText(RegistrationConstants.HYPHEN);
 		attemptSlap.setText(RegistrationConstants.HYPHEN);
 		// duplicateCheckLbl.setText(RegistrationConstants.EMPTY);
@@ -1555,14 +1587,6 @@ public class BiometricsController extends BaseController /* implements Initializ
 		bioProgress.setProgress(0);
 		qualityText.setText("");
 
-		if (!isFace(currentModality)) {
-			setScanButtonVisibility(isAllExceptions(getCheckBoxes(currentSubType, currentModality)), scanBtn);
-		} else {
-			setScanButtonVisibility(false, scanBtn);
-		}
-
-		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-				"Updated biometrics and cleared previous data");
 	}
 
 	private String constructBioType(String bioType) {
@@ -1756,6 +1780,21 @@ public class BiometricsController extends BaseController /* implements Initializ
 		}
 	}
 
+	public void clearRetryAttemptsBox() {
+
+		int attempt = 1;
+		boolean retryBoxFound = bioRetryBox.lookup(RegistrationConstants.RETRY_ATTEMPT + attempt) != null;
+
+		while (retryBoxFound) {
+			bioRetryBox.lookup(RegistrationConstants.RETRY_ATTEMPT + attempt).getStyleClass().clear();
+			bioRetryBox.lookup(RegistrationConstants.RETRY_ATTEMPT + attempt).getStyleClass()
+					.add(RegistrationConstants.QUALITY_LABEL_GREY);
+			++attempt;
+			retryBoxFound = bioRetryBox.lookup(RegistrationConstants.RETRY_ATTEMPT + attempt) != null;
+
+		}
+	}
+
 	/**
 	 * Clear captured data
 	 *
@@ -1843,13 +1882,15 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		// if one or more biometric is marked as exception, then mandate collecting of
 		// POE
-//		if (!isPOECollected(currentSubType)) {
-//			continueBtn.setDisable(true);
-//			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.EXCEPTION_PHOTO_MANDATORY);
-//			LOGGER.error("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
-//					RegistrationConstants.APPLICATION_NAME, "POE documents required");
-//			return;
-//		}
+		// if (!isPOECollected(currentSubType)) {
+		// continueBtn.setDisable(true);
+		// generateAlert(RegistrationConstants.ERROR,
+		// RegistrationUIConstants.EXCEPTION_PHOTO_MANDATORY);
+		// LOGGER.error("REGISTRATION - BIOMETRICS - refreshContinueButton",
+		// RegistrationConstants.APPLICATION_ID,
+		// RegistrationConstants.APPLICATION_NAME, "POE documents required");
+		// return;
+		// }
 
 		List<String> bioAttributes = currentMap.get(currentSubType);
 
@@ -2336,18 +2377,16 @@ public class BiometricsController extends BaseController /* implements Initializ
 			else
 				getRegistrationDTOFromSession().removeBiometricException(currentSubType, clickedImageView.getId());
 
-			
 		}
-		
+
 		if (getRegistrationDTOFromSession().getBiometricExceptions() != null
 				&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()) {
 
 			setBiometricExceptionVBox(true);
 		} else {
-			
-			
+
 			getRegistrationDTOFromSession().getDocuments().remove("POE");
-			
+
 			addImageInUIPane("applicant", RegistrationConstants.EXCEPTION_PHOTO, null, false);
 			setBiometricExceptionVBox(false);
 		}
@@ -2376,13 +2415,11 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 	private void setBiometricExceptionVBox(boolean disable) {
 		if (exceptionVBox != null) {
-			exceptionVBox.setVisible(disable);
-			exceptionVBox.setDisable(false);
-		}
-	}
+			// exceptionVBox.setVisible(disable);
+			exceptionVBox.setDisable(!disable);
 
-	private VBox getBiometricExceptionVBox() {
-		return null;
+		}
+
 	}
 
 	private void addExceptionsUiPane(Pane pane, List<String> configBioAttributes, List<String> nonConfigBioAttributes,
