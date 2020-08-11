@@ -461,7 +461,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 				}
 			}
 
-			if (subType.getKey().getKey().equalsIgnoreCase("applicant") && rowIndex>1) {
+			if (subType.getKey().getKey().equalsIgnoreCase("applicant") && rowIndex > 1) {
 
 				gridPane.add(
 						getExceptionImageVBox(RegistrationConstants.EXCEPTION_PHOTO, subType.getKey().getKey(), null),
@@ -488,11 +488,18 @@ public class BiometricsController extends BaseController /* implements Initializ
 		HBox hBox = new HBox();
 		// hBox.setAlignment(Pos.BOTTOM_RIGHT);
 		Image image = null;
-		if (getRegistrationDTOFromSession().getDocuments().containsKey("POE")) {
-			byte[] documentBytes = getRegistrationDTOFromSession().getDocuments().get("POE").getDocument();
-			image = convertBytesToImage(documentBytes);
+
+		if (getRegistrationDTOFromSession().getBiometricExceptions() != null
+				&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()) {
+			vBox.setVisible(true);
+
+			if (getRegistrationDTOFromSession().getDocuments().containsKey("POE")) {
+				byte[] documentBytes = getRegistrationDTOFromSession().getDocuments().get("POE").getDocument();
+				image = convertBytesToImage(documentBytes);
+
+			}
 		} else {
-			vBox.setDisable(true);
+			vBox.setVisible(false);
 		}
 
 		ImageView imageView = new ImageView(
@@ -920,7 +927,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 				imageIconPath = RegistrationConstants.FACE_IMG_PATH;
 				break;
 			case RegistrationConstants.IRIS_DOUBLE:
-				imageIconPath = RegistrationConstants.RIGHT_IRIS_IMG_PATH;
+				imageIconPath = RegistrationConstants.DOUBLE_IRIS_IMG_PATH;
 				break;
 
 			case RegistrationConstants.FINGERPRINT_SLAB_RIGHT:
@@ -2379,10 +2386,12 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		}
 
-		if (getRegistrationDTOFromSession().getBiometricExceptions() != null
+		if (currentSubType.toLowerCase().equals(RegistrationConstants.APPLICANT.toLowerCase())
+				&& getRegistrationDTOFromSession().getBiometricExceptions() != null
 				&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()) {
 
 			setBiometricExceptionVBox(true);
+
 		} else {
 
 			getRegistrationDTOFromSession().getDocuments().remove("POE");
@@ -2413,10 +2422,10 @@ public class BiometricsController extends BaseController /* implements Initializ
 		refreshContinueButton();
 	}
 
-	private void setBiometricExceptionVBox(boolean disable) {
+	private void setBiometricExceptionVBox(boolean visible) {
 		if (exceptionVBox != null) {
 			// exceptionVBox.setVisible(disable);
-			exceptionVBox.setDisable(!disable);
+			exceptionVBox.setVisible(visible);
 
 		}
 
