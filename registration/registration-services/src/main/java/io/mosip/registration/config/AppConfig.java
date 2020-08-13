@@ -43,7 +43,7 @@ import io.mosip.kernel.templatemanager.velocity.builder.TemplateManagerBuilderIm
 		"io.mosip.kernel.idobjectvalidator.impl.IdObjectCompositeValidator",
 		"io.mosip.kernel.idobjectvalidator.impl.IdObjectMasterDataValidator",
 		"io.mosip.kernel.packetmanager.impl.PacketDecryptorImpl",
-		 "io.mosip.kernel.packetmanager.util.IdSchemaUtils"}), basePackages = {
+		 "io.mosip.kernel.packetmanager.util.IdSchemaUtils", }), basePackages = {
 				"io.mosip.registration", "io.mosip.kernel.core", "io.mosip.kernel.keygenerator",
 				"io.mosip.kernel.idvalidator", "io.mosip.kernel.ridgenerator","io.mosip.kernel.qrcode",
 				"io.mosip.kernel.core.signatureutil", "io.mosip.kernel.crypto", "io.mosip.kernel.jsonvalidator",
@@ -52,7 +52,7 @@ import io.mosip.kernel.templatemanager.velocity.builder.TemplateManagerBuilderIm
 				"io.mosip.kernel.pdfgenerator.itext.impl", "io.mosip.kernel.cryptosignature",
 				"io.mosip.kernel.core.signatureutil", "io.mosip.kernel.idobjectvalidator.impl",
 				"io.mosip.kernel.packetmanager.impl", "io.mosip.kernel.packetmanager.util",
-				"io.mosip.kernel.biosdk.provider.impl" , "io.mosip.kernel.biosdk.provider.factory"})
+				"io.mosip.kernel.biosdk.provider.impl" , "io.mosip.kernel.biosdk.provider.factory","io.mosip.commons.packet"})
 @PropertySource(value = { "classpath:spring.properties" })
 @ImportAutoConfiguration(RefreshAutoConfiguration.class)
 @EnableConfigurationProperties
@@ -100,10 +100,10 @@ public class AppConfig {
 		return new ObjectMapper();
 	}
 
-	@Bean
-	public TemplateManagerBuilder getTemplateManagerBuilder() {
-		return new TemplateManagerBuilderImpl();
-	}
+//	@Bean
+//	public TemplateManagerBuilder getTemplateManagerBuilder() {
+//		return new TemplateManagerBuilderImpl();
+//	}
 	
 		
 	/*@Bean("face")

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
@@ -141,6 +143,14 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 	private ObjectMapper objectMapper = new ObjectMapper();
 
+	@Value("${objectstore.packet.account}")
+	private String packetManagerAccount;
+
+	@Value("${object.store.base.location}")
+	private String baseLocation;
+
+	private static String SLASH = "/";
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -177,7 +187,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 			setMetaInfo(registrationDTO, metaInfoMap);
 
-			packetWriter.setMetaInfo(registrationDTO.getRegistrationId(), metaInfoMap, source,
+			packetWriter.addMetaInfo(registrationDTO.getRegistrationId(), metaInfoMap, source,
 					registrationDTO.getRegistrationCategory());
 
 			// validateIdObject(schema.getSchemaJson(), packetCreator.getIdentityObject(),
@@ -196,10 +206,10 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 					String.valueOf(registrationDTO.getIdSchemaVersion()), schema.getSchemaJson(), source,
 					registrationDTO.getRegistrationCategory(), getPublicKeyToEncrypt(), true);
 
-			String filePath = null;
-			// savePacketToDisk(registrationDTO.getRegistrationId(), packetZip);
-			// registrationDAO.save(filePath, registrationDTO);
-			// createAuditLog(registrationDTO);
+			String filePath = baseLocation + SLASH + packetManagerAccount + SLASH + registrationDTO.getRegistrationId();
+
+			registrationDAO.save(filePath, registrationDTO);
+
 			SuccessResponseDTO successResponseDTO = new SuccessResponseDTO();
 			successResponseDTO.setCode("0000");
 			successResponseDTO.setMessage("Success");
@@ -265,7 +275,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		List<SimpleDto> labelAndValueDTOs = new LinkedList<>();
 		for (Entry<String, String> fieldName : operationsDataMap.entrySet()) {
 
-			//TODO
+			// TODO
 			SimpleDto labelAndValueDTO = new SimpleDto(fieldName.getKey(), fieldName.getValue());
 
 			labelAndValueDTOs.add(labelAndValueDTO);
@@ -486,30 +496,36 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 	private void setAudits(RegistrationDTO registrationDTO) {
 		List<AuditDto> audtitDTOList = new ArrayList<>();
 		List<Audit> audits = auditDAO.getAudits(auditLogControlDAO.getLatestRegistrationAuditDates());
-		for (Audit audit : audits) {
-			AuditDto dto = new AuditDto();
-			dto.setActionTimeStamp(audit.getActionTimeStamp());
-			dto.setApplicationId(!audit.getApplicationId().equalsIgnoreCase("null") ? audit.getApplicationId() : null);
-			dto.setApplicationName(
-					!audit.getApplicationName().equalsIgnoreCase("null") ? audit.getApplicationName() : null);
-			dto.setCreatedBy(audit.getCreatedBy());
-			dto.setDescription(audit.getDescription());
-			dto.setEventId(audit.getEventId());
-			dto.setEventName(audit.getEventName());
-			dto.setEventType(audit.getEventType());
-			dto.setHostIp(audit.getHostIp());
-			dto.setHostName(audit.getHostName());
-			dto.setId(audit.getId());
-			dto.setIdType(audit.getIdType());
-			dto.setModuleId(audit.getModuleId());
-			dto.setModuleName(audit.getModuleName());
-			dto.setSessionUserId(audit.getSessionUserId());
-			dto.setSessionUserName(audit.getSessionUserName());
-			audtitDTOList.add(dto);
-		}
-		// packetCreator.setAudits(list);
 
-		packetWriter.setAudits(registrationDTO.getRegistrationId(), audtitDTOList, source,
+		List<Map<String, String>> auditList = new LinkedList<>();
+
+		for (Audit audit : audits) {
+
+			Map<String, String> auditMap = new LinkedHashMap<>();
+
+			auditMap.put("uuid", audit.getUuid());
+			auditMap.put("createdAt", String.valueOf(audit.getCreatedAt()));
+			auditMap.put("eventId", audit.getEventId());
+			auditMap.put("eventName", audit.getEventName());
+			auditMap.put("eventType", audit.getEventType());
+			auditMap.put("hostName", audit.getHostName());
+			auditMap.put("hostIp", audit.getHostIp());
+			auditMap.put("applicationId", audit.getApplicationId());
+			auditMap.put("applicationName", audit.getApplicationName());
+			auditMap.put("sessionUserId", audit.getSessionUserId());
+			auditMap.put("sessionUserName", audit.getSessionUserName());
+			auditMap.put("id", audit.getId());
+			auditMap.put("idType", audit.getIdType());
+			auditMap.put("createdBy", audit.getCreatedBy());
+			auditMap.put("moduleName", audit.getModuleName());
+			auditMap.put("moduleId", audit.getModuleId());
+			auditMap.put("description", audit.getDescription());
+			auditMap.put("actionTimeStamp", String.valueOf(audit.getActionTimeStamp()));
+
+			auditList.add(auditMap);
+		}
+
+		packetWriter.addAudits(registrationDTO.getRegistrationId(), auditList, source,
 				registrationDTO.getRegistrationCategory());
 	}
 

@@ -450,24 +450,24 @@ public class DataProvider {
 
 		AuditDto audit = new AuditDto();
 
-		audit.setUuid(String.valueOf(UUID.randomUUID().getMostSignificantBits()));
-		audit.setCreatedAt(dateTime);
-		audit.setEventId("1");
-		audit.setEventName(eventName);
-		audit.setEventType(eventType);
-		audit.setActionTimeStamp(dateTime);
-		audit.setHostName(RegistrationConstants.LOCALHOST);
-		audit.setHostIp(RegistrationConstants.LOCALHOST);
-		audit.setApplicationId("1");
-		audit.setApplicationName("Registration-UI");
-		audit.setSessionUserId("12345");
-		audit.setSessionUserName("Officer");
-		audit.setId("1");
-		audit.setIdType("registration");
-		audit.setCreatedBy("Officer");
-		audit.setModuleId("1");
-		audit.setModuleName("New Registration");
-		audit.setDescription(description);
+//		audit.setUuid(String.valueOf(UUID.randomUUID().getMostSignificantBits()));
+//		audit.setCreatedAt(dateTime);
+//		audit.setEventId("1");
+//		audit.setEventName(eventName);
+//		audit.setEventType(eventType);
+//		audit.setActionTimeStamp(dateTime);
+//		audit.setHostName(RegistrationConstants.LOCALHOST);
+//		audit.setHostIp(RegistrationConstants.LOCALHOST);
+//		audit.setApplicationId("1");
+//		audit.setApplicationName("Registration-UI");
+//		audit.setSessionUserId("12345");
+//		audit.setSessionUserName("Officer");
+//		audit.setId("1");
+//		audit.setIdType("registration");
+//		audit.setCreatedBy("Officer");
+//		audit.setModuleId("1");
+//		audit.setModuleName("New Registration");
+//		audit.setDescription(description);
 		auditDTOList.add(audit);
 	}
 }
