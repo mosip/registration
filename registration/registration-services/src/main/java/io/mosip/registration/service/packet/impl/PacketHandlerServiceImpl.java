@@ -329,21 +329,21 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 				if (demographics.get(fieldName) != null && registrationDTO.getUpdatableFields().contains(fieldName))
 					// packetCreator.setField(fieldName, demographics.get(fieldName));
 
-					setField(registrationDTO.getRegistrationId(), fieldName, demographics.get(fieldName), source,
-							RegistrationConstants.PACKET_TYPE_NEW);
+					setField(registrationDTO.getRegistrationId(), fieldName, demographics.get(fieldName),
+							registrationDTO.getRegistrationCategory(), source);
 				break;
 			case RegistrationConstants.PACKET_TYPE_LOST:
 				if (demographics.get(fieldName) != null)
 					// packetCreator.setField(fieldName, demographics.get(fieldName));
 
-					setField(registrationDTO.getRegistrationId(), fieldName, demographics.get(fieldName), source,
-							RegistrationConstants.PACKET_TYPE_NEW);
+					setField(registrationDTO.getRegistrationId(), fieldName, demographics.get(fieldName),
+							registrationDTO.getRegistrationCategory(), source);
 				break;
 			case RegistrationConstants.PACKET_TYPE_NEW:
 				// packetCreator.setField(fieldName, demographics.get(fieldName));
 
-				setField(registrationDTO.getRegistrationId(), fieldName, demographics.get(fieldName), source,
-						RegistrationConstants.PACKET_TYPE_NEW);
+				setField(registrationDTO.getRegistrationId(), fieldName, demographics.get(fieldName),
+						registrationDTO.getRegistrationCategory(), source);
 				break;
 			}
 
