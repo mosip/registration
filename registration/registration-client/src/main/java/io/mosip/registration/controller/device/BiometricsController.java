@@ -1936,7 +1936,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 		boolean result = MVEL.evalToBoolean(expression, capturedDetails);
 
 		if (result && considerExceptionAsCaptured) {
-			if (getRegistrationDTOFromSession().getBiometricExceptions() != null
+			if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getBiometricExceptions() != null
 					&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()) {
 
 				result = getRegistrationDTOFromSession().getDocuments().containsKey("POE");
@@ -2394,7 +2394,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		} else {
 
-			getRegistrationDTOFromSession().getDocuments().remove("POE");
+			if(getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getDocuments() != null)
+				getRegistrationDTOFromSession().getDocuments().remove("POE");
 
 			addImageInUIPane("applicant", RegistrationConstants.EXCEPTION_PHOTO, null, false);
 			setBiometricExceptionVBox(false);

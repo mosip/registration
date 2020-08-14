@@ -139,4 +139,12 @@ public interface MasterSyncService {
 	 */
 	List<BiometricAttributeDto> getBiometricType(String langCode) throws RegBaseCheckedException;
 
+	/**
+	 *
+	 * @param fieldName
+	 * @param langCode
+	 * @return
+	 * @throws RegBaseCheckedException
+	 */
+	List<GenericDto> getDynamicField(String fieldName, String langCode) throws RegBaseCheckedException;
 }
