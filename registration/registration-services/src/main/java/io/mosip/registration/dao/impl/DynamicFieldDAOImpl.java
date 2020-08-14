@@ -37,7 +37,7 @@ public class DynamicFieldDAOImpl implements DynamicFieldDAO {
 	public DynamicField getDynamicField(String fieldName, String langCode) {
 
 		LOGGER.info("DynamicFieldDAOImpl", APPLICATION_NAME, APPLICATION_ID,
-				"fetching the dynamic field");
+				"fetching the dynamic field >>> " + fieldName + " for langCode >>> " + langCode);
 
 		return dynamicFieldRepository.findByNameAndLangCode(fieldName, langCode);
 	}
@@ -50,8 +50,10 @@ public class DynamicFieldDAOImpl implements DynamicFieldDAO {
 		
 		DynamicField dynamicField = getDynamicField(fieldName, langCode);
 		
-		try {			
-			return MapperUtils.convertJSONStringToDto(dynamicField.getValueJson() == null ? "[]" : dynamicField.getValueJson(), 
+		try {
+			String valueJson = (dynamicField != null) ? dynamicField.getValueJson() : "[]" ;
+
+			return MapperUtils.convertJSONStringToDto(valueJson == null ? "[]" : valueJson,
 					new TypeReference<List<DynamicFieldValueDto>>() {});			
 			
 		} catch (IOException e) {
