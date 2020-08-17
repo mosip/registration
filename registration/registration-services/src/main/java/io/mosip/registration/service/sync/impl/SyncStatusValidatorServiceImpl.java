@@ -101,7 +101,7 @@ public class SyncStatusValidatorServiceImpl extends BaseService implements SyncS
 		try {
 			validatingDiskSpace(errorResponseDTOList);
 			validatingRegisteredPacketCountAndDuration(errorResponseDTOList);
-			//validatingSyncJobsConfigAndYetToExportPacketCountAndDuration(errorResponseDTOList);
+			validatingSyncJobsConfigAndYetToExportPacketCountAndDuration(errorResponseDTOList);
 			validatingCenterToMachineDistance(errorResponseDTOList);
 			validatingLastSoftwareUpdateDuration(errorResponseDTOList);
 
