@@ -22,6 +22,7 @@ import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
+import io.mosip.registration.controller.device.BiometricsController;
 import io.mosip.registration.controller.device.ScanPopUpViewController;
 import io.mosip.registration.controller.device.Streamer;
 import io.mosip.registration.controller.reg.PacketUploadController;
@@ -88,6 +89,9 @@ public class SchedulerUtil extends BaseController {
 
 	@Autowired
 	private Streamer streamer;
+
+	@Autowired
+	private BiometricsController biometricsController;
 
 	/**
 	 * Constructor to invoke scheduler method once login success.
@@ -291,6 +295,9 @@ public class SchedulerUtil extends BaseController {
 			Stage alertStage = (Stage) SessionContext.map().get("alertStage");
 			alertStage.close();
 		}
+
+		closeAlreadyExistedAlert();
+		biometricsController.stopRCaptureService();
 		// Clear the Registration Data
 		clearRegistrationData();
 		// to clear the session object
