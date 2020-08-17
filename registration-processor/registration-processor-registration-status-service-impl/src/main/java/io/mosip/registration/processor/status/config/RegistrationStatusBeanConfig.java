@@ -33,6 +33,7 @@ import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.dto.TransactionDto;
+import io.mosip.registration.processor.status.encryptor.Encryptor;
 import io.mosip.registration.processor.status.entity.BaseRegistrationEntity;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
@@ -126,5 +127,10 @@ public class RegistrationStatusBeanConfig {
 	@Bean
 	public Decryptor decryptor() {
 		return new Decryptor();
+	}
+	
+	@Bean
+	public Encryptor encryptor() {
+		return new Encryptor();
 	}
 }
