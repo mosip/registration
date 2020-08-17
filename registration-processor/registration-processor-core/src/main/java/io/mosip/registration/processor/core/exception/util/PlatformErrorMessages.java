@@ -809,6 +809,10 @@ public enum PlatformErrorMessages {
 	/** The rpr sys Invocation target exception. */
 	RPR_SYS_INTROSPECTION_EXCEPTION(PlatformConstants.RPR_SYSTEM_EXCEPTION + "017", "Introspection Exception"),
 
+	/** The packet store not accessible. */
+	OBJECT_STORE_NOT_ACCESSIBLE(PlatformConstants.RPR_SYSTEM_EXCEPTION + "018",
+			"Unable to Access Object Store"),
+
 	// Cbeff Util Exceptions
 	/** The rpr utl biometric tag match. */
 	RPR_UTL_BIOMETRIC_TAG_MATCH(PlatformConstants.RPR_UTIL + "001", "Both Files have same biometrics"),

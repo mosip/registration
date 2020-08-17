@@ -72,11 +72,6 @@
                     <version>${powermock.api.mockito.version}</version>
                     <scope>test</scope>
              </dependency>
-             <dependency>
-			       <groupId>io.mosip.kernel</groupId>
-			       <artifactId>kernel-fsadapter-hdfs</artifactId>
-			       <version>${kernel.fsadapter.hdfs.version}</version>
-		    </dependency>
 		    <dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-registration-packet-manager</artifactId>
