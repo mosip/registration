@@ -25,6 +25,15 @@ public class SyncRegistrationDto implements Serializable {
 
 	/** The registration id. */
 	private String registrationId;
+	
+	/** The name of the applicant. */
+	private String name;
+	
+	/** The email. */
+	private String email;
+	
+	/** The phone. */
+	private String phone;
 
 	/** The sync type dto. */
 	private String registrationType = SyncTypeDto.NEW.getValue();
@@ -306,4 +315,27 @@ public class SyncRegistrationDto implements Serializable {
 		this.deletedDateTime = deletedDateTime;
 	}
 
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
 }

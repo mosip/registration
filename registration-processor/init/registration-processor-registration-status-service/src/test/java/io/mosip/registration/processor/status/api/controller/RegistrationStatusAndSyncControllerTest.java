@@ -208,7 +208,7 @@ public class RegistrationStatusAndSyncControllerTest {
 		dto.setResponse(signresponse);
 		Mockito.when(reprcrestclient.postApi(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(),
 				ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(dto);
-		Mockito.when(syncRegistrationService.sync(ArgumentMatchers.any())).thenReturn(syncResponseDtoList);
+		Mockito.when(syncRegistrationService.sync(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(syncResponseDtoList);
 		Mockito.when(
 				syncrequestvalidator.validate(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
 				.thenReturn(Boolean.TRUE);

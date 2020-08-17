@@ -45,6 +45,8 @@ public enum ModuleName {
 	MANUAL_VERIFICATION,
 
 	DECRYPTOR,
+	
+	ENCRYPTOR,
 
 	PRINT_SERVICE,
 
