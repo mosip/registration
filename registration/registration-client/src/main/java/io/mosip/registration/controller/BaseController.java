@@ -950,7 +950,17 @@ public class BaseController {
 	 * @return the registration DTO from session
 	 */
 	protected RegistrationDTO getRegistrationDTOFromSession() {
-		return (RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA);
+		LOGGER.info("REGISTRATION - BaseController", APPLICATION_NAME, APPLICATION_ID,
+				"Fetching Registration DTO From Session started");
+		RegistrationDTO registrationDTO = null;
+		if (SessionContext.map() != null || !SessionContext.map().isEmpty()) {
+			registrationDTO = (RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA);
+		}
+
+		LOGGER.info("REGISTRATION - BaseController", APPLICATION_NAME, APPLICATION_ID,
+				"Fetching Registration DTO From Session completed");
+		return registrationDTO;
+
 	}
 
 	/**
@@ -1530,6 +1540,13 @@ public class BaseController {
 			Stage alertStageFromSession = (Stage) SessionContext.map().get(ALERT_STAGE);
 			alertStageFromSession.close();
 
+		}
+	}
+
+	public void closeAlertStage() {
+
+		if (alertStage != null && alertStage.isShowing()) {
+			alertStage.close();
 		}
 	}
 

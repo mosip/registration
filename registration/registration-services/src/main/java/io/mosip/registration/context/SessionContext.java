@@ -548,6 +548,9 @@ public class SessionContext {
 	 * @return map
 	 */
 	public static Map<String, Object> map() {
+		if(sessionContext==null) {
+			return null;
+		}
 		return sessionContext.getMapObject();
 	}
 
