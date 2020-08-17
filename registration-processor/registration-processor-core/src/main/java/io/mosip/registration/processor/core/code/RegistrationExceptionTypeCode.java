@@ -22,7 +22,7 @@ public enum RegistrationExceptionTypeCode {
 	UNEXCEPTED_ERROR,
 
 	/** The fsadapter exception. */
-	FSADAPTER_EXCEPTION,
+	OBJECT_STORE_EXCEPTION,
 
 	/** The sftp operation exception. */
 	NGINX_ACCESS_EXCEPTION,

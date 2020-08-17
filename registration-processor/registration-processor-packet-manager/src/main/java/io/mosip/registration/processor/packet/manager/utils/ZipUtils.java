@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -173,5 +175,38 @@ public class ZipUtils {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ZipUtils::unZipFromInputStream()::exit");
 
+	}
+
+	/**
+	 * Get all files from inside zip
+	 *
+	 * @param packetStream
+	 * @return
+	 * @throws IOException
+	 */
+	public static Map<String, InputStream> unzipAndGetFiles(InputStream packetStream) throws IOException {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+				"ZipUtils::unzipAndGetFiles()::entry");
+		Map<String, InputStream> outList = new HashMap<>();
+		try (ZipInputStream zis = new ZipInputStream(packetStream)) {
+			ZipEntry ze = zis.getNextEntry();
+			while (ze != null) {
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				int len;
+				byte[] buffer = new byte[2048];
+				while ((len = zis.read(buffer)) > 0) {
+					out.write(buffer, 0, len);
+				}
+				outList.put(ze.getName(), new ByteArrayInputStream(out.toByteArray()));
+				zis.closeEntry();
+				ze = zis.getNextEntry();
+
+				out.close();
+			}
+		} finally {
+			packetStream.close();
+		}
+
+		return outList;
 	}
 }

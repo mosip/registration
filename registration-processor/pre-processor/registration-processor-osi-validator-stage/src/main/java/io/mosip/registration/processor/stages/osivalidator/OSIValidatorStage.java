@@ -183,10 +183,10 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 		} catch (FSAdapterException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
 			registrationStatusDto.setStatusComment(trimExceptionMessage
-					.trimExceptionMessage(StatusUtil.FS_ADAPTER_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.FS_ADAPTER_EXCEPTION.getCode());
+					.trimExceptionMessage(StatusUtil.OBJECT_STORE_EXCEPTION.getMessage() + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.OBJECT_STORE_EXCEPTION.getCode());
 			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.FSADAPTER_EXCEPTION));
+					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.OBJECT_STORE_EXCEPTION));
 			description.setCode(PlatformErrorMessages.OSI_VALIDATION_PACKET_STORE_NOT_ACCESSIBLE.getCode());
 			description.setMessage(PlatformErrorMessages.OSI_VALIDATION_PACKET_STORE_NOT_ACCESSIBLE.getMessage());
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), description.getCode(), registrationId,

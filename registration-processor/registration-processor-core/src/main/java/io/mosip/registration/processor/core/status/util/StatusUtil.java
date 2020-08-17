@@ -156,7 +156,7 @@ public enum StatusUtil {
 	VIRUS_SCANNER_SERVICE_NOT_ACCESSIBLE(StatusConstants.SYSTEM_EXCEPTION_CODE,"Virus Scanner Service is not accessible"), 
 	DB_NOT_ACCESSIBLE(StatusConstants.SYSTEM_EXCEPTION_CODE,"Databse Not Accessible"), 
 	PACKET_NOT_FOUND_PACKET_STORE(StatusConstants.SYSTEM_EXCEPTION_CODE, "Packet not found in File System"),
-	FS_ADAPTER_EXCEPTION(StatusConstants.SYSTEM_EXCEPTION_CODE,"FS Adapter Exception Occurred"), 
+	OBJECT_STORE_EXCEPTION(StatusConstants.SYSTEM_EXCEPTION_CODE,"Object store exception occured"),
 	JSCH_EXCEPTION_OCCURED(StatusConstants.SYSTEM_EXCEPTION_CODE,"JSCH Connection Exception Occurred"),
 	NGINX_ACCESS_EXCEPTION(StatusConstants.SYSTEM_EXCEPTION_CODE,"NGINX url is not accessible"),
 	IO_EXCEPTION(StatusConstants.SYSTEM_EXCEPTION_CODE,"IO Exception Occurred"), 

@@ -89,7 +89,7 @@ public class RegistrationExceptionMapperUtil {
 		statusMap.put(RegistrationExceptionTypeCode.DATA_ACCESS_EXCEPTION, RegistrationTransactionStatusCode.REPROCESS);
 		statusMap.put(RegistrationExceptionTypeCode.DATA_ACCESS_LAYER_EXCEPTION,
 				RegistrationTransactionStatusCode.REPROCESS);
-		statusMap.put(RegistrationExceptionTypeCode.FSADAPTER_EXCEPTION, RegistrationTransactionStatusCode.REPROCESS);
+		statusMap.put(RegistrationExceptionTypeCode.OBJECT_STORE_EXCEPTION, RegistrationTransactionStatusCode.REPROCESS);
 		statusMap.put(RegistrationExceptionTypeCode.INTERRUPTED_EXCEPTION, RegistrationTransactionStatusCode.REPROCESS);
 		statusMap.put(RegistrationExceptionTypeCode.EXECUTION_EXCEPTION, RegistrationTransactionStatusCode.REPROCESS);
 		statusMap.put(RegistrationExceptionTypeCode.UNKNOWN_HOST_EXCEPTION,

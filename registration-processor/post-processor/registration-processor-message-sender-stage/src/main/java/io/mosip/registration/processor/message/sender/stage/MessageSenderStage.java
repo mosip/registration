@@ -293,8 +293,8 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 					PlatformErrorMessages.RPR_TEM_PACKET_STORE_NOT_ACCESSIBLE.getMessage()
 							+ ExceptionUtils.getStackTrace(e));
 			description.setStatusComment(trimExceptionMessage
-					.trimExceptionMessage(StatusUtil.FS_ADAPTER_EXCEPTION.getMessage() + e.getMessage()));
-			description.setSubStatusCode(StatusUtil.FS_ADAPTER_EXCEPTION.getCode());
+					.trimExceptionMessage(StatusUtil.OBJECT_STORE_EXCEPTION.getMessage() + e.getMessage()));
+			description.setSubStatusCode(StatusUtil.OBJECT_STORE_EXCEPTION.getCode());
 			description.setMessage(PlatformErrorMessages.RPR_TEM_PACKET_STORE_NOT_ACCESSIBLE.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_TEM_PACKET_STORE_NOT_ACCESSIBLE.getCode());
 			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());

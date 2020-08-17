@@ -138,6 +138,7 @@
 		<kernel.idvalidator.vid.version>1.0.6</kernel.idvalidator.vid.version>
 		<kernel.idobjectvalidator.version>1.0.9-SNAPSHOT</kernel.idobjectvalidator.version>
 		<kernel.packetmanager.version>1.0.10-SNAPSHOT</kernel.packetmanager.version>
+		<object.store.khazana.version>1.2.0-SNAPSHOT</object.store.khazana.version>
 			<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,
