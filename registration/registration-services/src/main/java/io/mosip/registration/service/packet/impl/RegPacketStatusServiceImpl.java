@@ -8,7 +8,6 @@ import java.io.File;
 import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -447,6 +446,9 @@ public class RegPacketStatusServiceImpl extends BaseService implements RegPacket
 					SyncRegistrationDTO syncDto = new SyncRegistrationDTO();
 					syncDto.setLangCode(getGlobalConfigValueOf(RegistrationConstants.PRIMARY_LANGUAGE));
 					syncDto.setRegistrationId(packetToBeSynch.getFileName());
+					syncDto.setName(packetToBeSynch.getName());
+					syncDto.setEmail(packetToBeSynch.getEmail());
+					syncDto.setPhone(packetToBeSynch.getPhone());
 					syncDto.setRegistrationType(packetToBeSynch.getPacketStatus().toUpperCase());
 					syncDto.setPacketHashValue(packetToBeSynch.getPacketHash());
 					syncDto.setPacketSize(packetToBeSynch.getPacketSize());

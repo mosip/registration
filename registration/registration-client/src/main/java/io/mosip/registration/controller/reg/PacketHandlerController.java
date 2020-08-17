@@ -31,7 +31,6 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.templatemanager.spi.TemplateManagerBuilder;
 import io.mosip.kernel.core.util.FileUtils;
-import io.mosip.registration.builder.Builder;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.AuditEvent;
 import io.mosip.registration.constants.AuditReferenceIdTypes;
@@ -48,15 +47,11 @@ import io.mosip.registration.dto.RegistrationApprovalDTO;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.SyncDataProcessDTO;
-import io.mosip.registration.dto.demographic.AddressDTO;
-import io.mosip.registration.dto.demographic.IndividualIdentity;
-import io.mosip.registration.dto.demographic.LocationDTO;
 import io.mosip.registration.entity.PreRegistrationList;
 import io.mosip.registration.entity.SyncControl;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
-import io.mosip.registration.service.bio.impl.BioServiceImpl;
 import io.mosip.registration.service.config.JobConfigurationService;
 import io.mosip.registration.service.operator.UserOnboardService;
 import io.mosip.registration.service.packet.PacketHandlerService;
@@ -920,8 +915,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 				// TODO - Client should not send notification, save contact details
 				// TODO - so that it can be sent out during RID sync.
-				sendNotification((String) registrationDTO.getDemographics().get("email"),
-						(String) registrationDTO.getDemographics().get("phone"), registrationDTO.getRegistrationId());
+//				sendNotification((String) registrationDTO.getDemographics().get("email"),
+//						(String) registrationDTO.getDemographics().get("phone"), registrationDTO.getRegistrationId());
 
 				// Sync and Uploads Packet when EOD Process Configuration is set to OFF
 				if (!getValueFromApplicationContext(RegistrationConstants.EOD_PROCESS_CONFIG_FLAG)

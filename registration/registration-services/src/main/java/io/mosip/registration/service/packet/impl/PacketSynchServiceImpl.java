@@ -8,7 +8,6 @@ import java.io.File;
 import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,7 +24,10 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.FileUtils;
+import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.kernel.core.util.exception.JsonMappingException;
+import io.mosip.kernel.core.util.exception.JsonParseException;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
@@ -39,6 +41,7 @@ import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.dao.RegistrationDAO;
 import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.PacketStatusDTO;
+import io.mosip.registration.dto.RegistrationDataDto;
 import io.mosip.registration.dto.RegistrationPacketSyncDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.SuccessResponseDTO;
@@ -101,6 +104,9 @@ public class PacketSynchServiceImpl extends BaseService implements PacketSynchSe
 						syncDto.setLangCode(
 								String.valueOf(ApplicationContext.map().get(RegistrationConstants.PRIMARY_LANGUAGE)));
 						syncDto.setRegistrationId(packetToBeSynch.getFileName());
+						syncDto.setName(packetToBeSynch.getName());
+						syncDto.setEmail(packetToBeSynch.getEmail());
+						syncDto.setPhone(packetToBeSynch.getPhone());
 						syncDto.setRegistrationType(packetToBeSynch.getPacketStatus().toUpperCase());
 						syncDto.setPacketHashValue(packetToBeSynch.getPacketHash());
 						syncDto.setPacketSize(packetToBeSynch.getPacketSize());
@@ -198,6 +204,18 @@ public class PacketSynchServiceImpl extends BaseService implements PacketSynchSe
 				packetStatusDTO.setSupervisorStatus(reg.getClientStatusCode());
 				packetStatusDTO.setSupervisorComments(reg.getClientStatusComments());
 				packetStatusDTO.setCreatedTime(new SimpleDateFormat("dd-MM-yyyy").format(reg.getCrDtime()));
+				try {
+					if (reg.getAdditionalInfo() != null) {
+						String additionalInfo = new String(reg.getAdditionalInfo());
+						RegistrationDataDto registrationDataDto = (RegistrationDataDto) JsonUtils.jsonStringToJavaObject(RegistrationDataDto.class, additionalInfo);
+						packetStatusDTO.setName(registrationDataDto.getName());
+						packetStatusDTO.setPhone(registrationDataDto.getPhone());
+						packetStatusDTO.setEmail(registrationDataDto.getEmail());
+					}
+				} catch (JsonParseException | JsonMappingException | io.mosip.kernel.core.exception.IOException exception) {
+					LOGGER.error("REGISTRATION - FETCH_PACKETS_TO_BE_SYNCED - PACKET_SYNC_SERVICE", APPLICATION_NAME, APPLICATION_ID,
+							exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+				}
 				idsToBeSynched.add(packetStatusDTO);
 			}
 		});

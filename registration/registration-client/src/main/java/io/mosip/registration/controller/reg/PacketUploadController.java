@@ -172,6 +172,9 @@ public class PacketUploadController extends BaseController implements Initializa
 							packetStatusVO.setUploadStatus(packet.getUploadStatus());
 							packetStatusVO.setSupervisorStatus(packet.getSupervisorStatus());
 							packetStatusVO.setSupervisorComments(packet.getSupervisorComments());
+							packetStatusVO.setName(packet.getName());
+							packetStatusVO.setPhone(packet.getPhone());
+							packetStatusVO.setEmail(packet.getEmail());
 
 							try (FileInputStream fis = new FileInputStream(new File(
 									packet.getPacketPath().replace(RegistrationConstants.ACKNOWLEDGEMENT_FILE_EXTENSION,

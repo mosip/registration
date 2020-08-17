@@ -19,5 +19,8 @@ public class SyncRegistrationDTO {
 	private BigInteger packetSize;
 	private String supervisorStatus;
 	private String supervisorComment;
+	private String name;
+	private String phone;
+	private String email;
 
 }
