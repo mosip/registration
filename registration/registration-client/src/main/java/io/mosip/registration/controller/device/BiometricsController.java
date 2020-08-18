@@ -503,8 +503,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 				&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()) {
 			vBox.setVisible(true);
 
-			if (getRegistrationDTOFromSession().getDocuments().containsKey("POE")) {
-				byte[] documentBytes = getRegistrationDTOFromSession().getDocuments().get("POE").getDocument();
+			if (getRegistrationDTOFromSession().getDocuments().containsKey("proofOfException")) {
+				byte[] documentBytes = getRegistrationDTOFromSession().getDocuments().get("proofOfException").getDocument();
 				image = convertBytesToImage(documentBytes);
 
 			}
@@ -583,9 +583,9 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		if (getRegistrationDTOFromSession().getBiometricExceptions() != null
 				&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()
-				&& getRegistrationDTOFromSession().getDocuments().containsKey("POE")) {
+				&& getRegistrationDTOFromSession().getDocuments().containsKey("proofOfException")) {
 
-			DocumentDto documentDto = getRegistrationDTOFromSession().getDocuments().get("POE");
+			DocumentDto documentDto = getRegistrationDTOFromSession().getDocuments().get("proofOfException");
 
 			Image image = convertBytesToImage(documentDto.getDocument());
 			biometricImage.setImage(image);
@@ -1008,7 +1008,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 				documentDto.setOwner("Applicant");
 				documentDto.setValue("POE".concat(RegistrationConstants.UNDER_SCORE).concat("EOP"));
 
-				getRegistrationDTOFromSession().addDocument("POE", documentDto);
+				getRegistrationDTOFromSession().addDocument("proofOfException", documentDto);
 
 				displayExceptionBiometric(currentModality);
 
@@ -1949,7 +1949,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 			if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getBiometricExceptions() != null
 					&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()) {
 
-				result = getRegistrationDTOFromSession().getDocuments().containsKey("POE");
+				result = getRegistrationDTOFromSession().getDocuments().containsKey("proofOfException");
 			}
 		}
 		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
@@ -2405,7 +2405,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 		} else {
 
 			if(getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getDocuments() != null)
-				getRegistrationDTOFromSession().getDocuments().remove("POE");
+				getRegistrationDTOFromSession().getDocuments().remove("proofOfException");
 
 			addImageInUIPane("applicant", RegistrationConstants.EXCEPTION_PHOTO, null, false);
 			setBiometricExceptionVBox(false);

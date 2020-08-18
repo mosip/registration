@@ -268,23 +268,23 @@ public class LoginController extends BaseController implements Initializable {
 			executeSQLFile();
 			deviceSpecificationFactory.init();
 
-//			if (hasUpdate) {
-//
-//				// Update Application
-//				headerController.softwareUpdate(loginRoot, progressIndicator, RegistrationUIConstants.UPDATE_LATER,
-//						isInitialSetUp);
-//
-//			} else if (!isInitialSetUp) {
-//				executePreLaunchTask(loginRoot, progressIndicator);
-//				boolean isPrimaryOrSecondaryLanguageEmpty = ApplicationContext.loadResources();
-//				if (isPrimaryOrSecondaryLanguageEmpty) {
-//					generateAlert(RegistrationConstants.ERROR,
-//							RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
-//					return;
-//				}
-//				jobConfigurationService.startScheduler();
-//
-//			}
+			if (hasUpdate) {
+
+				// Update Application
+				headerController.softwareUpdate(loginRoot, progressIndicator, RegistrationUIConstants.UPDATE_LATER,
+						isInitialSetUp);
+
+			} else if (!isInitialSetUp) {
+				executePreLaunchTask(loginRoot, progressIndicator);
+				boolean isPrimaryOrSecondaryLanguageEmpty = ApplicationContext.loadResources();
+				if (isPrimaryOrSecondaryLanguageEmpty) {
+					generateAlert(RegistrationConstants.ERROR,
+							RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
+					return;
+				}
+				jobConfigurationService.startScheduler();
+
+			}
 
 		} catch (IOException ioException) {
 
