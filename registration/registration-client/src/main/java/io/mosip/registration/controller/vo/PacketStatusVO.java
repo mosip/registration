@@ -135,7 +135,7 @@ public class PacketStatusVO {
 	}
 	
 	public String getName() {
-		return name.get();
+		return name == null ? null : name.get();
 	}
 
 	public void setName(String name) {
@@ -143,7 +143,7 @@ public class PacketStatusVO {
 	}
 	
 	public String getPhone() {
-		return phone.get();
+		return phone == null ? null : phone.get();
 	}
 
 	public void setPhone(String phone) {
@@ -151,7 +151,7 @@ public class PacketStatusVO {
 	}
 	
 	public String getEmail() {
-		return email.get();
+		return email == null ? null : email.get();
 	}
 
 	public void setEmail(String email) {
