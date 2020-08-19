@@ -7,9 +7,15 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import org.apache.commons.io.IOUtils;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +42,10 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 @PrepareForTest({ Utilities.class, JsonUtil.class })
 public class MasterDataValidationTest {
 
+	private static final String id = "id";
+	private static final String source = "source";
+	private static final String process = "process";
+
 	@Mock
 	private Environment env;
 
@@ -46,6 +56,9 @@ public class MasterDataValidationTest {
 	Utilities utility;
 
 	@Mock
+	private PacketManagerService packetManagerService;
+
+	@Mock
 	InternalRegistrationStatusDto registrationStatusDto;
 	
 	@InjectMocks
@@ -54,6 +67,9 @@ public class MasterDataValidationTest {
 	StatusResponseDto statusResponseDto;
 
 	String jsonString = null;
+
+	@Mock
+	private ObjectMapper objectMapper;
 
 	
 
@@ -82,13 +98,38 @@ public class MasterDataValidationTest {
 		when(env.getProperty(ATTRIBUTES)).thenReturn("gender,region,province,city,postalcode");
 		Mockito.when(registrationProcessorRestService.getApi(any(), any(), any(), any(), any()))
 				.thenReturn(responseWrapper);
+
+		org.json.simple.JSONArray jsonArray = new org.json.simple.JSONArray();
+		org.json.simple.JSONObject jsonObject1 = new org.json.simple.JSONObject();
+		jsonObject1.put("language", "eng");
+		jsonObject1.put("value", "mono");
+		jsonArray.add(0, jsonObject1);
+		when(packetManagerService.getField(anyString(),anyString(),anyString(),anyString())).thenReturn(jsonArray.toString());
+		when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(new ArrayList<>()).thenReturn(jsonArray);
 		
 	}
 
 	@Test
 	public void testMasterDataValidationSuccess() throws Exception {
 
-		boolean isMasterDataValidated = masterDataValidation.validateMasterData(jsonString);
+		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
+		assertTrue("Test for successful Master Data Validation", isMasterDataValidated);
+
+	}
+
+	@Test
+	public void testMasterDataValidationSuccessWithLinkedList() throws Exception {
+
+		when(env.getProperty(ATTRIBUTES)).thenReturn("gender");
+		when(env.getProperty(PRIMARY_LANGUAGE)).thenReturn("eng");
+		when(env.getProperty(SECONDARY_LANGUAGE)).thenReturn("ara");
+		org.json.simple.JSONObject jsonObject1 = new org.json.simple.JSONObject();
+		jsonObject1.put("language", "eng");
+		jsonObject1.put("value", "mono");
+		when(packetManagerService.getField(anyString(),anyString(),anyString(),anyString())).thenReturn(jsonObject1.toString());
+		when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(new LinkedHashMap<>()).thenReturn(jsonObject1);
+
+		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
 		assertTrue("Test for successful Master Data Validation", isMasterDataValidated);
 
 	}
@@ -100,16 +141,15 @@ public class MasterDataValidationTest {
 		when(env.getProperty(ATTRIBUTES)).thenReturn("gender");
 		when(env.getProperty(PRIMARY_LANGUAGE)).thenReturn("eng");
 		when(env.getProperty(SECONDARY_LANGUAGE)).thenReturn("ara");
-		boolean isMasterDataValidated = masterDataValidation.validateMasterData(jsonString);
+		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
 		assertFalse("Test for resource not found", isMasterDataValidated);
 
 	}
 
-	@Test(expected = IdentityNotFoundException.class)
+	@Test(expected = IOException.class)
 	public void testIOException() throws Exception {
-		PowerMockito.mockStatic(JsonUtil.class);
-		PowerMockito.when(JsonUtil.class, "getJSONObject", any(), any()).thenReturn(null);
-		masterDataValidation.validateMasterData(jsonString);
+		when(objectMapper.readValue(anyString(), any(Class.class))).thenThrow(IOException.class);
+		masterDataValidation.validateMasterData(id, source, process);
 
 	}
 
@@ -124,7 +164,7 @@ public class MasterDataValidationTest {
 		Mockito.when(registrationProcessorRestService.getApi(any(), any(), any(), any(), any()))
 				.thenReturn(responseWrapper);
 
-		boolean isMasterDataValidated = masterDataValidation.validateMasterData(jsonString);
+		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
 		assertFalse("Test for Gender name failure", isMasterDataValidated);
 	}
 
@@ -141,7 +181,7 @@ public class MasterDataValidationTest {
 		Mockito.when(registrationProcessorRestService.getApi(any(), any(), any(), any(), any()))
 				.thenReturn(responseWrapper);
 
-		boolean isMasterDataValidated = masterDataValidation.validateMasterData(jsonString);
+		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
 		assertFalse("Test for Region name failure", isMasterDataValidated);
 	}
 
@@ -156,7 +196,7 @@ public class MasterDataValidationTest {
 		Mockito.when(registrationProcessorRestService.getApi(any(), any(), any(), any(), any()))
 				.thenReturn(responseWrapper);
 
-		boolean isMasterDataValidated = masterDataValidation.validateMasterData(jsonString);
+		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
 		assertFalse("Test for Province name failure", isMasterDataValidated);
 	}
 
@@ -172,7 +212,7 @@ public class MasterDataValidationTest {
 		Mockito.when(registrationProcessorRestService.getApi(any(), any(), any(), any(), any()))
 				.thenReturn(responseWrapper);
 
-		boolean isMasterDataValidated = masterDataValidation.validateMasterData(jsonString);
+		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
 		assertFalse("Test for City name failure", isMasterDataValidated);
 	}
 
@@ -188,7 +228,7 @@ public class MasterDataValidationTest {
 		Mockito.when(registrationProcessorRestService.getApi(any(), any(), any(), any(), any()))
 				.thenReturn(responseWrapper);
 
-		boolean isMasterDataValidated = masterDataValidation.validateMasterData(jsonString);
+		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
 		assertFalse("Test for Postal code failure", isMasterDataValidated);
 	}
 
@@ -205,7 +245,7 @@ public class MasterDataValidationTest {
 
 		Mockito.when(registrationProcessorRestService.getApi(any(), any(), any(), any(), any()))
 				.thenThrow(apisResourceAccessException);
-		boolean isMasterDataValidated = masterDataValidation.validateMasterData(jsonString);
+		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
 		assertFalse("Test for Api resource Access Exception in Gender Name Api", isMasterDataValidated);
 	}
 
@@ -222,7 +262,7 @@ public class MasterDataValidationTest {
 
 		Mockito.when(registrationProcessorRestService.getApi(any(), any(), any(), any(), any()))
 				.thenThrow(apisResourceAccessException);
-		boolean isMasterDataValidated = masterDataValidation.validateMasterData(jsonString);
+		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
 		assertFalse("Test for Api resource Access Exception in Location Name Api", isMasterDataValidated);
 	}
 

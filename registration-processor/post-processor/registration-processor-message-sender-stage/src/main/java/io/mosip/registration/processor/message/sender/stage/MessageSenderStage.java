@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -479,7 +478,7 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 	private boolean SendSms(String id, Map<String, Object> attributes, String regType,
 			MessageSenderDto messageSenderDto, LogDescription description) throws ApisResourceAccessException,
 			IOException, io.mosip.registration.processor.core.exception.PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, PacketDecryptionFailureException,
+			io.mosip.kernel.core.exception.IOException,
 			RegistrationProcessorCheckedException {
 		boolean isSmsSuccess = false;
 		try {
