@@ -214,6 +214,9 @@ public enum PlatformErrorMessages {
 	VALIDATE_ERROR(PlatformConstants.RPR_PACKET_INFO_STORAGE_MODULE + "011",
 			"Not able to validate packet using packet manager provider."),
 
+	PACKET_MANAGER_EXCEPTION(PlatformConstants.RPR_PACKET_INFO_STORAGE_MODULE + "012",
+			"Exception occured in packet manager."),
+
 	/** The rpr fac connection not available. */
 	// File adaptor Exception error code and message
 	RPR_FAC_CONNECTION_NOT_AVAILABLE(PlatformConstants.RPR_FILESYSTEM_ADAPTOR_CEPH_MODULE + "001",

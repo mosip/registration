@@ -15,10 +15,12 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
 import org.apache.commons.io.IOUtils;
+import org.assertj.core.util.Lists;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -81,6 +83,7 @@ import lombok.Data;
 public class Utilities {
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(Utilities.class);
+	private static final String sourceStr = "source";
 
 	/** The Constant UIN. */
 	private static final String UIN = "UIN";
@@ -111,6 +114,9 @@ public class Utilities {
 	/** The mosip connection factory. */
 	@Autowired
 	private MosipQueueConnectionFactory<MosipQueue> mosipConnectionFactory;
+
+	@Value("${provider.packetreader.mosip}")
+	private String provider;
 
 	/** The config server file storage URL. */
 	@Value("${config.server.file.storage.uri}")
@@ -159,6 +165,7 @@ public class Utilities {
 	@Value("${packet.default.source}")
 	private String defaultSource;
 	/** The packet info dao. */
+
 	@Autowired
 	private PacketInfoDao packetInfoDao;
 
@@ -273,6 +280,14 @@ public class Utilities {
 
 		}
 
+	}
+
+	public String getDefaultSource() {
+		String[] strs = provider.split(",");
+		List<String> strList = Lists.newArrayList(strs);
+		Optional<String> optional = strList.stream().filter(s -> s.contains(sourceStr)).findAny();
+		String source = optional.isPresent() ? optional.get().replace(sourceStr + ":", "") : null;
+		return source;
 	}
 
 	/**
@@ -419,7 +434,7 @@ public class Utilities {
 	 * Get UIN from identity json (used only for update/res update/activate/de
 	 * activate packets).
 	 *
-	 * @param registrationId
+	 * @param id
 	 *            the registration id
 	 * @return the u in
 	 * @throws IOException
