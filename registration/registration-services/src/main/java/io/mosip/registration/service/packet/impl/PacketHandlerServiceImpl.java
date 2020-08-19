@@ -139,7 +139,8 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 	@Autowired
 	private RegIdObjectMasterDataValidator regIdObjectMasterDataValidator;
 
-	private String source = "REGISTRATION-CLIENT";
+	@Value("${objectstore.packet.source:REGISTRATION_CLIENT}")
+	private String source;
 
 	private ObjectMapper objectMapper = new ObjectMapper();
 
