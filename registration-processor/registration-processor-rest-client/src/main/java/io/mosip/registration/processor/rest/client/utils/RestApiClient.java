@@ -307,14 +307,10 @@ public class RestApiClient {
 			HttpResponse response = httpClient.execute(post);
 			org.apache.http.HttpEntity entity = response.getEntity();
 			String responseBody = EntityUtils.toString(entity, "UTF-8");
-			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-					LoggerFileConstant.APPLICATIONID.toString(), "Resonse body=> " + responseBody);
 			Header[] cookie = response.getHeaders("Set-Cookie");
 			if (cookie.length == 0)
 				throw new TokenGenerationFailedException();
 			token = response.getHeaders("Set-Cookie")[0].getValue();
-			logger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
-					LoggerFileConstant.APPLICATIONID.toString(), "Cookie => " + cookie[0]);
 				System.setProperty("token", token.substring(14, token.indexOf(';')));
 			return token.substring(0, token.indexOf(';'));
 		} catch (IOException e) {

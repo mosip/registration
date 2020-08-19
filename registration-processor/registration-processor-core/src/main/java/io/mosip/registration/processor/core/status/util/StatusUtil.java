@@ -38,6 +38,8 @@ public enum StatusUtil {
 	MANDATORY_VALIDATION_FAILED(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "009", "Mandatory Fields are Not Present in ID Object"),
 	RID_AND_TYPE_SYNC_FAILED(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "010", "RID & Type not matched from sync table"),
 	PACKET_REJECTED(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "011", "Rejected by Supervisor"),
+	PACKET_MANAGER_VALIDATION_FAILURE(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "012", "Packet validation failed in packet manager"),
+	BIOMETRICS_VALIDATION_FAILURE(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "013", "Biometric file validation failed"),
 
 	// External stage
 	EXTERNAL_STAGE_SUCCESS(StatusConstants.EXTERNAL_SATGE_MODULE_SUCCESS + "001", "Packet processing in External stage is sucessful"),

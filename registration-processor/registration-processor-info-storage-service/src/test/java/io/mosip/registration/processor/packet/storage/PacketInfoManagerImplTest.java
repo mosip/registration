@@ -35,8 +35,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.dataaccess.hibernate.constant.HibernateErrorCode;
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.code.DedupeSourceName;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -548,12 +546,10 @@ public class PacketInfoManagerImplTest {
 
 	/**
 	 * Save demographic info json test.
-	 * 
-	 * @throws PacketDecryptionFailureException
-	 * @throws ApiNotAccessibleException
+	 *
 	 */
 	@Test
-	public void saveDemographicInfoJsonTest() throws ApiNotAccessibleException, PacketDecryptionFailureException {
+	public void saveDemographicInfoJsonTest() {
 
 		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229", "", "");
 		assertEquals("identity", utility.getGetRegProcessorDemographicIdentity());
@@ -562,12 +558,10 @@ public class PacketInfoManagerImplTest {
 
 	/**
 	 * Unable to insert data test.
-	 * 
-	 * @throws PacketDecryptionFailureException
-	 * @throws ApiNotAccessibleException
+	 *
 	 */
 	@Test(expected = UnableToInsertData.class)
-	public void unableToInsertDataTest() throws ApiNotAccessibleException, PacketDecryptionFailureException {
+	public void unableToInsertDataTest()  {
 
 		Mockito.when(demographicDedupeRepository.save(any())).thenThrow(exp);
 
@@ -576,13 +570,10 @@ public class PacketInfoManagerImplTest {
 
 	/**
 	 * Demographic dedupe unable to insert data test.
-	 * 
-	 * @throws PacketDecryptionFailureException
-	 * @throws ApiNotAccessibleException
+	 *
 	 */
 	@Test(expected = UnableToInsertData.class)
-	public void demographicDedupeUnableToInsertDataTest()
-			throws ApiNotAccessibleException, PacketDecryptionFailureException {
+	public void demographicDedupeUnableToInsertDataTest() {
 
 		Mockito.when(demographicDedupeRepository.save(any())).thenThrow(exp);
 		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229", "", "");

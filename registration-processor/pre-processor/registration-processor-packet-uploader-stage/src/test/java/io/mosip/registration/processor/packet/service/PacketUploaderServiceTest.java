@@ -47,8 +47,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
-import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
-import io.mosip.kernel.core.fsadapter.spi.FileSystemAdapter;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.HMACUtils;
 import io.mosip.kernel.core.virusscanner.exception.VirusScannerException;

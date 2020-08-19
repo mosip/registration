@@ -1,3 +1,4 @@
+/*
 package io.mosip.registration.processor.stages.utils;
 
 import java.io.IOException;
@@ -6,40 +7,38 @@ import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
-import io.mosip.kernel.packetmanager.spi.PacketReaderService;
-import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.util.IdentityIteratorUtil;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 
+*/
 /**
  * The Class ApplicantDocumentValidation.
  * 
  * @author Nagalakshmi
- */
+ *//*
+
 public class ApplicantDocumentValidation {
 
-	/** The reg proc logger. */
+	*/
+/** The reg proc logger. *//*
+
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(ApplicantDocumentValidation.class);
 
-	/** The identity iterator. */
+	*/
+/** The identity iterator. *//*
+
 	IdentityIteratorUtil identityIterator = new IdentityIteratorUtil();
 
-	/** The utility. */
+	*/
+/** The utility. *//*
+
 	@Autowired
 	private Utilities utility;
-	@Autowired
-	private PacketReaderService packetReaderService;
-	@Autowired
-	private IdSchemaUtils idSchemaUtils;
 	
 	private static final String VALUE = "value";
 
@@ -47,8 +46,7 @@ public class ApplicantDocumentValidation {
 
 	
 	public boolean validateDocument(String registrationId)
-			throws   PacketDecryptionFailureException, IdentityNotFoundException,
-			 ApiNotAccessibleException, IOException, io.mosip.kernel.core.exception.IOException
+			throws  IdentityNotFoundException, IOException, io.mosip.kernel.core.exception.IOException
 			 {
 		
 		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
@@ -68,7 +66,8 @@ public class ApplicantDocumentValidation {
 		JSONObject proofOfExceptions = JsonUtil.getJSONObject(utility.getDemographicIdentityJSONObject(registrationId,proofOfExceptionsLabel), proofOfExceptionsLabel);
 		JSONObject introducerBiometric = JsonUtil.getJSONObject(utility.getDemographicIdentityJSONObject(registrationId,introducerBiometricLabel), introducerBiometricLabel);
 		
-		if (proofOfAddress != null && proofOfAddress.get("value")!=null) {
+		*/
+/*if (proofOfAddress != null && proofOfAddress.get("value")!=null) {
 			String source=idSchemaUtils.getSource(proofOfAddressLabel, packetReaderService.getIdSchemaVersionFromPacket(registrationId));
 			if(source!=null) {
 			if(! packetReaderService.checkFileExistence(registrationId,proofOfAddress.get("value").toString(),source)) {
@@ -123,7 +122,8 @@ public class ApplicantDocumentValidation {
 				return false;
 			}
 			}
-		}
+		}*//*
+
 		
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -133,3 +133,4 @@ public class ApplicantDocumentValidation {
 
 	
 }
+*/
