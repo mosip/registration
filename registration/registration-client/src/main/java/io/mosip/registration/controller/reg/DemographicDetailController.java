@@ -250,9 +250,9 @@ public class DemographicDetailController extends BaseController {
 			}
 			
 			populateDropDowns();
-
 			for (int j = 0; j < orderOfAddress.size() - 1; j++) {
 				final int k = j;
+
 				try {
 					listOfComboBoxWithObject.get(orderOfAddress.get(k)).setOnAction((event) -> {
 						configureMethodsForAddress(k, k + 1, orderOfAddress.size());
@@ -261,7 +261,6 @@ public class DemographicDetailController extends BaseController {
 					LOGGER.info(orderOfAddress.get(k) + " is not a valid field", APPLICATION_NAME,
 							RegistrationConstants.APPLICATION_ID,
 							runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
-
 				}
 			}
 		} catch (RuntimeException runtimeException) {
@@ -302,9 +301,7 @@ public class DemographicDetailController extends BaseController {
 
 	public GridPane addContent(UiSchemaDTO schemaDTO) {
 		GridPane gridPane = prepareMainGridPane();
-
 		GridPane primary = subGridPane(schemaDTO, "");
-
 		gridPane.addColumn(0, primary);
 		if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
 			GridPane secondary = subGridPane(schemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
@@ -646,7 +643,16 @@ public class DemographicDetailController extends BaseController {
 					break;
 
 				default:
-					// TODO
+					if(k.endsWith("LocalLanguage")) {
+						if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
+							listOfComboBoxWithObject.get(k).getItems().addAll(masterSyncService.getDynamicField(k.replace("LocalLanguage", ""),
+											ApplicationContext.localLanguage()));
+						}
+					}
+					else {
+						listOfComboBoxWithObject.get(k).getItems().addAll(masterSyncService.getDynamicField(k,
+								ApplicationContext.applicationLanguage()));
+					}
 					break;
 				}
 			}

@@ -552,6 +552,7 @@ public class PrintStage extends MosipVerticleAPIManager {
 					registrationStatusDto.setSubStatusCode(StatusUtil.PRINT_POST_COMPLETED.getCode());
 					registrationStatusDto
 							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.PROCESSED.toString());
+					registrationStatusDto.setStatusCode(RegistrationTransactionStatusCode.PROCESSED.toString());
 					registrationStatusDto.setLatestTransactionTypeCode(
 							RegistrationTransactionTypeCode.PRINT_POSTAL_SERVICE.toString());
 					registrationStatusDto.setUpdatedBy(USER);

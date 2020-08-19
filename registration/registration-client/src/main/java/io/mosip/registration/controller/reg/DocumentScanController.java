@@ -468,52 +468,59 @@ public class DocumentScanController extends BaseController {
 
 		String poeDocValue = getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE);
 		if (poeDocValue != null && selectedComboBox.getValue().getCode().matches(poeDocValue)) {
-			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
-					RegistrationConstants.APPLICATION_ID, "Searching for webcams");
-			
-			List<Webcam> webcams = webcamSarxosServiceImpl.getWebCams();
-			
-			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
-					RegistrationConstants.APPLICATION_ID, "Found webcams: " + webcams);
-			
-			if (webcams != null && !webcams.isEmpty()) {
-				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
-						RegistrationConstants.APPLICATION_ID, "Initializing scan window to capture Exception photo");
-				
-				scanPopUpViewController.init(this, RegistrationUIConstants.SCAN_DOC_TITLE);
-				webcam = webcams.get(0);
-				
-				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
-						RegistrationConstants.APPLICATION_ID, "Checking webcam connectivity");
-				
-				if (!webcamSarxosServiceImpl.isWebcamConnected(webcam)) {
-					LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
-							RegistrationConstants.APPLICATION_ID, "Opening webcam");
-					
-					webcamSarxosServiceImpl.openWebCam(webcam, 640, 480);
-					JPanel jPanelWindow = webcamSarxosServiceImpl.getJPanel(webcam);
-					scanPopUpViewController.setWebCamPanel(jPanelWindow);
-					
-					LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
-							RegistrationConstants.APPLICATION_ID, "Webcam stream started");
-				} else {
-					generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_DEVICE_FOUND);
-					scanPopUpViewController.setDefaultImageGridPaneVisibility();
-					
-					LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
-							RegistrationConstants.APPLICATION_ID, "No webcam found");
-				}
-			} else {
-				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_DEVICE_FOUND);
-				scanPopUpViewController.setDefaultImageGridPaneVisibility();
-				return;
-			}			
+
+			startStream(this);
 		} else {
 			scanPopUpViewController.init(this, RegistrationUIConstants.SCAN_DOC_TITLE);
 		}
 
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Scan window displayed to scan and upload documents");
+	}
+
+	public void startStream(BaseController baseController) {
+		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "Searching for webcams");
+
+		List<Webcam> webcams = webcamSarxosServiceImpl.getWebCams();
+
+		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "Found webcams: " + webcams);
+
+		if (webcams != null && !webcams.isEmpty()) {
+			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "Initializing scan window to capture Exception photo");
+
+			scanPopUpViewController.init(baseController, RegistrationUIConstants.SCAN_DOC_TITLE);
+			webcam = webcams.get(0);
+
+			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "Checking webcam connectivity");
+
+			if (!webcamSarxosServiceImpl.isWebcamConnected(webcam)) {
+				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+						RegistrationConstants.APPLICATION_ID, "Opening webcam");
+
+				webcamSarxosServiceImpl.openWebCam(webcam, 640, 480);
+				JPanel jPanelWindow = webcamSarxosServiceImpl.getJPanel(webcam);
+				scanPopUpViewController.setWebCamPanel(jPanelWindow);
+
+				// Enable Auto-Logout
+				SessionContext.setAutoLogout(false);
+				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+						RegistrationConstants.APPLICATION_ID, "Webcam stream started");
+			} else {
+				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_DEVICE_FOUND);
+				scanPopUpViewController.setDefaultImageGridPaneVisibility();
+
+				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+						RegistrationConstants.APPLICATION_ID, "No webcam found");
+			}
+		} else {
+			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_DEVICE_FOUND);
+			scanPopUpViewController.setDefaultImageGridPaneVisibility();
+			return;
+		}
 	}
 
 	/**
@@ -558,10 +565,9 @@ public class DocumentScanController extends BaseController {
 
 		String poeDocValue = getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE);
 		if (poeDocValue != null && selectedComboBox.getValue().getCode().matches(poeDocValue)) {
-			BufferedImage bufferedImage = webcamSarxosServiceImpl.captureImage(webcam);
-			byteArray = getImageBytesFromBufferedImage(bufferedImage);
-			webcamSarxosServiceImpl.close(webcam);
-			scanPopUpViewController.setDefaultImageGridPaneVisibility();
+
+			byteArray = captureAndConvertBufferedImage();
+
 		} else {
 			byteArray = documentScanFacade.getScannedDocument();
 		}
@@ -589,6 +595,17 @@ public class DocumentScanController extends BaseController {
 					RegistrationConstants.APPLICATION_ID, "Documents added successfully");
 
 		}
+	}
+
+	public byte[] captureAndConvertBufferedImage() throws IOException {
+
+		BufferedImage bufferedImage = webcamSarxosServiceImpl.captureImage(webcam);
+		byte[] byteArray = getImageBytesFromBufferedImage(bufferedImage);
+		webcamSarxosServiceImpl.close(webcam);
+		scanPopUpViewController.setDefaultImageGridPaneVisibility();
+		// Enable Auto-Logout
+		SessionContext.setAutoLogout(true);
+		return byteArray;
 	}
 
 	/**
