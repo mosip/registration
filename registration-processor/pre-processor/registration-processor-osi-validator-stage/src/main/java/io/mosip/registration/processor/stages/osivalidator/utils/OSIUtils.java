@@ -1,76 +1,102 @@
 package io.mosip.registration.processor.stages.osivalidator.utils;
 
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.util.List;
-
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.constant.JsonConstant;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.packet.dto.FieldValue;
+import io.mosip.registration.processor.core.packet.dto.NewDigitalId;
+import io.mosip.registration.processor.core.packet.dto.NewRegisteredDevice;
+import io.mosip.registration.processor.core.packet.dto.RegOsiDto;
+import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
+import org.apache.commons.collections.MapUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import io.mosip.kernel.core.exception.IOException;
-import io.mosip.registration.processor.core.constant.JsonConstant;
-import io.mosip.registration.processor.core.constant.PacketFiles;
-import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
-import io.mosip.registration.processor.core.packet.dto.FieldValue;
-import io.mosip.registration.processor.core.packet.dto.Identity;
-import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
-import io.mosip.registration.processor.core.packet.dto.RegOsiDto;
-import io.mosip.registration.processor.core.util.IdentityIteratorUtil;
-import io.mosip.registration.processor.core.util.JsonUtil;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class OSIUtils {
 	@Value("${packet.default.source}")
 	private String defaultSource;
-	/** The adapter. */
+
 	@Autowired
-	private PacketReaderService packetReaderService;
-	
-	private IdentityIteratorUtil identityIteratorUtil = new IdentityIteratorUtil();
-	
-	public RegOsiDto getOSIDetailsFromMetaInfo(String registrationId,Identity identity) throws UnsupportedEncodingException {
-		 
+	private ObjectMapper objectMapper;
+
+	public RegOsiDto getOSIDetailsFromMetaInfo(Map<String, String> metaInfo) throws IOException, ApisResourceAccessException, JsonProcessingException, PacketManagerException, JSONException {
+		Map<String, String> allMap = getMetaMap(metaInfo);
 		RegOsiDto regOsi = new RegOsiDto();
-		//regOsi.setIntroducerId("");// not found in json
-		regOsi.setIntroducerTyp(getMetaDataValue(JsonConstant.INTRODUCERTYPE,identity));
-		regOsi.setOfficerHashedPin(getMetaDataValue(JsonConstant.OFFICERPIN,identity));
-		regOsi.setOfficerHashedPwd(getOsiDataValue(JsonConstant.OFFICERPWR,identity));
-		regOsi.setOfficerId(getOsiDataValue(JsonConstant.OFFICERID,identity));
-		regOsi.setOfficerOTPAuthentication(getOsiDataValue(JsonConstant.OFFICEROTPAUTHENTICATION,identity));
-		regOsi.setPreregId(getMetaDataValue(JsonConstant.PREREGISTRATIONID,identity));
-		regOsi.setRegId(getMetaDataValue(JsonConstant.REGISTRATIONID,identity));
-		regOsi.setSupervisorBiometricFileName(getOsiDataValue(JsonConstant.SUPERVISORBIOMETRICFILENAME,identity));
-		regOsi.setSupervisorHashedPin(getOsiDataValue(JsonConstant.OFFICERPHOTONAME,identity));
-		regOsi.setSupervisorHashedPwd(getOsiDataValue(JsonConstant.SUPERVISORPWR,identity));
-		regOsi.setSupervisorId(getOsiDataValue(JsonConstant.SUPERVISORID,identity));
-		regOsi.setSupervisorOTPAuthentication(getOsiDataValue(JsonConstant.SUPERVISOROTPAUTHENTICATION,identity));
-		regOsi.setOfficerBiometricFileName(getOsiDataValue(JsonConstant.OFFICERBIOMETRICFILENAME,identity));
+		regOsi.setOfficerHashedPin(allMap.get(JsonConstant.OFFICERPIN));
+		regOsi.setOfficerHashedPwd(allMap.get(JsonConstant.OFFICERPWR));
+		regOsi.setOfficerId(allMap.get(JsonConstant.OFFICERID));
+		regOsi.setOfficerOTPAuthentication(allMap.get(JsonConstant.OFFICEROTPAUTHENTICATION));
+		regOsi.setPreregId(allMap.get(JsonConstant.PREREGISTRATIONID));
+		regOsi.setRegId(allMap.get(JsonConstant.REGISTRATIONID));
+		regOsi.setSupervisorBiometricFileName(allMap.get(JsonConstant.SUPERVISORBIOMETRICFILENAME));
+		regOsi.setSupervisorHashedPin(allMap.get(JsonConstant.OFFICERPHOTONAME));
+		regOsi.setSupervisorHashedPwd(allMap.get(JsonConstant.SUPERVISORPWR));
+		regOsi.setSupervisorId(allMap.get(JsonConstant.SUPERVISORID));
+		regOsi.setSupervisorOTPAuthentication(allMap.get(JsonConstant.SUPERVISOROTPAUTHENTICATION));
+		regOsi.setOfficerBiometricFileName(allMap.get(JsonConstant.OFFICERBIOMETRICFILENAME));
+		regOsi.setRegcntrId(allMap.get(JsonConstant.CENTERID));
+		regOsi.setMachineId(allMap.get(JsonConstant.MACHINEID));
+		regOsi.setLatitude(allMap.get(JsonConstant.GEOLOCLATITUDE));
+		regOsi.setLongitude(allMap.get(JsonConstant.GEOLOCLONGITUDE));
+		regOsi.setPacketCreationDate(metaInfo.get(JsonConstant.CREATIONDATE));
+		regOsi.setCapturedRegisteredDevices(getCapturedRegisteredDevices(metaInfo));
 		
 		return regOsi;
 	}
 	
-	public String getOsiDataValue(String label,Identity identity) throws UnsupportedEncodingException {
-		List<FieldValue> osiData = identity.getOperationsData();
-		return identityIteratorUtil.getMetadataLabelValue(osiData, label);
+	public Map<String, String> getMetaMap(Map<String, String> metaInfo) throws java.io.IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException, JSONException {
+		Map<String, String> allMap = new HashMap<>();
 
+		if (MapUtils.isNotEmpty(metaInfo)) {
+			String operationsDataString = metaInfo.get(JsonConstant.OPERATIONSDATA);
+			String metaDataString = metaInfo.get(JsonConstant.METADATA);
+			if (StringUtils.isNotEmpty(operationsDataString)) {
+				JSONArray jsonArray = new JSONArray(operationsDataString);
+				addToMap(jsonArray, allMap);
+			}
+			if (StringUtils.isNotEmpty(metaDataString)) {
+				JSONArray jsonArray = new JSONArray(metaDataString);
+				addToMap(jsonArray, allMap);
+			}
+		}
+		return allMap;
 	}
-	public String getMetaDataValue(String label,Identity identity) throws UnsupportedEncodingException {
-		List<FieldValue> metadata = identity.getMetaData();
-		return identityIteratorUtil.getMetadataLabelValue(metadata, label);
 
+	private void addToMap(JSONArray jsonArray, Map<String, String> allMap) throws JSONException, IOException {
+		for (int i =0; i < jsonArray.length(); i++) {
+			JSONObject jsonObject = (JSONObject) jsonArray.get(i);
+			FieldValue fieldValue = objectMapper.readValue(jsonObject.toString(), FieldValue.class);
+			allMap.put(fieldValue.getLabel(), fieldValue.getValue());
+		}
 	}
-	
-	public Identity getIdentity(String registrationId)
-			throws PacketDecryptionFailureException, ApiNotAccessibleException, IOException, java.io.IOException,
-			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
-		InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId,
-				PacketFiles.PACKET_META_INFO.name(), defaultSource);
-		PacketMetaInfo packetMetaInfo = (PacketMetaInfo) JsonUtil.inputStreamtoJavaObject(packetMetaInfoStream,PacketMetaInfo.class);
-		return packetMetaInfo.getIdentity();
 
+	private List<NewRegisteredDevice> getCapturedRegisteredDevices(Map<String, String> metaInfo) throws JSONException, IOException {
+		List<NewRegisteredDevice> registeredDeviceList = new ArrayList<>();
+		if (MapUtils.isNotEmpty(metaInfo)) {
+			String capturedRegistereddeviceStr = metaInfo.get(JsonConstant.CAPTUREDREGISTEREDDEVICES);
+			if (StringUtils.isNotEmpty(capturedRegistereddeviceStr)) {
+				JSONArray jsonArray = new JSONArray(capturedRegistereddeviceStr);
+				for (int i =0; i < jsonArray.length(); i++) {
+					JSONObject jsonObject = (JSONObject) jsonArray.get(i);
+					NewRegisteredDevice fieldValue = objectMapper.readValue(jsonObject.toString(), NewRegisteredDevice.class);
+					registeredDeviceList.add(fieldValue);
+				}
+			}
+		}
+		return registeredDeviceList;
 	}
 
 }

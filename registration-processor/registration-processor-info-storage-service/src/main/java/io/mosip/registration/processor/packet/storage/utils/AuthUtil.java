@@ -102,9 +102,9 @@ public class AuthUtil {
 	private static final String FACE = "FACE";
 	private static final String KERNEL_KEY_SPLITTER = "mosip.kernel.data-key-splitter";
 
-	public AuthResponseDTO authByIdAuthentication(String individualId, String individualType, byte[] biometricFile)
+	public AuthResponseDTO authByIdAuthentication(String individualId, String individualType, List<BIR> list)
 			throws ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException, IOException,
-			ParserConfigurationException, SAXException, BiometricException, BioTypeException {
+			BioTypeException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), individualId,
 				"AuthUtil::authByIdAuthentication()::entry");
 
@@ -122,7 +122,7 @@ public class AuthUtil {
 		authRequestDTO.setIndividualId(individualId);
 		authRequestDTO.setIndividualIdType(individualType);
 		List<BioInfo> biometrics;
-		biometrics = getBiometricsList(biometricFile);
+		biometrics = getBiometricsList(list);
 		RequestDTO request = new RequestDTO();
 		request.setBiometrics(biometrics);
 		request.setTimestamp(DateUtils.getUTCCurrentDateTimeString());
@@ -183,15 +183,12 @@ public class AuthUtil {
 
 	}
 
-	private List<BioInfo> getBiometricsList(byte[] cbefByteFile) throws BiometricException, BioTypeException {
+	private List<BioInfo> getBiometricsList(List<BIR> list) throws BioTypeException {
 
 		String previousHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash("".getBytes()));
-		List<BIR> list;
 		CbeffToBiometricUtil CbeffToBiometricUtil = new CbeffToBiometricUtil();
 		List<BioInfo> biometrics = new ArrayList<>();
 		try {
-			list = CbeffToBiometricUtil.convertBIRTYPEtoBIR(CbeffToBiometricUtil.getBIRDataFromXML(cbefByteFile));
-
 			for (BIR bir : list) {
 				BioInfo bioInfo = new BioInfo();
 				DataInfoDTO dataInfoDTO = new DataInfoDTO();

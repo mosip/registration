@@ -14,6 +14,7 @@ import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
+import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketValidatorException;
@@ -518,7 +519,7 @@ public class PacketValidateProcessor {
                                  PacketValidationDto packetValidationDto) throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException, JSONException {
 
         Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, source, process);
-        String metadata = metaInfoMap.get("metaData");
+        String metadata = metaInfoMap.get(JsonConstant.METADATA);
         JSONArray jsonArray = new JSONArray(metadata);
 
         String preRegId = null;
