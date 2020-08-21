@@ -23,6 +23,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.AuditEvent;
+import io.mosip.registration.constants.AuditReferenceIdTypes;
 import io.mosip.registration.constants.Components;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
@@ -81,6 +82,15 @@ public class AuditManagerSerivceImpl extends BaseService implements AuditManager
 		} catch (UnknownHostException unknownHostException) {
 			LOGGER.info("REGISTRATION-AUDIT_FACTORY-AUDIT", APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(unknownHostException));
+		}
+		
+		if (auditEventEnum.getId().contains(RegistrationConstants.REGISTRATION_EVENTS) && 
+				getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getRegistrationId() != null) {
+			refId = getRegistrationDTOFromSession().getRegistrationId();
+			refIdType = AuditReferenceIdTypes.REGISTRATION_ID.getReferenceTypeId();
+		} else if (SessionContext.userId() != null && !SessionContext.userId().equals("NA")) {
+			refId = SessionContext.userId();
+			refIdType = AuditReferenceIdTypes.USER_ID.getReferenceTypeId();
 		}
 
 		AuditRequestBuilder auditRequestBuilder = new AuditRequestBuilder();

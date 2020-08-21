@@ -1,7 +1,6 @@
 package io.mosip.registration.test.service;
 
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 import java.sql.Timestamp;
@@ -151,7 +150,7 @@ public class PacketCreationServiceTest {
 		}).when(idObjectValidator).validateIdObject(Mockito.any(), Mockito.any());*/
 		// when(idObjectValidator.validateIdObject(Mockito.any(),Mockito.any())).thenReturn(true);
 		when(auditLogControlDAO.getLatestRegistrationAuditDates()).thenReturn(null);
-		when(auditDAO.getAudits(Mockito.any(RegistrationAuditDates.class))).thenReturn(getAudits());
+		when(auditDAO.getAudits(Mockito.any(RegistrationAuditDates.class), Mockito.anyString())).thenReturn(getAudits());
 		when(machineMappingDAO.getDevicesMappedToRegCenter(Mockito.anyString())).thenReturn(devices);
 
 		Assert.assertNotNull(packetCreationServiceImpl.create(registrationDTO));
@@ -160,7 +159,7 @@ public class PacketCreationServiceTest {
 	@Test(expected = RegBaseUncheckedException.class)
 	public void testException() throws RegBaseCheckedException {
 		when(auditLogControlDAO.getLatestRegistrationAuditDates()).thenThrow(new NullPointerException("date"));
-		when(auditDAO.getAudits(Mockito.any(RegistrationAuditDates.class))).thenReturn(getAudits());
+		when(auditDAO.getAudits(Mockito.any(RegistrationAuditDates.class), Mockito.anyString())).thenReturn(getAudits());
 		when(machineMappingDAO.getDevicesMappedToRegCenter(Mockito.anyString())).thenReturn(new ArrayList<>());
 
 		packetCreationServiceImpl.create(registrationDTO);
@@ -212,7 +211,7 @@ public class PacketCreationServiceTest {
 			return "Success";
 		}).when(idObjectValidator).validateIdObject(Mockito.any(), Mockito.any());*/
 		when(auditLogControlDAO.getLatestRegistrationAuditDates()).thenReturn(registrationAuditDates);
-		when(auditDAO.getAudits(Mockito.any(RegistrationAuditDates.class))).thenReturn(getAudits());
+		when(auditDAO.getAudits(Mockito.any(RegistrationAuditDates.class), Mockito.anyString())).thenReturn(getAudits());
 		when(machineMappingDAO.getDevicesMappedToRegCenter(Mockito.anyString())).thenReturn(new ArrayList<>());
 
 		Assert.assertNotNull(packetCreationServiceImpl.create(registrationDTO));
@@ -243,7 +242,7 @@ public class PacketCreationServiceTest {
 			return "Success";
 		}).when(idObjectValidator).validateIdObject(Mockito.any(), Mockito.any());*/
 		when(auditLogControlDAO.getLatestRegistrationAuditDates()).thenReturn(registrationAuditDates);
-		when(auditDAO.getAudits(Mockito.any(RegistrationAuditDates.class))).thenReturn(getAudits());
+		when(auditDAO.getAudits(Mockito.any(RegistrationAuditDates.class), Mockito.anyString())).thenReturn(getAudits());
 
 		Assert.assertNotNull(packetCreationServiceImpl.create(registrationDTO));
 	}

@@ -533,7 +533,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 					LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID,
 							"Creating of Registration for lost UIN Starting.");
 					try {
-						auditFactory.audit(AuditEvent.NAV_NEW_REG, Components.NAVIGATION,
+						auditFactory.audit(AuditEvent.NAV_LOST_UIN, Components.NAVIGATION,
 								SessionContext.userContext().getUserId(),
 								AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 

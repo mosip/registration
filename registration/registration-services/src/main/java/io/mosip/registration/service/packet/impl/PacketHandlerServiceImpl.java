@@ -151,7 +151,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			
 			setOtherDetails(registrationDTO);			
 			packetCreator.setAcknowledgement(registrationDTO.getAcknowledgeReceiptName(), registrationDTO.getAcknowledgeReceipt());			
-			collectAudits();
+			collectAudits(registrationDTO.getRegistrationId());
 			byte[] packetZip = packetCreator.createPacket(registrationDTO.getRegistrationId(), registrationDTO.getIdSchemaVersion(),
 					schema.getSchemaJson(), null, getPublicKeyToEncrypt(), null);				
 			
@@ -269,9 +269,9 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 	}
 	
 	//TODO only based on registrationId
-	private void collectAudits() {
+	private void collectAudits(String registrationId) {
 		List<AuditDto> list = new ArrayList<>();
-		List<Audit> audits = auditDAO.getAudits(auditLogControlDAO.getLatestRegistrationAuditDates());
+		List<Audit> audits = auditDAO.getAudits(auditLogControlDAO.getLatestRegistrationAuditDates(), registrationId);
 		for (Audit audit : audits) {
 			AuditDto dto = new AuditDto();
 			dto.setActionTimeStamp(audit.getActionTimeStamp());

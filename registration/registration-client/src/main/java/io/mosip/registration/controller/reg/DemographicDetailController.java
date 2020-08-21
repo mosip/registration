@@ -184,7 +184,7 @@ public class DemographicDetailController extends BaseController {
 
 		LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Entering the Demographic Details Screen");
-
+		
 		// listOfComboBoxWithString = new HashMap<>();
 		listOfComboBoxWithObject = new HashMap<>();
 		listOfButtons = new HashMap<>();
@@ -263,6 +263,8 @@ public class DemographicDetailController extends BaseController {
 							runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 				}
 			}
+			auditFactory.audit(AuditEvent.REG_DEMO_CAPTURE, Components.REGISTRATION_CONTROLLER,
+					SessionContext.userContext().getUserId(), AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 		} catch (RuntimeException runtimeException) {
 			LOGGER.error("REGISTRATION - CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
@@ -740,52 +742,53 @@ public class DemographicDetailController extends BaseController {
 				case "gender":
 					List<GenericDto> genderAppLanguage = masterSyncService.getGenderDtls(ApplicationContext.applicationLanguage()).stream()
 							.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList());
-					if(genderAppLanguage.size() == 2) {
-						genderAppLanguage.forEach(genericDto -> {
-							Button button = new Button(genericDto.getName());
-							button.setId("gender" + genericDto.getCode());
-							List<Button> buttons = (listOfButtons.get("gender") == null) ? new ArrayList<>() : listOfButtons.get("gender");
-							buttons.add(button);
-							listOfButtons.put("gender", buttons);
-						});
-					}		
 					List<GenericDto> genderLocalLanguage = masterSyncService.getGenderDtls(ApplicationContext.localLanguage()).stream()
 							.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList());
-					if(genderLocalLanguage.size() == 2) {
-						genderLocalLanguage.forEach(genericDto -> {
-							Button button = new Button(genericDto.getName());
-							button.setId("gender" + genericDto.getCode() + RegistrationConstants.LOCAL_LANGUAGE);
-							List<Button> buttons = (listOfButtons.get("genderLocalLanguage") == null) ? new ArrayList<>() : listOfButtons.get("genderLocalLanguage");
-							buttons.add(button);
-							listOfButtons.put("genderLocalLanguage", buttons);
+					if(genderAppLanguage.size() == 2 && genderLocalLanguage.size() == 2) {
+						genderAppLanguage.forEach(genericDto -> {
+							genderLocalLanguage.forEach(genericDtoLocalLang -> {
+								if(genericDto.getCode().equals(genericDtoLocalLang.getCode())) {
+									Button button = new Button(genericDto.getName());
+									button.setId("gender" + genericDto.getCode());
+									List<Button> buttons = (listOfButtons.get("gender") == null) ? new ArrayList<>() : listOfButtons.get("gender");
+									buttons.add(button);
+									listOfButtons.put("gender", buttons);
+									Button buttonLocalLang = new Button(genericDtoLocalLang.getName());
+									buttonLocalLang.setId("gender" + genericDtoLocalLang.getCode() + RegistrationConstants.LOCAL_LANGUAGE);
+									List<Button> buttonsLocalLang = (listOfButtons.get("genderLocalLanguage") == null) ? new ArrayList<>() : listOfButtons.get("genderLocalLanguage");
+									buttonsLocalLang.add(buttonLocalLang);
+									listOfButtons.put("genderLocalLanguage", buttonsLocalLang);
+								}
+							});							
 						});
-					}					
+					}			
 					break;
 
 				case "residencestatus":
 					List<GenericDto> residenceAppLanguage = (masterSyncService.getIndividualType(ApplicationContext.applicationLanguage())).stream()
 							.collect(Collectors.toList());
-					if(residenceAppLanguage.size() == 2) {
-						residenceAppLanguage.forEach(genericDto -> {
-							Button button = new Button(genericDto.getName());
-							button.setId("residenceStatus" + genericDto.getCode());
-							List<Button> buttons = (listOfButtons.get("residenceStatus") == null) ? new ArrayList<>() : listOfButtons.get("residenceStatus");
-							buttons.add(button);
-							listOfButtons.put("residenceStatus", buttons);
-						});
-					}
 					List<GenericDto> residenceLocalLanguage = (masterSyncService.getIndividualType(ApplicationContext.localLanguage())).stream()
 							.collect(Collectors.toList());
-					if(residenceLocalLanguage.size() == 2) {
-						residenceLocalLanguage.forEach(genericDto -> {
-							Button button = new Button(genericDto.getName());
-							button.setId("residenceStatus" + genericDto.getCode() + RegistrationConstants.LOCAL_LANGUAGE);
-							List<Button> buttons = (listOfButtons.get("residenceStatusLocalLanguage") == null) ? new ArrayList<>() : listOfButtons.get("residenceStatusLocalLanguage");
-							buttons.add(button);
-							listOfButtons.put("residenceStatusLocalLanguage", buttons);
+					if(residenceAppLanguage.size() == 2 && residenceLocalLanguage.size() == 2) {
+						residenceAppLanguage.forEach(genericDto -> {
+							residenceLocalLanguage.forEach(genericDtoLocalLang -> {
+								if(genericDto.getCode().equals(genericDtoLocalLang.getCode())) {
+									Button button = new Button(genericDto.getName());
+									button.setId("residenceStatus" + genericDto.getCode());
+									List<Button> buttons = (listOfButtons.get("residenceStatus") == null) ? new ArrayList<>() : listOfButtons.get("residenceStatus");
+									buttons.add(button);
+									listOfButtons.put("residenceStatus", buttons);
+									Button buttonLocalLang = new Button(genericDtoLocalLang.getName());
+									buttonLocalLang.setId("residenceStatus" + genericDtoLocalLang.getCode() + RegistrationConstants.LOCAL_LANGUAGE);
+									List<Button> buttonsLocalLang = (listOfButtons.get("residenceStatusLocalLanguage") == null) ? new ArrayList<>() : listOfButtons.get("residenceStatusLocalLanguage");
+									buttonsLocalLang.add(buttonLocalLang);
+									listOfButtons.put("residenceStatusLocalLanguage", buttonsLocalLang);
+								}
+							});
 						});
-					}					
+					}		
 					break;
+					
 				default:
 					// TODO
 					break;

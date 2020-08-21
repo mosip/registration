@@ -309,17 +309,15 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 	private GridPane exceptionBiometricsPane;
 
-
 	private Service<List<BiometricsDto>> taskService;
 
 	public void stopRCaptureService() {
-		if(taskService!=null && taskService.isRunning()) {
+		if (taskService != null && taskService.isRunning()) {
 			taskService.cancel();
 		}
 	}
 
 	private Node exceptionVBox;
-
 
 	/*
 	 * (non-Javadoc)
@@ -1039,6 +1037,10 @@ public class BiometricsController extends BaseController /* implements Initializ
 		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Displaying Scan popup for capturing biometrics");
 
+		auditFactory.audit(getAuditEventForScan(currentModality), Components.REG_BIOMETRICS,
+				SessionContext.userId(),
+				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+		
 		if (currentModality.equalsIgnoreCase(RegistrationConstants.EXCEPTION_PHOTO)) {
 			scanPopUpViewController.init(this, RegistrationUIConstants.SCAN_DOC_TITLE);
 			documentScanController.startStream(this);
@@ -1196,7 +1198,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Capture request called" + System.currentTimeMillis());
 
-		 taskService = new Service<List<BiometricsDto>>() {
+		taskService = new Service<List<BiometricsDto>>() {
 			@Override
 			protected Task<List<BiometricsDto>> createTask() {
 				return new Task<List<BiometricsDto>>() {
@@ -1290,9 +1292,6 @@ public class BiometricsController extends BaseController /* implements Initializ
 									qualityScore += biometricDTO.getQualityScore();
 									biometricDTO.setSubType(currentSubType);
 									registrationDTOBiometricsList.add(biometricDTO);
-									auditFactory.audit(getAuditEventForScan(currentModality), Components.REG_BIOMETRICS,
-											SessionContext.userId(),
-											AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 								}
 							}
 
@@ -1946,7 +1945,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 		boolean result = MVEL.evalToBoolean(expression, capturedDetails);
 
 		if (result && considerExceptionAsCaptured) {
-			if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getBiometricExceptions() != null
+			if (getRegistrationDTOFromSession() != null
+					&& getRegistrationDTOFromSession().getBiometricExceptions() != null
 					&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()) {
 
 				result = getRegistrationDTOFromSession().getDocuments().containsKey("POE");
@@ -2380,6 +2380,12 @@ public class BiometricsController extends BaseController /* implements Initializ
 	public void updateBiometricData(ImageView clickedImageView, List<ImageView> bioExceptionImagesForSameModality) {
 
 		if (clickedImageView.getOpacity() == 0) {
+			LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+					"Marking exceptions for biometrics");
+			
+			auditFactory.audit(AuditEvent.REG_BIO_EXCEPTION_MARKING, Components.REG_BIOMETRICS, SessionContext.userId(),
+					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+			
 			clickedImageView.setOpacity(1);
 
 			if (isUserOnboardFlag)
@@ -2388,6 +2394,12 @@ public class BiometricsController extends BaseController /* implements Initializ
 				getRegistrationDTOFromSession().addBiometricException(currentSubType, clickedImageView.getId(),
 						clickedImageView.getId(), "Temporary", "Temporary");
 		} else {
+			LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+					"Removing exceptions for biometrics");
+			
+			auditFactory.audit(AuditEvent.REG_BIO_EXCEPTION_REMOVING, Components.REG_BIOMETRICS, SessionContext.userId(),
+					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+			
 			clickedImageView.setOpacity(0);
 			if (isUserOnboardFlag)
 				userOnboardService.removeOperatorBiometricException(currentSubType, clickedImageView.getId());
@@ -2404,7 +2416,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		} else {
 
-			if(getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getDocuments() != null)
+			if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getDocuments() != null)
 				getRegistrationDTOFromSession().getDocuments().remove("POE");
 
 			addImageInUIPane("applicant", RegistrationConstants.EXCEPTION_PHOTO, null, false);
@@ -2420,9 +2432,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 				getRegistrationDTOFromSession().removeBiometric(currentSubType, exceptionImageView.getId());
 
 			if (isAllMarked) {
-
 				isAllMarked = isAllMarked && exceptionImageView.getOpacity() == 1 ? true : false;
-
 			}
 
 		}
