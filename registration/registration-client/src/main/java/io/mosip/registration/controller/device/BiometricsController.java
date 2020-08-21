@@ -309,17 +309,15 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 	private GridPane exceptionBiometricsPane;
 
-
 	private Service<List<BiometricsDto>> taskService;
 
 	public void stopRCaptureService() {
-		if(taskService!=null && taskService.isRunning()) {
+		if (taskService != null && taskService.isRunning()) {
 			taskService.cancel();
 		}
 	}
 
 	private Node exceptionVBox;
-
 
 	/*
 	 * (non-Javadoc)
@@ -1196,7 +1194,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Capture request called" + System.currentTimeMillis());
 
-		 taskService = new Service<List<BiometricsDto>>() {
+		taskService = new Service<List<BiometricsDto>>() {
 			@Override
 			protected Task<List<BiometricsDto>> createTask() {
 				return new Task<List<BiometricsDto>>() {
@@ -1243,8 +1241,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 					LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 							"biometrics captured from mock/real MDM");
 
-					boolean isValidBiometric = mdsCapturedBiometricsList != null
-							&& !mdsCapturedBiometricsList.isEmpty();
+					boolean isValidBiometric = isValidBiometric(mdsCapturedBiometricsList);
 
 					LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 							"biometrics captured from mock/real MDM was valid : " + isValidBiometric);
@@ -1376,10 +1373,34 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 				streamer.setUrlStream(null);
 			}
+
 		});
 		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Scan process ended for capturing biometrics");
 
+	}
+
+	private boolean isValidBiometric(List<BiometricsDto> mdsCapturedBiometricsList) {
+
+		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "Validating captured biometrics");
+
+		boolean isValid = mdsCapturedBiometricsList != null && !mdsCapturedBiometricsList.isEmpty();
+
+		if (isValid) {
+			for (BiometricsDto biometricsDto : mdsCapturedBiometricsList) {
+				if (biometricsDto.getBioAttribute() == null
+						|| biometricsDto.getBioAttribute().equalsIgnoreCase(RegistrationConstants.JOB_UNKNOWN)) {
+
+					LOGGER.error(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+							"Unknown bio attribute identified in captured biometrics");
+
+					isValid = false;
+					break;
+				}
+			}
+		}
+
+		return isValid;
 	}
 
 	private List<BiometricsDto> rCapture(String subType, String modality) throws RegBaseCheckedException, IOException {
@@ -1946,7 +1967,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 		boolean result = MVEL.evalToBoolean(expression, capturedDetails);
 
 		if (result && considerExceptionAsCaptured) {
-			if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getBiometricExceptions() != null
+			if (getRegistrationDTOFromSession() != null
+					&& getRegistrationDTOFromSession().getBiometricExceptions() != null
 					&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()) {
 
 				result = getRegistrationDTOFromSession().getDocuments().containsKey("POE");
@@ -2404,7 +2426,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		} else {
 
-			if(getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getDocuments() != null)
+			if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getDocuments() != null)
 				getRegistrationDTOFromSession().getDocuments().remove("POE");
 
 			addImageInUIPane("applicant", RegistrationConstants.EXCEPTION_PHOTO, null, false);
