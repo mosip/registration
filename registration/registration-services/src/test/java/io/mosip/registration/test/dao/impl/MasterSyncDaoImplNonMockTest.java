@@ -48,12 +48,6 @@ public class MasterSyncDaoImplNonMockTest {
 	private MasterSyncDao masterSyncDaoImpl;
 	
 	@Autowired
-	private BiometricAttributeRepository biometricAttributeRepository;
-	
-	@Autowired
-	private BiometricTypeRepository biometricTypeRepository;
-	
-	@Autowired
 	private UserDetailRepository userDetailRepository;
 	
 	@Autowired

@@ -23,6 +23,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -46,7 +47,7 @@ import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.validator.FingerprintValidatorImpl;
 
 @RunWith(PowerMockRunner.class)
-
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ SessionContext.class, ApplicationContext.class})
 public class FingerprintValidatorTest {
 

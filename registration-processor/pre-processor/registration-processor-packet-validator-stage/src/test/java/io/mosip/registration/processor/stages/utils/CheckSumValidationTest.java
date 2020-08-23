@@ -18,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -34,6 +35,7 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ Utilities.class,JsonUtil.class,IOUtils.class,HMACUtils.class })
 public class CheckSumValidationTest {
 	@Mock
@@ -80,13 +82,13 @@ public class CheckSumValidationTest {
 		ClassLoader classLoader = getClass().getClassLoader();
 		File file = new File(classLoader.getResource("ID.json").getFile());
 		inputStream = new FileInputStream(file);
-		when(packetReaderService.getFile(anyString(), anyString(), anyString())).thenReturn(inputStream);
+		when(packetReaderService.getFile(org.mockito.Matchers.any(), org.mockito.Matchers.any(), org.mockito.Matchers.any())).thenReturn(inputStream);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(test.getBytes());
 		
 		PowerMockito.mockStatic(HMACUtils.class);
 		PowerMockito.doNothing().when(HMACUtils.class, "update", data);
-		PowerMockito.when(HMACUtils.class, "digestAsPlainText", anyString().getBytes()).thenReturn(test);
+		PowerMockito.when(HMACUtils.class, "digestAsPlainText", org.mockito.Matchers.any()).thenReturn(test);
 	}
 	
 	@Test

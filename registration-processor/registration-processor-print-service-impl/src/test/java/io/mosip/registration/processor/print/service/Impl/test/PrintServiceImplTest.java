@@ -69,7 +69,7 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Utilities.class, CryptoUtil.class, FileUtils.class })
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
+@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*","com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*" })
 public class PrintServiceImplTest {
 
 	/** The rest client service. */

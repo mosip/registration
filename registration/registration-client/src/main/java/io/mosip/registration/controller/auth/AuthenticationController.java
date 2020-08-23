@@ -890,7 +890,7 @@ public class AuthenticationController extends BaseController implements Initiali
 			}
 		}
 		fpMatchStatus = authenticationService.authValidator(userId, SingleType.FINGER.value(), biometrics);
-		
+
 
 		return fpMatchStatus;
 	}

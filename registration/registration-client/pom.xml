@@ -26,17 +26,9 @@
 			<artifactId>registration-services</artifactId>
 			<version>1.2.0-SNAPSHOT</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.oracle</groupId>
-			<artifactId>javafx</artifactId>
-			<version>${javafx.version}</version>
-			<systemPath>${project.basedir}/src/main/resources/fx_lib/jfxrt.jar</systemPath>
-			<scope>system</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
@@ -50,7 +42,6 @@
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-pdfgenerator-itext</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
@@ -60,32 +51,50 @@
 				<groupId>commons-io</groupId>
 				<artifactId>commons-io</artifactId>
 				<version>2.6</version>
-			</dependency>
-			
+			</dependency>			
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-core</artifactId>
 				<version>1.0.9-SNAPSHOT</version>
-			</dependency>
-			
+			</dependency>			
 			<dependency>
-                       <groupId>io.mosip.kernel</groupId>
-                      <artifactId>kernel-idobjectvalidator</artifactId>
-                      <version>1.0.9-SNAPSHOT</version>
+                  <groupId>io.mosip.kernel</groupId>
+                 <artifactId>kernel-idobjectvalidator</artifactId>
+                 <version>1.0.9-SNAPSHOT</version>
               </dependency>
-	</dependencies>
+	        <dependency>
+			    <groupId>org.openjfx</groupId>
+			    <artifactId>javafx-fxml</artifactId>
+			    <version>${openjfx.version}</version>
+			</dependency>	
+			<dependency>
+			    <groupId>org.openjfx</groupId>
+			    <artifactId>javafx-graphics</artifactId>
+			    <version>${openjfx.version}</version>
+			</dependency>	
+			<dependency>
+			    <groupId>org.openjfx</groupId>
+			    <artifactId>javafx-swing</artifactId>
+			    <version>${openjfx.version}</version>
+			</dependency>	
+			<dependency>
+			    <groupId>org.openjfx</groupId>
+			    <artifactId>javafx-media</artifactId>
+			    <version>${openjfx.version}</version>
+			</dependency>	
+			<dependency>
+			    <groupId>org.openjfx</groupId>
+			    <artifactId>javafx-controls</artifactId>
+			    <version>${openjfx.version}</version>
+			</dependency>	
+			<dependency>
+			    <groupId>org.openjfx</groupId>
+			    <artifactId>javafx-web</artifactId>
+			    <version>${openjfx.version}</version>
+			</dependency>	              
+		</dependencies>
 	<build>
 		<plugins>
-			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-shade-plugin</artifactId> 
-				<version>3.2.0</version> <executions> <execution> <phase>package</phase> 
-				<goals> <goal>shade</goal> </goals> <configuration> <createDependencyReducedPom>false</createDependencyReducedPom> 
-				<finalName>${project.artifactId}</finalName> <filters> <filter> <artifact>*:*</artifact> 
-				<excludes> <exclude>META-INF/*.SF</exclude> <exclude>META-INF/*.DSA</exclude> 
-				<exclude>META-INF/*.RSA</exclude> </excludes> </filter> </filters> <shadedArtifactAttached>true</shadedArtifactAttached> 
-				<transformers> <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"> 
-				<manifestEntries> <Main-Class>io.mosip.registration.controller.Initialization</Main-Class> 
-				</manifestEntries> </transformer> </transformers> </configuration> </execution> 
-				</executions> </plugin> -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -118,6 +127,14 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.3</version>
+                <configuration>
+                    <mainClass>io.mosip.registration.controller.Initialization</mainClass>
+                </configuration>
+            </plugin>
 		</plugins>
 	</build>
 </project>

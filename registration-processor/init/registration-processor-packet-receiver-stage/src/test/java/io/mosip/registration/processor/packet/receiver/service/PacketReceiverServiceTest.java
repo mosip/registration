@@ -33,6 +33,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
@@ -81,6 +82,7 @@ import io.mosip.registration.processor.status.service.SyncRegistrationService;
 
 @RefreshScope
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ZipUtils.class, IOUtils.class, HMACUtils.class, org.h2.store.fs.FileUtils.class })
 public class PacketReceiverServiceTest {
 
@@ -271,11 +273,11 @@ public class PacketReceiverServiceTest {
 		packetReceiverService.validatePacket(invalidPacket, stageName);
 
 		verify(mockAppender).doAppend(argThat(new ArgumentMatcher<ILoggingEvent>() {
-
+			
 			@Override
-			public boolean matches(Object argument) {
+			public boolean matches(ILoggingEvent argument) {
+				// TODO Auto-generated method stub
 				return ((LoggingEvent) argument).getFormattedMessage().contains("Packet format is different");
-
 			}
 
 		}));
@@ -301,10 +303,9 @@ public class PacketReceiverServiceTest {
 		verify(mockAppender).doAppend(argThat(new ArgumentMatcher<ILoggingEvent>() {
 
 			@Override
-			public boolean matches(Object argument) {
+			public boolean matches(ILoggingEvent argument) {
 				return ((LoggingEvent) argument).getFormattedMessage()
 						.contains("File size is greater than provided limit");
-
 			}
 		}));
 	}
@@ -322,9 +323,9 @@ public class PacketReceiverServiceTest {
 		packetReceiverService.validatePacket(mockMultipartFile, stageName);
 
 		verify(mockAppender).doAppend(argThat(new ArgumentMatcher<ILoggingEvent>() {
-
+			
 			@Override
-			public boolean matches(Object argument) {
+			public boolean matches(ILoggingEvent argument) {
 				return ((LoggingEvent) argument).getFormattedMessage()
 						.contains("Registration Packet is Not yet sync in Sync table");
 			}
@@ -454,7 +455,7 @@ public class PacketReceiverServiceTest {
 		verify(mockAppender).doAppend(argThat(new ArgumentMatcher<ILoggingEvent>() {
 
 			@Override
-			public boolean matches(Object argument) {
+			public boolean matches(ILoggingEvent argument) {
 				return ((LoggingEvent) argument).getFormattedMessage()
 						.contains("Synced packet size not same as uploaded packet");
 
@@ -481,10 +482,9 @@ public class PacketReceiverServiceTest {
 		verify(mockAppender).doAppend(argThat(new ArgumentMatcher<ILoggingEvent>() {
 
 			@Override
-			public boolean matches(Object argument) {
+			public boolean matches(ILoggingEvent argument) {
 				return ((LoggingEvent) argument).getFormattedMessage()
 						.contains("The Registration Packet HashSequence is not equal as synced packet HashSequence");
-
 			}
 		}));
 	}

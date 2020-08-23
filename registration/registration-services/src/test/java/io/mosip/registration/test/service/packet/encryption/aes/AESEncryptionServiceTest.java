@@ -22,6 +22,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -38,6 +39,7 @@ import io.mosip.registration.service.security.RSAEncryptionService;
 import io.mosip.registration.service.security.impl.AESEncryptionServiceImpl;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ ApplicationContext.class })
 public class AESEncryptionServiceTest {
 
@@ -72,8 +74,8 @@ public class AESEncryptionServiceTest {
 				-75, 99, 113, -11, 101, 10, 41, 14, 86, 6, 11, 98, 37, 5, -70, -1, -5, -73, -20, -50 }, "AES");
 
 		when(keyGenerator.getSymmetricKey()).thenReturn(sessionKey);
-		when(rsaEncryptionService.encrypt(Mockito.anyString().getBytes())).thenReturn("rsa".getBytes());
-		when(cryptoCore.symmetricEncrypt(Mockito.any(SecretKey.class), Mockito.anyString().getBytes(),Mockito.eq(null)))
+		when(rsaEncryptionService.encrypt(Mockito.any(byte[].class))).thenReturn("rsa".getBytes());
+		when(cryptoCore.symmetricEncrypt(Mockito.any(SecretKey.class), Mockito.any(byte[].class),Mockito.eq(null)))
 				.thenReturn("encrypted".getBytes());
 
 		byte[] dataToEncrypt = "original data".getBytes();
@@ -84,7 +86,7 @@ public class AESEncryptionServiceTest {
 
 	@Test(expected = RegBaseUncheckedException.class)
 	public void aesEncryptionRuntimeExpTest() throws RegBaseCheckedException {
-		when(rsaEncryptionService.encrypt(Mockito.anyString().getBytes()))
+		when(rsaEncryptionService.encrypt(Mockito.any(byte[].class)))
 				.thenThrow(new RuntimeException("Invalid data"));
 		aesEncryptionServiceImpl.encrypt("data".getBytes());
 	}
@@ -94,9 +96,9 @@ public class AESEncryptionServiceTest {
 	public void invalidKeyExpTest() throws RegBaseCheckedException, NoSuchAlgorithmException {
 		SecretKey sessionKey = new SecretKeySpec(new byte[] {22}, "AES");
 		when(this.keyGenerator.getSymmetricKey()).thenReturn(sessionKey);
-		when(cryptoCore.symmetricEncrypt(Mockito.any(SecretKey.class), Mockito.anyString().getBytes(),Mockito.eq(null)))
+		when(cryptoCore.symmetricEncrypt(Mockito.any(SecretKey.class), Mockito.any(byte[].class),Mockito.eq(null)))
 		.thenThrow(MosipInvalidKeyException.class);
-		when(rsaEncryptionService.encrypt(Mockito.anyString().getBytes())).thenReturn("rsa".getBytes());
+		when(rsaEncryptionService.encrypt(Mockito.any(byte[].class))).thenReturn("rsa".getBytes());
 
 		aesEncryptionServiceImpl.encrypt("encrypt".getBytes());
 	}
@@ -108,8 +110,8 @@ public class AESEncryptionServiceTest {
 				-75, 99, 113, -11, 101, 10, 41, 14, 86, 6, 11, 98, 37, 5, -70, -1, -5, -73, -20, -50 }, "AES");
 
 		when(keyGenerator.getSymmetricKey()).thenReturn(sessionKey);
-		when(rsaEncryptionService.encrypt(Mockito.anyString().getBytes())).thenReturn("rsa".getBytes());
-		when(cryptoCore.symmetricEncrypt(Mockito.any(SecretKey.class), Mockito.anyString().getBytes(), Mockito.eq(null)))
+		when(rsaEncryptionService.encrypt(Mockito.any(byte[].class))).thenReturn("rsa".getBytes());
+		when(cryptoCore.symmetricEncrypt(Mockito.any(SecretKey.class), Mockito.any(byte[].class), Mockito.eq(null)))
 		.thenThrow(MosipInvalidDataException.class);
 
 		aesEncryptionServiceImpl.encrypt("dataToEncrypt".getBytes());

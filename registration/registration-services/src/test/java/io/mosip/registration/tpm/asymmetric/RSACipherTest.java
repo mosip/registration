@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
@@ -22,6 +23,7 @@ import tss.tpm.TPMU_ASYM_SCHEME;
 import tss.tpm.TPM_HANDLE;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ AppConfig.class })
 public class RSACipherTest {
 
@@ -47,10 +49,10 @@ public class RSACipherTest {
 
 		PowerMockito.doReturn(createPrimaryResponse).when(mockedTPM, "CreatePrimary", Mockito.any(TPM_HANDLE.class),
 				Mockito.any(TPMS_SENSITIVE_CREATE.class), Mockito.any(TPMT_PUBLIC.class),
-				Mockito.anyString().getBytes(), Mockito.any());
+				Mockito.any(byte[].class), Mockito.any());
 
-		PowerMockito.when(mockedTPM.RSA_Encrypt(Mockito.any(TPM_HANDLE.class), Mockito.anyString().getBytes(),
-				Mockito.any(TPMU_ASYM_SCHEME.class), Mockito.anyString().getBytes())).thenReturn(encryptedData);
+		PowerMockito.when(mockedTPM.RSA_Encrypt(Mockito.any(TPM_HANDLE.class), Mockito.any(byte[].class),
+				Mockito.any(TPMU_ASYM_SCHEME.class), Mockito.any(byte[].class))).thenReturn(encryptedData);
 
 		Assert.assertArrayEquals(encryptedData, RSACipher.encrypt(mockedTPM, "dataToEncrypt".getBytes()));
 	}
@@ -65,10 +67,10 @@ public class RSACipherTest {
 
 		PowerMockito.doReturn(createPrimaryResponse).when(mockedTPM, "CreatePrimary", Mockito.any(TPM_HANDLE.class),
 				Mockito.any(TPMS_SENSITIVE_CREATE.class), Mockito.any(TPMT_PUBLIC.class),
-				Mockito.anyString().getBytes(), Mockito.any());
+				Mockito.any(byte[].class), Mockito.any());
 
-		PowerMockito.when(mockedTPM.RSA_Decrypt(Mockito.any(TPM_HANDLE.class), Mockito.anyString().getBytes(),
-				Mockito.any(TPMU_ASYM_SCHEME.class), Mockito.anyString().getBytes())).thenReturn(decryptedData);
+		PowerMockito.when(mockedTPM.RSA_Decrypt(Mockito.any(TPM_HANDLE.class), Mockito.any(byte[].class),
+				Mockito.any(TPMU_ASYM_SCHEME.class), Mockito.any(byte[].class))).thenReturn(decryptedData);
 
 		Assert.assertArrayEquals(decryptedData, RSACipher.decrypt(mockedTPM, "dataToEncrypt".getBytes()));
 	}
@@ -82,7 +84,7 @@ public class RSACipherTest {
 
 		PowerMockito.doReturn(createPrimaryResponse).when(mockedTPM, "CreatePrimary", Mockito.any(TPM_HANDLE.class),
 				Mockito.any(TPMS_SENSITIVE_CREATE.class), Mockito.any(TPMT_PUBLIC.class),
-				Mockito.anyString().getBytes(), Mockito.any());
+				Mockito.any(byte[].class), Mockito.any());
 
 		Assert.assertEquals(tpmHandle, Whitebox.invokeMethod(RSACipher.class, "createRSAKey", mockedTPM));
 	}
