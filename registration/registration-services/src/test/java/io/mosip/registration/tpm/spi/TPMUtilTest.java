@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -23,6 +24,7 @@ import tss.tpm.CreatePrimaryResponse;
 import tss.tpm.TPMT_PUBLIC;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ AppConfig.class, TPMInitialization.class, RSACipher.class, Signature.class })
 public class TPMUtilTest {
 
@@ -34,10 +36,10 @@ public class TPMUtilTest {
 
 		PowerMockito.doReturn(mockedLogger).when(AppConfig.class, "getLogger", Mockito.any(Class.class));
 
-		PowerMockito.doNothing().when(mockedLogger, "info", Mockito.anyString(), Mockito.anyString(),
-				Mockito.anyString(), Mockito.anyString());
-		PowerMockito.doNothing().when(mockedLogger, "error", Mockito.anyString(), Mockito.anyString(),
-				Mockito.anyString(), Mockito.anyString());
+		PowerMockito.doNothing().when(mockedLogger, "info", Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any());
+		PowerMockito.doNothing().when(mockedLogger, "error", Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any());
 	}
 
 	@Before
@@ -54,8 +56,8 @@ public class TPMUtilTest {
 		byte[] signedData = "signedData".getBytes();
 		PowerMockito.mockStatic(Signature.class);
 
-		PowerMockito.doReturn(signedData).when(Signature.class, "signData", Mockito.any(Tpm.class),
-				Mockito.anyString().getBytes());
+		PowerMockito.doReturn(signedData).when(Signature.class, "signData", Mockito.any(),
+				Mockito.any(byte[].class));
 
 		Assert.assertArrayEquals(signedData, TPMUtil.signData("dataToSign".getBytes()));
 	}
@@ -65,7 +67,7 @@ public class TPMUtilTest {
 		PowerMockito.mockStatic(Signature.class);
 
 		PowerMockito.doThrow(new RuntimeException()).when(Signature.class, "signData", Mockito.any(Tpm.class),
-				Mockito.anyString().getBytes());
+				Mockito.any(byte[].class));
 
 		TPMUtil.signData("dataToSign".getBytes());
 	}
@@ -75,7 +77,7 @@ public class TPMUtilTest {
 		PowerMockito.mockStatic(Signature.class);
 
 		PowerMockito.doReturn(true).when(Signature.class, "validateSignatureUsingPublicPart",
-				Mockito.anyString().getBytes(), Mockito.anyString().getBytes(), Mockito.anyString().getBytes());
+				Mockito.any(byte[].class), Mockito.any(byte[].class), Mockito.any(byte[].class));
 
 		Assert.assertTrue(
 				TPMUtil.validateSignature("signedData".getBytes(), "actualData".getBytes(), "publicPart".getBytes()));
@@ -86,7 +88,7 @@ public class TPMUtilTest {
 		PowerMockito.mockStatic(Signature.class);
 
 		PowerMockito.doThrow(new RuntimeException()).when(Signature.class, "validateSignatureUsingPublicPart",
-				Mockito.anyString().getBytes(), Mockito.anyString().getBytes(), Mockito.anyString().getBytes());
+				Mockito.any(byte[].class), Mockito.any(byte[].class), Mockito.any(byte[].class));
 
 		TPMUtil.validateSignature("signedData".getBytes(), "actualData".getBytes(), "publicPart".getBytes());
 	}
@@ -98,7 +100,7 @@ public class TPMUtilTest {
 		byte[] encryptedData = "encryptedData".getBytes();
 
 		PowerMockito.doReturn(encryptedData).when(RSACipher.class, "encrypt", Mockito.any(Tpm.class),
-				Mockito.anyString().getBytes());
+				Mockito.any(byte[].class));
 
 		Assert.assertArrayEquals(encryptedData, TPMUtil.asymmetricEncrypt(encryptedData));
 	}
@@ -110,7 +112,7 @@ public class TPMUtilTest {
 		byte[] encryptedData = "encryptedData".getBytes();
 
 		PowerMockito.doThrow(new RuntimeException()).when(RSACipher.class, "encrypt", Mockito.any(Tpm.class),
-				Mockito.anyString().getBytes());
+				Mockito.any(byte[].class));
 
 		TPMUtil.asymmetricEncrypt(encryptedData);
 	}
@@ -122,7 +124,7 @@ public class TPMUtilTest {
 		byte[] decryptedData = "decryptedData".getBytes();
 
 		PowerMockito.doReturn(decryptedData).when(RSACipher.class, "decrypt", Mockito.any(Tpm.class),
-				Mockito.anyString().getBytes());
+				Mockito.any(byte[].class));
 
 		Assert.assertArrayEquals(decryptedData, TPMUtil.asymmetricDecrypt(decryptedData));
 	}
@@ -134,7 +136,7 @@ public class TPMUtilTest {
 		byte[] decryptedData = "decryptedData".getBytes();
 
 		PowerMockito.doThrow(new RuntimeException()).when(RSACipher.class, "decrypt", Mockito.any(Tpm.class),
-				Mockito.anyString().getBytes());
+				Mockito.any(byte[].class));
 
 		TPMUtil.asymmetricDecrypt(decryptedData);
 	}

@@ -97,7 +97,7 @@ import io.vertx.ext.web.Session;
 @SuppressWarnings("deprecation")
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Utilities.class })
-@PowerMockIgnore({ "javax.management.*", "javax.net.*" })
+@PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.*" })
 @PropertySource("classpath:bootstrap.properties")
 public class PrintStageTest {
 
@@ -202,18 +202,18 @@ public class PrintStageTest {
 		ReflectionTestUtils.setField(stage, "contextPath", "/registrationprocessor/v1/print-stage");
 		// Mockito.when(env.getProperty(SwaggerConstant.SERVER_SERVLET_PATH))
 		// .thenReturn("/registrationprocessor/v1/packetreceiver");
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any(String.class))).thenReturn(registrationStatusDto);
 
 		byte[] pdfbytes = "UIN Card Template pdf".getBytes();
 		byte[] textBytes = "Text File ".getBytes();
 		Map<String, byte[]> byteMap = new HashMap<>();
 		byteMap.put("uinPdf", pdfbytes);
 		byteMap.put("textFile", textBytes);
-		Mockito.when(printService.getDocuments(any(), anyString(), anyString(), anyBoolean())).thenReturn(byteMap);
+		Mockito.when(printService.getDocuments(any(), any(String.class), any(String.class), anyBoolean())).thenReturn(byteMap);
 
-		Mockito.when(mosipConnectionFactory.createConnection(anyString(), anyString(), anyString(), anyString()))
+		Mockito.when(mosipConnectionFactory.createConnection(any(), any(), any(), any()))
 				.thenReturn(queue);
-		Mockito.when(mosipQueueManager.send(any(), any(), anyString())).thenReturn(true);
+		Mockito.when(mosipQueueManager.send(any(), any(), any(String.class))).thenReturn(true);
 
 		Mockito.doNothing().when(registrationStatusDto).setStatusCode(any());
 		Mockito.doNothing().when(registrationStatusDto).setStatusComment(any());
@@ -302,7 +302,7 @@ public class PrintStageTest {
 
 	@Test(expected = QueueConnectionNotFound.class)
 	public void testDeployVerticleForException() {
-		Mockito.when(mosipConnectionFactory.createConnection(anyString(), anyString(), anyString(), anyString()))
+		Mockito.when(mosipConnectionFactory.createConnection(any(), any(), any(), any()))
 				.thenReturn(null);
 		stage.deployVerticle();
 	}
@@ -316,6 +316,7 @@ public class PrintStageTest {
 		dto.setReg_type(RegistrationType.NEW);
 		// Mockito.when(packetInfoManager.getUINByRid("1234567890987654321")).thenReturn(uinList);
 		doNothing().when(printPostService).generatePrintandPostal(any(), any(), any());
+		Mockito.when(mosipQueueManager.send(any(), any(), any())).thenReturn(true);
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getIsValid());
 	}
@@ -328,8 +329,8 @@ public class PrintStageTest {
 		String mes="{\"Status\":\"Success\",\"RegId\":\"123456789\"}";
 		ByteSequence byt=new ByteSequence(mes.getBytes());
 		message.setContent(byt);
-		when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
-		doNothing().when(registrationStatusService).updateRegistrationStatus(any(), anyString(), anyString());
+		when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
 		stage.consumerListener( message); 
 	}
 	
@@ -342,8 +343,8 @@ public class PrintStageTest {
 		String mes="{\"Status\":\"Resend\",\"RegId\":\"123456789\"}";
 		ByteSequence byt=new ByteSequence(mes.getBytes());
 		message.setContent(byt);
-		when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
-		doNothing().when(registrationStatusService).updateRegistrationStatus(any(), anyString(), anyString());
+		when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
 		stage.consumerListener( message); 
 	}
 	
@@ -410,7 +411,7 @@ public class PrintStageTest {
 	@Test
 	public void testConnectionUnavailableException() {
 		ConnectionUnavailableException e = new ConnectionUnavailableException();
-		Mockito.doThrow(e).when(mosipQueueManager).send(any(), any(), anyString());
+		Mockito.doThrow(e).when(mosipQueueManager).send(any(), any(), any());
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
@@ -426,7 +427,7 @@ public class PrintStageTest {
 	@Test
 	public void testRetrySend() {
 		QueueConnectionNotFound e = new QueueConnectionNotFound();
-		Mockito.doThrow(e).when(mosipQueueManager).send(any(), any(), anyString());
+		Mockito.doThrow(e).when(mosipQueueManager).send(any(), any(), any());
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
@@ -726,8 +727,10 @@ public class PrintStageTest {
 		uinList.add("3051738163");
 		dto.setReg_type(RegistrationType.RES_REPRINT);
 		// Mockito.when(packetInfoManager.getUINByRid("1234567890987654321")).thenReturn(uinList);
+		
 		Mockito.when(utilities.getPacketMetaInfo(any())).thenReturn(packetMetaInfo);
 		doNothing().when(printPostService).generatePrintandPostal(any(), any(), any());
+		Mockito.when(mosipQueueManager.send(any(), any(), any())).thenReturn(true);
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getIsValid());
 	}
@@ -756,6 +759,7 @@ public class PrintStageTest {
 		// Mockito.when(packetInfoManager.getUINByRid("1234567890987654321")).thenReturn(uinList);
 		Mockito.when(utilities.getPacketMetaInfo(any())).thenReturn(packetMetaInfo);
 		doNothing().when(printPostService).generatePrintandPostal(any(), any(), any());
+		Mockito.when(mosipQueueManager.send(any(), any(), any())).thenReturn(true);
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getIsValid());
 	}

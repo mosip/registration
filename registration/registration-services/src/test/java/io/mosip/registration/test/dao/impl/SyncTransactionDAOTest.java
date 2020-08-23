@@ -52,12 +52,12 @@ public class SyncTransactionDAOTest {
 	public void getSyncTransactionsTest() {
 		SyncTransaction syncTransaction = new SyncTransaction();
 		LinkedList<SyncTransaction> syncTransactions = new LinkedList<>();
-		syncTransactions.add(syncTransaction);
+		//syncTransactions.add(syncTransaction);
 
 		Mockito.when(syncTranscRepository.findByCrDtimeAfterAndSyncJobIdNotOrderByCrDtimeDesc(
 				new Timestamp(Mockito.anyLong()), Mockito.anyString())).thenReturn(syncTransactions);
 
-		assertEquals(jobTransactionDAOImpl.getSyncTransactions(new Timestamp(Mockito.anyLong()), Mockito.anyString()),
+		assertEquals(jobTransactionDAOImpl.getSyncTransactions(new Timestamp(Mockito.anyLong()), Mockito.any(String.class)),
 				syncTransactions);
 
 	}
@@ -66,7 +66,7 @@ public class SyncTransactionDAOTest {
 	public void getSyncTransactionsForMisFireCheckTest() {
 		SyncTransaction syncTransaction = new SyncTransaction();
 		LinkedList<SyncTransaction> syncTransactions = new LinkedList<>();
-		syncTransactions.add(syncTransaction);
+		//syncTransactions.add(syncTransaction);
 
 		Mockito.when(syncTranscRepository.findBySyncJobIdAndCrDtimeBetween(Mockito.anyString() , new Timestamp(Mockito.anyLong()), new Timestamp(Mockito.anyLong()))
 				).thenReturn(syncTransactions);

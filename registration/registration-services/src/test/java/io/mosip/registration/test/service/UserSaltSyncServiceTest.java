@@ -15,6 +15,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.web.client.HttpClientErrorException;
@@ -28,6 +29,7 @@ import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ RegistrationAppHealthCheckUtil.class })
 public class UserSaltSyncServiceTest {
 
@@ -169,6 +171,7 @@ public class UserSaltSyncServiceTest {
 		List<LinkedHashMap<String, Object>> respList = new ArrayList<>();
 		LinkedHashMap<String, Object> response = new LinkedHashMap<>();
 
+		
 		response.put("userId", "110024");
 		response.put("salt", "F025586A2143B63D");
 		respList.add(response);
@@ -188,7 +191,7 @@ public class UserSaltSyncServiceTest {
 				serviceDelegateUtil.get(Mockito.anyString(), Mockito.any(), Mockito.anyBoolean(), Mockito.anyString()))
 				.thenThrow(new RegBaseCheckedException("errorCode", "errorMessage"));
 		Mockito.when(userOnboardDAO.getStationID(Mockito.anyString())).thenReturn("110024");
-		Mockito.when(userDetailRepository.findByIsActiveTrue()).thenThrow(RegBaseCheckedException.class);
+		Mockito.when(userDetailRepository.findByIsActiveTrue()).thenReturn(null);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
 
 		userSaltDetailsServiceImpl.getUserSaltDetails("System");
