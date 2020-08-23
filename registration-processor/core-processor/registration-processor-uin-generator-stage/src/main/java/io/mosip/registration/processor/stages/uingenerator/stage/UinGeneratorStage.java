@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
@@ -28,10 +29,6 @@ import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
-import io.mosip.kernel.packetmanager.spi.PacketReaderService;
-import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -168,10 +165,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	private ABISHandlerUtil aBISHandlerUtil;
 
 	@Autowired
-	private PacketReaderService packetReaderService;
-
-	@Autowired
-    private IdSchemaUtils idSchemaUtils;
+	private PacketManagerService packetManagerService;
 
 	private TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
 
@@ -212,8 +206,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			} else {
 
 				IdResponseDTO idResponseDTO = new IdResponseDTO();
-				InputStream idJsonStream = packetReaderService.getFile(registrationId,
-						PacketFiles.ID.name(), defaultSource);
+				InputStream idJsonStream = null;/*packetReaderService.getFile(registrationId,
+						PacketFiles.ID.name(), defaultSource);*/
 				byte[] idJsonBytes = IOUtils.toByteArray(idJsonStream);
 				String getJsonStringFromBytes = new String(idJsonBytes);
 				JSONObject identityJson = (JSONObject) JsonUtil.objectMapperReadValue(getJsonStringFromBytes,
@@ -316,7 +310,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			description.setCode(PlatformErrorMessages.RPR_UGS_PACKET_STORE_NOT_ACCESSIBLE.getCode());
 			object.setIsValid(Boolean.FALSE);
 			object.setRid(registrationId);
-		} catch (ApisResourceAccessException | ApiNotAccessibleException ex) {
+		} catch (ApisResourceAccessException ex) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
 			registrationStatusDto.setStatusComment(trimExceptionMessage
 					.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + ex.getMessage()));
@@ -403,13 +397,11 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	 * @throws JsonParseException
 	 * @throws VidCreationException
 	 * @throws io.mosip.kernel.core.exception.IOException
-	 * @throws PacketDecryptionFailureException
 	 * @throws Exception
 	 */
 	private IdResponseDTO sendIdRepoWithUin(String regId, JSONObject demographicIdentity, String uin,
 			LogDescription description)
-			throws ApisResourceAccessException, JsonParseException, JsonMappingException, IOException,
-			VidCreationException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
+			throws ApisResourceAccessException, JsonParseException, JsonMappingException, IOException {
 
 		List<Documents> documentInfo = getAllDocumentsByRegId(regId);
 		RequestDto requestDto = new RequestDto();
@@ -466,12 +458,10 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	 * @throws IOException
 	 * @throws io.mosip.kernel.core.exception.IOException
 	 * @throws ApisResourceAccessException
-	 * @throws PacketDecryptionFailureException
 	 * @throws JsonMappingException
 	 * @throws JsonParseException
 	 */
-	private List<Documents> getAllDocumentsByRegId(String regId) throws IOException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, PacketDecryptionFailureException, ApiNotAccessibleException {
+	private List<Documents> getAllDocumentsByRegId(String regId) throws IOException {
 		List<Documents> applicantDocuments = new ArrayList<>();
 
 		JSONObject idJSON = getDemoIdentity(regId);
@@ -511,13 +501,12 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	}
 
 	private Documents getIdDocumnet(String registrationId, String folderPath, JSONObject idDocObj, String idDocLabel)
-			throws IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, ApisResourceAccessException, ApiNotAccessibleException {
+			throws IOException {
 		Documents documentsInfoDto = new Documents();
 
-		String source = idSchemaUtils.getSource(idDocLabel, packetReaderService.getIdSchemaVersionFromPacket(registrationId));
-		InputStream poiStream = packetReaderService.getFile(registrationId,
-				idDocObj.get("value").toString(), defaultSource);
+		//String source = idSchemaUtils.getSource(idDocLabel, packetReaderService.getIdSchemaVersionFromPacket(registrationId));
+		InputStream poiStream = null;/*packetReaderService.getFile(registrationId,
+				idDocObj.get("value").toString(), defaultSource);*/
 		documentsInfoDto.setValue(CryptoUtil.encodeBase64(IOUtils.toByteArray(poiStream)));
 		documentsInfoDto.setCategory(idDocLabel);
 		return documentsInfoDto;
@@ -537,14 +526,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	 *                                               has occurred.
 	 * @throws RegistrationProcessorCheckedException
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
-	 * @throws PacketDecryptionFailureException
-	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
-	private boolean uinUpdate(String regId, String uin, MessageDTO object, JSONObject demographicIdentity,
-			LogDescription description)
-			throws ApisResourceAccessException, IOException, RegistrationProcessorCheckedException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, io.mosip.registration.processor.core.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+	private boolean uinUpdate(String regId, String uin, MessageDTO object, JSONObject demographicIdentity, LogDescription description)
+			throws ApisResourceAccessException, IOException, io.mosip.kernel.core.exception.IOException {
 		IdResponseDTO result;
 		boolean isTransactionSuccessful = Boolean.FALSE;
 		List<Documents> documentInfo = getAllDocumentsByRegId(regId);
@@ -950,10 +934,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 	}
 
-	private JSONObject getDemoIdentity(String registrationId) throws IOException, PacketDecryptionFailureException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
-		InputStream documentInfoStream = packetReaderService.getFile(registrationId,
-				PacketFiles.ID.name(), defaultSource);
+	private JSONObject getDemoIdentity(String registrationId) throws IOException {
+		InputStream documentInfoStream = null;/*packetReaderService.getFile(registrationId,
+				PacketFiles.ID.name(), defaultSource);*/
 
 		byte[] bytes = IOUtils.toByteArray(documentInfoStream);
 		String demographicJsonString = new String(bytes);
@@ -1032,7 +1015,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	 */
 	@SuppressWarnings("unchecked")
 	private IdResponseDTO linkRegIdWrtUin(String lostPacketRegId, String matchedRegId, MessageDTO object,
-			LogDescription description) throws ApisResourceAccessException, IOException, PacketDecryptionFailureException, ApiNotAccessibleException {
+			LogDescription description) throws ApisResourceAccessException, IOException {
 
 		IdResponseDTO idResponse = null;
 		String uin = idRepoService.getUinByRid(matchedRegId, utility.getGetRegProcessorDemographicIdentity());
@@ -1048,7 +1031,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 			JSONObject identityObject = new JSONObject();
 			identityObject.put(UINConstants.UIN, uin);
-			identityObject.put(idschemaversion, packetReaderService.getIdSchemaVersionFromPacket(lostPacketRegId));
+			identityObject.put(idschemaversion, null); /*packetReaderService.getIdSchemaVersionFromPacket(lostPacketRegId));*/
 
 			requestDto.setRegistrationId(lostPacketRegId);
 			requestDto.setIdentity(identityObject);

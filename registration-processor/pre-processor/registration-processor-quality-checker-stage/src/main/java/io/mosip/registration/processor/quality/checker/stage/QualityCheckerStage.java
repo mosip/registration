@@ -198,11 +198,10 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 		String regId = object.getRid();
 		LogDescription description = new LogDescription();
 		Boolean isTransactionSuccessful = Boolean.FALSE;
-		InternalRegistrationStatusDto registrationStatusDto = null;
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 				"QualityCheckerStage::process()::entry");
 
-		registrationStatusDto = registrationStatusService.getRegistrationStatus(regId);
+		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(regId);
 
 		try {
 			registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());

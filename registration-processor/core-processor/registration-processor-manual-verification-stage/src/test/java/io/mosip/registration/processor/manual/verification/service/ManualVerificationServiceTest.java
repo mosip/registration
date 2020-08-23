@@ -13,9 +13,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import io.mosip.kernel.packetmanager.spi.PacketReaderService;
-
-import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -85,12 +82,9 @@ public class ManualVerificationServiceTest {
 	AuditLogRequestBuilder auditLogRequestBuilder;
 	@Mock
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
-	@Mock
-	PacketReaderService packetReaderService;
+
 	@Mock
 	private Utilities utilities;
-	@Mock
-	private IdSchemaUtils idSchemaUtils;
 
 	@Mock
 	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
@@ -325,9 +319,9 @@ public class ManualVerificationServiceTest {
 		PowerMockito.when(JsonUtil.class, "getJSONObject", any(), any()).thenReturn(jsonObject);
 		PowerMockito.when(JsonUtil.class, "objectMapperReadValue", anyString(), any()).thenReturn(jsonObject);
 
-		Mockito.when(idSchemaUtils.getSource(anyString(), anyDouble())).thenReturn(source);
+		//Mockito.when(idSchemaUtils.getSource(anyString(), anyDouble())).thenReturn(source);
 		Mockito.when(utilities.getRegistrationProcessorMappingJson()).thenReturn(jsonObject);
-		Mockito.when(packetReaderService.getFile(anyString(), anyString(), anyString())).thenReturn(fileInStream);
+		//Mockito.when(packetReaderService.getFile(anyString(), anyString(), anyString())).thenReturn(fileInStream);
 
 		String fileName = PacketFiles.BIOMETRIC.name();
 		byte[] biometricFile = manualAdjudicationService.getApplicantFile(regId, fileName, source);

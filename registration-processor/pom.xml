@@ -296,10 +296,10 @@
 		<module>registration-processor-registration-status-service-impl</module>
         <!-- <module>registration-processor-quality-checker</module> -->
 		<module>registration-processor-message-sender-impl</module>
-		<module>init</module>
-		<module>pre-processor</module>
 		<module>core-processor</module>
-		<module>post-processor</module>
+		<!--<module>init</module>
+		<module>pre-processor</module>
+		<module>post-processor</module>-->
 	</modules>
 
 <!--	<profiles>
