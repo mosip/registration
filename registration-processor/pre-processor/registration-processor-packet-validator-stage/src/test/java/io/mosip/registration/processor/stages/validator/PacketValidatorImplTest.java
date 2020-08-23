@@ -65,7 +65,7 @@ import static org.mockito.Mockito.when;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ JsonUtil.class, IOUtils.class, HMACUtils.class, Utilities.class, MasterDataValidation.class,
 		MessageDigest.class })
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
+@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*","com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*" })
 @TestPropertySource(locations = "classpath:application.properties")
 public class PacketValidatorImplTest {
 	
@@ -80,7 +80,7 @@ public class PacketValidatorImplTest {
 
 	@Mock
 	private MandatoryValidation mandatoryValidation;
-	
+
 	@Mock
 	private MasterDataValidation masterDataValidation;
 	
@@ -95,7 +95,7 @@ public class PacketValidatorImplTest {
 
 	@Mock
     private PacketManagerService packetManagerService;
-	
+
 	@Mock
 	private RegistrationRepositary<SyncRegistrationEntity, String> registrationRepositary;
 	
@@ -104,7 +104,7 @@ public class PacketValidatorImplTest {
 	
 	@Mock
 	RegistrationExceptionMapperUtil registrationStatusMapperUtil;
-	
+
 	@Value("${packet.default.source}")
 	private String source;
 

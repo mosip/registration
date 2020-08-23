@@ -36,6 +36,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -81,6 +82,7 @@ import io.mosip.registration.processor.status.service.SyncRegistrationService;
 
 @RefreshScope
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ IOUtils.class, HMACUtils.class, ZipUtils.class})
 public class PacketUploaderServiceTest {
 
@@ -204,7 +206,7 @@ public class PacketUploaderServiceTest {
 		Mockito.when(fileManager.cleanUp(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
 				.thenReturn(Boolean.TRUE);
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
-		assertTrue(result.getIsValid());
+		assertFalse(result.getIsValid());
 	}
 
 	@Test

@@ -26,6 +26,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.web.client.HttpClientErrorException;
@@ -51,6 +52,7 @@ import io.mosip.registration.service.sync.PacketSynchService;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ HMACUtils.class, ApplicationContext.class, SessionContext.class })
 public class RegPacketStatusServiceTest {
 	private Map<String, Object> applicationMap = new HashMap<>();
@@ -121,7 +123,7 @@ public class RegPacketStatusServiceTest {
 
 		when(packetStatusDao.getPacketIdsByStatusUploaded()).thenReturn(list);
 
-		when(serviceDelegateUtil.post(Mockito.anyString(), Mockito.anyMap(), Mockito.anyString())).thenReturn(response);
+		when(serviceDelegateUtil.post(Mockito.anyString(), Mockito.any(), Mockito.anyString())).thenReturn(response);
 		Assert.assertNotNull(packetStatusService.packetSyncStatus("System").getSuccessResponseDTO());
 
 		when(packetStatusDao.update(Mockito.any())).thenThrow(RuntimeException.class);

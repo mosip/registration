@@ -17,6 +17,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -32,6 +33,7 @@ import io.mosip.registration.util.advice.AuthenticationAdvice;
 import io.mosip.registration.util.advice.PreAuthorizeUserId;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ SessionContext.class, SecurityContext.class })
 public class AuthenticationAdviceTest {
 

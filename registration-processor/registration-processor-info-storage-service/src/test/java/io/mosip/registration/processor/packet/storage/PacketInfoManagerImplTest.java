@@ -85,7 +85,7 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Utilities.class, PacketInfoMapper.class })
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
+@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*","com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*" })
 public class PacketInfoManagerImplTest {
 
 	/** The packet info manager impl. */

@@ -1,6 +1,5 @@
 package io.mosip.registration.processor.stages.packet.validator;
 
-import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.util.HMACUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -13,12 +12,10 @@ import io.mosip.registration.processor.core.exception.PacketValidatorException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.FieldValueArray;
-import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
 import io.mosip.registration.processor.core.packet.dto.idjson.Document;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.ExceptionJSONInfoDTO;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.MainResponseDTO;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.ReverseDatasyncReponseDTO;
-import io.mosip.registration.processor.core.spi.packet.validator.PacketValidator;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
@@ -27,6 +24,7 @@ import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.stages.utils.AuditUtility;
 import io.mosip.registration.processor.stages.utils.MasterDataValidation;
+import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
@@ -47,6 +45,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -54,7 +53,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,18 +69,19 @@ import static org.mockito.Matchers.anyString;
 /**
  * The Class PacketValidatorStageTest.
  */
-
+@RefreshScope
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ JsonUtil.class, IOUtils.class, HMACUtils.class, Utilities.class, MasterDataValidation.class,
 		MessageDigest.class })
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
+@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*","com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*" })
 @TestPropertySource(locations = "classpath:application.properties")
 public class PacketValidateProcessorTest {
+
 	@InjectMocks
 	private PacketValidateProcessor packetValidateProcessor;
 
 	@Mock
-	private PacketValidator packetValidator;
+	private PacketValidatorImpl packetValidator;
 
 	@Mock
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
@@ -213,7 +212,7 @@ public class PacketValidateProcessorTest {
 		metamap.put("metaData", jsonArray.toString());
 		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString(), anyString())).thenReturn(metamap);
 
-		
+
 	}
 	
 	@Test
@@ -296,8 +295,8 @@ public class PacketValidateProcessorTest {
 	@Test
 	public void ReverseDataSyncAPIResourceEsxceptionClientTest() throws ApisResourceAccessException {
 		
-		Mockito.when(restClientService.postApi(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any(),
-				Matchers.any())).thenThrow(new ApisResourceAccessException("",new HttpClientErrorException(HttpStatus.GATEWAY_TIMEOUT, "")));
+		Mockito.when(restClientService.postApi(any(), any(), any(), any(),
+				any())).thenThrow(new ApisResourceAccessException("",new HttpClientErrorException(HttpStatus.GATEWAY_TIMEOUT, "")));
 		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
 	}
 	
@@ -316,7 +315,7 @@ public class PacketValidateProcessorTest {
 				Matchers.any())).thenThrow(new ApisResourceAccessException(""));
 		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void TableNotAccessibleExceptionest() throws Exception  {
@@ -338,8 +337,8 @@ public class PacketValidateProcessorTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void BaseCheckedExceptionTest() throws Exception  {
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
-				.thenThrow( BaseCheckedException.class);
+		Mockito.when(registrationStatusService.getRegistrationStatus(any()))
+				.thenThrow(BaseUncheckedException.class);
 		
 		assertFalse(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
 	}

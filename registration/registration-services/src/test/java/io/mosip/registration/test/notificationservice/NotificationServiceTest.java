@@ -19,6 +19,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.web.client.HttpClientErrorException;
@@ -36,6 +37,7 @@ import io.mosip.registration.service.template.impl.NotificationServiceImpl;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ SessionContext.class })
 public class NotificationServiceTest {
 
@@ -116,7 +118,7 @@ public class NotificationServiceTest {
 	
 	@Test
 	public void sendEmailFailure() throws ResourceAccessException, SocketTimeoutException, RegBaseCheckedException {
-		Mockito.when(serviceDelegateUtil.post(Mockito.anyString(), Mockito.any(NotificationDTO.class),Mockito.anyString()))
+		Mockito.when(serviceDelegateUtil.post(Mockito.any(), Mockito.any(),Mockito.any()))
 				.thenThrow(HttpClientErrorException.class);
 		ResponseDTO responseDTO = notificationServiceImpl.sendEmail("Hi", "9994019595", "regid");
 		Assert.assertEquals("Unable to send EMAIL Notification",

@@ -37,7 +37,7 @@ import io.mosip.registration.context.ApplicationContext;
 				"io.mosip.kernel.idvalidator", "io.mosip.kernel.ridgenerator","io.mosip.kernel.qrcode",
 				"io.mosip.kernel.core.signatureutil", "io.mosip.kernel.crypto", "io.mosip.kernel.jsonvalidator",
 				"io.mosip.kernel.idgenerator", "io.mosip.kernel.virusscanner", "io.mosip.kernel.transliteration",
-				"io.mosip.kernel.applicanttype", "io.mosip.kernel.cbeffutil", "io.mosip.kernel.core.pdfgenerator.spi",
+				"io.mosip.kernel.applicanttype", "io.mosip.kernel.core.pdfgenerator.spi",
 				"io.mosip.kernel.pdfgenerator.itext.impl", "io.mosip.kernel.cryptosignature",
 				"io.mosip.kernel.core.signatureutil", "io.mosip.kernel.idobjectvalidator.impl", 
 				"io.mosip.kernel.packetmanager.impl", "io.mosip.kernel.packetmanager.util", 
@@ -46,7 +46,7 @@ public class TestDaoConfig extends HibernateDaoConfig {
 
 	
 	private static final String DRIVER_CLASS_NAME = "org.h2.Driver";
-	private static final String DB_URL = "jdbc:h2:mem:db;DB_CLOSE_DELAY=-1;INIT=CREATE SCHEMA IF NOT EXISTS REG";
+	private static final String DB_URL = "jdbc:h2:mem:db;DB_CLOSE_DELAY=-1;INIT=CREATE SCHEMA IF NOT EXISTS REG;";
 	private static final String DB_AUTHENITICATION = ";bootPassword=";
 	private static final String MOSIP_CLIENT_TPM_AVAILABILITY = "mosip.reg.client.tpm.availability";
 	

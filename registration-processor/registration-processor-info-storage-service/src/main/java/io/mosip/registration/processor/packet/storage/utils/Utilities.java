@@ -244,8 +244,8 @@ public class Utilities {
 	 *             the packet decryption failure exception
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	public int getApplicantAge(String id, String source, String process) throws IOException, ApisResourceAccessException,
-			io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
+	public int getApplicantAge(String id, String source, String process) throws IOException,
+			ApisResourceAccessException, JsonProcessingException, PacketManagerException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				id, "Utilities::getApplicantAge()::entry");
 

@@ -85,7 +85,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ IOUtils.class, HMACUtils.class, Utilities.class })
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.ssl.*" })
 public class BiometricAuthenticationStageTest {
 
 	/** The input stream. */
@@ -143,7 +143,7 @@ public class BiometricAuthenticationStageTest {
 
 	/** The audit log request builder. */
 	@Mock
-	private AuditLogRequestBuilder auditLogRequestBuilder = new AuditLogRequestBuilder();
+	private AuditLogRequestBuilder auditLogRequestBuilder;
 
 	@Mock
 	private Environment env;

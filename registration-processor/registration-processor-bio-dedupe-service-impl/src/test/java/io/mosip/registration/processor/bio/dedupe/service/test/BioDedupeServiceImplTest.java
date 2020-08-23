@@ -27,6 +27,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.LoggerFactory;
@@ -66,6 +67,7 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 
 @RefreshScope
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ IOUtils.class, JsonUtil.class })
 public class BioDedupeServiceImplTest {
 
@@ -217,7 +219,7 @@ public class BioDedupeServiceImplTest {
 	public void insertBiometricsSuccessTest() throws ApisResourceAccessException, IOException {
 
 		abisInsertResponseDto.setReturnValue("1");
-		Mockito.when(restClientService.postApi(any(), anyString(), anyString(), anyString(), any()))
+		Mockito.when(restClientService.postApi(any(), any(),any(), any(), any()))
 				.thenReturn(abisInsertResponseDto);
 
 		String authResponse = bioDedupeService.insertBiometrics(registrationId);
@@ -238,7 +240,7 @@ public class BioDedupeServiceImplTest {
 	public void insertBiometricsABISInternalErrorFailureTest() throws ApisResourceAccessException, IOException {
 
 		abisInsertResponseDto.setFailureReason("1");
-		Mockito.when(restClientService.postApi(any(), anyString(), anyString(), anyString(), any()))
+		Mockito.when(restClientService.postApi(any(), any(),any(), any(), any()))
 				.thenReturn(abisInsertResponseDto);
 
 		String authResponse = bioDedupeService.insertBiometrics(registrationId);
@@ -258,8 +260,10 @@ public class BioDedupeServiceImplTest {
 	@Test(expected = ABISAbortException.class)
 	public void insertBiometricsABISAbortExceptionFailureTest() throws ApisResourceAccessException, IOException {
 
+		abisInsertResponseDto = new AbisInsertResponseDto();
 		abisInsertResponseDto.setFailureReason("2");
-		Mockito.when(restClientService.postApi(any(), anyString(), anyString(), anyString(), any()))
+		abisInsertResponseDto.setReturnValue("2");
+		Mockito.when(restClientService.postApi(any(), any(),any(), any(), any()))
 				.thenReturn(abisInsertResponseDto);
 
 		String authResponse = bioDedupeService.insertBiometrics(registrationId);
@@ -280,7 +284,7 @@ public class BioDedupeServiceImplTest {
 	public void insertBiometricsUnexceptedErrorFailureTest() throws ApisResourceAccessException, IOException {
 
 		abisInsertResponseDto.setFailureReason("3");
-		Mockito.when(restClientService.postApi(any(), anyString(), anyString(), anyString(), any()))
+		Mockito.when(restClientService.postApi(any(), any(),any(), any(), any()))
 				.thenReturn(abisInsertResponseDto);
 
 		String authResponse = bioDedupeService.insertBiometrics(registrationId);
@@ -302,7 +306,7 @@ public class BioDedupeServiceImplTest {
 			throws ApisResourceAccessException, IOException {
 
 		abisInsertResponseDto.setFailureReason("4");
-		Mockito.when(restClientService.postApi(any(), anyString(), anyString(), anyString(), any()))
+		Mockito.when(restClientService.postApi(any(), any(),any(), any(), any()))
 				.thenReturn(abisInsertResponseDto);
 
 		String authResponse = bioDedupeService.insertBiometrics(registrationId);
@@ -323,13 +327,13 @@ public class BioDedupeServiceImplTest {
 	public void testPerformDedupeSuccess() throws ApisResourceAccessException, IOException {
 
 		identifyResponse.setReturnValue("1");
-		Mockito.when(restClientService.postApi(any(), anyString(), anyString(), anyString(), any()))
+		Mockito.when(restClientService.postApi(any(), any(),any(), any(), any()))
 				.thenReturn(identifyResponse);
 		String rid = "27847657360002520181208094056";
 
 		List<String> list = new ArrayList<>();
 		list.add(rid);
-		Mockito.when(packetInfoManager.getRidByReferenceId(anyString())).thenReturn(list);
+		Mockito.when(packetInfoManager.getRidByReferenceId(any())).thenReturn(list);
 
 		List<String> ridList = new ArrayList<>();
 		ridList.add(rid);
@@ -338,8 +342,9 @@ public class BioDedupeServiceImplTest {
 		List<DemographicInfoDto> demoList = new ArrayList<>();
 		DemographicInfoDto demo1 = new DemographicInfoDto();
 		demoList.add(demo1);
-		Mockito.when(packetInfoManager.findDemoById(anyString())).thenReturn(demoList);
-
+		Mockito.when(packetInfoManager.findDemoById(any())).thenReturn(demoList);
+		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
+		
 		List<String> duplicates = bioDedupeService.performDedupe(rid);
 
 		assertEquals(ridList, duplicates);
@@ -357,7 +362,7 @@ public class BioDedupeServiceImplTest {
 	@Test(expected = ABISInternalError.class)
 	public void testPerformDedupeFailure() throws ApisResourceAccessException, IOException {
 
-		Mockito.when(restClientService.postApi(any(), anyString(), anyString(), anyString(), any()))
+		Mockito.when(restClientService.postApi(any(), any(),any(), any(), any()))
 				.thenReturn(identifyResponse);
 		String rid = "27847657360002520181208094056";
 		identifyResponse.setReturnValue("2");
@@ -378,7 +383,7 @@ public class BioDedupeServiceImplTest {
 	@Test(expected = ABISAbortException.class)
 	public void testDedupeAbisAbortException() throws ApisResourceAccessException, IOException {
 
-		Mockito.when(restClientService.postApi(any(), anyString(), anyString(), anyString(), any()))
+		Mockito.when(restClientService.postApi(any(), any(),any(), any(), any()))
 				.thenReturn(identifyResponse);
 		String rid = "27847657360002520181208094056";
 		identifyResponse.setReturnValue("2");
@@ -399,7 +404,7 @@ public class BioDedupeServiceImplTest {
 	@Test(expected = UnexceptedError.class)
 	public void testDedupeUnexpectedError() throws ApisResourceAccessException, IOException {
 
-		Mockito.when(restClientService.postApi(any(), anyString(), anyString(), anyString(), any()))
+		Mockito.when(restClientService.postApi(any(), any(),any(), any(), any()))
 				.thenReturn(identifyResponse);
 		String rid = "27847657360002520181208094056";
 		identifyResponse.setReturnValue("2");
@@ -420,7 +425,7 @@ public class BioDedupeServiceImplTest {
 	@Test(expected = UnableToServeRequestABISException.class)
 	public void testDedupeUnableToServeRequestABISException() throws ApisResourceAccessException, IOException {
 
-		Mockito.when(restClientService.postApi(any(), anyString(), anyString(), anyString(), any()))
+		Mockito.when(restClientService.postApi(any(), any(),any(), any(), any()))
 				.thenReturn(identifyResponse);
 		String rid = "27847657360002520181208094056";
 		identifyResponse.setReturnValue("2");

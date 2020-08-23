@@ -118,7 +118,7 @@ public class ReprocessingSchedulerTest {
 		listAppender.start();
 		fooLogger.addAppender(listAppender);
 		Mockito.when(res.succeeded()).thenReturn(false);
-		Mockito.when(vertx.eventBus()).thenReturn(getMockEventBus());
+		//Mockito.when(vertx.eventBus()).thenReturn(getMockEventBus());
 		reprocessorStage.schedulerResult(res);
 		Assertions.assertThat(listAppender.list).extracting(ILoggingEvent::getLevel, ILoggingEvent::getFormattedMessage)
 				.contains(Tuple.tuple(Level.DEBUG,
