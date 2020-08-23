@@ -69,10 +69,10 @@ public class ReprocessorStageTest {
 
 	@Before
 	public void setup() throws Exception {
-		 Mockito.doNothing().when(description).setCode(Mockito.anyString());
-		 Mockito.doNothing().when(description).setMessage(Mockito.anyString());
-		 Mockito.when(description.getCode()).thenReturn("CODE");
-		 Mockito.when(description.getMessage()).thenReturn("MESSAGE");
+		 //Mockito.doNothing().when(description).setCode(Mockito.anyString());
+		 //Mockito.doNothing().when(description).setMessage(Mockito.anyString());
+		 //Mockito.when(description.getCode()).thenReturn("CODE");
+		 //Mockito.when(description.getMessage()).thenReturn("MESSAGE");
 		 ReflectionTestUtils.setField(reprocessorStage, "fetchSize", 2);
          ReflectionTestUtils.setField(reprocessorStage, "elapseTime", 21600);
          ReflectionTestUtils.setField(reprocessorStage, "reprocessCount", 3);
@@ -85,8 +85,10 @@ public class ReprocessorStageTest {
          AuditResponseDto auditResponseDto = new AuditResponseDto();
          ResponseWrapper<AuditResponseDto> responseWrapper = new ResponseWrapper<>();
          responseWrapper.setResponse(auditResponseDto);
-         Mockito.doReturn(responseWrapper).when(auditLogRequestBuilder).createAuditRequestBuilder(
-                                      "test case description", EventId.RPR_401.toString(), EventName.ADD.toString(),
+//         Mockito.doReturn(responseWrapper).when(auditLogRequestBuilder).createAuditRequestBuilder(
+//                                      "test case description", EventId.RPR_401.toString(), EventName.ADD.toString(),
+//                                      EventType.BUSINESS.toString(), "1234testcase", ApiName.AUDIT);
+         auditLogRequestBuilder.createAuditRequestBuilder("test case description", EventId.RPR_401.toString(), EventName.ADD.toString(),
                                       EventType.BUSINESS.toString(), "1234testcase", ApiName.AUDIT);
 	}
 

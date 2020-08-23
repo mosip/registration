@@ -91,7 +91,7 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
  * The Class DemodedupeStageTest.
  */
 @RunWith(PowerMockRunner.class)
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
+@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*","com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", })
 @PrepareForTest({ JsonUtil.class, IOUtils.class, HMACUtils.class })
 public class DemodedupeProcessorTest {
 
@@ -127,7 +127,7 @@ public class DemodedupeProcessorTest {
 
 	/** The audit log request builder. */
 	@Mock
-	private AuditLogRequestBuilder auditLogRequestBuilder = new AuditLogRequestBuilder();
+	private AuditLogRequestBuilder auditLogRequestBuilder;
 
 	@Mock
 	RegistrationExceptionMapperUtil registrationStatusMapperUtil;

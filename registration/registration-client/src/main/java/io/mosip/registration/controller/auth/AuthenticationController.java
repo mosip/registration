@@ -1,5 +1,6 @@
 package io.mosip.registration.controller.auth;
 
+import static io.mosip.registration.constants.LoggerConstants.LOG_REG_GUARDIAN_BIOMETRIC_CONTROLLER;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
@@ -890,7 +891,7 @@ public class AuthenticationController extends BaseController implements Initiali
 			}
 		}
 		fpMatchStatus = authenticationService.authValidator(userId, SingleType.FINGER.value(), biometrics);
-		
+
 
 		return fpMatchStatus;
 	}

@@ -25,7 +25,7 @@ import io.mosip.registration.tpm.spi.TPMUtil;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ System.class, TPMUtil.class, ApplicationContext.class })
-@PowerMockIgnore("javax.management.*")
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 public class DaoConfigTest {
 
 	DaoConfig daoConfig;

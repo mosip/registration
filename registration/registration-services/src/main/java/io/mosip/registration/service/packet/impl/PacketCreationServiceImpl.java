@@ -53,7 +53,6 @@ import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.dao.AuditDAO;
 import io.mosip.registration.dao.AuditLogControlDAO;
-import io.mosip.registration.dao.DocumentTypeDAO;
 import io.mosip.registration.dto.BaseDTO;
 import io.mosip.registration.dto.OSIDataDTO;
 import io.mosip.registration.dto.RegistrationDTO;
@@ -74,15 +73,13 @@ import io.mosip.registration.dto.mastersync.AuditRequestDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
-import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
+import io.mosip.registration.mdm.service.impl.MosipBioDeviceManager;
 import io.mosip.registration.service.BaseService;
-import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.external.ZipCreationService;
 import io.mosip.registration.service.packet.PacketCreationService;
 import io.mosip.registration.util.advice.AuthenticationAdvice;
 import io.mosip.registration.util.advice.PreAuthorizeUserId;
 import io.mosip.registration.util.hmac.HMACGeneration;
-import io.mosip.registration.validator.RegIdObjectValidator;
 
 /**
  * Implementation class of {@link PacketCreationService} for creating the
@@ -98,10 +95,6 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 	@Autowired
 	private ZipCreationService zipCreationService;
 	private static final Logger LOGGER = AppConfig.getLogger(PacketCreationServiceImpl.class);
-	// @Autowired
-	// private CbeffImpl cbeffI;
-	@Autowired
-	private RegIdObjectValidator idObjectValidator;
 	private static SecureRandom random = new SecureRandom(String.valueOf(5000).getBytes());
 	@Autowired
 	private AuditManagerService auditFactory;
@@ -109,12 +102,6 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 	private AuditLogControlDAO auditLogControlDAO;
 	@Autowired
 	private AuditDAO auditDAO;
-	@Autowired
-	private DocumentTypeDAO documentTypeDAO;
-
-	@Autowired
-	private BioService bioService;
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -138,8 +125,8 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 			// validate the input against the schema, mandatory, pattern and master data. if
 			// any error then stop the rest of the process
 			// and display error message to the user.
-			// idObjectValidator.validateIdObject(registrationDTO.getDemographics(),
-			// registrationDTO.getRegistrationMetaDataDTO().getRegistrationCategory());
+		//	idObjectValidator.validateIdObject(registrationDTO.getDemographics(),
+			//		registrationDTO.getRegistrationMetaDataDTO().getRegistrationCategory());
 
 			// Map object to store the UUID's generated for BIR in CBEFF
 			Map<String, String> birUUIDs = new HashMap<>();
@@ -159,8 +146,7 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 						AuditReferenceIdTypes.REGISTRATION_ID.getReferenceTypeId());
 			}
 
-			cbeffInBytes = registrationDTO.getBiometricDTO().getBiometricsMap().get("applicantBiometricDTO").getFace()
-					.getFace();
+			cbeffInBytes = registrationDTO.getBiometricDTO().getBiometricsMap().get("applicantBiometricDTO").getFace().getFace();
 			if (cbeffInBytes != null) {
 				if (registrationDTO.isUpdateUINChild()) {
 					filesGeneratedForPacket.put(RegistrationConstants.PARENT
@@ -199,12 +185,11 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 				}
 			}
 
-			// TODO Not required, as we already set doc codes
-			// setDocumentCodes(registrationDTO);
+			//TODO Not required, as we already set doc codes
+			//setDocumentCodes(registrationDTO);
 
-			// Generating Demographic JSON as byte array
-			// filesGeneratedForPacket.put(DEMOGRPAHIC_JSON_NAME,
-			// javaObjectToJsonString(registrationDTO.getIdentity()).getBytes());
+			// Generating Demographic JSON as byte array			
+			//filesGeneratedForPacket.put(DEMOGRPAHIC_JSON_NAME, javaObjectToJsonString(registrationDTO.getIdentity()).getBytes());
 
 			LOGGER.info(LOG_PKT_CREATION, APPLICATION_NAME, APPLICATION_ID,
 					String.format(loggerMessageForCBEFF, RegistrationConstants.DEMOGRPAHIC_JSON_NAME));
@@ -250,11 +235,9 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 			// Generating HMAC File as byte array
 			HashSequence hashSequence = new HashSequence(new BiometricSequence(new LinkedList<>(), new LinkedList<>()),
 					new DemographicSequence(new LinkedList<>()), new LinkedList<>());
-			/*
-			 * filesGeneratedForPacket.put(RegistrationConstants.PACKET_DATA_HASH_FILE_NAME,
-			 * HMACGeneration.generatePacketDTOHash(registrationDTO,
-			 * filesGeneratedForPacket, hashSequence));
-			 */
+			/*filesGeneratedForPacket.put(RegistrationConstants.PACKET_DATA_HASH_FILE_NAME,
+					HMACGeneration.generatePacketDTOHash(registrationDTO, filesGeneratedForPacket, hashSequence));
+			 	*/
 			LOGGER.info(LOG_PKT_CREATION, APPLICATION_NAME, APPLICATION_ID,
 					String.format(loggerMessageForCBEFF, RegistrationConstants.PACKET_DATA_HASH_FILE_NAME));
 			auditFactory.audit(AuditEvent.PACKET_HMAC_FILE_CREATED, Components.PACKET_CREATOR, rid,
@@ -337,8 +320,7 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 						AuditReferenceIdTypes.REGISTRATION_ID.getReferenceTypeId());
 			}
 
-			cbeffInBytes = registrationDTO.getBiometricDTO().getBiometricsMap().get("applicantBiometricDTO").getFace()
-					.getFace();
+			cbeffInBytes = registrationDTO.getBiometricDTO().getBiometricsMap().get("applicantBiometricDTO").getFace().getFace();
 			if (cbeffInBytes != null) {
 				if (registrationDTO.isUpdateUINNonBiometric() && !registrationDTO.isUpdateUINChild()) {
 					filesGeneratedForPacket.put(RegistrationConstants.INDIVIDUAL

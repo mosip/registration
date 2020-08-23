@@ -33,7 +33,7 @@ public class AsymmetricKeyCreationServiceTest {
 
 		PowerMockito.doReturn(createPrimaryResponse).when(mockedTPM, "CreatePrimary", Mockito.any(TPM_HANDLE.class),
 				Mockito.any(TPMS_SENSITIVE_CREATE.class), Mockito.any(TPMT_PUBLIC.class),
-				Mockito.anyString().getBytes(), Mockito.any());
+				Mockito.any(byte[].class), Mockito.any());
 
 		Assert.assertEquals(tpmHandle, asymmetricKeyCreationService.createPersistentKey(mockedTPM));
 	}
@@ -44,7 +44,7 @@ public class AsymmetricKeyCreationServiceTest {
 
 		PowerMockito.doThrow(new RuntimeException()).when(mockedTPM, "CreatePrimary", Mockito.any(TPM_HANDLE.class),
 				Mockito.any(TPMS_SENSITIVE_CREATE.class), Mockito.any(TPMT_PUBLIC.class),
-				Mockito.anyString().getBytes(), Mockito.any());
+				Mockito.any(byte[].class), Mockito.any());
 
 		asymmetricKeyCreationService.createPersistentKey(mockedTPM);
 	}
