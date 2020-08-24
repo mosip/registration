@@ -204,7 +204,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 				registrationStatusDto.setStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
 			}
 
-		} catch (IOException | io.mosip.kernel.core.exception.IOException e) {
+		} catch (IOException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
 			registrationStatusDto.setSubStatusCode(StatusUtil.IO_EXCEPTION.getCode());
 			registrationStatusDto.setStatusComment(

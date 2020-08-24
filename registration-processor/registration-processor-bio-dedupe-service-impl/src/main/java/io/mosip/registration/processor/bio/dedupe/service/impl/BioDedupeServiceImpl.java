@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,10 +103,14 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 	private Utilities utility;
 
 	@Autowired
-	private PacketReaderService packetReaderService;
+	private IdSchemaUtils idSchemaUtils;
 
 	@Autowired
-	private IdSchemaUtils idSchemaUtils;
+	private PacketManagerService packetManagerService;
+
+	@Autowired
+	private CbeffUtil cbeffutil;
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -292,10 +299,10 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 	 * getFileByRegId( java.lang.String)
 	 */
 	@Override
-	public byte[] getFileByRegId(String registrationId) {
+	public byte[] getFileByRegId(String registrationId, String source, String process) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "BioDedupeServiceImpl::getFileByRegId()::entry");
-		byte[] file = getFile(registrationId);
+		byte[] file = getFile(registrationId, source, process);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "BioDedupeServiceImpl::getFileByRegId()::exit");
 		return file;
@@ -309,7 +316,7 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 	 * java.lang.String)
 	 */
 	@Override
-	public byte[] getFileByAbisRefId(String abisRefId) {
+	public byte[] getFileByAbisRefId(String abisRefId, String source, String process) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), abisRefId,
 				"BioDedupeServiceImpl::getFileByAbisRefId()::entry");
 		String registrationId = "";
@@ -327,10 +334,10 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), abisRefId,
 				"BioDedupeServiceImpl::getFileByAbisRefId()::exit");
-		return getFile(registrationId);
+		return getFile(registrationId, source, process);
 	}
 
-	private byte[] getFile(String registrationId) {
+	private byte[] getFile(String registrationId, String source, String process) {
 		byte[] file = null;
 		if (registrationId == null || registrationId.isEmpty()) {
 			return file;
@@ -343,16 +350,8 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 			String individualBiometricsLabel = JsonUtil.getJSONValue(
 					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 					MappingJsonConstants.VALUE);
-			//TODO : change this
-			String individualBiometricsFileName = null;/*JsonUtil.getJSONValue(JsonUtil.getJSONObject(
-					utility.getDemographicIdentityJSONObject(registrationId, individualBiometricsLabel),
-					individualBiometricsLabel), MappingJsonConstants.VALUE);*/
-			String source = idSchemaUtils.getSource(individualBiometricsLabel, packetReaderService.getIdSchemaVersionFromPacket(registrationId));
-			if (source != null) {
-			InputStream fileInStream = packetReaderService.getFile(registrationId,
-					individualBiometricsFileName.toUpperCase(), source);
-				file = IOUtils.toByteArray(fileInStream);
-			}
+			BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId, individualBiometricsLabel, null, source, process);
+			byte[] xml = cbeffutil.createXML(biometricRecord.getSegments());
 
 
 		} catch (UnsupportedEncodingException exp) {

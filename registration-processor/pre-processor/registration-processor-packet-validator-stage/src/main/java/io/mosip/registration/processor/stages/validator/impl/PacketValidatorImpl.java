@@ -80,7 +80,8 @@ public class PacketValidatorImpl implements PacketValidator {
                 return false;
             }
 
-            if (!individualBiometricsValidation(id, source, process)) {
+            if (RegistrationType.NEW.name().equalsIgnoreCase(process)
+                    && !individualBiometricsValidation(id, source, process)) {
                 regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
                         id, "ERROR =======>" + StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getMessage());
                 packetValidationDto.setPacketValidatonStatusCode(StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getCode());

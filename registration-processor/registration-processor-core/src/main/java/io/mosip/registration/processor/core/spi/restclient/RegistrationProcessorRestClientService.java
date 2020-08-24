@@ -61,7 +61,7 @@ public interface RegistrationProcessorRestClientService<T> {
 	 *
 	 * @param apiName
 	 *            the api name
-	 * @param queryParam
+	 * @param queryParamName
 	 *            the query param
 	 * @param queryParamValue
 	 *            the query param value
