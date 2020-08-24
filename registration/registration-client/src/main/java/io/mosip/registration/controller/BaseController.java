@@ -27,13 +27,11 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.sun.javafx.scene.control.skin.TableHeaderRow;
-
-import io.mosip.commons.packet.constants.PacketManagerConstants;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.templatemanager.spi.TemplateManagerBuilder;
 import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.kernel.packetmanager.constants.PacketManagerConstants;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.LoggerConstants;
@@ -1527,9 +1525,7 @@ public class BaseController {
 	protected void disableColumnsReorder(TableView<?> table) {
 		if (table != null) {
 			table.widthProperty().addListener((source, oldWidth, newWidth) -> {
-				TableHeaderRow header = (TableHeaderRow) table.lookup("TableHeaderRow");
-				header.reorderingProperty()
-						.addListener((observable, oldValue, newValue) -> header.setReordering(false));
+				javafx.scene.control.skin.TableHeaderRow header = ( javafx.scene.control.skin.TableHeaderRow) table.lookup("TableHeaderRow");
 			});
 		}
 	}

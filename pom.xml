@@ -9,22 +9,19 @@
 	
 	<name>MOSIP Registration Parent POM</name>
 	<description>Mosip Registration Project</description>
-        <url>https://github.com/mosip/registration</url>
-	
+        <url>https://github.com/mosip/registration</url>	
 	<licenses>
           <license>
                 <name>MPL 2.0</name>
                 <url>https://www.mozilla.org/en-US/MPL/2.0/</url>
           </license>
-        </licenses>
-	
-	<scm>
+        </licenses>	
+		<scm>
                 <connection>scm:git:git://github.com/mosip/registration.git</connection>
                 <developerConnection>scm:git:ssh://github.com:mosip/registration.git</developerConnection>
                 <url>https://github.com/mosip/registration</url>
                 <tag>HEAD</tag>
-        </scm>
-	
+        </scm>	
 	<developers>
                 <developer>
                   <name>Mosip</name>
@@ -32,7 +29,7 @@
                   <organization>io.mosip</organization>
                   <organizationUrl>https://github.com/mosip/registration</organizationUrl>
                 </developer>
-        </developers>
+     </developers>
 
 	<repositories>
 		<repository>
@@ -154,5 +151,4 @@
 		<module>registration</module>
 		<module>registration-processor</module>
 	</modules>
-
 </project>

@@ -72,7 +72,7 @@ import io.mosip.registration.processor.status.code.RegistrationType;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Utilities.class, JsonUtils.class, IOUtils.class })
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
+@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*","com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*"})
 public class MessageNotificationServiceImplTest {
 
 	/** The message notification service impl. */
@@ -165,7 +165,7 @@ public class MessageNotificationServiceImplTest {
 		File demographicJsonFile = new File(classLoader.getResource("ID.json").getFile());
 		InputStream inputStream = new FileInputStream(demographicJsonFile);
 		String idJsonvalue = IOUtils.toString(inputStream);
-		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString()))
+		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.any(), Mockito.any()))
 				.thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(idJsonvalue, JSONObject.class),
 						MappingJsonConstants.IDENTITY));
 		File mappingJsonFile = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
@@ -174,7 +174,7 @@ public class MessageNotificationServiceImplTest {
 		Mockito.when(utility.getRegistrationProcessorMappingJson())
 				.thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(value, JSONObject.class),MappingJsonConstants.IDENTITY));
 		PowerMockito.mockStatic(Utilities.class);
-		PowerMockito.when(Utilities.class, "getJson", anyString(), anyString()).thenReturn(value);
+		PowerMockito.when(Utilities.class, "getJson", any(), any()).thenReturn(value);
 		Map<String, String> map1 = new HashMap<>();
 
 		map1.put("UIN", "423072");
@@ -248,7 +248,7 @@ public class MessageNotificationServiceImplTest {
 		wrapper.setResponse(smsResponseDto);
 		wrapper.setErrors(null);
 
-		Mockito.when(restClientService.postApi(any(), anyString(), anyString(), anyString(), any()))
+		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any()))
 				.thenReturn(wrapper);
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(smsResponseDto.toString());
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(smsResponseDto);
@@ -260,10 +260,7 @@ public class MessageNotificationServiceImplTest {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testUINTypeMessage() throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException,
-			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException,
-			RegistrationProcessorCheckedException {
+	public void testUINTypeMessage() throws Exception {
 		ResponseWrapper<SmsResponseDto> wrapper = new ResponseWrapper<>();
 		smsResponseDto = new SmsResponseDto();
 		smsResponseDto.setMessage("Success");
@@ -275,10 +272,11 @@ public class MessageNotificationServiceImplTest {
 		wrapper.setErrors(null);
 
 		// Mockito.when(abisHandlerUtil.getUinFromIDRepo(any())).thenReturn(1234567);
-		Mockito.when(restClientService.postApi(any(), anyString(), anyString(), anyString(), any()))
+		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any()))
 				.thenReturn(wrapper);
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(smsResponseDto.toString());
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(smsResponseDto);
+		
 		SmsResponseDto resultResponse = messageNotificationServiceImpl.sendSmsNotification("RPR_UIN_GEN_SMS",
 				"27847657360002520181208094056", IdType.UIN, attributes, RegistrationType.ACTIVATED.name());
 

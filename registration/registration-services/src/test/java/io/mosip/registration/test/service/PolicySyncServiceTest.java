@@ -27,6 +27,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.web.client.HttpClientErrorException;
@@ -48,6 +49,7 @@ import io.mosip.registration.util.restclient.ServiceDelegateUtil;
  *
  */
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ RegistrationAppHealthCheckUtil.class })
 public class PolicySyncServiceTest {
 	@Rule
@@ -213,8 +215,8 @@ public class PolicySyncServiceTest {
 	public void failureTest() throws HttpClientErrorException, SocketTimeoutException, RegBaseCheckedException {
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
-		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.anyMap(), Mockito.anyBoolean(),
-				Mockito.anyString())).thenThrow(KeyManagementException.class);
+		Mockito.when(serviceDelegateUtil.get(Mockito.any(), Mockito.any(), Mockito.anyBoolean(),
+				Mockito.any())).thenThrow(RegBaseCheckedException.class);
 
 		//assertNotNull(policySyncServiceImpl.fetchPolicy());
 	}

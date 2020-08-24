@@ -28,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
@@ -55,6 +56,7 @@ import io.mosip.registration.repositories.SyncTransactionRepository;
 import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 public class SyncManagerTest {
 
 	@Mock

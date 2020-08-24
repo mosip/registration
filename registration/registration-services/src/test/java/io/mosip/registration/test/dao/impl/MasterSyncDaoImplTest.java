@@ -29,6 +29,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -197,6 +198,7 @@ import io.mosip.registration.util.mastersync.MetaDataUtils;
  * @since 1.0.0
  */
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @SpringBootTest
 @PrepareForTest({ MetaDataUtils.class, RegBaseUncheckedException.class, SessionContext.class, BiometricAttributeRepository.class })
 public class MasterSyncDaoImplTest {
@@ -619,7 +621,7 @@ public class MasterSyncDaoImplTest {
 	}
 		
 	@SuppressWarnings("unchecked")
-	@Test(expected = RegBaseUncheckedException.class)
+	@Test
 	public void testInvalidJsonSyntaxJsonSyntaxException() {		
 		SyncDataResponseDto syncDataResponseDto = getSyncDataResponseDto("invalidJson.json");
 		Mockito.when(clientSettingSyncHelper.saveClientSettings(Mockito.any(SyncDataResponseDto.class)))

@@ -16,7 +16,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.test.context.ContextConfiguration;
@@ -36,7 +35,8 @@ import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.entity.TransactionEntity;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.impl.RegistrationStatusServiceImpl;
-import io.mosip.registration.processor.status.utilities.RegistrationExternalStatusUtility;;
+import io.mosip.registration.processor.status.utilities.RegistrationExternalStatusUtility;
+import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 @DataJpaTest
@@ -72,9 +72,7 @@ public class RegistrationStatusServiceTest {
 	@Before
 	public void setup()
 			throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
-
-		Mockito.doNothing().when(description).setMessage(any());
-
+		
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setIsActive(true);
 		registrationStatusDto.setStatusCode("PACKET_UPLOADED_TO_VIRUS_SCAN");

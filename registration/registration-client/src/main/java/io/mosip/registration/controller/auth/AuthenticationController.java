@@ -16,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.AuditEvent;
 import io.mosip.registration.constants.AuditReferenceIdTypes;
@@ -35,7 +36,6 @@ import io.mosip.registration.dto.OSIDataDTO;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.UserDTO;
-import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.service.bio.BioService;
@@ -890,7 +890,7 @@ public class AuthenticationController extends BaseController implements Initiali
 			}
 		}
 		fpMatchStatus = authenticationService.authValidator(userId, SingleType.FINGER.value(), biometrics);
-		
+
 
 		return fpMatchStatus;
 	}
