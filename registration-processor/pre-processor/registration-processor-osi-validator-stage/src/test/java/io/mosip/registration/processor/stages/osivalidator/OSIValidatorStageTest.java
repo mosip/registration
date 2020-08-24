@@ -120,12 +120,11 @@ public class OSIValidatorStageTest {
 	public void setUp() throws Exception {
 
 		Mockito.when(utility.getDefaultSource()).thenReturn("reg-client");
+		Mockito.when(packetManagerService.getMetaInfo(anyString(),anyString(),anyString())).thenReturn(new HashMap<>());
 
 		ReflectionTestUtils.setField(osiValidatorStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(osiValidatorStage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(osiValidatorStage, "validateUMC", true);
-
-		Mockito.when(packetManagerService.getMetaInfo(anyString(),anyString(),anyString())).thenReturn(new HashMap<>());
 
 		@SuppressWarnings("unchecked")
 		RegistrationProcessorRestClientService<Object> mockObj = Mockito
