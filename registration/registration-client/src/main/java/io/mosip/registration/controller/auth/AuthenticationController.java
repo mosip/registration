@@ -16,7 +16,6 @@ import org.springframework.stereotype.Controller;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.AuditEvent;
 import io.mosip.registration.constants.AuditReferenceIdTypes;
@@ -36,6 +35,7 @@ import io.mosip.registration.dto.OSIDataDTO;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.UserDTO;
+import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.service.bio.BioService;
@@ -662,8 +662,7 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * to enable the respective authentication mode
 	 * 
-	 * @param loginMode
-	 *            - name of authentication mode
+	 * @param loginMode - name of authentication mode
 	 */
 	public void loadAuthenticationScreen(String loginMode) {
 		LOGGER.info("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
@@ -842,8 +841,8 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * to check the role of supervisor in case of biometric exception
 	 * 
-	 * @param userId
-	 *            - username entered by the supervisor in the authentication screen
+	 * @param userId - username entered by the supervisor in the authentication
+	 *               screen
 	 * @return boolean variable "true", if the person is authenticated as supervisor
 	 *         or "false", if not
 	 */
@@ -864,8 +863,7 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * to capture and validate the fingerprint for authentication
 	 * 
-	 * @param userId
-	 *            - username entered in the textfield
+	 * @param userId - username entered in the textfield
 	 * @return true/false after validating fingerprint
 	 * @throws IOException
 	 * @throws RegBaseCheckedException
@@ -874,8 +872,21 @@ public class AuthenticationController extends BaseController implements Initiali
 			throws RegBaseCheckedException, IOException {
 		List<BiometricsDto> biometrics = bioService.captureModalityForAuth(mdmRequestDto);
 
-
 		boolean fpMatchStatus;
+
+		fpMatchStatus = authenticationService.authValidator(userId, SingleType.FINGER.value(), biometrics);
+
+		if (fpMatchStatus) {
+
+			addOperatorBiometrics(biometrics);
+
+		}
+
+		return fpMatchStatus;
+
+	}
+
+	private void addOperatorBiometrics(List<BiometricsDto> biometrics) {
 		if (!isEODAuthentication) {
 			if (isSupervisor) {
 				RegistrationDTO registrationDTO = (RegistrationDTO) SessionContext.getInstance().getMapObject()
@@ -889,17 +900,12 @@ public class AuthenticationController extends BaseController implements Initiali
 				registrationDTO.addOfficerBiometrics(biometrics);
 			}
 		}
-		fpMatchStatus = authenticationService.authValidator(userId, SingleType.FINGER.value(), biometrics);
-
-
-		return fpMatchStatus;
 	}
 
 	/**
 	 * to capture and validate the iris for authentication
 	 * 
-	 * @param userId
-	 *            - username entered in the textfield
+	 * @param userId - username entered in the textfield
 	 * @return true/false after validating iris
 	 * @throws IOException
 	 */
@@ -913,39 +919,19 @@ public class AuthenticationController extends BaseController implements Initiali
 						.getIntValueFromApplicationMap(RegistrationConstants.IRIS_THRESHOLD));
 		List<BiometricsDto> biometrics = bioService.captureModalityForAuth(mdmRequestDto);
 
-		/*
-		 * AuthenticationValidatorDTO authenticationValidatorDTO =
-		 * bioService.getIrisAuthenticationDto(userId, new
-		 * RequestDetail(RegistrationConstants.IRIS_DOUBLE,
-		 * getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 2,
-		 * getValueFromApplicationContext(RegistrationConstants.IRIS_THRESHOLD), null));
-		 * List<IrisDetailsDTO> irisDetailsDTOs =
-		 * authenticationValidatorDTO.getIrisDetails();
-		 */
-		if (!isEODAuthentication) {
-			if (isSupervisor) {
-				RegistrationDTO registrationDTO = (RegistrationDTO) SessionContext.getInstance().getMapObject()
-						.get(RegistrationConstants.REGISTRATION_DATA);
-				// registrationDTO.getBiometricDTO().getSupervisorBiometricDTO().setIrisDetailsDTO(irisDetailsDTOs);
-				// SessionContext.getInstance().getMapObject().get(RegistrationConstants.REGISTRATION_DATA);
-				registrationDTO.addSupervisorBiometrics(biometrics);
-			} else {
-				RegistrationDTO registrationDTO = (RegistrationDTO) SessionContext.getInstance().getMapObject()
-						.get(RegistrationConstants.REGISTRATION_DATA);
-				// registrationDTO.getBiometricDTO().getOperatorBiometricDTO().setIrisDetailsDTO(irisDetailsDTOs);
-				registrationDTO.addOfficerBiometrics(biometrics);
-			}
+		boolean match = authenticationService.authValidator(userId, SingleType.IRIS.value(), biometrics);
+
+		if (match) {
+			addOperatorBiometrics(biometrics);
 		}
-		// boolean irisMatchStatus =
-		// bioService.validateIris(authenticationValidatorDTO);
-		return authenticationService.authValidator(userId, SingleType.IRIS.value(), biometrics);
+
+		return match;
 	}
 
 	/**
 	 * to capture and validate the iris for authentication
 	 * 
-	 * @param userId
-	 *            - username entered in the textfield
+	 * @param userId - username entered in the textfield
 	 * @return true/false after validating face
 	 * @throws IOException
 	 * @throws RegBaseCheckedException
@@ -961,30 +947,14 @@ public class AuthenticationController extends BaseController implements Initiali
 
 		List<BiometricsDto> biometrics = bioService.captureModalityForAuth(mdmRequestDto);
 
-		/*
-		 * AuthenticationValidatorDTO authenticationValidatorDTO =
-		 * bioService.getFaceAuthenticationDto(userId, new
-		 * RequestDetail(RegistrationConstants.FACE_FULLFACE,
-		 * getValueFromApplicationContext(RegistrationConstants.CAPTURE_TIME_OUT), 1,
-		 * getValueFromApplicationContext(RegistrationConstants.FACE_THRESHOLD), null));
-		 * FaceDetailsDTO faceDetailsDTO = authenticationValidatorDTO.getFaceDetail();
-		 */
-		if (!isEODAuthentication) {
-			if (isSupervisor) {
-				RegistrationDTO registrationDTO = (RegistrationDTO) SessionContext.getInstance().getMapObject()
-						.get(RegistrationConstants.REGISTRATION_DATA);
-				// registrationDTO.getBiometricDTO().getSupervisorBiometricDTO().setFace(faceDetailsDTO);
-				// SessionContext.getInstance().getMapObject().get(RegistrationConstants.REGISTRATION_DATA);
-				registrationDTO.addSupervisorBiometrics(biometrics);
-			} else {
-				RegistrationDTO registrationDTO = (RegistrationDTO) SessionContext.getInstance().getMapObject()
-						.get(RegistrationConstants.REGISTRATION_DATA);
-				// registrationDTO.getBiometricDTO().getOperatorBiometricDTO().setFace(faceDetailsDTO);
-				registrationDTO.addOfficerBiometrics(biometrics);
-			}
-		}
 		// return bioService.validateFace(authenticationValidatorDTO);
-		return authenticationService.authValidator(userId, SingleType.FACE.value(), biometrics);
+		boolean match = authenticationService.authValidator(userId, SingleType.FACE.value(), biometrics);
+
+		if (match) {
+			addOperatorBiometrics(biometrics);
+		}
+
+		return match;
 	}
 
 	/**
@@ -1000,8 +970,7 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * event class to exit from authentication window. pop up window.
 	 * 
-	 * @param event
-	 *            - the action event
+	 * @param event - the action event
 	 */
 	public void exitWindow(ActionEvent event) {
 		Stage primaryStage = (Stage) ((Node) event.getSource()).getParent().getScene().getWindow();
@@ -1012,10 +981,8 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * Setting the init method to the Basecontroller
 	 * 
-	 * @param parentControllerObj
-	 *            - Parent Controller name
-	 * @param authType
-	 *            - Authentication Type
+	 * @param parentControllerObj - Parent Controller name
+	 * @param authType            - Authentication Type
 	 * @throws RegBaseCheckedException
 	 */
 	public void init(BaseController parentControllerObj, String authType) throws RegBaseCheckedException {
@@ -1137,12 +1104,9 @@ public class AuthenticationController extends BaseController implements Initiali
 	/**
 	 * This method will remove the auth method from list
 	 * 
-	 * @param authList
-	 *            authentication list
-	 * @param disableFlag
-	 *            configuration flag
-	 * @param authCode
-	 *            auth mode
+	 * @param authList    authentication list
+	 * @param disableFlag configuration flag
+	 * @param authCode    auth mode
 	 */
 	private void removeAuthModes(List<String> authList, String flag, String authCode) {
 
