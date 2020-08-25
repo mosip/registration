@@ -9,7 +9,6 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.mosip.kernel.fsadapter.hdfs.util.ConnectionUtils;
 import io.mosip.registration.processor.core.config.CoreConfigBean;
 import io.mosip.registration.processor.core.kernel.beans.KernelConfig;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
@@ -26,9 +25,6 @@ import io.mosip.registration.processor.status.config.RegistrationStatusBeanConfi
 excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = {
 				RegistrationStatusBeanConfig.class,RestConfigBean.class, PacketStorageBeanConfig.class, KernelConfig.class, CoreConfigBean.class }))
 public class BioDedupeConfigTest {
-
-	@MockBean
-	public ConnectionUtils connectionUtil;
 
 	@MockBean
 	public RestTemplate restTemplate;

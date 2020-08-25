@@ -10,7 +10,6 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import io.mosip.kernel.core.idvalidator.spi.RidValidator;
 import io.mosip.kernel.core.idvalidator.spi.UinValidator;
 import io.mosip.kernel.core.idvalidator.spi.VidValidator;
-import io.mosip.kernel.fsadapter.hdfs.util.ConnectionUtils;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 
 @Configuration
@@ -18,9 +17,6 @@ import io.mosip.registration.processor.packet.storage.utils.Utilities;
 @ComponentScan(basePackages = {
 		"io.mosip.registration.processor.printing.api.*" })
 public class PrintServiceConfigTest {
-
-	@MockBean
-	public ConnectionUtils connectionUtil;
 
 	@MockBean
 	public RidValidator<?> ridValidator;

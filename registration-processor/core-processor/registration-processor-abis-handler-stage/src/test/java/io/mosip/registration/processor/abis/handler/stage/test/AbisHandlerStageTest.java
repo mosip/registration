@@ -2,10 +2,24 @@ package io.mosip.registration.processor.abis.handler.stage.test;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
+import io.mosip.kernel.core.cbeffutil.entity.BIR;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.QualityType;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
+import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,6 +74,9 @@ public class AbisHandlerStageTest {
 	private Utilities utility;
 
 	@Mock
+	private PacketManagerService packetManagerService;
+
+	@Mock
 	private LogDescription description;
 
 	List<AbisApplicationDto> abisApplicationDtos = new ArrayList<>();
@@ -72,6 +89,9 @@ public class AbisHandlerStageTest {
 
 	@Mock
 	private Environment env;
+
+	@Mock
+	private CbeffUtil cbeffutil;
 
 	@InjectMocks
 	private AbisHandlerStage abisHandlerStage = new AbisHandlerStage() {
@@ -90,7 +110,7 @@ public class AbisHandlerStageTest {
 	};
 
 	@Before
-	public void setUp() throws RegistrationProcessorCheckedException {
+	public void setUp() throws Exception {
 		ReflectionTestUtils.setField(abisHandlerStage, "maxResults", "30");
 		ReflectionTestUtils.setField(abisHandlerStage, "targetFPIR", "30");
 		ReflectionTestUtils.setField(abisHandlerStage, "workerPoolSize", 10);
@@ -103,6 +123,32 @@ public class AbisHandlerStageTest {
 
 		Mockito.doNothing().when(description).setMessage(any());
 		Mockito.when(description.getMessage()).thenReturn("description");
+
+		List<BIR> birTypeList = new ArrayList<>();
+		BIR birType1 = new BIR();
+		BDBInfo bdbInfoType1 = new BDBInfo();
+		RegistryIDType registryIDType = new RegistryIDType();
+		registryIDType.setOrganization("Mosip");
+		registryIDType.setType("257");
+		QualityType quality = new QualityType();
+		quality.setAlgorithm(registryIDType);
+		quality.setScore(90l);
+		bdbInfoType1.setQuality(quality);
+		SingleType singleType1 = SingleType.FINGER;
+		List<SingleType> singleTypeList1 = new ArrayList<>();
+		singleTypeList1.add(singleType1);
+		List<String> subtype1 = new ArrayList<>(Arrays.asList("Left", "RingFinger"));
+		bdbInfoType1.setSubtype(subtype1);
+		bdbInfoType1.setType(singleTypeList1);
+		birType1.setBdbInfo(bdbInfoType1);
+		birTypeList.add(birType1);
+
+		BiometricRecord biometricRecord = new BiometricRecord();
+		biometricRecord.setSegments(birTypeList);
+		when(utility.getDefaultSource()).thenReturn("reg-client");
+		when(cbeffutil.createXML(any())).thenReturn("abishandlerstage".getBytes());
+
+		Mockito.when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenReturn(biometricRecord);
 
 		Mockito.doNothing().when(registrationStatusDto).setLatestTransactionStatusCode(any());
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());

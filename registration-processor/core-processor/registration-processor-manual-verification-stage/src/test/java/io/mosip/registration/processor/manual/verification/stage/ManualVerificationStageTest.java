@@ -136,20 +136,20 @@ public class ManualVerificationStageTest{
 		manualverificationstage.start();
 	}
 	@Test
-	public void testAllProcess() throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException  {
+	public void testAllProcess() throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException, JsonProcessingException, PacketManagerException {
 		testBiometric();
 		testDemographic();
 		testProcessAssignment();
 		testProcessDecision();
 		testProcessPacketInfo();
 	}
-	private void testBiometric() throws PacketDecryptionFailureException,  IOException, java.io.IOException {
+	private void testBiometric() throws PacketDecryptionFailureException, IOException, java.io.IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 		serviceID="bio";
 		Mockito.when(env.getProperty(any())).thenReturn("mosip.manual.verification.biometric");
 		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern")).thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		manualverificationstage.processBiometric(ctx);
 	}
-	private void testDemographic() throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException {
+	private void testDemographic() throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException, JsonProcessingException, PacketManagerException {
 		serviceID="demo";
 		Mockito.when(env.getProperty(any())).thenReturn("mosip.manual.verification.demographic");
 		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern")).thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
@@ -173,7 +173,7 @@ public class ManualVerificationStageTest{
 		Mockito.when(manualAdjudicationService.updatePacketStatus(any(),any())).thenReturn(updatedManualVerificationDTO);
 		manualverificationstage.processDecision(ctx);
 	}
-	private void testProcessPacketInfo() throws PacketDecryptionFailureException,  IOException, java.io.IOException {
+	private void testProcessPacketInfo() throws PacketDecryptionFailureException, IOException, java.io.IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 		serviceID="packetinfo";
 		Mockito.when(env.getProperty(any())).thenReturn("mosip.manual.verification.packetinfo");
 		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern")).thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");

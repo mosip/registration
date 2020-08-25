@@ -4,10 +4,32 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
+import io.mosip.kernel.core.exception.BaseUncheckedException;
+import io.mosip.kernel.core.exception.FileNotFoundException;
+import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.registration.processor.abis.handler.dto.DataShare;
+import io.mosip.registration.processor.core.code.ApiName;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.http.ResponseWrapper;
+import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.assertj.core.util.Lists;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -53,6 +75,11 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * The Class AbisHandlerStage.
@@ -86,6 +113,18 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
 
+	@Value("${registration.processor.policy.id}")
+	private String policyId;
+
+	@Value("${registration.processor.subscriber.id}")
+	private String subscriberId;
+
+	@Autowired
+    private RestApiClient restApiClient;
+
+	@Autowired
+	private RegistrationProcessorRestClientService registrationProcessorRestClientService;
+
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(AbisHandlerStage.class);
 
@@ -112,7 +151,15 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	MosipRouter router;
 
 	@Autowired
+	private CbeffUtil cbeffutil;
+
+	@Autowired
 	private Environment env;
+
+	@Autowired
+	private PacketManagerService packetManagerService;
+
+	private static final String DATASHARECREATEURL = "DATASHARECREATEURL";
 
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 	/**
@@ -168,7 +215,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 							AbisHandlerStageConstant.DETAILS_NOT_FOUND);
 					throw new AbisHandlerException(PlatformErrorMessages.RPR_ABIS_INTERNAL_ERROR.getCode());
 				}
-				createRequest(regId, abisQueueDetails, transactionId, description, transactionTypeCode);
+				createRequest(regId, abisQueueDetails, transactionId, registrationStatusDto.getRegistrationType(), description, transactionTypeCode);
 				object.setMessageBusAddress(MessageBusAddress.ABIS_MIDDLEWARE_BUS_IN);
 			} else {
 				if (transactionTypeCode.equalsIgnoreCase(AbisHandlerStageConstant.DEMOGRAPHIC_VERIFICATION)) {
@@ -221,8 +268,8 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		return object;
 	}
 
-	private void createRequest(String regId, List<AbisQueueDetails> abisQueueDetails, String transactionId,
-			LogDescription description, String transactionTypeCode) {
+	private void createRequest(String regId, List<AbisQueueDetails> abisQueueDetails, String transactionId, String process,
+			LogDescription description, String transactionTypeCode) throws Exception {
 		List<RegBioRefDto> bioRefDtos = packetInfoManager.getBioRefIdByRegId(regId);
 		String bioRefId;
 		if (bioRefDtos.isEmpty()) {
@@ -231,7 +278,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		} else {
 			bioRefId = bioRefDtos.get(0).getBioRefId();
 		}
-		createInsertRequest(abisQueueDetails, transactionId, bioRefId, regId, description);
+		createInsertRequest(abisQueueDetails, transactionId, bioRefId, regId, process, description);
 		createIdentifyRequest(abisQueueDetails, transactionId, bioRefId, transactionTypeCode, description);
 
 	}
@@ -388,7 +435,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	 * @param description
 	 */
 	private void createInsertRequest(List<AbisQueueDetails> abisQueueDetails, String transactionId, String bioRefId,
-			String regId, LogDescription description) {
+			String regId, String process, LogDescription description) throws Exception {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				regId, "AbisHandlerStage::createInsertRequest()::entry");
 		String batchId = getUUID();
@@ -410,7 +457,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			abisRequestDto.setReqBatchId(batchId);
 			abisRequestDto.setRefRegtrnId(transactionId);
 
-			byte[] abisInsertRequestBytes = getInsertRequestBytes(regId, id, bioRefId, description);
+			byte[] abisInsertRequestBytes = getInsertRequestBytes(regId, id, process, bioRefId, description);
 			abisRequestDto.setReqText(abisInsertRequestBytes);
 
 			abisRequestDto.setStatusCode(AbisStatusCode.IN_PROGRESS.toString());
@@ -447,11 +494,11 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	 * @param description
 	 * @return the insert request bytes
 	 */
-	private byte[] getInsertRequestBytes(String regId, String id, String bioRefId, LogDescription description) {
+	private byte[] getInsertRequestBytes(String regId, String id, String process, String bioRefId, LogDescription description) throws Exception {
 		AbisInsertRequestDto abisInsertRequestDto = new AbisInsertRequestDto();
 		abisInsertRequestDto.setId(AbisHandlerStageConstant.MOSIP_ABIS_INSERT);
 		abisInsertRequestDto.setReferenceId(bioRefId);
-		abisInsertRequestDto.setReferenceURL(url + "/" + bioRefId);
+		abisInsertRequestDto.setReferenceURL(getDataShareUrl(regId, process));
 		abisInsertRequestDto.setRequestId(id);
 		abisInsertRequestDto.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		abisInsertRequestDto.setVersion(AbisHandlerStageConstant.VERSION);
@@ -475,5 +522,46 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	 */
 	private String getUUID() {
 		return UUID.randomUUID().toString();
+	}
+
+	private String getDataShareUrl(String id, String process) throws Exception {
+
+		FileSystemResource resource = new FileSystemResource(CryptoUtil.encodeBase64String(getCbeffXml(id, process)));
+
+		LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+		map.add("file", resource);
+
+		List<String> pathSegments = new ArrayList<>();
+		pathSegments.add(policyId);
+		pathSegments.add(subscriberId);
+
+		MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
+		//headers.add("Cookie", restApiClient.getToken());
+		//headers.add("Content-Type", MediaType.MULTIPART_FORM_DATA_VALUE);
+
+
+		/*UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(env.getProperty("DATASHARECREATEURL"));
+		builder.queryParam("file", resource);
+		builder.pathSegment(policyId, subscriberId);
+		UriComponents uriComponents = builder.build(false).encode();*/
+
+		//TODO : complete this functionality
+		//String response = new RestTemplate().exchange(uriComponents.toUri(), HttpMethod.POST, new HttpEntity<Object>(headers), String.class).getBody();
+
+
+		/*ResponseEntity<ResponseWrapper<DataShare>> response = (ResponseEntity<ResponseWrapper<DataShare>>) registrationProcessorRestClientService.postApi(
+				ApiName.DATASHARECREATEURL, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, DataShare.class);*/
+
+		return null;
+	}
+
+	private byte[] getCbeffXml(String id, String process) throws Exception {
+		String source = utility.getDefaultSource();
+		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
+		String individualBiometricsLabel = JsonUtil.getJSONValue(
+				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
+				MappingJsonConstants.VALUE);
+		BiometricRecord biometricRecord = packetManagerService.getBiometrics(id, individualBiometricsLabel, null, source, process);
+		return cbeffutil.createXML(biometricRecord.getSegments());
 	}
 }
