@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -152,6 +151,12 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 	private static String SLASH = "/";
 
+	@Value("${objectstore.packet.officer_biometrics_file_name}")
+	private String officerBiometricsFileName;
+
+	@Value("${objectstore.packet.supervisor_biometrics_file_name}")
+	private String supervisorBiometricsFileName;
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -184,6 +189,11 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			setDocuments(registrationDTO, metaInfoMap);
 			setBiometrics(registrationDTO, schema, metaInfoMap);
 
+			setOperatorBiometrics(registrationDTO.getRegistrationId(), registrationDTO.getRegistrationCategory(),
+					registrationDTO.getOfficerBiometrics(), officerBiometricsFileName);
+
+			setOperatorBiometrics(registrationDTO.getRegistrationId(), registrationDTO.getRegistrationCategory(),
+					registrationDTO.getSupervisorBiometrics(), supervisorBiometricsFileName);
 			setAudits(registrationDTO);
 
 			setMetaInfo(registrationDTO, metaInfoMap);
@@ -191,21 +201,13 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			packetWriter.addMetaInfo(registrationDTO.getRegistrationId(), metaInfoMap, source,
 					registrationDTO.getRegistrationCategory());
 
-			// validateIdObject(schema.getSchemaJson(), packetCreator.getIdentityObject(),
-			// registrationDTO.getRegistrationCategory());
-
-			// setOtherDetails(registrationDTO);
-			// packetCreator.setAcknowledgement(registrationDTO.getAcknowledgeReceiptName(),
-			// registrationDTO.getAcknowledgeReceipt());
-
-			// byte[] packetZip =
-			// packetCreator.createPacket(registrationDTO.getRegistrationId(),
-			// registrationDTO.getIdSchemaVersion(),
-			// schema.getSchemaJson(), null, getPublicKeyToEncrypt(), null);
-
 			packetWriter.persistPacket(registrationDTO.getRegistrationId(),
 					String.valueOf(registrationDTO.getIdSchemaVersion()), schema.getSchemaJson(), source,
-					registrationDTO.getRegistrationCategory(), getPublicKeyToEncrypt(), true);
+					registrationDTO.getRegistrationCategory(), true);
+
+//			packetWriter.persistPacket(registrationDTO.getRegistrationId(),
+//					String.valueOf(registrationDTO.getIdSchemaVersion()), schema.getSchemaJson(), source,
+//					registrationDTO.getRegistrationCategory(), getPublicKeyToEncrypt(), true);
 
 			String filePath = baseLocation + SLASH + packetManagerAccount + SLASH + registrationDTO.getRegistrationId();
 
@@ -233,6 +235,28 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		return responseDTO;
 	}
 
+	private void setOperatorBiometrics(String registrationId, String registrationCategory,
+			List<BiometricsDto> operatorBiometrics, String fileName) {
+
+		/** Operator/officer/supervisor Biometrics */
+		if (!operatorBiometrics.isEmpty()) {
+			for (BiometricsDto biometricsDto : operatorBiometrics) {
+				List<BIR> list = new ArrayList<>();
+				BIR bir = getBIR(biometricsDto);
+
+				list.add(bir);
+
+				BiometricRecord biometricRecord = new BiometricRecord();
+
+				// TODO set version type,bir info
+				biometricRecord.setSegments(list);
+
+				packetWriter.setBiometric(registrationId, fileName, biometricRecord, source, registrationCategory);
+			}
+		}
+
+	}
+
 	private void setMetaInfo(RegistrationDTO registrationDTO, Map<String, String> metaInfoMap)
 			throws RegBaseCheckedException {
 
@@ -251,10 +275,12 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 		Map<String, String> operationsDataMap = new LinkedHashMap<>();
 		operationsDataMap.put(PacketManagerConstants.META_OFFICER_ID, registrationDTO.getOsiDataDTO().getOperatorID());
-		operationsDataMap.put(PacketManagerConstants.META_OFFICER_BIOMETRIC_FILE, null);
+		operationsDataMap.put(PacketManagerConstants.META_OFFICER_BIOMETRIC_FILE,
+				registrationDTO.getOfficerBiometrics().isEmpty() ? null : officerBiometricsFileName);
 		operationsDataMap.put(PacketManagerConstants.META_SUPERVISOR_ID,
 				registrationDTO.getOsiDataDTO().getSupervisorID());
-		operationsDataMap.put(PacketManagerConstants.META_SUPERVISOR_BIOMETRIC_FILE, null);
+		operationsDataMap.put(PacketManagerConstants.META_SUPERVISOR_BIOMETRIC_FILE,
+				registrationDTO.getSupervisorBiometrics().isEmpty() ? null : supervisorBiometricsFileName);
 		operationsDataMap.put(PacketManagerConstants.META_SUPERVISOR_PWD,
 				String.valueOf(registrationDTO.getOsiDataDTO().isSuperviorAuthenticatedByPassword()));
 		operationsDataMap.put(PacketManagerConstants.META_OFFICER_PWD,
@@ -271,18 +297,21 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 	}
 
-	private List<SimpleDto> getLabelValueDTOListString(Map<String, String> operationsDataMap) {
+	private List<Map<String, String>> getLabelValueDTOListString(Map<String, String> operationsDataMap) {
 
-		List<SimpleDto> labelAndValueDTOs = new LinkedList<>();
+		List<Map<String, String>> labelValueMap = new LinkedList<>();
+
 		for (Entry<String, String> fieldName : operationsDataMap.entrySet()) {
 
-			// TODO
-			SimpleDto labelAndValueDTO = new SimpleDto(fieldName.getKey(), fieldName.getValue());
+			Map<String, String> map = new LinkedHashMap<>();
 
-			labelAndValueDTOs.add(labelAndValueDTO);
+			map.put("label", fieldName.getKey());
+			map.put("value", fieldName.getValue());
+
+			labelValueMap.add(map);
 		}
 
-		return labelAndValueDTOs;
+		return labelValueMap;
 	}
 
 	private void setOthersMetaInfo(Map<String, String> metaInfoMap, RegistrationDTO registrationDTO)
