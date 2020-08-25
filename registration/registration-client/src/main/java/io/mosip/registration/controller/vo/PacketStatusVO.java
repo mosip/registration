@@ -18,6 +18,9 @@ public class PacketStatusVO {
 	private SimpleStringProperty supervisorComments;
 	private SimpleStringProperty createdTime;
 	private SimpleStringProperty slno;
+	private SimpleStringProperty name;
+	private SimpleStringProperty phone;
+	private SimpleStringProperty email;
 	
 	/**
 	 * @return the supervisorStatus
@@ -129,6 +132,30 @@ public class PacketStatusVO {
 
 	public void setSlno(String slno) {
 		this.slno = new SimpleStringProperty(slno);
+	}
+	
+	public String getName() {
+		return name == null ? null : name.get();
+	}
+
+	public void setName(String name) {
+		this.name = new SimpleStringProperty(name);
+	}
+	
+	public String getPhone() {
+		return phone == null ? null : phone.get();
+	}
+
+	public void setPhone(String phone) {
+		this.phone = new SimpleStringProperty(phone);
+	}
+	
+	public String getEmail() {
+		return email == null ? null : email.get();
+	}
+
+	public void setEmail(String email) {
+		this.email = new SimpleStringProperty(email);
 	}
 	
 }

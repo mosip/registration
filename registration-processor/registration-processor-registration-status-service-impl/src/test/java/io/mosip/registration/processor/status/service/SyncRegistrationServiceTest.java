@@ -326,14 +326,14 @@ public class SyncRegistrationServiceTest {
 	public void testGetSyncRegistrationStatusSuccess() {
 
 		Mockito.when(syncRegistrationDao.save(any())).thenReturn(syncRegistrationEntity);
-		List<SyncResponseDto> syncResponse = syncRegistrationService.sync(entities);
+		List<SyncResponseDto> syncResponse = syncRegistrationService.sync(entities, "", "");
 
 		assertEquals("Verifing List returned", ((SyncResponseFailureDto) syncResponse.get(0)).getRegistrationId(),
 				syncRegistrationDto.getRegistrationId());
 
 		Mockito.when(syncRegistrationDao.findById(any())).thenReturn(syncRegistrationEntity);
 		Mockito.when(syncRegistrationDao.update(any())).thenReturn(syncRegistrationEntity);
-		List<SyncResponseDto> syncResponseDto = syncRegistrationService.sync(entities);
+		List<SyncResponseDto> syncResponseDto = syncRegistrationService.sync(entities, "", "");
 		assertEquals("Verifing if list is returned. Expected value should be 1002",
 				syncRegistrationDto.getRegistrationId(),
 				((SyncResponseFailureDto) syncResponse.get(0)).getRegistrationId());
@@ -352,7 +352,7 @@ public class SyncRegistrationServiceTest {
 		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
 				"errorMessage", new Exception());
 		Mockito.when(syncRegistrationDao.save(any())).thenThrow(exp);
-		syncRegistrationService.sync(entities);
+		syncRegistrationService.sync(entities, "", "");
 
 	}
 
@@ -376,7 +376,7 @@ public class SyncRegistrationServiceTest {
 		InvalidIDException exp = new InvalidIDException(RidExceptionProperty.INVALID_RID_LENGTH.getErrorCode(),
 				RidExceptionProperty.INVALID_RID_LENGTH.getErrorMessage());
 		Mockito.when(ridValidator.validateId(any())).thenThrow(exp);
-		syncRegistrationService.sync(entities);
+		syncRegistrationService.sync(entities, "", "");
 	}
 
 	/**
@@ -389,7 +389,7 @@ public class SyncRegistrationServiceTest {
 		InvalidIDException exp = new InvalidIDException(RidExceptionProperty.INVALID_RID_LENGTH.getErrorCode(),
 				RidExceptionProperty.INVALID_RID_LENGTH.getErrorMessage());
 		Mockito.when(ridValidator.validateId("123456789012345678")).thenThrow(exp);
-		syncRegistrationService.sync(entities);
+		syncRegistrationService.sync(entities, "", "");
 	}
 
 	/**
@@ -402,7 +402,7 @@ public class SyncRegistrationServiceTest {
 		InvalidIDException exp = new InvalidIDException(RidExceptionProperty.INVALID_RID_TIMESTAMP.getErrorCode(),
 				RidExceptionProperty.INVALID_RID_TIMESTAMP.getErrorMessage());
 		Mockito.when(ridValidator.validateId("12345678901234567890123456799")).thenThrow(exp);
-		syncRegistrationService.sync(entities);
+		syncRegistrationService.sync(entities, "", "");
 	}
 
 	/**
@@ -415,7 +415,7 @@ public class SyncRegistrationServiceTest {
 		InvalidIDException exp = new InvalidIDException(RidExceptionProperty.INVALID_RID_LENGTH.getErrorCode(),
 				RidExceptionProperty.INVALID_RID_LENGTH.getErrorMessage());
 		Mockito.when(ridValidator.validateId("123456789012345678")).thenThrow(exp);
-		syncRegistrationService.sync(entities);
+		syncRegistrationService.sync(entities, "", "");
 	}
 
 	/**
@@ -428,7 +428,7 @@ public class SyncRegistrationServiceTest {
 		InvalidIDException exp = new InvalidIDException(RidExceptionProperty.INVALID_RID_TIMESTAMP.getErrorCode(),
 				RidExceptionProperty.INVALID_RID_TIMESTAMP.getErrorMessage());
 		Mockito.when(ridValidator.validateId("12345678901234567890123456799")).thenThrow(exp);
-		syncRegistrationService.sync(entities);
+		syncRegistrationService.sync(entities, "", "");
 	}
 
 	/**
@@ -441,7 +441,7 @@ public class SyncRegistrationServiceTest {
 		InvalidIDException exp = new InvalidIDException(RidExceptionProperty.INVALID_RID.getErrorCode(),
 				RidExceptionProperty.INVALID_RID.getErrorMessage());
 		Mockito.when(ridValidator.validateId("1234567890123456789012345ABCD")).thenThrow(exp);
-		syncRegistrationService.sync(entities);
+		syncRegistrationService.sync(entities, "", "");
 	}
 
 	@Test
