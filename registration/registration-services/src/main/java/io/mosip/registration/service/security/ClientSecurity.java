@@ -18,7 +18,6 @@ public interface ClientSecurity {
 	 *  
 	 * @param signature
 	 * @param actualData
-	 * @param publicPart
 	 * @return
 	 */
 	public boolean validateSignature(byte[] signature, byte[] actualData);
@@ -52,5 +51,11 @@ public interface ClientSecurity {
 	 * @throws RegBaseCheckedException
 	 */
 	public void closeSecurityInstance() throws RegBaseCheckedException;
+
+	/**
+	 *
+	 * @return true if the implementation was specific to TPM
+	 */
+	public boolean isTPMInstance();
 
 }

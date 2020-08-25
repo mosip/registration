@@ -271,7 +271,6 @@ public class LoginServiceTest {
 	public void initialSyncTest() throws RegBaseCheckedException {
 		Map<String, Object> applicationMap = new HashMap<>();
 		applicationMap.put(RegistrationConstants.INITIAL_SETUP, "Y");
-		applicationMap.put(RegistrationConstants.TPM_AVAILABILITY, RegistrationConstants.ENABLE);
 
 		ResponseDTO responseDTO = new ResponseDTO();
 		SuccessResponseDTO successResponseDTO = new SuccessResponseDTO();
@@ -302,8 +301,6 @@ public class LoginServiceTest {
 	public void initialSyncFailureTest() throws RegBaseCheckedException {
 		Map<String, Object> applicationMap = new HashMap<>();
 		applicationMap.put(RegistrationConstants.INITIAL_SETUP, RegistrationConstants.ENABLE);
-		applicationMap.put(RegistrationConstants.TPM_AVAILABILITY, RegistrationConstants.ENABLE);
-		
 		ApplicationContext.setApplicationMap(applicationMap);
 
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -339,7 +336,6 @@ public class LoginServiceTest {
 	public void initialSyncFailureExceptionTest() throws RegBaseCheckedException {
 		Map<String, Object> applicationMap = new HashMap<>();
 		applicationMap.put(RegistrationConstants.INITIAL_SETUP, "Y");
-		applicationMap.put(RegistrationConstants.TPM_AVAILABILITY, RegistrationConstants.ENABLE);
 		ApplicationContext.setApplicationMap(applicationMap);
 
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -360,8 +356,7 @@ public class LoginServiceTest {
 	public void initialSyncFalseTest() throws RegBaseCheckedException {
 		Map<String, Object> applicationMap = new HashMap<>();
 		applicationMap.put(RegistrationConstants.INITIAL_SETUP, RegistrationConstants.DISABLE);
-		applicationMap.put(RegistrationConstants.TPM_AVAILABILITY, RegistrationConstants.ENABLE);
-		
+
 		ApplicationContext.setApplicationMap(applicationMap);
 
 		ResponseDTO responseDTO = new ResponseDTO();

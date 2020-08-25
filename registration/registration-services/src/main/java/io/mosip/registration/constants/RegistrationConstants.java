@@ -1527,7 +1527,6 @@ public class RegistrationConstants {
 	public static final String ERROR_CODE = "errorCode";
 	public static final String MESSAGE_CODE = "message";
 	public static final String TPM_PUBLIC_KEY_SYNC_SERVICE_NAME = "tpm_public_key";
-	public static final String TPM_AVAILABILITY = "is_tpm_available";
 	public static final String SERIAL_NUMBER = "serialnumber";
 
 	public static final Map<String, String> userOnBoardMap = new HashMap<String, String>() {

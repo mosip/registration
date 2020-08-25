@@ -320,7 +320,7 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 			responseDTO = publicKeySyncImpl.getPublicKey(RegistrationConstants.JOB_TRIGGER_POINT_USER);
 			validateResponse(responseDTO, PUBLIC_KEY_SYNC_STEP);
 			
-			String keyIndex = verifyMachinePublicKeyMapping(isInitialSetUp);
+			String keyIndex = tpmPublicKeySyncService.syncTPMPublicKey();
 			if(null!=keyIndex) {
 				ApplicationContext.map().put(RegistrationConstants.KEY_INDEX, keyIndex);
 			}
@@ -353,24 +353,23 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 		}
 		return results;
 	}
-	
-	
-	//TODO - till today check was based on only properties flag, should we do real check ?
-	private String verifyMachinePublicKeyMapping(boolean isInitialSetup) throws RegBaseCheckedException {
+
+	//Not required as this validation is handled in ClientSecurityFacade
+	/*private String verifyMachinePublicKeyMapping(boolean isInitialSetup) throws RegBaseCheckedException {
 		final boolean tpmAvailable = RegistrationConstants.ENABLE.equals(getGlobalConfigValueOf(RegistrationConstants.TPM_AVAILABILITY));
 		final String environment = getGlobalConfigValueOf(RegistrationConstants.SERVER_ACTIVE_PROFILE);
-		
+
 		if(RegistrationConstants.SERVER_PROD_PROFILE.equalsIgnoreCase(environment) && !tpmAvailable) {
 			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "TPM IS REQUIRED TO BE ENABLED.");
 			throw new RegBaseCheckedException(RegistrationExceptionConstants.TPM_REQUIRED.getErrorCode(),
 					RegistrationExceptionConstants.TPM_REQUIRED.getErrorMessage());
 		}
-		
-		LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "CURRENT PROFILE : " + 
+
+		LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "CURRENT PROFILE : " +
 				environment != null ? environment : RegistrationConstants.SERVER_NO_PROFILE);
-		
+
 		return tpmPublicKeySyncService.syncTPMPublicKey();
-	}
+	}*/
 	
 	private void validateResponse(ResponseDTO responseDTO, String syncStep) throws RegBaseCheckedException {
 		if(responseDTO == null)
