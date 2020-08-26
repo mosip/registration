@@ -1239,7 +1239,6 @@ public class MasterSyncServiceTest {
 	public void getRequestParamsUpdatedDateTest() throws Exception {
 		PowerMockito.mockStatic(ApplicationContext.class);
 		Map<String, Object> applicationContext = new HashMap<>();
-		applicationContext.put(RegistrationConstants.TPM_AVAILABILITY, RegistrationConstants.ENABLE);
 		MachineMaster machineMaster = new MachineMaster();
 		machineMaster.setKeyIndex("keyIndex");
 		SyncControl syncControl = new SyncControl();

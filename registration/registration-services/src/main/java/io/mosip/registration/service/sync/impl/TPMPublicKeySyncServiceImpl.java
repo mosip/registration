@@ -6,6 +6,7 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.service.security.ClientSecurityFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,9 +44,6 @@ public class TPMPublicKeySyncServiceImpl implements TPMPublicKeySyncService {
 	
 	@Autowired
 	private ServiceDelegateUtil serviceDelegateUtil;
-	
-	@Autowired
-	private ClientSecurity clientSecurity;
 
 	/*
 	 * (non-Javadoc)
@@ -68,7 +66,7 @@ public class TPMPublicKeySyncServiceImpl implements TPMPublicKeySyncService {
 			tpmKeyUploadRequest.setRequesttime(DateUtils.getUTCCurrentDateTime());
 			PublicKeyUploadRequestDTO publicKeyUploadRequestDTO = new PublicKeyUploadRequestDTO();
 			publicKeyUploadRequestDTO.setMachineName(InetAddress.getLocalHost().getHostName());
-			publicKeyUploadRequestDTO.setPublicKey(CryptoUtil.encodeBase64(clientSecurity.getSigningPublicPart()));
+			publicKeyUploadRequestDTO.setPublicKey(ClientSecurityFacade.getClientInstancePublicKey());
 			tpmKeyUploadRequest.setRequest(publicKeyUploadRequestDTO);
 
 			Map<String, Object> publicKeyResponse = (Map<String, Object>) serviceDelegateUtil.post(
