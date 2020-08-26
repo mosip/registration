@@ -1,9 +1,11 @@
 package io.mosip.registration.processor.abis.handler.stage;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import com.google.common.collect.Maps;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
@@ -27,9 +29,11 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -535,9 +539,23 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		pathSegments.add(policyId);
 		pathSegments.add(subscriberId);*/
 
-		MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
+		//MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
 		//headers.add("Cookie", restApiClient.getToken());
 		//headers.add("Content-Type", MediaType.MULTIPART_FORM_DATA_VALUE);
+
+		/*MultipartBodyBuilder builder = new MultipartBodyBuilder();
+		builder.part("file", "2;3;4".getBytes());
+		MultiValueMap<String, HttpEntity<?>> body = builder.build();
+		HttpHeaders headers = new HttpHeaders();
+		headers.setAccept(Collections.singletonList(MediaType.ALL));
+		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+		headers.add("Cookie", restApiClient.getToken());
+		HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity(body, headers);
+		RestTemplate restTemplate = new RestTemplate();
+		ResponseEntity<String> response = restTemplate.exchange("http://localhost:8097/v1/datashare/create/regproc/regproc", HttpMethod.POST, requestEntity, String.class);
+		System.out.println(response.getBody());
+
+		throw new BaseUncheckedException("");*/
 
 
 		/*UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(env.getProperty("DATASHARECREATEURL"));
@@ -552,7 +570,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		/*ResponseEntity<ResponseWrapper<DataShare>> response = (ResponseEntity<ResponseWrapper<DataShare>>) registrationProcessorRestClientService.postApi(
 				ApiName.DATASHARECREATEURL, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, DataShare.class);*/
 
-		return null;
+		//return null;
 	}
 
 	private byte[] getCbeffXml(String id, String process) throws Exception {

@@ -201,7 +201,7 @@ public class ManualVerificationServiceTest {
 		Mockito.when(mapper.readValue(anyString(),any(Class.class))).thenReturn(userResponseDTOWrapper);
 		responseWrapper.setResponse(userResponseDTOWrapper);
 		try {
-			Mockito.doReturn(responseWrapper).when(restClientService).getApi(any(), any(), any(), any(), any());
+			Mockito.doReturn(responseWrapper).when(restClientService).getApi(any(), any(), anyString(), any(), any());
 		} catch (ApisResourceAccessException e) {
 			e.printStackTrace();
 		}
@@ -285,7 +285,7 @@ public class ManualVerificationServiceTest {
 
 		responseWrapper.setResponse(null);
 		try {
-			Mockito.doReturn(responseWrapper).when(restClientService).getApi(any(), any(), any(), any(), any());
+			Mockito.doReturn(responseWrapper).when(restClientService).getApi(any(), any(), anyString(), any(), any());
 		} catch (ApisResourceAccessException e) {
 			e.printStackTrace();
 		}
@@ -296,7 +296,7 @@ public class ManualVerificationServiceTest {
 	public void ApisResourceAccessExceptionTest() throws ApisResourceAccessException {
 		dto.setUserId("dummyID");
 		dto.setMatchType("DEMO");
-		Mockito.doThrow(ApisResourceAccessException.class).when(restClientService).getApi(any(), any(), any(), any(), any());
+		Mockito.doThrow(ApisResourceAccessException.class).when(restClientService).getApi(any(), any(), anyString(), any(), any());
 		
 		manualAdjudicationService.assignApplicant(dto);
 	}

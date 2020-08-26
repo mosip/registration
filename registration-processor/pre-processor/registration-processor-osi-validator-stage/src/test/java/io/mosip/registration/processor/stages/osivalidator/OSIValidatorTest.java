@@ -343,7 +343,7 @@ public class OSIValidatorTest {
 		idResponseDTO.setResponse(responseDTO1);
 		regOsiDto.setSupervisorHashedPwd("true");
 		regOsiDto.setOfficerHashedPwd("true");
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(userResponseDto)
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(userResponseDto)
 				.thenReturn(userResponseDto).thenReturn(ridResponseDto1).thenReturn(idResponseDTO)
 				.thenReturn(ridResponseDto1).thenReturn(idResponseDTO);
 		Mockito.when(osiUtils.getOSIDetailsFromMetaInfo(anyMap())).thenReturn(regOsiDto);
@@ -415,7 +415,7 @@ public class OSIValidatorTest {
 		userResponseDto.setResponse(userDetailsResponseDto);
 		
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(userResponseDto)
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(userResponseDto)
 				.thenReturn(userResponseDto);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
 		boolean isValid = osiValidator.isValidOSI("reg1234", "reg-client", registrationStatusDto, metaInfo);
@@ -431,7 +431,7 @@ public class OSIValidatorTest {
 		userResponseDto.setErrors(errors);
 		
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(userResponseDto)
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(userResponseDto)
 				.thenReturn(userResponseDto);
 		registrationStatusDto.setRegistrationType("ACTIVATED");
 		boolean isValid = osiValidator.isValidOSI("reg1234", "reg-client", registrationStatusDto, metaInfo);
@@ -461,7 +461,7 @@ public class OSIValidatorTest {
 	@Test(expected = ApisResourceAccessException.class)
 	public void tesApisResourceAccessException() throws Exception {
 		ApisResourceAccessException apisResourceAccessException = new ApisResourceAccessException("bad request");
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(userResponseDto)
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(userResponseDto)
 				.thenThrow(apisResourceAccessException);
 		
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
@@ -476,7 +476,7 @@ public class OSIValidatorTest {
 				"error");
 		ApisResourceAccessException apisResourceAccessException = new ApisResourceAccessException("bad request",
 				httpClientErrorException);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(userResponseDto)
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(userResponseDto)
 				.thenThrow(apisResourceAccessException);
 		
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);
@@ -491,7 +491,7 @@ public class OSIValidatorTest {
 				"error");
 		ApisResourceAccessException apisResourceAccessException = new ApisResourceAccessException("bad request",
 				httpServerErrorException);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(userResponseDto)
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(userResponseDto)
 				.thenThrow(apisResourceAccessException);
 		
 		Mockito.when(registrationStatusService.checkUinAvailabilityForRid(any())).thenReturn(true);

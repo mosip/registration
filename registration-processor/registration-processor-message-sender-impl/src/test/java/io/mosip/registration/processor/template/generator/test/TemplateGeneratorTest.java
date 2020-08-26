@@ -76,7 +76,7 @@ public class TemplateGeneratorTest {
 		String s = responseDto.toString();
 		responseWrapper.setResponse(responseDto);
 		responseWrapper.setErrors(null);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(responseWrapper);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(responseWrapper);
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(responseDto);
 	}
@@ -109,7 +109,7 @@ public class TemplateGeneratorTest {
 		attributes.put("FirstName", "Alok");
 
 		TemplateResourceNotFoundException e = new TemplateResourceNotFoundException(null, null);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenThrow(e);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenThrow(e);
 
 		templateGenerator.getTemplate(templateTypeCode, attributes, langCode);
 	}

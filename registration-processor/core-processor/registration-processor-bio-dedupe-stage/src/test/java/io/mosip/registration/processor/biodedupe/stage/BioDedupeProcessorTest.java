@@ -197,7 +197,7 @@ public class BioDedupeProcessorTest {
 
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any()))
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn("1233445566".getBytes("UTF-16"));
 		Mockito.when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn(ERROR);
 		Mockito.doNothing().when(packetInfoManager).saveManualAdjudicationData(any(), any(), any(), any(), any());
@@ -240,7 +240,7 @@ public class BioDedupeProcessorTest {
 	public void testNewInsertionToUinSuccess() throws Exception {
 		Mockito.when(bioDedupeService.getFileByRegId(anyString(),anyString(),anyString())).thenReturn(null);
 		ReflectionTestUtils.setField(bioDedupeProcessor, "infantDedupe", "N");
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(null);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(null);
 		Mockito.when(utility.getApplicantAge(any(),any(),any())).thenReturn(2);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
@@ -257,7 +257,7 @@ public class BioDedupeProcessorTest {
 	@Test
 	public void testNewInsertionAdultCBEFFNotFoundException() throws Exception {
 		Mockito.when(bioDedupeService.getFileByRegId(anyString(),anyString(),anyString())).thenReturn(null);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(null);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(null);
 		Mockito.when(utility.getApplicantAge(any(),any(),any())).thenReturn(12);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getInternalError());
@@ -274,7 +274,7 @@ public class BioDedupeProcessorTest {
 		Mockito.when(bioDedupeService.getFileByRegId(anyString(),anyString(),anyString())).thenReturn(null);
 
 		ReflectionTestUtils.setField(bioDedupeProcessor, "ageLimit", "age");
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(null);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(null);
 		Mockito.when(utility.getApplicantAge(any(),any(),any())).thenReturn(12);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getInternalError());
@@ -289,7 +289,7 @@ public class BioDedupeProcessorTest {
 	@Test
 	public void testNewInsertionIOException() throws Exception {
 		Mockito.when(bioDedupeService.getFileByRegId(anyString(),anyString(),anyString())).thenReturn(null);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(null);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(null);
 		Mockito.when(utility.getApplicantAge(any(),any(),any())).thenThrow(new IOException("IOException"));
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getInternalError());
@@ -600,7 +600,7 @@ public class BioDedupeProcessorTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 		Mockito.when(bioDedupeService.getFileByRegId(anyString(),anyString(),anyString())).thenReturn(null);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(null);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(null);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getInternalError());
 	}

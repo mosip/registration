@@ -98,7 +98,7 @@ public class MasterDataValidationTest {
 		when(env.getProperty(PRIMARY_LANGUAGE)).thenReturn("eng");
 		when(env.getProperty(SECONDARY_LANGUAGE)).thenReturn("ara");
 		when(env.getProperty(ATTRIBUTES)).thenReturn("gender,region,province,city,postalcode");
-		Mockito.when(registrationProcessorRestService.getApi(any(), any(), any(), any(), any()))
+		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responseWrapper);
 
 		org.json.simple.JSONArray jsonArray = new org.json.simple.JSONArray();
@@ -163,7 +163,7 @@ public class MasterDataValidationTest {
 		ResponseWrapper<StatusResponseDto> responseWrapper = new ResponseWrapper<>();
 		responseWrapper.setResponse(statusResponseDto);
 
-		Mockito.when(registrationProcessorRestService.getApi(any(), any(), any(), any(), any()))
+		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responseWrapper);
 
 		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
@@ -180,7 +180,7 @@ public class MasterDataValidationTest {
 		responseWrapper.setResponse(statusResponseDto);
 
 		when(env.getProperty(ATTRIBUTES)).thenReturn("region,province,city,postalcode");
-		Mockito.when(registrationProcessorRestService.getApi(any(), any(), any(), any(), any()))
+		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responseWrapper);
 
 		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
@@ -195,7 +195,7 @@ public class MasterDataValidationTest {
 		responseWrapper.setResponse(statusResponseDto);
 
 		when(env.getProperty(ATTRIBUTES)).thenReturn("province,city,postalcode");
-		Mockito.when(registrationProcessorRestService.getApi(any(), any(), any(), any(), any()))
+		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responseWrapper);
 
 		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
@@ -211,7 +211,7 @@ public class MasterDataValidationTest {
 		responseWrapper.setResponse(statusResponseDto);
 
 		when(env.getProperty(ATTRIBUTES)).thenReturn("city,postalcode");
-		Mockito.when(registrationProcessorRestService.getApi(any(), any(), any(), any(), any()))
+		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responseWrapper);
 
 		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
@@ -227,7 +227,7 @@ public class MasterDataValidationTest {
 		responseWrapper.setResponse(statusResponseDto);
 
 		when(env.getProperty(ATTRIBUTES)).thenReturn("postalCode");
-		Mockito.when(registrationProcessorRestService.getApi(any(), any(), any(), any(), any()))
+		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responseWrapper);
 
 		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
@@ -245,7 +245,7 @@ public class MasterDataValidationTest {
 				"Invalid request", null, responseBody, null);
 		Mockito.when(apisResourceAccessException.getCause()).thenReturn(httpClientErrorException);
 
-		Mockito.when(registrationProcessorRestService.getApi(any(), any(), any(), any(), any()))
+		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any()))
 				.thenThrow(apisResourceAccessException);
 		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
 		assertFalse("Test for Api resource Access Exception in Gender Name Api", isMasterDataValidated);
@@ -262,7 +262,7 @@ public class MasterDataValidationTest {
 				"Invalid request", null, responseBody, null);
 		Mockito.when(apisResourceAccessException.getCause()).thenReturn(httpClientErrorException);
 
-		Mockito.when(registrationProcessorRestService.getApi(any(), any(), any(), any(), any()))
+		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any()))
 				.thenThrow(apisResourceAccessException);
 		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
 		assertFalse("Test for Api resource Access Exception in Location Name Api", isMasterDataValidated);

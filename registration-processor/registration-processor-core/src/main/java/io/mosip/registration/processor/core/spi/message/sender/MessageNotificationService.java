@@ -32,7 +32,7 @@ public interface MessageNotificationService<T, U, V> {
 	 * @throws io.mosip.kernel.core.exception.IOException 
 	 * @throws PacketDecryptionFailureException 
 	 */
-	public T sendSmsNotification(String templateTypeCode, String id, IdType idType,
+	public T sendSmsNotification(String templateTypeCode, String id, String process, IdType idType,
 			Map<String, Object> attributes, String regType) throws ApisResourceAccessException, IOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException;
 	
@@ -50,7 +50,7 @@ public interface MessageNotificationService<T, U, V> {
 	 * @throws IOException
 	 * @throws ApisResourceAccessException
 	 */
-	public U sendEmailNotification(String templateTypeCode, String id,
+	public U sendEmailNotification(String templateTypeCode, String id, String process,
 			IdType idType, Map<String, Object> attributes, String[] mailCc, String subject,
 			V attachment, String regType) throws IOException, ApisResourceAccessException,Exception;
 	
