@@ -55,8 +55,7 @@ public class RestClientAuthAdviceTest {
 	private ProceedingJoinPoint proceedingJoinPoint;
 	@Mock
 	private MachineMappingDAO machineMappingDAO;
-	@Mock
-	private ClientSecurity clientSecurity;
+
 	@InjectMocks
 	private RestClientAuthAdvice restClientAuthAdvice;
 
@@ -70,7 +69,6 @@ public class RestClientAuthAdviceTest {
 		LoginUserDTO loginUserDTO = new LoginUserDTO();
 		loginUserDTO.setUserId("user");
 		value.put(RegistrationConstants.USER_DTO, loginUserDTO);
-		value.put(RegistrationConstants.TPM_AVAILABILITY, RegistrationConstants.DISABLE);
 
 		PowerMockito.doReturn(authTokenDTO).when(ApplicationContext.class, "authTokenDTO");
 		PowerMockito.doReturn(authTokenDTO).when(SessionContext.class, "authTokenDTO");
@@ -253,7 +251,6 @@ public class RestClientAuthAdviceTest {
 		Object[] args = new Object[1];
 		args[0] = requestHTTPDTO;
 		Map<String, Object> applicationContext = new HashMap<>();
-		applicationContext.put(RegistrationConstants.TPM_AVAILABILITY, RegistrationConstants.ENABLE);
 
 		Mockito.when(proceedingJoinPoint.getArgs()).thenReturn(args);
 		Mockito.when(proceedingJoinPoint.proceed(proceedingJoinPoint.getArgs())).thenReturn(new Object());
