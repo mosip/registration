@@ -22,6 +22,9 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.FileUtils;
 import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.kernel.core.util.exception.JsonMappingException;
+import io.mosip.kernel.core.util.exception.JsonParseException;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.DeviceTypes;
 import io.mosip.registration.constants.RegistrationConstants;
@@ -32,6 +35,7 @@ import io.mosip.registration.dao.UserOnboardDAO;
 import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.PacketStatusDTO;
 import io.mosip.registration.dto.RegistrationDTO;
+import io.mosip.registration.dto.RegistrationDataDto;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.SuccessResponseDTO;
 import io.mosip.registration.entity.Registration;
@@ -301,7 +305,20 @@ public class BaseService {
 		statusDTO.setUploadStatus(registration.getFileUploadStatus());
 		statusDTO.setPacketStatus(registration.getStatusCode());
 		statusDTO.setSupervisorStatus(registration.getClientStatusCode());
-		statusDTO.setSupervisorComments(registration.getClientStatusComments());
+		statusDTO.setSupervisorComments(registration.getClientStatusComments());		
+		
+		try {
+			if (registration.getAdditionalInfo() != null) {
+				String additionalInfo = new String(registration.getAdditionalInfo());
+				RegistrationDataDto registrationDataDto = (RegistrationDataDto) JsonUtils.jsonStringToJavaObject(RegistrationDataDto.class, additionalInfo);
+				statusDTO.setName(registrationDataDto.getName());
+				statusDTO.setPhone(registrationDataDto.getPhone());
+				statusDTO.setEmail(registrationDataDto.getEmail());
+			}
+		} catch (JsonParseException | JsonMappingException | io.mosip.kernel.core.exception.IOException exception) {
+			LOGGER.error("REGISTRATION_BASE_SERVICE", APPLICATION_NAME, APPLICATION_ID,
+					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+		}
 
 		try (FileInputStream fis = new FileInputStream(FileUtils.getFile(registration.getAckFilename().replace(
 				RegistrationConstants.ACKNOWLEDGEMENT_FILE_EXTENSION, RegistrationConstants.ZIP_FILE_EXTENSION)))) {
