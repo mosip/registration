@@ -547,7 +547,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         byte[] packet = null;
 
         try {
-            packet = (byte[]) restClient.getApi(ApiName.NGINXDMZURL, pathSegment, null, null, byte[].class);
+            packet = (byte[]) restClient.getApi(ApiName.NGINXDMZURL, pathSegment, "", null, byte[].class);
         } catch (ApisResourceAccessException e) {
             if (e.getCause() instanceof HttpClientErrorException) {
                 HttpClientErrorException ex = (HttpClientErrorException) e.getCause();

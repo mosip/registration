@@ -526,14 +526,14 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	private String getDataShareUrl(String id, String process) throws Exception {
 
-		FileSystemResource resource = new FileSystemResource(CryptoUtil.encodeBase64String(getCbeffXml(id, process)));
+		/*FileSystemResource resource = new FileSystemResource(CryptoUtil.encodeBase64String(getCbeffXml(id, process)));
 
 		LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 		map.add("file", resource);
 
 		List<String> pathSegments = new ArrayList<>();
 		pathSegments.add(policyId);
-		pathSegments.add(subscriberId);
+		pathSegments.add(subscriberId);*/
 
 		MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
 		//headers.add("Cookie", restApiClient.getToken());

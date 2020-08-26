@@ -312,7 +312,7 @@ public class UinGeneratorStageTest {
 		messageDTO.setRid("27847657360002520181210094052");
 		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 		String response = "{\"uin\":\"6517036426\",\"status\":\"ASSIGNED\"}";
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any())).thenReturn(str);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(response);
 		messageDTO.setReg_type(RegistrationType.NEW);
@@ -359,7 +359,7 @@ public class UinGeneratorStageTest {
 		messageDTO.setReg_type(RegistrationType.NEW);
 		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any())).thenReturn(str);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(response);
 
@@ -394,7 +394,7 @@ public class UinGeneratorStageTest {
 		messageDTO.setRid("27847657360002520181210094052");
 		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 		String response = "{\"uin\":\"6517036426\",\"status\":\"ASSIGNED\"}";
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any())).thenReturn(str);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(response);
 
@@ -441,7 +441,7 @@ public class UinGeneratorStageTest {
 		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
 
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any())).thenReturn(str);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(response);
 
@@ -516,7 +516,7 @@ public class UinGeneratorStageTest {
 
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(idResponseDTO);
 
 		String idJsonData = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":4215839851}}";
@@ -578,7 +578,7 @@ public class UinGeneratorStageTest {
 		idResponseDTO1.setResponsetime("2019-01-17T06:29:01.940Z");
 		idResponseDTO1.setVersion("1.0");
 
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(idResponseDTO);
 
 		String idJsonData = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
@@ -640,7 +640,7 @@ public class UinGeneratorStageTest {
 		idResponseDTO1.setResponsetime("2019-01-17T06:29:01.940Z");
 		idResponseDTO1.setVersion("1.0");
 
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(idResponseDTO);
 
 		String idJsonData = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
@@ -704,7 +704,7 @@ public class UinGeneratorStageTest {
 		idResponseDTO1.setResponsetime("2019-01-17T06:29:01.940Z");
 		idResponseDTO1.setVersion("1.0");
 
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(idResponseDTO);
 
 		String idJsonData = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
@@ -769,7 +769,7 @@ public class UinGeneratorStageTest {
 
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(idResponseDTO);
 
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
@@ -824,7 +824,7 @@ public class UinGeneratorStageTest {
 		idResponseDTO1.setResponsetime("2019-01-17T06:29:01.940Z");
 		idResponseDTO1.setVersion("1.0");
 
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(idResponseDTO);
 
 		String idJsonData = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":4215839851}}";
@@ -885,7 +885,7 @@ public class UinGeneratorStageTest {
 		idResponseDTO1.setResponsetime("2019-01-17T06:29:01.940Z");
 		idResponseDTO1.setVersion("1.0");
 
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(idResponseDTO);
 
 		String idJsonData = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":4215839851}}";
@@ -940,7 +940,7 @@ public class UinGeneratorStageTest {
 				.thenReturn(idResponseDTO);
 
 		String Str = "{\"uin\":\"6517036426\"}";
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any())).thenReturn(Str);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(Str);
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
@@ -953,7 +953,7 @@ public class UinGeneratorStageTest {
 		ApisResourceAccessException exp = new ApisResourceAccessException(
 				HibernateErrorCode.ERR_DATABASE.getErrorCode());
 
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any())).thenReturn(exp);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(exp);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
 		uinGeneratorStage.process(messageDTO);
@@ -965,7 +965,7 @@ public class UinGeneratorStageTest {
 		ApisResourceAccessException exp = new ApisResourceAccessException(
 				HibernateErrorCode.ERR_DATABASE.getErrorCode());
 		String Str = "{\"uin\":\"6517036426\"}";
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any())).thenReturn(Str);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(Str);
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any())).thenThrow(exp);
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("27847657360002520181210094052");
@@ -1022,7 +1022,7 @@ public class UinGeneratorStageTest {
 
 		//Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
 				////PacketFiles.ID.name(), "id"))//.thenReturn(idJsonStream1);
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responsedto);
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO);
@@ -1067,7 +1067,7 @@ public class UinGeneratorStageTest {
 
 		//Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
 				////PacketFiles.ID.name(), "id"))//.thenReturn(idJsonStream1);
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responsedto);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
@@ -1115,7 +1115,7 @@ public class UinGeneratorStageTest {
 
 		//Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
 				////PacketFiles.ID.name(), "id"))//.thenReturn(idJsonStream1);
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responsedto);
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO);
@@ -1162,7 +1162,7 @@ public class UinGeneratorStageTest {
 
 		//Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
 				////PacketFiles.ID.name(), "id"))//.thenReturn(idJsonStream1);
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responsedto);
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO);
@@ -1215,7 +1215,7 @@ public class UinGeneratorStageTest {
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO);
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(idResponseDTO);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
@@ -1273,7 +1273,7 @@ public class UinGeneratorStageTest {
 		//Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
 				//PacketFiles.ID.name(), "id"))//.thenReturn(idJsonStream1);
 
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(idResponseDTO);
 
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
@@ -1300,7 +1300,7 @@ public class UinGeneratorStageTest {
 		//Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
 				//PacketFiles.ID.name(), "id"))//.thenReturn(idJsonStream1);
 
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenThrow(apisResourceAccessException);
 		uinGeneratorStage.process(messageDTO);
 	}
@@ -1323,7 +1323,7 @@ public class UinGeneratorStageTest {
 		////Mockito.when(packetReaderService.getFile("27847657360002520181210094052",
 //				PacketFiles.ID.name(), "id")).thenReturn(idJsonStream);
 
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 		.thenThrow(apisResourceAccessException);
 		
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
@@ -1345,7 +1345,7 @@ public class UinGeneratorStageTest {
 		////Mockito.when(packetReaderService.getFile("27847657360002520181210094052",
 //				PacketFiles.ID.name(), "id")).thenReturn(idJsonStream);
 
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 		.thenThrow(apisResourceAccessException);
 		
 
@@ -1365,7 +1365,7 @@ public class UinGeneratorStageTest {
 				HttpStatus.INTERNAL_SERVER_ERROR, "KER-FSE-004:encrypted data is corrupted or not base64 encoded");
 		when(apisResourceAccessException.getCause()).thenReturn(httpClientErrorException);
 
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any())).thenReturn(str);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
 		
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any())).thenThrow(apisResourceAccessException);
 
@@ -1387,7 +1387,7 @@ public class UinGeneratorStageTest {
 				HttpStatus.INTERNAL_SERVER_ERROR, "KER-FSE-004:encrypted data is corrupted or not base64 encoded");
 		when(apisResourceAccessException.getCause()).thenReturn(httpServerErrorException);
 
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any())).thenReturn(str);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
 		
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any())).thenThrow(apisResourceAccessException);
 
@@ -1417,7 +1417,7 @@ public class UinGeneratorStageTest {
 		//Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
 				//PacketFiles.ID.name(), "id"))//.thenReturn(idJsonStream1);
 
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenThrow(apisResourceAccessException);
 		uinGeneratorStage.process(messageDTO);
 	}
@@ -1437,7 +1437,7 @@ public class UinGeneratorStageTest {
 		//Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
 				//PacketFiles.ID.name(), "id"))//.thenReturn(idJsonStream1);
 
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenThrow(apisResourceAccessException);
 		uinGeneratorStage.process(messageDTO);
 	}
@@ -1495,7 +1495,7 @@ public class UinGeneratorStageTest {
 
 		//Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
 				//PacketFiles.ID.name(), "id"))//.thenReturn(idJsonStream1);
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responsedto);
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO);
@@ -1524,7 +1524,7 @@ public class UinGeneratorStageTest {
 
 		//Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
 				//PacketFiles.ID.name(), "id"))//.thenReturn(idJsonStream1);
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responsedto);
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenThrow(new ApisResourceAccessException());
@@ -1540,7 +1540,7 @@ public class UinGeneratorStageTest {
 		messageDTO.setRid("27847657360002520181210094052");
 		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 		String response = "{\"uin\":\"6517036426\",\"status\":\"ASSIGNED\"}";
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any())).thenReturn(str);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenThrow(exc);
 
@@ -1602,7 +1602,7 @@ public class UinGeneratorStageTest {
 
 		//Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
 				//PacketFiles.ID.name(), "id"))//.thenReturn(idJsonStream1);
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responsedto);
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO);
@@ -1636,7 +1636,7 @@ public class UinGeneratorStageTest {
 		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
 
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any())).thenReturn(str);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(response);
 
@@ -1652,7 +1652,7 @@ public class UinGeneratorStageTest {
 
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
 				.thenReturn(idResponseDTO);
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any(Class.class)))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any(Class.class)))
 				.thenReturn(idResponseDTO);
 		when(
 				registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any(Class.class)))
@@ -1697,7 +1697,7 @@ public class UinGeneratorStageTest {
 		idResponseDTO.setResponsetime("2019-03-12T06:49:30.779Z");
 		idResponseDTO.setVersion("1.0");
 
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responsedto);
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
 				.thenReturn(idResponseDTO);
@@ -1712,7 +1712,7 @@ public class UinGeneratorStageTest {
 		messageDTO.setRid("27847657360002520181210094052");
 		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 		String response = "{\"uin\":\"6517036426\",\"status\":\"ASSIGNED\"}";
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any())).thenReturn(str);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(response);
 		messageDTO.setReg_type(RegistrationType.NEW);
@@ -1754,7 +1754,7 @@ public class UinGeneratorStageTest {
 		messageDTO.setRid("27847657360002520181210094052");
 		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 		String response = "{\"uin\":\"6517036426\",\"status\":\"ASSIGNED\"}";
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any())).thenReturn(str);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(response);
 		messageDTO.setReg_type(RegistrationType.NEW);
@@ -1799,7 +1799,7 @@ public class UinGeneratorStageTest {
 		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
 		when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn(null);
 		when(regLostUinDetEntity.getLostUinMatchedRegId(any())).thenReturn("27847657360002520181210094052");
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any())).thenReturn(str);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(response);
 
@@ -1815,7 +1815,7 @@ public class UinGeneratorStageTest {
 
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
 				.thenReturn(idResponseDTO);
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any(Class.class)))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any(Class.class)))
 				.thenReturn(idResponseDTO);
 		when(
 				registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any(Class.class)))
@@ -1833,7 +1833,7 @@ public class UinGeneratorStageTest {
 		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
 
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any())).thenReturn(str);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(response);
 		when(regLostUinDetEntity.getLostUinMatchedRegId(any())).thenReturn("27847657360002520181210094052");
@@ -1850,7 +1850,7 @@ public class UinGeneratorStageTest {
 
 		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
 				.thenReturn(idResponseDTO);
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any(Class.class)))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any(Class.class)))
 				.thenReturn(idResponseDTO);
 		when(
 				registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any(Class.class)))
@@ -1898,7 +1898,7 @@ public class UinGeneratorStageTest {
 
 		//Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
 				//PacketFiles.ID.name(), "id")).thenReturn(idJsonStream2).thenReturn(idJsonStream3);
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(idResponseDTO);
 
 		IdResponseDTO idResponseDTO1 = new IdResponseDTO();
@@ -1943,7 +1943,7 @@ public class UinGeneratorStageTest {
 		messageDTO.setReg_type(RegistrationType.UPDATE);
 
 		IdResponseDTO responsedto = new IdResponseDTO();
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responsedto);
 
 		IdResponseDTO idResponseDTO1 = new IdResponseDTO();
@@ -2000,7 +2000,7 @@ public class UinGeneratorStageTest {
 
 		//Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
 				//PacketFiles.ID.name(), "id"))//.thenReturn(idJsonStream1);
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responsedto);
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertFalse(result.getIsValid());
@@ -2031,7 +2031,7 @@ public class UinGeneratorStageTest {
 		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
 		String response = "{\"timestamp\":1553771083721,\"status\":404,\"errors\":[{\"errorCode\":\"KER-UIG-004\",\"errorMessage\":\"Given UIN is not in ISSUED status\"}]}";
 
-		when(registrationProcessorRestClientService.getApi(any(), any(), any(), any(), any())).thenReturn(str);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(str);
 		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(response);
 

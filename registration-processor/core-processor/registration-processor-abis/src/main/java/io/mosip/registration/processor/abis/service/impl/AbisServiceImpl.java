@@ -2,6 +2,7 @@ package io.mosip.registration.processor.abis.service.impl;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.abis.exception.MissingMandatoryFieldsException;
 import io.mosip.registration.processor.abis.service.AbisService;
 import io.mosip.registration.processor.core.code.ApiName;
@@ -20,6 +21,7 @@ import io.mosip.registration.processor.core.packet.dto.abis.CandidatesDto;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
@@ -46,6 +48,7 @@ import java.util.Set;
 @Service
 public class AbisServiceImpl implements AbisService {
 
+	private static final String duplicateList = "dummy.abis.duplicate.candidates";
 	/** The rest client service. */
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> restClientService;
@@ -63,17 +66,20 @@ public class AbisServiceImpl implements AbisService {
 
 	private static Set<String> actualStoredRefId = new HashSet<>();
 
+	@Autowired
+	private Environment env;
+
 	/** The Constant TESTFINGERPRINT. */
-	@Value("${TESTFINGERPRINT}")
-	private String testFingerPrint;
+	/*@Value("${TESTFINGERPRINT}")
+	private String testFingerPrint;*/
 
 	/** The Constant TESTIRIS. */
-	@Value("${TESTIRIS}")
-	private String testIris;
+	/*@Value("${TESTIRIS}")
+	private String testIris;*/
 
 	/** The Constant TESTFACE. */
-	@Value("${TESTFACE}")
-	private String testFace;
+	/*@Value("${TESTFACE}")
+	private String testFace;*/
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(AbisServiceImpl.class);
@@ -95,10 +101,10 @@ public class AbisServiceImpl implements AbisService {
 		response.setRequestId(abisInsertRequestDto.getRequestId());
 		response.setResponsetime(abisInsertRequestDto.getRequesttime());
 
-		Document doc;
+		//Document doc;
 		try {
-			doc = getCbeffDocument(referenceId);
-			if (testFingerPrint == null || testIris == null || testFace == null) {
+			//doc = getCbeffDocument(referenceId);
+			/*if (testFingerPrint == null || testIris == null || testFace == null) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFFERENCEID.toString(),
 						referenceId, "Test Tags are not present");
 			}
@@ -119,9 +125,10 @@ public class AbisServiceImpl implements AbisService {
 						referenceId, "AbisServiceImpl():: unable to fect CBEF file ");
 				response.setReturnValue("2");
 				response.setFailureReason("7");
-			}
+			}*/
+			response.setReturnValue("1");
 
-		} catch (ApisResourceAccessException | ParserConfigurationException | SAXException | IOException e) {
+		} /*catch (ApisResourceAccessException | ParserConfigurationException | SAXException | IOException e) {
 			response.setReturnValue("2");
 			response.setFailureReason("7");
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -135,7 +142,7 @@ public class AbisServiceImpl implements AbisService {
 					referenceId, "MissingMandatoryFieldsException : Mandatory fields are missing in Request."
 							+ ExceptionUtils.getStackTrace(e));
 
-		} catch (Exception e) {
+		}*/ catch (Exception e) {
 			response.setReturnValue("2");
 			response.setFailureReason("3");
 
@@ -200,15 +207,30 @@ public class AbisServiceImpl implements AbisService {
 		if (storedRefId.size() < 1000)
 			storedRefId.add(identifyReqId);
 
-		Document doc;
+		//Document doc;
 		try {
-			doc = getCbeffDocument(identifyReqId);
+			//doc = getCbeffDocument(identifyReqId);
 
 			response.setId(ABIS_IDENTIFY);
 			response.setRequestId(identifyRequest.getRequestId());
 			response.setResponsetime(identifyRequest.getRequesttime());
 
-			if (doc != null) {
+			response.setReturnValue("1");
+			String duplicateRefIds = env.getProperty(duplicateList);
+			if (StringUtils.isNotEmpty(duplicateRefIds)) {
+				String[] duplicates = duplicateRefIds.split(",");
+				for (String candidate : duplicates) {
+					if (storedRefId.contains(candidate)) {
+						duplicate = true;
+						break;
+					}
+				}
+			}
+			if (duplicate) {
+				addCandidateList(identifyReqId, identifyRequest, response);
+			}
+
+			/*if (doc != null) {
 				NodeList fingerNodeList = doc.getElementsByTagName(testFingerPrint);
 				if (fingerNodeList != null) {
 					duplicate = checkDuplicate(duplicate, fingerNodeList);
@@ -230,9 +252,9 @@ public class AbisServiceImpl implements AbisService {
 			} else {
 				response.setReturnValue("2");
 				response.setFailureReason("7");
-			}
+			}*/
 
-		} catch (ApisResourceAccessException | ParserConfigurationException | SAXException | IOException e) {
+		} /*catch (ApisResourceAccessException | ParserConfigurationException | SAXException | IOException e) {
 			response.setReturnValue("2");
 			response.setFailureReason("7");
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -246,7 +268,7 @@ public class AbisServiceImpl implements AbisService {
 					identifyReqId, "MissingMandatoryFieldsException : Mandatory fields are missing in Request."
 							+ ExceptionUtils.getStackTrace(e));
 
-		} catch (Exception e) {
+		}*/ catch (Exception e) {
 			response.setReturnValue("2");
 			response.setFailureReason("3");
 

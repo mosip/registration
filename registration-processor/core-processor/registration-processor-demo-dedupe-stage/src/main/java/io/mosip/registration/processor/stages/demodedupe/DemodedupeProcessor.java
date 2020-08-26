@@ -286,8 +286,6 @@ public class DemodedupeProcessor {
 
 			}
 
-			registrationStatusDto
-					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.DEMOGRAPHIC_VERIFICATION.toString());
 			registrationStatusDto.setRegistrationStageName(stageName);
 
 		} catch (FSAdapterException e) {
@@ -344,6 +342,8 @@ public class DemodedupeProcessor {
 			object.setInternalError(Boolean.TRUE);
 			object.setIsValid(Boolean.FALSE);
 		} finally {
+			registrationStatusDto
+					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.DEMOGRAPHIC_VERIFICATION.toString());
 			moduleId = isTransactionSuccessful ? PlatformSuccessMessages.RPR_PKR_DEMO_DE_DUP.getCode()
 					: description.getCode();
 
