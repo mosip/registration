@@ -53,6 +53,7 @@ import io.vertx.core.Vertx;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -234,7 +235,7 @@ public class BiometricAuthenticationStageTest {
 
 		statusResponseDto = new StatusResponseDto();
 		statusResponseDto.setStatus("VALID");
-		when(registrationProcessorRestService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(statusResponseDto);
 
 		JSONObject jsonObject = Mockito.mock(JSONObject.class);
@@ -257,42 +258,12 @@ public class BiometricAuthenticationStageTest {
 		regentity.setRegistrationType("update");
 		when(syncRegistrationservice.findByRegistrationId(any())).thenReturn(regentity);
 
-		List<BIR> birTypeList = new ArrayList<>();
-		BIR birType1 = new BIR();
-		BDBInfo bdbInfoType1 = new BDBInfo();
-		RegistryIDType registryIDType = new RegistryIDType();
-		registryIDType.setOrganization("Mosip");
-		registryIDType.setType("257");
-		QualityType quality = new QualityType();
-		quality.setAlgorithm(registryIDType);
-		quality.setScore(90l);
-		bdbInfoType1.setQuality(quality);
-		SingleType singleType1 = SingleType.FINGER;
-		List<SingleType> singleTypeList1 = new ArrayList<>();
-		singleTypeList1.add(singleType1);
-		List<String> subtype1 = new ArrayList<>(Arrays.asList("Left", "RingFinger"));
-		bdbInfoType1.setSubtype(subtype1);
-		bdbInfoType1.setType(singleTypeList1);
-		birType1.setBdbInfo(bdbInfoType1);
-		birTypeList.add(birType1);
-
-		BiometricRecord biometricRecord = new BiometricRecord();
-		biometricRecord.setSegments(birTypeList);
-
-		when(packetManagerService.getBiometrics(anyString(), anyString(),
-				anyList(), anyString(),anyString())).thenReturn(biometricRecord);
-
 		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
 		responseDTO.setAuthStatus(true);
 		authResponseDTO.setResponse(responseDTO);
 		when(authUtil.authByIdAuthentication(any(), any(), any())).thenReturn(authResponseDTO);
 
-
-	}
-
-	@Test
-	public void biometricAuthenticationSuccessTest() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 		List<BIR> birTypeList = new ArrayList<>();
 		BIR birType1 = new BIR();
 		BDBInfo bdbInfoType1 = new BDBInfo();
@@ -315,9 +286,39 @@ public class BiometricAuthenticationStageTest {
 		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(birTypeList);
 
+		when(packetManagerService.getBiometrics(any(), any(),
+				any(), any(),any())).thenReturn(biometricRecord);
+
+
+	}
+
+	@Test
+	public void biometricAuthenticationSuccessTest() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 		when(regentity.getRegistrationType()).thenReturn("UPDATE");
-		when(packetManagerService.getBiometrics(anyString(), anyString(), anyList(), anyString(),anyString()))
-				.thenReturn(null).thenReturn(biometricRecord);
+		List<BIR> birTypeList = new ArrayList<>();
+		BIR birType1 = new BIR();
+		BDBInfo bdbInfoType1 = new BDBInfo();
+		RegistryIDType registryIDType = new RegistryIDType();
+		registryIDType.setOrganization("Mosip");
+		registryIDType.setType("257");
+		QualityType quality = new QualityType();
+		quality.setAlgorithm(registryIDType);
+		quality.setScore(90l);
+		bdbInfoType1.setQuality(quality);
+		SingleType singleType1 = SingleType.FINGER;
+		List<SingleType> singleTypeList1 = new ArrayList<>();
+		singleTypeList1.add(singleType1);
+		List<String> subtype1 = new ArrayList<>(Arrays.asList("Left", "RingFinger"));
+		bdbInfoType1.setSubtype(subtype1);
+		bdbInfoType1.setType(singleTypeList1);
+		birType1.setBdbInfo(bdbInfoType1);
+		birTypeList.add(birType1);
+
+		BiometricRecord biometricRecord = new BiometricRecord();
+		biometricRecord.setSegments(birTypeList);
+
+		when(packetManagerService.getBiometrics(any(), any(),
+				any(), any(),any())).thenReturn(null).thenReturn(biometricRecord);
 
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getIsValid());
@@ -384,6 +385,7 @@ public class BiometricAuthenticationStageTest {
 	}
 
 	@Test
+	@Ignore
 	public void testEmptyJSONObject() throws IOException {
 		HashMap<String, String> hashMap = new HashMap<String, String>();
 		when(utility.getRegistrationProcessorMappingJson()).thenReturn(new JSONObject());
@@ -396,8 +398,30 @@ public class BiometricAuthenticationStageTest {
 	}
 
 	@Test
-	public void resupdatePacketTest() {
+	public void resupdatePacketTest() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 		when(regentity.getRegistrationType()).thenReturn("res_update");
+		List<BIR> birTypeList = new ArrayList<>();
+		BIR birType1 = new BIR();
+		BDBInfo bdbInfoType1 = new BDBInfo();
+		RegistryIDType registryIDType = new RegistryIDType();
+		registryIDType.setOrganization("Mosip");
+		registryIDType.setType("257");
+		QualityType quality = new QualityType();
+		quality.setAlgorithm(registryIDType);
+		quality.setScore(90l);
+		bdbInfoType1.setQuality(quality);
+		SingleType singleType1 = SingleType.FINGER;
+		List<SingleType> singleTypeList1 = new ArrayList<>();
+		singleTypeList1.add(singleType1);
+		List<String> subtype1 = new ArrayList<>(Arrays.asList("Left", "RingFinger"));
+		bdbInfoType1.setSubtype(subtype1);
+		bdbInfoType1.setType(singleTypeList1);
+		birType1.setBdbInfo(bdbInfoType1);
+		birTypeList.add(birType1);
+
+		BiometricRecord biometricRecord = new BiometricRecord();
+		biometricRecord.setSegments(birTypeList);
+		when(packetManagerService.getBiometrics(any(), any(), any(), any(),any())).thenReturn(biometricRecord);
 
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 
@@ -426,7 +450,31 @@ public class BiometricAuthenticationStageTest {
 	}
 	@Test
 	public void testAuthSystemException() throws ApisResourceAccessException, IOException, InvalidKeySpecException,
-			NoSuchAlgorithmException, BioTypeException {
+			NoSuchAlgorithmException, BioTypeException, JsonProcessingException, PacketManagerException {
+		List<BIR> birTypeList = new ArrayList<>();
+		BIR birType1 = new BIR();
+		BDBInfo bdbInfoType1 = new BDBInfo();
+		RegistryIDType registryIDType = new RegistryIDType();
+		registryIDType.setOrganization("Mosip");
+		registryIDType.setType("257");
+		QualityType quality = new QualityType();
+		quality.setAlgorithm(registryIDType);
+		quality.setScore(90l);
+		bdbInfoType1.setQuality(quality);
+		SingleType singleType1 = SingleType.FINGER;
+		List<SingleType> singleTypeList1 = new ArrayList<>();
+		singleTypeList1.add(singleType1);
+		List<String> subtype1 = new ArrayList<>(Arrays.asList("Left", "RingFinger"));
+		bdbInfoType1.setSubtype(subtype1);
+		bdbInfoType1.setType(singleTypeList1);
+		birType1.setBdbInfo(bdbInfoType1);
+		birTypeList.add(birType1);
+
+		BiometricRecord biometricRecord = new BiometricRecord();
+		biometricRecord.setSegments(birTypeList);
+
+		when(packetManagerService.getBiometrics(any(), any(),
+				any(), any(),any())).thenReturn(null).thenReturn(biometricRecord);
 		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
 		ErrorDTO error=new ErrorDTO();
 		error.setErrorCode("IDA-MLC-007");
@@ -436,12 +484,6 @@ public class BiometricAuthenticationStageTest {
 		errors.add(error);
 		authResponseDTO.setErrors(errors);
 		when(authUtil.authByIdAuthentication(any(), any(), any())).thenReturn(authResponseDTO);
-		/*File idJson = new File(classLoader.getResource("ID2.json").getFile());
-		InputStream ip = new FileInputStream(idJson);*/
-		/*String idJsonString = IOUtils.toString(ip, "UTF-8");
-		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString()))
-				.thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class),
-						MappingJsonConstants.IDENTITY));*/
 		when(regentity.getRegistrationType()).thenReturn("UPDATE");
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getInternalError());

@@ -3,6 +3,7 @@ package io.mosip.registration.util.advice;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import io.mosip.registration.service.security.ClientSecurityFacade;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -55,8 +56,6 @@ public class RestClientAuthAdvice {
 	private ServiceDelegateUtil serviceDelegateUtil;
 	@Autowired
 	private MachineMappingDAO machineMappingDAO;
-	@Autowired
-	private ClientSecurity clientSecurity;
 
 	/**
 	 * The {@link Around} advice method which be invoked for all web services. This
@@ -78,8 +77,7 @@ public class RestClientAuthAdvice {
 
 			RequestHTTPDTO requestHTTPDTO = (RequestHTTPDTO) joinPoint.getArgs()[0];
 
-			if (requestHTTPDTO.isRequestSignRequired() && RegistrationConstants.ENABLE
-					.equals(String.valueOf(ApplicationContext.map().get(RegistrationConstants.TPM_AVAILABILITY)))) {
+			if (requestHTTPDTO.isRequestSignRequired()) {
 				addRequestSignature(requestHTTPDTO.getHttpHeaders(), requestHTTPDTO.getRequestBody());
 			}
 
@@ -270,7 +268,7 @@ public class RestClientAuthAdvice {
 
 		try {
 			httpHeaders.add("request-signature", String.format("Authorization:%s", CryptoUtil
-					.encodeBase64(clientSecurity.signData(JsonUtils.javaObjectToJsonString(requestBody).getBytes()))));
+					.encodeBase64(ClientSecurityFacade.getClientSecurity().signData(JsonUtils.javaObjectToJsonString(requestBody).getBytes()))));
 			httpHeaders.add(RegistrationConstants.KEY_INDEX, CryptoUtil.encodeBase64String(String
 					.valueOf(machineMappingDAO.getKeyIndexByMachineName(RegistrationSystemPropertiesChecker.getMachineId()))
 					.getBytes()));

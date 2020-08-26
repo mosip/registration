@@ -161,7 +161,15 @@ public class LocalClientSecurityImpl implements ClientSecurity {
 		LOGGER.info(LoggerConstants.LOCAL_CLIENT_SECURITY_IMPL, RegistrationConstants.APPLICATION_ID,
 				RegistrationConstants.APPLICATION_NAME, "Nothing to do, as Local NON-TPM Security Impl is in use");
 	}
-	
+
+	/**
+	 * @return true if the implementation was specific to TPM
+	 */
+	@Override
+	public boolean isTPMInstance() {
+		return false;
+	}
+
 	private void setupKeysDir() {
 		File keysDir = new File(getKeysDirPath());
 		keysDir.mkdirs();

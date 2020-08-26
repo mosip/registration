@@ -570,7 +570,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		/*ResponseEntity<ResponseWrapper<DataShare>> response = (ResponseEntity<ResponseWrapper<DataShare>>) registrationProcessorRestClientService.postApi(
 				ApiName.DATASHARECREATEURL, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, DataShare.class);*/
 
-		//return null;
+		return null;
 	}
 
 	private byte[] getCbeffXml(String id, String process) throws Exception {
