@@ -997,7 +997,7 @@ public enum PlatformErrorMessages {
 
 	/** The rpr pgs encryptor invlaid data exception. */
 	RPR_PGS_ENCRYPTOR_INVLAID_DATA_EXCEPTION(PlatformConstants.RPR_PACKET_GENERATOR_MODULE + "007",
-			"Exception occured while encryting the packet Invalid data"),
+			"Exception occured while encryting the data"),
 
 	/** The rpr pgs encryptor invlaid key exception. */
 	RPR_PGS_ENCRYPTOR_INVLAID_KEY_EXCEPTION(PlatformConstants.RPR_PACKET_GENERATOR_MODULE + "008",

@@ -27,8 +27,8 @@
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
 		<maven.compiler.version>3.8.0</maven.compiler.version>
-		<maven.javadoc.version>3.0.1</maven.javadoc.version>
-
+		<maven.javadoc.version>3.2.0</maven.javadoc.version>
+		<doclint>none</doclint>
 		<!-- Test & Logging -->
 		<junit.version>4.12</junit.version>
 		<logback.version>1.1.6</logback.version>
@@ -421,6 +421,7 @@
 				<version>${maven.javadoc.version}</version>
 				<configuration>
 					<aggregate>true</aggregate>
+					<doclint>none</doclint>
 				</configuration>
 			</plugin>
 			
