@@ -5,7 +5,10 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -103,43 +106,10 @@ public class AppConfig {
 //		return new TemplateManagerBuilderImpl();
 //	}
 
-	/*
-	 * @Bean("face") public IBioApi faceApi() throws NoSuchAlgorithmException,
-	 * InstantiationException, IllegalAccessException, ClassNotFoundException {
-	 * IBioApi iBioApi = null; try { String dllPath = new File(new
-	 * File(System.getProperty("user.dir")).getAbsolutePath()+"./sdkDependeny").
-	 * getAbsolutePath();
-	 * 
-	 * Constructor<IBioApi> constructor = (Constructor<IBioApi>)
-	 * Class.forName(fingerSdk).getConstructor(new Class[]{String.class,
-	 * String.class,String.class}); iBioApi =
-	 * constructor.newInstance(dllPath+"\\dlls", new
-	 * File(dllPath+"\\iris-extractor.lic").getAbsolutePath(), new
-	 * File(dllPath+"\\iris-matcher.lic").getAbsolutePath());
-	 * 
-	 * 
-	 * } catch (Exception e) { iBioApi = disableIdentitySdk(); }
-	 * 
-	 * return iBioApi; }
-	 * 
-	 * @Bean("finger") public IBioApi fingerApi() throws NoSuchAlgorithmException,
-	 * InstantiationException, IllegalAccessException, ClassNotFoundException {
-	 * 
-	 * return faceApi(); }
-	 * 
-	 * 
-	 * @Bean("iris") public IBioApi irisApi() throws NoSuchAlgorithmException,
-	 * InstantiationException, IllegalAccessException, ClassNotFoundException {
-	 * 
-	 * return faceApi(); }
-	 * 
-	 * private IBioApi disableIdentitySdk() {
-	 * ApplicationContext.map().put(RegistrationConstants.
-	 * DEDUPLICATION_FINGERPRINT_ENABLE_FLAG, RegistrationConstants.DISABLE);
-	 * ApplicationContext.map().put(RegistrationConstants.
-	 * DEDUPLICATION_IRIS_ENABLE_FLAG, RegistrationConstants.DISABLE);
-	 * ApplicationContext.map().put(RegistrationConstants.
-	 * DEDUPLICATION_FACE_ENABLE_FLAG, RegistrationConstants.DISABLE); return new
-	 * BioApiImpl(); }
-	 */
+
+
+	@Bean
+	public CacheManager cacheManager() {
+		return new ConcurrentMapCacheManager("entities");
+	}
 }
