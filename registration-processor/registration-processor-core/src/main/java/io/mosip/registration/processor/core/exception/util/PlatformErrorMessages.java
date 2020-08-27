@@ -462,6 +462,8 @@ public enum PlatformErrorMessages {
 	/** The rpr abis internal error. */
 	RPR_ABIS_INTERNAL_ERROR(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "004", "ABIS Internal Error Occurred"),
 
+	DATASHARE_ERROR(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "005", "Datashare exception occured"),
+
 	/** The reverse data sync failed. */
 	// Stages - Packet-Validator error message
 	REVERSE_DATA_SYNC_FAILED("", "Reverse Data Sync Failed"),

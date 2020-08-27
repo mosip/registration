@@ -22,6 +22,8 @@ import io.mosip.registration.processor.packet.storage.utils.PacketManagerService
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.utils.MandatoryValidation;
 import io.mosip.registration.processor.stages.utils.MasterDataValidation;
+import io.mosip.registration.processor.status.code.RegistrationStatusCode;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -143,6 +145,9 @@ public class PacketValidatorImpl implements PacketValidator {
                 return false;
             }
         } catch (PacketManagerException e) {
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    id,
+                    RegistrationStatusCode.FAILED.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
             throw new PacketValidatorException(e.getErrorCode(), e.getErrorText(), e);
         }
 

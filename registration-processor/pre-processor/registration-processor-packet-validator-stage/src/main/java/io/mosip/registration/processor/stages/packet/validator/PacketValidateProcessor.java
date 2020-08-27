@@ -257,6 +257,9 @@ public class PacketValidateProcessor {
                     description + e.getMessage() + ExceptionUtils.getStackTrace(e));
 
         }catch (PacketManagerException e) {
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                    registrationId,
+                    RegistrationStatusCode.FAILED.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
             registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
             registrationStatusDto.setStatusComment(
                     trimMessage.trimExceptionMessage(StatusUtil.PACKET_MANAGER_EXCEPTION.getMessage() + e.getMessage()));

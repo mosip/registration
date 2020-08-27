@@ -1,48 +1,15 @@
 package io.mosip.registration.processor.abis.handler.stage;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-
-import com.google.common.collect.Maps;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
-import io.mosip.kernel.core.exception.BaseUncheckedException;
-import io.mosip.kernel.core.exception.FileNotFoundException;
-import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.registration.processor.abis.handler.dto.DataShare;
-import io.mosip.registration.processor.core.code.ApiName;
-import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.http.ResponseWrapper;
-import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
-import io.mosip.registration.processor.core.util.JsonUtil;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
-import io.mosip.registration.processor.rest.client.utils.RestApiClient;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.assertj.core.util.Lists;
-import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.MultipartBodyBuilder;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.abis.handler.constant.AbisHandlerStageConstant;
+import io.mosip.registration.processor.abis.handler.dto.DataShareResponseDto;
 import io.mosip.registration.processor.abis.handler.exception.AbisHandlerException;
+import io.mosip.registration.processor.abis.handler.exception.DataShareException;
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -50,13 +17,14 @@ import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
 import io.mosip.registration.processor.core.code.AbisStatusCode;
+import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.constant.RegistrationType;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -71,19 +39,32 @@ import io.mosip.registration.processor.core.packet.dto.abis.ReferenceIdDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegBioRefDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegDemoDedupeListDto;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
+import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
+import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * The Class AbisHandlerStage.
@@ -122,9 +103,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 
 	@Value("${registration.processor.subscriber.id}")
 	private String subscriberId;
-
-	@Autowired
-    private RestApiClient restApiClient;
 
 	@Autowired
 	private RegistrationProcessorRestClientService registrationProcessorRestClientService;
@@ -529,57 +507,34 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	}
 
 	private String getDataShareUrl(String id, String process) throws Exception {
-
-		/*FileSystemResource resource = new FileSystemResource(CryptoUtil.encodeBase64String(getCbeffXml(id, process)));
-
-		LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
-		map.add("file", resource);
-
-		List<String> pathSegments = new ArrayList<>();
-		pathSegments.add(policyId);
-		pathSegments.add(subscriberId);*/
-
-		//MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
-		//headers.add("Cookie", restApiClient.getToken());
-		//headers.add("Content-Type", MediaType.MULTIPART_FORM_DATA_VALUE);
-
-		/*MultipartBodyBuilder builder = new MultipartBodyBuilder();
-		builder.part("file", "2;3;4".getBytes());
-		MultiValueMap<String, HttpEntity<?>> body = builder.build();
-		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(Collections.singletonList(MediaType.ALL));
-		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-		headers.add("Cookie", restApiClient.getToken());
-		HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity(body, headers);
-		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<String> response = restTemplate.exchange("http://localhost:8097/v1/datashare/create/regproc/regproc", HttpMethod.POST, requestEntity, String.class);
-		System.out.println(response.getBody());
-
-		throw new BaseUncheckedException("");*/
-
-
-		/*UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(env.getProperty("DATASHARECREATEURL"));
-		builder.queryParam("file", resource);
-		builder.pathSegment(policyId, subscriberId);
-		UriComponents uriComponents = builder.build(false).encode();*/
-
-		//TODO : complete this functionality
-		//String response = new RestTemplate().exchange(uriComponents.toUri(), HttpMethod.POST, new HttpEntity<Object>(headers), String.class).getBody();
-
-
-		/*ResponseEntity<ResponseWrapper<DataShare>> response = (ResponseEntity<ResponseWrapper<DataShare>>) registrationProcessorRestClientService.postApi(
-				ApiName.DATASHARECREATEURL, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, DataShare.class);*/
-
-		return null;
-	}
-
-	private byte[] getCbeffXml(String id, String process) throws Exception {
 		String source = utility.getDefaultSource();
 		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
 		String individualBiometricsLabel = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 				MappingJsonConstants.VALUE);
 		BiometricRecord biometricRecord = packetManagerService.getBiometrics(id, individualBiometricsLabel, null, source, process);
-		return cbeffutil.createXML(biometricRecord.getSegments());
+		byte[] content = cbeffutil.createXML(biometricRecord.getSegments());
+
+		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+		map.add("name", individualBiometricsLabel);
+		map.add("filename", individualBiometricsLabel);
+
+		ByteArrayResource contentsAsResource = new ByteArrayResource(content) {
+			@Override
+			public String getFilename() {
+				return individualBiometricsLabel;
+			}
+		};
+		map.add("file", contentsAsResource);
+
+		List<String> pathSegments = new ArrayList<>();
+		pathSegments.add(policyId);
+		pathSegments.add(subscriberId);
+
+		DataShareResponseDto response = (DataShareResponseDto) registrationProcessorRestClientService.postApi(ApiName.DATASHARECREATEURL, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, DataShareResponseDto.class);
+		if (response == null || (response.getErrors() != null && response.getErrors().size() >0))
+			throw new DataShareException(response == null ? "Datashare response is null" : response.getErrors().get(0).getMessage());
+
+		return response.getDataShare().getUrl();
 	}
 }

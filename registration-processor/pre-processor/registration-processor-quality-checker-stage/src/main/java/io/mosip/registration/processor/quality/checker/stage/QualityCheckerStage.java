@@ -330,6 +330,9 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 			description.setMessage(PlatformErrorMessages.RPR_QCR_BIOMETRIC_TYPE_EXCEPTION.getMessage());
 			object.setRid(regId);
 		} catch (JsonProcessingException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId,
+					RegistrationStatusCode.FAILED.toString() + e.getMessage() + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			registrationStatusDto.setStatusComment(
 					trimExceptionMsg.trimExceptionMessage(StatusUtil.JSON_PARSING_EXCEPTION.getMessage() + e.getMessage()));
@@ -344,6 +347,9 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 			object.setRid(registrationStatusDto.getRegistrationId());
 			e.printStackTrace();
 		} catch (IOException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId,
+					RegistrationStatusCode.FAILED.toString() + e.getMessage() + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			registrationStatusDto.setStatusComment(
 					trimExceptionMsg.trimExceptionMessage(StatusUtil.IO_EXCEPTION.getMessage() + e.getMessage()));
@@ -357,6 +363,9 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 			object.setInternalError(Boolean.TRUE);
 			object.setRid(registrationStatusDto.getRegistrationId());
 		} catch (PacketManagerException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId,
+					RegistrationStatusCode.FAILED.toString() + e.getMessage() + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			registrationStatusDto.setStatusComment(
 					trimExceptionMsg.trimExceptionMessage(StatusUtil.PACKET_MANAGER_EXCEPTION.getMessage() + e.getMessage()));

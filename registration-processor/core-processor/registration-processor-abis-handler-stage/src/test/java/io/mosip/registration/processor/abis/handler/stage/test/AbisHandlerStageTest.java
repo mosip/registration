@@ -17,7 +17,11 @@ import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.abis.handler.dto.DataShare;
+import io.mosip.registration.processor.abis.handler.dto.DataShareResponseDto;
+import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import org.junit.Before;
@@ -29,6 +33,7 @@ import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
+import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.registration.processor.abis.handler.stage.AbisHandlerStage;
@@ -89,6 +94,9 @@ public class AbisHandlerStageTest {
 
 	@Mock
 	private Environment env;
+
+	@Mock
+	private RegistrationProcessorRestClientService registrationProcessorRestClientService;
 
 	@Mock
 	private CbeffUtil cbeffutil;
@@ -166,6 +174,13 @@ public class AbisHandlerStageTest {
 		responseWrapper.setResponse(auditResponseDto);
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(responseWrapper);
+
+		DataShareResponseDto dataShareResponseDto = new DataShareResponseDto();
+		DataShare dataShare = new DataShare();
+		dataShare.setUrl("http://localhost");
+		dataShareResponseDto.setDataShare(dataShare);
+
+		Mockito.when(registrationProcessorRestClientService.postApi(any(ApiName.class), any(MediaType.class), any(),any(),any(), any(), any())).thenReturn(dataShareResponseDto);
 	}
 
 	@Test
