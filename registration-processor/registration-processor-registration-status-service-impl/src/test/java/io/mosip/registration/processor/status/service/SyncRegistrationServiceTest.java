@@ -1,7 +1,7 @@
 package io.mosip.registration.processor.status.service;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -10,6 +10,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -42,7 +43,9 @@ import io.mosip.registration.processor.status.dto.SyncResponseDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailureDto;
 import io.mosip.registration.processor.status.dto.SyncResponseSuccessDto;
 import io.mosip.registration.processor.status.dto.SyncTypeDto;
+import io.mosip.registration.processor.status.encryptor.Encryptor;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
+import io.mosip.registration.processor.status.exception.EncryptionFailureException;
 import io.mosip.registration.processor.status.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.impl.SyncRegistrationServiceImpl;
@@ -99,6 +102,9 @@ public class SyncRegistrationServiceTest {
 
 	@Mock
 	private Decryptor decryptor;
+	
+	@Mock
+	private Encryptor encryptor;
 
 	RegistrationSyncRequestDTO registrationSyncRequestDTO;
 
@@ -321,10 +327,13 @@ public class SyncRegistrationServiceTest {
 	 * Gets the sync registration status test.
 	 *
 	 * @return the sync registration status test
+	 * @throws ApisResourceAccessException 
+	 * @throws EncryptionFailureException 
 	 */
 	@Test
-	public void testGetSyncRegistrationStatusSuccess() {
-
+	public void testGetSyncRegistrationStatusSuccess() throws EncryptionFailureException, ApisResourceAccessException {
+		byte[] encryptedInfo = "encryptedInfo".getBytes();
+		Mockito.when(encryptor.encrypt(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenReturn(encryptedInfo);
 		Mockito.when(syncRegistrationDao.save(any())).thenReturn(syncRegistrationEntity);
 		List<SyncResponseDto> syncResponse = syncRegistrationService.sync(entities, "", "");
 
@@ -337,7 +346,6 @@ public class SyncRegistrationServiceTest {
 		assertEquals("Verifing if list is returned. Expected value should be 1002",
 				syncRegistrationDto.getRegistrationId(),
 				((SyncResponseFailureDto) syncResponse.get(0)).getRegistrationId());
-
 	}
 
 	/**
@@ -346,11 +354,16 @@ public class SyncRegistrationServiceTest {
 	 * @return the sync registration status failure test
 	 * @throws TablenotAccessibleException
 	 *             the tablenot accessible exception
+	 * @throws ApisResourceAccessException 
+	 * @throws EncryptionFailureException 
 	 */
 	@Test(expected = TablenotAccessibleException.class)
-	public void getSyncRegistrationStatusFailureTest() throws TablenotAccessibleException {
+	public void getSyncRegistrationStatusFailureTest() throws TablenotAccessibleException, EncryptionFailureException, ApisResourceAccessException {
 		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
 				"errorMessage", new Exception());
+
+		byte[] encryptedInfo = "encryptedInfo".getBytes();
+		Mockito.when(encryptor.encrypt(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenReturn(encryptedInfo);
 		Mockito.when(syncRegistrationDao.save(any())).thenThrow(exp);
 		syncRegistrationService.sync(entities, "", "");
 
@@ -383,12 +396,16 @@ public class SyncRegistrationServiceTest {
 	 * Gets the sync rid in valid length failure test.
 	 *
 	 * @return the sync rid in valid length failure test
+	 * @throws ApisResourceAccessException 
+	 * @throws EncryptionFailureException 
 	 */
 	@Test
-	public void getSyncRidInValidLengthFailureTest() {
+	public void getSyncRidInValidLengthFailureTest() throws EncryptionFailureException, ApisResourceAccessException {
 		InvalidIDException exp = new InvalidIDException(RidExceptionProperty.INVALID_RID_LENGTH.getErrorCode(),
 				RidExceptionProperty.INVALID_RID_LENGTH.getErrorMessage());
 		Mockito.when(ridValidator.validateId("123456789012345678")).thenThrow(exp);
+		byte[] encryptedInfo = "encryptedInfo".getBytes();
+		Mockito.when(encryptor.encrypt(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenReturn(encryptedInfo);
 		syncRegistrationService.sync(entities, "", "");
 	}
 
@@ -396,12 +413,17 @@ public class SyncRegistrationServiceTest {
 	 * Gets the sync rid in valid time stamp failure test.
 	 *
 	 * @return the sync rid in valid time stamp failure test
+	 * @throws ApisResourceAccessException 
+	 * @throws EncryptionFailureException 
 	 */
 	@Test
-	public void getSyncRidInValidTimeStampFailureTest() {
+	public void getSyncRidInValidTimeStampFailureTest() throws EncryptionFailureException, ApisResourceAccessException {
 		InvalidIDException exp = new InvalidIDException(RidExceptionProperty.INVALID_RID_TIMESTAMP.getErrorCode(),
 				RidExceptionProperty.INVALID_RID_TIMESTAMP.getErrorMessage());
 		Mockito.when(ridValidator.validateId("12345678901234567890123456799")).thenThrow(exp);
+
+		byte[] encryptedInfo = "encryptedInfo".getBytes();
+		Mockito.when(encryptor.encrypt(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenReturn(encryptedInfo);
 		syncRegistrationService.sync(entities, "", "");
 	}
 
@@ -409,11 +431,16 @@ public class SyncRegistrationServiceTest {
 	 * Gets the sync prid in valid length failure test.
 	 *
 	 * @return the sync prid in valid length failure test
+	 * @throws ApisResourceAccessException 
+	 * @throws EncryptionFailureException 
 	 */
 	@Test
-	public void getSyncPridInValidLengthFailureTest() {
+	public void getSyncPridInValidLengthFailureTest() throws EncryptionFailureException, ApisResourceAccessException {
 		InvalidIDException exp = new InvalidIDException(RidExceptionProperty.INVALID_RID_LENGTH.getErrorCode(),
 				RidExceptionProperty.INVALID_RID_LENGTH.getErrorMessage());
+
+		byte[] encryptedInfo = "encryptedInfo".getBytes();
+		Mockito.when(encryptor.encrypt(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenReturn(encryptedInfo);
 		Mockito.when(ridValidator.validateId("123456789012345678")).thenThrow(exp);
 		syncRegistrationService.sync(entities, "", "");
 	}
@@ -422,12 +449,17 @@ public class SyncRegistrationServiceTest {
 	 * Gets the sync prid in valid time stamp failure test.
 	 *
 	 * @return the sync prid in valid time stamp failure test
+	 * @throws ApisResourceAccessException 
+	 * @throws EncryptionFailureException 
 	 */
 	@Test
-	public void getSyncPridInValidTimeStampFailureTest() {
+	public void getSyncPridInValidTimeStampFailureTest() throws EncryptionFailureException, ApisResourceAccessException {
 		InvalidIDException exp = new InvalidIDException(RidExceptionProperty.INVALID_RID_TIMESTAMP.getErrorCode(),
 				RidExceptionProperty.INVALID_RID_TIMESTAMP.getErrorMessage());
 		Mockito.when(ridValidator.validateId("12345678901234567890123456799")).thenThrow(exp);
+
+		byte[] encryptedInfo = "encryptedInfo".getBytes();
+		Mockito.when(encryptor.encrypt(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenReturn(encryptedInfo);
 		syncRegistrationService.sync(entities, "", "");
 	}
 
@@ -435,11 +467,16 @@ public class SyncRegistrationServiceTest {
 	 * Gets the sync prid in valid format failure test.
 	 *
 	 * @return the sync prid in valid format failure test
+	 * @throws ApisResourceAccessException 
+	 * @throws EncryptionFailureException 
 	 */
 	@Test
-	public void getSyncPridInValidFormatFailureTest() {
+	public void getSyncPridInValidFormatFailureTest() throws EncryptionFailureException, ApisResourceAccessException {
 		InvalidIDException exp = new InvalidIDException(RidExceptionProperty.INVALID_RID.getErrorCode(),
 				RidExceptionProperty.INVALID_RID.getErrorMessage());
+
+		byte[] encryptedInfo = "encryptedInfo".getBytes();
+		Mockito.when(encryptor.encrypt(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenReturn(encryptedInfo);
 		Mockito.when(ridValidator.validateId("1234567890123456789012345ABCD")).thenThrow(exp);
 		syncRegistrationService.sync(entities, "", "");
 	}
