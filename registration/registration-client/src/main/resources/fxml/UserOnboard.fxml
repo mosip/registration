@@ -250,6 +250,5 @@
             </GridPane>
          </children>
       </GridPane>
-      <Label styleClass="powerdBy" text="© 2019, Powered by MOSIP" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
    </children>
 </GridPane>
