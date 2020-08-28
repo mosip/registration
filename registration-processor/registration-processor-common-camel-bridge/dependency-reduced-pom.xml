@@ -61,7 +61,6 @@
   </dependencyManagement>
   <properties>
     <vertx.verticle>io.mosip.registration.processor.camel.bridge.MosipCamelBridge</vertx.verticle>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <fabric8-vertx-maven-plugin.version>1.0.5</fabric8-vertx-maven-plugin.version>
   </properties>
 </project>

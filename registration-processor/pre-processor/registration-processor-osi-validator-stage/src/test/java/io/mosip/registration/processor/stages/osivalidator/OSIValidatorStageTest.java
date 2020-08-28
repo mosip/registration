@@ -3,12 +3,18 @@ package io.mosip.registration.processor.stages.osivalidator;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyMap;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.any;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.HashMap;
 
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,6 +74,9 @@ public class OSIValidatorStageTest {
 		}
 	};
 
+	@Mock
+	private Utilities utility;
+
 	/**
 	 * Test deploy verticle.
 	 */
@@ -98,6 +107,9 @@ public class OSIValidatorStageTest {
 	/** The registration status dto. */
 	InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 
+	@Mock
+	private PacketManagerService packetManagerService;
+
 	/**
 	 * Sets the up.
 	 *
@@ -106,6 +118,9 @@ public class OSIValidatorStageTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
+
+		Mockito.when(utility.getDefaultSource()).thenReturn("reg-client");
+		Mockito.when(packetManagerService.getMetaInfo(anyString(),anyString(),anyString())).thenReturn(new HashMap<>());
 
 		ReflectionTestUtils.setField(osiValidatorStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(osiValidatorStage, "clusterManagerUrl", "/dummyPath");
@@ -138,8 +153,8 @@ public class OSIValidatorStageTest {
 	@Test
 	public void testisValidOSISuccess() throws Exception {
 
-		Mockito.when(oSIValidator.isValidOSI(anyString(), any(InternalRegistrationStatusDto.class))).thenReturn(Boolean.TRUE);
-		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class))).thenReturn(Boolean.TRUE);
+		Mockito.when(oSIValidator.isValidOSI(anyString(), anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.TRUE);
+		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.TRUE);
 		MessageDTO messageDto = osiValidatorStage.process(dto);
 
 		assertTrue(messageDto.getIsValid());
@@ -154,8 +169,8 @@ public class OSIValidatorStageTest {
 	 */
 	@Test
 	public void testisValidOSIFailure() throws Exception {
-		Mockito.when(oSIValidator.isValidOSI(anyString(), any(InternalRegistrationStatusDto.class))).thenReturn(Boolean.FALSE);
-		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class))).thenReturn(Boolean.TRUE);
+		Mockito.when(oSIValidator.isValidOSI(anyString(), anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.FALSE);
+		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.TRUE);
 
 		MessageDTO messageDto = osiValidatorStage.process(dto);
 
@@ -170,17 +185,16 @@ public class OSIValidatorStageTest {
 	 */
 	@Test
 	public void IOExceptionTest() throws Exception {
-		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class))).thenReturn(Boolean.TRUE);
-		Mockito.when(oSIValidator.isValidOSI(anyString(), any(InternalRegistrationStatusDto.class))).thenThrow(new IOException());
+		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.TRUE);
+		Mockito.when(oSIValidator.isValidOSI(anyString(), anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenThrow(new IOException());
 		MessageDTO messageDto = osiValidatorStage.process(dto);
 		assertEquals(true, messageDto.getInternalError());
-
 	}
 
 	@Test
 	public void fSAdapterExceptionTest() throws Exception {
-		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class))).thenReturn(Boolean.TRUE);
-		Mockito.when(oSIValidator.isValidOSI(anyString(), any(InternalRegistrationStatusDto.class))).thenThrow(new FSAdapterException("", ""));
+		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.TRUE);
+		Mockito.when(oSIValidator.isValidOSI(anyString(), anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenThrow(new FSAdapterException("", ""));
 
 		MessageDTO messageDto = osiValidatorStage.process(dto);
 		assertEquals(true, messageDto.getInternalError());
@@ -189,8 +203,8 @@ public class OSIValidatorStageTest {
 
 	@Test
 	public void apiResourceExceptionTest() throws Exception {
-		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class))).thenReturn(Boolean.TRUE);
-		Mockito.when(oSIValidator.isValidOSI(anyString(), any(InternalRegistrationStatusDto.class))).thenThrow(new ApisResourceAccessException(""));
+		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.TRUE);
+		Mockito.when(oSIValidator.isValidOSI(anyString(), anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenThrow(new ApisResourceAccessException(""));
 
 		MessageDTO messageDto = osiValidatorStage.process(dto);
 		assertEquals(true, messageDto.getInternalError());
@@ -206,8 +220,8 @@ public class OSIValidatorStageTest {
 		
 		
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(regStatusDto);
-		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class))).thenReturn(Boolean.TRUE);
-		Mockito.when(oSIValidator.isValidOSI(anyString(), any(InternalRegistrationStatusDto.class))).thenThrow(new ParentOnHoldException(StatusUtil.UIN_RID_NOT_FOUND.getCode(),StatusUtil.UIN_RID_NOT_FOUND.getMessage()));
+		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.TRUE);
+		Mockito.when(oSIValidator.isValidOSI(anyString(), anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenThrow(new ParentOnHoldException(StatusUtil.UIN_RID_NOT_FOUND.getCode(),StatusUtil.UIN_RID_NOT_FOUND.getMessage()));
 
 		MessageDTO messageDto = osiValidatorStage.process(dto);
 		assertEquals(true, messageDto.getInternalError());
@@ -216,8 +230,8 @@ public class OSIValidatorStageTest {
 
 	@Test
 	public void exceptionTest() throws Exception {
-		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class))).thenReturn(Boolean.TRUE);
-		Mockito.when(oSIValidator.isValidOSI(anyString(), any(InternalRegistrationStatusDto.class))).thenThrow(new NullPointerException(""));
+		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.TRUE);
+		Mockito.when(oSIValidator.isValidOSI(anyString(), anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenThrow(new NullPointerException(""));
 
 		MessageDTO messageDto = osiValidatorStage.process(dto);
 		assertEquals(true, messageDto.getInternalError());
@@ -230,8 +244,8 @@ public class OSIValidatorStageTest {
 		HttpServerErrorException httpServerErrorException = new HttpServerErrorException(
 				HttpStatus.INTERNAL_SERVER_ERROR, "KER-FSE-004:encrypted data is corrupted or not base64 encoded");
 		Mockito.when(apisResourceAccessException.getCause()).thenReturn(httpServerErrorException);
-		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class))).thenReturn(Boolean.TRUE);
-		Mockito.when(oSIValidator.isValidOSI(anyString(), any(InternalRegistrationStatusDto.class))).thenThrow(apisResourceAccessException);
+		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.TRUE);
+		Mockito.when(oSIValidator.isValidOSI(anyString(), anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenThrow(apisResourceAccessException);
 
 		MessageDTO messageDto = osiValidatorStage.process(dto);
 		assertEquals(true, messageDto.getInternalError());
@@ -244,8 +258,8 @@ public class OSIValidatorStageTest {
 		HttpClientErrorException httpClientErrorException = new HttpClientErrorException(
 				HttpStatus.INTERNAL_SERVER_ERROR, "KER-FSE-004:encrypted data is corrupted or not base64 encoded");
 		Mockito.when(apisResourceAccessException.getCause()).thenReturn(httpClientErrorException);
-		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class))).thenReturn(Boolean.TRUE);
-		Mockito.when(oSIValidator.isValidOSI(anyString(), any(InternalRegistrationStatusDto.class))).thenThrow(apisResourceAccessException);
+		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.TRUE);
+		Mockito.when(oSIValidator.isValidOSI(anyString(), anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenThrow(apisResourceAccessException);
 
 		MessageDTO messageDto = osiValidatorStage.process(dto);
 		assertEquals(true, messageDto.getInternalError());
@@ -260,8 +274,8 @@ public class OSIValidatorStageTest {
 	 */
 	@Test
 	public void dataAccessExceptionTest() throws Exception {
-		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class))).thenReturn(Boolean.TRUE);
-		Mockito.when(oSIValidator.isValidOSI(anyString(), any(InternalRegistrationStatusDto.class))).thenThrow(new DataAccessException("") {
+		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.TRUE);
+		Mockito.when(oSIValidator.isValidOSI(anyString(), anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenThrow(new DataAccessException("") {
 		});
 		MessageDTO messageDto = osiValidatorStage.process(dto);
 		assertEquals(true, messageDto.getInternalError());
@@ -278,7 +292,7 @@ public class OSIValidatorStageTest {
 	public void testisValidOSIFailureWithRetryCount() throws Exception {
 
 		registrationStatusDto.setRetryCount(1);
-		Mockito.when(oSIValidator.isValidOSI(anyString(), any(InternalRegistrationStatusDto.class))).thenReturn(Boolean.FALSE);
+		Mockito.when(oSIValidator.isValidOSI(anyString(), anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.FALSE);
 
 		MessageDTO messageDto = osiValidatorStage.process(dto);
 
@@ -294,7 +308,7 @@ public class OSIValidatorStageTest {
 	public void testisValidUMCFailureWithRetryCount() throws Exception {
 
 		registrationStatusDto.setRetryCount(1);
-		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class))).thenReturn(Boolean.FALSE);
+		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.FALSE);
 
 		MessageDTO messageDto = osiValidatorStage.process(dto);
 
@@ -309,11 +323,27 @@ public class OSIValidatorStageTest {
 		
 		
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(regStatusDto);
-		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class))).thenReturn(Boolean.TRUE);
-		Mockito.when(oSIValidator.isValidOSI(anyString(), any(InternalRegistrationStatusDto.class))).thenThrow(new AuthSystemException(StatusUtil.AUTH_SYSTEM_EXCEPTION.getMessage()));
+		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.TRUE);
+		Mockito.when(oSIValidator.isValidOSI(anyString(), anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenThrow(new AuthSystemException(StatusUtil.AUTH_SYSTEM_EXCEPTION.getMessage()));
 
 		MessageDTO messageDto = osiValidatorStage.process(dto);
 		assertEquals(true, messageDto.getInternalError());
 
+	}
+
+	@Test
+	public void jsonProcessingExceptionTest() throws Exception {
+		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.TRUE);
+		Mockito.when(packetManagerService.getMetaInfo(anyString(),anyString(),anyString())).thenThrow(new JsonProcessingException("message"));
+		MessageDTO messageDto = osiValidatorStage.process(dto);
+		assertEquals(true, messageDto.getInternalError());
+	}
+
+	@Test
+	public void packetManagerExceptionTest() throws Exception {
+		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.TRUE);
+		Mockito.when(packetManagerService.getMetaInfo(anyString(),anyString(),anyString())).thenThrow(new PacketManagerException("id", "message"));
+		MessageDTO messageDto = osiValidatorStage.process(dto);
+		assertEquals(true, messageDto.getInternalError());
 	}
 }

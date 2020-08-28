@@ -22,7 +22,7 @@ public class MappingJsonConstants {
 	public static final String AGE = "age";
 	public static final String ADDRESS = "address";
 	public static final String INDIVIDUALAUTHENTICATION = "authenticationBiometricFileName";
-	public static final String IDSCHEMA_VERSION = "idschemaversion";
+	public static final String IDSCHEMA_VERSION = "IDSchemaVersion";
 	public static final String UIN = "uin";
 
 	

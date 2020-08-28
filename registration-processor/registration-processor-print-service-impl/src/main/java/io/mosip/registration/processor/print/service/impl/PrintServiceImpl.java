@@ -450,7 +450,7 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 	/**
 	 * Creates the text file.
 	 *
-	 * @param attributes
+	 * @param jsonString
 	 *            the attributes
 	 * @return the byte[]
 	 * @throws IOException
