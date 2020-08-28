@@ -11,10 +11,16 @@ import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
 import org.apache.commons.io.IOUtils;
+import org.assertj.core.util.Lists;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -28,10 +34,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
-import io.mosip.kernel.packetmanager.spi.PacketReaderService;
-import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
@@ -81,6 +83,7 @@ import lombok.Data;
 public class Utilities {
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(Utilities.class);
+	private static final String sourceStr = "source";
 
 	/** The Constant UIN. */
 	private static final String UIN = "UIN";
@@ -111,6 +114,9 @@ public class Utilities {
 	/** The mosip connection factory. */
 	@Autowired
 	private MosipQueueConnectionFactory<MosipQueue> mosipConnectionFactory;
+
+	@Value("${provider.packetreader.mosip}")
+	private String provider;
 
 	/** The config server file storage URL. */
 	@Value("${config.server.file.storage.uri}")
@@ -159,8 +165,12 @@ public class Utilities {
 	@Value("${packet.default.source}")
 	private String defaultSource;
 	/** The packet info dao. */
+
 	@Autowired
 	private PacketInfoDao packetInfoDao;
+
+	@Autowired
+	private PacketManagerService packetManagerService;
 
 	/** The registration status dao. */
 	@Autowired
@@ -204,12 +214,6 @@ public class Utilities {
 
 	private String mappingJsonString = null;
 
-
-	@Autowired
-	private PacketReaderService packetReaderService;
-
-	@Autowired
-	private IdSchemaUtils idSchemaUtils;
 	/**
 	 * Gets the json.
 	 *
@@ -229,7 +233,7 @@ public class Utilities {
 	 * present, if yes returns age if both dob or age are not present then retrieves
 	 * age from id repo
 	 *
-	 * @param registrationId
+	 * @param id
 	 *            the registration id
 	 * @return the applicant age
 	 * @throws IOException
@@ -237,47 +241,53 @@ public class Utilities {
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws PacketDecryptionFailureException
 	 *             the packet decryption failure exception
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	public int getApplicantAge(String registrationId) throws IOException, ApisResourceAccessException,
-            PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException, ApiNotAccessibleException {
+	public int getApplicantAge(String id, String source, String process) throws IOException,
+			ApisResourceAccessException, JsonProcessingException, PacketManagerException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-				registrationId, "Utilities::getApplicantAge()::entry");
+				id, "Utilities::getApplicantAge()::entry");
 
 		JSONObject regProcessorIdentityJson = getRegistrationProcessorMappingJson();
 		String ageKey = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.AGE), VALUE);
 		String dobKey = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.DOB), VALUE);
 
 
-		String applicantDob = JsonUtil.getJSONValue(getDemographicIdentityJSONObject(registrationId,dobKey), dobKey);
-	    Integer applicantAge = JsonUtil.getJSONValue(getDemographicIdentityJSONObject(registrationId,ageKey), ageKey);
+		String applicantDob = packetManagerService.getField(id, dobKey, source, process);
+	    String applicantAge = packetManagerService.getField(id, ageKey, source, process);
 		if (applicantDob != null) {
 			return calculateAge(applicantDob);
 		} else if (applicantAge != null) {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-					registrationId, "Utilities::getApplicantAge()::exit when applicantAge is not null");
-			return applicantAge;
+					id, "Utilities::getApplicantAge()::exit when applicantAge is not null");
+			return Integer.valueOf(applicantAge);
 
 		} else {
 
-			String uin = getUIn(registrationId);
+			String uin = getUIn(id, source, process);
 			JSONObject identityJSONOject = retrieveIdrepoJson(uin);
 			String idRepoApplicantDob = JsonUtil.getJSONValue(identityJSONOject, dobKey);
 			if (idRepoApplicantDob != null) {
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-						registrationId, "Utilities::getApplicantAge()::exit when ID REPO applicantDob is not null");
+						id, "Utilities::getApplicantAge()::exit when ID REPO applicantDob is not null");
 				return calculateAge(idRepoApplicantDob);
 			}
 			Integer idRepoApplicantAge = JsonUtil.getJSONValue(identityJSONOject, ageKey);
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-					registrationId, "Utilities::getApplicantAge()::exit when ID REPO applicantAge is not null");
+					id, "Utilities::getApplicantAge()::exit when ID REPO applicantAge is not null");
 			return idRepoApplicantAge != null ? idRepoApplicantAge : 0;
 
 		}
 
+	}
+
+	public String getDefaultSource() {
+		String[] strs = provider.split(",");
+		List<String> strList = Lists.newArrayList(strs);
+		Optional<String> optional = strList.stream().filter(s -> s.contains(sourceStr)).findAny();
+		String source = optional.isPresent() ? optional.get().replace(sourceStr + ":", "") : null;
+		return source;
 	}
 
 	/**
@@ -409,50 +419,14 @@ public class Utilities {
 
 	}
 
-	/**
-	 * Retrieves the identity json from HDFS by registrationId.
-	 *
-	 * @param registrationId
-	 *            the registration id
-	 * @return the demographic identity JSON object
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws PacketDecryptionFailureException
-	 *             the packet decryption failure exception
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws ApiNotAccessibleException
-	 */
-	public JSONObject getDemographicIdentityJSONObject(String registrationId) throws IOException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException {
-
-
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "Utilities::getDemographicIdentityJSONObject()::entry");
-
-
-
-		InputStream idJsonStream = packetReaderService.getFile(registrationId, PacketFiles.ID.name(),defaultSource);
-		byte[] bytearray = IOUtils.toByteArray(idJsonStream);
-		String jsonString = new String(bytearray);
-		JSONObject demographicIdentityJson = (JSONObject) JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
-		JSONObject demographicIdentity = JsonUtil.getJSONObject(demographicIdentityJson,
-				getRegProcessorDemographicIdentity);
-
-		if (demographicIdentity == null) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, "Utilities::getDemographicIdentityJSONObject():: error with error message "
-							+ PlatformErrorMessages.RPR_PIS_IDENTITY_NOT_FOUND.getMessage());
-			throw new IdentityNotFoundException(PlatformErrorMessages.RPR_PIS_IDENTITY_NOT_FOUND.getMessage());
+	public String getMappingJsonValue(String key) throws IOException {
+		JSONObject jsonObject = getRegistrationProcessorMappingJson();
+		Object obj = jsonObject.get(key);
+		if (obj instanceof LinkedHashMap) {
+			LinkedHashMap hm = (LinkedHashMap) obj;
+			return hm.get("value") != null ? hm.get("value").toString() : null;
 		}
-
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "Utilities::getDemographicIdentityJSONObject()::exit");
-
-
-		return demographicIdentity;
+		return jsonObject.get(key) != null ? jsonObject.get(key).toString() : null;
 
 	}
 
@@ -460,32 +434,27 @@ public class Utilities {
 	 * Get UIN from identity json (used only for update/res update/activate/de
 	 * activate packets).
 	 *
-	 * @param registrationId
+	 * @param id
 	 *            the registration id
 	 * @return the u in
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
-	 * @throws PacketDecryptionFailureException
-	 *             the packet decryption failure exception
 	 * @throws ApisResourceAccessException
 	 *             the apis resource access exception
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	public String getUIn(String registrationId) throws IOException, ApiNotAccessibleException,
-			io.mosip.kernel.core.exception.IOException, PacketDecryptionFailureException {
+	public String getUIn(String id, String source, String process) throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "Utilities::getUIn()::entry");
-		String uin=null;
-		JSONObject demographicIdentity = getDemographicIdentityJSONObject(registrationId,UIN);
-
-		uin = JsonUtil.getJSONValue(demographicIdentity, UIN);
+				id, "Utilities::getUIn()::entry");
+		String uinKey = JsonUtil.getJSONValue(JsonUtil.getJSONObject(getRegistrationProcessorMappingJson(), MappingJsonConstants.UIN), VALUE);
+		String UIN = packetManagerService.getField(id, uinKey, source, process);
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "Utilities::getUIn()::exit");
+				id, "Utilities::getUIn()::exit");
 
-		return uin;
+		return UIN;
 
 	}
 
@@ -595,34 +564,6 @@ public class Utilities {
 
 		return null;
 	}
-
-	/**
-	 * Gets the packet meta info.
-	 *
-	 * @param registrationId
-	 *            the registration id
-	 * @return the packet meta info
-	 * @throws PacketDecryptionFailureException
-	 *             the packet decryption failure exception
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 */
-	public PacketMetaInfo getPacketMetaInfo(String registrationId) throws ApiNotAccessibleException,
-			ApisResourceAccessException, io.mosip.kernel.core.exception.IOException, IOException, PacketDecryptionFailureException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "Utilities::getPacketMetaInfo():: entry");
-		InputStream packetMetaInfoStream = packetReaderService.getFile(registrationId, PacketFiles.PACKET_META_INFO.name(),defaultSource);
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "Utilities::getPacketMetaInfo():: exit");
-		return (PacketMetaInfo) JsonUtil.inputStreamtoJavaObject(packetMetaInfoStream, PacketMetaInfo.class);
-	}
-
-
-
 
 	/**
 	 * Calculate age.
@@ -813,50 +754,6 @@ public class Utilities {
 		}
 
 		return response;
-	}
-	/**
-	 * Retrieves the identity json from HDFS by registrationId.
-	 *
-	 * @param registrationId
-	 *            the registration id
-	 * @return the demographic identity JSON object
-	 * @throws RegistrationProcessorCheckedException
-	 * @throws io.mosip.kernel.core.exception.IOException
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws PacketDecryptionFailureException
-	 *             the packet decryption failure exception
-	 * @throws ApisResourceAccessException
-	 *             the apis resource access exception
-	 */
-	public JSONObject getDemographicIdentityJSONObject(String registrationId, String fieldLabel) throws io.mosip.kernel.core.exception.IOException, IOException, ApiNotAccessibleException, PacketDecryptionFailureException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "Utilities::getDemographicIdentityJSONObject()::entry");
-		String source = idSchemaUtils.getSource(fieldLabel, packetReaderService.getIdSchemaVersionFromPacket(registrationId));
-		JSONObject demographicIdentity=null;
-		if(source != null) {
-		InputStream idJsonStream = packetReaderService.getFile(registrationId, PacketFiles.ID.name(), source);
-
-		byte[] bytearray = IOUtils.toByteArray(idJsonStream);
-		String jsonString = new String(bytearray);
-		JSONObject demographicIdentityJson = (JSONObject) JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
-		demographicIdentity = JsonUtil.getJSONObject(demographicIdentityJson,
-				getRegProcessorDemographicIdentity);
-
-		if (demographicIdentity == null) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, "Utilities::getDemographicIdentityJSONObject():: error with error message "
-							+ PlatformErrorMessages.RPR_PIS_IDENTITY_NOT_FOUND.getMessage());
-			throw new IdentityNotFoundException(PlatformErrorMessages.RPR_PIS_IDENTITY_NOT_FOUND.getMessage());
-		}
-
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				registrationId, "Utilities::getDemographicIdentityJSONObject()::exit");
-		}
-		return demographicIdentity;
-
 	}
 
 	private void addSchemaVersion(JSONObject identityObject) throws IOException {

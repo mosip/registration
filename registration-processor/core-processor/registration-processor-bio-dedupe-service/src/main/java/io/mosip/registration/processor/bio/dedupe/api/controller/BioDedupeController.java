@@ -58,8 +58,9 @@ public class BioDedupeController {
 			@ApiResponse(code = 500, message = "Internal Server Error") })
 	public ResponseEntity<byte[]> getFile(@PathVariable("abisRefId") String abisRefId) {
 
+		// TODO : fix this.
 
-		byte[] file = bioDedupeService.getFileByAbisRefId(abisRefId);
+		byte[] file = null;//bioDedupeService.getFileByAbisRefId(abisRefId);
 
 		if (isEnabled) {
 			HttpHeaders headers = new HttpHeaders();

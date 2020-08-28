@@ -1,48 +1,16 @@
 package io.mosip.registration.processor.biometric.authentication.stage;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyDouble;
-import static org.mockito.Matchers.anyString;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.apache.commons.io.IOUtils;
-import org.json.simple.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.core.env.Environment;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.xml.sax.SAXException;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import io.mosip.kernel.core.bioapi.exception.BiometricException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
+import io.mosip.kernel.core.cbeffutil.entity.BIR;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.QualityType;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.util.HMACUtils;
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.spi.PacketReaderService;
-import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -53,12 +21,9 @@ import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
-import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.BioTypeException;
-import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
-import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
@@ -70,7 +35,9 @@ import io.mosip.registration.processor.core.util.IdentityIteratorUtil;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
+import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
@@ -83,10 +50,43 @@ import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.vertx.core.Vertx;
+import org.apache.commons.io.IOUtils;
+import org.json.simple.JSONObject;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.core.env.Environment;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ IOUtils.class, HMACUtils.class, Utilities.class })
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.ssl.*" })
 public class BiometricAuthenticationStageTest {
 
 	/** The input stream. */
@@ -119,10 +119,7 @@ public class BiometricAuthenticationStageTest {
 	MessageDTO dto = new MessageDTO();
 
 	@Mock
-	private PacketReaderService packetReaderService;
-
-	@Mock
-	private IdSchemaUtils idSchemaUtils;
+	private PacketManagerService packetManagerService;
 
 
 	@Mock
@@ -147,7 +144,7 @@ public class BiometricAuthenticationStageTest {
 
 	/** The audit log request builder. */
 	@Mock
-	private AuditLogRequestBuilder auditLogRequestBuilder = new AuditLogRequestBuilder();
+	private AuditLogRequestBuilder auditLogRequestBuilder;
 
 	@Mock
 	private Environment env;
@@ -183,8 +180,6 @@ public class BiometricAuthenticationStageTest {
 	@Mock
 	RegistrationExceptionMapperUtil registrationStatusMapperUtil;
 
-	private ClassLoader classLoader;
-
 	private SyncRegistrationEntity regentity = Mockito.mock(SyncRegistrationEntity.class);
 
 	/**
@@ -195,13 +190,12 @@ public class BiometricAuthenticationStageTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		classLoader = getClass().getClassLoader();
 		ReflectionTestUtils.setField(biometricAuthenticationStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(biometricAuthenticationStage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(biometricAuthenticationStage, "ageLimit", "5");
 
 
-		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
+		when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
 
 
 		list = new ArrayList<InternalRegistrationStatusDto>();
@@ -225,27 +219,28 @@ public class BiometricAuthenticationStageTest {
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("2018701130000410092018110735");
 		registrationStatusDto.setStatusCode("");
+		registrationStatusDto.setRegistrationType("UPDATE");
 		listAppender.start();
 		list.add(registrationStatusDto);
-		Mockito.when(registrationStatusService.getByStatus(anyString())).thenReturn(list);
-		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		when(registrationStatusService.getByStatus(anyString())).thenReturn(list);
+		when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
 
-		Mockito.when(identityIteratorUtil.getFieldValue(any(), any())).thenReturn("UPDATE");
+		when(identityIteratorUtil.getFieldValue(any(), any())).thenReturn("UPDATE");
 
 
 		Mockito.doNothing().when(description).setMessage(any());
-		Mockito.when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("");
+		when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("");
 
 
 		statusResponseDto = new StatusResponseDto();
 		statusResponseDto.setStatus("VALID");
-		Mockito.when(registrationProcessorRestService.getApi(any(), any(), any(), any(), any()))
+		when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(statusResponseDto);
 
 		JSONObject jsonObject = Mockito.mock(JSONObject.class);
-		Mockito.when(utility.getUIn(any())).thenReturn("12345678");
-		Mockito.when(utility.retrieveIdrepoJson(any())).thenReturn(jsonObject);
+		when(utility.getUIn(anyString(),anyString(),anyString())).thenReturn("12345678");
+		when(utility.retrieveIdrepoJson(any())).thenReturn(jsonObject);
 		FieldValue fieldValue = new FieldValue();
 		FieldValue fieldValue1 = new FieldValue();
 		fieldValue1.setLabel("authenticationBiometricFileName");
@@ -257,223 +252,192 @@ public class BiometricAuthenticationStageTest {
 		metadata.add(fieldValue1);
 
 
-		Mockito.when(utility.getApplicantAge(any())).thenReturn(21);
-		HashMap<String, String> hashMap = new HashMap<String, String>();
+		when(utility.getDefaultSource()).thenReturn("reg-client");
+		when(utility.getApplicantAge(anyString(),anyString(),anyString())).thenReturn(21);
 
-		hashMap.put("value", "testFile");
-		JSONObject jSONObject = new JSONObject(hashMap);
-
-		File cbeffFile = new File(classLoader.getResource("cbeff.xml").getFile());
-		InputStream cbeffInputstream = new FileInputStream(cbeffFile);
-		Mockito.when(packetReaderService.getFile(anyString(), anyString(), anyString())).thenReturn(cbeffInputstream);
 		regentity.setRegistrationType("update");
-		Mockito.when(syncRegistrationservice.findByRegistrationId(any())).thenReturn(regentity);
+		when(syncRegistrationservice.findByRegistrationId(any())).thenReturn(regentity);
+
+		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setAuthStatus(true);
+		authResponseDTO.setResponse(responseDTO);
+		when(authUtil.authByIdAuthentication(any(), any(), any())).thenReturn(authResponseDTO);
+
+		List<BIR> birTypeList = new ArrayList<>();
+		BIR birType1 = new BIR();
+		BDBInfo bdbInfoType1 = new BDBInfo();
+		RegistryIDType registryIDType = new RegistryIDType();
+		registryIDType.setOrganization("Mosip");
+		registryIDType.setType("257");
+		QualityType quality = new QualityType();
+		quality.setAlgorithm(registryIDType);
+		quality.setScore(90l);
+		bdbInfoType1.setQuality(quality);
+		SingleType singleType1 = SingleType.FINGER;
+		List<SingleType> singleTypeList1 = new ArrayList<>();
+		singleTypeList1.add(singleType1);
+		List<String> subtype1 = new ArrayList<>(Arrays.asList("Left", "RingFinger"));
+		bdbInfoType1.setSubtype(subtype1);
+		bdbInfoType1.setType(singleTypeList1);
+		birType1.setBdbInfo(bdbInfoType1);
+		birTypeList.add(birType1);
+
+		BiometricRecord biometricRecord = new BiometricRecord();
+		biometricRecord.setSegments(birTypeList);
+
+		when(packetManagerService.getBiometrics(any(), any(),
+				any(), any(),any())).thenReturn(biometricRecord);
 
 
 	}
 
 	@Test
-	public void biometricAuthenticationSuccessTest()
-			throws ApisResourceAccessException, ApiNotAccessibleException, InvalidKeySpecException, NoSuchAlgorithmException, BiometricException,
-			BioTypeException, IOException, ParserConfigurationException, SAXException,
-			io.mosip.kernel.core.exception.IOException,
-			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
-		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
-		ResponseDTO responseDTO = new ResponseDTO();
-		responseDTO.setAuthStatus(true);
-		authResponseDTO.setResponse(responseDTO);
-		Mockito.when(authUtil.authByIdAuthentication(any(), any(), any())).thenReturn(authResponseDTO);
-		Mockito.when(regentity.getRegistrationType()).thenReturn("UPDATE");
-		File idJson = new File(classLoader.getResource("ID2.json").getFile());
-		InputStream ip = new FileInputStream(idJson);
-		String idJsonString = IOUtils.toString(ip, "UTF-8");
-		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString()))
-				.thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class),
-						MappingJsonConstants.IDENTITY));
+	public void biometricAuthenticationSuccessTest() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+		when(regentity.getRegistrationType()).thenReturn("UPDATE");
+		List<BIR> birTypeList = new ArrayList<>();
+		BIR birType1 = new BIR();
+		BDBInfo bdbInfoType1 = new BDBInfo();
+		RegistryIDType registryIDType = new RegistryIDType();
+		registryIDType.setOrganization("Mosip");
+		registryIDType.setType("257");
+		QualityType quality = new QualityType();
+		quality.setAlgorithm(registryIDType);
+		quality.setScore(90l);
+		bdbInfoType1.setQuality(quality);
+		SingleType singleType1 = SingleType.FINGER;
+		List<SingleType> singleTypeList1 = new ArrayList<>();
+		singleTypeList1.add(singleType1);
+		List<String> subtype1 = new ArrayList<>(Arrays.asList("Left", "RingFinger"));
+		bdbInfoType1.setSubtype(subtype1);
+		bdbInfoType1.setType(singleTypeList1);
+		birType1.setBdbInfo(bdbInfoType1);
+		birTypeList.add(birType1);
+
+		BiometricRecord biometricRecord = new BiometricRecord();
+		biometricRecord.setSegments(birTypeList);
+
+		when(packetManagerService.getBiometrics(any(), any(),
+				any(), any(),any())).thenReturn(null).thenReturn(biometricRecord);
+
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getIsValid());
 	}
 
 
 	@Test
-	public void IDAuthFailureTest() throws IOException, PacketDecryptionFailureException, ApisResourceAccessException, ApiNotAccessibleException,
-			io.mosip.kernel.core.exception.IOException, InvalidKeySpecException, NoSuchAlgorithmException,
-			BiometricException, BioTypeException, ParserConfigurationException, SAXException,
-			RegistrationProcessorCheckedException,
-			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
+	public void IDAuthFailureTest() throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException, BioTypeException {
 		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
 		responseDTO.setAuthStatus(false);
 		authResponseDTO.setResponse(responseDTO);
-		Mockito.when(authUtil.authByIdAuthentication(any(), any(), any())).thenReturn(authResponseDTO);
-
-		File idJson = new File(classLoader.getResource("ID2.json").getFile());
-		InputStream ip = new FileInputStream(idJson);
-		String idJsonString = IOUtils.toString(ip, "UTF-8");
-		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString()))
-				.thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class),
-						MappingJsonConstants.IDENTITY));
+		when(authUtil.authByIdAuthentication(any(), any(), any())).thenReturn(authResponseDTO);
 
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertFalse(messageDto.getIsValid());
 	}
 
 	@Test
-	public void childPacketTest() throws ApisResourceAccessException, ApiNotAccessibleException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
-			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
-		Mockito.when(regentity.getRegistrationType()).thenReturn("UPDATE");
-		Mockito.when(utility.getApplicantAge(any())).thenReturn(2);
+	public void childPacketTest() throws ApisResourceAccessException, JsonProcessingException, io.mosip.kernel.core.exception.IOException, PacketManagerException, IOException {
+		when(regentity.getRegistrationType()).thenReturn("UPDATE");
+		when(utility.getApplicantAge(anyString(),anyString(),anyString())).thenReturn(2);
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getIsValid());
 	}
 
 	@Test
-	public void inputStreamNullTest() throws PacketDecryptionFailureException, ApisResourceAccessException, ApiNotAccessibleException,
-			io.mosip.kernel.core.exception.IOException, IOException,
-			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
-		HashMap<String, String> hashMap = new HashMap<String, String>();
-		File mappingJsonFile = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
-		InputStream is = new FileInputStream(mappingJsonFile);
-		String value = IOUtils.toString(is, "UTF-8");
-		JSONObject mappingJsonObject = JsonUtil.objectMapperReadValue(value, JSONObject.class);
-		Mockito.when(utility.getRegistrationProcessorMappingJson()).thenReturn(mappingJsonObject);
-		hashMap.put("value", "");
-		JSONObject jSONObject = new JSONObject(hashMap);
-		Mockito.when(utility.getDemographicIdentityJSONObject(any(), any())).thenReturn(jSONObject);
-		Mockito.when(regentity.getRegistrationType()).thenReturn("UPDATE");
-		File idJson = new File(classLoader.getResource("ID.json").getFile());
-		InputStream ip = new FileInputStream(idJson);
-		String idJsonString = IOUtils.toString(ip, "UTF-8");
-		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString()))
-				.thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class),
-						MappingJsonConstants.IDENTITY));
+	public void inputStreamNullIndividualAuthTest() throws ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException, BioTypeException, IOException {
 
-		Mockito.when(packetReaderService.getFile(anyString(), anyString(), anyString())).thenReturn(null);
-		Mockito.when(idSchemaUtils.getSource(anyString(), anyDouble())).thenReturn("id");
-		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
-		assertFalse(messageDto.getIsValid());
-	}
-
-	@Test
-	public void inputStreamNullIndividualAuthTest()
-			throws PacketDecryptionFailureException, ApisResourceAccessException, ApiNotAccessibleException,
-			io.mosip.kernel.core.exception.IOException, IOException, InvalidKeySpecException, NoSuchAlgorithmException,
-			BiometricException, BioTypeException, ParserConfigurationException, SAXException,
-			RegistrationProcessorCheckedException,
-			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
-
-		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
-		ResponseDTO responseDTO = new ResponseDTO();
-		responseDTO.setAuthStatus(true);
-		authResponseDTO.setResponse(responseDTO);
-		Mockito.when(authUtil.authByIdAuthentication(any(), any(), any())).thenReturn(authResponseDTO);
 		HashMap<String, String> hashMap = new HashMap<String, String>();
 		hashMap.put("value", "testFile");
-		JSONObject jSONObject = new JSONObject(hashMap);
-		Mockito.when(utility.getDemographicIdentityJSONObject(any(), any())).thenReturn(jSONObject);
-		Mockito.when(regentity.getRegistrationType()).thenReturn("UPDATE");
-		Mockito.when(packetReaderService.getFile(anyString(), anyString(), anyString())).thenReturn(null);
-		Mockito.when(idSchemaUtils.getSource(anyString(), anyDouble())).thenReturn("id");
+
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
+
 		assertFalse(messageDto.getIsValid());
 	}
 
 	@Test
-	public void testIOException() throws ApisResourceAccessException, ApiNotAccessibleException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
-			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
+	public void testIOException() throws ApisResourceAccessException, IOException, PacketManagerException, io.mosip.kernel.core.exception.IOException, JsonProcessingException {
 
-		Mockito.when(utility.getApplicantAge(any())).thenThrow(new IOException("IOException"));
+		when(utility.getApplicantAge(any(),anyString(),anyString())).thenThrow(new IOException("IOException"));
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getInternalError());
 	}
 
 	@Test
-	public void testApisResourceAccessException() throws ApisResourceAccessException, ApiNotAccessibleException, IOException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			RegistrationProcessorCheckedException,
-			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
+	public void testApisResourceAccessException() throws ApisResourceAccessException, IOException, PacketManagerException, io.mosip.kernel.core.exception.IOException, JsonProcessingException {
 
-		Mockito.when(utility.getApplicantAge(any()))
+		when(utility.getApplicantAge(anyString(),anyString(),anyString()))
 				.thenThrow(new ApisResourceAccessException("ApisResourceAccessException"));
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getInternalError());
 	}
 
 	@Test
-	public void testException() throws ApisResourceAccessException, ApiNotAccessibleException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
-			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
+	public void testException() throws ApisResourceAccessException, IOException, PacketManagerException, io.mosip.kernel.core.exception.IOException, JsonProcessingException {
 
-		Mockito.when(utility.getApplicantAge(any()))
+		when(utility.getApplicantAge(anyString(),anyString(),anyString()))
 				.thenThrow(
-						new io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException(
+						new ApisResourceAccessException(
 								"test message"));
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getInternalError());
 	}
 
 	@Test
-	public void testEmptyJSONObject() throws IOException, PacketDecryptionFailureException, ApisResourceAccessException,
-			ApiNotAccessibleException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
-			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
+	@Ignore
+	public void testEmptyJSONObject() throws IOException {
 		HashMap<String, String> hashMap = new HashMap<String, String>();
-		File mappingJsonFile = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
-		InputStream is = new FileInputStream(mappingJsonFile);
-		String value = IOUtils.toString(is, "UTF-8");
-		JSONObject mappingJsonObject = JsonUtil.objectMapperReadValue(value, JSONObject.class);
-		Mockito.when(utility.getRegistrationProcessorMappingJson()).thenReturn(mappingJsonObject);
+		when(utility.getRegistrationProcessorMappingJson()).thenReturn(new JSONObject());
 		hashMap.put("value", "");
-		JSONObject jSONObject = new JSONObject(hashMap);
-		Mockito.when(utility.getDemographicIdentityJSONObject(any(), any())).thenReturn(jSONObject);
-		Mockito.when(regentity.getRegistrationType()).thenReturn("UPDATE");
-		File idJson = new File(classLoader.getResource("ID.json").getFile());
-		InputStream ip = new FileInputStream(idJson);
-		String idJsonString = IOUtils.toString(ip, "UTF-8");
-		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString()))
-				.thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class),
-						MappingJsonConstants.IDENTITY));
+		when(regentity.getRegistrationType()).thenReturn("UPDATE");
 
-		Mockito.when(idSchemaUtils.getSource(anyString(), anyDouble())).thenReturn("id");
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
+
 		assertTrue(messageDto.getIsValid());
 	}
 
 	@Test
-	public void resupdatePacketTest() throws ApisResourceAccessException, ApiNotAccessibleException, InvalidKeySpecException,
-			NoSuchAlgorithmException, BiometricException, BioTypeException, IOException, ParserConfigurationException,
-			SAXException, PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
-		File idJson = new File(classLoader.getResource("ID2.json").getFile());
-		InputStream ip = new FileInputStream(idJson);
-		String idJsonString = IOUtils.toString(ip, "UTF-8");
-		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString()))
-				.thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class),
-						MappingJsonConstants.IDENTITY));
-		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
-		ResponseDTO responseDTO = new ResponseDTO();
-		responseDTO.setAuthStatus(true);
-		authResponseDTO.setResponse(responseDTO);
-		Mockito.when(regentity.getRegistrationType()).thenReturn("res_update");
-		Mockito.when(authUtil.authByIdAuthentication(any(), any(), any())).thenReturn(authResponseDTO);
+	public void resupdatePacketTest() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+		when(regentity.getRegistrationType()).thenReturn("res_update");
+		List<BIR> birTypeList = new ArrayList<>();
+		BIR birType1 = new BIR();
+		BDBInfo bdbInfoType1 = new BDBInfo();
+		RegistryIDType registryIDType = new RegistryIDType();
+		registryIDType.setOrganization("Mosip");
+		registryIDType.setType("257");
+		QualityType quality = new QualityType();
+		quality.setAlgorithm(registryIDType);
+		quality.setScore(90l);
+		bdbInfoType1.setQuality(quality);
+		SingleType singleType1 = SingleType.FINGER;
+		List<SingleType> singleTypeList1 = new ArrayList<>();
+		singleTypeList1.add(singleType1);
+		List<String> subtype1 = new ArrayList<>(Arrays.asList("Left", "RingFinger"));
+		bdbInfoType1.setSubtype(subtype1);
+		bdbInfoType1.setType(singleTypeList1);
+		birType1.setBdbInfo(bdbInfoType1);
+		birTypeList.add(birType1);
+
+		BiometricRecord biometricRecord = new BiometricRecord();
+		biometricRecord.setSegments(birTypeList);
+		when(packetManagerService.getBiometrics(any(), any(), any(), any(),any())).thenReturn(biometricRecord);
+
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
+
 		assertTrue(messageDto.getIsValid());
 	}
 
 	@Test
-	public void testNewPacket() throws IOException, PacketDecryptionFailureException, ApisResourceAccessException, ApiNotAccessibleException,
-			io.mosip.kernel.core.exception.IOException, InvalidKeySpecException, NoSuchAlgorithmException,
-			BiometricException, BioTypeException, ParserConfigurationException, SAXException,
-			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
+	public void testNewPacket() throws IOException,
+			ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException, BioTypeException {
 
 		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
 		responseDTO.setAuthStatus(false);
 		authResponseDTO.setResponse(responseDTO);
-		Mockito.when(regentity.getRegistrationType()).thenReturn("new");
-		Mockito.when(authUtil.authByIdAuthentication(any(), any(), any())).thenReturn(authResponseDTO);
+		when(regentity.getRegistrationType()).thenReturn("new");
+		when(authUtil.authByIdAuthentication(any(), any(), any())).thenReturn(authResponseDTO);
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 
 		assertTrue(messageDto.getIsValid());
@@ -485,11 +449,32 @@ public class BiometricAuthenticationStageTest {
 		biometricAuthenticationStage.deployVerticle();
 	}
 	@Test
-	public void testAuthSystemException() throws ApisResourceAccessException, ApiNotAccessibleException, IOException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, InvalidKeySpecException,
-			NoSuchAlgorithmException, BiometricException, BioTypeException, ParserConfigurationException, SAXException,
-			RegistrationProcessorCheckedException,
-			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
+	public void testAuthSystemException() throws ApisResourceAccessException, IOException, InvalidKeySpecException,
+			NoSuchAlgorithmException, BioTypeException, JsonProcessingException, PacketManagerException {
+		List<BIR> birTypeList = new ArrayList<>();
+		BIR birType1 = new BIR();
+		BDBInfo bdbInfoType1 = new BDBInfo();
+		RegistryIDType registryIDType = new RegistryIDType();
+		registryIDType.setOrganization("Mosip");
+		registryIDType.setType("257");
+		QualityType quality = new QualityType();
+		quality.setAlgorithm(registryIDType);
+		quality.setScore(90l);
+		bdbInfoType1.setQuality(quality);
+		SingleType singleType1 = SingleType.FINGER;
+		List<SingleType> singleTypeList1 = new ArrayList<>();
+		singleTypeList1.add(singleType1);
+		List<String> subtype1 = new ArrayList<>(Arrays.asList("Left", "RingFinger"));
+		bdbInfoType1.setSubtype(subtype1);
+		bdbInfoType1.setType(singleTypeList1);
+		birType1.setBdbInfo(bdbInfoType1);
+		birTypeList.add(birType1);
+
+		BiometricRecord biometricRecord = new BiometricRecord();
+		biometricRecord.setSegments(birTypeList);
+
+		when(packetManagerService.getBiometrics(any(), any(),
+				any(), any(),any())).thenReturn(null).thenReturn(biometricRecord);
 		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
 		ErrorDTO error=new ErrorDTO();
 		error.setErrorCode("IDA-MLC-007");
@@ -498,23 +483,14 @@ public class BiometricAuthenticationStageTest {
 		List<ErrorDTO> errors=new ArrayList<ErrorDTO>();
 		errors.add(error);
 		authResponseDTO.setErrors(errors);
-		Mockito.when(authUtil.authByIdAuthentication(any(), any(), any())).thenReturn(authResponseDTO);
-		File idJson = new File(classLoader.getResource("ID2.json").getFile());
-		InputStream ip = new FileInputStream(idJson);
-		String idJsonString = IOUtils.toString(ip, "UTF-8");
-		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString()))
-				.thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class),
-						MappingJsonConstants.IDENTITY));
-		Mockito.when(regentity.getRegistrationType()).thenReturn("UPDATE");
+		when(authUtil.authByIdAuthentication(any(), any(), any())).thenReturn(authResponseDTO);
+		when(regentity.getRegistrationType()).thenReturn("UPDATE");
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getInternalError());
 	}
 	@Test
-	public void testAuthFailed() throws ApisResourceAccessException, ApiNotAccessibleException, IOException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, InvalidKeySpecException,
-			NoSuchAlgorithmException, BiometricException, BioTypeException, ParserConfigurationException, SAXException,
-			RegistrationProcessorCheckedException,
-			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
+	public void testAuthFailed() throws ApisResourceAccessException, IOException, InvalidKeySpecException,
+			NoSuchAlgorithmException, BioTypeException {
 		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
 		ErrorDTO error=new ErrorDTO();
 		error.setErrorCode("IDA-MLC-008");
@@ -523,15 +499,31 @@ public class BiometricAuthenticationStageTest {
 		List<ErrorDTO> errors=new ArrayList<ErrorDTO>();
 		errors.add(error);
 		authResponseDTO.setErrors(errors);
-		Mockito.when(authUtil.authByIdAuthentication(any(), any(), any())).thenReturn(authResponseDTO);
-		File idJson = new File(classLoader.getResource("ID2.json").getFile());
+		when(authUtil.authByIdAuthentication(any(), any(), any())).thenReturn(authResponseDTO);
+		/*File idJson = new File(classLoader.getResource("ID2.json").getFile());
 		InputStream ip = new FileInputStream(idJson);
-		String idJsonString = IOUtils.toString(ip, "UTF-8");
+		*//*String idJsonString = IOUtils.toString(ip, "UTF-8");
 		Mockito.when(utility.getDemographicIdentityJSONObject(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class),
-						MappingJsonConstants.IDENTITY));
-		Mockito.when(regentity.getRegistrationType()).thenReturn("UPDATE");
+						MappingJsonConstants.IDENTITY));*/
+		when(regentity.getRegistrationType()).thenReturn("UPDATE");
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertFalse(messageDto.getIsValid());
+	}
+
+	@Test
+	public void testJsonProcessingException() throws ApisResourceAccessException, IOException, PacketManagerException, io.mosip.kernel.core.exception.IOException, JsonProcessingException {
+
+		when(utility.getApplicantAge(any(),anyString(),anyString())).thenThrow(new JsonProcessingException("IOException"));
+		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
+		assertTrue(messageDto.getInternalError());
+	}
+
+	@Test
+	public void testPacketManagerException() throws ApisResourceAccessException, IOException, PacketManagerException, io.mosip.kernel.core.exception.IOException, JsonProcessingException {
+
+		when(utility.getApplicantAge(any(),anyString(),anyString())).thenThrow(new PacketManagerException("errorcode","IOException"));
+		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
+		assertTrue(messageDto.getInternalError());
 	}
 }

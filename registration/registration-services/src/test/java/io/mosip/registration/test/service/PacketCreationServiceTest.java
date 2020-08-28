@@ -26,6 +26,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -65,6 +66,7 @@ import io.mosip.registration.util.hmac.HMACGeneration;
 import io.mosip.registration.validator.RegIdObjectValidator;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ ApplicationContext.class, SessionContext.class })
 public class PacketCreationServiceTest {
 
@@ -142,17 +144,31 @@ public class PacketCreationServiceTest {
 		regDeviceSpec.setRegDeviceType(regDeviceType);
 		device.setRegDeviceSpec(regDeviceSpec);
 		devices.add(device);
+		Timestamp auditStartTime = Timestamp.valueOf(LocalDateTime.now().minusDays(1).minusHours(2));
+		Timestamp auditEndTime = Timestamp.valueOf(LocalDateTime.now().minusDays(1));
+		RegistrationAuditDates registrationAuditDates = new RegistrationAuditDates() {
 
+			@Override
+			public Timestamp getAuditLogFromDateTime() {
+				return auditStartTime;
+			}
+
+			@Override
+			public Timestamp getAuditLogToDateTime() {
+				return auditEndTime;
+			}
+		};
+		
 		when(zipCreationService.createPacket(Mockito.any(RegistrationDTO.class), Mockito.anyMap()))
 				.thenReturn("zip".getBytes());
-		when(cbeffI.createXML(Mockito.anyList(), Mockito.anyString().getBytes())).thenReturn("cbeffXML".getBytes());
+		when(cbeffI.createXML(Mockito.anyList(), Mockito.any(byte[].class))).thenReturn("cbeffXML".getBytes());
 		/*Mockito.doAnswer((idObject) -> {
 			return "Success";
 		}).when(idObjectValidator).validateIdObject(Mockito.any(), Mockito.any());*/
 		// when(idObjectValidator.validateIdObject(Mockito.any(),Mockito.any())).thenReturn(true);
-		when(auditLogControlDAO.getLatestRegistrationAuditDates()).thenReturn(null);
+		when(auditLogControlDAO.getLatestRegistrationAuditDates()).thenReturn(registrationAuditDates);
 		when(auditDAO.getAudits(Mockito.any(RegistrationAuditDates.class))).thenReturn(getAudits());
-		when(machineMappingDAO.getDevicesMappedToRegCenter(Mockito.anyString())).thenReturn(devices);
+		when(machineMappingDAO.getDevicesMappedToRegCenter(Mockito.any())).thenReturn(devices);
 
 		Assert.assertNotNull(packetCreationServiceImpl.create(registrationDTO));
 	}
@@ -207,7 +223,7 @@ public class PacketCreationServiceTest {
 
 		when(zipCreationService.createPacket(Mockito.any(RegistrationDTO.class), Mockito.anyMap()))
 				.thenReturn("zip".getBytes());
-		when(cbeffI.createXML(Mockito.anyList(), Mockito.anyString().getBytes())).thenReturn("cbeffXML".getBytes());
+		when(cbeffI.createXML(Mockito.anyList(), Mockito.any(byte[].class))).thenReturn("cbeffXML".getBytes());
 		/*Mockito.doAnswer((idObject) -> {
 			return "Success";
 		}).when(idObjectValidator).validateIdObject(Mockito.any(), Mockito.any());*/
@@ -238,7 +254,7 @@ public class PacketCreationServiceTest {
 
 		when(zipCreationService.createPacket(Mockito.any(RegistrationDTO.class), Mockito.anyMap()))
 				.thenReturn("zip".getBytes());
-		when(cbeffI.createXML(Mockito.anyList(), Mockito.anyString().getBytes())).thenReturn("cbeffXML".getBytes());
+		when(cbeffI.createXML(Mockito.anyList(), Mockito.any(byte[].class))).thenReturn("cbeffXML".getBytes());
 		/*Mockito.doAnswer((idObject) -> {
 			return "Success";
 		}).when(idObjectValidator).validateIdObject(Mockito.any(), Mockito.any());*/

@@ -47,7 +47,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito</artifactId>
+			<artifactId>powermock-api-mockito2</artifactId>
 			<version>${powermock.api.mockito.version}</version>
 			<scope>test</scope>
 		</dependency>
@@ -97,11 +97,6 @@
 			<version>${kernel.clamav.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-fsadapter-hdfs</artifactId>
-			<version>${kernel.fsadapter.hdfs.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 		</dependency>
@@ -127,14 +122,14 @@
 			<version>${io.micrometer.prometheus.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-registration-packet-manager</artifactId>
-			<version>${registration.processor.packet.utility.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
 			<version>20180813</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.commons</groupId>
+			<artifactId>khazana</artifactId>
+			<version>${object.store.khazana.version}</version>
 		</dependency>
 	</dependencies>
 

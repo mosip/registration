@@ -25,5 +25,8 @@ public class PacketStatusDTO {
 	private BigInteger packetSize;
 	private String packetHash;
 	private String createdTime;
+	private String name;
+	private String phone;
+	private String email;
 	
 }

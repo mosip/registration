@@ -48,12 +48,6 @@ public class MasterSyncDaoImplNonMockTest {
 	private MasterSyncDao masterSyncDaoImpl;
 	
 	@Autowired
-	private BiometricAttributeRepository biometricAttributeRepository;
-	
-	@Autowired
-	private BiometricTypeRepository biometricTypeRepository;
-	
-	@Autowired
 	private UserDetailRepository userDetailRepository;
 	
 	@Autowired
@@ -73,8 +67,7 @@ public class MasterSyncDaoImplNonMockTest {
 	  appMap.put(RegistrationConstants.FACE_DISABLE_FLAG, "Y");
 	  appMap.put(RegistrationConstants.PRIMARY_LANGUAGE, "eng");
 	  appMap.put(RegistrationConstants.SECONDARY_LANGUAGE, "fra");
-	  appMap.put(RegistrationConstants.TPM_AVAILABILITY, RegistrationConstants.DISABLE);
-	  ApplicationContext.getInstance().setApplicationMap(appMap);
+	   ApplicationContext.getInstance().setApplicationMap(appMap);
 	  ApplicationContext.getInstance().loadResourceBundle();
 	}
 	

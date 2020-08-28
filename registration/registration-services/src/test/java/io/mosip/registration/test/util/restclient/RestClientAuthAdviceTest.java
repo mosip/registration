@@ -15,6 +15,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.http.HttpHeaders;
@@ -42,6 +43,7 @@ import io.mosip.registration.util.restclient.RequestHTTPDTO;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ JsonUtils.class, ApplicationContext.class, SessionContext.class, TPMUtil.class })
 public class RestClientAuthAdviceTest {
 
@@ -53,8 +55,7 @@ public class RestClientAuthAdviceTest {
 	private ProceedingJoinPoint proceedingJoinPoint;
 	@Mock
 	private MachineMappingDAO machineMappingDAO;
-	@Mock
-	private ClientSecurity clientSecurity;
+
 	@InjectMocks
 	private RestClientAuthAdvice restClientAuthAdvice;
 
@@ -68,7 +69,6 @@ public class RestClientAuthAdviceTest {
 		LoginUserDTO loginUserDTO = new LoginUserDTO();
 		loginUserDTO.setUserId("user");
 		value.put(RegistrationConstants.USER_DTO, loginUserDTO);
-		value.put(RegistrationConstants.TPM_AVAILABILITY, RegistrationConstants.DISABLE);
 
 		PowerMockito.doReturn(authTokenDTO).when(ApplicationContext.class, "authTokenDTO");
 		PowerMockito.doReturn(authTokenDTO).when(SessionContext.class, "authTokenDTO");
@@ -251,7 +251,6 @@ public class RestClientAuthAdviceTest {
 		Object[] args = new Object[1];
 		args[0] = requestHTTPDTO;
 		Map<String, Object> applicationContext = new HashMap<>();
-		applicationContext.put(RegistrationConstants.TPM_AVAILABILITY, RegistrationConstants.ENABLE);
 
 		Mockito.when(proceedingJoinPoint.getArgs()).thenReturn(args);
 		Mockito.when(proceedingJoinPoint.proceed(proceedingJoinPoint.getArgs())).thenReturn(new Object());

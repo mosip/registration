@@ -5,8 +5,7 @@ import java.security.PublicKey;
 
 import javax.crypto.SecretKey;
 
-import io.mosip.kernel.packetmanager.impl.PacketReaderServiceImpl;
-import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -52,6 +51,11 @@ public class PacketStorageBeanConfig {
 	}
 
 	@Bean
+	public PacketManagerService packetManagerService() {
+		return new PacketManagerService();
+	}
+
+	@Bean
 	public ABISHandlerUtil getABISHandlerUtil() {
 		return new ABISHandlerUtil();
 	}
@@ -70,11 +74,6 @@ public class PacketStorageBeanConfig {
 	@Primary
 	public CryptoCoreSpec<byte[], byte[], SecretKey, PublicKey, PrivateKey, String> getEncryptor() {
 		return new CryptoCore();
-	}
-
-	@Bean
-	public PacketReaderService getPacketReaderService() {
-		return new PacketReaderServiceImpl();
 	}
 
 	@Bean

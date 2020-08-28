@@ -38,6 +38,9 @@ public enum StatusUtil {
 	MANDATORY_VALIDATION_FAILED(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "009", "Mandatory Fields are Not Present in ID Object"),
 	RID_AND_TYPE_SYNC_FAILED(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "010", "RID & Type not matched from sync table"),
 	PACKET_REJECTED(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "011", "Rejected by Supervisor"),
+	PACKET_MANAGER_VALIDATION_FAILURE(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "012", "Packet validation failed in packet manager"),
+	BIOMETRICS_VALIDATION_FAILURE(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "013", "Biometric file validation failed"),
+	PACKET_MANAGER_EXCEPTION(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "014", "Exception occured in packet manager."),
 
 	// External stage
 	EXTERNAL_STAGE_SUCCESS(StatusConstants.EXTERNAL_SATGE_MODULE_SUCCESS + "001", "Packet processing in External stage is sucessful"),
@@ -156,7 +159,7 @@ public enum StatusUtil {
 	VIRUS_SCANNER_SERVICE_NOT_ACCESSIBLE(StatusConstants.SYSTEM_EXCEPTION_CODE,"Virus Scanner Service is not accessible"), 
 	DB_NOT_ACCESSIBLE(StatusConstants.SYSTEM_EXCEPTION_CODE,"Databse Not Accessible"), 
 	PACKET_NOT_FOUND_PACKET_STORE(StatusConstants.SYSTEM_EXCEPTION_CODE, "Packet not found in File System"),
-	FS_ADAPTER_EXCEPTION(StatusConstants.SYSTEM_EXCEPTION_CODE,"FS Adapter Exception Occurred"), 
+	OBJECT_STORE_EXCEPTION(StatusConstants.SYSTEM_EXCEPTION_CODE,"Object store exception occured"),
 	JSCH_EXCEPTION_OCCURED(StatusConstants.SYSTEM_EXCEPTION_CODE,"JSCH Connection Exception Occurred"),
 	NGINX_ACCESS_EXCEPTION(StatusConstants.SYSTEM_EXCEPTION_CODE,"NGINX url is not accessible"),
 	IO_EXCEPTION(StatusConstants.SYSTEM_EXCEPTION_CODE,"IO Exception Occurred"), 

@@ -28,76 +28,54 @@
 			<artifactId>kernel-crypto-jce</artifactId>
 			<version>${mosip.core.kernel.version}</version>
 		</dependency>
-
-		<!-- JUnit -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<!-- Mockito -->
 		<dependency>
 			<groupId>org.apache.derby</groupId>
 			<artifactId>derby</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.oracle</groupId>
-			<artifactId>javafx</artifactId>
-			<version>${javafx.version}</version>
-			<systemPath>${project.basedir}/src/main/resources/fx_lib/jfxrt.jar</systemPath>
-			<scope>system</scope>
+		    <groupId>org.mockito</groupId>
+		    <artifactId>mockito-core</artifactId>
+		    <version>2.9.0</version>
+		    <scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.powermock/powermock-api-mockito -->
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito</artifactId>
+			<version>1.10.19</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-core</artifactId>
+			<version>2.0.7</version>
 			<scope>test</scope>
 		</dependency>
-
+		<dependency>
+		  <groupId>org.mockito</groupId>
+		  <artifactId>mockito-core</artifactId>
+		  <version>2.18.0</version> <!-- or higher, correspondning to powermock-version -->
+		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-api-mockito2</artifactId>
+			<version>2.0.7</version>
 			<scope>test</scope>
 		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/org.powermock/powermock-module-junit4 -->
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-module-junit4</artifactId>
-			<scope>test</scope>
+			<version>2.0.0-beta.5</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-web</artifactId>
 			<version>5.0.3.RELEASE</version>
 		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito</artifactId>
-			<version>1.7.4</version>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-module-junit4</artifactId>
-			<version>2.0.0-RC.3</version>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-core</artifactId>
-			<version>1.7.0</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.github.microsoft/TSS.Java -->
 		<dependency>
 			<groupId>com.github.microsoft</groupId>
 			<artifactId>TSS.Java</artifactId>
@@ -111,46 +89,37 @@
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-core</artifactId>
 				<version>1.0.9-SNAPSHOT</version>
-			</dependency>
-			<!-- <dependency> <groupId>io.mosip</groupId> <artifactId>kernel-security</artifactId>
-				<version>${project.version}</version> </dependency> 
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-dataaccess-hibernate</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-			</dependency>-->
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-auditmanager-api</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-idvalidator-rid</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-idvalidator-uin</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-idvalidator-prid</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-idgenerator-rid</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-crypto-signature</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-			</dependency>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-auditmanager-api</artifactId>
+			<version>${mosip.core.kernel.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-idvalidator-rid</artifactId>
+			<version>${mosip.core.kernel.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-idvalidator-uin</artifactId>
+			<version>${mosip.core.kernel.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-idvalidator-prid</artifactId>
+			<version>${mosip.core.kernel.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-idgenerator-rid</artifactId>
+			<version>${mosip.core.kernel.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-crypto-signature</artifactId>
+			<version>${mosip.core.kernel.version}</version>
+		</dependency>
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-templatemanager-velocity</artifactId>
@@ -177,7 +146,6 @@
 				<artifactId>kernel-virusscanner-clamav</artifactId>
 				<version>${mosip.core.kernel.version}</version>
 			</dependency>
-
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-transliteration-icu4j</artifactId>
@@ -188,13 +156,38 @@
 				<artifactId>kernel-applicanttype-api</artifactId>
 				<version>${mosip.core.kernel.version}</version>
 			</dependency>
+			<dependency>
+			    <groupId>org.javassist</groupId>
+			    <artifactId>javassist</artifactId>
+			    <version>3.24.0-GA</version>
+			</dependency>
+			<!--  java 11 -->
+			<dependency>
+			    <groupId>com.sun.activation</groupId>
+			    <artifactId>javax.activation</artifactId>
+			</dependency>
+			<dependency>
+			    <groupId>javax.xml.bind</groupId>
+			    <artifactId>jaxb-api</artifactId>
+			</dependency>
+			<dependency>
+			    <groupId>com.sun.xml.bind</groupId>
+			    <artifactId>jaxb-core</artifactId>
+			</dependency>
+			<dependency>
+			    <groupId>com.sun.xml.bind</groupId>
+			    <artifactId>jaxb-impl</artifactId>
+			</dependency>
+			<dependency>
+			    <groupId>org.openjfx</groupId>
+			    <artifactId>javafx-controls</artifactId>
+			    <version>${openjfx.version}</version>
+			</dependency>
 	</dependencies>
 	<build>
 		<resources>
-
 			<resource>
 				<directory>src/main/resources</directory>
-
 				<includes>
 					<include>**/*.properties</include>
 					<include>**/*.png</include>
@@ -283,7 +276,6 @@
 					</execution>
 				</executions>
 			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -298,9 +290,6 @@
 					</excludes>
 				</configuration>
 			</plugin>
-
-
-
 		</plugins>
 	</build>
 </project>

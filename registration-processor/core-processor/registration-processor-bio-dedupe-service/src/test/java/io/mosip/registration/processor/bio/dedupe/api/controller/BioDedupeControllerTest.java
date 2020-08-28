@@ -78,7 +78,7 @@ public class BioDedupeControllerTest {
 	@Test
 	@WithUserDetails("reg-processor")
 	public void getFileSuccessTest() throws Exception {
-		Mockito.when(bioDedupeService.getFileByAbisRefId("1234")).thenReturn(cbeffFile);
+		Mockito.when(bioDedupeService.getFileByAbisRefId(any(),any(),any())).thenReturn(cbeffFile);
 		Mockito.when(digitalSignatureUtility.getDigitalSignature(any())).thenReturn("abc");
 		this.mockMvc
 				.perform(MockMvcRequestBuilders.get("/biometricfile/1234").cookie(new Cookie("Authorization", "token"))

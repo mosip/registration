@@ -16,8 +16,6 @@ import org.springframework.stereotype.Service;
 
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.AuditLogConstant;
 import io.mosip.registration.processor.core.code.DedupeSourceName;
@@ -186,13 +184,13 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	/**
 	 * Gets the identity keys and fetch values from JSON.
 	 *
-	 * @param demographicJsonString the demographic json string @return the identity
+	 * @param registrationId the demographic json string @return the identity
 	 * keys and fetch values from JSON @throws
 	 * PacketDecryptionFailureException @throws ApiNotAccessibleException @throws
 	 */
 	@Override
-	public IndividualDemographicDedupe getIdentityKeysAndFetchValuesFromJSON(String registrationId)
-			throws ApiNotAccessibleException, PacketDecryptionFailureException {
+	@Deprecated
+	public IndividualDemographicDedupe getIdentityKeysAndFetchValuesFromJSON(String registrationId) {
 		IndividualDemographicDedupe demographicData = new IndividualDemographicDedupe();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"PacketInfoManagerImpl::getIdentityKeysAndFetchValuesFromJSON()::entry");
@@ -204,7 +202,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 			String[] names = ((String) JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "name"),
 					"value")).split(",");
 			List<JsonValue[]> jsonValueList = new ArrayList<>();
-			for (String name : names) {
+			/*for (String name : names) {
 				JsonValue[] nameArray = JsonUtil.getJsonValues(utility.getDemographicIdentityJSONObject(registrationId,name), name);
 				if (nameArray != null)
 					jsonValueList.add(nameArray);
@@ -229,9 +227,9 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 					demographicData.setPostalCode((String) JsonUtil.getJSONValue(utility.getDemographicIdentityJSONObject(registrationId,address), address));
 				}
 					
-			}
+			}*/
 
-		} catch (IOException | io.mosip.kernel.core.exception.IOException e) {
+		} catch (IOException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
 
@@ -256,13 +254,11 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	/**
 	 * Save individual demographic dedupe.
 	 *
-	 * @param demographicJsonBytes the demographic json bytes
+	 * @param regId the regId
 	 * @param description
-	 * @throws PacketDecryptionFailureException
-	 * @throws ApiNotAccessibleException
 	 */
 	private void saveIndividualDemographicDedupe(String regId, LogDescription description,
-			String moduleId, String moduleName) throws ApiNotAccessibleException, PacketDecryptionFailureException {
+			String moduleId, String moduleName) {
 
 		IndividualDemographicDedupe demographicData = getIdentityKeysAndFetchValuesFromJSON(regId);
 		boolean isTransactionSuccessful = false;
@@ -353,7 +349,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 */
 	@Override
 	public void saveDemographicInfoJson(String registrationId, String moduleId,
-			String moduleName) throws ApiNotAccessibleException, PacketDecryptionFailureException {
+			String moduleName) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"PacketInfoManagerImpl::saveDemographicInfoJson()::entry");
 		LogDescription description = new LogDescription();

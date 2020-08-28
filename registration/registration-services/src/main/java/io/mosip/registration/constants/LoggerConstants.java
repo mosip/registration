@@ -197,4 +197,6 @@ public class LoggerConstants {
 	public static final String LOCAL_CLIENT_SECURITY_IMPL = "LOCAL_CLIENT_SECURITY_IMPL";
 
 	public static final String LOG_REG_SCHEMA_SYNC = MASTER_SYNC + "ID_SCHEMA_SYNC";
+
+	public static final String SECURITY_INSTANCE_INITIALIZER = "SECURITY_INSTANCE_INITIALIZER";
 }

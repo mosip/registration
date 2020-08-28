@@ -78,6 +78,8 @@ public class Registration extends RegistrationCommonFields {
 	private String latestTrnLangCode;
 	@Column(name = "LATEST_REGTRN_DTIMES")
 	private Timestamp latestRegTrnTimestamp;
+	@Column(name = "ADDITIONAL_INFO")
+	private byte[] additionalInfo;
 
 	@ManyToOne
 	@JoinColumn(name = "CR_BY", referencedColumnName = "id", insertable = false, updatable = false)
@@ -324,6 +326,12 @@ public class Registration extends RegistrationCommonFields {
 	public void setPreRegId(String preRegId) {
 		this.preRegId = preRegId;
 	}
-	
-	
+
+	public byte[] getAdditionalInfo() {
+		return additionalInfo;
+	}
+
+	public void setAdditionalInfo(byte[] additionalInfo) {
+		this.additionalInfo = additionalInfo;
+	}
 }

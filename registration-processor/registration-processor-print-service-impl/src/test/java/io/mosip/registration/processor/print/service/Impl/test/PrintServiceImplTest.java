@@ -69,7 +69,7 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Utilities.class, CryptoUtil.class, FileUtils.class })
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
+@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*","com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*" })
 public class PrintServiceImplTest {
 
 	/** The rest client service. */
@@ -196,7 +196,7 @@ public class PrintServiceImplTest {
 
 		response.setDocuments(docList);
 		idResponse.setResponse(response);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(idResponse);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(idResponse);
 
 		String artifact = "UIN Card Template";
 		InputStream artifactStream = new ByteArrayInputStream(artifact.getBytes());
@@ -326,7 +326,7 @@ public class PrintServiceImplTest {
 	@Test(expected = PDFGeneratorException.class)
 	public void testApiResourceException() throws ApisResourceAccessException, IdRepoAppException, IOException {
 		ApisResourceAccessException e = new ApisResourceAccessException();
-		Mockito.doThrow(e).when(restClientService).getApi(any(), any(), any(), any(), any());
+		Mockito.doThrow(e).when(restClientService).getApi(any(), any(), anyString(), any(), any());
 
 		List<String> uinList = new ArrayList<>();
 		uinList.add("2046958192");
@@ -403,7 +403,7 @@ public class PrintServiceImplTest {
 
 	@Test(expected = PDFGeneratorException.class)
 	public void testIdResponseNull() throws ApisResourceAccessException {
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(null);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(null);
 
 		String uin = "2046958192";
 		printService.getDocuments(IdType.UIN, uin, CardType.UIN.toString(), false).get("uinPdf");

@@ -3,9 +3,8 @@ package io.mosip.registration.processor.core.spi.packetmanager;
 
 import java.util.List;
 
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.code.DedupeSourceName;
+import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.packet.dto.RegAbisRefDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisApplicationDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisRequestDto;
@@ -39,7 +38,7 @@ public interface PacketInfoManager<T, /** D, M, */
 	 *            the meta data
 	 */
 	public void saveDemographicInfoJson(String regId, String moduleId,
-			String moduleName) throws ApiNotAccessibleException, PacketDecryptionFailureException;
+			String moduleName);
 
 	/**
 	 * Gets the packetsfor QC user.
@@ -285,7 +284,7 @@ public interface PacketInfoManager<T, /** D, M, */
 	/**
 	 * Gets the abis response det records.
 	 *
-	 * @param List
+	 * @param abisResponseDto
 	 *            abisResponseDto the abis response dto
 	 * @return the abis response det records
 	 */
@@ -319,7 +318,7 @@ public interface PacketInfoManager<T, /** D, M, */
 	 * @return the identity keys and fetch values from JSON
 	 */
 	public IndividualDemographicDedupe getIdentityKeysAndFetchValuesFromJSON(String demographicJsonString)
-			throws ApiNotAccessibleException, PacketDecryptionFailureException;
+			throws PacketDecryptionFailureException;
 
 	/**
 	 * Gets the abis requests by bio ref id.
