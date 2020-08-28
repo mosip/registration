@@ -398,9 +398,10 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                 for (final Map.Entry<String, InputStream> source : sourcePackets.entrySet()) {
                     isInputFileClean = virusScannerService.scanFile(source.getValue());
                     if (isInputFileClean && source.getKey().endsWith(ZIP)) {
-                        InputStream decryptedData = decryptor
+                        // TODO : disabling decryption since mocked encryption is being used.
+                        /*InputStream decryptedData = decryptor
                                 .decrypt(source.getValue(), id);
-                        isInputFileClean = virusScannerService.scanFile(decryptedData);
+                        isInputFileClean = virusScannerService.scanFile(decryptedData);*/
                     }
                     if (!isInputFileClean)
                         break;
