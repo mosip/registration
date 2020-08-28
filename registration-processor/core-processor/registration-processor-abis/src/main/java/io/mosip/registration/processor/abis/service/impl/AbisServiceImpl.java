@@ -100,11 +100,12 @@ public class AbisServiceImpl implements AbisService {
 		response.setId(ABIS_INSERT);
 		response.setRequestId(abisInsertRequestDto.getRequestId());
 		response.setResponsetime(abisInsertRequestDto.getRequesttime());
+		response.setReturnValue("1");
 
 		//Document doc;
-		try {
+		/*try {
 			//doc = getCbeffDocument(referenceId);
-			/*if (testFingerPrint == null || testIris == null || testFace == null) {
+			if (testFingerPrint == null || testIris == null || testFace == null) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFFERENCEID.toString(),
 						referenceId, "Test Tags are not present");
 			}
@@ -125,10 +126,10 @@ public class AbisServiceImpl implements AbisService {
 						referenceId, "AbisServiceImpl():: unable to fect CBEF file ");
 				response.setReturnValue("2");
 				response.setFailureReason("7");
-			}*/
+			}
 			response.setReturnValue("1");
 
-		} /*catch (ApisResourceAccessException | ParserConfigurationException | SAXException | IOException e) {
+		} catch (ApisResourceAccessException | ParserConfigurationException | SAXException | IOException e) {
 			response.setReturnValue("2");
 			response.setFailureReason("7");
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -142,14 +143,14 @@ public class AbisServiceImpl implements AbisService {
 					referenceId, "MissingMandatoryFieldsException : Mandatory fields are missing in Request."
 							+ ExceptionUtils.getStackTrace(e));
 
-		}*/ catch (Exception e) {
+		} catch (Exception e) {
 			response.setReturnValue("2");
 			response.setFailureReason("3");
 
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFFERENCEID.toString(),
 					referenceId, "Due to some internal error, abis failed" + ExceptionUtils.getStackTrace(e));
 
-		}
+		}*/
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REFFERENCEID.toString(),
 				referenceId, "AbisServiceImpl::insert()::exit");
