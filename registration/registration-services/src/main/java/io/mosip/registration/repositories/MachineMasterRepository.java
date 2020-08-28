@@ -19,6 +19,6 @@ public interface MachineMasterRepository extends BaseRepository<MachineMaster, R
 	 * @param langCode
 	 * @return
 	 */
-	MachineMaster findByIsActiveTrueAndNameAndRegMachineSpecIdLangCode(String machineName, String langCode);
+	MachineMaster findByIsActiveTrueAndNameIgnoreCaseAndRegMachineSpecIdLangCode(String machineName, String langCode);
 	
 }
