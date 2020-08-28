@@ -258,7 +258,26 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 										+ rCaptureRequestDTO.getSpecVersion() + " and response spec version is :"
 										+ rCaptureResponseBiometricsDTO.getSpecVersion());
 					}
+
+					if (dataDTO.getQualityScore() == null || dataDTO.getQualityScore().isEmpty()) {
+						throw new RegBaseCheckedException(
+								RegistrationExceptionConstants.MDS_RCAPTURE_ERROR.getErrorCode(),
+								RegistrationExceptionConstants.MDS_RCAPTURE_ERROR.getErrorMessage()
+										+ " Identified Quality Score for capture biometrics is null or Empty");
+					}
+
 					String uiAttribute = Biometric.getUiSchemaAttributeName(dataDTO.getBioSubType(), SPEC_VERSION);
+
+					if (uiAttribute == null || uiAttribute.isEmpty() || dataDTO.getBioSubType() == null
+							|| dataDTO.getBioSubType().isEmpty()
+							|| dataDTO.getBioSubType().equalsIgnoreCase(RegistrationConstants.JOB_UNKNOWN)) {
+
+						uiAttribute = RegistrationConstants.JOB_UNKNOWN;
+					}
+					if (mdmRequestDto.getModality().equalsIgnoreCase(RegistrationConstants.FACE_FULLFACE)) {
+						uiAttribute = "face";
+					}
+
 					BiometricsDto biometricDTO = new BiometricsDto(uiAttribute, dataDTO.getDecodedBioValue(),
 							Double.parseDouble(dataDTO.getQualityScore()));
 					biometricDTO.setCaptured(true);
