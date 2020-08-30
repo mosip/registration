@@ -54,11 +54,10 @@ public class DaoConfig extends HibernateDaoConfig {
 	private static final Logger LOGGER = AppConfig.getLogger(DaoConfig.class);
 
 	private static final String LOGGER_CLASS_NAME = "REGISTRATION - DAO Config - DB";
-	private static final String DB_PATH_VAR = "mosip.reg.dbpath";
+	private static final String dbPath = "db/reg";
 	private static final String DRIVER_CLASS_NAME = "org.apache.derby.jdbc.EmbeddedDriver";
 	private static final String URL = "jdbc:derby:%s;bootPassword=%s";
-
-	private static final String INITIALIZE_URL = "jdbc:derby:%s;bootPassword=%s;newBootPassword=%s";
+	private static final String SHUTDOWN_URL = "jdbc:derby:;shutdown=true;deregister=false;";
 
 	private static Properties keys;
 	private static DataSource dataSource;
@@ -200,13 +199,11 @@ public class DaoConfig extends HibernateDaoConfig {
 	}*/
 
 	private static DriverManagerDataSource setupDataSource() throws Exception {
-		String dbPath = "db/reg";
 		LOGGER.info(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "****** SETTING UP DATASOURCE *******");
 		createDatabase(dbPath);
 		DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource();
 		driverManagerDataSource.setDriverClassName(DRIVER_CLASS_NAME);
 		driverManagerDataSource.setUrl(String.format(URL, dbPath, ClientSecurityFacade.getDBSecret()));
-		LOGGER.debug(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "URL >>> " + driverManagerDataSource.getUrl());
 		return driverManagerDataSource;
 	}
 
@@ -269,7 +266,7 @@ public class DaoConfig extends HibernateDaoConfig {
 
 	private static void shutdownDatabase() {
 		try {
-			DriverManager.getConnection("jdbc:derby:;shutdown=true;deregister=false;");
+			DriverManager.getConnection(SHUTDOWN_URL);
 		} catch (SQLException ex) {
 			if(((ex.getErrorCode() == 50000) && ("XJ015".equals(ex.getSQLState())))) {
 				LOGGER.info(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "Derby DB shutdown successful.");
@@ -292,7 +289,7 @@ public class DaoConfig extends HibernateDaoConfig {
 			LOGGER.debug(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "****** DATASOURCE dbPath : " + dbPath);
 			Connection connection = null;
 			try {
-				connection = DriverManager.getConnection(String.format("jdbc:derby:%s;bootPassword=%s;create=true;",
+				connection = DriverManager.getConnection(String.format(URL + ";create=true;",
 						dbPath, ClientSecurityFacade.getDBSecret()));
 
 				org.apache.derby.tools.ij.runScript(connection,
