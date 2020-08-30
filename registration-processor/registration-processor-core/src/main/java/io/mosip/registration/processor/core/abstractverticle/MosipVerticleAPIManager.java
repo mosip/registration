@@ -71,7 +71,6 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 					future -> healthCheckHandler.senderHealthHandler(future, vertx, sendAddress));
 		}
 		if (checkServletPathContainsCoreProcessor(servletPath)) {
-			healthCheckHandler.register("hdfscheck", healthCheckHandler::hdfsHealthChecker);
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Send", future -> {
 						healthCheckHandler.senderHealthHandler(future, vertx, sendAddress);
@@ -105,7 +104,6 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 					future -> healthCheckHandler.consumerHealthHandler(future, vertx, consumeAddress));
 		}
 		if (servletPath.contains("sender")) {
-			healthCheckHandler.register("hdfscheck", healthCheckHandler::hdfsHealthChecker);
 			healthCheckHandler.register(
 					servletPath.substring(servletPath.lastIndexOf("/") + 1, servletPath.length()) + "Verticle",
 					future -> healthCheckHandler.consumerHealthHandler(future, vertx, consumeAddress));

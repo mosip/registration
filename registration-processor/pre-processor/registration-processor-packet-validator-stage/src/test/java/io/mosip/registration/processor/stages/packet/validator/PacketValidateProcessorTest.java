@@ -5,6 +5,7 @@ import io.mosip.kernel.core.util.HMACUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
+import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
@@ -16,6 +17,7 @@ import io.mosip.registration.processor.core.packet.dto.idjson.Document;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.ExceptionJSONInfoDTO;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.MainResponseDTO;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.ReverseDatasyncReponseDTO;
+import io.mosip.registration.processor.core.spi.packet.validator.PacketValidator;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
@@ -104,6 +106,9 @@ public class PacketValidateProcessorTest {
 	
 	@Mock
 	RegistrationExceptionMapperUtil registrationStatusMapperUtil;
+
+	@Mock
+	private Utilities utility;
 	
 	private MessageDTO messageDTO;
 	private String stageName;
@@ -122,6 +127,7 @@ public class PacketValidateProcessorTest {
 		registrationStatusDto.setRegistrationId("123456789");
 		
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(utility.getDefaultSource()).thenReturn("reg-client");
 		
 		regEntity=new SyncRegistrationEntity();
 		regEntity.setSupervisorStatus("APPROVED");
@@ -183,7 +189,7 @@ public class PacketValidateProcessorTest {
 		hashsequence2.setValue(sequence2);
 		fieldValueArrayListSequence.add(hashsequence2);
 		PowerMockito.mockStatic(JsonUtil.class);
-		Mockito.when(packetValidator.validate(anyString(), anyString(), anyString(),any())).thenReturn(true);
+		Mockito.when(packetValidator.validate(any(), any(), any(),any())).thenReturn(true);
 		Mockito.doNothing().when(auditUtility).saveAuditDetails(anyString(), anyString(), anyString());
 		
 		MainResponseDTO<ReverseDatasyncReponseDTO> mainResponseDTO = new MainResponseDTO<>();
@@ -203,14 +209,13 @@ public class PacketValidateProcessorTest {
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(Matchers.any(), Matchers.any(), Matchers.any(), Matchers.any(),
 				Matchers.any(), Matchers.any(), Matchers.any())).thenReturn(null);
 
-		ReflectionTestUtils.setField(packetValidateProcessor, "provider", "source:REGISTRATION_CLIENT");
 		Map<String, String> metamap = new HashMap<>();
 		org.json.JSONArray jsonArray = new org.json.JSONArray();
 		org.json.JSONObject jsonObject1 = new org.json.JSONObject();
 		jsonObject1.put("preRegistrationId", "12345");
 		jsonArray.put(0, jsonObject1);
-		metamap.put("metaData", jsonArray.toString());
-		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString(), anyString())).thenReturn(metamap);
+		metamap.put(JsonConstant.METADATA, jsonArray.toString());
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString(), any())).thenReturn(metamap);
 
 
 	}
@@ -223,7 +228,7 @@ public class PacketValidateProcessorTest {
 	@Test
 	public void PacketValidationFailureTest() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException {
 		Mockito.when(registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.EXCEPTION)).thenReturn("ERROR");
-		Mockito.when(packetValidator.validate(anyString(), anyString(), anyString(),any())).thenReturn(false);
+		Mockito.when(packetValidator.validate(any(), any(), any(),any())).thenReturn(false);
 		assertFalse(packetValidateProcessor.process(messageDTO, stageName).getIsValid());
 	}
 	
@@ -238,35 +243,35 @@ public class PacketValidateProcessorTest {
 	@Test
 	public void PacketValidationAPIResourceExceptionTest() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException {
 		PacketValidatorException exc=new PacketValidatorException("", "", new ApisResourceAccessException(""));
-		Mockito.when(packetValidator.validate(anyString(),anyString(), anyString(),any())).thenThrow(exc);
+		Mockito.when(packetValidator.validate(any(),any(), any(),any())).thenThrow(exc);
 		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getInternalError());
 	}
 	
 	@Test
 	public void PacketValidationIOExceptionTest() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException {
 		PacketValidatorException exc=new PacketValidatorException("", "", new IOException(""));
-		Mockito.when(packetValidator.validate(anyString(),anyString(), anyString(),any())).thenThrow(exc);
+		Mockito.when(packetValidator.validate(any(),any(), any(),any())).thenThrow(exc);
 		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getInternalError());
 	}
 	
 	@Test
 	public void PacketValidationBaseCheckedExceptionTest() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException {
 		PacketValidatorException exc=new PacketValidatorException("", "", new RegistrationProcessorCheckedException("", ""));
-		Mockito.when(packetValidator.validate(anyString(), anyString(), anyString(),any())).thenThrow(exc);
+		Mockito.when(packetValidator.validate(any(), any(), any(),any())).thenThrow(exc);
 		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getInternalError());
 	}
 	
 	@Test
 	public void PacketValidationBaseUncheckedExceptionTest() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException {
 		PacketValidatorException exc=new PacketValidatorException("", "", new BaseUncheckedException());
-		Mockito.when(packetValidator.validate(anyString(), anyString(), anyString(),any())).thenThrow(exc);
+		Mockito.when(packetValidator.validate(any(), any(), any(),any())).thenThrow(exc);
 		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getInternalError());
 	}
 	
 	@Test
 	public void PacketValidationExceptionTest() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException {
 		PacketValidatorException exc=new PacketValidatorException("", "", new Exception());
-		Mockito.when(packetValidator.validate(anyString(), anyString(), anyString(),any())).thenThrow(exc);
+		Mockito.when(packetValidator.validate(any(), any(), any(),any())).thenThrow(exc);
 		assertTrue(packetValidateProcessor.process(messageDTO, stageName).getInternalError());
 	}
 	

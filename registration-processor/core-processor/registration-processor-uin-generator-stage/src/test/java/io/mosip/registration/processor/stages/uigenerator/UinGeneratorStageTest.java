@@ -1441,20 +1441,6 @@ public class UinGeneratorStageTest {
 				.thenThrow(apisResourceAccessException);
 		uinGeneratorStage.process(messageDTO);
 	}
-
-	@Test
-	@Ignore
-	public void testFSAdapterException() throws ApisResourceAccessException {
-		FSAdapterException fsAdapterException = new FSAdapterException("RPR-1001", "Unable to connect to HDFS");
-		////Mockito.when(packetReaderService.getFile("27847657360002520181210094052",
-//				PacketFiles.ID.name(), "id")).thenThrow(fsAdapterException);
-
-		MessageDTO messageDTO = new MessageDTO();
-		messageDTO.setRid("27847657360002520181210094052");
-		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
-		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		assertTrue(result.getInternalError());
-	}
 	
 	@Test
 	public void testIOException() {

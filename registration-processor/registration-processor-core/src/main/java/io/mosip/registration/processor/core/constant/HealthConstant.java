@@ -25,11 +25,6 @@ public class HealthConstant {
 	public static final String CONTENT_TYPE = "application/json";
 	public static final String CLAMAV_HOST = "mosip.kernel.virus-scanner.host";
 	public static final String CLAMAV_PORT = "mosip.kernel.virus-scanner.port";
-	public static final String NAMENODEURL = "mosip.kernel.fsadapter.hdfs.name-node-url";
-	public static final String IS_AUTH_ENABLE = "mosip.kernel.fsadapter.hdfs.authentication-enabled:false";
-	public static final String HDFSUSERNAME = "mosip.kernel.fsadapter.hdfs.user-name";
-	public static final String KDC_DOMAIN = "mosip.kernel.fsadapter.hdfs.kdc-domain:NOTSET";
-	public static final String KEY_TAB_PATH = "mosip.kernel.fsadapter.hdfs.keytab-file:NOTSET";
 	public static final String QUEUE_ADDRESS = "health-check-address";
 	public static final String QUEUE_USERNAME = "registration.processor.queue.username";
 	public static final String QUEUE_PASSWORD = "registration.processor.queue.password";
