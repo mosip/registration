@@ -340,7 +340,8 @@ public class ClientJarDecryption extends Application {
 												LoggerConstants.APPLICATION_NAME, LoggerConstants.APPLICATION_ID,
 												"Preparing command to launch the reg-client");
 
-										String cmd = "java" + " -Dfile.encoding=UTF-8" + " -cp " + tempPath + "/*;"
+										String jrepath = new File(System.getProperty("user.dir")) + SLASH + "jre/jre/bin/java";
+										String cmd = jrepath + " -Dfile.encoding=UTF-8" + " -cp " + tempPath + "/*;"
 												+ "/* io.mosip.registration.controller.Initialization";
 
 										Process process = Runtime.getRuntime().exec(cmd);
