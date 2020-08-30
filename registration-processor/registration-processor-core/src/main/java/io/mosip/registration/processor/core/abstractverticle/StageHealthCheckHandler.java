@@ -29,7 +29,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.security.SaslRpcServer.AuthMethod;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
@@ -78,7 +77,6 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	private String password;
 	private String clamavHost;
 	private String nameNodeUrl;
-	private String hdfsUserName;
 	private String kdcDomain;
 	private String keytabPath;
 	private String queueUsername;
@@ -122,11 +120,6 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 		this.password = environment.getProperty(HealthConstant.PASSWORD);
 		this.clamavHost = environment.getProperty(HealthConstant.CLAMAV_HOST);
 		this.clamavPort = Integer.parseInt(environment.getProperty(HealthConstant.CLAMAV_PORT));
-		this.nameNodeUrl = environment.getProperty(HealthConstant.NAMENODEURL);
-		this.isAuthEnable = Boolean.parseBoolean(environment.getProperty(HealthConstant.IS_AUTH_ENABLE));
-		this.hdfsUserName = environment.getProperty(HealthConstant.HDFSUSERNAME);
-		this.kdcDomain = environment.getProperty(HealthConstant.KDC_DOMAIN);
-		this.keytabPath = environment.getProperty(HealthConstant.KEY_TAB_PATH);
 		this.queueUsername = environment.getProperty(HealthConstant.QUEUE_USERNAME);
 		this.queuePassword = environment.getProperty(HealthConstant.QUEUE_PASSWORD);
 		this.queueBrokerUrl = environment.getProperty(HealthConstant.QUEUE_BROKER_URL);
@@ -172,65 +165,6 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	}
 
 	/**
-	 * @param future
-	 */
-	public void hdfsHealthChecker(Future<Status> future) {
-		Configuration configuration = null;
-		try {
-			configuration = new Configuration();
-			configuration.set("fs.defaultFS", nameNodeUrl);
-			configuration.set("dfs.client.use.datanode.hostname", "true");
-			configuration.set("fs.hdfs.impl", DistributedFileSystem.class.getName());
-			hadoopLibPath = Files.createTempDirectory(HADOOP_HOME);
-			System.setProperty("hadoop.home.dir", hadoopLibPath.toString());
-			if (SystemUtils.IS_OS_WINDOWS) {
-				File binPath = FileUtils.getFile(hadoopLibPath.toString(), "bin");
-				boolean created=binPath.mkdir();
-				Resource resource = resourceLoader.getResource(CLASSPATH_PREFIX + WIN_UTIL);
-				if (resource.exists()) {
-
-					if(created) {
-					File winUtilsPath = FileUtils.getFile(binPath.toString(), resource.getFilename());
-					   FileUtils.copyInputStreamToFile(resource.getInputStream(), winUtilsPath);
-					}
-					}
-			}
-
-			if (isAuthEnable) {
-				initSecurityConfiguration(configuration);
-				configuredFileSystem = FileSystem.get(configuration);
-			} else {
-				configuredFileSystem = getDefaultConfiguredFileSystem(configuration);
-			}
-
-			org.apache.hadoop.fs.Path path = new org.apache.hadoop.fs.Path(
-					FilenameUtils.concat("1000".toUpperCase(), "1000".toUpperCase()));
-
-			final JsonObject result = resultBuilder.create()
-					.add(HealthConstant.RESPONSE, configuredFileSystem.exists(path)).build();
-			future.complete(Status.OK(result));
-
-		} catch (Exception e) {
-			final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();
-			future.complete(Status.KO(result));
-		}
-	}
-
-	private FileSystem getDefaultConfiguredFileSystem(Configuration configuration) throws Exception {
-		try {
-			configuredFileSystem = UserGroupInformation.createRemoteUser(hdfsUserName, AuthMethod.TOKEN)
-					.doAs(new PrivilegedExceptionAction<FileSystem>() {
-						public FileSystem run() throws IOException {
-							return FileSystem.get(configuration);
-						}
-					});
-		} catch (Exception e) {
-			throw new Exception("HDFS_ADAPTER_EXCEPTION", e);
-		}
-		return configuredFileSystem;
-	}
-
-	/**
 	 * @param configuration
 	 * @return
 	 * @throws Exception
@@ -243,8 +177,6 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 		FileUtils.copyInputStreamToFile(krbStream, krbPath);
 		System.setProperty("java.security.krb5.conf", krbPath.toString());
 		UserGroupInformation.setConfiguration(configuration);
-		String user = hdfsUserName + "@" + kdcDomain;
-		loginWithKeyTab(user, keytabPath);
 	}
 
 	/**
