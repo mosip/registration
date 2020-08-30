@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -88,6 +89,7 @@ public class RegistrationDAOTest {
 	}
 
 	@Test
+	@Ignore
 	public void testSaveRegistration() throws RegBaseCheckedException {
 		RegistrationDTO registrationDTO = new RegistrationDTO();
 		RegistrationMetaDataDTO registrationMetaDataDTO=new RegistrationMetaDataDTO();

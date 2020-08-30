@@ -68,10 +68,9 @@ public class ClientJarEncryption {
 
 	/**
 	 * Encrypt the bytes
-	 * 
-	 * @param Jar
-	 *            bytes
-	 * @throws UnsupportedEncodingException
+	 * @param data
+	 * @param encodedString
+	 * @return
 	 */
 	public byte[] encyrpt(byte[] data, byte[] encodedString) {
 		// Generate AES Session Key
@@ -140,8 +139,8 @@ public class ClientJarEncryption {
 					addProperties(new File(args[10]), args[2]);
 
 					// DB file
-					File regFolder = new File(args[5]);
-					readDirectoryToByteArray(MOSIP_DB, regFolder, fileNameByBytes);
+					//File regFolder = new File(args[5]);
+					//readDirectoryToByteArray(MOSIP_DB, regFolder, fileNameByBytes);
 
 					String path = new File(args[3]).getPath();
 
@@ -245,11 +244,9 @@ public class ClientJarEncryption {
 
 	/**
 	 * Write file to zip.
-	 * 
-	 * @param files
+	 * @param fileNameByBytes
 	 * @param zipFilename
 	 * @throws IOException
-	 * @throws FileNotFoundException
 	 */
 	private void writeFileToZip(Map<String, byte[]> fileNameByBytes, String zipFilename) throws IOException {
 		try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(new File(zipFilename)))) {

@@ -1,7 +1,10 @@
 package io.mosip.registration.config;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -14,6 +17,8 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
+import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.exception.RegistrationExceptionConstants;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Bean;
@@ -50,7 +55,6 @@ public class DaoConfig extends HibernateDaoConfig {
 
 	private static final String LOGGER_CLASS_NAME = "REGISTRATION - DAO Config - DB";
 	private static final String DB_PATH_VAR = "mosip.reg.dbpath";
-	private static final String DB_AUTH_FILE_PATH = "mosip.reg.db.key";
 	private static final String DRIVER_CLASS_NAME = "org.apache.derby.jdbc.EmbeddedDriver";
 	private static final String URL = "jdbc:derby:%s;bootPassword=%s";
 
@@ -65,10 +69,11 @@ public class DaoConfig extends HibernateDaoConfig {
 			keys = new Properties();
 			keys.load(keyStream);
 
-			dataSource = setupDataSource(keys.getProperty(DB_PATH_VAR), keys.getProperty(DB_AUTH_FILE_PATH));
+			dataSource = setupDataSource();
 
 		} catch (Exception e) {
 			LOGGER.error(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(e));
+			System.exit(1);
 		}
 	}
 
@@ -194,7 +199,18 @@ public class DaoConfig extends HibernateDaoConfig {
 		return driverManagerDataSource;
 	}*/
 
-	private static DriverManagerDataSource setupDataSource(String dbPath, String dbKey) throws Exception {
+	private static DriverManagerDataSource setupDataSource() throws Exception {
+		String dbPath = "db/reg";
+		LOGGER.info(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "****** SETTING UP DATASOURCE *******");
+		createDatabase(dbPath);
+		DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource();
+		driverManagerDataSource.setDriverClassName(DRIVER_CLASS_NAME);
+		driverManagerDataSource.setUrl(String.format(URL, dbPath, ClientSecurityFacade.getDBSecret()));
+		LOGGER.debug(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "URL >>> " + driverManagerDataSource.getUrl());
+		return driverManagerDataSource;
+	}
+
+	/*private static DriverManagerDataSource setupDataSource(String dbPath, String dbKey) throws Exception {
 		LOGGER.info(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "****** SETTING UP DATASOURCE *******");
 		LOGGER.debug(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "****** DATASOURCE dbPath : " + dbPath);
 
@@ -213,7 +229,7 @@ public class DaoConfig extends HibernateDaoConfig {
 					}
 				}
 
-				DriverManager.getConnection("jdbc:derby:;shutdown=true");
+				shutdownDatabase();
 
 			} catch (SQLException ex) {
 				LOGGER.error(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(ex));
@@ -227,7 +243,6 @@ public class DaoConfig extends HibernateDaoConfig {
 				reEncryptDB(dbPath, new String(Base64.decodeBase64(dbKey.getBytes())));
 		}
 
-		DriverManager.registerDriver(new org.apache.derby.jdbc.EmbeddedDriver());
 		DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource();
 		driverManagerDataSource.setDriverClassName(DRIVER_CLASS_NAME);
 		driverManagerDataSource.setUrl(String.format(URL, dbPath, ClientSecurityFacade.getDBSecret()));
@@ -239,16 +254,10 @@ public class DaoConfig extends HibernateDaoConfig {
 		LOGGER.debug(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "Its initial setup - reloading db with new boot pwd");
 		Connection connection = null;
 		try {
-			DriverManager.registerDriver(new org.apache.derby.jdbc.EmbeddedDriver());
-
 			connection = DriverManager.getConnection(String.format(INITIALIZE_URL, dbPath,
 					dbKey,	ClientSecurityFacade.getDBSecret()));
 
-			DriverManager.getConnection("jdbc:derby:;shutdown=true");
-
-			//connection = null;
-
-			//connection = DriverManager.getConnection(String.format(URL, dbPath, ClientSecurityFacade.getDBSecret()));
+			shutdownDatabase();
 
 		} catch (SQLException ex) {
 			LOGGER.error(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(ex));
@@ -256,6 +265,60 @@ public class DaoConfig extends HibernateDaoConfig {
 			if(connection != null)
 				connection.close();
 		}
+	}*/
+
+	private static void shutdownDatabase() {
+		try {
+			DriverManager.getConnection("jdbc:derby:;shutdown=true;deregister=false;");
+		} catch (SQLException ex) {
+			if(((ex.getErrorCode() == 50000) && ("XJ015".equals(ex.getSQLState())))) {
+				LOGGER.info(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "Derby DB shutdown successful.");
+			}
+			else
+				LOGGER.error(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(ex));
+		}
+	}
+
+	/**
+	 * check if db/reg doesnot exists && db.conf doesnot exists
+	 * if true
+	 * 	-> creates db
+	 * 	-> create DB secret
+	 * 	-> runs initial DB script
+	 * 	-> shutdown database
+	 */
+	private static void createDatabase(String dbPath) throws Exception {
+		if(createDb(dbPath)) {
+			LOGGER.debug(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "****** DATASOURCE dbPath : " + dbPath);
+			Connection connection = null;
+			try {
+				connection = DriverManager.getConnection(String.format("jdbc:derby:%s;bootPassword=%s;create=true;",
+						dbPath, ClientSecurityFacade.getDBSecret()));
+
+				org.apache.derby.tools.ij.runScript(connection,
+						DaoConfig.class.getClassLoader().getResourceAsStream("initial.sql"),
+						"UTF-8",
+						System.out,
+						"UTF-8");
+
+				shutdownDatabase();
+
+			} finally {
+				if(connection != null)
+					connection.close();
+			}
+		}
+	}
+
+	private static boolean createDb(String dbPath) throws RegBaseCheckedException {
+		if(!Files.isDirectory(Paths.get(dbPath)) && ClientSecurityFacade.isDBInitializeRequired())
+			return true;
+
+		if(Files.isDirectory(Paths.get(dbPath)) && !ClientSecurityFacade.isDBInitializeRequired())
+			return false;
+
+		throw new RegBaseCheckedException(RegistrationExceptionConstants.APP_INVALID_STATE.getErrorCode(),
+				RegistrationExceptionConstants.APP_INVALID_STATE.getErrorMessage());
 	}
 
 }
