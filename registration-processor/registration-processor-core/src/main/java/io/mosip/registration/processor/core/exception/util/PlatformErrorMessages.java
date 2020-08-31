@@ -195,6 +195,28 @@ public enum PlatformErrorMessages {
 	/** The rpr pis abis queue connection null. */
 	RPR_PIS_ABIS_QUEUE_CONNECTION_NULL(PlatformConstants.RPR_PACKET_INFO_STORAGE_MODULE + "005",
 			"Unable to Find ABIS Queue Connection"),
+
+	GET_FIELD_ERROR(PlatformConstants.RPR_PACKET_INFO_STORAGE_MODULE + "006",
+			"Not able to read field from packet manager"),
+
+	GET_DOC_ERROR(PlatformConstants.RPR_PACKET_INFO_STORAGE_MODULE + "007",
+			"Not able to read document from packet manager"),
+
+	GET_BIOMETRIC_ERROR(PlatformConstants.RPR_PACKET_INFO_STORAGE_MODULE + "008",
+			"Not able to read biometric from packet manager"),
+
+	GET_AUDIT_ERROR(PlatformConstants.RPR_PACKET_INFO_STORAGE_MODULE + "009",
+			"Not able to read audit from packet manager"),
+
+	GET_METAINFO_ERROR(PlatformConstants.RPR_PACKET_INFO_STORAGE_MODULE + "010",
+			"Not able to read meta info from packet manager"),
+
+	VALIDATE_ERROR(PlatformConstants.RPR_PACKET_INFO_STORAGE_MODULE + "011",
+			"Not able to validate packet using packet manager provider."),
+
+	PACKET_MANAGER_EXCEPTION(PlatformConstants.RPR_PACKET_INFO_STORAGE_MODULE + "012",
+			"Exception occured in packet manager."),
+
 	/** The rpr fac connection not available. */
 	// File adaptor Exception error code and message
 	RPR_FAC_CONNECTION_NOT_AVAILABLE(PlatformConstants.RPR_FILESYSTEM_ADAPTOR_CEPH_MODULE + "001",
@@ -439,6 +461,8 @@ public enum PlatformErrorMessages {
 
 	/** The rpr abis internal error. */
 	RPR_ABIS_INTERNAL_ERROR(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "004", "ABIS Internal Error Occurred"),
+
+	DATASHARE_ERROR(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "005", "Datashare exception occured"),
 
 	/** The reverse data sync failed. */
 	// Stages - Packet-Validator error message
@@ -808,6 +832,10 @@ public enum PlatformErrorMessages {
 
 	/** The rpr sys Invocation target exception. */
 	RPR_SYS_INTROSPECTION_EXCEPTION(PlatformConstants.RPR_SYSTEM_EXCEPTION + "017", "Introspection Exception"),
+
+	/** The packet store not accessible. */
+	OBJECT_STORE_NOT_ACCESSIBLE(PlatformConstants.RPR_SYSTEM_EXCEPTION + "018",
+			"Unable to Access Object Store"),
 
 	// Cbeff Util Exceptions
 	/** The rpr utl biometric tag match. */

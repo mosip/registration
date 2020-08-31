@@ -57,10 +57,10 @@ public class JsonConstant {
 	public static final String RIGHTRING = "RIGHTRING";
 
 	/** The Constant REGISTRATIONID. */
-	public static final String REGISTRATIONID = "REGISTRATIONID";
+	public static final String REGISTRATIONID = "registrationId";
 
 	/** The Constant PREREGISTRATIONID. */
-	public static final String PREREGISTRATIONID = "PREREGISTRATIONID";
+	public static final String PREREGISTRATIONID = "preRegistrationId";
 
 	/** The Constant INTRODUCERRID. */
 	public static final String INTRODUCERRID = "INTRODUCERRID";
@@ -90,13 +90,13 @@ public class JsonConstant {
 	public static final String OFFICERIRISTYPE = "OFFICERIRISTYPE";
 
 	/** The Constant OFFICERPIN. */
-	public static final String OFFICERPIN = "OFFICERPIN";
+	public static final String OFFICERPIN = "officerPIN";
 
 	/** The Constant OFFICERFINGERPRINTIMAGE. */
 	public static final String OFFICERFINGERPRINTIMAGE = "OFFICERFINGERPRINTIMAGE";
 
 	/** The Constant OFFICERID. */
-	public static final String OFFICERID = "OFFICERID";
+	public static final String OFFICERID = "officerId";
 
 	/** The Constant OFFICERIRISIMAGE. */
 	public static final String OFFICERIRISIMAGE = "OFFICERIRISIMAGE";
@@ -108,43 +108,43 @@ public class JsonConstant {
 	public static final String SUPERVISORIRISIMAGE = "SUPERVISORIRISIMAGE";
 
 	/** The Constant SUPERVISORID. */
-	public static final String SUPERVISORID = "SUPERVISORID";
+	public static final String SUPERVISORID = "supervisorId";
 
 	/** The Constant OFFICERAUTHENTICATIONIMAGE. */
 	public static final String OFFICERAUTHENTICATIONIMAGE = "OFFICERAUTHENTICATIONIMAGE";
 
 	/** The Constant OFFICERPWR. */
-	public static final String OFFICERPWR = "OFFICERPASSWORD";
+	public static final String OFFICERPWR = "officerPassword";
 
 	/** The Constant SUPERVISORAUTHENTICATIONIMAGE. */
 	public static final String SUPERVISORAUTHENTICATIONIMAGE = "SUPERVISORAUTHENTICATIONIMAGE";
 
 	/** The Constant SUPERVISORPWR. */
-	public static final String SUPERVISORPWR = "SUPERVISORPASSWORD";
+	public static final String SUPERVISORPWR = "supervisorPassword";
 
 	/** The Constant SUPERVISORPIN. */
 	public static final String SUPERVISORPIN = "SUPERVISORPIN";
 
 	/** The Constant GEOLOCLATITUDE. */
-	public static final String GEOLOCLATITUDE = "GEOLOCLATITUDE";
+	public static final String GEOLOCLATITUDE = "geoLocLatitude";
 
 	/** The Constant GEOLOCLONGITUDE. */
-	public static final String GEOLOCLONGITUDE = "GEOLOCLONGITUDE";
+	public static final String GEOLOCLONGITUDE = "geoLoclongitude";
 
 	/** The Constant CENTERID. */
-	public static final String CENTERID = "CENTERID";
+	public static final String CENTERID = "centerId";
 
 	/** The Constant MACHINEID. */
-	public static final String MACHINEID = "MACHINEID";
+	public static final String MACHINEID = "machineId";
 
 	/** The Constant CREATIONDATE. */
-	public static final String CREATIONDATE = "CREATIONDATE";
+	public static final String CREATIONDATE = "creationDate";
 
 	/** The Constant OFFICERBIOMETRICFILENAME. */
-	public static final String OFFICERBIOMETRICFILENAME = "OFFICERBIOMETRICFILENAME";
+	public static final String OFFICERBIOMETRICFILENAME = "officerBiometricFileName";
 
 	/** The Constant SUPERVISORBIOMETRICFILENAME. */
-	public static final String SUPERVISORBIOMETRICFILENAME = "SUPERVISORBIOMETRICFILENAME";
+	public static final String SUPERVISORBIOMETRICFILENAME = "supervisorBiometricFileName";
 
 	/** The Constant INTRODUCERBIOMETRICSEQUENCE. */
 	public static final String INTRODUCERBIOMETRICSEQUENCE = "INTRODUCERBIOMETRICSEQUENCE";
@@ -153,10 +153,10 @@ public class JsonConstant {
 	public static final String APPLICANTBIOMETRICSEQUENCE = "APPLICANTBIOMETRICSEQUENCE";
 
 	/** Supervisor Authentication. */
-	public static final String SUPERVISOROTPAUTHENTICATION = "SUPERVISOROTPAUTHENTICATION";
+	public static final String SUPERVISOROTPAUTHENTICATION = "supervisorOTPAuthentication";
 
 	/** officer Authentication. */
-	public static final String OFFICEROTPAUTHENTICATION = "OFFICEROTPAUTHENTICATION";
+	public static final String OFFICEROTPAUTHENTICATION = "officerOTPAuthentication";
 
 	/** OSI DTO instance field constants. */
 
@@ -226,6 +226,10 @@ public class JsonConstant {
 	public static final String VID = "VID";
 	
 	public static final String CARDTYPE = "CARDTYPE";
+
+	public static final String OPERATIONSDATA = "operationsData";
+	public static final String METADATA = "metaData";
+	public static final String CAPTUREDREGISTEREDDEVICES = "capturedRegisteredDevices";
 
 	public static final String ID = "id";
 }

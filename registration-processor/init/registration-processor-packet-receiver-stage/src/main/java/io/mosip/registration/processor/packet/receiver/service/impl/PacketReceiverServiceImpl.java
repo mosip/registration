@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import io.mosip.registration.processor.packet.manager.utils.ZipUtils;
 import org.apache.commons.io.IOUtils;
@@ -107,9 +108,6 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	/** The file size. */
 	@Value("${registration.processor.max.file.size}")
 	private String fileSize;
-
-	@Value("${registration.processor.sourcepackets}")
-	private String packetSources;
 
 	/** The virus scanner service. */
 	@Autowired
@@ -300,23 +298,21 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	/**
 	 * Scan file.
 	 *
-	 * @param inputStream
-	 *            the input stream
+	 * @param input
+	 *            the input packet byte
 	 * @param description
 	 */
-	private boolean scanFile(final byte[] inputStream, RegistrationExceptionMapperUtil registrationExceptionMapperUtil,
+	private boolean scanFile(final byte[] input, RegistrationExceptionMapperUtil registrationExceptionMapperUtil,
 			String registrationId, InternalRegistrationStatusDto dto, LogDescription description) throws IOException {
 		try {
-			boolean isInputFileClean = virusScannerService.scanFile(getSourcePacket(registrationId, inputStream, null));
+			InputStream inputStream = new ByteArrayInputStream(input);
+			boolean isInputFileClean = virusScannerService.scanFile(inputStream);
 
 			// scanning the source packets (Like - id, evidence, optional packets).
 			if (isInputFileClean) {
-				String[] sources = packetSources.split(",");
-				for (String source : sources) {
-					InputStream sourcePacket = getSourcePacket(registrationId, inputStream, source);
-					if (sourcePacket == null)
-						continue;
-					isInputFileClean = virusScannerService.scanFile(sourcePacket);
+				Map<String, InputStream> sourcePackets = ZipUtils.unzipAndGetFiles(inputStream);
+				for (InputStream source : sourcePackets.values()) {
+					isInputFileClean = virusScannerService.scanFile(source);
 					if (!isInputFileClean)
 						break;
 				}
@@ -349,13 +345,22 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 					registrationId, PlatformErrorMessages.PRP_PKR_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getMessage()
 							+ ExceptionUtils.getStackTrace(e));
 			return false;
+		} catch (IOException e) {
+			description.setMessage(PlatformErrorMessages.PRP_PKR_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getMessage());
+			description.setCode(PlatformErrorMessages.PRP_PKR_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getCode());
+			dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+			dto.setStatusComment(trimExpMessage.trimExceptionMessage(
+					StatusUtil.IO_EXCEPTION.getMessage() + e.getMessage()));
+			dto.setSubStatusCode(StatusUtil.IO_EXCEPTION.getCode());
+			dto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
+					.getStatusCode(RegistrationExceptionTypeCode.VIRUS_SCANNER_SERVICE_FAILED));
+
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId, PlatformErrorMessages.PRP_PKR_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getMessage()
+							+ ExceptionUtils.getStackTrace(e));
+            return false;
 		}
 
-	}
-
-	private InputStream getSourcePacket(String rid, byte[] input, String source) throws IOException {
-		return (source == null) ? new ByteArrayInputStream(input) :
-				ZipUtils.unzipAndGetFile(new ByteArrayInputStream(input), rid + "_" +source);
 	}
 
 	/**

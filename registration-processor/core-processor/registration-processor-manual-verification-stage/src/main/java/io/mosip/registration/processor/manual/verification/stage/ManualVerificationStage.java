@@ -1,15 +1,7 @@
 package io.mosip.registration.processor.manual.verification.stage;
 
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
-
-import io.mosip.kernel.core.exception.IOException;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -31,9 +23,15 @@ import io.mosip.registration.processor.manual.verification.response.dto.ManualVe
 import io.mosip.registration.processor.manual.verification.response.dto.ManualVerificationBioDemoResponseDTO;
 import io.mosip.registration.processor.manual.verification.service.ManualVerificationService;
 import io.mosip.registration.processor.manual.verification.util.ManualVerificationRequestValidator;
+import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 /**
  * This class sends message to next stage after successful completion of manual
@@ -111,8 +109,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 		router.handler(event -> {
 			try {
 				processBiometric(event);
-			} catch (PacketDecryptionFailureException | ApiNotAccessibleException | IOException
-					| java.io.IOException e2) {
+			} catch (java.io.IOException | ApisResourceAccessException | PacketManagerException | JsonProcessingException e2) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), "", "", ExceptionUtils.getStackTrace(e2));
 
 			}
@@ -127,8 +124,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 		router.handler(event -> {
 			try {
 				processDemographic(event);
-			} catch (PacketDecryptionFailureException | ApiNotAccessibleException | IOException
-					| java.io.IOException e1) {
+			} catch (java.io.IOException | ApisResourceAccessException | PacketManagerException | JsonProcessingException e1) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), "", "", ExceptionUtils.getStackTrace(e1));
 			}
 		}, handlerObj -> {
@@ -163,8 +159,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 		router.handler(event -> {
 			try {
 				processPacketInfo(event);
-			} catch (PacketDecryptionFailureException | ApiNotAccessibleException | IOException
-					| java.io.IOException e) {
+			} catch (java.io.IOException | ApisResourceAccessException | PacketManagerException | JsonProcessingException e) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), "", "", ExceptionUtils.getStackTrace(e));
 			}
 		}, handlerObj -> {
@@ -179,7 +174,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	}
 
 	public void processBiometric(RoutingContext ctx)
-			throws ApiNotAccessibleException, IOException, java.io.IOException, PacketDecryptionFailureException {
+			throws java.io.IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ManualVerificationStage::processBiometric::entry");
@@ -202,7 +197,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	}
 
 	public void processDemographic(RoutingContext ctx)
-			throws PacketDecryptionFailureException, ApiNotAccessibleException, IOException, java.io.IOException {
+			throws java.io.IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ManualVerificationStage::processDemographic::entry");
 		JsonObject obj = ctx.getBodyAsJson();
@@ -269,8 +264,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 
 	}
 
-	public void processPacketInfo(RoutingContext ctx)
-			throws PacketDecryptionFailureException, ApiNotAccessibleException, IOException, java.io.IOException {
+	public void processPacketInfo(RoutingContext ctx) throws java.io.IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ManualVerificationStage::processpacketInfo::entry");
 		JsonObject obj = ctx.getBodyAsJson();

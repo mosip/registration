@@ -309,17 +309,17 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 	private GridPane exceptionBiometricsPane;
 
-
 	private Service<List<BiometricsDto>> taskService;
 
 	public void stopRCaptureService() {
-		if(taskService!=null && taskService.isRunning()) {
+		if (taskService != null && taskService.isRunning()) {
 			taskService.cancel();
 		}
 	}
 
 	private Node exceptionVBox;
 
+	private List<Node> exceptionImagesList = new LinkedList<>();
 
 	/*
 	 * (non-Javadoc)
@@ -503,8 +503,9 @@ public class BiometricsController extends BaseController /* implements Initializ
 				&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()) {
 			vBox.setVisible(true);
 
-			if (getRegistrationDTOFromSession().getDocuments().containsKey("POE")) {
-				byte[] documentBytes = getRegistrationDTOFromSession().getDocuments().get("POE").getDocument();
+			if (getRegistrationDTOFromSession().getDocuments().containsKey("proofOfException")) {
+				byte[] documentBytes = getRegistrationDTOFromSession().getDocuments().get("proofOfException")
+						.getDocument();
 				image = convertBytesToImage(documentBytes);
 
 			}
@@ -583,9 +584,9 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		if (getRegistrationDTOFromSession().getBiometricExceptions() != null
 				&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()
-				&& getRegistrationDTOFromSession().getDocuments().containsKey("POE")) {
+				&& getRegistrationDTOFromSession().getDocuments().containsKey("proofOfException")) {
 
-			DocumentDto documentDto = getRegistrationDTOFromSession().getDocuments().get("POE");
+			DocumentDto documentDto = getRegistrationDTOFromSession().getDocuments().get("proofOfException");
 
 			Image image = convertBytesToImage(documentDto.getDocument());
 			biometricImage.setImage(image);
@@ -796,8 +797,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 	/**
 	 * Displays biometrics
 	 *
-	 * @param event
-	 *            the event for displaying biometrics
+	 * @param event the event for displaying biometrics
 	 */
 	private void displayBiometric(String modality) {
 
@@ -1008,7 +1008,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 				documentDto.setOwner("Applicant");
 				documentDto.setValue("POE".concat(RegistrationConstants.UNDER_SCORE).concat("EOP"));
 
-				getRegistrationDTOFromSession().addDocument("POE", documentDto);
+				getRegistrationDTOFromSession().addDocument("proofOfException", documentDto);
 
 				displayExceptionBiometric(currentModality);
 
@@ -1030,8 +1030,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 	/**
 	 * Scan the biometrics
 	 *
-	 * @param event
-	 *            the event for scanning biometrics
+	 * @param event the event for scanning biometrics
 	 */
 	@FXML
 	private void scan(ActionEvent event) {
@@ -1196,7 +1195,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Capture request called" + System.currentTimeMillis());
 
-		 taskService = new Service<List<BiometricsDto>>() {
+		taskService = new Service<List<BiometricsDto>>() {
 			@Override
 			protected Task<List<BiometricsDto>> createTask() {
 				return new Task<List<BiometricsDto>>() {
@@ -1243,8 +1242,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 					LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 							"biometrics captured from mock/real MDM");
 
-					boolean isValidBiometric = mdsCapturedBiometricsList != null
-							&& !mdsCapturedBiometricsList.isEmpty();
+					boolean isValidBiometric = isValidBiometric(mdsCapturedBiometricsList);
 
 					LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 							"biometrics captured from mock/real MDM was valid : " + isValidBiometric);
@@ -1376,10 +1374,34 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 				streamer.setUrlStream(null);
 			}
+
 		});
 		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Scan process ended for capturing biometrics");
 
+	}
+
+	private boolean isValidBiometric(List<BiometricsDto> mdsCapturedBiometricsList) {
+
+		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "Validating captured biometrics");
+
+		boolean isValid = mdsCapturedBiometricsList != null && !mdsCapturedBiometricsList.isEmpty();
+
+		if (isValid) {
+			for (BiometricsDto biometricsDto : mdsCapturedBiometricsList) {
+				if (biometricsDto.getBioAttribute() == null
+						|| biometricsDto.getBioAttribute().equalsIgnoreCase(RegistrationConstants.JOB_UNKNOWN)) {
+
+					LOGGER.error(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+							"Unknown bio attribute identified in captured biometrics");
+
+					isValid = false;
+					break;
+				}
+			}
+		}
+
+		return isValid;
 	}
 
 	private List<BiometricsDto> rCapture(String subType, String modality) throws RegBaseCheckedException, IOException {
@@ -1506,8 +1528,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 	/**
 	 * Navigating to previous section
 	 *
-	 * @param event
-	 *            the event for navigating to previous section
+	 * @param event the event for navigating to previous section
 	 */
 	@FXML
 	private void previous(ActionEvent event) {
@@ -1528,8 +1549,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 	/**
 	 * Navigating to next section
 	 *
-	 * @param event
-	 *            the event for navigating to next section
+	 * @param event the event for navigating to next section
 	 */
 	@FXML
 	private void next(ActionEvent event) {
@@ -1557,14 +1577,10 @@ public class BiometricsController extends BaseController /* implements Initializ
 	/**
 	 * Updating biometrics
 	 *
-	 * @param bioType
-	 *            biometric type
-	 * @param bioImage
-	 *            biometric image
-	 * @param biometricThreshold
-	 *            threshold of biometric
-	 * @param retryCount
-	 *            retry count
+	 * @param bioType            biometric type
+	 * @param bioImage           biometric image
+	 * @param biometricThreshold threshold of biometric
+	 * @param retryCount         retry count
 	 */
 	private void updateBiometric(String bioType, String bioImage, String biometricThreshold, String retryCount) {
 
@@ -1621,14 +1637,10 @@ public class BiometricsController extends BaseController /* implements Initializ
 	/**
 	 * Updating captured values
 	 * 
-	 * @param capturedBio
-	 *            biometric
-	 * @param qltyScore
-	 *            Qulaity score
-	 * @param retry
-	 *            retrycount
-	 * @param thresholdValue
-	 *            threshold value
+	 * @param capturedBio    biometric
+	 * @param qltyScore      Qulaity score
+	 * @param retry          retrycount
+	 * @param thresholdValue threshold value
 	 */
 	private void setCapturedValues(double qltyScore, int retry, double thresholdValue) {
 
@@ -1693,10 +1705,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 	/**
 	 * Updating captured values
 	 * 
-	 * @param retryCount
-	 *            retry count
-	 * @param biometricThreshold
-	 *            threshold value
+	 * @param retryCount         retry count
+	 * @param biometricThreshold threshold value
 	 */
 	private void createQualityBox(String retryCount, String biometricThreshold) {
 		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
@@ -1777,10 +1787,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 	/**
 	 * Clear attempts box.
 	 *
-	 * @param styleClass
-	 *            the style class
-	 * @param retries
-	 *            the retries
+	 * @param styleClass the style class
+	 * @param retries    the retries
 	 */
 	private void clearAttemptsBox(String styleClass, int retries) {
 		for (int retryBox = 1; retryBox <= retries; retryBox++) {
@@ -1946,10 +1954,11 @@ public class BiometricsController extends BaseController /* implements Initializ
 		boolean result = MVEL.evalToBoolean(expression, capturedDetails);
 
 		if (result && considerExceptionAsCaptured) {
-			if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getBiometricExceptions() != null
+			if (getRegistrationDTOFromSession() != null
+					&& getRegistrationDTOFromSession().getBiometricExceptions() != null
 					&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()) {
 
-				result = getRegistrationDTOFromSession().getDocuments().containsKey("POE");
+				result = getRegistrationDTOFromSession().getDocuments().containsKey("proofOfException");
 			}
 		}
 		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
@@ -2342,37 +2351,42 @@ public class BiometricsController extends BaseController /* implements Initializ
 				"Getting exception image pane for modality : " + modality);
 		Pane exceptionImagePane = null;
 
-		exceptionBiometricsPane = biometricExceptionsController.getExceptionBiometricsPane();
-
 		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Getting exception image pane for modality from BiometricsExceptionController: " + modality);
 
-		if (exceptionBiometricsPane != null) {
+		if (exceptionImagesList.isEmpty()) {
+			exceptionBiometricsPane = biometricExceptionsController.getExceptionBiometricsPane();
 
-			List<Node> listOfPanes = exceptionBiometricsPane.getChildren();
+			exceptionImagesList.addAll(exceptionBiometricsPane.getChildren());
 
-			for (Node paneList : listOfPanes) {
+		}
+		if (!exceptionImagesList.isEmpty()) {
+
+			for (Node paneList : exceptionImagesList) {
 				Pane pane = (Pane) paneList;
 
 				if (pane.getId().equalsIgnoreCase(modality)) {
-					exceptionImagePane = pane;
+
 					LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 							"Found exception image for : " + modality);
 
+					exceptionImagePane = pane;
+
+					addExceptionsUiPane(exceptionImagePane, configBioAttributes, nonConfigBioAttributes, modality,
+							subType);
+
+					exceptionImagePane.setVisible(true);
+					exceptionImagePane.setManaged(true);
+
+					LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+							"Completed of getting exception image pane");
+
 					break;
+
 				}
 			}
 
 		}
-
-		addExceptionsUiPane(exceptionImagePane, configBioAttributes, nonConfigBioAttributes, modality, subType);
-
-		exceptionImagePane.setVisible(true);
-		exceptionImagePane.setManaged(true);
-
-		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-				"Completed of getting exception image pane");
-
 		return exceptionImagePane;
 
 	}
@@ -2404,9 +2418,10 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		} else {
 
-			if(getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getDocuments() != null)
-				getRegistrationDTOFromSession().getDocuments().remove("POE");
+			if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getDocuments() != null) {
 
+				getRegistrationDTOFromSession().getDocuments().remove("proofOfException");
+			}
 			addImageInUIPane("applicant", RegistrationConstants.EXCEPTION_PHOTO, null, false);
 			setBiometricExceptionVBox(false);
 		}

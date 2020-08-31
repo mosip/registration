@@ -1,22 +1,15 @@
 package io.mosip.registration.processor.abis.handler.stage;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.abis.handler.constant.AbisHandlerStageConstant;
+import io.mosip.registration.processor.abis.handler.dto.DataShareResponseDto;
 import io.mosip.registration.processor.abis.handler.exception.AbisHandlerException;
+import io.mosip.registration.processor.abis.handler.exception.DataShareException;
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -24,13 +17,14 @@ import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
 import io.mosip.registration.processor.core.code.AbisStatusCode;
+import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.constant.RegistrationType;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -45,14 +39,32 @@ import io.mosip.registration.processor.core.packet.dto.abis.ReferenceIdDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegBioRefDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegDemoDedupeListDto;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
+import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
+import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * The Class AbisHandlerStage.
@@ -86,6 +98,15 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
 
+	@Value("${registration.processor.policy.id}")
+	private String policyId;
+
+	@Value("${registration.processor.subscriber.id}")
+	private String subscriberId;
+
+	@Autowired
+	private RegistrationProcessorRestClientService registrationProcessorRestClientService;
+
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(AbisHandlerStage.class);
 
@@ -112,7 +133,15 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	MosipRouter router;
 
 	@Autowired
+	private CbeffUtil cbeffutil;
+
+	@Autowired
 	private Environment env;
+
+	@Autowired
+	private PacketManagerService packetManagerService;
+
+	private static final String DATASHARECREATEURL = "DATASHARECREATEURL";
 
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 	/**
@@ -168,7 +197,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 							AbisHandlerStageConstant.DETAILS_NOT_FOUND);
 					throw new AbisHandlerException(PlatformErrorMessages.RPR_ABIS_INTERNAL_ERROR.getCode());
 				}
-				createRequest(regId, abisQueueDetails, transactionId, description, transactionTypeCode);
+				createRequest(regId, abisQueueDetails, transactionId, registrationStatusDto.getRegistrationType(), description, transactionTypeCode);
 				object.setMessageBusAddress(MessageBusAddress.ABIS_MIDDLEWARE_BUS_IN);
 			} else {
 				if (transactionTypeCode.equalsIgnoreCase(AbisHandlerStageConstant.DEMOGRAPHIC_VERIFICATION)) {
@@ -221,8 +250,8 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		return object;
 	}
 
-	private void createRequest(String regId, List<AbisQueueDetails> abisQueueDetails, String transactionId,
-			LogDescription description, String transactionTypeCode) {
+	private void createRequest(String regId, List<AbisQueueDetails> abisQueueDetails, String transactionId, String process,
+			LogDescription description, String transactionTypeCode) throws Exception {
 		List<RegBioRefDto> bioRefDtos = packetInfoManager.getBioRefIdByRegId(regId);
 		String bioRefId;
 		if (bioRefDtos.isEmpty()) {
@@ -231,7 +260,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		} else {
 			bioRefId = bioRefDtos.get(0).getBioRefId();
 		}
-		createInsertRequest(abisQueueDetails, transactionId, bioRefId, regId, description);
+		createInsertRequest(abisQueueDetails, transactionId, bioRefId, regId, process, description);
 		createIdentifyRequest(abisQueueDetails, transactionId, bioRefId, transactionTypeCode, description);
 
 	}
@@ -388,7 +417,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	 * @param description
 	 */
 	private void createInsertRequest(List<AbisQueueDetails> abisQueueDetails, String transactionId, String bioRefId,
-			String regId, LogDescription description) {
+			String regId, String process, LogDescription description) throws Exception {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				regId, "AbisHandlerStage::createInsertRequest()::entry");
 		String batchId = getUUID();
@@ -410,7 +439,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			abisRequestDto.setReqBatchId(batchId);
 			abisRequestDto.setRefRegtrnId(transactionId);
 
-			byte[] abisInsertRequestBytes = getInsertRequestBytes(regId, id, bioRefId, description);
+			byte[] abisInsertRequestBytes = getInsertRequestBytes(regId, id, process, bioRefId, description);
 			abisRequestDto.setReqText(abisInsertRequestBytes);
 
 			abisRequestDto.setStatusCode(AbisStatusCode.IN_PROGRESS.toString());
@@ -447,11 +476,11 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	 * @param description
 	 * @return the insert request bytes
 	 */
-	private byte[] getInsertRequestBytes(String regId, String id, String bioRefId, LogDescription description) {
+	private byte[] getInsertRequestBytes(String regId, String id, String process, String bioRefId, LogDescription description) throws Exception {
 		AbisInsertRequestDto abisInsertRequestDto = new AbisInsertRequestDto();
 		abisInsertRequestDto.setId(AbisHandlerStageConstant.MOSIP_ABIS_INSERT);
 		abisInsertRequestDto.setReferenceId(bioRefId);
-		abisInsertRequestDto.setReferenceURL(url + "/" + bioRefId);
+		abisInsertRequestDto.setReferenceURL(getDataShareUrl(regId, process));
 		abisInsertRequestDto.setRequestId(id);
 		abisInsertRequestDto.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		abisInsertRequestDto.setVersion(AbisHandlerStageConstant.VERSION);
@@ -475,5 +504,39 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	 */
 	private String getUUID() {
 		return UUID.randomUUID().toString();
+	}
+
+	private String getDataShareUrl(String id, String process) throws Exception {
+		String source = utility.getDefaultSource();
+		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
+		String individualBiometricsLabel = JsonUtil.getJSONValue(
+				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
+				MappingJsonConstants.VALUE);
+		BiometricRecord biometricRecord = packetManagerService.getBiometrics(id, individualBiometricsLabel, null, source, process);
+		byte[] content = cbeffutil.createXML(biometricRecord.getSegments());
+
+		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+		map.add("name", individualBiometricsLabel);
+		map.add("filename", individualBiometricsLabel);
+
+		ByteArrayResource contentsAsResource = new ByteArrayResource(content) {
+			@Override
+			public String getFilename() {
+				return individualBiometricsLabel;
+			}
+		};
+		map.add("file", contentsAsResource);
+
+		List<String> pathSegments = new ArrayList<>();
+		pathSegments.add(policyId);
+		pathSegments.add(subscriberId);
+
+		// TODO : disabling datashare api since its not ready
+		/*DataShareResponseDto response = (DataShareResponseDto) registrationProcessorRestClientService.postApi(ApiName.DATASHARECREATEURL, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, DataShareResponseDto.class);
+		if (response == null || (response.getErrors() != null && response.getErrors().size() >0))
+			throw new DataShareException(response == null ? "Datashare response is null" : response.getErrors().get(0).getMessage());
+
+		return response.getDataShare().getUrl();*/
+		return null;
 	}
 }

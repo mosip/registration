@@ -17,8 +17,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -35,8 +39,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.dataaccess.hibernate.constant.HibernateErrorCode;
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.code.DedupeSourceName;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -158,6 +160,12 @@ public class PacketInfoManagerImplTest {
 
 	@Mock
 	private BasePacketRepository<RegLostUinDetEntity, String> regLostUinDetRepository;
+
+	@Mock
+	private PacketManagerService packetManagerService;
+
+	@Mock
+	private ObjectMapper objectMapper;
 
 	@Mock
 	private LogDescription description;
@@ -542,50 +550,61 @@ public class PacketInfoManagerImplTest {
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
 		Mockito.when(utility.getGetRegProcessorIdentityJson()).thenReturn("RegistrationProcessorIdentity.json");
 		Mockito.when(utility.getRegistrationProcessorMappingJson()).thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(identityMappingjsonString, JSONObject.class), MappingJsonConstants.IDENTITY));
+
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("fullName", "[ {\r\n  \"language\" : \"eng\",\r\n  \"value\" : \"Test after fix\"\r\n}, {\r\n  \"language\" : \"ara\",\r\n  \"value\" : \"Test after fix\"\r\n} ]");
+		fieldMap.put("dateOfBirth", "1976/01/01");
+		fieldMap.put("gender", "[ {\r\n  \"language\" : \"eng\",\r\n  \"value\" : \"Male\"\r\n}, {\r\n  \"language\" : \"ara\",\r\n  \"value\" : \"الذكر\"\r\n} ]");
+		fieldMap.put("phone", "9606139887");
+		fieldMap.put("email", "niyati.swami@technoforte.co.in");
+
+		Mockito.when(packetManagerService.getFields(any(),any(),any(),any())).thenReturn(fieldMap);
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("fullName", new ObjectMapper().readValue("[ {\n" +
+				"  \"language\" : \"eng\",\n" +
+				"  \"value\" : \"Test after fix\"\n" +
+				"}, {\n" +
+				"  \"language\" : \"ara\",\n" +
+				"  \"value\" : \"Test after fix\"\n" +
+				"} ]", Object.class));
+		Mockito.when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(jsonObject.get("fullName"));
 		
 
 	}
 
 	/**
 	 * Save demographic info json test.
-	 * 
-	 * @throws PacketDecryptionFailureException
-	 * @throws ApiNotAccessibleException
+	 *
 	 */
 	@Test
-	public void saveDemographicInfoJsonTest() throws ApiNotAccessibleException, PacketDecryptionFailureException {
+	public void saveDemographicInfoJsonTest() throws Exception {
 
-		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229", "", "");
+		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229", "", "", "");
 		assertEquals("identity", utility.getGetRegProcessorDemographicIdentity());
 	}
 
 
 	/**
 	 * Unable to insert data test.
-	 * 
-	 * @throws PacketDecryptionFailureException
-	 * @throws ApiNotAccessibleException
+	 *
 	 */
 	@Test(expected = UnableToInsertData.class)
-	public void unableToInsertDataTest() throws ApiNotAccessibleException, PacketDecryptionFailureException {
+	public void unableToInsertDataTest() throws Exception {
 
 		Mockito.when(demographicDedupeRepository.save(any())).thenThrow(exp);
 
-		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229", "", "");
+		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229", "", "", "");
 	}
 
 	/**
 	 * Demographic dedupe unable to insert data test.
-	 * 
-	 * @throws PacketDecryptionFailureException
-	 * @throws ApiNotAccessibleException
+	 *
 	 */
 	@Test(expected = UnableToInsertData.class)
-	public void demographicDedupeUnableToInsertDataTest()
-			throws ApiNotAccessibleException, PacketDecryptionFailureException {
+	public void demographicDedupeUnableToInsertDataTest() throws Exception {
 
 		Mockito.when(demographicDedupeRepository.save(any())).thenThrow(exp);
-		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229", "", "");
+		packetInfoManagerImpl.saveDemographicInfoJson("2018782130000224092018121229", "", "", "");
 
 	}
 

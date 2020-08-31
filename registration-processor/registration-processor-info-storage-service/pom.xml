@@ -139,8 +139,8 @@
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-registration-packet-manager</artifactId>
-			<version>${registration.processor.packet.utility.version}</version>
+			<artifactId>kernel-biometrics-api</artifactId>
+			<version>1.2.0-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>

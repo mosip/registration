@@ -22,7 +22,7 @@ public enum RegistrationExceptionTypeCode {
 	UNEXCEPTED_ERROR,
 
 	/** The fsadapter exception. */
-	FSADAPTER_EXCEPTION,
+	OBJECT_STORE_EXCEPTION,
 
 	/** The sftp operation exception. */
 	NGINX_ACCESS_EXCEPTION,
@@ -200,6 +200,9 @@ public enum RegistrationExceptionTypeCode {
 
 	/** The demo dedupe abis response error. */
 	DEMO_DEDUPE_ABIS_RESPONSE_ERROR,
+
+	/** Exception in packet manager. */
+	PACKET_MANAGER_EXCEPTION,
 
 	/** The osi failed on hold parent packet. */
 	OSI_FAILED_ON_HOLD_PARENT_PACKET,

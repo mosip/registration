@@ -9,12 +9,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.exception.FileNotFoundInDestinationException;
-import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
-import io.mosip.kernel.packetmanager.spi.PacketReaderService;
-import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.packet.manager.exception.FileNotFoundInDestinationException;
+import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -92,12 +92,12 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	@Value("${packet.default.source}")
 	private String defaultSource;
 
+	@Autowired
+	private PacketManagerService packetManagerService;
+
 	/** The utilities. */
 	@Autowired
 	private Utilities utilities;
-
-    @Autowired
-    private IdSchemaUtils idSchemaUtils;
 
 	/** The audit log request builder. */
 	@Autowired
@@ -106,11 +106,6 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	/** The registration status service. */
 	@Autowired
 	private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
-
-	/** The filesystem ceph adapter impl. */
-	@Autowired
-	private PacketReaderService packetReaderService;
-
 	/** The base packet repository. */
 	@Autowired
 	private BasePacketRepository<ManualVerificationEntity, String> basePacketRepository;
@@ -225,8 +220,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	 * java.lang.String)
 	 */
 	@Override
-	public byte[] getApplicantFile(String regId, String fileName, String source) throws
-			ApiNotAccessibleException, io.mosip.kernel.core.exception.IOException, IOException, PacketDecryptionFailureException {
+	public byte[] getApplicantFile(String regId, String fileName, String source) throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 
 		byte[] file = null;
 		InputStream fileInStream = null;
@@ -239,20 +233,23 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			throw new InvalidFileNameException(PlatformErrorMessages.RPR_MVS_REG_ID_SHOULD_NOT_EMPTY_OR_NULL.getCode(),
 					PlatformErrorMessages.RPR_MVS_REG_ID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
 		}
+		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(regId);
+		if (registrationStatusDto == null) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId, "ManualVerificationServiceImpl::getApplicantFile()"
+							+ PlatformErrorMessages.TRANSACTIONS_NOT_AVAILABLE.getMessage());
+			throw new InvalidFileNameException(PlatformErrorMessages.TRANSACTIONS_NOT_AVAILABLE.getCode(),
+					PlatformErrorMessages.TRANSACTIONS_NOT_AVAILABLE.getMessage());
+		}
+		String process = registrationStatusDto.getRegistrationType();
 		if (PacketFiles.BIOMETRIC.name().equals(fileName)) {
             JSONObject mappingJson = utilities.getRegistrationProcessorMappingJson();
             String individualBiometrics = JsonUtil
                     .getJSONValue(JsonUtil.getJSONObject(mappingJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), MappingJsonConstants.VALUE);
             // get individual biometrics file name from id.json
-            String fileSource = idSchemaUtils.getSource(individualBiometrics, packetReaderService.getIdSchemaVersionFromPacket(regId));
-            InputStream idJsonStream = null;
-            if (fileSource != null) {
-                idJsonStream = packetReaderService.getFile(regId,
-                        PacketFiles.ID.name(), fileSource);
-            }
-            if (idJsonStream == null)
+			BiometricRecord biometricRecord = packetManagerService.getBiometrics(regId, individualBiometrics, null, source, process);
+            /*if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().isEmpty())
 				throw new FileNotFoundInDestinationException("Identity json not present inside packet");
-            String idJsonString = IOUtils.toString(idJsonStream, "UTF-8");
             JSONObject idJsonObject = JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class);
             JSONObject identity = JsonUtil.getJSONObject(idJsonObject,
                     utilities.getGetRegProcessorDemographicIdentity());
@@ -273,7 +270,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 					regId, "ManualVerificationServiceImpl::getApplicantFile()"
 							+ PlatformErrorMessages.RPR_MVS_INVALID_FILE_REQUEST.getMessage());
 			throw new InvalidFileNameException(PlatformErrorMessages.RPR_MVS_INVALID_FILE_REQUEST.getCode(),
-					PlatformErrorMessages.RPR_MVS_INVALID_FILE_REQUEST.getMessage());
+					PlatformErrorMessages.RPR_MVS_INVALID_FILE_REQUEST.getMessage());*/
 		}
 		if (fileInStream == null)
 			throw new FileNotFoundInDestinationException("File not found inside packet");
@@ -286,49 +283,6 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				regId, "ManualVerificationServiceImpl::getApplicantFile()::exit");
 		return file;
-	}
-
-	/**
-	 * Gets the applicant biometric file.
-	 *
-	 * @param regId
-	 *            the reg id
-	 * @param fileName
-	 *            the file name
-	 * @return the applicant biometric file
-	 * @throws IOException
-	 * @throws io.mosip.kernel.core.exception.IOException
-	 * @throws ApisResourceAccessException
-	 * @throws PacketDecryptionFailureException
-	 */
-	private InputStream getApplicantBiometricFile(String regId, String fileName, String source)
-			throws ApiNotAccessibleException,
-			io.mosip.kernel.core.exception.IOException, IOException, PacketDecryptionFailureException {
-		return packetReaderService.getFile(regId, fileName, source != null ? source : defaultSource);
-	}
-
-	/**
-	 * Gets the applicant demographic file.
-	 *
-	 * @param regId
-	 *            the reg id
-	 * @param fileName
-	 *            the file name
-	 * @return the applicant demographic file
-	 * @throws IOException
-	 * @throws io.mosip.kernel.core.exception.IOException
-	 * @throws ApisResourceAccessException
-	 * @throws PacketDecryptionFailureException
-	 */
-	private InputStream getApplicantDemographicFile(String regId, String fileName, String source)
-			throws PacketDecryptionFailureException, ApiNotAccessibleException,
-			io.mosip.kernel.core.exception.IOException, IOException {
-		return packetReaderService.getFile(regId, fileName, source != null ? source : defaultSource);
-	}
-
-	private InputStream getApplicantMetaInfoFile(String regId, String fileName, String source) throws PacketDecryptionFailureException,
-			ApiNotAccessibleException, io.mosip.kernel.core.exception.IOException, IOException {
-		return packetReaderService.getFile(regId, PacketStructure.PACKETMETAINFO, source != null ? source : defaultSource);
 	}
 
 	/*

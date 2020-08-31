@@ -1,6 +1,8 @@
 package io.mosip.registration.processor.packet.manager.service.impl.test;
 
 import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Matchers.any;
 
 import javax.swing.text.Utilities;
@@ -56,7 +58,7 @@ public class IdRepoServiceImplTest {
 		ResponseWrapper<IdResponseDTO> response = new ResponseWrapper();
 		response.setId("1");
 		response.setResponse(dto);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(response);
+		Mockito.when(restClientService.getApi(any(), anyList(), anyString(), any(), any())).thenReturn(response);
 
 	}
 
