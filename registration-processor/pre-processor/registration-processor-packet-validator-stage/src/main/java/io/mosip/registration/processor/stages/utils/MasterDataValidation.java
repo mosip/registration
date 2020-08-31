@@ -117,10 +117,9 @@ public class MasterDataValidation {
 						primaryLangValue = (String) json.get(VALUE);
 					} else
 						primaryLangValue = (String) object;
-					if (validateIdentityValues(element, primaryLangValue) && validateIdentityValues(element, secondaryLangValue)) {
-						isValid = true;
-					} else {
-						isValid = false;
+
+					isValid = validateIdentityValues(element, primaryLangValue) && validateIdentityValues(element, secondaryLangValue);
+					if (!isValid) {
 						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 								LoggerFileConstant.REGISTRATIONID.toString(), "",
 								PlatformErrorMessages.RPR_PVM_IDENTITY_INVALID.getMessage() + " " + element
@@ -128,7 +127,8 @@ public class MasterDataValidation {
 
 						break;
 					}
-				}
+				} else
+					isValid = true;
 
 			} else {
 				isValid = false;

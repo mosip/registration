@@ -531,8 +531,8 @@ public class PacketValidateProcessor {
             for (int i = 0; i < jsonArray.length(); i++) {
                 if (!jsonArray.isNull(i)) {
                     JSONObject jsonObject = (JSONObject) jsonArray.get(i);
-                    if (!jsonObject.isNull("preRegistrationId")) {
-                        preRegId = jsonObject.get("preRegistrationId").toString();
+                    if (!jsonObject.isNull(JsonConstant.PREREGISTRATIONID)) {
+                        preRegId = jsonObject.get(JsonConstant.PREREGISTRATIONID).toString();
                         break;
                     }
 
