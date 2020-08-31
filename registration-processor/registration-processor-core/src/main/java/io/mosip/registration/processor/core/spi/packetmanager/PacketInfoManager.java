@@ -30,15 +30,15 @@ public interface PacketInfoManager<T, /** D, M, */
 	/**
 	 * Save demographic data.
 	 *
-	 * @param bytes
-	 *            the bytes
+	 * @param process
+	 *            the process
 	 * @param regId
 	 *            the reg id
-	 * @param metaData
-	 *            the meta data
+	 * @param moduleId
+	 *            the meta moduleId
 	 */
-	public void saveDemographicInfoJson(String regId, String moduleId,
-			String moduleName);
+	public void saveDemographicInfoJson(String regId, String process, String moduleId,
+			String moduleName) throws Exception;
 
 	/**
 	 * Gets the packetsfor QC user.
@@ -313,11 +313,11 @@ public interface PacketInfoManager<T, /** D, M, */
 	/**
 	 * Gets the identity keys and fetch values from JSON.
 	 *
-	 * @param demographicJsonString
+	 * @param rid
 	 *            the demographic json string
 	 * @return the identity keys and fetch values from JSON
 	 */
-	public IndividualDemographicDedupe getIdentityKeysAndFetchValuesFromJSON(String demographicJsonString)
+	public IndividualDemographicDedupe getIdentityKeysAndFetchValuesFromJSON(String rid, String source, String process)
 			throws PacketDecryptionFailureException;
 
 	/**

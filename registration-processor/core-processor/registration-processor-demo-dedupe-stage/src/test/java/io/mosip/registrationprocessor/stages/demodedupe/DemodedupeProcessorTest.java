@@ -247,7 +247,6 @@ public class DemodedupeProcessorTest {
 		individualDemoDedupe.setDateOfBirth("dateOfBirth");
 		individualDemoDedupe.setPhone("phone");
 		individualDemoDedupe.setEmail("email");
-		individualDemoDedupe.setPostalCode("postalCode");
 		individualDemoDedupe.setGender(jsonArray1);
 		List<FieldValueArray> fieldValueArrayList = new ArrayList<FieldValueArray>();
 
@@ -362,7 +361,7 @@ public class DemodedupeProcessorTest {
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(b);
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatus);
 		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(emptyDuplicateDtoSet);
-		Mockito.when(packetInfoManager.getIdentityKeysAndFetchValuesFromJSON(any())).thenReturn(individualDemoDedupe);
+		Mockito.when(packetInfoManager.getIdentityKeysAndFetchValuesFromJSON(any(),any(),any())).thenReturn(individualDemoDedupe);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
 	}
