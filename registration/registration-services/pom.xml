@@ -340,11 +340,11 @@
 			<artifactId>kernel-pdfgenerator-itext</artifactId>
 			<version>${mosip.core.kernel.version}</version>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-registration-packet-manager</artifactId>
 			<version>1.1.1-rc1</version>
-		</dependency>
+		</dependency> -->
 		<dependency>
            <artifactId>kernel-biosdk-provider</artifactId>
           <groupId>io.mosip.kernel</groupId>

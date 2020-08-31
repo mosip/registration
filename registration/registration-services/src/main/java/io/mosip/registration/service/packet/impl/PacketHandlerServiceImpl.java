@@ -421,8 +421,8 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 			if (fieldName.equals("UIN") && demographics.get(fieldName) != null) {
 
-				setField(registrationDTO.getRegistrationId(), fieldName, demographics.get(fieldName), source,
-						registrationDTO.getRegistrationCategory());
+				setField(registrationDTO.getRegistrationId(), fieldName, demographics.get(fieldName), 
+						registrationDTO.getRegistrationCategory(),source);
 				// packetCreator.setField(fieldName, demographics.get(fieldName));
 			}
 		}
