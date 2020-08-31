@@ -29,9 +29,12 @@ echo "created mosip-application.properties"
 
 mkdir -p /sdkdependency
 
+## download Open JRE 11 + FX
+wget https://cdn.azul.com/zulu/bin/zulu11.41.23-ca-fx-jre11.0.8-win_x64.zip -O zulu11.41.23-ca-fx-jre11.0.8-win_x64.zip
+
 #unzip Jre to be bundled
-unzip /registration-libs/resources/jre/zulu11.41.23-ca-fx-jre11.0.8-win_x64.zip
-rm /registration-libs/resources/jre/zulu11.41.23-ca-fx-jre11.0.8-win_x64.zip
+unzip /zulu11.41.23-ca-fx-jre11.0.8-win_x64.zip
+mkdir -p /registration-libs/resources/jre
 mv /zulu11.41.23-ca-fx-jre11.0.8-win_x64/* /registration-libs/resources/jre/
 chmod -R a+x /registration-libs/resources/jre
 
