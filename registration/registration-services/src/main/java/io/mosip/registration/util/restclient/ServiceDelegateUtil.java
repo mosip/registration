@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -446,7 +447,7 @@ public class ServiceDelegateUtil {
 				if (subheader != null) {
 					headerValues = subheader.split(":");
 					if (headerValues[0].equalsIgnoreCase("timestamp")) {
-						headerValues[1] = DateUtils.getUTCCurrentDateTimeString();
+						headerValues[1] = DateUtils.formatToISOString(LocalDateTime.now());
 					} else if (headerValues[0].equalsIgnoreCase("Center-Machine-RefId")) {
 						headerValues[1] = String
 								.valueOf(ApplicationContext.map().get(RegistrationConstants.USER_CENTER_ID))

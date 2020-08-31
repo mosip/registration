@@ -248,7 +248,7 @@ public class DemographicDetailController extends BaseController {
 						listOfComboBoxWithObject.get(orderOfAddress.get(0) + RegistrationConstants.LOCAL_LANGUAGE), 1,
 						applicationContext.getLocalLanguage());
 			}
-			
+
 			populateDropDowns();
 			for (int j = 0; j < orderOfAddress.size() - 1; j++) {
 				final int k = j;
@@ -395,10 +395,10 @@ public class DemographicDetailController extends BaseController {
 		switch (schemaDTO.getControlType()) {
 		case RegistrationConstants.DROPDOWN:
 			if (schemaDTO.getId().equalsIgnoreCase("gender") || schemaDTO.getId().equalsIgnoreCase("residencestatus")) {
-				if(listOfButtons.get(schemaDTO.getId()) == null || listOfButtons.get(schemaDTO.getId()).isEmpty()) {
+				if (listOfButtons.get(schemaDTO.getId()) == null || listOfButtons.get(schemaDTO.getId()).isEmpty()) {
 					populateButtons(schemaDTO.getId());
-				}				
-				if(listOfButtons.get(schemaDTO.getId()) != null && !listOfButtons.get(schemaDTO.getId()).isEmpty()) {
+				}
+				if (listOfButtons.get(schemaDTO.getId()) != null && !listOfButtons.get(schemaDTO.getId()).isEmpty()) {
 					content = addContentWithButtons(schemaDTO.getId(), schemaDTO, languageType);
 				} else {
 					content = addContentWithComboBoxObject(schemaDTO.getId(), schemaDTO, languageType);
@@ -643,15 +643,14 @@ public class DemographicDetailController extends BaseController {
 					break;
 
 				default:
-					if(k.endsWith("LocalLanguage")) {
+					if (k.endsWith("LocalLanguage")) {
 						if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
-							listOfComboBoxWithObject.get(k).getItems().addAll(masterSyncService.getDynamicField(k.replace("LocalLanguage", ""),
-											ApplicationContext.localLanguage()));
+							listOfComboBoxWithObject.get(k).getItems().addAll(masterSyncService.getDynamicField(
+									k.replace("LocalLanguage", ""), ApplicationContext.localLanguage()));
 						}
-					}
-					else {
-						listOfComboBoxWithObject.get(k).getItems().addAll(masterSyncService.getDynamicField(k,
-								ApplicationContext.applicationLanguage()));
+					} else {
+						listOfComboBoxWithObject.get(k).getItems()
+								.addAll(masterSyncService.getDynamicField(k, ApplicationContext.applicationLanguage()));
 					}
 					break;
 				}
@@ -680,7 +679,7 @@ public class DemographicDetailController extends BaseController {
 		listOfComboBoxWithObject.put(fieldName + languageType, field);
 		return vbox;
 	}
-	
+
 	public <T> VBox addContentWithButtons(String fieldName, UiSchemaDTO schema, String languageType) {
 		Label label = new Label();
 		Label validationMessage = new Label();
@@ -702,7 +701,7 @@ public class DemographicDetailController extends BaseController {
 		validationMessage.getStyleClass().add(RegistrationConstants.DemoGraphicFieldMessageLabel);
 		label.setPrefWidth(vbox.getPrefWidth());
 		validationMessage.setPrefWidth(vbox.getPrefWidth());
-		validationMessage.setVisible(false);		
+		validationMessage.setVisible(false);
 
 		if (applicationContext.getApplicationLanguage().equals(applicationContext.getLocalLanguage())
 				&& languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
@@ -711,7 +710,7 @@ public class DemographicDetailController extends BaseController {
 
 		HBox hBox = new HBox();
 		hBox.getChildren().add(label);
-		listOfButtons.get(fieldName + languageType).forEach(button -> {	
+		listOfButtons.get(fieldName + languageType).forEach(button -> {
 			hBox.setId(fieldName + languageType);
 			hBox.setSpacing(10);
 			hBox.setPadding(new Insets(10, 10, 10, 10));
@@ -722,73 +721,81 @@ public class DemographicDetailController extends BaseController {
 			} else {
 				if (listOfButtons.get(fieldName + RegistrationConstants.LOCAL_LANGUAGE) != null) {
 					listOfButtons.get(fieldName + RegistrationConstants.LOCAL_LANGUAGE).forEach(btn -> {
-						if(btn.getId().contains(button.getId())){
+						if (btn.getId().contains(button.getId())) {
 							fxUtils.populateLocalButton(parentFlowPane, button, btn);
 						}
 					});
-				}				
+				}
 			}
 			hBox.getChildren().add(button);
 		});
 		vbox.getChildren().addAll(hBox, validationMessage);
 		return vbox;
 	}
-	
+
 	private void populateButtons(String key) {
 		try {
 			switch (key.toLowerCase()) {
-				case "gender":
-					List<GenericDto> genderAppLanguage = masterSyncService.getGenderDtls(ApplicationContext.applicationLanguage()).stream()
-							.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList());
-					if(genderAppLanguage.size() == 2) {
-						genderAppLanguage.forEach(genericDto -> {
-							Button button = new Button(genericDto.getName());
-							button.setId("gender" + genericDto.getCode());
-							List<Button> buttons = (listOfButtons.get("gender") == null) ? new ArrayList<>() : listOfButtons.get("gender");
-							buttons.add(button);
-							listOfButtons.put("gender", buttons);
-						});
-					}		
-					List<GenericDto> genderLocalLanguage = masterSyncService.getGenderDtls(ApplicationContext.localLanguage()).stream()
-							.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList());
-					if(genderLocalLanguage.size() == 2) {
-						genderLocalLanguage.forEach(genericDto -> {
-							Button button = new Button(genericDto.getName());
-							button.setId("gender" + genericDto.getCode() + RegistrationConstants.LOCAL_LANGUAGE);
-							List<Button> buttons = (listOfButtons.get("genderLocalLanguage") == null) ? new ArrayList<>() : listOfButtons.get("genderLocalLanguage");
-							buttons.add(button);
-							listOfButtons.put("genderLocalLanguage", buttons);
-						});
-					}					
-					break;
+			case "gender":
+				List<GenericDto> genderAppLanguage = masterSyncService
+						.getGenderDtls(ApplicationContext.applicationLanguage()).stream()
+						.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList());
+				if (genderAppLanguage.size() == 2) {
+					genderAppLanguage.forEach(genericDto -> {
+						Button button = new Button(genericDto.getName());
+						button.setId("gender" + genericDto.getCode());
+						List<Button> buttons = (listOfButtons.get("gender") == null) ? new ArrayList<>()
+								: listOfButtons.get("gender");
+						buttons.add(button);
+						listOfButtons.put("gender", buttons);
+					});
+				}
+				List<GenericDto> genderLocalLanguage = masterSyncService
+						.getGenderDtls(ApplicationContext.localLanguage()).stream()
+						.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList());
+				if (genderLocalLanguage.size() == 2) {
+					genderLocalLanguage.forEach(genericDto -> {
+						Button button = new Button(genericDto.getName());
+						button.setId("gender" + genericDto.getCode() + RegistrationConstants.LOCAL_LANGUAGE);
+						List<Button> buttons = (listOfButtons.get("genderLocalLanguage") == null) ? new ArrayList<>()
+								: listOfButtons.get("genderLocalLanguage");
+						buttons.add(button);
+						listOfButtons.put("genderLocalLanguage", buttons);
+					});
+				}
+				break;
 
-				case "residencestatus":
-					List<GenericDto> residenceAppLanguage = (masterSyncService.getIndividualType(ApplicationContext.applicationLanguage())).stream()
-							.collect(Collectors.toList());
-					if(residenceAppLanguage.size() == 2) {
-						residenceAppLanguage.forEach(genericDto -> {
-							Button button = new Button(genericDto.getName());
-							button.setId("residenceStatus" + genericDto.getCode());
-							List<Button> buttons = (listOfButtons.get("residenceStatus") == null) ? new ArrayList<>() : listOfButtons.get("residenceStatus");
-							buttons.add(button);
-							listOfButtons.put("residenceStatus", buttons);
-						});
-					}
-					List<GenericDto> residenceLocalLanguage = (masterSyncService.getIndividualType(ApplicationContext.localLanguage())).stream()
-							.collect(Collectors.toList());
-					if(residenceLocalLanguage.size() == 2) {
-						residenceLocalLanguage.forEach(genericDto -> {
-							Button button = new Button(genericDto.getName());
-							button.setId("residenceStatus" + genericDto.getCode() + RegistrationConstants.LOCAL_LANGUAGE);
-							List<Button> buttons = (listOfButtons.get("residenceStatusLocalLanguage") == null) ? new ArrayList<>() : listOfButtons.get("residenceStatusLocalLanguage");
-							buttons.add(button);
-							listOfButtons.put("residenceStatusLocalLanguage", buttons);
-						});
-					}					
-					break;
-				default:
-					// TODO
-					break;
+			case "residencestatus":
+				List<GenericDto> residenceAppLanguage = (masterSyncService
+						.getIndividualType(ApplicationContext.applicationLanguage())).stream()
+								.collect(Collectors.toList());
+				if (residenceAppLanguage.size() == 2) {
+					residenceAppLanguage.forEach(genericDto -> {
+						Button button = new Button(genericDto.getName());
+						button.setId("residenceStatus" + genericDto.getCode());
+						List<Button> buttons = (listOfButtons.get("residenceStatus") == null) ? new ArrayList<>()
+								: listOfButtons.get("residenceStatus");
+						buttons.add(button);
+						listOfButtons.put("residenceStatus", buttons);
+					});
+				}
+				List<GenericDto> residenceLocalLanguage = (masterSyncService
+						.getIndividualType(ApplicationContext.localLanguage())).stream().collect(Collectors.toList());
+				if (residenceLocalLanguage.size() == 2) {
+					residenceLocalLanguage.forEach(genericDto -> {
+						Button button = new Button(genericDto.getName());
+						button.setId("residenceStatus" + genericDto.getCode() + RegistrationConstants.LOCAL_LANGUAGE);
+						List<Button> buttons = (listOfButtons.get("residenceStatusLocalLanguage") == null)
+								? new ArrayList<>()
+								: listOfButtons.get("residenceStatusLocalLanguage");
+						buttons.add(button);
+						listOfButtons.put("residenceStatusLocalLanguage", buttons);
+					});
+				}
+				break;
+			default:
+				// TODO
+				break;
 			}
 		} catch (RegBaseCheckedException e) {
 			LOGGER.error("populateDropDowns", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
@@ -1014,22 +1021,28 @@ public class DemographicDetailController extends BaseController {
 										: platformField.getValue() != null ? platformField.getValue().getName() : null,
 								applicationContext.getLocalLanguage(), localField == null ? null
 										: localField.getValue() != null ? localField.getValue().getName() : null);
-						if(schemaField.getId().equalsIgnoreCase("gender") || schemaField.getId().equalsIgnoreCase("residencestatus")) {
+						if (schemaField.getId().equalsIgnoreCase("gender")
+								|| schemaField.getId().equalsIgnoreCase("residencestatus")) {
 							List<Button> platformFieldButtons = listOfButtons.get(schemaField.getId());
-							List<Button> localFieldButtons = listOfButtons.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE);
+							List<Button> localFieldButtons = listOfButtons
+									.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE);
 							AtomicReference<Boolean> buttonSelected = new AtomicReference<>(false);
-							platformFieldButtons.forEach(button -> {
-								if(button.getStyleClass().contains("selectedResidence")) {
-									buttonSelected.set(true);
+
+							if (platformFieldButtons != null) {
+								platformFieldButtons.forEach(button -> {
+									if (button.getStyleClass().contains("selectedResidence")) {
+										buttonSelected.set(true);
+										registrationDTO.addDemographicField(schemaField.getId(),
+												applicationContext.getApplicationLanguage(), button.getText(),
+												applicationContext.getLocalLanguage(),
+												getLocalFieldButtonText(button, localFieldButtons));
+									}
+								});
+								if (!buttonSelected.get()) {
 									registrationDTO.addDemographicField(schemaField.getId(),
-											applicationContext.getApplicationLanguage(),
-											button.getText(),
-											applicationContext.getLocalLanguage(), getLocalFieldButtonText(button, localFieldButtons));
+											applicationContext.getApplicationLanguage(), null,
+											applicationContext.getLocalLanguage(), null);
 								}
-							});
-							if(!buttonSelected.get()) {
-								registrationDTO.addDemographicField(schemaField.getId(), applicationContext.getApplicationLanguage(), null,
-										applicationContext.getLocalLanguage(), null);
 							}
 						}
 					} else {
@@ -1074,13 +1087,14 @@ public class DemographicDetailController extends BaseController {
 
 	private String getLocalFieldButtonText(Button button, List<Button> localFieldButtons) {
 		String buttonText = null;
-		Optional<Button> localButton = localFieldButtons.stream().filter(btn -> btn.getId().contains(button.getId())).findAny();
-		if(localButton.isPresent()) {
+		Optional<Button> localButton = localFieldButtons.stream().filter(btn -> btn.getId().contains(button.getId()))
+				.findAny();
+		if (localButton.isPresent()) {
 			buttonText = localButton.get().getText();
 		}
 		return buttonText;
 	}
-	
+
 	/**
 	 * To load the provinces in the selection list based on the language code
 	 */

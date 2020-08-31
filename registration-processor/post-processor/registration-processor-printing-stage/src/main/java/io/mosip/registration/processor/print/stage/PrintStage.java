@@ -5,13 +5,19 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.jms.Message;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -112,6 +118,12 @@ public class PrintStage extends MosipVerticleAPIManager {
 
 	@Autowired
 	public Utilities utilities;
+
+	@Autowired
+	private PacketManagerService packetManagerService;
+
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	/** The port. */
 	@Value("${server.port}")
@@ -252,6 +264,7 @@ public class PrintStage extends MosipVerticleAPIManager {
 				regId, "PrintStage::process()::entry");
 
 		try {
+			String source = utilities.getDefaultSource();
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(regId);
 			if (RegistrationType.RES_REPRINT.toString().equals(object.getReg_type().toString())) {
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSED.toString());
@@ -267,9 +280,19 @@ public class PrintStage extends MosipVerticleAPIManager {
 			if (io.mosip.registration.processor.status.code.RegistrationType.RES_REPRINT.toString()
 					.equalsIgnoreCase(object.getReg_type().toString())) {
 
-				PacketMetaInfo packetMetaInfo = utilities.getPacketMetaInfo(regId);
-				Identity identity = packetMetaInfo.getIdentity();
-				List<FieldValue> metadataList = identity.getMetaData();
+				List<FieldValue> metadataList = new ArrayList<>();
+				Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(regId, source, registrationStatusDto.getRegistrationType());
+				String metaDataString = metaInfoMap.get(JsonConstant.METADATA);
+				if (StringUtils.isNotEmpty(metaDataString)) {
+					JSONArray jsonArray = new JSONArray(metaDataString);
+					for (int i =0; i < jsonArray.length(); i++) {
+						org.json.JSONObject jsonObject = (org.json.JSONObject) jsonArray.get(i);
+						FieldValue fieldValue = objectMapper.readValue(jsonObject.toString(), FieldValue.class);
+						metadataList.add(fieldValue);
+					}
+				}
+
+				//List<FieldValue> metadataList = identity.getMetaData();
 				IdentityIteratorUtil identityIteratorUtil = new IdentityIteratorUtil();
 				cardType = identityIteratorUtil.getFieldValue(metadataList, JsonConstant.CARDTYPE);
 
@@ -418,8 +441,8 @@ public class PrintStage extends MosipVerticleAPIManager {
 	 *            the document bytes map
 	 * @param count
 	 *            the count
-	 * @param uin
-	 *            the uin
+	 * @param regId
+	 *            the regId
 	 * @return true, if successful
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.

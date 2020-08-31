@@ -41,6 +41,15 @@
 			<enabled>true</enabled>
 			</snapshots>
 		</repository>
+		<repository>
+		    <id>central</id>
+		    <name>Maven Central</name>
+		    <layout>default</layout>
+		    <url>https://repo1.maven.org/maven2</url>
+		    <snapshots>
+		    <enabled>false</enabled>
+		    </snapshots>
+		  </repository>
 	</repositories>
 
 
@@ -81,10 +90,10 @@
                         </execution>
                   </executions>
                 </plugin>
-                <plugin>
+                <!--<plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-javadoc-plugin</artifactId>
-                  <version>2.9.1</version>
+                  <version>3.2.0</version>
                   <executions>
                         <execution>
                           <id>attach-javadocs</id>
@@ -94,9 +103,9 @@
                         </execution>
                   </executions>
                   <configuration>
-                          <additionalJOption>-Xdoclint:none</additionalJOption>
+                     <doclint>none</doclint>    
                   </configuration>
-                </plugin>
+                </plugin>-->
       
                 <!--<plugin>
                   <groupId>org.apache.maven.plugins</groupId>

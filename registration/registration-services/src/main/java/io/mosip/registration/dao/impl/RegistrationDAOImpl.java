@@ -8,6 +8,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.transaction.Transactional;
@@ -17,15 +18,20 @@ import org.springframework.stereotype.Repository;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.kernel.packetmanager.dto.SimpleDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationClientStatusCode;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationTransactionType;
 import io.mosip.registration.constants.RegistrationType;
+import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.dao.RegistrationDAO;
 import io.mosip.registration.dto.PacketStatusDTO;
 import io.mosip.registration.dto.RegistrationDTO;
+import io.mosip.registration.dto.RegistrationDataDto;
 import io.mosip.registration.entity.Registration;
 import io.mosip.registration.entity.RegistrationTransaction;
 import io.mosip.registration.exception.RegBaseCheckedException;
@@ -82,6 +88,19 @@ public class RegistrationDAOImpl implements RegistrationDAO {
 			registration.setRegUsrId(SessionContext.userContext().getUserId());
 			registration.setApproverUsrId(SessionContext.userContext().getUserId());
 			registration.setPreRegId(registrationDTO.getPreRegistrationId());
+			
+			RegistrationDataDto registrationDataDto = new RegistrationDataDto();
+			
+			Object fullNameObj = registrationDTO.getDemographics().get("fullName");
+			Object emailObj = registrationDTO.getDemographics().get("email");
+			Object phoneObj = registrationDTO.getDemographics().get("phone");
+			
+			registrationDataDto.setName(getAdditionalInfo(fullNameObj));
+			registrationDataDto.setEmail(getAdditionalInfo(emailObj));
+			registrationDataDto.setPhone(getAdditionalInfo(phoneObj));
+			
+			String additionalInfo = JsonUtils.javaObjectToJsonString(registrationDataDto);
+			registration.setAdditionalInfo(additionalInfo.getBytes());
 
 			List<RegistrationTransaction> registrationTransactions = new ArrayList<>();
 			RegistrationTransaction registrationTxn = new RegistrationTransaction();
@@ -97,11 +116,26 @@ public class RegistrationDAOImpl implements RegistrationDAO {
 			registrationRepository.create(registration);
 
 			LOGGER.info(LOG_SAVE_PKT, APPLICATION_NAME, APPLICATION_ID, "Save Registration has been ended");
-		} catch (RuntimeException runtimeException) {
+		} catch (RuntimeException | JsonProcessingException runtimeException) {
 			throw new RegBaseUncheckedException(
 					RegistrationExceptionConstants.REG_PACKET_SAVE_TO_DB_EXCEPTION.getErrorCode(),
 					RegistrationExceptionConstants.REG_PACKET_SAVE_TO_DB_EXCEPTION.getErrorMessage(), runtimeException);
 		}
+	}
+	
+	private String getAdditionalInfo(Object fieldValue) {
+		String value = null;
+		if (fieldValue instanceof List<?>) {
+			Optional<SimpleDto> demoValueInRequiredLang = ((List<SimpleDto>) fieldValue).stream()
+					.filter(valueDTO -> valueDTO.getLanguage().equals(ApplicationContext.applicationLanguage())).findFirst();
+
+			if (demoValueInRequiredLang.isPresent() && demoValueInRequiredLang.get().getValue() != null) {
+				value = demoValueInRequiredLang.get().getValue();
+			}
+		} else if (fieldValue instanceof String) {
+			value = (String) fieldValue;
+		}
+		return value;
 	}
 
 	/*
@@ -140,6 +174,8 @@ public class RegistrationDAOImpl implements RegistrationDAO {
 			registrationTxn.setCrBy(SessionContext.userContext().getUserId());
 			registrationTxn.setCrDtime(timestamp);
 			registrationTransaction.add(registrationTxn);
+			
+			registration.setRegistrationTransaction(registrationTransaction);
 
 			LOGGER.info("REGISTRATION - UPDATE_STATUS - REGISTRATION_DAO", APPLICATION_NAME, APPLICATION_ID,
 					"Packet updation has been ended");

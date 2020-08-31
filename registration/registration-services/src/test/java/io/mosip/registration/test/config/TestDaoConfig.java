@@ -1,10 +1,15 @@
 package io.mosip.registration.test.config;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.security.NoSuchAlgorithmException;
+import java.sql.*;
 import java.util.Properties;
 
 import javax.sql.DataSource;
 
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.registration.service.security.ClientSecurityFacade;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Bean;
@@ -26,6 +31,9 @@ import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.tpm.spi.TPMUtil;
 import io.mosip.registration.context.ApplicationContext;
 
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
+
 
 @Configuration
 @ComponentScan(excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = {
@@ -46,12 +54,9 @@ public class TestDaoConfig extends HibernateDaoConfig {
 
 	
 	private static final String DRIVER_CLASS_NAME = "org.h2.Driver";
-	private static final String DB_URL = "jdbc:h2:mem:db;DB_CLOSE_DELAY=-1;INIT=CREATE SCHEMA IF NOT EXISTS REG;";
-	private static final String DB_AUTHENITICATION = ";bootPassword=";
-	private static final String MOSIP_CLIENT_TPM_AVAILABILITY = "mosip.reg.client.tpm.availability";
-	
+	private static final String URL = "jdbc:h2:mem:db;DB_CLOSE_DELAY=-1;INIT=RUNSCRIPT FROM 'classpath:initial.sql";
+
 	private static DataSource dataSource;
-	
 	private static Properties keys = new Properties();
 	
 	
@@ -61,21 +66,7 @@ public class TestDaoConfig extends HibernateDaoConfig {
 		try (InputStream keyStream = TestDaoConfig.class.getClassLoader().getResourceAsStream("spring-test.properties")) {		
 			
 			keys.load(keyStream);
-			
-			DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource();
-			driverManagerDataSource.setDriverClassName(DRIVER_CLASS_NAME);
-
-			if (keys.containsKey(MOSIP_CLIENT_TPM_AVAILABILITY)
-					&& RegistrationConstants.ENABLE.equalsIgnoreCase(keys.getProperty(MOSIP_CLIENT_TPM_AVAILABILITY))) {
-				driverManagerDataSource.setUrl(DB_URL + DB_AUTHENITICATION + new String(TPMUtil.asymmetricDecrypt(Base64
-						.decodeBase64(keys.getProperty(RegistrationConstants.MOSIP_REGISTRATION_DB_KEY).getBytes()))));
-				ApplicationContext.map().put(RegistrationConstants.TPM_AVAILABILITY, RegistrationConstants.ENABLE);
-			} else {
-				driverManagerDataSource.setUrl(DB_URL);			
-				ApplicationContext.map().put(RegistrationConstants.TPM_AVAILABILITY, RegistrationConstants.DISABLE);
-			}
-			
-			dataSource = driverManagerDataSource;
+			dataSource = setupDatasource();
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -143,5 +134,12 @@ public class TestDaoConfig extends HibernateDaoConfig {
 		properties.setProperty("hibernate.show_sql", "false");
 		properties.setProperty("hibernate.format_sql", "false");
 		return properties;
+	}
+
+	private static DriverManagerDataSource setupDatasource() {
+		DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource();
+		driverManagerDataSource.setDriverClassName(DRIVER_CLASS_NAME);
+		driverManagerDataSource.setUrl(URL);
+		return driverManagerDataSource;
 	}
 }

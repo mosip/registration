@@ -98,11 +98,6 @@
 			<version>${kernel.core.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-fsadapter-hdfs</artifactId>
-			<version>${kernel.fsadapter.hdfs.version}</version>
-		</dependency>
-		<dependency>
 				<groupId>org.mockito</groupId>
 				<artifactId>mockito-core</artifactId>
 				<version>${mockito.version}</version>
@@ -129,11 +124,6 @@
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-registry-prometheus</artifactId>
 			<version>${io.micrometer.prometheus.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-registration-packet-manager</artifactId>
-			<version>${registration.processor.packet.utility.version}</version>
 		</dependency>
 	</dependencies>
 

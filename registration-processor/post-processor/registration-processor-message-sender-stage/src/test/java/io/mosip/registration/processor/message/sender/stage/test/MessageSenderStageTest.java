@@ -166,8 +166,8 @@ public class MessageSenderStageTest {
 		Mockito.doNothing().when(messageSenderDto).setSubject(any());
 		Mockito.doNothing().when(messageSenderDto).setTemplateAvailable(any(Boolean.class));
 
-		Mockito.when(service.sendSmsNotification(any(), any(), any(), any(), any())).thenReturn(smsResponseDto);
-		Mockito.when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any()))
+		Mockito.when(service.sendSmsNotification(any(), any(), any(), any(), any(), any())).thenReturn(smsResponseDto);
+		Mockito.when(service.sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(responseDto);
 
 		Mockito.when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("ERROR");
@@ -215,7 +215,7 @@ public class MessageSenderStageTest {
 		String s = templateResponseDto.toString();
 		responseWrapper.setResponse(templateResponseDto);
 		responseWrapper.setErrors(null);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(responseWrapper);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(responseWrapper);
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
@@ -255,7 +255,7 @@ public class MessageSenderStageTest {
 		String s = templateResponseDto.toString();
 		responseWrapper.setResponse(templateResponseDto);
 		responseWrapper.setErrors(null);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(responseWrapper);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(responseWrapper);
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
 
@@ -299,7 +299,7 @@ public class MessageSenderStageTest {
 		String s = templateResponseDto.toString();
 		responseWrapper.setResponse(templateResponseDto);
 		responseWrapper.setErrors(null);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(responseWrapper);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(responseWrapper);
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
@@ -353,7 +353,7 @@ public class MessageSenderStageTest {
 		String s = templateResponseDto.toString();
 		responseWrapper.setResponse(templateResponseDto);
 		responseWrapper.setErrors(null);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(responseWrapper);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(responseWrapper);
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
 
@@ -409,7 +409,7 @@ public class MessageSenderStageTest {
 		String s = templateResponseDto.toString();
 		responseWrapper.setResponse(templateResponseDto);
 		responseWrapper.setErrors(null);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(responseWrapper);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(responseWrapper);
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
 
@@ -449,7 +449,7 @@ public class MessageSenderStageTest {
 		String s = templateResponseDto.toString();
 		responseWrapper.setResponse(templateResponseDto);
 		responseWrapper.setErrors(null);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(responseWrapper);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(responseWrapper);
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
 
@@ -529,7 +529,7 @@ public class MessageSenderStageTest {
 		templateDto1.setTemplateTypeCode("RPR_TEC_ISSUE_EMAIL");
 		list.add(templateDto1);
 		templateResponseDto.setTemplates(list);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenThrow(e);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenThrow(e);
 		Mockito.when(registrationStatusDto.getRegistrationType()).thenReturn("ACTIVATED");
 		Mockito.when(regentity.getRegistrationType()).thenReturn("ACTIVATED");
 		Mockito.when(registrationStatusDto.getStatusCode())
@@ -568,7 +568,7 @@ public class MessageSenderStageTest {
 		String s = templateResponseDto.toString();
 		responseWrapper.setResponse(templateResponseDto);
 		responseWrapper.setErrors(null);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(responseWrapper);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(responseWrapper);
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
@@ -610,7 +610,7 @@ public class MessageSenderStageTest {
 		String s = templateResponseDto.toString();
 		responseWrapper.setResponse(templateResponseDto);
 		responseWrapper.setErrors(null);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(responseWrapper);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(responseWrapper);
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
@@ -622,8 +622,8 @@ public class MessageSenderStageTest {
 		Mockito.when(registrationStatusDto.getLatestTransactionStatusCode())
 				.thenReturn(RegistrationTransactionStatusCode.PROCESSED.name());
 		ApisResourceAccessException e = new ApisResourceAccessException();
-		Mockito.doThrow(e).when(service).sendSmsNotification(any(), any(), any(), any(), any());
-		Mockito.doThrow(e).when(service).sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any());
+		Mockito.doThrow(e).when(service).sendSmsNotification(any(), any(), any(), any(), any(), any());
+		Mockito.doThrow(e).when(service).sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any());
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("85425022110000120190117110505");
@@ -654,7 +654,7 @@ public class MessageSenderStageTest {
 		String s = templateResponseDto.toString();
 		responseWrapper.setResponse(templateResponseDto);
 		responseWrapper.setErrors(null);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(responseWrapper);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(responseWrapper);
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
@@ -709,7 +709,7 @@ public class MessageSenderStageTest {
 		String s = templateResponseDto.toString();
 		responseWrapper.setResponse(templateResponseDto);
 		responseWrapper.setErrors(null);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(responseWrapper);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(responseWrapper);
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
@@ -765,7 +765,7 @@ public class MessageSenderStageTest {
 		String s = templateResponseDto.toString();
 		responseWrapper.setResponse(templateResponseDto);
 		responseWrapper.setErrors(null);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(responseWrapper);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(responseWrapper);
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
@@ -822,7 +822,7 @@ public class MessageSenderStageTest {
 		String s = templateResponseDto.toString();
 		responseWrapper.setResponse(templateResponseDto);
 		responseWrapper.setErrors(null);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(responseWrapper);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(responseWrapper);
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
@@ -874,7 +874,7 @@ public class MessageSenderStageTest {
 		String s = templateResponseDto.toString();
 		responseWrapper.setResponse(templateResponseDto);
 		responseWrapper.setErrors(null);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(responseWrapper);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(responseWrapper);
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
@@ -888,7 +888,7 @@ public class MessageSenderStageTest {
 		EmailIdNotFoundException e = new EmailIdNotFoundException();
 		Mockito.doReturn("success").when(smsResponseDto).getStatus();
 		Mockito.doReturn("success").when(responseDto).getStatus();
-		Mockito.doThrow(e).when(service).sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any());
+		Mockito.doThrow(e).when(service).sendEmailNotification(any(), any(), any(), any(), any(), any(), any(), any(), any());
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("85425022110000120190117110505");
@@ -917,7 +917,7 @@ public class MessageSenderStageTest {
 		String s = templateResponseDto.toString();
 		responseWrapper.setResponse(templateResponseDto);
 		responseWrapper.setErrors(null);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(responseWrapper);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(responseWrapper);
 		Mockito.when(mapper.writeValueAsString(any())).thenReturn(s);
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(templateResponseDto);
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
@@ -928,7 +928,7 @@ public class MessageSenderStageTest {
 		Mockito.when(registrationStatusDto.getLatestTransactionStatusCode())
 				.thenReturn(RegistrationTransactionStatusCode.PROCESSED.name());
 		PhoneNumberNotFoundException e = new PhoneNumberNotFoundException();
-		Mockito.doThrow(e).when(service).sendSmsNotification(any(), any(), any(), any(), any());
+		Mockito.doThrow(e).when(service).sendSmsNotification(any(), any(), any(), any(), any(), any());
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("85425022110000120190117110505");

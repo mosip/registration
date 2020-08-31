@@ -1,24 +1,10 @@
 package io.mosip.registration.processor.bio.dedupe.service.impl;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import org.apache.commons.io.IOUtils;
-import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Service;
-
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.packetmanager.spi.PacketReaderService;
-import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
 import io.mosip.registration.processor.bio.dedupe.exception.ABISAbortException;
 import io.mosip.registration.processor.bio.dedupe.exception.ABISInternalError;
 import io.mosip.registration.processor.bio.dedupe.exception.UnableToServeRequestABISException;
@@ -46,8 +32,20 @@ import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * The Class BioDedupeServiceImpl.
@@ -100,10 +98,11 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 	private Utilities utility;
 
 	@Autowired
-	private PacketReaderService packetReaderService;
+	private PacketManagerService packetManagerService;
 
 	@Autowired
-	private IdSchemaUtils idSchemaUtils;
+	private CbeffUtil cbeffutil;
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -292,10 +291,10 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 	 * getFileByRegId( java.lang.String)
 	 */
 	@Override
-	public byte[] getFileByRegId(String registrationId) {
+	public byte[] getFileByRegId(String registrationId, String source, String process) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "BioDedupeServiceImpl::getFileByRegId()::entry");
-		byte[] file = getFile(registrationId);
+		byte[] file = getFile(registrationId, source, process);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "BioDedupeServiceImpl::getFileByRegId()::exit");
 		return file;
@@ -309,7 +308,7 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 	 * java.lang.String)
 	 */
 	@Override
-	public byte[] getFileByAbisRefId(String abisRefId) {
+	public byte[] getFileByAbisRefId(String abisRefId, String source, String process) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), abisRefId,
 				"BioDedupeServiceImpl::getFileByAbisRefId()::entry");
 		String registrationId = "";
@@ -327,10 +326,10 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), abisRefId,
 				"BioDedupeServiceImpl::getFileByAbisRefId()::exit");
-		return getFile(registrationId);
+		return getFile(registrationId, source, process);
 	}
 
-	private byte[] getFile(String registrationId) {
+	private byte[] getFile(String registrationId, String source, String process) {
 		byte[] file = null;
 		if (registrationId == null || registrationId.isEmpty()) {
 			return file;
@@ -343,15 +342,8 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 			String individualBiometricsLabel = JsonUtil.getJSONValue(
 					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 					MappingJsonConstants.VALUE);
-			String individualBiometricsFileName = JsonUtil.getJSONValue(JsonUtil.getJSONObject(
-					utility.getDemographicIdentityJSONObject(registrationId, individualBiometricsLabel),
-					individualBiometricsLabel), MappingJsonConstants.VALUE);
-			String source = idSchemaUtils.getSource(individualBiometricsLabel, packetReaderService.getIdSchemaVersionFromPacket(registrationId));
-			if (source != null) {
-			InputStream fileInStream = packetReaderService.getFile(registrationId,
-					individualBiometricsFileName.toUpperCase(), source);
-				file = IOUtils.toByteArray(fileInStream);
-			}
+			BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId, individualBiometricsLabel, null, source, process);
+			byte[] xml = cbeffutil.createXML(biometricRecord.getSegments());
 
 
 		} catch (UnsupportedEncodingException exp) {

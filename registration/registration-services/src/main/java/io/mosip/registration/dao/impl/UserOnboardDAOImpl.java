@@ -237,7 +237,7 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 		try {
 
 			MachineMaster machineMaster = machineMasterRepository
-					.findByIsActiveTrueAndNameAndRegMachineSpecIdLangCode(machineName.toLowerCase(), ApplicationContext.applicationLanguage());
+					.findByIsActiveTrueAndNameIgnoreCaseAndRegMachineSpecIdLangCode(machineName.toLowerCase(), ApplicationContext.applicationLanguage());
 
 			if (machineMaster != null && machineMaster.getRegMachineSpecId().getId() != null) {
 

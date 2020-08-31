@@ -1,5 +1,7 @@
 package io.mosip.registration.processor.stages.app;
 
+import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
+import io.mosip.registration.processor.core.constant.RegistrationType;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import io.mosip.registration.processor.stages.osivalidator.OSIValidatorStage;
@@ -22,8 +24,7 @@ public class OSIValidatorApplication {
 				"io.mosip.registration.processor.status.config", "io.mosip.registration.processor.rest.client.config",
 				"io.mosip.registration.processor.packet.storage.config",
 				"io.mosip.registration.processor.packet.manager.config",
-				"io.mosip.registration.processor.core.kernel.beans",
-				"io.mosip.kernel.packetmanager.config");
+				"io.mosip.registration.processor.core.kernel.beans");
 		ctx.refresh();
 		OSIValidatorStage validatebean = ctx.getBean(OSIValidatorStage.class);
 		validatebean.deployVerticle();

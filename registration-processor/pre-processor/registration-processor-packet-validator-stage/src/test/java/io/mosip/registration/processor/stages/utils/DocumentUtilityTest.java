@@ -44,7 +44,7 @@ public class DocumentUtilityTest {
 
 	/** The filesystem adapter impl. */
 	@Mock
-	private PacketManager filesystemAdapterImpl;
+	private PacketManager packetManager;
 
 	/** The utility. */
 	@Mock

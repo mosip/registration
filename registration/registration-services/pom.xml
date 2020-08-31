@@ -145,6 +145,10 @@
 			<artifactId>derbyclient</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.derby</groupId>
+			<artifactId>derbytools</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-logger-logback</artifactId>
 			<version>${mosip.core.kernel.version}</version>
@@ -336,11 +340,11 @@
 			<artifactId>kernel-pdfgenerator-itext</artifactId>
 			<version>${mosip.core.kernel.version}</version>
 		</dependency>
-		<!-- <dependency>
+		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-registration-packet-manager</artifactId>
 			<version>1.1.1-rc1</version>
-		</dependency> -->
+		</dependency>
 		<dependency>
            <artifactId>kernel-biosdk-provider</artifactId>
           <groupId>io.mosip.kernel</groupId>
@@ -367,12 +371,12 @@
         	<version>1.2.0-SNAPSHOT</version>
         </dependency>
 	</dependencies>
-	<repositories>
+	<!--<repositories>
 		<repository>
 			<id>local-maven-repo</id>
 			<url>file:///${basedir}/lib</url>
 		</repository>
-	</repositories>
+	</repositories>-->
 	<profiles>
 		<profile>
 			<id>unit-test</id>

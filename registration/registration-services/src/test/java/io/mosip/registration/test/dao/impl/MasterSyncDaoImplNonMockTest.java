@@ -67,8 +67,7 @@ public class MasterSyncDaoImplNonMockTest {
 	  appMap.put(RegistrationConstants.FACE_DISABLE_FLAG, "Y");
 	  appMap.put(RegistrationConstants.PRIMARY_LANGUAGE, "eng");
 	  appMap.put(RegistrationConstants.SECONDARY_LANGUAGE, "fra");
-	  appMap.put(RegistrationConstants.TPM_AVAILABILITY, RegistrationConstants.DISABLE);
-	  ApplicationContext.getInstance().setApplicationMap(appMap);
+	   ApplicationContext.getInstance().setApplicationMap(appMap);
 	  ApplicationContext.getInstance().loadResourceBundle();
 	}
 	
@@ -114,7 +113,7 @@ public class MasterSyncDaoImplNonMockTest {
 		
 		assertEquals(RegistrationConstants.SUCCESS, response);
 								
-		MachineMaster machine = machineMasterRepository.findByIsActiveTrueAndNameAndRegMachineSpecIdLangCode("b2ml24784", "eng");
+		MachineMaster machine = machineMasterRepository.findByIsActiveTrueAndNameIgnoreCaseAndRegMachineSpecIdLangCode("b2ml24784", "eng");
 		 
 		assertNotNull(machine);
 		

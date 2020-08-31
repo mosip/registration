@@ -134,4 +134,12 @@ public class TPMClientSecurityImpl  implements ClientSecurity {
 		LOGGER.info(LoggerConstants.LOG_TPM_INITIALIZATION, RegistrationConstants.APPLICATION_ID, RegistrationConstants.APPLICATION_NAME,
 				"Completed closing the instance of Platform TPM");
 	}
+
+	/**
+	 * @return true if the implementation was specific to TPM
+	 */
+	@Override
+	public boolean isTPMInstance() {
+		return true;
+	}
 }

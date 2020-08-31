@@ -29,7 +29,7 @@ public interface SyncRegistrationService<T, U> {
 	 *            the sync resgistrationdto
 	 * @return the list
 	 */
-	public List<T> sync(List<U> syncResgistrationdto);
+	public List<T> sync(List<U> syncResgistrationdto, String referenceId, String timeStamp);
 
 	/**
 	 * Checks if is present.
