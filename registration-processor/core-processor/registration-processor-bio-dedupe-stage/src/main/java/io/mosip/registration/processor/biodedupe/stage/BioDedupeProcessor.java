@@ -202,9 +202,6 @@ public class BioDedupeProcessor {
 
 			}
 
-			registrationStatusDto
-					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.BIOGRAPHIC_VERIFICATION.toString());
-
 			registrationStatusDto.setRegistrationStageName(stageName);
 			isTransactionSuccessful = true;
 
@@ -278,6 +275,8 @@ public class BioDedupeProcessor {
 			object.setInternalError(Boolean.TRUE);
 			object.setIsValid(Boolean.FALSE);
 		} finally {
+			registrationStatusDto
+					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.BIOGRAPHIC_VERIFICATION.toString());
 			String moduleId = isTransactionSuccessful ? PlatformSuccessMessages.RPR_BIO_DEDUPE_SUCCESS.getCode()
 					: description.getCode();
 			String moduleName = ModuleName.BIO_DEDUPE.name();
