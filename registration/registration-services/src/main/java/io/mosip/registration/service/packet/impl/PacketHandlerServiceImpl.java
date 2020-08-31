@@ -6,6 +6,8 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.exception.RegistrationExceptionConstants.REG_PACKET_CREATION_ERROR_CODE;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,6 +56,7 @@ import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.dao.AuditDAO;
 import io.mosip.registration.dao.AuditLogControlDAO;
+import io.mosip.registration.dao.MachineMappingDAO;
 import io.mosip.registration.dao.PolicySyncDAO;
 import io.mosip.registration.dao.RegistrationDAO;
 import io.mosip.registration.dto.ErrorResponseDTO;
@@ -138,6 +141,10 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 	@Autowired
 	private RegIdObjectMasterDataValidator regIdObjectMasterDataValidator;
 
+	/** The machine mapping DAO. */
+	@Autowired
+	private MachineMappingDAO machineMappingDAO;
+
 	@Value("${objectstore.packet.source:REGISTRATION_CLIENT}")
 	private String source;
 
@@ -221,7 +228,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 					registrationDTO.getRegistrationId(), AuditReferenceIdTypes.REGISTRATION_ID.getReferenceTypeId());
 
 		} catch (RegBaseCheckedException e) {
-			LOGGER.info(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(e));
+			LOGGER.error(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(e));
 
 			auditFactory.audit(AuditEvent.PACKET_INTERNAL_ERROR, Components.PACKET_HANDLER,
 					registrationDTO.getRegistrationId(), AuditReferenceIdTypes.REGISTRATION_ID.getReferenceTypeId());
@@ -268,6 +275,41 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 		setOthersMetaInfo(metaInfoMap, registrationDTO);
 
+		setMetaData(metaInfoMap, registrationDTO);
+
+	}
+
+	private void setMetaData(Map<String, String> metaInfoMap, RegistrationDTO registrationDTO)
+			throws RegBaseCheckedException {
+		Map<String, String> metaData = new LinkedHashMap<>();
+		metaData.put(PacketManagerConstants.REGISTRATIONID, registrationDTO.getRegistrationId());
+		metaData.put(PacketManagerConstants.META_CREATION_DATE, DateUtils.formatToISOString(LocalDateTime.now()));
+		metaData.put(PacketManagerConstants.META_CLIENT_VERSION, softwareUpdateHandler.getCurrentVersion());
+		metaData.put(PacketManagerConstants.META_REGISTRATION_TYPE,
+				registrationDTO.getRegistrationMetaDataDTO().getRegistrationCategory());
+		metaData.put(PacketManagerConstants.META_PRE_REGISTRATION_ID, registrationDTO.getPreRegistrationId());
+		metaData.put(PacketManagerConstants.META_MACHINE_ID,
+				(String) ApplicationContext.map().get(RegistrationConstants.USER_STATION_ID));
+		metaData.put(PacketManagerConstants.META_CENTER_ID,
+				(String) ApplicationContext.map().get(RegistrationConstants.USER_CENTER_ID));
+		metaData.put(PacketManagerConstants.META_DONGLE_ID,
+				(String) ApplicationContext.map().get(RegistrationConstants.DONGLE_SERIAL_NUMBER));
+
+		String keyIndex = null;
+		try {
+			keyIndex = machineMappingDAO.getKeyIndexByMachineName(InetAddress.getLocalHost().getHostName());
+		} catch (UnknownHostException unknownHostException) {
+			LOGGER.error(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID,
+					ExceptionUtils.getStackTrace(unknownHostException));
+
+//			throwRegBaseCheckedException(RegistrationExceptionConstants.REG_MASTER_SYNC_SERVICE_IMPL_NO_MACHINE_NAME);
+
+		}
+		metaData.put(PacketManagerConstants.META_KEYINDEX, keyIndex);
+		metaData.put(PacketManagerConstants.META_APPLICANT_CONSENT,
+				registrationDTO.getRegistrationMetaDataDTO().getConsentOfApplicant());
+
+		metaInfoMap.put("metaData", getJsonString(getLabelValueDTOListString(metaData)));
 	}
 
 	private void setOperationsData(Map<String, String> metaInfoMap, RegistrationDTO registrationDTO)
@@ -317,20 +359,20 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 	private void setOthersMetaInfo(Map<String, String> metaInfoMap, RegistrationDTO registrationDTO)
 			throws RegBaseCheckedException {
 
-		metaInfoMap.put(PacketManagerConstants.META_CLIENT_VERSION, softwareUpdateHandler.getCurrentVersion());
-		metaInfoMap.put(PacketManagerConstants.META_REGISTRATION_TYPE,
-				registrationDTO.getRegistrationMetaDataDTO().getRegistrationCategory());
-		metaInfoMap.put(PacketManagerConstants.META_PRE_REGISTRATION_ID, registrationDTO.getPreRegistrationId());
-		metaInfoMap.put(PacketManagerConstants.META_MACHINE_ID,
-				(String) ApplicationContext.map().get(RegistrationConstants.USER_STATION_ID));
-		metaInfoMap.put(PacketManagerConstants.META_CENTER_ID,
-				(String) ApplicationContext.map().get(RegistrationConstants.USER_CENTER_ID));
-		metaInfoMap.put(PacketManagerConstants.META_DONGLE_ID,
-				(String) ApplicationContext.map().get(RegistrationConstants.DONGLE_SERIAL_NUMBER));
-		metaInfoMap.put(PacketManagerConstants.META_KEYINDEX,
-				ApplicationContext.getStringValueFromApplicationMap(RegistrationConstants.KEY_INDEX));
-		metaInfoMap.put(PacketManagerConstants.META_APPLICANT_CONSENT,
-				registrationDTO.getRegistrationMetaDataDTO().getConsentOfApplicant());
+//		metaInfoMap.put(PacketManagerConstants.META_CLIENT_VERSION, softwareUpdateHandler.getCurrentVersion());
+//		metaInfoMap.put(PacketManagerConstants.META_REGISTRATION_TYPE,
+//				registrationDTO.getRegistrationMetaDataDTO().getRegistrationCategory());
+//		metaInfoMap.put(PacketManagerConstants.META_PRE_REGISTRATION_ID, registrationDTO.getPreRegistrationId());
+//		metaInfoMap.put(PacketManagerConstants.META_MACHINE_ID,
+//				(String) ApplicationContext.map().get(RegistrationConstants.USER_STATION_ID));
+//		metaInfoMap.put(PacketManagerConstants.META_CENTER_ID,
+//				(String) ApplicationContext.map().get(RegistrationConstants.USER_CENTER_ID));
+//		metaInfoMap.put(PacketManagerConstants.META_DONGLE_ID,
+//				(String) ApplicationContext.map().get(RegistrationConstants.DONGLE_SERIAL_NUMBER));
+//		metaInfoMap.put(PacketManagerConstants.META_KEYINDEX,
+//				ApplicationContext.getStringValueFromApplicationMap(RegistrationConstants.KEY_INDEX));
+//		metaInfoMap.put(PacketManagerConstants.META_APPLICANT_CONSENT,
+//				registrationDTO.getRegistrationMetaDataDTO().getConsentOfApplicant());
 
 		RegistrationCenterDetailDTO registrationCenter = SessionContext.userContext().getRegistrationCenterDetailDTO();
 		if (RegistrationConstants.ENABLE
@@ -346,7 +388,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		metaInfoMap.put("checkSum", getJsonString(checkSumMap));
 
 		metaInfoMap.put(PacketManagerConstants.REGISTRATIONID, registrationDTO.getRegistrationId());
-		metaInfoMap.put(PacketManagerConstants.META_CREATION_DATE, DateUtils.formatToISOString(LocalDateTime.now()));
+//		metaInfoMap.put(PacketManagerConstants.META_CREATION_DATE, DateUtils.formatToISOString(LocalDateTime.now()));
 
 	}
 
