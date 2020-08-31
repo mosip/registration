@@ -183,14 +183,14 @@ public class ClientJarDecryption extends Application {
 					@Override
 					protected Boolean call() throws IOException, InterruptedException {
 
-						String dbpath = new File(System.getProperty("user.dir")) + SLASH
+						/*String dbpath = new File(System.getProperty("user.dir")) + SLASH
 								+ properties.getProperty("mosip.reg.dbpath");
 
 						updateMessage(DB_CHECK);
 
 						boolean isDbAvailable = dbCheck(dbpath);
 
-						if (isDbAvailable) {
+						if (isDbAvailable) {*/
 
 							updateMessage(IS_TPM_AVAILABLE);
 
@@ -340,7 +340,8 @@ public class ClientJarDecryption extends Application {
 												LoggerConstants.APPLICATION_NAME, LoggerConstants.APPLICATION_ID,
 												"Preparing command to launch the reg-client");
 
-										String cmd = "java" + " -Dfile.encoding=UTF-8" + " -cp " + tempPath + "/*;"
+										String jrepath = new File(System.getProperty("user.dir")) + SLASH + "jre/jre/bin/java";
+										String cmd = jrepath + " -Dfile.encoding=UTF-8" + " -cp " + tempPath + "/*;"
 												+ "/* io.mosip.registration.controller.Initialization";
 
 										Process process = Runtime.getRuntime().exec(cmd);
@@ -437,7 +438,7 @@ public class ClientJarDecryption extends Application {
 
 							}
 
-						} else {
+						/*} else {
 
 							LOGGER.error(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
 									LoggerConstants.APPLICATION_ID, "DB Not Found, Terminating Application");
@@ -448,7 +449,7 @@ public class ClientJarDecryption extends Application {
 
 							generateAlertAndTerminate(DB_NOT_FOUND);
 
-						}
+						}*/
 
 						return false;
 
