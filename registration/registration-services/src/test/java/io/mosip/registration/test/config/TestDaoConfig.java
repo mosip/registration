@@ -54,16 +54,9 @@ public class TestDaoConfig extends HibernateDaoConfig {
 
 	
 	private static final String DRIVER_CLASS_NAME = "org.h2.Driver";
-	private static final String DB_URL = "jdbc:h2:mem:db;DB_CLOSE_DELAY=-1;INIT=CREATE SCHEMA IF NOT EXISTS REG;";
-	private static final String DB_AUTHENITICATION = ";bootPassword=";
-	private static final String URL = "jdbc:derby:%s;bootPassword=%s";
-	private static final String INITIALIZE_URL = "jdbc:derby:%s;bootPassword=%s;newBootPassword=%s";
-	private static final String DB_PATH_VAR = "mosip.reg.dbpath";
-	private static final String DB_AUTH_FILE_PATH = "mosip.reg.db.key";
-
+	private static final String URL = "jdbc:h2:mem:db;DB_CLOSE_DELAY=-1;INIT=RUNSCRIPT FROM 'classpath:initial.sql";
 
 	private static DataSource dataSource;
-	
 	private static Properties keys = new Properties();
 	
 	
@@ -73,7 +66,7 @@ public class TestDaoConfig extends HibernateDaoConfig {
 		try (InputStream keyStream = TestDaoConfig.class.getClassLoader().getResourceAsStream("spring-test.properties")) {		
 			
 			keys.load(keyStream);
-			dataSource = setupDataSource(keys.getProperty(DB_PATH_VAR), keys.getProperty(DB_AUTH_FILE_PATH));
+			dataSource = setupDatasource();
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -143,60 +136,10 @@ public class TestDaoConfig extends HibernateDaoConfig {
 		return properties;
 	}
 
-	private static DriverManagerDataSource setupDataSource(String dbPath, String dbKey) throws Exception {
-		if(ClientSecurityFacade.isDBInitializeRequired()) {
-			Connection connection = null;
-			boolean initialSetup = false;
-			try {
-				connection = DriverManager.getConnection(String.format(URL, dbPath, new String(Base64.decodeBase64(dbKey.getBytes()))));
-				Statement stmt = connection.createStatement();
-				ResultSet result = stmt.executeQuery("select val from reg.global_param where name='mosip.registration.initial_setup'");
-				while(result.next()) {
-					if(RegistrationConstants.ENABLE.equalsIgnoreCase(result.getString(1))) {
-						initialSetup = true;
-						break;
-					}
-				}
-
-				DriverManager.getConnection("jdbc:derby:;shutdown=true");
-
-			} catch (SQLException ex) {
-				ex.printStackTrace();
-			} finally {
-				if(connection != null)
-					connection.close();
-			}
-
-			if(initialSetup)
-				reEncryptDB(dbPath, new String(Base64.decodeBase64(dbKey.getBytes())));
-		}
-
-		DriverManager.registerDriver(new org.apache.derby.jdbc.EmbeddedDriver());
+	private static DriverManagerDataSource setupDatasource() {
 		DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource();
 		driverManagerDataSource.setDriverClassName(DRIVER_CLASS_NAME);
-		driverManagerDataSource.setUrl(String.format(URL, dbPath, ClientSecurityFacade.getDBSecret()));
+		driverManagerDataSource.setUrl(URL);
 		return driverManagerDataSource;
-	}
-
-	private static void reEncryptDB(String dbPath, String dbKey) throws IOException, NoSuchAlgorithmException, SQLException {
-		Connection connection = null;
-		try {
-			DriverManager.registerDriver(new org.apache.derby.jdbc.EmbeddedDriver());
-
-			connection = DriverManager.getConnection(String.format(INITIALIZE_URL, dbPath,
-					dbKey,	ClientSecurityFacade.getDBSecret()));
-
-			DriverManager.getConnection("jdbc:derby:;shutdown=true");
-
-			//connection = null;
-
-			//connection = DriverManager.getConnection(String.format(URL, dbPath, ClientSecurityFacade.getDBSecret()));
-
-		} catch (SQLException ex) {
-			ex.printStackTrace();
-		} finally {
-			if(connection != null)
-				connection.close();
-		}
 	}
 }
