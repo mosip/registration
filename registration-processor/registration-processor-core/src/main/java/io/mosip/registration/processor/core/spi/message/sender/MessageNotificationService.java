@@ -7,6 +7,7 @@ import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
+import org.json.JSONException;
 
 /**
  * The Interface MessageNotificationService
@@ -34,7 +35,7 @@ public interface MessageNotificationService<T, U, V> {
 	 */
 	public T sendSmsNotification(String templateTypeCode, String id, String process, IdType idType,
 			Map<String, Object> attributes, String regType) throws ApisResourceAccessException, IOException,
-			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException;
+            PacketDecryptionFailureException, JSONException;
 	
 	/**
 	 * Method to send email notification

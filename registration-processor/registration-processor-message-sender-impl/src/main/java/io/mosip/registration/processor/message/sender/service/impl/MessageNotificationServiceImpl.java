@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,8 @@ import io.mosip.registration.processor.packet.storage.exception.PacketManagerExc
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.json.JSONException;
+import org.json.JSONTokener;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,7 +148,7 @@ public class MessageNotificationServiceImpl
 	@Override
 	public SmsResponseDto sendSmsNotification(String templateTypeCode, String id, String process, IdType idType,
 			Map<String, Object> attributes, String regType) throws ApisResourceAccessException, IOException,
-			io.mosip.kernel.core.exception.IOException {
+			JSONException {
 		SmsResponseDto response;
 		SmsRequestDto smsDto = new SmsRequestDto();
 		RequestWrapper<SmsRequestDto> requestWrapper = new RequestWrapper<>();
@@ -329,7 +332,7 @@ public class MessageNotificationServiceImpl
 	 */
 	private Map<String, Object> setAttributes(String id, String process, IdType idType, Map<String, Object> attributes, String regType,
 			StringBuilder phoneNumber, StringBuilder emailId) throws IOException, ApisResourceAccessException,
-			JsonProcessingException, PacketManagerException {
+			JsonProcessingException, PacketManagerException, JSONException {
 
 		String uin = "";
 		if (idType.toString().equalsIgnoreCase(UIN)) {
@@ -483,34 +486,40 @@ public class MessageNotificationServiceImpl
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> setAttributesFromIdJson(String id, String process, Map<String, Object> attribute,
 			String regType, StringBuilder phoneNumber, StringBuilder emailId)
-			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
+			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException, JSONException {
 
 		String mapperJsonString = Utilities.getJson(utility.getConfigServerFileStorageURL(),
 				utility.getGetRegProcessorIdentityJson());
 		JSONObject mapperJson = JsonUtil.objectMapperReadValue(mapperJsonString, JSONObject.class);
 		JSONObject mapperIdentity = JsonUtil.getJSONObject(mapperJson, utility.getGetRegProcessorDemographicIdentity());
 
-		List<String> mapperJsonKeys = new ArrayList<>(mapperIdentity.keySet());
+		List<String> mapperJsonValues = new ArrayList<>();
+		JsonUtil.getJSONValue(JsonUtil.getJSONObject(mapperIdentity, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), VALUE);
+		mapperIdentity.keySet().forEach(key -> mapperJsonValues.add(JsonUtil.getJSONValue(JsonUtil.getJSONObject(mapperIdentity, key), VALUE)));
 
 		String source = utility.getDefaultSource();
-		Map<String, String> fieldMap = packetManagerService.getFields(id, mapperJsonKeys, source, process);
-		JSONObject jsonObject = new JSONObject(fieldMap);
+		Map<String, String> fieldMap = packetManagerService.getFields(id, mapperJsonValues, source, process);
 
-		for (Object key : jsonObject.keySet()) {
-			Object object = mapper.readValue(jsonObject.get(key).toString(), Object.class);
-			if (object instanceof ArrayList) {
-				JSONArray node = JsonUtil.getJSONArray(jsonObject, key);
-				;
-				JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
-				for (int count = 0; count < jsonValues.length; count++) {
-					String lang = jsonValues[count].getLanguage();
-					attribute.put(key + "_" + lang, jsonValues[count].getValue());
-				}
-			} else if (object instanceof LinkedHashMap) {
-				JSONObject json = JsonUtil.getJSONObject(jsonObject, key);
-				attribute.put(key.toString(), json.get(VALUE));
-			} else {
-				attribute.put(key.toString(), object);
+		for (Map.Entry e : fieldMap.entrySet()) {
+			if (e.getValue() != null) {
+				String value = e.getValue().toString();
+				if (value != null) {
+					Object json = new JSONTokener(value).nextValue();
+					if (json instanceof org.json.JSONObject) {
+						HashMap<String, Object> hashMap = new ObjectMapper().readValue(value, HashMap.class);
+						attribute.putIfAbsent(e.getKey().toString(), hashMap.get(VALUE));
+					}
+					else if (json instanceof org.json.JSONArray) {
+						org.json.JSONArray jsonArray = new org.json.JSONArray(value);
+						for (int i = 0; i < jsonArray.length(); i++) {
+							Object obj = jsonArray.get(i);
+							JsonValue jsonValue = mapper.readValue(obj.toString(), JsonValue.class);
+							attribute.putIfAbsent(e.getKey().toString() + "_" + jsonValue.getLanguage(), jsonValue.getValue());
+						}
+					} else
+						attribute.putIfAbsent(e.getKey().toString(), value);
+				} else
+					attribute.put(e.getKey().toString(), e.getValue());
 			}
 
 		}
