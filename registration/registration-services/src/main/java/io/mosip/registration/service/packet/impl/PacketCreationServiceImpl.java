@@ -213,7 +213,8 @@ public class PacketCreationServiceImpl extends BaseService implements PacketCrea
 
 			// Generating Audit JSON as byte array
 			// Fetch unsync'ed audit logs from DB
-			List<Audit> audits = auditDAO.getAudits(auditLogControlDAO.getLatestRegistrationAuditDates());
+			List<Audit> audits = auditDAO.getAudits(auditLogControlDAO.getLatestRegistrationAuditDates(), 
+					registrationDTO.getRegistrationId());
 
 			List<AuditRequestDto> auditRequests = new ArrayList<>();
 			for (Audit audit : audits) {

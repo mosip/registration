@@ -1037,6 +1037,10 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Displaying Scan popup for capturing biometrics");
+		
+		auditFactory.audit(getAuditEventForScan(currentModality), Components.REG_BIOMETRICS,
+				SessionContext.userId(),
+				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 		if (currentModality.equalsIgnoreCase(RegistrationConstants.EXCEPTION_PHOTO)) {
 			scanPopUpViewController.init(this, RegistrationUIConstants.SCAN_DOC_TITLE);
@@ -1288,9 +1292,6 @@ public class BiometricsController extends BaseController /* implements Initializ
 									qualityScore += biometricDTO.getQualityScore();
 									biometricDTO.setSubType(currentSubType);
 									registrationDTOBiometricsList.add(biometricDTO);
-									auditFactory.audit(getAuditEventForScan(currentModality), Components.REG_BIOMETRICS,
-											SessionContext.userId(),
-											AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 								}
 							}
 
@@ -2394,6 +2395,12 @@ public class BiometricsController extends BaseController /* implements Initializ
 	public void updateBiometricData(ImageView clickedImageView, List<ImageView> bioExceptionImagesForSameModality) {
 
 		if (clickedImageView.getOpacity() == 0) {
+			LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+					"Marking exceptions for biometrics");
+
+			auditFactory.audit(AuditEvent.REG_BIO_EXCEPTION_MARKING, Components.REG_BIOMETRICS, SessionContext.userId(),
+					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+			
 			clickedImageView.setOpacity(1);
 
 			if (isUserOnboardFlag)
@@ -2402,6 +2409,12 @@ public class BiometricsController extends BaseController /* implements Initializ
 				getRegistrationDTOFromSession().addBiometricException(currentSubType, clickedImageView.getId(),
 						clickedImageView.getId(), "Temporary", "Temporary");
 		} else {
+			LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+					"Removing exceptions for biometrics");
+
+			auditFactory.audit(AuditEvent.REG_BIO_EXCEPTION_REMOVING, Components.REG_BIOMETRICS, SessionContext.userId(),
+					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+			
 			clickedImageView.setOpacity(0);
 			if (isUserOnboardFlag)
 				userOnboardService.removeOperatorBiometricException(currentSubType, clickedImageView.getId());
