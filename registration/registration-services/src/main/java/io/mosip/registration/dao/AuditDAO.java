@@ -38,6 +38,6 @@ public interface AuditDAO {
 	 * @return the {@link Audit} logs to be synchronized to the server with
 	 *         registration packet
 	 */
-	List<Audit> getAudits(RegistrationAuditDates registrationAuditDates);
+	List<Audit> getAudits(RegistrationAuditDates registrationAuditDates, String registrationId);
 
 }
