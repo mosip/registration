@@ -159,6 +159,7 @@ public class DemodedupeProcessor {
 				.getRegistrationStatus(registrationId);
 
 		try {
+			String source = utility.getDefaultSource();
 
 			// Persist Demographic packet Data if packet Registration type is NEW
 			if (registrationStatusDto.getRegistrationType().equals(RegistrationType.NEW.name())) {
@@ -167,7 +168,8 @@ public class DemodedupeProcessor {
 
 				if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
 
-					packetInfoManager.saveDemographicInfoJson(registrationId, moduleId, moduleName);
+					packetInfoManager.saveDemographicInfoJson(registrationId,
+							registrationStatusDto.getRegistrationType(), moduleId, moduleName);
 					int age = utility.getApplicantAge(registrationId,
 							utility.getDefaultSource(), registrationStatusDto.getRegistrationType());
 					int ageThreshold = Integer.parseInt(ageLimit);
@@ -216,7 +218,7 @@ public class DemodedupeProcessor {
 
 
 				IndividualDemographicDedupe demographicData = packetInfoManager
-						.getIdentityKeysAndFetchValuesFromJSON(registrationId);
+						.getIdentityKeysAndFetchValuesFromJSON(registrationId, source, registrationStatusDto.getRegistrationType());
 				JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
 				String uinFieldCheck = utility.getUIn(registrationId,
 						utility.getDefaultSource(), registrationStatusDto.getRegistrationType());
@@ -260,20 +262,6 @@ public class DemodedupeProcessor {
 										JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson,
 												MappingJsonConstants.EMAIL), MappingJsonConstants.VALUE))
 						: demographicData.getEmail());
-				if (demographicData.getPostalCode() == null) {
-				String addressList = JsonUtil.getJSONValue(
-						JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.ADDRESS),
-						MappingJsonConstants.VALUE);
-				Arrays.stream(addressList.split(","))
-				.forEach(address -> {
-					if (address.equals("postalCode")) {
-									demoDedupeData.setPostalCode(JsonUtil.getJSONValue(jsonObject, address));
-					}
-						});
-				} else {
-					demoDedupeData.setPostalCode(demographicData.getPostalCode());
-				}
-
 
 				packetInfoManager.saveIndividualDemographicDedupeUpdatePacket(demoDedupeData, registrationId, moduleId,
 						moduleName);

@@ -343,7 +343,7 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 					MappingJsonConstants.VALUE);
 			BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId, individualBiometricsLabel, null, source, process);
-			byte[] xml = cbeffutil.createXML(biometricRecord.getSegments());
+			file = cbeffutil.createXML(biometricRecord.getSegments());
 
 
 		} catch (UnsupportedEncodingException exp) {

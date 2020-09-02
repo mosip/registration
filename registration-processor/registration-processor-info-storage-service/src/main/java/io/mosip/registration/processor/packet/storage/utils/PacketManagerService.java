@@ -57,8 +57,8 @@ public class PacketManagerService {
         ResponseWrapper<FieldResponseDto> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_FIELD, "", "", request, ResponseWrapper.class);
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, response.getErrors().toString());
-            throw new PacketManagerException(PlatformErrorMessages.GET_FIELD_ERROR.getCode(), PlatformErrorMessages.GET_FIELD_ERROR.getMessage());
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
+            throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), response.getErrors().get(0).getMessage());
         }
 
         FieldResponseDto fieldResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), FieldResponseDto.class);
@@ -77,8 +77,8 @@ public class PacketManagerService {
         ResponseWrapper<FieldResponseDto> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_FIELDS, "", "", request, ResponseWrapper.class);
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, response.getErrors().toString());
-            throw new PacketManagerException(PlatformErrorMessages.GET_FIELD_ERROR.getCode(), PlatformErrorMessages.GET_FIELD_ERROR.getMessage());
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
+            throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), response.getErrors().get(0).getMessage());
         }
 
         FieldResponseDto fieldResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), FieldResponseDto.class);
@@ -97,8 +97,8 @@ public class PacketManagerService {
         ResponseWrapper<Document> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_DOCUMENT, "", "", request, ResponseWrapper.class);
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, response.getErrors().toString());
-            throw new PacketManagerException(PlatformErrorMessages.GET_FIELD_ERROR.getCode(), PlatformErrorMessages.GET_FIELD_ERROR.getMessage());
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
+            throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), response.getErrors().get(0).getMessage());
         }
 
         Document document = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), Document.class);
@@ -117,8 +117,8 @@ public class PacketManagerService {
         ResponseWrapper<ValidatePacketResponse> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_VALIDATE, "", "", request, ResponseWrapper.class);
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, response.getErrors().toString());
-            throw new PacketManagerException(PlatformErrorMessages.GET_FIELD_ERROR.getCode(), PlatformErrorMessages.GET_FIELD_ERROR.getMessage());
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
+            throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), response.getErrors().get(0).getMessage());
         }
         ValidatePacketResponse validatePacketResponse = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), ValidatePacketResponse.class);
 
@@ -137,8 +137,8 @@ public class PacketManagerService {
         ResponseWrapper<List<FieldResponseDto>> responseObj = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_AUDITS, "", "", request, ResponseWrapper.class);
 
         if (responseObj.getErrors() != null && responseObj.getErrors().size() > 0) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, responseObj.getErrors().toString());
-            throw new PacketManagerException(PlatformErrorMessages.GET_FIELD_ERROR.getCode(), PlatformErrorMessages.GET_FIELD_ERROR.getMessage());
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(responseObj));
+            throw new PacketManagerException(responseObj.getErrors().get(0).getErrorCode(), responseObj.getErrors().get(0).getMessage());
         }
 
         for (Object o : responseObj.getResponse()) {
@@ -160,8 +160,8 @@ public class PacketManagerService {
         ResponseWrapper<BiometricRecord> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_BIOMETRICS, "", "", request, ResponseWrapper.class);
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, response.getErrors().toString());
-            throw new PacketManagerException(PlatformErrorMessages.GET_FIELD_ERROR.getCode(), PlatformErrorMessages.GET_FIELD_ERROR.getMessage());
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
+            throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), response.getErrors().get(0).getMessage());
         }
         if (response.getResponse() != null) {
             BiometricRecord biometricRecord = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), BiometricRecord.class);
@@ -182,8 +182,8 @@ public class PacketManagerService {
         ResponseWrapper<FieldResponseDto> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_SEARCH_METAINFO, "", "", request, ResponseWrapper.class);
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, response.getErrors().toString());
-            throw new PacketManagerException(PlatformErrorMessages.GET_FIELD_ERROR.getCode(), PlatformErrorMessages.GET_FIELD_ERROR.getMessage());
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
+            throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), response.getErrors().get(0).getMessage());
         }
 
         FieldResponseDto fieldResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), FieldResponseDto.class);
