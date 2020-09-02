@@ -131,28 +131,27 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 
 			StreamRequestDTO streamRequestDTO = new StreamRequestDTO(bioDevice.getDeviceId(), getDeviceSubId(modality));
 
-			HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
-			con.setRequestMethod("POST");
 			String request = new ObjectMapper().writeValueAsString(streamRequestDTO);
 
-			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Request for Stream...." + request);
-
-			con.setDoOutput(true);
-			DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-
+			CloseableHttpClient client = HttpClients.createDefault();
+			StringEntity requestEntity = new StringEntity(request, ContentType.create("Content-Type", Consts.UTF_8));
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-					"Stream Request Started : " + System.currentTimeMillis());
+					"Building Stream url...." + System.currentTimeMillis());
+			HttpUriRequest httpUriRequest = RequestBuilder.create("STREAM").setUri(url).setEntity(requestEntity)
+					.build();
+			
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-					"Stream Request :" + streamRequestDTO.toString());
+					"Requesting Stream url...." + System.currentTimeMillis());
+			CloseableHttpResponse response = client.execute(httpUriRequest);
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					"Request completed.... " + System.currentTimeMillis());
 
-			wr.writeBytes(request);
-			wr.flush();
-			wr.close();
-			con.setReadTimeout(5000);
-			con.connect();
-			InputStream urlStream = con.getInputStream();
+			InputStream urlStream = null;
+			if (response.getEntity() != null) {
+				urlStream = response.getEntity().getContent();
+			}
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-					"Leaving into Stream Method.... " + System.currentTimeMillis());
+					"Stream Request Completed" + System.currentTimeMillis());
 			return urlStream;
 		} catch (Exception exception) {
 			throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_STREAM_ERROR.getErrorCode(),
