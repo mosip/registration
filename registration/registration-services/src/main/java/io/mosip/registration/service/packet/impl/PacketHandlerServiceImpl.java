@@ -193,6 +193,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			Map<String, String> metaInfoMap = new LinkedHashMap<>();
 
 			setDemographics(registrationDTO, schema);
+
 			setDocuments(registrationDTO, metaInfoMap);
 			setBiometrics(registrationDTO, schema, metaInfoMap);
 
@@ -421,8 +422,8 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 			if (fieldName.equals("UIN") && demographics.get(fieldName) != null) {
 
-				setField(registrationDTO.getRegistrationId(), fieldName, demographics.get(fieldName), 
-						registrationDTO.getRegistrationCategory(),source);
+				setField(registrationDTO.getRegistrationId(), fieldName, demographics.get(fieldName),
+						registrationDTO.getRegistrationCategory(), source);
 				// packetCreator.setField(fieldName, demographics.get(fieldName));
 			}
 		}
@@ -552,22 +553,9 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 				RegistrationExceptionConstants.REG_RSA_PUBLIC_KEY_NOT_FOUND.getErrorMessage());
 	}
 
-	private String savePacketToDisk(String registrationId, byte[] packetZip) throws RegBaseCheckedException {
-		long maxPacketSizeInBytes = Long.valueOf(
-				String.valueOf(ApplicationContext.map().get(RegistrationConstants.REG_PKT_SIZE))) * 1024 * 1024;
-		if (packetZip.length > maxPacketSizeInBytes) {
-			throw new RegBaseCheckedException(
-					RegistrationExceptionConstants.REG_PACKET_SIZE_EXCEEDED_ERROR_CODE.getErrorCode(),
-					RegistrationExceptionConstants.REG_PACKET_SIZE_EXCEEDED_ERROR_CODE.getErrorMessage());
-		}
-
-		return storageService.storeToDisk(registrationId, packetZip);
-	}
-
-	// TODO only based on registrationId
 	private void setAudits(RegistrationDTO registrationDTO) {
-		List<AuditDto> audtitDTOList = new ArrayList<>();
-		List<Audit> audits = auditDAO.getAudits(auditLogControlDAO.getLatestRegistrationAuditDates());
+		List<Audit> audits = auditDAO.getAudits(auditLogControlDAO.getLatestRegistrationAuditDates(),
+				registrationDTO.getRegistrationId());
 
 		List<Map<String, String>> auditList = new LinkedList<>();
 

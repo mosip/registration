@@ -23,6 +23,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.AuditEvent;
+import io.mosip.registration.constants.AuditReferenceIdTypes;
 import io.mosip.registration.constants.Components;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
@@ -83,6 +84,15 @@ public class AuditManagerSerivceImpl extends BaseService implements AuditManager
 					ExceptionUtils.getStackTrace(unknownHostException));
 		}
 
+		if (auditEventEnum.getId().contains(RegistrationConstants.REGISTRATION_EVENTS) && 
+				getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getRegistrationId() != null) {
+			refId = getRegistrationDTOFromSession().getRegistrationId();
+			refIdType = AuditReferenceIdTypes.REGISTRATION_ID.getReferenceTypeId();
+		} else if (SessionContext.userId() != null && !SessionContext.userId().equals("NA")) {
+			refId = SessionContext.userId();
+			refIdType = AuditReferenceIdTypes.USER_ID.getReferenceTypeId();
+		}
+		
 		AuditRequestBuilder auditRequestBuilder = new AuditRequestBuilder();
 		auditRequestBuilder.setActionTimeStamp(LocalDateTime.now(ZoneOffset.UTC))
 				.setApplicationId(String.valueOf(ApplicationContext.map().get(RegistrationConstants.APP_ID)))

@@ -53,15 +53,15 @@ public class AuditDAOTest {
 
 	@Test
 	public void testGetAudits() {
-		when(auditRepository.findByEventIdStartsWithOrderByCreatedAtAsc(RegistrationConstants.REGISTRATION_EVENTS))
+		when(auditRepository.findByIdOrderByCreatedAtAsc("1234"))
 				.thenReturn(audits);
 
-		Assert.assertThat(auditDAO.getAudits(null), is(audits));
+		Assert.assertThat(auditDAO.getAudits(null, "1234"), is(audits));
 	}
 
 	@Test
 	public void testGetAuditsByNullAuditLogToTime() {
-		when(auditRepository.findByEventIdStartsWithOrderByCreatedAtAsc(RegistrationConstants.REGISTRATION_EVENTS))
+		when(auditRepository.findByIdOrderByCreatedAtAsc("1234"))
 				.thenReturn(audits);
 
 		Assert.assertThat(auditDAO.getAudits(new RegistrationAuditDates() {
@@ -75,7 +75,7 @@ public class AuditDAOTest {
 			public Timestamp getAuditLogFromDateTime() {
 				return null;
 			}
-		}), is(audits));
+		}, "1234"), is(audits));
 	}
 
 	@Test
@@ -94,15 +94,15 @@ public class AuditDAOTest {
 			public Timestamp getAuditLogFromDateTime() {
 				return null;
 			}
-		}), is(audits));
+		}, "1234"), is(audits));
 	}
 
 	@Test(expected = RegBaseUncheckedException.class)
 	public void testGetAuditsRuntimeException() {
-		when(auditRepository.findByEventIdStartsWithOrderByCreatedAtAsc(RegistrationConstants.REGISTRATION_EVENTS))
+		when(auditRepository.findByIdOrderByCreatedAtAsc("1234"))
 				.thenThrow(new RuntimeException("SQL exception"));
 
-		auditDAO.getAudits(null);
+		auditDAO.getAudits(null, "1234");
 	}
 
 	@Test
