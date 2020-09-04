@@ -115,7 +115,7 @@
 		<packet.bio.dedupe.service.impl.version>1.0.10</packet.bio.dedupe.service.impl.version>
 		<registration.processor.message.sender.version>1.0.10</registration.processor.message.sender.version>
 		<registration.processor.print.service.impl.version>1.0.10</registration.processor.print.service.impl.version>
-		<registration.processor.packet.utility.version>1.0.10</registration.processor.packet.utility.version>
+		<registration.processor.packet.utility.version>1.1.1</registration.processor.packet.utility.version>
 		
 		<!-- Kernel -->
 		<kernel.core.version>1.0.9</kernel.core.version>
