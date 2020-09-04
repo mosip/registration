@@ -12,8 +12,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -74,9 +72,10 @@ public class Encryptor {
 				"Encryptor::encrypt()::entry");
 		try {
 			ObjectMapper mapper = new ObjectMapper();
-
-			Gson syncInfoGson = new GsonBuilder().create();
-	        String syncInfo = syncInfoGson.toJson(syncMetaInfo);
+			
+			System.setProperty("ENCRYPTURL", "https://dev.mosip.net/v1/keymanager/encrypt");
+			
+			String syncInfo = CryptoUtil.encodeBase64(syncMetaInfo.toString().getBytes());
 	        
 			CryptomanagerRequestDto cryptomanagerRequestDto = new CryptomanagerRequestDto();
 			RequestWrapper<CryptomanagerRequestDto> request = new RequestWrapper<>();
@@ -104,7 +103,7 @@ public class Encryptor {
 			if (response.getResponse() != null) {
 				cryptomanagerResponseDto = mapper.readValue(mapper.writeValueAsString(response.getResponse()),
 						CryptomanagerResponseDto.class);
-				encryptedData = (CryptoUtil.encodeBase64(cryptomanagerResponseDto.getData().getBytes())).getBytes();
+				encryptedData = cryptomanagerResponseDto.getData().getBytes();
 			} else {
 				description.setMessage(PlatformErrorMessages.RPR_PGS_ENCRYPTOR_INVLAID_DATA_EXCEPTION.getMessage());
 				description.setCode(PlatformErrorMessages.RPR_PGS_ENCRYPTOR_INVLAID_DATA_EXCEPTION.getCode());
