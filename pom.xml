@@ -10,7 +10,12 @@
 	<name>MOSIP Registration Parent POM</name>
 	<description>Mosip Registration Project</description>
         <url>https://github.com/mosip/registration</url>
-	
+	<distributionManagement>
+                <repository>
+                        <id>github</id>
+                        <url>https://maven.pkg.github.com/mosip/registration</url>
+                </repository> 
+        </distributionManagement> 	
 	<licenses>
           <license>
                 <name>MPL 2.0</name>
@@ -46,7 +51,7 @@
 		</repository>
 	</repositories>
 
-
+<!--
 	<distributionManagement>
                 <snapshotRepository>
                         <id>ossrh</id>
@@ -56,10 +61,10 @@
                         <id>ossrh</id>
                         <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
                 </repository>
-        </distributionManagement>
+        </distributionManagement> -->
 	<build>
           <plugins>
-                <plugin>
+<!--                <plugin>
                   <groupId>org.sonatype.plugins</groupId>
                   <artifactId>nexus-staging-maven-plugin</artifactId>
                   <version>1.6.7</version>
@@ -78,7 +83,7 @@
                         <nexusUrl>https://oss.sonatype.org/</nexusUrl>
                         <autoReleaseAfterClose>false</autoReleaseAfterClose>
                   </configuration>
-                </plugin>
+                </plugin>-->
 
 		<plugin>
                   <groupId>org.apache.maven.plugins</groupId>
