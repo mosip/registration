@@ -2,6 +2,7 @@ package io.mosip.registration.processor.stages.packet.validator;
 
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
@@ -21,13 +22,16 @@ import io.mosip.registration.processor.core.spi.packet.validator.PacketValidator
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
+import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.stages.utils.AuditUtility;
 import io.mosip.registration.processor.stages.utils.MasterDataValidation;
+import io.mosip.registration.processor.stages.utils.NotificationUtility;
 import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.RegistrationAdditionalInfoDTO;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.SyncRegistrationDto;
 import io.mosip.registration.processor.status.dto.SyncResponseDto;
@@ -55,6 +59,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,6 +69,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 
@@ -73,7 +79,7 @@ import static org.mockito.Matchers.anyString;
  */
 @RefreshScope
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ JsonUtil.class, IOUtils.class, HMACUtils.class, Utilities.class, MasterDataValidation.class,
+@PrepareForTest({ JsonUtils.class, JsonUtil.class, IOUtils.class, HMACUtils.class, Utilities.class, MasterDataValidation.class,
 		MessageDigest.class })
 @PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*","com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*" })
 @TestPropertySource(locations = "classpath:application.properties")
@@ -110,6 +116,12 @@ public class PacketValidateProcessorTest {
 	@Mock
 	private Utilities utility;
 	
+	@Mock
+	private Decryptor decryptor;
+	
+	@Mock
+	private NotificationUtility notificationUtility;
+	
 	private MessageDTO messageDTO;
 	private String stageName;
 	private InternalRegistrationStatusDto registrationStatusDto ;
@@ -117,6 +129,7 @@ public class PacketValidateProcessorTest {
 	
 	@Before
 	public void setup() throws Exception {
+		ReflectionTestUtils.setField(packetValidateProcessor, "notificationTypes", "SMS|EMAIL");
 		messageDTO=new MessageDTO();
 		messageDTO.setRid("123456789");
 		messageDTO.setInternalError(false);
@@ -131,7 +144,21 @@ public class PacketValidateProcessorTest {
 		
 		regEntity=new SyncRegistrationEntity();
 		regEntity.setSupervisorStatus("APPROVED");
+		regEntity.setOptionalValues("optionalvalues".getBytes());
 		Mockito.when(syncRegistrationService.findByRegistrationId(anyString())).thenReturn(regEntity);
+		
+		InputStream inputStream = IOUtils.toInputStream("optionalvalues", "UTF-8");
+		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(inputStream);
+		
+		RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO = new RegistrationAdditionalInfoDTO();
+		registrationAdditionalInfoDTO.setName("abc");
+		registrationAdditionalInfoDTO.setPhone("9898989898");
+		registrationAdditionalInfoDTO.setEmail("abc@gmail.com");
+		
+		PowerMockito.mockStatic(JsonUtils.class);
+		PowerMockito.when(JsonUtils.jsonStringToJavaObject(any(), any())).thenReturn(registrationAdditionalInfoDTO);
+		
+		Mockito.when(syncRegistrationService.deleteAdditionalInfo(any())).thenReturn(true);
 
 		FieldValue registrationType = new FieldValue();
 		registrationType.setLabel("registrationType");
