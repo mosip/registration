@@ -59,6 +59,18 @@ jobs:
         name: release
         path: ./release.zip
 
+    - name: Setting up for git release
+      run: echo "<settings>  <activeProfiles>    <activeProfile>github</activeProfile>  </activeProfiles>  <profiles>    <profile>      <id>github</id>      <repositories>        <repository>          <id>central</id>          <url>https://repo1.maven.org/maven2</url>          <releases><enabled>true</enabled></releases>          <snapshots><enabled>true</enabled></snapshots>        </repository>        <repository>          <id>github</id>          <name>GitHub mosip Apache Maven Packages</name>     	  <url>https://maven.pkg.github.com/mosip/registration</url>        </repository>      </repositories>    </profile>  </profiles>  <servers>    <server>      <id>github</id>      <username>johnpsmindtree</username>      <password>$GITHUB_TOKEN</password>    </server>  </servers></settings>" > $GITHUB_WORKSPACE/settings1.xml
+      env:
+       GITHUB_TOKEN: ${{ secrets.DEPLOYTOKEN }}
+    - name: Publish the maven package
+      run: |
+        chmod +x ./deploy.sh
+        ./deploy.sh registration-processor -s $GITHUB_WORKSPACE/settings1.xml -f .*
+      env:
+        GITHUB_TOKEN: ${{ secrets.access_token }}
+        GPG_TTY: $(tty)
+
     - name: Build camel bridge image
       run: |
           # The camel bridge is not packaged as part of release.zip
