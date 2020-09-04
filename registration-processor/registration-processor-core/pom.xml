@@ -169,7 +169,7 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-registration-packet-manager</artifactId>
-			<version>1.1.1</version>
+			<version>${kernel.registration.packet.manager.version}</version>
 		</dependency>
        </dependencies>
 	<dependencyManagement>
