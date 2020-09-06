@@ -1,143 +1,130 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-
-	<parent>
-		<groupId>io.mosip</groupId>
-		<artifactId>registration</artifactId>
-		<version>1.1.1</version>
-	</parent>
-
-	<groupId>io.mosip.registrationprocessor</groupId>
-	<artifactId>registration-processor</artifactId>
-	<version>1.1.1</version>
-	<packaging>pom</packaging>
-
-	<name>registration-processor</name>
-	<description>Parent project of MOSIP Registration processor</description>
-
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
-		<maven.compiler.version>3.7.0</maven.compiler.version>
-		<maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
-		<maven.war.plugin.version>3.1.0</maven.war.plugin.version>
-		<maven.surefire.plugin.version>2.9</maven.surefire.plugin.version>
-		<maven.jacoco.plugin.version>0.8.1</maven.jacoco.plugin.version>
-		<maven.sonar.plugin.version>3.7.0.1746</maven.sonar.plugin.version>
-		<maven.javadoc.version>3.0.1</maven.javadoc.version>
-
-		<!-- Core -->
-		<spring-framework.version>5.0.6.RELEASE</spring-framework.version>
-		<spring.version>5.0.4.RELEASE</spring.version>
-		<spring.boot.version>2.0.2.RELEASE</spring.boot.version>
-		<spring.data.version>2.0.9.RELEASE</spring.data.version>
-		<spring-cloud-config.version>2.0.0.RELEASE</spring-cloud-config.version>
-
-		<spring.batch.version>4.0.1.RELEASE</spring.batch.version>
-		<spring-cloud-config.version>2.0.0.RELEASE</spring-cloud-config.version>
-
-		<!-- Miscellaneous -->
-		<javax.el-api.version>3.0.0</javax.el-api.version>
-		<javax.validation-api.version>2.0.1.Final</javax.validation-api.version>
-		<jackson.version>2.9.5</jackson.version>
-		<hibernate.validator.version>6.0.12.Final</hibernate.validator.version>
-		<modelmapper.version>2.1.1</modelmapper.version>
-		<jcl.to.slf4j.version>1.7.25</jcl.to.slf4j.version>
-		<apache.httpcomponents.version>4.5.6</apache.httpcomponents.version>
-
-		<!-- Swagger -->
-		<swagger.version>2.9.2</swagger.version>
-
-		<!-- Data Access -->
-		<eclipselink.version>2.5.0</eclipselink.version>
-		<mysql.connector.version>5.1.46</mysql.connector.version>
-		<h2.version>1.4.195</h2.version>
-		<postgresql.version>42.2.2</postgresql.version>
-
-		<!-- Lombok -->
-		<lombok.version>1.16.18</lombok.version>
-
-		<!-- For Cache -->
-		<ignite.version>2.3.0</ignite.version>
-
-		<!--For Security -->
-		<bouncycastle.version>1.60</bouncycastle.version>
-		<commons.pool>1.6</commons.pool>
-
-		<!-- Support tools & utilities -->
-		<commons-math3>3.6.1</commons-math3>
-		<commons-lang3>3.7</commons-lang3>
-		<commons-io>2.6</commons-io>
-		<commons-codec>1.10</commons-codec>
-		<commons.beanutils.version>1.9.2</commons.beanutils.version>
-		<commons.configuration2.version>2.2</commons.configuration2.version>
-		<commons.io.version>2.6</commons.io.version>
-		<velocity.version>1.7</velocity.version>
-		<velocity.tools.version>2.0</velocity.tools.version>
-		<io.micrometer.prometheus.version>1.4.2</io.micrometer.prometheus.version>
-
-		<!-- Test & Logging -->
-		<junit.version>4.12</junit.version>
-		<logback.version>1.2.3</logback.version>
-		<slf4j.version>1.7.19</slf4j.version>
-		<mockito.version>1.10.19</mockito.version>
-		<powermock.module.junit4.version>1.7.4</powermock.module.junit4.version>
-		<powermock.api.mockito.version>1.7.4</powermock.api.mockito.version>
-		<awaitility.version>3.1.0</awaitility.version>
-		<jsonsimple.version>1.1.1</jsonsimple.version>
-		<commons.codec.version>1.9</commons.codec.version>
-		<!-- DFS adapter -->
-		<aws.javasdk.version>1.11.368</aws.javasdk.version>
-		<s3mock.version>0.2.4</s3mock.version>
-
-		<!-- Vert.x -->
-		<vertx.version>3.5.4</vertx.version>
-		<camel.vertx.version>2.23.0</camel.vertx.version>
-		<hazelcast.kubernetes.version>1.0.0</hazelcast.kubernetes.version>
-		<!-- json-simple -->
-		<jsonsimple.version>1.1.1</jsonsimple.version>
-
-       <!-- joda-time -->
-		<jodatime.version>2.8.1</jodatime.version>
-
+   <modelVersion>4.0.0</modelVersion>
+   <parent>
+      <groupId>io.mosip</groupId>
+      <artifactId>registration</artifactId>
+      <version>1.1.1</version>
+   </parent>
+   <groupId>io.mosip.registrationprocessor</groupId>
+   <artifactId>registration-processor</artifactId>
+   <version>1.1.1</version>
+   <packaging>pom</packaging>
+   <name>registration-processor</name>
+   <description>Parent project of MOSIP Registration processor</description>
+   <distributionManagement>
+      <repository>
+         <id>github</id>
+         <url>https://maven.pkg.github.com/mosip/registration</url>
+      </repository>
+   </distributionManagement>
+   <properties>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <maven.compiler.source>1.8</maven.compiler.source>
+      <maven.compiler.target>1.8</maven.compiler.target>
+      <maven.compiler.version>3.7.0</maven.compiler.version>
+      <maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
+      <maven.war.plugin.version>3.1.0</maven.war.plugin.version>
+      <maven.surefire.plugin.version>2.9</maven.surefire.plugin.version>
+      <maven.jacoco.plugin.version>0.8.1</maven.jacoco.plugin.version>
+      <maven.sonar.plugin.version>3.7.0.1746</maven.sonar.plugin.version>
+      <maven.javadoc.version>3.0.1</maven.javadoc.version>
+      <!-- Core -->
+      <spring-framework.version>5.0.6.RELEASE</spring-framework.version>
+      <spring.version>5.0.4.RELEASE</spring.version>
+      <spring.boot.version>2.0.2.RELEASE</spring.boot.version>
+      <spring.data.version>2.0.9.RELEASE</spring.data.version>
+      <spring-cloud-config.version>2.0.0.RELEASE</spring-cloud-config.version>
+      <spring.batch.version>4.0.1.RELEASE</spring.batch.version>
+      <spring-cloud-config.version>2.0.0.RELEASE</spring-cloud-config.version>
+      <!-- Miscellaneous -->
+      <javax.el-api.version>3.0.0</javax.el-api.version>
+      <javax.validation-api.version>2.0.1.Final</javax.validation-api.version>
+      <jackson.version>2.9.5</jackson.version>
+      <hibernate.validator.version>6.0.12.Final</hibernate.validator.version>
+      <modelmapper.version>2.1.1</modelmapper.version>
+      <jcl.to.slf4j.version>1.7.25</jcl.to.slf4j.version>
+      <apache.httpcomponents.version>4.5.6</apache.httpcomponents.version>
+      <!-- Swagger -->
+      <swagger.version>2.9.2</swagger.version>
+      <!-- Data Access -->
+      <eclipselink.version>2.5.0</eclipselink.version>
+      <mysql.connector.version>5.1.46</mysql.connector.version>
+      <h2.version>1.4.195</h2.version>
+      <postgresql.version>42.2.2</postgresql.version>
+      <!-- Lombok -->
+      <lombok.version>1.16.18</lombok.version>
+      <!-- For Cache -->
+      <ignite.version>2.3.0</ignite.version>
+      <!--For Security -->
+      <bouncycastle.version>1.60</bouncycastle.version>
+      <commons.pool>1.6</commons.pool>
+      <!-- Support tools & utilities -->
+      <commons-math3>3.6.1</commons-math3>
+      <commons-lang3>3.7</commons-lang3>
+      <commons-io>2.6</commons-io>
+      <commons-codec>1.10</commons-codec>
+      <commons.beanutils.version>1.9.2</commons.beanutils.version>
+      <commons.configuration2.version>2.2</commons.configuration2.version>
+      <commons.io.version>2.6</commons.io.version>
+      <velocity.version>1.7</velocity.version>
+      <velocity.tools.version>2.0</velocity.tools.version>
+      <io.micrometer.prometheus.version>1.4.2</io.micrometer.prometheus.version>
+      <!-- Test & Logging -->
+      <junit.version>4.12</junit.version>
+      <logback.version>1.2.3</logback.version>
+      <slf4j.version>1.7.19</slf4j.version>
+      <mockito.version>1.10.19</mockito.version>
+      <powermock.module.junit4.version>1.7.4</powermock.module.junit4.version>
+      <powermock.api.mockito.version>1.7.4</powermock.api.mockito.version>
+      <awaitility.version>3.1.0</awaitility.version>
+      <jsonsimple.version>1.1.1</jsonsimple.version>
+      <commons.codec.version>1.9</commons.codec.version>
+      <!-- DFS adapter -->
+      <aws.javasdk.version>1.11.368</aws.javasdk.version>
+      <s3mock.version>0.2.4</s3mock.version>
+      <!-- Vert.x -->
+      <vertx.version>3.5.4</vertx.version>
+      <camel.vertx.version>2.23.0</camel.vertx.version>
+      <hazelcast.kubernetes.version>1.0.0</hazelcast.kubernetes.version>
+      <!-- json-simple -->
+      <jsonsimple.version>1.1.1</jsonsimple.version>
+      <!-- joda-time -->
+      <jodatime.version>2.8.1</jodatime.version>
       <!-- jsch.version -->
-		<jsch.version>0.1.55</jsch.version>
-
-		<!-- local -->
-		<registration.status.service.version>1.1.1</registration.status.service.version>
-		<registration.processor.core.version>1.1.1</registration.processor.core.version>
-		<filesystem.adapter.ceph.version>1.0.9</filesystem.adapter.ceph.version>
-		<packet.manager.version>1.1.1</packet.manager.version>
-		<registration.processor.rest.client.version>1.1.1</registration.processor.rest.client.version>
-		<packet.info.storage.service.version>1.1.1</packet.info.storage.service.version>
-		<packet.bio.dedupe.service.impl.version>1.1.1</packet.bio.dedupe.service.impl.version>
-		<registration.processor.message.sender.version>1.1.1</registration.processor.message.sender.version>
-		<registration.processor.print.service.impl.version>1.1.1</registration.processor.print.service.impl.version>
-		<kernel.registration.packet.manager.version>1.0.10</kernel.registration.packet.manager.version>
-		
-		<!-- Kernel -->
-		<kernel.core.version>1.0.9</kernel.core.version>
-		<kernel.dataaccess.hibernate.version>1.0.6</kernel.dataaccess.hibernate.version>
-		<kernel.templatemanager.velocity.version>1.0.6</kernel.templatemanager.velocity.version>
-		<kernel.idvalidator.uin.version>1.0.6</kernel.idvalidator.uin.version>
-		<kernel.idvalidator.rid.version>1.0.6</kernel.idvalidator.rid.version>
-		<kernel.clamav.version>1.0.6</kernel.clamav.version>
-		<kernel.idgenerator.rid.version>1.0.6</kernel.idgenerator.rid.version>
-		<kernel.cbeffutil.version>1.1.0</kernel.cbeffutil.version>
-		<kernel.keygenerator.bouncycastle.version>1.0.6</kernel.keygenerator.bouncycastle.version>
-        <kernel.crypto.jce.version>1.0.6</kernel.crypto.jce.version>
-        <kernel.bioapi.provider.version>1.0.8</kernel.bioapi.provider.version>
-        <kernel.fsadapter.hdfs.version>1.0.6</kernel.fsadapter.hdfs.version>
-        <kernel.auth.adapter.version>1.0.6</kernel.auth.adapter.version>
-        <kernel.pdfgenerator.itext.version>1.0.6</kernel.pdfgenerator.itext.version>
-		<kernel.qrcodegenerator.zxing.version>1.0.6</kernel.qrcodegenerator.zxing.version>
-		<kernel.logger.logback.version>1.0.6</kernel.logger.logback.version>
-		<kernel.auth.adapter.version>1.0.6</kernel.auth.adapter.version>
-		<kernel.idvalidator.vid.version>1.0.6</kernel.idvalidator.vid.version>
-		<kernel.idobjectvalidator.version>1.0.9</kernel.idobjectvalidator.version>
-			<sonar.coverage.exclusions>**/dto/**,
+      <jsch.version>0.1.55</jsch.version>
+      <!-- local -->
+      <registration.status.service.version>1.1.1</registration.status.service.version>
+      <registration.processor.core.version>1.1.1</registration.processor.core.version>
+      <filesystem.adapter.ceph.version>1.0.9</filesystem.adapter.ceph.version>
+      <packet.manager.version>1.1.1</packet.manager.version>
+      <registration.processor.rest.client.version>1.1.1</registration.processor.rest.client.version>
+      <packet.info.storage.service.version>1.1.1</packet.info.storage.service.version>
+      <packet.bio.dedupe.service.impl.version>1.1.1</packet.bio.dedupe.service.impl.version>
+      <registration.processor.message.sender.version>1.1.1</registration.processor.message.sender.version>
+      <registration.processor.print.service.impl.version>1.1.1</registration.processor.print.service.impl.version>
+      <kernel.registration.packet.manager.version>1.0.10</kernel.registration.packet.manager.version>
+      <!-- Kernel -->
+      <kernel.core.version>1.0.9</kernel.core.version>
+      <kernel.dataaccess.hibernate.version>1.0.6</kernel.dataaccess.hibernate.version>
+      <kernel.templatemanager.velocity.version>1.0.6</kernel.templatemanager.velocity.version>
+      <kernel.idvalidator.uin.version>1.0.6</kernel.idvalidator.uin.version>
+      <kernel.idvalidator.rid.version>1.0.6</kernel.idvalidator.rid.version>
+      <kernel.clamav.version>1.0.6</kernel.clamav.version>
+      <kernel.idgenerator.rid.version>1.0.6</kernel.idgenerator.rid.version>
+      <kernel.cbeffutil.version>1.1.0</kernel.cbeffutil.version>
+      <kernel.keygenerator.bouncycastle.version>1.0.6</kernel.keygenerator.bouncycastle.version>
+      <kernel.crypto.jce.version>1.0.6</kernel.crypto.jce.version>
+      <kernel.bioapi.provider.version>1.0.8</kernel.bioapi.provider.version>
+      <kernel.fsadapter.hdfs.version>1.0.6</kernel.fsadapter.hdfs.version>
+      <kernel.auth.adapter.version>1.0.6</kernel.auth.adapter.version>
+      <kernel.pdfgenerator.itext.version>1.0.6</kernel.pdfgenerator.itext.version>
+      <kernel.qrcodegenerator.zxing.version>1.0.6</kernel.qrcodegenerator.zxing.version>
+      <kernel.logger.logback.version>1.0.6</kernel.logger.logback.version>
+      <kernel.auth.adapter.version>1.0.6</kernel.auth.adapter.version>
+      <kernel.idvalidator.vid.version>1.0.6</kernel.idvalidator.vid.version>
+      <kernel.idobjectvalidator.version>1.0.9</kernel.idobjectvalidator.version>
+      <sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,
 			**/handler/*ExceptionHandler.java,
@@ -261,46 +248,38 @@
 			**/registration/processor/core/**/TokenValidator.java,
 			**/registration/processor/core/abstractverticle/StageHealthCheckHandler.java,
 			**/registration/processor/core/abstractverticle/MessageDTO.java,
-			**/registration/processor/request/handler/**/*.java
-		</sonar.coverage.exclusions>
-		<sonar.cpd.exclusions>**/dto/**,**/entity/**,**/config/**,**/handler/**,**/utilities/**,
+			**/registration/processor/request/handler/**/*.java</sonar.coverage.exclusions>
+      <sonar.cpd.exclusions>**/dto/**,**/entity/**,**/config/**,**/handler/**,**/utilities/**,
 			**/validator/**, **/utils/**,**/util/**,**/code/**</sonar.cpd.exclusions>
-
-
-
-
-	</properties>
-
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-dependencies</artifactId>
-				<version>${spring.boot.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
-
-	<modules>
-		<module>registration-processor-core</module>
-		<module>registration-processor-rest-client</module>
-		<module>registration-processor-packet-manager</module>
-		<module>registration-processor-common-camel-bridge</module>
-		<module>registration-processor-bio-dedupe-service-impl</module>
-		<module>registration-processor-print-service-impl</module>
-		<module>registration-processor-info-storage-service</module>
-		<module>registration-processor-registration-status-service-impl</module>
-        <!-- <module>registration-processor-quality-checker</module> -->
-		<module>registration-processor-message-sender-impl</module>
-		<module>init</module>
-		<module>pre-processor</module>
-		<module>core-processor</module>
-		<module>post-processor</module>
-	</modules>
-
-<!--	<profiles>
+   </properties>
+   <dependencyManagement>
+      <dependencies>
+         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-dependencies</artifactId>
+            <version>${spring.boot.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+         </dependency>
+      </dependencies>
+   </dependencyManagement>
+   <modules>
+      <module>registration-processor-core</module>
+      <module>registration-processor-rest-client</module>
+      <module>registration-processor-packet-manager</module>
+      <module>registration-processor-common-camel-bridge</module>
+      <module>registration-processor-bio-dedupe-service-impl</module>
+      <module>registration-processor-print-service-impl</module>
+      <module>registration-processor-info-storage-service</module>
+      <module>registration-processor-registration-status-service-impl</module>
+      <!-- <module>registration-processor-quality-checker</module> -->
+      <module>registration-processor-message-sender-impl</module>
+      <module>init</module>
+      <module>pre-processor</module>
+      <module>core-processor</module>
+      <module>post-processor</module>
+   </modules>
+   <!--	<profiles>
 		<profile>
 			<id>LOCAL</id>
 			<properties>
@@ -330,134 +309,133 @@
 		</profile>
 	</profiles>
 -->
-
-	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-compiler-plugin</artifactId>
-					<version>${maven.compiler.version}</version>
-					<configuration>
-						<source>${maven.compiler.source}</source>
-						<target>${maven.compiler.target}</target>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-jar-plugin</artifactId>
-					<version>${maven.jar.plugin.version}</version>
-					<configuration>
-						<archive>
-							<manifest>
-								<addClasspath>true</addClasspath>
-								<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-							</manifest>
-							<manifestEntries>
-								<Project-Name>${project.name}</Project-Name>
-								<Project-Version>${project.version}</Project-Version>
-								<Built-By>${user.name}</Built-By>
-								<Built-OS>${os.name}</Built-OS>
-								<Local-Build-Date>${maven.build.timestamp}</Local-Build-Date>
-								<Build-Number>${env.BUILD_NUMBER}</Build-Number>
-								<Build-Date>${env.BUILD_ID}</Build-Date>
-								<Build-URL>${env.BUILD_URL}</Build-URL>
-							</manifestEntries>
-						</archive>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-war-plugin</artifactId>
-					<version>${maven.war.plugin.version}</version>
-					<configuration>
-						<archive>
-							<manifest>
-								<addClasspath>true</addClasspath>
-								<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-							</manifest>
-							<manifestEntries>
-								<Project-Name>${project.name}</Project-Name>
-								<Project-Version>${project.version}</Project-Version>
-								<Built-By>${user.name}</Built-By>
-								<Built-OS>${os.name}</Built-OS>
-								<Local-Build-Date>${maven.build.timestamp}</Local-Build-Date>
-								<Build-Number>${env.BUILD_NUMBER}</Build-Number>
-								<Build-Date>${env.BUILD_ID}</Build-Date>
-								<Build-URL>${env.BUILD_URL}</Build-URL>
-							</manifestEntries>
-						</archive>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-surefire-plugin</artifactId>
-					<version>${maven.surefire.plugin.version}</version>
-					<configuration>
-						<skip>false</skip>
-						<useFile>false</useFile>
-						<excludes>
-							<exclude>**/*IntegrationTest.java</exclude>
-						</excludes>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.jacoco</groupId>
-					<artifactId>jacoco-maven-plugin</artifactId>
-					<version>${maven.jacoco.plugin.version}</version>
-				</plugin>
-				<plugin>
-					<groupId>org.sonarsource.scanner.maven</groupId>
-					<artifactId>sonar-maven-plugin</artifactId>
-					<version>${maven.sonar.plugin.version}</version>
-					   <executions>
-							<execution>
-								<phase>verify</phase>
-								<goals>
-									<goal>sonar</goal>
-								</goals>
-							</execution>
-					   </executions>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-		<plugins>
-			<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-				<configuration>
-					<append>true</append>
-				</configuration>
-				<executions>
-					<execution>
-						<id>agent-for-ut</id>
-						<goals>
-							<goal>prepare-agent</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>agent-for-it</id>
-						<goals>
-							<goal>prepare-agent-integration</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>jacoco-site</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>report</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>${maven.javadoc.version}</version>
-				<configuration>
-					<aggregate>true</aggregate>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+   <build>
+      <pluginManagement>
+         <plugins>
+            <plugin>
+               <groupId>org.apache.maven.plugins</groupId>
+               <artifactId>maven-compiler-plugin</artifactId>
+               <version>${maven.compiler.version}</version>
+               <configuration>
+                  <source>${maven.compiler.source}</source>
+                  <target>${maven.compiler.target}</target>
+               </configuration>
+            </plugin>
+            <plugin>
+               <groupId>org.apache.maven.plugins</groupId>
+               <artifactId>maven-jar-plugin</artifactId>
+               <version>${maven.jar.plugin.version}</version>
+               <configuration>
+                  <archive>
+                     <manifest>
+                        <addClasspath>true</addClasspath>
+                        <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                     </manifest>
+                     <manifestEntries>
+                        <Project-Name>${project.name}</Project-Name>
+                        <Project-Version>${project.version}</Project-Version>
+                        <Built-By>${user.name}</Built-By>
+                        <Built-OS>${os.name}</Built-OS>
+                        <Local-Build-Date>${maven.build.timestamp}</Local-Build-Date>
+                        <Build-Number>${env.BUILD_NUMBER}</Build-Number>
+                        <Build-Date>${env.BUILD_ID}</Build-Date>
+                        <Build-URL>${env.BUILD_URL}</Build-URL>
+                     </manifestEntries>
+                  </archive>
+               </configuration>
+            </plugin>
+            <plugin>
+               <groupId>org.apache.maven.plugins</groupId>
+               <artifactId>maven-war-plugin</artifactId>
+               <version>${maven.war.plugin.version}</version>
+               <configuration>
+                  <archive>
+                     <manifest>
+                        <addClasspath>true</addClasspath>
+                        <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                     </manifest>
+                     <manifestEntries>
+                        <Project-Name>${project.name}</Project-Name>
+                        <Project-Version>${project.version}</Project-Version>
+                        <Built-By>${user.name}</Built-By>
+                        <Built-OS>${os.name}</Built-OS>
+                        <Local-Build-Date>${maven.build.timestamp}</Local-Build-Date>
+                        <Build-Number>${env.BUILD_NUMBER}</Build-Number>
+                        <Build-Date>${env.BUILD_ID}</Build-Date>
+                        <Build-URL>${env.BUILD_URL}</Build-URL>
+                     </manifestEntries>
+                  </archive>
+               </configuration>
+            </plugin>
+            <plugin>
+               <groupId>org.apache.maven.plugins</groupId>
+               <artifactId>maven-surefire-plugin</artifactId>
+               <version>${maven.surefire.plugin.version}</version>
+               <configuration>
+                  <skip>false</skip>
+                  <useFile>false</useFile>
+                  <excludes>
+                     <exclude>**/*IntegrationTest.java</exclude>
+                  </excludes>
+               </configuration>
+            </plugin>
+            <plugin>
+               <groupId>org.jacoco</groupId>
+               <artifactId>jacoco-maven-plugin</artifactId>
+               <version>${maven.jacoco.plugin.version}</version>
+            </plugin>
+            <plugin>
+               <groupId>org.sonarsource.scanner.maven</groupId>
+               <artifactId>sonar-maven-plugin</artifactId>
+               <version>${maven.sonar.plugin.version}</version>
+               <executions>
+                  <execution>
+                     <phase>verify</phase>
+                     <goals>
+                        <goal>sonar</goal>
+                     </goals>
+                  </execution>
+               </executions>
+            </plugin>
+         </plugins>
+      </pluginManagement>
+      <plugins>
+         <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <configuration>
+               <append>true</append>
+            </configuration>
+            <executions>
+               <execution>
+                  <id>agent-for-ut</id>
+                  <goals>
+                     <goal>prepare-agent</goal>
+                  </goals>
+               </execution>
+               <execution>
+                  <id>agent-for-it</id>
+                  <goals>
+                     <goal>prepare-agent-integration</goal>
+                  </goals>
+               </execution>
+               <execution>
+                  <id>jacoco-site</id>
+                  <phase>verify</phase>
+                  <goals>
+                     <goal>report</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>${maven.javadoc.version}</version>
+            <configuration>
+               <aggregate>true</aggregate>
+            </configuration>
+         </plugin>
+      </plugins>
+   </build>
 </project>
