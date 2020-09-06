@@ -8,6 +8,7 @@ public class MappingJsonConstants {
 	public static final String POI = "poi";
 	public static final String POE = "poe";
 	public static final String INDIVIDUAL_BIOMETRICS = "individualBiometrics";
+	public static final String AUTHENTICATION_BIOMETRICS = "individualAuthBiometrics";
 	public static final String PARENT_OR_GUARDIAN_UIN = "parentOrGuardianUIN";
 	public static final String PARENT_OR_GUARDIAN_RID = "parentOrGuardianRID";
 	public static final String IDENTITY = "identity";

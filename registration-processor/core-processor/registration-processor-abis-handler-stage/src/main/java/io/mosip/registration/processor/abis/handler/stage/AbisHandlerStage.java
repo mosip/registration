@@ -531,12 +531,10 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		pathSegments.add(policyId);
 		pathSegments.add(subscriberId);
 
-		// TODO : disabling datashare api since its not ready
-		/*DataShareResponseDto response = (DataShareResponseDto) registrationProcessorRestClientService.postApi(ApiName.DATASHARECREATEURL, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, DataShareResponseDto.class);
+		DataShareResponseDto response = (DataShareResponseDto) registrationProcessorRestClientService.postApi(ApiName.DATASHARECREATEURL, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, DataShareResponseDto.class);
 		if (response == null || (response.getErrors() != null && response.getErrors().size() >0))
 			throw new DataShareException(response == null ? "Datashare response is null" : response.getErrors().get(0).getMessage());
 
-		return response.getDataShare().getUrl();*/
-		return null;
+		return response.getDataShare().getUrl();
 	}
 }
