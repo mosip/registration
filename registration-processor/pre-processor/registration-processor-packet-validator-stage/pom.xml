@@ -58,6 +58,11 @@
 			<version>${registration.processor.rest.client.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>io.mosip.registrationprocessor</groupId>
+			<artifactId>registration-processor-message-sender-impl</artifactId>
+			<version>${registration.processor.message.sender.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>${commons.io.version}</version>
