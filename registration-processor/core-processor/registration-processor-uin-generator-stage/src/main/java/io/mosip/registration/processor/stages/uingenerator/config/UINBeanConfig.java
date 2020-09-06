@@ -1,6 +1,6 @@
 package io.mosip.registration.processor.stages.uingenerator.config;
 
-import io.mosip.registration.processor.stages.uingenerator.util.IdSchemaUtil;
+import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import io.mosip.registration.processor.stages.uingenerator.stage.UinGeneratorStage;

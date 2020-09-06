@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.stages.uingenerator.util;
+package io.mosip.registration.processor.packet.storage.utils;
 
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
@@ -94,7 +94,7 @@ public class IdSchemaUtil {
         return packetBasedMap.get("id");
     }
 
-    private String getIdSchema(Double version) throws ApisResourceAccessException, JSONException, IOException {
+    public String getIdSchema(Double version) throws ApisResourceAccessException, JSONException, IOException {
         if (idschema != null && !idschema.isEmpty() && idschema.get(version) != null)
             return idschema.get(version);
 
