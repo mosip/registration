@@ -497,6 +497,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 					.jsonStringToJavaObject(RegistrationSyncRequestDTO.class, decryptedSyncMetaData);
 
 		} catch (PacketDecryptionFailureException | ApisResourceAccessException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
 			SyncResponseFailDto syncResponseFailureDto = new SyncResponseFailDto();
 
 			syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
@@ -504,6 +506,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			syncResponseFailureDto.setErrorCode(PlatformErrorMessages.RPR_RGS_DECRYPTION_FAILED.getCode());
 			syncResponseList.add(syncResponseFailureDto);
 		} catch (JsonParseException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
 			SyncResponseFailDto syncResponseFailureDto = new SyncResponseFailDto();
 
 			syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
@@ -512,6 +516,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			syncResponseList.add(syncResponseFailureDto);
 
 		} catch (JsonMappingException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
 			SyncResponseFailDto syncResponseFailureDto = new SyncResponseFailDto();
 
 			syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
@@ -519,6 +525,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			syncResponseFailureDto.setErrorCode(PlatformErrorMessages.RPR_RGS_JSON_MAPPING_EXCEPTION.getCode());
 			syncResponseList.add(syncResponseFailureDto);
 		} catch (IOException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
 			SyncResponseFailDto syncResponseFailureDto = new SyncResponseFailDto();
 
 			syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
