@@ -56,5 +56,7 @@ public interface RegAuditRepository extends BaseRepository<Audit, Long> {
 	 * @return returns the {@link Audit}
 	 */
 	List<Audit> findByEventIdStartsWithOrderByCreatedAtAsc(String registrationEvents);
+	
+	List<Audit> findByIdOrderByCreatedAtAsc(String registrationId);
 
 }

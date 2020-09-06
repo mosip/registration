@@ -53,14 +53,14 @@ public class AuditDAOImpl implements AuditDAO {
 	 * RegistrationAuditDates)
 	 */
 	@Override
-	public List<Audit> getAudits(RegistrationAuditDates registrationAuditDates) {
+	public List<Audit> getAudits(RegistrationAuditDates registrationAuditDates, String registrationId) {
 		LOGGER.info("REGISTRATION - FETCH_UNSYNCED_AUDITS - GET_ALL_AUDITS", APPLICATION_NAME, APPLICATION_ID,
 				"Fetching of unsynchronized which are to be added to Registartion packet started");
 
 		try {
 			List<Audit> audits;
 			if (registrationAuditDates == null || registrationAuditDates.getAuditLogToDateTime() == null) {
-				audits = regAuditRepository.findByEventIdStartsWithOrderByCreatedAtAsc(RegistrationConstants.REGISTRATION_EVENTS);
+				audits = regAuditRepository.findByIdOrderByCreatedAtAsc(registrationId);
 			} else {
 				audits = regAuditRepository.findByCreatedAtGreaterThanOrderByCreatedAtAsc(
 						registrationAuditDates.getAuditLogToDateTime().toLocalDateTime());
