@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.registration.processor.core.constant.IdType;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -54,11 +55,10 @@ public class IdRepoServiceImpl implements IdRepoService {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
 				"IdRepoServiceImpl::getUinByRid()::entry");
 		List<String> pathSegments = new ArrayList<>();
-		pathSegments.add("rid");
 		pathSegments.add(rid);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
 				"IdRepoServiceImpl::getUinByRid()::exit");
-		return getUin(pathSegments, regProcessorDemographicIdentity);
+		return getUin(pathSegments, regProcessorDemographicIdentity, IdType.RID);
 
 	}
 
@@ -76,12 +76,21 @@ public class IdRepoServiceImpl implements IdRepoService {
 	 *             the apis resource access exception
 	 */
 	@SuppressWarnings("unchecked")
-	private String getUin(List<String> pathSegments, String regProcessorDemographicIdentity)
+	private String getUin(List<String> pathSegments, String regProcessorDemographicIdentity, IdType idType)
 			throws IOException, ApisResourceAccessException {
 		@SuppressWarnings("unchecked")
 		ResponseWrapper<IdResponseDTO> response;
+		ApiName apiName;
+		if (idType.equals(IdType.RID))
+			apiName = ApiName.RETRIEVEIDENTITYFROMRID;
+		else if (idType.equals(IdType.UIN))
+			apiName = ApiName.IDREPOGETIDBYUIN;
+		else if (idType.equals(IdType.VID))
+			apiName = ApiName.GETUINBYVID;
+		else
+			apiName = ApiName.RETRIEVEIDENTITY;
 
-		response = (ResponseWrapper<IdResponseDTO>) restClientService.getApi(ApiName.IDREPOSITORY, pathSegments, "", "",
+		response = (ResponseWrapper<IdResponseDTO>) restClientService.getApi(apiName, pathSegments, "", "",
 				ResponseWrapper.class);
 
 		if (response.getResponse() != null) {
@@ -108,12 +117,11 @@ public class IdRepoServiceImpl implements IdRepoService {
 				"IdRepoServiceImpl::findUinFromIdrepo()::entry");
 
 		List<String> pathSegments = new ArrayList<>();
-		pathSegments.add("uin");
 		pathSegments.add(uin);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.UIN.toString(), "",
 				"IdRepoServiceImpl::findUinFromIdrepo()::exit");
 
-		return getUin(pathSegments, regProcessorDemographicIdentity);
+		return getUin(pathSegments, regProcessorDemographicIdentity, IdType.UIN);
 	}
 
 	/*
@@ -131,14 +139,13 @@ public class IdRepoServiceImpl implements IdRepoService {
 				machedRegId, "IdRepoServiceImpl::getIdJsonFromIDRepo()::entry");
 
 		List<String> pathSegments = new ArrayList<>();
-		pathSegments.add("rid");
 		pathSegments.add(machedRegId);
 		JSONObject demographicJsonObj = null;
 
 		@SuppressWarnings("unchecked")
 		ResponseWrapper<IdResponseDTO> response;
 
-		response = (ResponseWrapper<IdResponseDTO>) restClientService.getApi(ApiName.IDREPOSITORY, pathSegments, "", "",
+		response = (ResponseWrapper<IdResponseDTO>) restClientService.getApi(ApiName.RETRIEVEIDENTITYFROMRID, pathSegments, "", "",
 				ResponseWrapper.class);
 
 		if (response.getResponse() != null) {
