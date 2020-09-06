@@ -73,8 +73,6 @@ public class Encryptor {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			
-			System.setProperty("ENCRYPTURL", "https://dev.mosip.net/v1/keymanager/encrypt");
-			
 			String syncInfo = CryptoUtil.encodeBase64(syncMetaInfo.toString().getBytes());
 	        
 			CryptomanagerRequestDto cryptomanagerRequestDto = new CryptomanagerRequestDto();
