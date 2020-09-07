@@ -55,12 +55,12 @@
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-core</artifactId>
-				<version>1.0.9-SNAPSHOT</version>
+				<version>1.0.9</version>
 			</dependency>			
 			<dependency>
                   <groupId>io.mosip.kernel</groupId>
                  <artifactId>kernel-idobjectvalidator</artifactId>
-                 <version>1.0.9-SNAPSHOT</version>
+                 <version>1.0.9</version>
               </dependency>
 	        <dependency>
 			    <groupId>org.openjfx</groupId>
