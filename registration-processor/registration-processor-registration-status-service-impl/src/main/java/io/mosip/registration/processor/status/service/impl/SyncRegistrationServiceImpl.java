@@ -607,4 +607,9 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		registrationStatusDto.setStatusCode(RegistrationExternalStatusCode.UPLOAD_PENDING.toString());
 		return registrationStatusDto;
 	}
+
+	@Override
+	public boolean deleteAdditionalInfo(SyncRegistrationEntity syncEntity) {
+		return syncRegistrationDao.deleteAdditionalInfo(syncEntity);
+	}
 }

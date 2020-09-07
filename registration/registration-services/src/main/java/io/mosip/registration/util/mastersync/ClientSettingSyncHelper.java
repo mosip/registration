@@ -538,8 +538,17 @@ public class ClientSettingSyncHelper {
 				}
 			}
 			
-			if(!fields.isEmpty())
+			if (!fields.isEmpty()) {
+				List<DynamicField> allFields = dynamicFieldRepository.findAll();
+				for (DynamicField tobeUpdatedField : fields) {
+					for (DynamicField existingField : allFields) {
+						if(tobeUpdatedField.getName().equalsIgnoreCase(existingField.getName())) {
+							dynamicFieldRepository.delete(existingField);
+						}
+					}
+				}
 				dynamicFieldRepository.saveAll(fields);
+			}
 				
 		} catch(IOException e) {
 			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());

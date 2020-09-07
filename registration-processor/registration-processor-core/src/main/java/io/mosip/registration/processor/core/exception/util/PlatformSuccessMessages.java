@@ -28,6 +28,8 @@ public enum PlatformSuccessMessages {
 	// Packet Validator Success messages
 	/** The rpr pkr packet validate. */
 	RPR_PKR_PACKET_VALIDATE(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "000", "Packet Validation Success"),
+	
+	RPR_PKR_ADDITIONAL_INFO_DELETED(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "000", "Deleted additionalInfo from RegistrationList"),
 
 	// OSI validator Success messages
 	/** The rpr pkr osi validate. */
