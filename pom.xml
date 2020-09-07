@@ -1,61 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	
-	<modelVersion>4.0.0</modelVersion>	
-	<groupId>io.mosip</groupId>
-	<artifactId>registration</artifactId>
-	<version>1.1.1</version>
-	<packaging>pom</packaging>	
-	
-	<name>MOSIP Registration Parent POM</name>
-	<description>Mosip Registration Project</description>
-        <url>https://github.com/mosip/registration</url>
-	<distributionManagement>
-                <repository>
-                        <id>github</id>
-                        <url>https://maven.pkg.github.com/mosip/registration</url>
-                </repository> 
-        </distributionManagement> 	
-	<licenses>
-          <license>
-                <name>MPL 2.0</name>
-                <url>https://www.mozilla.org/en-US/MPL/2.0/</url>
-          </license>
-        </licenses>
-	
-	<scm>
-                <connection>scm:git:git://github.com/mosip/registration.git</connection>
-                <developerConnection>scm:git:ssh://github.com:mosip/registration.git</developerConnection>
-                <url>https://github.com/mosip/registration</url>
-                <tag>HEAD</tag>
-        </scm>
-	
-	<developers>
-                <developer>
-                  <name>Mosip</name>
-                  <email>mosip.emailnotifier@gmail.com</email>
-                  <organization>io.mosip</organization>
-                  <organizationUrl>https://github.com/mosip/registration</organizationUrl>
-                </developer>
-        </developers>
-
-	<properties>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
-	</properties>
-	<repositories>
-		<repository>
-			<id>ossrh</id>
-			<name>Central Repository</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-			<layout>default</layout>
-			<snapshots>
-			<enabled>true</enabled>
-			</snapshots>
-		</repository>
-	</repositories>
-
-<!--
+   <modelVersion>4.0.0</modelVersion>
+   <groupId>io.mosip</groupId>
+   <artifactId>registration</artifactId>
+   <version>1.1.1</version>
+   <packaging>pom</packaging>
+   <name>MOSIP Registration Parent POM</name>
+   <description>Mosip Registration Project</description>
+   <url>https://github.com/mosip/registration</url>
+   <distributionManagement>
+      <repository>
+         <id>github</id>
+         <url>https://maven.pkg.github.com/mosip/registration</url>
+      </repository>
+   </distributionManagement>
+   <licenses>
+      <license>
+         <name>MPL 2.0</name>
+         <url>https://www.mozilla.org/en-US/MPL/2.0/</url>
+      </license>
+   </licenses>
+   <scm>
+      <connection>scm:git:git://github.com/mosip/registration.git</connection>
+      <developerConnection>scm:git:ssh://github.com:mosip/registration.git</developerConnection>
+      <url>https://github.com/mosip/registration</url>
+      <tag>HEAD</tag>
+   </scm>
+   <developers>
+      <developer>
+         <name>Mosip</name>
+         <email>mosip.emailnotifier@gmail.com</email>
+         <organization>io.mosip</organization>
+         <organizationUrl>https://github.com/mosip/registration</organizationUrl>
+      </developer>
+   </developers>
+   <properties>
+      <maven.compiler.source>1.8</maven.compiler.source>
+      <maven.compiler.target>1.8</maven.compiler.target>
+   </properties>
+   <!--
 	<distributionManagement>
                 <snapshotRepository>
                         <id>ossrh</id>
@@ -66,9 +49,9 @@
                         <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
                 </repository>
         </distributionManagement> -->
-	<build>
-          <plugins>
-<!--                <plugin>
+   <build>
+      <plugins>
+         <!--                <plugin>
                   <groupId>org.sonatype.plugins</groupId>
                   <artifactId>nexus-staging-maven-plugin</artifactId>
                   <version>1.6.7</version>
@@ -88,89 +71,84 @@
                         <autoReleaseAfterClose>false</autoReleaseAfterClose>
                   </configuration>
                 </plugin>-->
-
-		<plugin>
-                  <groupId>org.apache.maven.plugins</groupId>
-                  <artifactId>maven-source-plugin</artifactId>
-                  <version>2.2.1</version>
-                  <executions>
-                        <execution>
-                          <id>attach-sources</id>
-                          <goals>
-                                <goal>jar-no-fork</goal>
-                          </goals>
-                        </execution>
-                  </executions>
-                </plugin>
-                <plugin>
-                  <groupId>org.apache.maven.plugins</groupId>
-                  <artifactId>maven-javadoc-plugin</artifactId>
-                  <version>2.9.1</version>
-                  <executions>
-                        <execution>
-                          <id>attach-javadocs</id>
-                          <goals>
-                                <goal>jar</goal>
-                          </goals>
-                        </execution>
-                  </executions>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>2.2.1</version>
+            <executions>
+               <execution>
+                  <id>attach-sources</id>
+                  <goals>
+                     <goal>jar-no-fork</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.9.1</version>
+            <executions>
+               <execution>
+                  <id>attach-javadocs</id>
+                  <goals>
+                     <goal>jar</goal>
+                  </goals>
+               </execution>
+            </executions>
+            <configuration>
+               <additionalJOption>-Xdoclint:none</additionalJOption>
+            </configuration>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.5</version>
+            <executions>
+               <execution>
+                  <id>sign-artifacts</id>
+                  <phase>verify</phase>
+                  <goals>
+                     <goal>sign</goal>
+                  </goals>
                   <configuration>
-                          <additionalJOption>-Xdoclint:none</additionalJOption>
+                     <gpgArguments>
+                        <arg>--pinentry-mode</arg>
+                        <arg>loopback</arg>
+                     </gpgArguments>
                   </configuration>
-                </plugin>
-      
-               <plugin>
-                  <groupId>org.apache.maven.plugins</groupId>
-                  <artifactId>maven-gpg-plugin</artifactId>
-                  <version>1.5</version>
-                  <executions>
-                        <execution>
-                          <id>sign-artifacts</id>
-                          <phase>verify</phase>
-                          <goals>
-                                <goal>sign</goal>
-                          </goals>
-		          <configuration>
-                		<gpgArguments>
-                    			<arg>--pinentry-mode</arg>
-                    			<arg>loopback</arg>
-                		</gpgArguments>
-            		   </configuration>
-                        </execution>
-                  </executions>
-                </plugin>
-              <plugin>
-                  <groupId>pl.project13.maven</groupId>
-                  <artifactId>git-commit-id-plugin</artifactId>
-                  <version>3.0.1</version>
-                  <executions>
-                      <execution>
-                          <id>get-the-git-infos</id>
-                          <goals>
-                              <goal>revision</goal>
-                          </goals>
-                          <phase>validate</phase>
-                      </execution>
-                  </executions>
-                  <configuration>
-                      <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                      <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
-                      <includeOnlyProperties>
-                          <includeOnlyProperty>^git.build.(time|version)$</includeOnlyProperty>
-                          <includeOnlyProperty>^git.commit.id.(abbrev|full)$</includeOnlyProperty>
-                      </includeOnlyProperties>
-                      <commitIdGenerationMode>full</commitIdGenerationMode>
-                      <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
-                      <!-- <format>json</format> -->
-                  </configuration>
-              </plugin>
-
-          </plugins>
-        </build>
-
-	<modules>
-		<module>registration</module>
-		<module>registration-processor</module>
-	</modules>
-
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <groupId>pl.project13.maven</groupId>
+            <artifactId>git-commit-id-plugin</artifactId>
+            <version>3.0.1</version>
+            <executions>
+               <execution>
+                  <id>get-the-git-infos</id>
+                  <goals>
+                     <goal>revision</goal>
+                  </goals>
+                  <phase>validate</phase>
+               </execution>
+            </executions>
+            <configuration>
+               <generateGitPropertiesFile>true</generateGitPropertiesFile>
+               <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+               <includeOnlyProperties>
+                  <includeOnlyProperty>^git.build.(time|version)$</includeOnlyProperty>
+                  <includeOnlyProperty>^git.commit.id.(abbrev|full)$</includeOnlyProperty>
+               </includeOnlyProperties>
+               <commitIdGenerationMode>full</commitIdGenerationMode>
+               <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+               <!-- <format>json</format> -->
+            </configuration>
+         </plugin>
+      </plugins>
+   </build>
+   <modules>
+      <!-- module>registration</module -->
+      <module>registration-processor</module>
+   </modules>
 </project>
