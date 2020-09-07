@@ -8,11 +8,9 @@ import java.util.Map;
 import org.assertj.core.util.Arrays;
 import org.springframework.stereotype.Component;
 
-import org.springframework.stereotype.Component;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import io.mosip.kernel.packetmanager.dto.DocumentDto;
+import io.mosip.registration.dto.packetmanager.DocumentDto;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

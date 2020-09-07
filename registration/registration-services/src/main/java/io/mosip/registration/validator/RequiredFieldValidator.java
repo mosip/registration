@@ -14,7 +14,7 @@ import org.mvel2.integration.impl.MapVariableResolverFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.mosip.kernel.packetmanager.constants.PacketManagerConstants;
+import io.mosip.commons.packet.constants.PacketManagerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.RequiredOnExpr;
@@ -76,9 +76,12 @@ public class RequiredFieldValidator {
 		}
 		
 		//Reg-client will capture the face of Infant and send it in Packet as part of IndividualBiometrics CBEFF (If Face is captured for the country)
-		if(registrationDTO.isChild() && RegistrationConstants.PACKET_TYPE_NEW.equals(registrationDTO.getRegistrationCategory()) && 
-				APPLICANT_SUBTYPE.equals(subType) && requiredAttributes.contains("face")) {
-			return Arrays.asList("face"); //Only capture face
+		if ((registrationDTO.isChild()
+				&& APPLICANT_SUBTYPE.equals(subType) && requiredAttributes.contains("face"))
+				|| (registrationDTO.getRegistrationCategory().equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_UPDATE)
+						&& registrationDTO.getUpdatableFieldGroups().contains("GuardianDetails")
+						&& APPLICANT_SUBTYPE.equals(subType) && requiredAttributes.contains("face"))) {
+			return Arrays.asList("face"); // Only capture face
 		}
 		
 		return requiredAttributes;

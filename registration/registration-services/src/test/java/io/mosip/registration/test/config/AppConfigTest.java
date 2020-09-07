@@ -33,10 +33,10 @@ public class AppConfigTest {
 		assertEquals(appConfig.getObjectMapper().getClass(), ObjectMapper.class);
 	}
 
-	@Test
-	public void getTemplateManagerBuilder() {
-		assertEquals(appConfig.getTemplateManagerBuilder().getClass(), TemplateManagerBuilderImpl.class);
-	}
+//	@Test
+//	public void getTemplateManagerBuilder() {
+//		assertEquals(appConfig.getTemplateManagerBuilder().getClass(), TemplateManagerBuilderImpl.class);
+//	}
 
 	@Test
 	public void getLogger() {

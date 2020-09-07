@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Controller;
 
+import io.mosip.commons.packet.dto.packet.SimpleDto;
 import io.mosip.kernel.core.applicanttype.exception.InvalidApplicantArgumentException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
@@ -32,7 +33,6 @@ import io.mosip.kernel.core.idvalidator.spi.PridValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.transliteration.spi.Transliteration;
 import io.mosip.kernel.core.util.StringUtils;
-import io.mosip.kernel.packetmanager.dto.SimpleDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.AuditEvent;
 import io.mosip.registration.constants.AuditReferenceIdTypes;
@@ -263,6 +263,8 @@ public class DemographicDetailController extends BaseController {
 							runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 				}
 			}
+			auditFactory.audit(AuditEvent.REG_DEMO_CAPTURE, Components.REGISTRATION_CONTROLLER,
+					SessionContext.userContext().getUserId(), AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 		} catch (RuntimeException runtimeException) {
 			LOGGER.error("REGISTRATION - CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
@@ -736,73 +738,66 @@ public class DemographicDetailController extends BaseController {
 	private void populateButtons(String key) {
 		try {
 			switch (key.toLowerCase()) {
-			case "gender":
-				List<GenericDto> genderAppLanguage = masterSyncService
-						.getGenderDtls(ApplicationContext.applicationLanguage()).stream()
-						.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList());
-				if (genderAppLanguage.size() == 2) {
-					genderAppLanguage.forEach(genericDto -> {
-						Button button = new Button(genericDto.getName());
-						button.setId("gender" + genericDto.getCode());
-						List<Button> buttons = (listOfButtons.get("gender") == null) ? new ArrayList<>()
-								: listOfButtons.get("gender");
-						buttons.add(button);
-						listOfButtons.put("gender", buttons);
-					});
-				}
-				List<GenericDto> genderLocalLanguage = masterSyncService
-						.getGenderDtls(ApplicationContext.localLanguage()).stream()
-						.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList());
-				if (genderLocalLanguage.size() == 2) {
-					genderLocalLanguage.forEach(genericDto -> {
-						Button button = new Button(genericDto.getName());
-						button.setId("gender" + genericDto.getCode() + RegistrationConstants.LOCAL_LANGUAGE);
-						List<Button> buttons = (listOfButtons.get("genderLocalLanguage") == null) ? new ArrayList<>()
-								: listOfButtons.get("genderLocalLanguage");
-						buttons.add(button);
-						listOfButtons.put("genderLocalLanguage", buttons);
-					});
-				}
-				break;
+				case "gender":
+					List<GenericDto> genderAppLanguage = masterSyncService.getGenderDtls(ApplicationContext.applicationLanguage()).stream()
+							.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList());
+					List<GenericDto> genderLocalLanguage = masterSyncService.getGenderDtls(ApplicationContext.localLanguage()).stream()
+							.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList());
+					if(genderAppLanguage.size() == 2 && genderLocalLanguage.size() == 2) {
+						genderAppLanguage.forEach(genericDto -> {
+							genderLocalLanguage.forEach(genericDtoLocalLang -> {
+								if(genericDto.getCode().equals(genericDtoLocalLang.getCode())) {
+									Button button = new Button(genericDto.getName());
+									button.setId("gender" + genericDto.getCode());
+									List<Button> buttons = (listOfButtons.get("gender") == null) ? new ArrayList<>() : listOfButtons.get("gender");
+									buttons.add(button);
+									listOfButtons.put("gender", buttons);
+									Button buttonLocalLang = new Button(genericDtoLocalLang.getName());
+									buttonLocalLang.setId("gender" + genericDtoLocalLang.getCode() + RegistrationConstants.LOCAL_LANGUAGE);
+									List<Button> buttonsLocalLang = (listOfButtons.get("genderLocalLanguage") == null) ? new ArrayList<>() : listOfButtons.get("genderLocalLanguage");
+									buttonsLocalLang.add(buttonLocalLang);
+									listOfButtons.put("genderLocalLanguage", buttonsLocalLang);
+								}
+							});							
+						});
+					}			
+					break;
 
-			case "residencestatus":
-				List<GenericDto> residenceAppLanguage = (masterSyncService
-						.getIndividualType(ApplicationContext.applicationLanguage())).stream()
-								.collect(Collectors.toList());
-				if (residenceAppLanguage.size() == 2) {
-					residenceAppLanguage.forEach(genericDto -> {
-						Button button = new Button(genericDto.getName());
-						button.setId("residenceStatus" + genericDto.getCode());
-						List<Button> buttons = (listOfButtons.get("residenceStatus") == null) ? new ArrayList<>()
-								: listOfButtons.get("residenceStatus");
-						buttons.add(button);
-						listOfButtons.put("residenceStatus", buttons);
-					});
-				}
-				List<GenericDto> residenceLocalLanguage = (masterSyncService
-						.getIndividualType(ApplicationContext.localLanguage())).stream().collect(Collectors.toList());
-				if (residenceLocalLanguage.size() == 2) {
-					residenceLocalLanguage.forEach(genericDto -> {
-						Button button = new Button(genericDto.getName());
-						button.setId("residenceStatus" + genericDto.getCode() + RegistrationConstants.LOCAL_LANGUAGE);
-						List<Button> buttons = (listOfButtons.get("residenceStatusLocalLanguage") == null)
-								? new ArrayList<>()
-								: listOfButtons.get("residenceStatusLocalLanguage");
-						buttons.add(button);
-						listOfButtons.put("residenceStatusLocalLanguage", buttons);
-					});
-				}
-				break;
-			default:
-				// TODO
-				break;
+				case "residencestatus":
+					List<GenericDto> residenceAppLanguage = (masterSyncService.getIndividualType(ApplicationContext.applicationLanguage())).stream()
+							.collect(Collectors.toList());
+					List<GenericDto> residenceLocalLanguage = (masterSyncService.getIndividualType(ApplicationContext.localLanguage())).stream()
+							.collect(Collectors.toList());
+					if(residenceAppLanguage.size() == 2 && residenceLocalLanguage.size() == 2) {
+						residenceAppLanguage.forEach(genericDto -> {
+							residenceLocalLanguage.forEach(genericDtoLocalLang -> {
+								if(genericDto.getCode().equals(genericDtoLocalLang.getCode())) {
+									Button button = new Button(genericDto.getName());
+									button.setId("residenceStatus" + genericDto.getCode());
+									List<Button> buttons = (listOfButtons.get("residenceStatus") == null) ? new ArrayList<>() : listOfButtons.get("residenceStatus");
+									buttons.add(button);
+									listOfButtons.put("residenceStatus", buttons);
+									Button buttonLocalLang = new Button(genericDtoLocalLang.getName());
+									buttonLocalLang.setId("residenceStatus" + genericDtoLocalLang.getCode() + RegistrationConstants.LOCAL_LANGUAGE);
+									List<Button> buttonsLocalLang = (listOfButtons.get("residenceStatusLocalLanguage") == null) ? new ArrayList<>() : listOfButtons.get("residenceStatusLocalLanguage");
+									buttonsLocalLang.add(buttonLocalLang);
+									listOfButtons.put("residenceStatusLocalLanguage", buttonsLocalLang);
+								}
+							});
+						});
+					}		
+					break;
+					
+				default:
+					// TODO
+					break;
 			}
 		} catch (RegBaseCheckedException e) {
 			LOGGER.error("populateDropDowns", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 					ExceptionUtils.getStackTrace(e));
 		}
 	}
-
+	
 	/**
 	 * setting the registration navigation label to lost uin
 	 */

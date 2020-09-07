@@ -25,6 +25,7 @@ import org.mvel2.MVEL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
+import io.mosip.commons.packet.constants.PacketManagerConstants;
 import io.mosip.kernel.biometrics.constant.BiometricFunction;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biosdk.provider.factory.BioAPIFactory;
@@ -37,9 +38,6 @@ import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.packetmanager.constants.PacketManagerConstants;
-import io.mosip.kernel.packetmanager.dto.BiometricsDto;
-import io.mosip.kernel.packetmanager.dto.DocumentDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.AuditEvent;
 import io.mosip.registration.constants.AuditReferenceIdTypes;
@@ -56,6 +54,8 @@ import io.mosip.registration.controller.reg.UserOnboardParentController;
 import io.mosip.registration.dao.UserDetailDAO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.BiometricAttributeDto;
+import io.mosip.registration.dto.packetmanager.BiometricsDto;
+import io.mosip.registration.dto.packetmanager.DocumentDto;
 import io.mosip.registration.entity.UserBiometric;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.Biometric;
@@ -1037,6 +1037,10 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Displaying Scan popup for capturing biometrics");
+		
+		auditFactory.audit(getAuditEventForScan(currentModality), Components.REG_BIOMETRICS,
+				SessionContext.userId(),
+				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 		if (currentModality.equalsIgnoreCase(RegistrationConstants.EXCEPTION_PHOTO)) {
 			scanPopUpViewController.init(this, RegistrationUIConstants.SCAN_DOC_TITLE);
@@ -1288,9 +1292,6 @@ public class BiometricsController extends BaseController /* implements Initializ
 									qualityScore += biometricDTO.getQualityScore();
 									biometricDTO.setSubType(currentSubType);
 									registrationDTOBiometricsList.add(biometricDTO);
-									auditFactory.audit(getAuditEventForScan(currentModality), Components.REG_BIOMETRICS,
-											SessionContext.userId(),
-											AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 								}
 							}
 
@@ -2394,6 +2395,12 @@ public class BiometricsController extends BaseController /* implements Initializ
 	public void updateBiometricData(ImageView clickedImageView, List<ImageView> bioExceptionImagesForSameModality) {
 
 		if (clickedImageView.getOpacity() == 0) {
+			LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+					"Marking exceptions for biometrics");
+
+			auditFactory.audit(AuditEvent.REG_BIO_EXCEPTION_MARKING, Components.REG_BIOMETRICS, SessionContext.userId(),
+					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+			
 			clickedImageView.setOpacity(1);
 
 			if (isUserOnboardFlag)
@@ -2402,6 +2409,12 @@ public class BiometricsController extends BaseController /* implements Initializ
 				getRegistrationDTOFromSession().addBiometricException(currentSubType, clickedImageView.getId(),
 						clickedImageView.getId(), "Temporary", "Temporary");
 		} else {
+			LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+					"Removing exceptions for biometrics");
+
+			auditFactory.audit(AuditEvent.REG_BIO_EXCEPTION_REMOVING, Components.REG_BIOMETRICS, SessionContext.userId(),
+					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+			
 			clickedImageView.setOpacity(0);
 			if (isUserOnboardFlag)
 				userOnboardService.removeOperatorBiometricException(currentSubType, clickedImageView.getId());

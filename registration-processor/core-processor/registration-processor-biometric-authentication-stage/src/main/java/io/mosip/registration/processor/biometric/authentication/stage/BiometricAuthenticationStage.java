@@ -360,7 +360,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 			AuthSystemException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 
 		BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId,
-                BiometricAuthenticationConstants.INDIVIDUALAUTHENTICATION, null, source, process);
+                MappingJsonConstants.AUTHENTICATION_BIOMETRICS, null, source, process);
 		if (biometricRecord == null || CollectionUtils.isEmpty(biometricRecord.getSegments())) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			registrationStatusDto

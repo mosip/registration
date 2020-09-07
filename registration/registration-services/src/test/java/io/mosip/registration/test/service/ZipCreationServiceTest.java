@@ -1,5 +1,9 @@
 package io.mosip.registration.test.service;
 
+import static io.mosip.registration.constants.RegistrationConstants.DEMOGRPAHIC_JSON_NAME;
+import static io.mosip.registration.constants.RegistrationConstants.PACKET_DATA_HASH_FILE_NAME;
+import static io.mosip.registration.constants.RegistrationConstants.PACKET_META_JSON_NAME;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,17 +27,11 @@ import io.mosip.registration.dto.biometric.FaceDetailsDTO;
 import io.mosip.registration.dto.biometric.IrisDetailsDTO;
 import io.mosip.registration.dto.demographic.DemographicDTO;
 import io.mosip.registration.dto.demographic.DemographicInfoDTO;
-import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
 import io.mosip.registration.dto.demographic.IndividualIdentity;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
-import io.mosip.kernel.packetmanager.dto.DocumentDto;
 import io.mosip.registration.service.external.impl.ZipCreationServiceImpl;
 import io.mosip.registration.test.util.datastub.DataProvider;
-
-import static io.mosip.registration.constants.RegistrationConstants.DEMOGRPAHIC_JSON_NAME;
-import static io.mosip.registration.constants.RegistrationConstants.PACKET_DATA_HASH_FILE_NAME;
-import static io.mosip.registration.constants.RegistrationConstants.PACKET_META_JSON_NAME;
 
 public class ZipCreationServiceTest {
 
