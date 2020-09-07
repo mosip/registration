@@ -133,7 +133,6 @@ public class PacketReceiverServiceTest {
 	public void setup() throws Exception {
 		ReflectionTestUtils.setField(packetReceiverService, "extention", ".zip");
 		ReflectionTestUtils.setField(packetReceiverService, "fileSize", "5");
-		ReflectionTestUtils.setField(packetReceiverService, "packetSources", "id,evidence,optional");
 
 		regEntity = new SyncRegistrationEntity();
 		regEntity.setCreateDateTime(LocalDateTime.now());
