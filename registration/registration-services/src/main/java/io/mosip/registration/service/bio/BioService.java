@@ -1,10 +1,9 @@
 package io.mosip.registration.service.bio;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import io.mosip.kernel.packetmanager.dto.BiometricsDto;
+import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.mdm.dto.MdmBioDevice;

@@ -2,9 +2,9 @@ package io.mosip.registration.validator;
 
 import java.util.List;
 
-import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.dto.AuthTokenDTO;
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
+import io.mosip.registration.dto.packetmanager.BiometricsDto;
 
 /**
  * This class will be the base class for all the validator classes like FingerprintValidator, 

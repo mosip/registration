@@ -340,11 +340,11 @@
 			<artifactId>kernel-pdfgenerator-itext</artifactId>
 			<version>${mosip.core.kernel.version}</version>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-registration-packet-manager</artifactId>
 			<version>1.1.1-rc1</version>
-		</dependency>
+		</dependency> -->
 		<dependency>
            <artifactId>kernel-biosdk-provider</artifactId>
           <groupId>io.mosip.kernel</groupId>
@@ -360,6 +360,16 @@
 		    <artifactId>jaxb-api</artifactId>
 		    <version>2.3.1</version>
 		</dependency>
+        <dependency>
+        	<groupId>io.mosip.commons</groupId>
+        	<artifactId>commons-packet-manager</artifactId>
+        	<version>1.2.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+        	<groupId>io.mosip.kernel</groupId>
+        	<artifactId>kernel-biometrics-api</artifactId>
+        	<version>1.2.0-SNAPSHOT</version>
+        </dependency>
 	</dependencies>
 	<!--<repositories>
 		<repository>
