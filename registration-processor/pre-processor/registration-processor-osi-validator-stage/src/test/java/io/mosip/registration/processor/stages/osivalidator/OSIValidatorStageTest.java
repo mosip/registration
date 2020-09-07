@@ -334,7 +334,7 @@ public class OSIValidatorStageTest {
 	@Test
 	public void jsonProcessingExceptionTest() throws Exception {
 		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.TRUE);
-		Mockito.when(packetManagerService.getMetaInfo(anyString(),anyString(),anyString())).thenThrow(new JsonProcessingException("message"));
+		Mockito.when(packetManagerService.getMetaInfo(any(), any(), any())).thenThrow(new JsonProcessingException("message"));
 		MessageDTO messageDto = osiValidatorStage.process(dto);
 		assertEquals(true, messageDto.getInternalError());
 	}
@@ -342,7 +342,7 @@ public class OSIValidatorStageTest {
 	@Test
 	public void packetManagerExceptionTest() throws Exception {
 		Mockito.when(umcValidator.isValidUMC(anyString(), any(InternalRegistrationStatusDto.class), anyMap())).thenReturn(Boolean.TRUE);
-		Mockito.when(packetManagerService.getMetaInfo(anyString(),anyString(),anyString())).thenThrow(new PacketManagerException("id", "message"));
+		Mockito.when(packetManagerService.getMetaInfo(any(),any(),any())).thenThrow(new PacketManagerException("id", "message"));
 		MessageDTO messageDto = osiValidatorStage.process(dto);
 		assertEquals(true, messageDto.getInternalError());
 	}
