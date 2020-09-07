@@ -48,7 +48,7 @@ import java.util.Set;
 @Service
 public class AbisServiceImpl implements AbisService {
 
-	private static final String duplicateList = "dummy.abis.duplicate.candidates";
+	private static final String duplicateSet = "dummy.abis.return.duplicate";
 	/** The rest client service. */
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> restClientService;
@@ -217,17 +217,8 @@ public class AbisServiceImpl implements AbisService {
 			response.setResponsetime(identifyRequest.getRequesttime());
 
 			response.setReturnValue("1");
-			String duplicateRefIds = env.getProperty(duplicateList);
-			if (StringUtils.isNotEmpty(duplicateRefIds)) {
-				String[] duplicates = duplicateRefIds.split(",");
-				for (String candidate : duplicates) {
-					if (storedRefId.contains(candidate)) {
-						duplicate = true;
-						break;
-					}
-				}
-			}
-			if (duplicate) {
+			String duplicateIndicator = env.getProperty(duplicateSet);
+			if (StringUtils.isNotEmpty(duplicateIndicator) && duplicateIndicator.equalsIgnoreCase("true")) {
 				addCandidateList(identifyReqId, identifyRequest, response);
 			}
 

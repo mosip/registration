@@ -184,7 +184,7 @@ public class QualityCheckerStageTest {
 
 		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(birTypeList);
-		when(packetManagerService.getBiometrics(anyString(),anyString(),any(),anyString(),anyString())).thenReturn(biometricRecord);
+		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenReturn(biometricRecord);
 
 		File file = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
 		InputStream inputStream = new FileInputStream(file);
@@ -199,7 +199,68 @@ public class QualityCheckerStageTest {
 	}
 
 	@Test
-	public void testQualityCheckerSuccess() {
+	public void testQualityCheckerSuccess() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+		List<BIR> birTypeList = new ArrayList<>();
+		BIR birType1 = new BIR();
+		BDBInfo bdbInfoType1 = new BDBInfo();
+		RegistryIDType registryIDType = new RegistryIDType();
+		registryIDType.setOrganization("Mosip");
+		registryIDType.setType("257");
+		QualityType quality = new QualityType();
+		quality.setAlgorithm(registryIDType);
+		quality.setScore(90l);
+		bdbInfoType1.setQuality(quality);
+		SingleType singleType1 = SingleType.FINGER;
+		List<SingleType> singleTypeList1 = new ArrayList<>();
+		singleTypeList1.add(singleType1);
+		List<String> subtype1 = new ArrayList<>(Arrays.asList("Left", "RingFinger"));
+		bdbInfoType1.setSubtype(subtype1);
+		bdbInfoType1.setType(singleTypeList1);
+		birType1.setBdbInfo(bdbInfoType1);
+		birTypeList.add(birType1);
+
+		BIR birType2 = new BIR();
+		BDBInfo bdbInfoType2 = new BDBInfo();
+		bdbInfoType2.setQuality(quality);
+		SingleType singleType2 = SingleType.FINGER;
+		List<SingleType> singleTypeList2 = new ArrayList<>();
+		singleTypeList2.add(singleType2);
+		List<String> subtype2 = new ArrayList<>(Arrays.asList("Right", "RingFinger"));
+		bdbInfoType2.setSubtype(subtype2);
+		bdbInfoType2.setType(singleTypeList2);
+		birType2.setBdbInfo(bdbInfoType2);
+		birTypeList.add(birType2);
+
+		BIR birType3 = new BIR();
+		BDBInfo bdbInfoType3 = new BDBInfo();
+		bdbInfoType3.setQuality(quality);
+		SingleType singleType3 = SingleType.IRIS;
+		List<SingleType> singleTypeList3 = new ArrayList<>();
+		singleTypeList3.add(singleType3);
+		List<String> subtype3 = new ArrayList<>(Arrays.asList("Right"));
+		bdbInfoType3.setSubtype(subtype3);
+		bdbInfoType3.setType(singleTypeList3);
+		birType3.setBdbInfo(bdbInfoType3);
+		birTypeList.add(birType3);
+
+		BIR birType4 = new BIR();
+		BDBInfo bdbInfoType4 = new BDBInfo();
+		bdbInfoType4.setQuality(quality);
+		SingleType singleType4 = SingleType.FACE;
+		List<SingleType> singleTypeList4 = new ArrayList<>();
+		singleTypeList4.add(singleType4);
+		List<String> subtype4 = new ArrayList<>();
+		bdbInfoType4.setSubtype(subtype4);
+		bdbInfoType4.setType(singleTypeList4);
+		birType4.setBdbInfo(bdbInfoType4);
+		birTypeList.add(birType4);
+
+		BiometricRecord biometricRecord = new BiometricRecord();
+		biometricRecord.setSegments(birTypeList);
+		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenReturn(null).thenReturn(biometricRecord);
+
+
+
 		QualityScore qualityScore = new QualityScore();
 		qualityScore.setScore(90);
 		Response<QualityScore> response=new Response<>();
@@ -217,7 +278,7 @@ public class QualityCheckerStageTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testException() throws Exception {
-		when(packetManagerService.getBiometrics(anyString(),anyString(),any(),anyString(),anyString())).thenThrow(new PacketManagerException("code","message"));
+		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenThrow(new PacketManagerException("code","message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO messageDTO = qualityCheckerStage.process(dto);
@@ -226,7 +287,7 @@ public class QualityCheckerStageTest {
 	
 	@Test
 	public void testCbeffNotFound() throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
-		when(packetManagerService.getBiometrics(anyString(),anyString(),any(),anyString(),anyString())).thenThrow(new IOException("message"));
+		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenThrow(new IOException("message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO messageDTO = qualityCheckerStage.process(dto);
@@ -236,7 +297,7 @@ public class QualityCheckerStageTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testApiNotAccessibleTest() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
-		when(packetManagerService.getBiometrics(anyString(),anyString(),any(),anyString(),anyString())).thenThrow(new ApisResourceAccessException("message"));
+		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenThrow(new ApisResourceAccessException("message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO messageDTO = qualityCheckerStage.process(dto);
