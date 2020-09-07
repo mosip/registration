@@ -240,8 +240,7 @@ jobs:
 
     - name: Publish the maven package
       run: |
-        chmod +x ./deploy.sh
-        ./deploy.sh registration-processor $GITHUB_WORKSPACE/settings.xml SNAPSHOT
+        cd registration-processor && mvn deploy --file pom.xml -s $GITHUB_WORKSPACE/settings.xml
       env:
         GITHUB_TOKEN: ${{ secrets.access_token }}
         GPG_TTY: $(tty)
