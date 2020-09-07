@@ -18,7 +18,6 @@ import org.springframework.web.client.RestTemplate;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.kernel.idobjectvalidator.impl.IdObjectSchemaValidator;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketValidatorException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
@@ -133,11 +132,6 @@ public class ValidatorConfig {
 		idObjectPatternValidator.setValidation(getValidationMap());
 		return  idObjectPatternValidator;
 	}*/
-
-	@Bean
-	public IdObjectSchemaValidator idObjectSchemaValidator() {
-		return new IdObjectSchemaValidator();
-	}
 
 	@Bean
 	public PacketValidatorImpl packetValidatorImpl() {

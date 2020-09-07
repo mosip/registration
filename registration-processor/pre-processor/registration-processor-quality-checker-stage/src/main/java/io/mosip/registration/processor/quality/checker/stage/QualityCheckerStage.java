@@ -24,6 +24,7 @@ import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
@@ -47,6 +48,7 @@ import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -76,9 +78,6 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 
 	/** The Constant FACE. */
 	private static final String FACE = "FACE";
-
-	/** The Constant INDIVIDUAL_BIOMETRICS. */
-	public static final String INDIVIDUAL_BIOMETRICS = "individualBiometrics";
 
 	/** The Constant UTF_8. */
 	public static final String UTF_8 = "UTF-8";
@@ -209,9 +208,14 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 			// get the idobject individual biometrics key from mapping json
 			JSONObject mappingJson = utilities.getRegistrationProcessorMappingJson();
 			String individualBiometrics = JsonUtil
-					.getJSONValue(JsonUtil.getJSONObject(mappingJson, INDIVIDUAL_BIOMETRICS), "value");
+					.getJSONValue(JsonUtil.getJSONObject(mappingJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), "value");
 			String source = utilities.getDefaultSource();
 			BiometricRecord biometricRecord = packetManagerService.getBiometrics(regId, individualBiometrics, null, source, registrationStatusDto.getRegistrationType());
+
+			if (biometricRecord == null || CollectionUtils.isEmpty(biometricRecord.getSegments())) {
+				biometricRecord = packetManagerService.getBiometrics(regId, MappingJsonConstants.AUTHENTICATION_BIOMETRICS, null, source, registrationStatusDto.getRegistrationType());
+			}
+
 			if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().size() == 0) {
 				description.setCode(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getCode());
 				description.setMessage(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getMessage());

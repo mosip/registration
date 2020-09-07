@@ -15,17 +15,17 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import io.mosip.commons.packet.constants.Biometric;
+import io.mosip.commons.packet.constants.PacketManagerConstants;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.packetmanager.constants.Biometric;
-import io.mosip.kernel.packetmanager.constants.PacketManagerConstants;
-import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.dto.RegistrationDTO;
+import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
@@ -147,6 +147,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	private String getFilePath(String modality, String bioAttribute, boolean isUserOnboarding) throws IOException {
 		LOGGER.info(LOG_REG_FINGERPRINT_FACADE, APPLICATION_NAME, APPLICATION_ID,
 				"Current Modality >>>>>>>>>>>>>>>>>>>>>>>>> " + modality + "  bioAttribute >>>>> " + bioAttribute);
+		
 		String path = null;
 		switch (modality) {
 		case PacketManagerConstants.FINGERPRINT_SLAB_LEFT:

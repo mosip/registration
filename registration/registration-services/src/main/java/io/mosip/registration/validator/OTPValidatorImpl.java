@@ -5,9 +5,9 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.dto.AuthTokenDTO;
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
+import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.util.common.OTPManager;
 
 /**
