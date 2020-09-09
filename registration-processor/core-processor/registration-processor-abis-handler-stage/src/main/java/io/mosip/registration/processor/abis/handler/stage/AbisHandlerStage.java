@@ -78,10 +78,6 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
 
-	/** The url. */
-	@Value("${registration.processor.biometric.reference.url}")
-	private String url;
-
 	/** The max results. */
 	@Value("${registration.processor.abis.maxResults}")
 	private String maxResults;
