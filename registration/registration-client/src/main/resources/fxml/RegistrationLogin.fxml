@@ -81,7 +81,7 @@
       					</image>
       				</ImageView>
       				 <Hyperlink layoutX="52.0" layoutY="222.0" mnemonicParsing="false" onAction="#back" styleClass="hyperLinkStyle" text="%back" />
-      				
+      				<ProgressIndicator fx:id="fpProgressIndicator" layoutX="130.0" layoutY="50.0" progress="0.0" visible="false" />
                </children>
             </AnchorPane>
             <AnchorPane fx:id="irisPane" layoutX="55.0" layoutY="231.0" prefHeight="242.0" prefWidth="379.0" styleClass="loginAnchorPaneStyle" visible="false">
@@ -95,7 +95,7 @@
       					</image>
       				</ImageView>
       				 <Hyperlink layoutX="52.0" layoutY="222.0" mnemonicParsing="false" onAction="#back" styleClass="hyperLinkStyle" text="%back" />
-             
+             		<ProgressIndicator fx:id="irisProgressIndicator" layoutX="130.0" layoutY="50.0" progress="0.0" visible="false" />
                </children>
             </AnchorPane>
             <AnchorPane fx:id="facePane" layoutX="10.0" layoutY="38.0" prefHeight="510.0" prefWidth="458.0" styleClass="loginAnchorPaneStyle" visible="false"> 
@@ -110,7 +110,7 @@
       					</image>
       				</ImageView>
       				 <Hyperlink layoutX="52.0" layoutY="476.0" mnemonicParsing="false" onAction="#back" styleClass="hyperLinkStyle" text="%back" />
-             
+             		<ProgressIndicator fx:id="faceProgressIndicator" layoutX="130.0" layoutY="50.0" progress="0.0" visible="false" />
                </children>
             </AnchorPane>
             <AnchorPane fx:id="errorPane" layoutX="108.0" layoutY="153.0" styleClass="loginAnchorPaneStyle" visible="false">

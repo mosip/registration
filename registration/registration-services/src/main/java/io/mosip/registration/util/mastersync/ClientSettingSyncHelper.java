@@ -539,14 +539,10 @@ public class ClientSettingSyncHelper {
 			}
 			
 			if (!fields.isEmpty()) {
-				List<DynamicField> allFields = dynamicFieldRepository.findAll();
-				for (DynamicField tobeUpdatedField : fields) {
-					for (DynamicField existingField : allFields) {
-						if(tobeUpdatedField.getName().equalsIgnoreCase(existingField.getName())) {
-							dynamicFieldRepository.delete(existingField);
-						}
-					}
-				}
+				List<DynamicField> existingFields = dynamicFieldRepository.findAll();
+				checkForDuplicates(fields, existingFields);
+				List<DynamicField> updatedFields = dynamicFieldRepository.findAll();
+				checkForDuplicates(fields, updatedFields);
 				dynamicFieldRepository.saveAll(fields);
 			}
 				
@@ -554,5 +550,15 @@ public class ClientSettingSyncHelper {
 			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
 			throw new SyncFailedException("Dynamic field sync failed due to " +  e.getMessage());
 		}		
+	}
+
+	private void checkForDuplicates(List<DynamicField> fields, List<DynamicField> existingFields) {
+		for (DynamicField tobeUpdatedField : fields) {
+			for (DynamicField existingField : existingFields) {
+				if(tobeUpdatedField.getName().equalsIgnoreCase(existingField.getName())) {
+					dynamicFieldRepository.delete(existingField);
+				}
+			}
+		}
 	}
 }
