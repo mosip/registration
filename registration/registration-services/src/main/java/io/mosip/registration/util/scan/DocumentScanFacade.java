@@ -73,7 +73,7 @@ public class DocumentScanFacade {
 	 * @return boolean - sets the scanner factory and returns whether it is set properly or not
 	 */
 	public boolean setScannerFactory() {
-		String factoryName = "";
+		/*String factoryName = "";
 
 		if (RegistrationAppHealthCheckUtil.isWindows()) {
 			factoryName = "wia";
@@ -87,8 +87,14 @@ public class DocumentScanFacade {
 				return true;
 			}
 		}
+		return false;*/
+		for (IMosipDocumentScannerService documentScannerService : documentScannerServices) {
+			if (!documentScannerService.getDevices().isEmpty()) {
+				this.documentScannerService = documentScannerService;
+				return true;
+			}
+		}
 		return false;
-
 	}
 
 	/**
