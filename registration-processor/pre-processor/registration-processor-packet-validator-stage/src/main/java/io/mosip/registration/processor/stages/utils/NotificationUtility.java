@@ -72,10 +72,6 @@ public class NotificationUtility {
 
 	String registrationId = null;
 
-	/** The notification subject. */
-	@Value("${registration.processor.reg.processing.subject}")
-	private String underProcessingSubject;
-
 	/** The re-register subject. */
 	@Value("${registration.processor.reregister.subject}")
 	private String reregisterSubject;
