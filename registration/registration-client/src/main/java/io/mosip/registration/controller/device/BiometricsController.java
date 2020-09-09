@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import io.mosip.commons.packet.constants.PacketManagerConstants;
+import io.mosip.commons.packet.dto.packet.BiometricsException;
 import io.mosip.kernel.biometrics.constant.BiometricFunction;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biosdk.provider.factory.BioAPIFactory;
@@ -1956,11 +1957,15 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		if (result && considerExceptionAsCaptured) {
 			if (getRegistrationDTOFromSession() != null
-					&& getRegistrationDTOFromSession().getBiometricExceptions() != null
-					&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()) {
-
-				result = getRegistrationDTOFromSession().getDocuments().containsKey("proofOfException");
-			}
+		            && getRegistrationDTOFromSession().getBiometricExceptions() != null
+		            && !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()) {
+		         for(Entry<String, BiometricsException> bs: getRegistrationDTOFromSession().getBiometricExceptions().entrySet()){
+		            if(bs.getValue().getIndividualType().equalsIgnoreCase("applicant")){
+		               result = getRegistrationDTOFromSession().getDocuments().containsKey("proofOfException");
+		               break;
+		            }
+		         }
+		      }
 		}
 		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
 				RegistrationConstants.APPLICATION_NAME, "capturedDetails >> " + capturedDetails);
