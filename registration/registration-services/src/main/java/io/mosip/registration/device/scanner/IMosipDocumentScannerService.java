@@ -1,5 +1,7 @@
 package io.mosip.registration.device.scanner;
 
+import io.mosip.registration.device.scanner.dto.ScanDevice;
+
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
@@ -16,6 +18,7 @@ public interface IMosipDocumentScannerService {
 	 * 
 	 * @return boolean - the value is true if the scanner is connected
 	 */
+	@Deprecated
 	boolean isConnected();
 
 	/**
@@ -23,6 +26,7 @@ public interface IMosipDocumentScannerService {
 	 * 
 	 * @return byte[] - The scanned document data
 	 */
+	@Deprecated
 	BufferedImage scan();
 
 	/**
@@ -67,5 +71,18 @@ public interface IMosipDocumentScannerService {
 	 *             - holds the ioexception
 	 */
 	List<BufferedImage> pdfToImages(byte[] pdfBytes) throws IOException;
+
+	/**
+	 *
+	 * @return
+	 */
+	List<ScanDevice> getDevices();
+
+	/**
+	 *
+	 * @param deviceName
+	 * @return
+	 */
+	BufferedImage scan(String deviceName);
 
 }

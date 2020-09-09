@@ -1778,4 +1778,6 @@ public class RegistrationConstants {
 
 	public static final String EXCEPTION_PHOTO = "Exception_Photo";
 
+	public static final String EXCEPTIONAL_SCANNER_DEVICE_TYPES = "mosip.registration.exceptional.device.types";
+
 }
