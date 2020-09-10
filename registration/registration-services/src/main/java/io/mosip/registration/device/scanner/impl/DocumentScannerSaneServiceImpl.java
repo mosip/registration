@@ -7,9 +7,13 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.registration.device.scanner.dto.ScanDevice;
 import org.springframework.stereotype.Service;
 
 import au.com.southsky.jfreesane.SaneDevice;
@@ -80,6 +84,59 @@ public class DocumentScannerSaneServiceImpl extends DocumentScannerService {
 		return bufferedImage;
 	}
 
+	@Override
+	public List<ScanDevice> getDevices() {
+		List<ScanDevice> scanDevices = new ArrayList<>();
+ 		for(SaneDevice saneDevice : getScannerDevices()) {
+ 			ScanDevice scanDevice = new ScanDevice();
+ 			scanDevice.setId(saneDevice.getName());
+ 			scanDevice.setName(saneDevice.getName());
+			scanDevices.add(scanDevice);
+		}
+		return scanDevices;
+	}
+
+	@Override
+	public BufferedImage scan(String deviceName) {
+		BufferedImage bufferedImage = null;
+		SaneSession session = null;
+		SaneDevice saneDevice = null;
+		try {
+			 session = SaneSession.withRemoteSane(
+					InetAddress.getByName(
+							(String) ApplicationContext.map().get(RegistrationConstants.DOCUMENT_SCANNER_HOST)),
+					(Long) ApplicationContext.map().get(RegistrationConstants.DOCUMENT_SCANNER_TIMEOUT),
+					TimeUnit.MILLISECONDS);
+			List<SaneDevice> saneDevices = session.listDevices();
+			if (isListNotEmpty(saneDevices)) {
+				Optional<SaneDevice> result = saneDevices.stream().filter(device ->
+						device.getName().equalsIgnoreCase(deviceName)).findFirst();
+				if(result.isPresent()) {
+					saneDevice = result.get();
+					saneDevice.open();
+					setScannerSettings(saneDevice);
+					bufferedImage = saneDevice.acquireImage();
+				}
+			}
+		} catch (IOException | SaneException exception) {
+			LOGGER.error(LOG_REG_DOC_SCAN_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, exception.getMessage());
+		} finally {
+			try {
+				if(saneDevice != null) { saneDevice.close(); }
+			} catch (Throwable t) {
+				LOGGER.error(LOG_REG_DOC_SCAN_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+						ExceptionUtils.getStackTrace(t));
+			}
+			try {
+				if(session != null) { session.close(); }
+			} catch (Throwable t) {
+				LOGGER.error(LOG_REG_DOC_SCAN_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+						ExceptionUtils.getStackTrace(t));
+			}
+		}
+		return bufferedImage;
+	}
+
 	/**
 	 * This method is used to set the scanner settings for the given scanner device
 	 * 
@@ -112,7 +169,7 @@ public class DocumentScannerSaneServiceImpl extends DocumentScannerService {
 	 * @return List<SaneDevice> - The list of connected scanner devices
 	 */
 	private List<SaneDevice> getScannerDevices() {
-		List<SaneDevice> saneDevices = null;
+		List<SaneDevice> saneDevices = new ArrayList<>();
 		try {
 			SaneSession session = SaneSession.withRemoteSane(
 					InetAddress.getByName(
