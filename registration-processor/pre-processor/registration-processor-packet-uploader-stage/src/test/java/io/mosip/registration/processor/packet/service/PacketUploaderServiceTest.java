@@ -57,8 +57,6 @@ import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
-import io.mosip.registration.processor.core.exception.JschConnectionException;
-import io.mosip.registration.processor.core.exception.SftpFileOperationException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.spi.filesystem.manager.FileManager;
@@ -104,11 +102,7 @@ public class PacketUploaderServiceTest {
 
 	@Mock
 	private ObjectStoreAdapter objectStoreAdapter;
-
-	/** The file manager. */
-	@Mock
-	private FileManager<DirectoryPathDto, InputStream> fileManager;
-
+	
 	/** The dto. */
 	MessageDTO dto = new MessageDTO();
 
@@ -180,8 +174,9 @@ public class PacketUploaderServiceTest {
 		Mockito.doNothing().when(description).setMessage(any());
 		Mockito.when(description.getMessage()).thenReturn("hello");
 		Mockito.when(registrationProcessorRestService.getApi(
-				any(), anyList(), anyString(), anyString(), any())).thenReturn(new byte[2]);
-		Mockito.when(objectStoreAdapter.putObject(anyString(), anyString(), anyString(), any())).thenReturn(true);
+				any(), anyList(), anyString(), any(), any())).thenReturn(new byte[2]);
+		Mockito.when(objectStoreAdapter.putObject(any(), any(), any(), any())).thenReturn(true);
+		Mockito.when(objectStoreAdapter.addObjectMetaData(any(), any(), any(), any())).thenReturn(new HashMap<>());
 
 		Map<String, Object> jsonObject = new LinkedHashMap<>();
 		jsonObject.put("id", "2345");
@@ -200,22 +195,19 @@ public class PacketUploaderServiceTest {
 	public void testvalidateAndUploadPacketSuccess() throws Exception {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
 		ReflectionTestUtils.setField(packetuploaderservice, "maxRetryCount", 3);
-		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(enrypteddata);
+		
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
 		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(is);
-		Mockito.when(fileManager.cleanUp(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
-				.thenReturn(Boolean.TRUE);
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
-		assertFalse(result.getIsValid());
+		assertTrue(result.getIsValid());
 	}
 
 	@Test
 	public void testvalidateAndUploadPacketFailureRetry() throws Exception {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
-		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(enrypteddata);
+		
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
 		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(is);
-		//Mockito.when(packetArchiver.archivePacket(Mockito.any(), Mockito.any())).thenReturn(Boolean.TRUE);
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
 		assertFalse(result.getIsValid());
 	}
@@ -224,7 +216,7 @@ public class PacketUploaderServiceTest {
 	public void testTableNotaccessibleException() throws Exception {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any()))
 				.thenThrow(new TablenotAccessibleException());
-		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(enrypteddata);
+		
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
 		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(is);
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
@@ -232,10 +224,11 @@ public class PacketUploaderServiceTest {
 	}
 
 	@Test
-	public void testPacketNotFoundException() throws JschConnectionException, SftpFileOperationException {
+	public void testPacketNotFoundException() throws ApisResourceAccessException {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
-		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any()))
-				.thenThrow(new PacketNotFoundException());
+		Mockito.when(registrationProcessorRestService.getApi(
+				any(), anyList(), anyString(), any(), any())).thenThrow(
+						new ApisResourceAccessException("exception", new HttpClientErrorException(HttpStatus.NOT_FOUND)));
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
 		assertFalse(result.getIsValid());
 	}
@@ -244,39 +237,37 @@ public class PacketUploaderServiceTest {
 	public void testObjectStoreException() throws Exception {
 		ReflectionTestUtils.setField(packetuploaderservice, "maxRetryCount", 3);
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
-		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(enrypteddata);
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
 		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(is);
-		Mockito.when(objectStoreAdapter.putObject(anyString(), anyString(), anyString(), any())).thenThrow(FileNotFoundInDestinationException.class);
-		// Mockito.doNothing().when(adapter).unpackPacket(Mockito.any());
-		// Mockito.when(adapter.isPacketPresent(Mockito.any())).thenReturn(Boolean.TRUE);
-		//Mockito.when(packetArchiver.archivePacket(Mockito.any(), Mockito.any())).thenReturn(Boolean.TRUE);
+		Mockito.when(objectStoreAdapter.putObject(any(), any(), any(), any())).thenThrow(FileNotFoundInDestinationException.class);
+
+		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
+
+		assertFalse(result.getIsValid());
+	}
+
+	@Test
+	public void testObjectStoreSaveFailed() throws Exception {
+		ReflectionTestUtils.setField(packetuploaderservice, "maxRetryCount", 3);
+		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
+		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
+		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(is);
+		Mockito.when(objectStoreAdapter.putObject(any(), any(), any(), any())).thenReturn(false);
+
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
 		assertFalse(result.getIsValid());
 	}
 
 	@Test
-	public void testJschConnectionException() throws JschConnectionException, SftpFileOperationException {
+	public void test() {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
-		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any()))
-				.thenThrow(new JschConnectionException());
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
 		assertFalse(result.getIsValid());
 	}
 
 	@Test
-	public void testSftpFileOperationException() throws JschConnectionException, SftpFileOperationException {
+	public void testPacketDecryptionException() throws ApisResourceAccessException, PacketDecryptionFailureException {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
-		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any()))
-				.thenThrow(new SftpFileOperationException());
-		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
-		assertFalse(result.getIsValid());
-	}
-
-	@Test
-	public void testPacketDecryptionException() throws JschConnectionException, SftpFileOperationException, ApisResourceAccessException, PacketDecryptionFailureException {
-		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
-		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(enrypteddata);
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
 		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any()))
 				.thenThrow(new PacketDecryptionFailureException("", ""));
@@ -285,16 +276,13 @@ public class PacketUploaderServiceTest {
 	}
 
 	@Test
-	public void testIOException() throws JschConnectionException, SftpFileOperationException,
-			IOException, PacketDecryptionFailureException, io.mosip.registration.processor.core.exception.PacketDecryptionFailureException, ApisResourceAccessException {
+	public void testIOException() throws IOException, io.mosip.registration.processor.core.exception.PacketDecryptionFailureException, ApisResourceAccessException {
 		ReflectionTestUtils.setField(packetuploaderservice, "maxRetryCount", 3);
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
-		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(enrypteddata);
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
 		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(is);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(IOUtils.toByteArray(any(InputStream.class))).thenThrow(new IOException("IO execption occured"));
-		// Mockito.when(packetArchiver.archivePacket(Mockito.any(), Mockito.any())).thenThrow(new IOException());
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
 		assertFalse(result.getIsValid());
 	}
@@ -303,45 +291,25 @@ public class PacketUploaderServiceTest {
 	public void testUploadfailure() throws Exception {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
 		ReflectionTestUtils.setField(packetuploaderservice, "maxRetryCount", 3);
-		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(enrypteddata);
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
 		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(is);
-		Mockito.when(objectStoreAdapter.putObject(anyString(),anyString(), anyString(),any())).thenReturn(false);
-		// Mockito.when(packetArchiver.archivePacket(Mockito.any(), Mockito.any())).thenReturn(Boolean.TRUE);
-		Mockito.when(fileManager.cleanUp(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
-				.thenReturn(Boolean.FALSE);
+		Mockito.when(objectStoreAdapter.putObject(any(),any(), any(),any())).thenReturn(false);
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
 		assertFalse(result.getIsValid());
 	}
 
 	@Test
-	@Ignore
-	public void testArchiverFailure() throws Exception {
+	public void testVirusScanFailedException() {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
-		ReflectionTestUtils.setField(packetuploaderservice, "maxRetryCount", 3);
-		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(enrypteddata);
-		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
-		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(is);
-		// Mockito.when(packetArchiver.archivePacket(Mockito.any(), Mockito.any())).thenReturn(Boolean.FALSE);
-		// Mockito.when(fileManager.cleanUp(Mockito.any(),Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(Boolean.FALSE);
-		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
-		assertFalse(result.getIsValid());
-
-	}
-
-	@Test
-	public void testVirusScanFailedException() throws JschConnectionException, SftpFileOperationException {
-		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
-		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(enrypteddata);
+		
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.FALSE);
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "");
 		assertFalse(result.getIsValid());
 	}
 
 	@Test
-	public void testScannerServiceFailedException() throws JschConnectionException, SftpFileOperationException {
+	public void testScannerServiceFailedException() {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
-		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(enrypteddata);
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class)))
 				.thenThrow(new VirusScannerException());
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
@@ -349,81 +317,70 @@ public class PacketUploaderServiceTest {
 	}
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testScannerServiceAPIResourceException() throws JschConnectionException, SftpFileOperationException, PacketDecryptionFailureException, ApisResourceAccessException {
+	public void testScannerServiceAPIResourceException() throws PacketDecryptionFailureException, ApisResourceAccessException {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
-		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(enrypteddata);
+		
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class)))
 				.thenReturn(true);
-		Mockito.when(decryptor.decrypt(Mockito.any(InputStream.class),Mockito.anyString()))
-		.thenThrow(ApisResourceAccessException.class);
+		Mockito.when(registrationProcessorRestService.getApi(
+				any(), anyList(), anyString(), any(), any())).thenThrow(new ApisResourceAccessException("exception"));
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
 		assertTrue(result.getInternalError());
 	}
 	@Test
-	public void testException() throws JschConnectionException, SftpFileOperationException {
+	public void testException() {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
-		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any()))
-				.thenThrow(new IndexOutOfBoundsException());
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
 		assertFalse(result.getIsValid());
 	}
 
 	@Test
-	public void testPacketUploaderFailed() throws JschConnectionException, SftpFileOperationException {
+	public void testPacketUploaderFailed() {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
-		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(null);
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
 		assertFalse(result.getIsValid());
 	}
 
 	@Test
-	public void testGetPacketFromNginxFailed() throws JschConnectionException, SftpFileOperationException, ApisResourceAccessException {
+	public void testNginxServerException() throws ApisResourceAccessException {
+		ApisResourceAccessException apiException = new ApisResourceAccessException("Packet not found in nginx");
+
+		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
+
+		Mockito.when(registrationProcessorRestService.getApi(
+				any(), anyList(), anyString(), any(), any())).thenThrow(apiException);
+		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
+		assertFalse(result.getIsValid());
+	}
+
+	@Test
+	public void testGetPacketFromNginxFailed() throws ApisResourceAccessException {
 		HttpClientErrorException e = new HttpClientErrorException(HttpStatus.NOT_FOUND);
 		ApisResourceAccessException apiException = new ApisResourceAccessException("Packet not found in nginx", e);
 
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
-		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(null);
 		Mockito.when(registrationProcessorRestService.getApi(
-				any(), anyList(), anyString(), anyString(), any())).thenThrow(apiException);
+				any(), anyList(), anyString(), any(), any())).thenThrow(apiException);
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
 		assertFalse(result.getIsValid());
 	}
 
 	@Test
-	public void testNginxServerException() throws JschConnectionException, SftpFileOperationException, ApisResourceAccessException {
-		ApisResourceAccessException apiException = new ApisResourceAccessException("Packet not found in nginx");
-
-		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
-		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(null);
-		Mockito.when(registrationProcessorRestService.getApi(
-				any(), anyList(), anyString(), anyString(), any())).thenThrow(apiException);
-		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
-		assertFalse(result.getIsValid());
-	}
-
-	@Test
-	public void testUnknownExceptionOccured() throws JschConnectionException, SftpFileOperationException {
+	public void testUnknownExceptionOccured() {
 		BaseUncheckedException exception = new BaseUncheckedException("Unknown");
-
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
-		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(null);
-
 		PowerMockito.mockStatic(HMACUtils.class);
 		PowerMockito.when(HMACUtils.digestAsPlainText(any())).thenThrow(exception);
 
-
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
 		assertFalse(result.getIsValid());
 	}
 
 	@Test
-	public void testNullPacketFromDMZ() throws JschConnectionException, SftpFileOperationException, ApisResourceAccessException {
-
+	public void testNullPacketFromDMZ() throws ApisResourceAccessException {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
-		Mockito.when(fileManager.getFile(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(null);
-
 		Mockito.when(registrationProcessorRestService.getApi(
-				any(), anyList(), anyString(), anyString(), any())).thenReturn(null);
+				any(), anyList(), anyString(), any(), any())).thenReturn(null);
 
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
 		assertTrue(result.getInternalError());
