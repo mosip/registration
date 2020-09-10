@@ -80,7 +80,7 @@ public class ClientJarDecryption extends Application {
 	private static final String IS_KEY_ENCRYPTED = "Y";
 	private static final String MOSIP_CLIENT_TPM_AVAILABILITY = "mosip.reg.client.tpm.availability";
 
-	private static String CMD_TEMPLATE = "%s %s %s -Dfile.encoding=UTF-8 -cp %s/*:/* io.mosip.registration.controller.Initialization %s %s";
+	private static String CMD_TEMPLATE = "%s %s %s -Dfile.encoding=UTF-8 -cp %s/*;/* io.mosip.registration.controller.Initialization %s %s";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ClientJarDecryption.class);
 
@@ -362,15 +362,6 @@ public class ClientJarDecryption extends Application {
 				LoggerConstants.APPLICATION_NAME, LoggerConstants.APPLICATION_ID,
 				"Preparing command to launch the reg-client");
 		String jrePath = new File(System.getProperty("user.dir")) + SLASH + "jre/jre/bin/java";
-
-		LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION,
-				LoggerConstants.APPLICATION_NAME, LoggerConstants.APPLICATION_ID,
-				String.format(CMD_TEMPLATE, jrePath,
-						System.getProperty("mosip.max.mem", MAX_HEAP_SIZE),
-						System.getProperty("mosip.min.mem", MIN_HEAP_SIZE),
-						tempPath,
-						properties.getProperty("mosip.client.upgrade.server.url"),
-						properties.getProperty(MOSIP_CLIENT_TPM_AVAILABILITY)));
 
 		Process process = Runtime.getRuntime().exec(String.format(CMD_TEMPLATE, jrePath,
 					System.getProperty("mosip.max.mem", MAX_HEAP_SIZE),
