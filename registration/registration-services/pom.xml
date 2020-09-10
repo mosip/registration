@@ -391,7 +391,6 @@
 			<version>1.0</version>
 			<systemPath>${basedir}/lib/morena/morena7_win.jar</systemPath>
 		</dependency>
-
 		<!-- https://mvnrepository.com/artifact/com.github.jai-imageio/jai-imageio-jpeg2000 -->
 		<!-- Used JP2 to jpg image conversion -->
 		<dependency>
@@ -399,6 +398,7 @@
 			<artifactId>jai-imageio-jpeg2000</artifactId>
 			<version>1.3.0</version>
 		</dependency>
+
 
 	</dependencies>
 	<!--<repositories> <repository> <id>local-maven-repo</id> <url>file:///${basedir}/lib</url> 
