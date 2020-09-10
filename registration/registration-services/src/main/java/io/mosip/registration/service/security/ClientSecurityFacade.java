@@ -47,25 +47,33 @@ public class ClientSecurityFacade {
 
     private static void initializeClientSecurity() {
         LOGGER.debug(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "initializeClientSecurity >>> started");
-        try {
-            clientSecurity = new TPMClientSecurityImpl();
-
-        } catch(Exception | java.lang.NoClassDefFoundError e) {
-            LOGGER.debug(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(e));
-            LOGGER.warn(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "SWITCHING TO LOCAL SECURITY IMPL");
-
+        if(RegistrationConstants.DISABLE.equalsIgnoreCase(ApplicationContext.getTPMUsageFlag())) {
             try {
+                LOGGER.info(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID,
+                        "Loading LOCAL SECURITY IMPL as TPM usage is not required.");
                 clientSecurity = new LocalClientSecurityImpl();
             } catch (Exception ex) {
-                LOGGER.error(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(ex));
-                LOGGER.error(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "Failed to load Client security instance");
+                LOGGER.error(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "" +
+                        "Exception encountered during context initialization with Local security : "
+                        + ExceptionUtils.getStackTrace(ex));
+            }
+        }
+        else {
+            try {
+                LOGGER.info(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID,
+                        "Loading TPM SECURITY IMPL as TPM usage is required.");
+                clientSecurity = new TPMClientSecurityImpl();
+            } catch(Exception | java.lang.NoClassDefFoundError e) {
+                LOGGER.debug(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID,
+                        "Exception encountered during context initialization with TPM security : " +
+                        ExceptionUtils.getStackTrace(e));
             }
         }
 
         if(clientSecurity == null) {
             LOGGER.error(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID,
-                    "Failed to create client security instance, exiting application.");
-            System.exit(1);
+                    "Exception encountered during context initialization - Failed to create client security instance, exiting application.");
+            System.exit(0);
         }
 
         LOGGER.debug(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "initializeClientSecurity >>> Done");

@@ -80,7 +80,8 @@ public class ClientJarDecryption extends Application {
 	private static final String IS_KEY_ENCRYPTED = "Y";
 	private static final String MOSIP_CLIENT_TPM_AVAILABILITY = "mosip.reg.client.tpm.availability";
 
-	private static String CMD_TEMPLATE = "%s %s %s -Dfile.encoding=UTF-8 -cp %s/*;/* io.mosip.registration.controller.Initialization %s %s";
+	private static String WIN_CMD_TEMPLATE = "%s %s %s -Dfile.encoding=UTF-8 -cp %s/*;/* io.mosip.registration.controller.Initialization %s %s";
+	private static String LIN_CMD_TEMPLATE = "%s %s %s -Dfile.encoding=UTF-8 -cp %s/*:/* io.mosip.registration.controller.Initialization %s %s";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ClientJarDecryption.class);
 
@@ -363,7 +364,7 @@ public class ClientJarDecryption extends Application {
 				"Preparing command to launch the reg-client");
 		String jrePath = new File(System.getProperty("user.dir")) + SLASH + "jre/jre/bin/java";
 
-		Process process = Runtime.getRuntime().exec(String.format(CMD_TEMPLATE, jrePath,
+		Process process = Runtime.getRuntime().exec(String.format(getCommandTemplate(), jrePath,
 					System.getProperty("mosip.max.mem", MAX_HEAP_SIZE),
 					System.getProperty("mosip.min.mem", MIN_HEAP_SIZE),
 					tempPath,
@@ -400,7 +401,10 @@ public class ClientJarDecryption extends Application {
 			process.getOutputStream().close();
 			process.getErrorStream().close();
 
-			if (0 == process.waitFor()) {
+			//waits for normal / abnormal exit of reg-cli application
+			process.waitFor();
+
+			//if (0 == process.waitFor()) {
 
 				LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION,
 						LoggerConstants.APPLICATION_NAME, LoggerConstants.APPLICATION_ID,
@@ -414,7 +418,16 @@ public class ClientJarDecryption extends Application {
 						"Completed Destroying proccess of reg-client and force deleting the decrypted jars");
 
 				exit();
-			}
+			//}
+	}
+
+
+	private String getCommandTemplate() {
+		String osName = System.getProperty("os.name");
+		if(osName.toLowerCase().contains("windows"))
+			return WIN_CMD_TEMPLATE;
+		else
+			return LIN_CMD_TEMPLATE;
 	}
 
 	private boolean isTPMAvailable(Properties properties) {

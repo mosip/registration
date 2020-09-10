@@ -72,13 +72,13 @@ public class Initialization extends Application {
 		try {
 			System.setProperty("java.net.useSystemProxies", "true");
 			System.setProperty("file.encoding", "UTF-8");
-
+			io.mosip.registration.context.ApplicationContext.getInstance();
 			if(args.length > 1) {
 				upgradeServer = args[0];
 				tpmRequired = args[1];
+				io.mosip.registration.context.ApplicationContext.setTPMUsageFlag(args[1]);
 			}
 
-			io.mosip.registration.context.ApplicationContext.getInstance();
 			applicationContext = new AnnotationConfigApplicationContext(AppConfig.class);
 			launch(args);
 
@@ -125,5 +125,4 @@ public class Initialization extends Application {
 	public static void setPrimaryStage(Stage primaryStage) {
 		applicationPrimaryStage = primaryStage;
 	}
-
 }
