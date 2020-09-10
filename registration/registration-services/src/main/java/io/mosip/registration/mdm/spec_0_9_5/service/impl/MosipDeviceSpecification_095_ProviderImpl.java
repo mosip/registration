@@ -4,11 +4,8 @@ import static io.mosip.registration.constants.LoggerConstants.MOSIP_BIO_DEVICE_M
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -345,8 +342,8 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 			return (MdmDeviceInfo) (deviceSpecificationFactory.getMapper().readValue(result, MdmDeviceInfo.class));
 		} catch (Exception exception) {
 			LOGGER.error(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_GET, APPLICATION_NAME, APPLICATION_ID,
-					String.format("%s -> Exception while trying to extract the response through regex  %s",
-							exception.getMessage() + ExceptionUtils.getStackTrace(exception)));
+					"Exception while trying to extract the response through regex: " +
+							exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 
 		}
 		return null;

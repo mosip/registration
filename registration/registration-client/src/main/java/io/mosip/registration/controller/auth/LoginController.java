@@ -90,6 +90,9 @@ public class LoginController extends BaseController implements Initializable {
 	private static final Logger LOGGER = AppConfig.getLogger(LoginController.class);
 
 	@FXML
+	private BorderPane loginScreen;
+
+	@FXML
 	private AnchorPane userIdPane;
 
 	@FXML
@@ -157,6 +160,15 @@ public class LoginController extends BaseController implements Initializable {
 
 	@FXML
 	private ProgressIndicator progressIndicator;
+
+	@FXML
+	private ProgressIndicator fpProgressIndicator;
+
+	@FXML
+	private ProgressIndicator irisProgressIndicator;
+
+	@FXML
+	private ProgressIndicator faceProgressIndicator;
 
 	private Service<List<String>> taskService;
 
@@ -242,8 +254,7 @@ public class LoginController extends BaseController implements Initializable {
 	/**
 	 * To get the Sequence of which Login screen to be displayed
 	 * 
-	 * @param primaryStage
-	 *            primary Stage
+	 * @param primaryStage primary Stage
 	 */
 	public void loadInitialScreen(Stage primaryStage) {
 
@@ -375,8 +386,7 @@ public class LoginController extends BaseController implements Initializable {
 	/**
 	 * Validate user id.
 	 *
-	 * @param event
-	 *            the event
+	 * @param event the event
 	 */
 	@SuppressWarnings("unchecked")
 	public void validateUserId(ActionEvent event) {
@@ -491,8 +501,7 @@ public class LoginController extends BaseController implements Initializable {
 	 * 
 	 * Validating User credentials on Submit
 	 * 
-	 * @param event
-	 *            event for validating credentials
+	 * @param event event for validating credentials
 	 */
 	public void validateCredentials(ActionEvent event) {
 
@@ -589,8 +598,7 @@ public class LoginController extends BaseController implements Initializable {
 	/**
 	 * Generate OTP based on EO username
 	 * 
-	 * @param event
-	 *            event for generating OTP
+	 * @param event event for generating OTP
 	 */
 	@FXML
 	public void generateOtp(ActionEvent event) {
@@ -624,8 +632,7 @@ public class LoginController extends BaseController implements Initializable {
 	/**
 	 * Validate User through username and otp
 	 * 
-	 * @param event
-	 *            event for validating OTP
+	 * @param event event for validating OTP
 	 */
 	@FXML
 	public void validateOTP(ActionEvent event) {
@@ -694,8 +701,7 @@ public class LoginController extends BaseController implements Initializable {
 	/**
 	 * Validate User through username and fingerprint
 	 * 
-	 * @param event
-	 *            event for capturing fingerprint
+	 * @param event event for capturing fingerprint
 	 */
 	public void captureFingerPrint(ActionEvent event) {
 
@@ -707,42 +713,18 @@ public class LoginController extends BaseController implements Initializable {
 
 		UserDTO userDTO = loginService.getUserDetail(userId.getText());
 
-		boolean bioLoginStatus = false;
-
 		AuthenticationValidatorDTO authenticationValidatorDTO = new AuthenticationValidatorDTO();
 		authenticationValidatorDTO.setUserId(userId.getText());
 
-		try {
-			if (SessionContext.create(userDTO, RegistrationConstants.FINGERPRINT_UPPERCASE, false, false,
-					authenticationValidatorDTO)) {
-				bioLoginStatus = validateInvalidLogin(userDTO, "");
-			} else {
-				bioLoginStatus = validateInvalidLogin(userDTO, RegistrationUIConstants.FINGER_PRINT_MATCH);
-			}
-		} catch (RegBaseCheckedException | IOException exception) {
-			generateAlert(RegistrationConstants.ALERT_INFORMATION,
-					RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)
-							+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
-		}
-
-		if (bioLoginStatus) {
-			LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-					"FingerPrint validation success");
-			fingerprintPane.setVisible(false);
-			loadNextScreen(userDTO, RegistrationConstants.FINGERPRINT);
-		} else {
-			LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-					"Finger print validation failed");
-		}
-
-		LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, "Fingerprint validation done");
+		executeValidationTask(userDTO, RegistrationConstants.FINGERPRINT_UPPERCASE, false, false,
+				authenticationValidatorDTO, fingerprintPane, fpProgressIndicator,
+				RegistrationUIConstants.FINGER_PRINT_MATCH, RegistrationConstants.FINGERPRINT);
 	}
 
 	/**
 	 * Validate User through username and Iris
 	 * 
-	 * @param event
-	 *            event for capturing Iris
+	 * @param event event for capturing Iris
 	 */
 	public void captureIris(ActionEvent event) {
 
@@ -754,38 +736,18 @@ public class LoginController extends BaseController implements Initializable {
 
 		UserDTO userDTO = loginService.getUserDetail(userId.getText());
 
-		boolean irisLoginStatus = false;
-
 		AuthenticationValidatorDTO authenticationValidatorDTO = new AuthenticationValidatorDTO();
 		authenticationValidatorDTO.setUserId(userId.getText());
 		authenticationValidatorDTO.setAuthValidationType("single");
 
-		try {
-			if (SessionContext.create(userDTO, RegistrationConstants.IRIS, false, false, authenticationValidatorDTO)) {
-				irisLoginStatus = validateInvalidLogin(userDTO, "");
-			} else {
-				irisLoginStatus = validateInvalidLogin(userDTO, RegistrationUIConstants.IRIS_MATCH);
-			}
-		} catch (RegBaseCheckedException | IOException exception) {
-			generateAlert(RegistrationConstants.ALERT_INFORMATION,
-					RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)
-							+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
-		}
-		if (irisLoginStatus) {
-			LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, "Iris validation success");
-			irisPane.setVisible(false);
-			loadNextScreen(userDTO, RegistrationConstants.IRIS);
-		} else {
-			LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, "Iris validation failed");
-		}
-
+		executeValidationTask(userDTO, RegistrationConstants.IRIS, false, false, authenticationValidatorDTO, irisPane,
+				irisProgressIndicator, RegistrationUIConstants.IRIS_MATCH, RegistrationConstants.IRIS);
 	}
 
 	/**
 	 * Validate User through username and face
 	 * 
-	 * @param event
-	 *            event to capture face
+	 * @param event event to capture face
 	 */
 	public void captureFace(ActionEvent event) {
 
@@ -796,32 +758,74 @@ public class LoginController extends BaseController implements Initializable {
 
 		UserDTO userDTO = loginService.getUserDetail(userId.getText());
 
-		boolean faceLoginStatus = false;
-
 		AuthenticationValidatorDTO authenticationValidatorDTO = new AuthenticationValidatorDTO();
 		authenticationValidatorDTO.setUserId(userId.getText());
 
-		try {
-			if (SessionContext.create(userDTO, RegistrationConstants.FACE, false, false, authenticationValidatorDTO)) {
-				faceLoginStatus = validateInvalidLogin(userDTO, "");
-			} else {
-				faceLoginStatus = validateInvalidLogin(userDTO, RegistrationUIConstants.FACE_MATCH);
+		executeValidationTask(userDTO, RegistrationConstants.FACE, false, false, authenticationValidatorDTO, facePane,
+				faceProgressIndicator, RegistrationUIConstants.FACE_MATCH, RegistrationConstants.FACE);
+	}
+
+	private void executeValidationTask(UserDTO userDTO, String loginMethod, boolean isInitialSetUp,
+			boolean isUserNewToMachine, AuthenticationValidatorDTO authenticationValidatorDTO, AnchorPane pane,
+			ProgressIndicator progressIndicator, String errorMessage, String loginMode) {
+		pane.setDisable(true);
+		progressIndicator.setVisible(true);
+
+		Service<Boolean> taskService = new Service<Boolean>() {
+			@Override
+			protected Task<Boolean> createTask() {
+				return new Task<Boolean>() {
+					/*
+					 * (non-Javadoc)
+					 * 
+					 * @see javafx.concurrent.Task#call()
+					 */
+					@Override
+					protected Boolean call() {
+						try {
+							return SessionContext.create(userDTO, loginMethod, isInitialSetUp, isUserNewToMachine,
+									authenticationValidatorDTO);
+						} catch (RegBaseCheckedException | IOException exception) {
+							LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+									"Exception while getting the scanned biometrics for user login: caused by "
+											+ ExceptionUtils.getStackTrace(exception));
+							generateAlert(RegistrationConstants.ERROR,
+									RegistrationUIConstants.BIOMETRIC_SCANNING_ERROR);
+						}
+						return false;
+					}
+				};
 			}
-		} catch (RegBaseCheckedException | IOException exception) {
-			generateAlert(RegistrationConstants.ALERT_INFORMATION,
-					RegistrationUIConstants.getMessageLanguageSpecific(exception.getMessage().substring(0, 3)
-							+ RegistrationConstants.UNDER_SCORE + RegistrationConstants.MESSAGE.toUpperCase()));
-		}
+		};
 
-		if (faceLoginStatus) {
-			LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, "Face validation succeeded");
-			facePane.setVisible(false);
-			loadNextScreen(userDTO, RegistrationConstants.FACE);
-		} else {
-			LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, "Face validation failed");
-		}
+		progressIndicator.progressProperty().bind(taskService.progressProperty());
+		taskService.start();
+		taskService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+			@Override
+			public void handle(WorkerStateEvent workerStateEvent) {
+				boolean bioLoginStatus = false;
+				if (taskService.getValue()) {
+					bioLoginStatus = validateInvalidLogin(userDTO, "");
+				} else {
+					bioLoginStatus = validateInvalidLogin(userDTO, errorMessage);
+				}
+				pane.setDisable(false);
+				progressIndicator.setVisible(false);
 
-		LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, "Face validation done");
+				if (bioLoginStatus) {
+					LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+							loginMode + " validation success");
+					fingerprintPane.setVisible(false);
+					loadNextScreen(userDTO, loginMode);
+				} else {
+					LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+							loginMode + " validation failed");
+				}
+
+				LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+						loginMode + " validation done");
+			}
+		});
 	}
 
 	/**
@@ -838,8 +842,7 @@ public class LoginController extends BaseController implements Initializable {
 	/**
 	 * Load login screen depending on Loginmode
 	 * 
-	 * @param loginMode
-	 *            login screen to be loaded
+	 * @param loginMode login screen to be loaded
 	 */
 	public void loadLoginScreen(String loginMode) {
 
@@ -871,8 +874,7 @@ public class LoginController extends BaseController implements Initializable {
 	/**
 	 * Redirects to mosip.io in case of user forgot user name
 	 * 
-	 * @param event
-	 *            event for forgot user name
+	 * @param event event for forgot user name
 	 */
 	public void forgotUsrname(ActionEvent event) {
 		forgotUsrnme.setOnAction(e -> {
@@ -893,8 +895,7 @@ public class LoginController extends BaseController implements Initializable {
 	/**
 	 * Redirects to mosip.io in case of user reset pword
 	 * 
-	 * @param event
-	 *            event for reset pword
+	 * @param event event for reset pword
 	 */
 	public void resetPwd(ActionEvent event) {
 		resetPword.setOnAction(e -> {
@@ -915,10 +916,8 @@ public class LoginController extends BaseController implements Initializable {
 	/**
 	 * Loading next login screen in case of multifactor authentication
 	 * 
-	 * @param userDetail
-	 *            the userDetail
-	 * @param loginMode
-	 *            the loginMode
+	 * @param userDetail the userDetail
+	 * @param loginMode  the loginMode
 	 */
 	private void loadNextScreen(UserDTO userDTO, String loginMode) {
 
@@ -1053,10 +1052,8 @@ public class LoginController extends BaseController implements Initializable {
 	/**
 	 * Validating invalid number of login attempts
 	 * 
-	 * @param userDetail
-	 *            user details
-	 * @param userId
-	 *            entered userId
+	 * @param userDetail user details
+	 * @param userId     entered userId
 	 * @return boolean
 	 */
 	private boolean validateInvalidLogin(UserDTO userDTO, String errorMessage) {
@@ -1101,10 +1098,8 @@ public class LoginController extends BaseController implements Initializable {
 	/**
 	 * This method will remove the loginmethod from list
 	 * 
-	 * @param disableFlag
-	 *            configuration flag
-	 * @param loginMethod
-	 *            login method
+	 * @param disableFlag configuration flag
+	 * @param loginMethod login method
 	 */
 	private void removeLoginParam(String disableFlag, String loginMethod) {
 
@@ -1119,8 +1114,7 @@ public class LoginController extends BaseController implements Initializable {
 	/**
 	 * Redirects to mosip username page
 	 * 
-	 * @param event
-	 *            event for go back to username page
+	 * @param event event for go back to username page
 	 */
 	public void back(ActionEvent event) {
 

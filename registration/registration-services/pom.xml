@@ -92,7 +92,7 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-core</artifactId>
-			<version>1.0.9-SNAPSHOT</version>
+			<version>1.0.9</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
@@ -156,7 +156,7 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-dataaccess-hibernate</artifactId>
-			<version>1.0.7-SNAPSHOT</version>
+			<version>1.0.7</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
@@ -333,7 +333,7 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-idobjectvalidator</artifactId>
-			<version>1.0.9-SNAPSHOT</version>
+			<version>1.0.9</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
@@ -348,12 +348,12 @@
 		<dependency>
            <artifactId>kernel-biosdk-provider</artifactId>
           <groupId>io.mosip.kernel</groupId>
-           <version>0.9-SNAPSHOT</version>
+           <version>0.9</version>
          </dependency>
          <dependency>
              <artifactId>mock-sdk</artifactId>
              <groupId>io.mosip.mock.sdk</groupId>
-             <version>0.9-SNAPSHOT</version>
+             <version>0.9</version>
         </dependency>
         <dependency>
 		    <groupId>javax.xml.bind</groupId>
@@ -370,6 +370,31 @@
         	<artifactId>kernel-biometrics-api</artifactId>
         	<version>1.2.0-SNAPSHOT</version>
         </dependency>
+
+		<dependency>
+			<groupId>morena7</groupId>
+			<artifactId>morena7</artifactId>
+			<scope>system</scope>
+			<version>1.0</version>
+			<systemPath>${basedir}/lib/morena/morena7.jar</systemPath>
+		</dependency>
+
+		<dependency>
+			<groupId>morena7-license</groupId>
+			<artifactId>morena7-license</artifactId>
+			<scope>system</scope>
+			<version>1.0</version>
+			<systemPath>${basedir}/lib/morena/morena_license.jar</systemPath>
+		</dependency>
+
+		<dependency>
+			<groupId>morena7-win</groupId>
+			<artifactId>morena7-win</artifactId>
+			<scope>system</scope>
+			<version>1.0</version>
+			<systemPath>${basedir}/lib/morena/morena7_win.jar</systemPath>
+		</dependency>
+
 	</dependencies>
 	<!--<repositories>
 		<repository>

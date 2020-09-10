@@ -71,10 +71,6 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 	@Autowired
 	private RegistrationStatusService registrationStatusService;
 
-	/** The url. */
-	@Value("${registration.processor.biometric.reference.url}")
-	private String url;
-
 	/** The max results. */
 	@Value("${registration.processor.abis.maxResults}")
 	private String maxResults;
@@ -122,7 +118,7 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 		abisInsertRequestDto.setId(ABIS_INSERT);
 		abisInsertRequestDto.setRequestId(requestId);
 		abisInsertRequestDto.setReferenceId(referenceId);
-		abisInsertRequestDto.setReferenceURL(url + registrationId);
+		abisInsertRequestDto.setReferenceURL("");
 		abisInsertRequestDto.setRequesttime(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)));
 		RegAbisRefDto regAbisRefDto = new RegAbisRefDto();
 		regAbisRefDto.setAbis_ref_id(referenceId);
