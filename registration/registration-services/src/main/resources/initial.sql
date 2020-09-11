@@ -439,3 +439,7 @@ INSERT INTO "REG"."GLOBAL_PARAM" VALUES ('mosip.kernel.crypto.sign-algorithm-nam
 INSERT INTO "REG"."GLOBAL_PARAM" VALUES ('mosip.kernel.crypto.hash-iteration','mosip.kernel.crypto.hash-iteration','100000','CONFIGURATION','eng',true,'SYSTEM',current timestamp, 'SYSTEM',current timestamp, false, current timestamp);
 
 INSERT INTO "REG"."GLOBAL_PARAM" VALUES ('mosip.kernel.data-key-splitter','mosip.kernel.data-key-splitter','#KEY_SPLITTER#','CONFIGURATION','eng',true,'SYSTEM',current timestamp, 'SYSTEM',current timestamp, false, current timestamp);
+
+INSERT INTO "REG"."GLOBAL_PARAM" VALUES ('mosip.registration.HTTP_API_READ_TIMEOUT','mosip.registration.HTTP_API_READ_TIMEOUT','60000','CONFIGURATION','eng',true,'SYSTEM',current timestamp, 'SYSTEM',current timestamp, false, current timestamp);
+
+INSERT INTO "REG"."GLOBAL_PARAM" VALUES ('mosip.registration.HTTP_API_WRITE_TIMEOUT','mosip.registration.HTTP_API_WRITE_TIMEOUT','60000','CONFIGURATION','eng',true,'SYSTEM',current timestamp, 'SYSTEM',current timestamp, false, current timestamp);

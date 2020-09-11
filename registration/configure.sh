@@ -15,17 +15,24 @@ echo "initalized variables"
 #download the certificate at runtime from the certificate store
 #wget -O mosip_cer.cer "${client_certificate_url}"
 
-echo "mosip.reg.app.key=${crypto_key_env}" > mosip-application.properties
-echo "mosip.reg.version=${client_version_env}" >> mosip-application.properties
-echo "mosip.reg.client.url=${client_upgrade_server}/registration-client/" >> mosip-application.properties
-echo "mosip.reg.healthcheck.url=${healthcheck_url_env}" >> mosip-application.properties
-echo "mosip.reg.rollback.path=../BackUp" >> mosip-application.properties
-echo "mosip.reg.cerpath=/cer/mosip_cer.cer" >> mosip-application.properties
-echo "mosip.reg.dbpath=db/reg" >> mosip-application.properties
-echo "mosip.reg.xml.file.url=${client_upgrade_server}/registration-client/maven-metadata.xml" >> mosip-application.properties
-echo "mosip.reg.client.tpm.availability=${client_tpm_enabled}" >> mosip-application.properties
+mkdir -p /registration-libs/target/props
+
+echo "mosip.reg.app.key=${crypto_key_env}" > /registration-libs/target/props/mosip-application.properties
+echo "mosip.reg.version=${client_version_env}" >> /registration-libs/target/props/mosip-application.properties
+echo "mosip.reg.client.url=${client_upgrade_server}/registration-client/" >> /registration-libs/target/props/mosip-application.properties
+echo "mosip.reg.healthcheck.url=${healthcheck_url_env}" >> /registration-libs/target/props/mosip-application.properties
+echo "mosip.reg.rollback.path=../BackUp" >> /registration-libs/target/props/mosip-application.properties
+echo "mosip.reg.cerpath=/cer/mosip_cer.cer" >> /registration-libs/target/props/mosip-application.properties
+echo "mosip.reg.dbpath=db/reg" >> /registration-libs/target/props/mosip-application.properties
+echo "mosip.reg.xml.file.url=${client_upgrade_server}/registration-client/maven-metadata.xml" >> /registration-libs/target/props/mosip-application.properties
+echo "mosip.reg.client.tpm.availability=${client_tpm_enabled}" >> /registration-libs/target/props/mosip-application.properties
+echo "mosip.client.upgrade.server.url=${client_upgrade_server}" >> /registration-libs/target/props/mosip-application.properties
 
 echo "created mosip-application.properties"
+
+cd /registration-libs/target
+jar uf registration-libs-${client_version_env}.jar props/mosip-application.properties
+cd /
 
 mkdir -p /sdkdependency
 
@@ -35,12 +42,12 @@ mkdir -p /sdkdependency
 cp /registration-libs/resources/zulu11.41.23-ca-fx-jre11.0.8-win_x64.zip /
 
 #unzip Jre to be bundled
-unzip /zulu11.41.23-ca-fx-jre11.0.8-win_x64.zip
+/usr/bin/unzip /zulu11.41.23-ca-fx-jre11.0.8-win_x64.zip
 mkdir -p /registration-libs/resources/jre
 mv /zulu11.41.23-ca-fx-jre11.0.8-win_x64/* /registration-libs/resources/jre/
 chmod -R a+x /registration-libs/resources/jre
 
-/usr/local/openjdk-11/bin/java -cp /registration-libs/target/*:/registration-client/target/lib/* io.mosip.registration.cipher.ClientJarEncryption "/registration-client/target/registration-client-${client_version_env}.jar" "${crypto_key_env}" "${client_version_env}" "/registration-libs/target/" "/build_files/${client_certificate}" "/registration-libs/resources/db/reg" "/registration-client/target/registration-client-${client_version_env}.jar" "/registration-libs/resources/rxtx" "/registration-libs/resources/jre" "/registration-libs/resources/batch/run.bat" "/mosip-application.properties" "/sdkdependency"
+/usr/local/openjdk-11/bin/java -cp /registration-libs/target/*:/registration-client/target/lib/* io.mosip.registration.cipher.ClientJarEncryption "/registration-client/target/registration-client-${client_version_env}.jar" "${crypto_key_env}" "${client_version_env}" "/registration-libs/target/" "/build_files/${client_certificate}" "/registration-libs/resources/db/reg" "/registration-client/target/registration-client-${client_version_env}.jar" "/registration-libs/resources/rxtx" "/registration-libs/resources/jre" "/registration-libs/resources/batch/run.bat" "/registration-libs/target/props/mosip-application.properties" "/sdkdependency"
 
 echo "encryption completed"
 

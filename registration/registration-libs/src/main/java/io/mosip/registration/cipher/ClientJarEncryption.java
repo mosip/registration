@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -231,13 +233,12 @@ public class ClientJarEncryption {
 
 	private static void addProperties(File file, String version) throws IOException {
 		Properties properties = new Properties();
-		properties.load(new FileInputStream(file));
-
-		properties.setProperty("mosip.reg.version", version);
+		try(FileInputStream fin = new FileInputStream(file)) {
+			properties.load(fin);
+		}
 
 		// Add mosip-Version to mosip-application.properties file
 		try (FileOutputStream outputStream = new FileOutputStream(file)) {
-
 			properties.store(outputStream, version);
 		}
 	}

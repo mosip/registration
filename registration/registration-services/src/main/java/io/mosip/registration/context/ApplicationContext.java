@@ -437,4 +437,22 @@ public class ApplicationContext {
 		return String.valueOf(applicationMap.get(code));
 
 	}
+
+	public static void setUpgradeServerURL(String url) {
+		applicationMap.put("client.upgrade.server.url", url);
+	}
+
+	public static void setTPMUsageFlag(String tpmUsageFlag) {
+		applicationMap.put("client.tpm.required", tpmUsageFlag);
+	}
+
+	public static String getUpgradeServerURL() {
+		return applicationMap.get("client.upgrade.server.url") == null ? "" :
+				String.valueOf(applicationMap.get("client.upgrade.server.url"));
+	}
+
+	public static String getTPMUsageFlag() {
+		return applicationMap.get("client.tpm.required") == null ? "Y" :
+				String.valueOf(applicationMap.get("client.tpm.required"));
+	}
 }

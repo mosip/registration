@@ -20,7 +20,6 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.JschConnectionException;
 import io.mosip.registration.processor.core.exception.ObjectStoreNotAccessibleException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.SftpFileOperationException;
@@ -269,20 +268,6 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                     PlatformErrorMessages.RPR_PUM_PACKET_NOT_FOUND_EXCEPTION.name() + ExceptionUtils.getStackTrace(ex));
             description.setMessage(PlatformErrorMessages.RPR_PUM_PACKET_NOT_FOUND_EXCEPTION.getMessage());
             description.setCode(PlatformErrorMessages.RPR_PUM_PACKET_NOT_FOUND_EXCEPTION.getCode());
-        } catch (FSAdapterException e) {
-            dto.setLatestTransactionStatusCode(
-                    registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.OBJECT_STORE_EXCEPTION));
-            dto.setStatusComment(
-                    trimExpMessage.trimExceptionMessage(StatusUtil.OBJECT_STORE_EXCEPTION.getMessage() + e.getMessage()));
-            dto.setSubStatusCode(StatusUtil.OBJECT_STORE_EXCEPTION.getCode());
-            messageDTO.setInternalError(true);
-            messageDTO.setIsValid(false);
-            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-                    registrationId,
-                    PlatformErrorMessages.RPR_PUM_PACKET_STORE_NOT_ACCESSIBLE.name() + ExceptionUtils.getStackTrace(e));
-
-            description.setMessage(PlatformErrorMessages.RPR_PUM_PACKET_STORE_NOT_ACCESSIBLE.getMessage());
-            description.setCode(PlatformErrorMessages.RPR_PUM_PACKET_STORE_NOT_ACCESSIBLE.getCode());
         } catch (ApisResourceAccessException e) {
             dto.setLatestTransactionStatusCode(
                     registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.NGINX_ACCESS_EXCEPTION));
@@ -480,7 +465,6 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
      * @param description
      * @return the message DTO
      * @throws IOException                Signals that an I/O exception has occurred.
-     * @throws JschConnectionException
      * @throws SftpFileOperationException
      */
     private MessageDTO uploadPacket(InternalRegistrationStatusDto dto, final Map<String, InputStream> sourcePackets,

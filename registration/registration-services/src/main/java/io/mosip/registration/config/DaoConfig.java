@@ -17,6 +17,7 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
+import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import org.apache.commons.codec.binary.Base64;
@@ -71,8 +72,9 @@ public class DaoConfig extends HibernateDaoConfig {
 			dataSource = setupDataSource();
 
 		} catch (Exception e) {
-			LOGGER.error(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(e));
-			System.exit(1);
+			LOGGER.error(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID,
+					"Exception encountered during context initialization - DaoConfig " + ExceptionUtils.getStackTrace(e));
+			System.exit(0);
 		}
 	}
 
