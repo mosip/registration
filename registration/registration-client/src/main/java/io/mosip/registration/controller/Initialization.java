@@ -37,6 +37,8 @@ public class Initialization extends Application {
 
 	private static ApplicationContext applicationContext;
 	private static Stage applicationPrimaryStage;
+	private static String upgradeServer = null;
+	private static String tpmRequired = "Y";
 
 	@Override
 	public void start(Stage primaryStage) {
@@ -44,6 +46,9 @@ public class Initialization extends Application {
 			LOGGER.info("REGISTRATION - LOGIN SCREEN INITILIZATION - REGISTRATIONAPPINITILIZATION", APPLICATION_NAME,
 					APPLICATION_ID, "Login screen initilization "
 							+ new SimpleDateFormat(RegistrationConstants.HH_MM_SS).format(System.currentTimeMillis()));
+
+			io.mosip.registration.context.ApplicationContext.setUpgradeServerURL(upgradeServer);
+			io.mosip.registration.context.ApplicationContext.setTPMUsageFlag(tpmRequired);
 
 			setPrimaryStage(primaryStage);
 			LoginController loginController = applicationContext.getBean(LoginController.class);
@@ -68,8 +73,13 @@ public class Initialization extends Application {
 			System.setProperty("java.net.useSystemProxies", "true");
 			System.setProperty("file.encoding", "UTF-8");
 			io.mosip.registration.context.ApplicationContext.getInstance();
-			applicationContext = new AnnotationConfigApplicationContext(AppConfig.class);
+			if(args.length > 1) {
+				upgradeServer = args[0];
+				tpmRequired = args[1];
+				io.mosip.registration.context.ApplicationContext.setTPMUsageFlag(args[1]);
+			}
 
+			applicationContext = new AnnotationConfigApplicationContext(AppConfig.class);
 			launch(args);
 
 			LOGGER.info("REGISTRATION - APPLICATION INITILIZATION - REGISTRATIONAPPINITILIZATION", APPLICATION_NAME,
@@ -115,5 +125,4 @@ public class Initialization extends Application {
 	public static void setPrimaryStage(Stage primaryStage) {
 		applicationPrimaryStage = primaryStage;
 	}
-
 }
