@@ -1012,6 +1012,10 @@ public class BiometricsController extends BaseController /* implements Initializ
 				displayExceptionBiometric(currentModality);
 
 				refreshContinueButton();
+				generateAlert(RegistrationConstants.ALERT_INFORMATION,
+						RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
+
+				scanPopUpViewController.getPopupStage().close();
 
 			} catch (RuntimeException | IOException exception) {
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.BIOMETRIC_SCANNING_ERROR);
@@ -1020,8 +1024,6 @@ public class BiometricsController extends BaseController /* implements Initializ
 						"Error while capturing exception photo : " + ExceptionUtils.getStackTrace(exception));
 
 			}
-
-			scanPopUpViewController.getPopupStage().close();
 
 		}
 	}
@@ -1041,7 +1043,6 @@ public class BiometricsController extends BaseController /* implements Initializ
 				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 		if (currentModality.equalsIgnoreCase(RegistrationConstants.EXCEPTION_PHOTO)) {
-			scanPopUpViewController.init(this, RegistrationUIConstants.SCAN_DOC_TITLE);
 			documentScanController.startStream(this);
 
 			return;
