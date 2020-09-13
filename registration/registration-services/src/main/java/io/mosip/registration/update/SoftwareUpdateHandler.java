@@ -27,6 +27,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import io.mosip.registration.context.ApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -122,7 +123,8 @@ public class SoftwareUpdateHandler extends BaseService {
 	 */
 	public boolean hasUpdate() {
 
-		LOGGER.info(LoggerConstants.LOG_REG_UPDATE, APPLICATION_NAME, APPLICATION_ID, "Checking for updates");
+		LOGGER.info(LoggerConstants.LOG_REG_UPDATE, APPLICATION_NAME, APPLICATION_ID, "Checking for updates from " +
+				ApplicationContext.getUpgradeServerURL());
 		try {
 			return !getCurrentVersion().equals(getLatestVersion());
 		} catch (IOException | ParserConfigurationException | SAXException | RuntimeException exception) {
@@ -147,7 +149,7 @@ public class SoftwareUpdateHandler extends BaseService {
 		// Get latest version using meta-inf.xml
 		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder db = documentBuilderFactory.newDocumentBuilder();
-		org.w3c.dom.Document metaInfXmlDocument = db.parse(getInputStreamOf(serverMosipXmlFileUrl));
+		org.w3c.dom.Document metaInfXmlDocument = db.parse(getInputStreamOf(getURL(serverMosipXmlFileUrl)));
 
 		setLatestVersion(getElementValue(metaInfXmlDocument, versionTag));
 		setLatestVersionReleaseTimestamp(getElementValue(metaInfXmlDocument, lastUpdatedTag));
@@ -180,7 +182,7 @@ public class SoftwareUpdateHandler extends BaseService {
 	 */
 	public String getCurrentVersion() {
 		LOGGER.info(LoggerConstants.LOG_REG_UPDATE, APPLICATION_NAME, APPLICATION_ID,
-				"Checking for current version started");
+				"Checking for current version started : " + ApplicationContext.getUpgradeServerURL());
 
 		// Get Local manifest file
 		try {
@@ -382,7 +384,7 @@ public class SoftwareUpdateHandler extends BaseService {
 	}
 
 	private InputStream getInputStreamOfJar(String version, String jarName) throws IOException {
-		return getInputStreamOf(serverRegClientURL + version + SLASH + libFolder + jarName);
+		return getInputStreamOf(getURL(serverRegClientURL) + version + SLASH + libFolder + jarName);
 
 	}
 
@@ -429,7 +431,7 @@ public class SoftwareUpdateHandler extends BaseService {
 				"Geting  of server manifest started");
 		// Get latest Manifest from server
 		setServerManifest(
-				new Manifest(getInputStreamOf(serverRegClientURL + getLatestVersion() + SLASH + manifestFile)));
+				new Manifest(getInputStreamOf(getURL(serverRegClientURL) + getLatestVersion() + SLASH + manifestFile)));
 		setLatestVersion(serverManifest.getMainAttributes().getValue(Attributes.Name.MANIFEST_VERSION));
 
 		LOGGER.info(LoggerConstants.LOG_REG_UPDATE, APPLICATION_NAME, APPLICATION_ID,
@@ -758,6 +760,12 @@ public class SoftwareUpdateHandler extends BaseService {
 
 		// checksum (content-type)
 		return checksum;
+	}
+
+	private String getURL(String urlPostFix) {
+		LOGGER.info(LoggerConstants.LOG_REG_UPDATE, APPLICATION_NAME, APPLICATION_ID,
+				"Upgrade server : " + ApplicationContext.getUpgradeServerURL());
+		return String.format(urlPostFix, ApplicationContext.getUpgradeServerURL());
 	}
 
 	private void addProperties(String version) {
