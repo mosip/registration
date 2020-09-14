@@ -131,6 +131,6 @@ public class SyncRegistrationDao {
 		syncEntity.setOptionalValues(null);
 		SyncRegistrationEntity updatedEntity = syncRegistrationRepository.update(syncEntity);
 
-		return updatedEntity.getOptionalValues() == null ? true : false;
+		return updatedEntity != null ? true : false;
 	}
 }
