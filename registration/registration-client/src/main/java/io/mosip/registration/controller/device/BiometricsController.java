@@ -494,8 +494,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 		// hBox.setAlignment(Pos.BOTTOM_RIGHT);
 		Image image = null;
 
-		if (getRegistrationDTOFromSession().getBiometricExceptions() != null
-				&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()) {
+		if (hasApplicantBiometricException()) {
 			vBox.setVisible(true);
 
 			if (getRegistrationDTOFromSession().getDocuments().containsKey("proofOfException")) {
@@ -577,8 +576,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 		thresholdLabel.setText(
 				RegistrationUIConstants.THRESHOLD.concat("  ").concat("0").concat(RegistrationConstants.PERCENTAGE));
 
-		if (getRegistrationDTOFromSession().getBiometricExceptions() != null
-				&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()
+		if (hasApplicantBiometricException()
 				&& getRegistrationDTOFromSession().getDocuments().containsKey("proofOfException")) {
 
 			DocumentDto documentDto = getRegistrationDTOFromSession().getDocuments().get("proofOfException");
@@ -1987,17 +1985,13 @@ public class BiometricsController extends BaseController /* implements Initializ
 		boolean result = MVEL.evalToBoolean(expression, capturedDetails);
 
 		if (result && considerExceptionAsCaptured) {
-			if (getRegistrationDTOFromSession() != null
-					&& getRegistrationDTOFromSession().getBiometricExceptions() != null
-					&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()) {
-				for (Entry<String, BiometricsException> bs : getRegistrationDTOFromSession().getBiometricExceptions()
-						.entrySet()) {
-					if (isApplicant(bs.getValue().getIndividualType())) {
-						result = getRegistrationDTOFromSession().getDocuments().containsKey("proofOfException");
-						break;
-					}
-				}
+
+			if (hasApplicantBiometricException()) {
+
+				result = getRegistrationDTOFromSession().getDocuments().containsKey("proofOfException");
+
 			}
+
 		}
 		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
 				RegistrationConstants.APPLICATION_NAME, "capturedDetails >> " + capturedDetails);
@@ -2009,6 +2003,34 @@ public class BiometricsController extends BaseController /* implements Initializ
 					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 		}
 		continueBtn.setDisable(result ? false : true);
+	}
+
+	private boolean hasApplicantBiometricException() {
+		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
+				RegistrationConstants.APPLICATION_NAME, "Checking whether applicant has biometric exceptions");
+
+		boolean hasApplicantBiometricException = false;
+		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getBiometricExceptions() != null
+				&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()) {
+			for (Entry<String, BiometricsException> bs : getRegistrationDTOFromSession().getBiometricExceptions()
+					.entrySet()) {
+				if (isApplicant(bs.getValue().getIndividualType())) {
+
+					LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton",
+							RegistrationConstants.APPLICATION_ID, RegistrationConstants.APPLICATION_NAME,
+							"Applicant biometric exception found");
+
+					hasApplicantBiometricException = true;
+					break;
+				}
+			}
+		}
+
+		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
+				RegistrationConstants.APPLICATION_NAME,
+				"Completed checking whether applicant has biometric exceptions : " + hasApplicantBiometricException);
+
+		return hasApplicantBiometricException;
 	}
 
 	/**
@@ -2046,49 +2068,6 @@ public class BiometricsController extends BaseController /* implements Initializ
 			break;
 		}
 		return operator;
-	}
-
-	/**
-	 * POE needs to be collected only when biometrics all collected 1. only for
-	 * applicant exceptions in new registration 2. update UIN and when applicant
-	 * biometrics is opted to be updated 3. Not required for lostUIN
-	 * 
-	 * @return
-	 */
-	private boolean isPOECollected(String subtype) {
-		if (isUserOnboardFlag || getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()
-				|| !isApplicant(subtype))
-			return true;
-
-		// No exceptions found for provided subtype
-		if (!getRegistrationDTOFromSession().getBiometricExceptions().keySet().stream()
-				.anyMatch(k -> k.startsWith(String.format("%s_", subtype))))
-			return true;
-
-		LOGGER.debug("REGISTRATION - BIOMETRICS", RegistrationConstants.APPLICATION_ID,
-				RegistrationConstants.APPLICATION_NAME, "isPOECollected invoked  subType >> " + subtype);
-
-		if (RegistrationConstants.PACKET_TYPE_NEW.equals(getRegistrationDTOFromSession().getRegistrationCategory())
-				|| (RegistrationConstants.PACKET_TYPE_UPDATE
-						.equals(getRegistrationDTOFromSession().getRegistrationCategory())
-						&& getRegistrationDTOFromSession().isBiometricMarkedForUpdate())) {
-
-			List<String> poeFields = getValidationMap().values().stream()
-					.filter(field -> field.getSubType() != null && "POE".equalsIgnoreCase(field.getSubType()))
-					.map(UiSchemaDTO::getId).collect(Collectors.toList());
-
-			boolean collected = false;
-			if (poeFields != null && poeFields.size() > 0) {
-				for (String fieldId : poeFields) {
-					if (getRegistrationDTOFromSession().getDocuments().containsKey(fieldId)) {
-						collected = true;
-						break;
-					}
-				}
-				return collected;
-			}
-		}
-		return true;
 	}
 
 	private Map<String, Boolean> setCapturedDetailsMap(Map<String, Boolean> capturedDetails, List<String> bioAttributes,
@@ -2441,8 +2420,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		}
 
-		if (isApplicant(currentSubType) && getRegistrationDTOFromSession().getBiometricExceptions() != null
-				&& !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()) {
+		if (hasApplicantBiometricException()) {
 
 			setBiometricExceptionVBox(true);
 
