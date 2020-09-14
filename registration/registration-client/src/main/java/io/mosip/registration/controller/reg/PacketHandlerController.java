@@ -1,6 +1,5 @@
 package io.mosip.registration.controller.reg;
 
-import static io.mosip.kernel.core.util.DateUtils.formatDate;
 import static io.mosip.registration.constants.LoggerConstants.PACKET_HANDLER;
 import static io.mosip.registration.constants.RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE_PART_1;
 import static io.mosip.registration.constants.RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE_PART_2;
@@ -18,13 +17,13 @@ import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -225,9 +224,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 	private RegistrationController registrationController;
 
 	@Autowired
-	private DemographicDetailController demographicDetailController;
-
-	@Autowired
 	private UserOnboardService userOnboardService;
 
 	@FXML
@@ -273,6 +269,12 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 	@Autowired
 	HeaderController headerController;
+	
+	@Value("${object.store.base.location}")
+	private String baseLocation;
+	
+	@Value("${objectstore.packet.account}")
+	private String packetsLocation;
 
 	/**
 	 * @return the userOnboardMsg
@@ -903,11 +905,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 				// Generate the file path for storing the Encrypted Packet and Acknowledgement
 				// Receipt
-				String seperator = "/";
-				String filePath = getValueFromApplicationContext(RegistrationConstants.PKT_STORE_LOC) + seperator
-						+ formatDate(new Date(),
-								getValueFromApplicationContext(RegistrationConstants.PKT_STORE_DATE_FORMAT))
-										.concat(seperator).concat(registrationDTO.getRegistrationId());
+				String separator = "/";
+				String filePath = baseLocation.concat(separator).concat(packetsLocation).concat(separator).concat(registrationDTO.getRegistrationId());
 
 				// Storing the Registration Acknowledge Receipt Image
 				FileUtils.copyToFile(new ByteArrayInputStream(ackInBytes),

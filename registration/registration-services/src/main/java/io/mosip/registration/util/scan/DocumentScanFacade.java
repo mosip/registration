@@ -12,7 +12,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.device.scanner.IMosipDocumentScannerService;
-import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
+import io.mosip.registration.device.scanner.dto.ScanDevice;
 
 /**
  * This class is used to select the document scanner provider and scan the documents with the provider.
@@ -96,6 +96,33 @@ public class DocumentScanFacade {
 		}
 		return false;
 	}
+	
+	/**
+	 * Gets the list of scanner devices that are connected.
+	 * 
+	 * @return - List of connected devices.
+	 */
+	public List<ScanDevice> getDevices() {
+		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "Getting the list of connected scanner devices");
+		
+		return documentScannerService.getDevices();
+	}
+	
+	/**
+	 * scans the document from the scanner
+	 * 
+	 * @param deviceName - name of selected scanner device
+	 * @return BufferedImage- scanned file
+	 * @throws IOException
+	 *             - holds the ioexception
+	 */
+	public BufferedImage getScannedDocumentFromScanner(String deviceName) {
+		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "Reading byte array from Scanner");
+		
+		return documentScannerService.scan(deviceName);
+	}
 
 	/**
 	 * scans the document from the scanner
@@ -104,14 +131,14 @@ public class DocumentScanFacade {
 	 * @throws IOException
 	 *             - holds the ioexception
 	 */
-	public BufferedImage getScannedDocumentFromScanner() throws IOException {
-
-		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
-				RegistrationConstants.APPLICATION_ID, "Reading byte array from Scanner");
-
-		return documentScannerService.scan();
-
-	}
+//	public BufferedImage getScannedDocumentFromScanner() throws IOException {
+//
+//		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+//				RegistrationConstants.APPLICATION_ID, "Reading byte array from Scanner");
+//
+//		return documentScannerService.scan();
+//
+//	}
 
 	/**
 	 * converts Buffredimage to byte[]
@@ -187,9 +214,8 @@ public class DocumentScanFacade {
 	 * 
 	 * @return boolean - true if connected or else false
 	 */
-	public boolean isConnected() {
-		return documentScannerService.isConnected();
-
-	}
+//	public boolean isConnected() {
+//		return documentScannerService.isConnected();
+//	}
 
 }
