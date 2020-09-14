@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
+import org.springframework.util.CollectionUtils;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -266,7 +267,7 @@ public class AuthUtil {
 		}
 	}
 
-	private SplittedEncryptedData getSessionKey(String timeStamp, byte[] data) {
+	private SplittedEncryptedData getSessionKey(String timeStamp, byte[] data) throws ApisResourceAccessException {
 		SplittedEncryptedData splittedData = null;
 		String aad = CryptoUtil.encodeBase64String(timeStamp.substring(timeStamp.length() - 16).getBytes());
 		String salt = CryptoUtil.encodeBase64String(timeStamp.substring(timeStamp.length() - 12).getBytes());
@@ -290,10 +291,16 @@ public class AuthUtil {
 
 			CryptomanagerResponseDto response = (CryptomanagerResponseDto) registrationProcessorRestClientService
 					.postApi(ApiName.IDAUTHENCRYPTION, "", "", request, CryptomanagerResponseDto.class);
+
+			if (!CollectionUtils.isEmpty(response.getErrors())) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.name(), null,
+						response.getErrors().get(0).getErrorCode() + " ==> " + response.getErrors().get(0).getMessage());
+				throw new ApisResourceAccessException(response.getErrors().get(0).getErrorCode() + " ==> " + response.getErrors().get(0).getMessage());
+			}
 			splittedData = splitEncryptedData((String) response.getResponse().getData());
 
 		} catch (ApisResourceAccessException e) {
-			e.printStackTrace();
+			throw e;
 		}
 		return splittedData;
 

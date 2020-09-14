@@ -65,6 +65,7 @@ import java.util.stream.Collectors;
 @Service
 public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(BiometricAuthenticationStage.class);
+	private static final String FILE_NOT_PRESENT_ERROR = "KER-PUT-007";
 
 	@Autowired
 	AuditLogRequestBuilder auditLogRequestBuilder;
@@ -164,8 +165,16 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 				String individualBioMetricKey = JsonUtil.getJSONValue(
 						JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 						MappingJsonConstants.VALUE);
-
-				BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId, individualBioMetricKey, null, source, registrationStatusDto.getRegistrationType());
+				BiometricRecord biometricRecord = null;
+				try {
+					biometricRecord = packetManagerService.getBiometrics(registrationId, individualBioMetricKey, null, source, registrationStatusDto.getRegistrationType());
+				} catch (PacketManagerException e) {
+					if (e.getErrorCode().equalsIgnoreCase(FILE_NOT_PRESENT_ERROR))
+						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+								registrationId, "File individual biometric not present, will try to find auth biometric" + e.getMessage());
+					else
+						throw e;
+				}
 				if (biometricRecord == null || CollectionUtils.isEmpty(biometricRecord.getSegments())) {
 					isTransactionSuccessful = checkIndividualAuthentication(registrationId, source, process,
 							registrationStatusDto);
