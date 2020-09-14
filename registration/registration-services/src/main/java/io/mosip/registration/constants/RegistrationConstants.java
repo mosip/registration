@@ -1781,4 +1781,12 @@ public class RegistrationConstants {
 
 	public static final String EXCEPTIONAL_SCANNER_DEVICE_TYPES = "mosip.registration.scanner.device.types";
 
+	// Exception Images Path
+	public static final String LEFTMIDDLE_IMG_PATH = "/images/exceptionmarks/leftMiddle.png";
+	public static final String LEFTINDEX_IMG_PATH = "/images/exceptionmarks/leftIndex.png";
+	public static final String LEFTRING_IMG_PATH = "/images/exceptionmarks/leftRing.png";
+	public static final String LEFTLITTLE_IMG_PATH = "/images/exceptionmarks/leftLittle.png";
+	public static final String LEFTTHUMB_IMG_PATH = "/images/exceptionmarks/leftThumb.png";
+	public static final String RIGHTEYE_IMG_PATH = "/images/exceptionmarks/lightBlueCrossMark.png";
+	public static final String LEFTEYE_IMG_PATH = "/images/exceptionmarks/lightBlueCrossMark.png";
 }
