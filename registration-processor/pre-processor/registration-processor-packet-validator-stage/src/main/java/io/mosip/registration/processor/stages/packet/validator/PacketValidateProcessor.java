@@ -269,37 +269,8 @@ public class PacketValidateProcessor {
 						description.getMessage());
 			}
 			registrationStatusDto.setUpdatedBy(USER);
-
 			SyncRegistrationEntity regEntity = syncRegistrationService.findByRegistrationId(registrationId);
-			if (regEntity.getOptionalValues() != null) {
-				String[] allNotificationTypes = notificationTypes.split("\\|");
-				boolean isProcessingSuccess;
-				String encryptedData = new String(regEntity.getOptionalValues());
-				InputStream inputStream = IOUtils.toInputStream(encryptedData, "UTF-8");
-				InputStream decryptedInputStream = decryptor.decrypt(inputStream, registrationId);
-				String decryptedData = IOUtils.toString(decryptedInputStream, "UTF-8");
-				RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO = (RegistrationAdditionalInfoDTO) JsonUtils
-						.jsonStringToJavaObject(RegistrationAdditionalInfoDTO.class, decryptedData);
-				if (packetValidationDto.isTransactionSuccessful()) {
-					isProcessingSuccess = true;
-					notificationUtility.sendNotification(registrationAdditionalInfoDTO, registrationStatusDto,
-							regEntity, allNotificationTypes, isProcessingSuccess);
-				} else {
-					isProcessingSuccess = false;
-					notificationUtility.sendNotification(registrationAdditionalInfoDTO, registrationStatusDto,
-							regEntity, allNotificationTypes, isProcessingSuccess);
-				}
-
-				boolean isDeleted = syncRegistrationService.deleteAdditionalInfo(regEntity);
-				if (isDeleted) {
-					description.setCode(PlatformSuccessMessages.RPR_PKR_ADDITIONAL_INFO_DELETED.getCode());
-					description.setMessage(PlatformSuccessMessages.RPR_PKR_ADDITIONAL_INFO_DELETED.getMessage() + " -- "
-							+ registrationId);
-					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
-							description.getCode() + description.getMessage());
-				}
-			}
+			sendNotification(regEntity, registrationStatusDto, packetValidationDto.isTransactionSuccessful());
 		} catch (PacketValidatorException e) {
 			managePacketValidatorException(e, registrationStatusDto, trimMessage, description, object,
 					packetValidationDto);
@@ -683,6 +654,42 @@ public class PacketValidateProcessor {
 			}
 		}
 
+	}
+
+	private void sendNotification(SyncRegistrationEntity regEntity,
+								  InternalRegistrationStatusDto registrationStatusDto, boolean isTransactionSuccessful) {
+		try {
+			if (regEntity.getOptionalValues() != null) {
+				String[] allNotificationTypes = notificationTypes.split("\\|");
+				boolean isProcessingSuccess;
+				String encryptedData = new String(regEntity.getOptionalValues());
+				InputStream inputStream = IOUtils.toInputStream(encryptedData, "UTF-8");
+				InputStream decryptedInputStream = decryptor.decrypt(inputStream, registrationId);
+				String decryptedData = IOUtils.toString(decryptedInputStream, "UTF-8");
+				RegistrationAdditionalInfoDTO registrationAdditionalInfoDTO = (RegistrationAdditionalInfoDTO) JsonUtils
+						.jsonStringToJavaObject(RegistrationAdditionalInfoDTO.class, decryptedData);
+				if (isTransactionSuccessful) {
+					isProcessingSuccess = true;
+					notificationUtility.sendNotification(registrationAdditionalInfoDTO, registrationStatusDto,
+							regEntity, allNotificationTypes, isProcessingSuccess);
+				} else {
+					isProcessingSuccess = false;
+					notificationUtility.sendNotification(registrationAdditionalInfoDTO, registrationStatusDto,
+							regEntity, allNotificationTypes, isProcessingSuccess);
+				}
+				boolean isDeleted = syncRegistrationService.deleteAdditionalInfo(regEntity);
+				if (isDeleted) {
+					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+							LoggerFileConstant.REGISTRATIONID.toString(), registrationId,
+							PlatformSuccessMessages.RPR_PKR_ADDITIONAL_INFO_DELETED.getCode() +
+									PlatformSuccessMessages.RPR_PKR_ADDITIONAL_INFO_DELETED.getMessage());
+				}
+			}
+		} catch (Exception e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+					LoggerFileConstant.REGISTRATIONID.toString(),
+					"Send notification failed for rid - " + registrationStatusDto.getRegistrationId(), ExceptionUtils.getStackTrace(e));
+		}
 	}
 
 }
