@@ -208,15 +208,20 @@ public class LoginController extends BaseController implements Initializable {
 
 		versionValueLabel.setText(softwareUpdateHandler.getCurrentVersion());
 
-		if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
+		new Thread(() -> {
 
-			// Check for updates
-			hasUpdate = headerController.hasUpdate();
+			try {
+				if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
 
-		} else {
-			hasUpdate = RegistrationConstants.ENABLE.equalsIgnoreCase(
-					getValueFromApplicationContext(RegistrationConstants.IS_SOFTWARE_UPDATE_AVAILABLE));
-		}
+					// Check for updates
+					hasUpdate = headerController.hasUpdate();
+
+				}
+			} catch (RuntimeException runtimeException) {
+				LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+						runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
+			}
+		}).start();
 
 		try {
 			isInitialSetUp = RegistrationConstants.ENABLE
@@ -242,9 +247,9 @@ public class LoginController extends BaseController implements Initializable {
 			seconds = seconds.length() < 2 ? "0" + seconds : seconds;
 			otpValidity.setText(RegistrationUIConstants.OTP_VALIDITY + " " + minutes + ":" + seconds + " "
 					+ RegistrationUIConstants.MINUTES);
-		} catch (RuntimeException runtimeExceptionexception) {
+		} catch (RuntimeException runtimeException) {
 			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-					runtimeExceptionexception.getMessage() + ExceptionUtils.getStackTrace(runtimeExceptionexception));
+					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 		} catch (Exception exception) {
 			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
@@ -279,6 +284,8 @@ public class LoginController extends BaseController implements Initializable {
 			executeSQLFile();
 			deviceSpecificationFactory.init();
 
+			hasUpdate = RegistrationConstants.ENABLE.equalsIgnoreCase(
+					getValueFromApplicationContext(RegistrationConstants.IS_SOFTWARE_UPDATE_AVAILABLE));
 			if (hasUpdate) {
 
 				// Update Application

@@ -418,7 +418,7 @@ INSERT INTO "REG"."GLOBAL_PARAM" VALUES ('mosip.id.validation.identity.city.[*].
 
 INSERT INTO "REG"."GLOBAL_PARAM" VALUES ('mosip.country.code','mosip.country.code','MOR','CONFIGURATION','eng',true,'SYSTEM',current timestamp, 'SYSTEM',current timestamp, false, current timestamp);
 
-INSERT INTO "REG"."GLOBAL_PARAM" VALUES ('mosip.registration.app.id','mosip.registration.app.id','REGISTRATIONCLIENT','CONFIGURATION','eng',true,'SYSTEM',current timestamp, 'SYSTEM',current timestamp, false, current timestamp);
+INSERT INTO "REG"."GLOBAL_PARAM" VALUES ('mosip.registration.app.id','mosip.registration.app.id','registrationclient','CONFIGURATION','eng',true,'SYSTEM',current timestamp, 'SYSTEM',current timestamp, false, current timestamp);
 
 INSERT INTO "REG"."GLOBAL_PARAM" VALUES ('mosip.kernel.otp.expiry-time','mosip.kernel.otp.expiry-time','180','CONFIGURATION','eng',true,'SYSTEM',current timestamp, 'SYSTEM',current timestamp, false, current timestamp);
 

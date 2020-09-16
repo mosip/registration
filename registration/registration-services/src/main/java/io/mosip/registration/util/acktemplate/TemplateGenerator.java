@@ -123,24 +123,22 @@ public class TemplateGenerator extends BaseService {
 	 * {@link ResponseDTO} object
 	 * </p>
 	 *
-	 * @param templateText
-	 *            - string which contains the data of template that is used to
-	 *            generate acknowledgement
-	 * @param registration
-	 *            - RegistrationDTO to display required fields on the template
-	 * @param templateManagerBuilder
-	 *            - The Builder which generates template by mapping values to
-	 *            respective place-holders in template
-	 * @param templateType
-	 *            - The type of template that is required (like
-	 *            email/sms/acknowledgement)
+	 * @param templateText           - string which contains the data of template
+	 *                               that is used to generate acknowledgement
+	 * @param registration           - RegistrationDTO to display required fields on
+	 *                               the template
+	 * @param templateManagerBuilder - The Builder which generates template by
+	 *                               mapping values to respective place-holders in
+	 *                               template
+	 * @param templateType           - The type of template that is required (like
+	 *                               email/sms/acknowledgement)
 	 * @return {@link ResponseDTO} which specifies either success response or error
 	 *         response after the generation of Registration Preview /
 	 *         Acknowledgement
 	 * @throws RegBaseCheckedException
 	 */
 	public ResponseDTO generateTemplate(String templateText, RegistrationDTO registration,
-										TemplateManagerBuilder templateManagerBuilder, String templateType) throws RegBaseCheckedException {
+			TemplateManagerBuilder templateManagerBuilder, String templateType) throws RegBaseCheckedException {
 
 		ResponseDTO response = new ResponseDTO();
 
@@ -177,7 +175,8 @@ public class TemplateGenerator extends BaseService {
 			setUpDemographicInfo(registration, templateValues, applicationLanguageProperties, schemaFields);
 
 			/* Set-up the list of documents submitted by the applicant */
-			setUpDocuments(templateValues, applicationLanguageProperties, registration.getDocuments(), documentDisableFlag);
+			setUpDocuments(templateValues, applicationLanguageProperties, registration.getDocuments(),
+					documentDisableFlag);
 
 			setUpBiometricData(templateValues, registration, applicationLanguageProperties, schemaFields, response,
 					isAckTemplate);
@@ -223,7 +222,7 @@ public class TemplateGenerator extends BaseService {
 	}
 
 	private void setUpROContent(Map<String, Object> templateValues, RegistrationDTO registration,
-								ResourceBundle applicationLanguageProperties) {
+			ResourceBundle applicationLanguageProperties) {
 		templateValues.put(RegistrationConstants.TEMPLATE_RO_IMAGE, RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
 		templateValues.put(RegistrationConstants.TEMPLATE_RO_NAME_USER_LANG_LABEL,
 				applicationLanguageProperties.getString("ro_name"));
@@ -243,45 +242,43 @@ public class TemplateGenerator extends BaseService {
 				applicationLanguageProperties.getString("importantguidelines"));
 	}
 
-
-	private Map<String, List<BiometricsDto>> getBiometricsFields(RegistrationDTO registration, List<UiSchemaDTO> fields) {
+	private Map<String, List<BiometricsDto>> getBiometricsFields(RegistrationDTO registration,
+			List<UiSchemaDTO> fields) {
 		Map<String, List<BiometricsDto>> biometricDetails = new HashMap<>();
 		List<UiSchemaDTO> biometricFields = fields.stream()
-				.filter(field ->
-						PacketManagerConstants.BIOMETRICS_DATATYPE.equals(field.getType())
-								&& field.getSubType() != null
-								&& field.getBioAttributes() != null)
+				.filter(field -> PacketManagerConstants.BIOMETRICS_DATATYPE.equals(field.getType())
+						&& field.getSubType() != null && field.getBioAttributes() != null)
 				.collect(Collectors.toList());
 
-		for(UiSchemaDTO biometricField : biometricFields) {
+		for (UiSchemaDTO biometricField : biometricFields) {
 			List<BiometricsDto> list = new ArrayList<>();
 			List<BiometricsDto> exceptionList = new ArrayList<>();
-			for(String attribute : biometricField.getBioAttributes()) {
+			for (String attribute : biometricField.getBioAttributes()) {
 				String key = String.format("%s_%s", biometricField.getSubType(), attribute);
-				if(registration.getBiometrics().containsKey(key))
+				if (registration.getBiometrics().containsKey(key))
 					list.add(registration.getBiometrics().get(key));
-				else if(registration.getBiometricExceptions().containsKey(key)) {
-					BiometricsDto dto=new BiometricsDto(attribute, null, 0);
+				else if (registration.getBiometricExceptions().containsKey(key)) {
+					BiometricsDto dto = new BiometricsDto(attribute, null, 0);
 					dto.setModalityName(Biometric.getModalityNameByAttribute(attribute));
 					exceptionList.add(dto);
 				}
 			}
 
-			if(list.isEmpty() && exceptionList.isEmpty())
+			if (list.isEmpty() && exceptionList.isEmpty())
 				continue;
 
 			biometricDetails.put(biometricField.getId(), list);
-			biometricDetails.put(biometricField.getId()+"_EXCEPTIONS", exceptionList);
+			biometricDetails.put(biometricField.getId() + "_EXCEPTIONS", exceptionList);
 		}
 		return biometricDetails;
 	}
 
-
 	private void setUpBiometricData(Map<String, Object> templateValues, RegistrationDTO registration,
-									ResourceBundle applicationLanguageProperties, List<UiSchemaDTO> fields, ResponseDTO response, boolean isAckTemplate) {
+			ResourceBundle applicationLanguageProperties, List<UiSchemaDTO> fields, ResponseDTO response,
+			boolean isAckTemplate) {
 		Map<String, List<BiometricsDto>> biometricDetails = getBiometricsFields(registration, fields);
 
-		if(biometricDetails == null || biometricDetails.isEmpty()) {
+		if (biometricDetails == null || biometricDetails.isEmpty()) {
 			templateValues.put(RegistrationConstants.TEMPLATE_BIOMETRICS_ENABLED,
 					RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
 			return;
@@ -296,103 +293,122 @@ public class TemplateGenerator extends BaseService {
 				getSecondaryLanguageLabel("biometricsHeading"));
 
 		templateValues.put(RegistrationConstants.TEMPLATE_MODIFY, applicationLanguageProperties.getString("modify"));
-		templateValues.put(RegistrationConstants.TEMPLATE_MODIFY_IMAGE_SOURCE, getEncodedImage(RegistrationConstants.TEMPLATE_MODIFY_IMAGE_PATH,
-				response, RegistrationConstants.TEMPLATE_PNG_IMAGE_ENCODING));
+		templateValues.put(RegistrationConstants.TEMPLATE_MODIFY_IMAGE_SOURCE,
+				getEncodedImage(RegistrationConstants.TEMPLATE_MODIFY_IMAGE_PATH, response,
+						RegistrationConstants.TEMPLATE_PNG_IMAGE_ENCODING));
 
-		templateValues.put("applicantPhoto", RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
+//		templateValues.put("applicantPhoto", RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
 
 		templateValues.put("biometricsData", new ArrayList<HashMap<String, Object>>());
 
-		for(String fieldId : biometricDetails.keySet()) {
-			if(fieldId.endsWith("_EXCEPTIONS"))
+		for (String fieldId : biometricDetails.keySet()) {
+			if (fieldId.endsWith("_EXCEPTIONS"))
 				continue;
 
 			Map<String, Object> fieldTemplateValues = new HashMap<String, Object>();
 			UiSchemaDTO field = fields.stream().filter(f -> f.getId().equals(fieldId)).findFirst().get();
 			fieldTemplateValues.put("BiometricsFieldPrimLabel", field.getLabel().get("primary"));
-			fieldTemplateValues.put("BiometricsFieldSecLabel",field.getLabel().get("secondary"));
+			fieldTemplateValues.put("BiometricsFieldSecLabel", field.getLabel().get("secondary"));
 
 			List<BiometricsDto> dataCaptured = biometricDetails.get(fieldId);
 
 			List<BiometricsDto> capturedFingers = dataCaptured.stream()
-					.filter(d -> d.getModalityName().toLowerCase().contains("finger"))
-					.collect(Collectors.toList());
+					.filter(d -> d.getModalityName().toLowerCase().contains("finger")).collect(Collectors.toList());
 
 			List<BiometricsDto> capturedIris = dataCaptured.stream()
-					.filter(d -> d.getModalityName().toLowerCase().contains("iris"))
-					.collect(Collectors.toList());
+					.filter(d -> d.getModalityName().toLowerCase().contains("iris")).collect(Collectors.toList());
 
 			List<BiometricsDto> capturedFace = dataCaptured.stream()
-					.filter(d -> d.getModalityName().toLowerCase().contains("face"))
-					.collect(Collectors.toList());
+					.filter(d -> d.getModalityName().toLowerCase().contains("face")).collect(Collectors.toList());
 
 			StringBuilder biometricsCaptured = new StringBuilder();
 			StringBuilder biometricsCapturedLocalLang = new StringBuilder();
 
 			String count = "0";
 
-			if(capturedFingers != null) {
+			if (capturedFingers != null) {
 				count = String.valueOf(capturedFingers.size());
-				biometricsCaptured.append(MessageFormat.format((String) applicationLanguageProperties.getString("fingersCount"),
-						String.valueOf(count)));
-				biometricsCapturedLocalLang.append(MessageFormat.format(getSecondaryLanguageLabel("fingersCount"),
-						String.valueOf(count)));
+				biometricsCaptured.append(MessageFormat.format(
+						(String) applicationLanguageProperties.getString("fingersCount"), String.valueOf(count)));
+				biometricsCapturedLocalLang
+						.append(MessageFormat.format(getSecondaryLanguageLabel("fingersCount"), String.valueOf(count)));
 			}
 
-			if(capturedIris != null) {
+			if (capturedIris != null) {
 				count = String.valueOf(capturedIris.size());
-				biometricsCaptured.append(biometricsCaptured.length()>0? RegistrationConstants.COMMA :
-						RegistrationConstants.EMPTY).append(MessageFormat.format((String) applicationLanguageProperties.getString("irisCount"),
-						String.valueOf(count)));
-				biometricsCapturedLocalLang.append(biometricsCapturedLocalLang.length()>0? RegistrationConstants.COMMA :
-						RegistrationConstants.EMPTY).append(MessageFormat.format(getSecondaryLanguageLabel("irisCount"),
-						String.valueOf(count))).append(RegistrationConstants.COMMA);
+				biometricsCaptured
+						.append(biometricsCaptured.length() > 0 ? RegistrationConstants.COMMA
+								: RegistrationConstants.EMPTY)
+						.append(MessageFormat.format((String) applicationLanguageProperties.getString("irisCount"),
+								String.valueOf(count)));
+				biometricsCapturedLocalLang
+						.append(biometricsCapturedLocalLang.length() > 0 ? RegistrationConstants.COMMA
+								: RegistrationConstants.EMPTY)
+						.append(MessageFormat.format(getSecondaryLanguageLabel("irisCount"), String.valueOf(count)))
+						.append(RegistrationConstants.COMMA);
 			}
 
-			if(capturedFace != null) {
+			if (capturedFace != null) {
 				count = String.valueOf(capturedFace.size());
-				biometricsCaptured.append(biometricsCaptured.length()>0? RegistrationConstants.COMMA :
-						RegistrationConstants.EMPTY).append(MessageFormat.format((String) applicationLanguageProperties.getString("faceCount"),
-						String.valueOf(count)));
-				biometricsCapturedLocalLang.append(biometricsCaptured.length()>0? RegistrationConstants.COMMA :
-						RegistrationConstants.EMPTY).append(MessageFormat.format(getSecondaryLanguageLabel("faceCount"),
-						String.valueOf(count)));
+				biometricsCaptured
+						.append(biometricsCaptured.length() > 0 ? RegistrationConstants.COMMA
+								: RegistrationConstants.EMPTY)
+						.append(MessageFormat.format((String) applicationLanguageProperties.getString("faceCount"),
+								String.valueOf(count)));
+				biometricsCapturedLocalLang
+						.append(biometricsCaptured.length() > 0 ? RegistrationConstants.COMMA
+								: RegistrationConstants.EMPTY)
+						.append(MessageFormat.format(getSecondaryLanguageLabel("faceCount"), String.valueOf(count)));
 			}
 
 			fieldTemplateValues.put(RegistrationConstants.TEMPLATE_BIOMETRICS_CAPTURED, biometricsCaptured.toString());
-			fieldTemplateValues.put(RegistrationConstants.TEMPLATE_BIOMETRICS_CAPTURED_LOCAL_LANG, biometricsCapturedLocalLang.toString());
+			fieldTemplateValues.put(RegistrationConstants.TEMPLATE_BIOMETRICS_CAPTURED_LOCAL_LANG,
+					biometricsCapturedLocalLang.toString());
 
-			fieldTemplateValues.put(RegistrationConstants.TEMPLATE_WITH_EXCEPTION, RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
+			fieldTemplateValues.put(RegistrationConstants.TEMPLATE_WITH_EXCEPTION,
+					RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
 
-			if(biometricDetails.get(fieldId+"_EXCEPTIONS") != null && !biometricDetails.get(fieldId+"_EXCEPTIONS").isEmpty()) {
+			if (biometricDetails.get(fieldId + "_EXCEPTIONS") != null
+					&& !biometricDetails.get(fieldId + "_EXCEPTIONS").isEmpty()) {
 				byte[] exceptionImageBytes = null;
 				Optional<Entry<String, DocumentDto>> exceptionImage = registration.getDocuments().entrySet().stream()
 						.filter(obj -> obj.getValue().getCategory().equalsIgnoreCase("POE")).findFirst();
 				if (exceptionImage.isPresent()) {
 					exceptionImageBytes = exceptionImage.get().getValue().getDocument();
 					fieldTemplateValues.put(RegistrationConstants.TEMPLATE_WITH_EXCEPTION, RegistrationConstants.EMPTY);
-					fieldTemplateValues.put(RegistrationConstants.TEMPLATE_EXCEPTION_PHOTO_USER_LANG_LABEL, applicationLanguageProperties.getString("exceptionphoto"));
-					fieldTemplateValues.put(RegistrationConstants.TEMPLATE_EXCEPTION_PHOTO_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("exceptionphoto"));
-					String exceptionImageEncodedBytes = StringUtils.newStringUtf8(Base64.encodeBase64(exceptionImageBytes, false));
-					fieldTemplateValues.put(RegistrationConstants.TEMPLATE_EXCEPTION_IMAGE_SOURCE, RegistrationConstants.TEMPLATE_JPG_IMAGE_ENCODING + exceptionImageEncodedBytes);
+					fieldTemplateValues.put(RegistrationConstants.TEMPLATE_EXCEPTION_PHOTO_USER_LANG_LABEL,
+							applicationLanguageProperties.getString("exceptionphoto"));
+					fieldTemplateValues.put(RegistrationConstants.TEMPLATE_EXCEPTION_PHOTO_LOCAL_LANG_LABEL,
+							getSecondaryLanguageLabel("exceptionphoto"));
+					String exceptionImageEncodedBytes = StringUtils
+							.newStringUtf8(Base64.encodeBase64(exceptionImageBytes, false));
+					fieldTemplateValues.put(RegistrationConstants.TEMPLATE_EXCEPTION_IMAGE_SOURCE,
+							RegistrationConstants.TEMPLATE_JPG_IMAGE_ENCODING + exceptionImageEncodedBytes);
 				}
 			}
 
-			setIrisTemplateValues( fieldTemplateValues, capturedIris, biometricDetails.get(fieldId+"_EXCEPTIONS") != null ?
-							biometricDetails.get(fieldId+"_EXCEPTIONS").stream()
-									.filter(b-> b.getModalityName().toLowerCase().contains("iris")).collect(Collectors.toList()) : null,
+			setIrisTemplateValues(fieldTemplateValues, capturedIris,
+					biometricDetails.get(fieldId + "_EXCEPTIONS") != null
+							? biometricDetails.get(fieldId + "_EXCEPTIONS").stream()
+									.filter(b -> b.getModalityName().toLowerCase().contains("iris"))
+									.collect(Collectors.toList())
+							: null,
 					applicationLanguageProperties, isAckTemplate, response, registration);
 
-			setFingerTemplateValues(fieldTemplateValues, capturedFingers, biometricDetails.get(fieldId+"_EXCEPTIONS") != null ?
-							biometricDetails.get(fieldId+"_EXCEPTIONS").stream()
-									.filter(b-> b.getModalityName().toLowerCase().contains("finger")).collect(Collectors.toList()) : null,
+			setFingerTemplateValues(fieldTemplateValues, capturedFingers,
+					biometricDetails.get(fieldId + "_EXCEPTIONS") != null
+							? biometricDetails.get(fieldId + "_EXCEPTIONS").stream()
+									.filter(b -> b.getModalityName().toLowerCase().contains("finger"))
+									.collect(Collectors.toList())
+							: null,
 					applicationLanguageProperties, isAckTemplate, response, registration);
 
+			setFaceTemplateValues(fieldTemplateValues, capturedFace, applicationLanguageProperties, isAckTemplate,
+					response, registration);
 
-			setFaceTemplateValues(fieldTemplateValues, capturedFace, applicationLanguageProperties, isAckTemplate, response, registration);
-
-			if(capturedFace != null && !capturedFace.isEmpty() && "applicant".equalsIgnoreCase(capturedFace.get(0).getSubType()) ) {
-				templateValues.put("applicantPhoto", RegistrationConstants.EMPTY);
+			if (capturedFace != null && !capturedFace.isEmpty()
+					&& "applicant".equalsIgnoreCase(capturedFace.get(0).getSubType())) {
+//				templateValues.put("applicantPhoto", RegistrationConstants.EMPTY);
 				templateValues.put(RegistrationConstants.TEMPLATE_PHOTO_USER_LANG,
 						applicationLanguageProperties.getString("individualphoto"));
 				templateValues.put(RegistrationConstants.TEMPLATE_PHOTO_LOCAL_LANG,
@@ -401,9 +417,11 @@ public class TemplateGenerator extends BaseService {
 				setPreviewBiometricImage(templateValues, RegistrationConstants.TEMPLATE_APPLICANT_IMAGE_SOURCE,
 						RegistrationConstants.FACE_IMG_PATH, response,
 						getStreamImageBytes(capturedFace.get(0), registration));
+			} else {
+				templateValues.put("uinUpdateWithoutBiometrics", RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
 			}
 
-			((List)templateValues.get("biometricsData")).add(fieldTemplateValues);
+			((List) templateValues.get("biometricsData")).add(fieldTemplateValues);
 		}
 	}
 
@@ -413,24 +431,22 @@ public class TemplateGenerator extends BaseService {
 	}
 
 	private void setFaceTemplateValues(Map<String, Object> templateValues, List<BiometricsDto> capturedFace,
-									   ResourceBundle applicationLanguageProperties, boolean isAckTemplate,
-									   ResponseDTO response, RegistrationDTO registration) {
+			ResourceBundle applicationLanguageProperties, boolean isAckTemplate, ResponseDTO response,
+			RegistrationDTO registration) {
 
 		templateValues.put(RegistrationConstants.TEMPLATE_FACE_CAPTURE_ENABLED,
 				RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
 
-		if( capturedFace != null && !capturedFace.isEmpty() ) {
+		if (capturedFace != null && !capturedFace.isEmpty()) {
 			templateValues.put(RegistrationConstants.TEMPLATE_FACE_CAPTURE_ENABLED, RegistrationConstants.EMPTY);
 			templateValues.put(RegistrationConstants.TEMPLATE_PHOTO_USER_LANG,
 					applicationLanguageProperties.getString("FACE"));
-			templateValues.put(RegistrationConstants.TEMPLATE_PHOTO_LOCAL_LANG,
-					getSecondaryLanguageLabel("FACE"));
+			templateValues.put(RegistrationConstants.TEMPLATE_PHOTO_LOCAL_LANG, getSecondaryLanguageLabel("FACE"));
 
-			if(isAckTemplate) {
+			if (isAckTemplate) {
 				setACKBiometricImage(templateValues, RegistrationConstants.TEMPLATE_FACE_IMAGE_SOURCE,
 						RegistrationConstants.FACE_IMG_PATH, response);
-			}
-			else {
+			} else {
 				setPreviewBiometricImage(templateValues, RegistrationConstants.TEMPLATE_FACE_IMAGE_SOURCE,
 						RegistrationConstants.FACE_IMG_PATH, response,
 						getStreamImageBytes(capturedFace.get(0), registration));
@@ -438,37 +454,42 @@ public class TemplateGenerator extends BaseService {
 		}
 	}
 
-
 	private void setFingerTemplateValues(Map<String, Object> templateValues, List<BiometricsDto> capturedFingers,
-										 List<BiometricsDto> exceptions, ResourceBundle applicationLanguageProperties, boolean isAckTemplate,
-										 ResponseDTO response, RegistrationDTO registration) {
+			List<BiometricsDto> exceptions, ResourceBundle applicationLanguageProperties, boolean isAckTemplate,
+			ResponseDTO response, RegistrationDTO registration) {
 
-		if(capturedFingers == null && capturedFingers.isEmpty() && exceptions == null && exceptions.isEmpty()) {
-			templateValues.put(RegistrationConstants.TEMPLATE_FINGERPRINTS_CAPTURED, RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
-		}
-		else {
+		if (capturedFingers == null && capturedFingers.isEmpty() && exceptions == null && exceptions.isEmpty()) {
+			templateValues.put(RegistrationConstants.TEMPLATE_FINGERPRINTS_CAPTURED,
+					RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
+		} else {
 
-			Map<String, Object> leftSlab = setFingerSlabTemplateValues(capturedFingers, exceptions != null ?
-							exceptions.stream().filter(b-> b.getModalityName().toLowerCase().contains("finger") &&
-									b.getModalityName().toLowerCase().contains("left")).collect(Collectors.toList()) : null, isAckTemplate,
-					Biometric.getDefaultAttributes("FINGERPRINT_SLAB_LEFT"), RegistrationConstants.TEMPLATE_LEFT_SLAP_CAPTURED);
+			Map<String, Object> leftSlab = setFingerSlabTemplateValues(capturedFingers, exceptions != null
+					? exceptions.stream()
+							.filter(b -> b.getModalityName().toLowerCase().contains("finger")
+									&& b.getModalityName().toLowerCase().contains("left"))
+							.collect(Collectors.toList())
+					: null, isAckTemplate, Biometric.getDefaultAttributes("FINGERPRINT_SLAB_LEFT"),
+					RegistrationConstants.TEMPLATE_LEFT_SLAP_CAPTURED);
 
-			templateValues.put(RegistrationConstants.TEMPLATE_LEFT_SLAP_CAPTURED, RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
-			if(!leftSlab.isEmpty()) {
+			templateValues.put(RegistrationConstants.TEMPLATE_LEFT_SLAP_CAPTURED,
+					RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
+			if (!leftSlab.isEmpty()) {
 				templateValues.put(RegistrationConstants.TEMPLATE_LEFT_SLAP_CAPTURED, RegistrationConstants.EMPTY);
-				templateValues.put(RegistrationConstants.TEMPLATE_LEFT_PALM_USER_LANG_LABEL, applicationLanguageProperties.getString("lefthandpalm"));
-				templateValues.put(RegistrationConstants.TEMPLATE_LEFT_PALM_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("lefthandpalm"));
+				templateValues.put(RegistrationConstants.TEMPLATE_LEFT_PALM_USER_LANG_LABEL,
+						applicationLanguageProperties.getString("lefthandpalm"));
+				templateValues.put(RegistrationConstants.TEMPLATE_LEFT_PALM_LOCAL_LANG_LABEL,
+						getSecondaryLanguageLabel("lefthandpalm"));
 				templateValues.putAll(leftSlab);
-				if(isAckTemplate) {
+				if (isAckTemplate) {
 					setACKBiometricImage(templateValues, RegistrationConstants.TEMPLATE_LEFT_PALM_IMAGE_SOURCE,
 							RegistrationConstants.TEMPLATE_LEFT_SLAP_IMAGE_PATH, response);
-				}
-				else {
-					byte[] imageBytes = null;					
+				} else {
+					byte[] imageBytes = null;
 					if (!capturedFingers.isEmpty()) {
-						Optional<BiometricsDto> biometrics = capturedFingers.stream().filter(b-> b.getModalityName().equalsIgnoreCase("FINGERPRINT_SLAB_LEFT")).findFirst();
+						Optional<BiometricsDto> biometrics = capturedFingers.stream()
+								.filter(b -> b.getModalityName().equalsIgnoreCase("FINGERPRINT_SLAB_LEFT")).findFirst();
 						if (biometrics.isPresent()) {
-							imageBytes = getStreamImageBytes(biometrics.get(),	registration);
+							imageBytes = getStreamImageBytes(biometrics.get(), registration);
 						}
 					}
 					setPreviewBiometricImage(templateValues, RegistrationConstants.TEMPLATE_CAPTURED_LEFT_SLAP,
@@ -476,25 +497,32 @@ public class TemplateGenerator extends BaseService {
 				}
 			}
 
-			Map<String, Object> rightSlab = setFingerSlabTemplateValues(capturedFingers, exceptions != null ?
-							exceptions.stream().filter(b-> b.getModalityName().toLowerCase().contains("finger") &&
-									b.getModalityName().toLowerCase().contains("right")).collect(Collectors.toList()) : null, isAckTemplate,
-					Biometric.getDefaultAttributes("FINGERPRINT_SLAB_RIGHT"),  RegistrationConstants.TEMPLATE_RIGHT_SLAP_CAPTURED);
+			Map<String, Object> rightSlab = setFingerSlabTemplateValues(capturedFingers, exceptions != null
+					? exceptions.stream()
+							.filter(b -> b.getModalityName().toLowerCase().contains("finger")
+									&& b.getModalityName().toLowerCase().contains("right"))
+							.collect(Collectors.toList())
+					: null, isAckTemplate, Biometric.getDefaultAttributes("FINGERPRINT_SLAB_RIGHT"),
+					RegistrationConstants.TEMPLATE_RIGHT_SLAP_CAPTURED);
 
-			templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_SLAP_CAPTURED, RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
-			if(!rightSlab.isEmpty()) {
+			templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_SLAP_CAPTURED,
+					RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
+			if (!rightSlab.isEmpty()) {
 				templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_SLAP_CAPTURED, RegistrationConstants.EMPTY);
-				templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_PALM_USER_LANG_LABEL, applicationLanguageProperties.getString("righthandpalm"));
-				templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_PALM_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("righthandpalm"));
+				templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_PALM_USER_LANG_LABEL,
+						applicationLanguageProperties.getString("righthandpalm"));
+				templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_PALM_LOCAL_LANG_LABEL,
+						getSecondaryLanguageLabel("righthandpalm"));
 				templateValues.putAll(rightSlab);
-				if(isAckTemplate) {
+				if (isAckTemplate) {
 					setACKBiometricImage(templateValues, RegistrationConstants.TEMPLATE_RIGHT_PALM_IMAGE_SOURCE,
 							RegistrationConstants.TEMPLATE_RIGHT_SLAP_IMAGE_PATH, response);
-				}
-				else {
+				} else {
 					byte[] imageBytes = null;
 					if (!capturedFingers.isEmpty()) {
-						Optional<BiometricsDto> biometrics = capturedFingers.stream().filter(b-> b.getModalityName().equalsIgnoreCase("FINGERPRINT_SLAB_RIGHT")).findFirst();
+						Optional<BiometricsDto> biometrics = capturedFingers.stream()
+								.filter(b -> b.getModalityName().equalsIgnoreCase("FINGERPRINT_SLAB_RIGHT"))
+								.findFirst();
 						if (biometrics.isPresent()) {
 							imageBytes = getStreamImageBytes(biometrics.get(), registration);
 						}
@@ -504,25 +532,31 @@ public class TemplateGenerator extends BaseService {
 				}
 			}
 
-			Map<String, Object> thumbsSlab = setFingerSlabTemplateValues(capturedFingers, exceptions != null ?
-							exceptions.stream().filter(b-> b.getModalityName().toLowerCase().contains("finger") &&
-									b.getModalityName().toLowerCase().contains("thumb")).collect(Collectors.toList()) : null, isAckTemplate,
-					Biometric.getDefaultAttributes("FINGERPRINT_SLAB_THUMBS"),  RegistrationConstants.TEMPLATE_THUMBS_CAPTURED);
+			Map<String, Object> thumbsSlab = setFingerSlabTemplateValues(capturedFingers, exceptions != null
+					? exceptions.stream()
+							.filter(b -> b.getModalityName().toLowerCase().contains("finger")
+									&& b.getModalityName().toLowerCase().contains("thumb"))
+							.collect(Collectors.toList())
+					: null, isAckTemplate, Biometric.getDefaultAttributes("FINGERPRINT_SLAB_THUMBS"),
+					RegistrationConstants.TEMPLATE_THUMBS_CAPTURED);
 
-			templateValues.put(RegistrationConstants.TEMPLATE_THUMBS_CAPTURED, RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
-			if(!thumbsSlab.isEmpty()) {
+			templateValues.put(RegistrationConstants.TEMPLATE_THUMBS_CAPTURED,
+					RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
+			if (!thumbsSlab.isEmpty()) {
 				templateValues.put(RegistrationConstants.TEMPLATE_THUMBS_CAPTURED, RegistrationConstants.EMPTY);
-				templateValues.put(RegistrationConstants.TEMPLATE_THUMBS_USER_LANG_LABEL, applicationLanguageProperties.getString("thumbs"));
-				templateValues.put(RegistrationConstants.TEMPLATE_THUMBS_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("thumbs"));
+				templateValues.put(RegistrationConstants.TEMPLATE_THUMBS_USER_LANG_LABEL,
+						applicationLanguageProperties.getString("thumbs"));
+				templateValues.put(RegistrationConstants.TEMPLATE_THUMBS_LOCAL_LANG_LABEL,
+						getSecondaryLanguageLabel("thumbs"));
 				templateValues.putAll(thumbsSlab);
-				if(isAckTemplate) {
+				if (isAckTemplate) {
 					setACKBiometricImage(templateValues, RegistrationConstants.TEMPLATE_THUMBS_IMAGE_SOURCE,
 							RegistrationConstants.TEMPLATE_THUMBS_IMAGE_PATH, response);
-				}
-				else {
+				} else {
 					byte[] imageBytes = null;
 					if (!capturedFingers.isEmpty()) {
-						Optional<BiometricsDto> biometrics = capturedFingers.stream().filter(b-> b.getModalityName().toLowerCase().contains("thumb")).findFirst();
+						Optional<BiometricsDto> biometrics = capturedFingers.stream()
+								.filter(b -> b.getModalityName().toLowerCase().contains("thumb")).findFirst();
 						if (biometrics.isPresent()) {
 							imageBytes = getStreamImageBytes(biometrics.get(), registration);
 						}
@@ -535,38 +569,41 @@ public class TemplateGenerator extends BaseService {
 	}
 
 	private Map<String, Object> setFingerSlabTemplateValues(List<BiometricsDto> capturedFingers,
-															List<BiometricsDto> exceptions, boolean isAckTemplate, List<String> fingers, String key) {
+			List<BiometricsDto> exceptions, boolean isAckTemplate, List<String> fingers, String key) {
 		Map<String, Object> templateValues = new HashMap<>();
-		Map<String, Double> sortedvalues = capturedFingers.stream().filter(b-> fingers.contains(b.getBioAttribute()))
+		Map<String, Double> sortedvalues = capturedFingers.stream().filter(b -> fingers.contains(b.getBioAttribute()))
 				.sorted(Comparator.comparing(BiometricsDto::getQualityScore))
 				.collect(Collectors.toMap(BiometricsDto::getBioAttribute, BiometricsDto::getQualityScore));
 
 		int rank = 0;
 		double prev = 0;
 		Map<String, Integer> rankings = new HashMap<>();
-		for(Entry<String, Double> entry : sortedvalues.entrySet()) {
+		for (Entry<String, Double> entry : sortedvalues.entrySet()) {
 			rankings.put(entry.getKey(), prev == 0 ? ++rank : entry.getValue() == prev ? rank : ++rank);
 			prev = entry.getValue();
 		}
 
-		for(String finger : fingers) {
-			Optional<BiometricsDto> result = capturedFingers.stream().filter(b-> b.getBioAttribute().equalsIgnoreCase(finger)).findFirst();
-			Optional<BiometricsDto> exceptionResult = exceptions.stream().filter(b-> b.getBioAttribute().equalsIgnoreCase(finger)).findFirst();
+		for (String finger : fingers) {
+			Optional<BiometricsDto> result = capturedFingers.stream()
+					.filter(b -> b.getBioAttribute().equalsIgnoreCase(finger)).findFirst();
+			Optional<BiometricsDto> exceptionResult = exceptions.stream()
+					.filter(b -> b.getBioAttribute().equalsIgnoreCase(finger)).findFirst();
 
-			if(isAckTemplate) {
-				if(result.isPresent()) {
+			if (isAckTemplate) {
+				if (result.isPresent()) {
 					templateValues.put(finger, rankings.get(finger));
 				}
 
-				if(exceptionResult.isPresent()) {
+				if (exceptionResult.isPresent()) {
 					templateValues.put(finger, RegistrationConstants.TEMPLATE_CROSS_MARK);
 				}
-			}
-			else { //if its preview template
-				templateValues.put(key, (result.isPresent() || exceptionResult.isPresent()) ?
-						(exceptions !=null && exceptions.size() == fingers.size()) ?
-								RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY : RegistrationConstants.EMPTY :
-						RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
+			} else { // if its preview template
+				templateValues.put(key,
+						(result.isPresent() || exceptionResult.isPresent())
+								? (exceptions != null && exceptions.size() == fingers.size())
+										? RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY
+										: RegistrationConstants.EMPTY
+								: RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
 				break;
 			}
 		}
@@ -574,78 +611,95 @@ public class TemplateGenerator extends BaseService {
 	}
 
 	private void setIrisTemplateValues(Map<String, Object> templateValues, List<BiometricsDto> capturedIris,
-									   List<BiometricsDto> exceptions, ResourceBundle applicationLanguageProperties, boolean isAckTemplate,
-									   ResponseDTO response, RegistrationDTO registration) {
+			List<BiometricsDto> exceptions, ResourceBundle applicationLanguageProperties, boolean isAckTemplate,
+			ResponseDTO response, RegistrationDTO registration) {
 
-		if(capturedIris == null && capturedIris.isEmpty() && exceptions == null && exceptions.isEmpty()) {
-			templateValues.put(RegistrationConstants.TEMPLATE_IRIS_ENABLED, RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
-		}
-		else {
+		if (capturedIris == null && capturedIris.isEmpty() && exceptions == null && exceptions.isEmpty()) {
+			templateValues.put(RegistrationConstants.TEMPLATE_IRIS_ENABLED,
+					RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
+		} else {
 			templateValues.put(RegistrationConstants.TEMPLATE_IRIS_ENABLED, RegistrationConstants.EMPTY);
 
-			Optional<BiometricsDto> result = capturedIris.stream().filter(b-> b.getBioAttribute().equalsIgnoreCase("leftEye")).findFirst();
-			Optional<BiometricsDto> exceptionResult = exceptions.stream().filter(b-> b.getBioAttribute().equalsIgnoreCase("leftEye")).findFirst();
+			Optional<BiometricsDto> result = capturedIris.stream()
+					.filter(b -> b.getBioAttribute().equalsIgnoreCase("leftEye")).findFirst();
+			Optional<BiometricsDto> exceptionResult = exceptions.stream()
+					.filter(b -> b.getBioAttribute().equalsIgnoreCase("leftEye")).findFirst();
 
-			templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE_CAPTURED, RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
-			if(result.isPresent()) {
-				templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE_USER_LANG_LABEL,	applicationLanguageProperties.getString("lefteye"));
-				templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("lefteye"));
-				//templateValues.put(RegistrationConstants.IRIS_STYLE, "irisWithoutException");
+			templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE_CAPTURED,
+					RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
+			if (result.isPresent()) {
+				templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE_USER_LANG_LABEL,
+						applicationLanguageProperties.getString("lefteye"));
+				templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE_LOCAL_LANG_LABEL,
+						getSecondaryLanguageLabel("lefteye"));
+				// templateValues.put(RegistrationConstants.IRIS_STYLE, "irisWithoutException");
 				templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE_CAPTURED, RegistrationConstants.EMPTY);
 
 				if (isAckTemplate) {
-					templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE, RegistrationConstants.TEMPLATE_RIGHT_MARK);
+					templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE,
+							RegistrationConstants.TEMPLATE_RIGHT_MARK);
 					setACKBiometricImage(templateValues, RegistrationConstants.TEMPLATE_EYE_IMAGE_SOURCE,
 							RegistrationConstants.TEMPLATE_EYE_IMAGE_PATH, response);
-				}
-				else {
+				} else {
 					setPreviewBiometricImage(templateValues, RegistrationConstants.TEMPLATE_CAPTURED_LEFT_EYE,
-							RegistrationConstants.LEFT_IRIS_IMG_PATH, response, getStreamImageBytes(
-									capturedIris.stream().filter(b-> b.getBioAttribute().equalsIgnoreCase("leftEye")).findFirst().get(),
+							RegistrationConstants.LEFT_IRIS_IMG_PATH, response,
+							getStreamImageBytes(capturedIris.stream()
+									.filter(b -> b.getBioAttribute().equalsIgnoreCase("leftEye")).findFirst().get(),
 									registration));
 				}
 			}
-			if(exceptionResult.isPresent()) {
+			if (exceptionResult.isPresent()) {
 				if (isAckTemplate) {
-					templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE_USER_LANG_LABEL,	applicationLanguageProperties.getString("lefteye"));
-					templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("lefteye"));
-					//templateValues.put(RegistrationConstants.IRIS_STYLE, "irisWithoutException");
-					templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE, RegistrationConstants.TEMPLATE_CROSS_MARK);
+					templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE_USER_LANG_LABEL,
+							applicationLanguageProperties.getString("lefteye"));
+					templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE_LOCAL_LANG_LABEL,
+							getSecondaryLanguageLabel("lefteye"));
+					// templateValues.put(RegistrationConstants.IRIS_STYLE, "irisWithoutException");
+					templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE,
+							RegistrationConstants.TEMPLATE_CROSS_MARK);
 					templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE_CAPTURED, RegistrationConstants.EMPTY);
 					setACKBiometricImage(templateValues, RegistrationConstants.TEMPLATE_EYE_IMAGE_SOURCE,
 							RegistrationConstants.TEMPLATE_EYE_IMAGE_PATH, response);
 				}
 			}
 
-			result = capturedIris.stream().filter(b-> b.getBioAttribute().equalsIgnoreCase("rightEye")).findFirst();
-			exceptionResult = exceptions.stream().filter(b-> b.getBioAttribute().equalsIgnoreCase("rightEye")).findFirst();
+			result = capturedIris.stream().filter(b -> b.getBioAttribute().equalsIgnoreCase("rightEye")).findFirst();
+			exceptionResult = exceptions.stream().filter(b -> b.getBioAttribute().equalsIgnoreCase("rightEye"))
+					.findFirst();
 
-			templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE_CAPTURED, RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
-			if(result.isPresent()) {
-				templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE_USER_LANG_LABEL, applicationLanguageProperties.getString("righteye"));
-				templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("righteye"));
-				//templateValues.put(RegistrationConstants.IRIS_STYLE, "irisWithoutException");
+			templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE_CAPTURED,
+					RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
+			if (result.isPresent()) {
+				templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE_USER_LANG_LABEL,
+						applicationLanguageProperties.getString("righteye"));
+				templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE_LOCAL_LANG_LABEL,
+						getSecondaryLanguageLabel("righteye"));
+				// templateValues.put(RegistrationConstants.IRIS_STYLE, "irisWithoutException");
 				templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE_CAPTURED, RegistrationConstants.EMPTY);
 
 				if (isAckTemplate) {
-					templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE, RegistrationConstants.TEMPLATE_RIGHT_MARK);
+					templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE,
+							RegistrationConstants.TEMPLATE_RIGHT_MARK);
 					setACKBiometricImage(templateValues, RegistrationConstants.TEMPLATE_EYE_IMAGE_SOURCE,
 							RegistrationConstants.TEMPLATE_EYE_IMAGE_PATH, response);
-				}
-				else {
+				} else {
 					setPreviewBiometricImage(templateValues, RegistrationConstants.TEMPLATE_CAPTURED_RIGHT_EYE,
-							RegistrationConstants.RIGHT_IRIS_IMG_PATH, response, getStreamImageBytes(
-									capturedIris.stream().filter(b-> b.getBioAttribute().equalsIgnoreCase("rightEye")).findFirst().get(),
+							RegistrationConstants.RIGHT_IRIS_IMG_PATH, response,
+							getStreamImageBytes(capturedIris.stream()
+									.filter(b -> b.getBioAttribute().equalsIgnoreCase("rightEye")).findFirst().get(),
 									registration));
 				}
 			}
 
-			if(exceptionResult.isPresent()) {
+			if (exceptionResult.isPresent()) {
 				if (isAckTemplate) {
-					templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE_USER_LANG_LABEL,	applicationLanguageProperties.getString("righteye"));
-					templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("righteye"));
-					//templateValues.put(RegistrationConstants.IRIS_STYLE, "irisWithoutException");
-					templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE, RegistrationConstants.TEMPLATE_CROSS_MARK);
+					templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE_USER_LANG_LABEL,
+							applicationLanguageProperties.getString("righteye"));
+					templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE_LOCAL_LANG_LABEL,
+							getSecondaryLanguageLabel("righteye"));
+					// templateValues.put(RegistrationConstants.IRIS_STYLE, "irisWithoutException");
+					templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE,
+							RegistrationConstants.TEMPLATE_CROSS_MARK);
 					templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE_CAPTURED, RegistrationConstants.EMPTY);
 					setACKBiometricImage(templateValues, RegistrationConstants.TEMPLATE_EYE_IMAGE_SOURCE,
 							RegistrationConstants.TEMPLATE_EYE_IMAGE_PATH, response);
@@ -655,15 +709,14 @@ public class TemplateGenerator extends BaseService {
 	}
 
 	private void setPreviewBiometricImage(Map<String, Object> templateValues, String key, String imagePath,
-										  ResponseDTO response, byte[] streamImage) {
+			ResponseDTO response, byte[] streamImage) {
 		try {
 			String encodedBytes = "";
-			if(streamImage != null && streamImage.length > 0) {
+			if (streamImage != null && streamImage.length > 0) {
 				encodedBytes = StringUtils.newStringUtf8(Base64.encodeBase64(streamImage, false));
-			}
-			else
-				encodedBytes = StringUtils.newStringUtf8(Base64.encodeBase64(IOUtils.toByteArray(this.getClass().getResourceAsStream(imagePath)),
-						false));
+			} else
+				encodedBytes = StringUtils.newStringUtf8(Base64
+						.encodeBase64(IOUtils.toByteArray(this.getClass().getResourceAsStream(imagePath)), false));
 
 			templateValues.put(key, RegistrationConstants.TEMPLATE_JPG_IMAGE_ENCODING + encodedBytes);
 		} catch (IOException ioException) {
@@ -673,8 +726,9 @@ public class TemplateGenerator extends BaseService {
 		}
 	}
 
-	private void setACKBiometricImage(Map<String, Object> templateValues, String key, String imagePath, ResponseDTO response) {
-		try(ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();) {
+	private void setACKBiometricImage(Map<String, Object> templateValues, String key, String imagePath,
+			ResponseDTO response) {
+		try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();) {
 			BufferedImage eyeImage = ImageIO.read(this.getClass().getResourceAsStream(imagePath));
 			ImageIO.write(eyeImage, RegistrationConstants.IMAGE_FORMAT_PNG, byteArrayOutputStream);
 			byte[] eyeImageBytes = byteArrayOutputStream.toByteArray();
@@ -686,8 +740,6 @@ public class TemplateGenerator extends BaseService {
 		}
 	}
 
-
-
 	private String getSecondaryLanguageLabel(String key) {
 		ResourceBundle localProperties = ApplicationContext.localLanguageProperty();
 		if (ApplicationContext.localLanguage().equalsIgnoreCase(ApplicationContext.applicationLanguage())) {
@@ -698,7 +750,7 @@ public class TemplateGenerator extends BaseService {
 	}
 
 	private void setUpDocuments(Map<String, Object> templateValues, ResourceBundle applicationLanguageProperties,
-								Map<String, DocumentDto> documents, String documentDisableFlag) {
+			Map<String, DocumentDto> documents, String documentDisableFlag) {
 		if (RegistrationConstants.ENABLE.equalsIgnoreCase(documentDisableFlag)) {
 			templateValues.put(RegistrationConstants.TEMPLATE_DOCUMENTS_USER_LANG_LABEL,
 					applicationLanguageProperties.getString("documents"));
@@ -723,7 +775,7 @@ public class TemplateGenerator extends BaseService {
 
 	@SuppressWarnings("unchecked")
 	private void setUpDemographicInfo(RegistrationDTO registration, Map<String, Object> templateValues,
-									  ResourceBundle applicationLanguageProperties, List<UiSchemaDTO> schemaFields) {
+			ResourceBundle applicationLanguageProperties, List<UiSchemaDTO> schemaFields) {
 
 		String platformLanguageCode = ApplicationContext.applicationLanguage();
 		String localLanguageCode = ApplicationContext.localLanguage();
@@ -740,24 +792,24 @@ public class TemplateGenerator extends BaseService {
 		templateValues.put(RegistrationConstants.TEMPLATE_DEMO_INFO,
 				applicationLanguageProperties.getString("demographicInformation"));
 
-		templateValues.put("DemographicInfoSecondary",
-				getSecondaryLanguageLabel("demographicInformation"));
+		templateValues.put("DemographicInfoSecondary", getSecondaryLanguageLabel("demographicInformation"));
 
 		List<Map<String, Object>> demographicsdata = new ArrayList<Map<String, Object>>();
 
-		for(UiSchemaDTO field : schemaFields) {
-			if("biometricsType".equals(field.getType()) || "documentType".equals(field.getType()) ||
-					"UIN".equalsIgnoreCase(field.getId()) || "IDSchemaVersion".equalsIgnoreCase(field.getId()) )
+		for (UiSchemaDTO field : schemaFields) {
+			if ("biometricsType".equals(field.getType()) || "documentType".equals(field.getType())
+					|| "UIN".equalsIgnoreCase(field.getId()) || "IDSchemaVersion".equalsIgnoreCase(field.getId()))
 				continue;
 
 			Map<String, Object> data = new HashMap<String, Object>();
 			String value = getValue(registration.getDemographics().get(field.getId()));
-			if(value != null || !value.isEmpty() || !"".equals(value)) {
+			if (value != null || !value.isEmpty() || !"".equals(value)) {
 				data.put("primaryLabel", field.getLabel().get("primary"));
-				data.put("secondaryLabel", field.getLabel().containsKey("secondary") ?
-						field.getLabel().get("secondary") : RegistrationConstants.EMPTY);
+				data.put("secondaryLabel", field.getLabel().containsKey("secondary") ? field.getLabel().get("secondary")
+						: RegistrationConstants.EMPTY);
 				data.put("primaryValue", getValueForTemplate(value, platformLanguageCode));
-				data.put("secondaryValue", getSecondaryLanguageValue(registration.getDemographics().get(field.getId()), localLanguageCode));
+				data.put("secondaryValue", getSecondaryLanguageValue(registration.getDemographics().get(field.getId()),
+						localLanguageCode));
 				demographicsdata.add(data);
 			}
 		}
@@ -779,13 +831,14 @@ public class TemplateGenerator extends BaseService {
 	}
 
 	private void setUpPreviewContent(RegistrationDTO registration, Map<String, Object> templateValues,
-									 ResponseDTO response, ResourceBundle applicationLanguageProperties) {
-		//ByteArrayOutputStream byteArrayOutputStream = null;
+			ResponseDTO response, ResourceBundle applicationLanguageProperties) {
+		// ByteArrayOutputStream byteArrayOutputStream = null;
 
-		templateValues.put(RegistrationConstants.TEMPLATE_ACKNOWLEDGEMENT, RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
+		templateValues.put(RegistrationConstants.TEMPLATE_ACKNOWLEDGEMENT,
+				RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
 
 		templateValues.put(RegistrationConstants.TEMPLATE_PRE_REG, RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
-		if(registration.getPreRegistrationId() != null) {
+		if (registration.getPreRegistrationId() != null) {
 			templateValues.put(RegistrationConstants.TEMPLATE_PRE_REG, RegistrationConstants.EMPTY);
 			templateValues.put(RegistrationConstants.TEMPLATE_PRE_REG_ID_USER_LANG_LABEL,
 					applicationLanguageProperties.getString("preRegistrationId"));
@@ -794,7 +847,8 @@ public class TemplateGenerator extends BaseService {
 			templateValues.put(RegistrationConstants.TEMPLATE_PRE_REG_ID, registration.getPreRegistrationId());
 		}
 
-		templateValues.put(RegistrationConstants.TEMPLATE_UIN_UPDATE, RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
+		templateValues.put(RegistrationConstants.TEMPLATE_UIN_UPDATE,
+				RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
 		if (registration.getDemographics().get("UIN") != null) {
 			templateValues.put(RegistrationConstants.TEMPLATE_UIN_UPDATE, RegistrationConstants.EMPTY);
 			templateValues.put(RegistrationConstants.TEMPLATE_UIN_USER_LANG_LABEL,
@@ -826,8 +880,8 @@ public class TemplateGenerator extends BaseService {
 	}
 
 	private void setUpAcknowledgementContent(RegistrationDTO registration, Map<String, Object> templateValues,
-											 ResponseDTO response, ResourceBundle applicationLanguageProperties) {
-		//ByteArrayOutputStream byteArrayOutputStream = null;
+			ResponseDTO response, ResourceBundle applicationLanguageProperties) {
+		// ByteArrayOutputStream byteArrayOutputStream = null;
 
 		templateValues.put(RegistrationConstants.TEMPLATE_PREVIEW, RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
 		templateValues.put(RegistrationConstants.TEMPLATE_RID_USER_LANG_LABEL,
@@ -836,7 +890,8 @@ public class TemplateGenerator extends BaseService {
 				getSecondaryLanguageLabel("registrationid"));
 		templateValues.put(RegistrationConstants.TEMPLATE_RID, registration.getRegistrationId());
 
-		templateValues.put(RegistrationConstants.TEMPLATE_UIN_UPDATE, RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
+		templateValues.put(RegistrationConstants.TEMPLATE_UIN_UPDATE,
+				RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
 		templateValues.put(RegistrationConstants.TEMPLATE_HEADER_TABLE, RegistrationConstants.TEMPLATE_HEADER_TABLE);
 
 		if (registration.getDemographics().get("UIN") != null) {
@@ -855,7 +910,7 @@ public class TemplateGenerator extends BaseService {
 	}
 
 	private void generateQRCode(RegistrationDTO registration, Map<String, Object> templateValues, ResponseDTO response,
-								ResourceBundle applicationLanguageProperties) {
+			ResourceBundle applicationLanguageProperties) {
 		StringBuilder qrCodeString = new StringBuilder();
 
 		qrCodeString.append(applicationLanguageProperties.getString("registrationid")).append(" : ").append("\n")
@@ -873,8 +928,6 @@ public class TemplateGenerator extends BaseService {
 		}
 	}
 
-
-
 	/**
 	 * This method generates the content that will be sent to the applicant via
 	 * email/SMS after a successful registration.
@@ -889,19 +942,18 @@ public class TemplateGenerator extends BaseService {
 	 * Returns the generated content in string format.
 	 * </p>
 	 *
-	 * @param templateText
-	 *            - string which contains the data of template that is used to
-	 *            generate notification
-	 * @param registration
-	 *            - RegistrationDTO to display required fields on the template
-	 * @param templateManagerBuilder
-	 *            - The Builder which generates template by mapping values to
-	 *            respective place-holders in template
+	 * @param templateText           - string which contains the data of template
+	 *                               that is used to generate notification
+	 * @param registration           - RegistrationDTO to display required fields on
+	 *                               the template
+	 * @param templateManagerBuilder - The Builder which generates template by
+	 *                               mapping values to respective place-holders in
+	 *                               template
 	 * @return writer - After mapping all the fields into the template, it is
 	 *         written into a StringWriter and returned
 	 */
 	public Writer generateNotificationTemplate(String templateText, RegistrationDTO registration,
-											   TemplateManagerBuilder templateManagerBuilder) {
+			TemplateManagerBuilder templateManagerBuilder) {
 
 		try {
 			String applicationLanguageCode = ApplicationContext.applicationLanguage().toLowerCase();
@@ -913,7 +965,7 @@ public class TemplateGenerator extends BaseService {
 			values.put(RegistrationConstants.TEMPLATE_DATE, currentDate);
 			values.put(RegistrationConstants.TEMPLATE_RID, registration.getRegistrationId());
 
-			for(String key : registration.getDemographics().keySet()) {
+			for (String key : registration.getDemographics().keySet()) {
 				String value = getValueForTemplate(registration.getDemographics().get(key), applicationLanguageCode);
 				values.put(key.toUpperCase(), value);
 			}
@@ -935,7 +987,6 @@ public class TemplateGenerator extends BaseService {
 		}
 	}
 
-
 	@SuppressWarnings("unchecked")
 	private String getValueForTemplate(Object fieldValue, String lang) {
 		String value = RegistrationConstants.EMPTY;
@@ -948,7 +999,6 @@ public class TemplateGenerator extends BaseService {
 				value = demoValueInRequiredLang.get().getValue();
 			}
 		}
-
 
 		else if (fieldValue instanceof String || fieldValue instanceof Integer || fieldValue instanceof BigInteger
 				|| fieldValue instanceof Double) {
@@ -1000,9 +1050,9 @@ public class TemplateGenerator extends BaseService {
 			value = String.valueOf(fieldValue);
 		} else {
 
-			if(null!=fieldValue) {
+			if (null != fieldValue) {
 				@SuppressWarnings("unchecked")
-				List<SimpleDto> valueList=(List<SimpleDto>) fieldValue;
+				List<SimpleDto> valueList = (List<SimpleDto>) fieldValue;
 				value = valueList.get(0).getValue();
 			}
 		}
