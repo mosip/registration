@@ -1322,7 +1322,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 									byte[] byteimage = (bioService.isMdmEnabled()) ? streamer.getStreamImageBytes()
 											: null;
-									if (isFace(currentModality)) {
+									if (isFace(currentModality) && bioService.isMdmEnabled()) {
 										byteimage = extractFaceImageData(
 												registrationDTOBiometricsList.get(0).getAttributeISO());
 									}
@@ -1907,7 +1907,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 	}
 
 	public void addBioStreamImage(String subType, String modality, int attempt, byte[] streamImage) throws IOException {
-		if (streamImage == null) {
+		if (streamImage == null && !bioService.isMdmEnabled()) {
 			String imagePath = getStubStreamImagePath(modality);
 			STREAM_IMAGES.put(String.format("%s_%s_%s", subType, modality, attempt),
 					new Image(this.getClass().getResourceAsStream(imagePath)));
