@@ -5,8 +5,18 @@ import lombok.Data;
 @Data
 public class BaseAuthRequestDTO {
 
-	private boolean consentObtained = true;
-	
+	/** The value for Id*/
 	private String id;
+
+	/** The value for version*/
+	private String version;
+
+	private String specVersion;
+
+	private String thumbprint;
+
+	private String domainUri;
+
+	private String env;
 	
 }

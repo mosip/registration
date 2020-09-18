@@ -3,7 +3,6 @@ package io.mosip.registration.processor.packet.uploader.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.kernel.core.exception.ExceptionUtils;
-import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.HMACUtils;
 import io.mosip.kernel.core.virusscanner.exception.VirusScannerException;
@@ -33,6 +32,7 @@ import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
 import io.mosip.registration.processor.packet.manager.utils.ZipUtils;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.packet.uploader.archiver.util.PacketArchiver;
 import io.mosip.registration.processor.packet.uploader.exception.PacketNotFoundException;
 import io.mosip.registration.processor.packet.uploader.service.PacketUploaderService;
@@ -86,6 +86,9 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 
     @Value("${packet.manager.account.name}")
     private String packetManagerAccount;
+
+    @Autowired
+    private Utilities utility;
 
     /**
      * the packet extension(Ex - .zip)
@@ -476,7 +479,8 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
         try {
             for (Map.Entry<String, InputStream> entry : sourcePackets.entrySet()) {
                 if (entry.getKey().endsWith(ZIP)) {
-                    boolean result = objectStoreAdapter.putObject(packetManagerAccount, registrationId, entry.getKey().replace(ZIP, ""), entry.getValue());
+                    boolean result = objectStoreAdapter.putObject(packetManagerAccount, registrationId,
+                            utility.getDefaultSource(), dto.getRegistrationType(), entry.getKey().replace(ZIP, ""), entry.getValue());
                     if (!result)
                         throw new ObjectStoreNotAccessibleException("Failed to store packet : " + entry.getKey());
                 }
@@ -488,7 +492,8 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                     byte[] bytearray = IOUtils.toByteArray(entry.getValue());
                     String jsonString = new String(bytearray);
                     LinkedHashMap<String, Object> currentIdMap = (LinkedHashMap<String, Object>) mapper.readValue(jsonString, LinkedHashMap.class);
-                    objectStoreAdapter.addObjectMetaData(packetManagerAccount, registrationId, entry.getKey().replace(JSON, ""), currentIdMap);
+                    objectStoreAdapter.addObjectMetaData(packetManagerAccount, registrationId,
+                            utility.getDefaultSource(), dto.getRegistrationType(), entry.getKey().replace(JSON, ""), currentIdMap);
                 }
             }
         } catch (Exception e) {

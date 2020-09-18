@@ -67,6 +67,11 @@
 			<version>${packet.manager.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>io.mosip.registrationprocessor</groupId>
+			<artifactId>registration-processor-info-storage-service</artifactId>
+			<version>${packet.info.storage.service.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
