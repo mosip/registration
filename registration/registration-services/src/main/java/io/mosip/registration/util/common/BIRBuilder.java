@@ -1,5 +1,8 @@
 package io.mosip.registration.util.common;
 
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
+
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -26,7 +29,9 @@ import io.mosip.kernel.core.cbeffutil.jaxbclasses.QualityType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleAnySubtypeType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
+import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.registration.config.AppConfig;
 
 @Component
 public class BIRBuilder {
@@ -36,17 +41,30 @@ public class BIRBuilder {
 
 	private static SecureRandom random = new SecureRandom(String.valueOf(5000).getBytes());
 
+	private static final Logger LOGGER = AppConfig.getLogger(BIRBuilder.class);
+
 	public BIR buildBIR(byte[] bdb, double qualityScore, SingleType singleType, String bioAttribute) {
 
+		LOGGER.debug("BIRBUILDER", APPLICATION_NAME, APPLICATION_ID,
+				"started building BIR for for bioAttribute : " + bioAttribute);
+
+		LOGGER.debug("BIRBUILDER", APPLICATION_NAME, APPLICATION_ID,
+				"started building BIR format for for bioAttribute : " + bioAttribute);
 		// Format
 		RegistryIDType birFormat = new RegistryIDType();
 		birFormat.setOrganization(PacketManagerConstants.CBEFF_DEFAULT_FORMAT_ORG);
 		birFormat.setType(String.valueOf(Biometric.getFormatType(singleType)));
 
+		LOGGER.debug("BIRBUILDER", APPLICATION_NAME, APPLICATION_ID,
+				"started building BIR algorithm for for bioAttribute : " + bioAttribute);
+
 		// Algorithm
 		RegistryIDType birAlgorithm = new RegistryIDType();
 		birAlgorithm.setOrganization(PacketManagerConstants.CBEFF_DEFAULT_ALG_ORG);
 		birAlgorithm.setType(PacketManagerConstants.CBEFF_DEFAULT_ALG_TYPE);
+
+		LOGGER.debug("BIRBUILDER", APPLICATION_NAME, APPLICATION_ID,
+				"started building Quality type for for bioAttribute : " + bioAttribute);
 
 		// Quality Type
 		QualityType qualityType = new QualityType();
