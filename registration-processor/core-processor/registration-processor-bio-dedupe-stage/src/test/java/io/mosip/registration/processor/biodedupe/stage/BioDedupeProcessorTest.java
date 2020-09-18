@@ -553,6 +553,31 @@ public class BioDedupeProcessorTest {
 
 		assertFalse(messageDto.getInternalError());
 	}
+	
+	@Test
+	public void testPacketValidationSingleDemoMatch() throws Exception {
+		registrationStatusDto.setRegistrationId("reg1234");
+		registrationStatusDto.setRegistrationType("LOST");
+		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
+		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
+		List<String> matchedRidList = new ArrayList<>();
+		matchedRidList.add("27847657360002520190320095010");
+		matchedRidList.add("27847657360002520190320095011");
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), any())).thenReturn(matchedRidList);
+
+		JSONObject obj1 = new JSONObject();
+		obj1.put("dateOfBirth", "2016/01/01");
+
+		JSONObject obj2 = new JSONObject();
+		obj2.put("dateOfBirth", "2016/01/02");
+		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn(IDENTITY);
+		Mockito.when(idRepoService.getIdJsonFromIDRepo("27847657360002520190320095010", IDENTITY)).thenReturn(obj1);
+		Mockito.when(idRepoService.getIdJsonFromIDRepo("27847657360002520190320095011", IDENTITY)).thenReturn(obj2);
+		Mockito.when(packetManagerService.getField("reg1234","dob","reg-client", "LOST")).thenReturn("2016/01/01");
+		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
+
+		assertFalse(messageDto.getInternalError());
+	}
 
 	@SuppressWarnings("unchecked")
 	@Test

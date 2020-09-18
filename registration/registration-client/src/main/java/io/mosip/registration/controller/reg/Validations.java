@@ -114,14 +114,12 @@ public class Validations extends BaseController {
 	/**
 	 * Iterate the fields to invoke the validate.
 	 *
-	 * @param pane
-	 *            the {@link Pane} containing the fields
-	 * @param notTovalidate
-	 *            the {@link List} of UI fields not be validated
-	 * @param isValid
-	 *            the flag indicating whether validation is success or fail
-	 * @param isConsolidated
-	 *            the flag to indicate for displaying consolidated message
+	 * @param pane           the {@link Pane} containing the fields
+	 * @param notTovalidate  the {@link List} of UI fields not be validated
+	 * @param isValid        the flag indicating whether validation is success or
+	 *                       fail
+	 * @param isConsolidated the flag to indicate for displaying consolidated
+	 *                       message
 	 * @return true, if successful
 	 */
 	public boolean validateTheFields(Pane pane, List<String> notTovalidate, boolean isValid) {
@@ -140,8 +138,7 @@ public class Validations extends BaseController {
 	/**
 	 * To mark as lost UIN for demographic fields validation.
 	 *
-	 * @param isLostUIN
-	 *            the flag indicating whether work flow is for Lost UIN
+	 * @param isLostUIN the flag indicating whether work flow is for Lost UIN
 	 */
 	protected void updateAsLostUIN(boolean isLostUIN) {
 		this.isLostUIN = isLostUIN;
@@ -154,10 +151,8 @@ public class Validations extends BaseController {
 	/**
 	 * To decide whether this node should be validated or not.
 	 *
-	 * @param notTovalidate
-	 *            the {@link list} of fields not be validated
-	 * @param node
-	 *            the {@link Node} to be checked
+	 * @param notTovalidate the {@link list} of fields not be validated
+	 * @param node          the {@link Node} to be checked
 	 * @return true, if successful
 	 */
 	private boolean nodeToValidate(List<String> notTovalidate, Node node) {
@@ -173,15 +168,12 @@ public class Validations extends BaseController {
 	 * Validate the UI fields. Fetch the {@link BlacklistedWords} for application
 	 * specific and secondary specific languages.
 	 *
-	 * @param pane
-	 *            the {@link Pane} containing the UI Fields to be validated
-	 * @param notTovalidate
-	 *            the {@link List} of fields not be validated
-	 * @param isValid
-	 *            the flag to indicating the status of validation
-	 * @param masterSync
-	 *            the instance of {@link MasterSyncService} for fetching
-	 *            {@link BlacklistedWords}
+	 * @param pane          the {@link Pane} containing the UI Fields to be
+	 *                      validated
+	 * @param notTovalidate the {@link List} of fields not be validated
+	 * @param isValid       the flag to indicating the status of validation
+	 * @param masterSync    the instance of {@link MasterSyncService} for fetching
+	 *                      {@link BlacklistedWords}
 	 * @return true, if successful
 	 */
 	public boolean validate(Pane pane, List<String> notTovalidate, boolean isValid, MasterSyncService masterSync) {
@@ -203,14 +195,12 @@ public class Validations extends BaseController {
 	 * Pass the node to check for the validation, specific validation method will be
 	 * called for each field.
 	 *
-	 * @param parentPane
-	 *            the {@link Pane} containing the UI Fields to be validated
-	 * @param node
-	 *            the {@link Node} to be validated
-	 * @param id
-	 *            the id of the field to be validated
-	 * @param isConsolidated
-	 *            the flag to indicate for displaying consolidated message
+	 * @param parentPane     the {@link Pane} containing the UI Fields to be
+	 *                       validated
+	 * @param node           the {@link Node} to be validated
+	 * @param id             the id of the field to be validated
+	 * @param isConsolidated the flag to indicate for displaying consolidated
+	 *                       message
 	 * @return true, if successful
 	 */
 	public boolean validateTheNode(Pane parentPane, Node node, String id, boolean isPreviousValid) {
@@ -260,14 +250,11 @@ public class Validations extends BaseController {
 	/**
 	 * Validate for the TextField.
 	 *
-	 * @param parentPane
-	 *            the {@link Pane} containing the fields
-	 * @param node
-	 *            the {@link Node} to be validated
-	 * @param id
-	 *            the id of the UI field
-	 * @param isConsolidated
-	 *            the flag to indicate for displaying consolidated message
+	 * @param parentPane     the {@link Pane} containing the fields
+	 * @param node           the {@link Node} to be validated
+	 * @param id             the id of the UI field
+	 * @param isConsolidated the flag to indicate for displaying consolidated
+	 *                       message
 	 * @return true, if successful
 	 */
 	public boolean validateTextField(Pane parentPane, TextField node, String id, boolean isPreviousValid) {
@@ -283,14 +270,11 @@ public class Validations extends BaseController {
 	/**
 	 * Language specific validation of text field
 	 *
-	 * @param parentPane
-	 *            the {@link Pane} containing the fields
-	 * @param node
-	 *            the {@link Node} to be validated
-	 * @param id
-	 *            the id of the UI field
-	 * @param isConsolidated
-	 *            the flag to indicate for displaying consolidated message
+	 * @param parentPane     the {@link Pane} containing the fields
+	 * @param node           the {@link Node} to be validated
+	 * @param id             the id of the UI field
+	 * @param isConsolidated the flag to indicate for displaying consolidated
+	 *                       message
 	 * @return true, if successful
 	 */
 	// TODO validate for UIN and RID based on subtype
@@ -332,6 +316,15 @@ public class Validations extends BaseController {
 								showAlert);
 						if (isPreviousValid && !id.contains(RegistrationConstants.ON_TYPE)) {
 							addInvalidInputStyleClass(parentPane, node, true);
+						}
+					} else {
+						
+						/** Remove Error message for fields */
+						Label messageLable = ((Label) (parentPane
+								.lookup(RegistrationConstants.HASH + id + RegistrationConstants.MESSAGE)));
+
+						if (messageLable != null) {
+							messageLable.setText(RegistrationConstants.EMPTY);
 						}
 					}
 					break;
@@ -555,14 +548,13 @@ public class Validations extends BaseController {
 	/**
 	 * Validates the Parent or Guardian's UIN or RID UI Field
 	 * 
-	 * @param field
-	 *            the {@link TextField} to be validated
-	 * @param isChild
-	 *            the flag to determine whether the individual or applicant is child
-	 * @param uinValidator
-	 *            the instance of {@link UinValidator} required to validate the UIN
-	 * @param ridValidator
-	 *            the instance of {@link RidValidator} required to validate the RID
+	 * @param field        the {@link TextField} to be validated
+	 * @param isChild      the flag to determine whether the individual or applicant
+	 *                     is child
+	 * @param uinValidator the instance of {@link UinValidator} required to validate
+	 *                     the UIN
+	 * @param ridValidator the instance of {@link RidValidator} required to validate
+	 *                     the RID
 	 * @return <code>true</code> if UIN or RID is valid, else <code>false</code>
 	 */
 	/*
@@ -647,10 +639,8 @@ public class Validations extends BaseController {
 	/**
 	 * Validate for the single string.
 	 *
-	 * @param value
-	 *            the value to be validated
-	 * @param id
-	 *            the id of the UI field whose value is provided as input
+	 * @param value the value to be validated
+	 * @param id    the id of the UI field whose value is provided as input
 	 * @return <code>true</code>, if successful, else <code>false</code>
 	 */
 	public boolean validateSingleString(String value, String id) {
@@ -670,8 +660,7 @@ public class Validations extends BaseController {
 	/**
 	 * Set for child.
 	 *
-	 * @param isChild
-	 *            the new child
+	 * @param isChild the new child
 	 */
 	public void setChild(boolean isChild) {
 		this.isChild = isChild;
