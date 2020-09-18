@@ -89,7 +89,7 @@ import io.mosip.registration.validator.RegIdObjectMasterDataValidator;
  * registration data to create packet out of it and save the encrypted packet
  * data in the configured local system
  * 
- * @author Balaji Sridharan
+ * @author Balaji Sridharanha
  * @since 1.0.0
  *
  */
@@ -115,9 +115,6 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 	@Autowired
 	private IdentitySchemaService identitySchemaService;
-
-	// @Autowired
-	// private PacketCreator packetCreator;
 
 	@Autowired
 	private PacketWriter packetWriter;
@@ -150,7 +147,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 	private ObjectMapper objectMapper = new ObjectMapper();
 
-	@Value("${objectstore.packet.account}")
+	@Value("${packet.manager.account.name}")
 	private String packetManagerAccount;
 
 	@Value("${object.store.base.location}")
@@ -186,28 +183,51 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		}
 
 		try {
-			SchemaDto schema = identitySchemaService.getIdentitySchema(registrationDTO.getIdSchemaVersion());
 
+			LOGGER.info(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "Fetching schema started");
+			SchemaDto schema = identitySchemaService.getIdentitySchema(registrationDTO.getIdSchemaVersion());
+			LOGGER.info(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "Fetching schema completed");
 			// packetCreator.initialize();
 
 			Map<String, String> metaInfoMap = new LinkedHashMap<>();
 
+			LOGGER.info(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "Adding demographics to packet manager");
 			setDemographics(registrationDTO, schema);
 
+			LOGGER.info(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "Adding Documents to packet manager");
+
 			setDocuments(registrationDTO, metaInfoMap);
+			LOGGER.info(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "Adding Biometrics to packet manager");
+
 			setBiometrics(registrationDTO, schema, metaInfoMap);
+
+			LOGGER.info(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID,
+					"Adding officer Biometrics to packet manager");
 
 			setOperatorBiometrics(registrationDTO.getRegistrationId(), registrationDTO.getRegistrationCategory(),
 					registrationDTO.getOfficerBiometrics(), officerBiometricsFileName);
 
+			LOGGER.info(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID,
+					"Adding supervisor Biometrics to packet manager");
+
 			setOperatorBiometrics(registrationDTO.getRegistrationId(), registrationDTO.getRegistrationCategory(),
 					registrationDTO.getSupervisorBiometrics(), supervisorBiometricsFileName);
+
+			LOGGER.info(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "Adding Audits to packet manager");
+
 			setAudits(registrationDTO);
+
+			LOGGER.info(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "preparing Meta info");
 
 			setMetaInfo(registrationDTO, metaInfoMap);
 
+			LOGGER.info(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "Adding Meta info to packet manager");
+
 			packetWriter.addMetaInfo(registrationDTO.getRegistrationId(), metaInfoMap, source,
 					registrationDTO.getRegistrationCategory());
+
+			LOGGER.info(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID,
+					"Requesting packet manager to persist packet");
 
 			packetWriter.persistPacket(registrationDTO.getRegistrationId(),
 					String.valueOf(registrationDTO.getIdSchemaVersion()), schema.getSchemaJson(), source,
@@ -219,6 +239,11 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 			String filePath = baseLocation + SLASH + packetManagerAccount + SLASH + registrationDTO.getRegistrationId();
 
+			LOGGER.info(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID,
+					"created packet at the location : " + filePath);
+
+			LOGGER.info(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "Saving registration info in DB");
+
 			registrationDAO.save(filePath, registrationDTO);
 
 			SuccessResponseDTO successResponseDTO = new SuccessResponseDTO();
@@ -228,14 +253,25 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			auditFactory.audit(AuditEvent.PACKET_CREATION_SUCCESS, Components.PACKET_HANDLER,
 					registrationDTO.getRegistrationId(), AuditReferenceIdTypes.REGISTRATION_ID.getReferenceTypeId());
 
-		} catch (RegBaseCheckedException e) {
-			LOGGER.error(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(e));
+		} catch (RegBaseCheckedException regBaseCheckedException) {
+			LOGGER.error(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID,
+					"Exception while creating packet " + ExceptionUtils.getStackTrace(regBaseCheckedException));
 
 			auditFactory.audit(AuditEvent.PACKET_INTERNAL_ERROR, Components.PACKET_HANDLER,
 					registrationDTO.getRegistrationId(), AuditReferenceIdTypes.REGISTRATION_ID.getReferenceTypeId());
 
-			errorResponseDTO.setCode(e.getErrorCode());
-			errorResponseDTO.setMessage(e.getErrorText());
+			errorResponseDTO.setCode(regBaseCheckedException.getErrorCode());
+			errorResponseDTO.setMessage(regBaseCheckedException.getErrorText());
+			responseDTO.getErrorResponseDTOs().add(errorResponseDTO);
+		} catch (Exception exception) {
+			LOGGER.error(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID,
+					"Exception while creating packet " + ExceptionUtils.getStackTrace(exception));
+
+			auditFactory.audit(AuditEvent.PACKET_INTERNAL_ERROR, Components.PACKET_HANDLER,
+					registrationDTO.getRegistrationId(), AuditReferenceIdTypes.REGISTRATION_ID.getReferenceTypeId());
+
+			errorResponseDTO.setCode(exception.getMessage());
+			errorResponseDTO.setMessage(exception.getMessage());
 			responseDTO.getErrorResponseDTOs().add(errorResponseDTO);
 		}
 		LOGGER.info(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "Registration Handler had been ended");
@@ -245,6 +281,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 	private void setOperatorBiometrics(String registrationId, String registrationCategory,
 			List<BiometricsDto> operatorBiometrics, String fileName) {
+		LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "Adding operator biometrics :  " + fileName);
 
 		/** Operator/officer/supervisor Biometrics */
 		if (!operatorBiometrics.isEmpty()) {
@@ -259,6 +296,9 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 				// TODO set version type,bir info
 				biometricRecord.setSegments(list);
 
+				LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID,
+						"Adding operator biometrics to packet manager :  " + fileName);
+
 				packetWriter.setBiometric(registrationId, fileName, biometricRecord, source, registrationCategory);
 			}
 		}
@@ -268,12 +308,15 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 	private void setMetaInfo(RegistrationDTO registrationDTO, Map<String, String> metaInfoMap)
 			throws RegBaseCheckedException {
 
+		LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "Adding registered devices to meta info");
+
 		addRegisteredDevices(metaInfoMap);
 
-		// TODO add others
-
+		LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "Adding operations data to meta info");
 		setOperationsData(metaInfoMap, registrationDTO);
 
+
+		LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "Adding other info to meta info");
 		setOthersMetaInfo(metaInfoMap, registrationDTO);
 
 		setMetaData(metaInfoMap, registrationDTO);
@@ -397,6 +440,8 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		Map<String, Object> demographics = registrationDTO.getDemographics();
 
 		for (String fieldName : demographics.keySet()) {
+			LOGGER.info(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID,
+					"Adding demographics for field : " + fieldName);
 			switch (registrationDTO.getRegistrationCategory()) {
 			case RegistrationConstants.PACKET_TYPE_UPDATE:
 				if (demographics.get(fieldName) != null && registrationDTO.getUpdatableFields().contains(fieldName))
@@ -468,6 +513,9 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 	private void setBiometrics(RegistrationDTO registrationDTO, SchemaDto schema, Map<String, String> metaInfoMap)
 			throws RegBaseCheckedException {
+
+		LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "Adding biometrics to packet manager ");
+
 		List<UiSchemaDTO> biometricFields = schema.getSchema().stream()
 				.filter(field -> PacketManagerConstants.BIOMETRICS_DATATYPE.equals(field.getType())
 						&& field.getSubType() != null && field.getBioAttributes() != null)
@@ -501,6 +549,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 				if (biometrics.containsKey(key)) {
 
+					LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "Getting BIR for " + key);
 					BIR bir = getBIR(biometrics.get(key));
 					BiometricsDto biometricsDto = biometrics.get(key);
 
@@ -529,6 +578,8 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			// TODO set version type,bir info
 			biometricRecord.setSegments(list);
 
+			LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID,
+					"Adding biometric to packet manager for field : " + biometricField.getId());
 			packetWriter.setBiometric(registrationDTO.getRegistrationId(), biometricField.getId(), biometricRecord,
 					source, registrationDTO.getRegistrationCategory());
 
@@ -647,6 +698,9 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 	private void setField(String registrationId, String fieldName, Object value, String process, String source)
 			throws RegBaseCheckedException {
+
+		LOGGER.info(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID,
+				"Adding demographics to packet manager for field : " + fieldName);
 
 		packetWriter.setField(registrationId, fieldName, getValueAsString(value), source, process);
 
