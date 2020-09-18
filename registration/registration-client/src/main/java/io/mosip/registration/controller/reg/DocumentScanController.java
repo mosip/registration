@@ -39,6 +39,7 @@ import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.FXUtils;
 import io.mosip.registration.controller.device.BiometricsController;
 import io.mosip.registration.controller.device.ScanPopUpViewController;
+import io.mosip.registration.device.scanner.dto.ScanDevice;
 import io.mosip.registration.device.webcam.impl.WebcamSarxosServiceImpl;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
@@ -162,6 +163,8 @@ public class DocumentScanController extends BaseController {
 
 	@Autowired
 	private WebcamSarxosServiceImpl webcamSarxosServiceImpl;
+	
+	private String selectedScanDeviceName;
 
 	private Webcam webcam;
 
@@ -279,7 +282,37 @@ public class DocumentScanController extends BaseController {
 	 */
 	@SuppressWarnings("unchecked")
 	private <T> void prepareDocumentScanSection(List<UiSchemaDTO> documentFields) {
-
+		if (RegistrationConstants.YES
+				.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.DOC_SCANNER_ENABLED))) {
+			HBox scannerHbox = new HBox();
+			scannerHbox.setStyle("-fx-padding: 10;");
+			Label selectScannerLabel = new Label();
+			selectScannerLabel.setWrapText(true);
+			selectScannerLabel.setText(RegistrationUIConstants.SELECTED_SCANNER);
+			selectScannerLabel.setPrefWidth(180);
+			selectScannerLabel.getStyleClass().add(RegistrationConstants.BUTTONS_LABEL);
+			ComboBox<String> scannerComboBox = new ComboBox<>();
+			scannerComboBox.setPrefWidth(docScanVbox.getWidth() / 2);
+			scannerComboBox.getStyleClass().add(RegistrationConstants.DOC_COMBO_BOX);
+			scannerComboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
+				selectedScanDeviceName = newValue; 
+			});
+			if (documentScanFacade.setScannerFactory()) {
+				List<ScanDevice> scannerDevices = documentScanFacade.getDevices();
+				if (scannerDevices.isEmpty()) {
+					scannerComboBox.setPromptText(RegistrationUIConstants.NO_SCANNER_FOUND);
+					scannerComboBox.setDisable(true);
+				} else {
+					List<String> deviceNames = scannerDevices.stream().map(device -> device.getName()).collect(Collectors.toList());
+					scannerComboBox.getItems().addAll(deviceNames);
+					scannerComboBox.getSelectionModel().selectFirst();
+					selectedScanDeviceName = scannerComboBox.getSelectionModel().getSelectedItem();
+				}
+			}			
+			scannerHbox.getChildren().addAll(selectScannerLabel, scannerComboBox);
+			docScanVbox.getChildren().add(scannerHbox);
+		}
+		
 		/* show the scan doc info label for format and size */
 		Label fileSizeInfoLabel = new Label();
 		fileSizeInfoLabel.setWrapText(true);
@@ -618,7 +651,7 @@ public class DocumentScanController extends BaseController {
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOCUMENT_CONNECTION_ERR);
 			return;
 		}
-		if (!documentScanFacade.isConnected()) {
+		if (selectedScanDeviceName == null || selectedScanDeviceName.isEmpty()) {
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOCUMENT_CONNECTION_ERR);
 			return;
 		}
@@ -634,7 +667,7 @@ public class DocumentScanController extends BaseController {
 			webcamSarxosServiceImpl.close(webcam);
 			scanPopUpViewController.setDefaultImageGridPaneVisibility();
 		} else {
-			bufferedImage = documentScanFacade.getScannedDocumentFromScanner();
+			bufferedImage = documentScanFacade.getScannedDocumentFromScanner(selectedScanDeviceName);
 		}
 
 		if (bufferedImage == null) {
