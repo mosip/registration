@@ -17,14 +17,14 @@ import java.util.stream.IntStream;
 import javax.crypto.SecretKey;
 import javax.xml.parsers.ParserConfigurationException;
 
+import io.mosip.kernel.crypto.jce.core.CryptoCore;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.util.CollectionUtils;
-import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -94,6 +94,9 @@ public class AuthUtil {
 	@Value("${registration.processor.application.id}")
 	private String applicationId;
 
+	@Value("${mosipbox.public.url:null}")
+	private String domainUrl;
+
 	@Autowired
 	private Environment env;
 
@@ -114,6 +117,8 @@ public class AuthUtil {
 		authRequestDTO.setVersion(VERSION);
 		authRequestDTO.setRequestTime(DateUtils.getUTCCurrentDateTimeString());
 		authRequestDTO.setTransactionID(DUMMY_TRANSACTION_ID);
+		authRequestDTO.setEnv(domainUrl);
+		authRequestDTO.setDomainUri(domainUrl);
 
 		AuthTypeDTO authType = new AuthTypeDTO();
 		authType.setBio(Boolean.TRUE);
@@ -146,8 +151,7 @@ public class AuthUtil {
 				HMACUtils.digestAsPlainText(HMACUtils.generateHash(identityBlock.getBytes())).getBytes(), null);
 		authRequestDTO.setRequestHMAC(Base64.encodeBase64String(byteArray));
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), individualId,
-				"AuthUtil::authByIdAuthentication()::INTERNALAUTH POST service call started with request data "
-						+ JsonUtil.objectMapperObjectToJson(authRequestDTO));
+				"AuthUtil::authByIdAuthentication()::INTERNALAUTH POST service call started");
 		AuthResponseDTO response;
 		response = (AuthResponseDTO) registrationProcessorRestClientService.postApi(ApiName.INTERNALAUTH, null, null,
 				authRequestDTO, AuthResponseDTO.class, MediaType.APPLICATION_JSON);
@@ -193,6 +197,8 @@ public class AuthUtil {
 			for (BIR bir : list) {
 				BioInfo bioInfo = new BioInfo();
 				DataInfoDTO dataInfoDTO = new DataInfoDTO();
+				dataInfoDTO.setEnv(domainUrl);
+				dataInfoDTO.setDomainUri(domainUrl);
 				BIR birApiResponse = CbeffToBiometricUtil.extractTemplate(bir, null);
 
 				dataInfoDTO.setBioType(birApiResponse.getBdbInfo().getType().get(0).toString());
@@ -203,7 +209,7 @@ public class AuthUtil {
 					dataInfoDTO.setBioSubType(FACE);
 				else
 					dataInfoDTO.setBioSubType(bioSubTypeValue);
-				String timeStamp = DateUtils.getUTCCurrentDateTimeString();
+				String timeStamp = DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN));
 				SplittedEncryptedData splittedEncryptData = getSessionKey(timeStamp, birApiResponse.getBdb());
 				dataInfoDTO.setBioValue(splittedEncryptData.getEncryptedData());
 				dataInfoDTO.setTimestamp(timeStamp);
@@ -220,7 +226,7 @@ public class AuthUtil {
 						.digestAsPlainText(HMACUtils.generateHash(concatenatedHash.toString().getBytes()));
 				bioInfo.setHash(finalHash);
 				bioInfo.setSessionKey(splittedEncryptData.getEncryptedSessionKey());
-				bioInfo.setSignature("");
+				bioInfo.setThumbprint("");
 				biometrics.add(bioInfo);
 				previousHash = finalHash;
 			}

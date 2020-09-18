@@ -5,12 +5,18 @@ import lombok.Data;
 @Data
 public class BioInfo {
 
+	/** The Value for data */
 	private String data;
 
+	/** The Value for hash */
 	private String hash;
 
+	/** The Value for sessionKey */
 	private String sessionKey;
 
-	private String signature;
+	private String specVersion;
+
+	/** The Value for signature */
+	private String thumbprint;
 
 }
