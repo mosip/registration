@@ -26,6 +26,7 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
 import io.mosip.registration.processor.packet.manager.utils.ZipUtils;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -123,6 +124,9 @@ public class PacketUploaderServiceTest {
 	
 	@Mock
 	private LogDescription description;
+
+	@Mock
+	private Utilities utility;
 	
 	@Mock
 	private RegistrationExceptionMapperUtil registrationStatusMapperUtil;
@@ -175,8 +179,8 @@ public class PacketUploaderServiceTest {
 		Mockito.when(description.getMessage()).thenReturn("hello");
 		Mockito.when(registrationProcessorRestService.getApi(
 				any(), anyList(), anyString(), any(), any())).thenReturn(new byte[2]);
-		Mockito.when(objectStoreAdapter.putObject(any(), any(), any(), any())).thenReturn(true);
-		Mockito.when(objectStoreAdapter.addObjectMetaData(any(), any(), any(), any())).thenReturn(new HashMap<>());
+		Mockito.when(objectStoreAdapter.putObject(any(), any(), any(), any(), any(), any())).thenReturn(true);
+		Mockito.when(objectStoreAdapter.addObjectMetaData(any(), any(), any(), any(), any(), any())).thenReturn(new HashMap<>());
 
 		Map<String, Object> jsonObject = new LinkedHashMap<>();
 		jsonObject.put("id", "2345");
@@ -188,6 +192,7 @@ public class PacketUploaderServiceTest {
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(jsonObject);
 		PowerMockito.mockStatic(ZipUtils.class);
 		PowerMockito.when(ZipUtils.unzipAndGetFiles(any())).thenReturn(entryMap);
+		Mockito.when(utility.getDefaultSource()).thenReturn("source");
 
 	}
 
@@ -239,7 +244,7 @@ public class PacketUploaderServiceTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
 		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(is);
-		Mockito.when(objectStoreAdapter.putObject(any(), any(), any(), any())).thenThrow(FileNotFoundInDestinationException.class);
+		Mockito.when(objectStoreAdapter.putObject(any(), any(), any(), any(), any(), any())).thenThrow(FileNotFoundInDestinationException.class);
 
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
 
@@ -252,7 +257,7 @@ public class PacketUploaderServiceTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
 		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(is);
-		Mockito.when(objectStoreAdapter.putObject(any(), any(), any(), any())).thenReturn(false);
+		Mockito.when(objectStoreAdapter.putObject(any(), any(), any(), any(), any(), any())).thenReturn(false);
 
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
 		assertFalse(result.getIsValid());
@@ -293,7 +298,7 @@ public class PacketUploaderServiceTest {
 		ReflectionTestUtils.setField(packetuploaderservice, "maxRetryCount", 3);
 		Mockito.when(virusScannerService.scanFile(Mockito.any(InputStream.class))).thenReturn(Boolean.TRUE);
 		Mockito.when(decryptor.decrypt(Mockito.any(), Mockito.any())).thenReturn(is);
-		Mockito.when(objectStoreAdapter.putObject(any(),any(), any(),any())).thenReturn(false);
+		Mockito.when(objectStoreAdapter.putObject(any(),any(), any(), any(), any(),any())).thenReturn(false);
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
 		assertFalse(result.getIsValid());
 	}
