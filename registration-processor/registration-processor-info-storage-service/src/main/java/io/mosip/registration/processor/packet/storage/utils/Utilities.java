@@ -9,18 +9,10 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
-import org.apache.commons.io.IOUtils;
-import org.assertj.core.util.Lists;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -284,7 +276,7 @@ public class Utilities {
 
 	public String getDefaultSource() {
 		String[] strs = provider.split(",");
-		List<String> strList = Lists.newArrayList(strs);
+		List<String> strList = Arrays.asList(strs);
 		Optional<String> optional = strList.stream().filter(s -> s.contains(sourceStr)).findAny();
 		String source = optional.isPresent() ? optional.get().replace(sourceStr + ":", "") : null;
 		return source;
