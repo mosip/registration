@@ -273,7 +273,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 	@Value("${object.store.base.location}")
 	private String baseLocation;
 	
-	@Value("${objectstore.packet.account}")
+	@Value("${packet.manager.account.name}")
 	private String packetsLocation;
 
 	/**
