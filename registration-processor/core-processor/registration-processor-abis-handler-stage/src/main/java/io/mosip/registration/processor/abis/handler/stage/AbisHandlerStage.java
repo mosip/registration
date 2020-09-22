@@ -44,6 +44,7 @@ import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
+import io.mosip.registration.processor.packet.storage.utils.BIRConverter;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -509,7 +510,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 				MappingJsonConstants.VALUE);
 		BiometricRecord biometricRecord = packetManagerService.getBiometrics(id, individualBiometricsLabel, null, source, process);
-		byte[] content = cbeffutil.createXML(biometricRecord.getSegments());
+		byte[] content = cbeffutil.createXML(BIRConverter.convertSegmentsToBIRList(biometricRecord.getSegments()));
 
 		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 		map.add("name", individualBiometricsLabel);

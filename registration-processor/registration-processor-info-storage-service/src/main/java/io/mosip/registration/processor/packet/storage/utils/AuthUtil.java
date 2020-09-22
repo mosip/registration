@@ -15,9 +15,8 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import javax.crypto.SecretKey;
-import javax.xml.parsers.ParserConfigurationException;
 
-import io.mosip.kernel.crypto.jce.core.CryptoCore;
+import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +26,6 @@ import org.springframework.http.*;
 import org.springframework.util.CollectionUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import io.mosip.kernel.core.bioapi.exception.BiometricException;
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.kernel.core.crypto.spi.CryptoCoreSpec;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -106,7 +102,7 @@ public class AuthUtil {
 	private static final String FACE = "FACE";
 	private static final String KERNEL_KEY_SPLITTER = "mosip.kernel.data-key-splitter";
 
-	public AuthResponseDTO authByIdAuthentication(String individualId, String individualType, List<BIR> list)
+	public AuthResponseDTO authByIdAuthentication(String individualId, String individualType, List<io.mosip.kernel.biometrics.entities.BIR> list)
 			throws ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException, IOException,
 			BioTypeException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), individualId,
@@ -188,18 +184,18 @@ public class AuthUtil {
 
 	}
 
-	private List<BioInfo> getBiometricsList(List<BIR> list) throws BioTypeException {
+	private List<BioInfo> getBiometricsList(List<io.mosip.kernel.biometrics.entities.BIR> list) throws BioTypeException {
 
 		String previousHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash("".getBytes()));
 		CbeffToBiometricUtil CbeffToBiometricUtil = new CbeffToBiometricUtil();
 		List<BioInfo> biometrics = new ArrayList<>();
 		try {
-			for (BIR bir : list) {
+			for (io.mosip.kernel.biometrics.entities.BIR bir : list) {
 				BioInfo bioInfo = new BioInfo();
 				DataInfoDTO dataInfoDTO = new DataInfoDTO();
 				dataInfoDTO.setEnv(domainUrl);
 				dataInfoDTO.setDomainUri(domainUrl);
-				BIR birApiResponse = CbeffToBiometricUtil.extractTemplate(bir, null);
+				BIR birApiResponse = CbeffToBiometricUtil.extractTemplate(BIRConverter.convertToBIR(bir), null);
 
 				dataInfoDTO.setBioType(birApiResponse.getBdbInfo().getType().get(0).toString());
 				List<String> bioSubType = birApiResponse.getBdbInfo().getSubtype();

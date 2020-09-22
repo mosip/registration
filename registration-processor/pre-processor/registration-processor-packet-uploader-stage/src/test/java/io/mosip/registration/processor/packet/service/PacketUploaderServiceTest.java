@@ -26,7 +26,6 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
 import io.mosip.registration.processor.packet.manager.utils.ZipUtils;
-import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -126,9 +125,6 @@ public class PacketUploaderServiceTest {
 	private LogDescription description;
 
 	@Mock
-	private Utilities utility;
-	
-	@Mock
 	private RegistrationExceptionMapperUtil registrationStatusMapperUtil;
 
 	@Mock
@@ -192,7 +188,6 @@ public class PacketUploaderServiceTest {
 		Mockito.when(mapper.readValue(anyString(), any(Class.class))).thenReturn(jsonObject);
 		PowerMockito.mockStatic(ZipUtils.class);
 		PowerMockito.when(ZipUtils.unzipAndGetFiles(any())).thenReturn(entryMap);
-		Mockito.when(utility.getDefaultSource()).thenReturn("source");
 
 	}
 
