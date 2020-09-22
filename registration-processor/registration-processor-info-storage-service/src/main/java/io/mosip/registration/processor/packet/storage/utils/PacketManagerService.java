@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.packet.storage.utils;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -27,6 +28,7 @@ import io.mosip.registration.processor.packet.storage.exception.PacketManagerExc
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +46,11 @@ public class PacketManagerService {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @PostConstruct
+    private void setObjectMapper() {
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    }
 
 
     public String getField(String id, String field, String source, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
