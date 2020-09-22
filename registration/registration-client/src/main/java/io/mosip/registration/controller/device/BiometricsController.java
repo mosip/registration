@@ -1212,12 +1212,21 @@ public class BiometricsController extends BaseController /* implements Initializ
 			@Override
 			public void handle(WorkerStateEvent t) {
 
+				LOGGER.debug(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+						"RCapture task failed");
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.BIOMETRIC_SCANNING_ERROR);
 
+				LOGGER.debug(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+						"closing popup stage");
 				scanPopUpViewController.getPopupStage().close();
+				
+				LOGGER.debug(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+						"Enabling LogOut");
 				// Enable Auto-Logout
 				SessionContext.setAutoLogout(true);
 
+				LOGGER.debug(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+						"Setting URL Stream as null");
 				streamer.setUrlStream(null);
 			}
 		});
@@ -1225,6 +1234,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 			@Override
 			public void handle(WorkerStateEvent t) {
 
+				LOGGER.debug(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+						"RCapture task was successful");
 				try {
 					List<BiometricsDto> mdsCapturedBiometricsList = taskService.getValue();
 
