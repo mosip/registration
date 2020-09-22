@@ -32,7 +32,6 @@ import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
 import io.mosip.registration.processor.packet.manager.utils.ZipUtils;
-import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.packet.uploader.archiver.util.PacketArchiver;
 import io.mosip.registration.processor.packet.uploader.exception.PacketNotFoundException;
 import io.mosip.registration.processor.packet.uploader.service.PacketUploaderService;
@@ -54,9 +53,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -86,9 +83,6 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 
     @Value("${packet.manager.account.name}")
     private String packetManagerAccount;
-
-    @Autowired
-    private Utilities utility;
 
     /**
      * the packet extension(Ex - .zip)
@@ -480,7 +474,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
             for (Map.Entry<String, InputStream> entry : sourcePackets.entrySet()) {
                 if (entry.getKey().endsWith(ZIP)) {
                     boolean result = objectStoreAdapter.putObject(packetManagerAccount, registrationId,
-                            utility.getDefaultSource(), dto.getRegistrationType(), entry.getKey().replace(ZIP, ""), entry.getValue());
+                            null, null, entry.getKey().replace(ZIP, ""), entry.getValue());
                     if (!result)
                         throw new ObjectStoreNotAccessibleException("Failed to store packet : " + entry.getKey());
                 }
@@ -493,7 +487,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                     String jsonString = new String(bytearray);
                     LinkedHashMap<String, Object> currentIdMap = (LinkedHashMap<String, Object>) mapper.readValue(jsonString, LinkedHashMap.class);
                     objectStoreAdapter.addObjectMetaData(packetManagerAccount, registrationId,
-                            utility.getDefaultSource(), dto.getRegistrationType(), entry.getKey().replace(JSON, ""), currentIdMap);
+                            null, null, entry.getKey().replace(JSON, ""), currentIdMap);
                 }
             }
         } catch (Exception e) {
