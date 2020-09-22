@@ -26,11 +26,12 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.constant.QualityType;
+import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.QualityType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.biometrics.entities.RegistryIDType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
@@ -258,8 +259,8 @@ public class UinGeneratorStageTest {
 		when(idRepoService.getUinByRid(anyString(), anyString())).thenReturn("9403107397");
 
 		List<BIR> birTypeList = new ArrayList<>();
-		BIR birType1 = new BIR();
-		BDBInfo bdbInfoType1 = new BDBInfo();
+		BIR birType1 = new BIR.BIRBuilder().build();
+		BDBInfo bdbInfoType1 = new BDBInfo.BDBInfoBuilder().build();
 		RegistryIDType registryIDType = new RegistryIDType();
 		registryIDType.setOrganization("Mosip");
 		registryIDType.setType("257");
@@ -267,8 +268,8 @@ public class UinGeneratorStageTest {
 		quality.setAlgorithm(registryIDType);
 		quality.setScore(90l);
 		bdbInfoType1.setQuality(quality);
-		SingleType singleType1 = SingleType.FINGER;
-		List<SingleType> singleTypeList1 = new ArrayList<>();
+		BiometricType singleType1 = BiometricType.FINGER;
+		List<BiometricType> singleTypeList1 = new ArrayList<>();
 		singleTypeList1.add(singleType1);
 		List<String> subtype1 = new ArrayList<>(Arrays.asList("Left", "RingFinger"));
 		bdbInfoType1.setSubtype(subtype1);

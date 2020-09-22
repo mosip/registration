@@ -1,7 +1,7 @@
 package io.mosip.registration.processor.stages.validator;
 
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
+import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.util.HMACUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -240,7 +240,7 @@ public class PacketValidatorImplTest {
         validatePacketResponse.setValid(true);
 		when(packetManagerService.validate(anyString(),anyString(),anyString())).thenReturn(validatePacketResponse);
         BiometricRecord biometricRecord = new BiometricRecord();
-        BIR bir = new BIR();
+        BIR bir = new BIR.BIRBuilder().build();
         biometricRecord.setSegments(Lists.newArrayList(bir,bir));
         when(packetManagerService.getBiometrics(anyString(),anyString(),any(),anyString(),anyString())).thenReturn(biometricRecord);
 	}

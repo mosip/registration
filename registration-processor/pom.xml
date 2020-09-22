@@ -138,6 +138,7 @@
 		<kernel.idobjectvalidator.version>1.2.0-SNAPSHOT</kernel.idobjectvalidator.version>
 		<kernel.packetmanager.version>1.0.10-SNAPSHOT</kernel.packetmanager.version>
 		<object.store.khazana.version>1.2.0-SNAPSHOT</object.store.khazana.version>
+		<kernel.biometrics.api.version>1.2.0-SNAPSHOT</kernel.biometrics.api.version>
 			<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,

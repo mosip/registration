@@ -1,14 +1,15 @@
 package io.mosip.registration.processor.quality.checker.stage.test;
 
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.constant.QualityType;
+import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.biometrics.entities.RegistryIDType;
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
 import io.mosip.kernel.core.bioapi.model.QualityScore;
 import io.mosip.kernel.core.bioapi.model.Response;
 import io.mosip.kernel.core.bioapi.spi.IBioApi;
-import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.QualityType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
+import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
@@ -128,17 +129,17 @@ public class QualityCheckerStageTest {
 		InputStream cbeff1Stream = new FileInputStream(cbeff1);
 
 		List<BIR> birTypeList = new ArrayList<>();
-		BIR birType1 = new BIR();
-		BDBInfo bdbInfoType1 = new BDBInfo();
-		RegistryIDType registryIDType = new RegistryIDType();
+		BIR birType1 = new BIR.BIRBuilder().build();
+		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType1 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder().build();
+		io.mosip.kernel.biometrics.entities.RegistryIDType registryIDType = new io.mosip.kernel.biometrics.entities.RegistryIDType();
 		registryIDType.setOrganization("Mosip");
 		registryIDType.setType("257");
-		QualityType quality = new QualityType();
+		io.mosip.kernel.biometrics.constant.QualityType quality = new io.mosip.kernel.biometrics.constant.QualityType();
 		quality.setAlgorithm(registryIDType);
 		quality.setScore(90l);
 		bdbInfoType1.setQuality(quality);
-		SingleType singleType1 = SingleType.FINGER;
-		List<SingleType> singleTypeList1 = new ArrayList<>();
+		BiometricType singleType1 = BiometricType.FINGER;
+		List<BiometricType> singleTypeList1 = new ArrayList<>();
 		singleTypeList1.add(singleType1);
 		List<String> subtype1 = new ArrayList<>(Arrays.asList("Left", "RingFinger"));
 		bdbInfoType1.setSubtype(subtype1);
@@ -146,11 +147,11 @@ public class QualityCheckerStageTest {
 		birType1.setBdbInfo(bdbInfoType1);
 		birTypeList.add(birType1);
 
-		BIR birType2 = new BIR();
-		BDBInfo bdbInfoType2 = new BDBInfo();
+		BIR birType2 = new BIR.BIRBuilder().build();
+		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType2 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder().build();
 		bdbInfoType2.setQuality(quality);
-		SingleType singleType2 = SingleType.FINGER;
-		List<SingleType> singleTypeList2 = new ArrayList<>();
+		BiometricType singleType2 = BiometricType.FINGER;
+		List<BiometricType> singleTypeList2 = new ArrayList<>();
 		singleTypeList2.add(singleType2);
 		List<String> subtype2 = new ArrayList<>(Arrays.asList("Right", "RingFinger"));
 		bdbInfoType2.setSubtype(subtype2);
@@ -158,11 +159,11 @@ public class QualityCheckerStageTest {
 		birType2.setBdbInfo(bdbInfoType2);
 		birTypeList.add(birType2);
 
-		BIR birType3 = new BIR();
-		BDBInfo bdbInfoType3 = new BDBInfo();
+		BIR birType3 = new BIR.BIRBuilder().build();
+		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType3 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder().build();
 		bdbInfoType3.setQuality(quality);
-		SingleType singleType3 = SingleType.IRIS;
-		List<SingleType> singleTypeList3 = new ArrayList<>();
+		BiometricType singleType3 = BiometricType.IRIS;
+		List<BiometricType> singleTypeList3 = new ArrayList<>();
 		singleTypeList3.add(singleType3);
 		List<String> subtype3 = new ArrayList<>(Arrays.asList("Right"));
 		bdbInfoType3.setSubtype(subtype3);
@@ -170,11 +171,11 @@ public class QualityCheckerStageTest {
 		birType3.setBdbInfo(bdbInfoType3);
 		birTypeList.add(birType3);
 
-		BIR birType4 = new BIR();
-		BDBInfo bdbInfoType4 = new BDBInfo();
+		BIR birType4 = new BIR.BIRBuilder().build();
+		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType4 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder().build();
 		bdbInfoType4.setQuality(quality);
-		SingleType singleType4 = SingleType.FACE;
-		List<SingleType> singleTypeList4 = new ArrayList<>();
+		BiometricType singleType4 = BiometricType.FACE;
+		List<BiometricType> singleTypeList4 = new ArrayList<>();
 		singleTypeList4.add(singleType4);
 		List<String> subtype4 = new ArrayList<>();
 		bdbInfoType4.setSubtype(subtype4);
@@ -201,17 +202,17 @@ public class QualityCheckerStageTest {
 	@Test
 	public void testQualityCheckerSuccess() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 		List<BIR> birTypeList = new ArrayList<>();
-		BIR birType1 = new BIR();
-		BDBInfo bdbInfoType1 = new BDBInfo();
+		BIR birType1 = new BIR.BIRBuilder().build();
+		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType1 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder().build();
 		RegistryIDType registryIDType = new RegistryIDType();
 		registryIDType.setOrganization("Mosip");
 		registryIDType.setType("257");
-		QualityType quality = new QualityType();
+		io.mosip.kernel.biometrics.constant.QualityType quality = new QualityType();
 		quality.setAlgorithm(registryIDType);
 		quality.setScore(90l);
 		bdbInfoType1.setQuality(quality);
-		SingleType singleType1 = SingleType.FINGER;
-		List<SingleType> singleTypeList1 = new ArrayList<>();
+		BiometricType singleType1 = BiometricType.FINGER;
+		List<BiometricType> singleTypeList1 = new ArrayList<>();
 		singleTypeList1.add(singleType1);
 		List<String> subtype1 = new ArrayList<>(Arrays.asList("Left", "RingFinger"));
 		bdbInfoType1.setSubtype(subtype1);
@@ -219,11 +220,11 @@ public class QualityCheckerStageTest {
 		birType1.setBdbInfo(bdbInfoType1);
 		birTypeList.add(birType1);
 
-		BIR birType2 = new BIR();
-		BDBInfo bdbInfoType2 = new BDBInfo();
+		BIR birType2 = new BIR.BIRBuilder().build();
+		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType2 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder().build();
 		bdbInfoType2.setQuality(quality);
-		SingleType singleType2 = SingleType.FINGER;
-		List<SingleType> singleTypeList2 = new ArrayList<>();
+		BiometricType singleType2 = BiometricType.FINGER;
+		List<BiometricType> singleTypeList2 = new ArrayList<>();
 		singleTypeList2.add(singleType2);
 		List<String> subtype2 = new ArrayList<>(Arrays.asList("Right", "RingFinger"));
 		bdbInfoType2.setSubtype(subtype2);
@@ -231,11 +232,11 @@ public class QualityCheckerStageTest {
 		birType2.setBdbInfo(bdbInfoType2);
 		birTypeList.add(birType2);
 
-		BIR birType3 = new BIR();
-		BDBInfo bdbInfoType3 = new BDBInfo();
+		BIR birType3 = new BIR.BIRBuilder().build();
+		BDBInfo bdbInfoType3 = new BDBInfo.BDBInfoBuilder().build();
 		bdbInfoType3.setQuality(quality);
-		SingleType singleType3 = SingleType.IRIS;
-		List<SingleType> singleTypeList3 = new ArrayList<>();
+		BiometricType singleType3 = BiometricType.IRIS;
+		List<BiometricType> singleTypeList3 = new ArrayList<>();
 		singleTypeList3.add(singleType3);
 		List<String> subtype3 = new ArrayList<>(Arrays.asList("Right"));
 		bdbInfoType3.setSubtype(subtype3);
@@ -243,11 +244,11 @@ public class QualityCheckerStageTest {
 		birType3.setBdbInfo(bdbInfoType3);
 		birTypeList.add(birType3);
 
-		BIR birType4 = new BIR();
-		BDBInfo bdbInfoType4 = new BDBInfo();
+		BIR birType4 = new BIR.BIRBuilder().build();
+		BDBInfo bdbInfoType4 = new BDBInfo.BDBInfoBuilder().build();
 		bdbInfoType4.setQuality(quality);
-		SingleType singleType4 = SingleType.FACE;
-		List<SingleType> singleTypeList4 = new ArrayList<>();
+		BiometricType singleType4 = BiometricType.FACE;
+		List<BiometricType> singleTypeList4 = new ArrayList<>();
 		singleTypeList4.add(singleType4);
 		List<String> subtype4 = new ArrayList<>();
 		bdbInfoType4.setSubtype(subtype4);

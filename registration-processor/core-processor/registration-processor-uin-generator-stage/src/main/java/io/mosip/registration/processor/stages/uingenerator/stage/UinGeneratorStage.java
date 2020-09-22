@@ -1,7 +1,6 @@
 package io.mosip.registration.processor.stages.uingenerator.stage;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -14,9 +13,7 @@ import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.packet.storage.dto.Document;
 import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
-import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
-import org.apache.commons.io.IOUtils;
+import io.mosip.registration.processor.packet.storage.utils.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -56,7 +53,6 @@ import io.mosip.registration.processor.core.constant.EventName;
 import io.mosip.registration.processor.core.constant.EventType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -75,8 +71,6 @@ import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoServic
 import io.mosip.registration.processor.packet.storage.entity.RegLostUinDetEntity;
 import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
-import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
-import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.stages.uingenerator.constants.UINConstants;
 import io.mosip.registration.processor.stages.uingenerator.dto.UinDto;
@@ -536,11 +530,11 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		String proofOfRelationshipLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.POR), MappingJsonConstants.VALUE);
 		String applicantBiometricLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), MappingJsonConstants.VALUE);
 
-		HashMap<String, String> proofOfAddress = (HashMap<String, String>) idJSON.get(proofOfAddressLabel);//JsonUtil.getJSONObject(idJSON, proofOfAddressLabel);
-		HashMap<String, String> proofOfDateOfBirth = (HashMap<String, String>) idJSON.get(proofOfDateOfBirthLabel);//JsonUtil.getJSONObject(idJSON, proofOfDateOfBirthLabel);
-		HashMap<String, String> proofOfIdentity = (HashMap<String, String>) idJSON.get(proofOfIdentityLabel);//JsonUtil.getJSONObject(idJSON, proofOfIdentityLabel);
-		HashMap<String, String> proofOfRelationship = (HashMap<String, String>) idJSON.get(proofOfRelationshipLabel);//JsonUtil.getJSONObject(idJSON, proofOfRelationshipLabel);
-		HashMap<String, String> applicantBiometric = (HashMap<String, String>) idJSON.get(applicantBiometricLabel);//JsonUtil.getJSONObject(idJSON, applicantBiometricLabel);
+		HashMap<String, String> proofOfAddress = (HashMap<String, String>) idJSON.get(proofOfAddressLabel);
+		HashMap<String, String> proofOfDateOfBirth = (HashMap<String, String>) idJSON.get(proofOfDateOfBirthLabel);
+		HashMap<String, String> proofOfIdentity = (HashMap<String, String>) idJSON.get(proofOfIdentityLabel);
+		HashMap<String, String> proofOfRelationship = (HashMap<String, String>) idJSON.get(proofOfRelationshipLabel);
+		HashMap<String, String> applicantBiometric = (HashMap<String, String>) idJSON.get(applicantBiometricLabel);
 		if (proofOfAddress != null) {
 			applicantDocuments
 					.add(getIdDocumnet(regId, source, process, proofOfAddressLabel));
@@ -575,7 +569,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	private Documents getBiometrics(String registrationId, String source, String process, String idDocLabel)
 			throws Exception {
 		BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId, idDocLabel, null, source, process);
-		byte[] xml = cbeffutil.createXML(biometricRecord.getSegments());
+		byte[] xml = cbeffutil.createXML(BIRConverter.convertSegmentsToBIRList(biometricRecord.getSegments()));
 		Documents documentsInfoDto = new Documents();
 		documentsInfoDto.setValue(CryptoUtil.encodeBase64(xml));
 		documentsInfoDto.setCategory(idDocLabel);
