@@ -22,10 +22,11 @@ import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.constant.QualityType;
+import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.QualityType;
+import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
@@ -349,22 +350,22 @@ public class OSIValidatorTest {
 		Mockito.when(osiUtils.getOSIDetailsFromMetaInfo(anyMap())).thenReturn(regOsiDto);
 		File cbeffFile = new File(classLoader.getResource("cbeff.xml").getFile());
 
-		BIR birType3 = new BIR();
-		BDBInfo bdbInfoType3 = new BDBInfo();
+		BIR birType3 = new BIR.BIRBuilder().build();
+		BDBInfo bdbInfoType3 = new BDBInfo.BDBInfoBuilder().build();
 		bdbInfoType3.setQuality(new QualityType());
-		SingleType singleType3 = SingleType.IRIS;
-		List<SingleType> singleTypeList3 = new ArrayList<>();
+		BiometricType singleType3 = BiometricType.IRIS;
+		List<BiometricType> singleTypeList3 = new ArrayList<>();
 		singleTypeList3.add(singleType3);
 		List<String> subtype3 = new ArrayList<>(Arrays.asList("Right"));
 		bdbInfoType3.setSubtype(subtype3);
 		bdbInfoType3.setType(singleTypeList3);
 		birType3.setBdbInfo(bdbInfoType3);
 
-		BIR birType4 = new BIR();
-		BDBInfo bdbInfoType4 = new BDBInfo();
+		BIR birType4 = new BIR.BIRBuilder().build();
+		BDBInfo bdbInfoType4 = new BDBInfo.BDBInfoBuilder().build();
 		bdbInfoType4.setQuality(new QualityType());
-		SingleType singleType4 = SingleType.FACE;
-		List<SingleType> singleTypeList4 = new ArrayList<>();
+		BiometricType singleType4 = BiometricType.FACE;
+		List<BiometricType> singleTypeList4 = new ArrayList<>();
 		singleTypeList4.add(singleType4);
 		List<String> subtype4 = new ArrayList<>();
 		bdbInfoType4.setSubtype(subtype4);
