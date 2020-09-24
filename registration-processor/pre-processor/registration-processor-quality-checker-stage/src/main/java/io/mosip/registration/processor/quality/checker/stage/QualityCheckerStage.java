@@ -1,11 +1,12 @@
 package io.mosip.registration.processor.quality.checker.stage;
 
+import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
 import io.mosip.kernel.core.bioapi.model.QualityScore;
 import io.mosip.kernel.core.bioapi.model.Response;
 import io.mosip.kernel.core.bioapi.spi.IBioApi;
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
+import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -35,6 +36,7 @@ import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
+import io.mosip.registration.processor.packet.storage.utils.BIRConverter;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.quality.checker.exception.BioTypeException;
@@ -229,12 +231,12 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 			// get individual biometrics file name from id.json
 			int scoreCounter = 0;
 			for (BIR bir : birList) {
-				SingleType singleType = bir.getBdbInfo().getType().get(0);
+				BiometricType singleType = bir.getBdbInfo().getType().get(0);
 				List<String> subtype = bir.getBdbInfo().getSubtype();
 				Integer threshold = getThresholdBasedOnType(singleType, subtype);
 				Response<QualityScore> qualityScoreresponse;
 
-				qualityScoreresponse = getBioSdkInstance(singleType).checkQuality(bir, null);
+				qualityScoreresponse = getBioSdkInstance(singleType).checkQuality(BIRConverter.convertToBIR(bir), null);
 				if(qualityScoreresponse.getStatusCode()<200 || qualityScoreresponse.getStatusCode()>299) {
 					throw new BiometricException(qualityScoreresponse.getStatusCode().toString(),qualityScoreresponse.getStatusMessage());
 				}
@@ -425,7 +427,7 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 	 * @param subtype    the subtype
 	 * @return the threshold based on type
 	 */
-	private Integer getThresholdBasedOnType(SingleType singleType, List<String> subtype) {
+	private Integer getThresholdBasedOnType(BiometricType singleType, List<String> subtype) {
 		if (singleType.value().equalsIgnoreCase(FINGER)) {
 			if (subtype.contains(THUMB)) {
 				return thumbFingerThreshold;
@@ -442,7 +444,7 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 		return 0;
 	}
 
-	private IBioApi getBioSdkInstance(SingleType singleType) throws BioTypeException {
+	private IBioApi getBioSdkInstance(BiometricType singleType) throws BioTypeException {
 
 		if (singleType.value().equalsIgnoreCase(FINGER)) {
 			return fingerApi;

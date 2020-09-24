@@ -15,9 +15,9 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import javax.crypto.SecretKey;
-import javax.xml.parsers.ParserConfigurationException;
 
-import io.mosip.kernel.crypto.jce.core.CryptoCore;
+import io.mosip.kernel.core.cbeffutil.entity.BIR;
+import io.mosip.registration.processor.rest.client.utils.RestApiClient;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +27,6 @@ import org.springframework.http.*;
 import org.springframework.util.CollectionUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import io.mosip.kernel.core.bioapi.exception.BiometricException;
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.kernel.core.crypto.spi.CryptoCoreSpec;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -57,6 +54,7 @@ import io.mosip.registration.processor.core.util.CbeffToBiometricUtil;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.manager.dto.CryptomanagerResponseDto;
 import io.mosip.registration.processor.packet.storage.dto.CryptoManagerEncryptDto;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * @author Ranjitha Siddegowda
@@ -66,6 +64,7 @@ public class AuthUtil {
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(AuthUtil.class);
+	private static final String AUTHORIZATION = "Authorization=";
 
 	/** The key generator. */
 	@Autowired
@@ -84,6 +83,9 @@ public class AuthUtil {
 
 	/** The Constant RSA. */
 	public static final String RSA = "RSA";
+
+	@Autowired
+	private RestApiClient restApiClient;
 
 	/** The Constant RSA. */
 	public static final String PARTNER_ID = "INTERNAL";
@@ -106,7 +108,7 @@ public class AuthUtil {
 	private static final String FACE = "FACE";
 	private static final String KERNEL_KEY_SPLITTER = "mosip.kernel.data-key-splitter";
 
-	public AuthResponseDTO authByIdAuthentication(String individualId, String individualType, List<BIR> list)
+	public AuthResponseDTO authByIdAuthentication(String individualId, String individualType, List<io.mosip.kernel.biometrics.entities.BIR> list)
 			throws ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException, IOException,
 			BioTypeException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), individualId,
@@ -115,7 +117,10 @@ public class AuthUtil {
 		AuthRequestDTO authRequestDTO = new AuthRequestDTO();
 		authRequestDTO.setId(authRequestId);
 		authRequestDTO.setVersion(VERSION);
-		authRequestDTO.setRequestTime(DateUtils.getUTCCurrentDateTimeString());
+		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+		LocalDateTime localdatetime = LocalDateTime
+				.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+		authRequestDTO.setRequestTime(DateUtils.formatToISOString(localdatetime));
 		authRequestDTO.setTransactionID(DUMMY_TRANSACTION_ID);
 		authRequestDTO.setEnv(domainUrl);
 		authRequestDTO.setDomainUri(domainUrl);
@@ -131,7 +136,7 @@ public class AuthUtil {
 		biometrics = getBiometricsList(list);
 		RequestDTO request = new RequestDTO();
 		request.setBiometrics(biometrics);
-		request.setTimestamp(DateUtils.getUTCCurrentDateTimeString());
+		request.setTimestamp(DateUtils.formatToISOString(localdatetime));
 		ObjectMapper mapper = new ObjectMapper();
 		String identityBlock = mapper.writeValueAsString(request);
 
@@ -152,11 +157,18 @@ public class AuthUtil {
 		authRequestDTO.setRequestHMAC(Base64.encodeBase64String(byteArray));
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), individualId,
 				"AuthUtil::authByIdAuthentication()::INTERNALAUTH POST service call started");
-		AuthResponseDTO response;
-		response = (AuthResponseDTO) registrationProcessorRestClientService.postApi(ApiName.INTERNALAUTH, null, null,
-				authRequestDTO, AuthResponseDTO.class, MediaType.APPLICATION_JSON);
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), individualId,
-				"AuthUtil::authByIdAuthentication()::INTERNALAUTH POST service call ended with response data "
+
+		HttpHeaders headers = new HttpHeaders();
+		String token = restApiClient.getToken().replace(AUTHORIZATION, "");
+		headers.add("cookie", restApiClient.getToken());
+		headers.add("Authorization", token);
+		HttpEntity<AuthRequestDTO> httpEntity = new HttpEntity<>(authRequestDTO, headers);
+
+		ResponseEntity<AuthResponseDTO> responseEntity = new RestTemplate().exchange(env.getProperty(ApiName.INTERNALAUTH.name()), HttpMethod.POST, httpEntity, AuthResponseDTO.class);
+		AuthResponseDTO response = responseEntity.getBody();
+
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), null,
+				"AuthUtil::authByIdAuthentication():: Response from INTERNALAUTH : "
 						+ JsonUtil.objectMapperObjectToJson(response));
 
 		return response;
@@ -188,18 +200,19 @@ public class AuthUtil {
 
 	}
 
-	private List<BioInfo> getBiometricsList(List<BIR> list) throws BioTypeException {
+	private List<BioInfo> getBiometricsList(List<io.mosip.kernel.biometrics.entities.BIR> list) throws BioTypeException {
 
 		String previousHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash("".getBytes()));
 		CbeffToBiometricUtil CbeffToBiometricUtil = new CbeffToBiometricUtil();
 		List<BioInfo> biometrics = new ArrayList<>();
 		try {
-			for (BIR bir : list) {
+			for (io.mosip.kernel.biometrics.entities.BIR bir : list) {
 				BioInfo bioInfo = new BioInfo();
 				DataInfoDTO dataInfoDTO = new DataInfoDTO();
 				dataInfoDTO.setEnv(domainUrl);
 				dataInfoDTO.setDomainUri(domainUrl);
-				BIR birApiResponse = CbeffToBiometricUtil.extractTemplate(bir, null);
+				dataInfoDTO.setTransactionId(DUMMY_TRANSACTION_ID);
+				BIR birApiResponse = CbeffToBiometricUtil.extractTemplate(BIRConverter.convertToBIR(bir), null);
 
 				dataInfoDTO.setBioType(birApiResponse.getBdbInfo().getType().get(0).toString());
 				List<String> bioSubType = birApiResponse.getBdbInfo().getSubtype();
@@ -209,7 +222,10 @@ public class AuthUtil {
 					dataInfoDTO.setBioSubType(FACE);
 				else
 					dataInfoDTO.setBioSubType(bioSubTypeValue);
-				String timeStamp = DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN));
+				DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
+				LocalDateTime localdatetime = LocalDateTime
+						.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
+				String timeStamp = DateUtils.formatToISOString(localdatetime);
 				SplittedEncryptedData splittedEncryptData = getSessionKey(timeStamp, birApiResponse.getBdb());
 				dataInfoDTO.setBioValue(splittedEncryptData.getEncryptedData());
 				dataInfoDTO.setTimestamp(timeStamp);
@@ -275,8 +291,11 @@ public class AuthUtil {
 
 	private SplittedEncryptedData getSessionKey(String timeStamp, byte[] data) throws ApisResourceAccessException {
 		SplittedEncryptedData splittedData = null;
-		String aad = CryptoUtil.encodeBase64String(timeStamp.substring(timeStamp.length() - 16).getBytes());
-		String salt = CryptoUtil.encodeBase64String(timeStamp.substring(timeStamp.length() - 12).getBytes());
+		byte[] xorBytes = BytesUtil.getXOR(timeStamp, DUMMY_TRANSACTION_ID);
+		byte[] saltLastBytes = BytesUtil.getLastBytes(xorBytes, 12);
+		String salt = CryptoUtil.encodeBase64(saltLastBytes);
+		byte[] aadLastBytes = BytesUtil.getLastBytes(xorBytes, 16);
+		String aad = CryptoUtil.encodeBase64(aadLastBytes);
 		CryptoManagerEncryptDto encryptDto = new CryptoManagerEncryptDto();
 		RequestWrapper<CryptoManagerEncryptDto> request = new RequestWrapper<>();
 		encryptDto.setAad(aad);
