@@ -242,7 +242,9 @@ public class RegistrationDAOImpl implements RegistrationDAO {
 		Timestamp timestamp = Timestamp.valueOf(DateUtils.getUTCCurrentDateTime());
 
 		Registration reg = registrationRepository.getOne(registrationPacket.getFileName());
-		reg.setClientStatusCode(registrationPacket.getPacketClientStatus());
+		if (registrationPacket.getPacketClientStatus() != null && !registrationPacket.getPacketClientStatus().isEmpty()) {
+			reg.setClientStatusCode(registrationPacket.getPacketClientStatus());
+		}
 		if (registrationPacket.getUploadStatus() != null) {
 			reg.setFileUploadStatus(registrationPacket.getUploadStatus());
 		}
@@ -250,11 +252,15 @@ public class RegistrationDAOImpl implements RegistrationDAO {
 		reg.setUploadTimestamp(timestamp);
 		reg.setClientStatusTimestamp(timestamp);
 		reg.setRegistrationTransaction(buildRegistrationTransaction(reg));
-		reg.setClientStatusComments(registrationPacket.getClientStatusComments());
+		if (registrationPacket.getClientStatusComments() != null) {
+			reg.setClientStatusComments(registrationPacket.getClientStatusComments());
+		}
 		reg.setUpdDtimes(timestamp);
 		reg.setUploadCount((short) (reg.getUploadCount() + 1));
 		reg.setUpdBy(SessionContext.userContext().getUserId());
-		reg.setServerStatusCode(registrationPacket.getPacketServerStatus());
+		if (registrationPacket.getPacketServerStatus() != null && !registrationPacket.getPacketServerStatus().isEmpty()) {
+			reg.setServerStatusCode(registrationPacket.getPacketServerStatus());
+		}
 		return registrationRepository.update(reg);
 	}
 
