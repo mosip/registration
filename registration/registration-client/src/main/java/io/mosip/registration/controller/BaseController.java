@@ -1854,10 +1854,10 @@ public class BaseController {
 
 		vbox.getChildren().addAll(label, field, validationMessage);
 
-		if (applicationContext.getApplicationLanguage().equals(applicationContext.getLocalLanguage())
-				&& languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
-			vbox.setDisable(true);
-		}
+//		if (applicationContext.getApplicationLanguage().equals(applicationContext.getLocalLanguage())
+//				&& languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
+//			vbox.setDisable(true);
+//		}
 	}
 
 	protected void updateByAttempt(double qualityScore, Image streamImage, double thresholdScore,
