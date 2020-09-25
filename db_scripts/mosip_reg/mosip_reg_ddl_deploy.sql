@@ -67,6 +67,10 @@ run 'ddl/reg-identity_schema.sql';
 run 'ddl/reg-dynamic_field.sql';
 run 'ddl/reg-schema_definition.sql';
 
+run 'ddl/reg-key_policy_def.sql';
+run 'ddl/reg-key_alias.sql';
+run 'ddl/reg-key_store.sql';
+
 run 'ddl/reg-fk.sql';
 
 run 'mosip_reg_dml_deploy.sql';

@@ -453,6 +453,10 @@ public class ServiceDelegateUtil {
 								.valueOf(ApplicationContext.map().get(RegistrationConstants.USER_CENTER_ID))
 								.concat(RegistrationConstants.UNDER_SCORE).concat(String
 										.valueOf(ApplicationContext.map().get(RegistrationConstants.USER_STATION_ID)));
+					} else if (headerValues[0].equalsIgnoreCase("authorization")) {
+						headerValues[1] = "auth";
+					} else if (headerValues[0].equalsIgnoreCase("signature")) {
+						headerValues[1] = "sign";
 					}
 					httpHeaders.add(headerValues[0], headerValues[1]);
 				}
