@@ -395,30 +395,71 @@ public class PacketUploadController extends BaseController implements Initializa
 	 * Export the packets and show the exported packets in the table
 	 */
 	public void packetExport() {
-
 		LOGGER.info("REGISTRATION - PACKET_EXPORT_START - PACKET_UPLOAD_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
-				"Exporting the Synched the packets");
+				"Exporting the selected packets");
 
-		List<PacketStatusDTO> exportedPackets = packetExportController.packetExport();
-		List<PacketStatusVO> packetsToBeExport = new ArrayList<>();
-		exportedPackets.forEach(packet -> {
-			PacketStatusVO packetStatusVO = new PacketStatusVO();
-			packetStatusVO.setClientStatusComments(packet.getClientStatusComments());
-			packetStatusVO.setFileName(packet.getFileName());
-			packetStatusVO.setPacketClientStatus(packet.getPacketClientStatus());
-			packetStatusVO.setPacketPath(packet.getPacketPath());
-			packetStatusVO.setPacketServerStatus(packet.getPacketServerStatus());
-			packetStatusVO.setPacketStatus(packet.getPacketStatus());
-			packetStatusVO.setStatus(false);
-			packetStatusVO.setUploadStatus(packet.getUploadStatus());
-			packetsToBeExport.add(packetStatusVO);
-		});
-		Map<String, String> exportedPacketMap = new HashMap<>();
-		packetsToBeExport.forEach(regPacket -> {
-			exportedPacketMap.put(regPacket.getFileName(), RegistrationClientStatusCode.EXPORT.getCode());
-		});
-		if (!exportedPacketMap.isEmpty()) {
-			displayStatus(populateTableData(exportedPacketMap));
+		if(!selectedPackets.isEmpty()) {
+			List<PacketStatusDTO> packetsToBeExported = new ArrayList<>();
+			selectedPackets.forEach(packet -> {
+				if ((packet.getPacketServerStatus() == null || !RegistrationConstants.SERVER_STATUS_RESEND
+						.equalsIgnoreCase(packet.getPacketServerStatus()))
+						&& !RegistrationClientStatusCode.META_INFO_SYN_SERVER.getCode()
+								.equalsIgnoreCase(packet.getPacketClientStatus())) {
+					PacketStatusDTO packetStatusVO = new PacketStatusDTO();
+					packetStatusVO.setClientStatusComments(packet.getClientStatusComments());
+					packetStatusVO.setFileName(packet.getFileName());
+					packetStatusVO.setPacketClientStatus(packet.getPacketClientStatus());
+					packetStatusVO.setPacketPath(packet.getPacketPath());
+					packetStatusVO.setPacketServerStatus(packet.getPacketServerStatus());
+					packetStatusVO.setPacketStatus(packet.getPacketStatus());
+					packetStatusVO.setUploadStatus(packet.getUploadStatus());
+					packetStatusVO.setSupervisorStatus(packet.getSupervisorStatus());
+					packetStatusVO.setSupervisorComments(packet.getSupervisorComments());
+					packetStatusVO.setName(packet.getName());
+					packetStatusVO.setPhone(packet.getPhone());
+					packetStatusVO.setEmail(packet.getEmail());
+
+					try (FileInputStream fis = new FileInputStream(new File(
+							packet.getPacketPath().replace(RegistrationConstants.ACKNOWLEDGEMENT_FILE_EXTENSION,
+									RegistrationConstants.ZIP_FILE_EXTENSION)))) {
+						byte[] byteArray = new byte[(int) fis.available()];
+						fis.read(byteArray);
+						byte[] packetHash = HMACUtils.generateHash(byteArray);
+						packetStatusVO.setPacketHash(HMACUtils.digestAsPlainText(packetHash));
+						packetStatusVO.setPacketSize(BigInteger.valueOf(byteArray.length));
+
+					} catch (IOException ioException) {
+						LOGGER.error("REGISTRATION_BASE_SERVICE", APPLICATION_NAME, APPLICATION_ID,
+								ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
+					}
+					packetsToBeExported.add(packetStatusVO);
+				}
+			});
+			List<PacketStatusDTO> exportedPackets = packetExportController.packetExport(packetsToBeExported);
+			List<PacketStatusVO> packetsToBeExport = new ArrayList<>();
+			exportedPackets.forEach(packet -> {
+				PacketStatusVO packetStatusVO = new PacketStatusVO();
+				packetStatusVO.setClientStatusComments(packet.getClientStatusComments());
+				packetStatusVO.setFileName(packet.getFileName());
+				packetStatusVO.setPacketClientStatus(packet.getPacketClientStatus());
+				packetStatusVO.setPacketPath(packet.getPacketPath());
+				packetStatusVO.setPacketServerStatus(packet.getPacketServerStatus());
+				packetStatusVO.setPacketStatus(packet.getPacketStatus());
+				packetStatusVO.setStatus(false);
+				packetStatusVO.setUploadStatus(packet.getUploadStatus());
+				packetsToBeExport.add(packetStatusVO);
+			});
+			Map<String, String> exportedPacketMap = new HashMap<>();
+			packetsToBeExport.forEach(regPacket -> {
+				exportedPacketMap.put(regPacket.getFileName(), RegistrationClientStatusCode.EXPORT.getCode());
+			});
+			if (!exportedPacketMap.isEmpty()) {
+				displayStatus(populateTableData(exportedPacketMap));
+			}
+			selectedPackets.clear();
+		} else {
+			loadInitialPage();
+			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.PACKET_EXPORT_EMPTY_ERROR);
 		}
 	}
 
@@ -473,7 +514,7 @@ public class PacketUploadController extends BaseController implements Initializa
 						} else {
 							selectedPackets.remove(table.getItems().get(displayData.getFrom()));
 						}
-						saveToDevice.setDisable(!selectedPackets.isEmpty());
+						//saveToDevice.setDisable(!selectedPackets.isEmpty());
 					}
 				}
 			}
@@ -549,7 +590,6 @@ public class PacketUploadController extends BaseController implements Initializa
 	}
 
 	private void loadInitialPage() {
-
 		List<PacketStatusDTO> synchedPackets = packetSynchService.fetchPacketsToBeSynched();
 		exportCSVIcon.setDisable(synchedPackets.isEmpty());
 		filterField.setDisable(synchedPackets.isEmpty());
@@ -635,7 +675,7 @@ public class PacketUploadController extends BaseController implements Initializa
 			stage.show();
 			selectAllCheckBox.setSelected(false);
 			stage.setOnCloseRequest((e) -> {
-				saveToDevice.setDisable(false);
+				//saveToDevice.setDisable(false);
 				loadInitialPage();
 			});
 		});
@@ -687,7 +727,7 @@ public class PacketUploadController extends BaseController implements Initializa
 	}
 
 	public void selectAllCheckBox(ActionEvent e) {
-		saveToDevice.setDisable(((CheckBox) e.getSource()).isSelected());
+		//saveToDevice.setDisable(((CheckBox) e.getSource()).isSelected());
 		list.forEach(item -> {
 			item.setStatus(((CheckBox) e.getSource()).isSelected());
 		});
