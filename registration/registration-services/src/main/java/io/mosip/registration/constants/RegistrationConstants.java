@@ -1494,6 +1494,11 @@ public class RegistrationConstants {
 	public static final String ID = "id";
 	public static final String IDENTITY = "mosip.identity.auth.internal";
 	public static final String VERSION = "version";
+	public static final String ENV = "env";
+	public static final String DOMAIN_URI = "domainUri";
+	public static final String TRANSACTION_Id = "transactionId";
+	public static final String PURPOSE = "purpose";
+	public static final String PURPOSE_AUTH = "Auth";
 	public static final String REQUEST_TIME = "requestTime";
 	public static final String TRANSACTION_ID = "transactionID";
 	public static final String TRANSACTION_ID_VALUE = "1234567890";
