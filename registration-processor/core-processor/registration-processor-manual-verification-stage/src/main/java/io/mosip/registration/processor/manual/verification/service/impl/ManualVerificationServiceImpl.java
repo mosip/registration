@@ -379,13 +379,18 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			throw new NoRecordAssignedException(PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getCode(),
 					PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
 		} else {
-			for(ManualVerificationEntity manualVerificationEntity : entities) {
-				for(MatchDetail detail:manualVerificationDTO.getGallery())
-				if(manualVerificationEntity.getId().getMatchedRefId().equalsIgnoreCase(detail.getMatchedRegId())) {
-					manualVerificationEntity.setStatusCode(manualVerificationDTO.getStatusCode());
-					manualVerificationEntity.setReasonCode(detail.getReasonCode());
+			for (int i = 0; i < entities.size(); i++) {
+				ManualVerificationEntity manualVerificationEntity=entities.get(i);
+				for(MatchDetail detail:manualVerificationDTO.getGallery()) {	
+					if(manualVerificationEntity.getId().getMatchedRefId().equalsIgnoreCase(detail.getMatchedRegId())) {
+						manualVerificationEntity.setStatusCode(manualVerificationDTO.getStatusCode());
+						manualVerificationEntity.setReasonCode(detail.getReasonCode());
+						entities.set(i, manualVerificationEntity);
+					}
 				}
+				
 			}
+			
 		}
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
 				.getRegistrationStatus(registrationId);
