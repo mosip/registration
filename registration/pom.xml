@@ -220,7 +220,7 @@
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-keygenerator-bouncycastle</artifactId>
-				<version>${mosip.core.kernel.version}</version>
+				<version>1.0.6</version>
 			</dependency>
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
@@ -298,7 +298,7 @@
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-crypto-jce</artifactId>
-				<version>${mosip.core.kernel.version}</version>
+				<version>1.0.6</version>
 			</dependency>
 			<dependency>
 				<groupId>com.cronutils</groupId>
