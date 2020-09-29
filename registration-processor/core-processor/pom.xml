@@ -18,7 +18,6 @@
         <module>registration-processor-bio-dedupe-stage</module>
         <module>registration-processor-uin-generator-stage</module>
         <module>registration-processor-abis</module>
-		<module>registration-processor-bio-dedupe-service</module>
 		<module>registration-processor-manual-verification-stage</module>
 		<module>registration-processor-reprocessor-stage</module>
         <module>registration-processor-abis-handler-stage</module>
