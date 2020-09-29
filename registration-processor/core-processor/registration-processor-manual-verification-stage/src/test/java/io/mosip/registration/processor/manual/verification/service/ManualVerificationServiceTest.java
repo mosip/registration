@@ -14,6 +14,8 @@ import java.util.Date;
 import java.util.List;
 
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+
+import org.assertj.core.util.Arrays;
 import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -46,6 +48,7 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDTO;
 import io.mosip.registration.processor.manual.verification.dto.ManualVerificationStatus;
+import io.mosip.registration.processor.manual.verification.dto.MatchDetail;
 import io.mosip.registration.processor.manual.verification.dto.UserDto;
 import io.mosip.registration.processor.manual.verification.exception.InvalidFileNameException;
 import io.mosip.registration.processor.manual.verification.exception.InvalidUpdateException;
@@ -100,6 +103,7 @@ public class ManualVerificationServiceTest {
 	private InternalRegistrationStatusDto registrationStatusDto;
 	private ManualVerificationPKEntity PKId;
 	private ManualVerificationDTO manualVerificationDTO;
+	private MatchDetail matchDetail=new MatchDetail();
 	private ManualVerificationEntity manualVerificationEntity;
 
 	private String stageName = "ManualVerificationStage";
@@ -146,13 +150,19 @@ public class ManualVerificationServiceTest {
 		manualVerificationEntity.setIsActive(true);
 		manualVerificationEntity.setId(PKId);
 		manualVerificationEntity.setLangCode("eng");
+		matchDetail.setMatchedRefType("Type");
+		matchDetail.setMatchedRegId("RefID");
+		matchDetail.setReasonCode(null);
+		matchDetail.setUrl(null);
 		manualVerificationDTO.setRegId("RegID");
-		manualVerificationDTO.setMatchedRefId("RefID");
+		
 		manualVerificationDTO.setMvUsrId("test");
 		registrationStatusDto.setStatusCode(ManualVerificationStatus.PENDING.name());
 		registrationStatusDto.setStatusComment("test");
 		registrationStatusDto.setRegistrationType("LOST");
-		manualVerificationDTO.setMatchedRefType("Type");
+		List<MatchDetail> list=new ArrayList<>();
+		list.add(matchDetail);
+		manualVerificationDTO.setGallery(list);
 		manualVerificationDTO.setStatusCode("PENDING");
 		entities.add(manualVerificationEntity);
 		Mockito.when(basePacketRepository.getFirstApplicantDetails(ManualVerificationStatus.PENDING.name(), "DEMO"))

@@ -105,36 +105,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	}
 
 	private void routes(MosipRouter router) {
-		router.post(contextPath + "/applicantBiometric");
-		router.handler(event -> {
-			try {
-				processBiometric(event);
-			} catch (java.io.IOException | ApisResourceAccessException | PacketManagerException | JsonProcessingException e2) {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), "", "", ExceptionUtils.getStackTrace(e2));
-
-			}
-		}, handlerObj -> {
-			manualVerificationExceptionHandler.setId(env.getProperty(ManualVerificationConstants.BIOMETRIC_SERVICE_ID));
-			manualVerificationExceptionHandler.setResponseDtoType(new ManualVerificationBioDemoResponseDTO());
-			this.setResponseWithDigitalSignature(handlerObj,
-					manualVerificationExceptionHandler.handler(handlerObj.failure()), APPLICATION_JSON);
-		});
-
-		router.post(contextPath + "/applicantDemographic");
-		router.handler(event -> {
-			try {
-				processDemographic(event);
-			} catch (java.io.IOException | ApisResourceAccessException | PacketManagerException | JsonProcessingException e1) {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), "", "", ExceptionUtils.getStackTrace(e1));
-			}
-		}, handlerObj -> {
-			manualVerificationExceptionHandler
-					.setId(env.getProperty(ManualVerificationConstants.DEMOGRAPHIC_SERVICE_ID));
-			manualVerificationExceptionHandler.setResponseDtoType(new ManualVerificationBioDemoResponseDTO());
-			this.setResponseWithDigitalSignature(handlerObj,
-					manualVerificationExceptionHandler.handler(handlerObj.failure()), APPLICATION_JSON);
-
-		});
+		
 
 		router.post(contextPath + "/assignment");
 		router.handler(this::processAssignment, handlerObj -> {
@@ -155,70 +126,10 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 
 		});
 
-		router.post(contextPath + "/packetInfo");
-		router.handler(event -> {
-			try {
-				processPacketInfo(event);
-			} catch (java.io.IOException | ApisResourceAccessException | PacketManagerException | JsonProcessingException e) {
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), "", "", ExceptionUtils.getStackTrace(e));
-			}
-		}, handlerObj -> {
-			manualVerificationExceptionHandler
-					.setId(env.getProperty(ManualVerificationConstants.PACKETINFO_SERVICE_ID));
-			manualVerificationExceptionHandler.setResponseDtoType(new ManualVerificationAssignResponseDTO());
-			this.setResponseWithDigitalSignature(handlerObj,
-					manualVerificationExceptionHandler.handler(handlerObj.failure()), APPLICATION_JSON);
-
-		});
 
 	}
 
-	public void processBiometric(RoutingContext ctx)
-			throws java.io.IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
-
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"ManualVerificationStage::processBiometric::entry");
-		JsonObject obj = ctx.getBodyAsJson();
-		manualVerificationRequestValidator.validate(obj,
-				env.getProperty(ManualVerificationConstants.BIOMETRIC_SERVICE_ID));
-		ManualAppBiometricRequestDTO pojo = Json.mapper.convertValue(obj.getMap(), ManualAppBiometricRequestDTO.class);
-		byte[] packetInfo = manualAdjudicationService.getApplicantFile(pojo.getRequest().getRegId(),
-				PacketFiles.BIOMETRIC.name(), pojo.getRequest().getSource());
-		if (packetInfo != null) {
-			String byteAsString = new String(packetInfo);
-			BaseRestResponseDTO responseData = ManualVerificationResponseBuilder.buildManualVerificationSuccessResponse(
-					byteAsString, env.getProperty(ManualVerificationConstants.BIOMETRIC_SERVICE_ID),
-					env.getProperty(ManualVerificationConstants.MVS_APPLICATION_VERSION),
-					env.getProperty(ManualVerificationConstants.DATETIME_PATTERN));
-			this.setResponseWithDigitalSignature(ctx, responseData, APPLICATION_JSON);
-		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"ManualVerificationStage::processBiometric::exit");
-	}
-
-	public void processDemographic(RoutingContext ctx)
-			throws java.io.IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"ManualVerificationStage::processDemographic::entry");
-		JsonObject obj = ctx.getBodyAsJson();
-		manualVerificationRequestValidator.validate(obj,
-				env.getProperty(ManualVerificationConstants.DEMOGRAPHIC_SERVICE_ID));
-		ManualAppBiometricRequestDTO pojo = Json.mapper.convertValue(obj.getMap(), ManualAppBiometricRequestDTO.class);
-		byte[] packetInfo = manualAdjudicationService.getApplicantFile(pojo.getRequest().getRegId(),
-				PacketFiles.DEMOGRAPHIC.name(), pojo.getRequest().getSource());
-
-		if (packetInfo != null) {
-			String byteAsString = new String(packetInfo);
-			BaseRestResponseDTO responseData = ManualVerificationResponseBuilder.buildManualVerificationSuccessResponse(
-					byteAsString, env.getProperty(ManualVerificationConstants.DEMOGRAPHIC_SERVICE_ID),
-					env.getProperty(ManualVerificationConstants.MVS_APPLICATION_VERSION),
-					env.getProperty(ManualVerificationConstants.DATETIME_PATTERN));
-			this.setResponseWithDigitalSignature(ctx, responseData, APPLICATION_JSON);
-		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"ManualVerificationStage::processDemographic::exit");
-
-	}
+	
 
 	public void processAssignment(RoutingContext ctx) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
@@ -264,27 +175,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 
 	}
 
-	public void processPacketInfo(RoutingContext ctx) throws java.io.IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"ManualVerificationStage::processpacketInfo::entry");
-		JsonObject obj = ctx.getBodyAsJson();
-		manualVerificationRequestValidator.validate(obj,
-				env.getProperty(ManualVerificationConstants.PACKETINFO_SERVICE_ID));
-		ManualAppBiometricRequestDTO pojo = Json.mapper.convertValue(obj.getMap(), ManualAppBiometricRequestDTO.class);
-		byte[] packetInfo = manualAdjudicationService.getApplicantFile(pojo.getRequest().getRegId(),
-				PacketFiles.PACKET_META_INFO.name(), pojo.getRequest().getSource());
-		if (packetInfo != null) {
-			String byteAsString = new String(packetInfo);
-			BaseRestResponseDTO responseData = ManualVerificationResponseBuilder.buildManualVerificationSuccessResponse(
-					byteAsString, env.getProperty(ManualVerificationConstants.PACKETINFO_SERVICE_ID),
-					env.getProperty(ManualVerificationConstants.MVS_APPLICATION_VERSION),
-					env.getProperty(ManualVerificationConstants.DATETIME_PATTERN));
-			this.setResponseWithDigitalSignature(ctx, responseData, APPLICATION_JSON);
-		}
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"ManualVerificationStage::processPacketInfo::exit");
-
-	}
+	
 
 	public void sendMessage(MessageDTO messageDTO) {
 		this.send(this.mosipEventBus, MessageBusAddress.MANUAL_VERIFICATION_BUS, messageDTO);
