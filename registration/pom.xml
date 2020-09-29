@@ -54,7 +54,7 @@
 		<jackson.version>2.10.1</jackson.version>
 		<jackson.mapper.asl.version>1.7.1</jackson.mapper.asl.version>
 
-		<mosip.core.kernel.version>1.0.6</mosip.core.kernel.version>
+		<mosip.core.kernel.version>1.2.0-SNAPSHOT</mosip.core.kernel.version>
 		<!-- Derby Version -->
 		<apache.derby.version>10.13.1.1</apache.derby.version>
 
@@ -220,7 +220,7 @@
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-keygenerator-bouncycastle</artifactId>
-				<version>${mosip.core.kernel.version}</version>
+				<version>1.0.6</version>
 			</dependency>
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
@@ -298,7 +298,7 @@
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-crypto-jce</artifactId>
-				<version>${mosip.core.kernel.version}</version>
+				<version>1.0.6</version>
 			</dependency>
 			<dependency>
 				<groupId>com.cronutils</groupId>
@@ -325,7 +325,7 @@
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-cbeffutil-api</artifactId>
-				<version>${mosip.core.kernel.version}</version>
+				<version>1.0.6</version>
 			</dependency>
 			<!-- https://mvnrepository.com/artifact/com.github.microsoft/TSS.Java -->
 			<dependency>

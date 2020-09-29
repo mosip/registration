@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.manual.verification.dto;
 
 import java.io.Serializable;
+import java.util.List;
 	
 /**
  * The {@link ManualVerificationDTO} class.
@@ -16,6 +17,9 @@ public class ManualVerificationDTO implements Serializable {
 	/** The reg id. */
 	private String regId;
 	
+	/** The url. */
+	private String url;
+	
 	/** The mv usr id. */
 	private String mvUsrId;
 	
@@ -23,14 +27,7 @@ public class ManualVerificationDTO implements Serializable {
 	private String statusCode;
 	
 	/** The matched ref id. */
-	private String matchedRefId;
-	
-	/** The matched ref type. */
-	private String matchedRefType;
-	
-	/** The reason code. */
-	private String reasonCode;
-
+	private List<MatchDetail> gallery;
 	/**
 	 * Gets the reg id.
 	 *
@@ -47,6 +44,20 @@ public class ManualVerificationDTO implements Serializable {
 	 */
 	public void setRegId(String regId) {
 		this.regId = regId;
+	}
+
+	/**
+	 * @return the url
+	 */
+	public String getUrl() {
+		return url;
+	}
+
+	/**
+	 * @param url the url to set
+	 */
+	public void setUrl(String url) {
+		this.url = url;
 	}
 
 	/**
@@ -85,40 +96,20 @@ public class ManualVerificationDTO implements Serializable {
 		this.statusCode = statusCode;
 	}
 
+	
+
 	/**
-	 * Gets the matched ref id.
-	 *
-	 * @return the matchedRefId
+	 * @return the gallery
 	 */
-	public String getMatchedRefId() {
-		return matchedRefId;
+	public List<MatchDetail> getGallery() {
+		return gallery;
 	}
 
 	/**
-	 * Sets the matched ref id.
-	 *
-	 * @param matchedRefId the matchedRefId to set
+	 * @param gallery the gallery to set
 	 */
-	public void setMatchedRefId(String matchedRefId) {
-		this.matchedRefId = matchedRefId;
-	}
-
-	/**
-	 * Gets the matched ref type.
-	 *
-	 * @return the matchedRefType
-	 */
-	public String getMatchedRefType() {
-		return matchedRefType;
-	}
-
-	/**
-	 * Sets the matched ref type.
-	 *
-	 * @param matchedRefType the matchedRefType to set
-	 */
-	public void setMatchedRefType(String matchedRefType) {
-		this.matchedRefType = matchedRefType;
+	public void setGallery(List<MatchDetail> gallery) {
+		this.gallery = gallery;
 	}
 
 	/**
@@ -137,10 +128,11 @@ public class ManualVerificationDTO implements Serializable {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((matchedRefId == null) ? 0 : matchedRefId.hashCode());
-		result = prime * result + ((matchedRefType == null) ? 0 : matchedRefType.hashCode());
+		result = prime * result + ((gallery == null) ? 0 : gallery.hashCode());
+		
 		result = prime * result + ((mvUsrId == null) ? 0 : mvUsrId.hashCode());
 		result = prime * result + ((regId == null) ? 0 : regId.hashCode());
+		result = prime * result + ((url == null) ? 0 : url.hashCode());
 		result = prime * result + ((statusCode == null) ? 0 : statusCode.hashCode());
 		return result;
 	}
@@ -157,16 +149,32 @@ public class ManualVerificationDTO implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		ManualVerificationDTO other = (ManualVerificationDTO) obj;
-		if (matchedRefId == null) {
-			if (other.matchedRefId != null)
+		if (gallery == null) {
+			if (other.gallery != null)
 				return false;
-		} else if (!matchedRefId.equals(other.matchedRefId)) {
-			return false;
+		} else {
+			long count=gallery.size();
+			long othercount=other.gallery.size();
+			if(count!=othercount) {
+				return false;
+			}
+			long sum=0;
+			for(MatchDetail detail:gallery) {
+				for(MatchDetail otherdetail:other.gallery) {
+					if(detail.equals(otherdetail)) {
+						sum=sum+1;
+					}
+				}
+			}
+			if(sum!=count) {
+				return false;
+			}
 		}
-		if (matchedRefType == null) {
-			if (other.matchedRefType != null)
+		
+		if (url == null) {
+			if (other.url != null)
 				return false;
-		} else if (!matchedRefType.equals(other.matchedRefType)) {
+		} else if (!url.equals(other.url)) {
 			return false;
 		}
 		if (mvUsrId == null) {
@@ -190,26 +198,6 @@ public class ManualVerificationDTO implements Serializable {
 		return true;
 	}
 
-	/**
-	 * Gets the reason code.
-	 *
-	 * @return the reasonCode
-	 */
-	public String getReasonCode() {
-		return reasonCode;
-	}
-
-	/**
-	 * Sets the reason code.
-	 *
-	 * @param reasonCode the reasonCode to set
-	 */
-	public void setReasonCode(String reasonCode) {
-		this.reasonCode = reasonCode;
-	}
-	
-	
-	
 	
 	
 }

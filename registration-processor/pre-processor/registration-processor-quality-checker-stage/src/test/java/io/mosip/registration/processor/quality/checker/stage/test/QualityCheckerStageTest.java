@@ -186,6 +186,7 @@ public class QualityCheckerStageTest {
 		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(birTypeList);
 		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenReturn(biometricRecord);
+		when(packetManagerService.getField(any(), any(), any(), any())).thenReturn("individualBiometrics");
 
 		File file = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
 		InputStream inputStream = new FileInputStream(file);
@@ -374,6 +375,73 @@ public class QualityCheckerStageTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
 		when(packetManagerService.getBiometrics(anyString(),anyString(),any(),anyString(),anyString())).thenReturn(null);
 
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890");
+		MessageDTO result = qualityCheckerStage.process(dto);
+
+		assertTrue(result.getInternalError());
+	}
+
+	@Test
+	public void testBioetricFileNotPresentInIdObject() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+
+		when(packetManagerService.getField(any(), any(), any(), any())).thenReturn(null);
+
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890");
+		MessageDTO result = qualityCheckerStage.process(dto);
+
+		assertTrue(result.getIsValid());
+	}
+
+	@Test
+	public void testNoBiometricInPacket() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+
+		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenReturn(null);
+
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890");
+		MessageDTO result = qualityCheckerStage.process(dto);
+
+		assertFalse(result.getIsValid());
+	}
+
+	@Test
+	public void testBioTypeException() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+		List<BIR> birTypeList = new ArrayList<>();
+		BIR birType1 = new BIR.BIRBuilder().build();
+		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType1 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder().build();
+		io.mosip.kernel.biometrics.entities.RegistryIDType registryIDType = new io.mosip.kernel.biometrics.entities.RegistryIDType();
+		registryIDType.setOrganization("Mosip");
+		registryIDType.setType("257");
+		io.mosip.kernel.biometrics.constant.QualityType quality = new io.mosip.kernel.biometrics.constant.QualityType();
+		quality.setAlgorithm(registryIDType);
+		quality.setScore(90l);
+		bdbInfoType1.setQuality(quality);
+		BiometricType singleType1 = BiometricType.DNA;
+		List<BiometricType> singleTypeList1 = new ArrayList<>();
+		singleTypeList1.add(singleType1);
+		List<String> subtype1 = new ArrayList<>(Arrays.asList("Left", "RingFinger"));
+		bdbInfoType1.setSubtype(subtype1);
+		bdbInfoType1.setType(singleTypeList1);
+		birType1.setBdbInfo(bdbInfoType1);
+		birTypeList.add(birType1);
+		BiometricRecord biometricRecord = new BiometricRecord();
+		biometricRecord.setSegments(birTypeList);
+		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenReturn(biometricRecord);
+
+
+
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890");
+		MessageDTO result = qualityCheckerStage.process(dto);
+
+		assertTrue(result.getInternalError());
+	}
+
+	@Test
+	public void testJsonProcessingException() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenThrow(new JsonProcessingException("Json exception"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityCheckerStage.process(dto);

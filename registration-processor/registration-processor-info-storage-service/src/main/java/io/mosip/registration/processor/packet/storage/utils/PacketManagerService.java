@@ -25,6 +25,7 @@ import io.mosip.registration.processor.packet.storage.dto.FieldResponseDto;
 import io.mosip.registration.processor.packet.storage.dto.InfoDto;
 import io.mosip.registration.processor.packet.storage.dto.ValidatePacketResponse;
 import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -70,7 +71,10 @@ public class PacketManagerService {
 
         FieldResponseDto fieldResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), FieldResponseDto.class);
 
-        return fieldResponseDto.getFields().get(field);
+        String responseField = fieldResponseDto.getFields().get(field);
+        if (StringUtils.isNotEmpty(responseField) && responseField.equalsIgnoreCase("null"))
+            responseField = null;
+        return responseField;
     }
 
     public Map<String, String> getFields(String id, List<String> fields, String source, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
