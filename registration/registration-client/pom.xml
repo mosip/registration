@@ -12,13 +12,11 @@
 
 	<artifactId>registration-client</artifactId>
 	<packaging>jar</packaging>
-    <version>1.2.0-SNAPSHOT</version>
+	<version>1.2.0-SNAPSHOT</version>
 	<name>registration-client</name>
 	<description>Maven project of MOSIP Registration UI</description>
-	
-	<properties>
-   	<mosip.core.kernel.version>1.0.6</mosip.core.kernel.version>
-    </properties>
+
+
 
 	<dependencies>
 		<dependency>
@@ -30,69 +28,55 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-idgenerator-rid</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-idvalidator-rid</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-pdfgenerator-itext</artifactId>
-		</dependency>
+		<!-- <dependency> <groupId>io.mosip.kernel</groupId> <artifactId>kernel-idgenerator-rid</artifactId> 
+			</dependency> <dependency> <groupId>io.mosip.kernel</groupId> <artifactId>kernel-idvalidator-rid</artifactId> 
+			</dependency> <dependency> <groupId>io.mosip.kernel</groupId> <artifactId>kernel-pdfgenerator-itext</artifactId> 
+			</dependency> -->
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
 			<version>4.5.7</version>
 		</dependency>
 		<dependency>
-				<groupId>commons-io</groupId>
-				<artifactId>commons-io</artifactId>
-				<version>2.6</version>
-			</dependency>			
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-core</artifactId>
-				<version>1.0.9</version>
-			</dependency>			
-			<dependency>
-                  <groupId>io.mosip.kernel</groupId>
-                 <artifactId>kernel-idobjectvalidator</artifactId>
-                 <version>1.0.9</version>
-              </dependency>
-	        <dependency>
-			    <groupId>org.openjfx</groupId>
-			    <artifactId>javafx-fxml</artifactId>
-			    <version>${openjfx.version}</version>
-			</dependency>	
-			<dependency>
-			    <groupId>org.openjfx</groupId>
-			    <artifactId>javafx-graphics</artifactId>
-			    <version>${openjfx.version}</version>
-			</dependency>	
-			<dependency>
-			    <groupId>org.openjfx</groupId>
-			    <artifactId>javafx-swing</artifactId>
-			    <version>${openjfx.version}</version>
-			</dependency>	
-			<dependency>
-			    <groupId>org.openjfx</groupId>
-			    <artifactId>javafx-media</artifactId>
-			    <version>${openjfx.version}</version>
-			</dependency>	
-			<dependency>
-			    <groupId>org.openjfx</groupId>
-			    <artifactId>javafx-controls</artifactId>
-			    <version>${openjfx.version}</version>
-			</dependency>	
-			<dependency>
-			    <groupId>org.openjfx</groupId>
-			    <artifactId>javafx-web</artifactId>
-			    <version>${openjfx.version}</version>
-			</dependency>	              
-		</dependencies>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.6</version>
+		</dependency>
+		<!-- <dependency> <groupId>io.mosip.kernel</groupId> <artifactId>kernel-core</artifactId> 
+			<version>1.0.9</version> </dependency> <dependency> <groupId>io.mosip.kernel</groupId> 
+			<artifactId>kernel-idobjectvalidator</artifactId> <version>1.0.9</version> 
+			</dependency> -->
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-fxml</artifactId>
+			<version>${openjfx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-graphics</artifactId>
+			<version>${openjfx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-swing</artifactId>
+			<version>${openjfx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-media</artifactId>
+			<version>${openjfx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-controls</artifactId>
+			<version>${openjfx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-web</artifactId>
+			<version>${openjfx.version}</version>
+		</dependency>
+	</dependencies>
 	<build>
 		<plugins>
 			<plugin>
@@ -128,13 +112,13 @@
 				</executions>
 			</plugin>
 			<plugin>
-                <groupId>org.openjfx</groupId>
-                <artifactId>javafx-maven-plugin</artifactId>
-                <version>0.0.3</version>
-                <configuration>
-                    <mainClass>io.mosip.registration.controller.Initialization</mainClass>
-                </configuration>
-            </plugin>
+				<groupId>org.openjfx</groupId>
+				<artifactId>javafx-maven-plugin</artifactId>
+				<version>0.0.3</version>
+				<configuration>
+					<mainClass>io.mosip.registration.controller.Initialization</mainClass>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 </project>

@@ -58,23 +58,23 @@ public class VirtualKeyboard {
 
 	private boolean capsLock;
 
-	private StringBuilder vkType=new StringBuilder();
+	private StringBuilder vkType = new StringBuilder();
 
-	private final ResourceBundle keyboard = ResourceBundle.getBundle("keyboards.keyboard",
-			new Locale(ApplicationContext.secondaryLanguageLocal()));
+	private final ResourceBundle keyboard = ApplicationContext.secondaryLanguageLocal() != null
+			? ResourceBundle.getBundle("keyboards.keyboard", new Locale(ApplicationContext.secondaryLanguageLocal()))
+			: null;
 
 	private String getKey(String keyCode) {
 
-		return keyboard.getString(keyCode);
+		return keyboard != null ? keyboard.getString(keyCode) : null;
 	}
 
 	/**
 	 * Creates a Virtual Keyboard.
 	 * 
-	 * @param target
-	 *            The node that will receive KeyEvents from this keyboard. If
-	 *            target is null, KeyEvents will be dynamically forwarded to the
-	 *            focus owner in the Scene containing this keyboard.
+	 * @param target The node that will receive KeyEvents from this keyboard. If
+	 *               target is null, KeyEvents will be dynamically forwarded to the
+	 *               focus owner in the Scene containing this keyboard.
 	 */
 
 	private static VirtualKeyboard instance = null;
@@ -181,10 +181,10 @@ public class VirtualKeyboard {
 		final Button enter = createNonshiftableButton("Enter", KeyCode.ENTER, modifiers, target);
 		final Button tab = createNonshiftableButton("Tab", KeyCode.TAB, modifiers, target);
 
-		final double[] left = {15.0, 5.0, 15.0, 15.0, 5.0, 10.0};
-		final double[] right = {5.0, 5.0, 5.0, 15.0, 15.0, 10.0};
-		final double[] up = {10.0, 0.0, 15.0, 10.0, 5.0, 10.0};
-		final double[] down = {10.0, 10.0, 15.0, 0.0, 5.0, 0.0};
+		final double[] left = { 15.0, 5.0, 15.0, 15.0, 5.0, 10.0 };
+		final double[] right = { 5.0, 5.0, 5.0, 15.0, 15.0, 10.0 };
+		final double[] up = { 10.0, 0.0, 15.0, 10.0, 5.0, 10.0 };
+		final double[] down = { 10.0, 10.0, 15.0, 0.0, 5.0, 0.0 };
 
 		final Button cursorLeft = createCursorKey(KeyCode.LEFT, modifiers, target, left);
 		final Button cursorRight = createCursorKey(KeyCode.RIGHT, modifiers, target, right);
@@ -229,8 +229,8 @@ public class VirtualKeyboard {
 	}
 
 	/**
-	 * Creates a VirtualKeyboard which uses the focusProperty of the scene to
-	 * which it is attached as its target
+	 * Creates a VirtualKeyboard which uses the focusProperty of the scene to which
+	 * it is attached as its target
 	 */
 	private VirtualKeyboard() {
 		this(null);
@@ -262,6 +262,7 @@ public class VirtualKeyboard {
 		Button button = createButton(textProperty, code, modifiers, target);
 		return button;
 	}
+
 	private Button createButton(final ObservableStringValue text, final KeyCode code, final Modifiers modifiers,
 			final ReadOnlyObjectProperty<Node> target) {
 		final Button button = new Button();
@@ -278,8 +279,8 @@ public class VirtualKeyboard {
 					targetNode = target.get();
 				} else {
 					targetNode = view().getScene().getFocusOwner();
-					if(target!=null && !targetNode.getId().contains("Local"))
-						targetNode=null;
+					if (target != null && !targetNode.getId().contains("Local"))
+						targetNode = null;
 				}
 
 				if (targetNode != null) {
@@ -405,45 +406,46 @@ public class VirtualKeyboard {
 		textField.setOnKeyPressed(new EventHandler<Event>() {
 			@Override
 			public void handle(Event event) {
-				if(!vkType.toString().contains("vk")) {
-				KeyEvent e = ((KeyEvent) event);
-				if (e.getCode().getName().equals("Caps Lock")) {
+				if (!vkType.toString().contains("vk")) {
+					KeyEvent e = ((KeyEvent) event);
+					if (e.getCode().getName().equals("Caps Lock")) {
+						if (capsLock) {
+							capsLock = false;
+						} else {
+							capsLock = true;
+						}
+					}
+					String key;
 					if (capsLock) {
-						capsLock = false;
+						try {
+							key = keyboard.getString("shift_" + e.getCode().getName().replaceAll("\\s", ""));
+						} catch (MissingResourceException exception) {
+							LOGGER.error("Virtual Keyboard", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+									exception.getMessage());
+							key = null;
+						}
+						if (key != null) {
+							textField.fireEvent(new KeyEvent(KeyEvent.KEY_TYPED, key, e.getCode().getName(),
+									e.getCode(), false, false, false, false));
+							textField.setEditable(false);
+						}
 					} else {
-						capsLock = true;
-					}
-				}
-				String key;
-				if (capsLock) {
-					try {
-						key = keyboard.getString("shift_" + e.getCode().getName().replaceAll("\\s", ""));
-					} catch (MissingResourceException exception) {
-						LOGGER.error("Virtual Keyboard", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-								exception.getMessage());
-						key = null;
-					}
-					if (key != null) {
-						textField.fireEvent(new KeyEvent(KeyEvent.KEY_TYPED, key, e.getCode().getName(), e.getCode(),
-								false, false, false, false));
-						textField.setEditable(false);
-					}
-				} else {
-					try {
-						key = keyboard.getString("unshift_" + e.getCode().getName().replaceAll("\\s", ""));
-					} catch (MissingResourceException exception) {
-						LOGGER.error("Virtual Keyboard", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-								exception.getMessage());
-						key = null;
-					}
-					if (key != null) {
-						textField.fireEvent(new KeyEvent(KeyEvent.KEY_TYPED, key, e.getCode().getName(), e.getCode(),
-								false, false, false, false));
-						textField.setEditable(false);
+						try {
+							key = keyboard.getString("unshift_" + e.getCode().getName().replaceAll("\\s", ""));
+						} catch (MissingResourceException exception) {
+							LOGGER.error("Virtual Keyboard", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+									exception.getMessage());
+							key = null;
+						}
+						if (key != null) {
+							textField.fireEvent(new KeyEvent(KeyEvent.KEY_TYPED, key, e.getCode().getName(),
+									e.getCode(), false, false, false, false));
+							textField.setEditable(false);
+						}
 					}
 				}
 			}
-			}});
+		});
 
 		textField.textProperty().addListener(new ChangeListener<String>() {
 			@Override
@@ -455,22 +457,18 @@ public class VirtualKeyboard {
 
 			}
 		});
-		
-		
 
 	}
 
 	public void focusListener(TextField field, double y, Node keyboardNode) {
-		field.focusedProperty().addListener(new ChangeListener<Boolean>()
-		{
-		    @Override
-		    public void changed(ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue, Boolean newPropertyValue)
-		    {
-		        if (newPropertyValue)
-		        {
-		        	keyboardNode.setLayoutY(y);
-		        }
-		    }
+		field.focusedProperty().addListener(new ChangeListener<Boolean>() {
+			@Override
+			public void changed(ObservableValue<? extends Boolean> arg0, Boolean oldPropertyValue,
+					Boolean newPropertyValue) {
+				if (newPropertyValue) {
+					keyboardNode.setLayoutY(y);
+				}
+			}
 		});
 	}
 }

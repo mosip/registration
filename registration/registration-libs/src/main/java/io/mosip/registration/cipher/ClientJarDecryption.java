@@ -177,8 +177,6 @@ public class ClientJarDecryption extends Application {
 			Properties properties = new Properties();
 			properties.load(keyStream);
 
-
-
 			try {
 
 				Task<Boolean> verificationTask = new Task<Boolean>() {
@@ -191,92 +189,91 @@ public class ClientJarDecryption extends Application {
 					@Override
 					protected Boolean call() throws IOException, InterruptedException {
 
-							//updateMessage(IS_TPM_AVAILABLE);
+						// updateMessage(IS_TPM_AVAILABLE);
 
-							try {
+						try {
+							LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
+									LoggerConstants.APPLICATION_ID, "Started check for jars task");
+
+							SoftwareInstallationHandler registrationUpdate = new SoftwareInstallationHandler();
+
+							boolean hasJars = false;
+
+							updateMessage(CHECKING_FOR_JARS);
+
+							if (registrationUpdate.getCurrentVersion() != null
+									&& registrationUpdate.hasRequiredJars()) {
+
+								hasJars = true;
+
+							} else {
 								LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
-										LoggerConstants.APPLICATION_ID, "Started check for jars task");
+										LoggerConstants.APPLICATION_ID, "Installing of jars started");
 
-								SoftwareInstallationHandler registrationUpdate = new SoftwareInstallationHandler();
+								updateMessage(INSTALLING_JARS);
 
-								boolean hasJars = false;
+								registrationUpdate.installJars();
 
-								updateMessage(CHECKING_FOR_JARS);
+								updateMessage(RE_CHECKING_FOR_JARS);
 
-								if (registrationUpdate.getCurrentVersion() != null
-										&& registrationUpdate.hasRequiredJars()) {
+								hasJars = (registrationUpdate.getCurrentVersion() != null
+										&& registrationUpdate.hasRequiredJars());
+							}
 
-									hasJars = true;
+							LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
+									LoggerConstants.APPLICATION_ID, "Checking for jars Completed");
 
-								} else {
-									LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
-											LoggerConstants.APPLICATION_ID, "Installing of jars started");
-
-									updateMessage(INSTALLING_JARS);
-
-									registrationUpdate.installJars();
-
-									updateMessage(RE_CHECKING_FOR_JARS);
-
-									hasJars = (registrationUpdate.getCurrentVersion() != null
-											&& registrationUpdate.hasRequiredJars());
-								}
-
-								LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
-										LoggerConstants.APPLICATION_ID, "Checking for jars Completed");
-
-								if(!hasJars) {
-									LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
-											LoggerConstants.APPLICATION_ID,
-											"Not installed Fully, closing mosip run.jar screen");
-									updateMessage(FAILED_TO_LAUNCH);
-									updateMessage(TERMINATING_APPLICATION);
-									generateAlertAndTerminate(UNABLE_TO_DOWNLOAD_JARS);
-								}
-								else {
-									LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
-											LoggerConstants.APPLICATION_ID, "Found all the required jars");
-
-									updateMessage(LAUNCHING_CLIENT);
-
-									try {
-										decryptMosipJars(properties);
-									} catch (RuntimeException | IOException runtimeException) {
-										updateMessage(FAILED_TO_LAUNCH);
-										LOGGER.error(LoggerConstants.CLIENT_JAR_DECRYPTION,
-												LoggerConstants.APPLICATION_NAME, LoggerConstants.APPLICATION_ID,
-												ExceptionUtils.getStackTrace(runtimeException));
-										cleanup();
-										updateMessage(TERMINATING_APPLICATION);
-										generateAlertAndTerminate(FAILED_TO_LAUNCH);
-									}
-
-									updateMessage(LAUNCHING_CLIENT);
-
-									try {
-										launchRegClient(properties);
-									} catch (Exception ex) {
-										LOGGER.error(LoggerConstants.CLIENT_JAR_DECRYPTION,
-												LoggerConstants.APPLICATION_NAME, LoggerConstants.APPLICATION_ID,
-												ExceptionUtils.getStackTrace(ex));
-										updateMessage(FAILED_TO_LAUNCH);
-										generateAlertAndTerminate(FAILED_TO_LAUNCH);
-									}
-								}
-
-							} catch (Exception exception) {
-								LOGGER.error(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
-										LoggerConstants.APPLICATION_ID,
-										exception.getMessage() + ExceptionUtils.getStackTrace(exception));
-
+							if (!hasJars) {
 								LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
 										LoggerConstants.APPLICATION_ID,
 										"Not installed Fully, closing mosip run.jar screen");
-
 								updateMessage(FAILED_TO_LAUNCH);
 								updateMessage(TERMINATING_APPLICATION);
 								generateAlertAndTerminate(UNABLE_TO_DOWNLOAD_JARS);
+							} else {
+								LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
+										LoggerConstants.APPLICATION_ID, "Found all the required jars");
+
+								updateMessage(LAUNCHING_CLIENT);
+
+								try {
+									decryptMosipJars(properties);
+								} catch (RuntimeException | IOException runtimeException) {
+									updateMessage(FAILED_TO_LAUNCH);
+									LOGGER.error(LoggerConstants.CLIENT_JAR_DECRYPTION,
+											LoggerConstants.APPLICATION_NAME, LoggerConstants.APPLICATION_ID,
+											ExceptionUtils.getStackTrace(runtimeException));
+									cleanup();
+									updateMessage(TERMINATING_APPLICATION);
+									generateAlertAndTerminate(FAILED_TO_LAUNCH);
+								}
+
+								updateMessage(LAUNCHING_CLIENT);
+
+								try {
+									launchRegClient(properties);
+								} catch (Exception ex) {
+									LOGGER.error(LoggerConstants.CLIENT_JAR_DECRYPTION,
+											LoggerConstants.APPLICATION_NAME, LoggerConstants.APPLICATION_ID,
+											ExceptionUtils.getStackTrace(ex));
+									updateMessage(FAILED_TO_LAUNCH);
+									generateAlertAndTerminate(FAILED_TO_LAUNCH);
+								}
 							}
+
+						} catch (Exception exception) {
+							LOGGER.error(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
+									LoggerConstants.APPLICATION_ID,
+									exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+
+							LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
+									LoggerConstants.APPLICATION_ID,
+									"Not installed Fully, closing mosip run.jar screen");
+
+							updateMessage(FAILED_TO_LAUNCH);
+							updateMessage(TERMINATING_APPLICATION);
+							generateAlertAndTerminate(UNABLE_TO_DOWNLOAD_JARS);
+						}
 
 						return false;
 
@@ -308,123 +305,109 @@ public class ClientJarDecryption extends Application {
 	}
 
 	private void decryptMosipJars(Properties properties) throws IOException {
-		//ClientJarDecryption aesDecrypt = new ClientJarDecryption();
+		// ClientJarDecryption aesDecrypt = new ClientJarDecryption();
 		File encryptedClientJar = new File(binFolder + MOSIP_CLIENT);
 		File encryptedServicesJar = new File(binFolder + MOSIP_SERVICES);
 		tempPath = FileUtils.getTempDirectoryPath();
 		tempPath = tempPath + SLASH + UUID.randomUUID();
 
 		byte[] decryptedKey = getValue(MOSIP_REGISTRATION_APP_KEY, properties, isTPMAvailable(properties));
-		LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION,
-				LoggerConstants.APPLICATION_NAME, LoggerConstants.APPLICATION_ID,
-				"Decrypting mosip-client");
+		LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
+				LoggerConstants.APPLICATION_ID, "Decrypting mosip-client");
 		byte[] decryptedRegFileBytes = decrypt(FileUtils.readFileToByteArray(encryptedClientJar), decryptedKey);
 		String clientJar = tempPath + SLASH + UUID.randomUUID();
 
 		// Decrypt Client Jar
-		FileUtils.writeByteArrayToFile(new File(clientJar + ".jar"),
-				decryptedRegFileBytes);
+		FileUtils.writeByteArrayToFile(new File(clientJar + ".jar"), decryptedRegFileBytes);
 
-		LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION,
-				LoggerConstants.APPLICATION_NAME, LoggerConstants.APPLICATION_ID,
-				"Decrypting mosip-services");
+		LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
+				LoggerConstants.APPLICATION_ID, "Decrypting mosip-services");
 
 		byte[] decryptedRegServiceBytes = decrypt(FileUtils.readFileToByteArray(encryptedServicesJar), decryptedKey);
 
 		// Decrypt Services Jar
-		FileUtils.writeByteArrayToFile(
-				new File(tempPath + SLASH + UUID.randomUUID() + ".jar"),
+		FileUtils.writeByteArrayToFile(new File(tempPath + SLASH + UUID.randomUUID() + ".jar"),
 				decryptedRegServiceBytes);
 
-		LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION,
-				LoggerConstants.APPLICATION_NAME, LoggerConstants.APPLICATION_ID,
-				"Decrypting mosip jars completed");
+		LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
+				LoggerConstants.APPLICATION_ID, "Decrypting mosip jars completed");
 	}
 
-
 	private void cleanup() {
-		LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION,
-				LoggerConstants.APPLICATION_NAME, LoggerConstants.APPLICATION_ID,
-				"Deleting manifest file, and jars and decrypted files");
+		LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
+				LoggerConstants.APPLICATION_ID, "Deleting manifest file, and jars and decrypted files");
 		try {
 			FileUtils.deleteDirectory(new File(tempPath));
 			FileUtils.forceDelete(new File("MANIFEST.MF"));
 			new SoftwareInstallationHandler();
 		} catch (IOException ioException) {
-			LOGGER.error(LoggerConstants.CLIENT_JAR_DECRYPTION,
-					LoggerConstants.APPLICATION_NAME, LoggerConstants.APPLICATION_ID,
-					ExceptionUtils.getStackTrace(ioException));
+			LOGGER.error(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
+					LoggerConstants.APPLICATION_ID, ExceptionUtils.getStackTrace(ioException));
 		}
 	}
 
 	private void launchRegClient(Properties properties) throws IOException, InterruptedException {
 		FileUtils.copyDirectory(new File("lib"), new File(tempPath));
-		LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION,
-				LoggerConstants.APPLICATION_NAME, LoggerConstants.APPLICATION_ID,
-				"Preparing command to launch the reg-client");
+		LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
+				LoggerConstants.APPLICATION_ID, "Preparing command to launch the reg-client");
 		String jrePath = new File(System.getProperty("user.dir")) + SLASH + "jre/jre/bin/java";
 
-		Process process = Runtime.getRuntime().exec(String.format(getCommandTemplate(), jrePath,
-					System.getProperty("mosip.max.mem", MAX_HEAP_SIZE),
-					System.getProperty("mosip.min.mem", MIN_HEAP_SIZE),
-					tempPath,
-					properties.getProperty("mosip.client.upgrade.server.url"),
-					properties.getProperty(MOSIP_CLIENT_TPM_AVAILABILITY)));
+		Process process = Runtime.getRuntime()
+				.exec(String.format(getCommandTemplate(), jrePath, System.getProperty("mosip.max.mem", MAX_HEAP_SIZE),
+						System.getProperty("mosip.min.mem", MIN_HEAP_SIZE), tempPath,
+						properties.getProperty("mosip.client.upgrade.server.url"),
+						properties.getProperty(MOSIP_CLIENT_TPM_AVAILABILITY)));
 
-			LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION,
-					LoggerConstants.APPLICATION_NAME, LoggerConstants.APPLICATION_ID,
-					"Proccess Initiated");
+		LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
+				LoggerConstants.APPLICATION_ID, "Proccess Initiated");
 
-			try (BufferedReader inputStreamReader = new BufferedReader(
-					new InputStreamReader(process.getInputStream()))) {
+		try (BufferedReader inputStreamReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
 
-				String info;
-				while ((info = inputStreamReader.readLine()) != null) {
+			String info;
+			while ((info = inputStreamReader.readLine()) != null) {
 
-					LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION,
-							LoggerConstants.APPLICATION_NAME,
-							LoggerConstants.APPLICATION_ID, info);
+				LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
+						LoggerConstants.APPLICATION_ID, info);
 
-					if (info.contains(MOSIP_SCREEN_LOADED)) {
-						closeStage();
-						break;
-					}
+				if (info.contains(MOSIP_SCREEN_LOADED)) {
+					closeStage();
+					break;
+				}
 
-					if (info.contains(EXCEPTION_ENCOUNTERED)) {
-						process.destroyForcibly();
-						generateAlertAndTerminate(FAILED_TO_LAUNCH);
-					}
+				if (info.contains(EXCEPTION_ENCOUNTERED)) {
+					process.destroyForcibly();
+					generateAlertAndTerminate(FAILED_TO_LAUNCH);
 				}
 			}
+		}
 
-			process.getInputStream().close();
-			process.getOutputStream().close();
-			process.getErrorStream().close();
+		process.getInputStream().close();
+		process.getOutputStream().close();
+		process.getErrorStream().close();
 
-			//waits for normal / abnormal exit of reg-cli application
-			process.waitFor();
+		// waits for normal / abnormal exit of reg-cli application
+		process.waitFor();
 
-			//if (0 == process.waitFor()) {
+		// if (0 == process.waitFor()) {
 
-				LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION,
-						LoggerConstants.APPLICATION_NAME, LoggerConstants.APPLICATION_ID,
-						"Started Destroying proccess of reg-client and force deleting the decrypted jars");
+		LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
+				LoggerConstants.APPLICATION_ID,
+				"Started Destroying proccess of reg-client and force deleting the decrypted jars");
 
-				process.destroyForcibly();
-				FileUtils.forceDelete(new File(tempPath));
+		process.destroyForcibly();
+		FileUtils.forceDelete(new File(tempPath));
 
-				LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION,
-						LoggerConstants.APPLICATION_NAME, LoggerConstants.APPLICATION_ID,
-						"Completed Destroying proccess of reg-client and force deleting the decrypted jars");
+		LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
+				LoggerConstants.APPLICATION_ID,
+				"Completed Destroying proccess of reg-client and force deleting the decrypted jars");
 
-				exit();
-			//}
+		exit();
+		// }
 	}
-
 
 	private String getCommandTemplate() {
 		String osName = System.getProperty("os.name");
-		if(osName.toLowerCase().contains("windows"))
+		if (osName.toLowerCase().contains("windows"))
 			return WIN_CMD_TEMPLATE;
 		else
 			return LIN_CMD_TEMPLATE;
@@ -464,6 +447,7 @@ public class ClientJarDecryption extends Application {
 		Scene scene = new Scene(stackPane, 200, 150);
 		primaryStage.initStyle(StageStyle.UNDECORATED);
 		primaryStage.setScene(scene);
+		primaryStage.getIcons().add(new Image(getClass().getResource("/img/logo-final.png").toExternalForm()));
 
 		primaryStage.show();
 
@@ -472,15 +456,16 @@ public class ClientJarDecryption extends Application {
 
 	}
 
-	//TODO - key used to encrypt jars is just encoded in properties file
+	// TODO - key used to encrypt jars is just encoded in properties file
 	private byte[] getValue(String key, Properties properties, boolean isTPMAvailable) {
 		byte[] value = CryptoUtil.decodeBase64(properties.getProperty(key));
-		/*if (isTPMAvailable) {
-			value = asymmetricDecryptionService.decryptUsingTPM(TPMInitialization.getTPMInstance(), value);
-		}*/
+		/*
+		 * if (isTPMAvailable) { value =
+		 * asymmetricDecryptionService.decryptUsingTPM(TPMInitialization.getTPMInstance(
+		 * ), value); }
+		 */
 		return value;
 	}
-
 
 	private String getEncryptedValue(Properties properties, String key) {
 		return CryptoUtil.encodeBase64String(asymmetricEncryptionService.encryptUsingTPM(
@@ -495,11 +480,9 @@ public class ClientJarDecryption extends Application {
 		System.exit(0);
 	}
 
-
 	private void generateAlertAndTerminate(String message) {
-		LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION,
-				LoggerConstants.APPLICATION_NAME, LoggerConstants.APPLICATION_ID,
-				"Terminating the application");
+		LOGGER.info(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
+				LoggerConstants.APPLICATION_ID, "Terminating the application");
 
 		Platform.runLater(() -> {
 			Alert alert = new Alert(AlertType.ERROR, message, ButtonType.OK);

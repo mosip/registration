@@ -4,6 +4,7 @@ package io.mosip.registration.processor.manual.verification.stage;
 import static org.mockito.Matchers.any;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -137,24 +138,12 @@ public class ManualVerificationStageTest{
 	}
 	@Test
 	public void testAllProcess() throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException, JsonProcessingException, PacketManagerException {
-		testBiometric();
-		testDemographic();
+		
 		testProcessAssignment();
 		testProcessDecision();
-		testProcessPacketInfo();
+		
 	}
-	private void testBiometric() throws PacketDecryptionFailureException, IOException, java.io.IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
-		serviceID="bio";
-		Mockito.when(env.getProperty(any())).thenReturn("mosip.manual.verification.biometric");
-		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern")).thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		manualverificationstage.processBiometric(ctx);
-	}
-	private void testDemographic() throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException, JsonProcessingException, PacketManagerException {
-		serviceID="demo";
-		Mockito.when(env.getProperty(any())).thenReturn("mosip.manual.verification.demographic");
-		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern")).thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		manualverificationstage.processDemographic(ctx);
-	}
+	
 	private void testProcessAssignment()
 	{
 		serviceID="assign";
@@ -173,13 +162,7 @@ public class ManualVerificationStageTest{
 		Mockito.when(manualAdjudicationService.updatePacketStatus(any(),any())).thenReturn(updatedManualVerificationDTO);
 		manualverificationstage.processDecision(ctx);
 	}
-	private void testProcessPacketInfo() throws PacketDecryptionFailureException, IOException, java.io.IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
-		serviceID="packetinfo";
-		Mockito.when(env.getProperty(any())).thenReturn("mosip.manual.verification.packetinfo");
-		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern")).thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		PacketMetaInfo info=new PacketMetaInfo();
-		manualverificationstage.processPacketInfo(ctx);
-	}
+	
 	private FileUpload setFileUpload() {
 		return new FileUpload() {
 
@@ -371,25 +354,20 @@ public class ManualVerificationStageTest{
 				obj.put("requesttime", "51130282650000320190117");
 				JsonObject obj1= new JsonObject();
 
-				if(serviceID=="bio") {
-					obj1.put("regId", "51130282650000320190117144316");
-				}else if(serviceID=="demo") {
-					obj1.put("regId", "51130282650000320190117144316");
-
-				}else if(serviceID=="assign") {
+				 if(serviceID=="assign") {
 					obj1.put("userId", "51130282650000320190117");
 
 				}else if(serviceID=="decision") {
-					obj1.put("matchedRefId", "27847657360002520181208123987");
-					obj1.put("matchedRefType", "RID");
+					
 					obj1.put("mvUsrId", "mono");
-					obj1.put("reasonCode", "Problem with biometrics");
+					
 					obj1.put("regId", "27847657360002520181208123456");
 					obj1.put("statusCode", "APPROVED");
-
-				}else if(serviceID=="packetinfo") {
-					obj1.put("regId", "51130282650000320190117144316");
-
+					JsonObject obj2= new JsonObject();
+					obj2.put("matchedRegId", "27847657360002520181208123987");
+					obj2.put("matchedRefType", "RID");
+					obj2.put("reasonCode", "Problem with biometrics");
+					obj1.put("gallery", Arrays.asList(obj2));
 				}
 
 				obj.put("request", obj1);
