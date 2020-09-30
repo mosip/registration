@@ -34,20 +34,16 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
-import io.mosip.registration.constants.AuditEvent;
-import io.mosip.registration.constants.AuditReferenceIdTypes;
-import io.mosip.registration.constants.Components;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
-import io.mosip.registration.dao.impl.RegisteredDeviceDAO;
-import io.mosip.registration.entity.RegisteredDeviceMaster;
+import io.mosip.registration.dao.MachineMappingDAO;
+import io.mosip.registration.entity.RegDeviceMaster;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.mdm.constants.MosipBioDeviceConstants;
 import io.mosip.registration.mdm.dto.Biometric;
 import io.mosip.registration.mdm.dto.MdmBioDevice;
 import io.mosip.registration.mdm.integrator.MosipDeviceSpecificationProvider;
-import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 
 /**
  * 
@@ -97,7 +93,7 @@ public class MosipDeviceSpecificationFactory {
 	}
 
 	@Autowired
-	private RegisteredDeviceDAO registeredDeviceDAO;
+	private MachineMappingDAO machineMappingDAO;
 
 	/**
 	 * This method will prepare the device registry, device registry contains all
@@ -110,8 +106,8 @@ public class MosipDeviceSpecificationFactory {
 	 * Looks for all the configured ports available and initializes all the
 	 * Biometric devices and saves it for future access
 	 * 
-	 * @throws RegBaseCheckedException
-	 *             - generalised exception with errorCode and errorMessage
+	 * @throws RegBaseCheckedException - generalised exception with errorCode and
+	 *                                 errorMessage
 	 */
 	public void init() {
 		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
@@ -245,9 +241,8 @@ public class MosipDeviceSpecificationFactory {
 								LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 										"Checking for device registratrion : " + bioDevice.getDeviceCode());
 
-								List<RegisteredDeviceMaster> registeredDevices = registeredDeviceDAO
-										.getRegisteredDevices(bioDevice.getDeviceCode(), bioDevice.getSerialNumber());
-
+								List<RegDeviceMaster> registeredDevices = machineMappingDAO
+										.getRegisteredDevicesBySerialNumber(bioDevice.getSerialNumber());
 								if (registeredDevices != null && !registeredDevices.isEmpty()) {
 									LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 											"Device Registration found : " + bioDevice.getDeviceCode());
