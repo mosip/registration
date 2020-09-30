@@ -160,4 +160,12 @@ public class MachineMappingDAOImpl implements MachineMappingDAO {
 		return machineMaster == null ? null : machineMaster.getKeyIndex();
 	}
 
+	@Override
+	public List<RegDeviceMaster> getRegisteredDevicesBySerialNumber(String serialNumber) {
+		LOGGER.info(MACHINE_MAPPING_LOGGER_TITLE, APPLICATION_NAME, APPLICATION_ID,
+				"fetching the device with serial number : " + serialNumber);
+
+		return deviceMasterRepository.findAllByIsActiveTrueAndSerialNum(serialNumber);
+	}
+
 }
