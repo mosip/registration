@@ -61,6 +61,7 @@ public class DaoConfig extends HibernateDaoConfig {
 	private static final String DRIVER_CLASS_NAME = "org.apache.derby.jdbc.EmbeddedDriver";
 	private static final String URL = "jdbc:derby:%s;bootPassword=%s";
 	private static final String SHUTDOWN_URL = "jdbc:derby:;shutdown=true;deregister=false;";
+	private static final String SCHEMA_NAME = "REG";
 
 	private static Properties keys;
 	private static JdbcTemplate jdbcTemplate;
@@ -192,6 +193,7 @@ public class DaoConfig extends HibernateDaoConfig {
 		createDatabase(dbPath);
 		DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource();
 		driverManagerDataSource.setDriverClassName(DRIVER_CLASS_NAME);
+		driverManagerDataSource.setSchema(SCHEMA_NAME);
 		driverManagerDataSource.setUrl(String.format(URL, dbPath, getDBSecret()));
 		return driverManagerDataSource;
 	}
