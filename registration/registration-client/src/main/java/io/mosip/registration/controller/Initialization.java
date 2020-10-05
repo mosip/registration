@@ -15,7 +15,6 @@ import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.auth.LoginController;
-import io.mosip.registration.tpm.initialize.TPMInitialization;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -98,7 +97,8 @@ public class Initialization extends Application {
 	public void stop() {
 		try {
 			super.stop();
-			TPMInitialization.closeTPMInstance();
+			//TODO
+			//TPMInitialization.closeTPMInstance();
 		} catch (Exception exception) {
 			LOGGER.error("REGISTRATION - APPLICATION INITILIZATION - REGISTRATIONAPPINITILIZATION", APPLICATION_NAME,
 					APPLICATION_ID,

@@ -36,15 +36,13 @@ import io.mosip.registration.dto.AuthTokenDTO;
 import io.mosip.registration.dto.LoginUserDTO;
 import io.mosip.registration.entity.MachineMaster;
 import io.mosip.registration.exception.RegBaseCheckedException;
-import io.mosip.registration.service.security.ClientSecurity;
-import io.mosip.registration.tpm.spi.TPMUtil;
 import io.mosip.registration.util.advice.RestClientAuthAdvice;
 import io.mosip.registration.util.restclient.RequestHTTPDTO;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
-@PrepareForTest({ JsonUtils.class, ApplicationContext.class, SessionContext.class, TPMUtil.class })
+@PrepareForTest({ JsonUtils.class, ApplicationContext.class, SessionContext.class })
 public class RestClientAuthAdviceTest {
 
 	@Rule
@@ -216,7 +214,6 @@ public class RestClientAuthAdviceTest {
 	@Test
 	public void addRequestSignatureTest() {
 		HttpHeaders httpHeaders = new HttpHeaders();
-		PowerMockito.mockStatic(TPMUtil.class);
 		MachineMaster machineMaster = Mockito.mock(MachineMaster.class);
 		String signedData = "signedData";
 
@@ -232,7 +229,7 @@ public class RestClientAuthAdviceTest {
 	@Test(expected = RegBaseCheckedException.class)
 	public void addRequestSignatureExceptionTest() throws Throwable {
 		HttpHeaders httpHeaders = new HttpHeaders();
-		PowerMockito.mockStatic(TPMUtil.class, JsonUtils.class);
+		PowerMockito.mockStatic(JsonUtils.class);
 
 		PowerMockito.when(JsonUtils.javaObjectToJsonString(Mockito.any())).thenThrow(new JsonProcessingException("string"));
 
@@ -245,7 +242,7 @@ public class RestClientAuthAdviceTest {
 
 	@Test(expected = RegBaseCheckedException.class)
 	public void addServiceRequestSignatureTest() throws Throwable {
-		PowerMockito.mockStatic(TPMUtil.class, JsonUtils.class, ApplicationContext.class);
+		PowerMockito.mockStatic(JsonUtils.class, ApplicationContext.class);
 		RequestHTTPDTO requestHTTPDTO = new RequestHTTPDTO();
 		requestHTTPDTO.setRequestSignRequired(true);
 		Object[] args = new Object[1];
@@ -263,7 +260,7 @@ public class RestClientAuthAdviceTest {
 
 	@Test
 	public void getNewAuthZTokenTest1() {
-		PowerMockito.mockStatic(TPMUtil.class, JsonUtils.class, ApplicationContext.class);
+		PowerMockito.mockStatic(JsonUtils.class, ApplicationContext.class);
 		RequestHTTPDTO requestHTTPDTO = new RequestHTTPDTO();
 		requestHTTPDTO.setTriggerPoint("User");
 		

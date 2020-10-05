@@ -13,6 +13,10 @@
 	<description>Maven project of MOSIP Registration Service</description>
 	<version>1.1.2-SNAPSHOT</version>
 
+	<properties>
+		<kernel.packet.mamager.version>1.2.0-SNAPSHOT</kernel.packet.mamager.version>
+	</properties>
+
 	<dependencies>
 		<!-- Lombok -->
 		<dependency>
@@ -337,7 +341,7 @@
 		<dependency>
 			<groupId>io.mosip.commons</groupId>
 			<artifactId>commons-packet-manager</artifactId>
-			<version>${mosip.core.kernel.version}</version>
+			<version>${kernel.packet.mamager.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
