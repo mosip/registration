@@ -97,6 +97,14 @@ public class DocumentScanFacade {
 		return false;
 	}
 	
+	public boolean setStubScannerFactory() {
+		if (!documentScannerServices.isEmpty()) {
+			this.documentScannerService = documentScannerServices.get(0);
+			return true;
+		}
+		return false;
+	}
+	
 	/**
 	 * Gets the list of scanner devices that are connected.
 	 * 
