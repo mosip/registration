@@ -827,7 +827,12 @@ public class DocumentScanController extends BaseController {
 		 * TODO - pdf to images to be replaced wit ketrnal and setscanner factory has to
 		 * be removed here
 		 */
-		documentScanFacade.setScannerFactory();
+		if (RegistrationConstants.YES
+				.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.DOC_SCANNER_ENABLED))) {
+			documentScanFacade.setScannerFactory();
+		} else {
+			documentScanFacade.setStubScannerFactory();
+		}
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Converting bytes to Image to display scanned document");
 		/* clearing the previously loaded pdf pages inorder to clear up the memory */
