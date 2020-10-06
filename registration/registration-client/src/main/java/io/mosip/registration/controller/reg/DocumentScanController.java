@@ -282,8 +282,16 @@ public class DocumentScanController extends BaseController {
 	 */
 	@SuppressWarnings("unchecked")
 	private <T> void prepareDocumentScanSection(List<UiSchemaDTO> documentFields) {
+
+		LOGGER.debug(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "Preparing document section");
+
 		if (RegistrationConstants.YES
 				.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.DOC_SCANNER_ENABLED))) {
+
+			LOGGER.debug(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "Found Document scanner with device enabled");
+
 			HBox scannerHbox = new HBox();
 			scannerHbox.setStyle("-fx-padding: 10;");
 			Label selectScannerLabel = new Label();
@@ -295,15 +303,34 @@ public class DocumentScanController extends BaseController {
 			scannerComboBox.setPrefWidth(docScanVbox.getWidth() / 2);
 			scannerComboBox.getStyleClass().add(RegistrationConstants.DOC_COMBO_BOX);
 			scannerComboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
-				selectedScanDeviceName = newValue; 
+				selectedScanDeviceName = newValue;
 			});
+
+			LOGGER.debug(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "Setting Document scanner factory");
+
 			if (documentScanFacade.setScannerFactory()) {
+
+				LOGGER.debug(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, APPLICATION_NAME,
+						RegistrationConstants.APPLICATION_ID, "Finding the devices used to scan the documents");
+
 				List<ScanDevice> scannerDevices = documentScanFacade.getDevices();
+
 				if (scannerDevices.isEmpty()) {
+					LOGGER.debug(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, APPLICATION_NAME,
+							RegistrationConstants.APPLICATION_ID,
+							"Not Found the devices used to scan the document : " + scannerDevices);
 					scannerComboBox.setPromptText(RegistrationUIConstants.NO_SCANNER_FOUND);
 					scannerComboBox.setDisable(true);
 				} else {
-					List<String> deviceNames = scannerDevices.stream().map(device -> device.getName()).collect(Collectors.toList());
+					LOGGER.debug(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, APPLICATION_NAME,
+							RegistrationConstants.APPLICATION_ID,
+							"Found the devices used to scan the document : " + scannerDevices);
+					List<String> deviceNames = scannerDevices.stream().map(device -> device.getName())
+							.collect(Collectors.toList());
+					LOGGER.debug(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, APPLICATION_NAME,
+							RegistrationConstants.APPLICATION_ID,
+							"Found the devices used to scan the document : " + scannerDevices);
 					scannerComboBox.getItems().addAll(deviceNames);
 					scannerComboBox.getSelectionModel().selectFirst();
 					selectedScanDeviceName = scannerComboBox.getSelectionModel().getSelectedItem();
