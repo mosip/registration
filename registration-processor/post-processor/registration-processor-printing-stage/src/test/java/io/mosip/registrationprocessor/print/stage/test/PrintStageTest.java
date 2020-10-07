@@ -87,6 +87,7 @@ import java.util.Set;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyByte;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
@@ -215,7 +216,7 @@ public class PrintStageTest {
 
 		Mockito.when(mosipConnectionFactory.createConnection(any(), any(), any(), any()))
 				.thenReturn(queue);
-		Mockito.when(mosipQueueManager.send(any(), any(), any(String.class))).thenReturn(true);
+		Mockito.when(mosipQueueManager.send(any(), any(byte[].class), any())).thenReturn(true);
 
 		Mockito.doNothing().when(registrationStatusDto).setStatusCode(any());
 		Mockito.doNothing().when(registrationStatusDto).setStatusComment(any());
@@ -320,7 +321,6 @@ public class PrintStageTest {
 		dto.setReg_type(RegistrationType.NEW);
 		// Mockito.when(packetInfoManager.getUINByRid("1234567890987654321")).thenReturn(uinList);
 		doNothing().when(printPostService).generatePrintandPostal(any(), any(), any());
-		Mockito.when(mosipQueueManager.send(any(), any(), any())).thenReturn(true);
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getIsValid());
 	}
@@ -365,7 +365,7 @@ public class PrintStageTest {
 
 	@Test
 	public void testPrintStageFailure() {
-		Mockito.when(mosipQueueManager.send(any(), any(), anyString())).thenReturn(false);
+		Mockito.when(mosipQueueManager.send(any(), any(byte[].class), any())).thenReturn(false);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
@@ -415,7 +415,7 @@ public class PrintStageTest {
 	@Test
 	public void testConnectionUnavailableException() {
 		ConnectionUnavailableException e = new ConnectionUnavailableException();
-		Mockito.doThrow(e).when(mosipQueueManager).send(any(), any(), any());
+		Mockito.doThrow(e).when(mosipQueueManager).send(any(), any(byte[].class), any());
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
@@ -431,7 +431,7 @@ public class PrintStageTest {
 	@Test
 	public void testRetrySend() {
 		QueueConnectionNotFound e = new QueueConnectionNotFound();
-		Mockito.doThrow(e).when(mosipQueueManager).send(any(), any(), any());
+		Mockito.doThrow(e).when(mosipQueueManager).send(any(), any(byte[].class), any());
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
@@ -731,7 +731,6 @@ public class PrintStageTest {
 		dto.setReg_type(RegistrationType.RES_REPRINT);
 
 		doNothing().when(printPostService).generatePrintandPostal(any(), any(), any());
-		Mockito.when(mosipQueueManager.send(any(), any(), any())).thenReturn(true);
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getIsValid());
 	}
@@ -756,7 +755,6 @@ public class PrintStageTest {
 		uinList.add("3051738163");
 		dto.setReg_type(RegistrationType.RES_REPRINT);
 		doNothing().when(printPostService).generatePrintandPostal(any(), any(), any());
-		Mockito.when(mosipQueueManager.send(any(), any(), any())).thenReturn(true);
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getIsValid());
 	}
