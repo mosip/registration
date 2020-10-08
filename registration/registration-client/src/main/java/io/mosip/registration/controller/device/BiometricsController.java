@@ -1212,16 +1212,13 @@ public class BiometricsController extends BaseController /* implements Initializ
 			@Override
 			public void handle(WorkerStateEvent t) {
 
-				LOGGER.debug(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-						"RCapture task failed");
+				LOGGER.debug(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "RCapture task failed");
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.BIOMETRIC_SCANNING_ERROR);
 
-				LOGGER.debug(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-						"closing popup stage");
+				LOGGER.debug(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "closing popup stage");
 				scanPopUpViewController.getPopupStage().close();
-				
-				LOGGER.debug(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-						"Enabling LogOut");
+
+				LOGGER.debug(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "Enabling LogOut");
 				// Enable Auto-Logout
 				SessionContext.setAutoLogout(true);
 
@@ -1255,14 +1252,18 @@ public class BiometricsController extends BaseController /* implements Initializ
 						if (!isExceptionPhoto(currentModality)) {
 							if (bioService.isMdmEnabled() && !isUserOnboardFlag) {
 
-								LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-										"Doing local de-dup validation");
+								// TODO Remove dedup enable/disable validation, currently added for testing
+								// purpose
+								if (RegistrationConstants.ENABLE
+										.equalsIgnoreCase(RegistrationConstants.DEDUPLICATION_ENABLE_FLAG)) {
+									LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+											"Doing local de-dup validation");
 
-								isMatchedWithLocalBiometrics = identifyInLocalGallery(mdsCapturedBiometricsList,
-										Biometric
-												.getSingleTypeByModality(
-														isFace(currentModality) ? "FACE_FULL FACE" : currentModality)
-												.value());
+									isMatchedWithLocalBiometrics = identifyInLocalGallery(mdsCapturedBiometricsList,
+											Biometric.getSingleTypeByModality(
+													isFace(currentModality) ? "FACE_FULL FACE" : currentModality)
+													.value());
+								}
 							}
 						}
 

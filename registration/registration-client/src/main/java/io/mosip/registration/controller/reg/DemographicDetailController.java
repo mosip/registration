@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -53,6 +54,7 @@ import io.mosip.registration.dto.SuccessResponseDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.mastersync.LocationDto;
+import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.entity.Location;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.IdentitySchemaService;
@@ -154,7 +156,7 @@ public class DemographicDetailController extends BaseController {
 	private ResourceBundle localLabelBundle;
 	private String primaryLanguage;
 	private String secondaryLanguage;
-	private List<String> orderOfAddress;
+//	private List<String> orderOfAddress;
 	boolean hasToBeTransliterated = true;
 	// public Map<String, ComboBox<String>> listOfComboBoxWithString;
 	public Map<String, ComboBox<GenericDto>> listOfComboBoxWithObject;
@@ -173,6 +175,10 @@ public class DemographicDetailController extends BaseController {
 
 	@Autowired
 	private BiometricsController guardianBiometricsController;
+
+	private Map<String, TreeMap<Integer, String>> orderOfAddressMapByGroup = new HashMap<>();
+
+	private Map<String, List<String>> orderOfAddressListByGroup = new LinkedHashMap<>();
 
 	/*
 	 * (non-Javadoc)
@@ -242,28 +248,31 @@ public class DemographicDetailController extends BaseController {
 				}
 			}
 
-			addFirstOrderAddress(listOfComboBoxWithObject.get(orderOfAddress.get(0)), 1,
-					applicationContext.getApplicationLanguage());
-
-			if (isLocalLanguageAvailable() || !isAppLangAndLocalLangSame()) {
-
-				addFirstOrderAddress(
-						listOfComboBoxWithObject.get(orderOfAddress.get(0) + RegistrationConstants.LOCAL_LANGUAGE), 1,
-						applicationContext.getLocalLanguage());
-			}
-
 			populateDropDowns();
-			for (int j = 0; j < orderOfAddress.size() - 1; j++) {
-				final int k = j;
+			for (Entry<String, List<String>> orderOfAdd : orderOfAddressListByGroup.entrySet()) {
+				List<String> orderOfAddress = orderOfAdd.getValue();
+				addFirstOrderAddress(listOfComboBoxWithObject.get(orderOfAddress.get(0)), 1,
+						applicationContext.getApplicationLanguage());
 
-				try {
-					listOfComboBoxWithObject.get(orderOfAddress.get(k)).setOnAction((event) -> {
-						configureMethodsForAddress(k, k + 1, orderOfAddress.size());
-					});
-				} catch (Exception runtimeException) {
-					LOGGER.info(orderOfAddress.get(k) + " is not a valid field", APPLICATION_NAME,
-							RegistrationConstants.APPLICATION_ID,
-							runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
+				if (isLocalLanguageAvailable() || !isAppLangAndLocalLangSame()) {
+
+					addFirstOrderAddress(
+							listOfComboBoxWithObject.get(orderOfAddress.get(0) + RegistrationConstants.LOCAL_LANGUAGE),
+							1, applicationContext.getLocalLanguage());
+				}
+
+				for (int j = 0; j < orderOfAddress.size() - 1; j++) {
+					final int k = j;
+
+					try {
+						listOfComboBoxWithObject.get(orderOfAddress.get(k)).setOnAction((event) -> {
+							configureMethodsForAddress(k, k + 1, orderOfAddress.size(), orderOfAddress);
+						});
+					} catch (Exception runtimeException) {
+						LOGGER.info(orderOfAddress.get(k) + " is not a valid field", APPLICATION_NAME,
+								RegistrationConstants.APPLICATION_ID,
+								runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
+					}
 				}
 			}
 			auditFactory.audit(AuditEvent.REG_DEMO_CAPTURE, Components.REGISTRATION_CONTROLLER,
@@ -289,13 +298,41 @@ public class DemographicDetailController extends BaseController {
 					.collect(Collectors.toList());
 
 			if (matchedfield != null && !matchedfield.isEmpty()) {
-				treeMap.put(location.getHierarchyLevel(), matchedfield.get(0).getId());
-				LOGGER.info("REGISTRATION - CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-						"location.getHierarchyLevel() >>> " + location.getHierarchyLevel()
-								+ " matchedfield.get(0).getId() >>> " + matchedfield.get(0).getId());
+				for (UiSchemaDTO uiSchemaDTO : matchedfield) {
+
+					if (orderOfAddressMapByGroup.containsKey(uiSchemaDTO.getGroup())) {
+
+						if (!orderOfAddressMapByGroup.get(uiSchemaDTO.getGroup())
+								.containsKey(location.getHierarchyLevel())) {
+							TreeMap<Integer, String> hirearchyMap = orderOfAddressMapByGroup
+									.get(uiSchemaDTO.getGroup());
+							hirearchyMap.put(location.getHierarchyLevel(), uiSchemaDTO.getId());
+
+							orderOfAddressMapByGroup.put(uiSchemaDTO.getGroup(), hirearchyMap);
+						}
+					} else {
+
+						TreeMap<Integer, String> hirearchyMap = new TreeMap<>();
+						hirearchyMap.put(location.getHierarchyLevel(), uiSchemaDTO.getId());
+
+						orderOfAddressMapByGroup.put(uiSchemaDTO.getGroup(), hirearchyMap);
+					}
+//					orderOfAddressMapByGroup.(location.getHierarchyLevel(), matchedfield.get(0).getId());
+					LOGGER.info("REGISTRATION - CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+							"location.getHierarchyLevel() >>> " + location.getHierarchyLevel()
+									+ " matchedfield.get(0).getId() >>> " + matchedfield.get(0).getId());
+				}
 			}
+
 		}
-		orderOfAddress = treeMap.values().stream().collect(Collectors.toList());
+
+		for (Entry<String, TreeMap<Integer, String>> entry : orderOfAddressMapByGroup.entrySet()) {
+
+			orderOfAddressListByGroup.put(entry.getKey(),
+					entry.getValue().values().stream().collect(Collectors.toList()));
+
+		}
+//		orderOfAddress = treeMap.values().stream().collect(Collectors.toList());
 	}
 
 	private void disablePreRegFetch() {
@@ -1131,7 +1168,7 @@ public class DemographicDetailController extends BaseController {
 	/**
 	 * To load the provinces in the selection list based on the language code
 	 */
-	private void configureMethodsForAddress(int s, int p, int size) {
+	private void configureMethodsForAddress(int s, int p, int size, List<String> orderOfAddress) {
 		try {
 			retrieveAndPopulateLocationByHierarchy(listOfComboBoxWithObject.get(orderOfAddress.get(s)),
 					listOfComboBoxWithObject.get(orderOfAddress.get(p)),
@@ -1226,7 +1263,7 @@ public class DemographicDetailController extends BaseController {
 				switch (schemaField.getType()) {
 				case RegistrationConstants.SIMPLE_TYPE:
 					if (schemaField.getControlType().equals(RegistrationConstants.DROPDOWN)
-							|| Arrays.asList(orderOfAddress).contains(schemaField.getId())) {
+							|| isLocationField(schemaField.getId())) {
 						populateFieldValue(listOfComboBoxWithObject.get(schemaField.getId()),
 								listOfComboBoxWithObject
 										.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE),
@@ -1247,7 +1284,7 @@ public class DemographicDetailController extends BaseController {
 							listOfTextField.get(schemaField.getId() + "__" + "yyyy").setText(dateParts[0]);
 						}
 					} else if (RegistrationConstants.DROPDOWN.equalsIgnoreCase(schemaField.getControlType())
-							|| Arrays.asList(orderOfAddress).contains(schemaField.getId())) {
+							|| isLocationField(schemaField.getId())) {
 						ComboBox<GenericDto> platformField = listOfComboBoxWithObject.get(schemaField.getId());
 						if (platformField != null) {
 							platformField.setValue(new GenericDto((String) value, (String) value, "eng"));
@@ -1497,6 +1534,19 @@ public class DemographicDetailController extends BaseController {
 		LOGGER.info("REGISTRATION - INDIVIDUAL_REGISTRATION - RETRIEVE_AND_POPULATE_LOCATION_BY_HIERARCHY",
 				RegistrationConstants.APPLICATION_ID, RegistrationConstants.APPLICATION_NAME,
 				"Retrieving and populating of location by selected hirerachy ended");
+	}
+
+	private boolean isLocationField(String fieldId) {
+		boolean isLocationField = false;
+		for (Entry<String, List<String>> entry : orderOfAddressListByGroup.entrySet()) {
+			if (entry.getValue().contains(fieldId)) {
+				isLocationField = true;
+				break;
+			}
+
+		}
+		return isLocationField;
+
 	}
 
 	/*
