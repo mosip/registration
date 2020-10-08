@@ -6,7 +6,10 @@ import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Arrays;
 
+import io.mosip.kernel.core.http.RequestWrapper;
+import io.mosip.registration.processor.packet.manager.constant.CryptomanagerConstant;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +32,6 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
-import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
@@ -87,7 +89,7 @@ public class DecryptorImpl implements Decryptor {
 	 * InputStream, java.lang.String)
 	 */
 	@Override
-	public InputStream decrypt(InputStream encryptedPacket, String registrationId)
+	public InputStream decrypt(InputStream packetStream, String registrationId)
 			throws PacketDecryptionFailureException, ApisResourceAccessException {
 		InputStream outstream = null;
 		boolean isTransactionSuccessful = false;
@@ -95,15 +97,22 @@ public class DecryptorImpl implements Decryptor {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "Decryptor::decrypt()::entry");
 		try {
+			byte[] packet = IOUtils.toByteArray(packetStream);
 			String centerId = registrationId.substring(0, centerIdLength);
 			String machineId = registrationId.substring(centerIdLength, machineIdSubStringLength);
 			String refId = centerId + "_" + machineId;
-			String encryptedPacketString = IOUtils.toString(encryptedPacket, "UTF-8");
 			CryptomanagerRequestDto cryptomanagerRequestDto = new CryptomanagerRequestDto();
-			RequestWrapper<CryptomanagerRequestDto> request = new RequestWrapper<>();
+			io.mosip.kernel.core.http.RequestWrapper<CryptomanagerRequestDto> request = new RequestWrapper<>();
 			cryptomanagerRequestDto.setApplicationId(applicationId);
-			cryptomanagerRequestDto.setData(encryptedPacketString);
 			cryptomanagerRequestDto.setReferenceId(refId);
+			byte[] nonce = Arrays.copyOfRange(packet, 0, CryptomanagerConstant.GCM_NONCE_LENGTH);
+			byte[] aad = Arrays.copyOfRange(packet, CryptomanagerConstant.GCM_NONCE_LENGTH,
+					CryptomanagerConstant.GCM_NONCE_LENGTH + CryptomanagerConstant.GCM_AAD_LENGTH);
+			byte[] encryptedData = Arrays.copyOfRange(packet, CryptomanagerConstant.GCM_NONCE_LENGTH + CryptomanagerConstant.GCM_AAD_LENGTH,
+					packet.length);
+			cryptomanagerRequestDto.setAad(CryptoUtil.encodeBase64String(aad));
+			cryptomanagerRequestDto.setSalt(CryptoUtil.encodeBase64String(nonce));
+			cryptomanagerRequestDto.setData(CryptoUtil.encodeBase64String(encryptedData));
 			// setLocal Date Time
 			if (registrationId.length() > 14) {
 				String packetCreatedDateTime = registrationId.substring(registrationId.length() - 14);

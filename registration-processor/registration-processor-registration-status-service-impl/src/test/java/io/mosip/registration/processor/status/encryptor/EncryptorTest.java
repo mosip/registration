@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import io.mosip.registration.processor.status.dto.DecryptResponseDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,13 +46,13 @@ public class EncryptorTest {
 	@Mock
 	private Environment env;
 	
-	private CryptomanagerResponseDto cryptomanagerResponseDto;
+	private DecryptResponseDto cryptomanagerResponseDto;
 	private String data;
 
 	@Before
 	public void setup() throws FileNotFoundException {
 		data = "bW9zaXA";
-		cryptomanagerResponseDto = new CryptomanagerResponseDto();
+		cryptomanagerResponseDto = new DecryptResponseDto();
 		cryptomanagerResponseDto.setData(data);
 		when(env.getProperty("mosip.registration.processor.crypto.decrypt.id"))
 				.thenReturn("mosip.cryptomanager.decrypt");
@@ -62,9 +63,9 @@ public class EncryptorTest {
 
 	@Test
 	public void encryptTest() throws EncryptionFailureException, ApisResourceAccessException, IOException {
-		CryptomanagerResponseDto cryptomanagerResponseDto = new CryptomanagerResponseDto();
+		DecryptResponseDto cryptomanagerResponseDto = new DecryptResponseDto();
 		cryptomanagerResponseDto.setData("mosip");
-		ResponseWrapper<CryptomanagerResponseDto> response = new ResponseWrapper<>();
+		ResponseWrapper<DecryptResponseDto> response = new ResponseWrapper<>();
 		response.setResponse(cryptomanagerResponseDto);
 		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any())).thenReturn(response);
 		byte[] encryptedData = encryptor.encrypt(data, "10011", "2019-05-07T05:13:55.704Z");

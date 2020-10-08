@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import io.mosip.registration.processor.status.dto.DecryptResponseDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,7 +43,7 @@ public class DecryptorTest {
 	private RegistrationProcessorRestClientService<Object> restClientService;
 	@Mock
 	private AuditLogRequestBuilder auditLogRequestBuilder;
-	private CryptomanagerResponseDto cryptomanagerResponseDto;
+	private DecryptResponseDto cryptomanagerResponseDto;
 	private String data;
 	private File encrypted;
 	private InputStream inputStream;
@@ -52,7 +53,7 @@ public class DecryptorTest {
 	@Before
 	public void setup() throws FileNotFoundException {
 		data = "bW9zaXA";
-		cryptomanagerResponseDto = new CryptomanagerResponseDto();
+		cryptomanagerResponseDto = new DecryptResponseDto();
 		cryptomanagerResponseDto.setData(data);
 
 		/*
@@ -70,9 +71,9 @@ public class DecryptorTest {
 	@Test
 	public void decryptTest() throws PacketDecryptionFailureException, ApisResourceAccessException, IOException {
 
-		CryptomanagerResponseDto cryptomanagerResponseDto = new CryptomanagerResponseDto();
+		DecryptResponseDto cryptomanagerResponseDto = new DecryptResponseDto();
 		cryptomanagerResponseDto.setData("bW9zaXA");
-		ResponseWrapper<CryptomanagerResponseDto> response = new ResponseWrapper<>();
+		ResponseWrapper<DecryptResponseDto> response = new ResponseWrapper<>();
 		response.setResponse(cryptomanagerResponseDto);
 		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any())).thenReturn(response);
 		String decryptedString = decryptor.decrypt(data, "10011", "2019-05-07T05:13:55.704Z");
