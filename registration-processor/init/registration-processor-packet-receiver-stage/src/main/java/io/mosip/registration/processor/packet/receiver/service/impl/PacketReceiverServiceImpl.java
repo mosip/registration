@@ -308,16 +308,6 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 			InputStream inputStream = new ByteArrayInputStream(input);
 			boolean isInputFileClean = virusScannerService.scanFile(inputStream);
 
-			// scanning the source packets (Like - id, evidence, optional packets).
-			if (isInputFileClean) {
-				Map<String, InputStream> sourcePackets = ZipUtils.unzipAndGetFiles(inputStream);
-				for (InputStream source : sourcePackets.values()) {
-					isInputFileClean = virusScannerService.scanFile(source);
-					if (!isInputFileClean)
-						break;
-				}
-			}
-
 			if (!isInputFileClean) {
 				description.setMessage(PlatformErrorMessages.PRP_PKR_PACKET_VIRUS_SCAN_FAILED.getMessage());
 				description.setCode(PlatformErrorMessages.PRP_PKR_PACKET_VIRUS_SCAN_FAILED.getCode());
@@ -345,20 +335,6 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 					registrationId, PlatformErrorMessages.PRP_PKR_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getMessage()
 							+ ExceptionUtils.getStackTrace(e));
 			return false;
-		} catch (IOException e) {
-			description.setMessage(PlatformErrorMessages.PRP_PKR_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getMessage());
-			description.setCode(PlatformErrorMessages.PRP_PKR_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getCode());
-			dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-			dto.setStatusComment(trimExpMessage.trimExceptionMessage(
-					StatusUtil.IO_EXCEPTION.getMessage() + e.getMessage()));
-			dto.setSubStatusCode(StatusUtil.IO_EXCEPTION.getCode());
-			dto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-					.getStatusCode(RegistrationExceptionTypeCode.VIRUS_SCANNER_SERVICE_FAILED));
-
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, PlatformErrorMessages.PRP_PKR_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getMessage()
-							+ ExceptionUtils.getStackTrace(e));
-            return false;
 		}
 
 	}

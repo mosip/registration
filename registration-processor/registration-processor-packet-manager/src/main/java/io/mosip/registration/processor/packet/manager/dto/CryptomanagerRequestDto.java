@@ -27,25 +27,39 @@ public class CryptomanagerRequestDto {
 	/**
 	 * Application id of decrypting module
 	 */
-	@ApiModelProperty(notes = "Application id of decrypting module", example = "REGISTRATION", required = true)
-	@NotBlank(message = CryptomanagerConstant.INVALID_REQUEST)
+
+	@NotBlank(message = "should not be null or empty")
 	private String applicationId;
 	/**
 	 * Refrence Id
 	 */
-	@ApiModelProperty(notes = "Refrence Id", example = "REF01")
+
 	private String referenceId;
 	/**
 	 * Timestamp
 	 */
-	@ApiModelProperty(notes = "Timestamp as metadata", example = "2018-12-10T06:12:52.994Z", required = true)
+
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 	@NotNull
 	private LocalDateTime timeStamp;
 	/**
 	 * Data in BASE64 encoding to encrypt/decrypt
 	 */
-	@ApiModelProperty(notes = "Data in BASE64 encoding to encrypt/decrypt", required = true)
-	@NotBlank(message = CryptomanagerConstant.INVALID_REQUEST)
+
+	@NotBlank(message = "should not be null or empty")
 	private String data;
+
+	/**
+	 * salt in BASE64 encoding for encrypt/decrypt
+	 */
+
+	@NotBlank(message = "should not be null or empty")
+	private String salt;
+
+	/**
+	 * aad in BASE64 encoding for encrypt/decrypt
+	 */
+
+	@NotBlank(message = "should not be null or empty")
+	private String aad;
 }

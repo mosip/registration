@@ -4,7 +4,12 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 
+import io.mosip.kernel.core.http.RequestWrapper;
+import io.mosip.registration.processor.packet.manager.constant.CryptomanagerConstant;
+import io.mosip.registration.processor.status.dto.CryptomanagerRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -27,14 +32,12 @@ import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
-import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.constants.PacketDecryptionFailureExceptionConstant;
-import io.mosip.registration.processor.status.dto.CryptomanagerRequestDto;
 import io.mosip.registration.processor.status.dto.CryptomanagerResponseDto;
 import io.mosip.registration.processor.status.exception.PacketDecryptionFailureException;
 
@@ -46,6 +49,7 @@ import io.mosip.registration.processor.status.exception.PacketDecryptionFailureE
 @Component
 public class Decryptor {
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(Decryptor.class);
+	private static final String KEY = "data";
 
 	@Value("${registration.processor.application.id}")
 	private String applicationId;
@@ -58,6 +62,9 @@ public class Decryptor {
 
 	@Autowired
 	private Environment env;
+
+	@Autowired
+	private ObjectMapper mapper;
 
 	private static final String DECRYPT_SERVICE_ID = "mosip.registration.processor.crypto.decrypt.id";
 	private static final String REG_PROC_APPLICATION_VERSION = "mosip.registration.processor.application.version";
@@ -77,8 +84,7 @@ public class Decryptor {
 	 * response dto and then get error code and error response and throw
 	 * PacketDecryptionFailureException.
 	 * 
-	 * @param encryptedPacket
-	 * @param registrationId
+	 * @param encryptedSyncMetaInfo
 	 * @return
 	 * @throws PacketDecryptionFailureException
 	 * @throws ApisResourceAccessException
@@ -94,36 +100,37 @@ public class Decryptor {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"Decryptor::decrypt()::entry");
 		try {
-			ObjectMapper mapper = new ObjectMapper();
-
-			String encryptedPacketString = encryptedSyncMetaInfo.toString();
+			byte[] packet = CryptoUtil.decodeBase64(encryptedSyncMetaInfo.toString());
 			CryptomanagerRequestDto cryptomanagerRequestDto = new CryptomanagerRequestDto();
-			RequestWrapper<CryptomanagerRequestDto> request = new RequestWrapper<>();
-			ResponseWrapper<CryptomanagerResponseDto> response;
+			io.mosip.kernel.core.http.RequestWrapper<CryptomanagerRequestDto> request = new RequestWrapper<>();
 			cryptomanagerRequestDto.setApplicationId(applicationId);
-			cryptomanagerRequestDto.setData(encryptedPacketString);
 			cryptomanagerRequestDto.setReferenceId(referenceId);
-			CryptomanagerResponseDto cryptomanagerResponseDto;
-
+			byte[] nonce = Arrays.copyOfRange(packet, 0, CryptomanagerConstant.GCM_NONCE_LENGTH);
+			byte[] aad = Arrays.copyOfRange(packet, CryptomanagerConstant.GCM_NONCE_LENGTH,
+					CryptomanagerConstant.GCM_NONCE_LENGTH + CryptomanagerConstant.GCM_AAD_LENGTH);
+			byte[] encryptedData = Arrays.copyOfRange(packet, CryptomanagerConstant.GCM_NONCE_LENGTH + CryptomanagerConstant.GCM_AAD_LENGTH,
+					packet.length);
+			cryptomanagerRequestDto.setAad(CryptoUtil.encodeBase64String(aad));
+			cryptomanagerRequestDto.setSalt(CryptoUtil.encodeBase64String(nonce));
+			cryptomanagerRequestDto.setData(CryptoUtil.encodeBase64String(encryptedData));
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
 			LocalDateTime time = LocalDateTime.parse(timeStamp, format);
 			cryptomanagerRequestDto.setTimeStamp(time);
-
+			// setLocal Date Time
 			request.setId(env.getProperty(DECRYPT_SERVICE_ID));
 			request.setMetadata(null);
 			request.setRequest(cryptomanagerRequestDto);
-
 			LocalDateTime localdatetime = LocalDateTime
 					.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
 			request.setRequesttime(localdatetime);
 			request.setVersion(env.getProperty(REG_PROC_APPLICATION_VERSION));
 
-			response = (ResponseWrapper<CryptomanagerResponseDto>) restClientService
+			ResponseWrapper<CryptomanagerResponseDto> response = (ResponseWrapper<CryptomanagerResponseDto>) restClientService
 					.postApi(ApiName.CRYPTOMANAGERDECRYPT, "", "", request, ResponseWrapper.class);
 			if (response.getResponse() != null) {
-				cryptomanagerResponseDto = mapper.readValue(mapper.writeValueAsString(response.getResponse()),
-						CryptomanagerResponseDto.class);
-				byte[] decryptedPacket = CryptoUtil.decodeBase64(cryptomanagerResponseDto.getData());
+				LinkedHashMap responseMap = mapper.readValue(mapper.writeValueAsString(response.getResponse()),
+						LinkedHashMap.class);
+				byte[] decryptedPacket = CryptoUtil.decodeBase64(responseMap.get(KEY).toString());
 				decryptedData = new String(decryptedPacket);
 			} else {
 				description.setMessage(PlatformErrorMessages.RPR_PDS_PACKET_DECRYPTION_FAILURE.getMessage());
