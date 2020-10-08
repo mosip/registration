@@ -21,6 +21,16 @@ public interface MosipQueueManager<T, V>{
 	public Boolean send(T mosipQueue, V message, String address);
 
 	/**
+	 * This method sends a json string message on a given Address
+	 *
+	 * @param mosipQueue The mosipQueue instance
+	 * @param message    The message
+	 * @param address    The address
+	 * @return True if message is sent, false otherwise
+	 */
+	public Boolean send(T mosipQueue, String message, String address);
+
+	/**
 	 * This method consumes a message from a given address
 	 * 
 	 * @param mosipQueue The mosipQueue instance

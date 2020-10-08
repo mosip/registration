@@ -126,19 +126,15 @@
 		<kernel.clamav.version>1.0.6</kernel.clamav.version>
 		<kernel.idgenerator.rid.version>1.0.6</kernel.idgenerator.rid.version>
 		<kernel.cbeffutil.version>1.1.0</kernel.cbeffutil.version>
-		<kernel.keygenerator.bouncycastle.version>1.0.6</kernel.keygenerator.bouncycastle.version>
-        <kernel.crypto.jce.version>1.0.6</kernel.crypto.jce.version>
         <kernel.bioapi.provider.version>1.0.8</kernel.bioapi.provider.version>
-        <kernel.auth.adapter.version>1.0.6</kernel.auth.adapter.version>
+        <kernel.auth.adapter.version>1.1.2-SNAPSHOT</kernel.auth.adapter.version>
         <kernel.pdfgenerator.itext.version>1.0.6</kernel.pdfgenerator.itext.version>
 		<kernel.qrcodegenerator.zxing.version>1.0.6</kernel.qrcodegenerator.zxing.version>
-		<kernel.logger.logback.version>1.0.6</kernel.logger.logback.version>
-		<kernel.auth.adapter.version>1.0.6</kernel.auth.adapter.version>
+		<kernel.logger.logback.version>1.1.2-SNAPSHOT</kernel.logger.logback.version>
 		<kernel.idvalidator.vid.version>1.0.6</kernel.idvalidator.vid.version>
-		<kernel.idobjectvalidator.version>1.1.2-SNAPSHOT</kernel.idobjectvalidator.version>
-		<kernel.packetmanager.version>1.0.10-SNAPSHOT</kernel.packetmanager.version>
 		<object.store.khazana.version>1.1.2-SNAPSHOT</object.store.khazana.version>
 		<kernel.biometrics.api.version>1.1.2-SNAPSHOT</kernel.biometrics.api.version>
+		<kernel-keymanager-service.version>1.1.2-SNAPSHOT</kernel-keymanager-service.version>
 			<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,

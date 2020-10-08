@@ -1,9 +1,11 @@
 package io.mosip.registration.processor.status.dto;
 
+import io.mosip.kernel.core.http.ResponseWrapper;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
@@ -12,13 +14,8 @@ import lombok.NoArgsConstructor;
  *
  */
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @ApiModel(description = "Model representing a Crypto-Manager-Service Response")
-public class CryptomanagerResponseDto {
-	/**
-	 * Data Encrypted/Decrypted in BASE64 encoding
-	 */
-	@ApiModelProperty(notes = "Data encrypted/decrypted in BASE64 encoding")
-	private String data;
+public class CryptomanagerResponseDto extends ResponseWrapper<DecryptResponseDto> {
+
 }

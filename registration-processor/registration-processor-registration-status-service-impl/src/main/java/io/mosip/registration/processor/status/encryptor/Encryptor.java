@@ -1,9 +1,12 @@
 package io.mosip.registration.processor.status.encryptor;
 
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
 
+import io.mosip.registration.processor.packet.manager.constant.CryptomanagerConstant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -41,6 +44,7 @@ import io.mosip.registration.processor.status.exception.EncryptionFailureExcepti
 public class Encryptor {
 
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(Encryptor.class);
+	private static final String KEY = "data";
 
 	@Value("${registration.processor.application.id}")
 	private String applicationId;
@@ -81,6 +85,13 @@ public class Encryptor {
 			cryptomanagerRequestDto.setApplicationId(applicationId);
 			cryptomanagerRequestDto.setData(syncInfo);
 			cryptomanagerRequestDto.setReferenceId(referenceId);
+			SecureRandom sRandom = new SecureRandom();
+			byte[] nonce = new byte[CryptomanagerConstant.GCM_NONCE_LENGTH];
+			byte[] aad = new byte[CryptomanagerConstant.GCM_AAD_LENGTH];
+			sRandom.nextBytes(nonce);
+			sRandom.nextBytes(aad);
+			cryptomanagerRequestDto.setAad(CryptoUtil.encodeBase64String(aad));
+			cryptomanagerRequestDto.setSalt(CryptoUtil.encodeBase64String(nonce));
 			CryptomanagerResponseDto cryptomanagerResponseDto;
 
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
@@ -99,9 +110,9 @@ public class Encryptor {
 			response = (ResponseWrapper<CryptomanagerResponseDto>) restClientService.postApi(ApiName.ENCRYPTURL, "", "",
 					request, ResponseWrapper.class);
 			if (response.getResponse() != null) {
-				cryptomanagerResponseDto = mapper.readValue(mapper.writeValueAsString(response.getResponse()),
-						CryptomanagerResponseDto.class);
-				encryptedData = cryptomanagerResponseDto.getData().getBytes();
+				LinkedHashMap responseMap = mapper.readValue(mapper.writeValueAsString(response.getResponse()),
+						LinkedHashMap.class);
+				encryptedData = responseMap.get(KEY).toString().getBytes();
 			} else {
 				description.setMessage(PlatformErrorMessages.RPR_PGS_ENCRYPTOR_INVLAID_DATA_EXCEPTION.getMessage());
 				description.setCode(PlatformErrorMessages.RPR_PGS_ENCRYPTOR_INVLAID_DATA_EXCEPTION.getCode());
