@@ -8,11 +8,11 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>registration-processor</artifactId>
-		<version>1.2.0-SNAPSHOT</version>
+		<version>1.1.2-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>registration-processor-message-sender-impl</artifactId>
-	 <version>1.2.0-SNAPSHOT</version>
+	 <version>1.1.2-SNAPSHOT</version>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
