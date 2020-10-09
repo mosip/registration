@@ -12,6 +12,7 @@ import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.constant.EventId;
 import io.mosip.registration.processor.core.constant.EventName;
 import io.mosip.registration.processor.core.constant.EventType;
+import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
@@ -445,18 +446,23 @@ public class PrintStageTest {
 	}
 
 	@Test
-	public void testException() throws ApisResourceAccessException {
+	public void testException() {
 		NullPointerException e = new NullPointerException();
-		Mockito.doThrow(e).when(registrationStatusService).getRegistrationStatus(anyString());
+		Mockito.doThrow(e).when(utilities).getDefaultSource();
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
 		dto.setReg_type(RegistrationType.NEW);
 		List<String> uinList = new ArrayList<>();
 		uinList.add("3051738163");
-		// Mockito.when(packetInfoManager.getUINByRid("1234567890987654321")).thenReturn(uinList);
+		registrationStatusDto=new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("123456789");
+
+		when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
 		doNothing().when(printPostService).generatePrintandPostal(any(), any(), any());
+
 		MessageDTO result = stage.process(dto);
+
 		assertTrue(result.getInternalError());
 	}
 
@@ -721,8 +727,17 @@ public class PrintStageTest {
 		Map<String, String> metaInfoMap = new HashMap<>();
 		String metaString = "[{\"vid\":\"1234\",\"cardType\":\"MASKED_UIN\"}]";
 		metaInfoMap.put(JsonConstant.METADATA, metaString);
+		registrationStatusDto=new InternalRegistrationStatusDto();
+		registrationStatusDto.setRegistrationId("123456789");
+		registrationStatusDto.setRegistrationType(RegistrationType.RES_REPRINT.name());
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put(IdType.UIN.toString(), "12345");
+
+		when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
 		Mockito.when(packetManagerService.getMetaInfo(any(),any(),any())).thenReturn(metaInfoMap);
 		Mockito.when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(fieldValue);
+		Mockito.when(utilities.retrieveUIN(anyString())).thenReturn(jsonObject);
+		Mockito.when(utilities.linkRegIdWrtUin(anyString(), anyString())).thenReturn(true);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
