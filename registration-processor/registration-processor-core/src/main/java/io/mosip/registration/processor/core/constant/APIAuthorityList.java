@@ -3,7 +3,7 @@ package io.mosip.registration.processor.core.constant;
 public enum APIAuthorityList {
 
 	PACKETRECEIVER(new String[] { "REGISTRATION_ADMIN", "REGISTRATION_PROCESSOR", "REGISTRATION_OFFICER",
-			"REGISTRATION_SUPERVISOR" }),
+			"REGISTRATION_SUPERVISOR", "RESIDENT" }),
 
 	SECUREZONENOTIFICATION(new String[] { "REGISTRATION_PROCESSOR" }),
 
