@@ -380,18 +380,12 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
             if (isInputFileClean) {
                 // scanning the source packets (Like - id, evidence, optional packets).
                 for (final Map.Entry<String, InputStream> source : sourcePackets.entrySet()) {
-                    regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-                            LoggerFileConstant.REGISTRATIONID.toString(), source.getKey(),
-                            "Size = " + IOUtils.toByteArray(source.getValue()).length);
-                    isInputFileClean = virusScannerService.scanFile(source.getValue());
-                    if (isInputFileClean && source.getKey().endsWith(ZIP)) {
-                        regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-                                LoggerFileConstant.REGISTRATIONID.toString(), source.getKey(),
-                                "Size = " + IOUtils.toByteArray(source.getValue()).length);
+                    if (source.getKey().endsWith(ZIP)) {
                         InputStream decryptedData = decryptor
                                 .decrypt(source.getValue(), id);
                         isInputFileClean = virusScannerService.scanFile(decryptedData);
-                    }
+                    } else
+                        isInputFileClean = virusScannerService.scanFile(source.getValue());
                     if (!isInputFileClean)
                         break;
                 }
