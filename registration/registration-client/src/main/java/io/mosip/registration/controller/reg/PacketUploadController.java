@@ -72,6 +72,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Modality;
@@ -141,6 +142,13 @@ public class PacketUploadController extends BaseController implements Initializa
 	private SortedList<PacketStatusVO> sortedList;
 
 	private Stage stage;
+
+	@FXML
+	private GridPane uploadPacketRoot;
+
+	public GridPane getUploadPacketRoot() {
+		return uploadPacketRoot;
+	}
 
 	/**
 	 * This method is used to Sync as well as upload the packets.
@@ -287,7 +295,8 @@ public class PacketUploadController extends BaseController implements Initializa
 													RegistrationUIConstants.PACKET_UPLOAD_SUCCESS);
 
 										} else if (response.getErrorResponseDTOs() != null) {
-											String errMessage = response.getErrorResponseDTOs().get(0).getMessage().toLowerCase();
+											String errMessage = response.getErrorResponseDTOs().get(0).getMessage()
+													.toLowerCase();
 											if (errMessage.contains(RegistrationConstants.PACKET_DUPLICATE)) {
 
 												tableMap.put(synchedPacket.getFileName(),
@@ -398,11 +407,11 @@ public class PacketUploadController extends BaseController implements Initializa
 		LOGGER.info("REGISTRATION - PACKET_EXPORT_START - PACKET_UPLOAD_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 				"Exporting the selected packets");
 
-		if(!selectedPackets.isEmpty()) {
+		if (!selectedPackets.isEmpty()) {
 			List<PacketStatusDTO> packetsToBeExported = new ArrayList<>();
 			selectedPackets.forEach(packet -> {
-				if ((packet.getPacketServerStatus() == null || !RegistrationConstants.SERVER_STATUS_RESEND
-						.equalsIgnoreCase(packet.getPacketServerStatus()))
+				if ((packet.getPacketServerStatus() == null
+						|| !RegistrationConstants.SERVER_STATUS_RESEND.equalsIgnoreCase(packet.getPacketServerStatus()))
 						&& !RegistrationClientStatusCode.META_INFO_SYN_SERVER.getCode()
 								.equalsIgnoreCase(packet.getPacketClientStatus())) {
 					PacketStatusDTO packetStatusVO = new PacketStatusDTO();
@@ -514,7 +523,7 @@ public class PacketUploadController extends BaseController implements Initializa
 						} else {
 							selectedPackets.remove(table.getItems().get(displayData.getFrom()));
 						}
-						//saveToDevice.setDisable(!selectedPackets.isEmpty());
+						// saveToDevice.setDisable(!selectedPackets.isEmpty());
 					}
 				}
 			}
@@ -675,7 +684,7 @@ public class PacketUploadController extends BaseController implements Initializa
 			stage.show();
 			selectAllCheckBox.setSelected(false);
 			stage.setOnCloseRequest((e) -> {
-				//saveToDevice.setDisable(false);
+				// saveToDevice.setDisable(false);
 				loadInitialPage();
 			});
 		});
@@ -692,6 +701,7 @@ public class PacketUploadController extends BaseController implements Initializa
 		File defaultDirectory = new File(currentRelativePath.toAbsolutePath().toString());
 		destinationSelector.setInitialDirectory(defaultDirectory);
 		File destinationPath = destinationSelector.showDialog(stage);
+
 		if (destinationPath != null) {
 
 			filterField.clear();
@@ -727,7 +737,7 @@ public class PacketUploadController extends BaseController implements Initializa
 	}
 
 	public void selectAllCheckBox(ActionEvent e) {
-		//saveToDevice.setDisable(((CheckBox) e.getSource()).isSelected());
+		// saveToDevice.setDisable(((CheckBox) e.getSource()).isSelected());
 		list.forEach(item -> {
 			item.setStatus(((CheckBox) e.getSource()).isSelected());
 		});
@@ -750,7 +760,7 @@ public class PacketUploadController extends BaseController implements Initializa
 	public void setStage(Stage stage) {
 		this.stage = stage;
 	}
-	
+
 	/**
 	 * Go to home ack template.
 	 */

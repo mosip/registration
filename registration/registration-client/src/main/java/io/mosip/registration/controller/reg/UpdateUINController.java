@@ -56,7 +56,7 @@ import javafx.scene.layout.RowConstraints;
 public class UpdateUINController extends BaseController implements Initializable {
 
 	private static final Logger LOGGER = AppConfig.getLogger(UpdateUINController.class);
-	
+
 	@Autowired
 	private RegistrationController registrationController;
 
@@ -76,16 +76,15 @@ public class UpdateUINController extends BaseController implements Initializable
 
 	@FXML
 	FlowPane parentFlowPane;
-	
+
 	private ObservableList<Node> parentFlow;
 
-
 	private HashMap<String, Object> checkBoxKeeper;
-	
+
 	private Map<String, List<UiSchemaDTO>> groupedMap;
 
 	private FXUtils fxUtils;
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -98,18 +97,17 @@ public class UpdateUINController extends BaseController implements Initializable
 		fxUtils = FXUtils.getInstance();
 		checkBoxKeeper = new HashMap<>();
 		Map<String, UiSchemaDTO> schemaMap = getValidationMap();
-		
-		groupedMap = schemaMap.values().stream()
-			.filter(field -> field.getGroup() != null && field.isInputRequired())
-			.collect(Collectors.groupingBy(UiSchemaDTO::getGroup));
-		
+
+		groupedMap = schemaMap.values().stream().filter(field -> field.getGroup() != null && field.isInputRequired())
+				.collect(Collectors.groupingBy(UiSchemaDTO::getGroup));
+
 		parentFlow = parentFlowPane.getChildren();
 		groupedMap.forEach((groupName, list) -> {
 			GridPane checkBox = addCheckBox(groupName);
 			if (checkBox != null) {
 				parentFlow.add(checkBox);
 			}
-		});		
+		});
 
 		try {
 			Image backInWhite = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK_FOCUSED));
@@ -127,14 +125,14 @@ public class UpdateUINController extends BaseController implements Initializable
 					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 		}
 	}
-		
+
 	private GridPane addCheckBox(String groupName) {
 
 		CheckBox checkBox = new CheckBox(groupName);
 		checkBox.getStyleClass().add(RegistrationConstants.updateUinCheckBox);
 		fxUtils.listenOnSelectedCheckBox(checkBox);
 		checkBoxKeeper.put(groupName, checkBox);
-		
+
 		GridPane gridPane = new GridPane();
 		gridPane.setPrefWidth(200);
 		gridPane.setPrefHeight(40);
@@ -156,12 +154,11 @@ public class UpdateUINController extends BaseController implements Initializable
 		RowConstraints rowConstraint3 = new RowConstraints();
 		columnConstraint1.setPercentWidth(20);
 		rowConstraints.addAll(rowConstraint1, rowConstraint2, rowConstraint3);
-		
+
 		gridPane.add(checkBox, 1, 1);
-		
+
 		return gridPane;
 	}
-
 
 	/**
 	 * Submitting for UIN update after selecting the required fields.
@@ -171,34 +168,54 @@ public class UpdateUINController extends BaseController implements Initializable
 	@FXML
 	public void submitUINUpdate(ActionEvent event) {
 		LOGGER.info(LOG_REG_UIN_UPDATE, APPLICATION_NAME, APPLICATION_ID, "Updating UIN details");
-		try {			
+		try {
 			if (StringUtils.isEmpty(uinId.getText())) {
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UPDATE_UIN_ENTER_UIN_ALERT);
 			} else {
 				Map<String, UiSchemaDTO> selectedFields = new HashMap<String, UiSchemaDTO>();
 				List<String> selectedFieldGroups = new ArrayList<String>();
-				for(String key : checkBoxKeeper.keySet()) {
-					if(((CheckBox)checkBoxKeeper.get(key)).isSelected()) {
+				for (String key : checkBoxKeeper.keySet()) {
+					if (((CheckBox) checkBoxKeeper.get(key)).isSelected()) {
 						selectedFieldGroups.add(key);
-						for(UiSchemaDTO field : groupedMap.get(key)) {							
+						for (UiSchemaDTO field : groupedMap.get(key)) {
 							selectedFields.put(field.getId(), field);
 						}
 					}
 				}
-				
-				LOGGER.debug(LOG_REG_UIN_UPDATE, APPLICATION_NAME, APPLICATION_ID, "selectedFieldGroups size : " + selectedFieldGroups.size());
-				LOGGER.debug(LOG_REG_UIN_UPDATE, APPLICATION_NAME, APPLICATION_ID, "selectedFields size : " + selectedFields.size());
-				
-				if (uinValidatorImpl.validateId(uinId.getText()) && !selectedFields.isEmpty()) {		
-						registrationController.init(uinId.getText(), checkBoxKeeper, selectedFields, selectedFieldGroups);
-						Parent createRoot = BaseController.load(
-								getClass().getResource(RegistrationConstants.CREATE_PACKET_PAGE),
-								applicationContext.getApplicationLanguageBundle());
 
-						getScene(createRoot).setRoot(createRoot);
-					} else {
-						generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UPDATE_UIN_SELECTION_ALERT);
+				List<String> defaultFields = new ArrayList<String>();
+				List<String> defaultFieldGroups = new ArrayList<String>();
+
+				if (!selectedFieldGroups.contains(RegistrationConstants.UI_SCHEMA_GROUP_FULL_NAME)) {
+
+					defaultFieldGroups.add(RegistrationConstants.UI_SCHEMA_GROUP_FULL_NAME);
+					for (UiSchemaDTO uiSchemaDTO : fetchByGroup(RegistrationConstants.UI_SCHEMA_GROUP_FULL_NAME)) {
+
+						defaultFields.add(uiSchemaDTO.getId());
+
 					}
+				}
+
+				LOGGER.debug(LOG_REG_UIN_UPDATE, APPLICATION_NAME, APPLICATION_ID,
+						"selectedFieldGroups size : " + selectedFieldGroups.size());
+				LOGGER.debug(LOG_REG_UIN_UPDATE, APPLICATION_NAME, APPLICATION_ID,
+						"selectedFields size : " + selectedFields.size());
+
+				if (uinValidatorImpl.validateId(uinId.getText()) && !selectedFields.isEmpty()) {
+					registrationController.init(uinId.getText(), checkBoxKeeper, selectedFields, selectedFieldGroups);
+
+					// Used to update printing name as default
+					getRegistrationDTOFromSession().setDefaultUpdatableFieldGroups(defaultFieldGroups);
+					getRegistrationDTOFromSession().setDefaultUpdatableFields(defaultFields);
+
+					Parent createRoot = BaseController.load(
+							getClass().getResource(RegistrationConstants.CREATE_PACKET_PAGE),
+							applicationContext.getApplicationLanguageBundle());
+
+					getScene(createRoot).setRoot(createRoot);
+				} else {
+					generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UPDATE_UIN_SELECTION_ALERT);
+				}
 			}
 		} catch (InvalidIDException invalidIdException) {
 			LOGGER.error(LOG_REG_UIN_UPDATE, APPLICATION_NAME, APPLICATION_ID,

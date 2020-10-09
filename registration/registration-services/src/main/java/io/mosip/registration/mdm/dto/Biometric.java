@@ -153,6 +153,9 @@ public enum Biometric {
 	public static String getUiSchemaAttributeName(String mdmResponseAttributeName, String specVersion) {
 		String constant = null;
 
+		if (mdmResponseAttributeName == null) {
+			return constant;
+		}
 		if (specVersion.equals(RegistrationConstants.SPEC_VERSION_092)) {
 			if (mdmResponseAttributeName.toLowerCase().equals("right")) {
 				return "rightEye";
