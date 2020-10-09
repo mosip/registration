@@ -56,7 +56,6 @@ import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.dao.AuditDAO;
 import io.mosip.registration.dao.AuditLogControlDAO;
 import io.mosip.registration.dao.MachineMappingDAO;
-import io.mosip.registration.dao.PolicySyncDAO;
 import io.mosip.registration.dao.RegistrationDAO;
 import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.RegistrationCenterDetailDTO;
@@ -69,18 +68,15 @@ import io.mosip.registration.dto.packetmanager.DocumentDto;
 import io.mosip.registration.dto.packetmanager.metadata.BiometricsMetaInfoDto;
 import io.mosip.registration.dto.packetmanager.metadata.DocumentMetaInfoDTO;
 import io.mosip.registration.dto.response.SchemaDto;
-import io.mosip.registration.entity.KeyStore;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
 import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.IdentitySchemaService;
-import io.mosip.registration.service.external.StorageService;
 import io.mosip.registration.service.packet.PacketHandlerService;
 import io.mosip.registration.update.SoftwareUpdateHandler;
 import io.mosip.registration.util.checksum.CheckSumUtil;
 import io.mosip.registration.util.common.BIRBuilder;
-import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
 import io.mosip.registration.validator.RegIdObjectMasterDataValidator;
 
 /**
@@ -102,9 +98,6 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 	@Autowired
 	private AuditManagerService auditFactory;
-
-	@Autowired
-	private PolicySyncDAO policySyncDAO;
 
 	@Autowired
 	private RegistrationDAO registrationDAO;
@@ -589,16 +582,16 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 	}
 
-	private byte[] getPublicKeyToEncrypt() throws RegBaseCheckedException {
-		String stationId = getStationId(RegistrationSystemPropertiesChecker.getMachineId());
-		String centerMachineId = getCenterId(stationId) + "_" + stationId;
-		KeyStore keyStore = policySyncDAO.getPublicKey(centerMachineId);
-		if (keyStore != null && keyStore.getPublicKey() != null)
-			return keyStore.getPublicKey();
-
-		throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_RSA_PUBLIC_KEY_NOT_FOUND.getErrorCode(),
-				RegistrationExceptionConstants.REG_RSA_PUBLIC_KEY_NOT_FOUND.getErrorMessage());
-	}
+//	private byte[] getPublicKeyToEncrypt() throws RegBaseCheckedException {
+//		String stationId = getStationId(RegistrationSystemPropertiesChecker.getMachineId());
+//		String centerMachineId = getCenterId(stationId) + "_" + stationId;
+//		KeyStore keyStore = policySyncDAO.getPublicKey(centerMachineId);
+//		if (keyStore != null && keyStore.getPublicKey() != null)
+//			return keyStore.getPublicKey();
+//
+//		throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_RSA_PUBLIC_KEY_NOT_FOUND.getErrorCode(),
+//				RegistrationExceptionConstants.REG_RSA_PUBLIC_KEY_NOT_FOUND.getErrorMessage());
+//	}
 
 	private void setAudits(RegistrationDTO registrationDTO) {
 		List<Audit> audits = auditDAO.getAudits(auditLogControlDAO.getLatestRegistrationAuditDates(),

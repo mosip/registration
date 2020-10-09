@@ -274,6 +274,8 @@ public class DaoConfig extends HibernateDaoConfig {
 				while(globalParamResultset.next()){
 					globalParamProps.put(globalParamResultset.getString(KEY),globalParamResultset.getString(VALUE));
 				}
+				globalParamProps.put("objectstore.adapter.name", "PosixAdapter");
+		        globalParamProps.put("mosip.sign.refid", "SIGNATUREKEY");
 				return globalParamProps;
 			}
 		});
