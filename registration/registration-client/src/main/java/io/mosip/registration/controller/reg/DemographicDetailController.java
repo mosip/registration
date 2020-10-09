@@ -1060,6 +1060,11 @@ public class DemographicDetailController extends BaseController {
 				if (schemaField.getControlType() == null)
 					continue;
 
+				if (registrationDTO.getDefaultUpdatableFields() != null
+						&& registrationDTO.getDefaultUpdatableFields().contains(schemaField.getId())) {
+
+					addTextFieldToSession(schemaField.getId(), registrationDTO, true);
+				}
 				if (registrationDTO.getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE)
 						&& !registrationDTO.getUpdatableFields().contains(schemaField.getId()))
 					continue;
@@ -1101,13 +1106,9 @@ public class DemographicDetailController extends BaseController {
 							}
 						}
 					} else {
-						TextField platformField = listOfTextField.get(schemaField.getId());
-						TextField localField = listOfTextField
-								.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE);
-						registrationDTO.addDemographicField(schemaField.getId(),
-								applicationContext.getApplicationLanguage(), platformField.getText(),
-								applicationContext.getLocalLanguage(),
-								localField == null ? null : localField.getText());
+
+						addTextFieldToSession(schemaField.getId(), registrationDTO, false);
+
 					}
 					break;
 				case RegistrationConstants.NUMBER:
@@ -1137,6 +1138,20 @@ public class DemographicDetailController extends BaseController {
 		} catch (Exception exception) {
 			LOGGER.error("addDemoGraphicDetailsToSession", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+		}
+	}
+
+	private void addTextFieldToSession(String id, RegistrationDTO registrationDTO, boolean isDefaultField) {
+		TextField platformField = listOfTextField.get(id);
+		TextField localField = listOfTextField.get(id + RegistrationConstants.LOCAL_LANGUAGE);
+		if (!isDefaultField) {
+			registrationDTO.addDemographicField(id, applicationContext.getApplicationLanguage(),
+					platformField.getText(), applicationContext.getLocalLanguage(),
+					localField == null ? null : localField.getText());
+		} else {
+			registrationDTO.addDefaultDemographicField(id, applicationContext.getApplicationLanguage(),
+					platformField.getText(), applicationContext.getLocalLanguage(),
+					localField == null ? null : localField.getText());
 		}
 	}
 

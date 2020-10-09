@@ -207,6 +207,8 @@ public class PrintStageTest {
 		// Mockito.when(env.getProperty(SwaggerConstant.SERVER_SERVLET_PATH))
 		// .thenReturn("/registrationprocessor/v1/packetreceiver");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(String.class))).thenReturn(registrationStatusDto);
+		Mockito.when(utilities.getUIn(any(), any(), any())).thenReturn("1234567890");
+		Mockito.when(utilities.linkRegIdWrtUin(anyString(), anyString())).thenReturn(true);
 
 		byte[] pdfbytes = "UIN Card Template pdf".getBytes();
 		byte[] textBytes = "Text File ".getBytes();
@@ -736,8 +738,6 @@ public class PrintStageTest {
 		when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
 		Mockito.when(packetManagerService.getMetaInfo(any(),any(),any())).thenReturn(metaInfoMap);
 		Mockito.when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(fieldValue);
-		Mockito.when(utilities.retrieveUIN(anyString())).thenReturn(jsonObject);
-		Mockito.when(utilities.linkRegIdWrtUin(anyString(), anyString())).thenReturn(true);
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");

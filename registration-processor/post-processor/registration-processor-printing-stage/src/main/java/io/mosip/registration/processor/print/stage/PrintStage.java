@@ -14,7 +14,9 @@ import javax.jms.Message;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -267,6 +269,7 @@ public class PrintStage extends MosipVerticleAPIManager {
 			String source = utilities.getDefaultSource();
 			if (RegistrationType.RES_REPRINT.toString().equals(object.getReg_type().toString())) {
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSED.toString());
+				linkRid(regId, source, registrationStatusDto.getRegistrationType());
 			}
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
@@ -308,8 +311,6 @@ public class PrintStage extends MosipVerticleAPIManager {
 			Map<String, byte[]> documentBytesMap = printService.getDocuments(idType, idValue, cardType, false);
 
 			boolean isAddedToQueue = sendToQueue(queue, documentBytesMap, 0, regId);
-
-			linkRid(regId, registrationStatusDto.getRegistrationType());
 
 			if (isAddedToQueue) {
 				object.setIsValid(Boolean.TRUE);
@@ -648,18 +649,15 @@ public class PrintStage extends MosipVerticleAPIManager {
 		return mosipConnectionFactory.createConnection(typeOfQueue, username, password, failOverBrokerUrl);
 	}
 
-	private void linkRid(String regId, String regType) throws ApisResourceAccessException, IOException {
-		if (RegistrationType.RES_REPRINT.name().equalsIgnoreCase(regType)) {
-			JSONObject jsonObject = utilities.retrieveUIN(regId);
-			String uin = JsonUtil.getJSONValue(jsonObject, IdType.UIN.toString());
-			boolean result = utilities.linkRegIdWrtUin(regId, uin);
-			if (result)
-				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-						regId, "Successfully linked rid with applicant UIN");
-			else
-				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-						regId, "Failed to link rid with UIN");
-		}
+	private void linkRid(String regId, String source, String process) throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
+		String uin = utilities.getUIn(regId, source, process);
+		boolean result = utilities.linkRegIdWrtUin(regId, uin);
+		if (result)
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId, "Successfully linked rid with applicant UIN");
+		else
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId, "Failed to link rid with UIN");
 	}
 
 	@SuppressWarnings("unchecked")
