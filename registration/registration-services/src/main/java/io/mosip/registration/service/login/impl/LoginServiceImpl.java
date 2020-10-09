@@ -48,7 +48,6 @@ import io.mosip.registration.service.login.LoginService;
 import io.mosip.registration.service.operator.UserDetailService;
 import io.mosip.registration.service.operator.UserOnboardService;
 import io.mosip.registration.service.operator.UserSaltDetailsService;
-import io.mosip.registration.service.security.ClientSecurity;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.service.sync.PublicKeySync;
 import io.mosip.registration.service.sync.TPMPublicKeySyncService;
@@ -126,9 +125,6 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 	
 	@Autowired
 	private TPMPublicKeySyncService tpmPublicKeySyncService;
-	
-	@Autowired
-	private ClientSecurity clientSecurity;
 
 	/*
 	 * (non-Javadoc)

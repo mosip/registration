@@ -1,16 +1,10 @@
 package io.mosip.registration.test.config;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.security.NoSuchAlgorithmException;
-import java.sql.*;
 import java.util.Properties;
 
 import javax.sql.DataSource;
 
-import io.mosip.kernel.core.exception.ExceptionUtils;
-import io.mosip.registration.service.security.ClientSecurityFacade;
-import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -26,13 +20,7 @@ import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
 import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
-import io.mosip.registration.config.PropertiesConfig;
-import io.mosip.registration.constants.RegistrationConstants;
-import io.mosip.registration.tpm.spi.TPMUtil;
 import io.mosip.registration.context.ApplicationContext;
-
-import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
-import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 
 @Configuration
@@ -85,12 +73,7 @@ public class TestDaoConfig extends HibernateDaoConfig {
 		return new JdbcTemplate(dataSource);
 	}
 
-	
-	@Bean(name = "propertiesConfig")
-	public static PropertiesConfig propertiesConfig() {
-		return new PropertiesConfig(jdbcTemplate());
-	}
-	
+
 	
 	@Bean
 	@Lazy(false)
@@ -99,9 +82,6 @@ public class TestDaoConfig extends HibernateDaoConfig {
 		PropertyPlaceholderConfigurer ppc = new PropertyPlaceholderConfigurer();
 		Resource[] resources = new ClassPathResource[] {new ClassPathResource("spring-test.properties")};
 		ppc.setLocations(resources);
-
-		//Properties properties = new Properties();
-		//properties.putAll(propertiesConfig().getDBProps());
 
 		ppc.setProperties(keys);
 		ppc.setTrimValues(true);

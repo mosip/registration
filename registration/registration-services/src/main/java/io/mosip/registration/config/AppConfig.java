@@ -41,14 +41,14 @@ import io.mosip.kernel.templatemanager.velocity.builder.TemplateManagerBuilderIm
  */
 @Configuration
 @EnableAspectJAutoProxy
-@Import({ DaoConfig.class, AuditConfig.class, PropertiesConfig.class, TemplateManagerBuilderImpl.class })
+@Import({ DaoConfig.class, AuditConfig.class, TemplateManagerBuilderImpl.class })
 @EnableJpaRepositories(basePackages = "io.mosip.registration", repositoryBaseClass = HibernateRepositoryImpl.class)
 @ComponentScan(excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = {
 		"io.mosip.kernel.idobjectvalidator.impl.IdObjectCompositeValidator",
 		"io.mosip.kernel.idobjectvalidator.impl.IdObjectMasterDataValidator",
 		"io.mosip.kernel.packetmanager.impl.PacketDecryptorImpl",
 		"io.mosip.kernel.packetmanager.util.IdSchemaUtils", }), basePackages = { "io.mosip.registration",
-				"io.mosip.kernel.core", "io.mosip.kernel.keygenerator", "io.mosip.kernel.idvalidator",
+				"io.mosip.kernel.keygenerator", "io.mosip.kernel.idvalidator",
 				"io.mosip.kernel.ridgenerator", "io.mosip.kernel.qrcode", "io.mosip.kernel.core.signatureutil",
 				"io.mosip.kernel.crypto", "io.mosip.kernel.jsonvalidator", "io.mosip.kernel.idgenerator",
 				"io.mosip.kernel.virusscanner", "io.mosip.kernel.transliteration", "io.mosip.kernel.applicanttype",

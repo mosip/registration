@@ -19,11 +19,13 @@ import java.util.WeakHashMap;
 
 import org.assertj.core.util.Files;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 
+import io.mosip.commons.packet.spi.IPacketCryptoService;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -54,7 +56,6 @@ import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.packet.RegPacketStatusService;
-import io.mosip.registration.service.security.AESEncryptionService;
 import io.mosip.registration.service.sync.PacketSynchService;
 
 /**
@@ -78,7 +79,8 @@ public class RegPacketStatusServiceImpl extends BaseService implements RegPacket
 	private PacketSynchService packetSynchService;
 
 	@Autowired
-	private AESEncryptionService aesEncryptionService;
+    @Qualifier("OfflinePacketCryptoServiceImpl")
+    private IPacketCryptoService offlinePacketCryptoServiceImpl;
 
 	private static final Logger LOGGER = AppConfig.getLogger(RegPacketStatusServiceImpl.class);
 
@@ -193,10 +195,10 @@ public class RegPacketStatusServiceImpl extends BaseService implements RegPacket
 	/**
 	 * update status for all packets that are synced with server
 	 *
-	 * @param registrations
-	 *            list of registration entities which are represented as
-	 *            LinkedHashMap which maps the attributes of registration entity to
-	 *            their respective values that are obtained after sync with server
+	 * @param registrations list of registration entities which are represented as
+	 *                      LinkedHashMap which maps the attributes of registration
+	 *                      entity to their respective values that are obtained
+	 *                      after sync with server
 	 */
 	private void updatePacketIdsByServerStatus(List<LinkedHashMap<String, String>> registrationStatuses) {
 		LOGGER.info(LoggerConstants.LOG_PKT_DELETE, APPLICATION_NAME, APPLICATION_ID,
@@ -462,12 +464,14 @@ public class RegPacketStatusServiceImpl extends BaseService implements RegPacket
 					syncDtoList.add(syncDto);
 				}
 				RegistrationPacketSyncDTO registrationPacketSyncDTO = new RegistrationPacketSyncDTO();
-				registrationPacketSyncDTO.setRequesttime(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+				registrationPacketSyncDTO
+						.setRequesttime(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 				registrationPacketSyncDTO.setSyncRegistrationDTOs(syncDtoList);
 				registrationPacketSyncDTO.setId(RegistrationConstants.PACKET_SYNC_STATUS_ID);
 				registrationPacketSyncDTO.setVersion(RegistrationConstants.PACKET_SYNC_VERSION);
-				response = packetSynchService.syncPacketsToServer(CryptoUtil.encodeBase64(
-						aesEncryptionService.encrypt(javaObjectToJsonString(registrationPacketSyncDTO).getBytes())),
+				String regId = registrationPacketSyncDTO.getSyncRegistrationDTOs().get(0).getRegistrationId();
+				response = packetSynchService.syncPacketsToServer(CryptoUtil.encodeBase64(offlinePacketCryptoServiceImpl
+						.encrypt(regId, javaObjectToJsonString(registrationPacketSyncDTO).getBytes())),
 						triggerPoint);
 			} else {
 				response.setSuccessResponseDTO(new SuccessResponseDTO());
@@ -501,10 +505,11 @@ public class RegPacketStatusServiceImpl extends BaseService implements RegPacket
 		}
 		return responseDTO;
 	}
-	
+
 	private String createdByUser() {
-		return SessionContext.isSessionContextAvailable() && SessionContext.userContext() != null && SessionContext.userContext().getUserId() != null  ? 
-				SessionContext.userContext().getUserId() : RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM;
+		return SessionContext.isSessionContextAvailable() && SessionContext.userContext() != null
+				&& SessionContext.userContext().getUserId() != null ? SessionContext.userContext().getUserId()
+						: RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM;
 	}
 
 }

@@ -4,10 +4,8 @@ import static io.mosip.registration.constants.LoggerConstants.LOG_PKT_RSA_ENCRYP
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 
 import javax.crypto.SecretKey;
 
@@ -17,15 +15,10 @@ import org.springframework.stereotype.Service;
 import io.mosip.kernel.core.crypto.spi.CryptoCoreSpec;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
-import io.mosip.registration.dao.PolicySyncDAO;
-import io.mosip.registration.entity.KeyStore;
 import io.mosip.registration.exception.RegBaseCheckedException;
-import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.security.RSAEncryptionService;
-import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
-import io.mosip.registration.util.publickey.PublicKeyGenerationUtil;
 
 /**
  * Accepts AES session key as bytes and encrypt it by using RSA algorithm
@@ -39,8 +32,7 @@ import io.mosip.registration.util.publickey.PublicKeyGenerationUtil;
 public class RSAEncryptionServiceImpl extends BaseService implements RSAEncryptionService {
 
 	static final Logger LOGGER = AppConfig.getLogger(RSAEncryptionServiceImpl.class);
-	@Autowired
-	private PolicySyncDAO policySyncDAO;
+
 	@Autowired
     private CryptoCoreSpec<byte[], byte[], SecretKey, PublicKey, PrivateKey, String> cryptoCore;
 
@@ -60,28 +52,26 @@ public class RSAEncryptionServiceImpl extends BaseService implements RSAEncrypti
 			// Validate the input parameters and required configuration parameters
 			validateInputData(sessionKey);
 
-			String stationId = getStationId(RegistrationSystemPropertiesChecker.getMachineId());
-			String centerMachineId = getCenterId(stationId) + "_" + stationId;
+//			String stationId = getStationId(RegistrationSystemPropertiesChecker.getMachineId());
+//			String centerMachineId = getCenterId(stationId) + "_" + stationId;
+//
+//			// encrypt AES Session Key using RSA public key
+//			KeyStore rsaPublicKey = policySyncDAO.getPublicKey(centerMachineId);
+//			if (rsaPublicKey == null) {
+//				throw new RegBaseCheckedException(
+//						RegistrationExceptionConstants.REG_RSA_PUBLIC_KEY_NOT_FOUND.getErrorCode(),
+//						RegistrationExceptionConstants.REG_RSA_PUBLIC_KEY_NOT_FOUND.getErrorMessage());
+//			}
+//			PublicKey publicKey = PublicKeyGenerationUtil.generatePublicKey(rsaPublicKey.getPublicKey());
 
-			// encrypt AES Session Key using RSA public key
-			KeyStore rsaPublicKey = policySyncDAO.getPublicKey(centerMachineId);
-			if (rsaPublicKey == null) {
-				throw new RegBaseCheckedException(
-						RegistrationExceptionConstants.REG_RSA_PUBLIC_KEY_NOT_FOUND.getErrorCode(),
-						RegistrationExceptionConstants.REG_RSA_PUBLIC_KEY_NOT_FOUND.getErrorMessage());
-			}
-			PublicKey publicKey = PublicKeyGenerationUtil.generatePublicKey(rsaPublicKey.getPublicKey());
-
+			PublicKey publicKey = null;
+			
 			return cryptoCore.asymmetricEncrypt(publicKey, sessionKey);
-		} catch (InvalidKeySpecException | NoSuchAlgorithmException compileTimeException) {
+		} catch (Exception compileTimeException) {
 			throw new RegBaseCheckedException(
 					RegistrationExceptionConstants.REG_INVALID_DATA_RSA_ENCRYPTION.getErrorCode(),
 					RegistrationExceptionConstants.REG_INVALID_DATA_RSA_ENCRYPTION.getErrorMessage(),
 					compileTimeException);
-		} catch (RuntimeException runtimeException) {
-			throw new RegBaseUncheckedException(
-					RegistrationExceptionConstants.REG_RUNTIME_RSA_ENCRYPTION.getErrorCode(),
-					RegistrationExceptionConstants.REG_RUNTIME_RSA_ENCRYPTION.getErrorMessage(), runtimeException);
 		}
 	}
 

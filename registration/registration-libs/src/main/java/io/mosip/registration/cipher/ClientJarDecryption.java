@@ -36,9 +36,6 @@ import io.mosip.kernel.crypto.jce.constant.SecurityExceptionCodeConstant;
 import io.mosip.kernel.crypto.jce.util.CryptoUtils;
 import io.mosip.registration.config.SoftwareInstallationHandler;
 import io.mosip.registration.constants.LoggerConstants;
-import io.mosip.registration.tpm.asymmetric.AsymmetricDecryptionService;
-import io.mosip.registration.tpm.asymmetric.AsymmetricEncryptionService;
-import io.mosip.registration.tpm.initialize.TPMInitialization;
 import io.mosip.registration.util.LoggerFactory;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -89,8 +86,6 @@ public class ClientJarDecryption extends Application {
 	private Stage primaryStage = new Stage();
 
 	static String tempPath;
-	private AsymmetricEncryptionService asymmetricEncryptionService = new AsymmetricEncryptionService();
-	private AsymmetricDecryptionService asymmetricDecryptionService = new AsymmetricDecryptionService();
 
 	private String IS_TPM_AVAILABLE = "Checking TPM Avaialbility";
 	private String ENCRYPT_PROPERTIES = "Encrypting Properties";
@@ -467,10 +462,6 @@ public class ClientJarDecryption extends Application {
 		return value;
 	}
 
-	private String getEncryptedValue(Properties properties, String key) {
-		return CryptoUtil.encodeBase64String(asymmetricEncryptionService.encryptUsingTPM(
-				TPMInitialization.getTPMInstance(), Base64.getDecoder().decode(properties.getProperty(key))));
-	}
 
 	private void closeStage() {
 		Platform.runLater(() -> primaryStage.close());
