@@ -447,3 +447,5 @@ INSERT INTO "REG"."GLOBAL_PARAM" VALUES ('mosip.registration.HTTP_API_READ_TIMEO
 INSERT INTO "REG"."GLOBAL_PARAM" VALUES ('mosip.registration.HTTP_API_WRITE_TIMEOUT','mosip.registration.HTTP_API_WRITE_TIMEOUT','60000','CONFIGURATION','eng',true,'SYSTEM',current timestamp, 'SYSTEM',current timestamp, false, current timestamp);
 
 INSERT INTO "REG"."KEY_POLICY_DEF" ("APP_ID", "KEY_VALIDITY_DURATION", "IS_ACTIVE", "CR_BY", "CR_DTIMES") VALUES ('REGISTRATION', 1095, true, 'mosipadmin', current timestamp);
+
+INSERT INTO "REG"."KEY_POLICY_DEF" ("APP_ID", "KEY_VALIDITY_DURATION", "IS_ACTIVE", "CR_BY", "CR_DTIMES") VALUES('KERNEL', 1095, true, 'mosipadmin', current timestamp);
