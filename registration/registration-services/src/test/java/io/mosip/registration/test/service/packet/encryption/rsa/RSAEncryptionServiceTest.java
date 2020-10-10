@@ -32,7 +32,6 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.repositories.CenterMachineRepository;
 import io.mosip.registration.repositories.MachineMasterRepository;
-import io.mosip.registration.repositories.PolicySyncRepository;
 import io.mosip.registration.service.security.impl.RSAEncryptionServiceImpl;
 
 @RunWith(PowerMockRunner.class)
@@ -53,9 +52,6 @@ public class RSAEncryptionServiceTest {
 	public MockitoRule mockitoRule = MockitoJUnit.rule();
 	@Mock@Autowired
     private CryptoCoreSpec<byte[], byte[], SecretKey, PublicKey, PrivateKey, String> cryptoCore;
-
-	@Mock
-	PolicySyncRepository policySyncRepository;
 	
 	@Before
 	public void init() throws Exception {
