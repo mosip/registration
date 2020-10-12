@@ -47,6 +47,7 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDTO;
+import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDecisionDto;
 import io.mosip.registration.processor.manual.verification.dto.ManualVerificationStatus;
 import io.mosip.registration.processor.manual.verification.dto.MatchDetail;
 import io.mosip.registration.processor.manual.verification.dto.UserDto;
@@ -112,7 +113,7 @@ public class ManualVerificationServiceTest {
 	private UserResponseDTOWrapper userResponseDTOWrapper = new UserResponseDTOWrapper();
 	private List<UserResponseDTO> userResponseDto = new ArrayList<>();
 	private UserResponseDTO userResponseDTO = new UserResponseDTO();
-
+	private ManualVerificationDecisionDto manualVerificationDecisionDto=new  ManualVerificationDecisionDto();
 	@Mock
 	LogDescription description;
 
@@ -173,7 +174,11 @@ public class ManualVerificationServiceTest {
 		userResponseDTO.setStatusCode("ACT");
 		userResponseDTOWrapper.setUserResponseDto(userResponseDto);
 		responseWrapper.setResponse(userResponseDTOWrapper);
-
+		manualVerificationDecisionDto.setMatchedRefType("Type");
+		manualVerificationDecisionDto.setMvUsrId("mvusr22");
+		manualVerificationDecisionDto.setReasonCode("test");
+		manualVerificationDecisionDto.setRegId("RegID");
+		manualVerificationDecisionDto.setStatusCode("APPROVED");
 	}
 
 //	@Test
@@ -313,13 +318,13 @@ public class ManualVerificationServiceTest {
 
 	@Test
 	public void TablenotAccessibleExceptionTest() throws Exception {
-		manualVerificationDTO.setStatusCode("REJECTED");
-		Mockito.when(basePacketRepository.getSingleAssignedRecord(any(), any(), any(), any())).thenReturn(entities);
+		manualVerificationDecisionDto.setStatusCode("REJECTED");
+		Mockito.when(basePacketRepository.getAllAssignedRecord(any(), any(), any())).thenReturn(entities);
 
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.when(basePacketRepository.update(any(ManualVerificationEntity.class)))
 				.thenThrow(new TablenotAccessibleException(""));
-		manualAdjudicationService.updatePacketStatus(manualVerificationDTO, stageName);
+		manualAdjudicationService.updatePacketStatus(manualVerificationDecisionDto, stageName);
 
 	}
 
@@ -371,25 +376,25 @@ public class ManualVerificationServiceTest {
 
 	@Test(expected = InvalidUpdateException.class)
 	public void updatePacketStatusExceptionCheck() {
-		manualVerificationDTO.setStatusCode("");
-		manualAdjudicationService.updatePacketStatus(manualVerificationDTO, stageName);
+		manualVerificationDecisionDto.setStatusCode("");
+		manualAdjudicationService.updatePacketStatus(manualVerificationDecisionDto, stageName);
 
 	}
 
 	@Test(expected = NoRecordAssignedException.class)
 	public void updatePacketStatusNoRecordAssignedExceptionCheck() {
-		manualVerificationDTO.setStatusCode("REJECTED");
-		Mockito.when(basePacketRepository.getSingleAssignedRecord(anyString(), anyString(), anyString(), anyString()))
+		manualVerificationDecisionDto.setStatusCode("REJECTED");
+		Mockito.when(basePacketRepository.getAllAssignedRecord( anyString(), anyString(), anyString()))
 				.thenReturn(entitiesTemp);
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
-		manualAdjudicationService.updatePacketStatus(manualVerificationDTO, stageName);
+		manualAdjudicationService.updatePacketStatus(manualVerificationDecisionDto, stageName);
 
 	}
 
 	
 	@Test
 	public void updatePacketStatusApprovalMethodCheck() {
-		Mockito.when(basePacketRepository.getSingleAssignedRecord(anyString(), anyString(), anyString(), anyString()))
+		Mockito.when(basePacketRepository.getAllAssignedRecord(anyString(),  anyString(), anyString()))
 				.thenReturn(entities);
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.when(basePacketRepository.getAssignedApplicantDetails(anyString(), anyString())).thenReturn(null);
@@ -398,33 +403,33 @@ public class ManualVerificationServiceTest {
 		manualVerificationDTO.setStatusCode(ManualVerificationStatus.APPROVED.name());
 
 		Mockito.doNothing().when(manualVerificationStage).sendMessage(any(MessageDTO.class));
-		manualAdjudicationService.updatePacketStatus(manualVerificationDTO, stageName);
+		manualAdjudicationService.updatePacketStatus(manualVerificationDecisionDto, stageName);
 	}
 
 	@Test
 	public void updatePacketStatusRejectionMethodCheck() {
-		manualVerificationDTO.setStatusCode(ManualVerificationStatus.REJECTED.name());
+		manualVerificationDecisionDto.setStatusCode(ManualVerificationStatus.REJECTED.name());
 		;
-		Mockito.when(basePacketRepository.getSingleAssignedRecord(anyString(), anyString(), anyString(), anyString()))
+		Mockito.when(basePacketRepository.getAllAssignedRecord(anyString(),  anyString(), anyString()))
 				.thenReturn(entities);
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.when(basePacketRepository.getAssignedApplicantDetails(anyString(), anyString())).thenReturn(null);
 		Mockito.when(basePacketRepository.update(any())).thenReturn(manualVerificationEntity);
 
 		Mockito.doNothing().when(manualVerificationStage).sendMessage(any());
-		manualAdjudicationService.updatePacketStatus(manualVerificationDTO, stageName);
+		manualAdjudicationService.updatePacketStatus(manualVerificationDecisionDto, stageName);
 	}
 
 	@Test(expected = InvalidUpdateException.class)
 	public void invalidStatusUpdateCheck() {
-		manualVerificationDTO.setStatusCode("ASSIGNED");
-		manualVerificationDTO.setMvUsrId("abcde");
-		manualVerificationDTO.setRegId("abcde");
-		Mockito.when(basePacketRepository.getSingleAssignedRecord(anyString(), anyString(), anyString(), anyString()))
+		manualVerificationDecisionDto.setStatusCode("ASSIGNED");
+		manualVerificationDecisionDto.setMvUsrId("abcde");
+		manualVerificationDecisionDto.setRegId("abcde");
+		Mockito.when(basePacketRepository.getAllAssignedRecord( anyString(), anyString(), anyString()))
 				.thenReturn(entities);
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.when(basePacketRepository.getAssignedApplicantDetails(anyString(), anyString())).thenReturn(null);
-		manualAdjudicationService.updatePacketStatus(manualVerificationDTO, stageName);
+		manualAdjudicationService.updatePacketStatus(manualVerificationDecisionDto, stageName);
 	}
 
 }
