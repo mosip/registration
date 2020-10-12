@@ -16,7 +16,8 @@ public class SecurezoneNotificationApplication {
                 "io.mosip.registration.processor.securezone.notification.config",
                 "io.mosip.registration.processor.packet.manager.config",
                 "io.mosip.registration.processor.status.config", "io.mosip.registration.processor.rest.client.config",
-                "io.mosip.registration.processor.core.kernel.beans");
+                "io.mosip.registration.processor.core.kernel.beans",
+                "io.mosip.kernel.core.logger.config");
         configApplicationContext.refresh();
 
         SecurezoneNotificationStage notificationStage = configApplicationContext.getBean(SecurezoneNotificationStage.class);

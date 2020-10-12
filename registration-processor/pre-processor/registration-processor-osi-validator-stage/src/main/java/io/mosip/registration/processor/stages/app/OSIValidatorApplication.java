@@ -24,7 +24,8 @@ public class OSIValidatorApplication {
 				"io.mosip.registration.processor.status.config", "io.mosip.registration.processor.rest.client.config",
 				"io.mosip.registration.processor.packet.storage.config",
 				"io.mosip.registration.processor.packet.manager.config",
-				"io.mosip.registration.processor.core.kernel.beans");
+				"io.mosip.registration.processor.core.kernel.beans",
+				"io.mosip.kernel.core.logger.config");
 		ctx.refresh();
 		OSIValidatorStage validatebean = ctx.getBean(OSIValidatorStage.class);
 		validatebean.deployVerticle();

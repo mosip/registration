@@ -20,7 +20,8 @@ public class ExternalStageApplication {
 		configApplicationContext.scan("io.mosip.registration.processor.core.config",
 				"io.mosip.registrationprocessor.externalstage.config", "io.mosip.registration.processor.core.config",
 				"io.mosip.registration.processor.status.config", "io.mosip.registration.processor.core.kernel.beans",
-				"io.mosip.registration.processor.rest.client.config");
+				"io.mosip.registration.processor.rest.client.config",
+				"io.mosip.kernel.core.logger.config");
 		configApplicationContext.refresh();
 		ExternalStage externalStage = (ExternalStage) configApplicationContext.getBean(ExternalStage.class);
 		externalStage.deployVerticle();
