@@ -28,7 +28,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonSyntaxException;
 
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.SessionContext;
@@ -531,7 +530,7 @@ public class MasterSyncDaoImplTest {
 	public void testInvalidJsonSyntaxJsonSyntaxException() {		
 		SyncDataResponseDto syncDataResponseDto = getSyncDataResponseDto("invalidJson.json");
 		Mockito.when(clientSettingSyncHelper.saveClientSettings(Mockito.any(SyncDataResponseDto.class)))
-		.thenThrow(JsonSyntaxException.class);
+		.thenThrow(Exception.class);
 		masterSyncDaoImpl.saveSyncData(syncDataResponseDto);		
 	}
 
