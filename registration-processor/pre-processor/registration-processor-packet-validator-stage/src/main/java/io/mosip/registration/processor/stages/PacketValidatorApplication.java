@@ -23,7 +23,8 @@ public class PacketValidatorApplication {
 				"io.mosip.registration.processor.packet.storage.config",
 				"io.mosip.registration.processor.packet.manager.config",
 				"io.mosip.kernel.idobjectvalidator.config",
-				"io.mosip.registration.processor.core.kernel.beans");
+				"io.mosip.registration.processor.core.kernel.beans",
+				"io.mosip.kernel.core.logger.config");
 		ctx.refresh();
 		PacketValidatorStage packetValidatorStage = ctx.getBean(PacketValidatorStage.class);
 		packetValidatorStage.deployVerticle();

@@ -22,7 +22,8 @@ public class UinGeneratorApplication {
 				"io.mosip.registration.processor.stages.config",
 				"io.mosip.kernel.packetmanager.config",
 				"io.mosip.registration.processor.packet.manager.config",
-				"io.mosip.registration.processor.core.kernel.beans");
+				"io.mosip.registration.processor.core.kernel.beans",
+				"io.mosip.kernel.core.logger.config");
 
 		configApplicationContext.refresh();
 

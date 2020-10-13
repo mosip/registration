@@ -30,7 +30,8 @@ public class MessageSenderApplication {
 				"io.mosip.registration.processor.message.sender.config",
 				"io.mosip.registration.processor.packet.manager.config",
 				"io.mosip.registration.processor.core.kernel.beans",
-				"io.mosip.kernel.packetmanager.config");
+				"io.mosip.kernel.packetmanager.config",
+				"io.mosip.kernel.core.logger.config");
 
 		ctx.refresh();
 

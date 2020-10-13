@@ -20,7 +20,8 @@ import io.mosip.registration.processor.status.config.RegistrationStatusServiceBe
 @ComponentScan(basePackages = { "io.mosip.registration.processor.status.*",
 		"io.mosip.registration.processor.rest.client.*", "io.mosip.registration.processor.core.token.*",
 		"io.mosip.registration.processor.core.config",
-		"${mosip.auth.adapter.impl.basepackage}" },
+		"${mosip.auth.adapter.impl.basepackage}",
+		"io.mosip.kernel.core.logger.config" },
 		excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = { RegistrationStatusServiceBeanConfig.class,
 				RegistrationStatusBeanConfig.class, RestConfigBean.class }))
 public class RegistrationStatusApiApplication

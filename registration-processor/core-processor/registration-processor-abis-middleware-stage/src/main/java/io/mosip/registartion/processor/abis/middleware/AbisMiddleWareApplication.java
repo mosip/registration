@@ -18,7 +18,8 @@ public class AbisMiddleWareApplication {
                 "io.mosip.registration.processor.packet.storage.config",
                 "io.mosip.registration.processor.core.config",
                 "io.mosip.registration.processor.core.kernel.beans",
-                "io.mosip.registration.processor.stages.config");
+                "io.mosip.registration.processor.stages.config",
+				"io.mosip.kernel.core.logger.config");
 		configApplicationContext.refresh();
 		AbisMiddleWareStage demodedupeStage = configApplicationContext.getBean(AbisMiddleWareStage.class);
 	
