@@ -1,7 +1,6 @@
 package io.mosip.registration.processor.status.decryptor;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
@@ -9,11 +8,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.LinkedHashMap;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.registration.processor.status.dto.DecryptResponseDto;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,24 +50,22 @@ public class DecryptorTest {
 	@Mock
 	private Environment env;
 
-	@Mock
-	private ObjectMapper mapper;
-
 	@Before
-	public void setup() throws IOException {
-		data = "bW9zaXAsdvjsnvkjsfnvkjfsnvkjfsvkjfdbvkjfdbfdkjvfdkjvkjfdsvskjvskjavkdsvkjdsvksvsdvsvsdv";
+	public void setup() throws FileNotFoundException {
+		data = "bW9zaXA";
 		cryptomanagerResponseDto = new DecryptResponseDto();
 		cryptomanagerResponseDto.setData(data);
 
-		LinkedHashMap linkedHashMap = new LinkedHashMap();
-		linkedHashMap.put("data", CryptoUtil.encodeBase64("mosip".getBytes()));
+		/*
+		 * ClassLoader classLoader = getClass().getClassLoader(); encrypted = new
+		 * File(classLoader.getResource("84071493960000320190110145452.zip").getFile());
+		 * inputStream = new FileInputStream(encrypted);
+		 */
 		when(env.getProperty("mosip.registration.processor.crypto.decrypt.id"))
 				.thenReturn("mosip.cryptomanager.decrypt");
 		when(env.getProperty("mosip.registration.processor.application.version")).thenReturn("1.0");
 		when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		when(mapper.writeValueAsString(any())).thenReturn(new String("decrypted str"));
-		when(mapper.readValue(anyString(), any(Class.class))).thenReturn(linkedHashMap);
 	}
 
 	@Test
