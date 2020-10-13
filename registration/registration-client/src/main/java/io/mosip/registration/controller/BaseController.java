@@ -49,7 +49,6 @@ import io.mosip.registration.controller.reg.HomeController;
 import io.mosip.registration.controller.reg.PacketHandlerController;
 import io.mosip.registration.controller.reg.RegistrationPreviewController;
 import io.mosip.registration.controller.reg.Validations;
-import io.mosip.registration.device.fp.FingerprintFacade;
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.ResponseDTO;
@@ -754,24 +753,24 @@ public class BaseController {
 	 * @param waitTimeInSec     the wait time in sec
 	 * @param fingerprintFacade the fingerprint facade
 	 */
-	protected void waitToCaptureBioImage(int count, int waitTimeInSec, FingerprintFacade fingerprintFacade) {
-		int counter = 0;
-		while (counter < 5) {
-			if (!RegistrationConstants.EMPTY.equals(fingerprintFacade.getMinutia())
-					|| !RegistrationConstants.EMPTY.equals(fingerprintFacade.getErrorMessage())) {
-				break;
-			} else {
-				try {
-					Thread.sleep(2000);
-				} catch (InterruptedException interruptedException) {
-					LOGGER.error("FINGERPRINT_AUTHENTICATION_CONTROLLER - ERROR_SCANNING_FINGER", APPLICATION_NAME,
-							APPLICATION_ID,
-							interruptedException.getMessage() + ExceptionUtils.getStackTrace(interruptedException));
-				}
-			}
-			counter++;
-		}
-	}
+//	protected void waitToCaptureBioImage(int count, int waitTimeInSec, FingerprintFacade fingerprintFacade) {
+//		int counter = 0;
+//		while (counter < 5) {
+//			if (!RegistrationConstants.EMPTY.equals(fingerprintFacade.getMinutia())
+//					|| !RegistrationConstants.EMPTY.equals(fingerprintFacade.getErrorMessage())) {
+//				break;
+//			} else {
+//				try {
+//					Thread.sleep(2000);
+//				} catch (InterruptedException interruptedException) {
+//					LOGGER.error("FINGERPRINT_AUTHENTICATION_CONTROLLER - ERROR_SCANNING_FINGER", APPLICATION_NAME,
+//							APPLICATION_ID,
+//							interruptedException.getMessage() + ExceptionUtils.getStackTrace(interruptedException));
+//				}
+//			}
+//			counter++;
+//		}
+//	}
 
 	/**
 	 * Convert bytes to image.

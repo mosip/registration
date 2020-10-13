@@ -154,10 +154,19 @@ public class GlobalParamServiceImpl extends BaseService implements GlobalParamSe
 						@SuppressWarnings("unchecked")
 						HashMap<String, Object> configDetailJsonMap = (HashMap<String, Object>) responseMap
 								.get("configDetail");
-
+						
+						@SuppressWarnings("unchecked")
+						HashMap<String, Object> applicationProperties = (HashMap<String, Object>) configDetailJsonMap
+								.get("globalConfiguration");
+						
+						@SuppressWarnings("unchecked")
+						HashMap<String, Object> registratrionProperties = (HashMap<String, Object>) configDetailJsonMap
+								.get("registrationConfiguration");
+						
 						HashMap<String, String> globalParamMap = new HashMap<>();
-
-						parseToMap(configDetailJsonMap, globalParamMap);
+						
+						parseToMap(applicationProperties, globalParamMap);
+						parseToMap(registratrionProperties, globalParamMap);
 
 						List<GlobalParam> globalParamList = globalParamDAO.getAllEntries();
 
