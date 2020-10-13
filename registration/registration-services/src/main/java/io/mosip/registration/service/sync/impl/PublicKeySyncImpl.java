@@ -5,14 +5,10 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.net.SocketTimeoutException;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,14 +16,12 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.kernel.keymanagerservice.dto.KeyPairGenerateResponseDto;
+import io.mosip.kernel.keymanagerservice.service.KeymanagerService;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
-import io.mosip.registration.dao.GlobalParamDAO;
-import io.mosip.registration.dao.PolicySyncDAO;
 import io.mosip.registration.dto.ResponseDTO;
-import io.mosip.registration.entity.KeyStore;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.service.BaseService;
@@ -50,12 +44,8 @@ import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 @Service
 public class PublicKeySyncImpl extends BaseService implements PublicKeySync {
 
-	/** The policy sync DAO. */
 	@Autowired
-	private PolicySyncDAO policySyncDAO;
-	
-	@Autowired
-	private GlobalParamDAO globalParamDAO;
+	private KeymanagerService keymanagerService;
 
 	/** The Constant LOGGER. */
 	private static final Logger LOGGER = AppConfig.getLogger(PublicKeySyncImpl.class);
@@ -67,28 +57,37 @@ public class PublicKeySyncImpl extends BaseService implements PublicKeySync {
 	 */
 	@Override
 	public synchronized ResponseDTO getPublicKey(String triggerPoint) throws RegBaseCheckedException {
-
 		LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
 				"Entering into get public key method.....");
 
 		ResponseDTO responseDTO = new ResponseDTO();
+		try {
+			KeyPairGenerateResponseDto certificateDto = keymanagerService
+					.getCertificate(RegistrationConstants.KERNEL_APP_ID, Optional.of(RegistrationConstants.KERNEL_REF_ID));
+			if (certificateDto == null || (certificateDto != null && certificateDto.getCertificate() == null)) {
+				LOGGER.info("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID,
+						"Syncing the key as the certificate is null");
+				
+				responseDTO = getCertificateFromServer(responseDTO, triggerPoint);
+			} else {
+				responseDTO = setSuccessResponse(responseDTO, RegistrationConstants.POLICY_SYNC_SUCCESS_MESSAGE, null);
+			}
+		} catch (Exception exception) {
+			LOGGER.info("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID,
+					"Syncing the key as the certificate is not found and gave exception: " + exception.getMessage());
+			
+			responseDTO = getCertificateFromServer(responseDTO, triggerPoint);
+		}		
+		return responseDTO;
+	}
+
+	private ResponseDTO getCertificateFromServer(ResponseDTO responseDTO, String triggerPoint) throws RegBaseCheckedException {
 		if (triggerPointNullCheck(triggerPoint)) {
 			try {
-
 				LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-						"Fetching signed public key.....");
+						"Fetching signed certificate.....");
 
-				KeyStore keyStore = policySyncDAO.getPublicKey(RegistrationConstants.KER);
-
-				if (null == keyStore) {
-
-					responseDTO = getResponse(triggerPoint);
-
-				} else {
-
-					getResponse(triggerPoint, responseDTO, keyStore);
-				}
-
+				responseDTO = getResponse(triggerPoint);
 			} catch (RegBaseCheckedException regBaseCheckedException) {
 				LOGGER.error(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
 						ExceptionUtils.getStackTrace(regBaseCheckedException));
@@ -104,7 +103,7 @@ public class PublicKeySyncImpl extends BaseService implements PublicKeySync {
 			}
 
 			LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-					"Leaving into get public key method.....");
+					"Leaving getCertificateFromServer method.....");
 		} else {
 			LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
 					RegistrationConstants.TRIGGER_POINT_MSG);
@@ -114,22 +113,8 @@ public class PublicKeySyncImpl extends BaseService implements PublicKeySync {
 		return responseDTO;
 	}
 
-	private void getResponse(String triggerPoint, ResponseDTO responseDTO, KeyStore keyStore)
-			throws RegBaseCheckedException {
-		Date validDate = new Date(keyStore.getValidTillDtimes().getTime());
-
-		if (validDate
-				.compareTo(new Date(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()).getTime())) <= 0) {
-
-			responseDTO = getResponse(triggerPoint);
-		}
-
-		setSuccessResponse(responseDTO, RegistrationConstants.POLICY_SYNC_SUCCESS_MESSAGE, null);
-	}
-
 	private ResponseDTO getResponse(String triggerPoint) throws RegBaseCheckedException {
-		ResponseDTO responseDTO = insertPublickey(triggerPoint);
-
+		ResponseDTO responseDTO = uploadCertificate(triggerPoint);
 		if (null != responseDTO && null != responseDTO.getSuccessResponseDTO()) {
 			responseDTO = setSuccessResponse(responseDTO, RegistrationConstants.POLICY_SYNC_SUCCESS_MESSAGE,
 					null);
@@ -147,87 +132,66 @@ public class PublicKeySyncImpl extends BaseService implements PublicKeySync {
 	}
 
 	@SuppressWarnings("unchecked")
-	private ResponseDTO insertPublickey(String triggerPoint) throws RegBaseCheckedException {
-
+	private ResponseDTO uploadCertificate(String triggerPoint) throws RegBaseCheckedException {
 		LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-				"Entering into insert public key method.....");
+				"Entering into uploadCertificate method.....");
 
 		ResponseDTO responseDTO = new ResponseDTO();
 		Map<String, String> requestParamMap = new LinkedHashMap<>();
+		requestParamMap.put(RegistrationConstants.GET_CERT_APP_ID, RegistrationConstants.KERNEL_APP_ID);
 		requestParamMap.put(RegistrationConstants.REF_ID, RegistrationConstants.KER);
-		requestParamMap.put(RegistrationConstants.TIME_STAMP, DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
-
 		try {
-
 			LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-					"Calling public key rest call.....");
+					"Calling getCertificate rest call with request params " + requestParamMap);
 			if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
 				LinkedHashMap<String, Object> publicKeyResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil
-						.get(RegistrationConstants.PUBLIC_KEY_REST, requestParamMap, false, triggerPoint);
-
+						.get(RegistrationConstants.GET_CERTIFICATE, requestParamMap, false, triggerPoint);
 				if (null != publicKeyResponse && publicKeyResponse.size() > 0
 						&& null != publicKeyResponse.get(RegistrationConstants.RESPONSE)) {
-
-					LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) publicKeyResponse
-							.get(RegistrationConstants.RESPONSE);
-
-					KeyStore keyStore = new KeyStore();
-
-					keyStore.setId(UUID.randomUUID().toString());
-					keyStore.setPublicKey(responseMap.get(RegistrationConstants.PUBLIC_KEY).toString().getBytes());
-					LocalDateTime issuedAt = DateUtils.parseToLocalDateTime(
-							responseMap.get(RegistrationConstants.PUBLIC_KEY_ISSUES_DATE).toString());
-					LocalDateTime expiryAt = DateUtils.parseToLocalDateTime(
-							responseMap.get(RegistrationConstants.PUBLIC_KEY_EXPIRE_DATE).toString());
-					keyStore.setValidFromDtimes(Timestamp.valueOf(issuedAt));
-					keyStore.setValidTillDtimes(Timestamp.valueOf(expiryAt));
-					keyStore.setCreatedBy(getUserIdFromSession());
-					keyStore.setRefId(RegistrationConstants.KER);
-					keyStore.setCreatedDtimes(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
-					policySyncDAO.updatePolicy(keyStore);
-					
-					updateServerProfile(responseMap);
-					
+//					LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) publicKeyResponse
+//							.get(RegistrationConstants.RESPONSE);
+//					UploadCertificateRequestDto uploadCertRequestDto = new UploadCertificateRequestDto();
+//					uploadCertRequestDto.setApplicationId(RegistrationConstants.KERNEL_APP_ID);
+//					uploadCertRequestDto.setCertificateData(responseMap.get(RegistrationConstants.CERTIFICATE).toString());
+//					uploadCertRequestDto.setReferenceId(RegistrationConstants.KERNEL_REF_ID);
+//					keymanagerService.uploadOtherDomainCertificate(uploadCertRequestDto);
 					responseDTO = setSuccessResponse(responseDTO, RegistrationConstants.POLICY_SYNC_SUCCESS_MESSAGE,
 							null);
 					
 					LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-							"Public key sync successful...");
+							"getCertificate sync successful...");
 				} else {
-
 					responseDTO = setErrorResponse(responseDTO,
 							(null != publicKeyResponse && publicKeyResponse.size() > 0)
 									? ((List<LinkedHashMap<String, String>>) publicKeyResponse
 											.get(RegistrationConstants.ERRORS)).get(0)
 													.get(RegistrationConstants.ERROR_MSG)
-									: "Public key Sync Restful service error",
+									: "GetCertificate Sync Restful service error",
 							null);
 					LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
 							((null != publicKeyResponse && publicKeyResponse.size() > 0)
 									? ((List<LinkedHashMap<String, String>>) publicKeyResponse
 											.get(RegistrationConstants.ERRORS)).get(0)
 													.get(RegistrationConstants.ERROR_MSG)
-									: "Public key Sync Restful service error"));
+									: "GetCertificate Sync Restful service error"));
 
 				}
 			} else {
 				LOGGER.error(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-						"Unable to sync public key as there is no internet connection");
-				setErrorResponse(responseDTO, RegistrationConstants.ERROR, null);
+						"Unable to sync certificate as there is no internet connection");
+				responseDTO = setErrorResponse(responseDTO, RegistrationConstants.ERROR, null);
 			}
 
 		} catch (HttpClientErrorException | SocketTimeoutException reException) {
 			LOGGER.error(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(reException));
 			
-			throw new RegBaseCheckedException("Exception in public key Rest Call", reException.getMessage());
+			throw new RegBaseCheckedException("Exception in GetCertificate Rest Call", reException.getMessage());
 		}
-
 		LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
-				"Leaving into insert public key method.....");
+				"Leaving uploadCertificate method.....");
 
 		return responseDTO;
-
 	}
 
 	/**
@@ -244,12 +208,6 @@ public class PublicKeySyncImpl extends BaseService implements PublicKeySync {
 		} else {
 			return true;
 		}
-
-	}
-	
-	private void updateServerProfile(Map<String, Object> responseMap) {
-		globalParamDAO.upsertServerProfile(responseMap.containsKey(RegistrationConstants.SERVER_PROFILE) ? 
-				(String) responseMap.get(RegistrationConstants.SERVER_PROFILE) : RegistrationConstants.SERVER_NO_PROFILE);
 	}
 
 }

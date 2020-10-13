@@ -3,35 +3,32 @@ package io.mosip.registration.util.advice;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import javax.crypto.SecretKey;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.mosip.kernel.core.crypto.spi.CryptoCoreSpec;
+import io.mosip.commons.packet.spi.IPacketCryptoService;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.signatureutil.spi.SignatureUtil;
 import io.mosip.kernel.keygenerator.bouncycastle.KeyGenerator;
+import io.mosip.kernel.keymanagerservice.dto.UploadCertificateRequestDto;
+import io.mosip.kernel.keymanagerservice.service.KeymanagerService;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
-import io.mosip.registration.dao.PolicySyncDAO;
-import io.mosip.registration.entity.KeyStore;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.util.restclient.RequestHTTPDTO;
 
@@ -50,10 +47,6 @@ public class ResponseSignatureAdvice {
 	/** The Constant LOGGER. */
 	private static final Logger LOGGER = AppConfig.getLogger(ResponseSignatureAdvice.class);
 
-	/** The decryptor. */
-	@Autowired       
-	private CryptoCoreSpec<byte[], byte[], SecretKey, PublicKey, PrivateKey, String> cryptoCore;
-
 	/** The key generator. */
 	@Autowired
 	KeyGenerator keyGenerator;
@@ -61,10 +54,13 @@ public class ResponseSignatureAdvice {
 	/** The SignatureUtil. */
 	@Autowired
 	SignatureUtil signatureUtil;
-
-	/** The policy sync DAO. */
+	
 	@Autowired
-	private PolicySyncDAO policySyncDAO;
+    @Qualifier("OfflinePacketCryptoServiceImpl")
+    private IPacketCryptoService offlinePacketCryptoServiceImpl;
+	
+	@Autowired
+	private KeymanagerService keymanagerService;
 
 	/**
 	 * <p>
@@ -85,9 +81,10 @@ public class ResponseSignatureAdvice {
 	 * validation will happen for the response that we send
 	 * 
 	 * @param joinPoint - the JointPoint
-	 * @param result - the object result
+	 * @param result    - the object result
 	 * @return the rest client response as {@link Map}
-	 * @throws RegBaseCheckedException - the exception class that handles all the checked exceptions
+	 * @throws RegBaseCheckedException - the exception class that handles all the
+	 *                                 checked exceptions
 	 */
 	@SuppressWarnings("unchecked")
 	@AfterReturning(pointcut = "execution(* io.mosip.registration.util.restclient.RestClientUtil.invoke(..))", returning = "result")
@@ -101,31 +98,41 @@ public class ResponseSignatureAdvice {
 		Object[] requestHTTPDTO = joinPoint.getArgs();
 		RequestHTTPDTO requestDto = (RequestHTTPDTO) requestHTTPDTO[0];
 		LinkedHashMap<String, Object> restClientResponse = null;
-		String publicKey = RegistrationConstants.EMPTY;
-
 		try {
-
 			restClientResponse = (LinkedHashMap<String, Object>) result;
-			
+
 			LinkedHashMap<String, Object> keyResponse = (LinkedHashMap<String, Object>) restClientResponse
 					.get(RegistrationConstants.REST_RESPONSE_BODY);
 
-			if (null != requestDto 
-					&& requestDto.getIsSignRequired() 
-					&& null != keyResponse 
-					&& keyResponse.size() > 0 
+			if (null != requestDto && requestDto.getIsSignRequired() && null != keyResponse && keyResponse.size() > 0
 					&& null != keyResponse.get(RegistrationConstants.RESPONSE)) {
-
-				KeyStore keyStore = policySyncDAO.getPublicKey(RegistrationConstants.KER);
-
-				if (null != keyStore && null != keyStore.getPublicKey()) {
-					publicKey = new String(keyStore.getPublicKey());
-				} else {
-					if (keyResponse.size() > 0
-							&& null != keyResponse.get(RegistrationConstants.RESPONSE)) {
-						LinkedHashMap<String, Object> resp = (LinkedHashMap<String, Object>) keyResponse
-								.get(RegistrationConstants.RESPONSE);
-						publicKey = (String) resp.get(RegistrationConstants.PUBLIC_KEY);
+				if (keyResponse.get(RegistrationConstants.RESPONSE) instanceof LinkedHashMap){
+					LinkedHashMap<String, Object> resp = (LinkedHashMap<String, Object>) keyResponse
+							.get(RegistrationConstants.RESPONSE);
+					if (resp.containsKey(RegistrationConstants.CERTIFICATE) && resp.get(RegistrationConstants.CERTIFICATE) != null) {
+						if(joinPoint.getArgs() != null && joinPoint.getArgs() instanceof Object[] && joinPoint.getArgs()[0] != null) {
+							RequestHTTPDTO request = (RequestHTTPDTO) joinPoint.getArgs()[0];
+							Map<String, String> queryPairs = new LinkedHashMap<String, String>();
+						    String query = request.getUri().getQuery();
+						    String[] pairs = query.split("&");
+						    for (String pair : pairs) {
+						        int index = pair.indexOf("=");
+						        queryPairs.put(URLDecoder.decode(pair.substring(0, index), "UTF-8"), URLDecoder.decode(pair.substring(index + 1), "UTF-8"));
+						    }
+						    LOGGER.info(LoggerConstants.RESPONSE_SIGNATURE_VALIDATION, APPLICATION_ID, APPLICATION_NAME,
+									"Extracted query params from the request to upload certificate..." + queryPairs);
+						    
+							if (queryPairs.get(RegistrationConstants.REF_ID).equals(RegistrationConstants.KER)) {
+								UploadCertificateRequestDto uploadCertRequestDto = new UploadCertificateRequestDto();
+								uploadCertRequestDto.setApplicationId(queryPairs.get(RegistrationConstants.GET_CERT_APP_ID));
+								uploadCertRequestDto.setCertificateData(resp.get(RegistrationConstants.CERTIFICATE).toString());
+								uploadCertRequestDto.setReferenceId(RegistrationConstants.KERNEL_REF_ID);
+								keymanagerService.uploadOtherDomainCertificate(uploadCertRequestDto);
+								
+								LOGGER.info(LoggerConstants.RESPONSE_SIGNATURE_VALIDATION, APPLICATION_ID, APPLICATION_NAME,
+										"Uploaded certificate with request..." + uploadCertRequestDto);
+							}
+						}
 					}
 				}
 
@@ -135,14 +142,11 @@ public class ResponseSignatureAdvice {
 				LinkedHashMap<String, Object> responseBodyMap = (LinkedHashMap<String, Object>) restClientResponse
 						.get(RegistrationConstants.REST_RESPONSE_BODY);
 
-				LOGGER.info(LoggerConstants.RESPONSE_SIGNATURE_VALIDATION, APPLICATION_ID, APPLICATION_NAME,
-						"Getting public key");
-
 				responseHeader = (HttpHeaders) restClientResponse.get(RegistrationConstants.REST_RESPONSE_HEADERS);
-
-				if (signatureUtil.validateWithPublicKey(
-						responseHeader.get(RegistrationConstants.RESPONSE_SIGNATURE).get(0),
-						new ObjectMapper().writeValueAsString(responseBodyMap), publicKey)) {
+				
+				if (offlinePacketCryptoServiceImpl.verify(
+						new ObjectMapper().writeValueAsString(responseBodyMap).getBytes(),
+						responseHeader.get(RegistrationConstants.RESPONSE_SIGNATURE).get(0).getBytes())) {
 					LOGGER.info(LoggerConstants.RESPONSE_SIGNATURE_VALIDATION, APPLICATION_ID, APPLICATION_NAME,
 							"response signature is valid...");
 					return restClientResponse;
@@ -153,9 +157,7 @@ public class ResponseSignatureAdvice {
 					restClientResponse.put(RegistrationConstants.REST_RESPONSE_HEADERS, new LinkedHashMap<>());
 				}
 			}
-
-		} catch (InvalidKeySpecException | NoSuchAlgorithmException | JsonProcessingException
-				| RuntimeException regBaseCheckedException) {
+		} catch (RuntimeException | JsonProcessingException | UnsupportedEncodingException regBaseCheckedException) {
 			LOGGER.error(LoggerConstants.RESPONSE_SIGNATURE_VALIDATION, APPLICATION_ID, APPLICATION_NAME,
 					ExceptionUtils.getStackTrace(regBaseCheckedException));
 			throw new RegBaseCheckedException("Exception in response signature", regBaseCheckedException.getMessage());
