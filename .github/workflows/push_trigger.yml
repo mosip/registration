@@ -130,7 +130,7 @@ jobs:
     - name: Build with Maven
       run: |
         cd registration
-        mvn clean install -s $GITHUB_WORKSPACE/settings.xml -DskipTests --file pom.xml
+        mvn clean install -U -s $GITHUB_WORKSPACE/settings.xml -DskipTests --file pom.xml
 
     - name: Publish the maven package
       run: |
