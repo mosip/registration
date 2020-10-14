@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -46,7 +45,6 @@ import io.mosip.registration.processor.printing.api.util.PrintServiceRequestVali
 @AutoConfigureMockMvc
 @ContextConfiguration(classes = PrintServiceConfigTest.class)
 @TestPropertySource(locations = "classpath:application.properties")
-@Ignore
 public class PrintApiControllerTest {
 
 	@InjectMocks
