@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -16,9 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.xml.bind.DatatypeConverter;
-
-import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
@@ -426,14 +424,15 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 	private IdResponseDTO1 getIdRepoResponse(String idType, String idValue) throws ApisResourceAccessException {
 		List<String> pathsegments = new ArrayList<>();
 		pathsegments.add(idValue);
-
+		String queryParamName = "type";
+		String queryParamValue = "all";
 		IdResponseDTO1 response;
 		if (idType.equalsIgnoreCase(IdType.UIN.toString())) {
-			response = (IdResponseDTO1) restClientService.getApi(ApiName.IDREPOGETIDBYUIN, pathsegments, "",
-					null, IdResponseDTO1.class);
+			response = (IdResponseDTO1) restClientService.getApi(ApiName.IDREPOGETIDBYUIN, pathsegments, queryParamName,
+					queryParamValue, IdResponseDTO1.class);
 		} else {
 			response = (IdResponseDTO1) restClientService.getApi(ApiName.RETRIEVEIDENTITYFROMRID, pathsegments,
-					"", null, IdResponseDTO1.class);
+					queryParamName, queryParamValue, IdResponseDTO1.class);
 		}
 
 		if (response == null || response.getResponse() == null) {
@@ -562,13 +561,7 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 			List<String> subtype = new ArrayList<>();
 			byte[] photoByte = util.getImageBytes(value, FACE, subtype);
 			if (photoByte != null) {
-				DataInputStream dis = new DataInputStream(new ByteArrayInputStream(photoByte));
-				int skippedBytes = dis.skipBytes(headerLength);
-				if (skippedBytes != 0) {
-					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), "", "bytes skipped for image ");
-				}
-				String data = DatatypeConverter.printBase64Binary(IOUtils.toByteArray(dis));
+				String data = Base64.getEncoder().encodeToString(extractFaceImageData(photoByte));
 				attributes.put(APPLICANT_PHOTO, "data:image/png;base64," + data);
 				isPhotoSet = true;
 			}
@@ -741,7 +734,10 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 			if (object instanceof ArrayList) {
 				JSONArray node = JsonUtil.getJSONArray(jsonObject, key);
 				JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
-				uinCardPd = uinCardPd.concat(getParameter(jsonValues, primaryLang));
+				String value = getParameter(jsonValues, primaryLang);
+				if (value != null) {
+					uinCardPd = uinCardPd.concat(value);
+				}
 
 			} else if (object instanceof LinkedHashMap) {
 				JSONObject json = JsonUtil.getJSONObject(jsonObject, key);
@@ -778,4 +774,53 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 		}
 		return parameter;
 	}
+
+	public byte[] extractFaceImageData(byte[] decodedBioValue) {
+
+		try (DataInputStream din = new DataInputStream(new ByteArrayInputStream(decodedBioValue))) {
+
+			byte[] format = new byte[4];
+			din.read(format, 0, 4);
+			byte[] version = new byte[4];
+			din.read(version, 0, 4);
+			int recordLength = din.readInt();
+			short numberofRepresentionRecord = din.readShort();
+			byte certificationFlag = din.readByte();
+			byte[] temporalSequence = new byte[2];
+			din.read(temporalSequence, 0, 2);
+			int representationLength = din.readInt();
+			byte[] representationData = new byte[representationLength - 4];
+			din.read(representationData, 0, representationData.length);
+			try (DataInputStream rdin = new DataInputStream(new ByteArrayInputStream(representationData))) {
+				byte[] captureDetails = new byte[14];
+				rdin.read(captureDetails, 0, 14);
+				byte noOfQualityBlocks = rdin.readByte();
+				if (noOfQualityBlocks > 0) {
+					byte[] qualityBlocks = new byte[noOfQualityBlocks * 5];
+					rdin.read(qualityBlocks, 0, qualityBlocks.length);
+				}
+				short noOfLandmarkPoints = rdin.readShort();
+				byte[] facialInformation = new byte[15];
+				rdin.read(facialInformation, 0, 15);
+				if (noOfLandmarkPoints > 0) {
+					byte[] landmarkPoints = new byte[noOfLandmarkPoints * 8];
+					rdin.read(landmarkPoints, 0, landmarkPoints.length);
+				}
+				byte faceType = rdin.readByte();
+				byte imageDataType = rdin.readByte();
+				byte[] otherImageInformation = new byte[9];
+				rdin.read(otherImageInformation, 0, otherImageInformation.length);
+				int lengthOfImageData = rdin.readInt();
+
+				byte[] image = new byte[lengthOfImageData];
+				rdin.read(image, 0, lengthOfImageData);
+
+				return image;
+			}
+		} catch (Exception ex) {
+			throw new PDFGeneratorException(PDFGeneratorExceptionCodeConstant.PDF_EXCEPTION.getErrorCode(),
+					ex.getMessage() + ExceptionUtils.getStackTrace(ex));
+		}
+	}
+
 }
