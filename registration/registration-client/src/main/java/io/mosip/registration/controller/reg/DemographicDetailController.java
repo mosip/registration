@@ -1156,6 +1156,9 @@ public class DemographicDetailController extends BaseController {
 	}
 
 	private String getLocalFieldButtonText(Button button, List<Button> localFieldButtons) {
+		if(!isLocalLanguageAvailable() || isAppLangAndLocalLangSame()) {
+			return null;
+		}
 		String buttonText = null;
 		Optional<Button> localButton = localFieldButtons.stream().filter(btn -> btn.getId().contains(button.getId()))
 				.findAny();

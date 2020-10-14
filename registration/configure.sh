@@ -59,6 +59,9 @@ mkdir -p /registration-libs/resources/jre
 mv /zulu11.41.23-ca-fx-jre11.0.8-win_x64/* /registration-libs/resources/jre/
 chmod -R a+x /registration-libs/resources/jre
 
+## temp fix - for class loader issue
+rm /registration-libs/resources/rxtx/bcprov-jdk14-138.jar
+
 /usr/local/openjdk-11/bin/java -cp /registration-libs/target/*:/registration-client/target/lib/* io.mosip.registration.cipher.ClientJarEncryption "/registration-client/target/registration-client-${client_version_env}.jar" "${crypto_key_env}" "${client_version_env}" "/registration-libs/target/" "/build_files/${client_certificate}" "/registration-libs/resources/db/reg" "/registration-client/target/registration-client-${client_version_env}.jar" "/registration-libs/resources/rxtx" "/registration-libs/resources/jre" "/registration-libs/resources/batch/run.bat" "/registration-libs/target/props/mosip-application.properties" "/sdkjars"
 
 echo "encryption completed"
@@ -68,6 +71,9 @@ mv "mosip-sw-${client_version_env}.zip" reg-client.zip
 mkdir -p /registration-client/target/bin
 cp /registration-client/target/lib/mosip-client.jar /registration-client/target/bin/
 cp /registration-client/target/lib/mosip-services.jar /registration-client/target/bin/
+
+ls -ltr lib | grep bc
+
 /usr/bin/zip -r reg-client.zip bin
 /usr/bin/zip -r reg-client.zip lib
 /usr/bin/zip reg-client.zip MANIFEST.MF

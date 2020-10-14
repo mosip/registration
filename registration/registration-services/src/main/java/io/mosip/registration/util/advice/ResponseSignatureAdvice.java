@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.commons.packet.spi.IPacketCryptoService;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.signatureutil.spi.SignatureUtil;
 import io.mosip.kernel.keymanagerservice.dto.UploadCertificateRequestDto;
 import io.mosip.kernel.keymanagerservice.service.KeymanagerService;
 import io.mosip.registration.config.AppConfig;
@@ -45,7 +44,6 @@ public class ResponseSignatureAdvice {
 
 	/** The Constant LOGGER. */
 	private static final Logger LOGGER = AppConfig.getLogger(ResponseSignatureAdvice.class);
-
 
 	@Autowired
     @Qualifier("OfflinePacketCryptoServiceImpl")
