@@ -18,8 +18,7 @@ public class PacketReceiverApplication {
 				"io.mosip.registration.processor.status.config",
 				  "io.mosip.registration.processor.packet.receiver.config",
 				  "io.mosip.registration.processor.core.config",
-				  "io.mosip.registration.processor.rest.client.config",
-				  "io.mosip.kernel.core.logger.config");
+				  "io.mosip.registration.processor.rest.client.config");
 		configApplicationContext.refresh();
 		PacketReceiverStage packetReceiverStage = configApplicationContext.getBean(PacketReceiverStage.class);
 		packetReceiverStage.deployVerticle();

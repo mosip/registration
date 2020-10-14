@@ -23,8 +23,7 @@ public class PacketUploaderJobApplication {
 				"io.mosip.kernel.packetmanager.config",
 				"io.mosip.registration.processor.packet.storage.config",
 				"io.mosip.registration.processor.status.config", "io.mosip.registration.processor.rest.client.config",
-				"io.mosip.registration.processor.core.kernel.beans",
-				"io.mosip.kernel.core.logger.config");
+				"io.mosip.registration.processor.core.kernel.beans");
 		configApplicationContext.refresh();
 
 		PacketUploaderStage packetUploaderStage = configApplicationContext.getBean(PacketUploaderStage.class);

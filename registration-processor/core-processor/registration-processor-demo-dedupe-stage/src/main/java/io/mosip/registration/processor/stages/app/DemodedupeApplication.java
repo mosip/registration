@@ -20,7 +20,7 @@ public class DemodedupeApplication {
 				"io.mosip.registration.processor.packet.storage.config",
 				"io.mosip.registration.processor.core.kernel.beans",
 				"io.mosip.registration.processor.packet.manager.config",
-				"io.mosip.kernel.packetmanager.config", "io.mosip.kernel.core.logger.config");
+				"io.mosip.kernel.packetmanager.config");
 		configApplicationContext.refresh();
 		DemoDedupeStage demodedupeStage = configApplicationContext.getBean(DemoDedupeStage.class);
 		demodedupeStage.deployVerticle();
