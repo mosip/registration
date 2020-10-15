@@ -212,16 +212,16 @@
 				<artifactId>kernel-idgenerator-rid</artifactId>
 				<version>${mosip.core.kernel.version}</version>
 			</dependency>
-			<dependency>
+			<!--<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-crypto-signature</artifactId>
 				<version>${mosip.core.kernel.version}</version>
-			</dependency>
-			<dependency>
+			</dependency>-->
+			<!--<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-keygenerator-bouncycastle</artifactId>
 				<version>1.0.6</version>
-			</dependency>
+			</dependency>-->
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-templatemanager-velocity</artifactId>
@@ -295,11 +295,11 @@
 				<artifactId>javassist</artifactId>
 				<version>3.27.0-GA</version>
 			</dependency>
-			<dependency>
+			<!--<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-crypto-jce</artifactId>
 				<version>1.0.6</version>
-			</dependency>
+			</dependency>-->
 			<dependency>
 				<groupId>com.cronutils</groupId>
 				<artifactId>cron-utils</artifactId>

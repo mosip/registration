@@ -24,8 +24,10 @@ import java.util.WeakHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
+import io.mosip.kernel.keygenerator.bouncycastle.util.KeyGeneratorUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,7 +44,6 @@ import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.HMACUtils;
 import io.mosip.kernel.core.util.StringUtils;
-import io.mosip.kernel.keygenerator.bouncycastle.KeyGenerator;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
@@ -72,9 +73,9 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 
 	@Autowired
 	private UserOnboardDAO userOnBoardDao;
-
+/*
 	@Autowired
-	private KeyGenerator keyGenerator;
+	private KeyGenerator keyGenerator;*/
 
 	@Autowired
 	private CryptoCoreSpec<byte[], byte[], SecretKey, PublicKey, PrivateKey, String> cryptoCore;
@@ -567,7 +568,9 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 
 			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "Getting Symmetric Key.....");
 			// Symmetric key alias session key
-			SecretKey symmentricKey = keyGenerator.getSymmetricKey();
+			KeyGenerator keyGenerator = KeyGeneratorUtils.getKeyGenerator("AES", 256);
+			// Generate AES Session Key
+			final SecretKey symmentricKey = keyGenerator.generateKey();
 
 			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "preparing request.....");
 			// request
