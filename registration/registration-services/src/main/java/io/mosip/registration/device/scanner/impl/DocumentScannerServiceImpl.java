@@ -14,6 +14,8 @@ import java.util.Optional;
 
 import javax.imageio.ImageIO;
 
+import org.springframework.stereotype.Service;
+
 import eu.gnome.morena.Configuration;
 import eu.gnome.morena.Device;
 import eu.gnome.morena.DeviceBase;
@@ -31,6 +33,7 @@ import io.mosip.registration.device.scanner.dto.ScanDevice;
  * @author Anusha Sunkada
  * @since 1.2.0
  */
+@Service
 public class DocumentScannerServiceImpl extends DocumentScannerService {
 
     private static final Logger LOGGER = AppConfig.getLogger(DocumentScannerServiceImpl.class);
