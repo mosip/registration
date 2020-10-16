@@ -529,7 +529,7 @@ public class AbisMiddleWareStageTest {
 		abisIdentifyResponseDto.setCandidateList(candidateList);
 		String response = new String(((ActiveMQBytesMessage) amq).getContent().data);
 		PowerMockito.mockStatic(JsonUtil.class);
-		PowerMockito.when(JsonUtil.objectMapperReadValue(response, AbisIdentifyResponseDto.class)).thenThrow(IOException.class);
+		PowerMockito.when(JsonUtil.readValueWithUnknownProperties(response, AbisIdentifyResponseDto.class)).thenThrow(IOException.class);
 		stage.consumerListener(amq, "abis1_inboundAddress", queue, evenBus);
 	}
 }
