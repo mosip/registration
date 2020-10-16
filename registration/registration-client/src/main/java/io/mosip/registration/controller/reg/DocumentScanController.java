@@ -689,7 +689,7 @@ public class DocumentScanController extends BaseController {
 		BufferedImage bufferedImage;
 
 		if (selectedComboBox.getValue().getCode()
-				.matches(getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE))) {
+				.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE))) {
 			bufferedImage = webcamSarxosServiceImpl.captureImage(webcam);
 			webcamSarxosServiceImpl.close(webcam);
 			scanPopUpViewController.setDefaultImageGridPaneVisibility();
