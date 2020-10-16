@@ -9,6 +9,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -176,6 +177,12 @@ public class JsonUtil {
 	@SuppressWarnings("unchecked")
 	public static <T> T objectMapperReadValue(String jsonString, Class<?> clazz) throws IOException {
 		ObjectMapper objectMapper = new ObjectMapper();
+		return (T) objectMapper.readValue(jsonString, clazz);
+	}
+
+
+	public static <T> T readValueWithUnknownProperties(String jsonString, Class<?> clazz) throws IOException {
+		ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		return (T) objectMapper.readValue(jsonString, clazz);
 	}
 

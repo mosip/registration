@@ -409,7 +409,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 						"AbisMiddlewareStage::consumerListener()::Identify Response received from abis ::"
 								+ inserOrIdentifyResponse);
 
-				AbisIdentifyResponseDto abisIdentifyResponseDto = JsonUtil.objectMapperReadValue(response,
+				AbisIdentifyResponseDto abisIdentifyResponseDto = JsonUtil.readValueWithUnknownProperties(response,
 						AbisIdentifyResponseDto.class);
 				if (!abisIdentifyResponseDto.getReturnValue().equalsIgnoreCase("1")){
 					internalRegStatusDto
