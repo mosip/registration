@@ -22,7 +22,7 @@ import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dto.ValidatePacketResponse;
 import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
-import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.utils.MandatoryValidation;
@@ -246,12 +246,12 @@ public class PacketValidatorImplTest {
 	}
 	
 	@Test
-	public void testValidationSuccess() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException {
+	public void testValidationSuccess() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
 		assertTrue(PacketValidator.validate("123456789", "reg_client","NEW", packetValidationDto));
 	}
 	
 	@Test
-	public void testUpdateValidationSuccess() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException {
+	public void testUpdateValidationSuccess() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
 		assertTrue(PacketValidator.validate("123456789", "reg_client","UPDATE", packetValidationDto));
 	}
 	
@@ -264,13 +264,13 @@ public class PacketValidatorImplTest {
 	}
 	
 	@Test
-	public void testUINNotPresentinIDrepo() throws PacketValidatorException, ApisResourceAccessException, IOException, RegistrationProcessorCheckedException, JsonProcessingException {
+	public void testUINNotPresentinIDrepo() throws PacketValidatorException, ApisResourceAccessException, IOException, RegistrationProcessorCheckedException, JsonProcessingException, PacketManagerException {
 		Mockito.when(idRepoService.findUinFromIdrepo(anyString(), any())).thenReturn(null);
 		assertFalse(PacketValidator.validate("123456789", "reg_client","UPDATE", packetValidationDto));
 	}
 	
 	@Test
-	public void testValidationConfigSuccess() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException {
+	public void testValidationConfigSuccess() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
 		when(env.getProperty(VALIDATESCHEMA)).thenReturn("false");
 		when(env.getProperty(VALIDATEFILE)).thenReturn("false");
 		when(env.getProperty(VALIDATECHECKSUM)).thenReturn("false");
