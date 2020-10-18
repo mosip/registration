@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.packet.storage.exception;
+package io.mosip.registration.processor.core.exception;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
 
