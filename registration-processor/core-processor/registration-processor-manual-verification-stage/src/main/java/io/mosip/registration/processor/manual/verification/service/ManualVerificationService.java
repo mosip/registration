@@ -1,7 +1,7 @@
 package io.mosip.registration.processor.manual.verification.service;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import org.springframework.stereotype.Service;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDTO;
