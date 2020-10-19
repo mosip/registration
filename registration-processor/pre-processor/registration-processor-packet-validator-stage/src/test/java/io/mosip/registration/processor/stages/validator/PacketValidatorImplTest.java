@@ -256,7 +256,7 @@ public class PacketValidatorImplTest {
 	}
 	
 	@SuppressWarnings("unchecked")
-	@Test(expected=PacketValidatorException.class)
+	@Test(expected=PacketManagerException.class)
 	public void testException() throws PacketValidatorException, io.mosip.kernel.core.exception.IOException, IOException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, PacketManagerException {
 		//when(packetReaderService.getFile(anyString(),anyString(),anyString())).thenThrow(PacketDecryptionFailureException.class);
         when(mandatoryValidation.mandatoryFieldValidation(anyString(),anyString(),anyString(),any())).thenThrow(new PacketManagerException("code","message"));
