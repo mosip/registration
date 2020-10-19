@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.mosip.registration.processor.print.service.utility.PrintUtility;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -145,6 +146,12 @@ public class PrintServiceConfig {
 	@Primary
 	public PrintPostServiceImpl getPrintPostServiceImpl() {
 		return new PrintPostServiceImpl();
+	}
+	
+	@Bean
+	@Primary
+	public PrintUtility printUtility() {
+		return new PrintUtility();
 	}
 
 }
