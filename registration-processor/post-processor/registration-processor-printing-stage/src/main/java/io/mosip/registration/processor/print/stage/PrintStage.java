@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +13,9 @@ import javax.jms.Message;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -49,8 +51,6 @@ import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessag
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
-import io.mosip.registration.processor.core.packet.dto.Identity;
-import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
 import io.mosip.registration.processor.core.queue.factory.MosipQueue;
 import io.mosip.registration.processor.core.queue.factory.QueueListener;
 import io.mosip.registration.processor.core.queue.impl.exception.ConnectionUnavailableException;
@@ -211,8 +211,6 @@ public class PrintStage extends MosipVerticleAPIManager {
 
 	private MosipQueue queue;
 
-	InternalRegistrationStatusDto registrationStatusDto;
-
 	private static final String UIN_CARD_TEMPLATE = "RPR_UIN_CARD_TEMPLATE";
 
 	private static final String MASKED_UIN_CARD_TEMPLATE = "RPR_MASKED_UIN_CARD_TEMPLATE";
@@ -263,11 +261,12 @@ public class PrintStage extends MosipVerticleAPIManager {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				regId, "PrintStage::process()::entry");
 
+		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(regId);
 		try {
 			String source = utilities.getDefaultSource();
-			registrationStatusDto = registrationStatusService.getRegistrationStatus(regId);
 			if (RegistrationType.RES_REPRINT.toString().equals(object.getReg_type().toString())) {
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSED.toString());
+				linkRid(regId, source, registrationStatusDto.getRegistrationType());
 			}
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
@@ -304,7 +303,6 @@ public class PrintStage extends MosipVerticleAPIManager {
 					idType = IdType.UIN;
 					JSONObject jsonObject = utilities.retrieveUIN(regId);
 					idValue = JsonUtil.getJSONValue(jsonObject, IdType.UIN.toString());
-
 				}
 			}
 			Map<String, byte[]> documentBytesMap = printService.getDocuments(idType, idValue, cardType, false);
@@ -646,6 +644,17 @@ public class PrintStage extends MosipVerticleAPIManager {
 		// url = url + CONFIGURE_MONITOR_IN_ACTIVITY;
 		String failOverBrokerUrl = FAIL_OVER + url + "," + url + RANDOMIZE_FALSE;
 		return mosipConnectionFactory.createConnection(typeOfQueue, username, password, failOverBrokerUrl);
+	}
+
+	private void linkRid(String regId, String source, String process) throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
+		String uin = utilities.getUIn(regId, source, process);
+		boolean result = utilities.linkRegIdWrtUin(regId, uin);
+		if (result)
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId, "Successfully linked rid with applicant UIN");
+		else
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId, "Failed to link rid with UIN");
 	}
 
 	@SuppressWarnings("unchecked")

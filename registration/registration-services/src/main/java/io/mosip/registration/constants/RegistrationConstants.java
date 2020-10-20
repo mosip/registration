@@ -1203,6 +1203,9 @@ public class RegistrationConstants {
 	public static final String MASTER_DATA_LASTUPDTAE = "lastUpdated";
 	public static final String MASTER_SYNC_LOGGER_INFO = "Entering into Master Sync Dao Impl...";
 	// POLICY SYNC
+	public static final String REG_APP_ID = "REGISTRATION";
+	public static final String KERNEL_APP_ID = "KERNEL";
+	public static final String KERNEL_REF_ID = "SIGNATUREKEY";
 	public static final String POLICY_SYNC_SUCCESS_CODE = "REG-MDS‌-001 ";
 	public static final String POLICY_SYNC_SUCCESS_MESSAGE = "SYNC_SUCCESS";
 	public static final String POLICY_SYNC_ERROR_CODE = "REG-MDS‌-003 ";
@@ -1457,7 +1460,10 @@ public class RegistrationConstants {
 	public static final String PUBLIC_KEY_EXPIRE_DATE = "expiryAt";
 	public static final String PUBLIC_KEY = "publicKey";
 	public static final String PUBLIC_KEY_REST = "public_key";
+	public static final String GET_CERTIFICATE = "getcert_sync";
+	public static final String GET_CERT_APP_ID = "applicationId";
 	public static final String KER = "SIGN";
+	public static final String CERTIFICATE = "certificate";
 	public static final String DTAE_MONTH_YEAR_REGEX = "dd|mm|yyyy|ddLocalLanguage|mmLocalLanguage|yyyyLocalLanguage|ageField|dob";
 
 	public static final String UIN_UPDATE_PARENTGUARDIAN_DETAILS = "parentOrGuardianDetails";
@@ -1794,4 +1800,7 @@ public class RegistrationConstants {
 	public static final String LEFTTHUMB_IMG_PATH = "/images/exceptionmarks/leftThumb.png";
 	public static final String RIGHTEYE_IMG_PATH = "/images/exceptionmarks/lightBlueCrossMark.png";
 	public static final String LEFTEYE_IMG_PATH = "/images/exceptionmarks/lightBlueCrossMark.png";
+	
+	//UI Schema field group name
+	public static final String UI_SCHEMA_GROUP_FULL_NAME = "FullName";
 }

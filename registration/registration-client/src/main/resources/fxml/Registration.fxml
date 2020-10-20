@@ -13,6 +13,21 @@
     <RowConstraints minHeight="10.0" percentHeight="95.0" prefHeight="30.0" vgrow="SOMETIMES" />
   </rowConstraints>
    <children>
+      <GridPane fx:id="registrationId" GridPane.rowIndex="1">
+        <columnConstraints>
+          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+         <children>
+           	<fx:include fx:id="demographicDetail" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="DemographicDetail.fxml" visible="true" />
+         	<fx:include fx:id="documentScan" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="DocumentScan.fxml" visible="false" />
+         	<fx:include fx:id="biometric" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="Biometrics.fxml" visible="false" />
+            <fx:include fx:id="registrationPreview" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="RegistrationPreview.fxml" visible="false" />
+            <fx:include fx:id="operatorAuthenticationPane" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="OperatorAuthentication.fxml" visible="false" />
+         </children>
+      </GridPane>
       <GridPane fx:id="headerHolder">
         <columnConstraints>
           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -32,21 +47,6 @@
                    <fx:include fx:id="header" prefHeight="${headerHolder.height}" prefWidth="${headerHolder.width}" source="Header.fxml" visible="true" />
                </children>
             </GridPane>
-         </children>
-      </GridPane>
-      <GridPane fx:id="registrationId" GridPane.rowIndex="1">
-        <columnConstraints>
-          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-        </columnConstraints>
-        <rowConstraints>
-          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-        </rowConstraints>
-         <children>
-           	<fx:include fx:id="demographicDetail" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="DemographicDetail.fxml" visible="true" />
-         	<fx:include fx:id="documentScan" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="DocumentScan.fxml" visible="false" />
-         	<fx:include fx:id="biometric" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="Biometrics.fxml" visible="false" />
-            <fx:include fx:id="registrationPreview" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="RegistrationPreview.fxml" visible="false" />
-            <fx:include fx:id="operatorAuthenticationPane" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="OperatorAuthentication.fxml" visible="false" />
          </children>
       </GridPane>
    </children>

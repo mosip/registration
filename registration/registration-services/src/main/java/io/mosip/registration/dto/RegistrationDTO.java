@@ -59,9 +59,11 @@ public class RegistrationDTO {
 	private boolean isNameNotUpdated;
 	private boolean isUpdateUINChild;
 	private boolean isAgeCalculatedByDOB;
-
+	private List<String> defaultUpdatableFields;
+	private List<String> defaultUpdatableFieldGroups;
 	private BiometricDTO biometricDTO = new BiometricDTO();
 	private Map<String, Object> demographics = new HashMap<>();
+	private Map<String, Object> defaultDemographics = new HashMap<>();
 	private Map<String, DocumentDto> documents = new HashMap<>();
 	private Map<String, BiometricsDto> biometrics = new HashMap<>();
 	private Map<String, BiometricsException> biometricExceptions = new HashMap<>();
@@ -99,6 +101,19 @@ public class RegistrationDTO {
 			this.demographics.put(fieldId, values);
 	}
 
+	public void addDefaultDemographicField(String fieldId, String applicationLanguage, String value,
+			String localLanguage, String localValue) {
+		List<SimpleDto> values = new ArrayList<SimpleDto>();
+		if (value != null && !value.isEmpty())
+			values.add(new SimpleDto(applicationLanguage, value));
+
+		if (localValue != null && !localValue.isEmpty())
+			values.add(new SimpleDto(localLanguage, localValue));
+
+		if (!values.isEmpty())
+			this.defaultDemographics.put(fieldId, values);
+	}
+
 	public void removeDemographicField(String fieldId) {
 		this.demographics.remove(fieldId);
 	}
@@ -116,7 +131,7 @@ public class RegistrationDTO {
 			this.isChild = this.age < minAge;
 		}
 	}
-	
+
 	public void setDateField(String fieldId, String dateString) {
 		if (isValidValue(dateString)) {
 			LocalDate date = LocalDate.parse(dateString, DateTimeFormatter.ofPattern(DATE_FORMAT));

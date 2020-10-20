@@ -5,10 +5,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.jms.Message;
+import javax.jms.TextMessage;
 
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,6 +42,11 @@ import io.mosip.registration.processor.packet.storage.utils.Utilities;
  */
 @Component
 public class AbisMessageQueueImpl {
+
+	private static final String TEXT_MESSAGE = "text";
+
+	@Value("${activemq.message.format}")
+	private String messageFormat;
 
 	/** The utilities. */
 	@Autowired
@@ -117,12 +124,16 @@ public class AbisMessageQueueImpl {
 				"AbisMessageQueueImpl::consumeLogic()::Entry()");
 		boolean isrequestAddedtoQueue = false;
 		String response = null;
-
-		String request = new String(((ActiveMQBytesMessage) message).getContent().data);
-
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"---request received from abis middle ware ---" + request);
+		String request = null;
 		try {
+			if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE)) {
+				TextMessage textMessage = (TextMessage) message;
+				request =textMessage.getText();
+			} else
+				request = new String(((ActiveMQBytesMessage) message).getContent().data);
+
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+					"---request received from abis middle ware ---" + request);
 			JSONObject object = JsonUtil.objectMapperReadValue(request, JSONObject.class);
 			ObjectMapper obj = new ObjectMapper();
 			String id = (String) object.get(ID);
@@ -151,7 +162,11 @@ public class AbisMessageQueueImpl {
 						LoggerFileConstant.REGISTRATIONID.toString(), "", "---invalid request received ---" + response);
 			}
 
-			isrequestAddedtoQueue = mosipQueueManager.send(queue, response.getBytes("UTF-8"), abismiddlewareaddress);
+			if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE))
+				isrequestAddedtoQueue = mosipQueueManager.send(queue, response, abismiddlewareaddress);
+			else
+				isrequestAddedtoQueue = mosipQueueManager.send(queue, response.getBytes("UTF-8"), abismiddlewareaddress);
+
 		} catch (Exception e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					e.getMessage(), Arrays.toString(e.getStackTrace()));

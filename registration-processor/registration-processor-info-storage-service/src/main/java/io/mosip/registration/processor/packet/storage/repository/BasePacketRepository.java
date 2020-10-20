@@ -93,6 +93,22 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.id.regId=:regId and mve.mvUsrId=:mvUserId and mve.id.matchedRefId=:refId and mve.statusCode=:statusCode")
 	public List<E> getSingleAssignedRecord(@Param("regId") String regId, @Param("refId") String refId,
 			@Param("mvUserId") String mvUserId, @Param("statusCode") String statusCode);
+	
+	/**
+	 * This method returns {@link ManualVerificationEntity} corresponding to
+	 * specified registration Id and manual verifier user Id.
+	 *
+	 * @param regId
+	 *            The registration Id
+	 * @param mvUserId
+	 *            The manual verifier user Id
+	 * @param statusCode
+	 *            the status code
+	 * @return {@link ManualVerificationEntity}
+	 */
+	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.id.regId=:regId and mve.mvUsrId=:mvUserId and  mve.statusCode=:statusCode")
+	public List<E> getAllAssignedRecord(@Param("regId") String regId,
+			@Param("mvUserId") String mvUserId, @Param("statusCode") String statusCode);
 
 	/**
 	 * Gets the assigned applicant details.

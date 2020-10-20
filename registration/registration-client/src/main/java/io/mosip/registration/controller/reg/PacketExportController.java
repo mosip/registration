@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -32,9 +33,13 @@ public class PacketExportController extends BaseController {
 
 	private static final Logger LOGGER = AppConfig.getLogger(PacketExportController.class);
 
+	@Autowired
+	private PacketUploadController packetUploadController;
+
 	/**
 	 * To Get the Synced Packets and export the external device
-	 * @param packetsToBeExported 
+	 * 
+	 * @param packetsToBeExported
 	 */
 	public List<PacketStatusDTO> packetExport(List<PacketStatusDTO> packetsToBeExported) {
 		auditFactory.audit(AuditEvent.EXPORT_REG_PACKETS, Components.EXPORT_REG_PACKETS,
@@ -42,7 +47,7 @@ public class PacketExportController extends BaseController {
 
 		LOGGER.debug("REGISTRATION - HANDLE_PACKET_EXPORT - PACKET_EXPORT_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 				"Export the packets to the External device");
-		
+
 		List<PacketStatusDTO> exportedPackets = new ArrayList<>();
 
 		if (!packetsToBeExported.isEmpty()) {
@@ -53,7 +58,13 @@ public class PacketExportController extends BaseController {
 			Path currentRelativePath = Paths.get("");
 			File defaultDirectory = new File(currentRelativePath.toAbsolutePath().toString());
 			destinationSelector.setInitialDirectory(defaultDirectory);
+			LOGGER.debug("REGISTRATION - HANDLE_PACKET_EXPORT - PACKET_EXPORT_CONTROLLER", APPLICATION_NAME,
+					APPLICATION_ID, "Disable upload packet root pane to show explorer");
+
+			packetUploadController.getUploadPacketRoot().setDisable(true);
 			File destinationPath = destinationSelector.showDialog(primaryStage);
+
+			packetUploadController.getUploadPacketRoot().setDisable(false);
 			if (destinationPath != null) {
 				// Iterate through the synched packets and copy to the Destination folder
 				for (PacketStatusDTO packetToCopy : packetsToBeExported) {

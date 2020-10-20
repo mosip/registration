@@ -10,7 +10,7 @@
 
 	<groupId>io.mosip.registrationprocessor</groupId>
 	<artifactId>registration-processor</artifactId>
-	<version>1.2.0-SNAPSHOT</version>
+	<version>1.1.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>registration-processor</name>
@@ -107,38 +107,32 @@
 		<jsch.version>0.1.55</jsch.version>
 
 		<!-- local -->
-		<registration.status.service.version>1.2.0-SNAPSHOT</registration.status.service.version>
-		<registration.processor.core.version>1.2.0-SNAPSHOT</registration.processor.core.version>
-		<packet.manager.version>1.2.0-SNAPSHOT</packet.manager.version>
-		<registration.processor.rest.client.version>1.2.0-SNAPSHOT</registration.processor.rest.client.version>
-		<packet.info.storage.service.version>1.2.0-SNAPSHOT</packet.info.storage.service.version>
-		<packet.bio.dedupe.service.impl.version>1.2.0-SNAPSHOT</packet.bio.dedupe.service.impl.version>
-		<registration.processor.message.sender.version>1.2.0-SNAPSHOT</registration.processor.message.sender.version>
-		<registration.processor.print.service.impl.version>1.2.0-SNAPSHOT</registration.processor.print.service.impl.version>
-		<registration.processor.packet.utility.version>1.1.1-rc1</registration.processor.packet.utility.version>
-		
+		<registration.status.service.version>1.1.2-SNAPSHOT</registration.status.service.version>
+		<registration.processor.core.version>1.1.2-SNAPSHOT</registration.processor.core.version>
+		<packet.manager.version>1.1.2-SNAPSHOT</packet.manager.version>
+		<registration.processor.rest.client.version>1.1.2-SNAPSHOT</registration.processor.rest.client.version>
+		<packet.info.storage.service.version>1.1.2-SNAPSHOT</packet.info.storage.service.version>
+		<packet.bio.dedupe.service.impl.version>1.1.2-SNAPSHOT</packet.bio.dedupe.service.impl.version>
+		<registration.processor.message.sender.version>1.1.2-SNAPSHOT</registration.processor.message.sender.version>
+		<registration.processor.print.service.impl.version>1.1.2-SNAPSHOT</registration.processor.print.service.impl.version>
+
 		<!-- Kernel -->
-		<kernel.core.version>1.2.0-SNAPSHOT</kernel.core.version>
-		<kernel.dataaccess.hibernate.version>1.0.6</kernel.dataaccess.hibernate.version>
-		<kernel.templatemanager.velocity.version>1.0.6</kernel.templatemanager.velocity.version>		
-		<kernel.idvalidator.uin.version>1.0.6</kernel.idvalidator.uin.version>
-		<kernel.idvalidator.rid.version>1.0.6</kernel.idvalidator.rid.version>
-		<kernel.clamav.version>1.0.6</kernel.clamav.version>
-		<kernel.idgenerator.rid.version>1.0.6</kernel.idgenerator.rid.version>
+		<kernel.core.version>1.1.2-SNAPSHOT</kernel.core.version>
+		<kernel.dataaccess.hibernate.version>1.1.2-SNAPSHOT</kernel.dataaccess.hibernate.version>
+		<kernel.templatemanager.velocity.version>1.1.2-SNAPSHOT</kernel.templatemanager.velocity.version>
+		<kernel.idvalidator.uin.version>1.1.2-SNAPSHOT</kernel.idvalidator.uin.version>
+		<kernel.idvalidator.rid.version>1.1.2-SNAPSHOT</kernel.idvalidator.rid.version>
+		<kernel.clamav.version>1.1.2-SNAPSHOT</kernel.clamav.version>
 		<kernel.cbeffutil.version>1.1.0</kernel.cbeffutil.version>
-		<kernel.keygenerator.bouncycastle.version>1.0.6</kernel.keygenerator.bouncycastle.version>
-        <kernel.crypto.jce.version>1.0.6</kernel.crypto.jce.version>
         <kernel.bioapi.provider.version>1.0.8</kernel.bioapi.provider.version>
-        <kernel.auth.adapter.version>1.0.6</kernel.auth.adapter.version>
+        <kernel.auth.adapter.version>1.1.2-SNAPSHOT</kernel.auth.adapter.version>
         <kernel.pdfgenerator.itext.version>1.0.6</kernel.pdfgenerator.itext.version>
 		<kernel.qrcodegenerator.zxing.version>1.0.6</kernel.qrcodegenerator.zxing.version>
-		<kernel.logger.logback.version>1.0.6</kernel.logger.logback.version>
-		<kernel.auth.adapter.version>1.0.6</kernel.auth.adapter.version>
+		<kernel.logger.logback.version>1.1.2-SNAPSHOT</kernel.logger.logback.version>
 		<kernel.idvalidator.vid.version>1.0.6</kernel.idvalidator.vid.version>
-		<kernel.idobjectvalidator.version>1.2.0-SNAPSHOT</kernel.idobjectvalidator.version>
-		<kernel.packetmanager.version>1.0.10-SNAPSHOT</kernel.packetmanager.version>
-		<object.store.khazana.version>1.2.0-SNAPSHOT</object.store.khazana.version>
-		<kernel.biometrics.api.version>1.2.0-SNAPSHOT</kernel.biometrics.api.version>
+		<object.store.khazana.version>1.1.2-SNAPSHOT</object.store.khazana.version>
+		<kernel.biometrics.api.version>1.1.2-SNAPSHOT</kernel.biometrics.api.version>
+		<kernel-keymanager-service.version>1.1.2-SNAPSHOT</kernel-keymanager-service.version>
 			<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,

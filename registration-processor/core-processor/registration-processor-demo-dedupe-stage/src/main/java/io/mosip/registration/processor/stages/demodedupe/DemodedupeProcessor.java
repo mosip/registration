@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;

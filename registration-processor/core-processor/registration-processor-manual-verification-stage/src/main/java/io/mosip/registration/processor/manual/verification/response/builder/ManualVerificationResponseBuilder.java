@@ -8,8 +8,10 @@ import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.common.rest.dto.BaseRestResponseDTO;
 import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
 import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDTO;
+import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDecisionDto;
 import io.mosip.registration.processor.manual.verification.response.dto.ManualVerificationAssignResponseDTO;
 import io.mosip.registration.processor.manual.verification.response.dto.ManualVerificationBioDemoResponseDTO;
+import io.mosip.registration.processor.manual.verification.response.dto.ManualVerificationDecisionResponseDTO;
 import io.mosip.registration.processor.manual.verification.response.dto.ManualVerificationPacketResponseDTO;
 import io.mosip.registration.processor.manual.verification.response.dto.Response;
 
@@ -30,7 +32,20 @@ public class ManualVerificationResponseBuilder {
 			response.setResponse((ManualVerificationDTO) classType);
 			return response;
 
-		} else if (classType.getClass() == String.class) {
+		}
+		else if (classType.getClass() == ManualVerificationDecisionDto.class) {
+			ManualVerificationDecisionResponseDTO response = new ManualVerificationDecisionResponseDTO();
+			if (Objects.isNull(response.getId())) {
+				response.setId(id);
+			}
+			response.setErrors(null);
+			response.setResponsetime(DateUtils.getUTCCurrentDateTimeString(dateTimePattern));
+			response.setVersion(version);
+			response.setResponse((ManualVerificationDecisionDto) classType);
+			return response;
+
+		}
+		else if (classType.getClass() == String.class) {
 			ManualVerificationBioDemoResponseDTO manualVerificationBioDemoResponseDTO = new ManualVerificationBioDemoResponseDTO();
 			if (Objects.isNull(manualVerificationBioDemoResponseDTO.getId())) {
 				manualVerificationBioDemoResponseDTO.setId(id);

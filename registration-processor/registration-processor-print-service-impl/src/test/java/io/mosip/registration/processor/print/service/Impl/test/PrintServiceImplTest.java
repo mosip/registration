@@ -1,8 +1,8 @@
 package io.mosip.registration.processor.print.service.Impl.test;
 
 import static org.junit.Assert.assertArrayEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
@@ -65,6 +65,7 @@ import io.mosip.registration.processor.packet.storage.exception.VidCreationExcep
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.print.service.exception.PDFSignatureException;
 import io.mosip.registration.processor.print.service.impl.PrintServiceImpl;
+import io.mosip.registration.processor.print.service.utility.PrintUtility;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 
 @RunWith(PowerMockRunner.class)
@@ -101,6 +102,10 @@ public class PrintServiceImplTest {
 	/** The utility. */
 	@Mock
 	private Utilities utility;
+
+	@Mock
+	private PrintUtility printUtility;
+	
 
 	@Mock
 	private QrCodeGenerator<QrVersion> qrCodeGenerator;
@@ -229,7 +234,7 @@ public class PrintServiceImplTest {
 				utility.getRegistrationProcessorPrintTextFile()).thenReturn(printTextFileJson);
 		PowerMockito.when(Utilities.class, "getJson", utility.getConfigServerFileStorageURL(),
 				utility.getGetRegProcessorIdentityJson()).thenReturn(mappingFileJson);
-
+		Mockito.when(printUtility.extractFaceImageData(any())).thenReturn(buffer);
 	}
 
 	@Test
