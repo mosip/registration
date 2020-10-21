@@ -351,7 +351,7 @@
 			<artifactId>kernel-pdfgenerator-itext</artifactId>
 		</dependency>-->
 		<!-- <dependency> <groupId>io.mosip.kernel</groupId> <artifactId>kernel-registration-packet-manager</artifactId> 
-			<version>1.1.1-rc1</version> </dependency> -->
+			<version>1.1.2-rc2</version> </dependency> -->
 		<dependency>
 			<artifactId>kernel-biosdk-provider</artifactId>
 			<groupId>io.mosip.kernel</groupId>
