@@ -6,13 +6,13 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.registration.service.security.ClientSecurityFacade;
+import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
+import io.mosip.kernel.core.util.CryptoUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.LoggerConstants;
@@ -22,9 +22,7 @@ import io.mosip.registration.dto.tpm.PublicKeyUploadRequestDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
-import io.mosip.registration.service.security.ClientSecurity;
 import io.mosip.registration.service.sync.TPMPublicKeySyncService;
-import io.mosip.registration.tpm.spi.TPMUtil;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
@@ -44,6 +42,9 @@ public class TPMPublicKeySyncServiceImpl implements TPMPublicKeySyncService {
 	
 	@Autowired
 	private ServiceDelegateUtil serviceDelegateUtil;
+
+	@Autowired
+	private ClientCryptoFacade clientCryptoFacade;
 
 	/*
 	 * (non-Javadoc)
@@ -66,7 +67,10 @@ public class TPMPublicKeySyncServiceImpl implements TPMPublicKeySyncService {
 			tpmKeyUploadRequest.setRequesttime(DateUtils.getUTCCurrentDateTime());
 			PublicKeyUploadRequestDTO publicKeyUploadRequestDTO = new PublicKeyUploadRequestDTO();
 			publicKeyUploadRequestDTO.setMachineName(InetAddress.getLocalHost().getHostName());
-			publicKeyUploadRequestDTO.setPublicKey(ClientSecurityFacade.getClientInstancePublicKey());
+
+			//TODO need to sync both signing and encryption public key
+			publicKeyUploadRequestDTO.setPublicKey(CryptoUtil.encodeBase64(clientCryptoFacade.getClientSecurity()
+					.getSigningPublicPart()));
 			tpmKeyUploadRequest.setRequest(publicKeyUploadRequestDTO);
 
 			Map<String, Object> publicKeyResponse = (Map<String, Object>) serviceDelegateUtil.post(

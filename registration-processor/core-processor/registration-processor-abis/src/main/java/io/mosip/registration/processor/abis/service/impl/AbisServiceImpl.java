@@ -281,10 +281,9 @@ public class AbisServiceImpl implements AbisService {
 		int count = 0;
 
 		CandidateListDto cd = new CandidateListDto();
-		CandidatesDto[] candidatesDto;
-		if (storedRefId.size() >= 1) {
+		if (storedRefId != null && storedRefId.size() >= 1) {
 			for (String refId : storedRefId) {
-				if (!identifyRequest.getReferenceId().equals(refId)) {
+				if (refId != null && !identifyRequest.getReferenceId().equals(refId)) {
 					actualStoredRefId.add(refId);
 				}
 			}
@@ -295,24 +294,24 @@ public class AbisServiceImpl implements AbisService {
 				"AbisServiceImpl::addCandidateList()::actualStoredRefId" + actualStoredRefId);
 		ArrayList<String> storedRefIdList = new ArrayList<>(actualStoredRefId);
 		Collections.shuffle(storedRefIdList);
-		int loopLimit = storedRefIdList.size();
-		if (storedRefIdList.size() > 5)
-			loopLimit = 5;
-		candidatesDto = new CandidatesDto[loopLimit];
-		for (int i = 0; i < candidatesDto.length; i++) {
-			candidatesDto[i] = new CandidatesDto();
-			if (!(identifyRequest.getReferenceId().equals(storedRefIdList.get(i)))) {
-
-				candidatesDto[i].setReferenceId(storedRefIdList.get(i));
-
-				count++;
+		List<CandidatesDto> candidatesDtoList = new ArrayList<>();
+		if (storedRefIdList.size() > 5) {
+			for (int i = 0; i < 5; i++) {
+				if (!(identifyRequest.getReferenceId().equals(storedRefIdList.get(i)))) {
+					if (StringUtils.isNotEmpty(storedRefIdList.get(i)) && !storedRefIdList.get(i).equalsIgnoreCase("null")) {
+						CandidatesDto candidatesDto = new CandidatesDto();
+						candidatesDto.setReferenceId(storedRefIdList.get(i));
+						candidatesDtoList.add(candidatesDto);
+						count++;
+					}
+				}
 			}
-
 		}
+
 
 		cd.setCount(count + "");
 		if (count != 0) {
-			cd.setCandidates(candidatesDto);
+			cd.setCandidates(candidatesDtoList.isEmpty() ? null : getCandidateArray(candidatesDtoList));
 			response.setCandidateList(cd);
 		}
 		if (storedRefId.size() < 1000)
@@ -321,6 +320,12 @@ public class AbisServiceImpl implements AbisService {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"AbisServiceImpl::addCandidateList()::Exit");
 
+	}
+
+	private CandidatesDto[] getCandidateArray(List<CandidatesDto> candidatesDtoList) {
+		CandidatesDto[] candidatesDtos = new CandidatesDto[candidatesDtoList.size()];
+		candidatesDtos = candidatesDtoList.toArray(candidatesDtos);
+		return candidatesDtos;
 	}
 
 	/**

@@ -18,7 +18,7 @@ import java.util.Map;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.packet.dto.NewDigitalId;
-import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;

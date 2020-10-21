@@ -1,7 +1,5 @@
 package io.mosip.registration.processor.print.service.impl;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,6 +7,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -16,9 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.xml.bind.DatatypeConverter;
-
-import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
@@ -78,6 +74,7 @@ import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.print.service.exception.IDRepoResponseNull;
 import io.mosip.registration.processor.print.service.exception.PDFSignatureException;
 import io.mosip.registration.processor.print.service.exception.UINNotFoundInDatabase;
+import io.mosip.registration.processor.print.service.utility.PrintUtility;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
@@ -197,6 +194,9 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 
 	@Autowired
 	private DigitalSignatureUtility digitalSignatureUtility;
+
+	@Autowired
+	private PrintUtility printUtility;
 
 	/*
 	 * (non-Javadoc)
@@ -426,14 +426,15 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 	private IdResponseDTO1 getIdRepoResponse(String idType, String idValue) throws ApisResourceAccessException {
 		List<String> pathsegments = new ArrayList<>();
 		pathsegments.add(idValue);
-
+		String queryParamName = "type";
+		String queryParamValue = "all";
 		IdResponseDTO1 response;
 		if (idType.equalsIgnoreCase(IdType.UIN.toString())) {
-			response = (IdResponseDTO1) restClientService.getApi(ApiName.IDREPOGETIDBYUIN, pathsegments, "",
-					null, IdResponseDTO1.class);
+			response = (IdResponseDTO1) restClientService.getApi(ApiName.IDREPOGETIDBYUIN, pathsegments, queryParamName,
+					queryParamValue, IdResponseDTO1.class);
 		} else {
 			response = (IdResponseDTO1) restClientService.getApi(ApiName.RETRIEVEIDENTITYFROMRID, pathsegments,
-					"", null, IdResponseDTO1.class);
+					queryParamName, queryParamValue, IdResponseDTO1.class);
 		}
 
 		if (response == null || response.getResponse() == null) {
@@ -562,13 +563,7 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 			List<String> subtype = new ArrayList<>();
 			byte[] photoByte = util.getImageBytes(value, FACE, subtype);
 			if (photoByte != null) {
-				DataInputStream dis = new DataInputStream(new ByteArrayInputStream(photoByte));
-				int skippedBytes = dis.skipBytes(headerLength);
-				if (skippedBytes != 0) {
-					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), "", "bytes skipped for image ");
-				}
-				String data = DatatypeConverter.printBase64Binary(IOUtils.toByteArray(dis));
+				String data = Base64.getEncoder().encodeToString(printUtility.extractFaceImageData(photoByte));
 				attributes.put(APPLICANT_PHOTO, "data:image/png;base64," + data);
 				isPhotoSet = true;
 			}
@@ -741,7 +736,10 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 			if (object instanceof ArrayList) {
 				JSONArray node = JsonUtil.getJSONArray(jsonObject, key);
 				JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
-				uinCardPd = uinCardPd.concat(getParameter(jsonValues, primaryLang));
+				String value = getParameter(jsonValues, primaryLang);
+				if (value != null) {
+					uinCardPd = uinCardPd.concat(value);
+				}
 
 			} else if (object instanceof LinkedHashMap) {
 				JSONObject json = JsonUtil.getJSONObject(jsonObject, key);
@@ -778,4 +776,7 @@ public class PrintServiceImpl implements PrintService<Map<String, byte[]>> {
 		}
 		return parameter;
 	}
+
+
+
 }

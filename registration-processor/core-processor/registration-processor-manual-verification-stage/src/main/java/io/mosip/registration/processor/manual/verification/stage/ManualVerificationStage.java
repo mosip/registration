@@ -1,7 +1,6 @@
 package io.mosip.registration.processor.manual.verification.stage;
 
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -9,25 +8,20 @@ import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
 import io.mosip.registration.processor.core.common.rest.dto.BaseRestResponseDTO;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.constant.PacketFiles;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.manual.verification.constants.ManualVerificationConstants;
 import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDTO;
+import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDecisionDto;
 import io.mosip.registration.processor.manual.verification.exception.handler.ManualVerificationExceptionHandler;
-import io.mosip.registration.processor.manual.verification.request.dto.ManualAppBiometricRequestDTO;
 import io.mosip.registration.processor.manual.verification.request.dto.ManualVerificationAssignmentRequestDTO;
 import io.mosip.registration.processor.manual.verification.request.dto.ManualVerificationDecisionRequestDTO;
 import io.mosip.registration.processor.manual.verification.response.builder.ManualVerificationResponseBuilder;
 import io.mosip.registration.processor.manual.verification.response.dto.ManualVerificationAssignResponseDTO;
-import io.mosip.registration.processor.manual.verification.response.dto.ManualVerificationBioDemoResponseDTO;
 import io.mosip.registration.processor.manual.verification.service.ManualVerificationService;
 import io.mosip.registration.processor.manual.verification.util.ManualVerificationRequestValidator;
-import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -147,7 +141,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 					env.getProperty(ManualVerificationConstants.DATETIME_PATTERN));
 			this.setResponseWithDigitalSignature(ctx, responseData, APPLICATION_JSON);
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					manualVerificationDTO.getRegId(), "ManualVerificationStage::processAssignment::success");
+					manualVerificationDTO.getMvUsrId(), "ManualVerificationStage::processAssignment::success");
 
 		}
 
@@ -161,7 +155,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 				ManualVerificationDecisionRequestDTO.class);
 		manualVerificationRequestValidator.validate(obj,
 				env.getProperty(ManualVerificationConstants.DECISION_SERVICE_ID));
-		ManualVerificationDTO updatedManualVerificationDTO = manualAdjudicationService
+		ManualVerificationDecisionDto updatedManualVerificationDTO = manualAdjudicationService
 				.updatePacketStatus(pojo.getRequest(), this.getClass().getSimpleName());
 		if (updatedManualVerificationDTO != null) {
 			BaseRestResponseDTO responseData = ManualVerificationResponseBuilder.buildManualVerificationSuccessResponse(

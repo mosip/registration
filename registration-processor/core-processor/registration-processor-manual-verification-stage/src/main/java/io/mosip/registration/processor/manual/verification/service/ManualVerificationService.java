@@ -1,10 +1,11 @@
 package io.mosip.registration.processor.manual.verification.service;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import org.springframework.stereotype.Service;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDTO;
+import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDecisionDto;
 import io.mosip.registration.processor.manual.verification.dto.UserDto;
 
 import java.io.IOException;
@@ -51,6 +52,6 @@ public interface ManualVerificationService {
 	 *            {@link ManualVerificationDTO}
 	 * @return The updated {@link ManualVerificationDTO}
 	 */
-	public ManualVerificationDTO updatePacketStatus(ManualVerificationDTO manualVerificationDTO, String stageName);
+	public ManualVerificationDecisionDto updatePacketStatus(ManualVerificationDecisionDto manualVerificationDTO, String stageName);
 
 }

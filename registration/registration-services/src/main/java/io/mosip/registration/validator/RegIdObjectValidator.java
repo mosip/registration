@@ -3,21 +3,11 @@ package io.mosip.registration.validator;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
-import java.util.AbstractMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -29,12 +19,8 @@ import io.mosip.kernel.core.logger.spi.Logger;
 //import io.mosip.kernel.idobjectvalidator.impl.IdObjectPatternValidator;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.LoggerConstants;
-import io.mosip.registration.constants.RegistrationConstants;
-import io.mosip.registration.context.ApplicationContext;
-import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
-import io.mosip.registration.service.IdentitySchemaService;
 
 /**
  * The class to validate the Schema of Identity Object. This class internally
@@ -66,14 +52,14 @@ public class RegIdObjectValidator {
 	//@Qualifier("pattern")
 	//private IdObjectValidator idOjectPatternvalidator;
 
-	@Autowired
-	private ObjectMapper mapper;
+//	@Autowired
+//	private ObjectMapper mapper;
 
 	@Autowired
 	private RegIdObjectMasterDataValidator regIdObjectMasterDataValidator;
 	
-	@Autowired
-	private IdentitySchemaService identitySchemaService;
+//	@Autowired
+//	private IdentitySchemaService identitySchemaService;
 
 	/**
 	 * This method validates the input object against the schema, mandatory, pattern

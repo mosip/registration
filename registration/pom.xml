@@ -11,7 +11,7 @@
 	</parent>
 
 	<groupId>io.mosip.registration</groupId>
-	<version>1.2.0-SNAPSHOT</version>
+	<version>1.1.2-SNAPSHOT</version>
 	<artifactId>registration-parent</artifactId>
 	<packaging>pom</packaging>
 	<name>registration</name>
@@ -54,7 +54,7 @@
 		<jackson.version>2.10.1</jackson.version>
 		<jackson.mapper.asl.version>1.7.1</jackson.mapper.asl.version>
 
-		<mosip.core.kernel.version>1.2.0-SNAPSHOT</mosip.core.kernel.version>
+		<mosip.core.kernel.version>1.1.2-SNAPSHOT</mosip.core.kernel.version>
 		<!-- Derby Version -->
 		<apache.derby.version>10.13.1.1</apache.derby.version>
 
@@ -212,16 +212,16 @@
 				<artifactId>kernel-idgenerator-rid</artifactId>
 				<version>${mosip.core.kernel.version}</version>
 			</dependency>
-			<dependency>
+			<!--<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-crypto-signature</artifactId>
 				<version>${mosip.core.kernel.version}</version>
-			</dependency>
-			<dependency>
+			</dependency>-->
+			<!--<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-keygenerator-bouncycastle</artifactId>
 				<version>1.0.6</version>
-			</dependency>
+			</dependency>-->
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-templatemanager-velocity</artifactId>
@@ -295,11 +295,11 @@
 				<artifactId>javassist</artifactId>
 				<version>3.27.0-GA</version>
 			</dependency>
-			<dependency>
+			<!--<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-crypto-jce</artifactId>
 				<version>1.0.6</version>
-			</dependency>
+			</dependency>-->
 			<dependency>
 				<groupId>com.cronutils</groupId>
 				<artifactId>cron-utils</artifactId>

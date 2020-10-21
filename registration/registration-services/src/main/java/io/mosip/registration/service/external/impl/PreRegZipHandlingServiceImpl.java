@@ -24,8 +24,10 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
+import io.mosip.kernel.keygenerator.bouncycastle.util.KeyGeneratorUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
@@ -41,7 +43,7 @@ import io.mosip.kernel.core.security.decryption.MosipDecryptor;
 import io.mosip.kernel.core.security.encryption.MosipEncryptor;
 import io.mosip.kernel.core.util.FileUtils;
 import io.mosip.kernel.core.util.StringUtils;
-import io.mosip.kernel.keygenerator.bouncycastle.KeyGenerator;
+//import io.mosip.kernel.keygenerator.bouncycastle.KeyGenerator;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
@@ -68,8 +70,8 @@ import io.mosip.registration.service.external.PreRegZipHandlingService;
 @Service
 public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 
-	@Autowired
-	private KeyGenerator keyGenerator;
+	/*@Autowired
+	private KeyGenerator keyGenerator;*/
 
 	@Autowired
 	private DocumentTypeDAO documentTypeDAO;
@@ -334,7 +336,9 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 	public PreRegistrationDTO encryptAndSavePreRegPacket(String preRegistrationId, byte[] preRegPacket)
 			throws RegBaseCheckedException {
 
-		SecretKey symmetricKey = keyGenerator.getSymmetricKey();
+		KeyGenerator keyGenerator = KeyGeneratorUtils.getKeyGenerator("AES", 256);
+		// Generate AES Session Key
+		final SecretKey symmetricKey = keyGenerator.generateKey();
 
 		// Encrypt the Pre reg packet data using AES
 		final byte[] encryptedData = MosipEncryptor.symmetricEncrypt(symmetricKey.getEncoded(), preRegPacket,

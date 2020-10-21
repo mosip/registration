@@ -2,6 +2,7 @@ package io.mosip.registration.processor.stages.validator.impl;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.PacketValidatorException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.packet.dto.packetvalidator.PacketValidationDto;
@@ -28,7 +29,7 @@ public class CompositePacketValidator implements PacketValidator {
     private PacketValidator referenceValidatorImpl;
 
     @Override
-    public boolean validate(String id, String source, String process, PacketValidationDto packetValidationDto) throws PacketValidatorException, ApisResourceAccessException, RegistrationProcessorCheckedException, IOException, JsonProcessingException {
+    public boolean validate(String id, String source, String process, PacketValidationDto packetValidationDto) throws PacketValidatorException, ApisResourceAccessException, RegistrationProcessorCheckedException, IOException, JsonProcessingException, PacketManagerException {
         boolean isValid = packetValidatorImpl.validate(id, source, process, packetValidationDto);
         if (isValid)
             isValid = referenceValidatorImpl.validate(id, source, process, packetValidationDto);

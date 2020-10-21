@@ -190,12 +190,14 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 
                 if (validateHashCode(new ByteArrayInputStream(encryptedByteArray), regEntity, registrationId, dto,
                         description)) {
-                    if (scanFile(encryptedByteArray, registrationId, ZipUtils.unzipAndGetFiles(new ByteArrayInputStream(encryptedByteArray)), dto, description)) {
+                    InputStream decryptedPacket = decryptor.decrypt(new ByteArrayInputStream(encryptedByteArray), registrationId);
+                    final byte[] decryptedPacketBytes = IOUtils.toByteArray(decryptedPacket);
+                    if (scanFile(encryptedByteArray, registrationId, ZipUtils.unzipAndGetFiles(new ByteArrayInputStream(decryptedPacketBytes)), dto, description)) {
                         int retrycount = (dto.getRetryCount() == null) ? 0 : dto.getRetryCount() + 1;
                         dto.setRetryCount(retrycount);
                         if (retrycount < getMaxRetryCount()) {
 
-                            messageDTO = uploadPacket(dto, ZipUtils.unzipAndGetFiles(new ByteArrayInputStream(encryptedByteArray)), messageDTO, description);
+                            messageDTO = uploadPacket(dto, ZipUtils.unzipAndGetFiles(new ByteArrayInputStream(decryptedPacketBytes)), messageDTO, description);
                             if (messageDTO.getIsValid()) {
                                 dto.setLatestTransactionStatusCode(
                                         RegistrationTransactionStatusCode.SUCCESS.toString());
@@ -378,13 +380,12 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
             if (isInputFileClean) {
                 // scanning the source packets (Like - id, evidence, optional packets).
                 for (final Map.Entry<String, InputStream> source : sourcePackets.entrySet()) {
-                    isInputFileClean = virusScannerService.scanFile(source.getValue());
-                    if (isInputFileClean && source.getKey().endsWith(ZIP)) {
-                        // TODO : disabling decryption since mocked encryption is being used.
-                        /*InputStream decryptedData = decryptor
+                    if (source.getKey().endsWith(ZIP)) {
+                        InputStream decryptedData = decryptor
                                 .decrypt(source.getValue(), id);
-                        isInputFileClean = virusScannerService.scanFile(decryptedData);*/
-                    }
+                        isInputFileClean = virusScannerService.scanFile(decryptedData);
+                    } else
+                        isInputFileClean = virusScannerService.scanFile(source.getValue());
                     if (!isInputFileClean)
                         break;
                 }
