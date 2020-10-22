@@ -4,7 +4,9 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -12,6 +14,8 @@ import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
+import io.mosip.registration.controller.reg.Validations;
+import io.mosip.registration.dto.UiSchemaDTO;
 
 /**
  * This class will give the Page Flow
@@ -30,6 +34,9 @@ public class PageFlow {
 	private static Map<String, Map<String, Boolean>> regPageFlowMap;
 
 	private static Map<String, Map<String, Boolean>> onBoardingPageFlowMap;
+
+	@Autowired
+	private Validations validations;
 
 	/**
 	 * This method sets the initial page flow for all the functionalities like New
@@ -64,8 +71,13 @@ public class PageFlow {
 		demographicMap.put(RegistrationConstants.VISIBILITY, true);
 		registrationMap.put(RegistrationConstants.DEMOGRAPHIC_DETAIL, demographicMap);
 
+		String docType = "documentType";
+		List<UiSchemaDTO> docList = validations.getValidationMap().values().stream()
+				.filter(schemaDto -> schemaDto.getType() != null && schemaDto.getType().equalsIgnoreCase(docType))
+				.collect(Collectors.toList());
+
 		Map<String, Boolean> docMap = new LinkedHashMap<>();
-		docMap.put(RegistrationConstants.VISIBILITY, true);
+		docMap.put(RegistrationConstants.VISIBILITY, docList != null && !docList.isEmpty());
 		docMap.put(RegistrationConstants.DOCUMENT_PANE, true);
 		docMap.put(RegistrationConstants.EXCEPTION_PANE, true);
 		registrationMap.put(RegistrationConstants.DOCUMENT_SCAN, docMap);
