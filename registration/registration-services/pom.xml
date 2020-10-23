@@ -370,7 +370,16 @@
 					<groupId>io.vertx</groupId>
 					<artifactId>vertx-web</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>io.mosip.kernel</groupId>
+            		<artifactId>kernel-auth-adapter</artifactId>
+				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+    		<groupId>io.mosip.kernel</groupId>
+    		<artifactId>kernel-auth-adapter</artifactId>
+    		<version>1.1.1-rc1</version>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
