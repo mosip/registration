@@ -206,7 +206,11 @@ public class PrintStageTest {
 		// Mockito.when(env.getProperty(SwaggerConstant.SERVER_SERVLET_PATH))
 		// .thenReturn("/registrationprocessor/v1/packetreceiver");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(String.class))).thenReturn(registrationStatusDto);
+<<<<<<< HEAD
     Mockito.when(utilities.getUIn(any(), any(), any())).thenReturn("1234567890");
+=======
+		Mockito.when(utilities.getUIn(any(), any(), any())).thenReturn("1234567890");
+>>>>>>> branch '1.1.2' of https://github.com/mosip/registration
 		Mockito.when(utilities.linkRegIdWrtUin(anyString(), anyString())).thenReturn(true);
 
 		byte[] pdfbytes = "UIN Card Template pdf".getBytes();

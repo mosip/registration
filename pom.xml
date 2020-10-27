@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>	
 	<groupId>io.mosip</groupId>
 	<artifactId>registration</artifactId>
-	<version>1.0.10</version>
+	<version>1.1.2</version>
 	<packaging>pom</packaging>	
 	
 	<name>MOSIP Registration Parent POM</name>
@@ -90,7 +90,7 @@
                         </execution>
                   </executions>
                 </plugin>
-                <!--<plugin>
+                <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-javadoc-plugin</artifactId>
                   <version>3.2.0</version>
@@ -105,9 +105,9 @@
                   <configuration>
                      <doclint>none</doclint>    
                   </configuration>
-                </plugin>-->
+                </plugin>
       
-                <!--<plugin>
+                <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-gpg-plugin</artifactId>
                   <version>1.5</version>
@@ -120,13 +120,13 @@
                           </goals>
 		          <configuration>
                 		<gpgArguments>
-                    			<arg>-pinentry-mode</arg>
+                    			<arg>--pinentry-mode</arg>
                     			<arg>loopback</arg>
                 		</gpgArguments>
             		   </configuration>
                         </execution>
                   </executions>
-                </plugin>-->
+                </plugin>
               <plugin>
                   <groupId>pl.project13.maven</groupId>
                   <artifactId>git-commit-id-plugin</artifactId>

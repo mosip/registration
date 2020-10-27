@@ -5,10 +5,18 @@
     <parent>
         <artifactId>pre-processor</artifactId>
         <groupId>io.mosip.registrationprocessor</groupId>
+<<<<<<< HEAD
         <version>1.1.2-SNAPSHOT</version>
+=======
+        <version>1.1.2</version>
+>>>>>>> branch '1.1.2' of https://github.com/mosip/registration
     </parent>
     <modelVersion>4.0.0</modelVersion>
+<<<<<<< HEAD
     <version>1.1.2-SNAPSHOT</version>
+=======
+    <version>1.1.2</version>
+>>>>>>> branch '1.1.2' of https://github.com/mosip/registration
 
     <artifactId>registration-processor-securezone-notification-stage</artifactId>
 

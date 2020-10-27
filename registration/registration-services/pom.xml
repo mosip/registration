@@ -6,12 +6,12 @@
 	<parent>
 		<groupId>io.mosip.registration</groupId>
 		<artifactId>registration-parent</artifactId>
-		<version>1.1.2-SNAPSHOT</version>
+		<version>1.1.2</version>
 	</parent>
 	<artifactId>registration-services</artifactId>
 	<name>registration-services</name>
 	<description>Maven project of MOSIP Registration Service</description>
-	<version>1.1.2-SNAPSHOT</version>
+	<version>1.1.2</version>
 
 	<dependencies>
 		<!-- Lombok -->
@@ -75,11 +75,6 @@
 			<artifactId>powermock-api-mockito2</artifactId>
 			<version>2.0.7</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>castor</groupId>
-			<artifactId>castor</artifactId>
-			<version>1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>net.bytebuddy</groupId>
@@ -351,7 +346,7 @@
 			<artifactId>kernel-pdfgenerator-itext</artifactId>
 		</dependency>-->
 		<!-- <dependency> <groupId>io.mosip.kernel</groupId> <artifactId>kernel-registration-packet-manager</artifactId> 
-			<version>1.1.1-rc1</version> </dependency> -->
+			<version>1.1.2</version> </dependency> -->
 		<dependency>
 			<artifactId>kernel-biosdk-provider</artifactId>
 			<groupId>io.mosip.kernel</groupId>
@@ -374,6 +369,10 @@
 				<exclusion>
 					<groupId>io.vertx</groupId>
 					<artifactId>vertx-web</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.mosip.kernel</groupId>
+					<artifactId>kernel-auth-adapter</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -414,6 +413,12 @@
 			<version>1.3.0</version>
 		</dependency>
 
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-auth-adapter</artifactId>
+			<version>1.1.1-rc1</version>
+		</dependency>
+
 	</dependencies>
 	<!--<repositories> <repository> <id>local-maven-repo</id> <url>file:///${basedir}/lib</url> 
 		</repository> </repositories> -->
@@ -429,6 +434,7 @@
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-surefire-plugin</artifactId>
 						<version>2.12.4</version>
+						<configuration><skipTests>true</skipTests></configuration>
 					</plugin>
 				</plugins>
 			</build>

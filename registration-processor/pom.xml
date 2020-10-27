@@ -5,12 +5,16 @@
 	<parent>
 		<groupId>io.mosip</groupId>
 		<artifactId>registration</artifactId>
-		<version>1.0.10</version>
+		<version>1.1.2</version>
 	</parent>
 
 	<groupId>io.mosip.registrationprocessor</groupId>
 	<artifactId>registration-processor</artifactId>
+<<<<<<< HEAD
 	<version>1.1.2-SNAPSHOT</version>
+=======
+	<version>1.1.2</version>
+>>>>>>> branch '1.1.2' of https://github.com/mosip/registration
 	<packaging>pom</packaging>
 
 	<name>registration-processor</name>
@@ -18,6 +22,7 @@
 
 	<properties>
 		<doclint>none</doclint>
+		<sonar.skip>true</sonar.skip>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
@@ -107,6 +112,7 @@
 		<jsch.version>0.1.55</jsch.version>
 
 		<!-- local -->
+<<<<<<< HEAD
 		<registration.status.service.version>1.1.2-SNAPSHOT</registration.status.service.version>
 		<registration.processor.core.version>1.1.2-SNAPSHOT</registration.processor.core.version>
 		<packet.manager.version>1.1.2-SNAPSHOT</packet.manager.version>
@@ -115,24 +121,57 @@
 		<packet.bio.dedupe.service.impl.version>1.1.2-SNAPSHOT</packet.bio.dedupe.service.impl.version>
 		<registration.processor.message.sender.version>1.1.2-SNAPSHOT</registration.processor.message.sender.version>
 		<registration.processor.print.service.impl.version>1.1.2-SNAPSHOT</registration.processor.print.service.impl.version>
+=======
+		<registration.status.service.version>1.1.2</registration.status.service.version>
+		<registration.processor.core.version>1.1.2</registration.processor.core.version>
+		<packet.manager.version>1.1.2</packet.manager.version>
+		<registration.processor.rest.client.version>1.1.2</registration.processor.rest.client.version>
+		<packet.info.storage.service.version>1.1.2</packet.info.storage.service.version>
+		<packet.bio.dedupe.service.impl.version>1.1.2</packet.bio.dedupe.service.impl.version>
+		<registration.processor.message.sender.version>1.1.2</registration.processor.message.sender.version>
+		<registration.processor.print.service.impl.version>1.1.2</registration.processor.print.service.impl.version>
+>>>>>>> branch '1.1.2' of https://github.com/mosip/registration
 
 		<!-- Kernel -->
+<<<<<<< HEAD
 		<kernel.core.version>1.1.2-SNAPSHOT</kernel.core.version>
 		<kernel.dataaccess.hibernate.version>1.1.2-SNAPSHOT</kernel.dataaccess.hibernate.version>
 		<kernel.templatemanager.velocity.version>1.1.2-SNAPSHOT</kernel.templatemanager.velocity.version>
 		<kernel.idvalidator.uin.version>1.1.2-SNAPSHOT</kernel.idvalidator.uin.version>
 		<kernel.idvalidator.rid.version>1.1.2-SNAPSHOT</kernel.idvalidator.rid.version>
 		<kernel.clamav.version>1.1.2-SNAPSHOT</kernel.clamav.version>
+=======
+		<kernel.core.version>1.1.2</kernel.core.version>
+		<kernel.dataaccess.hibernate.version>1.1.2</kernel.dataaccess.hibernate.version>
+		<kernel.templatemanager.velocity.version>1.1.2</kernel.templatemanager.velocity.version>
+		<kernel.idvalidator.uin.version>1.1.2</kernel.idvalidator.uin.version>
+		<kernel.idvalidator.rid.version>1.1.2</kernel.idvalidator.rid.version>
+		<kernel.clamav.version>1.1.2</kernel.clamav.version>
+>>>>>>> branch '1.1.2' of https://github.com/mosip/registration
 		<kernel.cbeffutil.version>1.1.0</kernel.cbeffutil.version>
         <kernel.bioapi.provider.version>1.0.8</kernel.bioapi.provider.version>
+<<<<<<< HEAD
         <kernel.auth.adapter.version>1.1.2-SNAPSHOT</kernel.auth.adapter.version>
+=======
+        <kernel.auth.adapter.version>1.1.2</kernel.auth.adapter.version>
+>>>>>>> branch '1.1.2' of https://github.com/mosip/registration
         <kernel.pdfgenerator.itext.version>1.0.6</kernel.pdfgenerator.itext.version>
 		<kernel.qrcodegenerator.zxing.version>1.0.6</kernel.qrcodegenerator.zxing.version>
+<<<<<<< HEAD
 		<kernel.logger.logback.version>1.1.2-SNAPSHOT</kernel.logger.logback.version>
+=======
+		<kernel.logger.logback.version>1.1.2</kernel.logger.logback.version>
+>>>>>>> branch '1.1.2' of https://github.com/mosip/registration
 		<kernel.idvalidator.vid.version>1.0.6</kernel.idvalidator.vid.version>
+<<<<<<< HEAD
 		<object.store.khazana.version>1.1.2-SNAPSHOT</object.store.khazana.version>
 		<kernel.biometrics.api.version>1.1.2-SNAPSHOT</kernel.biometrics.api.version>
 		<kernel-keymanager-service.version>1.1.2-SNAPSHOT</kernel-keymanager-service.version>
+=======
+		<object.store.khazana.version>1.1.2</object.store.khazana.version>
+		<kernel.biometrics.api.version>1.1.2</kernel.biometrics.api.version>
+		<kernel-keymanager-service.version>1.1.2</kernel-keymanager-service.version>
+>>>>>>> branch '1.1.2' of https://github.com/mosip/registration
 			<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,
@@ -359,7 +398,6 @@
 -->
 
 	<build>
-		<pluginManagement>
 			<plugins>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -449,9 +487,6 @@
 							</execution>
 					   </executions>
 				</plugin>
-			</plugins>
-		</pluginManagement>
-		<plugins>
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
@@ -480,7 +515,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!--<plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>${maven.javadoc.version}</version>
@@ -488,7 +523,7 @@
 					<aggregate>true</aggregate>
 					<doclint>none</doclint>
 				</configuration>
-			</plugin>-->
+			</plugin>
 		</plugins>
 	</build>
 </project>
