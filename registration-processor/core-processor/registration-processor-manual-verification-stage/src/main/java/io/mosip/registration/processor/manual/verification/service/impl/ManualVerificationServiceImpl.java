@@ -294,11 +294,8 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		}
 		String process = registrationStatusDto.getRegistrationType();
 		if (PacketFiles.BIOMETRIC.name().equals(fileName)) {
-            JSONObject mappingJson = utilities.getRegistrationProcessorMappingJson();
-            String individualBiometrics = JsonUtil
-                    .getJSONValue(JsonUtil.getJSONObject(mappingJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), MappingJsonConstants.VALUE);
             // get individual biometrics file name from id.json
-			BiometricRecord biometricRecord = packetManagerService.getBiometrics(regId, individualBiometrics, null, source, process);
+			BiometricRecord biometricRecord = packetManagerService.getBiometrics(regId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, null, process);
             /*if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().isEmpty())
 				throw new FileNotFoundInDestinationException("Identity json not present inside packet");
             JSONObject idJsonObject = JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class);

@@ -158,10 +158,10 @@ public class AbisHandlerStageTest {
 
 		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(birTypeList);
-		when(utility.getDefaultSource()).thenReturn("reg-client");
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg-client");
 		when(cbeffutil.createXML(any())).thenReturn("abishandlerstage".getBytes());
 
-		Mockito.when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenReturn(biometricRecord);
+		Mockito.when(packetManagerService.getBiometrics(any(),any(),any(),any())).thenReturn(biometricRecord);
 
 		Mockito.doNothing().when(registrationStatusDto).setLatestTransactionStatusCode(any());
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());

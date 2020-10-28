@@ -206,7 +206,7 @@ public class PrintStageTest {
 		// Mockito.when(env.getProperty(SwaggerConstant.SERVER_SERVLET_PATH))
 		// .thenReturn("/registrationprocessor/v1/packetreceiver");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(String.class))).thenReturn(registrationStatusDto);
-		Mockito.when(utilities.getUIn(any(), any(), any())).thenReturn("1234567890");
+		Mockito.when(utilities.getUIn(any(), any())).thenReturn("1234567890");
 		Mockito.when(utilities.linkRegIdWrtUin(anyString(), anyString())).thenReturn(true);
 
 		byte[] pdfbytes = "UIN Card Template pdf".getBytes();
@@ -255,8 +255,7 @@ public class PrintStageTest {
 		obj1.put("UIN", "877788787889");
 		Mockito.when(utilities.retrieveUIN(any())).thenReturn(obj1);
 
-		Mockito.when(utilities.getDefaultSource()).thenReturn("reg-client");
-		Mockito.when(packetManagerService.getMetaInfo(anyString(),anyString(),anyString())).thenReturn(new HashMap<>());
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString())).thenReturn(new HashMap<>());
 	}
 
 	@Test
@@ -448,8 +447,8 @@ public class PrintStageTest {
 
 	@Test
 	public void testException() {
-		NullPointerException e = new NullPointerException();
-		Mockito.doThrow(e).when(utilities).getDefaultSource();
+		NullPointerException e = new NullPointerException("Null pointer");
+		Mockito.doThrow(e).when(printService).getDocuments(any(), anyString(), anyString(), anyBoolean());
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
@@ -735,7 +734,7 @@ public class PrintStageTest {
 		jsonObject.put(IdType.UIN.toString(), "12345");
 
 		when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
-		Mockito.when(packetManagerService.getMetaInfo(any(),any(),any())).thenReturn(metaInfoMap);
+		Mockito.when(packetManagerService.getMetaInfo(any(), any())).thenReturn(metaInfoMap);
 		Mockito.when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(fieldValue);
 
 		MessageDTO dto = new MessageDTO();
@@ -760,7 +759,7 @@ public class PrintStageTest {
 		Map<String, String> metaInfoMap = new HashMap<>();
 		String metaString = "[{\"vid\":\"1234\",\"cardType\":\"uin\"}]";
 		metaInfoMap.put(JsonConstant.METADATA, metaString);
-		Mockito.when(packetManagerService.getMetaInfo(any(),any(),any())).thenReturn(metaInfoMap);
+		Mockito.when(packetManagerService.getMetaInfo(any(), any())).thenReturn(metaInfoMap);
 		Mockito.when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(fieldValue);
 
 		MessageDTO dto = new MessageDTO();

@@ -261,12 +261,12 @@ public class PrintStage extends MosipVerticleAPIManager {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				regId, "PrintStage::process()::entry");
 
-		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(regId);
+		InternalRegistrationStatusDto registrationStatusDto = null;
 		try {
-			String source = utilities.getDefaultSource();
+			registrationStatusDto = registrationStatusService.getRegistrationStatus(regId);
 			if (RegistrationType.RES_REPRINT.toString().equals(object.getReg_type().toString())) {
 				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSED.toString());
-				linkRid(regId, source, registrationStatusDto.getRegistrationType());
+				linkRid(regId, registrationStatusDto.getRegistrationType());
 			}
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
@@ -280,7 +280,7 @@ public class PrintStage extends MosipVerticleAPIManager {
 					.equalsIgnoreCase(object.getReg_type().toString())) {
 
 				List<FieldValue> metadataList = new ArrayList<>();
-				Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(regId, source, registrationStatusDto.getRegistrationType());
+				Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(regId, registrationStatusDto.getRegistrationType());
 				String metaDataString = metaInfoMap.get(JsonConstant.METADATA);
 				if (StringUtils.isNotEmpty(metaDataString)) {
 					JSONArray jsonArray = new JSONArray(metaDataString);
@@ -646,8 +646,8 @@ public class PrintStage extends MosipVerticleAPIManager {
 		return mosipConnectionFactory.createConnection(typeOfQueue, username, password, failOverBrokerUrl);
 	}
 
-	private void linkRid(String regId, String source, String process) throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
-		String uin = utilities.getUIn(regId, source, process);
+	private void linkRid(String regId, String process) throws ApisResourceAccessException, IOException, JsonProcessingException, PacketManagerException {
+		String uin = utilities.getUIn(regId, process);
 		boolean result = utilities.linkRegIdWrtUin(regId, uin);
 		if (result)
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),

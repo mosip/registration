@@ -184,15 +184,14 @@ public class PacketValidateProcessor {
 			registrationStatusDto.setRegistrationStageName(stageName);
 			boolean isValidSupervisorStatus = isValidSupervisorStatus();
 			if (isValidSupervisorStatus) {
-				String source = utility.getDefaultSource();
-				Boolean isValid = compositePacketValidator.validate(object.getRid(), source,
+				Boolean isValid = compositePacketValidator.validate(object.getRid(),
 						registrationStatusDto.getRegistrationType(), packetValidationDto);
 				if (isValid) {
 					// save audit details
 					InternalRegistrationStatusDto finalRegistrationStatusDto = registrationStatusDto;
 					Runnable r = () -> {
 						try {
-							auditUtility.saveAuditDetails(registrationId, source,
+							auditUtility.saveAuditDetails(registrationId,
 									finalRegistrationStatusDto.getRegistrationType());
 						} catch (Exception e) {
 							regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -212,7 +211,7 @@ public class PacketValidateProcessor {
 					registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_STRUCTURAL_VALIDATION_SUCCESS.getCode());
 					registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
 					// ReverseDataSync
-					reverseDataSync(registrationId, source, registrationStatusDto.getRegistrationType(), description,
+					reverseDataSync(registrationId, registrationStatusDto.getRegistrationType(), description,
 							packetValidationDto);
 
 					object.setRid(registrationStatusDto.getRegistrationId());
@@ -271,12 +270,6 @@ public class PacketValidateProcessor {
 			registrationStatusDto.setUpdatedBy(USER);
 			SyncRegistrationEntity regEntity = syncRegistrationService.findByRegistrationId(registrationId);
 			sendNotification(regEntity, registrationStatusDto, packetValidationDto.isTransactionSuccessful());
-		} catch (PacketValidatorException e) {
-			managePacketValidatorException(e, registrationStatusDto, trimMessage, description, object,
-					packetValidationDto);
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), description.getCode(), registrationId,
-					description + e.getMessage() + ExceptionUtils.getStackTrace(e));
-
 		} catch (PacketManagerException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,
@@ -446,88 +439,6 @@ public class PacketValidateProcessor {
 
 	}
 
-	private void managePacketValidatorException(PacketValidatorException e,
-			InternalRegistrationStatusDto registrationStatusDto, TrimExceptionMessage trimMessage,
-			LogDescription description, MessageDTO object, PacketValidationDto packetValidationDto) {
-		if (e.getCause() instanceof ApisResourceAccessException) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
-			registrationStatusDto.setStatusComment(trimMessage
-					.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.API_RESOUCE_ACCESS_FAILED.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
-					.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
-			description.setCode(PlatformErrorMessages.RPR_PVM_API_RESOUCE_ACCESS_FAILED.getCode());
-			description.setMessage(PlatformErrorMessages.RPR_PVM_API_RESOUCE_ACCESS_FAILED.getMessage());
-			object.setIsValid(Boolean.FALSE);
-			object.setInternalError(Boolean.TRUE);
-		} else if (e.getCause() instanceof BaseCheckedException) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-			registrationStatusDto.setStatusComment(
-					trimMessage.trimExceptionMessage(StatusUtil.BASE_CHECKED_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.BASE_CHECKED_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION));
-			packetValidationDto.setTransactionSuccessful(false);
-			description.setMessage(PlatformErrorMessages.RPR_PVM_BASE_CHECKED_EXCEPTION.getMessage());
-			description.setCode(PlatformErrorMessages.RPR_PVM_BASE_CHECKED_EXCEPTION.getCode());
-			object.setIsValid(Boolean.FALSE);
-			object.setInternalError(Boolean.TRUE);
-			object.setRid(registrationStatusDto.getRegistrationId());
-		} else if (e.getCause() instanceof BaseUncheckedException) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-			registrationStatusDto.setStatusComment(trimMessage
-					.trimExceptionMessage(StatusUtil.BASE_UNCHECKED_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.BASE_UNCHECKED_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BASE_UNCHECKED_EXCEPTION));
-			packetValidationDto.setTransactionSuccessful(false);
-			description.setMessage(PlatformErrorMessages.RPR_PVM_BASE_UNCHECKED_EXCEPTION.getMessage());
-			description.setCode(PlatformErrorMessages.RPR_PVM_BASE_UNCHECKED_EXCEPTION.getCode());
-			object.setIsValid(Boolean.FALSE);
-			object.setInternalError(Boolean.TRUE);
-			object.setRid(registrationStatusDto.getRegistrationId());
-		} else if (e.getCause() instanceof IOException) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-			registrationStatusDto.setStatusComment(
-					trimMessage.trimExceptionMessage(StatusUtil.IO_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.IO_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.IOEXCEPTION));
-			packetValidationDto.setTransactionSuccessful(false);
-			description.setMessage(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage());
-			description.setCode(PlatformErrorMessages.STRUCTURAL_VALIDATION_FAILED.getCode());
-			object.setIsValid(Boolean.FALSE);
-			object.setInternalError(Boolean.TRUE);
-			object.setRid(registrationStatusDto.getRegistrationId());
-		} else if (e.getCause() instanceof JsonProcessingException) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-			registrationStatusDto.setStatusComment(
-					trimMessage.trimExceptionMessage(StatusUtil.JSON_PARSING_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.JSON_PARSING_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
-					.getStatusCode(RegistrationExceptionTypeCode.JSON_PROCESSING_EXCEPTION));
-			packetValidationDto.setTransactionSuccessful(false);
-			description.setMessage(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getMessage());
-			description.setCode(PlatformErrorMessages.STRUCTURAL_VALIDATION_FAILED.getCode());
-			object.setIsValid(Boolean.FALSE);
-			object.setInternalError(Boolean.TRUE);
-			object.setRid(registrationStatusDto.getRegistrationId());
-		} else if (e.getCause() instanceof Exception) {
-			registrationStatusDto.setStatusComment(trimMessage
-					.trimExceptionMessage(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.UNKNOWN_EXCEPTION_OCCURED.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.EXCEPTION));
-			packetValidationDto.setTransactionSuccessful(false);
-			description.setMessage(PlatformErrorMessages.STRUCTURAL_VALIDATION_FAILED.getMessage());
-			description.setCode(PlatformErrorMessages.STRUCTURAL_VALIDATION_FAILED.getCode());
-			object.setIsValid(Boolean.FALSE);
-			object.setInternalError(Boolean.TRUE);
-			object.setRid(registrationStatusDto.getRegistrationId());
-		}
-
-	}
-
 	private boolean isValidSupervisorStatus() {
 		SyncRegistrationEntity regEntity = syncRegistrationService.findByRegistrationId(registrationId);
 		if (regEntity.getSupervisorStatus().equalsIgnoreCase(APPROVED)) {
@@ -539,11 +450,11 @@ public class PacketValidateProcessor {
 		return false;
 	}
 
-	private void reverseDataSync(String id, String source, String process, LogDescription description,
+	private void reverseDataSync(String id, String process, LogDescription description,
 			PacketValidationDto packetValidationDto) throws IOException, ApisResourceAccessException,
 			PacketManagerException, JsonProcessingException, JSONException {
 
-		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, source, process);
+		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process);
 		String metadata = metaInfoMap.get(JsonConstant.METADATA);
 		if (StringUtils.isNotEmpty(metadata)) {
 			JSONArray jsonArray = new JSONArray(metadata);

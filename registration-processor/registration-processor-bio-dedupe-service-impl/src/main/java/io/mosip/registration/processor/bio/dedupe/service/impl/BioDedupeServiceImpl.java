@@ -288,10 +288,10 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 	 * getFileByRegId( java.lang.String)
 	 */
 	@Override
-	public byte[] getFileByRegId(String registrationId, String source, String process) {
+	public byte[] getFileByRegId(String registrationId, String process) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "BioDedupeServiceImpl::getFileByRegId()::entry");
-		byte[] file = getFile(registrationId, source, process);
+		byte[] file = getFile(registrationId, process);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "BioDedupeServiceImpl::getFileByRegId()::exit");
 		return file;
@@ -305,7 +305,7 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 	 * java.lang.String)
 	 */
 	@Override
-	public byte[] getFileByAbisRefId(String abisRefId, String source, String process) {
+	public byte[] getFileByAbisRefId(String abisRefId, String process) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), abisRefId,
 				"BioDedupeServiceImpl::getFileByAbisRefId()::entry");
 		String registrationId = "";
@@ -323,10 +323,10 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), abisRefId,
 				"BioDedupeServiceImpl::getFileByAbisRefId()::exit");
-		return getFile(registrationId, source, process);
+		return getFile(registrationId, process);
 	}
 
-	private byte[] getFile(String registrationId, String source, String process) {
+	private byte[] getFile(String registrationId, String process) {
 		byte[] file = null;
 		if (registrationId == null || registrationId.isEmpty()) {
 			return file;
@@ -335,11 +335,7 @@ public class BioDedupeServiceImpl implements BioDedupeService {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "BioDedupeServiceImpl::getFile()::entry");
 		try {
-			JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
-			String individualBiometricsLabel = JsonUtil.getJSONValue(
-					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
-					MappingJsonConstants.VALUE);
-			BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId, individualBiometricsLabel, null, source, process);
+			BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, null, process);
 			file = cbeffutil.createXML(BIRConverter.convertSegmentsToBIRList(biometricRecord.getSegments()));
 
 

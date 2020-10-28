@@ -208,7 +208,7 @@ public class PacketValidatorImplTest {
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
 		.thenReturn(packetMetaInfo);
 		when(masterDataValidation.validateMasterData(anyString(),anyString(),anyString())).thenReturn(true);
-		when(mandatoryValidation.mandatoryFieldValidation(anyString(),anyString(),anyString(),any())).thenReturn(true);
+		when(mandatoryValidation.mandatoryFieldValidation(anyString(),anyString(),any())).thenReturn(true);
 		byte[] data = "{}".getBytes();
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(data);
@@ -230,43 +230,43 @@ public class PacketValidatorImplTest {
 		PowerMockito.when(JsonUtil.getJSONObject(jsonObject, "individualBiometrics")).thenReturn(jsonObject);
 		Mockito.when(jsonObject.get("value")).thenReturn("applicantCBEF");
 		
-		Mockito.when(utility.getUIn(anyString(),anyString(),anyString())).thenReturn("12345678l");
+		Mockito.when(utility.getUIn(anyString(),anyString())).thenReturn("12345678l");
 		Mockito.when(utility.retrieveIdrepoJson(any())).thenReturn(jsonObject);
 		Mockito.when(utility.retrieveIdrepoJsonStatus(any())).thenReturn("ACTIVE");
 		when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
-		when(utility.getMappingJsonValue(anyString())).thenReturn("value");
+		when(utility.getMappingJsonValue(anyString(), any())).thenReturn("value");
 		Mockito.when(idRepoService.findUinFromIdrepo(anyString(), any())).thenReturn("123456781");
         ValidatePacketResponse validatePacketResponse = new ValidatePacketResponse();
         validatePacketResponse.setValid(true);
-		when(packetManagerService.validate(anyString(),anyString(),anyString())).thenReturn(validatePacketResponse);
+		when(packetManagerService.validate(anyString(),anyString())).thenReturn(validatePacketResponse);
         BiometricRecord biometricRecord = new BiometricRecord();
         BIR bir = new BIR.BIRBuilder().build();
         biometricRecord.setSegments(Lists.newArrayList(bir,bir));
-        when(packetManagerService.getBiometrics(anyString(),anyString(),any(),anyString(),anyString())).thenReturn(biometricRecord);
+        when(packetManagerService.getBiometrics(anyString(),anyString(),any(),anyString())).thenReturn(biometricRecord);
 	}
 	
 	@Test
 	public void testValidationSuccess() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
-		assertTrue(PacketValidator.validate("123456789", "reg_client","NEW", packetValidationDto));
+		assertTrue(PacketValidator.validate("123456789","NEW", packetValidationDto));
 	}
 	
 	@Test
 	public void testUpdateValidationSuccess() throws PacketValidatorException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException {
-		assertTrue(PacketValidator.validate("123456789", "reg_client","UPDATE", packetValidationDto));
+		assertTrue(PacketValidator.validate("123456789","UPDATE", packetValidationDto));
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Test(expected=PacketManagerException.class)
 	public void testException() throws PacketValidatorException, io.mosip.kernel.core.exception.IOException, IOException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, PacketManagerException {
 		//when(packetReaderService.getFile(anyString(),anyString(),anyString())).thenThrow(PacketDecryptionFailureException.class);
-        when(mandatoryValidation.mandatoryFieldValidation(anyString(),anyString(),anyString(),any())).thenThrow(new PacketManagerException("code","message"));
-		PacketValidator.validate("123456789", "reg_client","NEW", packetValidationDto);
+        when(mandatoryValidation.mandatoryFieldValidation(anyString(),anyString(),any())).thenThrow(new PacketManagerException("code","message"));
+		PacketValidator.validate("123456789", "NEW", packetValidationDto);
 	}
 	
 	@Test
 	public void testUINNotPresentinIDrepo() throws PacketValidatorException, ApisResourceAccessException, IOException, RegistrationProcessorCheckedException, JsonProcessingException, PacketManagerException {
 		Mockito.when(idRepoService.findUinFromIdrepo(anyString(), any())).thenReturn(null);
-		assertFalse(PacketValidator.validate("123456789", "reg_client","UPDATE", packetValidationDto));
+		assertFalse(PacketValidator.validate("123456789", "UPDATE", packetValidationDto));
 	}
 	
 	@Test
@@ -277,33 +277,33 @@ public class PacketValidatorImplTest {
 		when(env.getProperty(VALIDATEAPPLICANTDOCUMENT)).thenReturn("false");
 		when(env.getProperty(VALIDATEMASTERDATA)).thenReturn("false");
 		when(env.getProperty(VALIDATEMANDATORY)).thenReturn("false");
-		assertTrue(PacketValidator.validate("123456789", "reg_client","NEW", packetValidationDto));
+		assertTrue(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 	
 	@Test
 	public void testindividualBiometricsValidationFailure() throws PacketValidatorException, io.mosip.kernel.core.exception.IOException, IOException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, PacketManagerException {
-        when(packetManagerService.getBiometrics(anyString(),anyString(),any(),anyString(),anyString())).thenReturn(null);
-		assertFalse(PacketValidator.validate("123456789", "reg_client","NEW", packetValidationDto));
+        when(packetManagerService.getBiometrics(anyString(),anyString(),any(),anyString())).thenReturn(null);
+		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 	
 	@Test
 	public void testMasterdataValidationFailure() throws PacketValidatorException, ApisResourceAccessException, IOException, RegistrationProcessorCheckedException, JsonProcessingException, PacketManagerException {
 		when(masterDataValidation.validateMasterData(anyString(),anyString(),anyString())).thenReturn(false);
-		assertFalse(PacketValidator.validate("123456789", "reg_client","NEW", packetValidationDto));
+		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 	
 	@Test
 	public void testMandatoryValidationFailure() throws PacketValidatorException, io.mosip.kernel.core.exception.IOException, IOException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, PacketManagerException {
-		when(mandatoryValidation.mandatoryFieldValidation(anyString(),anyString(), anyString(),any())).thenReturn(false);
-		assertFalse(PacketValidator.validate("123456789", "reg_client","NEW", packetValidationDto));
+		when(mandatoryValidation.mandatoryFieldValidation(anyString(), anyString(),any())).thenReturn(false);
+		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 	
 	@Test
 	public void testPacketManagerValidationFailure() throws PacketValidatorException, IOException, IdentityNotFoundException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, PacketManagerException {
         ValidatePacketResponse validatePacketResponse = new ValidatePacketResponse();
         validatePacketResponse.setValid(false);
-        when(packetManagerService.validate(anyString(),anyString(),anyString())).thenReturn(validatePacketResponse);
-		assertFalse(PacketValidator.validate("123456789", "reg_client","NEW", packetValidationDto));
+        when(packetManagerService.validate(anyString(),anyString())).thenReturn(validatePacketResponse);
+		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
 	
 }
