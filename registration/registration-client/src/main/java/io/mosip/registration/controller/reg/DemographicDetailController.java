@@ -966,57 +966,9 @@ public class DemographicDetailController extends BaseController {
 					yyyy.requestFocus();
 					dd.requestFocus();
 
-					// TODO NOT REQUIRED NOW
-					/*
-					 * if (age <= minAge) {
-					 * 
-					 * if (!isChild == true) { clearAllValues(); clearAllBiometrics(); } if
-					 * (RegistrationConstants.DISABLE.equalsIgnoreCase(
-					 * getValueFromApplicationContext(RegistrationConstants.FINGERPRINT_DISABLE_FLAG
-					 * )) && RegistrationConstants.DISABLE.equalsIgnoreCase(
-					 * getValueFromApplicationContext(RegistrationConstants.IRIS_DISABLE_FLAG))) {
-					 * isChild = true; validation.setChild(isChild);
-					 * generateAlert(RegistrationConstants.ERROR,
-					 * RegistrationUIConstants.PARENT_BIO_MSG);
-					 * 
-					 * } else { updatePageFlow(RegistrationConstants.GUARDIAN_BIOMETRIC, true);
-					 * updatePageFlow(RegistrationConstants.FINGERPRINT_CAPTURE, false);
-					 * updatePageFlow(RegistrationConstants.IRIS_CAPTURE, false);
-					 * 
-					 * } } else {
-					 * 
-					 * if (!isChild == false) { clearAllValues(); clearAllBiometrics(); } if
-					 * (getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO(
-					 * ) != null) {
-					 * 
-					 * getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
-					 * .setFingerprintDetailsDTO(new ArrayList<>());
-					 * 
-					 * getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
-					 * .setIrisDetailsDTO(new ArrayList<>());
-					 * 
-					 * getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
-					 * .setBiometricExceptionDTO(new ArrayList<>());
-					 * 
-					 * getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
-					 * .setExceptionFace(new FaceDetailsDTO());
-					 * 
-					 * getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
-					 * .setFace(new FaceDetailsDTO());
-					 * 
-					 * getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
-					 * .setHasExceptionPhoto(false);
-					 * 
-					 * }
-					 * 
-					 * updatePageFlow(RegistrationConstants.GUARDIAN_BIOMETRIC, false); //
-					 * updateBioPageFlow(RegistrationConstants.FINGERPRINT_DISABLE_FLAG, //
-					 * RegistrationConstants.FINGERPRINT_CAPTURE); //
-					 * updateBioPageFlow(RegistrationConstants.IRIS_DISABLE_FLAG, //
-					 * RegistrationConstants.IRIS_CAPTURE);
-					 * 
-					 * }
-					 */
+					getRegistrationDTOFromSession().setDateField("dateOfBirth", dd.getText(), mm.getText(),
+							yyyy.getText());
+					refreshDemographicGroups(getRegistrationDTOFromSession().getMVELDataContext());
 					fxUtils.validateOnFocusOut(dobParentPane, ageField, validation, false);
 				} else {
 					ageField.getStyleClass().remove("demoGraphicTextFieldOnType");
@@ -1695,7 +1647,7 @@ public class DemographicDetailController extends BaseController {
 
 					// Set Local lang
 					setSecondaryLangText(textField,
-							(TextField) getFxElement(textField + RegistrationConstants.LOCAL_LANGUAGE),
+							(TextField) getFxElement(textField.getId() + RegistrationConstants.LOCAL_LANGUAGE),
 							hasToBeTransliterated);
 
 //				 Save information to session
@@ -1733,13 +1685,16 @@ public class DemographicDetailController extends BaseController {
 
 				RequiredOnExpr requiredOnExpr = uiSchemaDTO.getVisible();
 
-				if (requiredOnExpr.getEngine().equalsIgnoreCase(RegistrationConstants.MVEL_TYPE)) {
+				if (uiSchemaDTO.getVisible() != null && requiredOnExpr.getEngine() != null
+						&& !requiredOnExpr.getEngine().isEmpty()) {
+					if (requiredOnExpr.getEngine().equalsIgnoreCase(RegistrationConstants.MVEL_TYPE)) {
 
-					VariableResolverFactory resolverFactory = new MapVariableResolverFactory(context);
-					boolean required = MVEL.evalToBoolean(requiredOnExpr.getExpr(), resolverFactory);
+						VariableResolverFactory resolverFactory = new MapVariableResolverFactory(context);
+						boolean required = MVEL.evalToBoolean(requiredOnExpr.getExpr(), resolverFactory);
 
-					updateFields(Arrays.asList(uiSchemaDTO), required);
+						updateFields(Arrays.asList(uiSchemaDTO), required);
 
+					}
 				}
 			}
 
@@ -1763,8 +1718,8 @@ public class DemographicDetailController extends BaseController {
 					"Updating visibility for field : " + field.getId() + " as visibility : " + isVisible);
 
 			if (node != null) {
-				node.getParent().setVisible(isVisible);
-				node.getParent().setManaged(isVisible);
+				node.getParent().getParent().getParent().setVisible(isVisible);
+				node.getParent().getParent().getParent().setManaged(isVisible);
 			}
 
 			// TODO same for local lang tooo
@@ -1775,8 +1730,8 @@ public class DemographicDetailController extends BaseController {
 							+ " as visibility : " + isVisible);
 
 			if (localLangNode != null) {
-				node.getParent().setVisible(isVisible);
-				node.getParent().setManaged(isVisible);
+				localLangNode.getParent().getParent().getParent().setVisible(isVisible);
+				localLangNode.getParent().getParent().getParent().setManaged(isVisible);
 			}
 		}
 	}
@@ -1835,7 +1790,7 @@ public class DemographicDetailController extends BaseController {
 					list = new LinkedList<UiSchemaDTO>();
 				}
 				list.add(entry.getValue());
-				templateGroupMap.put(entry.getValue().getTemplateGroup() == null ? entry.getKey()
+				templateGroupMap.put(entry.getValue().getTemplateGroup() == null ? entry.getKey() + "TemplateGroup"
 						: entry.getValue().getTemplateGroup(), list);
 			}
 		}
