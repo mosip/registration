@@ -238,15 +238,30 @@ public class DemographicDetailController extends BaseController {
 			parentFlow = parentFlowPane.getChildren();
 			int position = parentFlow.size() - 1;
 
-			for (Entry<String, UiSchemaDTO> entry : validation.getValidationMap().entrySet()) {
+//			for (Entry<String, UiSchemaDTO> entry : validation.getValidationMap().entrySet()) {
 
-				if (isDemographicField(entry.getValue())) {
-					GridPane mainGridPane = addContent(entry.getValue());
-					parentFlow.add(mainGridPane);
-					position++;
-					positionTracker.put(mainGridPane.getId(), position);
-				}
+			// TODO find template based group fields
+			Map<String, List<UiSchemaDTO>> templateGroup = null;
+
+			for (Entry<String, List<UiSchemaDTO>> templateGroupEntry : templateGroup.entrySet()) {
+
+				GridPane groupGridPane = new GridPane();
+				groupGridPane.setId(templateGroupEntry.getKey());
+
+				addGroupContent(templateGroupEntry.getValue(), groupGridPane);
+
+				parentFlow.add(groupGridPane);
+				position++;
+				positionTracker.put(groupGridPane.getId(), position);
+
+//					if (isDemographicField(entry.getValue())) {
+//						GridPane mainGridPane = addContent(entry.getValue());
+//						parentFlow.add(mainGridPane);
+//						position++;
+//						positionTracker.put(mainGridPane.getId(), position);
+//					}
 			}
+//			}
 
 			populateDropDowns();
 			for (Entry<String, List<String>> orderOfAdd : orderOfAddressListByGroup.entrySet()) {
@@ -582,6 +597,8 @@ public class DemographicDetailController extends BaseController {
 
 	@Autowired
 	ResourceLoader resourceLoader;
+
+	private String loggerClassName = "DemographicDetailController";
 
 	public VBox addContentWithTextField(UiSchemaDTO schema, String fieldName, String languageType) {
 		TextField field = new TextField();
@@ -1156,7 +1173,7 @@ public class DemographicDetailController extends BaseController {
 	}
 
 	private String getLocalFieldButtonText(Button button, List<Button> localFieldButtons) {
-		if(!isLocalLanguageAvailable() || isAppLangAndLocalLangSame()) {
+		if (!isLocalLanguageAvailable() || isAppLangAndLocalLangSame()) {
 			return null;
 		}
 		String buttonText = null;
@@ -1552,11 +1569,107 @@ public class DemographicDetailController extends BaseController {
 
 	}
 
-	/*
-	 * private void updateBioPageFlow(String flag, String pageId) { if
-	 * (RegistrationConstants.DISABLE.equalsIgnoreCase(String.valueOf(
-	 * ApplicationContext.map().get(flag)))) { updatePageFlow(pageId, false); } else
-	 * { updatePageFlow(pageId, true); } }
-	 */
+	private void addGroupContent(List<UiSchemaDTO> uiSchemaDTOs, GridPane groupGridPane) {
 
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID, "Adding group contents");
+
+		GridPane horizontalRowGridPane = null;
+		if (uiSchemaDTOs != null && !uiSchemaDTOs.isEmpty()) {
+
+			if (uiSchemaDTOs.size() >= 2) {
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						"Requesting prepare grid pane for horizontal layout");
+
+				horizontalRowGridPane = prepareRowGridPane(uiSchemaDTOs.size());
+			}
+
+			for (int index = 0; index < uiSchemaDTOs.size(); index++) {
+
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						"Adding ui schema of application language");
+
+				GridPane applicationLanguageGridPane = subGridPane(uiSchemaDTOs.get(index), "");
+
+				applicationLanguageGridPane.setId(uiSchemaDTOs.get(index).getId());
+
+				GridPane rowGridPane = horizontalRowGridPane == null ? prepareRowGridPane(1) : horizontalRowGridPane;
+
+				rowGridPane.addColumn(horizontalRowGridPane == null ? 0 : index, applicationLanguageGridPane);
+				if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
+
+					LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+							"Adding ui schema of local language");
+
+					GridPane localLanguageGridPane = subGridPane(uiSchemaDTOs.get(index),
+							RegistrationConstants.LOCAL_LANGUAGE);
+
+					if (localLanguageGridPane != null) {
+
+						localLanguageGridPane
+								.setId(uiSchemaDTOs.get(index).getId() + RegistrationConstants.LOCAL_LANGUAGE);
+
+						rowGridPane.addColumn(horizontalRowGridPane == null ? 2 : uiSchemaDTOs.size() + index,
+								localLanguageGridPane);
+					}
+				}
+
+				if (horizontalRowGridPane == null) {
+					LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+							"Setting vertical row gridpane for : " + uiSchemaDTOs.get(index).getId());
+					groupGridPane.getChildren().add(rowGridPane);
+				}
+
+			}
+
+		}
+
+		if (horizontalRowGridPane != null) {
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"Setting horizontal row gridpane for group : ");
+			groupGridPane.getChildren().add(horizontalRowGridPane);
+		}
+	}
+
+	private GridPane prepareRowGridPane(int noOfItems) {
+
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Preparing grid pane for items : " + noOfItems);
+		GridPane gridPane = new GridPane();
+		gridPane.setPrefWidth(1000);
+
+		ObservableList<ColumnConstraints> columnConstraints = gridPane.getColumnConstraints();
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Preparing grid pane for items : " + noOfItems + " left hand side");
+		// Left Hand Side
+		setColumnConstraints(columnConstraints, 50, noOfItems);
+
+//		LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
+//				RegistrationConstants.APPLICATION_ID, "Preparing grid pane space in middle");
+//		// Middle Space
+//		setColumnConstraints(columnConstraints, 2, 1);
+
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Preparing grid pane for items : " + noOfItems + " right hand side");
+		// Right Hand Side
+		setColumnConstraints(columnConstraints, 50, noOfItems);
+
+		return gridPane;
+	}
+
+	private void setColumnConstraints(ObservableList<ColumnConstraints> columnConstraints, int currentPaneWidth,
+			int noOfItems) {
+
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Setting column constraints");
+
+		if (columnConstraints != null) {
+			for (int index = 1; index <= noOfItems; ++index) {
+
+				ColumnConstraints columnConstraint = new ColumnConstraints();
+				columnConstraint.setPercentWidth(currentPaneWidth / noOfItems);
+				columnConstraints.add(columnConstraint);
+
+			}
+		}
+	}
 }
