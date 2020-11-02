@@ -1723,10 +1723,12 @@ public class DemographicDetailController extends BaseController {
 
 			for (UiSchemaDTO uiSchemaDTO : group.getValue()) {
 
-				// TODO change to visible
-				Validator validator = uiSchemaDTO.getValidators().get(0);
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						"Refreshing field : " + uiSchemaDTO.getId());
 
-				if (validator.getType().equalsIgnoreCase("MVEL")) {
+				Validator validator = uiSchemaDTO.getVisible();
+
+				if (validator.getType().equalsIgnoreCase(RegistrationConstants.MVEL_TYPE)) {
 
 					VariableResolverFactory resolverFactory = new MapVariableResolverFactory(context);
 					boolean required = MVEL.evalToBoolean(validator.getValidator(), resolverFactory);
@@ -1775,6 +1777,9 @@ public class DemographicDetailController extends BaseController {
 	}
 
 	private Node getFxElement(String fieldId) {
+
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Fetch fx element : " + fieldId);
 		return parentFlowPane.lookup(RegistrationConstants.HASH + fieldId);
 	}
 

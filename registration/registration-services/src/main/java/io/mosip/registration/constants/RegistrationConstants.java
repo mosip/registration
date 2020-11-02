@@ -1800,7 +1800,8 @@ public class RegistrationConstants {
 	public static final String LEFTTHUMB_IMG_PATH = "/images/exceptionmarks/leftThumb.png";
 	public static final String RIGHTEYE_IMG_PATH = "/images/exceptionmarks/lightBlueCrossMark.png";
 	public static final String LEFTEYE_IMG_PATH = "/images/exceptionmarks/lightBlueCrossMark.png";
-	
-	//UI Schema field group name
+
+	// UI Schema field group name
 	public static final String UI_SCHEMA_GROUP_FULL_NAME = "FullName";
+	public static final String MVEL_TYPE = "MVEL";
 }
