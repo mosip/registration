@@ -146,15 +146,4 @@ public class DecryptorTest {
 		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any())).thenReturn(cryptomanagerResponseDto);
 		decryptor.decrypt(inputStream, "84071493960000320190110145452");
 	}
-
-	@Test(expected = PacketDecryptionFailureException.class)
-	public void decryptIOExceptionTest()
-			throws PacketDecryptionFailureException, ApisResourceAccessException, IOException {
-		InputStream is = Mockito.mock(InputStream.class);
-		doThrow(IOException.class).when(is).close();
-		InputStream decryptedStream = decryptor.decrypt(is, "84071493960000320190110145452");
-		String decryptedString = IOUtils.toString(decryptedStream, "UTF-8");
-		assertEquals("mosip", decryptedString);
-
-	}
 }

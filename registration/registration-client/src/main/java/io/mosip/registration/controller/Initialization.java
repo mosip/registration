@@ -9,14 +9,13 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Component;
 
+import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.auth.LoginController;
-import io.mosip.registration.tpm.initialize.TPMInitialization;
-
 import javafx.application.Application;
 import javafx.stage.Stage;
 
@@ -98,7 +97,9 @@ public class Initialization extends Application {
 	public void stop() {
 		try {
 			super.stop();
-			TPMInitialization.closeTPMInstance();
+			getClientCryptoFacade().getClientSecurity().closeSecurityInstance();
+			LOGGER.info("REGISTRATION - APPLICATION INITILIZATION - REGISTRATIONAPPINITILIZATION", APPLICATION_NAME,
+					APPLICATION_ID, "Closed the Client Security Instance");
 		} catch (Exception exception) {
 			LOGGER.error("REGISTRATION - APPLICATION INITILIZATION - REGISTRATIONAPPINITILIZATION", APPLICATION_NAME,
 					APPLICATION_ID,
@@ -108,6 +109,10 @@ public class Initialization extends Application {
 		} finally {
 			System.exit(0);
 		}
+	}
+	
+	private ClientCryptoFacade getClientCryptoFacade() {
+		return applicationContext.getBean(ClientCryptoFacade.class);
 	}
 
 	public static ApplicationContext getApplicationContext() {

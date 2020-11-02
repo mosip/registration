@@ -32,13 +32,8 @@ import io.mosip.kernel.core.crypto.exception.InvalidKeyException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.crypto.jce.constant.SecurityExceptionCodeConstant;
-import io.mosip.kernel.crypto.jce.util.CryptoUtils;
 import io.mosip.registration.config.SoftwareInstallationHandler;
 import io.mosip.registration.constants.LoggerConstants;
-import io.mosip.registration.tpm.asymmetric.AsymmetricDecryptionService;
-import io.mosip.registration.tpm.asymmetric.AsymmetricEncryptionService;
-import io.mosip.registration.tpm.initialize.TPMInitialization;
 import io.mosip.registration.util.LoggerFactory;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -89,8 +84,6 @@ public class ClientJarDecryption extends Application {
 	private Stage primaryStage = new Stage();
 
 	static String tempPath;
-	private AsymmetricEncryptionService asymmetricEncryptionService = new AsymmetricEncryptionService();
-	private AsymmetricDecryptionService asymmetricDecryptionService = new AsymmetricDecryptionService();
 
 	private String IS_TPM_AVAILABLE = "Checking TPM Avaialbility";
 	private String ENCRYPT_PROPERTIES = "Encrypting Properties";
@@ -467,10 +460,6 @@ public class ClientJarDecryption extends Application {
 		return value;
 	}
 
-	private String getEncryptedValue(Properties properties, String key) {
-		return CryptoUtil.encodeBase64String(asymmetricEncryptionService.encryptUsingTPM(
-				TPMInitialization.getTPMInstance(), Base64.getDecoder().decode(properties.getProperty(key))));
-	}
 
 	private void closeStage() {
 		Platform.runLater(() -> primaryStage.close());
@@ -495,8 +484,8 @@ public class ClientJarDecryption extends Application {
 	}
 
 	private static byte[] symmetricDecrypt(SecretKey key, byte[] data, byte[] aad) {
-		Objects.requireNonNull(key, SecurityExceptionCodeConstant.MOSIP_INVALID_KEY_EXCEPTION.getErrorMessage());
-		CryptoUtils.verifyData(data);
+		//Objects.requireNonNull(key, SecurityExceptionCodeConstant.MOSIP_INVALID_KEY_EXCEPTION.getErrorMessage());
+		//CryptoUtils.verifyData(data);
 		byte[] output = null;
 		try {
 			Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
@@ -510,20 +499,17 @@ public class ClientJarDecryption extends Application {
 			}
 			output = doFinal(Arrays.copyOf(data, data.length - cipher.getBlockSize()), cipher);
 		} catch (java.security.InvalidKeyException e) {
-			throw new InvalidKeyException(SecurityExceptionCodeConstant.MOSIP_INVALID_KEY_EXCEPTION.getErrorCode(),
-					SecurityExceptionCodeConstant.MOSIP_INVALID_KEY_EXCEPTION.getErrorMessage(), e);
+			throw new InvalidKeyException("0000",
+					"MOSIP_INVALID_KEY_EXCEPTION", e);
 		} catch (InvalidAlgorithmParameterException e) {
-			throw new InvalidKeyException(
-					SecurityExceptionCodeConstant.MOSIP_INVALID_PARAM_SPEC_EXCEPTION.getErrorCode(),
-					SecurityExceptionCodeConstant.MOSIP_INVALID_PARAM_SPEC_EXCEPTION.getErrorMessage(), e);
+			throw new InvalidKeyException("0000",
+					"MOSIP_INVALID_PARAM_SPEC_EXCEPTION", e);
 		} catch (ArrayIndexOutOfBoundsException e) {
-			throw new InvalidDataException(
-					SecurityExceptionCodeConstant.MOSIP_INVALID_DATA_LENGTH_EXCEPTION.getErrorCode(),
-					SecurityExceptionCodeConstant.MOSIP_INVALID_DATA_LENGTH_EXCEPTION.getErrorMessage(), e);
+			throw new InvalidDataException("0000",
+					"MOSIP_INVALID_DATA_LENGTH_EXCEPTION", e);
 		} catch (java.security.NoSuchAlgorithmException noSuchAlgorithmException) {
-			throw new InvalidKeyException(
-					SecurityExceptionCodeConstant.MOSIP_NO_SUCH_ALGORITHM_EXCEPTION.getErrorCode(),
-					SecurityExceptionCodeConstant.MOSIP_NO_SUCH_ALGORITHM_EXCEPTION.getErrorMessage(),
+			throw new InvalidKeyException("0000",
+					"MOSIP_NO_SUCH_ALGORITHM_EXCEPTION",
 					noSuchAlgorithmException);
 		} catch (NoSuchPaddingException noSuchPaddingException) {
 			throw new InvalidKeyException("No Such Padding Exception", "No Such Padding Exception",
@@ -537,11 +523,9 @@ public class ClientJarDecryption extends Application {
 		try {
 			return cipher.doFinal(data);
 		} catch (IllegalBlockSizeException e) {
-			throw new InvalidDataException(
-					SecurityExceptionCodeConstant.MOSIP_INVALID_DATA_SIZE_EXCEPTION.getErrorCode(), e.getMessage(), e);
+			throw new InvalidDataException("MOSIP_INVALID_DATA_SIZE_EXCEPTION", e.getMessage(), e);
 		} catch (BadPaddingException e) {
-			throw new InvalidDataException(
-					SecurityExceptionCodeConstant.MOSIP_INVALID_ENCRYPTED_DATA_CORRUPT_EXCEPTION.getErrorCode(),
+			throw new InvalidDataException("MOSIP_INVALID_ENCRYPTED_DATA_CORRUPT_EXCEPTION",
 					e.getMessage(), e);
 		}
 	}

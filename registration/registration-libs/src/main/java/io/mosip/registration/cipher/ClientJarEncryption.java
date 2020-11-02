@@ -34,8 +34,7 @@ import org.apache.commons.io.FileUtils;
 import io.mosip.kernel.core.crypto.exception.InvalidDataException;
 import io.mosip.kernel.core.crypto.exception.InvalidKeyException;
 import io.mosip.kernel.core.util.HMACUtils;
-import io.mosip.kernel.crypto.jce.constant.SecurityExceptionCodeConstant;
-import io.mosip.kernel.crypto.jce.util.CryptoUtils;
+
 
 /**
  * Encrypt the Client Jar with Symmetric Key
@@ -349,8 +348,8 @@ public class ClientJarEncryption {
 	}
 
 	private static byte[] symmetricEncrypt(SecretKey key, byte[] data, byte[] aad) {
-		Objects.requireNonNull(key, SecurityExceptionCodeConstant.MOSIP_INVALID_KEY_EXCEPTION.getErrorMessage());
-		CryptoUtils.verifyData(data);
+		//Objects.requireNonNull(key, SecurityExceptionCodeConstant.MOSIP_INVALID_KEY_EXCEPTION.getErrorMessage());
+		//CryptoUtils.verifyData(data);
 		byte[] output = null;
 
 		try {
@@ -368,16 +367,14 @@ public class ClientJarEncryption {
 			System.arraycopy(processData, 0, output, 0, processData.length);
 			System.arraycopy(randomIV, 0, output, processData.length, randomIV.length);
 		} catch (java.security.InvalidKeyException e) {
-			throw new InvalidKeyException(SecurityExceptionCodeConstant.MOSIP_INVALID_KEY_EXCEPTION.getErrorCode(),
-					SecurityExceptionCodeConstant.MOSIP_INVALID_KEY_EXCEPTION.getErrorMessage(), e);
+			throw new InvalidKeyException("0000",
+					"MOSIP_INVALID_KEY_EXCEPTION", e);
 		} catch (InvalidAlgorithmParameterException e) {
-			throw new InvalidKeyException(
-					SecurityExceptionCodeConstant.MOSIP_INVALID_PARAM_SPEC_EXCEPTION.getErrorCode(),
-					SecurityExceptionCodeConstant.MOSIP_INVALID_PARAM_SPEC_EXCEPTION.getErrorMessage(), e);
+			throw new InvalidKeyException("0000",
+					"MOSIP_INVALID_PARAM_SPEC_EXCEPTION", e);
 		} catch (java.security.NoSuchAlgorithmException noSuchAlgorithmException) {
-			throw new InvalidKeyException(
-					SecurityExceptionCodeConstant.MOSIP_NO_SUCH_ALGORITHM_EXCEPTION.getErrorCode(),
-					SecurityExceptionCodeConstant.MOSIP_NO_SUCH_ALGORITHM_EXCEPTION.getErrorMessage(),
+			throw new InvalidKeyException("0000",
+					"MOSIP_NO_SUCH_ALGORITHM_EXCEPTION",
 					noSuchAlgorithmException);
 		} catch (NoSuchPaddingException noSuchPaddingException) {
 			throw new InvalidKeyException("No Such Padding Exception", "No Such Padding Exception",
@@ -404,11 +401,9 @@ public class ClientJarEncryption {
 		try {
 			return cipher.doFinal(data);
 		} catch (IllegalBlockSizeException e) {
-			throw new InvalidDataException(
-					SecurityExceptionCodeConstant.MOSIP_INVALID_DATA_SIZE_EXCEPTION.getErrorCode(), e.getMessage(), e);
+			throw new InvalidDataException("MOSIP_INVALID_DATA_SIZE_EXCEPTION", e.getMessage(), e);
 		} catch (BadPaddingException e) {
-			throw new InvalidDataException(
-					SecurityExceptionCodeConstant.MOSIP_INVALID_ENCRYPTED_DATA_CORRUPT_EXCEPTION.getErrorCode(),
+			throw new InvalidDataException("MOSIP_INVALID_ENCRYPTED_DATA_CORRUPT_EXCEPTION",
 					e.getMessage(), e);
 		}
 	}

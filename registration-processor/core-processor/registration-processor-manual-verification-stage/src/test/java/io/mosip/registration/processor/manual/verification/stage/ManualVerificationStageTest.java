@@ -4,14 +4,13 @@ package io.mosip.registration.processor.manual.verification.stage;
 import static org.mockito.Matchers.any;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,15 +23,14 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.kernel.core.exception.IOException;
 import io.mosip.kernel.core.signatureutil.model.SignatureResponse;
-import io.mosip.kernel.core.signatureutil.spi.SignatureUtil;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
-import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
 import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDTO;
+import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDecisionDto;
 import io.mosip.registration.processor.manual.verification.dto.UserDto;
 import io.mosip.registration.processor.manual.verification.service.ManualVerificationService;
 import io.mosip.registration.processor.manual.verification.util.ManualVerificationRequestValidator;
@@ -158,7 +156,7 @@ public class ManualVerificationStageTest{
 		serviceID="decision";
 		Mockito.when(env.getProperty(any())).thenReturn("mosip.manual.verification.decision");
 		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern")).thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		ManualVerificationDTO updatedManualVerificationDTO=new ManualVerificationDTO();
+		ManualVerificationDecisionDto updatedManualVerificationDTO=new ManualVerificationDecisionDto();
 		Mockito.when(manualAdjudicationService.updatePacketStatus(any(),any())).thenReturn(updatedManualVerificationDTO);
 		manualverificationstage.processDecision(ctx);
 	}
@@ -359,15 +357,11 @@ public class ManualVerificationStageTest{
 
 				}else if(serviceID=="decision") {
 					
+					obj1.put("matchedRefType", "mono");
 					obj1.put("mvUsrId", "mono");
-					
 					obj1.put("regId", "27847657360002520181208123456");
 					obj1.put("statusCode", "APPROVED");
-					JsonObject obj2= new JsonObject();
-					obj2.put("matchedRegId", "27847657360002520181208123987");
-					obj2.put("matchedRefType", "RID");
-					obj2.put("reasonCode", "Problem with biometrics");
-					obj1.put("gallery", Arrays.asList(obj2));
+					obj1.put("reasonCode", "mono");
 				}
 
 				obj.put("request", obj1);
