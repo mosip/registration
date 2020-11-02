@@ -139,14 +139,13 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 		registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
 
 		try {
-			String source = utility.getDefaultSource();
-			Map<String, String> metaInfo = packetManagerService.getMetaInfo(registrationId, source, registrationStatusDto.getRegistrationType());
+			Map<String, String> metaInfo = packetManagerService.getMetaInfo(registrationId, registrationStatusDto.getRegistrationType());
 			if(validateUMC)
 				isValidUMC = umcValidator.isValidUMC(registrationId, registrationStatusDto, metaInfo);
 			else
 				isValidUMC = true;
 			if (isValidUMC) {
-				isValidOSI = osiValidator.isValidOSI(registrationId, source, registrationStatusDto, metaInfo);
+				isValidOSI = osiValidator.isValidOSI(registrationId, registrationStatusDto, metaInfo);
 				if (isValidOSI) {
 					registrationStatusDto
 							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());

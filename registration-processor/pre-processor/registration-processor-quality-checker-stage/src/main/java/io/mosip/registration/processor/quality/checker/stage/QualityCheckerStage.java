@@ -205,16 +205,7 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(regId);
 
 		try {
-			registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
-
-			// get the idobject individual biometrics key from mapping json
-			JSONObject mappingJson = utilities.getRegistrationProcessorMappingJson();
-			String individualBiometrics = JsonUtil
-					.getJSONValue(JsonUtil.getJSONObject(mappingJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), "value");
-
-			String source = utilities.getDefaultSource();
-
-			String individualBiometricsObject = packetManagerService.getField(regId, individualBiometrics, source, registrationStatusDto.getRegistrationType());
+			String individualBiometricsObject = packetManagerService.getFieldByKey(regId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationStatusDto.getRegistrationType());
 			if (StringUtils.isEmpty(individualBiometricsObject)) {
 				description.setCode(PlatformErrorMessages.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getCode());
 				description.setMessage(PlatformErrorMessages.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getMessage());
@@ -228,10 +219,10 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 						"Individual Biometric parameter is not present in ID Json");
 			} else {
-				BiometricRecord biometricRecord = packetManagerService.getBiometrics(regId, individualBiometrics, null, source, registrationStatusDto.getRegistrationType());
+				BiometricRecord biometricRecord = packetManagerService.getBiometrics(regId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, null, registrationStatusDto.getRegistrationType());
 
 				if (biometricRecord == null || CollectionUtils.isEmpty(biometricRecord.getSegments())) {
-					biometricRecord = packetManagerService.getBiometrics(regId, MappingJsonConstants.AUTHENTICATION_BIOMETRICS, null, source, registrationStatusDto.getRegistrationType());
+					biometricRecord = packetManagerService.getBiometrics(regId, MappingJsonConstants.AUTHENTICATION_BIOMETRICS, null, registrationStatusDto.getRegistrationType());
 				}
 
 				if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().size() == 0) {
@@ -412,6 +403,7 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 			description.setCode(PlatformErrorMessages.RPR_BDD_UNKNOWN_EXCEPTION.getCode());
 			description.setMessage(PlatformErrorMessages.RPR_BDD_UNKNOWN_EXCEPTION.getMessage());
 		} finally {
+			registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.QUALITY_CHECK.toString());
 			String moduleId = isTransactionSuccessful ? PlatformSuccessMessages.RPR_QUALITY_CHECK_SUCCESS.getCode()

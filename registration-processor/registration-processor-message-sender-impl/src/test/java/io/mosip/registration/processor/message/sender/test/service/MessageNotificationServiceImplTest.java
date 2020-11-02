@@ -174,14 +174,13 @@ public class MessageNotificationServiceImplTest {
 		fieldMap.put("phone", "23456");
 		fieldMap.put("dob", "11/11/2011");
 
-		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
-		when(utility.getDefaultSource()).thenReturn("reg-client");
+		when(packetManagerService.getFields(anyString(),anyList(),any())).thenReturn(fieldMap);
 
 		ClassLoader classLoader = getClass().getClassLoader();
 		File mappingJsonFile = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
 		InputStream is = new FileInputStream(mappingJsonFile);
 		String value = IOUtils.toString(is);
-		Mockito.when(utility.getRegistrationProcessorMappingJson())
+		Mockito.when(utility.getRegistrationProcessorMappingJson(anyString()))
 				.thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(value, JSONObject.class),MappingJsonConstants.IDENTITY));
 		PowerMockito.mockStatic(Utilities.class);
 		PowerMockito.when(Utilities.class, "getJson", any(), any()).thenReturn(value);
@@ -333,7 +332,7 @@ public class MessageNotificationServiceImplTest {
 		fieldMap.put("email", "mono@mono.com");
 		fieldMap.put("dob", "11/11/2011");
 
-		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
+		when(packetManagerService.getFields(anyString(),anyList(),any())).thenReturn(fieldMap);
 
 
 
@@ -354,7 +353,7 @@ public class MessageNotificationServiceImplTest {
 		fieldMap.put("phone", "23456");
 		fieldMap.put("dob", "11/11/2011");
 
-		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
+		when(packetManagerService.getFields(anyString(),anyList(),any())).thenReturn(fieldMap);
 
 		messageNotificationServiceImpl.sendEmailNotification("RPR_UIN_GEN_EMAIL", "12345", "NEW", IdType.RID, attributes,
 				mailCc, subject, null, RegistrationType.NEW.name());

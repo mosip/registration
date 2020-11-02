@@ -342,7 +342,7 @@ public class ManualVerificationServiceTest {
 		PowerMockito.when(JsonUtil.class, "objectMapperReadValue", any(), any()).thenReturn(jsonObject);
 
 		//Mockito.when(idSchemaUtils.getSource(anyString(), anyDouble())).thenReturn(source);
-		Mockito.when(utilities.getRegistrationProcessorMappingJson()).thenReturn(jsonObject);
+		Mockito.when(utilities.getRegistrationProcessorMappingJson(anyString())).thenReturn(jsonObject);
 		//Mockito.when(packetReaderService.getFile(anyString(), anyString(), anyString())).thenReturn(fileInStream);
 
 		String fileName = PacketFiles.BIOMETRIC.name();
