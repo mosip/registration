@@ -167,6 +167,8 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 					description.setCode(PlatformSuccessMessages.RPR_PKR_OSI_VALIDATE.getCode());
 					description.setMessage(PlatformSuccessMessages.RPR_PKR_OSI_VALIDATE.getMessage() + registrationId
 							+ "::" + "OSI(" + isValidOSI + ") is not valid");
+					registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+							.getStatusCode(RegistrationExceptionTypeCode.PACKET_OSI_VALIDATION_FAILED));
 				}
 			} else {
 				object.setIsValid(Boolean.FALSE);
