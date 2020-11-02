@@ -53,6 +53,7 @@ import io.mosip.registration.controller.device.BiometricsController;
 import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.RegistrationDTO;
+import io.mosip.registration.dto.RequiredOnExpr;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.SuccessResponseDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
@@ -1728,12 +1729,12 @@ public class DemographicDetailController extends BaseController {
 				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 						"Refreshing field : " + uiSchemaDTO.getId());
 
-				Validator validator = uiSchemaDTO.getVisible();
+				RequiredOnExpr requiredOnExpr = uiSchemaDTO.getVisible();
 
-				if (validator.getType().equalsIgnoreCase(RegistrationConstants.MVEL_TYPE)) {
+				if (requiredOnExpr.getEngine().equalsIgnoreCase(RegistrationConstants.MVEL_TYPE)) {
 
 					VariableResolverFactory resolverFactory = new MapVariableResolverFactory(context);
-					boolean required = MVEL.evalToBoolean(validator.getValidator(), resolverFactory);
+					boolean required = MVEL.evalToBoolean(requiredOnExpr.getExpr(), resolverFactory);
 
 					updateFields(Arrays.asList(uiSchemaDTO), required);
 
