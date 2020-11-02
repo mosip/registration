@@ -22,6 +22,9 @@ import java.util.stream.Collectors;
 import org.joda.time.LocalDate;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
+import org.mvel2.MVEL;
+import org.mvel2.integration.VariableResolverFactory;
+import org.mvel2.integration.impl.MapVariableResolverFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Controller;
@@ -52,9 +55,9 @@ import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.SuccessResponseDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
+import io.mosip.registration.dto.Validator;
 import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.mastersync.LocationDto;
-import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.entity.Location;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.IdentitySchemaService;
@@ -179,6 +182,8 @@ public class DemographicDetailController extends BaseController {
 	private Map<String, TreeMap<Integer, String>> orderOfAddressMapByGroup = new HashMap<>();
 
 	private Map<String, List<String>> orderOfAddressListByGroup = new LinkedHashMap<>();
+	// TODO find template based group fields
+	Map<String, List<UiSchemaDTO>> templateGroup = null;
 
 	/*
 	 * (non-Javadoc)
@@ -239,9 +244,6 @@ public class DemographicDetailController extends BaseController {
 			int position = parentFlow.size() - 1;
 
 //			for (Entry<String, UiSchemaDTO> entry : validation.getValidationMap().entrySet()) {
-
-			// TODO find template based group fields
-			Map<String, List<UiSchemaDTO>> templateGroup = null;
 
 			for (Entry<String, List<UiSchemaDTO>> templateGroupEntry : templateGroup.entrySet()) {
 
@@ -1669,6 +1671,134 @@ public class DemographicDetailController extends BaseController {
 				columnConstraint.setPercentWidth(currentPaneWidth / noOfItems);
 				columnConstraints.add(columnConstraint);
 
+			}
+		}
+	}
+
+	private void setTextFieldListener(TextField textField) {
+		textField.textProperty().addListener((observable, oldValue, newValue) -> {
+
+			// Validate Text Field
+			if (isInputTextValid(textField)) {
+
+				// Set Local lang
+				setSecondaryLangText(textField,
+						(TextField) getFxElement(textField + RegistrationConstants.LOCAL_LANGUAGE), true);
+
+//				 Save information to session
+				addTextFieldToSession(textField.getId(), getRegistrationDTOFromSession(), false);
+
+				// Group level visibility listeners
+				refreshDemographicGroups();
+
+				// TODO update required on fields also
+			} else {
+				// TODO If Validation failure
+				// TODO show error message for current field for both app and local lang
+			}
+		});
+	}
+
+	private void refreshDemographicGroups() {
+
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Refreshing demographic groups");
+
+		for (Entry<String, List<UiSchemaDTO>> group : templateGroup.entrySet()) {
+
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"Fetching visible validator for group ");
+
+			for (UiSchemaDTO uiSchemaDTO : group.getValue()) {
+
+				// TODO change to visible
+				Validator validator = uiSchemaDTO.getValidators().get(0);
+
+				if (validator.getType().equalsIgnoreCase("MVEL")) {
+					@SuppressWarnings("rawtypes")
+					Map context = new HashMap();
+					context.put("identity", getRegistrationDTOFromSession().getMVELDataContext());
+					VariableResolverFactory resolverFactory = new MapVariableResolverFactory(context);
+					boolean required = MVEL.evalToBoolean(validator.getValidator(), resolverFactory);
+
+					updateFields(Arrays.asList(uiSchemaDTO), required);
+
+				}
+			}
+
+			// TODO Required On
+
+		}
+	}
+
+	private void updateFields(List<UiSchemaDTO> fields, boolean isVisible) {
+
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID, "Updating fields");
+
+		for (UiSchemaDTO field : fields) {
+
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"Updating field : " + field.getId());
+
+			Node node = getFxElement(field.getId());
+
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"Updating visibility for field : " + field.getId() + " as visibility : " + isVisible);
+
+			if (node != null) {
+				node.getParent().setVisible(isVisible);
+				node.getParent().setManaged(isVisible);
+			}
+
+			// TODO same for local lang tooo
+			Node localLangNode = getFxElement(field.getId() + RegistrationConstants.LOCAL_LANGUAGE);
+
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"Updating visibility for field : " + field.getId() + RegistrationConstants.LOCAL_LANGUAGE
+							+ " as visibility : " + isVisible);
+
+			if (localLangNode != null) {
+				node.getParent().setVisible(isVisible);
+				node.getParent().setManaged(isVisible);
+			}
+		}
+	}
+
+	private Node getFxElement(String fieldId) {
+		return parentFlowPane.lookup(RegistrationConstants.HASH + fieldId);
+	}
+
+	private boolean isInputTextValid(TextField primaryLangTextField) {
+
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Validating text field " + primaryLangTextField.getId());
+		return validation.validateTextField(parentFlowPane, primaryLangTextField,
+				primaryLangTextField.getId() + "_ontype", true);
+	}
+
+	private void setSecondaryLangText(TextField primaryField, TextField secondaryField, boolean haveToTransliterate) {
+
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Setting secondary language for field : " + primaryField.getId());
+		if (secondaryField != null) {
+			if (haveToTransliterate) {
+				try {
+					secondaryField.setText(transliteration.transliterate(ApplicationContext.applicationLanguage(),
+							ApplicationContext.localLanguage(), primaryField.getText()));
+				} catch (RuntimeException runtimeException) {
+					LOGGER.error(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+							runtimeException.getMessage());
+
+					LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+							"Exception occured while transliterating secondary language for field : "
+									+ primaryField.getId());
+					secondaryField.setText(primaryField.getText());
+				}
+			} else {
+
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						"Not transliteration into local language" + primaryField.getId());
+				secondaryField.setText(primaryField.getText());
 			}
 		}
 	}
