@@ -259,7 +259,6 @@ public class RegistrationStatusAndSyncControllerTest {
 	}
 
 	@Test
-	@Ignore
 	public void testBuildRegistrationSyncResponse() throws JsonProcessingException {
 		List<SyncResponseDto> syncResponseDtoList = new ArrayList<>();
 		syncResponseFailureDto.setStatus("SUCCESS");
@@ -269,7 +268,6 @@ public class RegistrationStatusAndSyncControllerTest {
 	}
 
 	@Test
-	@Ignore
 	public void testBuildRegistrationSyncResponse1() throws JsonProcessingException {
 		List<SyncResponseDto> syncResponseDtoList = new ArrayList<>();
 		SyncResponseFailDto syncResponseFailDto = new SyncResponseFailDto();

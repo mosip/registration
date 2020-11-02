@@ -156,14 +156,9 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 			}
 			if (isUpdateAdultPacket(registartionType, applicantType)) {
 
-				JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
-
-				String individualBioMetricKey = JsonUtil.getJSONValue(
-						JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
-						MappingJsonConstants.VALUE);
-				String biometricsLabel = packetManagerService.getField(registrationId, individualBioMetricKey, source, registrationStatusDto.getRegistrationType());
+				String biometricsLabel = packetManagerService.getFieldByKey(registrationId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationStatusDto.getRegistrationType());
 				if (StringUtils.isEmpty(biometricsLabel)) {
-					isTransactionSuccessful = checkIndividualAuthentication(registrationId, source, process,
+					isTransactionSuccessful = checkIndividualAuthentication(registrationId, process,
 							registrationStatusDto);
 					description = isTransactionSuccessful
 							? PlatformSuccessMessages.RPR_PKR_BIOMETRIC_AUTHENTICATION.getMessage()
@@ -173,7 +168,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 							.getJSONValue(JsonUtil.readValueWithUnknownProperties(biometricsLabel, JSONObject.class),
 									MappingJsonConstants.VALUE);
 					if (individualBiometricsFileName != null && !individualBiometricsFileName.isEmpty()) {
-						BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId, individualBioMetricKey, null, source, process);
+						BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, null, process);
 						if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().isEmpty()) {
 							isTransactionSuccessful = false;
 							description = StatusUtil.BIOMETRIC_FILE_NOT_FOUND.getMessage();
