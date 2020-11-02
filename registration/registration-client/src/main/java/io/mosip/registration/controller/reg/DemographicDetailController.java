@@ -1598,7 +1598,7 @@ public class DemographicDetailController extends BaseController {
 
 				GridPane applicationLanguageGridPane = subGridPane(uiSchemaDTOs.get(index), "");
 
-				applicationLanguageGridPane.setId(uiSchemaDTOs.get(index).getId());
+//				applicationLanguageGridPane.setId(uiSchemaDTOs.get(index).getId());
 
 				GridPane rowGridPane = horizontalRowGridPane == null ? prepareRowGridPane(1) : horizontalRowGridPane;
 
@@ -1613,8 +1613,8 @@ public class DemographicDetailController extends BaseController {
 
 					if (localLanguageGridPane != null) {
 
-						localLanguageGridPane
-								.setId(uiSchemaDTOs.get(index).getId() + RegistrationConstants.LOCAL_LANGUAGE);
+//						localLanguageGridPane
+//								.setId(uiSchemaDTOs.get(index).getId() + RegistrationConstants.LOCAL_LANGUAGE);
 
 						rowGridPane.addColumn(horizontalRowGridPane == null ? 2 : uiSchemaDTOs.size() + index,
 								localLanguageGridPane);
