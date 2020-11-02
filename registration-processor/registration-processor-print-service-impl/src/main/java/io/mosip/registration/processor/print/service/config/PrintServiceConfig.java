@@ -160,4 +160,10 @@ public class PrintServiceConfig {
 		return new PrintUtility();
 	}
 
+	@Bean
+	@Primary
+	public PrintUtility printUtility() {
+		return new PrintUtility();
+	}
+
 }
