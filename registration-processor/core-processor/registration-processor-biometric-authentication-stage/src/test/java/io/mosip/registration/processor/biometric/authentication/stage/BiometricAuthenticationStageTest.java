@@ -235,7 +235,7 @@ public class BiometricAuthenticationStageTest {
 				.thenReturn(statusResponseDto);
 
 		JSONObject jsonObject = Mockito.mock(JSONObject.class);
-		when(utility.getUIn(anyString(),anyString(),anyString())).thenReturn("12345678");
+		when(utility.getUIn(anyString(), anyString())).thenReturn("12345678");
 		when(utility.retrieveIdrepoJson(any())).thenReturn(jsonObject);
 		FieldValue fieldValue = new FieldValue();
 		FieldValue fieldValue1 = new FieldValue();
@@ -248,8 +248,8 @@ public class BiometricAuthenticationStageTest {
 		metadata.add(fieldValue1);
 
 
-		when(utility.getDefaultSource()).thenReturn("reg-client");
-		when(utility.getApplicantAge(anyString(),anyString(),anyString())).thenReturn(21);
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg-client");
+		when(utility.getApplicantAge(anyString(),anyString())).thenReturn(21);
 
 		regentity.setRegistrationType("update");
 		when(syncRegistrationservice.findByRegistrationId(any())).thenReturn(regentity);
@@ -282,7 +282,7 @@ public class BiometricAuthenticationStageTest {
 		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(birTypeList);
 
-		when(packetManagerService.getBiometrics(any(), any(),
+		when(packetManagerService.getBiometrics(any(),
 				any(), any(),any())).thenReturn(biometricRecord);
 
 
@@ -313,7 +313,7 @@ public class BiometricAuthenticationStageTest {
 		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(birTypeList);
 
-		when(packetManagerService.getBiometrics(any(), any(),
+		when(packetManagerService.getBiometrics(any(),
 				any(), any(),any())).thenReturn(biometricRecord);
 
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
@@ -336,7 +336,7 @@ public class BiometricAuthenticationStageTest {
 	@Test
 	public void childPacketTest() throws ApisResourceAccessException, JsonProcessingException, io.mosip.kernel.core.exception.IOException, PacketManagerException, IOException {
 		when(regentity.getRegistrationType()).thenReturn("UPDATE");
-		when(utility.getApplicantAge(anyString(),anyString(),anyString())).thenReturn(2);
+		when(utility.getApplicantAge(anyString(),anyString())).thenReturn(2);
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getIsValid());
 	}
@@ -355,7 +355,7 @@ public class BiometricAuthenticationStageTest {
 	@Test
 	public void testIOException() throws ApisResourceAccessException, IOException, PacketManagerException, io.mosip.kernel.core.exception.IOException, JsonProcessingException {
 
-		when(utility.getApplicantAge(any(),anyString(),anyString())).thenThrow(new IOException("IOException"));
+		when(utility.getApplicantAge(any(),anyString())).thenThrow(new IOException("IOException"));
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getInternalError());
 	}
@@ -363,7 +363,7 @@ public class BiometricAuthenticationStageTest {
 	@Test
 	public void testApisResourceAccessException() throws ApisResourceAccessException, IOException, PacketManagerException, io.mosip.kernel.core.exception.IOException, JsonProcessingException {
 
-		when(utility.getApplicantAge(anyString(),anyString(),anyString()))
+		when(utility.getApplicantAge(anyString(),anyString()))
 				.thenThrow(new ApisResourceAccessException("ApisResourceAccessException"));
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getInternalError());
@@ -372,7 +372,7 @@ public class BiometricAuthenticationStageTest {
 	@Test
 	public void testException() throws ApisResourceAccessException, IOException, PacketManagerException, io.mosip.kernel.core.exception.IOException, JsonProcessingException {
 
-		when(utility.getApplicantAge(anyString(),anyString(),anyString()))
+		when(utility.getApplicantAge(anyString(),anyString()))
 				.thenThrow(
 						new ApisResourceAccessException(
 								"test message"));
@@ -404,7 +404,7 @@ public class BiometricAuthenticationStageTest {
 
 		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(birTypeList);
-		when(packetManagerService.getBiometrics(any(), any(), any(), any(),any())).thenReturn(biometricRecord);
+		when(packetManagerService.getBiometrics(any(), any(), any(),any())).thenReturn(biometricRecord);
 
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 
@@ -456,7 +456,7 @@ public class BiometricAuthenticationStageTest {
 		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(birTypeList);
 
-		when(packetManagerService.getBiometrics(any(), any(),
+		when(packetManagerService.getBiometrics(any(),
 				any(), any(),any())).thenReturn(biometricRecord);
 		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
 		ErrorDTO error=new ErrorDTO();
@@ -497,7 +497,7 @@ public class BiometricAuthenticationStageTest {
 	@Test
 	public void testJsonProcessingException() throws ApisResourceAccessException, IOException, PacketManagerException, io.mosip.kernel.core.exception.IOException, JsonProcessingException {
 
-		when(utility.getApplicantAge(any(),anyString(),anyString())).thenThrow(new JsonProcessingException("IOException"));
+		when(utility.getApplicantAge(any(),anyString())).thenThrow(new JsonProcessingException("IOException"));
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getInternalError());
 	}
@@ -505,7 +505,7 @@ public class BiometricAuthenticationStageTest {
 	@Test
 	public void testPacketManagerException() throws ApisResourceAccessException, IOException, PacketManagerException, io.mosip.kernel.core.exception.IOException, JsonProcessingException {
 
-		when(utility.getApplicantAge(any(),anyString(),anyString())).thenThrow(new PacketManagerException("errorcode","IOException"));
+		when(utility.getApplicantAge(any(),anyString())).thenThrow(new PacketManagerException("errorcode","IOException"));
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getInternalError());
 	}

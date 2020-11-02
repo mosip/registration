@@ -154,9 +154,6 @@ public enum ApiName {
 	/** The idschemaversion. */
 	IDSCHEMAVERSION,
 
-	/** The cnienumber. */
-	CNIENUMBER,
-
 	/** The decryption api from DMZ *. */
 
 	SYNCSERVICE,

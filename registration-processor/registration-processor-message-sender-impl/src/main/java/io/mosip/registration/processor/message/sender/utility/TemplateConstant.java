@@ -73,9 +73,6 @@ public class TemplateConstant {
 	/** The Constant IDSCHEMAVERSION. */
 	public static final String IDSCHEMAVERSION = "idSchemaVersion";
 
-	/** The Constant CNIENUMBER. */
-	public static final String CNIENUMBER = "cnieNumber";
-
 	/** The Constant UIN. */
 	public static final String UIN = "UIN";
 

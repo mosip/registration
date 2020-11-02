@@ -84,7 +84,8 @@ public class MandatoryValidationTest {
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("10003100030001120190410111048");
 
-		when(utility.getRegistrationProcessorMappingJson()).thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(mappingJsonString, JSONObject.class), MappingJsonConstants.IDENTITY));
+		when(utility.getSourceFromIdField(any(), any(), any())).thenReturn("reg_client");
+		when(utility.getRegistrationProcessorMappingJson(anyString())).thenReturn(JsonUtil.getJSONObject(JsonUtil.objectMapperReadValue(mappingJsonString, JSONObject.class), MappingJsonConstants.IDENTITY));
 		
 		//Mockito.when(adapter.getFile(any(), any(),anyString())).thenReturn(inputStream);
 
@@ -99,7 +100,7 @@ public class MandatoryValidationTest {
 	@Test
 	public void mandatoryValidationSuccessTest() throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 
-		boolean result = mandatoryValidation.mandatoryFieldValidation(registrationStatusDto.getRegistrationId(), source,process, packetValidationDto);
+		boolean result = mandatoryValidation.mandatoryFieldValidation(registrationStatusDto.getRegistrationId(), process, packetValidationDto);
 		assertTrue("Test for mandate fields", result);
 	}
 
@@ -111,7 +112,7 @@ public class MandatoryValidationTest {
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(idJsonString.getBytes());
 		when(packetManagerService.getField(anyString(),anyString(),anyString(),anyString())).thenReturn(null);
 
-		boolean result = mandatoryValidation.mandatoryFieldValidation(registrationStatusDto.getRegistrationId(), source,process, packetValidationDto);
+		boolean result = mandatoryValidation.mandatoryFieldValidation(registrationStatusDto.getRegistrationId(), process, packetValidationDto);
 
 		assertFalse("Test for mandatory missing fields", result);
 	}
@@ -128,7 +129,7 @@ public class MandatoryValidationTest {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		boolean result = mandatoryValidation.mandatoryFieldValidation(registrationStatusDto.getRegistrationId(), source,process, packetValidationDto);
+		boolean result = mandatoryValidation.mandatoryFieldValidation(registrationStatusDto.getRegistrationId(), process, packetValidationDto);
 		assertTrue("Test for mandate field marked false", result);
 	}
 
@@ -141,7 +142,7 @@ public class MandatoryValidationTest {
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(idJsonString.getBytes());
 		when(packetManagerService.getField(anyString(),anyString(),anyString(),anyString())).thenReturn(null);
 
-		boolean result = mandatoryValidation.mandatoryFieldValidation(registrationStatusDto.getRegistrationId(), source,process, packetValidationDto);
+		boolean result = mandatoryValidation.mandatoryFieldValidation(registrationStatusDto.getRegistrationId(), process, packetValidationDto);
 
 		assertFalse("Test for mandatory missing fields", result);
 	}
@@ -154,7 +155,7 @@ public class MandatoryValidationTest {
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(idJsonString.getBytes());
 		when(packetManagerService.getField(anyString(),anyString(),anyString(),anyString())).thenReturn(null);
 
-		boolean result = mandatoryValidation.mandatoryFieldValidation(registrationStatusDto.getRegistrationId(), source,process, packetValidationDto);
+		boolean result = mandatoryValidation.mandatoryFieldValidation(registrationStatusDto.getRegistrationId(), process, packetValidationDto);
 
 		assertFalse("Test for mandatory missing fields", result);
 	}

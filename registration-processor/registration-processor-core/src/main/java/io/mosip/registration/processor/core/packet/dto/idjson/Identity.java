@@ -68,10 +68,6 @@ public class Identity {
 	/** The email. */
 	private String email;
 
-	/** The CNIE number. */
-	@JsonProperty("CNIENumber")
-	private BigInteger cnieNumber;
-
 	/** The local administrative authority. */
 	private List<ValuesDTO> localAdministrativeAuthority;
 
@@ -105,7 +101,7 @@ public class Identity {
 				+ ", dateOfBirth=" + dateOfBirth + ", age=" + age + ", gender=" + gender + ", addressLine1="
 				+ addressLine1 + ", addressLine2=" + addressLine2 + ", addressLine3=" + addressLine3 + ", region="
 				+ region + ", province=" + province + ", city=" + city + ", postalCode=" + postalCode + ", phone="
-				+ phone + ", email=" + email + ", cnieNumber=" + cnieNumber + ", localAdministrativeAuthority="
+				+ phone + ", email=" + email + ", localAdministrativeAuthority="
 				+ localAdministrativeAuthority + ", parentOrGuardianRIDOrUIN=" + parentOrGuardianRIDOrUIN
 				+ ", parentOrGuardianName=" + parentOrGuardianName + ", proofOfAddress=" + proofOfAddress
 				+ ", proofOfIdentity=" + proofOfIdentity + ", proofOfRelationship=" + proofOfRelationship

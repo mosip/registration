@@ -29,10 +29,10 @@ public class CompositePacketValidator implements PacketValidator {
     private PacketValidator referenceValidatorImpl;
 
     @Override
-    public boolean validate(String id, String source, String process, PacketValidationDto packetValidationDto) throws PacketValidatorException, ApisResourceAccessException, RegistrationProcessorCheckedException, IOException, JsonProcessingException, PacketManagerException {
-        boolean isValid = packetValidatorImpl.validate(id, source, process, packetValidationDto);
+    public boolean validate(String id, String process, PacketValidationDto packetValidationDto) throws ApisResourceAccessException, RegistrationProcessorCheckedException, IOException, JsonProcessingException, PacketManagerException {
+        boolean isValid = packetValidatorImpl.validate(id, process, packetValidationDto);
         if (isValid)
-            isValid = referenceValidatorImpl.validate(id, source, process, packetValidationDto);
+            isValid = referenceValidatorImpl.validate(id, process, packetValidationDto);
         return isValid;
     }
 }

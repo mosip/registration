@@ -114,7 +114,6 @@ public class BioDedupeServiceImplTest {
 	@Mock
 	private CbeffUtil cbeffutil;
 
-	private static final String source = "source";
 	private static final String process = "process";
 	private static final byte[] fileBytes = "1234567890".getBytes();
 
@@ -168,7 +167,7 @@ public class BioDedupeServiceImplTest {
 		InputStream inputStream = new FileInputStream(file);
 		String mappingJson = IOUtils.toString(inputStream);
 		JSONObject mappingJSONObject = JsonUtil.objectMapperReadValue(mappingJson, JSONObject.class);
-		Mockito.when(utility.getRegistrationProcessorMappingJson())
+		Mockito.when(utility.getRegistrationProcessorMappingJson(any()))
 				.thenReturn(JsonUtil.getJSONObject(mappingJSONObject, MappingJsonConstants.IDENTITY));
 		fooLogger = (Logger) LoggerFactory.getLogger(BioDedupeServiceImpl.class);
 		listAppender = new ListAppender<>();
@@ -194,7 +193,7 @@ public class BioDedupeServiceImplTest {
 		BiometricRecord biometricRecord = new BiometricRecord();
 		biometricRecord.setSegments(birTypeList);
 
-		Mockito.when(packetManagerService.getBiometrics(any(), any(),any(), any(),any())).thenReturn(biometricRecord);
+		Mockito.when(packetManagerService.getBiometrics(any(), any(),any(), any())).thenReturn(biometricRecord);
 		Mockito.when(cbeffutil.createXML(any())).thenReturn(fileBytes);
 
 
@@ -419,21 +418,21 @@ public class BioDedupeServiceImplTest {
 	@Test
 	public void testGetFile() throws Exception {
 
-		byte[] fileData = bioDedupeService.getFileByRegId(registrationId, source, process);
+		byte[] fileData = bioDedupeService.getFileByRegId(registrationId, process);
 		assertArrayEquals(fileData, fileBytes);
 	}
 
 	@Test
 	public void getFileByAbisRefId() throws Exception {
 
-		byte[] fileData = bioDedupeService.getFileByAbisRefId(registrationId, source, process);
+		byte[] fileData = bioDedupeService.getFileByAbisRefId(registrationId, process);
 		assertArrayEquals("verfing if byte array returned is null for the given invalid regId ", fileData, null);
 
 		// case2 : if regId is valid
 		List<String> regIds = new ArrayList<>();
 		regIds.add("10006100360000320190702102135");
 		Mockito.when(packetInfoManager.getRidByReferenceId(anyString())).thenReturn(regIds);
-		byte[] result = bioDedupeService.getFileByAbisRefId(registrationId, source, process);
+		byte[] result = bioDedupeService.getFileByAbisRefId(registrationId, process);
 		assertArrayEquals("verfing if byte array returned is same as expected ", result, fileBytes);
 	}
 
@@ -446,7 +445,7 @@ public class BioDedupeServiceImplTest {
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenThrow(new IOException());
 
-		byte[] fileData = bioDedupeService.getFileByRegId(registrationId, source, process);
+		byte[] fileData = bioDedupeService.getFileByRegId(registrationId, process);
 		Assertions.assertThatExceptionOfType(IOException.class);
 	}
 }

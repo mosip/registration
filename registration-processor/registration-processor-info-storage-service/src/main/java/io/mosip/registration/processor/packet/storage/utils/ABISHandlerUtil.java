@@ -68,7 +68,7 @@ public class ABISHandlerUtil {
 	 *                                               has occurred.
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 */
-	public List<String> getUniqueRegIds(String registrationId, String source, String registrationType)
+	public List<String> getUniqueRegIds(String registrationId, String registrationType)
 			throws ApisResourceAccessException, IOException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "ABISHandlerUtil::getUniqueRegIds()::entry");
@@ -98,7 +98,7 @@ public class ABISHandlerUtil {
 								RegistrationTransactionStatusCode.IN_PROGRESS.toString());
 						List<String> processedRegIds = packetInfoDao.getProcessedOrProcessingRegIds(matchedRegIds,
 								RegistrationTransactionStatusCode.PROCESSED.toString());
-						uniqueRIDs = getUniqueRegIds(processedRegIds, registrationId, source, registrationType);
+						uniqueRIDs = getUniqueRegIds(processedRegIds, registrationId, registrationType);
 						uniqueRIDs.addAll(processingRegIds);
 					}
 				}
@@ -159,9 +159,9 @@ public class ABISHandlerUtil {
 	 *                                               has occurred.
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 */
-	private List<String> getUniqueRegIds(List<String> matchedRegistrationIds, String registrationId, String source,
+	private List<String> getUniqueRegIds(List<String> matchedRegistrationIds, String registrationId,
 			String registrationType) throws ApisResourceAccessException, IOException,
-			io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
+			JsonProcessingException, PacketManagerException {
 
 		Map<String, String> filteredRegMap = new LinkedHashMap<>();
 		List<String> filteredRIds = new ArrayList<>();
@@ -172,17 +172,17 @@ public class ABISHandlerUtil {
 					utilities.getGetRegProcessorDemographicIdentity());
 
 			if (registrationType.equalsIgnoreCase(SyncTypeDto.UPDATE.toString())) {
-				String packetUin = utilities.getUIn(registrationId, source, registrationType);
+				String packetUin = utilities.getUIn(registrationId, registrationType);
 				if (matchedUin != null && !packetUin.equals(matchedUin)) {
-					filteredRegMap.put(matchedUin.toString(), machedRegId);
+					filteredRegMap.put(matchedUin, machedRegId);
 				}
 			}
 			if (registrationType.equalsIgnoreCase(SyncTypeDto.NEW.toString()) && matchedUin != null) {
-				filteredRegMap.put(matchedUin.toString(), machedRegId);
+				filteredRegMap.put(matchedUin, machedRegId);
 			}
 
 			if (registrationType.equalsIgnoreCase(SyncTypeDto.LOST.toString()) && matchedUin != null) {
-				filteredRegMap.put(matchedUin.toString(), machedRegId);
+				filteredRegMap.put(matchedUin, machedRegId);
 			}
 			if (!filteredRegMap.isEmpty()) {
 				filteredRIds = new ArrayList<>(filteredRegMap.values());
