@@ -10,6 +10,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -245,6 +246,7 @@ public class DemographicDetailController extends BaseController {
 
 //			for (Entry<String, UiSchemaDTO> entry : validation.getValidationMap().entrySet()) {
 
+			templateGroup = getTemplateGroupMap();
 			for (Entry<String, List<UiSchemaDTO>> templateGroupEntry : templateGroup.entrySet()) {
 
 				GridPane groupGridPane = new GridPane();
@@ -1816,5 +1818,24 @@ public class DemographicDetailController extends BaseController {
 				secondaryField.setText(primaryField.getText());
 			}
 		}
+	}
+
+	private Map<String, List<UiSchemaDTO>> getTemplateGroupMap() {
+
+		Map<String, List<UiSchemaDTO>> templateGroupMap = new LinkedHashMap<>();
+
+		for (Entry<String, UiSchemaDTO> entry : validation.getValidationMap().entrySet()) {
+			if (isDemographicField(entry.getValue())) {
+
+				List<UiSchemaDTO> list = templateGroupMap.get(entry.getKey());
+				if (list == null) {
+					list = new LinkedList<UiSchemaDTO>();
+				}
+				list.add(entry.getValue());
+				templateGroupMap.put(entry.getValue().getTemplateGroup(), list);
+			}
+		}
+		return templateGroupMap;
+
 	}
 }
