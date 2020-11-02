@@ -641,6 +641,7 @@ public class DemographicDetailController extends BaseController {
 			setTextFieldListener(listOfTextField.get(fieldName));
 		}
 		listOfTextField.put(field.getId(), field);
+
 		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
 			field.setPromptText(schema.getLabel().get(RegistrationConstants.SECONDARY));
 			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.SECONDARY));
@@ -1681,6 +1682,7 @@ public class DemographicDetailController extends BaseController {
 	}
 
 	private void setTextFieldListener(TextField textField) {
+
 		textField.focusedProperty().addListener((observable, oldValue, newValue) -> {
 			if (!textField.isFocused()) {
 				fxUtils.showLabel(parentFlowPane, textField);
@@ -1828,12 +1830,13 @@ public class DemographicDetailController extends BaseController {
 		for (Entry<String, UiSchemaDTO> entry : validation.getValidationMap().entrySet()) {
 			if (isDemographicField(entry.getValue())) {
 
-				List<UiSchemaDTO> list = templateGroupMap.get(entry.getKey());
+				List<UiSchemaDTO> list = templateGroupMap.get(entry.getValue().getTemplateGroup());
 				if (list == null) {
 					list = new LinkedList<UiSchemaDTO>();
 				}
 				list.add(entry.getValue());
-				templateGroupMap.put(entry.getValue().getTemplateGroup(), list);
+				templateGroupMap.put(entry.getValue().getTemplateGroup() == null ? entry.getKey()
+						: entry.getValue().getTemplateGroup(), list);
 			}
 		}
 		return templateGroupMap;
