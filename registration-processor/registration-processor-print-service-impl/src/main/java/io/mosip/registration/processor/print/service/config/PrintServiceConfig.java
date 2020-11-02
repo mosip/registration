@@ -147,7 +147,13 @@ public class PrintServiceConfig {
 	public PrintPostServiceImpl getPrintPostServiceImpl() {
 		return new PrintPostServiceImpl();
 	}
-	
+
+	@Bean
+	@Primary
+	public PrintUtility printUtility() {
+		return new PrintUtility();
+	}
+
 	@Bean
 	@Primary
 	public PrintUtility printUtility() {
