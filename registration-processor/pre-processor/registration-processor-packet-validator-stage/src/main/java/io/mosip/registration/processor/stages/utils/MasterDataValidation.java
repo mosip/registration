@@ -3,10 +3,11 @@ package io.mosip.registration.processor.stages.utils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +30,6 @@ import io.mosip.registration.processor.core.packet.dto.demographicinfo.JsonValue
 import io.mosip.registration.processor.core.packet.dto.masterdata.StatusResponseDto;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
-import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 
 /**
@@ -55,12 +55,15 @@ public class MasterDataValidation {
 	/** The Constant VALID. */
 	private static final String VALID = "Valid";
 
-	/** The demographic identity. */
-	JSONObject demographicIdentity = null;
-
 	/** The utility. */
 	@Autowired
 	private Utilities utility;
+
+	@Autowired
+	private PacketManagerService packetManagerService;
+
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	/** The Constant VALUE. */
 	private static final String VALUE = "value";
@@ -76,74 +79,62 @@ public class MasterDataValidation {
 	/**
 	 * Validate master data.
 	 *
-	 * @param jsonString
-	 *            the json string @return the boolean @throws
+	 * @param id
+	 *            id
+	 * @param source : source
+	 * @param process : process
+	 * @return the boolean
+	 * @throws ApisResourceAccessException
 	 */
-	public Boolean validateMasterData(String jsonString) throws ApisResourceAccessException, IOException {
+	public boolean validateMasterData(String id, String source, String process) throws ApisResourceAccessException, IOException, io.mosip.kernel.core.util.exception.JsonProcessingException, PacketManagerException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"MasterDataValidation::validateMasterData()::entry");
 		boolean isValid = false;
 		String primaryLanguage = env.getProperty(PRIMARY_LANGUAGE);
 		String secondaryLanguage = env.getProperty(SECONDARY_LANGUAGE);
-		try {
+		String[] attributes = env.getProperty(ATTRIBUTES).split(",");
+		if (attributes == null || attributes.length == 0)
+			return true;
 
-			demographicIdentity = getDemographicJson(jsonString);
+		List<String> list = new ArrayList<>(Arrays.asList(attributes));
 
-			String[] attributes = env.getProperty(ATTRIBUTES).split(",");
-			if (attributes.length == 0)
-				isValid = true;
-			List<String> list = new ArrayList<>(Arrays.asList(attributes));
-
-			Iterator<String> it = list.iterator();
-
-			while (it.hasNext()) {
-				String key = it.next().trim();
-
-				if (env.getProperty(ApiName.valueOf(key.toUpperCase()).name()) != null) {
-
-					String engValue = null;
-					String araValue = null;
-
-					Object object = JsonUtil.getJSONValue(demographicIdentity, key);
+		for (String element : list) {
+			if (env.getProperty(ApiName.valueOf(element.toUpperCase()).name()) != null) {
+				String primaryLangValue = null;
+				String secondaryLangValue = null;
+				String val = packetManagerService.getField(id, element, source, process);
+				if (val != null) {
+					Object object = objectMapper.readValue(val, Object.class);
 					if (object instanceof ArrayList) {
-						JSONArray node = JsonUtil.getJSONArray(demographicIdentity, key);
+						JSONArray node = objectMapper.readValue(val, JSONArray.class);
 						JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
-						engValue = getParameter(jsonValues, primaryLanguage);
-						araValue = getParameter(jsonValues, secondaryLanguage);
+						primaryLangValue = getParameter(jsonValues, primaryLanguage);
+						secondaryLangValue = getParameter(jsonValues, secondaryLanguage);
 					} else if (object instanceof LinkedHashMap) {
-						JSONObject json = JsonUtil.getJSONObject(demographicIdentity, key);
-						engValue = (String) json.get(VALUE);
-					} else {
-						engValue = (String) object;
-					}
+						JSONObject json = objectMapper.readValue(val, JSONObject.class);
+						primaryLangValue = (String) json.get(VALUE);
+					} else
+						primaryLangValue = (String) object;
 
-					if (validateIdentityValues(key, engValue) && validateIdentityValues(key, araValue)) {
-						isValid = true;
-					} else {
-						isValid = false;
+					isValid = validateIdentityValues(element, primaryLangValue) && validateIdentityValues(element, secondaryLangValue);
+					if (!isValid) {
 						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 								LoggerFileConstant.REGISTRATIONID.toString(), "",
-								PlatformErrorMessages.RPR_PVM_IDENTITY_INVALID.getMessage() + " " + key
-										+ "and for values are" + engValue + " " + araValue);
+								PlatformErrorMessages.RPR_PVM_IDENTITY_INVALID.getMessage() + " " + element
+										+ "and for values are" + primaryLangValue + " " + secondaryLangValue);
 
 						break;
 					}
-				} else {
-					isValid = false;
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), "",
-							PlatformErrorMessages.RPR_PVM_RESOURCE_NOT_FOUND.getMessage() + " " + key);
+				} else
+					isValid = true;
 
-					break;
-
-				}
+			} else {
+				isValid = false;
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), "",
+						PlatformErrorMessages.RPR_PVM_RESOURCE_NOT_FOUND.getMessage() + " " + element);
+				break;
 			}
-
-		} catch (IdentityNotFoundException | IOException e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					"", PlatformErrorMessages.RPR_PVM_IDENTITY_NOT_FOUND.getMessage() + e.getMessage());
-			throw e;
-
 		}
 
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
@@ -204,26 +195,6 @@ public class MasterDataValidation {
 		}
 		return isvalidateIdentity;
 
-	}
-
-	/**
-	 * Gets the demographic json.
-	 *
-	 * @param jsonString
-	 *            the json string
-	 * @return the demographic json
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 */
-	private JSONObject getDemographicJson(String jsonString) throws IOException {
-
-		JSONObject demographicJson = JsonUtil.objectMapperReadValue(jsonString, JSONObject.class);
-		demographicIdentity = JsonUtil.getJSONObject(demographicJson, utility.getGetRegProcessorDemographicIdentity());
-
-		if (demographicIdentity == null)
-			throw new IdentityNotFoundException(PlatformErrorMessages.RPR_PVM_IDENTITY_NOT_FOUND.getMessage());
-
-		return demographicIdentity;
 	}
 
 	/**

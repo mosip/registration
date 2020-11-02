@@ -15,16 +15,16 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import io.mosip.commons.packet.constants.Biometric;
+import io.mosip.commons.packet.dto.packet.AuditDto;
+import io.mosip.commons.packet.dto.packet.BiometricsException;
+import io.mosip.commons.packet.dto.packet.SimpleDto;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
-import io.mosip.kernel.packetmanager.constants.Biometric;
-import io.mosip.kernel.packetmanager.dto.AuditDto;
-import io.mosip.kernel.packetmanager.dto.BiometricsDto;
-import io.mosip.kernel.packetmanager.dto.DocumentDto;
-import io.mosip.kernel.packetmanager.dto.SimpleDto;
-import io.mosip.kernel.packetmanager.dto.metadata.BiometricsException;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.dto.biometric.BiometricDTO;
+import io.mosip.registration.dto.packetmanager.BiometricsDto;
+import io.mosip.registration.dto.packetmanager.DocumentDto;
 import lombok.Data;
 
 /**
@@ -59,9 +59,11 @@ public class RegistrationDTO {
 	private boolean isNameNotUpdated;
 	private boolean isUpdateUINChild;
 	private boolean isAgeCalculatedByDOB;
-
+	private List<String> defaultUpdatableFields;
+	private List<String> defaultUpdatableFieldGroups;
 	private BiometricDTO biometricDTO = new BiometricDTO();
 	private Map<String, Object> demographics = new HashMap<>();
+	private Map<String, Object> defaultDemographics = new HashMap<>();
 	private Map<String, DocumentDto> documents = new HashMap<>();
 	private Map<String, BiometricsDto> biometrics = new HashMap<>();
 	private Map<String, BiometricsException> biometricExceptions = new HashMap<>();
@@ -80,6 +82,8 @@ public class RegistrationDTO {
 	/** The acknowledge receipt name. */
 	private String acknowledgeReceiptName;
 
+	public Map<String, byte[]> streamImages = new HashMap<>();
+
 	public void addDemographicField(String fieldId, String value) {
 		this.demographics.put(fieldId, (value != null && !value.isEmpty()) ? value : null);
 	}
@@ -95,6 +99,19 @@ public class RegistrationDTO {
 
 		if (!values.isEmpty())
 			this.demographics.put(fieldId, values);
+	}
+
+	public void addDefaultDemographicField(String fieldId, String applicationLanguage, String value,
+			String localLanguage, String localValue) {
+		List<SimpleDto> values = new ArrayList<SimpleDto>();
+		if (value != null && !value.isEmpty())
+			values.add(new SimpleDto(applicationLanguage, value));
+
+		if (localValue != null && !localValue.isEmpty())
+			values.add(new SimpleDto(localLanguage, localValue));
+
+		if (!values.isEmpty())
+			this.defaultDemographics.put(fieldId, values);
 	}
 
 	public void removeDemographicField(String fieldId) {
@@ -115,6 +132,14 @@ public class RegistrationDTO {
 		}
 	}
 	
+	public void setDateField(String fieldId, String dateString) {
+		if (isValidValue(dateString)) {
+			LocalDate date = LocalDate.parse(dateString, DateTimeFormatter.ofPattern(DATE_FORMAT));
+			setDateField(fieldId, String.valueOf(date.getDayOfMonth()), String.valueOf(date.getMonthValue()),
+					String.valueOf(date.getYear()));
+		}
+	}
+
 	public void setDateField(String fieldId, String dateString) {
 		if (isValidValue(dateString)) {
 			LocalDate date = LocalDate.parse(dateString, DateTimeFormatter.ofPattern(DATE_FORMAT));

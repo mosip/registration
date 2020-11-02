@@ -28,6 +28,8 @@ public enum PlatformSuccessMessages {
 	// Packet Validator Success messages
 	/** The rpr pkr packet validate. */
 	RPR_PKR_PACKET_VALIDATE(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "000", "Packet Validation Success"),
+	
+	RPR_PKR_ADDITIONAL_INFO_DELETED(PlatformConstants.RPR_PACKET_VALIDATOR_MODULE + "000", "Deleted additionalInfo from RegistrationList"),
 
 	// OSI validator Success messages
 	/** The rpr pkr osi validate. */
@@ -94,6 +96,8 @@ public enum PlatformSuccessMessages {
 			"Manual verification approved"),
 
 	RPR_DECRYPTION_SUCCESS(PlatformConstants.RPR_PACKET_DECRYPTION_MODULE + "000", "Decryption success"),
+	
+	RPR_ENCRYPTION_SUCCESS(PlatformConstants.RPR_PACKET_DECRYPTION_MODULE + "000", "Encryption success"),
 
 	RPR_PRINT_SERVICE_SUCCESS(PlatformConstants.RPR_PRINTING_MODULE + "002", "Pdf generated and sent to print stage"),
 

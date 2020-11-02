@@ -18,6 +18,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -46,6 +47,7 @@ import io.mosip.registration.repositories.UserDetailRepository;
 import io.mosip.registration.repositories.UserMachineMappingRepository;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ ApplicationContext.class})
 public class UserClientMachineMappingDAOTest {
 
@@ -83,7 +85,7 @@ public class UserClientMachineMappingDAOTest {
 
 	@Test(expected = RegBaseUncheckedException.class)
 	public void getStationIDRunException() throws RegBaseCheckedException {
-		Mockito.when(machineMasterRepository.findByIsActiveTrueAndNameAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
+		Mockito.when(machineMasterRepository.findByIsActiveTrueAndNameIgnoreCaseAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
 				.thenThrow(new RegBaseUncheckedException());
 		machineMappingDAOImpl.getStationID("localhost");
 	}
@@ -97,7 +99,7 @@ public class UserClientMachineMappingDAOTest {
 		specId.setId("100131");
 		specId.setLangCode("eng");
 		machineMaster.setRegMachineSpecId(specId);
-		Mockito.when(machineMasterRepository.findByIsActiveTrueAndNameAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
+		Mockito.when(machineMasterRepository.findByIsActiveTrueAndNameIgnoreCaseAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(machineMaster);
 		String stationId = machineMappingDAOImpl.getStationID("localhost");
 		Assert.assertSame("100131", stationId);
@@ -181,7 +183,7 @@ public class UserClientMachineMappingDAOTest {
 		MachineMaster machineMaster = PowerMockito.mock(MachineMaster.class);
 		machineMaster.setKeyIndex("keyIndex");
 
-		PowerMockito.when(machineMasterRepository.findByIsActiveTrueAndNameAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
+		PowerMockito.when(machineMasterRepository.findByIsActiveTrueAndNameIgnoreCaseAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(machineMaster);
 
 		Assert.assertEquals(machineMaster.getKeyIndex(), machineMappingDAOImpl.getKeyIndexByMachineName("name"));
@@ -191,7 +193,7 @@ public class UserClientMachineMappingDAOTest {
 	@Test
 	public void getKeyIndexByMachineNameNullTest() {
 
-		PowerMockito.when(machineMasterRepository.findByIsActiveTrueAndNameAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
+		PowerMockito.when(machineMasterRepository.findByIsActiveTrueAndNameIgnoreCaseAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(null);
 
 		Assert.assertNull(machineMappingDAOImpl.getKeyIndexByMachineName("name"));

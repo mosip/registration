@@ -20,6 +20,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonMappingException;
 import io.mosip.kernel.core.util.exception.JsonParseException;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.kernel.idvalidator.rid.constant.RidExceptionProperty;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
@@ -38,6 +39,7 @@ import io.mosip.registration.processor.status.code.RegistrationExternalStatusCod
 import io.mosip.registration.processor.status.code.SupervisorStatus;
 import io.mosip.registration.processor.status.dao.SyncRegistrationDao;
 import io.mosip.registration.processor.status.decryptor.Decryptor;
+import io.mosip.registration.processor.status.dto.RegistrationAdditionalInfoDTO;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 import io.mosip.registration.processor.status.dto.RegistrationSyncRequestDTO;
@@ -47,7 +49,9 @@ import io.mosip.registration.processor.status.dto.SyncResponseFailDto;
 import io.mosip.registration.processor.status.dto.SyncResponseFailureDto;
 import io.mosip.registration.processor.status.dto.SyncResponseSuccessDto;
 import io.mosip.registration.processor.status.dto.SyncTypeDto;
+import io.mosip.registration.processor.status.encryptor.Encryptor;
 import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
+import io.mosip.registration.processor.status.exception.EncryptionFailureException;
 import io.mosip.registration.processor.status.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
@@ -96,6 +100,10 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	/** The decryptor. */
 	@Autowired
 	private Decryptor decryptor;
+	
+	/** The encryptor. */
+	@Autowired
+	private Encryptor encryptor;
 
 	/**
 	 * Instantiates a new sync registration service impl.
@@ -111,7 +119,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	 * io.mosip.registration.processor.status.service.SyncRegistrationService#sync(
 	 * java.util.List)
 	 */
-	public List<SyncResponseDto> sync(List<SyncRegistrationDto> resgistrationDtos) {
+	public List<SyncResponseDto> sync(List<SyncRegistrationDto> resgistrationDtos, String referenceId,
+			String timeStamp) {
 		List<SyncResponseDto> synchResponseList = new ArrayList<>();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"SyncRegistrationServiceImpl::sync()::entry");
@@ -119,7 +128,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		boolean isTransactionSuccessful = false;
 		try {
 			for (SyncRegistrationDto registrationDto : resgistrationDtos) {
-				synchResponseList = validateSync(registrationDto, synchResponseList);
+				synchResponseList = validateSync(registrationDto, synchResponseList, referenceId, timeStamp);
 			}
 			isTransactionSuccessful = true;
 			description.setMessage("Registartion Id's are successfully synched in Sync Registration table");
@@ -172,7 +181,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	 * @return the list
 	 */
 	private List<SyncResponseDto> validateSync(SyncRegistrationDto registrationDto,
-			List<SyncResponseDto> syncResponseList) {
+			List<SyncResponseDto> syncResponseList, String referenceId,
+			String timeStamp) {
 		if (validateLanguageCode(registrationDto, syncResponseList)
 				&& validateRegistrationType(registrationDto, syncResponseList)
 				&& validateHashValue(registrationDto, syncResponseList)
@@ -182,7 +192,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 				try {
 					if (ridValidator.validateId(registrationDto.getRegistrationId())) {
 
-						syncResponseList = validateRegId(registrationDto, syncResponseList);
+						syncResponseList = validateRegId(registrationDto, syncResponseList, referenceId, timeStamp);
 
 					}
 				} catch (InvalidIDException e) {
@@ -364,7 +374,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	 * @return the list
 	 */
 	public List<SyncResponseDto> validateRegId(SyncRegistrationDto registrationDto,
-			List<SyncResponseDto> syncResponseList) {
+			List<SyncResponseDto> syncResponseList, String referenceId,
+			String timeStamp) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationDto.getRegistrationId(), "SyncRegistrationServiceImpl::validateRegId()::entry");
 		SyncResponseSuccessDto syncResponseDto = new SyncResponseSuccessDto();
@@ -373,7 +384,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		SyncRegistrationEntity syncRegistration;
 		if (existingSyncRegistration != null) {
 			// update sync registration record
-			syncRegistration = convertDtoToEntity(registrationDto);
+			syncRegistration = convertDtoToEntity(registrationDto, referenceId, timeStamp);
 			syncRegistration.setId(existingSyncRegistration.getId());
 			syncRegistration.setCreateDateTime(existingSyncRegistration.getCreateDateTime());
 			syncRegistrationDao.update(syncRegistration);
@@ -383,7 +394,7 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		} else {
 			// first time sync registration
 
-			syncRegistration = convertDtoToEntity(registrationDto);
+			syncRegistration = convertDtoToEntity(registrationDto, referenceId, timeStamp);
 			syncRegistration.setCreateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
 			syncRegistration.setId(RegistrationUtility.generateId());
 			syncRegistrationDao.save(syncRegistration);
@@ -428,7 +439,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 	 *            the dto
 	 * @return the sync registration entity
 	 */
-	private SyncRegistrationEntity convertDtoToEntity(SyncRegistrationDto dto) {
+	private SyncRegistrationEntity convertDtoToEntity(SyncRegistrationDto dto, String referenceId,
+			String timeStamp) {
 		SyncRegistrationEntity syncRegistrationEntity = new SyncRegistrationEntity();
 		syncRegistrationEntity.setRegistrationId(dto.getRegistrationId().trim());
 		syncRegistrationEntity.setIsDeleted(dto.getIsDeleted() != null ? dto.getIsDeleted() : Boolean.FALSE);
@@ -439,9 +451,20 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		syncRegistrationEntity.setSupervisorStatus(dto.getSupervisorStatus());
 		syncRegistrationEntity.setSupervisorComment(dto.getSupervisorComment());
 		syncRegistrationEntity.setUpdateDateTime(LocalDateTime.now(ZoneId.of("UTC")));
-		if (dto.getOptionalValues() != null) {
-			syncRegistrationEntity.setOptionalValues(dto.getOptionalValues().toString().getBytes());
-		}
+
+		try {
+			RegistrationAdditionalInfoDTO regAdditionalInfo = new RegistrationAdditionalInfoDTO();
+			regAdditionalInfo.setName(dto.getName());
+			regAdditionalInfo.setEmail(dto.getEmail());
+			regAdditionalInfo.setPhone(dto.getPhone());
+			
+			String additionalInfo = JsonUtils.javaObjectToJsonString(regAdditionalInfo);
+			byte[] encryptedInfo = encryptor.encrypt(additionalInfo, referenceId, timeStamp);
+			syncRegistrationEntity.setOptionalValues(encryptedInfo);			
+		} catch(JsonProcessingException | EncryptionFailureException | ApisResourceAccessException exception) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+		}		
 
 		syncRegistrationEntity.setCreatedBy(CREATED_BY);
 		syncRegistrationEntity.setUpdatedBy(CREATED_BY);
@@ -474,6 +497,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 					.jsonStringToJavaObject(RegistrationSyncRequestDTO.class, decryptedSyncMetaData);
 
 		} catch (PacketDecryptionFailureException | ApisResourceAccessException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
 			SyncResponseFailDto syncResponseFailureDto = new SyncResponseFailDto();
 
 			syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
@@ -481,6 +506,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			syncResponseFailureDto.setErrorCode(PlatformErrorMessages.RPR_RGS_DECRYPTION_FAILED.getCode());
 			syncResponseList.add(syncResponseFailureDto);
 		} catch (JsonParseException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
 			SyncResponseFailDto syncResponseFailureDto = new SyncResponseFailDto();
 
 			syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
@@ -489,6 +516,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			syncResponseList.add(syncResponseFailureDto);
 
 		} catch (JsonMappingException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
 			SyncResponseFailDto syncResponseFailureDto = new SyncResponseFailDto();
 
 			syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
@@ -496,6 +525,8 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 			syncResponseFailureDto.setErrorCode(PlatformErrorMessages.RPR_RGS_JSON_MAPPING_EXCEPTION.getCode());
 			syncResponseList.add(syncResponseFailureDto);
 		} catch (IOException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
 			SyncResponseFailDto syncResponseFailureDto = new SyncResponseFailDto();
 
 			syncResponseFailureDto.setStatus(ResponseStatusCode.FAILURE.toString());
@@ -575,5 +606,10 @@ public class SyncRegistrationServiceImpl implements SyncRegistrationService<Sync
 		registrationStatusDto.setRegistrationId(entity.getRegistrationId());
 		registrationStatusDto.setStatusCode(RegistrationExternalStatusCode.UPLOAD_PENDING.toString());
 		return registrationStatusDto;
+	}
+
+	@Override
+	public boolean deleteAdditionalInfo(SyncRegistrationEntity syncEntity) {
+		return syncRegistrationDao.deleteAdditionalInfo(syncEntity);
 	}
 }

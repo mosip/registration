@@ -23,6 +23,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.dao.DynamicFieldDAO;
+import io.mosip.registration.dto.mastersync.*;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,12 +49,6 @@ import io.mosip.registration.dao.MachineMappingDAO;
 import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dto.IndividualTypeDto;
 import io.mosip.registration.dto.ResponseDTO;
-import io.mosip.registration.dto.mastersync.BiometricAttributeDto;
-import io.mosip.registration.dto.mastersync.BlacklistedWordsDto;
-import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
-import io.mosip.registration.dto.mastersync.GenericDto;
-import io.mosip.registration.dto.mastersync.LocationDto;
-import io.mosip.registration.dto.mastersync.ReasonListDto;
 import io.mosip.registration.dto.response.SchemaDto;
 import io.mosip.registration.dto.response.SyncDataResponseDto;
 import io.mosip.registration.entity.BiometricAttribute;
@@ -125,6 +121,9 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	
 	@Autowired
 	private IdentitySchemaDao identitySchemaDao;
+
+	@Autowired
+	private DynamicFieldDAO dynamicFieldDAO;
 
 	/** Object for Logger. */
 	private static final Logger LOGGER = AppConfig.getLogger(MasterSyncServiceImpl.class);
@@ -467,6 +466,26 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	}
 
 
+	@Override
+	public List<GenericDto> getDynamicField(String fieldName, String langCode) throws RegBaseCheckedException {
+		List<GenericDto>  fieldValues = new ArrayList<>();
+		List<DynamicFieldValueDto> syncedValues = dynamicFieldDAO.getDynamicFieldValues(fieldName, langCode);
+
+	   if(syncedValues != null) {
+			   for (DynamicFieldValueDto valueDto : syncedValues) {
+					   if(valueDto.isActive()) {
+							   GenericDto genericDto = new GenericDto();
+							   genericDto.setName(valueDto.getValue());
+							   genericDto.setCode(valueDto.getCode());
+							   genericDto.setLangCode(langCode);
+							   fieldValues.add(genericDto);
+					   }
+			   }
+	   }
+	   return fieldValues;
+	}
+
+
 	/**
 	 * Gets the biometric type.
 	 *
@@ -549,9 +568,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 			LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
 					"triggerPoint is missing it is a mandatory field.");
 			return false;
-		} else if (RegistrationConstants.ENABLE
-				.equals(String.valueOf(ApplicationContext.map().get(RegistrationConstants.TPM_AVAILABILITY)))
-				&& StringUtils.isEmpty(keyIndex)) {
+		} else if (StringUtils.isEmpty(keyIndex)) {
 			LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
 					"keyIndex is missing it is a mandatory field.");
 			return false;

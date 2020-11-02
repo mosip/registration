@@ -1,24 +1,33 @@
 package io.mosip.registration.processor.quality.checker.stage.test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyDouble;
-import static org.mockito.Matchers.anyString;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.constant.QualityType;
+import io.mosip.kernel.biometrics.entities.BDBInfo;
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.biometrics.entities.RegistryIDType;
+import io.mosip.kernel.core.bioapi.exception.BiometricException;
+import io.mosip.kernel.core.bioapi.model.QualityScore;
 import io.mosip.kernel.core.bioapi.model.Response;
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
-import io.mosip.kernel.packetmanager.spi.PacketReaderService;
-import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
+import io.mosip.kernel.core.bioapi.spi.IBioApi;
+import io.mosip.kernel.biometrics.entities.BIR;
+import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
+import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
+import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
+import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.quality.checker.stage.QualityCheckerStage;
+import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
+import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
+import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.vertx.core.Vertx;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -31,33 +40,22 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import io.mosip.kernel.core.bioapi.exception.BiometricException;
-import io.mosip.kernel.core.bioapi.model.QualityScore;
-import io.mosip.kernel.core.bioapi.spi.IBioApi;
-import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.BDBInfoType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.QualityType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
-import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
-import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
-import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
-import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
-import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
-import io.mosip.registration.processor.core.util.JsonUtil;
-import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
-import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import io.mosip.registration.processor.quality.checker.stage.QualityCheckerStage;
-import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
-import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
-import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
-import io.mosip.registration.processor.status.service.RegistrationStatusService;
-import io.vertx.core.Vertx;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
+@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*","com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", })
 public class QualityCheckerStageTest {
 
 	@Mock
@@ -76,7 +74,7 @@ public class QualityCheckerStageTest {
 	private Utilities utility;
 
 	@Mock
-	private PacketReaderService packetReaderService;
+	private PacketManagerService packetManagerService;
 
 	/** The cbeff util. */
 	@Mock
@@ -84,9 +82,6 @@ public class QualityCheckerStageTest {
 
 	@Mock
 	private IBioApi fingerApi;
-
-	@Mock
-	private IdSchemaUtils idSchemaUtils;
 
 	@InjectMocks
 	private QualityCheckerStage qualityCheckerStage = new QualityCheckerStage() {
@@ -127,72 +122,71 @@ public class QualityCheckerStageTest {
 		InputStream idJsonStream = IOUtils.toInputStream(idJsonString, "UTF-8");
 
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
-		Mockito.when(idSchemaUtils.getSource(anyString(), anyDouble())).thenReturn("id");
 
 		ClassLoader classLoader = getClass().getClassLoader();
 		File cbeff1 = new File(classLoader.getResource("CBEFF1.xml").getFile());
 		InputStream cbeff1Stream = new FileInputStream(cbeff1);
 
-		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenReturn(idJsonStream).thenReturn(cbeff1Stream);
-
-		List<BIRType> birTypeList = new ArrayList<>();
-		BIRType birType1 = new BIRType();
-		BDBInfoType bdbInfoType1 = new BDBInfoType();
-		RegistryIDType registryIDType = new RegistryIDType();
+		List<BIR> birTypeList = new ArrayList<>();
+		BIR birType1 = new BIR.BIRBuilder().build();
+		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType1 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder().build();
+		io.mosip.kernel.biometrics.entities.RegistryIDType registryIDType = new io.mosip.kernel.biometrics.entities.RegistryIDType();
 		registryIDType.setOrganization("Mosip");
 		registryIDType.setType("257");
-		QualityType quality = new QualityType();
+		io.mosip.kernel.biometrics.constant.QualityType quality = new io.mosip.kernel.biometrics.constant.QualityType();
 		quality.setAlgorithm(registryIDType);
 		quality.setScore(90l);
 		bdbInfoType1.setQuality(quality);
-		SingleType singleType1 = SingleType.FINGER;
-		List<SingleType> singleTypeList1 = new ArrayList<>();
+		BiometricType singleType1 = BiometricType.FINGER;
+		List<BiometricType> singleTypeList1 = new ArrayList<>();
 		singleTypeList1.add(singleType1);
 		List<String> subtype1 = new ArrayList<>(Arrays.asList("Left", "RingFinger"));
 		bdbInfoType1.setSubtype(subtype1);
 		bdbInfoType1.setType(singleTypeList1);
-		birType1.setBDBInfo(bdbInfoType1);
+		birType1.setBdbInfo(bdbInfoType1);
 		birTypeList.add(birType1);
 
-		BIRType birType2 = new BIRType();
-		BDBInfoType bdbInfoType2 = new BDBInfoType();
+		BIR birType2 = new BIR.BIRBuilder().build();
+		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType2 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder().build();
 		bdbInfoType2.setQuality(quality);
-		SingleType singleType2 = SingleType.FINGER;
-		List<SingleType> singleTypeList2 = new ArrayList<>();
+		BiometricType singleType2 = BiometricType.FINGER;
+		List<BiometricType> singleTypeList2 = new ArrayList<>();
 		singleTypeList2.add(singleType2);
 		List<String> subtype2 = new ArrayList<>(Arrays.asList("Right", "RingFinger"));
 		bdbInfoType2.setSubtype(subtype2);
 		bdbInfoType2.setType(singleTypeList2);
-		birType2.setBDBInfo(bdbInfoType2);
+		birType2.setBdbInfo(bdbInfoType2);
 		birTypeList.add(birType2);
 
-		BIRType birType3 = new BIRType();
-		BDBInfoType bdbInfoType3 = new BDBInfoType();
+		BIR birType3 = new BIR.BIRBuilder().build();
+		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType3 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder().build();
 		bdbInfoType3.setQuality(quality);
-		SingleType singleType3 = SingleType.IRIS;
-		List<SingleType> singleTypeList3 = new ArrayList<>();
+		BiometricType singleType3 = BiometricType.IRIS;
+		List<BiometricType> singleTypeList3 = new ArrayList<>();
 		singleTypeList3.add(singleType3);
 		List<String> subtype3 = new ArrayList<>(Arrays.asList("Right"));
 		bdbInfoType3.setSubtype(subtype3);
 		bdbInfoType3.setType(singleTypeList3);
-		birType3.setBDBInfo(bdbInfoType3);
+		birType3.setBdbInfo(bdbInfoType3);
 		birTypeList.add(birType3);
 
-		BIRType birType4 = new BIRType();
-		BDBInfoType bdbInfoType4 = new BDBInfoType();
+		BIR birType4 = new BIR.BIRBuilder().build();
+		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType4 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder().build();
 		bdbInfoType4.setQuality(quality);
-		SingleType singleType4 = SingleType.FACE;
-		List<SingleType> singleTypeList4 = new ArrayList<>();
+		BiometricType singleType4 = BiometricType.FACE;
+		List<BiometricType> singleTypeList4 = new ArrayList<>();
 		singleTypeList4.add(singleType4);
 		List<String> subtype4 = new ArrayList<>();
 		bdbInfoType4.setSubtype(subtype4);
 		bdbInfoType4.setType(singleTypeList4);
-		birType4.setBDBInfo(bdbInfoType4);
+		birType4.setBdbInfo(bdbInfoType4);
 		birTypeList.add(birType4);
 
-		List<BIR> birList = getBIRList(birTypeList);
-		Mockito.when(cbeffUtil.getBIRDataFromXML(any())).thenReturn(birTypeList);
-		Mockito.when(cbeffUtil.convertBIRTypeToBIR(any())).thenReturn(birList);
+		BiometricRecord biometricRecord = new BiometricRecord();
+		biometricRecord.setSegments(birTypeList);
+		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenReturn(biometricRecord);
+		when(packetManagerService.getField(any(), any(), any(), any())).thenReturn("individualBiometrics");
+
 		File file = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
 		InputStream inputStream = new FileInputStream(file);
 		String mappingJson = IOUtils.toString(inputStream);
@@ -206,7 +200,68 @@ public class QualityCheckerStageTest {
 	}
 
 	@Test
-	public void testQualityCheckerSuccess() {
+	public void testQualityCheckerSuccess() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+		List<BIR> birTypeList = new ArrayList<>();
+		BIR birType1 = new BIR.BIRBuilder().build();
+		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType1 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder().build();
+		RegistryIDType registryIDType = new RegistryIDType();
+		registryIDType.setOrganization("Mosip");
+		registryIDType.setType("257");
+		io.mosip.kernel.biometrics.constant.QualityType quality = new QualityType();
+		quality.setAlgorithm(registryIDType);
+		quality.setScore(90l);
+		bdbInfoType1.setQuality(quality);
+		BiometricType singleType1 = BiometricType.FINGER;
+		List<BiometricType> singleTypeList1 = new ArrayList<>();
+		singleTypeList1.add(singleType1);
+		List<String> subtype1 = new ArrayList<>(Arrays.asList("Left", "RingFinger"));
+		bdbInfoType1.setSubtype(subtype1);
+		bdbInfoType1.setType(singleTypeList1);
+		birType1.setBdbInfo(bdbInfoType1);
+		birTypeList.add(birType1);
+
+		BIR birType2 = new BIR.BIRBuilder().build();
+		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType2 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder().build();
+		bdbInfoType2.setQuality(quality);
+		BiometricType singleType2 = BiometricType.FINGER;
+		List<BiometricType> singleTypeList2 = new ArrayList<>();
+		singleTypeList2.add(singleType2);
+		List<String> subtype2 = new ArrayList<>(Arrays.asList("Right", "RingFinger"));
+		bdbInfoType2.setSubtype(subtype2);
+		bdbInfoType2.setType(singleTypeList2);
+		birType2.setBdbInfo(bdbInfoType2);
+		birTypeList.add(birType2);
+
+		BIR birType3 = new BIR.BIRBuilder().build();
+		BDBInfo bdbInfoType3 = new BDBInfo.BDBInfoBuilder().build();
+		bdbInfoType3.setQuality(quality);
+		BiometricType singleType3 = BiometricType.IRIS;
+		List<BiometricType> singleTypeList3 = new ArrayList<>();
+		singleTypeList3.add(singleType3);
+		List<String> subtype3 = new ArrayList<>(Arrays.asList("Right"));
+		bdbInfoType3.setSubtype(subtype3);
+		bdbInfoType3.setType(singleTypeList3);
+		birType3.setBdbInfo(bdbInfoType3);
+		birTypeList.add(birType3);
+
+		BIR birType4 = new BIR.BIRBuilder().build();
+		BDBInfo bdbInfoType4 = new BDBInfo.BDBInfoBuilder().build();
+		bdbInfoType4.setQuality(quality);
+		BiometricType singleType4 = BiometricType.FACE;
+		List<BiometricType> singleTypeList4 = new ArrayList<>();
+		singleTypeList4.add(singleType4);
+		List<String> subtype4 = new ArrayList<>();
+		bdbInfoType4.setSubtype(subtype4);
+		bdbInfoType4.setType(singleTypeList4);
+		birType4.setBdbInfo(bdbInfoType4);
+		birTypeList.add(birType4);
+
+		BiometricRecord biometricRecord = new BiometricRecord();
+		biometricRecord.setSegments(birTypeList);
+		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenReturn(null).thenReturn(biometricRecord);
+
+
+
 		QualityScore qualityScore = new QualityScore();
 		qualityScore.setScore(90);
 		Response<QualityScore> response=new Response<>();
@@ -224,40 +279,30 @@ public class QualityCheckerStageTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testException() throws Exception {
-		
-		Mockito.when(cbeffUtil.getBIRDataFromXML(any())).thenThrow(Exception.class);
+		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenThrow(new PacketManagerException("code","message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
-		MessageDTO result = qualityCheckerStage.process(dto);
-
-		
+		MessageDTO messageDTO = qualityCheckerStage.process(dto);
+		assertFalse(messageDTO.getIsValid());
 	}
 	
 	@Test
-	public void testCbeffNotFound() throws PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException, IOException {
-		String idJsonString = "{\n" + "  \"identity\" : {\n" + "    \"fullName\" : [ {\n"
-				+ "      \"language\" : \"eng\",\n" + "      \"value\" : \"Ragavendran V\"\n" + "    }, {\n"
-				+ "      \"language\" : \"ara\",\n" + "      \"value\" : \"قشلشرثىيقشى ر\"\n" + "    } ],\n"
-				+ "    \"individualBiometrics\" : {\n" + "      \"format\" : \"cbeff\",\n"
-				+ "      \"version\" : 1.0,\n" + "      \"value\" : \"applicant_bio_CBEFF\"\n" + "    }\n" + "  }\n"
-				+ "}";
-		InputStream idJsonStream = IOUtils.toInputStream(idJsonString, "UTF-8");
-		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenReturn(idJsonStream).thenReturn(null);
-
+	public void testCbeffNotFound() throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
+		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenThrow(new IOException("message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
-		MessageDTO result = qualityCheckerStage.process(dto);
-
+		MessageDTO messageDTO = qualityCheckerStage.process(dto);
+		assertFalse(messageDTO.getIsValid());
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testApiNotAccessibleTest() throws PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException, ApiNotAccessibleException, IOException {
-		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenThrow(ApiNotAccessibleException.class);
-
+	public void testApiNotAccessibleTest() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenThrow(new ApisResourceAccessException("message"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
-		qualityCheckerStage.process(dto);
+		MessageDTO messageDTO = qualityCheckerStage.process(dto);
+		assertFalse(messageDTO.getIsValid());
 
 	}
 
@@ -278,32 +323,7 @@ public class QualityCheckerStageTest {
 	}
 
 	@Test
-	public void testParameterMissing() throws IOException, PacketDecryptionFailureException,
-			ApiNotAccessibleException, io.mosip.kernel.core.exception.IOException, io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
-		String idJsonString = "{\n" + "  \"identity\" : {\n" + "    \"fullName\" : [ {\n"
-				+ "      \"language\" : \"eng\",\n" + "      \"value\" : \"Ragavendran V\"\n" + "    }, {\n"
-				+ "      \"language\" : \"ara\",\n" + "      \"value\" : \"قشلشرثىيقشى ر\"\n" + "    } ]\n" + "  }\n"
-				+ "}";
-		InputStream idJsonStream = IOUtils.toInputStream(idJsonString, "UTF-8");
-		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenReturn(idJsonStream);
-
-		MessageDTO dto = new MessageDTO();
-		dto.setRid("1234567890");
-		MessageDTO result = qualityCheckerStage.process(dto);
-
-		assertTrue(result.getIsValid());
-	}
-
-	@Test
-	public void testFileNameMissing() throws IOException, PacketDecryptionFailureException, ApiNotAccessibleException,
-			io.mosip.kernel.core.exception.IOException {
-		String idJsonString = "{\n" + "  \"identity\" : {\n" + "    \"fullName\" : [ {\n"
-				+ "      \"language\" : \"eng\",\n" + "      \"value\" : \"Ragavendran V\"\n" + "    }, {\n"
-				+ "      \"language\" : \"ara\",\n" + "      \"value\" : \"قشلشرثىيقشى ر\"\n" + "    } ],\n"
-				+ "    \"individualBiometrics\" : {\n" + "      \"format\" : \"cbeff\",\n"
-				+ "      \"version\" : 1.0,\n" + "      \"value\" : \"\"\n" + "    }\n" + "  }\n" + "}";
-		InputStream idJsonStream = IOUtils.toInputStream(idJsonString, "UTF-8");
-		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenReturn(idJsonStream);
+	public void testFileNameMissing() throws IOException {
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
@@ -313,10 +333,8 @@ public class QualityCheckerStageTest {
 	}
 
 	@Test
-	public void testFsAdapterException() throws PacketDecryptionFailureException, ApiNotAccessibleException,
-			io.mosip.kernel.core.exception.IOException, IOException {
+	public void testFsAdapterException() {
 		FSAdapterException exception = new FSAdapterException("", "");
-		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenThrow(exception);
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityCheckerStage.process(dto);
@@ -340,23 +358,89 @@ public class QualityCheckerStageTest {
 		assertTrue(result.getInternalError());
 	}
 
-	private static List<BIR> getBIRList(List<BIRType> birTypeList) {
-		List<BIR> birList = new ArrayList<>();
-		for (BIRType birType : birTypeList) {
-			BIR bir = new BIR.BIRBuilder().withBdb(birType.getBDB()).withElement(birType.getAny())
-					.withBdbInfo(new BDBInfo.BDBInfoBuilder().withQuality(birType.getBDBInfo().getQuality())
-							.withType(birType.getBDBInfo().getType()).withSubtype(birType.getBDBInfo().getSubtype())
-							.build())
-					.build();
-			birList.add(bir);
-		}
-		return birList;
-	}
 	@Test
-	public void testQualityCheckfailureException() throws PacketDecryptionFailureException, ApiNotAccessibleException, io.mosip.kernel.core.exception.IOException, IOException {
+	public void testQualityCheckfailureException() {
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
-		Mockito.when(packetReaderService.getFile(any(), any(), any())).thenReturn(null);
 
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890");
+		MessageDTO result = qualityCheckerStage.process(dto);
+
+		assertTrue(result.getInternalError());
+	}
+
+	@Test
+	public void testFileMissing() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
+		when(packetManagerService.getBiometrics(anyString(),anyString(),any(),anyString(),anyString())).thenReturn(null);
+
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890");
+		MessageDTO result = qualityCheckerStage.process(dto);
+
+		assertTrue(result.getInternalError());
+	}
+
+	@Test
+	public void testBioetricFileNotPresentInIdObject() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+
+		when(packetManagerService.getField(any(), any(), any(), any())).thenReturn(null);
+
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890");
+		MessageDTO result = qualityCheckerStage.process(dto);
+
+		assertTrue(result.getIsValid());
+	}
+
+	@Test
+	public void testNoBiometricInPacket() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+
+		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenReturn(null);
+
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890");
+		MessageDTO result = qualityCheckerStage.process(dto);
+
+		assertFalse(result.getIsValid());
+	}
+
+	@Test
+	public void testBioTypeException() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+		List<BIR> birTypeList = new ArrayList<>();
+		BIR birType1 = new BIR.BIRBuilder().build();
+		io.mosip.kernel.biometrics.entities.BDBInfo bdbInfoType1 = new io.mosip.kernel.biometrics.entities.BDBInfo.BDBInfoBuilder().build();
+		io.mosip.kernel.biometrics.entities.RegistryIDType registryIDType = new io.mosip.kernel.biometrics.entities.RegistryIDType();
+		registryIDType.setOrganization("Mosip");
+		registryIDType.setType("257");
+		io.mosip.kernel.biometrics.constant.QualityType quality = new io.mosip.kernel.biometrics.constant.QualityType();
+		quality.setAlgorithm(registryIDType);
+		quality.setScore(90l);
+		bdbInfoType1.setQuality(quality);
+		BiometricType singleType1 = BiometricType.DNA;
+		List<BiometricType> singleTypeList1 = new ArrayList<>();
+		singleTypeList1.add(singleType1);
+		List<String> subtype1 = new ArrayList<>(Arrays.asList("Left", "RingFinger"));
+		bdbInfoType1.setSubtype(subtype1);
+		bdbInfoType1.setType(singleTypeList1);
+		birType1.setBdbInfo(bdbInfoType1);
+		birTypeList.add(birType1);
+		BiometricRecord biometricRecord = new BiometricRecord();
+		biometricRecord.setSegments(birTypeList);
+		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenReturn(biometricRecord);
+
+
+
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890");
+		MessageDTO result = qualityCheckerStage.process(dto);
+
+		assertTrue(result.getInternalError());
+	}
+
+	@Test
+	public void testJsonProcessingException() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+		when(packetManagerService.getBiometrics(any(),any(),any(),any(),any())).thenThrow(new JsonProcessingException("Json exception"));
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890");
 		MessageDTO result = qualityCheckerStage.process(dto);

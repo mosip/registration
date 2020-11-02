@@ -17,7 +17,6 @@ import org.springframework.context.ApplicationContext;
 
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.LoginMode;
@@ -28,6 +27,7 @@ import io.mosip.registration.dto.AuthenticationValidatorDTO;
 import io.mosip.registration.dto.AuthorizationDTO;
 import io.mosip.registration.dto.RegistrationCenterDetailDTO;
 import io.mosip.registration.dto.UserDTO;
+import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.service.bio.BioService;
@@ -521,13 +521,13 @@ public class SessionContext {
 
 		userDTO.getUserMachineMapping().forEach(machineMapping -> {
 			if (machineMapping.isActive()) {
-				machineList.add(machineMapping.getMachineMaster().getName());
+				machineList.add(machineMapping.getMachineMaster().getName().toLowerCase());
 				centerList.add(machineMapping.getCentreID());
 			}
 		});
 
 		/* user onboard skipped for the user with role Default */
-		if ((machineList.contains(RegistrationSystemPropertiesChecker.getMachineId())
+		if ((machineList.contains(RegistrationSystemPropertiesChecker.getMachineId().toLowerCase())
 				&& centerList.contains(userDTO.getRegCenterUser().getRegcntrId()))
 				|| SessionContext.userContext().getRoles().contains(RegistrationConstants.ROLE_DEFAULT)) {
 			sessionContext.mapObject.put(RegistrationConstants.ONBOARD_USER, false);
@@ -548,6 +548,9 @@ public class SessionContext {
 	 * @return map
 	 */
 	public static Map<String, Object> map() {
+		if(sessionContext==null) {
+			return null;
+		}
 		return sessionContext.getMapObject();
 	}
 

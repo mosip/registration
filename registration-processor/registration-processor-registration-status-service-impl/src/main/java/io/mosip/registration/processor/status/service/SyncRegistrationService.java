@@ -29,7 +29,7 @@ public interface SyncRegistrationService<T, U> {
 	 *            the sync resgistrationdto
 	 * @return the list
 	 */
-	public List<T> sync(List<U> syncResgistrationdto);
+	public List<T> sync(List<U> syncResgistrationdto, String referenceId, String timeStamp);
 
 	/**
 	 * Checks if is present.
@@ -73,5 +73,14 @@ public interface SyncRegistrationService<T, U> {
 	 * @return the by ids
 	 */
 	public List<RegistrationStatusDto> getByIds(List<RegistrationStatusSubRequestDto> requestIds);
+	
+	/**
+	 * Delete additional info by registration id.
+	 *
+	 * @param resgistrationId
+	 *            the resgistration id
+	 * @return true / false
+	 */
+	public boolean deleteAdditionalInfo(SyncRegistrationEntity syncEntity);
 
 }

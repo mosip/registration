@@ -23,6 +23,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.http.HttpStatus;
@@ -42,6 +43,7 @@ import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 import io.mosip.registration.validator.OTPValidatorImpl;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ RegistrationAppHealthCheckUtil.class, ApplicationContext.class })
 public class OTPManagerTest {
 
@@ -84,8 +86,8 @@ public class OTPManagerTest {
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
 
-		when(serviceDelegateUtil.post(Mockito.anyString(), Mockito.any(OtpGeneratorRequestDTO.class),
-				Mockito.anyString())).thenReturn(responseMap);
+		when(serviceDelegateUtil.post(Mockito.any(), Mockito.any(),
+				Mockito.any())).thenReturn(responseMap);
 		assertNotNull(otpManager.getOTP(otpGeneratorRequestDTO.getKey()).getSuccessResponseDTO());
 	}
 
@@ -103,8 +105,8 @@ public class OTPManagerTest {
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
 
-		when(serviceDelegateUtil.post(Mockito.anyString(), Mockito.any(OtpGeneratorRequestDTO.class),
-				Mockito.anyString())).thenReturn(responseMap);
+		when(serviceDelegateUtil.post(Mockito.any(), Mockito.any(),
+				Mockito.any())).thenReturn(responseMap);
 		assertNotNull(otpManager.getOTP(otpGeneratorRequestDTO.getKey()).getErrorResponseDTOs());
 	}
 
@@ -157,8 +159,8 @@ public class OTPManagerTest {
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
 
-		when(serviceDelegateUtil.post(Mockito.anyString(), Mockito.any(OtpGeneratorRequestDTO.class),
-				Mockito.anyString())).thenThrow(HttpClientErrorException.class);
+		when(serviceDelegateUtil.post(Mockito.any(), Mockito.any(),
+				Mockito.any())).thenThrow(HttpClientErrorException.class);
 
 		assertSame(RegistrationConstants.OTP_GENERATION_ERROR_MESSAGE,
 				otpManager.getOTP(otpGeneratorRequestDTO.getKey()).getErrorResponseDTOs().get(0).getMessage());
@@ -174,8 +176,8 @@ public class OTPManagerTest {
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
 
-		when(serviceDelegateUtil.post(Mockito.anyString(), Mockito.any(OtpGeneratorRequestDTO.class),
-				Mockito.anyString())).thenThrow(IllegalStateException.class);
+		when(serviceDelegateUtil.post(Mockito.any(), Mockito.any(),
+				Mockito.any())).thenThrow(IllegalStateException.class);
 
 		assertSame(RegistrationConstants.CONNECTION_ERROR,
 				otpManager.getOTP(otpGeneratorRequestDTO.getKey()).getErrorResponseDTOs().get(0).getMessage());

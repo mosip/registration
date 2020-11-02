@@ -5,28 +5,30 @@
 	<parent>
 		<groupId>io.mosip</groupId>
 		<artifactId>registration</artifactId>
-		<version>1.0.7</version>
+		<version>1.1.2</version>
 	</parent>
 
 	<groupId>io.mosip.registrationprocessor</groupId>
 	<artifactId>registration-processor</artifactId>
-	<version>1.0.7</version>
+	<version>1.1.2</version>
 	<packaging>pom</packaging>
 
 	<name>registration-processor</name>
 	<description>Parent project of MOSIP Registration processor</description>
 
 	<properties>
+		<doclint>none</doclint>
+		<sonar.skip>true</sonar.skip>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
-		<maven.compiler.version>3.7.0</maven.compiler.version>
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>
+		<maven.compiler.version>3.8.0</maven.compiler.version>
 		<maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
 		<maven.war.plugin.version>3.1.0</maven.war.plugin.version>
-		<maven.surefire.plugin.version>2.9</maven.surefire.plugin.version>
+		<maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
 		<maven.jacoco.plugin.version>0.8.1</maven.jacoco.plugin.version>
 		<maven.sonar.plugin.version>3.7.0.1746</maven.sonar.plugin.version>
-		<maven.javadoc.version>3.0.1</maven.javadoc.version>
+		<maven.javadoc.version>3.2.0</maven.javadoc.version>
 
 		<!-- Core -->
 		<spring-framework.version>5.0.6.RELEASE</spring-framework.version>
@@ -57,7 +59,7 @@
 		<postgresql.version>42.2.2</postgresql.version>
 
 		<!-- Lombok -->
-		<lombok.version>1.16.18</lombok.version>
+		<lombok.version>1.18.8</lombok.version>
 
 		<!-- For Cache -->
 		<ignite.version>2.3.0</ignite.version>
@@ -82,9 +84,9 @@
 		<junit.version>4.12</junit.version>
 		<logback.version>1.2.3</logback.version>
 		<slf4j.version>1.7.19</slf4j.version>
-		<mockito.version>1.10.19</mockito.version>
-		<powermock.module.junit4.version>1.7.4</powermock.module.junit4.version>
-		<powermock.api.mockito.version>1.7.4</powermock.api.mockito.version>
+		<mockito.version>3.4.4</mockito.version>
+		<powermock.module.junit4.version>2.0.7</powermock.module.junit4.version>
+		<powermock.api.mockito.version>2.0.7</powermock.api.mockito.version>
 		<awaitility.version>3.1.0</awaitility.version>
 		<jsonsimple.version>1.1.1</jsonsimple.version>
 		<commons.codec.version>1.9</commons.codec.version>
@@ -106,38 +108,32 @@
 		<jsch.version>0.1.55</jsch.version>
 
 		<!-- local -->
-		<registration.status.service.version>1.0.10</registration.status.service.version>
-		<registration.processor.core.version>1.0.10</registration.processor.core.version>
-		<filesystem.adapter.ceph.version>1.0.9</filesystem.adapter.ceph.version>
-		<packet.manager.version>1.0.10</packet.manager.version>
-		<registration.processor.rest.client.version>1.0.10</registration.processor.rest.client.version>
-		<packet.info.storage.service.version>1.0.10</packet.info.storage.service.version>
-		<packet.bio.dedupe.service.impl.version>1.0.10</packet.bio.dedupe.service.impl.version>
-		<registration.processor.message.sender.version>1.0.10</registration.processor.message.sender.version>
-		<registration.processor.print.service.impl.version>1.0.10</registration.processor.print.service.impl.version>
-		<registration.processor.packet.utility.version>1.1.1</registration.processor.packet.utility.version>
-		
+		<registration.status.service.version>1.1.2</registration.status.service.version>
+		<registration.processor.core.version>1.1.2</registration.processor.core.version>
+		<packet.manager.version>1.1.2</packet.manager.version>
+		<registration.processor.rest.client.version>1.1.2</registration.processor.rest.client.version>
+		<packet.info.storage.service.version>1.1.2</packet.info.storage.service.version>
+		<packet.bio.dedupe.service.impl.version>1.1.2</packet.bio.dedupe.service.impl.version>
+		<registration.processor.message.sender.version>1.1.2</registration.processor.message.sender.version>
+		<registration.processor.print.service.impl.version>1.1.2</registration.processor.print.service.impl.version>
+
 		<!-- Kernel -->
-		<kernel.core.version>1.0.9</kernel.core.version>
-		<kernel.dataaccess.hibernate.version>1.0.6</kernel.dataaccess.hibernate.version>
-		<kernel.templatemanager.velocity.version>1.0.6</kernel.templatemanager.velocity.version>
-		<kernel.idvalidator.uin.version>1.0.6</kernel.idvalidator.uin.version>
-		<kernel.idvalidator.rid.version>1.0.6</kernel.idvalidator.rid.version>
-		<kernel.clamav.version>1.0.6</kernel.clamav.version>
-		<kernel.idgenerator.rid.version>1.0.6</kernel.idgenerator.rid.version>
+		<kernel.core.version>1.1.2</kernel.core.version>
+		<kernel.dataaccess.hibernate.version>1.1.2</kernel.dataaccess.hibernate.version>
+		<kernel.templatemanager.velocity.version>1.1.2</kernel.templatemanager.velocity.version>
+		<kernel.idvalidator.uin.version>1.1.2</kernel.idvalidator.uin.version>
+		<kernel.idvalidator.rid.version>1.1.2</kernel.idvalidator.rid.version>
+		<kernel.clamav.version>1.1.2</kernel.clamav.version>
 		<kernel.cbeffutil.version>1.1.0</kernel.cbeffutil.version>
-		<kernel.keygenerator.bouncycastle.version>1.0.6</kernel.keygenerator.bouncycastle.version>
-        <kernel.crypto.jce.version>1.0.6</kernel.crypto.jce.version>
         <kernel.bioapi.provider.version>1.0.8</kernel.bioapi.provider.version>
-        <kernel.fsadapter.hdfs.version>1.0.6</kernel.fsadapter.hdfs.version>
-        <kernel.auth.adapter.version>1.0.6</kernel.auth.adapter.version>
+        <kernel.auth.adapter.version>1.1.2</kernel.auth.adapter.version>
         <kernel.pdfgenerator.itext.version>1.0.6</kernel.pdfgenerator.itext.version>
 		<kernel.qrcodegenerator.zxing.version>1.0.6</kernel.qrcodegenerator.zxing.version>
-		<kernel.logger.logback.version>1.0.6</kernel.logger.logback.version>
-		<kernel.auth.adapter.version>1.0.6</kernel.auth.adapter.version>
+		<kernel.logger.logback.version>1.1.2</kernel.logger.logback.version>
 		<kernel.idvalidator.vid.version>1.0.6</kernel.idvalidator.vid.version>
-		<kernel.idobjectvalidator.version>1.0.9</kernel.idobjectvalidator.version>
-		<kernel.packetmanager.version>1.0.10</kernel.packetmanager.version>
+		<object.store.khazana.version>1.1.2</object.store.khazana.version>
+		<kernel.biometrics.api.version>1.1.2</kernel.biometrics.api.version>
+		<kernel-keymanager-service.version>1.1.2</kernel-keymanager-service.version>
 			<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,
@@ -266,14 +262,23 @@
 		</sonar.coverage.exclusions>
 		<sonar.cpd.exclusions>**/dto/**,**/entity/**,**/config/**,**/handler/**,**/utilities/**,
 			**/validator/**, **/utils/**,**/util/**,**/code/**</sonar.cpd.exclusions>
-
-
-
-
+			<doclint>none</doclint>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-core</artifactId>
+				<version>3.4.4</version>
+				<scope>test</scope>
+			</dependency>
+			<!-- https://mvnrepository.com/artifact/net.bytebuddy/byte-buddy -->
+			<dependency>
+			    <groupId>net.bytebuddy</groupId>
+			    <artifactId>byte-buddy</artifactId>
+			    <version>1.10.13</version>
+			</dependency>
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-dependencies</artifactId>
@@ -281,6 +286,28 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
+			<dependency>
+			    <groupId>org.projectlombok</groupId>
+			    <artifactId>lombok</artifactId>
+			    <version>1.18.8</version>
+			    <scope>provided</scope>
+			</dependency>
+			<dependency>
+			    <groupId>org.powermock</groupId>
+			    <artifactId>powermock-core</artifactId>
+			    <version>2.0.7</version>
+			    <scope>test</scope>
+			</dependency>					
+			<dependency>
+		    <groupId>javax.xml.bind</groupId>
+		    <artifactId>jaxb-api</artifactId>
+		    <version>2.3.1</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.javassist</groupId>
+		    <artifactId>javassist</artifactId>
+		    <version>3.27.0-GA</version>
+		</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -333,7 +360,6 @@
 -->
 
 	<build>
-		<pluginManagement>
 			<plugins>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -400,6 +426,9 @@
 						<excludes>
 							<exclude>**/*IntegrationTest.java</exclude>
 						</excludes>
+						<argLine>
+							--illegal-access=permit
+						</argLine>						
 					</configuration>
 				</plugin>
 				<plugin>
@@ -420,9 +449,6 @@
 							</execution>
 					   </executions>
 				</plugin>
-			</plugins>
-		</pluginManagement>
-		<plugins>
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
@@ -457,6 +483,7 @@
 				<version>${maven.javadoc.version}</version>
 				<configuration>
 					<aggregate>true</aggregate>
+					<doclint>none</doclint>
 				</configuration>
 			</plugin>
 		</plugins>

@@ -5,8 +5,6 @@ import java.security.PublicKey;
 
 import javax.crypto.SecretKey;
 
-import io.mosip.kernel.packetmanager.impl.PacketReaderServiceImpl;
-import io.mosip.kernel.packetmanager.spi.PacketReaderService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -60,8 +58,4 @@ public class OSIConfigBean {
 		return new AuthUtil();
 	}
 
-	@Bean
-	public PacketReaderService getPacketReaderService() {
-		return new PacketReaderServiceImpl();
-	}
 }

@@ -121,4 +121,16 @@ public class SyncRegistrationDao {
 		return syncRegistrationRepository.createQuerySelect(queryStr, params);
 	}
 
+	/**
+	 * Delete additionalInfo from table based on ID.
+	 *
+	 * @param registrationId the registration id
+	 * @return the sync registration entity
+	 */
+	public boolean deleteAdditionalInfo(SyncRegistrationEntity syncEntity) {
+		syncEntity.setOptionalValues(null);
+		SyncRegistrationEntity updatedEntity = syncRegistrationRepository.update(syncEntity);
+
+		return updatedEntity != null ? true : false;
+	}
 }

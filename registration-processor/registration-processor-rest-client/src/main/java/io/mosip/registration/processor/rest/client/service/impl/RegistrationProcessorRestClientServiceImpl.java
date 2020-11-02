@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -76,6 +77,57 @@ public class RegistrationProcessorRestClientServiceImpl implements RegistrationP
 				String[] queryParamValueArr = queryParamValue.split(",");
 				for (int i = 0; i < queryParamNameArr.length; i++) {
 					builder.queryParam(queryParamNameArr[i], queryParamValueArr[i]);
+				}
+
+			}
+
+			try {
+
+				uriComponents = builder.build(false).encode();
+				regProcLogger.debug(uriComponents.toUri().toString(), "URI", "", "");
+				obj = restApiClient.getApi(uriComponents.toUri(), responseType);
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), "",
+						e.getMessage() + ExceptionUtils.getStackTrace(e));
+
+				throw new ApisResourceAccessException(
+						PlatformErrorMessages.RPR_RCT_UNKNOWN_RESOURCE_EXCEPTION.getCode(), e);
+
+			}
+		}
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"RegistrationProcessorRestClientServiceImpl::getApi()::exit");
+		return obj;
+	}
+
+	@Override
+	public Object getApi(ApiName apiName, List<String> pathsegments, List<String> queryParamName, List<Object> queryParamValue,
+						 Class<?> responseType) throws ApisResourceAccessException {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"RegistrationProcessorRestClientServiceImpl::getApi()::entry");
+		Object obj = null;
+		String apiHostIpPort = env.getProperty(apiName.name());
+
+		UriComponentsBuilder builder = null;
+		UriComponents uriComponents = null;
+		if (apiHostIpPort != null) {
+
+			builder = UriComponentsBuilder.fromUriString(apiHostIpPort);
+			if (!((pathsegments == null) || (pathsegments.isEmpty()))) {
+				for (String segment : pathsegments) {
+					if (!((segment == null) || (("").equals(segment)))) {
+						builder.pathSegment(segment);
+					}
+				}
+
+			}
+
+			if (((queryParamName != null) && (!queryParamName.isEmpty()))) {
+				for (int i = 0; i < queryParamName.size(); i++) {
+					builder.queryParam(queryParamName.get(i), queryParamValue.get(i));
 				}
 
 			}
@@ -196,6 +248,52 @@ public class RegistrationProcessorRestClientServiceImpl implements RegistrationP
 
 			try {
 				obj = restApiClient.postApi(builder.toUriString(), null, requestedData, responseType);
+
+			} catch (Exception e) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), "",
+						e.getMessage() + ExceptionUtils.getStackTrace(e));
+
+				throw new ApisResourceAccessException(
+						PlatformErrorMessages.RPR_RCT_UNKNOWN_RESOURCE_EXCEPTION.getMessage(), e);
+
+			}
+		}
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"RegistrationProcessorRestClientServiceImpl::postApi()::exit");
+		return obj;
+	}
+
+	@Override
+	public Object postApi(ApiName apiName, MediaType mediaType, List<String> pathsegments, List<String> queryParamName, List<Object> queryParamValue,
+						  Object requestedData, Class<?> responseType) throws ApisResourceAccessException {
+
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"RegistrationProcessorRestClientServiceImpl::postApi()::entry");
+		Object obj = null;
+		String apiHostIpPort = env.getProperty(apiName.name());
+		UriComponentsBuilder builder = null;
+		if (apiHostIpPort != null)
+			builder = UriComponentsBuilder.fromUriString(apiHostIpPort);
+		if (builder != null) {
+
+			if (!((pathsegments == null) || (pathsegments.isEmpty()))) {
+				for (String segment : pathsegments) {
+					if (!((segment == null) || (("").equals(segment)))) {
+						builder.pathSegment(segment);
+					}
+				}
+
+			}
+			if (!CollectionUtils.isEmpty(queryParamName)) {
+
+				for (int i = 0; i < queryParamName.size(); i++) {
+					builder.queryParam(queryParamName.get(i), queryParamValue.get(i));
+				}
+			}
+
+			try {
+				obj = restApiClient.postApi(builder.toUriString(), mediaType, requestedData, responseType);
 
 			} catch (Exception e) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),

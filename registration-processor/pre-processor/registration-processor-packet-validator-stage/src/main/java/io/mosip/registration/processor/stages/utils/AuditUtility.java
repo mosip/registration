@@ -1,12 +1,19 @@
 package io.mosip.registration.processor.stages.utils;
 
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
-import io.mosip.kernel.packetmanager.spi.PacketReaderService;
+import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.registration.processor.packet.storage.dto.FieldResponseDto;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import org.apache.commons.collections.CollectionUtils;
+import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
@@ -48,10 +55,10 @@ public class AuditUtility {
 	private Environment env;
 
 	@Autowired
-	private PacketReaderService packetReaderService;
+	private ObjectMapper mapper;
 
 	@Autowired
-	private ObjectMapper mapper;
+	private PacketManagerService packetManagerService;
 
 	/**
 	 * Save the audit Details.
@@ -62,20 +69,18 @@ public class AuditUtility {
 	 *
 	 */
 	@Async
-	public void saveAuditDetails(String registrationId,String source) {
+	public void saveAuditDetails(String registrationId,String source, String process) {
 		try {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", "AuditUtility::saveAuditDetails()::entry");
-			InputStream auditFileInputStream = packetReaderService.getFile(registrationId, PacketFiles.AUDIT.name(),source);
-			CollectionType collectionType = mapper.getTypeFactory().constructCollectionType(List.class, AuditDTO.class);
-
-			List<AuditDTO> regClientAuditDTOs = mapper.readValue(auditFileInputStream, collectionType);
-			regClientAuditDTOs.parallelStream().forEach(audit -> {
-				AsyncRequestDTO request = buildRequest(audit);
-				Supplier<Object> dto = restHelper.requestAsync(request);
-				dto.get();
-
-			});
+			List<FieldResponseDto> audits = packetManagerService.getAudits(registrationId, source, process);
+			if (CollectionUtils.isNotEmpty(audits)) {
+				audits.parallelStream().forEach(audit -> {
+					AsyncRequestDTO request = buildRequest(audit);
+					Supplier<Object> dto = restHelper.requestAsync(request);
+					dto.get();
+				});
+			}
 		} catch (RuntimeException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId, "AuditUtility::saveAuditDetails::Runtime exception occurred " + ExceptionUtils.getStackTrace(e));
@@ -90,16 +95,15 @@ public class AuditUtility {
 	/**
 	 * Builds the request.
 	 *
-	 * @param requestBody
+	 * @param req
 	 *            the request body
 	 * @return the Async request DTO
 	 *
 	 */
-	public AsyncRequestDTO buildRequest(Object requestBody) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"AuditUtility::buildRequest()::entry" + requestBody);
-		RequestWrapper<AuditDTO> auditRequest = new RequestWrapper<>();
-		auditRequest.setRequest((AuditDTO) requestBody);
+	public AsyncRequestDTO buildRequest(FieldResponseDto req) {
+		RequestWrapper<Map<String, String>> auditRequest = new RequestWrapper<>();
+
+		auditRequest.setRequest(req.getFields());
 		auditRequest.setId("String");
 		auditRequest.setVersion("1.0");
 		auditRequest.setRequesttime(LocalDateTime.now());

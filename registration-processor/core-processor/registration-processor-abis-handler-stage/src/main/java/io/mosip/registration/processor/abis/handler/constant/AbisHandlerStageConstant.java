@@ -14,7 +14,7 @@ public class AbisHandlerStageConstant {
 	public static final String MOSIP_ABIS_INSERT = "mosip.abis.insert";
 
 	/** The Constant VERSION. */
-	public static final String VERSION = "1.0";
+	public static final String VERSION = "1.1";
 
 	/** The Constant TIMESTAMP. */
 	public static final String TIMESTAMP = String.valueOf(new Timestamp(System.currentTimeMillis()).getTime() / 1000L);

@@ -41,7 +41,7 @@ public class MachineMappingDAOImpl implements MachineMappingDAO {
 	 * logger for logging
 	 */
 	private static final Logger LOGGER = AppConfig.getLogger(MachineMappingDAOImpl.class);
-	
+
 	/**
 	 * machineMasterRepository instance creation using autowired annotation
 	 */
@@ -73,8 +73,9 @@ public class MachineMappingDAOImpl implements MachineMappingDAO {
 				"getStationID() machineName --> " + machineName);
 
 		try {
-			MachineMaster machineMaster = machineMasterRepository.findByIsActiveTrueAndNameAndRegMachineSpecIdLangCode(machineName.toLowerCase(),
-					ApplicationContext.applicationLanguage());
+			MachineMaster machineMaster = machineMasterRepository
+					.findByIsActiveTrueAndNameIgnoreCaseAndRegMachineSpecIdLangCode(machineName.toLowerCase(),
+							ApplicationContext.applicationLanguage());
 
 			if (machineMaster != null && machineMaster.getRegMachineSpecId().getId() != null) {
 				return machineMaster.getRegMachineSpecId().getId();
@@ -86,8 +87,6 @@ public class MachineMappingDAOImpl implements MachineMappingDAO {
 					runtimeException.getMessage());
 		}
 	}
-
-
 
 	/*
 	 * (non-Javadoc)
@@ -140,25 +139,33 @@ public class MachineMappingDAOImpl implements MachineMappingDAO {
 		return machineMappingRepository.findByUserMachineMappingIdUsrIdIgnoreCase(userId) != null;
 	}
 
-		
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * io.mosip.registration.dao.MachineMappingDAO#getKeyIndexByMachineName(java.lang.
-	 * String)
+	 * io.mosip.registration.dao.MachineMappingDAO#getKeyIndexByMachineName(java.
+	 * lang. String)
 	 */
 	@Override
 	public String getKeyIndexByMachineName(String machineName) {
 		LOGGER.info(MACHINE_MAPPING_LOGGER_TITLE, APPLICATION_NAME, APPLICATION_ID,
 				"Fetching Key Index of Machine based on Machine name");
 
-		MachineMaster machineMaster = machineMasterRepository.findByIsActiveTrueAndNameAndRegMachineSpecIdLangCode(machineName.toLowerCase(), 
-				ApplicationContext.applicationLanguage());
+		MachineMaster machineMaster = machineMasterRepository
+				.findByIsActiveTrueAndNameIgnoreCaseAndRegMachineSpecIdLangCode(machineName.toLowerCase(),
+						ApplicationContext.applicationLanguage());
 
 		LOGGER.info(MACHINE_MAPPING_LOGGER_TITLE, APPLICATION_NAME, APPLICATION_ID,
 				"Completed fetching Key Index of Machine based on Machine name");
 		return machineMaster == null ? null : machineMaster.getKeyIndex();
+	}
+
+	@Override
+	public List<RegDeviceMaster> getRegisteredDevicesBySerialNumber(String serialNumber) {
+		LOGGER.info(MACHINE_MAPPING_LOGGER_TITLE, APPLICATION_NAME, APPLICATION_ID,
+				"fetching the device with serial number : " + serialNumber);
+
+		return deviceMasterRepository.findAllByIsActiveTrueAndSerialNum(serialNumber);
 	}
 
 }

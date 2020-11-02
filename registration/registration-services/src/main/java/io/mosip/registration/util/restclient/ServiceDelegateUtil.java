@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -72,6 +73,7 @@ public class ServiceDelegateUtil {
 	@Value("${invalidate_auth_token.service.url:}")
 	private String invalidateUrlPath;
 
+	private String mosipHostNamePlaceHolder = "${mosip.hostname}";
 	private static final Logger LOGGER = AppConfig.getLogger(ServiceDelegateUtil.class);
 
 	/**
@@ -119,9 +121,7 @@ public class ServiceDelegateUtil {
 
 			// URI creation
 			String url = getEnvironmentProperty(serviceName, RegistrationConstants.SERVICE_URL);
-			url = url != null && System.getenv("mosip.hostname") != null
-					? url.replace("${mosip.hostname}", System.getenv("mosip.hostname"))
-					: url;
+			url = prepareUrlByHostName(url);
 			Map<String, String> queryParams = new HashMap<>();
 			for (String key : requestParams.keySet()) {
 				if (!url.contains("{" + key + "}")) {
@@ -162,6 +162,22 @@ public class ServiceDelegateUtil {
 				"Get method has been ended");
 
 		return responseBody;
+	}
+
+	private String prepareUrlByHostName(String url) {
+		String mosipHostNameVal = System.getenv("mosip.hostname");
+
+		LOGGER.info(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_PREPARE_POST, APPLICATION_NAME, APPLICATION_ID,
+				"Mosip Host name in environment variables : " + mosipHostNameVal);
+		if (mosipHostNameVal == null || mosipHostNameVal.isEmpty()) {
+			mosipHostNameVal = getEnvironmentProperty("mosip", "hostname");
+			LOGGER.info(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_PREPARE_POST, APPLICATION_NAME, APPLICATION_ID,
+					"Mosip Host name in Default spring propertries variables : " + mosipHostNameVal);
+
+		}
+
+		return (url != null && mosipHostNameVal != null) ? url.replace(mosipHostNamePlaceHolder, mosipHostNameVal)
+				: url;
 	}
 
 	/**
@@ -431,12 +447,16 @@ public class ServiceDelegateUtil {
 				if (subheader != null) {
 					headerValues = subheader.split(":");
 					if (headerValues[0].equalsIgnoreCase("timestamp")) {
-						headerValues[1] = DateUtils.getUTCCurrentDateTimeString();
+						headerValues[1] = DateUtils.formatToISOString(LocalDateTime.now());
 					} else if (headerValues[0].equalsIgnoreCase("Center-Machine-RefId")) {
 						headerValues[1] = String
 								.valueOf(ApplicationContext.map().get(RegistrationConstants.USER_CENTER_ID))
 								.concat(RegistrationConstants.UNDER_SCORE).concat(String
 										.valueOf(ApplicationContext.map().get(RegistrationConstants.USER_STATION_ID)));
+					} else if (headerValues[0].equalsIgnoreCase("authorization")) {
+						headerValues[1] = "auth";
+					} else if (headerValues[0].equalsIgnoreCase("signature")) {
+						headerValues[1] = "sign";
 					}
 					httpHeaders.add(headerValues[0], headerValues[1]);
 				}

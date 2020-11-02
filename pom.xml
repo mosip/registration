@@ -4,27 +4,24 @@
 	<modelVersion>4.0.0</modelVersion>	
 	<groupId>io.mosip</groupId>
 	<artifactId>registration</artifactId>
-	<version>1.0.7</version>
+	<version>1.1.2</version>
 	<packaging>pom</packaging>	
 	
 	<name>MOSIP Registration Parent POM</name>
 	<description>Mosip Registration Project</description>
-        <url>https://github.com/mosip/registration</url>
-	
+        <url>https://github.com/mosip/registration</url>	
 	<licenses>
           <license>
                 <name>MPL 2.0</name>
                 <url>https://www.mozilla.org/en-US/MPL/2.0/</url>
           </license>
-        </licenses>
-	
-	<scm>
+        </licenses>	
+		<scm>
                 <connection>scm:git:git://github.com/mosip/registration.git</connection>
                 <developerConnection>scm:git:ssh://github.com:mosip/registration.git</developerConnection>
                 <url>https://github.com/mosip/registration</url>
                 <tag>HEAD</tag>
-        </scm>
-	
+        </scm>	
 	<developers>
                 <developer>
                   <name>Mosip</name>
@@ -32,7 +29,7 @@
                   <organization>io.mosip</organization>
                   <organizationUrl>https://github.com/mosip/registration</organizationUrl>
                 </developer>
-        </developers>
+     </developers>
 
 	<repositories>
 		<repository>
@@ -44,6 +41,15 @@
 			<enabled>true</enabled>
 			</snapshots>
 		</repository>
+		<repository>
+		    <id>central</id>
+		    <name>Maven Central</name>
+		    <layout>default</layout>
+		    <url>https://repo1.maven.org/maven2</url>
+		    <snapshots>
+		    <enabled>false</enabled>
+		    </snapshots>
+		  </repository>
 	</repositories>
 
 
@@ -87,7 +93,7 @@
                 <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-javadoc-plugin</artifactId>
-                  <version>2.9.1</version>
+                  <version>3.2.0</version>
                   <executions>
                         <execution>
                           <id>attach-javadocs</id>
@@ -97,7 +103,7 @@
                         </execution>
                   </executions>
                   <configuration>
-                          <additionalJOption>-Xdoclint:none</additionalJOption>
+                     <doclint>none</doclint>    
                   </configuration>
                 </plugin>
       
@@ -154,5 +160,4 @@
 		<module>registration</module>
 		<module>registration-processor</module>
 	</modules>
-
 </project>

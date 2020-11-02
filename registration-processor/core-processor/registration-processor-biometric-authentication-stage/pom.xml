@@ -5,14 +5,13 @@
   <parent>
     <groupId>io.mosip.registrationprocessor</groupId>
     <artifactId>core-processor</artifactId>
-    <version>1.0.10</version>
+    <version>1.1.2</version>
   </parent>
   <artifactId>registration-processor-biometric-authentication-stage</artifactId>
-  	<version>1.0.10</version>
+  	<version>1.1.2</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<java.version>1.8</java.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -74,7 +73,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito</artifactId>
+			<artifactId>powermock-api-mockito2</artifactId>
 			<version>${powermock.api.mockito.version}</version>
 			<scope>test</scope>
 		</dependency>
@@ -87,6 +86,21 @@
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-registry-prometheus</artifactId>
 			<version>${io.micrometer.prometheus.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-templatemanager-velocity</artifactId>
+			<version>${kernel.templatemanager.velocity.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.servlet</groupId>
+					<artifactId>servlet-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>dom4j</groupId>
+					<artifactId>dom4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 	<build>

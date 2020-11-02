@@ -41,7 +41,6 @@ public class RegistrationConstants {
 	public static final String ONHOLD_PAGE = "/fxml/OnholdComment.fxml";
 	public static final String REJECTION_PAGE = "/fxml/RejectionComment.fxml";
 	public static final String USER_AUTHENTICATION = "/fxml/Authentication.fxml";
-	public static final String WEB_CAMERA_PAGE = "/fxml/WebCamera.fxml";
 	public static final String PENDING_ACTION_PAGE = "/fxml/RegistrationPendingAction.fxml";
 	public static final String PENDING_APPROVAL_PAGE = "/fxml/RegistrationPendingApproval.fxml";
 	public static final String REREGISTRATION_PAGE = "/fxml/ReRegistration.fxml";
@@ -49,10 +48,6 @@ public class RegistrationConstants {
 	public static final String UIN_UPDATE = "/fxml/UpdateUIN.fxml";
 	public static final String SYNC_DATA = "/fxml/SyncDataProcess.fxml";
 	public static final String USER_ONBOARD = "/fxml/Onboard.fxml";
-	public static final String USER_ONBOARD_FP = "/fxml/UserOnboardFPCapture.fxml";
-	public static final String USER_ONBOARD_IRIS = "/fxml/UserOnboardIrisCapture.fxml";
-	public static final String USER_ONBOARD_WEBCAM = "/fxml/UserOnboardWebCamera.fxml";
-	public static final String BIO_EXCEPTION_PAGE = "/fxml/BiometricException.fxml";
 	public static final String SEND_NOTIFICATION_PAGE = "/fxml/SendNotification.fxml";
 	public static final String PACKET_UPLOAD_STATUS_UI = "/fxml/PacketUploadStatus.fxml";
 	public static final String ALERT_GENERATION = "/fxml/Alert.fxml";
@@ -88,7 +83,7 @@ public class RegistrationConstants {
 	public static final String ONBOARD_USER_SUCCESS = "userOnboardSuccess";
 	// public static final String BIOMETRIC_EXCEPTION_FLOW =
 	// "biometricExceptionFlow";
-	public static final String GUARDIAN_BIOMETRIC = "guardianBiometric";
+	public static final String GUARDIAN_BIOMETRIC = "biometric";
 
 	// css for quality indicator
 	public static final String RETRY_ATTEMPT = "#retryAttempt_";
@@ -102,6 +97,8 @@ public class RegistrationConstants {
 	public static final String LABEL_GREEN = "labelGreen";
 	public static final String IRIS_PANES_SELECTED = "IrisPanesSelected";
 	public static final String BIO_IRIS_SELECTED = "bioIris";
+	public static final String BIOMETRICS_DISPLAY = "biometricsDisplay";
+	public static final String TOOLTIP_STYLE = "tooltipStyle";
 
 	// Page Flow
 	public static final String VISIBILITY = "visibility";
@@ -127,6 +124,7 @@ public class RegistrationConstants {
 	public static final String THUMB_IMG_PATH = "/images/thumbs.png";
 	public static final String RIGHT_IRIS_IMG_PATH = "/images/Eye.png";
 	public static final String LEFT_IRIS_IMG_PATH = "/images/Eye.png";
+	public static final String DOUBLE_IRIS_IMG_PATH = "/images/Eyes.png";
 	public static final String VIEW = "/images/View.png";
 	public static final String SCAN = "/images/scan.png";
 	public static final String SCAN_FOCUSED = "/images/scanFocused.png";
@@ -262,6 +260,7 @@ public class RegistrationConstants {
 	public static final String ONTYPE = "ontype";
 	public static final String TOOLTIP = "toolTip";
 	public static final String DOC_COMBO_BOX = "documentCombobox";
+	public static final String BUTTONS_LABEL = "buttonsLabel";
 	public static final String DEMOGRAPHIC_FIELD_LABEL = "demoGraphicFieldLabel";
 	public static final String SCAN_VBOX = "scanVBox";
 	public static final String DOCUMENT_CONTENT_BUTTON = "documentContentButton";
@@ -359,7 +358,9 @@ public class RegistrationConstants {
 
 	// onBoard User
 	public static final String ONBOARD_STYLE_CLASS = "onboardAlertMsg";
-	public static final String ONBOARD_IMG_PATH = "images/tick.png";
+	public static final String ONBOARD_IMG_PATH = "/images/tick.png";
+
+	public static final String TICK_CIRICLE_IMG_PATH = "/images/tick-circle.png";
 	public static final String ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT = "EEEE dd MMM hh:mm a";
 
 	// RegistrationApproval
@@ -512,6 +513,7 @@ public class RegistrationConstants {
 	public static final String TEMPLATE_PRE_REG_ID_USER_LANG_LABEL = "PreRegIDPrimLabel";
 	public static final String TEMPLATE_PRE_REG_ID_LOCAL_LANG_LABEL = "PreRegIDSecLabel";
 	public static final String TEMPLATE_PRE_REG_ID = "PreRegID";
+	public static final String TEMPLATE_PRE_REG = "IsPreRegIDPresent";
 	public static final String TEMPLATE_DEMO_INFO = "DemographicInfo";
 	public static final String DEMOGRAPHIC_TEXTFIELD_FOCUSED = "demoGraphicTextFieldFocused";
 	public static final String DEMOGRAPHIC_TEXTFIELD = "demoGraphicTextField";
@@ -987,11 +989,12 @@ public class RegistrationConstants {
 	public static final String SERVER_STATUS_RESEND = "RESEND";
 	public static final String CLIENT_STATUS_APPROVED = "APPROVED";
 	public static final String SYNCED_STATUS = "SYNCED";
+
 	public static final List<String> PACKET_STATUS = Arrays.asList("APPROVED", "REJECTED", "RE_REGISTER_APPROVED");
 
 	public static final List<String> PACKET_STATUS_UPLOAD = Arrays.asList("APPROVED", "REJECTED", "SYNCED", "EXPORTED");
 
-	public static final List<String> PACKET_EXPORT_STATUS = Arrays.asList("EXPORTED", "SYNCED");
+	public static final List<String> PACKET_EXPORT_STATUS = Arrays.asList("APPROVED", "EXPORTED", "SYNCED");
 
 	// Pre Registration
 	public static final String PRE_REGISTRATION_ID = "pre_registration_id";
@@ -1200,6 +1203,9 @@ public class RegistrationConstants {
 	public static final String MASTER_DATA_LASTUPDTAE = "lastUpdated";
 	public static final String MASTER_SYNC_LOGGER_INFO = "Entering into Master Sync Dao Impl...";
 	// POLICY SYNC
+	public static final String REG_APP_ID = "REGISTRATION";
+	public static final String KERNEL_APP_ID = "KERNEL";
+	public static final String KERNEL_REF_ID = "SIGNATUREKEY";
 	public static final String POLICY_SYNC_SUCCESS_CODE = "REG-MDS‌-001 ";
 	public static final String POLICY_SYNC_SUCCESS_MESSAGE = "SYNC_SUCCESS";
 	public static final String POLICY_SYNC_ERROR_CODE = "REG-MDS‌-003 ";
@@ -1454,7 +1460,10 @@ public class RegistrationConstants {
 	public static final String PUBLIC_KEY_EXPIRE_DATE = "expiryAt";
 	public static final String PUBLIC_KEY = "publicKey";
 	public static final String PUBLIC_KEY_REST = "public_key";
+	public static final String GET_CERTIFICATE = "getcert_sync";
+	public static final String GET_CERT_APP_ID = "applicationId";
 	public static final String KER = "SIGN";
+	public static final String CERTIFICATE = "certificate";
 	public static final String DTAE_MONTH_YEAR_REGEX = "dd|mm|yyyy|ddLocalLanguage|mmLocalLanguage|yyyyLocalLanguage|ageField|dob";
 
 	public static final String UIN_UPDATE_PARENTGUARDIAN_DETAILS = "parentOrGuardianDetails";
@@ -1491,6 +1500,11 @@ public class RegistrationConstants {
 	public static final String ID = "id";
 	public static final String IDENTITY = "mosip.identity.auth.internal";
 	public static final String VERSION = "version";
+	public static final String ENV = "env";
+	public static final String DOMAIN_URI = "domainUri";
+	public static final String TRANSACTION_Id = "transactionId";
+	public static final String PURPOSE = "purpose";
+	public static final String PURPOSE_AUTH = "Auth";
 	public static final String REQUEST_TIME = "requestTime";
 	public static final String TRANSACTION_ID = "transactionID";
 	public static final String TRANSACTION_ID_VALUE = "1234567890";
@@ -1525,7 +1539,6 @@ public class RegistrationConstants {
 	public static final String ERROR_CODE = "errorCode";
 	public static final String MESSAGE_CODE = "message";
 	public static final String TPM_PUBLIC_KEY_SYNC_SERVICE_NAME = "tpm_public_key";
-	public static final String TPM_AVAILABILITY = "is_tpm_available";
 	public static final String SERIAL_NUMBER = "serialnumber";
 
 	public static final Map<String, String> userOnBoardMap = new HashMap<String, String>() {
@@ -1730,7 +1743,7 @@ public class RegistrationConstants {
 	public static final String MOSIP_CLEINT_ID = "mosip.registration.client.id";
 	public static final String MOSIP_SECRET_KEY = "mosip.registration.secret.Key";
 
-	/** BELOW WERE EXTERNALISING  Spring.properties to external configs */
+	/** BELOW WERE EXTERNALISING Spring.properties to external configs */
 
 	// Timeout Configuartion
 	public static final String HTTP_API_READ_TIMEOUT = "mosip.registration.HTTP_API_READ_TIMEOUT";
@@ -1760,14 +1773,34 @@ public class RegistrationConstants {
 
 	// #Proof Of Exception Documents
 	public static final String POE_DOCUMENT_VALUE = "mosip.registration.doc_value";
-	
+
 	public static final String LOST_REGISTRATION_BIO_MVEL_OPERATOR = "mosip.registration.lostuin.biometrics.mvel.operator";
 	public static final String UPDATE_REGISTRATION_BIO_MVEL_OPERATOR = "mosip.registration.updateuin.biometrics.mvel.operator";
 	public static final String LOST_REGISTRATION_BIO_MVEL_EXPR = "mosip.registration.lostuin.biometrics.mvel.expr";
 	public static final String UPDATE_REGISTRATION_BIO_MVEL_EXPR = "mosip.registration.updateuin.biometrics.mvel.expr";
-	
+
 	public static final String BIOMETRICS_GROUP = "Biometrics";
-	
+
 	public static final String SPEC_VERSION_095 = "0.9.5";
 	public static final String SPEC_VERSION_092 = "0.9.2";
+
+	public static final String TEMPLATE_FACE_IMAGE_SOURCE = "FaceImageSource";
+
+	public static final String REGISTRATION_EVENTS = "REG-EVT";
+
+	public static final String EXCEPTION_PHOTO = "Exception_Photo";
+
+	public static final String EXCEPTIONAL_SCANNER_DEVICE_TYPES = "mosip.registration.scanner.device.types";
+
+	// Exception Images Path
+	public static final String LEFTMIDDLE_IMG_PATH = "/images/exceptionmarks/leftMiddle.png";
+	public static final String LEFTINDEX_IMG_PATH = "/images/exceptionmarks/leftIndex.png";
+	public static final String LEFTRING_IMG_PATH = "/images/exceptionmarks/leftRing.png";
+	public static final String LEFTLITTLE_IMG_PATH = "/images/exceptionmarks/leftLittle.png";
+	public static final String LEFTTHUMB_IMG_PATH = "/images/exceptionmarks/leftThumb.png";
+	public static final String RIGHTEYE_IMG_PATH = "/images/exceptionmarks/lightBlueCrossMark.png";
+	public static final String LEFTEYE_IMG_PATH = "/images/exceptionmarks/lightBlueCrossMark.png";
+	
+	//UI Schema field group name
+	public static final String UI_SCHEMA_GROUP_FULL_NAME = "FullName";
 }

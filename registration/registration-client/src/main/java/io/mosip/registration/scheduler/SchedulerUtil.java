@@ -22,9 +22,9 @@ import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
+import io.mosip.registration.controller.device.BiometricsController;
 import io.mosip.registration.controller.device.ScanPopUpViewController;
 import io.mosip.registration.controller.device.Streamer;
-import io.mosip.registration.controller.device.WebCameraController;
 import io.mosip.registration.controller.reg.PacketUploadController;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import javafx.animation.KeyFrame;
@@ -82,16 +82,16 @@ public class SchedulerUtil extends BaseController {
 	private int duration;
 
 	@Autowired
-	private WebCameraController webCameraController;
-
-	@Autowired
 	private ScanPopUpViewController scanPopUpViewController;
 
 	@Autowired
 	private PacketUploadController packetUploadController;
-	
+
 	@Autowired
 	private Streamer streamer;
+
+	@Autowired
+	private BiometricsController biometricsController;
 
 	/**
 	 * Constructor to invoke scheduler method once login success.
@@ -278,10 +278,6 @@ public class SchedulerUtil extends BaseController {
 		// to stop scheduler
 		stopScheduler();
 
-		// close webcam window, if open.
-		if (webCameraController.getWebCameraStage() != null && webCameraController.getWebCameraStage().isShowing()) {
-			webCameraController.getWebCameraStage().close();
-		}
 		if (getAlertStage() != null && getAlertStage().isShowing()) {
 			getAlertStage().close();
 		}
@@ -299,11 +295,14 @@ public class SchedulerUtil extends BaseController {
 			Stage alertStage = (Stage) SessionContext.map().get("alertStage");
 			alertStage.close();
 		}
+
+		closeAlreadyExistedAlert();
+		biometricsController.stopRCaptureService();
 		// Clear the Registration Data
 		clearRegistrationData();
 		// to clear the session object
 		SessionContext.destroySession();
-		
+
 		streamer.stop();
 		// load login screen
 		loadLoginScreen();

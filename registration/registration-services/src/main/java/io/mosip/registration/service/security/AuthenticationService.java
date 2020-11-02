@@ -2,11 +2,9 @@ package io.mosip.registration.service.security;
 
 import java.util.List;
 
-import io.mosip.kernel.biometrics.constant.BiometricType;
-import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.dto.AuthTokenDTO;
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
-import io.mosip.registration.validator.AuthenticationBaseValidator;
+import io.mosip.registration.dto.packetmanager.BiometricsDto;
 
 public interface AuthenticationService {
 

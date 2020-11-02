@@ -5,10 +5,10 @@
     <parent>
         <artifactId>pre-processor</artifactId>
         <groupId>io.mosip.registrationprocessor</groupId>
-        <version>1.0.10</version>
+        <version>1.1.2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <version>1.0.10</version>
+    <version>1.1.2</version>
 
     <artifactId>registration-processor-securezone-notification-stage</artifactId>
 
@@ -46,7 +46,7 @@
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
+            <artifactId>powermock-api-mockito2</artifactId>
             <version>${powermock.api.mockito.version}</version>
             <scope>test</scope>
         </dependency>

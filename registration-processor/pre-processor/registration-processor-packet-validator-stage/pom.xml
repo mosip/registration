@@ -7,14 +7,13 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>pre-processor</artifactId>
-		<version>1.0.10</version>
+		<version>1.1.2</version>
 	</parent>
 	<artifactId>registration-processor-packet-validator-stage</artifactId>
-	 	<version>1.0.10</version>
+	 	<version>1.1.2</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<java.version>1.8</java.version>
 	</properties>
 
 	<dependencyManagement>
@@ -59,6 +58,11 @@
 			<version>${registration.processor.rest.client.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>io.mosip.registrationprocessor</groupId>
+			<artifactId>registration-processor-message-sender-impl</artifactId>
+			<version>${registration.processor.message.sender.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>${commons.io.version}</version>
@@ -66,6 +70,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
+			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -81,7 +86,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito</artifactId>
+			<artifactId>powermock-api-mockito2</artifactId>
 			<version>${powermock.api.mockito.version}</version>
 			<scope>test</scope>
 		</dependency>
@@ -94,11 +99,6 @@
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-core</artifactId>
 			<version>${kernel.core.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-idobjectvalidator</artifactId>
-			<version>${kernel.idobjectvalidator.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -114,11 +114,6 @@
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-registry-prometheus</artifactId>
 			<version>${io.micrometer.prometheus.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-registration-packet-manager</artifactId>
-			<version>${registration.processor.packet.utility.version}</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -141,6 +136,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
-
 </project>

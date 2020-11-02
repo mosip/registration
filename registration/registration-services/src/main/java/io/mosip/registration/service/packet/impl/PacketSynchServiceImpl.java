@@ -8,7 +8,6 @@ import java.io.File;
 import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -17,15 +16,20 @@ import java.util.WeakHashMap;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
+import io.mosip.commons.packet.spi.IPacketCryptoService;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.FileUtils;
+import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.kernel.core.util.exception.JsonMappingException;
+import io.mosip.kernel.core.util.exception.JsonParseException;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
@@ -39,6 +43,7 @@ import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.dao.RegistrationDAO;
 import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.PacketStatusDTO;
+import io.mosip.registration.dto.RegistrationDataDto;
 import io.mosip.registration.dto.RegistrationPacketSyncDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.SuccessResponseDTO;
@@ -48,7 +53,6 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.service.BaseService;
-import io.mosip.registration.service.security.AESEncryptionService;
 import io.mosip.registration.service.sync.PacketSynchService;
 
 /**
@@ -71,7 +75,8 @@ public class PacketSynchServiceImpl extends BaseService implements PacketSynchSe
 	protected AuditManagerService auditFactory;
 
 	@Autowired
-	private AESEncryptionService aesEncryptionService;
+    @Qualifier("OfflinePacketCryptoServiceImpl")
+    private IPacketCryptoService offlinePacketCryptoServiceImpl;
 
 	private static final Logger LOGGER = AppConfig.getLogger(PacketSynchServiceImpl.class);
 
@@ -101,6 +106,9 @@ public class PacketSynchServiceImpl extends BaseService implements PacketSynchSe
 						syncDto.setLangCode(
 								String.valueOf(ApplicationContext.map().get(RegistrationConstants.PRIMARY_LANGUAGE)));
 						syncDto.setRegistrationId(packetToBeSynch.getFileName());
+						syncDto.setName(packetToBeSynch.getName());
+						syncDto.setEmail(packetToBeSynch.getEmail());
+						syncDto.setPhone(packetToBeSynch.getPhone());
 						syncDto.setRegistrationType(packetToBeSynch.getPacketStatus().toUpperCase());
 						syncDto.setPacketHashValue(packetToBeSynch.getPacketHash());
 						syncDto.setPacketSize(packetToBeSynch.getPacketSize());
@@ -110,13 +118,15 @@ public class PacketSynchServiceImpl extends BaseService implements PacketSynchSe
 					}
 				}
 				RegistrationPacketSyncDTO registrationPacketSyncDTO = new RegistrationPacketSyncDTO();
-				registrationPacketSyncDTO.setRequesttime(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+				registrationPacketSyncDTO
+						.setRequesttime(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 				registrationPacketSyncDTO.setSyncRegistrationDTOs(syncDtoList);
 				registrationPacketSyncDTO.setId(RegistrationConstants.PACKET_SYNC_STATUS_ID);
 				registrationPacketSyncDTO.setVersion(RegistrationConstants.PACKET_SYNC_VERSION);
+				String regId = registrationPacketSyncDTO.getSyncRegistrationDTOs().get(0).getRegistrationId();
 				responseDTO = syncPacketsToServer(
-						CryptoUtil.encodeBase64(aesEncryptionService
-								.encrypt(javaObjectToJsonString(registrationPacketSyncDTO).getBytes())),
+						CryptoUtil.encodeBase64(offlinePacketCryptoServiceImpl.encrypt(regId,
+								javaObjectToJsonString(registrationPacketSyncDTO).getBytes())),
 						RegistrationConstants.JOB_TRIGGER_POINT_USER);
 			}
 			syncErrorStatus = onSuccessPacketSync(packetsToBeSynched, syncErrorStatus, synchedPackets, responseDTO);
@@ -182,7 +192,7 @@ public class PacketSynchServiceImpl extends BaseService implements PacketSynchSe
 				RegistrationConstants.PACKET_STATUS_UPLOAD, RegistrationConstants.SERVER_STATUS_RESEND);
 		removeSynchedAndReregisterPackets(packetsToBeSynched);
 		packetsToBeSynched.forEach(reg -> {
-			if (reg.getServerStatusCode() == null 
+			if (reg.getServerStatusCode() == null
 					|| (reg.getClientStatusTimestamp() != null && reg.getServerStatusTimestamp() != null
 							&& !(RegistrationConstants.SERVER_STATUS_RESEND.equalsIgnoreCase(reg.getServerStatusCode())
 									&& reg.getClientStatusTimestamp().after(reg.getServerStatusTimestamp())))) {
@@ -198,6 +208,20 @@ public class PacketSynchServiceImpl extends BaseService implements PacketSynchSe
 				packetStatusDTO.setSupervisorStatus(reg.getClientStatusCode());
 				packetStatusDTO.setSupervisorComments(reg.getClientStatusComments());
 				packetStatusDTO.setCreatedTime(new SimpleDateFormat("dd-MM-yyyy").format(reg.getCrDtime()));
+				try {
+					if (reg.getAdditionalInfo() != null) {
+						String additionalInfo = new String(reg.getAdditionalInfo());
+						RegistrationDataDto registrationDataDto = (RegistrationDataDto) JsonUtils
+								.jsonStringToJavaObject(RegistrationDataDto.class, additionalInfo);
+						packetStatusDTO.setName(registrationDataDto.getName());
+						packetStatusDTO.setPhone(registrationDataDto.getPhone());
+						packetStatusDTO.setEmail(registrationDataDto.getEmail());
+					}
+				} catch (JsonParseException | JsonMappingException
+						| io.mosip.kernel.core.exception.IOException exception) {
+					LOGGER.error("REGISTRATION - FETCH_PACKETS_TO_BE_SYNCED - PACKET_SYNC_SERVICE", APPLICATION_NAME,
+							APPLICATION_ID, exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+				}
 				idsToBeSynched.add(packetStatusDTO);
 			}
 		});
@@ -307,15 +331,16 @@ public class PacketSynchServiceImpl extends BaseService implements PacketSynchSe
 		if (StringUtils.isEmpty(rId)) {
 			throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_PKT_ID.getErrorCode(),
 					RegistrationExceptionConstants.REG_PKT_ID.getErrorMessage());
-		} //else {
-			Registration registration = syncRegistrationDAO.getRegistrationById(RegistrationClientStatusCode.APPROVED.getCode(), rId);
-			if(registration != null) {
-				List<PacketStatusDTO> registrations = new ArrayList<>();
-				registrations.add(packetStatusDtoPreperation(registration));
-				return packetSync(registrations);
-			}
-	return "Packet is not approved";
-	//	}
+		} // else {
+		Registration registration = syncRegistrationDAO
+				.getRegistrationById(RegistrationClientStatusCode.APPROVED.getCode(), rId);
+		if (registration != null) {
+			List<PacketStatusDTO> registrations = new ArrayList<>();
+			registrations.add(packetStatusDtoPreperation(registration));
+			return packetSync(registrations);
+		}
+		return "Packet is not approved";
+		// }
 	}
 
 	/*
@@ -369,8 +394,8 @@ public class PacketSynchServiceImpl extends BaseService implements PacketSynchSe
 	@Override
 	public Boolean fetchSynchedPacket(String rId) {
 		if (StringUtils.isEmpty(rId)) {
-			LOGGER.error("REGISTRATION - UPDATE_SYNC_RID_ERROR - PACKET_SYNC_SERVICE", APPLICATION_NAME,
-					APPLICATION_ID, "Registration Id can not be null or empty");
+			LOGGER.error("REGISTRATION - UPDATE_SYNC_RID_ERROR - PACKET_SYNC_SERVICE", APPLICATION_NAME, APPLICATION_ID,
+					"Registration Id can not be null or empty");
 		} else {
 			Registration reg = syncRegistrationDAO
 					.getRegistrationById(RegistrationClientStatusCode.META_INFO_SYN_SERVER.getCode(), rId);
@@ -397,20 +422,23 @@ public class PacketSynchServiceImpl extends BaseService implements PacketSynchSe
 		return true;
 
 	}
-	
+
 	private void removeSynchedAndReregisterPackets(List<Registration> packetsToBeSynched) {
 		LOGGER.info("REGISTRATION - FETCH_PACKETS_TO_BE_SYNCED - PACKET_SYNC_SERVICE", APPLICATION_NAME, APPLICATION_ID,
-				"Remove the already Synched and Re-register status packets, total packets " + packetsToBeSynched.size());
-		List<Registration> synchedAndReRegisteredPackets = packetsToBeSynched.stream().filter(registration -> 
-				RegistrationConstants.SYNCED_STATUS.equalsIgnoreCase(registration.getClientStatusCode()) 
-				&& registration.getClientStatusComments() != null 
-				&& registration.getClientStatusComments().contains(RegistrationConstants.RE_REGISTER_STATUS_COMEMNTS)).collect(Collectors.toList());
-		
+				"Remove the already Synched and Re-register status packets, total packets "
+						+ packetsToBeSynched.size());
+		List<Registration> synchedAndReRegisteredPackets = packetsToBeSynched.stream().filter(
+				registration -> RegistrationConstants.SYNCED_STATUS.equalsIgnoreCase(registration.getClientStatusCode())
+						&& registration.getClientStatusComments() != null
+						&& registration.getClientStatusComments()
+								.contains(RegistrationConstants.RE_REGISTER_STATUS_COMEMNTS))
+				.collect(Collectors.toList());
+
 		LOGGER.info("REGISTRATION - FETCH_PACKETS_TO_BE_SYNCED - PACKET_SYNC_SERVICE", APPLICATION_NAME, APPLICATION_ID,
 				"Remove the already Synched and Re-register status packets" + synchedAndReRegisteredPackets.size());
-		
+
 		packetsToBeSynched.removeAll(synchedAndReRegisteredPackets);
-		
+
 		LOGGER.info("REGISTRATION - FETCH_PACKETS_TO_BE_SYNCED - PACKET_SYNC_SERVICE", APPLICATION_NAME, APPLICATION_ID,
 				"Final Packets count " + packetsToBeSynched.size());
 	}

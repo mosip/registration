@@ -88,7 +88,7 @@ public class RegistrationSyncController {
 	 * @return the response entity
 	 * @throws RegStatusAppException
 	 */
-	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_PROCESSOR', 'REGISTRATION_OFFICER','REGISTRATION_SUPERVISOR' )")
+	@PreAuthorize("hasAnyRole('REGISTRATION_ADMIN', 'REGISTRATION_PROCESSOR', 'REGISTRATION_OFFICER','REGISTRATION_SUPERVISOR', 'RESIDENT' )")
 	@PostMapping(path = "/sync", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiOperation(value = "Get the synchronizing registration entity", response = RegistrationStatusCode.class)
 	@ApiResponses(value = {
@@ -106,7 +106,7 @@ public class RegistrationSyncController {
 
 			if (registrationSyncRequestDTO != null && validator.validate(registrationSyncRequestDTO,
 					env.getProperty(REG_SYNC_SERVICE_ID), syncResponseList)) {
-				syncResponseList = syncRegistrationService.sync(registrationSyncRequestDTO.getRequest());
+				syncResponseList = syncRegistrationService.sync(registrationSyncRequestDTO.getRequest(), referenceId, timeStamp);
 			}
 			if (isEnabled) {
 				RegSyncResponseDTO responseDto = buildRegistrationSyncResponse(syncResponseList);

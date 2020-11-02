@@ -14,6 +14,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -29,6 +30,7 @@ import io.mosip.registration.processor.packet.storage.utils.Utilities;
  * The Class DocumentUtilityTest.
  */
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ IOUtils.class, Utilities.class })
 public class DocumentUtilityTest {
 
@@ -42,7 +44,7 @@ public class DocumentUtilityTest {
 
 	/** The filesystem adapter impl. */
 	@Mock
-	private PacketManager filesystemAdapterImpl;
+	private PacketManager packetManager;
 
 	/** The utility. */
 	@Mock

@@ -1,15 +1,12 @@
 package io.mosip.registration.test.service;
 
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.doNothing;
 
 import java.net.SocketTimeoutException;
-import java.security.KeyManagementException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -27,16 +24,14 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.web.client.HttpClientErrorException;
 
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
-import io.mosip.registration.dao.PolicySyncDAO;
 import io.mosip.registration.dao.UserOnboardDAO;
-import io.mosip.registration.dto.PublicKeyResponse;
-import io.mosip.registration.entity.KeyStore;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.sync.impl.PolicySyncServiceImpl;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
@@ -48,6 +43,7 @@ import io.mosip.registration.util.restclient.ServiceDelegateUtil;
  *
  */
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ RegistrationAppHealthCheckUtil.class })
 public class PolicySyncServiceTest {
 	@Rule
@@ -55,8 +51,6 @@ public class PolicySyncServiceTest {
 
 	private ApplicationContext applicationContext = ApplicationContext.getInstance();
 
-	@Mock
-	private PolicySyncDAO policySyncDAO;
 	@Mock
 	private ServiceDelegateUtil serviceDelegateUtil;
 	@Mock
@@ -116,9 +110,6 @@ public class PolicySyncServiceTest {
 
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
-		KeyStore keyStore = new KeyStore();
-		keyStore.setValidTillDtimes(timestamp);
-		Mockito.when(policySyncDAO.findByMaxExpireTime()).thenReturn(keyStore);
 
 		Map<String, Object> responseMap = new LinkedHashMap<>();
 		LinkedHashMap<String, Object> valuesMap = new LinkedHashMap<>();
@@ -135,14 +126,10 @@ public class PolicySyncServiceTest {
 
 		Mockito.when(userOnboardDAO.getStationID(Mockito.anyString())).thenReturn(machineId);
 		Mockito.when(userOnboardDAO.getCenterID(machineId)).thenReturn(centerId);
-
-		Mockito.when(policySyncDAO.getPublicKey(refId)).thenReturn(keyStore);
-
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.anyMap(), Mockito.anyBoolean(),
 				Mockito.anyString())).thenReturn(responseMap);
 
 		assertNotNull(policySyncServiceImpl.fetchPolicy());
-
 	}
 	
 	@Test
@@ -155,9 +142,6 @@ public class PolicySyncServiceTest {
 
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
-		KeyStore keyStore = new KeyStore();
-		keyStore.setValidTillDtimes(timestamp);
-		Mockito.when(policySyncDAO.findByMaxExpireTime()).thenReturn(keyStore);
 
 		Map<String, Object> responseMap = new LinkedHashMap<>();
 		List<LinkedHashMap<String, Object>> valuesMap = new ArrayList<>();
@@ -175,9 +159,6 @@ public class PolicySyncServiceTest {
 
 		Mockito.when(userOnboardDAO.getStationID(Mockito.anyString())).thenReturn(machineId);
 		Mockito.when(userOnboardDAO.getCenterID(machineId)).thenReturn(centerId);
-
-		Mockito.when(policySyncDAO.getPublicKey(refId)).thenReturn(keyStore);
-
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.anyMap(), Mockito.anyBoolean(),
 				Mockito.anyString())).thenReturn(responseMap);
 
@@ -187,11 +168,9 @@ public class PolicySyncServiceTest {
 	
 	@Test(expected=RegBaseCheckedException.class)
 	public void failureTestException() throws HttpClientErrorException, SocketTimeoutException, RegBaseCheckedException, ParseException {
-		KeyStore keys = new KeyStore();
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd");
 		Date date = dateFormat.parse("2019-4-5");
 		Timestamp timestamp = new Timestamp(date.getTime());
-		keys.setValidTillDtimes(timestamp);
 		Map<String, Object> responseMap = new LinkedHashMap<>();
 		List<LinkedHashMap<String, Object>> valuesMap = new ArrayList<>();
 		LinkedHashMap<String, Object> errorMap = new LinkedHashMap<>();
@@ -202,8 +181,6 @@ public class PolicySyncServiceTest {
 		responseMap.put(RegistrationConstants.ERRORS, valuesMap);
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
-		Mockito.when(policySyncDAO.getPublicKey(Mockito.anyString())).thenReturn(keys);
-		doNothing().when(policySyncDAO).updatePolicy(keys);
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.anyMap(), Mockito.anyBoolean(),
 				Mockito.anyString())).thenThrow(SocketTimeoutException.class);
 		policySyncServiceImpl.fetchPolicy();
@@ -213,8 +190,8 @@ public class PolicySyncServiceTest {
 	public void failureTest() throws HttpClientErrorException, SocketTimeoutException, RegBaseCheckedException {
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
-		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.anyMap(), Mockito.anyBoolean(),
-				Mockito.anyString())).thenThrow(KeyManagementException.class);
+		Mockito.when(serviceDelegateUtil.get(Mockito.any(), Mockito.any(), Mockito.anyBoolean(),
+				Mockito.any())).thenThrow(RegBaseCheckedException.class);
 
 		//assertNotNull(policySyncServiceImpl.fetchPolicy());
 	}
@@ -236,20 +213,15 @@ public class PolicySyncServiceTest {
 		String machineId = "machineId";
 		String centerId = "centerId";
 		String refId = centerId + "_" + machineId;
-		KeyStore keyStore = new KeyStore();
 
 		Mockito.when(userOnboardDAO.getStationID(Mockito.anyString())).thenReturn(machineId);
 		Mockito.when(userOnboardDAO.getCenterID(machineId)).thenReturn(centerId);
-		keyStore.setValidTillDtimes(Timestamp.valueOf(LocalDateTime.now()));
-		Mockito.when(policySyncDAO.getPublicKey(refId)).thenReturn(keyStore);
 		policySyncServiceImpl.checkKeyValidation();
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Test
 	public void checkKeyValidationExpiryException() throws RegBaseCheckedException {
-
-		Mockito.when(policySyncDAO.getPublicKey(Mockito.anyString())).thenThrow(RuntimeException.class);
 		policySyncServiceImpl.checkKeyValidation();
 	}
 
@@ -259,18 +231,13 @@ public class PolicySyncServiceTest {
 		String machineId = "machineId";
 		String centerId = "centerId";
 		String refId = centerId + "_" + machineId;
-		KeyStore keyStore = new KeyStore();
-		keyStore.setValidTillDtimes(Timestamp.valueOf(("2019-03-28 13:00:57.172")));
 		Mockito.when(userOnboardDAO.getStationID(Mockito.anyString())).thenReturn(machineId);
 		Mockito.when(userOnboardDAO.getCenterID(machineId)).thenReturn(centerId);
-		Mockito.when(policySyncDAO.getPublicKey(refId)).thenReturn(keyStore);
 		policySyncServiceImpl.checkKeyValidation();
 	}
 
 	@Test
 	public void checkKeyValidationTestFailure() {
-		KeyStore keyStore = new KeyStore();
-		Mockito.when(policySyncDAO.findByMaxExpireTime()).thenReturn(keyStore);
 		policySyncServiceImpl.checkKeyValidation();
 	}
 

@@ -31,9 +31,7 @@ import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
-import io.mosip.registration.controller.device.FingerPrintCaptureController;
-import io.mosip.registration.controller.device.GuardianBiometricsController;
-import io.mosip.registration.controller.device.IrisCaptureController;
+import io.mosip.registration.controller.device.BiometricsController;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.template.TemplateService;
@@ -74,14 +72,8 @@ public class RegistrationPreviewController extends BaseController implements Ini
 	private RegistrationController registrationController;
 
 	@Autowired
-	private FingerPrintCaptureController fingerPrintCaptureController;
-	
-	@Autowired
-	private GuardianBiometricsController guardianBiometricsController;
-	
-	@Autowired
-	private IrisCaptureController irisCaptureController;
-	
+	private BiometricsController guardianBiometricsController;
+
 	@FXML
 	private Text registrationNavlabel;
 
@@ -131,18 +123,21 @@ public class RegistrationPreviewController extends BaseController implements Ini
 	public void goToPrevPage(ActionEvent event) {
 		auditFactory.audit(AuditEvent.REG_PREVIEW_BACK, Components.REG_PREVIEW, SessionContext.userId(),
 				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
-//		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
-//			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_REGISTRATIONPREVIEW, false);
-//
-//			updateUINFlowMethod();
-//		}
-			registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
-					getPageByAction(RegistrationConstants.REGISTRATION_PREVIEW, RegistrationConstants.PREVIOUS));
-			guardianBiometricsController.populateBiometricPage(false);
-	/*	} else {
-			registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
-					getPageByAction(RegistrationConstants.REGISTRATION_PREVIEW, RegistrationConstants.PREVIOUS));
-		}*/
+		// if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
+		// SessionContext.map().put(RegistrationConstants.UIN_UPDATE_REGISTRATIONPREVIEW,
+		// false);
+		//
+		// updateUINFlowMethod();
+		// }
+		registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
+				getPageByAction(RegistrationConstants.REGISTRATION_PREVIEW, RegistrationConstants.PREVIOUS));
+		guardianBiometricsController.populateBiometricPage(false, true);
+		/*
+		 * } else { registrationController.showCurrentPage(RegistrationConstants.
+		 * REGISTRATION_PREVIEW,
+		 * getPageByAction(RegistrationConstants.REGISTRATION_PREVIEW,
+		 * RegistrationConstants.PREVIOUS)); }
+		 */
 	}
 
 	private void updateUINFlowMethod() {
@@ -289,11 +284,11 @@ public class RegistrationPreviewController extends BaseController implements Ini
 		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_REGISTRATIONPREVIEW, false);
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_DEMOGRAPHICDETAIL, true);
-			//registrationController.showUINUpdateCurrentPage();
-		} 
-			registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
-					RegistrationConstants.DEMOGRAPHIC_DETAIL);
-		
+			// registrationController.showUINUpdateCurrentPage();
+		}
+		registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
+				RegistrationConstants.DEMOGRAPHIC_DETAIL);
+
 	}
 
 	public void modifyDocuments() {
@@ -328,56 +323,63 @@ public class RegistrationPreviewController extends BaseController implements Ini
 				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 		SessionContext.map().put(RegistrationConstants.REGISTRATION_ISEDIT, true);
-		//fingerPrintCaptureController.initializeCaptureCount();
-		//irisCaptureController.initializeCaptureCount();
-		guardianBiometricsController.populateBiometricPage(false);
-		
+		// fingerPrintCaptureController.initializeCaptureCount();
+		// irisCaptureController.initializeCaptureCount();
+		guardianBiometricsController.populateBiometricPage(false, false);
+
 		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
 			SessionContext.map().put(RegistrationConstants.UIN_UPDATE_REGISTRATIONPREVIEW, false);
 
-			/*long fingerPrintCount = getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
-					.getFingerprintDetailsDTO().stream().count();
-			long irisCount = getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
-					.getIrisDetailsDTO().stream().count();
-			if ((Boolean) SessionContext.userMap().get(RegistrationConstants.TOGGLE_BIO_METRIC_EXCEPTION)) {
-				SessionContext.map().put(RegistrationConstants.UIN_UPDATE_BIOMETRICEXCEPTION, true);
-			} else if (getRegistrationDTOFromSession().isUpdateUINChild() && (fingerPrintCount > 0 || irisCount > 0)) {
-				SessionContext.map().put(RegistrationConstants.UIN_UPDATE_PARENTGUARDIAN_DETAILS, true);
-			} else if (fingerPrintCount > 0) {
-				SessionContext.map().put(RegistrationConstants.UIN_UPDATE_FINGERPRINTCAPTURE, true);
-			} else if (irisCount > 0) {
-
-				SessionContext.map().put(RegistrationConstants.UIN_UPDATE_IRISCAPTURE, true);
-			} else if (!RegistrationConstants.DISABLE
-					.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.FACE_DISABLE_FLAG))) {
-				SessionContext.map().put(RegistrationConstants.UIN_UPDATE_FACECAPTURE, true);
-			} else {
-				SessionContext.map().put(RegistrationConstants.UIN_UPDATE_REGISTRATIONPREVIEW, true);
-			}*/
+			/*
+			 * long fingerPrintCount =
+			 * getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
+			 * .getFingerprintDetailsDTO().stream().count(); long irisCount =
+			 * getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
+			 * .getIrisDetailsDTO().stream().count(); if ((Boolean)
+			 * SessionContext.userMap().get(RegistrationConstants.
+			 * TOGGLE_BIO_METRIC_EXCEPTION)) {
+			 * SessionContext.map().put(RegistrationConstants.UIN_UPDATE_BIOMETRICEXCEPTION,
+			 * true); } else if (getRegistrationDTOFromSession().isUpdateUINChild() &&
+			 * (fingerPrintCount > 0 || irisCount > 0)) {
+			 * SessionContext.map().put(RegistrationConstants.
+			 * UIN_UPDATE_PARENTGUARDIAN_DETAILS, true); } else if (fingerPrintCount > 0) {
+			 * SessionContext.map().put(RegistrationConstants.UIN_UPDATE_FINGERPRINTCAPTURE,
+			 * true); } else if (irisCount > 0) {
+			 * 
+			 * SessionContext.map().put(RegistrationConstants.UIN_UPDATE_IRISCAPTURE, true);
+			 * } else if (!RegistrationConstants.DISABLE
+			 * .equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.
+			 * FACE_DISABLE_FLAG))) {
+			 * SessionContext.map().put(RegistrationConstants.UIN_UPDATE_FACECAPTURE, true);
+			 * } else { SessionContext.map().put(RegistrationConstants.
+			 * UIN_UPDATE_REGISTRATIONPREVIEW, true); }
+			 */
 			registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
 					getPageByAction(RegistrationConstants.REGISTRATION_PREVIEW, RegistrationConstants.PREVIOUS));
 		} else {
-			/*if ((boolean) SessionContext.map().get(RegistrationConstants.IS_Child)) {
-				registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
-						RegistrationConstants.GUARDIAN_BIOMETRIC);
-			} else {
-				if ((Boolean) SessionContext.userMap().get(RegistrationConstants.TOGGLE_BIO_METRIC_EXCEPTION)) {
-					registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
-							RegistrationConstants.UIN_UPDATE_BIOMETRICEXCEPTION);
-				} else if (RegistrationConstants.ENABLE.equalsIgnoreCase(
-						getValueFromApplicationContext(RegistrationConstants.FINGERPRINT_DISABLE_FLAG))) {
-					registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
-							RegistrationConstants.FINGERPRINT_CAPTURE);
-				} else if (RegistrationConstants.ENABLE
-						.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.IRIS_DISABLE_FLAG))) {
-					registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
-							RegistrationConstants.IRIS_CAPTURE);
-				} else if (RegistrationConstants.ENABLE
-						.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.FACE_DISABLE_FLAG))) {
-					registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
-							RegistrationConstants.FACE_CAPTURE);
-				}
-			}*/
+			/*
+			 * if ((boolean) SessionContext.map().get(RegistrationConstants.IS_Child)) {
+			 * registrationController.showCurrentPage(RegistrationConstants.
+			 * REGISTRATION_PREVIEW, RegistrationConstants.GUARDIAN_BIOMETRIC); } else { if
+			 * ((Boolean) SessionContext.userMap().get(RegistrationConstants.
+			 * TOGGLE_BIO_METRIC_EXCEPTION)) {
+			 * registrationController.showCurrentPage(RegistrationConstants.
+			 * REGISTRATION_PREVIEW, RegistrationConstants.UIN_UPDATE_BIOMETRICEXCEPTION); }
+			 * else if (RegistrationConstants.ENABLE.equalsIgnoreCase(
+			 * getValueFromApplicationContext(RegistrationConstants.FINGERPRINT_DISABLE_FLAG
+			 * ))) { registrationController.showCurrentPage(RegistrationConstants.
+			 * REGISTRATION_PREVIEW, RegistrationConstants.FINGERPRINT_CAPTURE); } else if
+			 * (RegistrationConstants.ENABLE
+			 * .equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.
+			 * IRIS_DISABLE_FLAG))) {
+			 * registrationController.showCurrentPage(RegistrationConstants.
+			 * REGISTRATION_PREVIEW, RegistrationConstants.IRIS_CAPTURE); } else if
+			 * (RegistrationConstants.ENABLE
+			 * .equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.
+			 * FACE_DISABLE_FLAG))) {
+			 * registrationController.showCurrentPage(RegistrationConstants.
+			 * REGISTRATION_PREVIEW, RegistrationConstants.FACE_CAPTURE); } }
+			 */
 			registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
 					getPageByAction(RegistrationConstants.REGISTRATION_PREVIEW, RegistrationConstants.PREVIOUS));
 		}

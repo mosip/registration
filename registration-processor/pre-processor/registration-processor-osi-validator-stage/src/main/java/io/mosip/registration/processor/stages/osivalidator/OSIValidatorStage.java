@@ -1,16 +1,7 @@
 package io.mosip.registration.processor.stages.osivalidator;
 
-import java.io.IOException;
-
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataAccessException;
-import org.springframework.stereotype.Service;
-
-import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -34,11 +25,22 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * The Class OSIValidatorStage.
@@ -70,6 +72,12 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 	/** Mosip router for APIs */
 	@Autowired
 	MosipRouter router;
+
+	@Autowired
+	private Utilities utility;
+
+	@Autowired
+	private PacketManagerService packetManagerService;
 
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
@@ -131,12 +139,14 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 		registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
 
 		try {
+			String source = utility.getDefaultSource();
+			Map<String, String> metaInfo = packetManagerService.getMetaInfo(registrationId, source, registrationStatusDto.getRegistrationType());
 			if(validateUMC)
-				isValidUMC = umcValidator.isValidUMC(registrationId, registrationStatusDto);
+				isValidUMC = umcValidator.isValidUMC(registrationId, registrationStatusDto, metaInfo);
 			else
 				isValidUMC = true;
 			if (isValidUMC) {
-				isValidOSI = osiValidator.isValidOSI(registrationId, registrationStatusDto);
+				isValidOSI = osiValidator.isValidOSI(registrationId, source, registrationStatusDto, metaInfo);
 				if (isValidOSI) {
 					registrationStatusDto
 							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
@@ -180,20 +190,46 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					description.getCode() + " -- " + registrationId, description.getMessage());
-		} catch (FSAdapterException e) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-			registrationStatusDto.setStatusComment(trimExceptionMessage
-					.trimExceptionMessage(StatusUtil.FS_ADAPTER_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.FS_ADAPTER_EXCEPTION.getCode());
+		} catch (PacketManagerException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId,
+					RegistrationStatusCode.FAILED.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
+			registrationStatusDto.setStatusComment(
+					trimExceptionMessage.trimExceptionMessage(StatusUtil.PACKET_MANAGER_EXCEPTION.getMessage() + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_MANAGER_EXCEPTION.getCode());
 			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.FSADAPTER_EXCEPTION));
-			description.setCode(PlatformErrorMessages.OSI_VALIDATION_PACKET_STORE_NOT_ACCESSIBLE.getCode());
-			description.setMessage(PlatformErrorMessages.OSI_VALIDATION_PACKET_STORE_NOT_ACCESSIBLE.getMessage());
+					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION));
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+			description.setMessage(PlatformErrorMessages.PACKET_MANAGER_EXCEPTION.getMessage());
+			description.setCode(PlatformErrorMessages.PACKET_MANAGER_EXCEPTION.getCode());
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), description.getCode(), registrationId,
 					description.getMessage() + e.getMessage() + ExceptionUtils.getStackTrace(e));
-			object.setInternalError(Boolean.TRUE);
 			object.setIsValid(Boolean.FALSE);
-		} catch (ApisResourceAccessException | ApiNotAccessibleException e) {
+			object.setInternalError(Boolean.TRUE);
+			object.setRid(registrationStatusDto.getRegistrationId());
+		}catch (JsonProcessingException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId,
+					RegistrationStatusCode.FAILED.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+			registrationStatusDto.setStatusComment(
+					trimExceptionMessage.trimExceptionMessage(StatusUtil.JSON_PARSING_EXCEPTION.getMessage() + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.JSON_PARSING_EXCEPTION.getCode());
+			registrationStatusDto.setLatestTransactionStatusCode(
+					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.JSON_PROCESSING_EXCEPTION));
+			isTransactionSuccessful = false;
+			description.setMessage(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getMessage());
+			description.setCode(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getCode());
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), description.getCode(), registrationId,
+					description.getMessage() + e.getMessage() + ExceptionUtils.getStackTrace(e));
+			object.setIsValid(Boolean.FALSE);
+			object.setInternalError(Boolean.TRUE);
+			object.setRid(registrationStatusDto.getRegistrationId());
+			e.printStackTrace();
+		} catch (ApisResourceAccessException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					registrationId,
+					RegistrationStatusCode.FAILED.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
 			registrationStatusDto.setStatusComment(trimExceptionMessage
 					.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED.getMessage() + e.getMessage()));

@@ -6,8 +6,14 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.kernel.core.util.StringUtils;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,8 +22,6 @@ import org.springframework.stereotype.Service;
 
 import io.mosip.kernel.core.dataaccess.exception.DataAccessLayerException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.AuditLogConstant;
 import io.mosip.registration.processor.core.code.DedupeSourceName;
@@ -128,6 +132,12 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	@Autowired
 	private Utilities utility;
 
+	@Autowired
+	private ObjectMapper objectMapper;
+
+	@Autowired
+	private PacketManagerService packetManagerService;
+
 	@Value("${registration.processor.demodedupe.manualverification.status}")
 	private String manualVerificationStatus;
 
@@ -186,52 +196,67 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	/**
 	 * Gets the identity keys and fetch values from JSON.
 	 *
-	 * @param demographicJsonString the demographic json string @return the identity
+	 * @param registrationId the demographic json string @return the identity
 	 * keys and fetch values from JSON @throws
 	 * PacketDecryptionFailureException @throws ApiNotAccessibleException @throws
 	 */
 	@Override
-	public IndividualDemographicDedupe getIdentityKeysAndFetchValuesFromJSON(String registrationId)
-			throws ApiNotAccessibleException, PacketDecryptionFailureException {
+	public IndividualDemographicDedupe getIdentityKeysAndFetchValuesFromJSON(String registrationId, String source, String process) {
 		IndividualDemographicDedupe demographicData = new IndividualDemographicDedupe();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"PacketInfoManagerImpl::getIdentityKeysAndFetchValuesFromJSON()::entry");
 		try {
-			// Get Identity Json from config server and map keys to Java Object
+			List<String> fields = new ArrayList<>();
+
 			JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
+			String nameKey = JsonUtil.getJSONValue(
+					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.NAME),
+					MappingJsonConstants.VALUE);
+			String dob = JsonUtil.getJSONValue(
+					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.DOB),
+					MappingJsonConstants.VALUE);
+			String gender = JsonUtil.getJSONValue(
+					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.GENDER),
+					MappingJsonConstants.VALUE);
+			String phone = JsonUtil.getJSONValue(
+					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.PHONE),
+					MappingJsonConstants.VALUE);
+			String email = JsonUtil.getJSONValue(
+					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.EMAIL),
+					MappingJsonConstants.VALUE);
+
+			fields.add(nameKey);
+			fields.add(dob);
+			fields.add(gender);
+			fields.add(email);
+			fields.add(phone);
+
+			Map<String, String> fieldMap = packetManagerService.getFields(registrationId, fields, source, process);
 
 
 			String[] names = ((String) JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "name"),
 					"value")).split(",");
 			List<JsonValue[]> jsonValueList = new ArrayList<>();
 			for (String name : names) {
-				JsonValue[] nameArray = JsonUtil.getJsonValues(utility.getDemographicIdentityJSONObject(registrationId,name), name);
-				if (nameArray != null)
-					jsonValueList.add(nameArray);
+				if (fieldMap.get(nameKey) != null) {
+					JSONObject jsonObject = new JSONObject();
+					jsonObject.put(nameKey, objectMapper.readValue(fieldMap.get(nameKey), Object.class));
+					JsonValue[] nameArray = JsonUtil.getJsonValues(jsonObject, name);
+					if (nameArray != null)
+						jsonValueList.add(nameArray);
+				}
 			}
 			demographicData.setName(jsonValueList.isEmpty() ? null : jsonValueList);
-			String dobKey=JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "dob"), "value");
-			String genderKey=JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "gender"), "value");
-			String phoneKey=JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "phone"), "value");
-			String emailKey = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "email"), "value");
-			demographicData.setDateOfBirth((String) JsonUtil.getJSONValue(utility.getDemographicIdentityJSONObject(registrationId,dobKey),
-					dobKey));
-			demographicData.setGender(JsonUtil.getJsonValues(utility.getDemographicIdentityJSONObject(registrationId,genderKey),
-					genderKey));
-			demographicData.setPhone((String) JsonUtil
-					.getJSONValue(utility.getDemographicIdentityJSONObject(registrationId, phoneKey), phoneKey));
-			demographicData.setEmail((String) JsonUtil.getJSONValue(utility.getDemographicIdentityJSONObject(registrationId,emailKey),
-					emailKey));
-			String[] addressList = ((String) JsonUtil
-					.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "address"), "value")).split(",");
-			for (String address : addressList) {
-				if (address.equals("postalCode")) {
-					demographicData.setPostalCode((String) JsonUtil.getJSONValue(utility.getDemographicIdentityJSONObject(registrationId,address), address));
-				}
-					
+			demographicData.setDateOfBirth(fieldMap.get(dob));
+			if (fieldMap.get(gender) != null) {
+				JSONObject jsonObject = new JSONObject();
+				jsonObject.put(gender, objectMapper.readValue(fieldMap.get(gender), Object.class));
+				demographicData.setGender(JsonUtil.getJsonValues(jsonObject, gender));
 			}
+			demographicData.setPhone(fieldMap.get(phone));
+			demographicData.setEmail(fieldMap.get(email));
 
-		} catch (IOException | io.mosip.kernel.core.exception.IOException e) {
+		} catch (IOException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
 
@@ -256,16 +281,17 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	/**
 	 * Save individual demographic dedupe.
 	 *
-	 * @param demographicJsonBytes the demographic json bytes
+	 * @param regId the regId
 	 * @param description
-	 * @throws PacketDecryptionFailureException
-	 * @throws ApiNotAccessibleException
 	 */
-	private void saveIndividualDemographicDedupe(String regId, LogDescription description,
-			String moduleId, String moduleName) throws ApiNotAccessibleException, PacketDecryptionFailureException {
+	private void saveIndividualDemographicDedupe(String regId, String process, LogDescription description,
+			String moduleId, String moduleName) throws Exception {
 
-		IndividualDemographicDedupe demographicData = getIdentityKeysAndFetchValuesFromJSON(regId);
 		boolean isTransactionSuccessful = false;
+
+		String source = utility.getDefaultSource();
+		IndividualDemographicDedupe demographicData = getIdentityKeysAndFetchValuesFromJSON(regId, source, process);
+
 		try {
 			List<IndividualDemographicDedupeEntity> applicantDemographicEntities = PacketInfoMapper
 					.converDemographicDedupeDtoToEntity(demographicData, regId);
@@ -352,8 +378,8 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 * saveDemographicInfoJson(java.io.InputStream, java.util.List)
 	 */
 	@Override
-	public void saveDemographicInfoJson(String registrationId, String moduleId,
-			String moduleName) throws ApiNotAccessibleException, PacketDecryptionFailureException {
+	public void saveDemographicInfoJson(String registrationId, String process, String moduleId,
+			String moduleName) throws Exception {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"PacketInfoManagerImpl::saveDemographicInfoJson()::entry");
 		LogDescription description = new LogDescription();
@@ -363,7 +389,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 		try {
 
-			saveIndividualDemographicDedupe(registrationId, description, moduleId, moduleName);
+			saveIndividualDemographicDedupe(registrationId, process, description, moduleId, moduleName);
 
 			isTransactionSuccessful = true;
 			description.setMessage("Demographic Json saved");
@@ -970,6 +996,18 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 				"PacketInfoManagerImpl::saveRegLostUinDetData()::exit");
 
+	}
+
+	private JsonValue[] getField(String value) throws IOException {
+		if (StringUtils.isNotEmpty(value)) {
+			Object object = objectMapper.readValue(value, Object.class);
+			if (object instanceof ArrayList) {
+				JSONArray node = objectMapper.readValue(value, JSONArray.class);
+				JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
+				return jsonValues;
+			}
+		}
+		return null;
 	}
 
 }

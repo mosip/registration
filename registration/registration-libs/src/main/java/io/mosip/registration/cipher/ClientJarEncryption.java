@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -32,8 +34,7 @@ import org.apache.commons.io.FileUtils;
 import io.mosip.kernel.core.crypto.exception.InvalidDataException;
 import io.mosip.kernel.core.crypto.exception.InvalidKeyException;
 import io.mosip.kernel.core.util.HMACUtils;
-import io.mosip.kernel.crypto.jce.constant.SecurityExceptionCodeConstant;
-import io.mosip.kernel.crypto.jce.util.CryptoUtils;
+
 
 /**
  * Encrypt the Client Jar with Symmetric Key
@@ -68,10 +69,9 @@ public class ClientJarEncryption {
 
 	/**
 	 * Encrypt the bytes
-	 * 
-	 * @param Jar
-	 *            bytes
-	 * @throws UnsupportedEncodingException
+	 * @param data
+	 * @param encodedString
+	 * @return
 	 */
 	public byte[] encyrpt(byte[] data, byte[] encodedString) {
 		// Generate AES Session Key
@@ -140,8 +140,8 @@ public class ClientJarEncryption {
 					addProperties(new File(args[10]), args[2]);
 
 					// DB file
-					File regFolder = new File(args[5]);
-					readDirectoryToByteArray(MOSIP_DB, regFolder, fileNameByBytes);
+					//File regFolder = new File(args[5]);
+					//readDirectoryToByteArray(MOSIP_DB, regFolder, fileNameByBytes);
 
 					String path = new File(args[3]).getPath();
 
@@ -164,8 +164,10 @@ public class ClientJarEncryption {
 					// saveLibJars(clientJarEncryptedBytes, clientJar.getName(), regLibFile);
 
 					File rxtxJarFolder = new File(args[7]);
+					File mockSdkJarFolder = new File(args[11]);
 
 					FileUtils.copyDirectory(rxtxJarFolder, listOfJars);
+					FileUtils.copyDirectory(mockSdkJarFolder, listOfJars);
 
 					// Adding lib files into map
 					for (File files : listOfJars.listFiles()) {						
@@ -230,24 +232,21 @@ public class ClientJarEncryption {
 
 	private static void addProperties(File file, String version) throws IOException {
 		Properties properties = new Properties();
-		properties.load(new FileInputStream(file));
-
-		properties.setProperty("mosip.reg.version", version);
+		try(FileInputStream fin = new FileInputStream(file)) {
+			properties.load(fin);
+		}
 
 		// Add mosip-Version to mosip-application.properties file
 		try (FileOutputStream outputStream = new FileOutputStream(file)) {
-
 			properties.store(outputStream, version);
 		}
 	}
 
 	/**
 	 * Write file to zip.
-	 * 
-	 * @param files
+	 * @param fileNameByBytes
 	 * @param zipFilename
 	 * @throws IOException
-	 * @throws FileNotFoundException
 	 */
 	private void writeFileToZip(Map<String, byte[]> fileNameByBytes, String zipFilename) throws IOException {
 		try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(new File(zipFilename)))) {
@@ -349,8 +348,8 @@ public class ClientJarEncryption {
 	}
 
 	private static byte[] symmetricEncrypt(SecretKey key, byte[] data, byte[] aad) {
-		Objects.requireNonNull(key, SecurityExceptionCodeConstant.MOSIP_INVALID_KEY_EXCEPTION.getErrorMessage());
-		CryptoUtils.verifyData(data);
+		//Objects.requireNonNull(key, SecurityExceptionCodeConstant.MOSIP_INVALID_KEY_EXCEPTION.getErrorMessage());
+		//CryptoUtils.verifyData(data);
 		byte[] output = null;
 
 		try {
@@ -368,16 +367,14 @@ public class ClientJarEncryption {
 			System.arraycopy(processData, 0, output, 0, processData.length);
 			System.arraycopy(randomIV, 0, output, processData.length, randomIV.length);
 		} catch (java.security.InvalidKeyException e) {
-			throw new InvalidKeyException(SecurityExceptionCodeConstant.MOSIP_INVALID_KEY_EXCEPTION.getErrorCode(),
-					SecurityExceptionCodeConstant.MOSIP_INVALID_KEY_EXCEPTION.getErrorMessage(), e);
+			throw new InvalidKeyException("0000",
+					"MOSIP_INVALID_KEY_EXCEPTION", e);
 		} catch (InvalidAlgorithmParameterException e) {
-			throw new InvalidKeyException(
-					SecurityExceptionCodeConstant.MOSIP_INVALID_PARAM_SPEC_EXCEPTION.getErrorCode(),
-					SecurityExceptionCodeConstant.MOSIP_INVALID_PARAM_SPEC_EXCEPTION.getErrorMessage(), e);
+			throw new InvalidKeyException("0000",
+					"MOSIP_INVALID_PARAM_SPEC_EXCEPTION", e);
 		} catch (java.security.NoSuchAlgorithmException noSuchAlgorithmException) {
-			throw new InvalidKeyException(
-					SecurityExceptionCodeConstant.MOSIP_NO_SUCH_ALGORITHM_EXCEPTION.getErrorCode(),
-					SecurityExceptionCodeConstant.MOSIP_NO_SUCH_ALGORITHM_EXCEPTION.getErrorMessage(),
+			throw new InvalidKeyException("0000",
+					"MOSIP_NO_SUCH_ALGORITHM_EXCEPTION",
 					noSuchAlgorithmException);
 		} catch (NoSuchPaddingException noSuchPaddingException) {
 			throw new InvalidKeyException("No Such Padding Exception", "No Such Padding Exception",
@@ -404,11 +401,9 @@ public class ClientJarEncryption {
 		try {
 			return cipher.doFinal(data);
 		} catch (IllegalBlockSizeException e) {
-			throw new InvalidDataException(
-					SecurityExceptionCodeConstant.MOSIP_INVALID_DATA_SIZE_EXCEPTION.getErrorCode(), e.getMessage(), e);
+			throw new InvalidDataException("MOSIP_INVALID_DATA_SIZE_EXCEPTION", e.getMessage(), e);
 		} catch (BadPaddingException e) {
-			throw new InvalidDataException(
-					SecurityExceptionCodeConstant.MOSIP_INVALID_ENCRYPTED_DATA_CORRUPT_EXCEPTION.getErrorCode(),
+			throw new InvalidDataException("MOSIP_INVALID_ENCRYPTED_DATA_CORRUPT_EXCEPTION",
 					e.getMessage(), e);
 		}
 	}

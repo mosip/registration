@@ -16,7 +16,12 @@ import org.mockito.runners.MockitoJUnitRunner;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
+import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.vertx.core.Vertx;
+import io.vertx.ext.web.Router;
+import io.vertx.ext.web.impl.RouterImpl;
+
+import org.springframework.core.env.Environment;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -32,6 +37,12 @@ public class BioDedupeStageTest {
 	private BioDedupeProcessor bioDedupeProcessor;
 
 	private String stageName = "BioDedupeStage";
+	
+	@Mock
+	private MosipRouter router;
+	
+	@Mock
+	private Environment environment;
 
 	@InjectMocks
 	private BioDedupeStage bioDedupeStage = new BioDedupeStage() {
@@ -66,6 +77,21 @@ public class BioDedupeStageTest {
 		Mockito.when(bioDedupeProcessor.process(any(), any())).thenReturn(result);
 		dto = bioDedupeStage.process(dto);
 		assertTrue(dto.getIsValid());
+	}
+	
+	@Test
+	public void testStart() {
+		ReflectionTestUtils.setField(bioDedupeStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(bioDedupeStage, "clusterManagerUrl", "/dummyPath");
+		ReflectionTestUtils.setField(bioDedupeStage, "port", "1080");
+		
+		Mockito.when(environment.getProperty("mosip.kernel.virus-scanner.port")).thenReturn("8000");
+		Mockito.when(environment.getProperty("server.servlet.path")).thenReturn("/test");
+		bioDedupeStage.deployVerticle();
+		Mockito.doNothing().when(router).setRoute(any());
+		Router r = new RouterImpl(Vertx.vertx());
+		Mockito.when(router.getRouter()).thenReturn(r);
+		bioDedupeStage.start();
 	}
 
 }

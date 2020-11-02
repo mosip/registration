@@ -8,25 +8,37 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class AuthRequestDTO extends BaseAuthRequestDTO {
-	
-	private String individualId;
 
-	private String individualIdType;
-	
-	private String keyIndex;
+	/** The value for requestedAuth*/
+	private AuthTypeDTO requestedAuth;
 
+	/** The value for transactionID*/
+	private String transactionID;
+
+	/** The value for requestTime*/
+	private String requestTime;
+
+	/** The value for request*/
 	private String request;
 
+	/** The value for consentObtained*/
+	private boolean consentObtained;
+
+
+	/** The value for individualId*/
+	private String individualId;
+
+
+	/** The value for individualIdType*/
+	private String individualIdType;
+
+	/** The value for requestHMAC*/
 	private String requestHMAC;
-	
+
+	/** The value for keyIndex*/
+	private String keyIndex;
+
+	/** The value for requestSessionKey*/
 	private String requestSessionKey;
-	
-	private String requestTime;
-	
-	private AuthTypeDTO requestedAuth;
-	
-	private String transactionID;
-	
-	private String version;
 	
 }

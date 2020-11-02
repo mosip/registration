@@ -21,12 +21,15 @@ import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
 import io.mosip.registration.dto.mastersync.GenericDto;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
 
@@ -174,9 +177,14 @@ public class FXUtils {
 		applicationField.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
 			selectComboBoxValueByCode(localField, applicationField.getValue(), applicationField);
 			toggleUIField(parentPane, applicationField.getId() + RegistrationConstants.LABEL, true);
-			toggleUIField(parentPane, localField.getId() + RegistrationConstants.LABEL, true);
+
 			toggleUIField(parentPane, applicationField.getId() + RegistrationConstants.MESSAGE, false);
-			toggleUIField(parentPane, localField.getId() + RegistrationConstants.MESSAGE, false);
+			if (!isAppLangAndLocalLangSame()) {
+
+				toggleUIField(parentPane, localField.getId() + RegistrationConstants.LABEL, true);
+
+				toggleUIField(parentPane, localField.getId() + RegistrationConstants.MESSAGE, false);
+			}
 		});
 	}
 
@@ -269,7 +277,8 @@ public class FXUtils {
 
 	}
 
-	public void populateLocalFieldWithFocus(Pane parentPane,TextField field, TextField localField, boolean haveToTransliterate, Validations validation) {
+	public void populateLocalFieldWithFocus(Pane parentPane, TextField field, TextField localField,
+			boolean haveToTransliterate, Validations validation) {
 
 		field.focusedProperty().addListener((obsValue, oldValue, newValue) -> {
 			if (!field.isFocused()) {
@@ -298,7 +307,7 @@ public class FXUtils {
 					field.getStyleClass().add("demoGraphicTextFieldFocused");
 					toggleUIField(parentPane, field.getId() + RegistrationConstants.MESSAGE, true);
 				}
-				
+
 				Label fieldLabel = (Label) parentPane.lookup("#" + field.getId() + "Label");
 				fieldLabel.getStyleClass().removeIf((s) -> {
 					return s.equals("demoGraphicFieldLabelOnType");
@@ -426,7 +435,10 @@ public class FXUtils {
 	 */
 	public void focusUnfocusListener(Pane parentPane, TextField field, TextField localField) {
 		focusAction(parentPane, field);
-		focusAction(parentPane, localField);
+
+		if (!isAppLangAndLocalLangSame()) {
+			focusAction(parentPane, localField);
+		}
 	}
 
 	private void focusAction(Pane parentPane, TextField field) {
@@ -507,10 +519,16 @@ public class FXUtils {
 				int age = LocalDate.now().getYear() - year;
 				if (age > 0) {
 					fieldToPopulate.setText(RegistrationConstants.EMPTY + age);
-					localFieldToPopulate.setText(RegistrationConstants.EMPTY + age);
+					if (!isAppLangAndLocalLangSame()) {
+
+						localFieldToPopulate.setText(RegistrationConstants.EMPTY + age);
+					}
 				} else {
 					fieldToPopulate.setText("1");
-					localFieldToPopulate.setText("1");
+					if (!isAppLangAndLocalLangSame()) {
+
+						localFieldToPopulate.setText("1");
+					}
 				}
 			}
 		});
@@ -584,13 +602,12 @@ public class FXUtils {
 	private void selectComboBoxValueByCode(ComboBox<?> localComboBox, Object selectedOption, ComboBox<?> ComboBox) {
 		ObservableList<?> localComboBoxValues = localComboBox.getItems();
 		ObservableList<?> comboBoxValues = ComboBox.getItems();
-		
 
 		if (!localComboBoxValues.isEmpty() && selectedOption != null) {
 			IntPredicate findIndexOfSelectedItem = null;
-			 if (localComboBoxValues.get(0) instanceof GenericDto && selectedOption instanceof GenericDto) {
-					findIndexOfSelectedItem = index -> ((GenericDto) localComboBoxValues.get(index)).getCode()
-							.equals(((GenericDto) selectedOption).getCode());
+			if (localComboBoxValues.get(0) instanceof GenericDto && selectedOption instanceof GenericDto) {
+				findIndexOfSelectedItem = index -> ((GenericDto) localComboBoxValues.get(index)).getCode()
+						.equals(((GenericDto) selectedOption).getCode());
 			} else if (localComboBoxValues.get(0) instanceof DocumentCategoryDto
 					&& selectedOption instanceof DocumentCategoryDto) {
 				findIndexOfSelectedItem = index -> ((DocumentCategoryDto) localComboBoxValues.get(index)).getCode()
@@ -602,7 +619,7 @@ public class FXUtils {
 				if (indexOfSelectedLocation.isPresent()) {
 					localComboBox.getSelectionModel().select(indexOfSelectedLocation.getAsInt());
 				}
-				return ;
+				return;
 			}
 			OptionalInt indexOfSelectedLocation = getIndexOfSelectedItem(localComboBoxValues, findIndexOfSelectedItem);
 
@@ -619,7 +636,7 @@ public class FXUtils {
 	 * @param selectedValue the selected value from the combo-box
 	 */
 	public void selectComboBoxValue(ComboBox<?> comboBox, String selectedValue) {
-		ObservableList<?> comboBoxValues = comboBox.getItems();		
+		ObservableList<?> comboBoxValues = comboBox.getItems();
 		if (!comboBoxValues.isEmpty()) {
 			IntPredicate findIndexOfSelectedItem = null;
 			if (comboBoxValues.get(0) instanceof DocumentCategoryDto) {
@@ -630,7 +647,7 @@ public class FXUtils {
 					((DocumentCategoryDto) comboBoxValues.get(indexOfSelectedLocation.getAsInt())).setScanned(true);
 					comboBox.getSelectionModel().select(indexOfSelectedLocation.getAsInt());
 				}
-				
+
 			} else if (comboBoxValues.get(0) instanceof GenericDto) {
 				findIndexOfSelectedItem = index -> ((GenericDto) comboBoxValues.get(index)).getCode()
 						.equals(selectedValue);
@@ -661,9 +678,9 @@ public class FXUtils {
 					value = ((DocumentCategoryDto) object).getName();
 				} else if (object instanceof GenericDto) {
 					value = ((GenericDto) object).getName();
-				//this section is for combobox of Guardian biometric screen
+					// this section is for combobox of Guardian biometric screen
 				} else if (object instanceof Entry<?, ?>) {
-					value = ((Entry<String,String>) object).getValue();
+					value = ((Entry<String, String>) object).getValue();
 				}
 				return value;
 			}
@@ -675,4 +692,44 @@ public class FXUtils {
 		};
 	}
 
+	public void populateLocalButton(FlowPane parentPane, Button applicationField, Button localField) {
+		applicationField.addEventHandler(ActionEvent.ACTION, event -> {
+			if (applicationField.getStyleClass().contains("residence")) {
+				applicationField.getStyleClass().clear();
+
+				applicationField.getStyleClass().addAll("selectedResidence", "button");
+				applicationField.getParent().getChildrenUnmodifiable().forEach(node -> {
+					if (node instanceof Button && !node.getId().equals(applicationField.getId())) {
+						node.getStyleClass().clear();
+						node.getStyleClass().addAll("residence", "button");
+					}
+				});
+
+				if (!isAppLangAndLocalLangSame()) {
+					localField.getStyleClass().clear();
+					localField.getStyleClass().addAll("selectedResidence", "button");
+
+					localField.getParent().getChildrenUnmodifiable().forEach(node -> {
+						if (node instanceof Button && !node.getId().equals(localField.getId())) {
+							node.getStyleClass().clear();
+							node.getStyleClass().addAll("residence", "button");
+						}
+					});
+				}
+			}
+			toggleUIField(parentPane, applicationField.getParent().getId() + RegistrationConstants.MESSAGE, false);
+
+			if (!isAppLangAndLocalLangSame()) {
+				toggleUIField(parentPane, localField.getParent().getId() + RegistrationConstants.MESSAGE, false);
+			}
+		});
+	}
+
+	private boolean isAppLangAndLocalLangSame() {
+
+		return ApplicationContext.getInstance().getApplicationLanguage()
+				.equals(ApplicationContext.getInstance().getLocalLanguage());
+	}
+
+	
 }

@@ -3,6 +3,7 @@ package io.mosip.registration.util.advice;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -28,8 +29,6 @@ import io.mosip.registration.dto.AuthTokenDTO;
 import io.mosip.registration.dto.LoginUserDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
-import io.mosip.registration.service.security.ClientSecurity;
-import io.mosip.registration.tpm.spi.TPMUtil;
 import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
 import io.mosip.registration.util.restclient.RequestHTTPDTO;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
@@ -56,7 +55,7 @@ public class RestClientAuthAdvice {
 	@Autowired
 	private MachineMappingDAO machineMappingDAO;
 	@Autowired
-	private ClientSecurity clientSecurity;
+	private ClientCryptoFacade clientCryptoFacade;
 
 	/**
 	 * The {@link Around} advice method which be invoked for all web services. This
@@ -78,8 +77,7 @@ public class RestClientAuthAdvice {
 
 			RequestHTTPDTO requestHTTPDTO = (RequestHTTPDTO) joinPoint.getArgs()[0];
 
-			if (requestHTTPDTO.isRequestSignRequired() && RegistrationConstants.ENABLE
-					.equals(String.valueOf(ApplicationContext.map().get(RegistrationConstants.TPM_AVAILABILITY)))) {
+			if (requestHTTPDTO.isRequestSignRequired()) {
 				addRequestSignature(requestHTTPDTO.getHttpHeaders(), requestHTTPDTO.getRequestBody());
 			}
 
@@ -270,7 +268,7 @@ public class RestClientAuthAdvice {
 
 		try {
 			httpHeaders.add("request-signature", String.format("Authorization:%s", CryptoUtil
-					.encodeBase64(clientSecurity.signData(JsonUtils.javaObjectToJsonString(requestBody).getBytes()))));
+					.encodeBase64(clientCryptoFacade.getClientSecurity().signData(JsonUtils.javaObjectToJsonString(requestBody).getBytes()))));
 			httpHeaders.add(RegistrationConstants.KEY_INDEX, CryptoUtil.encodeBase64String(String
 					.valueOf(machineMappingDAO.getKeyIndexByMachineName(RegistrationSystemPropertiesChecker.getMachineId()))
 					.getBytes()));

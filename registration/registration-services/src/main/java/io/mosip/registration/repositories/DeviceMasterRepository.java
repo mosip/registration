@@ -19,8 +19,8 @@ public interface DeviceMasterRepository extends BaseRepository<RegDeviceMaster, 
 	/**
 	 * Find the device based on serial number.
 	 *
-	 * @param serialNo the serial no
-	 * @param deviceType the device type
+	 * @param serialNo    the serial no
+	 * @param deviceType  the device type
 	 * @param currentDate the current date
 	 * @return returns the record
 	 */
@@ -30,10 +30,20 @@ public interface DeviceMasterRepository extends BaseRepository<RegDeviceMaster, 
 	/**
 	 * Find all the devices mapped to the registration center by language code.
 	 *
-	 * @param langCode            the language code of the device
+	 * @param langCode the language code of the device
 	 * @return list of all devices mapped to the registration center in the given
 	 *         language
 	 */
 	List<RegDeviceMaster> findByRegMachineSpecIdLangCode(String langCode);
-	
-}	
+
+	/**
+	 * Find all the devices mapped to the registration center by device serial
+	 * number
+	 *
+	 * @param serialNumber device serial number
+	 * @return list of all devices mapped to the registration center by device
+	 *         serial number
+	 */
+	List<RegDeviceMaster> findAllByIsActiveTrueAndSerialNum(String serialNumber);
+
+}

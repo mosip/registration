@@ -56,7 +56,6 @@ import io.mosip.registration.repositories.MosipDeviceServiceRepository;
 import io.mosip.registration.repositories.ProcessListRepository;
 import io.mosip.registration.repositories.ReasonCategoryRepository;
 import io.mosip.registration.repositories.ReasonListRepository;
-import io.mosip.registration.repositories.RegisteredDeviceRepository;
 import io.mosip.registration.repositories.RegisteredDeviceTypeRepository;
 import io.mosip.registration.repositories.RegisteredSubDeviceTypeRepository;
 import io.mosip.registration.repositories.RegistrationCenterDeviceRepository;
@@ -229,9 +228,6 @@ public class ClientSettingSyncHelper {
 	@Autowired
 	private SyncJobDefRepository syncJobDefRepository;
 	
-	/** Object for Registered device Repository. */
-	@Autowired
-	private RegisteredDeviceRepository registeredDeviceRepository;
 
 	@Autowired
 	private RegisteredDeviceTypeRepository registeredDeviceTypeRepository;
@@ -362,7 +358,7 @@ public class ClientSettingSyncHelper {
 			registeredSubDeviceTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"DeviceSubTypeDPM")));
 			mosipDeviceServiceRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"DeviceService")));
 			deviceProviderRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"DeviceProvider")));
-			registeredDeviceRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"RegisteredDevice")));
+//			registeredDeviceRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"RegisteredDevice")));
 		} catch (Exception e) {
 			throw new SyncFailedException(e.getMessage()+"Saving the entities into machine sync is failed ");
 		}		
@@ -538,12 +534,27 @@ public class ClientSettingSyncHelper {
 				}
 			}
 			
-			if(!fields.isEmpty())
+			if (!fields.isEmpty()) {
+				List<DynamicField> existingFields = dynamicFieldRepository.findAll();
+				checkForDuplicates(fields, existingFields);
+				List<DynamicField> updatedFields = dynamicFieldRepository.findAll();
+				checkForDuplicates(fields, updatedFields);
 				dynamicFieldRepository.saveAll(fields);
+			}
 				
 		} catch(IOException e) {
 			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
 			throw new SyncFailedException("Dynamic field sync failed due to " +  e.getMessage());
 		}		
+	}
+
+	private void checkForDuplicates(List<DynamicField> fields, List<DynamicField> existingFields) {
+		for (DynamicField tobeUpdatedField : fields) {
+			for (DynamicField existingField : existingFields) {
+				if(tobeUpdatedField.getName().equalsIgnoreCase(existingField.getName())) {
+					dynamicFieldRepository.delete(existingField);
+				}
+			}
+		}
 	}
 }

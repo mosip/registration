@@ -6,20 +6,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.constant.AbisConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisRequestDto;
@@ -70,13 +67,9 @@ public class ABISHandlerUtil {
 	 * @throws IOException                           Signals that an I/O exception
 	 *                                               has occurred.
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
-	 * @throws PacketDecryptionFailureException
-	 * @throws RegistrationProcessorCheckedException
-	 * @throws PacketDecryptionFailureException
 	 */
-	public List<String> getUniqueRegIds(String registrationId, String registrationType)
-			throws ApisResourceAccessException, IOException, ApiNotAccessibleException,
-			io.mosip.kernel.core.exception.IOException, PacketDecryptionFailureException {
+	public List<String> getUniqueRegIds(String registrationId, String source, String registrationType)
+			throws ApisResourceAccessException, IOException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "ABISHandlerUtil::getUniqueRegIds()::entry");
 		
@@ -105,7 +98,7 @@ public class ABISHandlerUtil {
 								RegistrationTransactionStatusCode.IN_PROGRESS.toString());
 						List<String> processedRegIds = packetInfoDao.getProcessedOrProcessingRegIds(matchedRegIds,
 								RegistrationTransactionStatusCode.PROCESSED.toString());
-						uniqueRIDs = getUniqueRegIds(processedRegIds, registrationId, registrationType);
+						uniqueRIDs = getUniqueRegIds(processedRegIds, registrationId, source, registrationType);
 						uniqueRIDs.addAll(processingRegIds);
 					}
 				}
@@ -165,13 +158,10 @@ public class ABISHandlerUtil {
 	 * @throws IOException                           Signals that an I/O exception
 	 *                                               has occurred.
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
-	 * @throws PacketDecryptionFailureException
-	 * @throws RegistrationProcessorCheckedException
-	 * @throws PacketDecryptionFailureException
 	 */
-	private List<String> getUniqueRegIds(List<String> matchedRegistrationIds, String registrationId,
+	private List<String> getUniqueRegIds(List<String> matchedRegistrationIds, String registrationId, String source,
 			String registrationType) throws ApisResourceAccessException, IOException,
-			io.mosip.kernel.core.exception.IOException, PacketDecryptionFailureException, ApiNotAccessibleException {
+			io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
 
 		Map<String, String> filteredRegMap = new LinkedHashMap<>();
 		List<String> filteredRIds = new ArrayList<>();
@@ -182,7 +172,7 @@ public class ABISHandlerUtil {
 					utilities.getGetRegProcessorDemographicIdentity());
 
 			if (registrationType.equalsIgnoreCase(SyncTypeDto.UPDATE.toString())) {
-				String packetUin = utilities.getUIn(registrationId);
+				String packetUin = utilities.getUIn(registrationId, source, registrationType);
 				if (matchedUin != null && !packetUin.equals(matchedUin)) {
 					filteredRegMap.put(matchedUin.toString(), machedRegId);
 				}

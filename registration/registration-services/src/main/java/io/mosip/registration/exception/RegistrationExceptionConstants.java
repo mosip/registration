@@ -210,9 +210,18 @@ public enum RegistrationExceptionConstants {
 	NON_TPM_GET_SIGN_KEY_ERROR("REG-NONTPM-005", "Exception while public key of NON-TPM Local client security"),
 	NON_TPM_GET_TPM_INSTANCE_ERROR("REG-NONTPM-006", "Exception while setting NON-TPM Local client security"),
 	
-	TPM_REQUIRED("REG-TPM-001", "TPM INSTANCE IS REQUIRED");
-
+	TPM_REQUIRED("REG-TPM-001", "TPM INSTANCE IS REQUIRED"),
 	
+
+	MDS_BIODEVICE_NOT_FOUND("REG-MDS-001","Bio Device not found"),
+	MDS_STREAM_ERROR("REG-MDS-002","Unable to start Stream"),
+	MDS_RCAPTURE_ERROR("REG-MDS-003","RCapture Failed"),
+	MDS_PROVIDER_NOT_FOUND("REG-MDS-004","MDS provider not found"),
+	MDS_JWT_INVALID("REG-MDS-005","Invalid JWT value (Header.Payload.Signature)"),
+	MDS_PAYLOAD_EMPTY("REG-MDS-006","Payload is Empty"),
+
+	APP_INVALID_STATE("REG-INIT-001", "Application found in invalid state, tampering detected !");
+
 	/**
 	 * The constructor
 	 */

@@ -18,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -38,6 +39,7 @@ import io.mosip.registration.processor.packet.manager.dto.DecryptResponseDto;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @SpringBootTest(classes = PacketManagerBootApplication.class)
 public class DecryptorTest {
 
@@ -143,16 +145,5 @@ public class DecryptorTest {
 		cryptomanagerResponseDto.setErrors(Arrays.asList(new ServiceError("Error-001", "Error-Message-001")));
 		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any())).thenReturn(cryptomanagerResponseDto);
 		decryptor.decrypt(inputStream, "84071493960000320190110145452");
-	}
-
-	@Test(expected = PacketDecryptionFailureException.class)
-	public void decryptIOExceptionTest()
-			throws PacketDecryptionFailureException, ApisResourceAccessException, IOException {
-		InputStream is = Mockito.mock(InputStream.class);
-		doThrow(IOException.class).when(is).close();
-		InputStream decryptedStream = decryptor.decrypt(is, "84071493960000320190110145452");
-		String decryptedString = IOUtils.toString(decryptedStream, "UTF-8");
-		assertEquals("mosip", decryptedString);
-
 	}
 }

@@ -5,6 +5,7 @@ package io.mosip.registration.processor.core.auth.dto;
 
 import java.time.LocalDateTime;
 
+import io.mosip.registration.processor.core.packet.dto.DigitalId;
 import lombok.Data;
 
 /**
@@ -14,31 +15,42 @@ import lombok.Data;
 @Data
 public class DataInfoDTO {
 
-	private String bioSubType;
+	private DigitalId digitalId;
 
+	/** The Value for type */
 	private String bioType;
 
+	/** The Value for subType */
+	private String bioSubType;
+
+	/** The Value for bioValue */
 	private String bioValue;
+
+	/** The Value for deviceCode */
+	private String deviceCode;
+
+	/** The Value for deviceServiceVersion */
+	private String deviceServiceVersion;
+
+	/** The Value for transactionID */
+	private String transactionId;
+
+	/** The Value for time stamp */
 	private String timestamp;
 
-//commented for now might be used later	
+	/** The Value for mosipProcess */
+	private String purpose;
 
-//	private String deviceCode;
-//	
-//	private String deviceProviderID;
-//	
-//	private String deviceServiceID;
-//	
-//	private String deviceServiceVersion;
-//	
-//	private String environment;
-//	
-//	private String mosipProcess;
-//	
-//	private String timestamp;
-//	
-//	private String transactionID;
-//	
-//	private String version;
+	/** The Value for environment */
+	private String env;
+
+	/** The Value for version */
+	private String version;
+
+	private String domainUri;
+
+	private Float requestedScore;
+
+	private Float qualityScore;
 
 }

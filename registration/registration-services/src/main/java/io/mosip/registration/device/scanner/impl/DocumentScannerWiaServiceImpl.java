@@ -7,20 +7,19 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import com4j.Com4jObject;
+import io.mosip.registration.device.scanner.dto.ScanDevice;
+import io.mosip.registration.device.scanner.wia.*;
 import org.springframework.stereotype.Service;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
-import io.mosip.registration.device.scanner.wia.ClassFactory;
-import io.mosip.registration.device.scanner.wia.ICommonDialog;
-import io.mosip.registration.device.scanner.wia.IImageFile;
-import io.mosip.registration.device.scanner.wia.WiaDeviceType;
-import io.mosip.registration.device.scanner.wia.WiaImageBias;
-import io.mosip.registration.device.scanner.wia.WiaImageIntent;
 
 /**
  * This class is used to provide document scanner functionalities for windows
@@ -31,11 +30,11 @@ import io.mosip.registration.device.scanner.wia.WiaImageIntent;
  *
  */
 @Service
-public class DocumentScannerWiaServiceImpl extends DocumentScannerService {
+public class DocumentScannerWiaServiceImpl /*extends DocumentScannerService*/ {
 
 	private static final Logger LOGGER = AppConfig.getLogger(DocumentScannerSaneServiceImpl.class);
 
-	@Override
+	//@Override
 	public boolean isConnected() {
 
 		LOGGER.info(LOG_REG_DOC_SCAN_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
@@ -43,7 +42,7 @@ public class DocumentScannerWiaServiceImpl extends DocumentScannerService {
 		return ClassFactory.createDeviceManager().deviceInfos().count() >= 1 ? true : false;
 	}
 
-	@Override
+	//@Override
 	public BufferedImage scan() {
 
 		BufferedImage bufferedImage = null;
@@ -69,6 +68,16 @@ public class DocumentScannerWiaServiceImpl extends DocumentScannerService {
 					ExceptionUtils.getStackTrace(runtimeException));
 		}
 		return bufferedImage;
+	}
+
+	//@Override
+	public List<ScanDevice> getDevices() {
+		return null;
+	}
+
+	//@Override
+	public BufferedImage scan(String deviceName) {
+		return null;
 	}
 
 }

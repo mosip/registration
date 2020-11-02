@@ -3,9 +3,6 @@ package io.mosip.registration.service.security.impl;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
-import java.text.FieldPosition;
-import java.text.Format;
-import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,7 +19,6 @@ import io.mosip.kernel.core.bioapi.exception.BiometricException;
 import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.kernel.core.cbeffutil.entity.BIR.BIRBuilder;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.ProcessedLevelType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.PurposeType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
@@ -30,19 +26,16 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.HMACUtils;
-import io.mosip.kernel.packetmanager.dto.BiometricsDto;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dao.UserDetailDAO;
 import io.mosip.registration.dto.AuthTokenDTO;
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
 import io.mosip.registration.dto.UserDTO;
+import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.entity.UserBiometric;
-import io.mosip.registration.exception.RegBaseCheckedException;
-import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.service.login.LoginService;
 import io.mosip.registration.service.security.AuthenticationService;
-import io.mosip.registration.validator.AuthenticationBaseValidator;
 import io.mosip.registration.validator.OTPValidatorImpl;
 
 /**

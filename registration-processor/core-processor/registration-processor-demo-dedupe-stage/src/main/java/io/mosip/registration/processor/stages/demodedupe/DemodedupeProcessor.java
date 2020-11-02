@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.AbisStatusCode;
@@ -158,6 +159,7 @@ public class DemodedupeProcessor {
 				.getRegistrationStatus(registrationId);
 
 		try {
+			String source = utility.getDefaultSource();
 
 			// Persist Demographic packet Data if packet Registration type is NEW
 			if (registrationStatusDto.getRegistrationType().equals(RegistrationType.NEW.name())) {
@@ -166,8 +168,10 @@ public class DemodedupeProcessor {
 
 				if (packetStatus.equalsIgnoreCase(AbisConstant.PRE_ABIS_IDENTIFICATION)) {
 
-					packetInfoManager.saveDemographicInfoJson(registrationId, moduleId, moduleName);
-					int age = utility.getApplicantAge(registrationId);
+					packetInfoManager.saveDemographicInfoJson(registrationId,
+							registrationStatusDto.getRegistrationType(), moduleId, moduleName);
+					int age = utility.getApplicantAge(registrationId,
+							utility.getDefaultSource(), registrationStatusDto.getRegistrationType());
 					int ageThreshold = Integer.parseInt(ageLimit);
 					if (age < ageThreshold) {
 						if (infantDedupe.equalsIgnoreCase(GLOBAL_CONFIG_TRUE_VALUE)) {
@@ -214,9 +218,10 @@ public class DemodedupeProcessor {
 
 
 				IndividualDemographicDedupe demographicData = packetInfoManager
-						.getIdentityKeysAndFetchValuesFromJSON(registrationId);
+						.getIdentityKeysAndFetchValuesFromJSON(registrationId, source, registrationStatusDto.getRegistrationType());
 				JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
-				String uinFieldCheck = utility.getUIn(registrationId);
+				String uinFieldCheck = utility.getUIn(registrationId,
+						utility.getDefaultSource(), registrationStatusDto.getRegistrationType());
 				JSONObject jsonObject = utility.retrieveIdrepoJson(uinFieldCheck);
 				if (jsonObject == null) {
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -257,20 +262,6 @@ public class DemodedupeProcessor {
 										JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson,
 												MappingJsonConstants.EMAIL), MappingJsonConstants.VALUE))
 						: demographicData.getEmail());
-				if (demographicData.getPostalCode() == null) {
-				String addressList = JsonUtil.getJSONValue(
-						JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.ADDRESS),
-						MappingJsonConstants.VALUE);
-				Arrays.stream(addressList.split(","))
-				.forEach(address -> {
-					if (address.equals("postalCode")) {
-									demoDedupeData.setPostalCode(JsonUtil.getJSONValue(jsonObject, address));
-					}
-						});
-				} else {
-					demoDedupeData.setPostalCode(demographicData.getPostalCode());
-				}
-
 
 				packetInfoManager.saveIndividualDemographicDedupeUpdatePacket(demoDedupeData, registrationId, moduleId,
 						moduleName);
@@ -283,17 +274,15 @@ public class DemodedupeProcessor {
 
 			}
 
-			registrationStatusDto
-					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.DEMOGRAPHIC_VERIFICATION.toString());
 			registrationStatusDto.setRegistrationStageName(stageName);
 
 		} catch (FSAdapterException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
 			registrationStatusDto.setStatusComment(trimExceptionMessage
-					.trimExceptionMessage(StatusUtil.FS_ADAPTER_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.FS_ADAPTER_EXCEPTION.getCode());
+					.trimExceptionMessage(StatusUtil.OBJECT_STORE_EXCEPTION.getMessage() + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.OBJECT_STORE_EXCEPTION.getCode());
 			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.FSADAPTER_EXCEPTION));
+					registrationExceptionMapperUtil.getStatusCode(RegistrationExceptionTypeCode.OBJECT_STORE_EXCEPTION));
 			description.setCode(PlatformErrorMessages.PACKET_DEMO_PACKET_STORE_NOT_ACCESSIBLE.getCode());
 			description.setMessage(PlatformErrorMessages.PACKET_DEMO_PACKET_STORE_NOT_ACCESSIBLE.getMessage());
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), description.getCode(), registrationId,
@@ -313,7 +302,7 @@ public class DemodedupeProcessor {
 					description.getMessage() + ExceptionUtils.getStackTrace(e));
 			object.setInternalError(Boolean.TRUE);
 			object.setIsValid(Boolean.FALSE);
-		} catch (ApisResourceAccessException | ApiNotAccessibleException e) {
+		} catch (ApisResourceAccessException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
 			registrationStatusDto.setStatusComment(
 					trimExceptionMessage.trimExceptionMessage(StatusUtil.API_RESOUCE_ACCESS_FAILED + e.getMessage()));
@@ -341,6 +330,8 @@ public class DemodedupeProcessor {
 			object.setInternalError(Boolean.TRUE);
 			object.setIsValid(Boolean.FALSE);
 		} finally {
+			registrationStatusDto
+					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.DEMOGRAPHIC_VERIFICATION.toString());
 			moduleId = isTransactionSuccessful ? PlatformSuccessMessages.RPR_PKR_DEMO_DE_DUP.getCode()
 					: description.getCode();
 
@@ -456,13 +447,11 @@ public class DemodedupeProcessor {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
-	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	private boolean processDemoDedupeRequesthandler(InternalRegistrationStatusDto registrationStatusDto,
 			MessageDTO object, LogDescription description) throws ApisResourceAccessException, IOException,
 			PacketDecryptionFailureException, io.mosip.kernel.core.exception.IOException,
-			RegistrationProcessorCheckedException,
-			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
+			RegistrationProcessorCheckedException, JsonProcessingException, PacketManagerException {
 		boolean isTransactionSuccessful = false;
 		List<String> responsIds = new ArrayList<>();
 
@@ -593,13 +582,12 @@ public class DemodedupeProcessor {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 * @throws PacketDecryptionFailureException
 	 * @throws RegistrationProcessorCheckedException
-	 * @throws                                       io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException
 	 */
 	private void saveManualAdjudicationData(InternalRegistrationStatusDto registrationStatusDto)
-			throws ApisResourceAccessException, IOException, PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, RegistrationProcessorCheckedException,
-			io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
-		List<String> matchedRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
+			throws ApisResourceAccessException, IOException,
+			io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
+		String source = utility.getDefaultSource();
+		List<String> matchedRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(), source,
 				SyncTypeDto.NEW.toString());
 		if (!matchedRegIds.isEmpty()) {
 			String moduleId = PlatformErrorMessages.RPR_DEMO_SENDING_FOR_MANUAL.getCode();

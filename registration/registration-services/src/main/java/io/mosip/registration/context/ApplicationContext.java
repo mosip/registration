@@ -11,10 +11,9 @@ import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dto.AuthTokenDTO;
 
-
 /**
- * This class will load all the property files as bundles
- * All application level details will be loaded in a map
+ * This class will load all the property files as bundles All application level
+ * details will be loaded in a map
  * 
  * @author Taleev Aalam
  *
@@ -43,7 +42,6 @@ public class ApplicationContext {
 
 	/** The application map. */
 	private static Map<String, Object> applicationMap = new HashMap<>();
-
 
 	/** The local language. */
 	private String localLanguage;
@@ -85,25 +83,31 @@ public class ApplicationContext {
 
 	}
 
-
-
-	
 	/**
 	 * here we will load the property files such as labels, messages and validation.
-	 * <p>If we get primary and secondary languages</P>
-	 * 			<p>Based on those languages these property files will be loaded.</p>
-	 * <p>If we dont get primary and secondary languages</p>
-	 * 			<p>Then the primary language will be English and the Secondary language will be 
-	 * 				Arabic by default and the property files will be loaded based on that</p>
-	 * @return 
+	 * <p>
+	 * If we get primary and secondary languages
+	 * </P>
+	 * <p>
+	 * Based on those languages these property files will be loaded.
+	 * </p>
+	 * <p>
+	 * If we dont get primary and secondary languages
+	 * </p>
+	 * <p>
+	 * Then the primary language will be English and the Secondary language will be
+	 * Arabic by default and the property files will be loaded based on that
+	 * </p>
+	 *
+	 * @return
 	 * 
 	 * 
 	 */
 	public boolean loadResourceBundle() {
-		
+
 		boolean isPrimaryOrSecondaryLanguageEmpty = false;
 		try {
-			
+
 			if (null != applicationMap.get(RegistrationConstants.PRIMARY_LANGUAGE)
 					&& !applicationMap.get(RegistrationConstants.PRIMARY_LANGUAGE).equals("")) {
 				applicationLanguge = (String) applicationMap.get(RegistrationConstants.PRIMARY_LANGUAGE);
@@ -123,14 +127,14 @@ public class ApplicationContext {
 						? Locale.getDefault().getDisplayLanguage().toLowerCase().substring(0, 3)
 						: "eng";
 			}
-				 
+
 			String rightToLeft = (String) applicationContext.getApplicationMap().get("mosip.right_to_left_orientation");
 
 			if (null != rightToLeft) {
 				if (rightToLeft.contains(applicationLanguge)) {
 					primaryLanguageRightToLeft = true;
 				}
-				if (null != localLanguage && rightToLeft.contains(localLanguage)) {
+				if (null != localLanguage && !localLanguage.isEmpty() && rightToLeft.contains(localLanguage)) {
 					secondaryLanguageRightToLeft = true;
 				}
 			}
@@ -139,29 +143,30 @@ public class ApplicationContext {
 			LOGGER.error("Application Context", RegistrationConstants.APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, exception.getMessage());
 		}
-		
+
 		String languageSupport = (String) applicationMap.get(RegistrationConstants.LANGUAGE_SUPPORT);
 		if (StringUtils.isNotBlank(languageSupport)) {
 			languageSupport = languageSupport.toLowerCase();
 			applicationLanguge = applicationLanguge.toLowerCase();
-			localLanguage = localLanguage.toLowerCase();
+			if (localLanguage != null && !localLanguage.isEmpty()) {
+				localLanguage = localLanguage.toLowerCase();
+			}
 			applicationLanguge = languageSupport.contains(applicationLanguge) ? applicationLanguge : "eng";
 			localLanguage = languageSupport.contains(localLanguage) ? localLanguage : "eng";
 		}
-		
+
 		Locale applicationLanguageLocale = new Locale(
 				applicationLanguge != null ? applicationLanguge.substring(0, 2) : "");
-		Locale secondaryLanguageLocale = new Locale(localLanguage != null ? localLanguage.substring(0, 2) : "");
+		Locale secondaryLanguageLocale = new Locale(
+				localLanguage != null && !localLanguage.isEmpty() ? localLanguage.substring(0, 2) : "");
 
 		applicationLanguageBundle = ResourceBundle.getBundle("labels", applicationLanguageLocale);
 		localLanguageBundle = ResourceBundle.getBundle("labels", secondaryLanguageLocale);
 		applicationMessagesBundle = ResourceBundle.getBundle("messages", applicationLanguageLocale);
 		localMessagesBundle = ResourceBundle.getBundle("messages", secondaryLanguageLocale);
-		
+
 		return isPrimaryOrSecondaryLanguageEmpty;
 	}
-
-
 
 	/**
 	 * Gets the single instance of ApplicationContext.
@@ -205,7 +210,11 @@ public class ApplicationContext {
 	 * To return the local language code with two letter
 	 */
 	public static String secondaryLanguageLocal() {
-		return applicationContext.getLocalLanguage().substring(0, 2);
+
+		if (applicationContext.getLocalLanguage() != null && applicationContext.getLocalLanguage().length() > 2) {
+			return applicationContext.getLocalLanguage().substring(0, 2);
+		}
+		return null;
 	}
 
 	/**
@@ -256,7 +265,6 @@ public class ApplicationContext {
 		return applicationContext.getLocalLanguageProperty();
 	}
 
-
 	/**
 	 * Local language validation bundle.
 	 *
@@ -294,8 +302,7 @@ public class ApplicationContext {
 	/**
 	 * Sets the auth token DTO.
 	 *
-	 * @param authTokenDTO
-	 *            the new auth token DTO
+	 * @param authTokenDTO the new auth token DTO
 	 */
 	public static void setAuthTokenDTO(AuthTokenDTO authTokenDTO) {
 		applicationContext.authTokenDTO = authTokenDTO;
@@ -322,8 +329,7 @@ public class ApplicationContext {
 	/**
 	 * Sets the application map.
 	 *
-	 * @param applicationMap
-	 *            the applicationMap to set
+	 * @param applicationMap the applicationMap to set
 	 */
 	public static void setApplicationMap(Map<String, Object> applicationMap) {
 		ApplicationContext.applicationMap.putAll(applicationMap);
@@ -337,8 +343,6 @@ public class ApplicationContext {
 	public ResourceBundle getApplicationLanguageBundle() {
 		return applicationLanguageBundle;
 	}
-
-
 
 	/**
 	 * Get application language.
@@ -370,9 +374,9 @@ public class ApplicationContext {
 	/**
 	 * Sets the local language property.
 	 *//*
-	public void setLocalLanguageProperty() {
-		localLanguageBundle = ResourceBundle.getBundle("labels", new Locale("ara"));
-	}*/
+		 * public void setLocalLanguageProperty() { localLanguageBundle =
+		 * ResourceBundle.getBundle("labels", new Locale("ara")); }
+		 */
 
 	/**
 	 * Gets the application messages bundle.
@@ -383,8 +387,6 @@ public class ApplicationContext {
 		return applicationMessagesBundle;
 	}
 
-
-
 	/**
 	 * Gets the local messages bundle.
 	 *
@@ -394,15 +396,11 @@ public class ApplicationContext {
 		return localMessagesBundle;
 	}
 
-
-
 	/**
 	 * Sets the global config value of.
 	 *
-	 * @param code
-	 *            the code
-	 * @param val
-	 *            the val
+	 * @param code the code
+	 * @param val  the val
 	 */
 	public static void setGlobalConfigValueOf(String code, String val) {
 		applicationMap.put(code, val);
@@ -411,14 +409,13 @@ public class ApplicationContext {
 	/**
 	 * Removes the global config value of.
 	 *
-	 * @param code
-	 *            the code
+	 * @param code the code
 	 */
 	public static void removeGlobalConfigValueOf(String code) {
 		applicationMap.remove(code);
 
 	}
-	
+
 	/**
 	 * Gets the integer value.
 	 *
@@ -430,11 +427,28 @@ public class ApplicationContext {
 		return Integer.parseInt((String) applicationMap.get(code));
 
 	}
-	
-	
+
 	public static String getStringValueFromApplicationMap(String code) {
 
 		return String.valueOf(applicationMap.get(code));
 
+	}
+
+	public static void setUpgradeServerURL(String url) {
+		applicationMap.put("client.upgrade.server.url", url);
+	}
+
+	public static void setTPMUsageFlag(String tpmUsageFlag) {
+		applicationMap.put("client.tpm.required", tpmUsageFlag);
+	}
+
+	public static String getUpgradeServerURL() {
+		return applicationMap.get("client.upgrade.server.url") == null ? ""
+				: String.valueOf(applicationMap.get("client.upgrade.server.url"));
+	}
+
+	public static String getTPMUsageFlag() {
+		return applicationMap.get("client.tpm.required") == null ? "Y"
+				: String.valueOf(applicationMap.get("client.tpm.required"));
 	}
 }

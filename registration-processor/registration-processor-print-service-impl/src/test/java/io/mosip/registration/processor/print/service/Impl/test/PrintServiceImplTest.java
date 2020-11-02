@@ -1,8 +1,8 @@
 package io.mosip.registration.processor.print.service.Impl.test;
 
 import static org.junit.Assert.assertArrayEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
@@ -65,11 +65,12 @@ import io.mosip.registration.processor.packet.storage.exception.VidCreationExcep
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.print.service.exception.PDFSignatureException;
 import io.mosip.registration.processor.print.service.impl.PrintServiceImpl;
+import io.mosip.registration.processor.print.service.utility.PrintUtility;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Utilities.class, CryptoUtil.class, FileUtils.class })
-@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*" })
+@PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*","com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*" })
 public class PrintServiceImplTest {
 
 	/** The rest client service. */
@@ -101,6 +102,10 @@ public class PrintServiceImplTest {
 	/** The utility. */
 	@Mock
 	private Utilities utility;
+
+	@Mock
+	private PrintUtility printUtility;
+	
 
 	@Mock
 	private QrCodeGenerator<QrVersion> qrCodeGenerator;
@@ -196,7 +201,7 @@ public class PrintServiceImplTest {
 
 		response.setDocuments(docList);
 		idResponse.setResponse(response);
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(idResponse);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(idResponse);
 
 		String artifact = "UIN Card Template";
 		InputStream artifactStream = new ByteArrayInputStream(artifact.getBytes());
@@ -229,7 +234,7 @@ public class PrintServiceImplTest {
 				utility.getRegistrationProcessorPrintTextFile()).thenReturn(printTextFileJson);
 		PowerMockito.when(Utilities.class, "getJson", utility.getConfigServerFileStorageURL(),
 				utility.getGetRegProcessorIdentityJson()).thenReturn(mappingFileJson);
-
+		Mockito.when(printUtility.extractFaceImageData(any())).thenReturn(buffer);
 	}
 
 	@Test
@@ -326,7 +331,7 @@ public class PrintServiceImplTest {
 	@Test(expected = PDFGeneratorException.class)
 	public void testApiResourceException() throws ApisResourceAccessException, IdRepoAppException, IOException {
 		ApisResourceAccessException e = new ApisResourceAccessException();
-		Mockito.doThrow(e).when(restClientService).getApi(any(), any(), any(), any(), any());
+		Mockito.doThrow(e).when(restClientService).getApi(any(), any(), anyString(), any(), any());
 
 		List<String> uinList = new ArrayList<>();
 		uinList.add("2046958192");
@@ -403,7 +408,7 @@ public class PrintServiceImplTest {
 
 	@Test(expected = PDFGeneratorException.class)
 	public void testIdResponseNull() throws ApisResourceAccessException {
-		Mockito.when(restClientService.getApi(any(), any(), any(), any(), any())).thenReturn(null);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(null);
 
 		String uin = "2046958192";
 		printService.getDocuments(IdType.UIN, uin, CardType.UIN.toString(), false).get("uinPdf");

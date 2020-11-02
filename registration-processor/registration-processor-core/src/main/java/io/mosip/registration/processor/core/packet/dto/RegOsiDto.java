@@ -2,6 +2,8 @@ package io.mosip.registration.processor.core.packet.dto;
 	
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * Instantiates a new reg osi dto.
  */
@@ -49,6 +51,23 @@ public class RegOsiDto {
 	private String supervisorBiometricFileName;
 	
 	private String officerBiometricFileName;
+
+	/** The machine id. */
+	private String machineId;
+
+	/** The regcntr id. */
+	private String regcntrId;
+
+	/** The latitude. */
+	private String latitude;
+
+	/** The longitude. */
+	private String longitude;
+
+	/** The packet creation date. */
+	private String packetCreationDate;
+
+	private List<NewRegisteredDevice> capturedRegisteredDevices;
 	
 
 }

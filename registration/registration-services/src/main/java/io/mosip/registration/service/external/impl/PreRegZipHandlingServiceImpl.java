@@ -15,19 +15,19 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
+import io.mosip.kernel.keygenerator.bouncycastle.util.KeyGeneratorUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
@@ -35,20 +35,15 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-
-import io.mosip.kernel.core.exception.BaseCheckedException;
+import io.mosip.commons.packet.dto.packet.SimpleDto;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.security.constants.MosipSecurityMethod;
 import io.mosip.kernel.core.security.decryption.MosipDecryptor;
 import io.mosip.kernel.core.security.encryption.MosipEncryptor;
 import io.mosip.kernel.core.util.FileUtils;
-import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.StringUtils;
-import io.mosip.kernel.core.util.exception.JsonMappingException;
-import io.mosip.kernel.core.util.exception.JsonParseException;
-import io.mosip.kernel.keygenerator.bouncycastle.KeyGenerator;
+//import io.mosip.kernel.keygenerator.bouncycastle.KeyGenerator;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
@@ -58,20 +53,12 @@ import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dto.PreRegistrationDTO;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
-import io.mosip.registration.dto.demographic.DocumentDetailsDTO;
-import io.mosip.registration.dto.demographic.IndividualIdentity;
-import io.mosip.registration.dto.demographic.ValuesDTO;
-import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
+import io.mosip.registration.dto.packetmanager.DocumentDto;
 import io.mosip.registration.entity.DocumentType;
-import io.mosip.registration.entity.ValidDocument;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
-import io.mosip.registration.exception.RegistrationExceptionConstants;
-import io.mosip.kernel.packetmanager.dto.DocumentDto;
-import io.mosip.kernel.packetmanager.dto.SimpleDto;
 import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.external.PreRegZipHandlingService;
-import io.mosip.registration.util.mastersync.MapperUtils;
 
 /**
  * This implementation class to handle the pre-registration data
@@ -83,8 +70,8 @@ import io.mosip.registration.util.mastersync.MapperUtils;
 @Service
 public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 
-	@Autowired
-	private KeyGenerator keyGenerator;
+	/*@Autowired
+	private KeyGenerator keyGenerator;*/
 
 	@Autowired
 	private DocumentTypeDAO documentTypeDAO;
@@ -349,7 +336,9 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 	public PreRegistrationDTO encryptAndSavePreRegPacket(String preRegistrationId, byte[] preRegPacket)
 			throws RegBaseCheckedException {
 
-		SecretKey symmetricKey = keyGenerator.getSymmetricKey();
+		KeyGenerator keyGenerator = KeyGeneratorUtils.getKeyGenerator("AES", 256);
+		// Generate AES Session Key
+		final SecretKey symmetricKey = keyGenerator.generateKey();
 
 		// Encrypt the Pre reg packet data using AES
 		final byte[] encryptedData = MosipEncryptor.symmetricEncrypt(symmetricKey.getEncoded(), preRegPacket,

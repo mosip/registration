@@ -29,7 +29,6 @@ import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.RestartController;
 import io.mosip.registration.controller.auth.LoginController;
 import io.mosip.registration.controller.device.Streamer;
-import io.mosip.registration.controller.device.WebCameraController;
 import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.ResponseDTO;
@@ -144,9 +143,6 @@ public class HeaderController extends BaseController {
 	private LoginController loginController;
 
 	@Autowired
-	private WebCameraController webCameraController;
-	
-	@Autowired
 	private Streamer streamer;
 
 	/**
@@ -180,7 +176,7 @@ public class HeaderController extends BaseController {
 				online.setVisible(flag);
 				offline.setVisible(!flag);
 			}
-		}, 0, 15*60*1000);
+		}, 0, 15 * 60 * 1000);
 	}
 
 	/**
@@ -205,7 +201,10 @@ public class HeaderController extends BaseController {
 
 			}
 
+			closeAlreadyExistedAlert();
+			
 			logoutCleanUp();
+
 		}
 	}
 
@@ -241,7 +240,7 @@ public class HeaderController extends BaseController {
 	 *            event for redirecting to home
 	 */
 	public void redirectHome(ActionEvent event) {
-		
+
 		if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
 			goToHomePageFromOnboard();
 		} else {
@@ -260,47 +259,47 @@ public class HeaderController extends BaseController {
 	 *            the event
 	 */
 	public void syncData(ActionEvent event) {
-		
-			try {
-				
-				redirectHome(event);
-				
-				//Clear all registration data
-				clearRegistrationData();
-				
-				if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
-					if (isMachineRemapProcessStarted()) {
 
-						LOGGER.info(LoggerConstants.LOG_REG_HEADER, APPLICATION_NAME, APPLICATION_ID,
-								RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
-						return;
-					}
-					try {
-						auditFactory.audit(AuditEvent.NAV_SYNC_DATA, Components.NAVIGATION,
-								SessionContext.userContext().getUserId(),
-								AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
-						executeSyncDataTask();
-						while (restartController.isToBeRestarted()) {
-							/* Clear the completed job map */
-							BaseJob.clearCompletedJobMap();
+		try {
 
-							/* Restart the application */
-							restartController.restart();
-						}
+			redirectHome(event);
 
-					} catch (RuntimeException runtimeException) {
-						LOGGER.error(LoggerConstants.LOG_REG_HEADER, APPLICATION_NAME, APPLICATION_ID,
-								runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
-					}
-				} else {
-					generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_INTERNET_CONNECTION);
+			// Clear all registration data
+			clearRegistrationData();
+
+			if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
+				if (isMachineRemapProcessStarted()) {
+
+					LOGGER.info(LoggerConstants.LOG_REG_HEADER, APPLICATION_NAME, APPLICATION_ID,
+							RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
+					return;
 				}
-			} catch (RuntimeException exception) {
-				LOGGER.error("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
-						exception.getMessage() + ExceptionUtils.getStackTrace(exception));
-				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_HOME_PAGE);
+				try {
+					auditFactory.audit(AuditEvent.NAV_SYNC_DATA, Components.NAVIGATION,
+							SessionContext.userContext().getUserId(),
+							AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+					executeSyncDataTask();
+					while (restartController.isToBeRestarted()) {
+						/* Clear the completed job map */
+						BaseJob.clearCompletedJobMap();
+
+						/* Restart the application */
+						restartController.restart();
+					}
+
+				} catch (RuntimeException runtimeException) {
+					LOGGER.error(LoggerConstants.LOG_REG_HEADER, APPLICATION_NAME, APPLICATION_ID,
+							runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
+				}
+			} else {
+				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_INTERNET_CONNECTION);
 			}
-		
+		} catch (RuntimeException exception) {
+			LOGGER.error("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_HOME_PAGE);
+		}
+
 	}
 
 	/**
@@ -331,11 +330,11 @@ public class HeaderController extends BaseController {
 					pane.getChildren().remove(index);
 				}
 				pane.getChildren().add(syncServerClientRoot);
-				
-				//Clear all registration data
+
+				// Clear all registration data
 				clearRegistrationData();
-				
-				//Enable Auto-Logout
+
+				// Enable Auto-Logout
 				SessionContext.setAutoLogout(true);
 
 			}
@@ -352,34 +351,31 @@ public class HeaderController extends BaseController {
 	 */
 	@FXML
 	public void downloadPreRegData(ActionEvent event) {
-		
-			try {
-				// Go To Home Page 
-				redirectHome(event);
-				
-				//Clear all registration data
-				clearRegistrationData();
-				
-				if (isMachineRemapProcessStarted()) {
 
-					LOGGER.info(LoggerConstants.LOG_REG_HEADER, APPLICATION_NAME, APPLICATION_ID,
-							RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
-					return;
-				}
-				auditFactory.audit(AuditEvent.SYNC_PRE_REGISTRATION_PACKET, Components.SYNC_SERVER_TO_CLIENT,
-						SessionContext.userContext().getUserId(), AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+		try {
+			// Go To Home Page
+			redirectHome(event);
 
-				executeDownloadPreRegDataTask(homeController.getMainBox(),
-						packetHandlerController.getProgressIndicator());
-				
-				
-			} catch (RuntimeException exception) {
-				LOGGER.error("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
-						exception.getMessage() + ExceptionUtils.getStackTrace(exception));
-				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_HOME_PAGE);
+			// Clear all registration data
+			clearRegistrationData();
+
+			if (isMachineRemapProcessStarted()) {
+
+				LOGGER.info(LoggerConstants.LOG_REG_HEADER, APPLICATION_NAME, APPLICATION_ID,
+						RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
+				return;
 			}
+			auditFactory.audit(AuditEvent.SYNC_PRE_REGISTRATION_PACKET, Components.SYNC_SERVER_TO_CLIENT,
+					SessionContext.userContext().getUserId(), AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
-		
+			executeDownloadPreRegDataTask(homeController.getMainBox(), packetHandlerController.getProgressIndicator());
+
+		} catch (RuntimeException exception) {
+			LOGGER.error("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_HOME_PAGE);
+		}
+
 	}
 
 	public void uploadPacketToServer() {
@@ -684,7 +680,7 @@ public class HeaderController extends BaseController {
 	 * This method closes the webcam, if opened, whenever the menu bar is clicked.
 	 */
 	public void closeOperations() {
-		webCameraController.closeWebcam();
+		// webCameraController.closeWebcam();
 	}
 
 	public void executeDownloadPreRegDataTask(Pane pane, ProgressIndicator progressIndicator) {

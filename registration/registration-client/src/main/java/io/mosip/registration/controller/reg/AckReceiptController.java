@@ -62,8 +62,8 @@ public class AckReceiptController extends BaseController implements Initializabl
 	@FXML
 	private Text registrationNavLabel;
 
-	@FXML
-	private Button sendNotification;
+	//@FXML
+	//private Button sendNotification;
 
 	@FXML
 	private ImageView sendNotificationImageView;
@@ -80,14 +80,14 @@ public class AckReceiptController extends BaseController implements Initializabl
 		LOGGER.info("REGISTRATION - UI - ACK_RECEIPT_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 				"Page loading has been started");
 
-		setImagesOnHover();
+		//setImagesOnHover();
 		String notificationType = getValueFromApplicationContext(RegistrationConstants.MODE_OF_COMMUNICATION); 
-		if (notificationType != null && !notificationType.trim().isEmpty() && !notificationType.equals("NONE")) {
+		/*if (notificationType != null && !notificationType.trim().isEmpty() && !notificationType.equals("NONE")) {
 
-			sendNotification.setVisible(true);
+			sendNotification.setVisible(false);
 		} else {
 			sendNotification.setVisible(false);
-		}
+		}*/
 
 		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
 			registrationNavLabel.setText(ApplicationContext.applicationLanguageBundle()
@@ -109,7 +109,7 @@ public class AckReceiptController extends BaseController implements Initializabl
 				"Acknowledgement template has been loaded to webview");
 	}
 
-	private void setImagesOnHover() {
+	/*private void setImagesOnHover() {
 		Image sendEmailInWhite = new Image(
 				getClass().getResourceAsStream(RegistrationConstants.SEND_EMAIL_FOCUSED_IMAGE_PATH));
 		Image sendEmailImage = new Image(getClass().getResourceAsStream(RegistrationConstants.SEND_EMAIL_IMAGE_PATH));
@@ -121,7 +121,7 @@ public class AckReceiptController extends BaseController implements Initializabl
 				sendNotificationImageView.setImage(sendEmailImage);
 			}
 		});
-	}
+	}*/
 
 	/**
 	 * To print the acknowledgement receipt after packet creation when the user

@@ -30,7 +30,7 @@ public class RegistrationUIConstants {
 		} catch (Exception runtimeException) {
 			LOGGER.error("REGISTRATION_UI_CONSTANTS", APPLICATION_NAME, APPLICATION_ID,
 					String.format(
-							"%s -> Exception while initializing Fingerprint Capture page for user registration  %s",
+							"Exception while initializing Fingerprint Capture page for user registration  %s",
 							runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException)));
 		}
 		return message;
@@ -159,6 +159,7 @@ public class RegistrationUIConstants {
 	public static final String STREAMING_PREP_MESSAGE = bundle.getString("STREAMING_PREP_MESSAGE");
 	public static final String STREAMING_INIT_MESSAGE = bundle.getString("STREAMING_INIT_MESSAGE");
 	public static final String STREAMING_CLOSED_MESSAGE = bundle.getString("STREAMING_CLOSED_MESSAGE");
+	public static final String SEARCHING_DEVICE_MESSAGE = bundle.getString("SEARCHING_DEVICE_MESSAGE");
 	public static final String CAPTURING = bundle.getString("CAPTURING");
 	public static final String UNABLE_LOAD_SCAN_POPUP = bundle.getString("UNABLE_LOAD_SCAN_POPUP");
 	public static final String SCAN_DOC_TITLE = bundle.getString("SCAN_DOC_TITLE");
@@ -166,6 +167,8 @@ public class RegistrationUIConstants {
 	public static final String SCAN_DOC_SUCCESS = bundle.getString("SCAN_DOC_SUCCESS");
 	public static final String SCAN_DOC_SIZE = bundle.getString("SCAN_DOC_SIZE");
 	public static final String SCAN_DOC_INFO = bundle.getString("SCAN_DOC_INFO");
+	public static final String SELECTED_SCANNER = bundle.getString("SELECTED_SCANNER");
+	public static final String NO_SCANNER_FOUND = bundle.getString("NO_SCANNER_FOUND");
 	public static final String SCAN_DOCUMENT_CONNECTION_ERR = bundle.getString("SCAN_DOCUMENT_CONNECTION_ERR");
 	public static final String SCAN_DOCUMENT_EMPTY = bundle.getString("SCAN_DOCUMENT_EMPTY");
 	public static final String SCAN_DOCUMENT_CONVERTION_ERR = bundle.getString("SCAN_DOCUMENT_CONVERTION_ERR");
@@ -344,6 +347,7 @@ public class RegistrationUIConstants {
 
 	// Packet Upload
 	public static final String PACKET_UPLOAD_EMPTY_ERROR = bundle.getString("PACKET_UPLOAD_EMPTY_ERROR");
+	public static final String PACKET_EXPORT_EMPTY_ERROR = bundle.getString("PACKET_EXPORT_EMPTY_ERROR");
 	public static final String PACKET_UPLOAD_DUPLICATE = bundle.getString("PACKET_UPLOAD_DUPLICATE");
 	public static final String PACKET_NOT_AVAILABLE = bundle.getString("PACKET_NOT_AVAILABLE");
 	public static final String PACKET_UPLOAD_SERVICE_ERROR = bundle.getString("PACKET_UPLOAD_SERVICE_ERROR");
@@ -409,6 +413,11 @@ public class RegistrationUIConstants {
 
 	public static final String BIOMETRIC_CAPTURE_SUCCESS = bundle.getString("BIOMETRIC_CAPTURE_SUCCESS");
 	public static final String BIOMETRIC_CAPTURE_FAILURE = bundle.getString("BIOMETRIC_CAPTURE_FAILURE");
+	
+	public static final String LOCAL_DEDUP_CHECK_FAILED = bundle.getString("LOCAL_DEDUP_CHECK_FAILED");
 
+	public static final String STREAMING_ERROR = bundle.getString("STREAMING_ERROR");
+	
+	public static final String EXCEPTION_PHOTO_REQUIRED = bundle.getString("EXCEPTION_PHOTO_REQUIRED");
 	
 }

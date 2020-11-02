@@ -3,12 +3,12 @@
   <parent>
     <artifactId>registration-parent</artifactId>
     <groupId>io.mosip.registration</groupId>
-    <version>1.0.7</version>
+    <version>1.1.2</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>registration-libs</artifactId>
   <name>registration-libs</name>
-  <version>1.0.10</version>
+  <version>1.1.2</version>
   <description>Maven project of MOSIP Registration library</description>
   <build>
     <resources>
@@ -21,45 +21,6 @@
       </resource>
     </resources>
     <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.1.1</version>
-        <executions>
-          <execution>
-            <phase>install</phase>
-            <goals>
-              <goal>java</goal>
-            </goals>
-            <configuration>
-              <filters>
-                <filter>
-                  <artifact>*:*</artifact>
-                  <excludes>
-                    <exclude>META-INF/*.SF</exclude>
-                    <exclude>META-INF/*.DSA</exclude>
-                    <exclude>META-INF/*.RSA</exclude>
-                  </excludes>
-                </filter>
-              </filters>
-              <mainClass>io.mosip.registration.cipher.ClientJarEncryption</mainClass>
-              <arguments>
-                <argument>${main.basedir}/registration-client/target/registration-client-${project.version}.jar</argument>
-                <argument>bBQX230Wskq6XpoZ1c+Ep1D+znxfT89NxLQ7P4KFkc4=</argument>
-                <argument>${project.version}</argument>
-                <argument>${main.basedir}/registration-libs/target/</argument>
-                <argument>${main.basedir}/registration-libs/src/main/resources/certificate/mosip_cer.cer</argument>
-                <argument>${main.basedir}/registration-libs/src/main/resources/db/reg</argument>
-                <argument>${main.basedir}/registration-client/target/registration-client.jar</argument>
-                <argument>${main.basedir}/registration-libs/src/main/resources/rxtx</argument>
-                <argument>${main.basedir}/registration-libs/src/main/resources/jre</argument>
-                <argument>${main.basedir}/registration-libs/src/main/resources/batch/run.bat</argument>
-                <argument>${main.basedir}/registration-libs/src/main/resources/props/mosip-application.properties</argument>
-              </arguments>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
         <version>3.2.0</version>
@@ -120,42 +81,58 @@
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>2.18.0</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>byte-buddy</artifactId>
+          <groupId>net.bytebuddy</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>byte-buddy-agent</artifactId>
+          <groupId>net.bytebuddy</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>objenesis</artifactId>
+          <groupId>org.objenesis</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
       <version>1.10.19</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.powermock</groupId>
-      <artifactId>powermock-api-mockito</artifactId>
-      <version>1.7.4</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>powermock-api-mockito-common</artifactId>
-          <groupId>org.powermock</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
       <artifactId>powermock-core</artifactId>
-      <version>1.7.0</version>
+      <version>2.0.7</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
           <artifactId>powermock-reflect</artifactId>
           <groupId>org.powermock</groupId>
         </exclusion>
+        <exclusion>
+          <artifactId>byte-buddy</artifactId>
+          <groupId>net.bytebuddy</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>byte-buddy-agent</artifactId>
+          <groupId>net.bytebuddy</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
       <groupId>org.powermock</groupId>
       <artifactId>powermock-api-mockito2</artifactId>
-      <version>1.7.4</version>
+      <version>2.0.7</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
-          <artifactId>powermock-api-mockito-common</artifactId>
+          <artifactId>powermock-api-support</artifactId>
           <groupId>org.powermock</groupId>
         </exclusion>
       </exclusions>
@@ -163,7 +140,7 @@
     <dependency>
       <groupId>org.powermock</groupId>
       <artifactId>powermock-module-junit4</artifactId>
-      <version>2.0.0-RC.3</version>
+      <version>2.0.0-beta.5</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -171,13 +148,6 @@
           <groupId>org.powermock</groupId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>com.oracle</groupId>
-      <artifactId>javafx</artifactId>
-      <version>${javafx.version}</version>
-      <scope>system</scope>
-      <systemPath>${project.basedir}/src/main/resources/fx_lib/jfxrt.jar</systemPath>
     </dependency>
   </dependencies>
   <properties>

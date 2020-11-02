@@ -5,7 +5,6 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -21,9 +20,6 @@ import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
 import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
-import io.mosip.registration.config.PropertiesConfig;
-import io.mosip.registration.constants.RegistrationConstants;
-import io.mosip.registration.tpm.spi.TPMUtil;
 import io.mosip.registration.context.ApplicationContext;
 
 
@@ -37,7 +33,7 @@ import io.mosip.registration.context.ApplicationContext;
 				"io.mosip.kernel.idvalidator", "io.mosip.kernel.ridgenerator","io.mosip.kernel.qrcode",
 				"io.mosip.kernel.core.signatureutil", "io.mosip.kernel.crypto", "io.mosip.kernel.jsonvalidator",
 				"io.mosip.kernel.idgenerator", "io.mosip.kernel.virusscanner", "io.mosip.kernel.transliteration",
-				"io.mosip.kernel.applicanttype", "io.mosip.kernel.cbeffutil", "io.mosip.kernel.core.pdfgenerator.spi",
+				"io.mosip.kernel.applicanttype", "io.mosip.kernel.core.pdfgenerator.spi",
 				"io.mosip.kernel.pdfgenerator.itext.impl", "io.mosip.kernel.cryptosignature",
 				"io.mosip.kernel.core.signatureutil", "io.mosip.kernel.idobjectvalidator.impl", 
 				"io.mosip.kernel.packetmanager.impl", "io.mosip.kernel.packetmanager.util", 
@@ -46,12 +42,9 @@ public class TestDaoConfig extends HibernateDaoConfig {
 
 	
 	private static final String DRIVER_CLASS_NAME = "org.h2.Driver";
-	private static final String DB_URL = "jdbc:h2:mem:db;DB_CLOSE_DELAY=-1;INIT=CREATE SCHEMA IF NOT EXISTS REG";
-	private static final String DB_AUTHENITICATION = ";bootPassword=";
-	private static final String MOSIP_CLIENT_TPM_AVAILABILITY = "mosip.reg.client.tpm.availability";
-	
+	private static final String URL = "jdbc:h2:mem:db;DB_CLOSE_DELAY=-1;INIT=RUNSCRIPT FROM 'classpath:initial.sql";
+
 	private static DataSource dataSource;
-	
 	private static Properties keys = new Properties();
 	
 	
@@ -61,21 +54,7 @@ public class TestDaoConfig extends HibernateDaoConfig {
 		try (InputStream keyStream = TestDaoConfig.class.getClassLoader().getResourceAsStream("spring-test.properties")) {		
 			
 			keys.load(keyStream);
-			
-			DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource();
-			driverManagerDataSource.setDriverClassName(DRIVER_CLASS_NAME);
-
-			if (keys.containsKey(MOSIP_CLIENT_TPM_AVAILABILITY)
-					&& RegistrationConstants.ENABLE.equalsIgnoreCase(keys.getProperty(MOSIP_CLIENT_TPM_AVAILABILITY))) {
-				driverManagerDataSource.setUrl(DB_URL + DB_AUTHENITICATION + new String(TPMUtil.asymmetricDecrypt(Base64
-						.decodeBase64(keys.getProperty(RegistrationConstants.MOSIP_REGISTRATION_DB_KEY).getBytes()))));
-				ApplicationContext.map().put(RegistrationConstants.TPM_AVAILABILITY, RegistrationConstants.ENABLE);
-			} else {
-				driverManagerDataSource.setUrl(DB_URL);			
-				ApplicationContext.map().put(RegistrationConstants.TPM_AVAILABILITY, RegistrationConstants.DISABLE);
-			}
-			
-			dataSource = driverManagerDataSource;
+			dataSource = setupDatasource();
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -94,12 +73,7 @@ public class TestDaoConfig extends HibernateDaoConfig {
 		return new JdbcTemplate(dataSource);
 	}
 
-	
-	@Bean(name = "propertiesConfig")
-	public static PropertiesConfig propertiesConfig() {
-		return new PropertiesConfig(jdbcTemplate());
-	}
-	
+
 	
 	@Bean
 	@Lazy(false)
@@ -108,9 +82,6 @@ public class TestDaoConfig extends HibernateDaoConfig {
 		PropertyPlaceholderConfigurer ppc = new PropertyPlaceholderConfigurer();
 		Resource[] resources = new ClassPathResource[] {new ClassPathResource("spring-test.properties")};
 		ppc.setLocations(resources);
-
-		//Properties properties = new Properties();
-		//properties.putAll(propertiesConfig().getDBProps());
 
 		ppc.setProperties(keys);
 		ppc.setTrimValues(true);
@@ -143,5 +114,12 @@ public class TestDaoConfig extends HibernateDaoConfig {
 		properties.setProperty("hibernate.show_sql", "false");
 		properties.setProperty("hibernate.format_sql", "false");
 		return properties;
+	}
+
+	private static DriverManagerDataSource setupDatasource() {
+		DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource();
+		driverManagerDataSource.setDriverClassName(DRIVER_CLASS_NAME);
+		driverManagerDataSource.setUrl(URL);
+		return driverManagerDataSource;
 	}
 }

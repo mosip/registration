@@ -1,29 +1,16 @@
 package io.mosip.registration.processor.quality.checker.stage;
 
-import java.io.File;
-import java.io.InputStream;
-import java.util.List;
-
-import org.apache.commons.io.IOUtils;
-import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
 import io.mosip.kernel.core.bioapi.model.QualityScore;
 import io.mosip.kernel.core.bioapi.model.Response;
 import io.mosip.kernel.core.bioapi.spi.IBioApi;
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.BIRType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
+import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.exception.ExceptionUtils;
-import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
-import io.mosip.kernel.packetmanager.spi.PacketReaderService;
-import io.mosip.kernel.packetmanager.util.IdSchemaUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -37,7 +24,7 @@ import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
-import io.mosip.registration.processor.core.constant.PacketFiles;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
@@ -47,6 +34,9 @@ import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.packet.storage.utils.BIRConverter;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.quality.checker.exception.BioTypeException;
 import io.mosip.registration.processor.quality.checker.exception.FileMissingException;
@@ -55,6 +45,16 @@ import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import org.apache.commons.lang.StringUtils;
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.CollectionUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * The Class QualityCheckerStage.
@@ -80,9 +80,6 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 
 	/** The Constant FACE. */
 	private static final String FACE = "FACE";
-
-	/** The Constant INDIVIDUAL_BIOMETRICS. */
-	public static final String INDIVIDUAL_BIOMETRICS = "individualBiometrics";
 
 	/** The Constant UTF_8. */
 	public static final String UTF_8 = "UTF-8";
@@ -124,14 +121,6 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
 
-	/** The idschema utility.*/
-	@Autowired
-	private IdSchemaUtils idSchemaUtils;
-
-	/** The PacketReaderService. */
-	@Autowired
-	private PacketReaderService packetReaderService;
-
 	/** The core audit request builder. */
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
@@ -159,6 +148,9 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 	@Autowired(required = false)
 	@Qualifier("iris")
 	IBioApi irisApi;
+
+	@Autowired
+	private PacketManagerService packetManagerService;
 
 	/** The cbeff util. */
 	@Autowired
@@ -207,11 +199,10 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 		String regId = object.getRid();
 		LogDescription description = new LogDescription();
 		Boolean isTransactionSuccessful = Boolean.FALSE;
-		InternalRegistrationStatusDto registrationStatusDto = null;
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 				"QualityCheckerStage::process()::entry");
 
-		registrationStatusDto = registrationStatusService.getRegistrationStatus(regId);
+		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(regId);
 
 		try {
 			registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
@@ -219,24 +210,12 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 			// get the idobject individual biometrics key from mapping json
 			JSONObject mappingJson = utilities.getRegistrationProcessorMappingJson();
 			String individualBiometrics = JsonUtil
-					.getJSONValue(JsonUtil.getJSONObject(mappingJson, INDIVIDUAL_BIOMETRICS), "value");
-			// get individual biometrics file name from id.json
-			String source = idSchemaUtils.getSource(individualBiometrics, packetReaderService.getIdSchemaVersionFromPacket(regId));
-			InputStream idJsonStream = null;
-			if (source != null) {
-				idJsonStream = packetReaderService.getFile(regId,
-					PacketFiles.ID.name(), source);
-			}
-			if (idJsonStream == null)
-				throw new FileMissingException(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getCode(),
-						"The id json file is missing to get biometric reference file name");
-			String idJsonString = IOUtils.toString(idJsonStream, UTF_8);
-			JSONObject idJsonObject = JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class);
-			JSONObject identity = JsonUtil.getJSONObject(idJsonObject,
-					utilities.getGetRegProcessorDemographicIdentity());
+					.getJSONValue(JsonUtil.getJSONObject(mappingJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), "value");
 
-			JSONObject individualBiometricsObject = JsonUtil.getJSONObject(identity, individualBiometrics);
-			if (individualBiometricsObject == null) {
+			String source = utilities.getDefaultSource();
+
+			String individualBiometricsObject = packetManagerService.getField(regId, individualBiometrics, source, registrationStatusDto.getRegistrationType());
+			if (StringUtils.isEmpty(individualBiometricsObject)) {
 				description.setCode(PlatformErrorMessages.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getCode());
 				description.setMessage(PlatformErrorMessages.INDIVIDUAL_BIOMETRIC_NOT_FOUND.getMessage());
 				object.setIsValid(Boolean.TRUE);
@@ -249,19 +228,13 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), regId,
 						"Individual Biometric parameter is not present in ID Json");
 			} else {
-				String biometricFileName = JsonUtil.getJSONValue(individualBiometricsObject, VALUE);
-				if (isBiometricFileNameEmpty(biometricFileName)) {
-					description.setCode(PlatformErrorMessages.RPR_QCR_FILENAME_MISSING.getCode());
-					description.setMessage(PlatformErrorMessages.RPR_QCR_FILENAME_MISSING.getMessage());
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), regId,
-							PlatformErrorMessages.RPR_QCR_FILENAME_MISSING.getMessage());
-					throw new FileMissingException(PlatformErrorMessages.RPR_QCR_FILENAME_MISSING.getCode(),
-							PlatformErrorMessages.RPR_QCR_FILENAME_MISSING.getMessage());
+				BiometricRecord biometricRecord = packetManagerService.getBiometrics(regId, individualBiometrics, null, source, registrationStatusDto.getRegistrationType());
+
+				if (biometricRecord == null || CollectionUtils.isEmpty(biometricRecord.getSegments())) {
+					biometricRecord = packetManagerService.getBiometrics(regId, MappingJsonConstants.AUTHENTICATION_BIOMETRICS, null, source, registrationStatusDto.getRegistrationType());
 				}
-				InputStream cbeffStream = packetReaderService.getFile(regId,
-						biometricFileName, source);
-				if (cbeffStream == null) {
+
+				if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().size() == 0) {
 					description.setCode(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getCode());
 					description.setMessage(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getMessage());
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -270,16 +243,16 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 					throw new FileMissingException(PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getCode(),
 							PlatformErrorMessages.RPR_QCR_BIO_FILE_MISSING.getMessage());
 				}
-				List<BIRType> birTypeList = cbeffUtil.getBIRDataFromXML(IOUtils.toByteArray(cbeffStream));
-				List<BIR> birList = cbeffUtil.convertBIRTypeToBIR(birTypeList);
+				List<BIR> birList = biometricRecord.getSegments();
+				// get individual biometrics file name from id.json
 				int scoreCounter = 0;
 				for (BIR bir : birList) {
-					SingleType singleType = bir.getBdbInfo().getType().get(0);
+					BiometricType singleType = bir.getBdbInfo().getType().get(0);
 					List<String> subtype = bir.getBdbInfo().getSubtype();
 					Integer threshold = getThresholdBasedOnType(singleType, subtype);
 					Response<QualityScore> qualityScoreresponse;
 
-					qualityScoreresponse = getBioSdkInstance(singleType).checkQuality(bir, null);
+					qualityScoreresponse = getBioSdkInstance(singleType).checkQuality(BIRConverter.convertToBIR(bir), null);
 					if(qualityScoreresponse.getStatusCode()<200 || qualityScoreresponse.getStatusCode()>299) {
 						throw new BiometricException(qualityScoreresponse.getStatusCode().toString(),qualityScoreresponse.getStatusMessage());
 					}
@@ -299,7 +272,7 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 						scoreCounter++;
 					}
 				}
-				if (scoreCounter == birTypeList.size()) {
+				if (scoreCounter == birList.size()) {
 					object.setIsValid(Boolean.TRUE);
 					description.setCode(PlatformSuccessMessages.RPR_QUALITY_CHECK_SUCCESS.getCode());
 					description.setMessage(PlatformSuccessMessages.RPR_QUALITY_CHECK_SUCCESS.getMessage());
@@ -314,25 +287,7 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 				}
 			}
 
-			registrationStatusDto
-					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.QUALITY_CHECK.toString());
-
-		} catch (FSAdapterException e) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-			registrationStatusDto.setStatusComment(trimExceptionMsg
-					.trimExceptionMessage(StatusUtil.FS_ADAPTER_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.FS_ADAPTER_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.FSADAPTER_EXCEPTION));
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					regId, PlatformErrorMessages.RPR_QCR_PACKET_STORE_NOT_ACCESSIBLE.getMessage()
-							+ ExceptionUtils.getStackTrace(e));
-			object.setInternalError(Boolean.TRUE);
-			isTransactionSuccessful = false;
-			description.setCode(PlatformErrorMessages.RPR_QCR_PACKET_STORE_NOT_ACCESSIBLE.getCode());
-			description.setMessage(PlatformErrorMessages.RPR_QCR_PACKET_STORE_NOT_ACCESSIBLE.getMessage());
-			object.setRid(regId);
-		} catch (ApisResourceAccessException | ApiNotAccessibleException e) {
+		} catch (ApisResourceAccessException e) {
 			registrationStatusDto.setLatestTransactionStatusCode(
 					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.APIS_RESOURCE_ACCESS_EXCEPTION));
 			registrationStatusDto.setStatusComment(trimExpMessage
@@ -356,6 +311,7 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 					regId,
 					PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage() + ExceptionUtils.getStackTrace(e));
 			object.setInternalError(Boolean.TRUE);
+			object.setIsValid(false);
 			isTransactionSuccessful = false;
 			description.setCode(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getCode());
 			description.setMessage(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage());
@@ -377,7 +333,6 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 			description.setMessage(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage());
 			object.setRid(regId);
 		}
-
 		catch (BioTypeException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
 			registrationStatusDto.setStatusComment(trimExceptionMsg
@@ -393,6 +348,55 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 			description.setCode(PlatformErrorMessages.RPR_QCR_BIOMETRIC_TYPE_EXCEPTION.getCode());
 			description.setMessage(PlatformErrorMessages.RPR_QCR_BIOMETRIC_TYPE_EXCEPTION.getMessage());
 			object.setRid(regId);
+		} catch (JsonProcessingException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId,
+					RegistrationStatusCode.FAILED.toString() + e.getMessage() + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+			registrationStatusDto.setStatusComment(
+					trimExceptionMsg.trimExceptionMessage(StatusUtil.JSON_PARSING_EXCEPTION.getMessage() + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.JSON_PARSING_EXCEPTION.getCode());
+			registrationStatusDto.setLatestTransactionStatusCode(
+					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.JSON_PROCESSING_EXCEPTION));
+			isTransactionSuccessful = false;
+			description.setMessage(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getMessage());
+			description.setCode(PlatformErrorMessages.RPR_SYS_JSON_PARSING_EXCEPTION.getCode());
+			object.setIsValid(Boolean.FALSE);
+			object.setInternalError(Boolean.TRUE);
+			object.setRid(registrationStatusDto.getRegistrationId());
+			e.printStackTrace();
+		} catch (IOException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId,
+					RegistrationStatusCode.FAILED.toString() + e.getMessage() + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+			registrationStatusDto.setStatusComment(
+					trimExceptionMsg.trimExceptionMessage(StatusUtil.IO_EXCEPTION.getMessage() + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.IO_EXCEPTION.getCode());
+			registrationStatusDto.setLatestTransactionStatusCode(
+					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.IOEXCEPTION));
+			isTransactionSuccessful = false;
+			description.setMessage(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage());
+			description.setCode(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode());
+			object.setIsValid(Boolean.FALSE);
+			object.setInternalError(Boolean.TRUE);
+			object.setRid(registrationStatusDto.getRegistrationId());
+		} catch (PacketManagerException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId,
+					RegistrationStatusCode.FAILED.toString() + e.getMessage() + org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+			registrationStatusDto.setStatusComment(
+					trimExceptionMsg.trimExceptionMessage(StatusUtil.PACKET_MANAGER_EXCEPTION.getMessage() + e.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_MANAGER_EXCEPTION.getCode());
+			registrationStatusDto.setLatestTransactionStatusCode(
+					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION));
+			isTransactionSuccessful = false;
+			description.setMessage(PlatformErrorMessages.PACKET_MANAGER_EXCEPTION.getMessage());
+			description.setCode(PlatformErrorMessages.PACKET_MANAGER_EXCEPTION.getCode());
+			object.setIsValid(Boolean.FALSE);
+			object.setInternalError(Boolean.TRUE);
+			object.setRid(registrationStatusDto.getRegistrationId());
 		} catch (Exception ex) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
 			registrationStatusDto.setStatusComment(trimExceptionMsg
@@ -408,7 +412,8 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 			description.setCode(PlatformErrorMessages.RPR_BDD_UNKNOWN_EXCEPTION.getCode());
 			description.setMessage(PlatformErrorMessages.RPR_BDD_UNKNOWN_EXCEPTION.getMessage());
 		} finally {
-
+			registrationStatusDto
+					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.QUALITY_CHECK.toString());
 			String moduleId = isTransactionSuccessful ? PlatformSuccessMessages.RPR_QUALITY_CHECK_SUCCESS.getCode()
 					: description.getCode();
 			String moduleName = ModuleName.QUALITY_CHECK.toString();
@@ -425,10 +430,6 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 		return object;
 	}
 
-	private boolean isBiometricFileNameEmpty(String biometricFileName) {
-		return biometricFileName == null || biometricFileName.isEmpty();
-	}
-
 	/**
 	 * Gets the threshold based on type.
 	 *
@@ -436,7 +437,7 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 	 * @param subtype    the subtype
 	 * @return the threshold based on type
 	 */
-	private Integer getThresholdBasedOnType(SingleType singleType, List<String> subtype) {
+	private Integer getThresholdBasedOnType(BiometricType singleType, List<String> subtype) {
 		if (singleType.value().equalsIgnoreCase(FINGER)) {
 			if (subtype.contains(THUMB)) {
 				return thumbFingerThreshold;
@@ -453,7 +454,7 @@ public class QualityCheckerStage extends MosipVerticleAPIManager {
 		return 0;
 	}
 
-	private IBioApi getBioSdkInstance(SingleType singleType) throws BioTypeException {
+	private IBioApi getBioSdkInstance(BiometricType singleType) throws BioTypeException {
 
 		if (singleType.value().equalsIgnoreCase(FINGER)) {
 			return fingerApi;

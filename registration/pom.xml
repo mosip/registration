@@ -7,11 +7,11 @@
 	<parent>
 		<groupId>io.mosip</groupId>
 		<artifactId>registration</artifactId>
-		<version>1.0.7</version>
+		<version>1.1.2</version>
 	</parent>
 
 	<groupId>io.mosip.registration</groupId>
-	<version>1.0.7</version>
+	<version>1.1.2</version>
 	<artifactId>registration-parent</artifactId>
 	<packaging>pom</packaging>
 	<name>registration</name>
@@ -24,19 +24,19 @@
 		<javafx.version>2.2</javafx.version>
 		<maven.sonar.version>3.2</maven.sonar.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
-		<maven.compiler.version>3.7.0</maven.compiler.version>
-		<maven.javadoc.version>3.0.1</maven.javadoc.version>
-
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>
+		<maven.compiler.version>3.8.0</maven.compiler.version>
+		<maven.javadoc.version>3.2.0</maven.javadoc.version>
+		<doclint>none</doclint>
 		<!-- Test & Logging -->
 		<junit.version>4.12</junit.version>
 		<logback.version>1.1.6</logback.version>
 		<slf4j.version>1.7.19</slf4j.version>
-		<mockito.version>1.10.19</mockito.version>
+		<mockito.version>3.4.4</mockito.version>
 
 		<!-- Lombok -->
-		<lombok.version>1.16.18</lombok.version>
+		<lombok.version>1.18.8</lombok.version>
 
 		<!-- Orika Mapper -->
 		<orika.version>1.4.6</orika.version>
@@ -54,7 +54,7 @@
 		<jackson.version>2.10.1</jackson.version>
 		<jackson.mapper.asl.version>1.7.1</jackson.mapper.asl.version>
 
-		<mosip.core.kernel.version>1.0.6</mosip.core.kernel.version>
+		<mosip.core.kernel.version>1.1.2</mosip.core.kernel.version>
 		<!-- Derby Version -->
 		<apache.derby.version>10.13.1.1</apache.derby.version>
 
@@ -62,7 +62,7 @@
 		<sourceafis.version>3.4.0</sourceafis.version>
 
 		<!-- openimaj version -->
-		<org.openimaj.version>1.3.5</org.openimaj.version>
+		<org.openimaj.version>1.3.10</org.openimaj.version>
 
 		<!-- webcam-capture version -->
 		<webcam-capture.version>0.3.12</webcam-capture.version>
@@ -75,15 +75,20 @@
 		<powermock-api-mockito.version>1.7.4</powermock-api-mockito.version>
 
 		<!-- powermock-core version -->
-		<powermock-core.version>1.7.4</powermock-core.version>
+		<powermock-core.version>2.0.7</powermock-core.version>
 
 		<!-- powermock-api-mockito2 version -->
-		<powermock-api-mockito2.version>1.7.4</powermock-api-mockito2.version>
+		<powermock-api-mockito2.version>2.0.7</powermock-api-mockito2.version>
 
 
 		<!-- TSS Version -->
 		<tss.version>0.3.0</tss.version>
 
+		<!-- support jaxb in java11 -->
+		<javax.activation.version>1.2.0</javax.activation.version>
+        <jaxb.api.version>2.3.0</jaxb.api.version>
+		<openjfx.version>11.0.2</openjfx.version>
+		
 		<sonar.exclusions>
 			src/main/java/io/mosip/registration/util/**/*,
 			src/main/java/io/mosip/registration/repositories/**/*,
@@ -207,16 +212,16 @@
 				<artifactId>kernel-idgenerator-rid</artifactId>
 				<version>${mosip.core.kernel.version}</version>
 			</dependency>
-			<dependency>
+			<!--<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-crypto-signature</artifactId>
 				<version>${mosip.core.kernel.version}</version>
-			</dependency>
-			<dependency>
+			</dependency>-->
+			<!--<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-keygenerator-bouncycastle</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-			</dependency>
+				<version>1.0.6</version>
+			</dependency>-->
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-templatemanager-velocity</artifactId>
@@ -246,6 +251,11 @@
 			<dependency>
 				<groupId>org.apache.derby</groupId>
 				<artifactId>derbyclient</artifactId>
+				<version>${apache.derby.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.derby</groupId>
+				<artifactId>derbytools</artifactId>
 				<version>${apache.derby.version}</version>
 			</dependency>
 			<dependency>
@@ -283,13 +293,13 @@
 			<dependency>
 				<groupId>org.javassist</groupId>
 				<artifactId>javassist</artifactId>
-				<version>3.24.0-GA</version>
+				<version>3.27.0-GA</version>
 			</dependency>
-			<dependency>
+			<!--<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-crypto-jce</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-			</dependency>
+				<version>1.0.6</version>
+			</dependency>-->
 			<dependency>
 				<groupId>com.cronutils</groupId>
 				<artifactId>cron-utils</artifactId>
@@ -315,7 +325,7 @@
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-cbeffutil-api</artifactId>
-				<version>${mosip.core.kernel.version}</version>
+				<version>1.0.6</version>
 			</dependency>
 			<!-- https://mvnrepository.com/artifact/com.github.microsoft/TSS.Java -->
 			<dependency>
@@ -363,6 +373,36 @@
 				<version>${powermock-api-mockito2.version}</version>
 				<scope>test</scope>
 			</dependency>
+				<!-- jaxb for java 11 -->
+			<dependency>
+			    <groupId>com.sun.activation</groupId>
+			    <artifactId>javax.activation</artifactId>
+			    <version>${javax.activation.version}</version>
+			</dependency>
+
+			<dependency>
+			    <groupId>javax.xml.bind</groupId>
+			    <artifactId>jaxb-api</artifactId>
+			    <version>${jaxb.api.version}</version>
+			</dependency>
+
+			<dependency>
+			    <groupId>com.sun.xml.bind</groupId>
+			    <artifactId>jaxb-core</artifactId>
+			    <version>${jaxb.api.version}</version>
+			</dependency>
+
+			<dependency>
+			    <groupId>com.sun.xml.bind</groupId>
+			    <artifactId>jaxb-impl</artifactId>
+			    <version>${jaxb.api.version}</version>
+			</dependency>
+
+		<dependency>
+		    <groupId>cglib</groupId>
+		    <artifactId>cglib-nodep</artifactId>
+		    <version>3.2.7</version>
+		</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -386,6 +426,7 @@
 				<version>${maven.javadoc.version}</version>
 				<configuration>
 					<aggregate>true</aggregate>
+					<doclint>none</doclint>
 				</configuration>
 			</plugin>
 			

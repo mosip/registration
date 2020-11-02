@@ -26,6 +26,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -58,6 +59,7 @@ import io.mosip.registration.repositories.UserMachineMappingRepository;
  * @since 1.0.0
  */
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ SessionContext.class, ApplicationContext.class })
 public class UserOnBoardDAOImlpTest {
 
@@ -333,7 +335,7 @@ public class UserOnBoardDAOImlpTest {
 	@Test(expected = RegBaseUncheckedException.class)
 	public void getStationIDRunException() throws RegBaseCheckedException {
 		Mockito.when(machineMasterRepository
-				.findByIsActiveTrueAndNameAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
+				.findByIsActiveTrueAndNameIgnoreCaseAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
 				.thenThrow(new RegBaseUncheckedException());
 		userOnboardDAOImpl.getStationID("localhost");
 	}
@@ -348,7 +350,7 @@ public class UserOnBoardDAOImlpTest {
 		regMachineSpecId.setLangCode("eng");
 		machineMaster.setRegMachineSpecId(regMachineSpecId);
 		Mockito.when(machineMasterRepository
-				.findByIsActiveTrueAndNameAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
+				.findByIsActiveTrueAndNameIgnoreCaseAndRegMachineSpecIdLangCode(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(machineMaster);
 		String stationId = userOnboardDAOImpl.getStationID("localhost");
 		Assert.assertSame("100311", stationId);

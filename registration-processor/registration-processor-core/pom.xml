@@ -7,14 +7,15 @@
 	<parent>
 		<groupId>io.mosip.registrationprocessor</groupId>
 		<artifactId>registration-processor</artifactId>
-		<version>1.0.7</version>
+		<version>1.1.2</version>
 	</parent>
 	<artifactId>registration-processor-core</artifactId>
-	<version>1.0.10</version>
+	<version>1.1.2</version>
 	<dependencies>
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
+			<version>${mockito.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -25,7 +26,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito</artifactId>
+			<artifactId>powermock-api-mockito2</artifactId>
 			<version>${powermock.api.mockito.version}</version>
 			<scope>test</scope>
 		</dependency>
@@ -119,13 +120,18 @@
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-fsadapter-hdfs</artifactId>
-			<version>${kernel.fsadapter.hdfs.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-templatemanager-velocity</artifactId>
 			<version>${kernel.templatemanager.velocity.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.servlet</groupId>
+					<artifactId>servlet-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>dom4j</groupId>
+					<artifactId>dom4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
@@ -168,8 +174,8 @@
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-registration-packet-manager</artifactId>
-			<version>${registration.processor.packet.utility.version}</version>
+			<artifactId>kernel-biometrics-api</artifactId>
+			<version>${kernel.biometrics.api.version}</version>
 		</dependency>
        </dependencies>
 	<dependencyManagement>
@@ -190,19 +196,5 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
-	</properties>
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+	</properties>	
 </project>

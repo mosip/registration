@@ -7,194 +7,173 @@
 	<parent>
 		<groupId>io.mosip.registration</groupId>
 		<artifactId>registration-parent</artifactId>
-		<version>1.0.7</version>
+		<version>1.1.2</version>
 	</parent>
 
 	<artifactId>registration-libs</artifactId>
 	<name>registration-libs</name>
 	<description>Maven project of MOSIP Registration library</description>
-	<version>1.0.10</version>
+	<version>1.1.2</version>
 	<properties>
 		<main.basedir>${project.parent.basedir}</main.basedir>
 	</properties>
 	<dependencies>
-		<dependency>
+		<!--<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-keygenerator-bouncycastle</artifactId>
-			<version>${mosip.core.kernel.version}</version>
-		</dependency>
-		<dependency>
+		</dependency>-->
+		<!--<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-crypto-jce</artifactId>
-			<version>${mosip.core.kernel.version}</version>
-		</dependency>
-
-		<!-- JUnit -->
+		</dependency>-->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<!-- Mockito -->
-		<dependency>
+		<!--<dependency>
 			<groupId>org.apache.derby</groupId>
 			<artifactId>derby</artifactId>
-		</dependency>
+		</dependency>-->
 		<dependency>
-			<groupId>com.oracle</groupId>
-			<artifactId>javafx</artifactId>
-			<version>${javafx.version}</version>
-			<systemPath>${project.basedir}/src/main/resources/fx_lib/jfxrt.jar</systemPath>
-			<scope>system</scope>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>2.9.0</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.powermock/powermock-api-mockito -->
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito</artifactId>
+			<version>1.10.19</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-core</artifactId>
+			<version>2.0.7</version>
 			<scope>test</scope>
 		</dependency>
-
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>2.18.0</version> <!-- or higher, correspondning to powermock-version -->
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-api-mockito2</artifactId>
+			<version>2.0.7</version>
 			<scope>test</scope>
 		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/org.powermock/powermock-module-junit4 -->
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-module-junit4</artifactId>
+			<version>2.0.0-beta.5</version>
 			<scope>test</scope>
 		</dependency>
-
-		<dependency>
+		<!--<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-web</artifactId>
 			<version>5.0.3.RELEASE</version>
 		</dependency>
 		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito</artifactId>
-			<version>1.7.4</version>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-module-junit4</artifactId>
-			<version>2.0.0-RC.3</version>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-core</artifactId>
-			<version>1.7.0</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.github.microsoft/TSS.Java -->
-		<dependency>
 			<groupId>com.github.microsoft</groupId>
 			<artifactId>TSS.Java</artifactId>
-		</dependency>
+		</dependency>-->
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-logger-logback</artifactId>
-			<version>${mosip.core.kernel.version}</version>
 		</dependency>
 		<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-core</artifactId>
-				<version>1.0.9</version>
-			</dependency>
-			<!-- <dependency> <groupId>io.mosip</groupId> <artifactId>kernel-security</artifactId>
-				<version>${project.version}</version> </dependency> 
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-dataaccess-hibernate</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-			</dependency>-->
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-auditmanager-api</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-idvalidator-rid</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-idvalidator-uin</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-idvalidator-prid</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-idgenerator-rid</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-crypto-signature</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-templatemanager-velocity</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-				<exclusions>
-					<exclusion>
-						<groupId>dom4j</groupId>
-						<artifactId>dom4j</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-qrcodegenerator-zxing</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-pdfgenerator-itext</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-virusscanner-clamav</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-transliteration-icu4j</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-applicanttype-api</artifactId>
-				<version>${mosip.core.kernel.version}</version>
-			</dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-auditmanager-api</artifactId>
+		</dependency>
+		<!--<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-idvalidator-rid</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-idvalidator-uin</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-idvalidator-prid</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-idgenerator-rid</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-crypto-signature</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-templatemanager-velocity</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>dom4j</groupId>
+					<artifactId>dom4j</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-qrcodegenerator-zxing</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-pdfgenerator-itext</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-virusscanner-clamav</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-transliteration-icu4j</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.mosip.kernel</groupId>
+			<artifactId>kernel-applicanttype-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.javassist</groupId>
+			<artifactId>javassist</artifactId>
+			<version>3.24.0-GA</version>
+		</dependency>-->
+		<!-- java 11 -->
+		<dependency>
+			<groupId>com.sun.activation</groupId>
+			<artifactId>javax.activation</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-impl</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-controls</artifactId>
+			<version>${openjfx.version}</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<resources>
-
 			<resource>
 				<directory>src/main/resources</directory>
-
 				<includes>
 					<include>**/*.properties</include>
 					<include>**/*.png</include>
@@ -204,45 +183,22 @@
 		<plugins>
 
 
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.1.1</version>
-				<executions>
-					<execution>
-						<phase>install</phase>
-						<goals>
-							<goal>java</goal>
-						</goals>
-						<configuration>
-							<filters>
-								<filter>
-									<artifact>*:*</artifact>
-									<excludes>
-										<exclude>META-INF/*.SF</exclude>
-										<exclude>META-INF/*.DSA</exclude>
-										<exclude>META-INF/*.RSA</exclude>
-									</excludes>
-								</filter>
-							</filters>
-							<mainClass>io.mosip.registration.cipher.ClientJarEncryption</mainClass>
-							<arguments>
-								<argument>${main.basedir}/registration-client/target/registration-client-${project.version}.jar</argument>
-								<argument>bBQX230Wskq6XpoZ1c+Ep1D+znxfT89NxLQ7P4KFkc4=</argument>
-								<argument>${project.version}</argument>
-								<argument>${main.basedir}/registration-libs/target/</argument>
-								<argument>${main.basedir}/registration-libs/src/main/resources/certificate/mosip_cer.cer</argument>
-								<argument>${main.basedir}/registration-libs/src/main/resources/db/reg</argument>
-								<argument>${main.basedir}/registration-client/target/registration-client.jar</argument>
-								<argument>${main.basedir}/registration-libs/src/main/resources/rxtx</argument>
-								<argument>${main.basedir}/registration-libs/src/main/resources/jre</argument>
-								<argument>${main.basedir}/registration-libs/src/main/resources/batch/run.bat</argument>
-								<argument>${main.basedir}/registration-libs/src/main/resources/props/mosip-application.properties</argument>
-							</arguments>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+			<!-- <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>exec-maven-plugin</artifactId> 
+				<version>1.1.1</version> <executions> <execution> <phase>install</phase> 
+				<goals> <goal>java</goal> </goals> <configuration> <filters> <filter> <artifact>*:*</artifact> 
+				<excludes> <exclude>META-INF/*.SF</exclude> <exclude>META-INF/*.DSA</exclude> 
+				<exclude>META-INF/*.RSA</exclude> </excludes> </filter> </filters> <mainClass>io.mosip.registration.cipher.ClientJarEncryption</mainClass> 
+				<arguments> <argument>${main.basedir}/registration-client/target/registration-client-${project.version}.jar</argument> 
+				<argument>bBQX230Wskq6XpoZ1c+Ep1D+znxfT89NxLQ7P4KFkc4=</argument> <argument>${project.version}</argument> 
+				<argument>${main.basedir}/registration-libs/target/</argument> <argument>${main.basedir}/registration-libs/src/main/resources/certificate/mosip_cer.cer</argument> 
+				<argument>${main.basedir}/registration-libs/src/main/resources/db/reg</argument> 
+				<argument>${main.basedir}/registration-client/target/registration-client.jar</argument> 
+				<argument>${main.basedir}/registration-libs/src/main/resources/rxtx</argument> 
+				<argument>${main.basedir}/registration-libs/src/main/resources/jre</argument> 
+				<argument>${main.basedir}/registration-libs/src/main/resources/batch/run.bat</argument> 
+				<argument>${main.basedir}/registration-libs/src/main/resources/props/mosip-application.properties</argument> 
+				<argument>${main.basedir}/registration-libs/src/main/resources/mock-sdk</argument> 
+				</arguments> </configuration> </execution> </executions> </plugin> -->
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -282,7 +238,6 @@
 					</execution>
 				</executions>
 			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -297,9 +252,6 @@
 					</excludes>
 				</configuration>
 			</plugin>
-
-
-
 		</plugins>
 	</build>
 </project>

@@ -5,19 +5,12 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.sql.Time;
 import java.sql.Timestamp;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -29,114 +22,31 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.dao.DataAccessException;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import com.ibm.icu.impl.Assert;
 
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.context.SessionContext.UserContext;
 import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dao.impl.MasterSyncDaoImpl;
-import io.mosip.registration.dto.ApplicantValidDocumentDto;
-import io.mosip.registration.dto.IndividualTypeDto;
-import io.mosip.registration.dto.mastersync.AppAuthenticationMethodDto;
-import io.mosip.registration.dto.mastersync.AppDetailDto;
-import io.mosip.registration.dto.mastersync.AppRolePriorityDto;
-import io.mosip.registration.dto.mastersync.ApplicationDto;
-import io.mosip.registration.dto.mastersync.BiometricAttributeDto;
-import io.mosip.registration.dto.mastersync.BiometricTypeDto;
-import io.mosip.registration.dto.mastersync.BlacklistedWordsDto;
-import io.mosip.registration.dto.mastersync.DeviceDto;
-import io.mosip.registration.dto.mastersync.DeviceSpecificationDto;
-import io.mosip.registration.dto.mastersync.DeviceTypeDto;
-import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
-import io.mosip.registration.dto.mastersync.DocumentTypeDto;
-import io.mosip.registration.dto.mastersync.GenderDto;
-import io.mosip.registration.dto.mastersync.HolidayDto;
-import io.mosip.registration.dto.mastersync.IdTypeDto;
-import io.mosip.registration.dto.mastersync.LanguageDto;
-import io.mosip.registration.dto.mastersync.LocationDto;
-import io.mosip.registration.dto.mastersync.MachineDto;
-import io.mosip.registration.dto.mastersync.MachineSpecificationDto;
-import io.mosip.registration.dto.mastersync.MachineTypeDto;
-import io.mosip.registration.dto.mastersync.MasterDataResponseDto;
-import io.mosip.registration.dto.mastersync.PostReasonCategoryDto;
-import io.mosip.registration.dto.mastersync.ProcessListDto;
-import io.mosip.registration.dto.mastersync.ReasonListDto;
-import io.mosip.registration.dto.mastersync.RegisteredDeviceMasterDto;
-import io.mosip.registration.dto.mastersync.RegistrationCenterDeviceDto;
-import io.mosip.registration.dto.mastersync.RegistrationCenterDto;
-import io.mosip.registration.dto.mastersync.RegistrationCenterMachineDeviceDto;
-import io.mosip.registration.dto.mastersync.RegistrationCenterMachineDto;
-import io.mosip.registration.dto.mastersync.RegistrationCenterTypeDto;
-import io.mosip.registration.dto.mastersync.RegistrationCenterUserDto;
-import io.mosip.registration.dto.mastersync.RegistrationCenterUserMachineMappingDto;
-import io.mosip.registration.dto.mastersync.ScreenAuthorizationDto;
-import io.mosip.registration.dto.mastersync.ScreenDetailDto;
-import io.mosip.registration.dto.mastersync.SyncJobDefDto;
-import io.mosip.registration.dto.mastersync.TemplateDto;
-import io.mosip.registration.dto.mastersync.TemplateFileFormatDto;
-import io.mosip.registration.dto.mastersync.TemplateTypeDto;
-import io.mosip.registration.dto.mastersync.TitleDto;
-import io.mosip.registration.dto.response.SyncDataBaseDto;
 import io.mosip.registration.dto.response.SyncDataResponseDto;
-import io.mosip.registration.entity.AppAuthenticationMethod;
-import io.mosip.registration.entity.AppDetail;
-import io.mosip.registration.entity.AppRolePriority;
-import io.mosip.registration.entity.ApplicantValidDocument;
 import io.mosip.registration.entity.BiometricAttribute;
-import io.mosip.registration.entity.BiometricType;
 import io.mosip.registration.entity.BlacklistedWords;
-import io.mosip.registration.entity.DocumentCategory;
 import io.mosip.registration.entity.DocumentType;
 import io.mosip.registration.entity.Gender;
-import io.mosip.registration.entity.IdType;
 import io.mosip.registration.entity.IndividualType;
-import io.mosip.registration.entity.Language;
 import io.mosip.registration.entity.Location;
-import io.mosip.registration.entity.MachineMaster;
-import io.mosip.registration.entity.MachineType;
-import io.mosip.registration.entity.ProcessList;
 import io.mosip.registration.entity.ReasonCategory;
 import io.mosip.registration.entity.ReasonList;
-import io.mosip.registration.entity.RegDeviceMaster;
-import io.mosip.registration.entity.RegDeviceSpec;
-import io.mosip.registration.entity.RegDeviceType;
-import io.mosip.registration.entity.RegisteredDeviceMaster;
-import io.mosip.registration.entity.RegistrationCenter;
 import io.mosip.registration.entity.RegistrationCenterType;
-import io.mosip.registration.entity.RegistrationCommonFields;
-import io.mosip.registration.entity.ScreenAuthorization;
-import io.mosip.registration.entity.ScreenDetail;
 import io.mosip.registration.entity.SyncControl;
-import io.mosip.registration.entity.SyncJobDef;
-import io.mosip.registration.entity.Template;
-import io.mosip.registration.entity.TemplateEmbeddedKeyCommonFields;
-import io.mosip.registration.entity.TemplateFileFormat;
-import io.mosip.registration.entity.TemplateType;
-import io.mosip.registration.entity.Title;
 import io.mosip.registration.entity.ValidDocument;
-import io.mosip.registration.entity.id.AppRolePriorityId;
-import io.mosip.registration.entity.id.ApplicantValidDocumentID;
-import io.mosip.registration.entity.id.CodeAndLanguageCodeID;
 import io.mosip.registration.entity.id.IndividualTypeId;
-import io.mosip.registration.entity.id.RegDeviceTypeId;
-import io.mosip.registration.entity.id.RegMachineSpecId;
 import io.mosip.registration.entity.id.ValidDocumentID;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
@@ -167,7 +77,6 @@ import io.mosip.registration.repositories.MosipDeviceServiceRepository;
 import io.mosip.registration.repositories.ProcessListRepository;
 import io.mosip.registration.repositories.ReasonCategoryRepository;
 import io.mosip.registration.repositories.ReasonListRepository;
-import io.mosip.registration.repositories.RegisteredDeviceRepository;
 import io.mosip.registration.repositories.RegisteredDeviceTypeRepository;
 import io.mosip.registration.repositories.RegisteredSubDeviceTypeRepository;
 import io.mosip.registration.repositories.RegistrationCenterDeviceRepository;
@@ -187,7 +96,6 @@ import io.mosip.registration.repositories.UserMachineMappingRepository;
 import io.mosip.registration.repositories.ValidDocumentRepository;
 import io.mosip.registration.service.sync.impl.MasterSyncServiceImpl;
 import io.mosip.registration.util.mastersync.ClientSettingSyncHelper;
-
 import io.mosip.registration.util.mastersync.MapperUtils;
 import io.mosip.registration.util.mastersync.MetaDataUtils;
 
@@ -197,6 +105,7 @@ import io.mosip.registration.util.mastersync.MetaDataUtils;
  * @since 1.0.0
  */
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @SpringBootTest
 @PrepareForTest({ MetaDataUtils.class, RegBaseUncheckedException.class, SessionContext.class, BiometricAttributeRepository.class })
 public class MasterSyncDaoImplTest {
@@ -311,8 +220,6 @@ public class MasterSyncDaoImplTest {
 	@Mock
 	private SyncJobDefRepository syncJobDefRepository;
 	
-	@Mock
-	private RegisteredDeviceRepository registeredDeviceRepository;
 	
 	@Mock
 	private RegisteredDeviceTypeRepository registeredDeviceTypeRepository;
@@ -619,11 +526,11 @@ public class MasterSyncDaoImplTest {
 	}
 		
 	@SuppressWarnings("unchecked")
-	@Test(expected = RegBaseUncheckedException.class)
+	@Test
 	public void testInvalidJsonSyntaxJsonSyntaxException() {		
 		SyncDataResponseDto syncDataResponseDto = getSyncDataResponseDto("invalidJson.json");
 		Mockito.when(clientSettingSyncHelper.saveClientSettings(Mockito.any(SyncDataResponseDto.class)))
-		.thenThrow(JsonSyntaxException.class);
+		.thenThrow(Exception.class);
 		masterSyncDaoImpl.saveSyncData(syncDataResponseDto);		
 	}
 

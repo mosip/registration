@@ -1,7 +1,5 @@
 package io.mosip.registration.test.service;
 
-import static org.mockito.Mockito.doNothing;
-
 import java.net.SocketTimeoutException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
@@ -22,27 +20,24 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.web.client.HttpClientErrorException;
 
 import io.mosip.registration.constants.RegistrationConstants;
-import io.mosip.registration.dao.PolicySyncDAO;
-import io.mosip.registration.entity.KeyStore;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.sync.impl.PublicKeySyncImpl;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ RegistrationAppHealthCheckUtil.class })
 public class PublicKeySyncTest {
 
 	@Rule
 	public MockitoRule MockitoRule = MockitoJUnit.rule();
-
-	@Mock
-	private PolicySyncDAO policySyncDAO;
 
 	@Mock
 	private ServiceDelegateUtil serviceDelegateUtil;
@@ -55,11 +50,9 @@ public class PublicKeySyncTest {
 			throws ParseException, HttpClientErrorException, SocketTimeoutException, RegBaseCheckedException {
 
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
-		KeyStore keys = new KeyStore();
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd");
 		Date date = dateFormat.parse("2019-4-5");
 		Timestamp timestamp = new Timestamp(date.getTime());
-		keys.setValidTillDtimes(timestamp);
 
 		Map<String, Object> responseMap = new LinkedHashMap<>();
 		LinkedHashMap<String, Object> valuesMap = new LinkedHashMap<>();
@@ -69,9 +62,6 @@ public class PublicKeySyncTest {
 		valuesMap.put("expiryAt", "2020-04-09T05:51:17.334");
 		responseMap.put(RegistrationConstants.RESPONSE, valuesMap);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
-
-		Mockito.when(policySyncDAO.getPublicKey(Mockito.anyString())).thenReturn(keys);
-		doNothing().when(policySyncDAO).updatePolicy(keys);
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.anyMap(), Mockito.anyBoolean(),
 				Mockito.anyString())).thenReturn(responseMap);
 
@@ -83,7 +73,6 @@ public class PublicKeySyncTest {
 	public void getPublicKeyLogin()
 			throws ParseException, HttpClientErrorException, SocketTimeoutException, RegBaseCheckedException {
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
-		KeyStore keys = null;
 		Map<String, Object> responseMap = new LinkedHashMap<>();
 		LinkedHashMap<String, Object> valuesMap = new LinkedHashMap<>();
 		valuesMap.put("publicKey",
@@ -92,8 +81,6 @@ public class PublicKeySyncTest {
 		valuesMap.put("expiryAt", "2020-04-09T05:51:17.334");
 		responseMap.put(RegistrationConstants.RESPONSE, valuesMap);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
-		Mockito.when(policySyncDAO.getPublicKey(Mockito.anyString())).thenReturn(keys);
-		doNothing().when(policySyncDAO).updatePolicy(keys);
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.anyMap(), Mockito.anyBoolean(),
 				Mockito.anyString())).thenReturn(responseMap);
 
@@ -103,9 +90,8 @@ public class PublicKeySyncTest {
 
 	@Test
 	public void getPublicKeyLoginFailure()
-			throws ParseException, HttpClientErrorException, SocketTimeoutException, RegBaseCheckedException {
+			throws RegBaseCheckedException, HttpClientErrorException, SocketTimeoutException {
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
-		KeyStore keys = null;
 		Map<String, Object> responseMap = new LinkedHashMap<>();
 		List<LinkedHashMap<String, Object>> valuesMap = new ArrayList<>();
 		LinkedHashMap<String, Object> errorMap = new LinkedHashMap<>();
@@ -115,24 +101,19 @@ public class PublicKeySyncTest {
 		responseMap.put(RegistrationConstants.RESPONSE, null);
 		responseMap.put(RegistrationConstants.ERRORS, valuesMap);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
-		Mockito.when(policySyncDAO.getPublicKey(Mockito.anyString())).thenReturn(keys);
-		doNothing().when(policySyncDAO).updatePolicy(keys);
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.anyMap(), Mockito.anyBoolean(),
 				Mockito.anyString())).thenReturn(responseMap);
 
 		publicKeySyncImpl.getPublicKey("user");
-
 	}
 
 	@Test
 	public void getPublicKeyError()
 			throws ParseException, HttpClientErrorException, SocketTimeoutException, RegBaseCheckedException {
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
-		KeyStore keys = new KeyStore();
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd");
 		Date date = dateFormat.parse("2019-4-5");
 		Timestamp timestamp = new Timestamp(date.getTime());
-		keys.setValidTillDtimes(timestamp);
 
 		Map<String, Object> responseMap = new LinkedHashMap<>();
 		List<LinkedHashMap<String, Object>> valuesMap = new ArrayList<>();
@@ -143,8 +124,6 @@ public class PublicKeySyncTest {
 		responseMap.put(RegistrationConstants.RESPONSE, null);
 		responseMap.put(RegistrationConstants.ERRORS, valuesMap);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
-		Mockito.when(policySyncDAO.getPublicKey(Mockito.anyString())).thenReturn(keys);
-		doNothing().when(policySyncDAO).updatePolicy(keys);
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.anyMap(), Mockito.anyBoolean(),
 				Mockito.anyString())).thenReturn(responseMap);
 
@@ -156,11 +135,9 @@ public class PublicKeySyncTest {
 	public void getPublicKeyException()
 			throws ParseException, HttpClientErrorException, SocketTimeoutException, RegBaseCheckedException {
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
-		KeyStore keys = new KeyStore();
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd");
 		Date date = dateFormat.parse("2019-4-5");
 		Timestamp timestamp = new Timestamp(date.getTime());
-		keys.setValidTillDtimes(timestamp);
 
 		Map<String, Object> responseMap = new LinkedHashMap<>();
 		List<LinkedHashMap<String, Object>> valuesMap = new ArrayList<>();
@@ -171,8 +148,6 @@ public class PublicKeySyncTest {
 		responseMap.put(RegistrationConstants.RESPONSE, null);
 		responseMap.put(RegistrationConstants.ERRORS, valuesMap);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
-		Mockito.when(policySyncDAO.getPublicKey(Mockito.anyString())).thenReturn(keys);
-		doNothing().when(policySyncDAO).updatePolicy(keys);
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.anyMap(), Mockito.anyBoolean(),
 				Mockito.anyString())).thenThrow(SocketTimeoutException.class);
 
@@ -185,11 +160,9 @@ public class PublicKeySyncTest {
 			throws ParseException, HttpClientErrorException, SocketTimeoutException, RegBaseCheckedException {
 
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
-		KeyStore keys = new KeyStore();
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd");
 		Date date = dateFormat.parse("2019-4-5");
 		Timestamp timestamp = new Timestamp(date.getTime());
-		keys.setValidTillDtimes(timestamp);
 
 		Map<String, Object> responseMap = new LinkedHashMap<>();
 		LinkedHashMap<String, Object> valuesMap = new LinkedHashMap<>();
@@ -199,9 +172,6 @@ public class PublicKeySyncTest {
 		valuesMap.put("expiryAt", "2020-04-09T05:51:17.334");
 		responseMap.put(RegistrationConstants.RESPONSE, valuesMap);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(false);
-
-		Mockito.when(policySyncDAO.getPublicKey(Mockito.anyString())).thenReturn(keys);
-		doNothing().when(policySyncDAO).updatePolicy(keys);
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.anyMap(), Mockito.anyBoolean(),
 				Mockito.anyString())).thenReturn(responseMap);
 

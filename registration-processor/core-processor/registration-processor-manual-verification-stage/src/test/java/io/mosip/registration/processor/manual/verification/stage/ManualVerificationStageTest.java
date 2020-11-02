@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.mosip.kernel.packetmanager.exception.ApiNotAccessibleException;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,15 +23,14 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.kernel.core.exception.IOException;
 import io.mosip.kernel.core.signatureutil.model.SignatureResponse;
-import io.mosip.kernel.core.signatureutil.spi.SignatureUtil;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
-import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
 import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDTO;
+import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDecisionDto;
 import io.mosip.registration.processor.manual.verification.dto.UserDto;
 import io.mosip.registration.processor.manual.verification.service.ManualVerificationService;
 import io.mosip.registration.processor.manual.verification.util.ManualVerificationRequestValidator;
@@ -60,8 +60,6 @@ public class ManualVerificationStageTest{
 	@Mock
 	private MosipRouter router;
 	public RoutingContext ctx;
-	@Mock
-	SignatureUtil signatureUtil;
 	@Mock
 	SignatureResponse signatureResponse;
 	@Mock
@@ -103,7 +101,7 @@ public class ManualVerificationStageTest{
 		}
 	};
 	@Before
-	public void setUp() throws IOException, PacketDecryptionFailureException, ApiNotAccessibleException, java.io.IOException, io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
+	public void setUp() throws java.io.IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 		ReflectionTestUtils.setField(manualverificationstage, "port", "8080");
 		ReflectionTestUtils.setField(manualverificationstage, "contextPath", "/registrationprocessor/v1/manualverification");
 		ReflectionTestUtils.setField(manualverificationstage, "workerPoolSize", 10);
@@ -137,25 +135,13 @@ public class ManualVerificationStageTest{
 		manualverificationstage.start();
 	}
 	@Test
-	public void testAllProcess() throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException, io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
-		testBiometric();
-		testDemographic();
+	public void testAllProcess() throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException, JsonProcessingException, PacketManagerException {
+		
 		testProcessAssignment();
 		testProcessDecision();
-		testProcessPacketInfo();
+		
 	}
-	private void testBiometric() throws PacketDecryptionFailureException, ApiNotAccessibleException, IOException, java.io.IOException, io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
-		serviceID="bio";
-		Mockito.when(env.getProperty(any())).thenReturn("mosip.manual.verification.biometric");
-		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern")).thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		manualverificationstage.processBiometric(ctx);
-	}
-	private void testDemographic() throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException, io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException, ApiNotAccessibleException {
-		serviceID="demo";
-		Mockito.when(env.getProperty(any())).thenReturn("mosip.manual.verification.demographic");
-		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern")).thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		manualverificationstage.processDemographic(ctx);
-	}
+	
 	private void testProcessAssignment()
 	{
 		serviceID="assign";
@@ -170,17 +156,11 @@ public class ManualVerificationStageTest{
 		serviceID="decision";
 		Mockito.when(env.getProperty(any())).thenReturn("mosip.manual.verification.decision");
 		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern")).thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		ManualVerificationDTO updatedManualVerificationDTO=new ManualVerificationDTO();
+		ManualVerificationDecisionDto updatedManualVerificationDTO=new ManualVerificationDecisionDto();
 		Mockito.when(manualAdjudicationService.updatePacketStatus(any(),any())).thenReturn(updatedManualVerificationDTO);
 		manualverificationstage.processDecision(ctx);
 	}
-	private void testProcessPacketInfo() throws PacketDecryptionFailureException, ApiNotAccessibleException, IOException, java.io.IOException, io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException {
-		serviceID="packetinfo";
-		Mockito.when(env.getProperty(any())).thenReturn("mosip.manual.verification.packetinfo");
-		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern")).thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		PacketMetaInfo info=new PacketMetaInfo();
-		manualverificationstage.processPacketInfo(ctx);
-	}
+	
 	private FileUpload setFileUpload() {
 		return new FileUpload() {
 
@@ -372,25 +352,16 @@ public class ManualVerificationStageTest{
 				obj.put("requesttime", "51130282650000320190117");
 				JsonObject obj1= new JsonObject();
 
-				if(serviceID=="bio") {
-					obj1.put("regId", "51130282650000320190117144316");
-				}else if(serviceID=="demo") {
-					obj1.put("regId", "51130282650000320190117144316");
-
-				}else if(serviceID=="assign") {
+				 if(serviceID=="assign") {
 					obj1.put("userId", "51130282650000320190117");
 
 				}else if(serviceID=="decision") {
-					obj1.put("matchedRefId", "27847657360002520181208123987");
-					obj1.put("matchedRefType", "RID");
+					
+					obj1.put("matchedRefType", "mono");
 					obj1.put("mvUsrId", "mono");
-					obj1.put("reasonCode", "Problem with biometrics");
 					obj1.put("regId", "27847657360002520181208123456");
 					obj1.put("statusCode", "APPROVED");
-
-				}else if(serviceID=="packetinfo") {
-					obj1.put("regId", "51130282650000320190117144316");
-
+					obj1.put("reasonCode", "mono");
 				}
 
 				obj.put("request", obj1);

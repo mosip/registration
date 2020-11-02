@@ -30,6 +30,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -88,6 +89,7 @@ import io.mosip.registration.util.restclient.ServiceDelegateUtil;
  */
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ RegistrationAppHealthCheckUtil.class, UriComponentsBuilder.class, URI.class, ApplicationContext.class, SessionContext.class })
 public class MasterSyncServiceTest {
 //java test
@@ -315,7 +317,7 @@ public class MasterSyncServiceTest {
 				.thenReturn(masterSyncDto);
 
 		Mockito.when(masterSyncDao.saveSyncData(Mockito.any(SyncDataResponseDto.class)))
-				.thenThrow(IOException.class);
+				.thenThrow(RegBaseUncheckedException.class);
 		Mockito.when(machineMappingDAO.getKeyIndexByMachineName(Mockito.anyString()))
 		.thenReturn("keyIndex");
 
@@ -1237,7 +1239,6 @@ public class MasterSyncServiceTest {
 	public void getRequestParamsUpdatedDateTest() throws Exception {
 		PowerMockito.mockStatic(ApplicationContext.class);
 		Map<String, Object> applicationContext = new HashMap<>();
-		applicationContext.put(RegistrationConstants.TPM_AVAILABILITY, RegistrationConstants.ENABLE);
 		MachineMaster machineMaster = new MachineMaster();
 		machineMaster.setKeyIndex("keyIndex");
 		SyncControl syncControl = new SyncControl();

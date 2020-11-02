@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import io.mosip.kernel.packetmanager.exception.PacketDecryptionFailureException;
+import org.json.JSONException;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -248,8 +248,8 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 					ccEMailList = notificationEmails.split("\\|");
 				}
 
-				boolean isNotificationSuccess = sendNotification(id, attributes, ccEMailList, allNotificationTypes,
-						regType, messageSenderDto, description);
+				boolean isNotificationSuccess = sendNotification(id, registrationStatusDto.getRegistrationType(),
+						attributes, ccEMailList, allNotificationTypes, regType, messageSenderDto, description);
 
 				if (isNotificationSuccess) {
 					isTransactionSuccessful = true;
@@ -293,8 +293,8 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 					PlatformErrorMessages.RPR_TEM_PACKET_STORE_NOT_ACCESSIBLE.getMessage()
 							+ ExceptionUtils.getStackTrace(e));
 			description.setStatusComment(trimExceptionMessage
-					.trimExceptionMessage(StatusUtil.FS_ADAPTER_EXCEPTION.getMessage() + e.getMessage()));
-			description.setSubStatusCode(StatusUtil.FS_ADAPTER_EXCEPTION.getCode());
+					.trimExceptionMessage(StatusUtil.OBJECT_STORE_EXCEPTION.getMessage() + e.getMessage()));
+			description.setSubStatusCode(StatusUtil.OBJECT_STORE_EXCEPTION.getCode());
 			description.setMessage(PlatformErrorMessages.RPR_TEM_PACKET_STORE_NOT_ACCESSIBLE.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_TEM_PACKET_STORE_NOT_ACCESSIBLE.getCode());
 			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
@@ -382,7 +382,7 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 	 * @throws Exception
 	 *             the exception
 	 */
-	private boolean sendNotification(String id, Map<String, Object> attributes, String[] ccEMailList,
+	private boolean sendNotification(String id, String process, Map<String, Object> attributes, String[] ccEMailList,
 			String[] allNotificationTypes, String regType, MessageSenderDto messageSenderDto,
 			LogDescription description) throws Exception {
 		boolean isNotificationSuccess = false;
@@ -401,10 +401,10 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 			for (String notificationType : allNotificationTypes) {
 				if (notificationType.equalsIgnoreCase(NotificationTypeEnum.SMS.name())
 						&& isTemplateAvailable(messageSenderDto)) {
-					isSMSSuccess = SendSms(id, attributes, regType, messageSenderDto, description);
+					isSMSSuccess = SendSms(id, process, attributes, regType, messageSenderDto, description);
 				} else if (notificationType.equalsIgnoreCase(NotificationTypeEnum.EMAIL.name())
 						&& isTemplateAvailable(messageSenderDto)) {
-					isEmailSuccess = sendEmail(id, attributes, ccEMailList, regType, messageSenderDto, description);
+					isEmailSuccess = sendEmail(id, process, attributes, ccEMailList, regType, messageSenderDto, description);
 				} else {
 					throw new TemplateNotFoundException(MessageSenderStatusMessage.TEMPLATE_NOT_FOUND);
 				}
@@ -441,12 +441,12 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 		return isNotificationSuccess;
 	}
 
-	private boolean sendEmail(String id, Map<String, Object> attributes, String[] ccEMailList, String regType,
+	private boolean sendEmail(String id, String process, Map<String, Object> attributes, String[] ccEMailList, String regType,
 			MessageSenderDto messageSenderDto, LogDescription description) throws Exception {
 		boolean isEmailSuccess = false;
 		try {
 			ResponseDto emailResponse = service.sendEmailNotification(messageSenderDto.getEmailTemplateCode().name(),
-					id, messageSenderDto.getIdType(), attributes, ccEMailList, messageSenderDto.getSubject(), null,
+					id, process, messageSenderDto.getIdType(), attributes, ccEMailList, messageSenderDto.getSubject(), null,
 					regType);
 			if (emailResponse.getStatus().equals("success")) {
 				isEmailSuccess = true;
@@ -476,15 +476,14 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 		return isEmailSuccess;
 	}
 
-	private boolean SendSms(String id, Map<String, Object> attributes, String regType,
+	private boolean SendSms(String id, String process, Map<String, Object> attributes, String regType,
 			MessageSenderDto messageSenderDto, LogDescription description) throws ApisResourceAccessException,
 			IOException, io.mosip.registration.processor.core.exception.PacketDecryptionFailureException,
-			io.mosip.kernel.core.exception.IOException, PacketDecryptionFailureException,
-			RegistrationProcessorCheckedException {
+			JSONException {
 		boolean isSmsSuccess = false;
 		try {
 			SmsResponseDto smsResponse = service.sendSmsNotification(messageSenderDto.getSmsTemplateCode().name(), id,
-					messageSenderDto.getIdType(), attributes, regType);
+					process, messageSenderDto.getIdType(), attributes, regType);
 			if (smsResponse.getStatus().equals("success")) {
 				isSmsSuccess = true;
 				description.setStatusComment(StatusUtil.MESSAGE_SENDER_SMS_SUCCESS.getMessage());

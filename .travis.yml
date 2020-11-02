@@ -1,14 +1,15 @@
 language: java
-before_install:
+#before_install:
   ##########
   # TEMPORARY hack to get around Travis not installing Java
   # Remove this and the ".travis_install_jdk.sh" file once Travis installs java properly again!
   # Copied from the output of the "install_jdk" task in our last successful build
-  - export JAVA_HOME=~/openjdk18
-  - export PATH="$JAVA_HOME/bin:$PATH"
-  - ./install-jdk.sh --target "/home/travis/openjdk18" --workspace "/home/travis/.cache/install-jdk" --feature "18" --license "GPL" --cacerts
+  #- export JAVA_HOME=~/openjdk18
+  #- export PATH="$JAVA_HOME/bin:$PATH"
+  #- chmod +x ./install-jdk.sh
+  #- ./install-jdk.sh --target "/home/travis/openjdk18" --workspace "/home/travis/.cache/install-jdk" --feature "18" --license "GPL" --cacerts
   ##########
-jdk: openjdk8
+jdk: openjdk11
 install: true
 cache:
   directories:

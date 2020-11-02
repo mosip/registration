@@ -37,7 +37,6 @@ import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.entity.GlobalParam;
 import io.mosip.registration.entity.Registration;
-import io.mosip.registration.entity.RegistrationCenter;
 import io.mosip.registration.entity.SyncControl;
 import io.mosip.registration.entity.SyncJobDef;
 import io.mosip.registration.entity.id.GlobalParamId;
@@ -453,7 +452,7 @@ public class SyncStatusValidatorServiceImpl extends BaseService implements SyncS
 				"Fetching Job ID's from sync_job_def table using API name started");
 
 		Map<String, String> jobsMap = new WeakHashMap<>();
-		List<SyncJobDef> syncJobDefs = jobConfigDAO.getAll();
+		List<SyncJobDef> syncJobDefs = jobConfigDAO.getActiveJobs();
 		for (SyncJobDef syncJobDef : syncJobDefs) {
 			if (syncJobDef.getApiName() != null) {
 				String configuredValue = String.valueOf(ApplicationContext.map()

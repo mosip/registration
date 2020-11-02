@@ -1,6 +1,5 @@
 package io.mosip.registration.controller.reg;
 
-import static io.mosip.kernel.core.util.DateUtils.formatDate;
 import static io.mosip.registration.constants.LoggerConstants.PACKET_HANDLER;
 import static io.mosip.registration.constants.RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE_PART_1;
 import static io.mosip.registration.constants.RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE_PART_2;
@@ -18,20 +17,19 @@ import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.templatemanager.spi.TemplateManagerBuilder;
 import io.mosip.kernel.core.util.FileUtils;
-import io.mosip.registration.builder.Builder;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.AuditEvent;
 import io.mosip.registration.constants.AuditReferenceIdTypes;
@@ -48,15 +46,11 @@ import io.mosip.registration.dto.RegistrationApprovalDTO;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.SyncDataProcessDTO;
-import io.mosip.registration.dto.demographic.AddressDTO;
-import io.mosip.registration.dto.demographic.IndividualIdentity;
-import io.mosip.registration.dto.demographic.LocationDTO;
 import io.mosip.registration.entity.PreRegistrationList;
 import io.mosip.registration.entity.SyncControl;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
-import io.mosip.registration.service.bio.impl.BioServiceImpl;
 import io.mosip.registration.service.config.JobConfigurationService;
 import io.mosip.registration.service.operator.UserOnboardService;
 import io.mosip.registration.service.packet.PacketHandlerService;
@@ -68,6 +62,7 @@ import io.mosip.registration.service.sync.PolicySyncService;
 import io.mosip.registration.service.sync.PreRegistrationDataSyncService;
 import io.mosip.registration.service.template.NotificationService;
 import io.mosip.registration.service.template.TemplateService;
+import io.mosip.registration.update.SoftwareUpdateHandler;
 import io.mosip.registration.util.acktemplate.TemplateGenerator;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import javafx.fxml.FXML;
@@ -141,19 +136,17 @@ public class PacketHandlerController extends BaseController implements Initializ
 				List<SyncDataProcessDTO> dataProcessDTOs = ((List<SyncDataProcessDTO>) responseDTO
 						.getSuccessResponseDTO().getOtherAttributes().get(RegistrationConstants.SYNC_DATA_DTO));
 
-				LinkedList<String> timestamps =new LinkedList<>();
+				LinkedList<String> timestamps = new LinkedList<>();
 				dataProcessDTOs.forEach(syncDataProcessDTO -> {
-					
+
 					if (!(jobConfigurationService.getUnTaggedJobs().contains(syncDataProcessDTO.getJobId())
 							|| jobConfigurationService.getOfflineJobs().contains(syncDataProcessDTO.getJobId()))) {
 						timestamps.add(syncDataProcessDTO.getLastUpdatedTimes());
 					}
 				});
 
-				String latestUpdateTime = timestamps.stream()
-						.sorted((timestamp1, timestamp2) -> Timestamp.valueOf(timestamp2)
-								.compareTo(Timestamp.valueOf(timestamp1)))
-						.findFirst().get();
+				String latestUpdateTime = timestamps.stream().sorted((timestamp1, timestamp2) -> Timestamp
+						.valueOf(timestamp2).compareTo(Timestamp.valueOf(timestamp1))).findFirst().get();
 
 				lastSyncTime.setText(Timestamp.valueOf(latestUpdateTime).toLocalDateTime().format(
 						DateTimeFormatter.ofPattern(RegistrationConstants.ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT)));
@@ -231,9 +224,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 	private RegistrationController registrationController;
 
 	@Autowired
-	private DemographicDetailController demographicDetailController;
-
-	@Autowired
 	private UserOnboardService userOnboardService;
 
 	@FXML
@@ -272,9 +262,19 @@ public class PacketHandlerController extends BaseController implements Initializ
 	private GridPane viewReportsPane;
 	@FXML
 	private ImageView viewReportsImageView;
+	@Autowired
+	private SoftwareUpdateHandler softwareUpdateHandler;
+	@FXML
+	private Label versionValueLabel;
 
 	@Autowired
 	HeaderController headerController;
+	
+	@Value("${object.store.base.location}")
+	private String baseLocation;
+	
+	@Value("${packet.manager.account.name}")
+	private String packetsLocation;
 
 	/**
 	 * @return the userOnboardMsg
@@ -285,6 +285,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
+		versionValueLabel.setText(softwareUpdateHandler.getCurrentVersion());
 
 		try {
 			setImagesOnHover();
@@ -432,8 +433,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 		if (getCenterAndMachineActiveStatus()) {
 
-			BioServiceImpl.clearAllCaptures();
-
 			if (isPrimaryOrSecondaryLanguageEmpty()) {
 				generateAlert(RegistrationConstants.ERROR,
 						RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
@@ -487,8 +486,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 				generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.INVALID_KEY);
 			}
 			LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Creation of Registration ended.");
-		}else {
-		generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.CENTER_MACHINE_INACTIVE);
+		} else {
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.CENTER_MACHINE_INACTIVE);
 		}
 	}
 
@@ -498,8 +497,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 	public void lostUIN() {
 
 		if (getCenterAndMachineActiveStatus()) {
-
-			BioServiceImpl.clearAllCaptures();
 
 			if (isPrimaryOrSecondaryLanguageEmpty()) {
 				generateAlert(RegistrationConstants.ERROR,
@@ -533,7 +530,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 					LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID,
 							"Creating of Registration for lost UIN Starting.");
 					try {
-						auditFactory.audit(AuditEvent.NAV_NEW_REG, Components.NAVIGATION,
+						auditFactory.audit(AuditEvent.NAV_LOST_UIN, Components.NAVIGATION,
 								SessionContext.userContext().getUserId(),
 								AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
@@ -561,7 +558,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 								generateAlert(RegistrationConstants.ERROR, errorMessage.toString().trim());
 							} else {
 								getScene(createRoot).setRoot(createRoot);
-								//demographicDetailController.lostUIN();
+								// demographicDetailController.lostUIN();
 							}
 						}
 					} catch (IOException ioException) {
@@ -650,13 +647,13 @@ public class PacketHandlerController extends BaseController implements Initializ
 	 * Validating screen authorization and Approve, Reject and Hold packets
 	 */
 	public void approvePacket() {
-		
+
 		if (isPrimaryOrSecondaryLanguageEmpty()) {
 			generateAlert(RegistrationConstants.ERROR,
 					RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
 			return;
 		}
-		
+
 		if (isMachineRemapProcessStarted()) {
 
 			LOGGER.info("REGISTRATION - UPLOAD_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
@@ -697,7 +694,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 	 * Validating screen authorization and Uploading packets to FTP server
 	 */
 	public void uploadPacket() {
-		
+
 		if (isPrimaryOrSecondaryLanguageEmpty()) {
 			generateAlert(RegistrationConstants.ERROR,
 					RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
@@ -724,13 +721,13 @@ public class PacketHandlerController extends BaseController implements Initializ
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.AUTHORIZATION_ERROR);
 			} else {
 				getScene(uploadRoot);
-				
-				//Clear all registration data
+
+				// Clear all registration data
 				clearRegistrationData();
-				
-				//Enable Auto-Logout
+
+				// Enable Auto-Logout
 				SessionContext.setAutoLogout(true);
-				
+
 			}
 		} catch (IOException ioException) {
 			LOGGER.error("REGISTRATION - UI- Officer Packet upload", APPLICATION_NAME, APPLICATION_ID,
@@ -742,7 +739,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 	public void updateUIN() {
 
 		if (getCenterAndMachineActiveStatus()) {
-			BioServiceImpl.clearAllCaptures();
 
 			if (isPrimaryOrSecondaryLanguageEmpty()) {
 				generateAlert(RegistrationConstants.ERROR,
@@ -832,8 +828,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 	 */
 	public void onBoardUser() {
 
-		BioServiceImpl.clearAllCaptures();
-		
 		if (isPrimaryOrSecondaryLanguageEmpty()) {
 			generateAlert(RegistrationConstants.ERROR,
 					RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
@@ -887,16 +881,13 @@ public class PacketHandlerController extends BaseController implements Initializ
 			registrationDTO.setAcknowledgeReceiptName(
 					"RegistrationAcknowledgement." + RegistrationConstants.ACKNOWLEDGEMENT_FORMAT);
 		}
-		
-		//Clear all bio-captures data
-		BioServiceImpl.clearAllCaptures();
-		
+
 		// packet creation
 		ResponseDTO response = packetHandlerService.handle(registrationDTO);
 
 		if (response.getSuccessResponseDTO() != null
 				&& response.getSuccessResponseDTO().getMessage().equals(RegistrationConstants.SUCCESS)) {
-			
+
 			try {
 				// Deletes the pre registration Data after creation of registration Packet.
 				if (getRegistrationDTOFromSession().getPreRegistrationId() != null
@@ -914,28 +905,24 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 				// Generate the file path for storing the Encrypted Packet and Acknowledgement
 				// Receipt
-				String seperator = "/";
-				String filePath = getValueFromApplicationContext(RegistrationConstants.PKT_STORE_LOC) + seperator
-						+ formatDate(new Date(),
-								getValueFromApplicationContext(RegistrationConstants.PKT_STORE_DATE_FORMAT))
-										.concat(seperator).concat(registrationDTO.getRegistrationId());
+				String separator = "/";
+				String filePath = baseLocation.concat(separator).concat(packetsLocation).concat(separator).concat(registrationDTO.getRegistrationId());
 
 				// Storing the Registration Acknowledge Receipt Image
 				FileUtils.copyToFile(new ByteArrayInputStream(ackInBytes),
 						new File(filePath.concat("_Ack.").concat(RegistrationConstants.ACKNOWLEDGEMENT_FORMAT)));
 
-				//TODO - Client should not send notification, save contact details 
-				//TODO - so that it can be sent out during RID sync.
-				sendNotification((String)registrationDTO.getDemographics().get("email"), 
-						(String)registrationDTO.getDemographics().get("phone"),
-						registrationDTO.getRegistrationId());
+				// TODO - Client should not send notification, save contact details
+				// TODO - so that it can be sent out during RID sync.
+//				sendNotification((String) registrationDTO.getDemographics().get("email"),
+//						(String) registrationDTO.getDemographics().get("phone"), registrationDTO.getRegistrationId());
 
 				// Sync and Uploads Packet when EOD Process Configuration is set to OFF
 				if (!getValueFromApplicationContext(RegistrationConstants.EOD_PROCESS_CONFIG_FLAG)
 						.equalsIgnoreCase(RegistrationConstants.ENABLE)) {
 					updatePacketStatus();
 				}
-				/*sync the packet to server irrespective of eod enable/disable */
+				/* sync the packet to server irrespective of eod enable/disable */
 				syncAndUploadPacket();
 
 				LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID,
@@ -972,14 +959,12 @@ public class PacketHandlerController extends BaseController implements Initializ
 	 */
 	public void loadReRegistrationScreen() {
 
-		BioServiceImpl.clearAllCaptures();
-		
 		if (isPrimaryOrSecondaryLanguageEmpty()) {
 			generateAlert(RegistrationConstants.ERROR,
 					RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
 			return;
 		}
-		
+
 		if (isMachineRemapProcessStarted()) {
 
 			LOGGER.info("REGISTRATION - LOAD_RE_REGISTRATION_SCREEN - REGISTRATION_OFFICER_PACKET_CONTROLLER",
@@ -1179,7 +1164,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 			}
 		}
 	}
-	
+
 	/**
 	 * Gets the center and machine active status.
 	 *
