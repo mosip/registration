@@ -314,7 +314,7 @@ public class BiometricAuthenticationStageTest {
 		biometricRecord.setSegments(birTypeList);
 
 		when(packetManagerService.getBiometrics(any(),
-				any(), any(),any())).thenReturn(null).thenReturn(biometricRecord);
+				any(), any(),any())).thenReturn(biometricRecord);
 
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getIsValid());
@@ -378,19 +378,6 @@ public class BiometricAuthenticationStageTest {
 								"test message"));
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getInternalError());
-	}
-
-	@Test
-	@Ignore
-	public void testEmptyJSONObject() throws IOException {
-		HashMap<String, String> hashMap = new HashMap<String, String>();
-		when(utility.getRegistrationProcessorMappingJson(anyString())).thenReturn(new JSONObject());
-		hashMap.put("value", "");
-		when(regentity.getRegistrationType()).thenReturn("UPDATE");
-
-		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
-
-		assertTrue(messageDto.getIsValid());
 	}
 
 	@Test
@@ -470,7 +457,7 @@ public class BiometricAuthenticationStageTest {
 		biometricRecord.setSegments(birTypeList);
 
 		when(packetManagerService.getBiometrics(any(),
-				any(), any(),any())).thenReturn(null).thenReturn(biometricRecord);
+				any(), any(),any())).thenReturn(biometricRecord);
 		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
 		ErrorDTO error=new ErrorDTO();
 		error.setErrorCode("IDA-MLC-007");

@@ -108,7 +108,7 @@ public enum StatusUtil {
 	BIOMETRIC_AUTHENTICATION_FAILED(StatusConstants.BIO_METRIC_AUTHENTICATION_MODULE_FAILED + "001", "Biometric Authentication has Failed"),
 	BIOMETRIC_AUTHENTICATION_SUCCESS(StatusConstants.BIO_METRIC_AUTHENTICATION_MODULE_SUCCESS + "001", "Biometric Authentication is Successful"),
 	BIOMETRIC_FILE_NOT_FOUND(StatusConstants.SYSTEM_EXCEPTION_CODE, "Biometric File Not Found"),
-	BIOMETRIC_AUTHENTICATION_FAILED_FILE_NOT_FOUND(StatusConstants.SYSTEM_EXCEPTION_CODE, "Biometric Authentication Failed File is not present"),
+	BIOMETRIC_AUTHENTICATION_FAILED_FILE_NOT_FOUND(StatusConstants.SYSTEM_EXCEPTION_CODE, "Biometric Authentication Failed File is not present inside identity json"),
 	INDIVIDUAL_BIOMETRIC_AUTHENTICATION_FAILED(StatusConstants.BIO_METRIC_AUTHENTICATION_MODULE_FAILED + "001","Individual authentication failed"),
 
 	// Demo dedupe stage
