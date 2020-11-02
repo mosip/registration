@@ -298,10 +298,7 @@
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-applicanttype-api</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-cbeffutil-api</artifactId>
-		</dependency>
+		
 		<!--<dependency> <groupId>com.github.microsoft</groupId> <artifactId>TSS.Java</artifactId> 
 			</dependency> -->
 		<dependency>
