@@ -289,7 +289,6 @@ public class BiometricAuthenticationStageTest {
 	}
 
 	@Test
-	@Ignore
 	public void biometricAuthenticationSuccessTest() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 		when(regentity.getRegistrationType()).thenReturn("UPDATE");
 		List<BIR> birTypeList = new ArrayList<>();
@@ -315,7 +314,7 @@ public class BiometricAuthenticationStageTest {
 		biometricRecord.setSegments(birTypeList);
 
 		when(packetManagerService.getBiometrics(any(), any(),
-				any(), any(),any())).thenReturn(null).thenReturn(biometricRecord);
+				any(), any(),any())).thenReturn(biometricRecord);
 
 		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
 		assertTrue(messageDto.getIsValid());
@@ -382,19 +381,6 @@ public class BiometricAuthenticationStageTest {
 	}
 
 	@Test
-	@Ignore
-	public void testEmptyJSONObject() throws IOException {
-		HashMap<String, String> hashMap = new HashMap<String, String>();
-		when(utility.getRegistrationProcessorMappingJson()).thenReturn(new JSONObject());
-		hashMap.put("value", "");
-		when(regentity.getRegistrationType()).thenReturn("UPDATE");
-
-		MessageDTO messageDto = biometricAuthenticationStage.process(dto);
-
-		assertTrue(messageDto.getIsValid());
-	}
-
-	@Test
 	public void resupdatePacketTest() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
 		when(regentity.getRegistrationType()).thenReturn("res_update");
 		List<BIR> birTypeList = new ArrayList<>();
@@ -446,7 +432,6 @@ public class BiometricAuthenticationStageTest {
 		biometricAuthenticationStage.deployVerticle();
 	}
 	@Test
-	@Ignore
 	public void testAuthSystemException() throws ApisResourceAccessException, IOException, InvalidKeySpecException,
 			NoSuchAlgorithmException, BioTypeException, JsonProcessingException, PacketManagerException {
 		List<BIR> birTypeList = new ArrayList<>();
@@ -472,7 +457,7 @@ public class BiometricAuthenticationStageTest {
 		biometricRecord.setSegments(birTypeList);
 
 		when(packetManagerService.getBiometrics(any(), any(),
-				any(), any(),any())).thenReturn(null).thenReturn(biometricRecord);
+				any(), any(),any())).thenReturn(biometricRecord);
 		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
 		ErrorDTO error=new ErrorDTO();
 		error.setErrorCode("IDA-MLC-007");
