@@ -631,10 +631,12 @@ public class DemographicDetailController extends BaseController {
 //			vbox.setDisable(true);
 //		}
 
-		if (listOfTextField.get(fieldName) != null)
-			fxUtils.populateLocalFieldWithFocus(parentFlowPane, listOfTextField.get(fieldName), field,
-					hasToBeTransliterated, validation);
+		if (listOfTextField.get(fieldName) != null) {
+//			fxUtils.populateLocalFieldWithFocus(parentFlowPane, listOfTextField.get(fieldName), field,
+//					hasToBeTransliterated, validation);
 
+			setTextFieldListener(listOfTextField.get(fieldName));
+		}
 		listOfTextField.put(field.getId(), field);
 		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
 			field.setPromptText(schema.getLabel().get(RegistrationConstants.SECONDARY));
@@ -1688,7 +1690,8 @@ public class DemographicDetailController extends BaseController {
 
 					// Set Local lang
 					setSecondaryLangText(textField,
-							(TextField) getFxElement(textField + RegistrationConstants.LOCAL_LANGUAGE), true);
+							(TextField) getFxElement(textField + RegistrationConstants.LOCAL_LANGUAGE),
+							hasToBeTransliterated);
 
 //				 Save information to session
 					addTextFieldToSession(textField.getId(), getRegistrationDTOFromSession(), false);
