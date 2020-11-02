@@ -1676,34 +1676,43 @@ public class DemographicDetailController extends BaseController {
 	}
 
 	private void setTextFieldListener(TextField textField) {
-		textField.textProperty().addListener((observable, oldValue, newValue) -> {
+		textField.focusedProperty().addListener((observable, oldValue, newValue) -> {
+			if (!textField.isFocused()) {
+				fxUtils.showLabel(parentFlowPane, textField);
+				// Validate Text Field
+				if (isInputTextValid(textField)) {
 
-			// Validate Text Field
-			if (isInputTextValid(textField)) {
+					fxUtils.setTextValidLabel(parentFlowPane, textField);
 
-				// Set Local lang
-				setSecondaryLangText(textField,
-						(TextField) getFxElement(textField + RegistrationConstants.LOCAL_LANGUAGE), true);
+//					fxUtils.hideErrorMessageLabel(parentFlowPane, textField);
+
+					// Set Local lang
+					setSecondaryLangText(textField,
+							(TextField) getFxElement(textField + RegistrationConstants.LOCAL_LANGUAGE), true);
 
 //				 Save information to session
-				addTextFieldToSession(textField.getId(), getRegistrationDTOFromSession(), false);
+					addTextFieldToSession(textField.getId(), getRegistrationDTOFromSession(), false);
 
-				// Group level visibility listeners
-				refreshDemographicGroups();
+					// Group level visibility listeners
+					refreshDemographicGroups(getRegistrationDTOFromSession().getMVELDataContext());
 
-				// TODO update required on fields also
-			} else {
-				// TODO If Validation failure
-				// TODO show error message for current field for both app and local lang
+					// TODO update required on fields also
+				} else {
+
+					fxUtils.showErrorLabel(textField, parentFlowPane);
+				}
 			}
 		});
 	}
 
-	private void refreshDemographicGroups() {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private void refreshDemographicGroups(Map<String, Object> mvelDataMap) {
 
 		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 				"Refreshing demographic groups");
 
+		Map<String, Map<String, Object>> context = new HashMap();
+		context.put("identity", mvelDataMap);
 		for (Entry<String, List<UiSchemaDTO>> group : templateGroup.entrySet()) {
 
 			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
@@ -1715,9 +1724,7 @@ public class DemographicDetailController extends BaseController {
 				Validator validator = uiSchemaDTO.getValidators().get(0);
 
 				if (validator.getType().equalsIgnoreCase("MVEL")) {
-					@SuppressWarnings("rawtypes")
-					Map context = new HashMap();
-					context.put("identity", getRegistrationDTOFromSession().getMVELDataContext());
+
 					VariableResolverFactory resolverFactory = new MapVariableResolverFactory(context);
 					boolean required = MVEL.evalToBoolean(validator.getValidator(), resolverFactory);
 
