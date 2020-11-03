@@ -250,14 +250,14 @@ public class DemographicDetailController extends BaseController {
 			templateGroup = getTemplateGroupMap();
 			for (Entry<String, List<UiSchemaDTO>> templateGroupEntry : templateGroup.entrySet()) {
 
-				GridPane groupGridPane = new GridPane();
-				groupGridPane.setId(templateGroupEntry.getKey());
+				List<UiSchemaDTO> list = templateGroupEntry.getValue();
 
-				addGroupContent(templateGroupEntry.getValue(), groupGridPane);
+				for (int index = 0; index < list.size() / 4; index++) {
 
-				parentFlow.add(groupGridPane);
-				position++;
-				positionTracker.put(groupGridPane.getId(), position);
+					List<UiSchemaDTO> subList = list.subList(index * 4, (index * 4) + 3);
+					addGroupInUI(subList, position, templateGroupEntry.getKey() + position);
+
+				}
 
 //					if (isDemographicField(entry.getValue())) {
 //						GridPane mainGridPane = addContent(entry.getValue());
@@ -303,6 +303,17 @@ public class DemographicDetailController extends BaseController {
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_DEMOGRAPHIC_PAGE);
 
 		}
+	}
+
+	private void addGroupInUI(List subList, int position, String gridPaneId) {
+		GridPane groupGridPane = new GridPane();
+		groupGridPane.setId(gridPaneId);
+
+		addGroupContent(subList, groupGridPane);
+
+		parentFlow.add(groupGridPane);
+		position++;
+		positionTracker.put(groupGridPane.getId(), position);
 	}
 
 	private void fillOrderOfLocation() {
@@ -966,8 +977,7 @@ public class DemographicDetailController extends BaseController {
 					yyyy.requestFocus();
 					dd.requestFocus();
 
-					getRegistrationDTOFromSession().setDateField(null, dd.getText(), mm.getText(),
-							yyyy.getText());
+					getRegistrationDTOFromSession().setDateField(null, dd.getText(), mm.getText(), yyyy.getText());
 					refreshDemographicGroups(getRegistrationDTOFromSession().getMVELDataContext());
 					fxUtils.validateOnFocusOut(dobParentPane, ageField, validation, false);
 				} else {
