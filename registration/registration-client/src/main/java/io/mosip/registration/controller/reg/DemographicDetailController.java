@@ -798,24 +798,29 @@ public class DemographicDetailController extends BaseController {
 
 		HBox hBox = new HBox();
 		hBox.getChildren().add(label);
-		listOfButtons.get(fieldName + languageType).forEach(button -> {
+		listOfButtons.get(fieldName + languageType).forEach(localButton -> {
 			hBox.setId(fieldName + languageType);
 			hBox.setSpacing(10);
 			hBox.setPadding(new Insets(10, 10, 10, 10));
-			button.setPrefWidth(vbox.getPrefWidth());
-			button.getStyleClass().addAll("residence", "button");
+			localButton.setPrefWidth(vbox.getPrefWidth());
+			localButton.getStyleClass().addAll("residence", "button");
 //			if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
 //				button.setDisable(true);
 //			} else {
 			if (listOfButtons.get(fieldName) != null) {
-				listOfButtons.get(fieldName).forEach(btn -> {
-					if ((btn.getId().concat(RegistrationConstants.LOCAL_LANGUAGE)).equals(button.getId())) {
-						fxUtils.populateLocalButton(parentFlowPane, btn, button);
+				listOfButtons.get(fieldName).forEach(applicationButton -> {
+//					if ((btn.getId().concat(RegistrationConstants.LOCAL_LANGUAGE)).equals(button.getId())) {
+
+					if ((!isLocalLanguageAvailable() || isAppLangAndLocalLangSame())
+							|| (applicationButton.getId().concat(RegistrationConstants.LOCAL_LANGUAGE))
+									.equals(localButton.getId())) {
+						fxUtils.populateLocalButton(parentFlowPane, applicationButton, localButton);
 					}
+//					}
 				});
 			}
 //			}
-			hBox.getChildren().add(button);
+			hBox.getChildren().add(localButton);
 		});
 		vbox.getChildren().addAll(hBox, validationMessage);
 		return vbox;
@@ -975,12 +980,37 @@ public class DemographicDetailController extends BaseController {
 					defaultDate.add(Calendar.YEAR, -age);
 
 					dd.setText(String.valueOf(defaultDate.get(Calendar.DATE)));
+
 					dd.requestFocus();
 					mm.setText(String.valueOf(defaultDate.get(Calendar.MONTH + 1)));
 					mm.requestFocus();
 					yyyy.setText(String.valueOf(defaultDate.get(Calendar.YEAR)));
+
 					yyyy.requestFocus();
 					dd.requestFocus();
+
+					if (getFxElement(dd.getId() + RegistrationConstants.LOCAL_LANGUAGE) != null) {
+						((TextField) getFxElement(dd.getId() + RegistrationConstants.LOCAL_LANGUAGE))
+								.setText(dd.getText());
+
+					}
+
+					if (getFxElement(yyyy.getId() + RegistrationConstants.LOCAL_LANGUAGE) != null) {
+						((TextField) getFxElement(yyyy.getId() + RegistrationConstants.LOCAL_LANGUAGE))
+								.setText(yyyy.getText());
+
+					}
+
+					if (getFxElement(mm.getId() + RegistrationConstants.LOCAL_LANGUAGE) != null) {
+						((TextField) getFxElement(mm.getId() + RegistrationConstants.LOCAL_LANGUAGE))
+								.setText(mm.getText());
+
+					}
+
+					if (getFxElement(ageField.getId() + RegistrationConstants.LOCAL_LANGUAGE) != null) {
+						((TextField) getFxElement(ageField.getId() + RegistrationConstants.LOCAL_LANGUAGE))
+								.setText(ageField.getText());
+					}
 
 					getRegistrationDTOFromSession().setDateField(null, dd.getText(), mm.getText(), yyyy.getText());
 					refreshDemographicGroups(getRegistrationDTOFromSession().getMVELDataContext());
@@ -1002,11 +1032,13 @@ public class DemographicDetailController extends BaseController {
 				// updatePageFlow(RegistrationConstants.GUARDIAN_BIOMETRIC, false);
 				// updatePageFlow(RegistrationConstants.FINGERPRINT_CAPTURE, true);
 				// updatePageFlow(RegistrationConstants.IRIS_CAPTURE, true);
+
 				dd.clear();
 				mm.clear();
 				yyyy.clear();
 			}
 		} else {
+
 			ageField.setText(RegistrationConstants.EMPTY);
 		}
 	}
@@ -1227,17 +1259,45 @@ public class DemographicDetailController extends BaseController {
 		if (selectionList != null) {
 			disablePreRegFetch();
 			registrationNavlabel.setText(applicationLabelBundle.getString("uinUpdateNavLbl"));
-			for (Node pane : parentFlowPane.getChildren()) {
-				if (!pane.getId().matches("preRegParentPane|languageLabelParentPane")) {
-					String fieldId = pane.getId().replace("ParentGridPane", "");
-					if (selectionList.contains(fieldId)) {
-						pane.setDisable(false);
-					} else {
-						UiSchemaDTO schemaField = getValidationMap().get(fieldId);
-						pane.setDisable(schemaField != null && "name".equalsIgnoreCase(schemaField.getSubType()) ? false
-								: true);
-					}
+
+//			for (Node pane : parentFlowPane.getChildren()) {
+//
+//				pane.setDisable(true);
+//
+//			}
+		}
+		for (Entry<String, UiSchemaDTO> selectionField : validation.getValidationMap().entrySet()) {
+
+			updateDemographicScreen(selectionField.getKey(), selectionList, false);
+			updateDemographicScreen(selectionField.getKey() + RegistrationConstants.LOCAL_LANGUAGE, selectionList,
+					false);
+
+//			updateDemographicScreen(selectionField.getKey(),
+//					getRegistrationDTOFromSession().getDefaultUpdatableFields());
+
+			if (getRegistrationDTOFromSession().getDefaultUpdatableFields().contains(selectionField.getKey())) {
+				updateDemographicScreen(selectionField.getKey(), selectionList, true);
+				updateDemographicScreen(selectionField.getKey() + RegistrationConstants.LOCAL_LANGUAGE, selectionList,
+						true);
+
+			}
+		}
+
+	}
+
+	private void updateDemographicScreen(String key, List<String> selectionList, boolean isDefault) {
+
+		if (getFxElement(key) != null) {
+			if (getFxElement(key).getParent() != null) {
+
+				boolean isDisable = true;
+
+				if (selectionList.contains(key.replaceAll(RegistrationConstants.LOCAL_LANGUAGE, "")) || isDefault) {
+					isDisable = false;
 				}
+
+				getFxElement(key).getParent().getParent().setDisable(isDisable);
+
 			}
 		}
 	}
