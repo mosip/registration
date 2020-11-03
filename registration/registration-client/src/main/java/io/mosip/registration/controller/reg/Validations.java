@@ -390,7 +390,6 @@ public class Validations extends BaseController {
 
 	private void addInvalidInputStyleClass(Pane parentPane, Node node, boolean mandatoryCheck) {
 		if (mandatoryCheck) {
-			node.requestFocus();
 			node.getStyleClass().removeIf((s) -> {
 				return s.equals(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
 			});

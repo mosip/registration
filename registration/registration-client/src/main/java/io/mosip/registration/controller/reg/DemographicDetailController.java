@@ -809,8 +809,8 @@ public class DemographicDetailController extends BaseController {
 //			} else {
 			if (listOfButtons.get(fieldName) != null) {
 				listOfButtons.get(fieldName).forEach(btn -> {
-					if (btn.getId().contains(button.getId())) {
-						fxUtils.populateLocalButton(parentFlowPane, button, btn);
+					if ((btn.getId().concat(RegistrationConstants.LOCAL_LANGUAGE)).equals(button.getId())) {
+						fxUtils.populateLocalButton(parentFlowPane, btn, button);
 					}
 				});
 			}
@@ -1696,7 +1696,7 @@ public class DemographicDetailController extends BaseController {
 				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 						"validating text field secondary");
 
-				boolean isLocalFieldValid = isInputTextValid(localField, textField.getId());
+				boolean isLocalFieldValid = isInputTextValid(localField, localField.getId());
 
 				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 						"Text field primary field valid : " + isPrimaryFieldValid + " and secondary field valid : "
