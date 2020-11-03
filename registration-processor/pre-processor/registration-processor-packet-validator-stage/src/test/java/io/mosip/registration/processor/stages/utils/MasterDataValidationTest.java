@@ -94,6 +94,7 @@ public class MasterDataValidationTest {
 		PowerMockito.mockStatic(Utilities.class);
 
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn("identity");
+		when(utility.getSourceFromIdField(any(), any(), any())).thenReturn("reg_client");
 		when(env.getProperty(anyString())).thenReturn("gender");
 		when(env.getProperty(PRIMARY_LANGUAGE)).thenReturn("eng");
 		when(env.getProperty(SECONDARY_LANGUAGE)).thenReturn("ara");

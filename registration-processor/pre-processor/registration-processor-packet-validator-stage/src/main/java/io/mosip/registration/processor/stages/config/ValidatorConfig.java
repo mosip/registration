@@ -32,7 +32,6 @@ import io.mosip.registration.processor.stages.helper.RestHelperImpl;
 import io.mosip.registration.processor.stages.packet.validator.PacketValidateProcessor;
 import io.mosip.registration.processor.stages.packet.validator.PacketValidatorStage;
 import io.mosip.registration.processor.stages.utils.AuditUtility;
-import io.mosip.registration.processor.stages.utils.DocumentUtility;
 import io.mosip.registration.processor.stages.utils.MandatoryValidation;
 import io.mosip.registration.processor.stages.utils.MasterDataValidation;
 import io.mosip.registration.processor.stages.utils.NotificationUtility;
@@ -66,11 +65,6 @@ public class ValidatorConfig {
 	@Bean
 	public MasterDataValidation masterDataValidation() {
 		return new MasterDataValidation();
-	}
-
-	@Bean
-	public DocumentUtility getDocumentUtility() {
-		return new DocumentUtility();
 	}
 
 	@Bean
@@ -162,7 +156,7 @@ public class ValidatorConfig {
 					"loading reference validator", "");
 			return new PacketValidator() {
 				@Override
-				public boolean validate(String registrationId, String source, String process, PacketValidationDto packetValidationDto) throws PacketValidatorException, ApisResourceAccessException, RegistrationProcessorCheckedException, IOException, JsonProcessingException {
+				public boolean validate(String registrationId, String process, PacketValidationDto packetValidationDto) throws ApisResourceAccessException, RegistrationProcessorCheckedException, IOException, JsonProcessingException {
 					return true;
 				}
 			};

@@ -329,7 +329,6 @@ public class RegistrationConstants {
 	public static final String UIN_UPDATE_FOREIGNER = "foreigner";
 	public static final String UIN_UPDATE_GENDER = "gender";
 	public static final String UIN_UPDATE_PARENT_DETAILS = "parentOrGuardianDetails";
-	public static final String UIN_UPDATE_CNIE_NUMBER = "cnieNumber";
 	public static final String UIN_UPDATE_DEMOGRAPHICDETAIL = "demographicDetail";
 	public static final String UIN_UPDATE_DOCUMENTSCAN = "documentScan";
 	public static final String UIN_UPDATE_FINGERPRINTCAPTURE = "fingerPrintCapture";
