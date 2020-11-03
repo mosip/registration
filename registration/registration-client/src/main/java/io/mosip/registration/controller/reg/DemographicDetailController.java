@@ -251,12 +251,17 @@ public class DemographicDetailController extends BaseController {
 			for (Entry<String, List<UiSchemaDTO>> templateGroupEntry : templateGroup.entrySet()) {
 
 				List<UiSchemaDTO> list = templateGroupEntry.getValue();
+				if (list.size() <= 4) {
+					addGroupInUI(list, position, templateGroupEntry.getKey() + position);
 
-				for (int index = 0; index < list.size() / 4; index++) {
+				} else {
+					for (int index = 0; index <= list.size() / 4; index++) {
 
-					List<UiSchemaDTO> subList = list.subList(index * 4, (index * 4) + 3);
-					addGroupInUI(subList, position, templateGroupEntry.getKey() + position);
+						int toIndex = ((index * 4) + 3) <= list.size() - 1 ? ((index * 4) + 4) : list.size();
+						List<UiSchemaDTO> subList = list.subList(index * 4, toIndex);
+						addGroupInUI(subList, position, templateGroupEntry.getKey() + position);
 
+					}
 				}
 
 //					if (isDemographicField(entry.getValue())) {
@@ -1129,16 +1134,19 @@ public class DemographicDetailController extends BaseController {
 	}
 
 	private void addTextFieldToSession(String id, RegistrationDTO registrationDTO, boolean isDefaultField) {
-		TextField platformField = listOfTextField.get(id);
-		TextField localField = listOfTextField.get(id + RegistrationConstants.LOCAL_LANGUAGE);
-		if (!isDefaultField) {
-			registrationDTO.addDemographicField(id, applicationContext.getApplicationLanguage(),
-					platformField.getText(), applicationContext.getLocalLanguage(),
-					localField == null ? null : localField.getText());
-		} else {
-			registrationDTO.addDefaultDemographicField(id, applicationContext.getApplicationLanguage(),
-					platformField.getText(), applicationContext.getLocalLanguage(),
-					localField == null ? null : localField.getText());
+
+		if (registrationDTO != null) {
+			TextField platformField = listOfTextField.get(id);
+			TextField localField = listOfTextField.get(id + RegistrationConstants.LOCAL_LANGUAGE);
+			if (!isDefaultField) {
+				registrationDTO.addDemographicField(id, applicationContext.getApplicationLanguage(),
+						platformField.getText(), applicationContext.getLocalLanguage(),
+						localField == null ? null : localField.getText());
+			} else {
+				registrationDTO.addDefaultDemographicField(id, applicationContext.getApplicationLanguage(),
+						platformField.getText(), applicationContext.getLocalLanguage(),
+						localField == null ? null : localField.getText());
+			}
 		}
 	}
 
@@ -1645,31 +1653,84 @@ public class DemographicDetailController extends BaseController {
 
 	private void setTextFieldListener(TextField textField) {
 
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Setting Text Field Listener");
+
 		textField.focusedProperty().addListener((observable, oldValue, newValue) -> {
+
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"text field listener started : " + textField.getId());
+
 			if (!textField.isFocused()) {
+
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						"text field not in focused now");
+
+				TextField localField = (TextField) getFxElement(
+						textField.getId() + RegistrationConstants.LOCAL_LANGUAGE);
+
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						"Show text field label");
+
 				fxUtils.showLabel(parentFlowPane, textField);
+				if (localField != null) {
+
+					LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+							"Setting secondary langauge text");
+
+					// Set Local lang
+					setSecondaryLangText(textField, localField, hasToBeTransliterated);
+
+					LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+							"showing secondary label");
+
+					fxUtils.showLabel(parentFlowPane, localField);
+
+				}
+
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						"validating text field primary");
+
+				boolean isPrimaryFieldValid = isInputTextValid(textField, textField.getId());
+
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						"validating text field secondary");
+
+				boolean isLocalFieldValid = isInputTextValid(localField, textField.getId());
+
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						"Text field primary field valid : " + isPrimaryFieldValid + " and secondary field valid : "
+								+ isLocalFieldValid);
 				// Validate Text Field
-				if (isInputTextValid(textField)) {
+				if (isPrimaryFieldValid && isLocalFieldValid) {
 
 					fxUtils.setTextValidLabel(parentFlowPane, textField);
 
+					if (localField != null) {
+						fxUtils.setTextValidLabel(parentFlowPane, localField);
+
+					}
 //					fxUtils.hideErrorMessageLabel(parentFlowPane, textField);
 
-					// Set Local lang
-					setSecondaryLangText(textField,
-							(TextField) getFxElement(textField.getId() + RegistrationConstants.LOCAL_LANGUAGE),
-							hasToBeTransliterated);
+					LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+							"add text field value to session");
 
 //				 Save information to session
 					addTextFieldToSession(textField.getId(), getRegistrationDTOFromSession(), false);
 
+					LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+							"Refresh all groups");
 					// Group level visibility listeners
 					refreshDemographicGroups(getRegistrationDTOFromSession().getMVELDataContext());
 
-					// TODO update required on fields also
 				} else {
 
 					fxUtils.showErrorLabel(textField, parentFlowPane);
+
+					if (localField != null) {
+						fxUtils.showErrorLabel(localField, parentFlowPane);
+
+					}
 				}
 			}
 		});
@@ -1753,12 +1814,15 @@ public class DemographicDetailController extends BaseController {
 		return parentFlowPane.lookup(RegistrationConstants.HASH + fieldId);
 	}
 
-	private boolean isInputTextValid(TextField primaryLangTextField) {
+	private boolean isInputTextValid(TextField textField, String id) {
 
 		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"Validating text field " + primaryLangTextField.getId());
-		return validation.validateTextField(parentFlowPane, primaryLangTextField,
-				primaryLangTextField.getId() + "_ontype", true);
+				"Validating text field " + textField.getId());
+
+		return validation.validateTextField(parentFlowPane, textField, id, true);
+
+//		return validation.validateTextField(parentFlowPane, primaryLangTextField,
+//				primaryLangTextField.getId() + "_ontype", true);
 	}
 
 	private void setSecondaryLangText(TextField primaryField, TextField secondaryField, boolean haveToTransliterate) {

@@ -318,10 +318,10 @@ public class Validations extends BaseController {
 							addInvalidInputStyleClass(parentPane, node, true);
 						}
 					} else {
-						
+
 						/** Remove Error message for fields */
 						Label messageLable = ((Label) (parentPane
-								.lookup(RegistrationConstants.HASH + id + RegistrationConstants.MESSAGE)));
+								.lookup(RegistrationConstants.HASH + node.getId() + RegistrationConstants.MESSAGE)));
 
 						if (messageLable != null) {
 							messageLable.setText(RegistrationConstants.EMPTY);
@@ -330,7 +330,8 @@ public class Validations extends BaseController {
 					break;
 				}
 
-				if (!node.isDisabled() && isInputValid) {
+				/** !node.isDisabled() */
+				if (isInputValid) {
 					String regex = getRegex(id, RegistrationUIConstants.REGEX_TYPE);
 					if (regex != null) {
 						if (inputText.matches(regex)) {
@@ -350,7 +351,7 @@ public class Validations extends BaseController {
 					}
 
 					if (!isInputValid) {
-						generateInvalidValueAlert(parentPane, id,
+						generateInvalidValueAlert(parentPane, node.getId(),
 								getFromLabelMap(label).concat(RegistrationConstants.SPACE)
 										.concat(messageBundle.getString(RegistrationConstants.REG_DDC_004)),
 								showAlert);
@@ -412,6 +413,7 @@ public class Validations extends BaseController {
 
 	private boolean doMandatoryCheckOnNewReg(String inputText, UiSchemaDTO schemaField, boolean isMandatory) {
 		if (schemaField != null) {
+
 			if (isMandatory && (inputText == null || inputText.isEmpty())) {
 				return false;
 			}
