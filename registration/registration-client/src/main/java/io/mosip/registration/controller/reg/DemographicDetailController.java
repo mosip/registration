@@ -437,20 +437,20 @@ public class DemographicDetailController extends BaseController {
 
 		ObservableList<ColumnConstraints> columnConstraints = gridPane.getColumnConstraints();
 		ColumnConstraints columnConstraint1 = new ColumnConstraints();
-		columnConstraint1.setPercentWidth(10);
+		columnConstraint1.setPercentWidth(5);
 		ColumnConstraints columnConstraint2 = new ColumnConstraints();
-		columnConstraint2.setPercentWidth(85);
+		columnConstraint2.setPercentWidth(90);
 		ColumnConstraints columnConstraint3 = new ColumnConstraints();
 		columnConstraint3.setPercentWidth(5);
 		columnConstraints.addAll(columnConstraint1, columnConstraint2, columnConstraint3);
 
 		ObservableList<RowConstraints> rowConstraints = gridPane.getRowConstraints();
 		RowConstraints rowConstraint1 = new RowConstraints();
-		columnConstraint1.setPercentWidth(20);
+		columnConstraint1.setPercentWidth(0);
 		RowConstraints rowConstraint2 = new RowConstraints();
-		columnConstraint1.setPercentWidth(60);
+		columnConstraint1.setPercentWidth(100);
 		RowConstraints rowConstraint3 = new RowConstraints();
-		columnConstraint1.setPercentWidth(20);
+		columnConstraint1.setPercentWidth(0);
 		rowConstraints.addAll(rowConstraint1, rowConstraint2, rowConstraint3);
 
 		VBox content = null;
@@ -966,7 +966,7 @@ public class DemographicDetailController extends BaseController {
 					yyyy.requestFocus();
 					dd.requestFocus();
 
-					getRegistrationDTOFromSession().setDateField("dateOfBirth", dd.getText(), mm.getText(),
+					getRegistrationDTOFromSession().setDateField(null, dd.getText(), mm.getText(),
 							yyyy.getText());
 					refreshDemographicGroups(getRegistrationDTOFromSession().getMVELDataContext());
 					fxUtils.validateOnFocusOut(dobParentPane, ageField, validation, false);
@@ -1536,7 +1536,7 @@ public class DemographicDetailController extends BaseController {
 		GridPane horizontalRowGridPane = null;
 		if (uiSchemaDTOs != null && !uiSchemaDTOs.isEmpty()) {
 
-			if (uiSchemaDTOs.size() >= 2) {
+			if (uiSchemaDTOs.size() > 0) {
 				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 						"Requesting prepare grid pane for horizontal layout");
 
@@ -1595,7 +1595,7 @@ public class DemographicDetailController extends BaseController {
 		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 				"Preparing grid pane for items : " + noOfItems);
 		GridPane gridPane = new GridPane();
-		gridPane.setPrefWidth(1000);
+		gridPane.setPrefWidth(1100);
 
 		ObservableList<ColumnConstraints> columnConstraints = gridPane.getColumnConstraints();
 		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
@@ -1606,7 +1606,7 @@ public class DemographicDetailController extends BaseController {
 //		LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
 //				RegistrationConstants.APPLICATION_ID, "Preparing grid pane space in middle");
 //		// Middle Space
-//		setColumnConstraints(columnConstraints, 2, 1);
+//		setColumnConstraints(columnConstraints, 4, 1);
 
 		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 				"Preparing grid pane for items : " + noOfItems + " right hand side");
