@@ -332,7 +332,10 @@ public class Validations extends BaseController {
 
 				/** !node.isDisabled() */
 				if (isInputValid) {
-					String regex = getRegex(id, RegistrationUIConstants.REGEX_TYPE);
+					String regex = getRegex(
+							id.replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY)
+									.replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY),
+							RegistrationUIConstants.REGEX_TYPE);
 					if (regex != null) {
 						if (inputText.matches(regex)) {
 							isInputValid = validateBlackListedWords(parentPane, node, id, blackListedWords, showAlert,
