@@ -144,7 +144,8 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 			StringEntity requestEntity = new StringEntity(request, ContentType.create("Content-Type", Consts.UTF_8));
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 					"Building Stream url...." + System.currentTimeMillis());
-			HttpUriRequest httpUriRequest = RequestBuilder.create("POST").setUri(url).setEntity(requestEntity).build();
+			HttpUriRequest httpUriRequest = RequestBuilder.create("STREAM").setUri(url).setEntity(requestEntity)
+					.build();
 
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 					"Requesting Stream url...." + System.currentTimeMillis());
