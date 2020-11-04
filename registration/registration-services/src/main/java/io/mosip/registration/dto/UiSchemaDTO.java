@@ -42,7 +42,7 @@ public class UiSchemaDTO {
 	private String format;
 	private List<Validator> validators;
 	private String fieldCategory;
-	private String templateGroup;
+	private String alignmentGroup;
 	private RequiredOnExpr visible;
 	@JsonProperty("required")
 	private boolean isRequired;

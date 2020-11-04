@@ -108,6 +108,9 @@ public class DemographicDetailController extends BaseController {
 	public TextField preRegistrationId;
 
 	@FXML
+	public Label languageLabelLocalLanguage;
+
+	@FXML
 	private GridPane parentDetailPane;
 	@FXML
 	private ScrollPane parentScrollPane;
@@ -207,6 +210,13 @@ public class DemographicDetailController extends BaseController {
 		fillOrderOfLocation();
 		primaryLanguage = applicationContext.getApplicationLanguage();
 		secondaryLanguage = applicationContext.getLocalLanguage();
+
+		ResourceBundle localProperties = ApplicationContext.localLanguageProperty();
+
+		String localLanguageTextVal = isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()
+				? localProperties.getString("language")
+				: RegistrationConstants.EMPTY;
+		languageLabelLocalLanguage.setText(localLanguageTextVal);
 
 		if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
 			vk = VirtualKeyboard.getInstance();
@@ -377,20 +387,20 @@ public class DemographicDetailController extends BaseController {
 		preRegParentPane.setDisable(true);
 	}
 
-	public GridPane addContent(UiSchemaDTO schemaDTO) {
-		GridPane gridPane = prepareMainGridPane();
-		GridPane primary = subGridPane(schemaDTO, "");
-		gridPane.addColumn(0, primary);
-		if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
-			GridPane secondary = subGridPane(schemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
-
-			gridPane.addColumn(2, secondary);
-		}
-
-		gridPane.setId(schemaDTO.getId() + "ParentGridPane");
-
-		return gridPane;
-	}
+//	public GridPane addContent(UiSchemaDTO schemaDTO) {
+//		GridPane gridPane = prepareMainGridPane();
+//		GridPane primary = subGridPane(schemaDTO, "");
+//		gridPane.addColumn(0, primary);
+//		if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
+//			GridPane secondary = subGridPane(schemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
+//
+//			gridPane.addColumn(2, secondary);
+//		}
+//
+//		gridPane.setId(schemaDTO.getId() + "ParentGridPane");
+//
+//		return gridPane;
+//	}
 
 	private boolean isAppLangAndLocalLangSame() {
 
@@ -448,12 +458,12 @@ public class DemographicDetailController extends BaseController {
 	}
 
 	@SuppressWarnings("unlikely-arg-type")
-	public GridPane subGridPane(UiSchemaDTO schemaDTO, String languageType) {
+	public GridPane subGridPane(UiSchemaDTO schemaDTO, String languageType, int noOfItems) {
 		GridPane gridPane = new GridPane();
 
 		ObservableList<ColumnConstraints> columnConstraints = gridPane.getColumnConstraints();
 		ColumnConstraints columnConstraint1 = new ColumnConstraints();
-		columnConstraint1.setPercentWidth(5);
+		columnConstraint1.setPercentWidth(noOfItems * 5);
 		ColumnConstraints columnConstraint2 = new ColumnConstraints();
 		columnConstraint2.setPercentWidth(90);
 		ColumnConstraints columnConstraint3 = new ColumnConstraints();
@@ -462,11 +472,11 @@ public class DemographicDetailController extends BaseController {
 
 		ObservableList<RowConstraints> rowConstraints = gridPane.getRowConstraints();
 		RowConstraints rowConstraint1 = new RowConstraints();
-		columnConstraint1.setPercentWidth(0);
+//		columnConstraint1.setPercentWidth(10);
 		RowConstraints rowConstraint2 = new RowConstraints();
-		columnConstraint1.setPercentWidth(100);
+//		columnConstraint1.setPercentWidth(100);
 		RowConstraints rowConstraint3 = new RowConstraints();
-		columnConstraint1.setPercentWidth(0);
+//		columnConstraint1.setPercentWidth(10);
 		rowConstraints.addAll(rowConstraint1, rowConstraint2, rowConstraint3);
 
 		VBox content = null;
@@ -1626,7 +1636,11 @@ public class DemographicDetailController extends BaseController {
 				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 						"Adding ui schema of application language");
 
-				GridPane applicationLanguageGridPane = subGridPane(uiSchemaDTOs.get(index), "");
+//				boolean isLeftSpaceRequired = true;
+//				if (uiSchemaDTOs.size() > 1) {
+//					isLeftSpaceRequired = false;
+//				}
+				GridPane applicationLanguageGridPane = subGridPane(uiSchemaDTOs.get(index), "", uiSchemaDTOs.size());
 
 //				applicationLanguageGridPane.setId(uiSchemaDTOs.get(index).getId());
 
@@ -1639,7 +1653,8 @@ public class DemographicDetailController extends BaseController {
 							"Adding ui schema of local language");
 
 					GridPane localLanguageGridPane = subGridPane(uiSchemaDTOs.get(index),
-							RegistrationConstants.LOCAL_LANGUAGE);
+							RegistrationConstants.LOCAL_LANGUAGE,
+							uiSchemaDTOs.size() > 1 ? uiSchemaDTOs.size() + 4 : uiSchemaDTOs.size());
 
 					if (localLanguageGridPane != null) {
 
@@ -1669,28 +1684,32 @@ public class DemographicDetailController extends BaseController {
 	}
 
 	private GridPane prepareRowGridPane(int noOfItems) {
-
 		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 				"Preparing grid pane for items : " + noOfItems);
 		GridPane gridPane = new GridPane();
-		gridPane.setPrefWidth(1100);
-
+		gridPane.setPrefWidth(1200);
 		ObservableList<ColumnConstraints> columnConstraints = gridPane.getColumnConstraints();
-		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"Preparing grid pane for items : " + noOfItems + " left hand side");
-		// Left Hand Side
-		setColumnConstraints(columnConstraints, 50, noOfItems);
 
+		if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"Preparing grid pane for items : " + noOfItems + " left hand side");
+
+			// Left Hand Side
+			setColumnConstraints(columnConstraints, 50, noOfItems);
 //		LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
 //				RegistrationConstants.APPLICATION_ID, "Preparing grid pane space in middle");
 //		// Middle Space
-//		setColumnConstraints(columnConstraints, 4, 1);
+//			setColumnConstraints(columnConstraints, 10, 1);
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"Preparing grid pane for items : " + noOfItems + " right hand side");
+			// Right Hand Side
+			setColumnConstraints(columnConstraints, 50, noOfItems);
 
-		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"Preparing grid pane for items : " + noOfItems + " right hand side");
-		// Right Hand Side
-		setColumnConstraints(columnConstraints, 50, noOfItems);
-
+//			// Right most gap space
+//			setColumnConstraints(columnConstraints, 10, 1);
+		} else {
+			setColumnConstraints(columnConstraints, 100, noOfItems);
+		}
 		return gridPane;
 	}
 
@@ -1775,14 +1794,18 @@ public class DemographicDetailController extends BaseController {
 					LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 							"add text field value to session");
 
+					RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
+
+					if (registrationDTO != null) {
 //				 Save information to session
-					addTextFieldToSession(textField.getId(), getRegistrationDTOFromSession(), false);
+						addTextFieldToSession(textField.getId(), registrationDTO, false);
 
-					LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-							"Refresh all groups");
-					// Group level visibility listeners
-					refreshDemographicGroups(getRegistrationDTOFromSession().getMVELDataContext());
+						LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+								"Refresh all groups");
 
+						// Group level visibility listeners
+						refreshDemographicGroups(registrationDTO.getMVELDataContext());
+					}
 				} else {
 
 					fxUtils.showErrorLabel(textField, parentFlowPane);
@@ -1919,13 +1942,13 @@ public class DemographicDetailController extends BaseController {
 		for (Entry<String, UiSchemaDTO> entry : validation.getValidationMap().entrySet()) {
 			if (isDemographicField(entry.getValue())) {
 
-				List<UiSchemaDTO> list = templateGroupMap.get(entry.getValue().getTemplateGroup());
+				List<UiSchemaDTO> list = templateGroupMap.get(entry.getValue().getAlignmentGroup());
 				if (list == null) {
 					list = new LinkedList<UiSchemaDTO>();
 				}
 				list.add(entry.getValue());
-				templateGroupMap.put(entry.getValue().getTemplateGroup() == null ? entry.getKey() + "TemplateGroup"
-						: entry.getValue().getTemplateGroup(), list);
+				templateGroupMap.put(entry.getValue().getAlignmentGroup() == null ? entry.getKey() + "TemplateGroup"
+						: entry.getValue().getAlignmentGroup(), list);
 			}
 		}
 		return templateGroupMap;
