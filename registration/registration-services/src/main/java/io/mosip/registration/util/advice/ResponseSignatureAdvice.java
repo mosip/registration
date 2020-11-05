@@ -100,29 +100,7 @@ public class ResponseSignatureAdvice {
 					LinkedHashMap<String, Object> resp = (LinkedHashMap<String, Object>) keyResponse
 							.get(RegistrationConstants.RESPONSE);
 					if (resp.containsKey(RegistrationConstants.CERTIFICATE) && resp.get(RegistrationConstants.CERTIFICATE) != null) {
-						if(joinPoint.getArgs() != null && joinPoint.getArgs() instanceof Object[] && joinPoint.getArgs()[0] != null) {
-							RequestHTTPDTO request = (RequestHTTPDTO) joinPoint.getArgs()[0];
-							Map<String, String> queryPairs = new LinkedHashMap<String, String>();
-						    String query = request.getUri().getQuery();
-						    String[] pairs = query.split("&");
-						    for (String pair : pairs) {
-						        int index = pair.indexOf("=");
-						        queryPairs.put(URLDecoder.decode(pair.substring(0, index), "UTF-8"), URLDecoder.decode(pair.substring(index + 1), "UTF-8"));
-						    }
-						    LOGGER.info(LoggerConstants.RESPONSE_SIGNATURE_VALIDATION, APPLICATION_ID, APPLICATION_NAME,
-									"Extracted query params from the request to upload certificate..." + queryPairs);
-						    
-							if (queryPairs.get(RegistrationConstants.REF_ID).equals(RegistrationConstants.KER)) {
-								UploadCertificateRequestDto uploadCertRequestDto = new UploadCertificateRequestDto();
-								uploadCertRequestDto.setApplicationId(queryPairs.get(RegistrationConstants.GET_CERT_APP_ID));
-								uploadCertRequestDto.setCertificateData(resp.get(RegistrationConstants.CERTIFICATE).toString());
-								uploadCertRequestDto.setReferenceId(RegistrationConstants.KERNEL_REF_ID);
-								keymanagerService.uploadOtherDomainCertificate(uploadCertRequestDto);
-								
-								LOGGER.info(LoggerConstants.RESPONSE_SIGNATURE_VALIDATION, APPLICATION_ID, APPLICATION_NAME,
-										"Uploaded certificate with request..." + uploadCertRequestDto);
-							}
-						}
+						uploadCertificate(resp, joinPoint);
 					}
 				}
 
@@ -158,6 +136,34 @@ public class ResponseSignatureAdvice {
 
 		return restClientResponse;
 
+	}
+
+	private void uploadCertificate(LinkedHashMap<String, Object> resp, JoinPoint joinPoint) throws UnsupportedEncodingException {
+		if(joinPoint.getArgs() != null && joinPoint.getArgs() instanceof Object[] && joinPoint.getArgs()[0] != null) {
+			RequestHTTPDTO request = (RequestHTTPDTO) joinPoint.getArgs()[0];
+			if (request.getUri().toString().contains("syncdata/getCertificate")) {
+				Map<String, String> queryPairs = new LinkedHashMap<String, String>();
+			    String query = request.getUri().getQuery();
+			    String[] pairs = query.split("&");
+			    for (String pair : pairs) {
+			        int index = pair.indexOf("=");
+			        queryPairs.put(URLDecoder.decode(pair.substring(0, index), "UTF-8"), URLDecoder.decode(pair.substring(index + 1), "UTF-8"));
+			    }
+			    LOGGER.info(LoggerConstants.RESPONSE_SIGNATURE_VALIDATION, APPLICATION_ID, APPLICATION_NAME,
+						"Extracted query params from the request to upload certificate..." + queryPairs);
+			    
+				if (queryPairs.get(RegistrationConstants.REF_ID).equals(RegistrationConstants.KER)) {
+					UploadCertificateRequestDto uploadCertRequestDto = new UploadCertificateRequestDto();
+					uploadCertRequestDto.setApplicationId(queryPairs.get(RegistrationConstants.GET_CERT_APP_ID));
+					uploadCertRequestDto.setCertificateData(resp.get(RegistrationConstants.CERTIFICATE).toString());
+					uploadCertRequestDto.setReferenceId(RegistrationConstants.KERNEL_REF_ID);
+					keymanagerService.uploadOtherDomainCertificate(uploadCertRequestDto);
+					
+					LOGGER.info(LoggerConstants.RESPONSE_SIGNATURE_VALIDATION, APPLICATION_ID, APPLICATION_NAME,
+							"Uploaded certificate with request..." + uploadCertRequestDto);
+				}								
+			}
+		}
 	}
 
 }

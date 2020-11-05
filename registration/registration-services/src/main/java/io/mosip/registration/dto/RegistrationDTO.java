@@ -6,6 +6,7 @@ import java.time.Period;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -276,6 +277,10 @@ public class RegistrationDTO {
 			savedBiometrics = new LinkedList<>();
 
 			boolean isForceCaptured = false;
+			
+			if (!biometricsDTOMap.isEmpty()) {
+				thresholdScore = thresholdScore * biometricsDTOMap.size();
+			}
 
 			/** Find force capture or not */
 			if (getQualityScore(biometricsDTOMap.values().stream().collect(Collectors.toList())) < thresholdScore) {
@@ -283,8 +288,10 @@ public class RegistrationDTO {
 				if (maxRetryAttempt == 1) {
 					isForceCaptured = true;
 				} else {
+					Collection<BiometricsDto> values = biometricsDTOMap.values();
+					List<BiometricsDto> biometricsList = new ArrayList<>(values);
 					BiometricsDto biometricsDto = getBiometric(subType, Biometric
-							.getBiometricByMDMConstant(biometricsDTOMap.get(0).getBioAttribute()).getAttributeName());
+							.getBiometricByAttribute(biometricsList.get(0).getBioAttribute()).getAttributeName());
 
 					if (biometricsDto != null && biometricsDto.getNumOfRetries() + 1 >= maxRetryAttempt) {
 						isForceCaptured = true;
