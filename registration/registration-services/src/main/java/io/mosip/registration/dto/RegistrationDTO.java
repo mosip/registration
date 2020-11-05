@@ -121,7 +121,10 @@ public class RegistrationDTO {
 	public void setDateField(String fieldId, String day, String month, String year) {
 		if (isValidValue(day) && isValidValue(month) && isValidValue(year)) {
 			LocalDate date = LocalDate.of(Integer.valueOf(year), Integer.valueOf(month), Integer.valueOf(day));
-			this.demographics.put(fieldId, date.format(DateTimeFormatter.ofPattern(DATE_FORMAT)));
+			if (fieldId != null) {
+				this.demographics.put(fieldId, date.format(DateTimeFormatter.ofPattern(DATE_FORMAT)));
+			}
+			
 			this.age = Period.between(date, LocalDate.now(ZoneId.of("UTC"))).getYears();
 
 			int minAge = Integer
