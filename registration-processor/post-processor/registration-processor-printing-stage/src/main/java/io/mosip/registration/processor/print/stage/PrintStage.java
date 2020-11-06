@@ -89,13 +89,13 @@ public class PrintStage extends MosipVerticleAPIManager {
 	@Autowired
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
-
-	@Value("${server.servlet.path}")
-	private String contextPath;
-
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
+
+
+	@Value("${mosip.registration.processor.encrypt:false}")
+	private boolean encrypt;
 
 
 	/** Mosip router for APIs */
@@ -258,7 +258,8 @@ public class PrintStage extends MosipVerticleAPIManager {
 		CredentialRequestDto credentialRequestDto = new CredentialRequestDto();
 
 		credentialRequestDto.setCredentialType(env.getProperty("mosip.registration.processor.credentialtype"));
-		credentialRequestDto.setEncrypt(env.getProperty("mosip.registration.processor.encrypt", Boolean.class));
+		credentialRequestDto.setEncrypt(encrypt);
+
 		credentialRequestDto.setId(regId);
 
 		credentialRequestDto.setIssuer(env.getProperty("mosip.registration.processor.issuer"));
