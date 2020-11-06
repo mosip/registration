@@ -1,8 +1,39 @@
 package io.mosip.registrationprocessor.print.stage.test;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.jms.Message;
+
+import org.apache.activemq.command.ActiveMQBytesMessage;
+import org.apache.activemq.util.ByteSequence;
+import org.json.simple.JSONObject;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.test.util.ReflectionTestUtils;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.mosip.kernel.core.idvalidator.spi.UinValidator;
-import io.mosip.kernel.core.pdfgenerator.exception.PDFGeneratorException;
+
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -16,25 +47,12 @@ import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.TemplateProcessingFailureException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.Identity;
-import io.mosip.registration.processor.core.queue.factory.MosipQueue;
 import io.mosip.registration.processor.core.queue.factory.QueueListener;
-import io.mosip.registration.processor.core.queue.impl.exception.ConnectionUnavailableException;
-import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
-import io.mosip.registration.processor.core.spi.print.service.PrintService;
-import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
-import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
-import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
-import io.mosip.registration.processor.packet.storage.utils.Utilities;
-import io.mosip.registration.processor.print.exception.QueueConnectionNotFound;
-import io.mosip.registration.processor.print.service.exception.PDFSignatureException;
-import io.mosip.registration.processor.print.service.impl.PrintPostServiceImpl;
 import io.mosip.registration.processor.print.stage.PrintStage;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
@@ -59,44 +77,10 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import org.apache.activemq.command.ActiveMQBytesMessage;
-import org.apache.activemq.util.ByteSequence;
-import org.json.simple.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.env.Environment;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import javax.jms.JMSException;
-import javax.jms.Message;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
 
 @SuppressWarnings("deprecation")
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ Utilities.class })
+@PrepareForTest({})
 @PowerMockIgnore({ "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*","javax.management.*", "javax.net.*" })
 @PropertySource("classpath:bootstrap.properties")
 public class PrintStageTest {
@@ -110,19 +94,6 @@ public class PrintStageTest {
 	@Mock
 	private ObjectMapper objectMapper;
 
-	@Mock
-	private PacketInfoManager<Identity, ApplicantInfoDto> packetInfoManager;
-
-	@Mock
-	private MosipQueueConnectionFactory<MosipQueue> mosipConnectionFactory;
-	@Mock
-	Environment env;
-
-	@Mock
-	private MosipQueueManager<MosipQueue, byte[]> mosipQueueManager;
-
-	@Mock
-	private MosipQueue queue;
 
 	@Mock
 	private InternalRegistrationStatusDto registrationStatusDto;
@@ -133,19 +104,7 @@ public class PrintStageTest {
 	private RoutingContext ctx;
 
 	private Boolean responseObject;
-	@Mock
-	private Utilities utilities;
-	@Mock
-	private PrintPostServiceImpl printPostService;
 
-	@Mock
-	private PrintService<Map<String, byte[]>> printService;
-
-	@Mock
-	private UinValidator<String> uinValidatorImpl;
-
-	@Mock
-	private PacketManagerService packetManagerService;
 
 	/** The identity. */
 	Identity identity = new Identity();
@@ -206,19 +165,15 @@ public class PrintStageTest {
 		// Mockito.when(env.getProperty(SwaggerConstant.SERVER_SERVLET_PATH))
 		// .thenReturn("/registrationprocessor/v1/packetreceiver");
 		Mockito.when(registrationStatusService.getRegistrationStatus(any(String.class))).thenReturn(registrationStatusDto);
-		Mockito.when(utilities.getUIn(any(), any())).thenReturn("1234567890");
-		Mockito.when(utilities.linkRegIdWrtUin(anyString(), anyString())).thenReturn(true);
+
 
 		byte[] pdfbytes = "UIN Card Template pdf".getBytes();
 		byte[] textBytes = "Text File ".getBytes();
 		Map<String, byte[]> byteMap = new HashMap<>();
 		byteMap.put("uinPdf", pdfbytes);
 		byteMap.put("textFile", textBytes);
-		Mockito.when(printService.getDocuments(any(), any(), any(), anyBoolean())).thenReturn(byteMap);
 
-		Mockito.when(mosipConnectionFactory.createConnection(any(), any(), any(), any()))
-				.thenReturn(queue);
-		Mockito.when(mosipQueueManager.send(any(), any(byte[].class), any())).thenReturn(true);
+
 
 		Mockito.doNothing().when(registrationStatusDto).setStatusCode(any());
 		Mockito.doNothing().when(registrationStatusDto).setStatusComment(any());
@@ -253,21 +208,16 @@ public class PrintStageTest {
 				EventType.BUSINESS.toString(), "1234testcase", ApiName.AUDIT);
 		JSONObject obj1 = new JSONObject();
 		obj1.put("UIN", "877788787889");
-		Mockito.when(utilities.retrieveUIN(any())).thenReturn(obj1);
 
-		Mockito.when(packetManagerService.getMetaInfo(anyString(), anyString())).thenReturn(new HashMap<>());
 	}
 
 	@Test
 	public void testAll() throws Exception {
 		testDeployVerticle();
-		testDeployVerticleForResend();
-		testResendPrintPdfSuccess();
-		testResendPrintPdfFailure();
+
+
 		testStart();
-		testconsumerListenerSuccess();
-		testconsumerListenerResend();
-		testconsumerListenerNullRegId();
+
 	}
 
 	public void testStart() {
@@ -285,33 +235,8 @@ public class PrintStageTest {
 		stage.deployVerticle();
 	}
 
-	public void testDeployVerticleForResend() throws Exception {
-		String response = "{\"Status\":\"Resend\",\"UIN\":\"6718394257\"}";
-		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
-		ByteSequence byteSeq = new ByteSequence();
-		byteSeq.setData(response.getBytes());
-		amq.setContent(byteSeq);
-		// stage.consumerListener(amq);
-		stage.deployVerticle();
-	}
 
-	@Test
-	public void testConsumerListenerException() throws Exception {
-		IOException exp = new IOException();
-		ActiveMQBytesMessage amq = new ActiveMQBytesMessage();
-		ByteSequence byteSeq = new ByteSequence();
-		byteSeq.setData("registration processor".getBytes());
-		amq.setContent(byteSeq);
-		PowerMockito.whenNew(String.class).withArguments(((ActiveMQBytesMessage) amq).getContent().data).thenThrow(exp);
-		// stage.consumerListener(amq);
-	}
 
-	@Test(expected = QueueConnectionNotFound.class)
-	public void testDeployVerticleForException() {
-		Mockito.when(mosipConnectionFactory.createConnection(any(), any(), any(), any()))
-				.thenReturn(null);
-		stage.deployVerticle();
-	}
 
 	@Test
 	public void testPrintStageSuccess() {
@@ -320,135 +245,33 @@ public class PrintStageTest {
 		List<String> uinList = new ArrayList<>();
 		uinList.add("3051738163");
 		dto.setReg_type(RegistrationType.NEW);
-		// Mockito.when(packetInfoManager.getUINByRid("1234567890987654321")).thenReturn(uinList);
-		doNothing().when(printPostService).generatePrintandPostal(any(), any(), any());
+
+
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getIsValid());
 	}
 	
-	@Test
-	public void testconsumerListenerSuccess() throws JMSException {
-		registrationStatusDto=new InternalRegistrationStatusDto();
-		registrationStatusDto.setRegistrationId("123456789");
-		ActiveMQBytesMessage message = new ActiveMQBytesMessage();
-		String mes="{\"Status\":\"Success\",\"RegId\":\"123456789\"}";
-		ByteSequence byt=new ByteSequence(mes.getBytes());
-		message.setContent(byt);
-		when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
-		doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
-		stage.consumerListener( message); 
-	}
-	
-	@Test
-	public void testconsumerListenerResend() throws JMSException {
-		registrationStatusDto=new InternalRegistrationStatusDto();
-		registrationStatusDto.setRegistrationId("123456789");
-		registrationStatusDto.setRegistrationType("NEW");
-		ActiveMQBytesMessage message = new ActiveMQBytesMessage();
-		String mes="{\"Status\":\"Resend\",\"RegId\":\"123456789\"}";
-		ByteSequence byt=new ByteSequence(mes.getBytes());
-		message.setContent(byt);
-		when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
-		doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
-		stage.consumerListener( message); 
-	}
-	
-	@Test
-	public void testconsumerListenerNullRegId() throws JMSException {
-		
-		ActiveMQBytesMessage message = new ActiveMQBytesMessage();
-		String mes="{\"Status\":\"Resend\",\"RegId\":null}";
-		ByteSequence byt=new ByteSequence(mes.getBytes());
-		message.setContent(byt);
-		
-		stage.consumerListener( message); 
-	}
 
 	@Test
 	public void testPrintStageFailure() {
-		Mockito.when(mosipQueueManager.send(any(), any(byte[].class), any())).thenReturn(false);
+
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
 		dto.setReg_type(RegistrationType.NEW);
 		List<String> uinList = new ArrayList<>();
 		uinList.add("3051738163");
-		// Mockito.when(packetInfoManager.getUINByRid("1234567890987654321")).thenReturn(uinList);
-		doNothing().when(printPostService).generatePrintandPostal(any(), any(), any());
+
 
 		MessageDTO result = stage.process(dto);
 		assertFalse(result.getIsValid());
 	}
 
-	@Test
-	public void testPdfGenerationException() {
-
-		PDFGeneratorException e = new PDFGeneratorException(null, null);
-		Mockito.doThrow(e).when(printService).getDocuments(any(), anyString(), anyString(), anyBoolean());
-
-		MessageDTO dto = new MessageDTO();
-		dto.setRid("1234567890987654321");
-		dto.setReg_type(RegistrationType.NEW);
-		List<String> uinList = new ArrayList<>();
-		uinList.add("3051738163");
-		// Mockito.when(packetInfoManager.getUINByRid("1234567890987654321")).thenReturn(uinList);
-		doNothing().when(printPostService).generatePrintandPostal(any(), any(), any());
-		MessageDTO result = stage.process(dto);
-		assertTrue(result.getInternalError());
-	}
-
-	@Test
-	public void testTemplateProcessingFailureException() {
-		TemplateProcessingFailureException e = new TemplateProcessingFailureException();
-		Mockito.doThrow(e).when(printService).getDocuments(any(), anyString(), anyString(), anyBoolean());
-
-		MessageDTO dto = new MessageDTO();
-		dto.setRid("1234567890987654321");
-		dto.setReg_type(RegistrationType.NEW);
-		List<String> uinList = new ArrayList<>();
-		uinList.add("3051738163");
-		// Mockito.when(packetInfoManager.getUINByRid("1234567890987654321")).thenReturn(uinList);
-		doNothing().when(printPostService).generatePrintandPostal(any(), any(), any());
-		MessageDTO result = stage.process(dto);
-		assertTrue(result.getInternalError());
-	}
-
-	@Test
-	public void testConnectionUnavailableException() {
-		ConnectionUnavailableException e = new ConnectionUnavailableException();
-		Mockito.doThrow(e).when(mosipQueueManager).send(any(), any(byte[].class), any());
-
-		MessageDTO dto = new MessageDTO();
-		dto.setRid("1234567890987654321");
-		dto.setReg_type(RegistrationType.NEW);
-		List<String> uinList = new ArrayList<>();
-		uinList.add("3051738163");
-		// Mockito.when(packetInfoManager.getUINByRid("1234567890987654321")).thenReturn(uinList);
-		doNothing().when(printPostService).generatePrintandPostal(any(), any(), any());
-		MessageDTO result = stage.process(dto);
-		assertTrue(result.getInternalError());
-	}
-
-	@Test
-	public void testRetrySend() {
-		QueueConnectionNotFound e = new QueueConnectionNotFound();
-		Mockito.doThrow(e).when(mosipQueueManager).send(any(), any(byte[].class), any());
-
-		MessageDTO dto = new MessageDTO();
-		dto.setRid("1234567890987654321");
-		dto.setReg_type(RegistrationType.NEW);
-		List<String> uinList = new ArrayList<>();
-		uinList.add("3051738163");
-		// Mockito.when(packetInfoManager.getUINByRid("1234567890987654321")).thenReturn(uinList);
-
-		MessageDTO result = stage.process(dto);
-		assertTrue(result.getInternalError());
-	}
 
 	@Test
 	public void testException() {
 		NullPointerException e = new NullPointerException("Null pointer");
-		Mockito.doThrow(e).when(printService).getDocuments(any(), anyString(), anyString(), anyBoolean());
+
 
 		MessageDTO dto = new MessageDTO();
 		dto.setRid("1234567890987654321");
@@ -459,30 +282,15 @@ public class PrintStageTest {
 		registrationStatusDto.setRegistrationId("123456789");
 
 		when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
-		doNothing().when(printPostService).generatePrintandPostal(any(), any(), any());
 
 		MessageDTO result = stage.process(dto);
 
 		assertTrue(result.getInternalError());
 	}
 
-	public void testResendPrintPdfSuccess() {
-		Mockito.when(uinValidatorImpl.validateId(any())).thenReturn(true);
-		stage.reSendPrintPdf(ctx);
-		assertTrue(responseObject);
-	}
 
-	public void testResendPrintPdfFailure() {
-		Mockito.when(uinValidatorImpl.validateId(any())).thenReturn(false);
-		stage.reSendPrintPdf(ctx);
-		assertTrue(responseObject);
-	}
 
-	@Test
-	public void testExceptionResendPrintPdf() {
-		Mockito.when(uinValidatorImpl.validateId(any())).thenThrow(new NullPointerException());
-		stage.reSendPrintPdf(ctx);
-	}
+
 
 	private RoutingContext setContext() {
 		return new RoutingContext() {
@@ -734,7 +542,7 @@ public class PrintStageTest {
 		jsonObject.put(IdType.UIN.toString(), "12345");
 
 		when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
-		Mockito.when(packetManagerService.getMetaInfo(any(), any())).thenReturn(metaInfoMap);
+
 		Mockito.when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(fieldValue);
 
 		MessageDTO dto = new MessageDTO();
@@ -743,7 +551,7 @@ public class PrintStageTest {
 		uinList.add("3051738163");
 		dto.setReg_type(RegistrationType.RES_REPRINT);
 
-		doNothing().when(printPostService).generatePrintandPostal(any(), any(), any());
+
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getIsValid());
 	}
@@ -759,7 +567,7 @@ public class PrintStageTest {
 		Map<String, String> metaInfoMap = new HashMap<>();
 		String metaString = "[{\"vid\":\"1234\",\"cardType\":\"uin\"}]";
 		metaInfoMap.put(JsonConstant.METADATA, metaString);
-		Mockito.when(packetManagerService.getMetaInfo(any(), any())).thenReturn(metaInfoMap);
+
 		Mockito.when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(fieldValue);
 
 		MessageDTO dto = new MessageDTO();
@@ -767,24 +575,9 @@ public class PrintStageTest {
 		List<String> uinList = new ArrayList<>();
 		uinList.add("3051738163");
 		dto.setReg_type(RegistrationType.RES_REPRINT);
-		doNothing().when(printPostService).generatePrintandPostal(any(), any(), any());
+
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getIsValid());
 	}
-	@Test
-	public void testPDFSignatureException() {
 
-		PDFSignatureException e = new PDFSignatureException(null, null);
-		Mockito.doThrow(e).when(printService).getDocuments(any(), anyString(), anyString(), anyBoolean());
-
-		MessageDTO dto = new MessageDTO();
-		dto.setRid("1234567890987654321");
-		dto.setReg_type(RegistrationType.NEW);
-		List<String> uinList = new ArrayList<>();
-		uinList.add("3051738163");
-		// Mockito.when(packetInfoManager.getUINByRid("1234567890987654321")).thenReturn(uinList);
-		doNothing().when(printPostService).generatePrintandPostal(any(), any(), any());
-		MessageDTO result = stage.process(dto);
-		assertTrue(result.getInternalError());
-	}
 }

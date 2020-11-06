@@ -79,8 +79,8 @@ public enum PlatformSuccessMessages {
 
 	RPR_QUALITY_CHECK_SUCCESS(PlatformConstants.RPR_QUALITY_CHECKER_MODULE + "000", "Quality check  Success"),
 
-	RPR_PRINT_STAGE_SENT_QUEUE_SUCCESS(PlatformConstants.RPR_PRINTING_MODULE + "000",
-			"Pdf added to the mosip queue for printing"),
+	RPR_PRINT_STAGE_REQUEST_SUCCESS(PlatformConstants.RPR_PRINTING_MODULE + "000",
+			"Print request submitted"),
 
 	RPR_PRINT_STAGE_SUCCESS(PlatformConstants.RPR_PRINTING_MODULE + "001", "Print and Post Completed"),
 

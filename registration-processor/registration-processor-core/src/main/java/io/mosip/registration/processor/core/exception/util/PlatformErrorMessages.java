@@ -929,6 +929,11 @@ public enum PlatformErrorMessages {
 
 	RPR_PRT_PDF_SIGNATURE_EXCEPTION(PlatformConstants.RPR_PRINTING_MODULE + "024", "PDF Signature error"),
 	
+	RPR_PRT_PRINT_REQUEST_FAILED(PlatformConstants.RPR_PRINTING_MODULE + "025", "Print request failed"),
+
+	RPR_PRT_API_RESOUCE_ACCESS_FAILED(PlatformConstants.RPR_PRINTING_MODULE + "026",
+			"Unable to Access API Resource"),
+
 	/** The rpr rgs registration connector not accessible. */
 	RPR_RGS_REGISTRATION_CONNECTOR_NOT_ACCESSIBLE("", "Registration connector stage is not accessible "),
 
