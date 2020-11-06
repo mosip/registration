@@ -225,27 +225,31 @@ public class FXUtils {
 		field.textProperty().addListener((obsValue, oldValue, newValue) -> {
 			showLabel(parentPane, field);
 			if (isInputTextValid(parentPane, field, field.getId().concat(RegistrationConstants.ON_TYPE), validation)) {
-				field.getStyleClass().removeIf((s) -> {
-					return s.equals("demoGraphicTextField");
-				});
-				field.getStyleClass().add("demoGraphicTextFieldOnType");
-				if (field.isFocused()) {
-					Label fieldLabel = (Label) parentPane.lookup("#" + field.getId() + "Label");
-					fieldLabel.getStyleClass().add("demoGraphicFieldLabelOnType");
-					fieldLabel.getStyleClass().remove("demoGraphicFieldLabel");
-
-					if (field.getId().equals("ageField")) {
-						((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA))
-								.setAgeCalculatedByDOB(false);
-					}
-				}
-				hideErrorMessageLabel(parentPane, field);
+				setTextValidLabel(parentPane, field);
 			} else {
 				if (!field.getText().equals(RegistrationConstants.EMPTY))
 					field.setText(oldValue);
 			}
 		});
 
+	}
+
+	public void setTextValidLabel(Pane parentPane, TextField field) {
+		field.getStyleClass().removeIf((s) -> {
+			return s.equals("demoGraphicTextField");
+		});
+		field.getStyleClass().add("demoGraphicTextFieldOnType");
+		if (field.isFocused()) {
+			Label fieldLabel = (Label) parentPane.lookup("#" + field.getId() + "Label");
+			fieldLabel.getStyleClass().add("demoGraphicFieldLabelOnType");
+			fieldLabel.getStyleClass().remove("demoGraphicFieldLabel");
+
+			if (field.getId().equals("ageField")) {
+				((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA))
+						.setAgeCalculatedByDOB(false);
+			}
+		}
+		hideErrorMessageLabel(parentPane, field);
 	}
 
 	/**
@@ -301,11 +305,7 @@ public class FXUtils {
 						}
 					}
 				} else {
-					field.getStyleClass().removeIf((s) -> {
-						return s.equals("demoGraphicTextFieldOnType");
-					});
-					field.getStyleClass().add("demoGraphicTextFieldFocused");
-					toggleUIField(parentPane, field.getId() + RegistrationConstants.MESSAGE, true);
+					showErrorLabel(field,parentPane);
 				}
 
 				Label fieldLabel = (Label) parentPane.lookup("#" + field.getId() + "Label");
@@ -316,6 +316,14 @@ public class FXUtils {
 			}
 		});
 
+	}
+
+	public void showErrorLabel(TextField field, Pane parentPane) {
+		field.getStyleClass().removeIf((s) -> {
+			return s.equals("demoGraphicTextFieldOnType");
+		});
+		field.getStyleClass().add("demoGraphicTextFieldFocused");
+		toggleUIField(parentPane, field.getId() + RegistrationConstants.MESSAGE, true);
 	}
 
 	public void focusedAction(Pane parentPane, TextField field) {
@@ -495,7 +503,7 @@ public class FXUtils {
 	 * @param field      the {@link TextField} whose {@link Label} has to be removed
 	 *                   or hidden
 	 */
-	private void hideErrorMessageLabel(Pane parentPane, TextField field) {
+	public void hideErrorMessageLabel(Pane parentPane, TextField field) {
 		if (field.getId().matches("ageField|dd|mm|yyyy|ddLocalLanguage|mmLocalLanguage|yyyyLocalLanguage")) {
 			toggleUIField(parentPane, RegistrationConstants.DOB_MESSAGE, false);
 		} else {
@@ -731,5 +739,4 @@ public class FXUtils {
 				.equals(ApplicationContext.getInstance().getLocalLanguage());
 	}
 
-	
 }
