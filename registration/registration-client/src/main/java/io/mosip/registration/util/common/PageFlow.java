@@ -72,9 +72,12 @@ public class PageFlow {
 		registrationMap.put(RegistrationConstants.DEMOGRAPHIC_DETAIL, demographicMap);
 
 		String docType = "documentType";
-		List<UiSchemaDTO> docList = validations.getValidationMap().values().stream()
-				.filter(schemaDto -> schemaDto.getType() != null && schemaDto.getType().equalsIgnoreCase(docType))
-				.collect(Collectors.toList());
+		List<UiSchemaDTO> docList = null;
+		if(validations != null && validations.getValidationMap() != null && !validations.getValidationMap().isEmpty()) {
+			docList = validations.getValidationMap().values().stream()
+					.filter(schemaDto -> schemaDto.getType() != null && schemaDto.getType().equalsIgnoreCase(docType))
+					.collect(Collectors.toList());
+		}
 
 		Map<String, Boolean> docMap = new LinkedHashMap<>();
 		docMap.put(RegistrationConstants.VISIBILITY, docList != null && !docList.isEmpty());
