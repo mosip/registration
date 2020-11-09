@@ -32,7 +32,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.kernel.auditmanager.entity.Audit;
-import io.mosip.kernel.cbeffutil.impl.CbeffImpl;
 import io.mosip.registration.audit.AuditManagerSerivceImpl;
 import io.mosip.registration.constants.AuditEvent;
 import io.mosip.registration.constants.Components;
@@ -82,8 +81,7 @@ public class PacketCreationServiceTest {
 	private AuditManagerSerivceImpl auditFactory;
 	@Mock
 	private AuditDAO auditDAO;
-	@Mock
-	private CbeffImpl cbeffI;
+
 	@Mock
 	private RegIdObjectValidator idObjectValidator;
 	@Mock
@@ -161,7 +159,7 @@ public class PacketCreationServiceTest {
 		
 		when(zipCreationService.createPacket(Mockito.any(RegistrationDTO.class), Mockito.anyMap()))
 				.thenReturn("zip".getBytes());
-		when(cbeffI.createXML(Mockito.anyList(), Mockito.any(byte[].class))).thenReturn("cbeffXML".getBytes());
+		//when(cbeffI.createXML(Mockito.anyList(), Mockito.any(byte[].class))).thenReturn("cbeffXML".getBytes());
 		/*Mockito.doAnswer((idObject) -> {
 			return "Success";
 		}).when(idObjectValidator).validateIdObject(Mockito.any(), Mockito.any());*/
@@ -188,8 +186,8 @@ public class PacketCreationServiceTest {
 	public void testCBEFFException() throws Exception {
 		when(zipCreationService.createPacket(Mockito.any(RegistrationDTO.class), Mockito.anyMap()))
 				.thenReturn("zip".getBytes());
-		when(cbeffI.createXML(Mockito.anyList(), Mockito.anyString().getBytes()))
-				.thenThrow(new Exception("Invalid BIR"));
+		//when(cbeffI.createXML(Mockito.anyList(), Mockito.anyString().getBytes()))
+		//		.thenThrow(new Exception("Invalid BIR"));
 		/*Mockito.doAnswer((idObject) -> {
 			return "Success";
 		}).when(idObjectValidator).validateIdObject(Mockito.any(), Mockito.any());*/
@@ -223,7 +221,7 @@ public class PacketCreationServiceTest {
 
 		when(zipCreationService.createPacket(Mockito.any(RegistrationDTO.class), Mockito.anyMap()))
 				.thenReturn("zip".getBytes());
-		when(cbeffI.createXML(Mockito.anyList(), Mockito.any(byte[].class))).thenReturn("cbeffXML".getBytes());
+		//when(cbeffI.createXML(Mockito.anyList(), Mockito.any(byte[].class))).thenReturn("cbeffXML".getBytes());
 		/*Mockito.doAnswer((idObject) -> {
 			return "Success";
 		}).when(idObjectValidator).validateIdObject(Mockito.any(), Mockito.any());*/
@@ -254,7 +252,7 @@ public class PacketCreationServiceTest {
 
 		when(zipCreationService.createPacket(Mockito.any(RegistrationDTO.class), Mockito.anyMap()))
 				.thenReturn("zip".getBytes());
-		when(cbeffI.createXML(Mockito.anyList(), Mockito.any(byte[].class))).thenReturn("cbeffXML".getBytes());
+		//when(cbeffI.createXML(Mockito.anyList(), Mockito.any(byte[].class))).thenReturn("cbeffXML".getBytes());
 		/*Mockito.doAnswer((idObject) -> {
 			return "Success";
 		}).when(idObjectValidator).validateIdObject(Mockito.any(), Mockito.any());*/

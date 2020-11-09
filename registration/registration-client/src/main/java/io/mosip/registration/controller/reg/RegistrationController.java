@@ -2,18 +2,11 @@ package io.mosip.registration.controller.reg;
 
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.openimaj.image.FImage;
-import org.openimaj.image.ImageUtilities;
-import org.openimaj.image.processing.face.detection.CLMDetectedFace;
-import org.openimaj.image.processing.face.detection.CLMFaceDetector;
-import org.openimaj.image.processing.face.detection.DetectedFace;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
@@ -170,25 +163,17 @@ public class RegistrationController extends BaseController {
 	 *            the image that is captured as applicant photograph
 	 * @return BufferedImage the face that is detected from the applicant photograph
 	 */
-	public BufferedImage detectApplicantFace(BufferedImage applicantImage) {
-		BufferedImage detectedFace = null;
-		CLMFaceDetector detector = new CLMFaceDetector();
-		List<CLMDetectedFace> faces = null;
-		faces = detector.detectFaces(ImageUtilities.createFImage(applicantImage));
-		if (!faces.isEmpty()) {
-			if (faces.size() > 1) {
-				return null;
-			} else {
-				Iterator<CLMDetectedFace> dfi = faces.iterator();
-				while (dfi.hasNext()) {
-					DetectedFace face = dfi.next();
-					FImage image1 = face.getFacePatch();
-					detectedFace = ImageUtilities.createBufferedImage(image1);
-				}
-			}
-		}
-		return detectedFace;
-	}
+	/*
+	 * public BufferedImage detectApplicantFace(BufferedImage applicantImage) {
+	 * BufferedImage detectedFace = null; CLMFaceDetector detector = new
+	 * CLMFaceDetector(); List<CLMDetectedFace> faces = null; faces =
+	 * detector.detectFaces(ImageUtilities.createFImage(applicantImage)); if
+	 * (!faces.isEmpty()) { if (faces.size() > 1) { return null; } else {
+	 * Iterator<CLMDetectedFace> dfi = faces.iterator(); while (dfi.hasNext()) {
+	 * DetectedFace face = dfi.next(); FImage image1 = face.getFacePatch();
+	 * detectedFace = ImageUtilities.createBufferedImage(image1); } } } return
+	 * detectedFace; }
+	 */
 
 	/**
 	 * To compress the detected face from the image of applicant and store it in DTO

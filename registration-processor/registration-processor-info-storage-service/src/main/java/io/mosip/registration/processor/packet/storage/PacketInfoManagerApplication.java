@@ -6,7 +6,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.FilterType;
 
-import io.mosip.registration.processor.core.config.CoreConfigBean;
 import io.mosip.registration.processor.core.kernel.beans.KernelConfig;
 import io.mosip.registration.processor.packet.storage.config.PacketStorageBeanConfig;
 import io.mosip.registration.processor.rest.client.config.RestConfigBean;

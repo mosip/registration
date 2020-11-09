@@ -13,6 +13,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
+import io.mosip.kernel.core.util.CryptoUtil;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -246,7 +248,9 @@ public class ClientSettingSyncHelper {
 	
 	@Autowired
 	private DynamicFieldRepository dynamicFieldRepository;
-	
+
+	@Autowired
+	private ClientCryptoFacade clientCryptoFacade;
 		
 	private static final Map<String, String> ENTITY_CLASS_NAMES = new HashMap<String, String>();
 	
@@ -308,11 +312,12 @@ public class ClientSettingSyncHelper {
 			if(syncDataBaseDto == null || syncDataBaseDto.getData() == null || syncDataBaseDto.getData().isEmpty())
 				return entities;
 			
-			for(String jsonString : syncDataBaseDto.getData()) {
-				if(jsonString == null)
+			for(String encodedCipher : syncDataBaseDto.getData()) {
+				if(encodedCipher == null)
 					continue;
-				
-				JSONObject jsonObject = new JSONObject(jsonString);				
+
+				byte[] data = clientCryptoFacade.decrypt(CryptoUtil.decodeBase64(encodedCipher));
+				JSONObject jsonObject = new JSONObject(new String(data));
 				Object entity = MetaDataUtils.setCreateJSONObjectToMetaData(jsonObject, getEntityClass(syncDataBaseDto.getEntityName()));
 				entities.add(entity);
 			}

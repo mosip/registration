@@ -77,6 +77,16 @@ public class InternalRegistrationStatusDto implements Serializable {
 	/** the subStatusCode */
 	private String subStatusCode;
 
+	public String getRefId() {
+		return refId;
+	}
+
+	public void setRefId(String refId) {
+		this.refId = refId;
+	}
+
+	private String refId;
+
 	/**
 	 * Instantiates a new registration status dto.
 	 */
