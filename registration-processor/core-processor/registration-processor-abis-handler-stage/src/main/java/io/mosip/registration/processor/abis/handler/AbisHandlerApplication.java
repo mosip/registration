@@ -3,6 +3,7 @@ package io.mosip.registration.processor.abis.handler;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import io.mosip.registration.processor.abis.handler.stage.AbisHandlerStage;
+import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 
 /**
  * The Class AbisHandlerApplication.
@@ -23,5 +24,6 @@ public class AbisHandlerApplication {
         ctx.refresh();
         AbisHandlerStage handlerStage = ctx.getBean(AbisHandlerStage.class);
         handlerStage.deployVerticle();
+      
     }
 }

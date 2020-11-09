@@ -39,19 +39,31 @@ public class AbisHandlerStageConstant {
 
 	/** The Constant BIOGRAPHIC_VERIFICATION. */
 	public static final String BIOGRAPHIC_VERIFICATION = "BIOGRAPHIC_VERIFICATION";
-	
+
 	/** The Constant DETAILS_NOT_FOUND. */
 	public static final String DETAILS_NOT_FOUND = "Abis Queue details not found";
-	
+
 	/** The Constant ABIS_HANDLER_SUCCESS. */
 	public static final String ABIS_HANDLER_SUCCESS = "Abis Handler Success";
-	
+
 	/** The Constant ERROR_IN_ABIS_HANDLER. */
 	public static final String ERROR_IN_ABIS_HANDLER = "Internal Error occured in Abis Handler";
-	
+
 	/** The Constant ERROR_IN_ABIS_HANDLER_IDENTIFY_REQUEST. */
-	public static final String ERROR_IN_ABIS_HANDLER_IDENTIFY_REQUEST =  "Internal Error occured in Abis Handler identify request";
-	
+	public static final String ERROR_IN_ABIS_HANDLER_IDENTIFY_REQUEST = "Internal Error occured in Abis Handler identify request";
+
 	/** The Constant NO_RECORD_FOUND. */
-	public static final String NO_RECORD_FOUND ="Potential Match Records are Not Found for Demo Dedupe Potential Match";
+	public static final String NO_RECORD_FOUND = "Potential Match Records are Not Found for Demo Dedupe Potential Match";
+
+	/** The constant POLICY_ID */
+	public static final String POLICY_ID = "policyId";
+
+	/** The constant POLICIES */
+
+	public static final String POLICIES = "policies";
+
+	/** The constant SHAREABLE_ATTRIBUTES */
+
+	public static final String SHAREABLE_ATTRIBUTES = "shareableAttributes";
+
 }

@@ -1,5 +1,30 @@
 package io.mosip.registration.processor.abis.handler.stage;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -8,6 +33,9 @@ import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.abis.handler.constant.AbisHandlerStageConstant;
 import io.mosip.registration.processor.abis.handler.dto.DataShareResponseDto;
+import io.mosip.registration.processor.abis.handler.dto.Filter;
+import io.mosip.registration.processor.abis.handler.dto.ShareableAttributes;
+import io.mosip.registration.processor.abis.handler.dto.Source;
 import io.mosip.registration.processor.abis.handler.exception.AbisHandlerException;
 import io.mosip.registration.processor.abis.handler.exception.DataShareException;
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
@@ -25,8 +53,10 @@ import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
+import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Identity;
@@ -51,21 +81,6 @@ import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequest
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * The Class AbisHandlerStage.
@@ -504,11 +519,20 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	}
 
 	private String getDataShareUrl(String id, String process) throws Exception {
+		Map<String,List<String>> typeAndSubtypMap=createTypeSubtypeMapping();
+		List<String> modalities=new ArrayList<>();
+		for(Map.Entry<String,List<String>> entry:typeAndSubtypMap.entrySet()) {
+			if(entry.getValue()==null) {
+				modalities.add(entry.getKey());
+			} else {
+				modalities.addAll(entry.getValue());
+			}
+		}
 		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 		String individualBiometricsLabel = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 				MappingJsonConstants.VALUE);
-		BiometricRecord biometricRecord = packetManagerService.getBiometrics(id, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, null, process);
+		BiometricRecord biometricRecord = packetManagerService.getBiometrics(id, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, modalities, process);
 		byte[] content = cbeffutil.createXML(BIRConverter.convertSegmentsToBIRList(biometricRecord.getSegments()));
 
 		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
@@ -532,5 +556,36 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 			throw new DataShareException(response == null ? "Datashare response is null" : response.getErrors().get(0).getMessage());
 
 		return response.getDataShare().getUrl();
+	}
+	public Map<String, List<String>> createTypeSubtypeMapping() throws ApisResourceAccessException, DataShareException, JsonParseException, JsonMappingException, com.fasterxml.jackson.core.JsonProcessingException, IOException{
+		Map<String, List<String>> typeAndSubTypeMap = new HashMap<>();
+		ResponseWrapper<?> policyResponse = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(
+				ApiName.PMS, Lists.newArrayList(subscriberId, AbisHandlerStageConstant.POLICY_ID, policyId), "", "", ResponseWrapper.class);
+		if (policyResponse.getErrors().isEmpty() == false) {
+			throw new DataShareException(policyResponse.getErrors().isEmpty() ? AbisHandlerStageConstant.ERROR_IN_ABIS_HANDLER_IDENTIFY_REQUEST
+					: policyResponse.getErrors().get(1).getMessage());
+		} else {
+			LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) policyResponse.getResponse();
+			LinkedHashMap<String, Object> policies = (LinkedHashMap<String, Object>) responseMap.get(AbisHandlerStageConstant.POLICIES);
+			List<?> attributes = (List<?>) policies.get(AbisHandlerStageConstant.SHAREABLE_ATTRIBUTES);
+			ObjectMapper mapper = new ObjectMapper();
+			ShareableAttributes shareableAttributes = mapper.readValue(mapper.writeValueAsString(attributes.get(0)),
+					ShareableAttributes.class);
+			for (Source source : shareableAttributes.getSource()) {
+				List<Filter> filterList = source.getFilter();
+				if (filterList != null && !filterList.isEmpty()) {
+
+					filterList.forEach(filter -> {
+						if (filter.getSubType() != null && !filter.getSubType().isEmpty()) {
+							typeAndSubTypeMap.put(filter.getType(), filter.getSubType());
+						} else {
+							typeAndSubTypeMap.put(filter.getType(), null);
+						}
+					});
+				}
+			}
+		}
+		return typeAndSubTypeMap;
+		
 	}
 }
