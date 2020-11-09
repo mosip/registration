@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
@@ -97,6 +99,9 @@ public class PacketValidateProcessor {
 
 	@Autowired
 	private Utilities utility;
+
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	/**
 	 * The Constant USER.
@@ -463,8 +468,9 @@ public class PacketValidateProcessor {
 			for (int i = 0; i < jsonArray.length(); i++) {
 				if (!jsonArray.isNull(i)) {
 					JSONObject jsonObject = (JSONObject) jsonArray.get(i);
-					if (!jsonObject.isNull(JsonConstant.PREREGISTRATIONID)) {
-						preRegId = jsonObject.get(JsonConstant.PREREGISTRATIONID).toString();
+					FieldValue fieldValue = objectMapper.readValue(jsonObject.toString(), FieldValue.class);
+					if (fieldValue.getLabel().equalsIgnoreCase(JsonConstant.PREREGISTRATIONID)) {
+						preRegId = fieldValue.getValue();
 						break;
 					}
 
