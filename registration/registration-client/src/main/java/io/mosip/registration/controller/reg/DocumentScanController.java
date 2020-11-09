@@ -671,26 +671,50 @@ public class DocumentScanController extends BaseController {
 	/**
 	 * This method is to scan from the scanner
 	 */
-	private void scanFromScanner() throws IOException {
+	private void scanFromScanner() throws IOException {		
+		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "Scanning from scanner");
+
+		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "Setting scanner factory");
 
 		/* setting the scanner factory */
 		if (!documentScanFacade.setScannerFactory()) {
+			LOGGER.error(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "Setting scanner factory failed");
+			
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOCUMENT_CONNECTION_ERR);
 			return;
 		}
 		if (selectedScanDeviceName == null || selectedScanDeviceName.isEmpty()) {
+			LOGGER.error(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "Selected device name was empty");
+			
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOCUMENT_CONNECTION_ERR);
 			return;
 		}
 
+		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "Setting scan message name visible");
+		
 		scanPopUpViewController.getScanningMsg().setVisible(true);
 
 		byte[] byteArray;
 		BufferedImage bufferedImage;
+		
+		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "checking for POE value");
 
 		if (selectedComboBox.getValue().getCode()
-				.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE))) {
+				.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE))) {			
+			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "capturing POE document using native library webcam");
+			
 			bufferedImage = webcamSarxosServiceImpl.captureImage(webcam);
+			
+			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "closing web cam");
+			
 			webcamSarxosServiceImpl.close(webcam);
 			scanPopUpViewController.setDefaultImageGridPaneVisibility();
 		} else {
@@ -698,6 +722,9 @@ public class DocumentScanController extends BaseController {
 		}
 
 		if (bufferedImage == null) {
+			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "captured buffered image was null");
+			
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOCUMENT_ERROR);
 			return;
 		}
@@ -705,6 +732,9 @@ public class DocumentScanController extends BaseController {
 			scannedPages = new ArrayList<>();
 		}
 		scannedPages.add(bufferedImage);
+		
+		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "converting image bytes from buffered image");
 
 		byteArray = documentScanFacade.getImageBytesFromBufferedImage(bufferedImage);
 		/* show the scanned page in the preview */
@@ -788,10 +818,18 @@ public class DocumentScanController extends BaseController {
 				RegistrationConstants.APPLICATION_ID, "Set DocumentDetailsDTO to RegistrationDTO");
 		addDocumentsToScreen(documentDto.getValue(), documentDto.getFormat(), vboxElement);
 
+		selectedComboBox.getValue().setScanned(true);
+
+		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "Validating document screen");
+		
 		validateDocumentsPane();
 
 		generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.SCAN_DOC_SUCCESS);
 
+		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "Adding document to session");
+		
 		getRegistrationDTOFromSession().addDocument(selectedComboBox.getId(), documentDto);
 	}
 

@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
@@ -21,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
-import io.mosip.kernel.core.exception.BaseCheckedException;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.JsonUtils;
@@ -40,7 +41,7 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode
 import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketValidatorException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
@@ -59,7 +60,6 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
 import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
@@ -99,6 +99,9 @@ public class PacketValidateProcessor {
 
 	@Autowired
 	private Utilities utility;
+
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	/**
 	 * The Constant USER.
@@ -168,7 +171,9 @@ public class PacketValidateProcessor {
 
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 		try {
-
+			registrationStatusDto
+					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
+			registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
 			object.setMessageBusAddress(MessageBusAddress.PACKET_VALIDATOR_BUS_IN);
 			object.setIsValid(Boolean.FALSE);
 			object.setInternalError(Boolean.FALSE);
@@ -463,8 +468,9 @@ public class PacketValidateProcessor {
 			for (int i = 0; i < jsonArray.length(); i++) {
 				if (!jsonArray.isNull(i)) {
 					JSONObject jsonObject = (JSONObject) jsonArray.get(i);
-					if (!jsonObject.isNull(JsonConstant.PREREGISTRATIONID)) {
-						preRegId = jsonObject.get(JsonConstant.PREREGISTRATIONID).toString();
+					FieldValue fieldValue = objectMapper.readValue(jsonObject.toString(), FieldValue.class);
+					if (fieldValue.getLabel().equalsIgnoreCase(JsonConstant.PREREGISTRATIONID)) {
+						preRegId = fieldValue.getValue();
 						break;
 					}
 

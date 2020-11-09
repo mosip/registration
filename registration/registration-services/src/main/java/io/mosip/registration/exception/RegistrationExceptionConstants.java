@@ -89,6 +89,7 @@ public enum RegistrationExceptionConstants {
 	REG_ID_JSON_FIELD_ACCESS_ERROR("REG-JSC-002","Exception while accessing fields in DemographicDTO for ID JSON conversion"),
 	REG_IRIS_SCANNING_ERROR(RegistrationConstants.USER_REG_IRIS_CAPTURE_EXP_CODE + "IFC-003", "Exception while scanning iris of the individual"),
 	REG_FINGERPRINT_SCANNING_ERROR(RegistrationConstants.USER_REG_FINGERPRINT_CAPTURE_EXP_CODE+"FCS-002", "Exception while scanning fingerprints of the individual"),
+	REG_BIOMETRIC_QUALITY_CHECK_ERROR("REG-BQC-001", "Exception while evaluating the biometrics quality with SDK"),
 	REG_OTP_VALIDATION("REG-OV-001","Erroe while validating the otp"),
 	REG_PACKET_DATE_PARSER_CODE(PACKET_CREATION_EXP_CODE + "TGE-001", "Exception while parsing the date to display in acknowledgement receipt"),
 	REG_PACKET_JSON_VALIDATOR_ERROR_CODE(PACKET_CREATION_EXP_CODE + "PCS-003", "Exception while validating ID json file"),

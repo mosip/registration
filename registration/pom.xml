@@ -54,7 +54,7 @@
 		<jackson.version>2.10.1</jackson.version>
 		<jackson.mapper.asl.version>1.7.1</jackson.mapper.asl.version>
 
-		<mosip.core.kernel.version>1.1.2</mosip.core.kernel.version>
+		<mosip.core.kernel.version>1.2.0-SNAPSHOT</mosip.core.kernel.version>
 		<!-- Derby Version -->
 		<apache.derby.version>10.13.1.1</apache.derby.version>
 
@@ -322,11 +322,7 @@
 				<artifactId>kernel-applicanttype-api</artifactId>
 				<version>${mosip.core.kernel.version}</version>
 			</dependency>
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-cbeffutil-api</artifactId>
-				<version>1.0.6</version>
-			</dependency>
+			
 			<!-- https://mvnrepository.com/artifact/com.github.microsoft/TSS.Java -->
 			<dependency>
 				<groupId>com.github.microsoft</groupId>

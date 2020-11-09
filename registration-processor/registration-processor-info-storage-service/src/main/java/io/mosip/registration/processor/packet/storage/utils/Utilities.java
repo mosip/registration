@@ -285,10 +285,10 @@ public class Utilities {
 				String[] values = entry.getValue().split(",");
 				String source = null;
 				for (String val : values) {
-					if (val.startsWith("PROCESS:") && val.contains(process))
+					if (val.startsWith("process:") && val.contains(process))
 						for (String sVal : values) {
-							if (sVal.startsWith("SOURCE:")) {
-								source = sVal.replace("SOURCE:", "");
+							if (sVal.startsWith("source:")) {
+								source = sVal.replace("source:", "");
 								return source;
 							}
 						}

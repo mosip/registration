@@ -1329,6 +1329,9 @@ public class RegistrationConstants {
 	public static final String OTP_CHANNELS = "mosip.registration.otp_channels";
 	public static final String AUTH_TOKEN_NOT_RECEIVED_ERROR = "No Auth Token Received";
 
+	//flag for quality check with SDK
+	public static final String QUALITY_CHECK_WITH_SDK = "mosip.registration.quality_check_with_sdk";
+	
 	// Packet Sync
 	public static final String PACKET_SYNC = "packet_sync";
 
@@ -1799,7 +1802,8 @@ public class RegistrationConstants {
 	public static final String LEFTTHUMB_IMG_PATH = "/images/exceptionmarks/leftThumb.png";
 	public static final String RIGHTEYE_IMG_PATH = "/images/exceptionmarks/lightBlueCrossMark.png";
 	public static final String LEFTEYE_IMG_PATH = "/images/exceptionmarks/lightBlueCrossMark.png";
-	
-	//UI Schema field group name
+
+	// UI Schema field group name
 	public static final String UI_SCHEMA_GROUP_FULL_NAME = "FullName";
+	public static final String MVEL_TYPE = "MVEL";
 }
