@@ -73,29 +73,10 @@
 		</dependency>
 		<dependency>
 			<groupId>io.mosip.registrationprocessor</groupId>
-			<artifactId>registration-processor-info-storage-service</artifactId>
-			<version>${packet.info.storage.service.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.registrationprocessor</groupId>
 			<artifactId>registration-processor-rest-client</artifactId>
 			<version>${registration.processor.rest.client.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>io.mosip.registrationprocessor</groupId>
-			<artifactId>registration-processor-message-sender-impl</artifactId>
-			<version>${registration.processor.message.sender.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.registrationprocessor</groupId>
-			<artifactId>registration-processor-print-service-impl</artifactId>
-			<version>${registration.processor.print.service.impl.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-idvalidator-uin</artifactId>
-			<version>${kernel.idvalidator.uin.version}</version>
-		</dependency>
+	
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -112,11 +93,6 @@
 			<artifactId>powermock-api-mockito2</artifactId>
 			<version>${powermock.api.mockito.version}</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>io.mosip.registrationprocessor</groupId>
-			<artifactId>registration-processor-packet-manager</artifactId>
-			<version>${packet.manager.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.micrometer</groupId>
