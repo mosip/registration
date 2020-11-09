@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.stages.packet.validator;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.util.HMACUtils;
 import io.mosip.kernel.core.util.JsonUtils;
@@ -97,7 +98,10 @@ public class PacketValidateProcessorTest {
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
 	@Mock
-	AuditLogRequestBuilder auditLogRequestBuilder;
+	private AuditLogRequestBuilder auditLogRequestBuilder;
+
+	@Mock
+	private ObjectMapper objectMapper;
 
 	
 	@Mock
@@ -245,6 +249,8 @@ public class PacketValidateProcessorTest {
 		jsonArray.put(0, jsonObject1);
 		metamap.put(JsonConstant.METADATA, jsonArray.toString());
 		Mockito.when(packetManagerService.getMetaInfo(anyString(), any())).thenReturn(metamap);
+
+		Mockito.when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(new FieldValue("preRegistrationId", "12345"));
 
 
 	}
