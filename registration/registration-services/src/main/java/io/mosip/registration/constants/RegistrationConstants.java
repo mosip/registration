@@ -1329,6 +1329,9 @@ public class RegistrationConstants {
 	public static final String OTP_CHANNELS = "mosip.registration.otp_channels";
 	public static final String AUTH_TOKEN_NOT_RECEIVED_ERROR = "No Auth Token Received";
 
+	//flag for quality check with SDK
+	public static final String QUALITY_CHECK_WITH_SDK = "mosip.registration.quality_check_with_sdk";
+	
 	// Packet Sync
 	public static final String PACKET_SYNC = "packet_sync";
 
