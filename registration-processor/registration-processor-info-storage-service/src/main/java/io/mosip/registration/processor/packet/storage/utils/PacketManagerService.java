@@ -203,7 +203,7 @@ public class PacketManagerService {
         return response;
     }
 
-    public BiometricRecord getBiometrics(String id, String person, List<BiometricType> modalities, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+    public BiometricRecord getBiometrics(String id, String person, List<String> modalities, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
 
         JSONObject regProcessorIdentityJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
         String personField = JsonUtil.getJSONValue(

@@ -520,11 +520,12 @@ public class ClientSettingSyncHelper {
 				SyncDataBaseDto syncDataBaseDto = iterator.next();
 				
 				if(syncDataBaseDto != null && syncDataBaseDto.getData() != null) {
-					for(String jsonString : syncDataBaseDto.getData()) {
-						if(jsonString == null)
+					for(String encodedCipher : syncDataBaseDto.getData()) {
+						if(encodedCipher == null)
 							continue;
 						
-						DynamicFieldDto dynamicFieldDto = MapperUtils.convertJSONStringToDto(jsonString, 
+						byte[] data = clientCryptoFacade.decrypt(CryptoUtil.decodeBase64(encodedCipher));
+						DynamicFieldDto dynamicFieldDto = MapperUtils.convertJSONStringToDto(new String(data), 
 								new TypeReference<DynamicFieldDto>() {});
 							
 						DynamicField dynamicField = new DynamicField();
