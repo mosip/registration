@@ -449,11 +449,10 @@ public class AuthenticationController extends BaseController implements Initiali
 					generateAlert(RegistrationConstants.ALERT_INFORMATION,
 							RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
 
+					loadNextScreen();
 					if (fingerPrintScanButton != null) {
 						fingerPrintScanButton.setDisable(true);
 //						
-					} else {
-						loadNextScreen();
 					}
 				} else {
 					if (operatorAuthContinue != null) {
@@ -557,11 +556,10 @@ public class AuthenticationController extends BaseController implements Initiali
 					}
 					if (irisScanButton != null) {
 						irisScanButton.setDisable(true);
-					} else {
-						loadNextScreen();
 					}
 					generateAlert(RegistrationConstants.ALERT_INFORMATION,
 							RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
+					loadNextScreen();
 				} else {
 
 					if (operatorAuthContinue != null) {
@@ -688,11 +686,10 @@ public class AuthenticationController extends BaseController implements Initiali
 					}
 					if (faceScanButton != null) {
 						faceScanButton.setDisable(true);
-					} else {
-						loadNextScreen();
 					}
 					generateAlert(RegistrationConstants.ALERT_INFORMATION,
 							RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
+					loadNextScreen();
 
 				} else {
 					if (operatorAuthContinue != null) {
