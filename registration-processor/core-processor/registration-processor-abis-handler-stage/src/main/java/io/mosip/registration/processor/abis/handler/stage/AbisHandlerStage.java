@@ -561,7 +561,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 		Map<String, List<String>> typeAndSubTypeMap = new HashMap<>();
 		ResponseWrapper<?> policyResponse = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(
 				ApiName.PMS, Lists.newArrayList(subscriberId, AbisHandlerStageConstant.POLICY_ID, policyId), "", "", ResponseWrapper.class);
-		if (policyResponse.getErrors().isEmpty() == false) {
+		if (!policyResponse.getErrors().isEmpty() || policyResponse==null || policyResponse.getErrors()==null) {
 			throw new DataShareException(policyResponse.getErrors().isEmpty() ? AbisHandlerStageConstant.ERROR_IN_ABIS_HANDLER_IDENTIFY_REQUEST
 					: policyResponse.getErrors().get(1).getMessage());
 		} else {
