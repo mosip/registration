@@ -8,11 +8,13 @@ import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
+import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.registration.dao.MachineMappingDAO;
+import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
+import org.jose4j.jws.JsonWebSignature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -75,6 +77,8 @@ public class ServiceDelegateUtil {
 
 	private String mosipHostNamePlaceHolder = "${mosip.hostname}";
 	private static final Logger LOGGER = AppConfig.getLogger(ServiceDelegateUtil.class);
+
+
 
 	/**
 	 * Prepare GET request.
@@ -326,8 +330,6 @@ public class ServiceDelegateUtil {
 	 *            service to be invoked
 	 * @param requestParams
 	 *            params need to add along with url
-	 * @param authHeader
-	 *            the auth header
 	 * @return RequestHTTPDTO requestHTTPDTO with required data
 	 * @throws RegBaseCheckedException
 	 *             the reg base checked exception
@@ -366,8 +368,6 @@ public class ServiceDelegateUtil {
 	 *            service to be invoked
 	 * @param object
 	 *            request type
-	 * @param authHeader
-	 *            the auth header
 	 * @return RequestHTTPDTO requestHTTPDTO with required data
 	 * @throws RegBaseCheckedException
 	 *             the reg base checked exception
@@ -510,7 +510,7 @@ public class ServiceDelegateUtil {
 
 	private AuthNRequestDTO prepareAuthNRequestDTO(LoginMode loginMode) {
 		LOGGER.info(LoggerConstants.LOG_SERVICE_DELEGATE_AUTH_DTO, APPLICATION_NAME, APPLICATION_ID,
-				"Preparing AuthNRequestDTO Based on Login Mode");
+				"Preparing AuthNRequestDTO Based on Login Mode >>>> " + loginMode);
 
 		AuthNRequestDTO authNRequestDTO = new AuthNRequestDTO();
 		LoginUserDTO loginUserDTO = (LoginUserDTO) ApplicationContext.map().get(RegistrationConstants.USER_DTO);
@@ -532,7 +532,7 @@ public class ServiceDelegateUtil {
 			authNUserOTPDTO.setOtp(loginUserDTO.getOtp());
 			authNRequestDTO.setRequest(authNUserOTPDTO);
 			break;
-		default:
+		/*default:
 			AuthNClientIDDTO authNClientIDDTO = new AuthNClientIDDTO();
 			authNClientIDDTO
 					.setAppId(String.valueOf(ApplicationContext.map().get(RegistrationConstants.REGISTRATION_CLIENT)));
@@ -541,11 +541,11 @@ public class ServiceDelegateUtil {
 			authNClientIDDTO
 					.setSecretKey(String.valueOf(ApplicationContext.map().get(RegistrationConstants.MOSIP_SECRET_KEY)));
 			authNRequestDTO.setRequest(authNClientIDDTO);
-			break;
+			break;*/
 		}
 
 		LOGGER.info(LoggerConstants.LOG_SERVICE_DELEGATE_AUTH_DTO, APPLICATION_NAME, APPLICATION_ID,
-				"Completed preparing AuthNRequestDTO Based on Login Mode");
+				"Completed preparing AuthNRequestDTO Based on Login Mode >>> " + loginMode);
 
 		return authNRequestDTO;
 	}
@@ -743,16 +743,15 @@ public class ServiceDelegateUtil {
 				" invalidate auth token method calling ends");
 	}
 
+
 	/**
 	 * Create a {@link RequestHTTPDTO} for a web-service. Add Cookie to the request
-	 * header and URL to request
-	 *
+	 * 	  header and URL to request
 	 * @param cookie
-	 *            the cookie
-	 * @param requestHTTPDTO
-	 *            the request HTTPDTO
+	 * @param requestURL
+	 * @param httpMethod
+	 * @return
 	 * @throws URISyntaxException
-	 *             if requestURL is invalid
 	 */
 	private RequestHTTPDTO buildRequestHTTPDTO(String cookie, String requestURL, HttpMethod httpMethod)
 			throws URISyntaxException {

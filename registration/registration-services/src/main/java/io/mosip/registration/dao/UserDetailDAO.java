@@ -88,4 +88,8 @@ public interface UserDetailDAO {
 	 */
 	List<UserBiometric> findAllActiveUsers(String bioType);
 
+	void updateAuthTokens(String userId, String authToken, String refreshToken, long tokenExpiry, long refreshTokenExpiry);
+
+	void updateUserPwd(String userId, String password);
+
 }

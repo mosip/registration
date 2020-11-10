@@ -8,6 +8,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import io.mosip.registration.constants.LoginMode;
+import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -62,6 +66,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	
 	@Autowired
 	private UserDetailDAO userDetailDAO;
+
+	@Autowired
+	private AuthTokenUtilService authTokenUtilService;
 
 	//private List<AuthenticationBaseValidator> authenticationBaseValidators;
 
@@ -137,8 +144,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		UserDTO userDTO = loginService.getUserDetail(authenticationValidatorDTO.getUserId());
 		try {
 
-			if (null != userDTO && null != userDTO.getSalt()
-					&& HMACUtils
+			if(RegistrationAppHealthCheckUtil.isNetworkAvailable())
+				authTokenUtilService.getAuthTokenAndRefreshToken(LoginMode.PASSWORD);
+
+			if (null != userDTO && null != userDTO.getSalt() && HMACUtils
 							.digestAsPlainTextWithSalt(authenticationValidatorDTO.getPassword().getBytes(),
 									CryptoUtil.decodeBase64(userDTO.getSalt()))
 							.equals(userDTO.getUserPassword().getPwd())) {
@@ -147,11 +156,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 				return RegistrationConstants.PWD_MISMATCH;
 			}
 
-		} catch (RuntimeException runtimeException) {
-
+		} catch (RuntimeException | RegBaseCheckedException runtimeException) {
 			LOGGER.info("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(runtimeException));
-
 			return RegistrationConstants.PWD_MISMATCH;
 		}
 	}
