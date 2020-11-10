@@ -316,17 +316,16 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 	 * 5. user details sync
 	 * 6. user salts sync
 	 * 
-	 * @see io.mosip.registration.service.login.LoginService#initialSync()
 	 */
 	@Override
-	public List<String> initialSync() {
+	public List<String> initialSync(String triggerPoint) {
 		LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "Started Initial sync");
 		List<String> results = new LinkedList<>();		
 		final boolean isInitialSetUp = RegistrationConstants.ENABLE.equalsIgnoreCase(getGlobalConfigValueOf(RegistrationConstants.INITIAL_SETUP));		
 		ResponseDTO responseDTO = null;
 		
 		try {			
-			responseDTO = publicKeySyncImpl.getPublicKey(RegistrationConstants.JOB_TRIGGER_POINT_USER);
+			responseDTO = publicKeySyncImpl.getPublicKey(triggerPoint);
 			validateResponse(responseDTO, PUBLIC_KEY_SYNC_STEP);
 			
 			String keyIndex = tpmPublicKeySyncService.syncTPMPublicKey();
@@ -341,12 +340,12 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 				results.add(RegistrationConstants.RESTART);
 			
 			responseDTO = isInitialSetUp ? masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
-								RegistrationConstants.JOB_TRIGGER_POINT_USER, keyIndex) : 
+					triggerPoint, keyIndex) :
 							masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
-								RegistrationConstants.JOB_TRIGGER_POINT_USER);
+									triggerPoint);
 			validateResponse(responseDTO, CLIENTSETTINGS_SYNC_STEP);
 			
-			responseDTO = userDetailService.save(RegistrationConstants.JOB_TRIGGER_POINT_USER);
+			responseDTO = userDetailService.save(triggerPoint);
 			validateResponse(responseDTO, USER_DETAIL_SYNC_STEP);
 
 			if(isInitialSetUp) {

@@ -532,16 +532,6 @@ public class ServiceDelegateUtil {
 			authNUserOTPDTO.setOtp(loginUserDTO.getOtp());
 			authNRequestDTO.setRequest(authNUserOTPDTO);
 			break;
-		/*default:
-			AuthNClientIDDTO authNClientIDDTO = new AuthNClientIDDTO();
-			authNClientIDDTO
-					.setAppId(String.valueOf(ApplicationContext.map().get(RegistrationConstants.REGISTRATION_CLIENT)));
-			authNClientIDDTO
-					.setClientId(String.valueOf(ApplicationContext.map().get(RegistrationConstants.MOSIP_CLEINT_ID)));
-			authNClientIDDTO
-					.setSecretKey(String.valueOf(ApplicationContext.map().get(RegistrationConstants.MOSIP_SECRET_KEY)));
-			authNRequestDTO.setRequest(authNClientIDDTO);
-			break;*/
 		}
 
 		LOGGER.info(LoggerConstants.LOG_SERVICE_DELEGATE_AUTH_DTO, APPLICATION_NAME, APPLICATION_ID,
@@ -550,198 +540,19 @@ public class ServiceDelegateUtil {
 		return authNRequestDTO;
 	}
 
-	@SuppressWarnings("unchecked")
-	public AuthTokenDTO getAuthToken(LoginMode loginMode, boolean haveToSaveAuthToken) throws RegBaseCheckedException {
 
-		LOGGER.info(LoggerConstants.LOG_SERVICE_DELEGATE_GET_TOKEN, APPLICATION_NAME, APPLICATION_ID,
-				"Fetching Auth Token based on Login Mode");
-
-		try {
-			Map<String, Object> responseMap = null;
-			HttpHeaders responseHeader = null;
-			RequestHTTPDTO requestHTTPDTO = new RequestHTTPDTO();
-			Map<String, String> requestParams = new HashMap<>();
-
-			// setting headers
-			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.APPLICATION_JSON);
-			AuthNRequestDTO authNRequestDTO = prepareAuthNRequestDTO(loginMode);
-			requestHTTPDTO.setClazz(Object.class);
-			requestHTTPDTO.setRequestBody(authNRequestDTO);
-			requestHTTPDTO.setHttpHeaders(headers);
-			requestHTTPDTO.setIsSignRequired(false);
-			requestHTTPDTO.setRequestSignRequired(false);
-
-			setURI(requestHTTPDTO, requestParams, getEnvironmentProperty(
-					"auth_by_".concat(loginMode.getCode().toLowerCase()), RegistrationConstants.SERVICE_URL));
-
-			requestHTTPDTO.setHttpMethod(HttpMethod.POST);
-
-			// set simple client http request
-			setTimeout(requestHTTPDTO);
-
-			responseMap = restClientUtil.invokeForToken(requestHTTPDTO);
-
-			boolean isResponseValid = isResponseValid(responseMap, RegistrationConstants.REST_RESPONSE_HEADERS);
-			if (isResponseValid) {
-				responseHeader = (HttpHeaders) responseMap.get(RegistrationConstants.REST_RESPONSE_HEADERS);
-				isResponseValid = responseHeader.containsKey(RegistrationConstants.AUTH_SET_COOKIE)
-						&& responseHeader.get(RegistrationConstants.AUTH_SET_COOKIE).get(0) != null;
-			}
-
-			if (!isResponseValid) {
-				throw new RegBaseCheckedException(RegistrationExceptionConstants.INVALID_RESPONSE_HEADER.getErrorCode(),
-						RegistrationExceptionConstants.INVALID_RESPONSE_HEADER.getErrorMessage());
-			}
-
-			LinkedHashMap<String, Object> responseBody = (LinkedHashMap<String, Object>) responseMap
-					.get(RegistrationConstants.REST_RESPONSE_BODY);
-
-			if (loginMode.equals(LoginMode.OTP) && responseBody.get("response") != null) {
-
-				LinkedHashMap<String, String> otpResponseBody = (LinkedHashMap<String, String>) responseBody
-						.get("response");
-
-				if (otpResponseBody == null
-						|| !"Validation_Successful".equalsIgnoreCase(otpResponseBody.get("message"))) {
-					throw new RegBaseCheckedException(RegistrationExceptionConstants.INVALID_OTP.getErrorCode(),
-							RegistrationExceptionConstants.INVALID_OTP.getErrorMessage());
-				}
-			}
-
-			String cookie = responseHeader.get(RegistrationConstants.AUTH_SET_COOKIE).get(0);
-			if (cookieEmpty(cookie)) {
-
-				cookie = (responseHeader.get(RegistrationConstants.AUTH_AUTHORIZATION) != null
-						&& !responseHeader.get(RegistrationConstants.AUTH_AUTHORIZATION).isEmpty())
-								? responseHeader.get(RegistrationConstants.AUTH_AUTHORIZATION).get(0)
-								: null;
-
-				if (cookieEmpty(cookie)) {
-					throw new RegBaseCheckedException(
-							RegistrationExceptionConstants.AUTH_TOKEN_COOKIE_NOT_FOUND.getErrorCode(),
-							RegistrationExceptionConstants.AUTH_TOKEN_COOKIE_NOT_FOUND.getErrorMessage());
-				} else {
-					cookie = RegistrationConstants.AUTH_AUTHORIZATION + "=" + cookie;
-				}
-			}
-
-			AuthTokenDTO authTokenDTO = new AuthTokenDTO();
-			authTokenDTO.setCookie(cookie);
-			authTokenDTO.setLoginMode(loginMode.getCode());
-
-			if (haveToSaveAuthToken) {
-				if (loginMode.equals(LoginMode.CLIENTID)) {
-					ApplicationContext.setAuthTokenDTO(authTokenDTO);
-					LOGGER.info(LoggerConstants.LOG_SERVICE_DELEGATE_GET_TOKEN, APPLICATION_NAME, APPLICATION_ID,
-							"Completed fetching Auth Token based on Client ID");
-				} else {
-					if (null != SessionContext.getInstance()) {
-						SessionContext.setAuthTokenDTO(authTokenDTO);
-						LOGGER.info(LoggerConstants.LOG_SERVICE_DELEGATE_GET_TOKEN, APPLICATION_NAME, APPLICATION_ID,
-								"Completed fetching Auth Token based on login mode ::: " + loginMode);
-					} else {
-						return authTokenDTO;
-					}
-				}
-			}
-
-			LOGGER.info(LoggerConstants.LOG_SERVICE_DELEGATE_GET_TOKEN, APPLICATION_NAME, APPLICATION_ID,
-					"Completed fetching Auth Token based on Login Mode");
-
-			return authTokenDTO;
-		} catch (HttpClientErrorException | HttpServerErrorException | ResourceAccessException
-				| IOException restException) {
-			throw new RegBaseCheckedException(RegistrationConstants.REST_OAUTH_ERROR_CODE,
-					RegistrationConstants.REST_OAUTH_ERROR_MSG, restException);
-		} catch (RuntimeException runtimeException) {
-			throw new RegBaseUncheckedException(RegistrationConstants.REST_OAUTH_ERROR_CODE,
-					RegistrationConstants.REST_OAUTH_ERROR_MSG, runtimeException);
-		}
-	}
-
-	private boolean cookieEmpty(String cookie) {
-		return cookie == null || cookie.trim().isEmpty();
-	}
 
 	private String getEnvironmentProperty(String serviceName, String serviceComponent) {
 		return environment.getProperty(serviceName.concat(RegistrationConstants.DOT).concat(serviceComponent));
 	}
 
-	public boolean isAuthTokenValid(String cookie) {
-		LOGGER.info(LoggerConstants.LOG_SERVICE_DELEGATE_VALIDATE_TOKEN, APPLICATION_NAME, APPLICATION_ID,
-				" get auth method called");
 
-		boolean isTokenValid = false;
-
-		try {
-			if (cookie != null) {
-				Map<String, Object> responseMap = null;
-
-				responseMap = restClientUtil.invokeForToken(buildRequestHTTPDTO(cookie, urlPath, HttpMethod.POST));
-
-				isTokenValid = isResponseValid(responseMap, RegistrationConstants.REST_RESPONSE_BODY);
-				if (isTokenValid) {
-					@SuppressWarnings("unchecked")
-					Map<String, Object> responseBody = (Map<String, Object>) responseMap
-							.get(RegistrationConstants.REST_RESPONSE_BODY);
-					if (responseBody != null && responseBody.get("errors") != null) {
-						isTokenValid = false;
-					}
-				}
-			}
-		} catch (URISyntaxException | HttpClientErrorException | HttpServerErrorException | ResourceAccessException
-				| SocketTimeoutException | RegBaseCheckedException restException) {
-			LOGGER.error(LoggerConstants.LOG_SERVICE_DELEGATE_VALIDATE_TOKEN, APPLICATION_NAME, APPLICATION_ID,
-					restException.getMessage() + ExceptionUtils.getStackTrace(restException));
-		} catch (RuntimeException runtimeException) {
-			LOGGER.error(LoggerConstants.LOG_SERVICE_DELEGATE_VALIDATE_TOKEN, APPLICATION_NAME, APPLICATION_ID,
-					String.format("Exception while validating AuthZ Token --> %s",
-							ExceptionUtils.getStackTrace(runtimeException)));
-		}
-
-		LOGGER.info(LoggerConstants.LOG_SERVICE_DELEGATE_VALIDATE_TOKEN, APPLICATION_NAME, APPLICATION_ID,
-				" get auth method calling ends");
-
-		return isTokenValid;
-	}
 
 	private boolean isResponseValid(Map<String, Object> responseMap, String key) {
 		return !(null == responseMap || responseMap.isEmpty() || !responseMap.containsKey(key));
 	}
 
-	/**
-	 * Invalidate token.
-	 *
-	 * @param cookie
-	 *            the cookie
-	 */
-	public void invalidateToken(String cookie) {
-		LOGGER.info(LoggerConstants.LOG_SERVICE_DELEGATE_VALIDATE_TOKEN, APPLICATION_NAME, APPLICATION_ID,
-				" invalidate auth token method calling starts");
-		try {
-			if (cookie != null) {
-				Map<String, Object> responseMap = null;
 
-				responseMap = restClientUtil
-						.invokeForToken(buildRequestHTTPDTO(cookie, invalidateUrlPath, HttpMethod.POST));
-
-				if (isResponseValid(responseMap, RegistrationConstants.REST_RESPONSE_BODY)) {
-					LOGGER.info(LoggerConstants.LOG_SERVICE_DELEGATE_VALIDATE_TOKEN, APPLICATION_NAME, APPLICATION_ID,
-							"Token invalidated successfully");
-				}
-			}
-		} catch (HttpClientErrorException | HttpServerErrorException | ResourceAccessException | SocketTimeoutException
-				| URISyntaxException | RegBaseCheckedException restException) {
-			LOGGER.error(LoggerConstants.LOG_SERVICE_DELEGATE_VALIDATE_TOKEN, APPLICATION_NAME, APPLICATION_ID,
-					restException.getMessage() + ExceptionUtils.getStackTrace(restException));
-		} catch (RuntimeException runtimeException) {
-			LOGGER.error(LoggerConstants.LOG_SERVICE_DELEGATE_VALIDATE_TOKEN, APPLICATION_NAME, APPLICATION_ID,
-					"Invalid Token for validation");
-		}
-		LOGGER.info(LoggerConstants.LOG_SERVICE_DELEGATE_VALIDATE_TOKEN, APPLICATION_NAME, APPLICATION_ID,
-				" invalidate auth token method calling ends");
-	}
 
 
 	/**

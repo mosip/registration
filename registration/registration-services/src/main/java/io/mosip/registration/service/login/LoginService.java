@@ -79,7 +79,9 @@ public interface LoginService {
 	/**
 	 * Execute global param, master sync, user detail, user salt detail and key
 	 * policy sync's as a initial sync
-	 * 
+	 *
+	 * @param triggerPoint
+	 *
 	 * <p>If Initial setup is enabled and TPM is enabled:</p>
 	 * 		<p>Exceute TPM PublicKeySyncService:</p> 
 	 * 			<p>Keyindex will be returned being used in other sync in case of initial setup</p>
@@ -91,7 +93,7 @@ public interface LoginService {
 	 * 
 	 * @return {@code List} list of sync results
 	 */
-	List<String> initialSync();
+	List<String> initialSync(String triggerPoint);
 
 	/**
 	 * This method will Validate login attempts to check whether operator can login

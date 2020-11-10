@@ -31,7 +31,14 @@ import io.mosip.kernel.cryptomanager.dto.CryptomanagerRequestDto;
 import io.mosip.kernel.cryptomanager.dto.CryptomanagerResponseDto;
 import io.mosip.kernel.cryptomanager.service.CryptomanagerService;
 import io.mosip.kernel.keygenerator.bouncycastle.util.KeyGeneratorUtils;
+import io.mosip.kernel.keymanagerservice.dto.KeyPairGenerateResponseDto;
 import io.mosip.kernel.keymanagerservice.dto.UploadCertificateRequestDto;
+import io.mosip.kernel.keymanagerservice.dto.UploadCertificateResponseDto;
+import io.mosip.kernel.keymanagerservice.entity.KeyPolicy;
+import io.mosip.kernel.keymanagerservice.exception.InvalidApplicationIdException;
+import io.mosip.kernel.keymanagerservice.exception.KeymanagerServiceException;
+import io.mosip.kernel.keymanagerservice.repository.KeyPolicyRepository;
+import io.mosip.kernel.keymanagerservice.service.KeymanagerService;
 import io.mosip.kernel.keymanagerservice.util.KeymanagerUtil;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,6 +95,10 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 	@Autowired
 	private CryptomanagerService cryptomanagerService;
 
+	@Autowired
+	private KeymanagerService keymanagerService;
+
+
 	/**
 	 * logger for logging
 	 */
@@ -119,8 +130,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 	}
 
 	@SuppressWarnings("unchecked")
-	public boolean validateWithIDA(List<BiometricsDto> biometrics, ResponseDTO responseDTO)
-			throws RegBaseCheckedException {
+	public boolean validateWithIDA(List<BiometricsDto> biometrics, ResponseDTO responseDTO) {
 
 		if (!RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
 			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, RegistrationConstants.NO_INTERNET);
@@ -148,38 +158,42 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 		List<Map<String, Object>> listOfBiometric = new ArrayList<>();
 		Map<String, Object> requestMap = new LinkedHashMap<>();
 
-		if (Objects.nonNull(biometrics) && !biometrics.isEmpty()) {
-			String previousHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash("".getBytes()));
-
-			for (BiometricsDto dto : biometrics) {
-				SingleType bioType = Biometric.getSingleTypeByAttribute(dto.getBioAttribute());
-				String bioSubType = getSubTypes(bioType, dto.getBioAttribute());
-				LinkedHashMap<String, Object> dataBlock = buildDataBlock(bioType.name(), bioSubType,
-						dto.getAttributeISO(), previousHash, dto);
-				previousHash = (String) dataBlock.get(RegistrationConstants.AUTH_HASH);
-				listOfBiometric.add(dataBlock);
-			}
-		}
-
-		if (listOfBiometric.isEmpty())
-			throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_BIOMETRIC_DTO_NULL.getErrorCode(),
-					RegistrationExceptionConstants.REG_BIOMETRIC_DTO_NULL.getErrorMessage());
-
-		requestMap.put(RegistrationConstants.ON_BOARD_BIOMETRICS, listOfBiometric);
-		requestMap.put(RegistrationConstants.ON_BOARD_TIME_STAMP,
-				DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 		Map<String, String> requestParamMap = new LinkedHashMap<>();
 		requestParamMap.put(RegistrationConstants.REF_ID, RegistrationConstants.IDA_REFERENCE_ID);
 		requestParamMap.put(RegistrationConstants.TIME_STAMP,
 				DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 
 		try {
-			Map<String, Object> response = (LinkedHashMap<String, Object>) serviceDelegateUtil.get(
-					RegistrationConstants.PUBLIC_KEY_IDA_REST, requestParamMap, false,
-					RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
+			String certificateData = getCertificate(requestParamMap);
 
-			if (null != response && response.size() > 0 && null != response.get(RegistrationConstants.RESPONSE)) {
-				response = getIdaAuthResponse(idaRequestMap, requestMap, requestParamMap, response, responseDTO);
+			if (Objects.nonNull(biometrics) && !biometrics.isEmpty()) {
+				String previousHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash("".getBytes()));
+
+				for (BiometricsDto dto : biometrics) {
+					SingleType bioType = Biometric.getSingleTypeByAttribute(dto.getBioAttribute());
+					String bioSubType = getSubTypes(bioType, dto.getBioAttribute());
+					LinkedHashMap<String, Object> dataBlock = buildDataBlock(bioType.name(), bioSubType,
+							dto.getAttributeISO(), previousHash, dto);
+					previousHash = (String) dataBlock.get(RegistrationConstants.AUTH_HASH);
+					listOfBiometric.add(dataBlock);
+				}
+			}
+
+			if (listOfBiometric.isEmpty())
+				throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_BIOMETRIC_DTO_NULL.getErrorCode(),
+						RegistrationExceptionConstants.REG_BIOMETRIC_DTO_NULL.getErrorMessage());
+
+			requestMap.put(RegistrationConstants.ON_BOARD_BIOMETRICS, listOfBiometric);
+			requestMap.put(RegistrationConstants.ON_BOARD_TIME_STAMP,
+					DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
+				/*Map<String, String> requestParamMap = new LinkedHashMap<>();
+				requestParamMap.put(RegistrationConstants.REF_ID, RegistrationConstants.IDA_REFERENCE_ID);
+				requestParamMap.put(RegistrationConstants.TIME_STAMP,
+						DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));*/
+
+			if(certificateData != null) {
+				Map<String, Object> response = getIdaAuthResponse(idaRequestMap, requestMap, requestParamMap,
+						certificateData, responseDTO);
 				boolean onboardAuthFlag = userOnBoardStatusFlag(response);
 				LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
 						"User Onboarded authentication flag... :" + onboardAuthFlag);
@@ -203,6 +217,35 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 			LOGGER.error(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(e));
 		}
 		return false;
+	}
+
+	private String getCertificate(Map<String, String> requestParamMap) throws Exception {
+		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
+				"getCertificate invoked ....");
+		try {
+			KeyPairGenerateResponseDto certificateDto = keymanagerService.getCertificate("IDA",
+					Optional.of(RegistrationConstants.IDA_REFERENCE_ID));
+
+			if(certificateDto != null && certificateDto.getCertificate() != null)
+				return certificateDto.getCertificate();
+		} catch (InvalidApplicationIdException | KeymanagerServiceException ex) {
+			LOGGER.error(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
+					"No entry found for applicationId : IDA");
+		}
+
+		Map<String, Object> response = (LinkedHashMap<String, Object>) serviceDelegateUtil.get(
+				RegistrationConstants.PUBLIC_KEY_IDA_REST, requestParamMap, false,
+				RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
+		LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) response
+				.get(RegistrationConstants.RESPONSE);
+		String certificateData = responseMap.get(RegistrationConstants.CERTIFICATE).toString();
+
+		UploadCertificateRequestDto uploadCertificateRequestDto = new UploadCertificateRequestDto();
+		uploadCertificateRequestDto.setApplicationId("IDA");
+		uploadCertificateRequestDto.setReferenceId(RegistrationConstants.IDA_REFERENCE_ID);
+		uploadCertificateRequestDto.setCertificateData(certificateData);
+		keymanagerService.uploadOtherDomainCertificate(uploadCertificateRequestDto);
+		return certificateData;
 	}
 
 	private LinkedHashMap<String, Object> buildDataBlock(String bioType, String bioSubType, byte[] attributeISO,
@@ -440,14 +483,9 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> getIdaAuthResponse(Map<String, Object> idaRequestMap, Map<String, Object> requestMap,
-			Map<String, String> requestParamMap, Map<String, Object> publicKeyResponse, ResponseDTO responseDTO) {
+			Map<String, String> requestParamMap, String certificateData, ResponseDTO responseDTO) {
 		try {
-			LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) publicKeyResponse
-					.get(RegistrationConstants.RESPONSE);
-
-			// Getting Public Key, TODO check if the certificate can be saved locally
-			PublicKey publicKey = keymanagerUtil.convertToCertificate(responseMap.get(
-					RegistrationConstants.CERTIFICATE).toString()).getPublicKey();
+			PublicKey publicKey = keymanagerUtil.convertToCertificate(certificateData).getPublicKey();
 			/*PublicKey publicKey = PublicKeyGenerationUtil
 					.generatePublicKey(responseMap.get(RegistrationConstants.CERTIFICATE).toString().getBytes());*/
 

@@ -7,21 +7,17 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.config.AppConfig;
-import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.LoginMode;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
-import io.mosip.registration.dao.MachineMappingDAO;
 import io.mosip.registration.dao.UserDetailDAO;
 import io.mosip.registration.dto.AuthTokenDTO;
 import io.mosip.registration.dto.LoginUserDTO;
 import io.mosip.registration.entity.UserToken;
 import io.mosip.registration.exception.RegBaseCheckedException;
-import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.repositories.UserTokenRepository;
-import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -30,12 +26,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.IOException;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -44,6 +36,11 @@ import java.util.*;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+
+/**
+ * @author Anusha Sunkada
+ * @since 1.1.3
+ */
 @Service
 public class AuthTokenUtilService {
 
@@ -86,7 +83,7 @@ public class AuthTokenUtilService {
             return getAuthTokenAndRefreshToken(LoginMode.PASSWORD);
         }
 
-        if (RegistrationConstants.JOB_TRIGGER_POINT_USER.equals(triggerPoint) && SessionContext.isSessionContextAvailable()) {
+        if(SessionContext.isSessionContextAvailable()) {
             UserToken userToken = userTokenRepository.findByUsrId(SessionContext.userId());
             if(userToken != null && userToken.getTokenExpiry() > (System.currentTimeMillis()/1000)) {
                 AuthTokenDTO authTokenDTO = new AuthTokenDTO();
@@ -101,8 +98,7 @@ public class AuthTokenUtilService {
                 return authTokenDTO;
             }
         }
-
-        if(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM.equals(triggerPoint)) {
+        else {
             UserToken userToken = userTokenRepository.findByTokenExpiryGreaterThan(System.currentTimeMillis()/1000);
             if(userToken != null) {
                 AuthTokenDTO authTokenDTO = new AuthTokenDTO();
@@ -119,7 +115,6 @@ public class AuthTokenUtilService {
                 return authTokenDTO;
             }
         }
-
         throw new RegBaseCheckedException(
                 RegistrationExceptionConstants.AUTH_TOKEN_COOKIE_NOT_FOUND.getErrorCode(),
                 RegistrationExceptionConstants.AUTH_TOKEN_COOKIE_NOT_FOUND.getErrorMessage());
