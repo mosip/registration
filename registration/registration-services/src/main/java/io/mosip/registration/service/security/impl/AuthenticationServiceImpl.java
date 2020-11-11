@@ -71,6 +71,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	@Autowired
 	private BioService bioService;
 
+	@Autowired
 	private AuthTokenUtilService authTokenUtilService;
 
 
