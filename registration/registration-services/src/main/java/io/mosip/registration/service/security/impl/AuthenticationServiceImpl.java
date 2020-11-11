@@ -38,6 +38,7 @@ import io.mosip.registration.dto.AuthenticationValidatorDTO;
 import io.mosip.registration.dto.UserDTO;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.entity.UserBiometric;
+import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.login.LoginService;
 import io.mosip.registration.service.security.AuthenticationService;
 import io.mosip.registration.validator.OTPValidatorImpl;
@@ -54,87 +55,98 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	 * Instance of LOGGER
 	 */
 	private static final Logger LOGGER = AppConfig.getLogger(AuthenticationServiceImpl.class);
-	
+
 	@Autowired
 	private LoginService loginService;
-	
+
 	@Autowired
 	private OTPValidatorImpl otpValidatorImpl;
-	
+
 	@Autowired
 	private BioAPIFactory bioAPIFactory;
-	
+
 	@Autowired
 	private UserDetailDAO userDetailDAO;
 
 	@Autowired
+	private BioService bioService;
+
 	private AuthTokenUtilService authTokenUtilService;
 
-	//private List<AuthenticationBaseValidator> authenticationBaseValidators;
 
-	/* (non-Javadoc)
-	 * @see io.mosip.registration.service.security.AuthenticationServiceImpl#authValidator(java.lang.String, io.mosip.registration.dto.AuthenticationValidatorDTO)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see io.mosip.registration.service.security.AuthenticationServiceImpl#
+	 * authValidator(java.lang.String,
+	 * io.mosip.registration.dto.AuthenticationValidatorDTO)
 	 */
 	public Boolean authValidator(String userId, String modality, List<BiometricsDto> biometrics) {
-		LOGGER.info("OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID, modality + " >> authValidator invoked.");
-		try {		
+		LOGGER.info("OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
+				modality + " >> authValidator invoked.");
+		try {
 			BiometricType biometricType = BiometricType.fromValue(modality);
 			List<BIR> record = new ArrayList<>();
 			List<UserBiometric> userBiometrics = userDetailDAO.getUserSpecificBioDetails(userId, biometricType.value());
-			if(userBiometrics.isEmpty())
+			if (userBiometrics.isEmpty())
 				return false;
 			userBiometrics.forEach(userBiometric -> {
-				record.add(buildBir(userBiometric.getBioIsoImage(), biometricType));
+//				record.add(buildBir(userBiometric.getBioIsoImage(), biometricType));
+
+				record.add(bioService.buildBir(userBiometric.getUserBiometricId().getBioAttributeCode(),
+						userBiometric.getQualityScore(), userBiometric.getBioIsoImage()));
 			});
-						
+
 			List<BIR> sample = new ArrayList<>(biometrics.size());
-			biometrics.forEach( biometricDto -> {
-				sample.add(buildBir(biometricDto.getAttributeISO(), biometricType));
+			biometrics.forEach(biometricDto -> {
+				sample.add(bioService.buildBir(biometricDto));
 			});
-			
+
 			iBioProviderApi bioProvider = bioAPIFactory.getBioProvider(biometricType, BiometricFunction.MATCH);
-			if(Objects.nonNull(bioProvider)) {
-				LOGGER.info("OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID, 
+			if (Objects.nonNull(bioProvider)) {
+				LOGGER.info("OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
 						modality + " >> Bioprovider instance found : " + bioProvider);
 				return bioProvider.verify(sample, record, biometricType, null);
 			}
-		} catch (BiometricException  | RuntimeException e) {
-			LOGGER.error("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID, 
+		} catch (BiometricException | RuntimeException e) {
+			LOGGER.error("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(e));
 		}
 		return false;
 	}
+
 	
-	private BIR buildBir(byte[] biometricImageISO, BiometricType modality) {
-		return new BIRBuilder().withBdb(biometricImageISO)
-				.withBdbInfo(new BDBInfo.BDBInfoBuilder().withFormat(new RegistryIDType())
-						.withType(Collections.singletonList(SingleType.fromValue(modality.value())))
-						.withPurpose(PurposeType.VERIFY)
-						.build())
-				.build();
-	}
-	
-	/* (non-Javadoc)
-	 * @see io.mosip.registration.service.security.AuthenticationServiceImpl#authValidator(java.lang.String, java.lang.String, java.lang.String)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see io.mosip.registration.service.security.AuthenticationServiceImpl#
+	 * authValidator(java.lang.String, java.lang.String, java.lang.String)
 	 */
-	public AuthTokenDTO authValidator(String validatorType, String userId, String otp, boolean haveToSaveAuthToken) {		
+	public AuthTokenDTO authValidator(String validatorType, String userId, String otp, boolean haveToSaveAuthToken) {
 		return otpValidatorImpl.validate(userId, otp, haveToSaveAuthToken);
 	}
 
-	/* (non-Javadoc)
-	 * @see io.mosip.registration.service.security.AuthenticationServiceImpl#setAuthenticationBaseValidator(java.util.List)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see io.mosip.registration.service.security.AuthenticationServiceImpl#
+	 * setAuthenticationBaseValidator(java.util.List)
 	 */
-/*	@Override
-	@Autowired
-	public void setAuthenticationBaseValidator(List<AuthenticationBaseValidator> authBaseValidators) {
-		this.authenticationBaseValidators = authBaseValidators;
-	}*/
-	
+	/*
+	 * @Override
+	 * 
+	 * @Autowired public void
+	 * setAuthenticationBaseValidator(List<AuthenticationBaseValidator>
+	 * authBaseValidators) { this.authenticationBaseValidators = authBaseValidators;
+	 * }
+	 */
+
 	/**
 	 * to validate the password and send appropriate message to display.
 	 *
-	 * @param authenticationValidatorDTO
-	 *            - DTO which contains the username and password entered by the user
+	 * @param authenticationValidatorDTO - DTO which contains the username and
+	 *                                   password entered by the user
 	 * @return appropriate message after validation
 	 */
 	public String validatePassword(AuthenticationValidatorDTO authenticationValidatorDTO) {
@@ -163,15 +175,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		}
 	}
 
-	/*@Override
-	public Boolean validateBiometrics(String validatorType, List<BiometricsDto> listOfBiometrics) {
-		for (AuthenticationBaseValidator validator : authenticationBaseValidators) {
-			if (validator.getClass().getName().toLowerCase().contains(validatorType.toLowerCase())) {
-				return validator.bioMerticsValidator(listOfBiometrics);
-			}
-		}
-
-		return false;
-	}*/
+	/*
+	 * @Override public Boolean validateBiometrics(String validatorType,
+	 * List<BiometricsDto> listOfBiometrics) { for (AuthenticationBaseValidator
+	 * validator : authenticationBaseValidators) { if
+	 * (validator.getClass().getName().toLowerCase().contains(validatorType.
+	 * toLowerCase())) { return validator.bioMerticsValidator(listOfBiometrics); } }
+	 * 
+	 * return false; }
+	 */
 
 }
