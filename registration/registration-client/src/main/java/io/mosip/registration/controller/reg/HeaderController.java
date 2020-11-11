@@ -194,13 +194,6 @@ public class HeaderController extends BaseController {
 			LOGGER.info(LoggerConstants.LOG_REG_HEADER, APPLICATION_NAME, APPLICATION_ID,
 					"Clearing Session context" + SessionContext.authTokenDTO());
 
-			if (SessionContext.authTokenDTO() != null && SessionContext.authTokenDTO().getCookie() != null
-					&& RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
-
-				serviceDelegateUtil.invalidateToken(SessionContext.authTokenDTO().getCookie());
-
-			}
-
 			closeAlreadyExistedAlert();
 			
 			logoutCleanUp();

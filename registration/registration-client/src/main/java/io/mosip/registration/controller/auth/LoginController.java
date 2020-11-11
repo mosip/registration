@@ -983,7 +983,7 @@ public class LoginController extends BaseController implements Initializable {
 						LOGGER.info("REGISTRATION - INITIAL_SYNC - LOGIN_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 								"Handling all the sync activities before login");
 						if(isInitialSetUp || authTokenUtilService.hasAnyValidToken())
-							return loginService.initialSync();
+							return loginService.initialSync(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
 						else {
 							List<String> list = new ArrayList<>();
 							list.add(RegistrationConstants.SUCCESS);

@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,6 +62,9 @@ public class OTPManagerTest {
 
 	@Mock
 	private AuthenticationServiceImpl authenticationService;
+
+	@Mock
+	private AuthTokenUtilService authTokenUtilService;
 
 	@Before
 	public void initialize() throws Exception {
@@ -119,7 +123,7 @@ public class OTPManagerTest {
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
 
-		Mockito.when(serviceDelegateUtil.getAuthToken(Mockito.any(LoginMode.class), Mockito.anyBoolean()))
+		Mockito.when(authTokenUtilService.getAuthTokenAndRefreshToken(Mockito.any(LoginMode.class)))
 				.thenReturn(authTokenDTO);
 
 		assertNotNull(otpManager.validateOTP("mosip", "12345", true));
@@ -131,8 +135,8 @@ public class OTPManagerTest {
 
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
-		Mockito.doThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST)).when(serviceDelegateUtil)
-				.getAuthToken(Mockito.any(LoginMode.class), Mockito.anyBoolean());
+		Mockito.doThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST)).when(authTokenUtilService)
+				.getAuthTokenAndRefreshToken(Mockito.any(LoginMode.class));
 
 		assertNull(otpManager.validateOTP("mosip", "12345", true));
 	}
@@ -144,8 +148,8 @@ public class OTPManagerTest {
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
 
-		Mockito.doThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST)).when(serviceDelegateUtil)
-				.getAuthToken(Mockito.any(LoginMode.class), Mockito.anyBoolean());
+		Mockito.doThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST)).when(authTokenUtilService)
+				.getAuthTokenAndRefreshToken(Mockito.any(LoginMode.class));
 		assertNull(otpManager.validateOTP("mosip", "12345", true));
 	}
 

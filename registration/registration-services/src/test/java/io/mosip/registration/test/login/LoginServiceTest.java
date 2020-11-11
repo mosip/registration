@@ -294,7 +294,7 @@ public class LoginServiceTest {
 
 
 		ApplicationContext.setApplicationMap(applicationMap);
-		Assert.assertTrue(loginServiceImpl.initialSync().contains(RegistrationConstants.SUCCESS));
+		Assert.assertTrue(loginServiceImpl.initialSync(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM).contains(RegistrationConstants.SUCCESS));
 	}
 	
 	@Test
@@ -328,7 +328,7 @@ public class LoginServiceTest {
 
 
 
-		Assert.assertTrue(loginServiceImpl.initialSync().contains(RegistrationConstants.FAILURE));
+		Assert.assertTrue(loginServiceImpl.initialSync(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM).contains(RegistrationConstants.FAILURE));
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -349,7 +349,7 @@ public class LoginServiceTest {
 		Mockito.when(tpmPublicKeySyncService.syncTPMPublicKey()).thenThrow(RegBaseCheckedException.class);
 
 		
-		Assert.assertTrue(loginServiceImpl.initialSync().contains(RegistrationConstants.FAILURE));
+		Assert.assertTrue(loginServiceImpl.initialSync(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM).contains(RegistrationConstants.FAILURE));
 	}
 	
 	@Test
@@ -384,7 +384,7 @@ public class LoginServiceTest {
 
 
 
-		Assert.assertTrue(loginServiceImpl.initialSync().contains(RegistrationConstants.FAILURE));
+		Assert.assertTrue(loginServiceImpl.initialSync(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM).contains(RegistrationConstants.FAILURE));
 	}
 	
 	@Test
