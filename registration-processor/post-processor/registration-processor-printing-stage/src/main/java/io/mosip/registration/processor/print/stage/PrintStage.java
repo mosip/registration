@@ -4,9 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.kernel.core.exception.ServiceError;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
@@ -31,6 +35,7 @@ import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
+import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -39,11 +44,16 @@ import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.CredentialRequestDto;
 import io.mosip.registration.processor.core.idrepo.dto.CredentialResponseDto;
+import io.mosip.registration.processor.core.idrepo.dto.VidInfoDTO;
+import io.mosip.registration.processor.core.idrepo.dto.VidsInfosDTO;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
+import io.mosip.registration.processor.core.util.JsonUtil;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.print.stage.exception.VidNotAvailableException;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
@@ -117,6 +127,17 @@ public class PrintStage extends MosipVerticleAPIManager {
 
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 
+	/** The Constant VID_CREATE_ID. */
+	public static final String VID_CREATE_ID = "registration.processor.id.repo.generate";
+
+	/** The Constant REG_PROC_APPLICATION_VERSION. */
+	public static final String REG_PROC_APPLICATION_VERSION = "registration.processor.id.repo.vidVersion";
+
+	public static final String VID_TYPE = "registration.processor.id.repo.vidType";
+
+	@Autowired
+	private Utilities utilities;
+
 	/**
 	 * Deploy verticle.
 	 */
@@ -143,7 +164,7 @@ public class PrintStage extends MosipVerticleAPIManager {
 		LogDescription description = new LogDescription();
 
 		boolean isTransactionSuccessful = false;
-
+		String uin = null;
 		String regId = object.getRid();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				regId, "PrintStage::process()::entry");
@@ -154,7 +175,28 @@ public class PrintStage extends MosipVerticleAPIManager {
 		CredentialResponseDto credentialResponseDto;
 		try {
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(regId);
-			CredentialRequestDto credentialRequestDto = getCredentialRequestDto(regId);
+			JSONObject jsonObject = utilities.retrieveUIN(regId);
+			uin = JsonUtil.getJSONValue(jsonObject, IdType.UIN.toString());
+			if (uin == null) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), null,
+						PlatformErrorMessages.RPR_PRT_UIN_NOT_FOUND_IN_DATABASE.name());
+				object.setIsValid(Boolean.FALSE);
+				isTransactionSuccessful = false;
+				description.setMessage(PlatformErrorMessages.RPR_PRT_PRINT_REQUEST_FAILED.getMessage());
+				description.setCode(PlatformErrorMessages.RPR_PRT_PRINT_REQUEST_FAILED.getCode());
+
+				registrationStatusDto.setStatusComment(
+						StatusUtil.UIN_NOT_FOUND_IN_DATABASE.getMessage());
+				registrationStatusDto.setSubStatusCode(StatusUtil.UIN_NOT_FOUND_IN_DATABASE.getCode());
+				registrationStatusDto
+						.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
+				registrationStatusDto
+						.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
+
+			}
+			String vid = getVid(uin);
+			CredentialRequestDto credentialRequestDto = getCredentialRequestDto(vid);
 			requestWrapper.setId(env.getProperty("mosip.registration.processor.credential.request.service.id"));
 			requestWrapper.setRequest(credentialRequestDto);
 			DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
@@ -285,4 +327,50 @@ public class PrintStage extends MosipVerticleAPIManager {
 		return RandomStringUtils.randomNumeric(6);
 	}
 
+	@SuppressWarnings("unchecked")
+	private String getVid(String uin) throws ApisResourceAccessException, VidNotAvailableException {
+		List<String> pathsegments = new ArrayList<>();
+		pathsegments.add(uin);
+		String vid = null;
+
+		VidsInfosDTO vidsInfosDTO;
+
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+				"PrintServiceImpl::getVid():: get GETVIDSBYUIN service call started with request data : "
+		);
+
+		vidsInfosDTO =  (VidsInfosDTO) restClientService.getApi(ApiName.GETVIDSBYUIN,
+				pathsegments, "", "", VidsInfosDTO.class);
+	
+		if (vidsInfosDTO.getErrors() != null && !vidsInfosDTO.getErrors().isEmpty()) {
+			ServiceError error = vidsInfosDTO.getErrors().get(0);
+			throw new VidNotAvailableException(PlatformErrorMessages.RPR_PRT_VID_NOT_AVAILABLE_EXCEPTION.getCode(),
+					error.getMessage());
+
+		} else {
+			if(vidsInfosDTO.getResponse()!=null && !vidsInfosDTO.getResponse().isEmpty()) {
+				for (VidInfoDTO VidInfoDTO : vidsInfosDTO.getResponse()) {
+					if ("Perpetual".equalsIgnoreCase(VidInfoDTO.getVidType())) {
+						vid = VidInfoDTO.getVid();
+						break;
+					}
+				}
+				if (vid == null) {
+					throw new VidNotAvailableException(
+							PlatformErrorMessages.RPR_PRT_VID_NOT_AVAILABLE_EXCEPTION.getCode(),
+							PlatformErrorMessages.RPR_PRT_VID_NOT_AVAILABLE_EXCEPTION.getMessage());
+				}
+				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), "",
+						"PrintServiceImpl::getVid():: get GETVIDSBYUIN service call ended successfully");
+
+			}else {
+				throw new VidNotAvailableException(PlatformErrorMessages.RPR_PRT_VID_NOT_AVAILABLE_EXCEPTION.getCode(),
+						PlatformErrorMessages.RPR_PRT_VID_NOT_AVAILABLE_EXCEPTION.getMessage());
+			}
+			
+		}
+
+		return vid;
+	}
 }

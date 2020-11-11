@@ -90,6 +90,7 @@ public enum StatusUtil {
 	PDF_SIGNTURED_FAILED(StatusConstants.PRINT_STAGE_MODULE_SUCCESS + "008", "Pdf Signature failed "),
 	PRINT_REQUEST_FAILED(StatusConstants.PRINT_STAGE_MODULE_FAILED + "009",
 			"Print request failed"),
+	UIN_NOT_FOUND_IN_DATABASE(StatusConstants.PRINT_STAGE_MODULE_FAILED + "010", "UIN not found in database"),
 
 	// Abis middleware stage
 	INSERT_IDENTIFY_REQUEST_SUCCESS(StatusConstants.ABIS_MIDDLEWARE_MODULE_SUCCESS + "001","Insert or Identify Request sent to ABIS Queue is succesful"),
