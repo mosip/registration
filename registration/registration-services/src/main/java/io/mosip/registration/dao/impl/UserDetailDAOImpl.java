@@ -167,7 +167,6 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 				UserPassword usrPwd = new UserPassword();
 				// password details
 				usrPwd.setUsrId(userDtals.getUserName());
-				usrPwd.setPwd(CryptoUtil.encodeBase64(userDtals.getUserPassword()));
 				usrPwd.setStatusCode("00");
 				usrPwd.setIsActive(userDtls.getIsActive() != null ? userDtls.getIsActive().booleanValue() : true);
 				usrPwd.setLangCode(ApplicationContext.applicationLanguage());

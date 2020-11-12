@@ -7,7 +7,7 @@ public interface UserTokenRepository extends BaseRepository<UserToken, String> {
 
     UserToken findByUsrId(String userId);
 
-    UserToken findByTokenExpiryGreaterThan(long currentTimeInSeconds);
+    UserToken findTopByTokenExpiryGreaterThanOrderByTokenExpiryDesc(long currentTimeInSeconds);
 
-    UserToken findByRtokenExpiryGreaterThan(long currentTimeInSeconds);
+    UserToken findTopByRtokenExpiryGreaterThanOrderByRtokenExpiryDesc(long currentTimeInSeconds);
 }
