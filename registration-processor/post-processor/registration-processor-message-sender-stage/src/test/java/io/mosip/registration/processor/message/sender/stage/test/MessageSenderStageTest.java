@@ -25,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
+import io.mosip.registration.processor.core.abstractverticle.EventDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -41,6 +42,7 @@ import io.mosip.registration.processor.core.notification.template.generator.dto.
 import io.mosip.registration.processor.core.packet.dto.FieldValue;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
+import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.spi.message.sender.MessageNotificationService;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
@@ -62,6 +64,8 @@ import io.mosip.registration.processor.status.entity.SyncRegistrationEntity;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.mosip.registration.processor.status.service.SyncRegistrationService;
 import io.mosip.registration.processor.status.service.TransactionService;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 
 @RunWith(PowerMockRunner.class)
@@ -128,7 +132,29 @@ public class MessageSenderStageTest {
 		public MosipEventBus getEventBus(Object verticleName, String url, int instanceNumber) {
 			vertx = Vertx.vertx();
 
-			return new MosipEventBus(vertx) {
+			return new MosipEventBus() {
+
+				@Override
+				public Vertx getEventbus() {
+					return vertx;
+				}
+
+				@Override
+				public void consume(MessageBusAddress fromAddress,
+						EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler) {
+
+				}
+
+				@Override
+				public void consumeAndSend(MessageBusAddress fromAddress, MessageBusAddress toAddress,
+						EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler) {
+
+				}
+
+				@Override
+				public void send(MessageBusAddress toAddress, MessageDTO message) {
+
+				}
 			};
 		}
 
