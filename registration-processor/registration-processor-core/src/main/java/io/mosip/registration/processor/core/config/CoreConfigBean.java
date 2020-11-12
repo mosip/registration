@@ -15,6 +15,7 @@ import org.springframework.core.env.Environment;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
+import io.mosip.registration.processor.core.eventbus.MosipEventBusFactory;
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.queue.factory.MosipQueueConnectionFactoryImpl;
@@ -159,5 +160,10 @@ public class CoreConfigBean {
 	@Bean
 	public RegistrationExceptionMapperUtil getRegistrationExceptionMapperUtil() {
 		return new RegistrationExceptionMapperUtil();
+	}
+
+	@Bean
+	public MosipEventBusFactory getMosipEventBusFactory() {
+		return new MosipEventBusFactory();
 	}
 }
