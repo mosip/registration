@@ -63,11 +63,11 @@ public class AuthTokenUtilService {
     private UserTokenRepository userTokenRepository;
 
     public boolean hasAnyValidToken() {
-        UserToken userToken = userTokenRepository.findByTokenExpiryGreaterThan(System.currentTimeMillis()/1000);
+        UserToken userToken = userTokenRepository.findTopByTokenExpiryGreaterThanOrderByTokenExpiryDesc(System.currentTimeMillis()/1000);
         if(userToken != null) {
             return true;
         }
-        userToken = userTokenRepository.findByRtokenExpiryGreaterThan(System.currentTimeMillis()/1000);
+        userToken = userTokenRepository.findTopByRtokenExpiryGreaterThanOrderByRtokenExpiryDesc(System.currentTimeMillis()/1000);
         if(userToken != null) {
             return true;
         }
@@ -77,11 +77,6 @@ public class AuthTokenUtilService {
     public AuthTokenDTO fetchAuthToken(String triggerPoint) throws RegBaseCheckedException {
         LOGGER.info(AUTH_REFRESH_TOKEN_UTIL, APPLICATION_NAME, APPLICATION_ID,
                 "fetchAuthToken invoked for triggerPoint >>>>> " + triggerPoint);
-
-        LoginUserDTO loginUserDTO = (LoginUserDTO) ApplicationContext.map().get(RegistrationConstants.USER_DTO);
-        if(loginUserDTO != null && loginUserDTO.getPassword() != null) {
-            return getAuthTokenAndRefreshToken(LoginMode.PASSWORD);
-        }
 
         if(SessionContext.isSessionContextAvailable()) {
             UserToken userToken = userTokenRepository.findByUsrId(SessionContext.userId());
@@ -99,15 +94,14 @@ public class AuthTokenUtilService {
             }
         }
         else {
-            UserToken userToken = userTokenRepository.findByTokenExpiryGreaterThan(System.currentTimeMillis()/1000);
+            UserToken userToken = userTokenRepository.findTopByTokenExpiryGreaterThanOrderByTokenExpiryDesc(System.currentTimeMillis()/1000);
             if(userToken != null) {
                 AuthTokenDTO authTokenDTO = new AuthTokenDTO();
-                authTokenDTO.setCookie(String.format("Authorization=%s",
-                        refreshAuthToken(userToken.getUsrId(), userToken.getRefreshToken())));
+                authTokenDTO.setCookie(String.format("Authorization=%s", userToken.getToken()));
                 return authTokenDTO;
             }
 
-            userToken = userTokenRepository.findByRtokenExpiryGreaterThan(System.currentTimeMillis()/1000);
+            userToken = userTokenRepository.findTopByRtokenExpiryGreaterThanOrderByRtokenExpiryDesc(System.currentTimeMillis()/1000);
             if(userToken != null) {
                 AuthTokenDTO authTokenDTO = new AuthTokenDTO();
                 authTokenDTO.setCookie(String.format("Authorization=%s",
@@ -115,10 +109,18 @@ public class AuthTokenUtilService {
                 return authTokenDTO;
             }
         }
+
+        LoginUserDTO loginUserDTO = (LoginUserDTO) ApplicationContext.map().get(RegistrationConstants.USER_DTO);
+        if(loginUserDTO != null && loginUserDTO.getPassword() != null) {
+            return getAuthTokenAndRefreshToken(LoginMode.PASSWORD);
+        }
+
         throw new RegBaseCheckedException(
                 RegistrationExceptionConstants.AUTH_TOKEN_COOKIE_NOT_FOUND.getErrorCode(),
                 RegistrationExceptionConstants.AUTH_TOKEN_COOKIE_NOT_FOUND.getErrorMessage());
     }
+
+
 
     private String refreshAuthToken(String userId, String refreshToken) throws RegBaseCheckedException {
         LOGGER.info(AUTH_REFRESH_TOKEN_UTIL, APPLICATION_NAME, APPLICATION_ID,
@@ -136,6 +138,7 @@ public class AuthTokenUtilService {
             setTimeout(requestHTTPDTO);
             setURI(requestHTTPDTO, new HashMap<>(), getEnvironmentProperty("auth_by_password", RegistrationConstants.SERVICE_URL));
             Map<String, Object> responseMap = restClientUtil.invokeForToken(requestHTTPDTO);
+
             long currentTimeInSeconds = System.currentTimeMillis()/1000;
             JSONObject jsonObject = getAuthTokenResponse(responseMap);
             userDetailDAO.updateAuthTokens(userId, jsonObject.getString("token"),
@@ -189,17 +192,17 @@ public class AuthTokenUtilService {
             authTokenDTO.setLoginMode(loginMode.getCode());
 
             ApplicationContext.setAuthTokenDTO(authTokenDTO);
-            if(SessionContext.isSessionContextAvailable()) {
+            if(SessionContext.isSessionContextAvailable())
                 SessionContext.setAuthTokenDTO(authTokenDTO);
 
-                if(loginUserDTO.getPassword() != null)
-                    userDetailDAO.updateUserPwd(loginUserDTO.getUserId(), loginUserDTO.getPassword());
+            if(loginUserDTO.getPassword() != null)
+                userDetailDAO.updateUserPwd(loginUserDTO.getUserId(), loginUserDTO.getPassword());
 
-                userDetailDAO.updateAuthTokens(loginUserDTO.getUserId(), jsonObject.getString("token"),
-                        jsonObject.getString("refreshToken"),
-                        currentTimeInSeconds + jsonObject.getLong("expiryTime"),
-                        currentTimeInSeconds + jsonObject.getLong("refreshExpiryTime"));
-            }
+            userDetailDAO.updateAuthTokens(loginUserDTO.getUserId(), jsonObject.getString("token"),
+                    jsonObject.getString("refreshToken"),
+                    currentTimeInSeconds + jsonObject.getLong("expiryTime"),
+                    currentTimeInSeconds + jsonObject.getLong("refreshExpiryTime"));
+
             return authTokenDTO;
 
         } catch (Exception exception) {

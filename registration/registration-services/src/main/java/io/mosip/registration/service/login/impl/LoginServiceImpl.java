@@ -149,10 +149,15 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 				loginModes = appAuthenticationDAO.getModesOfLogin(authType, roleList);
 
 				if(mandatePwdLogin) {
-					Optional<String> otpMode = loginModes.stream().filter(loginMode ->
-							loginMode.equalsIgnoreCase(LoginMode.OTP.getCode())).findFirst();
-					loginModes.clear();
-					loginModes.add(otpMode.isPresent() ? RegistrationConstants.OTP : RegistrationConstants.PWORD);
+					Optional<String> pwdMode = loginModes.stream().filter(loginMode ->
+							loginMode.equalsIgnoreCase(LoginMode.OTP.getCode()) ||
+									loginMode.equalsIgnoreCase(LoginMode.PASSWORD.getCode()) ||
+									loginMode.equalsIgnoreCase(RegistrationConstants.PWORD)).findFirst();
+
+					LOGGER.info(LOG_REG_LOGIN_SERVICE, APPLICATION_NAME, APPLICATION_ID, "PWD LOGIN mode already present ? " + pwdMode.isPresent());
+					if(!pwdMode.isPresent())
+						loginModes.add(RegistrationConstants.PWORD);
+
 					return loginModes;
 				}
 

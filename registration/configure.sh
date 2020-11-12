@@ -76,7 +76,7 @@ ls -ltr lib | grep bc
 
 /usr/bin/zip -r reg-client.zip bin
 /usr/bin/zip -r reg-client.zip lib
-/usr/bin/zip reg-client.zip MANIFEST.MF
+#/usr/bin/zip reg-client.zip MANIFEST.MF
 
 echo "setting up nginx static content"
 

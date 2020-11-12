@@ -894,7 +894,7 @@ public class LoginController extends BaseController implements Initializable {
 	/**
 	 * Loading next login screen in case of multifactor authentication
 	 * 
-	 * @param userDetail the userDetail
+	 * @param userDTO the userDetail
 	 * @param loginMode  the loginMode
 	 */
 	private void loadNextScreen(UserDTO userDTO, String loginMode) {
@@ -982,7 +982,7 @@ public class LoginController extends BaseController implements Initializable {
 
 						LOGGER.info("REGISTRATION - INITIAL_SYNC - LOGIN_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 								"Handling all the sync activities before login");
-						if(isInitialSetUp || authTokenUtilService.hasAnyValidToken())
+						if(RegistrationAppHealthCheckUtil.isNetworkAvailable() && ( isInitialSetUp || authTokenUtilService.hasAnyValidToken() ))
 							return loginService.initialSync(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
 						else {
 							List<String> list = new ArrayList<>();
@@ -1034,8 +1034,8 @@ public class LoginController extends BaseController implements Initializable {
 	/**
 	 * Validating invalid number of login attempts
 	 * 
-	 * @param userDetail user details
-	 * @param userId     entered userId
+	 * @param userDTO user details
+	 * @param errorMessage
 	 * @return boolean
 	 */
 	private boolean validateInvalidLogin(UserDTO userDTO, String errorMessage) {
