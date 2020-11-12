@@ -37,6 +37,7 @@ import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.IdType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.VidType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
@@ -175,6 +176,9 @@ public class PrintStage extends MosipVerticleAPIManager {
 		CredentialResponseDto credentialResponseDto;
 		try {
 			registrationStatusDto = registrationStatusService.getRegistrationStatus(regId);
+			registrationStatusDto
+					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
+			registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
 			JSONObject jsonObject = utilities.retrieveUIN(regId);
 			uin = JsonUtil.getJSONValue(jsonObject, IdType.UIN.toString());
 			if (uin == null) {
@@ -258,6 +262,16 @@ public class PrintStage extends MosipVerticleAPIManager {
 			registrationStatusDto.setStatusComment(
 					trimeExpMessage.trimExceptionMessage(StatusUtil.IO_EXCEPTION.getMessage() + e.getMessage()));
 			registrationStatusDto.setSubStatusCode(StatusUtil.IO_EXCEPTION.getCode());
+			description.setMessage(PlatformErrorMessages.RPR_PRT_PRINT_REQUEST_FAILED.getMessage());
+			description.setCode(PlatformErrorMessages.RPR_PRT_PRINT_REQUEST_FAILED.getCode());
+			object.setInternalError(Boolean.TRUE);
+		} catch (VidNotAvailableException e) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					regId, PlatformErrorMessages.RPR_PRT_PRINT_REQUEST_FAILED.name() + e.getMessage()
+							+ ExceptionUtils.getStackTrace(e));
+			registrationStatusDto.setStatusComment(
+					trimeExpMessage.trimExceptionMessage(StatusUtil.VID_NOT_AVAILABLE.getMessage()));
+			registrationStatusDto.setSubStatusCode(StatusUtil.VID_NOT_AVAILABLE.getCode());
 			description.setMessage(PlatformErrorMessages.RPR_PRT_PRINT_REQUEST_FAILED.getMessage());
 			description.setCode(PlatformErrorMessages.RPR_PRT_PRINT_REQUEST_FAILED.getCode());
 			object.setInternalError(Boolean.TRUE);
@@ -350,7 +364,7 @@ public class PrintStage extends MosipVerticleAPIManager {
 		} else {
 			if(vidsInfosDTO.getResponse()!=null && !vidsInfosDTO.getResponse().isEmpty()) {
 				for (VidInfoDTO VidInfoDTO : vidsInfosDTO.getResponse()) {
-					if ("Perpetual".equalsIgnoreCase(VidInfoDTO.getVidType())) {
+					if (VidType.PERPETUAL.name().equalsIgnoreCase(VidInfoDTO.getVidType())) {
 						vid = VidInfoDTO.getVid();
 						break;
 					}
