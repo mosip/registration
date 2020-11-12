@@ -4,6 +4,8 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
+import io.mosip.registration.repositories.UserTokenRepository;
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -57,6 +59,12 @@ public class RestClientAuthAdvice {
 	@Autowired
 	private ClientCryptoFacade clientCryptoFacade;
 
+	@Autowired
+	private AuthTokenUtilService authTokenUtilService;
+
+	@Autowired
+	private UserTokenRepository userTokenRepository;
+
 	/**
 	 * The {@link Around} advice method which be invoked for all web services. This
 	 * advice adds the Authorization Token to the Web-Service Request Header, if
@@ -82,29 +90,20 @@ public class RestClientAuthAdvice {
 			}
 
 			if (requestHTTPDTO.isAuthRequired()) {
-				boolean haveToAuthZByClientId = false;
-
-				String authZToken = getAuthZToken(requestHTTPDTO, haveToAuthZByClientId);
-
+				String authZToken = getAuthZToken(requestHTTPDTO);
 				setAuthHeaders(requestHTTPDTO.getHttpHeaders(), requestHTTPDTO.getAuthZHeader(), authZToken);
 			}
 
-			requestHTTPDTO
-					.setHttpEntity(new HttpEntity<>(requestHTTPDTO.getRequestBody(), requestHTTPDTO.getHttpHeaders()));
+			requestHTTPDTO.setHttpEntity(new HttpEntity<>(requestHTTPDTO.getRequestBody(), requestHTTPDTO.getHttpHeaders()));
 			Object response = joinPoint.proceed(joinPoint.getArgs());
 
-			LOGGER.info(LoggerConstants.AUTHZ_ADVICE, APPLICATION_ID, APPLICATION_NAME,
-					"Adding authZ token to web service request header if required completed" + response);
-			
 			if (handleInvalidTokenFromResponse(response, joinPoint)) {
 				LOGGER.info(LoggerConstants.AUTHZ_ADVICE, APPLICATION_ID, APPLICATION_NAME,
-						"Adding new authZ token to web service request header if present token is invalid");
+						"Found invalid token error, retrying with new token");
 				return joinPoint.proceed(joinPoint.getArgs());
 			}
 
-			LOGGER.info(LoggerConstants.AUTHZ_ADVICE, APPLICATION_ID, APPLICATION_NAME,
-					"Adding authZ token to web service request header if required completed");
-
+			LOGGER.info(LoggerConstants.AUTHZ_ADVICE, APPLICATION_ID, APPLICATION_NAME, "completed");
 			return response;
 
 		} catch (HttpClientErrorException httpClientErrorException) {
@@ -114,35 +113,30 @@ public class RestClientAuthAdvice {
 					|| 401 == httpClientErrorException.getRawStatusCode()) {
 				try {
 					RequestHTTPDTO requestHTTPDTO = (RequestHTTPDTO) joinPoint.getArgs()[0];
-					getNewAuthZToken(requestHTTPDTO);
+					getAuthZToken(requestHTTPDTO);
 					return joinPoint.proceed(joinPoint.getArgs());
 				} catch (RegBaseCheckedException regBaseCheckedException) {
 					throw regBaseCheckedException;
 				} catch (Throwable throwableError) {
 					throw new RegBaseCheckedException(
-							RegistrationExceptionConstants.AUTHZ_ADDING_AUTHZ_HEADER.getErrorCode(),
-							RegistrationExceptionConstants.AUTHZ_ADDING_AUTHZ_HEADER.getErrorMessage(), throwableError);
+							RegistrationExceptionConstants.AUTH_TOKEN_COOKIE_NOT_FOUND.getErrorCode(),
+							RegistrationExceptionConstants.AUTH_TOKEN_COOKIE_NOT_FOUND.getErrorMessage(), throwableError);
 				}
 
 			}
-			throw new RegBaseCheckedException(RegistrationExceptionConstants.AUTHZ_ADDING_AUTHZ_HEADER.getErrorCode(),
-					RegistrationExceptionConstants.AUTHZ_ADDING_AUTHZ_HEADER.getErrorMessage(),
+			throw new RegBaseCheckedException(RegistrationExceptionConstants.AUTH_TOKEN_COOKIE_NOT_FOUND.getErrorCode(),
+					RegistrationExceptionConstants.AUTH_TOKEN_COOKIE_NOT_FOUND.getErrorMessage(),
 					httpClientErrorException);
 		} catch (RegBaseCheckedException regBaseCheckedException) {
 			throw regBaseCheckedException;
 		} catch (Throwable throwable) {
-			throw new RegBaseCheckedException(RegistrationExceptionConstants.AUTHZ_ADDING_AUTHZ_HEADER.getErrorCode(),
-					RegistrationExceptionConstants.AUTHZ_ADDING_AUTHZ_HEADER.getErrorMessage(), throwable);
+			throw new RegBaseCheckedException(RegistrationExceptionConstants.AUTH_TOKEN_COOKIE_NOT_FOUND.getErrorCode(),
+					RegistrationExceptionConstants.AUTH_TOKEN_COOKIE_NOT_FOUND.getErrorMessage(), throwable);
 		}
 	}
 
-	/**
-	 * Gets the new auth Z token.
-	 *
-	 * @return the new auth Z token
-	 * @throws RegBaseCheckedException
-	 */
-	private void getNewAuthZToken(RequestHTTPDTO requestHTTPDTO) throws RegBaseCheckedException {
+
+	/*private void getNewAuthZToken(RequestHTTPDTO requestHTTPDTO) throws RegBaseCheckedException {
 		LOGGER.info(LoggerConstants.AUTHZ_ADVICE, APPLICATION_ID, APPLICATION_NAME,
 				"Entering into the new auth token generation ");
 		String authZToken = RegistrationConstants.EMPTY;
@@ -177,9 +171,15 @@ public class RestClientAuthAdvice {
 		setAuthHeaders(requestHTTPDTO.getHttpHeaders(), requestHTTPDTO.getAuthZHeader(), authZToken);
 		LOGGER.info(LoggerConstants.AUTHZ_ADVICE, APPLICATION_ID, APPLICATION_NAME,
 				"Completed the new auth token generation ");
+	}*/
+
+	private String getAuthZToken(RequestHTTPDTO requestHTTPDTO)
+			throws RegBaseCheckedException {
+		AuthTokenDTO authZToken = authTokenUtilService.fetchAuthToken(requestHTTPDTO.getTriggerPoint());
+		return authZToken.getCookie();
 	}
 
-	private String getAuthZToken(RequestHTTPDTO requestHTTPDTO, boolean haveToAuthZByClientId)
+	/*private String getAuthZToken(RequestHTTPDTO requestHTTPDTO, boolean haveToAuthZByClientId)
 			throws RegBaseCheckedException {
 		LOGGER.info(LoggerConstants.AUTHZ_ADVICE, APPLICATION_ID, APPLICATION_NAME, "Getting authZ token");
 		String authZToken = null;
@@ -221,7 +221,7 @@ public class RestClientAuthAdvice {
 		LOGGER.info(LoggerConstants.AUTHZ_ADVICE, APPLICATION_ID, APPLICATION_NAME, "Getting of authZ token completed");
 
 		return authZToken;
-	}
+	}*/
 
 	/**
 	 * Setup of Auth Headers.
@@ -293,7 +293,7 @@ public class RestClientAuthAdvice {
 			RequestHTTPDTO requestHTTPDTO = (RequestHTTPDTO) joinPoint.getArgs()[0];
 			LOGGER.info(LoggerConstants.AUTHZ_ADVICE, APPLICATION_ID, APPLICATION_NAME,
 					"Creating the new token ");
-			getNewAuthZToken(requestHTTPDTO);
+			getAuthZToken(requestHTTPDTO);
 			return true;
 		}
 		LOGGER.info(LoggerConstants.AUTHZ_ADVICE, APPLICATION_ID, APPLICATION_NAME,
@@ -308,8 +308,8 @@ public class RestClientAuthAdvice {
 		return SessionContext.isSessionContextAvailable() && loginUserDTO != null && loginUserDTO.getOtp() != null;
 	}
 	
-	private boolean cookieAvailable() {
+	/*private boolean cookieAvailable() {
 		return null != SessionContext.authTokenDTO().getCookie() && 
 				SessionContext.authTokenDTO().getCookie().trim().length() > 10;
-	}
+	}*/
 }

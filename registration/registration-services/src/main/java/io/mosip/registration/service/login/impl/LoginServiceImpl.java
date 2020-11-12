@@ -6,15 +6,13 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.mapper.CustomObjectMapper.MAPPER_FACADE;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import io.mosip.registration.constants.*;
+import io.mosip.registration.dto.*;
+import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,21 +22,11 @@ import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
-import io.mosip.registration.constants.AuditEvent;
-import io.mosip.registration.constants.AuditReferenceIdTypes;
-import io.mosip.registration.constants.Components;
-import io.mosip.registration.constants.LoggerConstants;
-import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.dao.AppAuthenticationDAO;
 import io.mosip.registration.dao.RegistrationCenterDAO;
 import io.mosip.registration.dao.ScreenAuthorizationDAO;
 import io.mosip.registration.dao.UserDetailDAO;
-import io.mosip.registration.dto.AuthorizationDTO;
-import io.mosip.registration.dto.RegistrationCenterDetailDTO;
-import io.mosip.registration.dto.ResponseDTO;
-import io.mosip.registration.dto.UserDTO;
-import io.mosip.registration.dto.UserMachineMappingDTO;
 import io.mosip.registration.entity.UserDetail;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
@@ -126,6 +114,9 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 	@Autowired
 	private TPMPublicKeySyncService tpmPublicKeySyncService;
 
+	@Autowired
+	private AuthTokenUtilService authTokenUtilService;
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -144,13 +135,35 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 		try {
 			getModesOfLoginValidation(authType, roleList);
 
+			boolean mandatePwdLogin = RegistrationAppHealthCheckUtil.isNetworkAvailable() && !authTokenUtilService.hasAnyValidToken();
+
+			LOGGER.info(LOG_REG_LOGIN_SERVICE, APPLICATION_NAME, APPLICATION_ID, "PWD LOGIN MANDATED ? " + mandatePwdLogin);
+
 			auditFactory.audit(AuditEvent.LOGIN_MODES_FETCH, Components.LOGIN_MODES,
 					RegistrationConstants.APPLICATION_NAME, AuditReferenceIdTypes.APPLICATION_ID.getReferenceTypeId());
-			if (roleList != null && roleList.contains(RegistrationConstants.ROLE_DEFAULT)) {
+			if ((roleList != null && roleList.contains(RegistrationConstants.ROLE_DEFAULT))) {
 				loginModes.clear();
 				loginModes.add(RegistrationConstants.PWORD);
-			} else {
+			}
+			else {
 				loginModes = appAuthenticationDAO.getModesOfLogin(authType, roleList);
+
+				if(mandatePwdLogin) {
+					Optional<String> otpMode = loginModes.stream().filter(loginMode ->
+							loginMode.equalsIgnoreCase(LoginMode.OTP.getCode())).findFirst();
+					loginModes.clear();
+					loginModes.add(otpMode.isPresent() ? RegistrationConstants.OTP : RegistrationConstants.PWORD);
+					return loginModes;
+				}
+
+				if(loginModes != null && loginModes.size() > 1) {
+					if(RegistrationConstants.DISABLE.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_DISABLE_FLAG))
+						loginModes.remove(RegistrationConstants.FINGERPRINT);
+					if(RegistrationConstants.DISABLE.equalsIgnoreCase(RegistrationConstants.IRIS_DISABLE_FLAG))
+						loginModes.remove(RegistrationConstants.IRIS);
+					if(RegistrationConstants.DISABLE.equalsIgnoreCase(RegistrationConstants.FACE_DISABLE_FLAG))
+						loginModes.remove(RegistrationConstants.FACE);
+				}
 			}
 			
 			LOGGER.info(LOG_REG_LOGIN_SERVICE, APPLICATION_NAME, APPLICATION_ID,
@@ -303,17 +316,16 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 	 * 5. user details sync
 	 * 6. user salts sync
 	 * 
-	 * @see io.mosip.registration.service.login.LoginService#initialSync()
 	 */
 	@Override
-	public List<String> initialSync() {
+	public List<String> initialSync(String triggerPoint) {
 		LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "Started Initial sync");
 		List<String> results = new LinkedList<>();		
 		final boolean isInitialSetUp = RegistrationConstants.ENABLE.equalsIgnoreCase(getGlobalConfigValueOf(RegistrationConstants.INITIAL_SETUP));		
 		ResponseDTO responseDTO = null;
 		
 		try {			
-			responseDTO = publicKeySyncImpl.getPublicKey(RegistrationConstants.JOB_TRIGGER_POINT_USER);
+			responseDTO = publicKeySyncImpl.getPublicKey(triggerPoint);
 			validateResponse(responseDTO, PUBLIC_KEY_SYNC_STEP);
 			
 			String keyIndex = tpmPublicKeySyncService.syncTPMPublicKey();
@@ -328,16 +340,21 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 				results.add(RegistrationConstants.RESTART);
 			
 			responseDTO = isInitialSetUp ? masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
-								RegistrationConstants.JOB_TRIGGER_POINT_USER, keyIndex) : 
+					triggerPoint, keyIndex) :
 							masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
-								RegistrationConstants.JOB_TRIGGER_POINT_USER);
+									triggerPoint);
 			validateResponse(responseDTO, CLIENTSETTINGS_SYNC_STEP);
 			
-			responseDTO = userDetailService.save(RegistrationConstants.JOB_TRIGGER_POINT_USER);
+			responseDTO = userDetailService.save(triggerPoint);
 			validateResponse(responseDTO, USER_DETAIL_SYNC_STEP);
 
-			responseDTO = userSaltDetailsService.getUserSaltDetails(RegistrationConstants.JOB_TRIGGER_POINT_USER);
-			validateResponse(responseDTO, USER_SALT_SYNC_STEP);
+			if(isInitialSetUp) {
+				LoginUserDTO loginUserDTO = (LoginUserDTO) ApplicationContext.map().get(RegistrationConstants.USER_DTO);
+				userDetailDAO.updateUserPwd(loginUserDTO.getUserId(), loginUserDTO.getPassword());
+			}
+
+			//responseDTO = userSaltDetailsService.getUserSaltDetails(RegistrationConstants.JOB_TRIGGER_POINT_USER);
+			//validateResponse(responseDTO, USER_SALT_SYNC_STEP);
 			
 			results.add(RegistrationConstants.SUCCESS);
 			
@@ -592,5 +609,4 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 			throwRegBaseCheckedException(RegistrationExceptionConstants.REG_LOGIN_USER_DTO_EXCEPTION);
 		} 
 	}
-
 }

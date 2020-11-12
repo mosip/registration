@@ -3,6 +3,7 @@ package io.mosip.registration.test.util.restclient;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.junit.Assert;
 import org.junit.Before;
@@ -56,6 +57,9 @@ public class RestClientAuthAdviceTest {
 
 	@InjectMocks
 	private RestClientAuthAdvice restClientAuthAdvice;
+
+	@Mock
+	private AuthTokenUtilService authTokenUtilService;
 
 	@Before
 	public void addAuthZTokens() throws Exception {
@@ -111,7 +115,7 @@ public class RestClientAuthAdviceTest {
 		args[0] = requestHTTPDTO;
 		Mockito.when(proceedingJoinPoint.getArgs()).thenReturn(args);
 		Mockito.when(proceedingJoinPoint.proceed(proceedingJoinPoint.getArgs())).thenReturn(new Object());
-		Mockito.when(serviceDelegateUtil.isAuthTokenValid(Mockito.anyString())).thenReturn(true);
+		//Mockito.when(serviceDelegateUtil.isAuthTokenValid(Mockito.anyString())).thenReturn(true);
 		
 		Assert.assertNotNull(restClientAuthAdvice.addAuthZToken(proceedingJoinPoint));
 	}
@@ -131,9 +135,9 @@ public class RestClientAuthAdviceTest {
 		args[0] = requestHTTPDTO;
 		Mockito.when(proceedingJoinPoint.getArgs()).thenReturn(args);
 		Mockito.when(proceedingJoinPoint.proceed(proceedingJoinPoint.getArgs())).thenReturn(new Object());
-		Mockito.when(serviceDelegateUtil.isAuthTokenValid(Mockito.anyString())).thenReturn(false);
+		//Mockito.when(serviceDelegateUtil.isAuthTokenValid(Mockito.anyString())).thenReturn(false);
 		AuthTokenDTO authTokenDTO = new AuthTokenDTO();
-		Mockito.when(serviceDelegateUtil.getAuthToken(Mockito.any(LoginMode.class), Mockito.anyBoolean()))
+		Mockito.when(authTokenUtilService.getAuthTokenAndRefreshToken(Mockito.any(LoginMode.class)))
 				.thenReturn(authTokenDTO);
 		
 		Assert.assertNotNull(restClientAuthAdvice.addAuthZToken(proceedingJoinPoint));
@@ -154,7 +158,7 @@ public class RestClientAuthAdviceTest {
 		args[0] = requestHTTPDTO;
 		Mockito.when(proceedingJoinPoint.getArgs()).thenReturn(args);
 		Mockito.when(proceedingJoinPoint.proceed(proceedingJoinPoint.getArgs())).thenReturn(new Object());
-		Mockito.when(serviceDelegateUtil.isAuthTokenValid(Mockito.anyString())).thenReturn(true);
+		//Mockito.when(serviceDelegateUtil.isAuthTokenValid(Mockito.anyString())).thenReturn(true);
 		
 		Assert.assertNotNull(restClientAuthAdvice.addAuthZToken(proceedingJoinPoint));
 	}
@@ -173,9 +177,9 @@ public class RestClientAuthAdviceTest {
 		args[0] = requestHTTPDTO;
 		Mockito.when(proceedingJoinPoint.getArgs()).thenReturn(args);
 		Mockito.when(proceedingJoinPoint.proceed(proceedingJoinPoint.getArgs())).thenReturn(new Object());
-		Mockito.when(serviceDelegateUtil.isAuthTokenValid(Mockito.anyString())).thenReturn(false);
+		//Mockito.when(serviceDelegateUtil.isAuthTokenValid(Mockito.anyString())).thenReturn(false);
 		AuthTokenDTO authTokenDTO = new AuthTokenDTO();
-		Mockito.when(serviceDelegateUtil.getAuthToken(Mockito.any(LoginMode.class), Mockito.anyBoolean()))
+		Mockito.when(authTokenUtilService.getAuthTokenAndRefreshToken(Mockito.any(LoginMode.class)))
 				.thenReturn(authTokenDTO);
 		
 		Assert.assertNotNull(restClientAuthAdvice.addAuthZToken(proceedingJoinPoint));
@@ -196,9 +200,9 @@ public class RestClientAuthAdviceTest {
 		args[0] = requestHTTPDTO;
 		Mockito.when(proceedingJoinPoint.getArgs()).thenReturn(args);
 		Mockito.when(proceedingJoinPoint.proceed(proceedingJoinPoint.getArgs())).thenReturn(new Object());
-		Mockito.when(serviceDelegateUtil.isAuthTokenValid(Mockito.anyString())).thenReturn(false);
+		//Mockito.when(serviceDelegateUtil.isAuthTokenValid(Mockito.anyString())).thenReturn(false);
 		AuthTokenDTO authTokenDTO = new AuthTokenDTO();
-		Mockito.when(serviceDelegateUtil.getAuthToken(Mockito.any(LoginMode.class), Mockito.anyBoolean()))
+		Mockito.when(authTokenUtilService.getAuthTokenAndRefreshToken(Mockito.any(LoginMode.class)))
 				.thenReturn(authTokenDTO);
 		PowerMockito.when(SessionContext.isSessionContextAvailable()).thenReturn(false);
 		Map<String, Object> value = new HashMap<>();
@@ -295,7 +299,7 @@ public class RestClientAuthAdviceTest {
 		Mockito.when(proceedingJoinPoint.getArgs()).thenReturn(args);
 		Mockito.when(proceedingJoinPoint.proceed(proceedingJoinPoint.getArgs()))
 				.thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
-		Mockito.doNothing().when(serviceDelegateUtil).getAuthToken(Mockito.any(LoginMode.class), Mockito.anyBoolean());
+		Mockito.doNothing().when(authTokenUtilService).getAuthTokenAndRefreshToken(Mockito.any(LoginMode.class));
 		Mockito.when(SessionContext.isSessionContextAvailable()).thenReturn(false);
 
 
@@ -325,7 +329,7 @@ public class RestClientAuthAdviceTest {
 		Mockito.when(proceedingJoinPoint.getArgs()).thenReturn(args);
 		Mockito.when(proceedingJoinPoint.proceed(proceedingJoinPoint.getArgs()))
 				.thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
-		Mockito.doNothing().when(serviceDelegateUtil).getAuthToken(Mockito.any(LoginMode.class), Mockito.anyBoolean());
+		Mockito.doNothing().when(authTokenUtilService).getAuthTokenAndRefreshToken(Mockito.any(LoginMode.class));
 		PowerMockito.when(ApplicationContext.map()).thenReturn(applicationContext);
 		Mockito.when(SessionContext.isSessionContextAvailable()).thenReturn(false);
 
@@ -352,7 +356,7 @@ public class RestClientAuthAdviceTest {
 		Mockito.when(proceedingJoinPoint.getArgs()).thenReturn(args);
 		Mockito.when(proceedingJoinPoint.proceed(proceedingJoinPoint.getArgs()))
 				.thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
-		Mockito.doNothing().when(serviceDelegateUtil).getAuthToken(Mockito.any(LoginMode.class), Mockito.anyBoolean());
+		Mockito.doNothing().when(authTokenUtilService).getAuthTokenAndRefreshToken(Mockito.any(LoginMode.class));
 		PowerMockito.when(ApplicationContext.map()).thenReturn(applicationContext);
 		Mockito.when(SessionContext.isSessionContextAvailable()).thenReturn(false);
 

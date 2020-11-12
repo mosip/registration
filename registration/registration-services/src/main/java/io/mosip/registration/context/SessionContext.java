@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import org.springframework.context.ApplicationContext;
 
 import io.mosip.kernel.biometrics.constant.BiometricType;
@@ -184,9 +185,9 @@ public class SessionContext {
 	 * @return boolean
 	 */
 	private static boolean validateInitialLogin(UserDTO userDTO, String loginMethod) {
-		ServiceDelegateUtil serviceDelegateUtil = applicationContext.getBean(ServiceDelegateUtil.class);
+		AuthTokenUtilService authTokenUtilService = applicationContext.getBean(AuthTokenUtilService.class);
 		try {
-			AuthTokenDTO authTknDTO = serviceDelegateUtil.getAuthToken(LoginMode.PASSWORD, HAVE_TO_SAVE_AUTH_TOKEN);
+			AuthTokenDTO authTknDTO = authTokenUtilService.getAuthTokenAndRefreshToken(LoginMode.PASSWORD);
 			if (null != authTknDTO) {
 				createSessionContext();
 				sessionContext.authTokenDTO = authTknDTO;

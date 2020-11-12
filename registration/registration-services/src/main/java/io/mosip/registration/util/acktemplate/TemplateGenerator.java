@@ -159,6 +159,7 @@ public class TemplateGenerator extends BaseService {
 			List<UiSchemaDTO> schemaFields = getSchemaFields(registration.getIdSchemaVersion());
 
 			boolean isAckTemplate = false;
+
 			if (templateType.equals(RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE)) {
 				/* Set-up Registration Acknowledgement related content */
 				setUpAcknowledgementContent(registration, templateValues, response, applicationLanguageProperties);
@@ -445,7 +446,8 @@ public class TemplateGenerator extends BaseService {
 
 			if (isAckTemplate) {
 				setACKBiometricImage(templateValues, RegistrationConstants.TEMPLATE_FACE_IMAGE_SOURCE,
-						RegistrationConstants.FACE_IMG_PATH, response);
+						RegistrationConstants.FACE_IMG_PATH, response,
+						getStreamImageBytes(capturedFace.get(0), registration));
 			} else {
 				setPreviewBiometricImage(templateValues, RegistrationConstants.TEMPLATE_FACE_IMAGE_SOURCE,
 						RegistrationConstants.FACE_IMG_PATH, response,
@@ -482,7 +484,7 @@ public class TemplateGenerator extends BaseService {
 				templateValues.putAll(leftSlab);
 				if (isAckTemplate) {
 					setACKBiometricImage(templateValues, RegistrationConstants.TEMPLATE_LEFT_PALM_IMAGE_SOURCE,
-							RegistrationConstants.TEMPLATE_LEFT_SLAP_IMAGE_PATH, response);
+							RegistrationConstants.TEMPLATE_LEFT_SLAP_IMAGE_PATH, response, null);
 				} else {
 					byte[] imageBytes = null;
 					if (!capturedFingers.isEmpty()) {
@@ -516,7 +518,7 @@ public class TemplateGenerator extends BaseService {
 				templateValues.putAll(rightSlab);
 				if (isAckTemplate) {
 					setACKBiometricImage(templateValues, RegistrationConstants.TEMPLATE_RIGHT_PALM_IMAGE_SOURCE,
-							RegistrationConstants.TEMPLATE_RIGHT_SLAP_IMAGE_PATH, response);
+							RegistrationConstants.TEMPLATE_RIGHT_SLAP_IMAGE_PATH, response, null);
 				} else {
 					byte[] imageBytes = null;
 					if (!capturedFingers.isEmpty()) {
@@ -551,7 +553,7 @@ public class TemplateGenerator extends BaseService {
 				templateValues.putAll(thumbsSlab);
 				if (isAckTemplate) {
 					setACKBiometricImage(templateValues, RegistrationConstants.TEMPLATE_THUMBS_IMAGE_SOURCE,
-							RegistrationConstants.TEMPLATE_THUMBS_IMAGE_PATH, response);
+							RegistrationConstants.TEMPLATE_THUMBS_IMAGE_PATH, response, null);
 				} else {
 					byte[] imageBytes = null;
 					if (!capturedFingers.isEmpty()) {
@@ -639,7 +641,7 @@ public class TemplateGenerator extends BaseService {
 					templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE,
 							RegistrationConstants.TEMPLATE_RIGHT_MARK);
 					setACKBiometricImage(templateValues, RegistrationConstants.TEMPLATE_EYE_IMAGE_SOURCE,
-							RegistrationConstants.TEMPLATE_EYE_IMAGE_PATH, response);
+							RegistrationConstants.TEMPLATE_EYE_IMAGE_PATH, response, null);
 				} else {
 					setPreviewBiometricImage(templateValues, RegistrationConstants.TEMPLATE_CAPTURED_LEFT_EYE,
 							RegistrationConstants.LEFT_IRIS_IMG_PATH, response,
@@ -659,7 +661,7 @@ public class TemplateGenerator extends BaseService {
 							RegistrationConstants.TEMPLATE_CROSS_MARK);
 					templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE_CAPTURED, RegistrationConstants.EMPTY);
 					setACKBiometricImage(templateValues, RegistrationConstants.TEMPLATE_EYE_IMAGE_SOURCE,
-							RegistrationConstants.TEMPLATE_EYE_IMAGE_PATH, response);
+							RegistrationConstants.TEMPLATE_EYE_IMAGE_PATH, response, null);
 				}
 			}
 
@@ -681,7 +683,7 @@ public class TemplateGenerator extends BaseService {
 					templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE,
 							RegistrationConstants.TEMPLATE_RIGHT_MARK);
 					setACKBiometricImage(templateValues, RegistrationConstants.TEMPLATE_EYE_IMAGE_SOURCE,
-							RegistrationConstants.TEMPLATE_EYE_IMAGE_PATH, response);
+							RegistrationConstants.TEMPLATE_EYE_IMAGE_PATH, response, null);
 				} else {
 					setPreviewBiometricImage(templateValues, RegistrationConstants.TEMPLATE_CAPTURED_RIGHT_EYE,
 							RegistrationConstants.RIGHT_IRIS_IMG_PATH, response,
@@ -702,7 +704,7 @@ public class TemplateGenerator extends BaseService {
 							RegistrationConstants.TEMPLATE_CROSS_MARK);
 					templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE_CAPTURED, RegistrationConstants.EMPTY);
 					setACKBiometricImage(templateValues, RegistrationConstants.TEMPLATE_EYE_IMAGE_SOURCE,
-							RegistrationConstants.TEMPLATE_EYE_IMAGE_PATH, response);
+							RegistrationConstants.TEMPLATE_EYE_IMAGE_PATH, response, null);
 				}
 			}
 		}
@@ -727,13 +729,24 @@ public class TemplateGenerator extends BaseService {
 	}
 
 	private void setACKBiometricImage(Map<String, Object> templateValues, String key, String imagePath,
-			ResponseDTO response) {
+			ResponseDTO response, byte[] streamImage) {
 		try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();) {
-			BufferedImage eyeImage = ImageIO.read(this.getClass().getResourceAsStream(imagePath));
-			ImageIO.write(eyeImage, RegistrationConstants.IMAGE_FORMAT_PNG, byteArrayOutputStream);
-			byte[] eyeImageBytes = byteArrayOutputStream.toByteArray();
-			String eyeImageEncodedBytes = StringUtils.newStringUtf8(Base64.encodeBase64(eyeImageBytes, false));
-			templateValues.put(key, RegistrationConstants.TEMPLATE_PNG_IMAGE_ENCODING + eyeImageEncodedBytes);
+			if (key.equalsIgnoreCase(RegistrationConstants.TEMPLATE_FACE_IMAGE_SOURCE) && streamImage != null) {
+				String encodedBytes = "";
+				if (streamImage != null && streamImage.length > 0) {
+					encodedBytes = StringUtils.newStringUtf8(Base64.encodeBase64(streamImage, false));
+				} else
+					encodedBytes = StringUtils.newStringUtf8(Base64
+							.encodeBase64(IOUtils.toByteArray(this.getClass().getResourceAsStream(imagePath)), false));
+
+				templateValues.put(key, RegistrationConstants.TEMPLATE_JPG_IMAGE_ENCODING + encodedBytes);
+			} else {
+				BufferedImage eyeImage = ImageIO.read(this.getClass().getResourceAsStream(imagePath));
+				ImageIO.write(eyeImage, RegistrationConstants.IMAGE_FORMAT_PNG, byteArrayOutputStream);
+				byte[] eyeImageBytes = byteArrayOutputStream.toByteArray();
+				String eyeImageEncodedBytes = StringUtils.newStringUtf8(Base64.encodeBase64(eyeImageBytes, false));
+				templateValues.put(key, RegistrationConstants.TEMPLATE_PNG_IMAGE_ENCODING + eyeImageEncodedBytes);
+			}
 		} catch (IOException ioException) {
 			setErrorResponse(response, RegistrationConstants.TEMPLATE_GENERATOR_ACK_RECEIPT_EXCEPTION, null);
 			LOGGER.error(LOG_TEMPLATE_GENERATOR, APPLICATION_NAME, APPLICATION_ID, ioException.getMessage());
@@ -788,6 +801,27 @@ public class TemplateGenerator extends BaseService {
 		templateValues.put(RegistrationConstants.TEMPLATE_DATE_USER_LANG_LABEL,
 				applicationLanguageProperties.getString("date"));
 		templateValues.put(RegistrationConstants.TEMPLATE_DATE_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("date"));
+
+		Map<String, Object> defaultDemographics = registration.getDefaultDemographics();
+		if (defaultDemographics != null && !defaultDemographics.isEmpty()) {
+			templateValues.put(RegistrationConstants.TEMPLATE_APPLICANT_NAME_PRIMARY_LABEL,
+					applicationLanguageProperties.getString("fullName"));
+			templateValues.put(RegistrationConstants.TEMPLATE_APPLICANT_NAME_SECONDARY_LABEL,
+					getSecondaryLanguageLabel("fullName"));
+			List<SimpleDto> fullNameValues = (List<SimpleDto>) defaultDemographics
+					.get(defaultDemographics.keySet().toArray()[0]);
+			fullNameValues.forEach(simpleDto -> {
+				if (simpleDto.getLanguage().equalsIgnoreCase(platformLanguageCode)) {
+					templateValues.put(RegistrationConstants.TEMPLATE_APPLICANT_NAME_PRIMARY_VALUE,
+							simpleDto.getValue());
+				} else if (simpleDto.getLanguage().equalsIgnoreCase(localLanguageCode)) {
+					templateValues.put(RegistrationConstants.TEMPLATE_APPLICANT_NAME_SECONDARY_VALUE,
+							simpleDto.getValue());
+				}
+			});
+		} else {
+			templateValues.put("DisplayName", RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
+		}
 
 		templateValues.put(RegistrationConstants.TEMPLATE_DEMO_INFO,
 				applicationLanguageProperties.getString("demographicInformation"));
@@ -881,8 +915,6 @@ public class TemplateGenerator extends BaseService {
 
 	private void setUpAcknowledgementContent(RegistrationDTO registration, Map<String, Object> templateValues,
 			ResponseDTO response, ResourceBundle applicationLanguageProperties) {
-		// ByteArrayOutputStream byteArrayOutputStream = null;
-
 		templateValues.put(RegistrationConstants.TEMPLATE_PREVIEW, RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
 		templateValues.put(RegistrationConstants.TEMPLATE_RID_USER_LANG_LABEL,
 				applicationLanguageProperties.getString("registrationid"));
