@@ -19,6 +19,8 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
+import io.mosip.registration.processor.core.eventbus.MosipEventBusFactory;
+import io.mosip.registration.processor.core.exception.UnsupportedEventBusTypeException;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -81,7 +83,11 @@ public class ReprocessingSchedulerTest {
 		 */
 		@Override
 		public MosipEventBus getEventBus(Object verticleName, String clusterManagerUrl) {
-			return new MosipEventBus(vertx);
+			try {
+				return new MosipEventBusFactory().getEventBus(vertx, "vertx");
+			} catch (UnsupportedEventBusTypeException e) {
+				throw new RuntimeException(e);
+			}
 		}
 	};
 
