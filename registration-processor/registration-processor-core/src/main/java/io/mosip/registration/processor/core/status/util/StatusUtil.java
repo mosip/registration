@@ -1,5 +1,7 @@
 package io.mosip.registration.processor.core.status.util;
 
+import io.mosip.registration.processor.core.exception.util.PlatformConstants;
+
 public enum StatusUtil {
 	// Packet Receiver Stage
 	PACKET_RECEIVED(StatusConstants.PACKET_RECEIVER_MODULE_SUCCESS + "001","Packet has reached Packet Receiver"),
@@ -90,6 +92,10 @@ public enum StatusUtil {
 	PDF_SIGNTURED_FAILED(StatusConstants.PRINT_STAGE_MODULE_SUCCESS + "008", "Pdf Signature failed "),
 	PRINT_REQUEST_FAILED(StatusConstants.PRINT_STAGE_MODULE_FAILED + "009",
 			"Print request failed"),
+	UIN_NOT_FOUND_IN_DATABASE(StatusConstants.PRINT_STAGE_MODULE_FAILED + "010", "UIN not found in database"),
+	/** The rpr prt vid exception. */
+	VID_NOT_AVAILABLE(PlatformConstants.RPR_PRINTING_MODULE + "011",
+			"vid not available"),
 
 	// Abis middleware stage
 	INSERT_IDENTIFY_REQUEST_SUCCESS(StatusConstants.ABIS_MIDDLEWARE_MODULE_SUCCESS + "001","Insert or Identify Request sent to ABIS Queue is succesful"),

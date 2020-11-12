@@ -934,6 +934,10 @@ public enum PlatformErrorMessages {
 	RPR_PRT_API_RESOUCE_ACCESS_FAILED(PlatformConstants.RPR_PRINTING_MODULE + "026",
 			"Unable to Access API Resource"),
 
+	/** The rpr prt vid exception. */
+	RPR_PRT_VID_NOT_AVAILABLE_EXCEPTION(PlatformConstants.RPR_PRINTING_MODULE + "027",
+			"vid not available"),
+
 	/** The rpr rgs registration connector not accessible. */
 	RPR_RGS_REGISTRATION_CONNECTOR_NOT_ACCESSIBLE("", "Registration connector stage is not accessible "),
 
