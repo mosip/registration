@@ -199,6 +199,7 @@ public class PrintStage extends MosipVerticleAPIManager {
 						.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.PRINT_SERVICE.toString());
 
 			}
+			else {
 			String vid = getVid(uin);
 			CredentialRequestDto credentialRequestDto = getCredentialRequestDto(vid);
 			requestWrapper.setId(env.getProperty("mosip.registration.processor.credential.request.service.id"));
@@ -244,7 +245,7 @@ public class PrintStage extends MosipVerticleAPIManager {
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
 						LoggerFileConstant.REGISTRATIONID.toString(), regId, "PrintStage::process()::exit");
 			}
-
+			}
 		} catch (ApisResourceAccessException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					regId, PlatformErrorMessages.RPR_PRT_PRINT_REQUEST_FAILED.name() + e.getMessage()
