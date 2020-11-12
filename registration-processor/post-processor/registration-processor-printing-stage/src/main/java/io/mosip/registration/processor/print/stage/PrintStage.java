@@ -128,13 +128,6 @@ public class PrintStage extends MosipVerticleAPIManager {
 
 	private static final String DATETIME_PATTERN = "mosip.registration.processor.datetime.pattern";
 
-	/** The Constant VID_CREATE_ID. */
-	public static final String VID_CREATE_ID = "registration.processor.id.repo.generate";
-
-	/** The Constant REG_PROC_APPLICATION_VERSION. */
-	public static final String REG_PROC_APPLICATION_VERSION = "registration.processor.id.repo.vidVersion";
-
-	public static final String VID_TYPE = "registration.processor.id.repo.vidType";
 
 	@Autowired
 	private Utilities utilities;
