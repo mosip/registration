@@ -691,6 +691,10 @@ public class RegistrationConstants {
 	public static final String SPLIT_DELIMITOR = "\\.";
 	public static final String TEMPLATE_GUIDELINES = "Guidelines";
 	public static final String TEMPLATE_IS_UIN_UPDATE = "IsUINUpdate";
+	public static final String TEMPLATE_APPLICANT_NAME_PRIMARY_LABEL = "NamePrimLabel";
+	public static final String TEMPLATE_APPLICANT_NAME_SECONDARY_LABEL = "NameSecLabel";
+	public static final String TEMPLATE_APPLICANT_NAME_PRIMARY_VALUE = "NamePrimValue";
+	public static final String TEMPLATE_APPLICANT_NAME_SECONDARY_VALUE = "NameSecValue";
 
 	public static final String MODIFY_DEMO_INFO = "modifyDemographicInfo";
 	public static final String MODIFY_DOCUMENTS = "modifyDocuments";

@@ -825,7 +825,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 			switch (modality) {
 
 			case RegistrationConstants.FACE:
-				irisRetryCount = RegistrationConstants.IRIS_RETRY_COUNT;
+				irisRetryCount = null;
 				break;
 			case RegistrationConstants.IRIS_DOUBLE:
 				irisRetryCount = RegistrationConstants.IRIS_RETRY_COUNT;
@@ -856,7 +856,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 			switch (modality) {
 
 			case RegistrationConstants.FACE:
-				biomnetricThreshold = RegistrationConstants.IRIS_THRESHOLD;
+				biomnetricThreshold = null;
 				break;
 			case RegistrationConstants.IRIS_DOUBLE:
 				biomnetricThreshold = RegistrationConstants.IRIS_THRESHOLD;
@@ -1642,8 +1642,14 @@ public class BiometricsController extends BaseController /* implements Initializ
 		bioValue = bioType;
 		biometricImage.setImage(new Image(this.getClass().getResourceAsStream(bioImage)));
 
-		thresholdScoreLabel
-				.setText(getQualityScore(Double.parseDouble(getValueFromApplicationContext(biometricThreshold))));
+		String threshold = null;
+		if (biometricThreshold != null) {
+			threshold = getValueFromApplicationContext(biometricThreshold);
+		}
+
+		double qualityScore = threshold == null || threshold.isEmpty() ? 0 : Double.parseDouble(threshold);
+
+		thresholdScoreLabel.setText(getQualityScore(qualityScore));
 		createQualityBox(retryCount, biometricThreshold);
 
 		clearBioLabels();
@@ -1809,7 +1815,11 @@ public class BiometricsController extends BaseController /* implements Initializ
 		bioRetryBox.getChildren().clear();
 		// if (!(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER))
 		// {
-		for (int retry = 0; retry < Integer.parseInt(getValueFromApplicationContext(retryCount)); retry++) {
+
+		String retryCountVal = getValueFromApplicationContext(retryCount);
+
+		retryCountVal = retryCount == null || retryCount.isEmpty() ? "0" : retryCountVal;
+		for (int retry = 0; retry < Integer.parseInt(retryCountVal); retry++) {
 			Label label = new Label();
 			label.getStyleClass().add(RegistrationConstants.QUALITY_LABEL_GREY);
 			label.setId(RegistrationConstants.RETRY_ATTEMPT_ID + (retry + 1));
@@ -1821,7 +1831,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 		}
 		bioRetryBox.setOnMouseClicked(mouseEventHandler);
 
-		String threshold = getValueFromApplicationContext(biometricThreshold);
+		String threshold = biometricThreshold != null ? getValueFromApplicationContext(biometricThreshold) : "0";
 
 		thresholdLabel.setAlignment(Pos.CENTER);
 		thresholdLabel.setText(RegistrationUIConstants.THRESHOLD.concat("  ").concat(threshold)
@@ -1843,15 +1853,24 @@ public class BiometricsController extends BaseController /* implements Initializ
 	 */
 	private void clearAttemptsBox(String styleClass, int retries) {
 		for (int retryBox = 1; retryBox <= retries; retryBox++) {
-			bioRetryBox.lookup(RegistrationConstants.RETRY_ATTEMPT + retryBox).getStyleClass().clear();
-			bioRetryBox.lookup(RegistrationConstants.RETRY_ATTEMPT + retryBox).getStyleClass().add(styleClass);
+
+			Node node = bioRetryBox.lookup(RegistrationConstants.RETRY_ATTEMPT + retryBox);
+
+			if (node != null) {
+				node.getStyleClass().clear();
+				node.getStyleClass().add(styleClass);
+			}
 		}
 
 		boolean nextRetryFound = bioRetryBox.lookup(RegistrationConstants.RETRY_ATTEMPT + ++retries) != null;
 		while (nextRetryFound) {
-			bioRetryBox.lookup(RegistrationConstants.RETRY_ATTEMPT + retries).getStyleClass().clear();
-			bioRetryBox.lookup(RegistrationConstants.RETRY_ATTEMPT + retries).getStyleClass()
-					.add(RegistrationConstants.QUALITY_LABEL_GREY);
+
+			Node node = bioRetryBox.lookup(RegistrationConstants.RETRY_ATTEMPT + retries);
+
+			if (node != null) {
+				node.getStyleClass().clear();
+				node.getStyleClass().add(RegistrationConstants.QUALITY_LABEL_GREY);
+			}
 			nextRetryFound = bioRetryBox.lookup(RegistrationConstants.RETRY_ATTEMPT + ++retries) != null;
 		}
 	}

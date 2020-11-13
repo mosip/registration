@@ -384,6 +384,17 @@ public class RegistrationController extends BaseController {
 				RegistrationConstants.APPLICATION_ID,
 				"Registration Started for RID  : [ " + registrationDTO.getRegistrationId() + " ] ");
 
+		List<String> defaultFields = new ArrayList<String>();
+		List<String> defaultFieldGroups = new ArrayList<String>();
+
+		defaultFieldGroups.add(RegistrationConstants.UI_SCHEMA_GROUP_FULL_NAME);
+		for (UiSchemaDTO uiSchemaDTO : fetchByGroup(RegistrationConstants.UI_SCHEMA_GROUP_FULL_NAME)) {
+			defaultFields.add(uiSchemaDTO.getId());
+		}
+		// Used to update printing name as default
+		registrationDTO.setDefaultUpdatableFieldGroups(defaultFieldGroups);
+		registrationDTO.setDefaultUpdatableFields(defaultFields);
+		
 		// Put the RegistrationDTO object to SessionContext Map
 		SessionContext.map().put(RegistrationConstants.REGISTRATION_DATA, registrationDTO);
 	}

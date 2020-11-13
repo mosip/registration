@@ -3,13 +3,17 @@ package io.mosip.registrationprocessor.print.stage.test;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,11 +42,15 @@ import io.mosip.registration.processor.core.constant.EventId;
 import io.mosip.registration.processor.core.constant.EventName;
 import io.mosip.registration.processor.core.constant.EventType;
 import io.mosip.registration.processor.core.constant.RegistrationType;
+import io.mosip.registration.processor.core.constant.VidType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.idrepo.dto.CredentialResponseDto;
+import io.mosip.registration.processor.core.idrepo.dto.VidInfoDTO;
+import io.mosip.registration.processor.core.idrepo.dto.VidsInfosDTO;
 import io.mosip.registration.processor.core.packet.dto.Identity;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.print.stage.PrintStage;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
@@ -88,6 +96,9 @@ public class PrintStageTest {
 	private Environment env;
 
 	private String response;
+
+	@Mock
+	private Utilities utitilites;
 
 	@InjectMocks
 	private PrintStage stage = new PrintStage() {
@@ -162,6 +173,19 @@ public class PrintStageTest {
 				"test case description", EventId.RPR_401.toString(), EventName.ADD.toString(),
 				EventType.BUSINESS.toString(), "1234testcase", ApiName.AUDIT);
 		Mockito.when(objectMapper.writeValueAsString(any())).thenReturn(response);
+		VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
+		List<VidInfoDTO> vidList = new ArrayList<>();
+		VidInfoDTO vidInfoDTO = new VidInfoDTO();
+		vidInfoDTO.setVid("4796042638691271");
+		vidInfoDTO.setVidType(VidType.PERPETUAL.name());
+		vidList.add(vidInfoDTO);
+		vidsInfosDTO.setResponse(vidList);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(vidsInfosDTO);
+		Map<String, String> map1 = new HashMap<>();
+		map1.put("UIN", "4238135072");
+		JSONObject jsonObject = new JSONObject(map1);
+		Mockito.when(utitilites.retrieveUIN(any())).thenReturn(jsonObject);
+
 
 
 	}
@@ -203,6 +227,7 @@ public class PrintStageTest {
 		responseWrapper.setResponse(credentialResponseDto);
 		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any(), any(MediaType.class)))
 				.thenReturn(responseWrapper);
+
 		MessageDTO result = stage.process(dto);
 		assertTrue(result.getIsValid());
 	}
@@ -226,6 +251,7 @@ public class PrintStageTest {
 
 		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any(), any(MediaType.class)))
 				.thenReturn(responseWrapper);
+
 		MessageDTO result = stage.process(dto);
 		assertFalse(result.getIsValid());
 	}
@@ -289,6 +315,56 @@ public class PrintStageTest {
 		assertTrue(result.getInternalError());
 	}
 
+	@Test
+	public void testUINNotavailable()
+			throws JsonParseException, JsonMappingException, IOException, ApisResourceAccessException {
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890987654321");
 
+		dto.setReg_type(RegistrationType.NEW);
+
+		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
+		CredentialResponseDto credentialResponseDto = new CredentialResponseDto();
+		credentialResponseDto.setRequestId("879664323421");
+		Mockito.when(objectMapper.readValue(response, CredentialResponseDto.class)).thenReturn(credentialResponseDto);
+		responseWrapper.setResponse(credentialResponseDto);
+		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any(), any(MediaType.class)))
+				.thenThrow(new ApisResourceAccessException());
+		Map<String, String> map1 = new HashMap<>();
+
+		JSONObject jsonObject = new JSONObject(map1);
+		Mockito.when(utitilites.retrieveUIN(any())).thenReturn(jsonObject);
+		MessageDTO result = stage.process(dto);
+		
+		assertFalse(result.getIsValid());
+	}
+
+	@Test
+	public void testVidNotAvailableException()
+			throws JsonParseException, JsonMappingException, IOException, ApisResourceAccessException {
+		MessageDTO dto = new MessageDTO();
+		dto.setRid("1234567890987654321");
+
+		dto.setReg_type(RegistrationType.NEW);
+
+		ResponseWrapper<CredentialResponseDto> responseWrapper = new ResponseWrapper<>();
+		CredentialResponseDto credentialResponseDto = new CredentialResponseDto();
+		credentialResponseDto.setRequestId("879664323421");
+		Mockito.when(objectMapper.readValue(response, CredentialResponseDto.class)).thenReturn(credentialResponseDto);
+		responseWrapper.setResponse(credentialResponseDto);
+		Mockito.when(restClientService.postApi(any(), any(), any(), any(), any(), any(MediaType.class)))
+				.thenThrow(new ApisResourceAccessException());
+		VidsInfosDTO vidsInfosDTO = new VidsInfosDTO();
+		List<VidInfoDTO> vidList = new ArrayList<>();
+		VidInfoDTO vidInfoDTO = new VidInfoDTO();
+		vidInfoDTO.setVid("4796042638691271");
+		vidInfoDTO.setVidType(VidType.TEMPORARY.name());
+		vidList.add(vidInfoDTO);
+		vidsInfosDTO.setResponse(vidList);
+		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(vidsInfosDTO);
+		MessageDTO result = stage.process(dto);
+		
+		assertTrue(result.getInternalError());
+	}
 
 }

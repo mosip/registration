@@ -1798,7 +1798,14 @@ public class DemographicDetailController extends BaseController {
 
 					if (registrationDTO != null) {
 //				 Save information to session
-						addTextFieldToSession(textField.getId(), registrationDTO, false);
+						if (registrationDTO.getDefaultUpdatableFields() != null
+								&& registrationDTO.getDefaultUpdatableFields().contains(textField.getId())) {
+							addTextFieldToSession(textField.getId(), registrationDTO, true);
+						}
+						if (!registrationDTO.getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE) || (registrationDTO.getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE)
+								&& registrationDTO.getUpdatableFields().contains(textField.getId()))) {
+							addTextFieldToSession(textField.getId(), registrationDTO, false);
+						}
 
 						LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 								"Refresh all groups");
