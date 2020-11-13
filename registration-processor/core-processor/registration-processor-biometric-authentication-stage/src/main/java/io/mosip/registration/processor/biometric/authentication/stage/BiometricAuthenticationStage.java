@@ -54,8 +54,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
+import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -329,8 +328,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 	}
 
 	private boolean idaAuthenticate(List<BIR> segments, String uin, InternalRegistrationStatusDto registrationStatusDto)
-			throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException,
-			BioTypeException, AuthSystemException {
+			throws IOException, ApisResourceAccessException, BioTypeException, AuthSystemException, CertificateException {
 		TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
 
 		boolean idaAuth = false;
@@ -362,9 +360,8 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 	}
 
 	private boolean checkIndividualAuthentication(String registrationId, String process,
-			InternalRegistrationStatusDto registrationStatusDto) throws IOException, InvalidKeySpecException,
-			NoSuchAlgorithmException, BioTypeException,
-			AuthSystemException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
+			InternalRegistrationStatusDto registrationStatusDto) throws IOException, BioTypeException,
+			AuthSystemException, ApisResourceAccessException, PacketManagerException, JsonProcessingException, CertificateException {
 
 		BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId,
                 MappingJsonConstants.AUTHENTICATION_BIOMETRICS, null, process);

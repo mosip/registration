@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -553,7 +554,7 @@ public class OSIValidatorTest {
 			InvalidKeySpecException, NoSuchAlgorithmException, BiometricException, BioTypeException, IOException,
 			ParserConfigurationException, SAXException, PacketDecryptionFailureException,
 			io.mosip.kernel.core.exception.IOException, ParentOnHoldException, AuthSystemException,
-			PacketManagerException, JSONException, JsonProcessingException {
+			PacketManagerException, JSONException, JsonProcessingException, CertificateException {
 
 		InternalRegistrationStatusDto introducerRegistrationStatusDto = new InternalRegistrationStatusDto();
 

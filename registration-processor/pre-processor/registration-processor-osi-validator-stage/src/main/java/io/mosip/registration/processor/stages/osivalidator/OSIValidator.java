@@ -54,6 +54,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
@@ -164,7 +165,7 @@ public class OSIValidator {
 	public boolean isValidOSI(String registrationId, InternalRegistrationStatusDto registrationStatusDto, Map<String, String> metaInfo)
 			throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException,
 			NumberFormatException, BiometricException, BioTypeException,
-			AuthSystemException, PacketManagerException, JSONException, JsonProcessingException, ParentOnHoldException {
+			AuthSystemException, PacketManagerException, JSONException, JsonProcessingException, ParentOnHoldException, CertificateException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "OSIValidator::isValidOSI()::entry");
 		boolean isValidOsi = false;
@@ -295,8 +296,8 @@ public class OSIValidator {
 	 */
 	private boolean isValidOperator(RegOsiDto regOsi, String registrationId,
 			InternalRegistrationStatusDto registrationStatusDto)
-			throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException,
-			BiometricException, BioTypeException, AuthSystemException, JsonProcessingException, PacketManagerException {
+			throws IOException, ApisResourceAccessException, BioTypeException,
+			AuthSystemException, JsonProcessingException, PacketManagerException, CertificateException {
 		boolean isValid = false;
 		String officerId = regOsi.getOfficerId();
 		if (officerId != null) {
@@ -380,7 +381,7 @@ public class OSIValidator {
 	private boolean isValidSupervisor(RegOsiDto regOsi, String registrationId,
 			InternalRegistrationStatusDto registrationStatusDto)
 			throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException,
-			BiometricException, BioTypeException, AuthSystemException, JsonProcessingException, PacketManagerException {
+			BiometricException, BioTypeException, AuthSystemException, JsonProcessingException, PacketManagerException, CertificateException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "OSIValidator::isValidSupervisor()::entry");
 		String supervisorId = regOsi.getSupervisorId();
@@ -456,7 +457,7 @@ public class OSIValidator {
 	private boolean isValidIntroducer(String registrationId, InternalRegistrationStatusDto registrationStatusDto)
 			throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException,
 			BioTypeException, ParentOnHoldException,
-			AuthSystemException, JsonProcessingException, PacketManagerException {
+			AuthSystemException, JsonProcessingException, PacketManagerException, CertificateException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				registrationId, "OSIValidator::isValidIntroducer()::entry");
 
@@ -521,7 +522,7 @@ public class OSIValidator {
 	private boolean validateIntroducerBiometric(String registrationId,
 			InternalRegistrationStatusDto registrationStatusDto, String introducerBiometricsFileName,
 			String introducerUIN) throws IOException, ApisResourceAccessException,
-			InvalidKeySpecException, NoSuchAlgorithmException, BioTypeException, AuthSystemException, JsonProcessingException, PacketManagerException {
+			BioTypeException, AuthSystemException, JsonProcessingException, PacketManagerException, CertificateException {
 		BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId,
 				introducerBiometricsFileName, null, registrationStatusDto.getRegistrationType());
 		if (introducerBiometricsFileName != null && (!introducerBiometricsFileName.trim().isEmpty())
@@ -614,8 +615,7 @@ public class OSIValidator {
 
 	private boolean validateUserBiometric(String registrationId, String userId, List<BIR> list,
 			String individualType, InternalRegistrationStatusDto registrationStatusDto)
-			throws ApisResourceAccessException, InvalidKeySpecException,
-			NoSuchAlgorithmException, IOException, BioTypeException, AuthSystemException {
+			throws ApisResourceAccessException, IOException, BioTypeException, AuthSystemException, CertificateException {
 
 		AuthResponseDTO authResponseDTO = authUtil.authByIdAuthentication(userId, individualType, list);
 		if (authResponseDTO.getErrors() == null || authResponseDTO.getErrors().isEmpty()) {

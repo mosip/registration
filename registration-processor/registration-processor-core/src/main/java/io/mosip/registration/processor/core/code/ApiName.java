@@ -76,6 +76,8 @@ public enum ApiName {
 
 	IDAUTHPUBLICKEY,
 
+	IDAUTHCERTIFICATE,
+
 	/** The ReverseDataSync *. */
 	REVERSEDATASYNC,
 
