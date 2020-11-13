@@ -68,6 +68,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -322,7 +323,7 @@ public class BiometricAuthenticationStageTest {
 
 
 	@Test
-	public void IDAuthFailureTest() throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException, BioTypeException {
+	public void IDAuthFailureTest() throws IOException, ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException, BioTypeException, CertificateException {
 		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
 		responseDTO.setAuthStatus(false);
@@ -413,7 +414,7 @@ public class BiometricAuthenticationStageTest {
 
 	@Test
 	public void testNewPacket() throws IOException,
-			ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException, BioTypeException {
+			ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException, BioTypeException, CertificateException {
 
 		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
 		ResponseDTO responseDTO = new ResponseDTO();
@@ -433,7 +434,7 @@ public class BiometricAuthenticationStageTest {
 	}
 	@Test
 	public void testAuthSystemException() throws ApisResourceAccessException, IOException, InvalidKeySpecException,
-			NoSuchAlgorithmException, BioTypeException, JsonProcessingException, PacketManagerException {
+			NoSuchAlgorithmException, BioTypeException, JsonProcessingException, PacketManagerException, CertificateException {
 		List<BIR> birTypeList = new ArrayList<>();
 		BIR birType1 = new BIR.BIRBuilder().build();
 		BDBInfo bdbInfoType1 = new BDBInfo.BDBInfoBuilder().build();
@@ -473,7 +474,7 @@ public class BiometricAuthenticationStageTest {
 	}
 	@Test
 	public void testAuthFailed() throws ApisResourceAccessException, IOException, InvalidKeySpecException,
-			NoSuchAlgorithmException, BioTypeException {
+			NoSuchAlgorithmException, BioTypeException, CertificateException {
 		AuthResponseDTO authResponseDTO = new AuthResponseDTO();
 		ErrorDTO error=new ErrorDTO();
 		error.setErrorCode("IDA-MLC-008");
