@@ -269,10 +269,10 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 	@Autowired
 	HeaderController headerController;
-	
+
 	@Value("${object.store.base.location}")
 	private String baseLocation;
-	
+
 	@Value("${packet.manager.account.name}")
 	private String packetsLocation;
 
@@ -906,7 +906,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 				// Generate the file path for storing the Encrypted Packet and Acknowledgement
 				// Receipt
 				String separator = "/";
-				String filePath = baseLocation.concat(separator).concat(packetsLocation).concat(separator).concat(registrationDTO.getRegistrationId());
+				String filePath = baseLocation.concat(separator).concat(packetsLocation).concat(separator)
+						.concat(registrationDTO.getRegistrationId());
 
 				// Storing the Registration Acknowledge Receipt Image
 				FileUtils.copyToFile(new ByteArrayInputStream(ackInBytes),
@@ -1017,8 +1018,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 	/**
 	 * Sync and upload packet.
 	 *
-	 * @throws RegBaseCheckedException
-	 *             the reg base checked exception
+	 * @throws RegBaseCheckedException the reg base checked exception
 	 */
 	private void syncAndUploadPacket() throws RegBaseCheckedException {
 		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Sync and Upload of created Packet started");
@@ -1172,8 +1172,10 @@ public class PacketHandlerController extends BaseController implements Initializ
 	 */
 	private boolean getCenterAndMachineActiveStatus() {
 
-		return (null != userOnboardService.getMachineCenterId().get(RegistrationConstants.USER_STATION_ID)
-				|| null != userOnboardService.getMachineCenterId().get(RegistrationConstants.USER_CENTER_ID)) ? true
+		return ((null != userOnboardService.getMachineCenterId().get(RegistrationConstants.USER_STATION_ID)
+				|| null != userOnboardService.getMachineCenterId().get(RegistrationConstants.USER_CENTER_ID))
+				&& SessionContext.userContext().getRegistrationCenterDetailDTO().getRegistrationCenterId() != null)
+						? true
 						: false;
 
 	}
