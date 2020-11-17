@@ -275,23 +275,27 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 		/** Operator/officer/supervisor Biometrics */
 		if (!operatorBiometrics.isEmpty()) {
+
+			List<BIR> birList = new ArrayList<>();
+
 			for (BiometricsDto biometricsDto : operatorBiometrics) {
-				List<BIR> list = new ArrayList<>();
 				BIR bir = getBIR(biometricsDto);
 
-				list.add(bir);
+				LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "Adding bir");
 
-				BiometricRecord biometricRecord = new BiometricRecord();
+				birList.add(bir);
 
-				// TODO set version type,bir info
-				biometricRecord.setSegments(list);
-
-				LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID,
-						"Adding operator biometrics to packet manager :  " + fileName);
-
-				packetWriter.setBiometric(registrationId, fileName, biometricRecord, source.toUpperCase(),
-						registrationCategory.toUpperCase());
 			}
+
+			BiometricRecord biometricRecord = new BiometricRecord();
+
+			biometricRecord.setSegments(birList);
+
+			LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID,
+					"Adding operator biometrics to packet manager :  " + fileName);
+
+			packetWriter.setBiometric(registrationId, fileName, biometricRecord, source.toUpperCase(),
+					registrationCategory.toUpperCase());
 		}
 
 	}
