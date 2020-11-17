@@ -469,7 +469,7 @@ public class OSIValidator {
 				if (!introducerValidation)
 					return true;
 				String introducerBiometricsLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(
-						utility.getRegistrationProcessorMappingJson(MappingJsonConstants.BIOMETRICS), MappingJsonConstants.PARENT_OR_GUARDIAN_BIO), MappingJsonConstants.VALUE);
+						utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY), MappingJsonConstants.PARENT_OR_GUARDIAN_BIO), MappingJsonConstants.VALUE);
 
 				String introducerUIN = packetManagerService.getFieldByKey(registrationId, MappingJsonConstants.PARENT_OR_GUARDIAN_UIN, registrationStatusDto.getRegistrationType());
 				String introducerRID = packetManagerService.getFieldByKey(registrationId, MappingJsonConstants.PARENT_OR_GUARDIAN_RID, registrationStatusDto.getRegistrationType());
