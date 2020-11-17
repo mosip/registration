@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -616,7 +617,11 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			auditMap.put("moduleName", audit.getModuleName());
 			auditMap.put("moduleId", audit.getModuleId());
 			auditMap.put("description", audit.getDescription());
-			auditMap.put("actionTimeStamp", String.valueOf(audit.getActionTimeStamp()));
+
+			// Fix to resolve date format issue in reg-proc
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
+			auditMap.put("actionTimeStamp", String.valueOf(audit.getActionTimeStamp().format(formatter)));
 
 			auditList.add(auditMap);
 		}
