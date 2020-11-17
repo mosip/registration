@@ -321,7 +321,7 @@ public class OSIValidator {
 				}
 			} else {
 				BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId,
-						officerBiometricFileName, null, registrationStatusDto.getRegistrationType());
+						JsonConstant.OFFICERBIOMETRICFILENAME, null, registrationStatusDto.getRegistrationType());
 
 				if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().isEmpty()) {
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -409,7 +409,7 @@ public class OSIValidator {
 				}
 			} else {
 				BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId,
-						supervisorBiometricFileName, null, registrationStatusDto.getRegistrationType());
+						JsonConstant.SUPERVISORBIOMETRICFILENAME, null, registrationStatusDto.getRegistrationType());
 
 				if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().isEmpty()) {
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
