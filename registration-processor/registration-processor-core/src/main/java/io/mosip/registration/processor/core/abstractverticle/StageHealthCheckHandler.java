@@ -47,6 +47,8 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
+//import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -128,21 +130,21 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	}
 
 	@Override
-	public StageHealthCheckHandler register(String name, Handler<Future<Status>> procedure) {
+	public StageHealthCheckHandler register(String name, Handler<Promise<Status>> procedure) {
 		healthChecks.register(name, procedure);
 		return this;
 	}
 
 	@Override
-	public StageHealthCheckHandler register(String name, long timeout, Handler<Future<Status>> procedure) {
+	public StageHealthCheckHandler register(String name, long timeout, Handler<Promise<Status>> procedure) {
 		healthChecks.register(name, timeout, procedure);
 		return this;
 	}
 
 	/**
-	 * @param future
+	 * @param promise
 	 */
-	public void queueHealthChecker(Future<Status> future) {
+	public void queueHealthChecker(Promise<Status> promise) {
 		try {
 			ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory(queueUsername,
 					queuePassword, queueBrokerUrl);
@@ -157,10 +159,10 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 			MessageConsumer messageConsumer = session.createConsumer(destination);
 			String res = new String(((ActiveMQBytesMessage) messageConsumer.receive()).getContent().data);
 			final JsonObject result = resultBuilder.create().add(HealthConstant.RESPONSE, res).build();
-			future.complete(Status.OK(result));
+			promise.complete(Status.OK(result));
 		} catch (Exception e) {
 			final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();
-			future.complete(Status.KO(result));
+			promise.complete(Status.KO(result));
 		}
 	}
 
@@ -188,7 +190,7 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 		File keyPath = null;
 		Resource resource = resourceLoader.getResource(keytabPath);
 		File dataPath = FileUtils.getFile(hadoopLibPath.toString(), "data");
-		boolean created=dataPath.mkdir();
+		boolean created = dataPath.mkdir();
 		if (resource.exists() && created) {
 			keyPath = FileUtils.getFile(dataPath.toString(), resource.getFilename());
 			FileUtils.copyInputStreamToFile(resource.getInputStream(), keyPath);
@@ -203,9 +205,9 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	}
 
 	/**
-	 * @param future
+	 * @param promise
 	 */
-	public void virusScanHealthChecker(Future<Status> future) {
+	public void virusScanHealthChecker(Promise<Status> promise) {
 		try {
 			this.clamavClient = new ClamavClient(clamavHost, clamavPort);
 			ScanResult scanResult;
@@ -217,27 +219,26 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 
 			final JsonObject result = resultBuilder.create().add(HealthConstant.RESPONSE, scanResult.getStatus().name())
 					.build();
-			future.complete(Status.OK(result));
+			promise.complete(Status.OK(result));
 
 		} catch (ClamavException | IOException e) {
 			final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();
-			future.complete(Status.KO(result));
+			promise.complete(Status.KO(result));
 		}
 	}
 
 	/**
 	 * Database health check handler
 	 * 
-	 * @param future
-	 *            {@link Future} instance from handler
+	 * @param promise {@link promise} instance from handler
 	 */
-	public void databaseHealthChecker(Future<Status> future) {
+	public void databaseHealthChecker(Promise<Status> promise) {
 
 		try {
 			Class.forName(driver);
 		} catch (ClassNotFoundException exception) {
 			final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, exception.getMessage()).build();
-			future.complete(Status.KO(result));
+			promise.complete(Status.KO(result));
 		}
 		try (Connection conn = DriverManager.getConnection(url, username, password)) {
 			try (final Statement statement = conn.createStatement()) {
@@ -248,35 +249,34 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 						final JsonObject result = resultBuilder.create()
 								.add(HealthConstant.DATABASE, conn.getMetaData().getDatabaseProductName())
 								.add(HealthConstant.HELLO, JdbcUtils.getResultSetValue(rs, 1)).build();
-						future.complete(Status.OK(result));
+						promise.complete(Status.OK(result));
 
 					}
 				}
 			}
 		} catch (SQLException exception) {
 			final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, exception.getMessage()).build();
-			future.complete(Status.KO(result));
+			promise.complete(Status.KO(result));
 		}
 	}
 
 	/**
 	 * Disk-Space health check Handler
 	 * 
-	 * @param future
-	 *            {@link Future} instance from handler
+	 * @param promise {@link promise} instance from handler
 	 */
-	public void dispSpaceHealthChecker(Future<Status> future) {
+	public void dispSpaceHealthChecker(Promise<Status> promise) {
 
 		final long diskFreeInBytes = this.currentWorkingDirPath.getUsableSpace();
 		if (diskFreeInBytes >= THRESHOLD) {
 			final JsonObject result = resultBuilder.create()
 					.add(HealthConstant.TOTAL, this.currentWorkingDirPath.getTotalSpace())
 					.add(HealthConstant.FREE, diskFreeInBytes).add(HealthConstant.THRESHOLD, THRESHOLD).build();
-			future.complete(Status.OK(result));
+			promise.complete(Status.OK(result));
 		} else {
 			final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR,
 					String.format(HealthConstant.THRESHOLD_ERROR, diskFreeInBytes, THRESHOLD)).build();
-			future.complete(Status.KO(result));
+			promise.complete(Status.KO(result));
 		}
 
 	}
@@ -284,35 +284,33 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	/**
 	 * Send Verticle health check handler
 	 * 
-	 * @param future
-	 *            {@link Future} instance from handler
-	 * @param vertx
-	 *            {@link Vertx} instance
+	 * @param promise {@link promise} instance from handler
+	 * @param vertx  {@link Vertx} instance
 	 */
-	public void senderHealthHandler(Future<Status> future, Vertx vertx, String address) {
+	public void senderHealthHandler(Promise<Status> promise, Vertx vertx, String address) {
 		try {
 			vertx.eventBus().send(address, HealthConstant.PING);
 			final JsonObject result = resultBuilder.create().add(HealthConstant.RESPONSE, HealthConstant.PING).build();
-			future.complete(Status.OK(result));
+			promise.complete(Status.OK(result));
 		} catch (Exception e) {
 			final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();
-			future.complete(Status.KO(result));
+			promise.complete(Status.KO(result));
 		}
 	}
 
 	/**
-	 * @param future
+	 * @param promise
 	 * @param vertx
 	 * @param address
 	 */
-	public void consumerHealthHandler(Future<Status> future, Vertx vertx, String address) {
+	public void consumerHealthHandler(Promise<Status> promise, Vertx vertx, String address) {
 		try {
 			Boolean isRegistered = vertx.eventBus().consumer(address).isRegistered();
 			final JsonObject result = resultBuilder.create().add(HealthConstant.RESPONSE, isRegistered).build();
-			future.complete(Status.OK(result));
+			promise.complete(Status.OK(result));
 		} catch (Exception e) {
 			final JsonObject result = resultBuilder.create().add(HealthConstant.ERROR, e.getMessage()).build();
-			future.complete(Status.KO(result));
+			promise.complete(Status.KO(result));
 		}
 	}
 
@@ -361,8 +359,7 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	/**
 	 * Create health check summary
 	 * 
-	 * @param rc
-	 *            {@link RoutingContext} instance
+	 * @param rc {@link RoutingContext} instance
 	 * @return {@link Handler}
 	 */
 	private Handler<AsyncResult<JsonObject>> healthSummaryHandler(RoutingContext rc) {
@@ -385,10 +382,8 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	/**
 	 * Create a json response
 	 * 
-	 * @param json
-	 *            summary json
-	 * @param response
-	 *            {@link HttpResponse}
+	 * @param json     summary json
+	 * @param response {@link HttpResponse}
 	 */
 	private void createResponse(JsonObject json, HttpServerResponse response) {
 		int status = isUp(json) ? 200 : 503;
@@ -415,10 +410,8 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	/**
 	 * Copy actual response to Spring actuator like response
 	 * 
-	 * @param json
-	 *            Summary json
-	 * @param checks
-	 *            Json array of all registered parameters with details
+	 * @param json   Summary json
+	 * @param checks Json array of all registered parameters with details
 	 */
 	private void createResponse(JsonObject json, JsonArray checks) {
 		for (int i = 0; i < checks.size(); i++) {
@@ -454,8 +447,7 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	/**
 	 * Check if error has occurred or not
 	 * 
-	 * @param json
-	 *            Summary json
+	 * @param json Summary json
 	 * @return True if has Error;else False
 	 */
 	private boolean hasErrors(JsonObject json) {
@@ -480,8 +472,7 @@ public class StageHealthCheckHandler implements HealthCheckHandler {
 	/**
 	 * Encode the json object
 	 * 
-	 * @param json
-	 *            Result json
+	 * @param json Result json
 	 * @return Encoded Json String
 	 */
 	private String encode(JsonObject json) {
