@@ -30,6 +30,7 @@ import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.packet.receiver.dto.PacketReceiverResponseDTO;
 import io.mosip.registration.processor.packet.receiver.exception.handler.PacketReceiverExceptionHandler;
 import io.mosip.registration.processor.packet.receiver.service.PacketReceiverService;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -431,6 +432,36 @@ public class PacketReceiverStageTest {
 			@Override
 			public List<Locale> acceptableLocales() {
 				return null;
+			}
+
+			@Override
+			public void fail(int statusCode, Throwable throwable) {
+
+			}
+
+			@Override
+			public RoutingContext addCookie(io.vertx.core.http.Cookie cookie) {
+				return null;
+			}
+
+			@Override
+			public Map<String, io.vertx.core.http.Cookie> cookieMap() {
+				return null;
+			}
+
+			@Override
+			public boolean isSessionAccessed() {
+				return false;
+			}
+
+			@Override
+			public int addEndHandler(Handler<AsyncResult<Void>> handler) {
+				return 0;
+			}
+
+			@Override
+			public boolean removeEndHandler(int handlerID) {
+				return false;
 			}
 		};
 

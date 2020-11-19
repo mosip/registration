@@ -34,6 +34,7 @@ import io.mosip.registration.processor.manual.verification.dto.ManualVerificatio
 import io.mosip.registration.processor.manual.verification.dto.UserDto;
 import io.mosip.registration.processor.manual.verification.service.ManualVerificationService;
 import io.mosip.registration.processor.manual.verification.util.ManualVerificationRequestValidator;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -366,8 +367,6 @@ public class ManualVerificationStageTest{
 
 				obj.put("request", obj1);
 
-
-
 				return obj;
 			}
 
@@ -446,6 +445,35 @@ public class ManualVerificationStageTest{
 			@Override
 			public List<Locale> acceptableLocales() {
 				return null;
+			}
+
+			@Override
+			public void fail(int statusCode, Throwable throwable) {
+			}
+
+			@Override
+			public RoutingContext addCookie(io.vertx.core.http.Cookie cookie) {
+				return null;
+			}
+
+			@Override
+			public Map<String, io.vertx.core.http.Cookie> cookieMap() {
+				return null;
+			}
+
+			@Override
+			public boolean isSessionAccessed() {
+				return false;
+			}
+
+			@Override
+			public int addEndHandler(Handler<AsyncResult<Void>> handler) {
+				return 0;
+			}
+
+			@Override
+			public boolean removeEndHandler(int handlerID) {
+				return false;
 			}
 		};
 	}
