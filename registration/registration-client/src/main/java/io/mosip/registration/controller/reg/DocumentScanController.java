@@ -420,11 +420,15 @@ public class DocumentScanController extends BaseController {
 					@Override
 					public void handle(ActionEvent event) {
 
+						LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
+								RegistrationConstants.APPLICATION_ID,
+								"Document Action listener started for scan" + ((Button) event.getSource()).getId());
+
 						AuditEvent auditEvent = null;
 						try {
 							auditEvent = AuditEvent
 									.valueOf(String.format("REG_DOC_%S_SCAN", ((Button) event.getSource()).getId()));
-						} catch (IllegalArgumentException illegalArgumentException) {
+						} catch (Exception exception) {
 
 							LOGGER.error("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
 									RegistrationConstants.APPLICATION_ID,
@@ -441,6 +445,11 @@ public class DocumentScanController extends BaseController {
 						scanDocument(comboBox, documentVBox, documentCategory.getSubType(),
 								RegistrationUIConstants.PLEASE_SELECT + RegistrationConstants.SPACE
 										+ documentCategory.getSubType() + " " + RegistrationUIConstants.DOCUMENT);
+
+						LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
+								RegistrationConstants.APPLICATION_ID,
+								"Document Action listener completed for scan" + ((Button) event.getSource()).getId());
+
 					}
 				});
 				scanButton.hoverProperty().addListener((ov, oldValue, newValue) -> {
@@ -987,10 +996,14 @@ public class DocumentScanController extends BaseController {
 		imageView.setOnMouseClicked((event) -> {
 			String hyperLinkArray[] = ((ImageView) event.getSource()).getParent().getId().split("_");
 
+			LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID,
+					" Document On Mouse click listener started for delete " + hyperLinkArray[0]);
+
 			AuditEvent auditEvent = null;
 			try {
 				auditEvent = AuditEvent.valueOf(String.format("REG_DOC_%S_DELETE", hyperLinkArray[0]));
-			} catch (IllegalArgumentException illegalArgumentException) {
+			} catch (Exception exception) {
 
 				LOGGER.error("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
 						RegistrationConstants.APPLICATION_ID,
@@ -1028,6 +1041,11 @@ public class DocumentScanController extends BaseController {
 			vboxElement.getChildren().remove(gridpane);
 
 			validateDocumentsPane();
+
+			LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID,
+					" Document On Mouse click listener started for delete " + hyperLinkArray[0]);
+
 		});
 
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
@@ -1057,6 +1075,10 @@ public class DocumentScanController extends BaseController {
 				"Binding OnAction event to Hyperlink to display Scanned document");
 
 		hyperLink.setOnAction((actionEvent) -> {
+
+			LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "Document action listener started for view ");
+
 			actionEvent.getEventType().getName();
 			GridPane pane = (GridPane) ((Hyperlink) actionEvent.getSource()).getParent();
 			String hyperLinkArray[] = ((Hyperlink) actionEvent.getSource()).getId().split("_");
@@ -1065,7 +1087,7 @@ public class DocumentScanController extends BaseController {
 			AuditEvent auditEvent = null;
 			try {
 				auditEvent = AuditEvent.valueOf(String.format("REG_DOC_%S_VIEW", hyperLinkArray[0]));
-			} catch (IllegalArgumentException illegalArgumentException) {
+			} catch (Exception exception) {
 
 				LOGGER.error("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
 						RegistrationConstants.APPLICATION_ID,
@@ -1084,6 +1106,10 @@ public class DocumentScanController extends BaseController {
 				displayDocument(selectedDocumentToDisplay.getDocument(), selectedDocumentToDisplay.getValue()
 						+ RegistrationConstants.DOT + selectedDocumentToDisplay.getFormat());
 			}
+
+			LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "Document action listener completed for view ");
+
 		});
 
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
