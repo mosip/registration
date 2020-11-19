@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.core.eventbus;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -14,6 +15,21 @@ import io.vertx.core.Vertx;
 @Component
 public class MosipEventBusFactory {
 
+    @Value("${mosip.regproc.eventbus.kafka.bootstrap.servers}")
+    private String kafkaBootstrapServers;
+    
+    @Value("${mosip.regproc.eventbus.kafka.group.id}")
+    private String kafkaGroupId;
+    
+    @Value("${mosip.regproc.eventbus.kafka.commit.type}")
+    private String kafkaCommitType;
+
+    @Value("${mosip.regproc.eventbus.kafka.max.poll.records}")
+    String maxPollRecords;
+    
+    @Value("${mosip.regproc.eventbus.kafka.poll.frequency}")
+    int pollFrequency;
+
     /**
      * Instantiate and return event bus of a particular type
      * @param vertx The vertx instance to which this event bus object should be attached
@@ -25,6 +41,9 @@ public class MosipEventBusFactory {
         switch (eventBusType) {
             case "vertx":
                 return new VertxMosipEventBus(vertx);
+            case "kafka":
+                return new KafkaMosipEventBus(vertx, kafkaBootstrapServers, kafkaGroupId, 
+                    kafkaCommitType, maxPollRecords, pollFrequency);
             /*case "amqp":
                 return new AmqpMosipEventBus(vertx);*/
             default:
