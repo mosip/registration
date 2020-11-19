@@ -12,6 +12,7 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -85,7 +86,6 @@ public class SecurezoneNotificationStageTest {
         @Override
         public void send(MosipEventBus mosipEventBus, MessageBusAddress toAddress, MessageDTO message) {
         }
-
 
         @Override
         public MosipEventBus getEventBus(Object verticleName, String url, int instanceNumber) {
@@ -331,6 +331,38 @@ public class SecurezoneNotificationStageTest {
             public List<Locale> acceptableLocales() {
                 return null;
             }
+
+            @Override
+            public RoutingContext addCookie(io.vertx.core.http.Cookie arg0) {
+                return null;
+            }
+
+            @Override
+            public int addEndHandler(Handler<AsyncResult<Void>> arg0) {
+                return 0;
+            }
+
+            @Override
+            public Map<String, io.vertx.core.http.Cookie> cookieMap() {
+                return null;
+            }
+
+            @Override
+            public void fail(int arg0, Throwable arg1) {
+
+            }
+
+            @Override
+            public boolean isSessionAccessed() {
+                return false;
+            }
+
+            @Override
+            public boolean removeEndHandler(int arg0) {
+                return false;
+            }
+
+            
         };
     }
 
