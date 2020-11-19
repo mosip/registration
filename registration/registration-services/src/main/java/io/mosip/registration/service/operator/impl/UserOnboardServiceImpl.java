@@ -99,6 +99,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 	private KeymanagerService keymanagerService;
 
 
+
 	/**
 	 * logger for logging
 	 */
@@ -143,8 +144,11 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 		idaRequestMap.put(RegistrationConstants.VERSION, RegistrationConstants.PACKET_SYNC_VERSION);
 		idaRequestMap.put(RegistrationConstants.REQUEST_TIME,
 				DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
-		idaRequestMap.put(RegistrationConstants.ENV, "Staging");
-		idaRequestMap.put(RegistrationConstants.DOMAIN_URI, "dev.mosip.net");
+		idaRequestMap.put(RegistrationConstants.ENV,
+				io.mosip.registration.context.ApplicationContext.getStringValueFromApplicationMap(
+						RegistrationConstants.SERVER_ACTIVE_PROFILE));
+		idaRequestMap.put(RegistrationConstants.DOMAIN_URI,
+				RegistrationAppHealthCheckUtil.prepareURLByHostName(RegistrationAppHealthCheckUtil.mosipHostNamePlaceHolder));
 		idaRequestMap.put(RegistrationConstants.TRANSACTION_ID, RegistrationConstants.TRANSACTION_ID_VALUE);
 		idaRequestMap.put(RegistrationConstants.CONSENT_OBTAINED, true);
 		idaRequestMap.put(RegistrationConstants.INDIVIDUAL_ID, SessionContext.userContext().getUserId());
@@ -234,7 +238,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 		}
 
 		Map<String, Object> response = (LinkedHashMap<String, Object>) serviceDelegateUtil.get(
-				RegistrationConstants.PUBLIC_KEY_IDA_REST, requestParamMap, false,
+				RegistrationConstants.PUBLIC_KEY_IDA_REST, requestParamMap, true,
 				RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
 		LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) response
 				.get(RegistrationConstants.RESPONSE);
@@ -263,8 +267,10 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 		data.put(RegistrationConstants.ON_BOARD_BIO_VALUE, responseMap.getEncryptedData());
 		data.put(RegistrationConstants.TRANSACTION_Id, RegistrationConstants.TRANSACTION_ID_VALUE);
 		data.put(RegistrationConstants.PURPOSE, RegistrationConstants.PURPOSE_AUTH);
-		data.put(RegistrationConstants.ENV, "Staging");
-		data.put(RegistrationConstants.DOMAIN_URI, "dev.mosip.net");
+		data.put(RegistrationConstants.ENV, io.mosip.registration.context.ApplicationContext.getStringValueFromApplicationMap(
+				RegistrationConstants.SERVER_ACTIVE_PROFILE));
+		data.put(RegistrationConstants.DOMAIN_URI,
+				RegistrationAppHealthCheckUtil.prepareURLByHostName(RegistrationAppHealthCheckUtil.mosipHostNamePlaceHolder));
 		String dataBlockJsonString = RegistrationConstants.EMPTY;
 		try {
 			dataBlockJsonString = new ObjectMapper().writeValueAsString(data);
