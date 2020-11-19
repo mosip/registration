@@ -654,16 +654,16 @@ public class PacketHandlerController extends BaseController implements Initializ
 			return;
 		}
 
-		if (isMachineRemapProcessStarted()) {
-
-			LOGGER.info("REGISTRATION - UPLOAD_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
-					APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
-			/*
-			 * check if there is no pending packets and blocks the user to proceed further
-			 */
-			if (!isPacketsPendingForEOD())
-				return;
-		}
+//		if (isMachineRemapProcessStarted()) {
+//
+//			LOGGER.info("REGISTRATION - UPLOAD_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
+//					APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
+//			/*
+//			 * check if there is no pending packets and blocks the user to proceed further
+//			 */
+//			if (!isPacketsPendingForEOD())
+//				return;
+//		}
 		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Loading Pending Approval screen started.");
 		try {
 			auditFactory.audit(AuditEvent.NAV_APPROVE_REG, Components.NAVIGATION,
@@ -701,12 +701,12 @@ public class PacketHandlerController extends BaseController implements Initializ
 			return;
 		}
 
-		if (isMachineRemapProcessStarted()) {
-
-			LOGGER.info("REGISTRATION - UPLOAD_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
-					APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
-			return;
-		}
+//		if (isMachineRemapProcessStarted()) {
+//
+//			LOGGER.info("REGISTRATION - UPLOAD_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
+//					APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
+//			return;
+//		}
 		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Loading Packet Upload screen started.");
 		try {
 			auditFactory.audit(AuditEvent.NAV_UPLOAD_PACKETS, Components.NAVIGATION,
@@ -966,17 +966,17 @@ public class PacketHandlerController extends BaseController implements Initializ
 			return;
 		}
 
-		if (isMachineRemapProcessStarted()) {
-
-			LOGGER.info("REGISTRATION - LOAD_RE_REGISTRATION_SCREEN - REGISTRATION_OFFICER_PACKET_CONTROLLER",
-					APPLICATION_NAME, APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
-			/*
-			 * check if there is no pending re register packets and blocks the user to
-			 * proceed further
-			 */
-			if (!isPacketsPendingForReRegister())
-				return;
-		}
+//		if (isMachineRemapProcessStarted()) {
+//
+//			LOGGER.info("REGISTRATION - LOAD_RE_REGISTRATION_SCREEN - REGISTRATION_OFFICER_PACKET_CONTROLLER",
+//					APPLICATION_NAME, APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
+//			/*
+//			 * check if there is no pending re register packets and blocks the user to
+//			 * proceed further
+//			 */
+//			if (!isPacketsPendingForReRegister())
+//				return;
+//		}
 		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Loading re-registration screen sarted.");
 		try {
 			auditFactory.audit(AuditEvent.NAV_RE_REGISTRATION, Components.NAVIGATION,

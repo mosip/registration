@@ -7,6 +7,8 @@ delete from reg.reg_center_user;
 delete from reg.reg_center_user_machine;
 delete from reg.registration_center; 
 delete from reg.key_store;
+delete from reg.KEY_POLICY_DEF;
+delete from reg.KEY_ALIAS;
 delete from reg.user_detail;
 delete from reg.user_role;
 delete from reg.user_pwd;

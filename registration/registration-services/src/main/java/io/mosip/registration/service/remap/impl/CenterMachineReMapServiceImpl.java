@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -178,12 +179,12 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 					packetUploadService.uploadAllSyncedPackets();
 					LOGGER.info("REGISTRATION CENTER MACHINE REMAP : ", APPLICATION_NAME, APPLICATION_ID,
 							"uploadAllSyncedPackets completed");
-					
-					/*sync packet status after packet upload*/
+
+					/* sync packet status after packet upload */
 					packetStatusService.packetSyncStatus(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
 					LOGGER.info("REGISTRATION CENTER MACHINE REMAP : ", APPLICATION_NAME, APPLICATION_ID,
 							"packetSyncStatus completed");
-					
+
 					auditFactory.audit(AuditEvent.MACHINE_REMAPPED, Components.PACKETS_UPLOADED, "REGISTRATION",
 							AuditReferenceIdTypes.APPLICATION_ID.getReferenceTypeId());
 
@@ -212,6 +213,9 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 		 * final clean up if no packets are pending to be sent and processed by reg
 		 * processor
 		 */
+
+		boolean isPending = isPacketsPendingForProcessing();
+		boolean isReRegPending = isPacketsPendingForReRegister();  
 		if (!isPacketsPendingForProcessing() && !isPacketsPendingForReRegister()) {
 			/* clean up all the pre reg data and previous center data */
 			cleanUpRemappedMachineData();
@@ -223,20 +227,20 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 			 * enabling all the jobs after all the clean up activities for the previous
 			 * center
 			 */
-				/* enable intial set up flag */
-				globalParamService.update(RegistrationConstants.INITIAL_SETUP, RegistrationConstants.ENABLE);
-				/* disable the remap flag after completing the remap process */
-				GlobalParam globalParam = getRemapFlagValue();
-				if (null != globalParam) {
-					globalParam.setVal(RegistrationConstants.FALSE);
-					globalParamDAO.saveAll(Arrays.asList(globalParam));
-				}
+			/* enable intial set up flag */
+			globalParamService.update(RegistrationConstants.INITIAL_SETUP, RegistrationConstants.ENABLE);
+			/* disable the remap flag after completing the remap process */
+			GlobalParam globalParam = getRemapFlagValue();
+			if (null != globalParam) {
+				globalParam.setVal(RegistrationConstants.FALSE);
+				globalParamDAO.saveAll(Arrays.asList(globalParam));
+			}
 
-				SessionContext.map().put(RegistrationConstants.RE_MAP_SUCCESS, RegistrationConstants.ENABLE);
-				
-				LOGGER.info("REGISTRATION CENTER MACHINE REMAP : ", APPLICATION_NAME, APPLICATION_ID,
-						"cleanUpCenterSpecificData remap successfully completed");
-			
+			SessionContext.map().put(RegistrationConstants.RE_MAP_SUCCESS, RegistrationConstants.ENABLE);
+
+			LOGGER.info("REGISTRATION CENTER MACHINE REMAP : ", APPLICATION_NAME, APPLICATION_ID,
+					"cleanUpCenterSpecificData remap successfully completed");
+
 		}
 	}
 
@@ -250,7 +254,11 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 	public boolean isPacketsPendingForProcessing() {
 		List<Registration> registrations = registrationDAO
 				.findByServerStatusCodeNotIn(RegistrationConstants.PACKET_STATUS_CODES_FOR_REMAPDELETE);
-		return registrations == null || registrations.isEmpty();
+		registrations = registrations.stream()
+				.filter(reg -> !reg.getClientStatusCode().equalsIgnoreCase("RE_REGISTER_APPROVED"))
+				.collect(Collectors.toList());
+
+		return registrations != null && !registrations.isEmpty();
 	}
 
 	/*
@@ -264,7 +272,7 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 
 		return isNotNullNotEmpty(registrationDAO.getEnrollmentByStatus(RegistrationClientStatusCode.CREATED.getCode()));
 	}
-	
+
 	@Override
 	public boolean isPacketsPendingForReRegister() {
 

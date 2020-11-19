@@ -373,12 +373,12 @@ public class HeaderController extends BaseController {
 
 	public void uploadPacketToServer() {
 		if (pageNavigantionAlert()) {
-			if (isMachineRemapProcessStarted()) {
-
-				LOGGER.info(LoggerConstants.LOG_REG_HEADER, APPLICATION_NAME, APPLICATION_ID,
-						RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
-				return;
-			}
+//			if (isMachineRemapProcessStarted()) {
+//
+//				LOGGER.info(LoggerConstants.LOG_REG_HEADER, APPLICATION_NAME, APPLICATION_ID,
+//						RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
+//				return;
+//			}
 			auditFactory.audit(AuditEvent.SYNC_PRE_REGISTRATION_PACKET, Components.SYNC_SERVER_TO_CLIENT,
 					SessionContext.userContext().getUserId(), AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
