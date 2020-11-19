@@ -24,13 +24,13 @@ import io.mosip.registration.processor.core.exception.UnsupportedEventBusTypeExc
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.DeliveryContext;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageCodec;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.eventbus.MessageProducer;
-import io.vertx.core.eventbus.SendContext;
 
 /**
  * Test class for scheduler
@@ -115,7 +115,6 @@ public class ReprocessingSchedulerTest {
 						"SESSIONID - REGISTRATIONID -  - ReprocessorStage::schedular()::deployed"));
 	}
 
-	
 	/**
 	 * Failure Test for Chime Scheduler deployment
 	 */
@@ -139,142 +138,129 @@ public class ReprocessingSchedulerTest {
 
 			@Override
 			public boolean isMetricsEnabled() {
-				// TODO Auto-generated method stub
 				return false;
 			}
 
 			@Override
 			public EventBus unregisterDefaultCodec(Class clazz) {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
 			@Override
 			public EventBus unregisterCodec(String name) {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
 			@Override
 			public void start(Handler<AsyncResult<Void>> completionHandler) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public <T> MessageProducer<T> sender(String address, DeliveryOptions options) {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
 			@Override
 			public <T> MessageProducer<T> sender(String address) {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
 			@Override
 			public <T> EventBus send(String address, Object message, DeliveryOptions options,
 					Handler<AsyncResult<Message<T>>> replyHandler) {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
 			@Override
 			public EventBus send(String address, Object message, DeliveryOptions options) {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
 			@Override
-			public <T> EventBus send(String address, Object message, Handler<AsyncResult<Message<T>>> replyHandler) {
-				// TODO Auto-generated method stub
+			public <T> EventBus send(String address, Object message, 
+				Handler<AsyncResult<Message<T>>> replyHandler) {
 				return null;
 			}
 
 			@Override
 			public EventBus send(String address, Object message) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-
-			@Override
-			public EventBus removeInterceptor(Handler<SendContext> interceptor) {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
 			@Override
 			public <T> EventBus registerDefaultCodec(Class<T> clazz, MessageCodec<T, ?> codec) {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
 			@Override
 			public EventBus registerCodec(MessageCodec codec) {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
 			@Override
 			public <T> MessageProducer<T> publisher(String address, DeliveryOptions options) {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
 			@Override
 			public <T> MessageProducer<T> publisher(String address) {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
 			@Override
 			public EventBus publish(String address, Object message, DeliveryOptions options) {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
 			@Override
 			public EventBus publish(String address, Object message) {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
 			@Override
 			public <T> MessageConsumer<T> localConsumer(String address, Handler<Message<T>> handler) {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
 			@Override
 			public <T> MessageConsumer<T> localConsumer(String address) {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
 			@Override
 			public <T> MessageConsumer<T> consumer(String address, Handler<Message<T>> handler) {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
 			@Override
 			public <T> MessageConsumer<T> consumer(String address) {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
 			@Override
 			public void close(Handler<AsyncResult<Void>> completionHandler) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
-			public EventBus addInterceptor(Handler<SendContext> interceptor) {
-				// TODO Auto-generated method stub
+			public <T> EventBus addOutboundInterceptor(Handler<DeliveryContext<T>> interceptor) {
 				return null;
 			}
+
+			@Override
+			public <T> EventBus removeOutboundInterceptor(Handler<DeliveryContext<T>> interceptor) {
+				return null;
+			}
+
+			@Override
+			public <T> EventBus addInboundInterceptor(Handler<DeliveryContext<T>> interceptor) {
+				return null;
+			}
+
+			@Override
+			public <T> EventBus removeInboundInterceptor(Handler<DeliveryContext<T>> interceptor) {
+				return null;
+			}
+
 		};
 	}
 }
