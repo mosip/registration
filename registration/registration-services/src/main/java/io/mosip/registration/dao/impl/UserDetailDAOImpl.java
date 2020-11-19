@@ -159,9 +159,16 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 
 			});
 
-			
 			// Saving User Details user name and password
 			userDetailsResponse.getUserDetails().forEach(userDtals -> {
+
+				List<UserDetail> users = userDetailRepository
+						.findByIdIgnoreCaseAndIsActiveTrue(userDtals.getUserName());
+
+				UserDetail userDetail = null;
+				if (users != null && !users.isEmpty()) {
+					userDetail = users.get(0);
+				}
 
 				UserDetail userDtls = new UserDetail();
 				UserPassword usrPwd = new UserPassword();
@@ -170,6 +177,10 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 				usrPwd.setStatusCode("00");
 				usrPwd.setIsActive(userDtls.getIsActive() != null ? userDtls.getIsActive().booleanValue() : true);
 				usrPwd.setLangCode(ApplicationContext.applicationLanguage());
+
+				if (userDetail != null) {
+					usrPwd.setPwd(userDetail.getUserPassword().getPwd());
+				}
 				if (SessionContext.isSessionContextAvailable()) {
 					usrPwd.setCrBy(SessionContext.userContext().getUserId());
 				} else {
@@ -184,6 +195,10 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 				userDtls.setMobile(userDtals.getMobile());
 				userDtls.setName(userDtals.getName());
 				userDtls.setLangCode(ApplicationContext.applicationLanguage());
+
+				if (userDetail != null) {
+					userDtls.setSalt(userDetail.getSalt());
+				}
 				if (SessionContext.isSessionContextAvailable()) {
 					userDtls.setCrBy(SessionContext.userContext().getUserId());
 				} else {
@@ -219,7 +234,7 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 				});
 
 			});
-			
+
 			LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "Leaving user detail save method...");
 
 		} catch (RuntimeException exRuntimeException) {
@@ -235,28 +250,30 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 				APPLICATION_ID, "Fetching user specific subtype level biometric detail");
 
 		return userBiometricRepository
-				.findByUserBiometricIdUsrIdAndIsActiveTrueAndUserBiometricIdBioTypeCodeAndUserBiometricIdBioAttributeCodeIgnoreCase(userId, bioType, subType);
+				.findByUserBiometricIdUsrIdAndIsActiveTrueAndUserBiometricIdBioTypeCodeAndUserBiometricIdBioAttributeCodeIgnoreCase(
+						userId, bioType, subType);
 	}
 
 	@Override
 	public List<UserBiometric> findAllActiveUsers(String bioType) {
-		LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "Fetching all local users for bioType >>> " + bioType);
+		LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID,
+				"Fetching all local users for bioType >>> " + bioType);
 		return userBiometricRepository.findByUserBiometricIdBioTypeCodeAndIsActiveTrue(bioType);
 	}
 
 	@Override
-	public void updateAuthTokens(String userId, String authToken, String refreshToken, long tokenExpiry, long refreshTokenExpiry) {
+	public void updateAuthTokens(String userId, String authToken, String refreshToken, long tokenExpiry,
+			long refreshTokenExpiry) {
 		List<UserDetail> userDetail = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
 		UserToken userToken = null;
-		if(userDetail != null && !userDetail.isEmpty()) {
-			if(userDetail.get(0).getUserToken() == null) {
-				userToken =  new UserToken();
+		if (userDetail != null && !userDetail.isEmpty()) {
+			if (userDetail.get(0).getUserToken() == null) {
+				userToken = new UserToken();
 				userToken.setUsrId(userId);
 				userToken.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
 				userToken.setCrBy("System");
 				userToken.setIsActive(true);
-			}
-			else
+			} else
 				userToken = userDetail.get(0).getUserToken();
 
 			userToken.setToken(authToken);
@@ -276,12 +293,13 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 	@Override
 	public void updateUserPwd(String userId, String password) {
 		List<UserDetail> userDetail = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
-		if(userDetail != null && !userDetail.isEmpty()) {
-			if(userDetail.get(0).getSalt() == null)
-				userDetail.get(0).setSalt(CryptoUtil.encodeBase64(DateUtils.formatToISOString(LocalDateTime.now()).getBytes()));
+		if (userDetail != null && !userDetail.isEmpty()) {
+			if (userDetail.get(0).getSalt() == null)
+				userDetail.get(0)
+						.setSalt(CryptoUtil.encodeBase64(DateUtils.formatToISOString(LocalDateTime.now()).getBytes()));
 
 			userDetail.get(0).getUserPassword().setPwd(HMACUtils.digestAsPlainTextWithSalt(password.getBytes(),
-							CryptoUtil.decodeBase64(userDetail.get(0).getSalt())));
+					CryptoUtil.decodeBase64(userDetail.get(0).getSalt())));
 			userDetail.get(0).getUserPassword().setUpdDtimes(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
 
 			userPwdRepository.save(userDetail.get(0).getUserPassword());
