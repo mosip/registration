@@ -603,9 +603,10 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		for (Audit audit : audits) {
 
 			Map<String, String> auditMap = new LinkedHashMap<>();
-
+			// Fix to resolve date format issue in reg-proc
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 			auditMap.put("uuid", audit.getUuid());
-			auditMap.put("createdAt", String.valueOf(audit.getCreatedAt()));
+			auditMap.put("createdAt", String.valueOf(audit.getCreatedAt().format(formatter)));
 			auditMap.put("eventId", audit.getEventId());
 			auditMap.put("eventName", audit.getEventName());
 			auditMap.put("eventType", audit.getEventType());
@@ -621,9 +622,6 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			auditMap.put("moduleName", audit.getModuleName());
 			auditMap.put("moduleId", audit.getModuleId());
 			auditMap.put("description", audit.getDescription());
-
-			// Fix to resolve date format issue in reg-proc
-			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
 			auditMap.put("actionTimeStamp", String.valueOf(audit.getActionTimeStamp().format(formatter)));
 
