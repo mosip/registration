@@ -214,8 +214,6 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 		 * processor
 		 */
 
-		boolean isPending = isPacketsPendingForProcessing();
-		boolean isReRegPending = isPacketsPendingForReRegister();  
 		if (!isPacketsPendingForProcessing() && !isPacketsPendingForReRegister()) {
 			/* clean up all the pre reg data and previous center data */
 			cleanUpRemappedMachineData();
@@ -232,7 +230,7 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 			/* disable the remap flag after completing the remap process */
 			GlobalParam globalParam = getRemapFlagValue();
 			if (null != globalParam) {
-				globalParam.setVal(RegistrationConstants.FALSE);
+				globalParam.setVal(RegistrationConstants.TRUE);
 				globalParamDAO.saveAll(Arrays.asList(globalParam));
 			}
 
