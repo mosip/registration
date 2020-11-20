@@ -48,7 +48,7 @@ public class RegistrationAppHealthCheckUtil {
 	private static OperatingSystem operatingSystem;
 	private static String defaultHost;
 
-	private static String mosipHostNamePlaceHolder = "${mosip.hostname}";
+	public static String mosipHostNamePlaceHolder = "${mosip.hostname}";
 
 	static {
 		systemInfo = new SystemInfo();
@@ -144,7 +144,7 @@ public class RegistrationAppHealthCheckUtil {
 		return isNWAvailable;
 	}
 
-	private static String prepareURLByHostName(String url) {
+	public static String prepareURLByHostName(String url) {
 		String mosipHostNameVal = System.getenv("mosip.hostname");
 
 		LOGGER.info(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_PREPARE_POST, APPLICATION_NAME, APPLICATION_ID,
