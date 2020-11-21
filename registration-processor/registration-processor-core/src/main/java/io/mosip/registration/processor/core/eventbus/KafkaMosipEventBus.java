@@ -159,7 +159,8 @@ public class KafkaMosipEventBus implements MosipEventBus {
 		logger.info("send called with toAddress " + toAddress.getAddress() + 
 			" for message " + jsonObject.toString());
 		KafkaProducerRecord<String, String> producerRecord = 
-			KafkaProducerRecord.create(messageBusAddress.getAddress(), jsonObject.toString());
+			KafkaProducerRecord.create(messageBusAddress.getAddress(), message.getRid(), 
+				jsonObject.toString());
   		kafkaProducer.write(producerRecord);
 	}
 
@@ -168,7 +169,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 		this.kafkaConsumer.poll(100, pollResult -> {
 			KafkaConsumerRecords<String, String> kafkaConsumerRecords = pollResult.result();
 			if (kafkaConsumerRecords.size() == 0)
-				logger.info("-- Records size is zero");
+				logger.debug("-- Records size is zero");
 			else
 				logger.info("-- Records size is "+kafkaConsumerRecords.size());
 
@@ -177,6 +178,8 @@ public class KafkaMosipEventBus implements MosipEventBus {
 			topicPartitions.forEach(topicPartition -> {
 				KafkaConsumerRecords<String, String> consumerRecords = 
 					getPartitionKafkaConsumerRecords(topicPartition, kafkaConsumerRecords);
+				logger.info("--Partition: " + topicPartition.partition() + 
+					" recordSize: " + consumerRecords.size());
 
 				Future<Void> processingFuture = null;
 				if(this.commitType.equals("single"))
@@ -190,7 +193,8 @@ public class KafkaMosipEventBus implements MosipEventBus {
 						toAddress, eventHandler);
 
 				processingFuture.onSuccess(any -> {
-					logger.info("--All messages persisted and committed");
+					logger.info("--" + consumerRecords.size() + " messages processed for partition: " + 
+						topicPartition.partition());
 				}).onFailure(cause ->  {
 					logger.info("--Error persisting and committing messages: " + cause);
 				});
@@ -210,11 +214,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 		TopicPartition vertxTopicPartition = new TopicPartition(
 				consumerRecords.recordAt(0).topic(), consumerRecords.recordAt(0).partition());
 		Promise<Void> pausePromise = Promise.promise();
-		kafkaConsumer.pause(vertxTopicPartition, result -> {
-			if (result.succeeded())
-				pausePromise.complete();
-			logger.info("--partition is paused " + result.succeeded());
-		});
+		pausePartition(vertxTopicPartition, pausePromise);
 
 		Future<Void> newFuture = pausePromise.future()
 			.compose((Void) -> IntStream.range(0, consumerRecords.size())
@@ -225,13 +225,9 @@ public class KafkaMosipEventBus implements MosipEventBus {
 					(a, b) -> a));
 
 		return newFuture.compose(composite -> {
-			Promise<Void> commitPromise = Promise.promise();
-			if (vertxTopicPartition != null)
-				kafkaConsumer.resume(vertxTopicPartition, resumeResult -> {
-					logger.info("--partition is resumed " + resumeResult.succeeded());
-				});
-			commitPromise.complete();
-			return commitPromise.future();
+			Promise<Void> resumePromise = Promise.promise();
+			resumePartition(vertxTopicPartition, resumePromise);
+			return resumePromise.future();
 		});
 	}
 
@@ -244,13 +240,9 @@ public class KafkaMosipEventBus implements MosipEventBus {
 		TopicPartition vertxTopicPartition = new TopicPartition(
 				consumerRecords.recordAt(0).topic(), consumerRecords.recordAt(0).partition());
 		Promise<Void> pausePromise = Promise.promise();
-		kafkaConsumer.pause(vertxTopicPartition, result -> {
-			if (result.succeeded())
-				pausePromise.complete();
-			logger.info("--partition is paused " + result.succeeded());
-		});
+		pausePartition(vertxTopicPartition, pausePromise);
 
-		Future<Void> newFuture = pausePromise.future()
+		Future<Void> future = pausePromise.future()
 			.compose((Void) -> {
 				List<Future<Void>> futures = IntStream.range(0, consumerRecords.size())
 					.mapToObj(consumerRecords::recordAt)
@@ -263,21 +255,18 @@ public class KafkaMosipEventBus implements MosipEventBus {
 				Promise<Void> commitPromise = Promise.promise();
 				kafkaConsumer.commit(
 					getTopicPartitionOffsetMap(vertxTopicPartition, commitOffset), result -> {
-					if(result.succeeded()) {
-						logger.info("--commit is done for " + 
-							vertxTopicPartition.getPartition() + " " + commitOffset);
-						kafkaConsumer.resume(vertxTopicPartition, resumeResult -> {
-							if (result.succeeded())
-								commitPromise.complete();
-							logger.info("--partition is resumed " + resumeResult.succeeded());
-						});
-					} else
-						logger.info("--commit is failed for " + 
-							vertxTopicPartition.getPartition() + " " + commitOffset);
+					logger.info("--Commit status for partition:" + 
+						vertxTopicPartition.getPartition() + " offset: " + commitOffset + 
+						" status: " + result.succeeded()); 
+					if(result.succeeded())
+						resumePartition(vertxTopicPartition, commitPromise);
+					else
+						commitPromise.fail("Commit failed for partition:" + 
+							vertxTopicPartition.getPartition() + " offset: " + commitOffset);
 				});
 				return commitPromise.future();
 			});
-		return newFuture;
+		return future;
 	}
 
 	Future<Void> setupAutoCommitProcessing(
@@ -305,7 +294,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 	Future<Void> processRecord(MessageBusAddress toAddress,
 			EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler,
 		KafkaConsumerRecord<String, String> record, boolean commitRecord) {
-		logger.info("--Processing key=" + record.key() + ",value=" + record.value() +
+		logger.info("---Processing key=" + record.key() + ",value=" + record.value() +
 				",partition=" + record.partition() + ",offset=" + record.offset());
 
 		EventDTO eventDTO = new EventDTO();
@@ -314,6 +303,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 		eventHandler.handle(eventDTO, res -> {
 			if (!res.succeeded()) {
 				logger.error("Event handling failed " + res.cause());
+				promise.fail(res.cause());
 			} else {
 				if(toAddress != null) {
 					MessageDTO messageDTO = res.result();
@@ -322,7 +312,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 					JsonObject jsonObject = JsonObject.mapFrom(messageDTO);
 					KafkaProducerRecord<String, String> producerRecord = 
 						KafkaProducerRecord.create(messageBusToAddress.getAddress(), 
-							jsonObject.toString());
+							messageDTO.getRid(), jsonObject.toString());
 					kafkaProducer.write(producerRecord);
 				}
 				if(commitRecord)
@@ -340,12 +330,12 @@ public class KafkaMosipEventBus implements MosipEventBus {
 		
 		TopicPartition topicPartition = new TopicPartition(topic, partition);
 		kafkaConsumer.commit(getTopicPartitionOffsetMap(topicPartition, offset), result -> {
-			if(result.succeeded()) {
-				logger.info("--commit is done for " + partition + " " + offset);
+			logger.info("--Commit status for partition:" + partition + " offset: " + 
+				offset + " status: " + result.succeeded()); 
+			if(result.succeeded())
 				promise.complete();
-			}
-			else
-				logger.info("--commit is failed for " + partition + " " + offset);
+			else 
+				promise.fail("Commit failed for partition: " + partition + " offset: " + offset);
 		});
 	}
 
@@ -385,6 +375,28 @@ public class KafkaMosipEventBus implements MosipEventBus {
 		if(!Arrays.asList(supportedCommitTyes).contains(commitType))
 			throw new ConfigurationServerFailureException(
 				"Commit type configuration not supported for "+ commitType);
+	}
+
+	private void pausePartition(TopicPartition topicPartition, Promise<Void> promise) {
+		kafkaConsumer.pause(topicPartition, result -> {
+			logger.info("--Partition is paused " + topicPartition.getPartition() + " " + 
+				result.succeeded());
+			if (result.succeeded())
+				promise.complete();
+			else
+				promise.fail("Partition pausing failed for " + topicPartition.getPartition());
+			
+		});
+	}
+	private void resumePartition(TopicPartition topicPartition, Promise<Void> promise) {
+		kafkaConsumer.resume(topicPartition, resumeResult -> {
+			logger.info("--Partition is resumed " + topicPartition.getPartition() + 
+				" " +resumeResult.succeeded());
+			if (resumeResult.succeeded())
+				promise.complete();
+			else
+				promise.fail("Partition resuming failed for " + topicPartition.getPartition());
+		});
 	}
 
 }
