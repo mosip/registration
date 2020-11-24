@@ -317,7 +317,7 @@
 		<dependency>
 			<groupId>io.mosip.commons</groupId>
 			<artifactId>commons-packet-manager</artifactId>
-			<version>${mosip.core.kernel.version}</version>
+			<version>1.1.3-rc2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.springframework.boot</groupId>
