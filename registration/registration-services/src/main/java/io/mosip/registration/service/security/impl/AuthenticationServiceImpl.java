@@ -151,14 +151,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	 * @return appropriate message after validation
 	 */
 	public String validatePassword(AuthenticationValidatorDTO authenticationValidatorDTO) {
-		LOGGER.info("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
-				"Validating credentials using database");
-
-		UserDTO userDTO = loginService.getUserDetail(authenticationValidatorDTO.getUserId());
+		LOGGER.debug("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
+				"Validating credentials using database >>>> " + authenticationValidatorDTO.getUserId());
 		try {
-
 			if(RegistrationAppHealthCheckUtil.isNetworkAvailable())
 				authTokenUtilService.getAuthTokenAndRefreshToken(LoginMode.PASSWORD);
+
+			UserDTO userDTO = loginService.getUserDetail(authenticationValidatorDTO.getUserId());
 
 			if (null != userDTO && null != userDTO.getSalt() && HMACUtils
 							.digestAsPlainTextWithSalt(authenticationValidatorDTO.getPassword().getBytes(),

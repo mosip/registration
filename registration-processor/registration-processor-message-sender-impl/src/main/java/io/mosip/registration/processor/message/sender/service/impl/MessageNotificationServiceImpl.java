@@ -437,19 +437,24 @@ public class MessageNotificationServiceImpl
 		List<String> mapperJsonKeys = new ArrayList<>(mapperIdentity.keySet());
 		for (String key : mapperJsonKeys) {
 			JSONObject jsonValue = JsonUtil.getJSONObject(mapperIdentity, key);
-			Object object = JsonUtil.getJSONValue(demographicIdentity, (String) jsonValue.get(VALUE));
-			if (object instanceof ArrayList) {
-				JSONArray node = JsonUtil.getJSONArray(demographicIdentity, (String) jsonValue.get(VALUE));
-				JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
-				for (int count = 0; count < jsonValues.length; count++) {
-					String lang = jsonValues[count].getLanguage();
-					attribute.put(key + "_" + lang, jsonValues[count].getValue());
+			if (jsonValue.get(VALUE) != null && !jsonValue.get(VALUE).toString().isBlank()) {
+				String[] valueArray = jsonValue.get(VALUE).toString().split(",");
+				for (String val : valueArray) {
+					Object object = JsonUtil.getJSONValue(demographicIdentity, val);
+					if (object instanceof ArrayList) {
+						JSONArray node = JsonUtil.getJSONArray(demographicIdentity, val);
+						JsonValue[] jsonValues = JsonUtil.mapJsonNodeToJavaObject(JsonValue.class, node);
+						for (int count = 0; count < jsonValues.length; count++) {
+							String lang = jsonValues[count].getLanguage();
+							attribute.put(val + "_" + lang, jsonValues[count].getValue());
+						}
+					} else if (object instanceof LinkedHashMap) {
+						JSONObject json = JsonUtil.getJSONObject(demographicIdentity, val);
+						attribute.put(val, json.get(VALUE));
+					} else {
+						attribute.put(val, object);
+					}
 				}
-			} else if (object instanceof LinkedHashMap) {
-				JSONObject json = JsonUtil.getJSONObject(demographicIdentity, (String) jsonValue.get(VALUE));
-				attribute.put(key, json.get(VALUE));
-			} else {
-				attribute.put(key, object);
 			}
 		}
 
