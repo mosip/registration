@@ -491,6 +491,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			documentMetaInfoDTO.setDocumentName(document.getValue());
 			documentMetaInfoDTO.setDocumentOwner(document.getOwner());
 			documentMetaInfoDTO.setDocumentType(document.getType());
+			documentMetaInfoDTO.setRefNumber(document.getRefNumber());
 
 			documentMetaInfoDTOs.add(documentMetaInfoDTO);
 
@@ -725,6 +726,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		document.setFormat(documentDto.getFormat());
 		document.setType(documentDto.getType());
 		document.setValue(documentDto.getValue());
+		document.setRefNumber(documentDto.getRefNumber());
 		return document;
 	}
 

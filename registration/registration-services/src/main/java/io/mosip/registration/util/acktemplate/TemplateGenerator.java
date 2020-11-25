@@ -160,6 +160,11 @@ public class TemplateGenerator extends BaseService {
 
 			boolean isAckTemplate = false;
 
+			if (!isLocalLanguageAvailable()) {
+				templateValues.put("localLangAvailable", "");
+			} else {
+				templateValues.put("localLangAvailable", "/");
+			}
 			if (templateType.equals(RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE)) {
 				/* Set-up Registration Acknowledgement related content */
 				setUpAcknowledgementContent(registration, templateValues, response, applicationLanguageProperties);
@@ -309,7 +314,7 @@ public class TemplateGenerator extends BaseService {
 			Map<String, Object> fieldTemplateValues = new HashMap<String, Object>();
 			UiSchemaDTO field = fields.stream().filter(f -> f.getId().equals(fieldId)).findFirst().get();
 			fieldTemplateValues.put("BiometricsFieldPrimLabel", field.getLabel().get("primary"));
-			fieldTemplateValues.put("BiometricsFieldSecLabel", field.getLabel().get("secondary"));
+			fieldTemplateValues.put("BiometricsFieldSecLabel", isLocalLanguageAvailable() ? field.getLabel().get("secondary") : RegistrationConstants.EMPTY);
 
 			List<BiometricsDto> dataCaptured = biometricDetails.get(fieldId);
 
@@ -755,7 +760,7 @@ public class TemplateGenerator extends BaseService {
 
 	private String getSecondaryLanguageLabel(String key) {
 		ResourceBundle localProperties = ApplicationContext.localLanguageProperty();
-		if (ApplicationContext.localLanguage().equalsIgnoreCase(ApplicationContext.applicationLanguage())) {
+		if (!isLocalLanguageAvailable()) {
 			return RegistrationConstants.EMPTY;
 		} else {
 			return localProperties.containsKey(key) ? localProperties.getString(key) : RegistrationConstants.EMPTY;
@@ -805,20 +810,29 @@ public class TemplateGenerator extends BaseService {
 		Map<String, Object> defaultDemographics = registration.getDefaultDemographics();
 		if (defaultDemographics != null && !defaultDemographics.isEmpty()) {
 			templateValues.put(RegistrationConstants.TEMPLATE_APPLICANT_NAME_PRIMARY_LABEL,
-					applicationLanguageProperties.getString("fullName"));
+					applicationLanguageProperties.getString("applicantname"));
 			templateValues.put(RegistrationConstants.TEMPLATE_APPLICANT_NAME_SECONDARY_LABEL,
-					getSecondaryLanguageLabel("fullName"));
-			List<SimpleDto> fullNameValues = (List<SimpleDto>) defaultDemographics
-					.get(defaultDemographics.keySet().toArray()[0]);
-			fullNameValues.forEach(simpleDto -> {
-				if (simpleDto.getLanguage().equalsIgnoreCase(platformLanguageCode)) {
-					templateValues.put(RegistrationConstants.TEMPLATE_APPLICANT_NAME_PRIMARY_VALUE,
-							simpleDto.getValue());
-				} else if (simpleDto.getLanguage().equalsIgnoreCase(localLanguageCode)) {
-					templateValues.put(RegistrationConstants.TEMPLATE_APPLICANT_NAME_SECONDARY_VALUE,
-							simpleDto.getValue());
-				}
-			});
+					getSecondaryLanguageLabel("applicantname"));
+			StringBuilder applicantNameAppLanguage = new StringBuilder();
+			StringBuilder applicantNameLocalLanguage = new StringBuilder();
+			for (Map.Entry<String, Object> entry : defaultDemographics.entrySet()) {
+				List<SimpleDto> fullNameValues = (List<SimpleDto>) entry.getValue();
+				fullNameValues.forEach(simpleDto -> {
+					if (simpleDto.getLanguage().equalsIgnoreCase(platformLanguageCode)) {
+						applicantNameAppLanguage.append(simpleDto.getValue() + " ");
+					} else if (simpleDto.getLanguage().equalsIgnoreCase(localLanguageCode)) {
+						applicantNameLocalLanguage.append(simpleDto.getValue() + " ");
+					}
+				});
+			}
+			templateValues.put(RegistrationConstants.TEMPLATE_APPLICANT_NAME_PRIMARY_VALUE,
+					applicantNameAppLanguage.toString());
+			if (!isLocalLanguageAvailable()) {
+				templateValues.put(RegistrationConstants.TEMPLATE_APPLICANT_NAME_SECONDARY_VALUE,
+						RegistrationConstants.EMPTY);
+			} else {
+				templateValues.put(RegistrationConstants.TEMPLATE_APPLICANT_NAME_SECONDARY_VALUE, applicantNameLocalLanguage.toString());
+			}
 		} else {
 			templateValues.put("DisplayName", RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
 		}
@@ -839,11 +853,12 @@ public class TemplateGenerator extends BaseService {
 			String value = getValue(registration.getDemographics().get(field.getId()));
 			if (value != null || !value.isEmpty() || !"".equals(value)) {
 				data.put("primaryLabel", field.getLabel().get("primary"));
-				data.put("secondaryLabel", field.getLabel().containsKey("secondary") ? field.getLabel().get("secondary")
+				data.put("secondaryLabel", field.getLabel().containsKey("secondary") && isLocalLanguageAvailable() ? field.getLabel().get("secondary")
 						: RegistrationConstants.EMPTY);
 				data.put("primaryValue", getValueForTemplate(value, platformLanguageCode));
-				data.put("secondaryValue", getSecondaryLanguageValue(registration.getDemographics().get(field.getId()),
-						localLanguageCode));
+				String secondaryVal = getSecondaryLanguageValue(registration.getDemographics().get(field.getId()),
+						localLanguageCode);
+				data.put("secondaryValue", secondaryVal != null && !secondaryVal.isEmpty() ? "/" + secondaryVal : secondaryVal);
 				demographicsdata.add(data);
 			}
 		}
@@ -1102,5 +1117,18 @@ public class TemplateGenerator extends BaseService {
 			throw e;
 		}
 		return schemaFields;
+	}
+
+	private boolean isLocalLanguageAvailable() {
+		String platformLanguageCode = ApplicationContext.applicationLanguage();
+		String localLanguageCode = ApplicationContext.localLanguage();
+		
+		if (localLanguageCode != null && !localLanguageCode.isEmpty()) {
+			if (!platformLanguageCode.equalsIgnoreCase(localLanguageCode)) {
+				return true;
+			}
+		}
+		
+		return false;
 	}
 }
