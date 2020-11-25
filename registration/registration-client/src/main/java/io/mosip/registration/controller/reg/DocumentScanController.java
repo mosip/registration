@@ -69,6 +69,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -77,6 +78,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -178,7 +180,7 @@ public class DocumentScanController extends BaseController {
 
 	@Autowired
 	private WebcamSarxosServiceImpl webcamSarxosServiceImpl;
-
+	
 	private String selectedScanDeviceName;
 
 	private ImageView imageView;
@@ -277,6 +279,8 @@ public class DocumentScanController extends BaseController {
 					addDocumentsToScreen(documentDetailsDTO.getValue(), documentDetailsDTO.getFormat(),
 							documentVBoxes.get(docCategoryKey));
 
+					addDocumentRefNumber(documentDetailsDTO.getRefNumber(), documentVBoxes.get(documentDetailsDTO.getCategory() + "RefNumVBox"));
+					
 					FXUtils.getInstance().selectComboBoxValue(documentComboBoxes.get(docCategoryKey),
 							documentDetailsDTO.getValue().substring(
 									documentDetailsDTO.getValue().lastIndexOf(RegistrationConstants.UNDER_SCORE) + 1));
@@ -291,6 +295,14 @@ public class DocumentScanController extends BaseController {
 			documentPane.setVisible(false);
 		}
 		validateDocumentsPane();
+	}
+
+	private void addDocumentRefNumber(String refNumber, VBox vBox) {
+		if (refNumber != null && vBox != null) {
+			GridPane gridPane = (GridPane) vBox.getChildren().get(0);
+			TextField textField = (TextField) gridPane.getChildren().get(0);
+			textField.setText(refNumber);
+		}
 	}
 
 	private Map<String, DocumentDto> getDocumentsMapFromSession() {
@@ -427,7 +439,42 @@ public class DocumentScanController extends BaseController {
 				documentVBox.getStyleClass().add(RegistrationConstants.SCAN_VBOX);
 				documentVBox.setId(documentCategory.getId());
 
-				documentVBoxes.put(documentCategory.getId(), documentVBox);
+				documentVBoxes.put(documentCategory.getId(), documentVBox);				
+				
+				VBox refNumVBox = new VBox();
+				refNumVBox.setId(docCategoryCode + "RefNumVBox");
+				refNumVBox.getStyleClass().add(RegistrationConstants.SCAN_VBOX);
+				TextField numberOfDocs = new TextField();
+				numberOfDocs.setId(docCategoryCode + "RefNum");
+				numberOfDocs.setPromptText("Ref Number");
+				numberOfDocs.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
+				numberOfDocs.setStyle("-fx-font-size:13");
+				//numberOfDocs.setPrefWidth(40);
+				
+				documentVBoxes.put(refNumVBox.getId(), refNumVBox);	
+				
+				GridPane gridPane = new GridPane();
+				gridPane.setId(docCategoryCode + "RefNumGridPane");
+				gridPane.setVgap(10);
+				gridPane.setHgap(10);
+				gridPane.setPrefWidth(80);
+				gridPane.add(numberOfDocs, 1, 0);
+
+				refNumVBox.getChildren().add(gridPane);
+				
+				Label refNumLabel = new Label(RegistrationUIConstants.REF_NUMBER);
+				refNumLabel.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
+				//pagesLabel.setPrefWidth(docScanVbox.getWidth() / 2);
+				refNumLabel.setVisible(false);
+				refNumLabel.setId(docCategoryCode + "RefNumLabel");
+				FXUtils.getInstance().onTypeFocusUnfocusListener((Pane)docScanVbox.getParent(), numberOfDocs);
+				
+				if (applicationContext.isPrimaryLanguageRightToLeft()) {
+					comboBox.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
+					documentLabel.setAlignment(Pos.CENTER_RIGHT);
+					numberOfDocs.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
+					refNumLabel.setAlignment(Pos.CENTER_RIGHT);
+				}
 
 				Button scanButton = new Button();
 				scanButton.setText(RegistrationUIConstants.SCAN);
@@ -482,8 +529,9 @@ public class DocumentScanController extends BaseController {
 								this.getClass().getResourceAsStream(RegistrationConstants.SCAN), 12, 12, true, true)));
 					}
 				});
-				hBox.getChildren().addAll(new VBox(new Label(), indicatorImage), comboBox, documentVBox, scanButton);
-				docScanVbox.getChildren().addAll(new HBox(new Label("       "), documentLabel), hBox);
+				
+				hBox.getChildren().addAll(new VBox(new Label(), indicatorImage), comboBox, refNumVBox, documentVBox, scanButton);
+				docScanVbox.getChildren().addAll(new HBox(documentLabel, refNumLabel), hBox);
 				hBox.setId(documentCategory.getSubType());
 				documentLabel.setId(documentCategory.getSubType() + RegistrationConstants.LABEL);
 				comboBox.getItems().addAll(documentCategoryDtos);
@@ -861,6 +909,18 @@ public class DocumentScanController extends BaseController {
 			docType = RegistrationConstants.SCANNER_IMG_TYPE;
 		}
 
+		HBox hBox = (HBox) vboxElement.getParent();
+		hBox.getChildren().forEach(node -> {
+			if (node.getId() != null && node.getId().contains("RefNumVBox")) {
+				VBox vbox = (VBox) node;
+				GridPane gridPane = (GridPane) vbox.getChildren().get(0);
+				TextField textField = (TextField) gridPane.getChildren().get(0);
+				if (textField.getText() != null && !textField.getText().isEmpty()) {
+					documentDto.setRefNumber(textField.getText());
+				}
+			}
+		});
+		
 		documentDto.setFormat(docType);
 		documentDto.setCategory(selectedDocument);
 		documentDto.setOwner("Applicant");
@@ -895,8 +955,8 @@ public class DocumentScanController extends BaseController {
 
 		GridPane gridPane = new GridPane();
 		gridPane.setId(document);
-		gridPane.setVgap(20);
-		gridPane.setHgap(20);
+		gridPane.setVgap(15);
+		gridPane.setHgap(15);
 		gridPane.add(createHyperLink(document.concat(RegistrationConstants.DOT + documentFormat)), 1, 0);
 		gridPane.add(createImageView(vboxElement), 2, 0);
 
@@ -1013,7 +1073,7 @@ public class DocumentScanController extends BaseController {
 	/**
 	 * This method will create Image to delete scanned document
 	 * 
-	 * @param field the {@link VBox}
+	 * @param vboxElement the {@link VBox}
 	 */
 	private ImageView createImageView(VBox vboxElement) {
 
@@ -1095,7 +1155,7 @@ public class DocumentScanController extends BaseController {
 	/**
 	 * This method will create Hyperlink to view scanned document
 	 * 
-	 * @param field the {@link String}
+	 * @param document the {@link String}
 	 */
 	private Hyperlink createHyperLink(String document) {
 

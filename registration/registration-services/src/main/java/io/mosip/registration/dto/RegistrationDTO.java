@@ -64,7 +64,7 @@ public class RegistrationDTO {
 	private List<String> defaultUpdatableFieldGroups;
 	private BiometricDTO biometricDTO = new BiometricDTO();
 	private Map<String, Object> demographics = new HashMap<>();
-	private Map<String, Object> defaultDemographics = new HashMap<>();
+	private Map<String, Object> defaultDemographics = new LinkedHashMap<>();
 	private Map<String, DocumentDto> documents = new HashMap<>();
 	private Map<String, BiometricsDto> biometrics = new HashMap<>();
 	private Map<String, BiometricsException> biometricExceptions = new HashMap<>();

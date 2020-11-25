@@ -375,6 +375,9 @@ public class Validations extends BaseController {
 
 	private void addValidInputStyleClass(Pane parentPane, TextField node) {
 		Label nodeLabel = (Label) parentPane.lookup("#" + node.getId() + "Label");
+		if (nodeLabel == null && parentPane.getParent() != null && parentPane.getParent().getParent() != null && parentPane.getParent().getParent().getParent() != null) {
+			nodeLabel = (Label) parentPane.getParent().getParent().getParent().lookup("#" + node.getId() + "Label");
+		}
 		// node.requestFocus();
 		node.getStyleClass().removeIf((s) -> {
 			return s.equals(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
