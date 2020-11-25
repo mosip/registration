@@ -15,10 +15,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.ResourceBundle;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.IntPredicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.joda.time.LocalDate;
 import org.joda.time.Period;
@@ -58,6 +61,7 @@ import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.SuccessResponseDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.Validator;
+import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
 import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.mastersync.LocationDto;
 import io.mosip.registration.entity.Location;
@@ -66,6 +70,7 @@ import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.service.sync.PreRegistrationDataSyncService;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -631,6 +636,12 @@ public class DemographicDetailController extends BaseController {
 
 	private String loggerClassName = "DemographicDetailController";
 
+	private static final String UNDERSCORE = "_";
+
+	private static final String RESIDENCE_STATUS = "residencestatus";
+
+	private static final String GENDER = "gender";
+
 	public VBox addContentWithTextField(UiSchemaDTO schema, String fieldName, String languageType) {
 		TextField field = new TextField();
 		Label label = new Label();
@@ -713,10 +724,10 @@ public class DemographicDetailController extends BaseController {
 
 	private void populateDropDowns() {
 		try {
-			for (String k : listOfComboBoxWithObject.keySet()) {
-				switch (k.toLowerCase()) {
-				case "gender":
-					listOfComboBoxWithObject.get("gender").getItems()
+			for (String key : listOfComboBoxWithObject.keySet()) {
+				switch (key.toLowerCase()) {
+				case GENDER:
+					listOfComboBoxWithObject.get(GENDER).getItems()
 							.addAll(masterSyncService.getGenderDtls(ApplicationContext.applicationLanguage()).stream()
 									.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList()));
 
@@ -728,8 +739,8 @@ public class DemographicDetailController extends BaseController {
 					}
 					break;
 
-				case "residencestatus":
-					listOfComboBoxWithObject.get("residenceStatus").getItems()
+				case RESIDENCE_STATUS:
+					listOfComboBoxWithObject.get(RESIDENCE_STATUS).getItems()
 							.addAll(masterSyncService.getIndividualType(ApplicationContext.applicationLanguage()));
 
 					if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
@@ -740,14 +751,14 @@ public class DemographicDetailController extends BaseController {
 					break;
 
 				default:
-					if (k.endsWith("LocalLanguage")) {
+					if (key.endsWith("LocalLanguage")) {
 						if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
-							listOfComboBoxWithObject.get(k).getItems().addAll(masterSyncService.getDynamicField(
-									k.replace("LocalLanguage", ""), ApplicationContext.localLanguage()));
+							listOfComboBoxWithObject.get(key).getItems().addAll(masterSyncService.getDynamicField(
+									key.replace("LocalLanguage", ""), ApplicationContext.localLanguage()));
 						}
 					} else {
-						listOfComboBoxWithObject.get(k).getItems()
-								.addAll(masterSyncService.getDynamicField(k, ApplicationContext.applicationLanguage()));
+						listOfComboBoxWithObject.get(key).getItems().addAll(
+								masterSyncService.getDynamicField(key, ApplicationContext.applicationLanguage()));
 					}
 					break;
 				}
@@ -774,7 +785,14 @@ public class DemographicDetailController extends BaseController {
 		helperMethodForComboBox(field, fieldName, schema, label, validationMessage, vbox, languageType);
 		field.setConverter((StringConverter<GenericDto>) uiRenderForComboBox);
 		listOfComboBoxWithObject.put(fieldName + languageType, field);
-		fxUtils.populateLocalComboBox(parentFlowPane, listOfComboBoxWithObject.get(fieldName), field);
+
+		if (!isLocalLanguageAvailable() || isAppLangAndLocalLangSame()) {
+			setComboBoxFieldListener(field, null);
+		}
+		if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame() && !languageType.isEmpty()) {
+			setComboBoxFieldListener(listOfComboBoxWithObject.get(fieldName), field);
+		}
+
 		return vbox;
 	}
 
@@ -817,18 +835,19 @@ public class DemographicDetailController extends BaseController {
 //			if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
 //				button.setDisable(true);
 //			} else {
-			if (listOfButtons.get(fieldName) != null) {
-				listOfButtons.get(fieldName).forEach(applicationButton -> {
-//					if ((btn.getId().concat(RegistrationConstants.LOCAL_LANGUAGE)).equals(button.getId())) {
-
-					if ((!isLocalLanguageAvailable() || isAppLangAndLocalLangSame())
-							|| (applicationButton.getId().concat(RegistrationConstants.LOCAL_LANGUAGE))
-									.equals(localButton.getId())) {
-						fxUtils.populateLocalButton(parentFlowPane, applicationButton, localButton);
-					}
+//			if (listOfButtons.get(fieldName) != null) {
+//				listOfButtons.get(fieldName).forEach(applicationButton -> {
+////					if ((btn.getId().concat(RegistrationConstants.LOCAL_LANGUAGE)).equals(button.getId())) {
+//
+//					if ((!isLocalLanguageAvailable() || isAppLangAndLocalLangSame())
+//							|| (applicationButton.getId().concat(RegistrationConstants.LOCAL_LANGUAGE))
+//									.equals(localButton.getId())) {
+//						fxUtils.populateLocalButton(parentFlowPane, applicationButton, localButton);
+//
 //					}
-				});
-			}
+////					}
+//				});
+//			}
 //			}
 			hBox.getChildren().add(localButton);
 		});
@@ -838,8 +857,12 @@ public class DemographicDetailController extends BaseController {
 
 	private void populateButtons(String key) {
 		try {
+
+			Button primaryButton = null;
+			Button secondaryButton = null;
+
 			switch (key.toLowerCase()) {
-			case "gender":
+			case GENDER:
 				List<GenericDto> genderAppLanguage = masterSyncService
 						.getGenderDtls(ApplicationContext.applicationLanguage()).stream()
 						.filter(v -> !v.getCode().equals("OTH")).collect(Collectors.toList());
@@ -851,22 +874,31 @@ public class DemographicDetailController extends BaseController {
 						genderLocalLanguage.forEach(genericDtoLocalLang -> {
 							if (genericDto.getCode().equals(genericDtoLocalLang.getCode())) {
 								Button button = new Button(genericDto.getName());
-								button.setId("gender" + genericDto.getCode());
+								button.setId(key + UNDERSCORE + genericDto.getLangCode() + UNDERSCORE
+										+ genericDto.getCode());
+
 								List<Button> buttons = (listOfButtons.get("gender") == null) ? new ArrayList<>()
 										: listOfButtons.get("gender");
+
+								// TODO Add a listener to button
+
 								buttons.add(button);
 								listOfButtons.put("gender", buttons);
 
+								Button buttonLocalLang = null;
 								if (!isAppLangAndLocalLangSame()) {
-									Button buttonLocalLang = new Button(genericDtoLocalLang.getName());
-									buttonLocalLang.setId("gender" + genericDtoLocalLang.getCode()
-											+ RegistrationConstants.LOCAL_LANGUAGE);
+									buttonLocalLang = new Button(genericDtoLocalLang.getName());
+
+									buttonLocalLang.setId(key + UNDERSCORE + genericDtoLocalLang.getLangCode()
+											+ UNDERSCORE + genericDto.getCode());
 									List<Button> buttonsLocalLang = (listOfButtons.get("genderLocalLanguage") == null)
 											? new ArrayList<>()
 											: listOfButtons.get("genderLocalLanguage");
 									buttonsLocalLang.add(buttonLocalLang);
 									listOfButtons.put("genderLocalLanguage", buttonsLocalLang);
 								}
+
+								setButtonFieldListener(button, buttonLocalLang);
 							}
 						});
 					});
@@ -884,23 +916,29 @@ public class DemographicDetailController extends BaseController {
 						residenceLocalLanguage.forEach(genericDtoLocalLang -> {
 							if (genericDto.getCode().equals(genericDtoLocalLang.getCode())) {
 								Button button = new Button(genericDto.getName());
-								button.setId("residenceStatus" + genericDto.getCode());
+
+								button.setId(key + UNDERSCORE + genericDto.getLangCode() + UNDERSCORE
+										+ genericDto.getCode());
 								List<Button> buttons = (listOfButtons.get("residenceStatus") == null)
 										? new ArrayList<>()
 										: listOfButtons.get("residenceStatus");
 								buttons.add(button);
 								listOfButtons.put("residenceStatus", buttons);
 
+								Button buttonLocalLang = null;
 								if (!isAppLangAndLocalLangSame()) {
-									Button buttonLocalLang = new Button(genericDtoLocalLang.getName());
-									buttonLocalLang.setId("residenceStatus" + genericDtoLocalLang.getCode()
-											+ RegistrationConstants.LOCAL_LANGUAGE);
+									buttonLocalLang = new Button(genericDtoLocalLang.getName());
+
+									buttonLocalLang.setId(key + UNDERSCORE + genericDtoLocalLang.getLangCode()
+											+ UNDERSCORE + genericDtoLocalLang.getCode());
 									List<Button> buttonsLocalLang = (listOfButtons
 											.get("residenceStatusLocalLanguage") == null) ? new ArrayList<>()
 													: listOfButtons.get("residenceStatusLocalLanguage");
 									buttonsLocalLang.add(buttonLocalLang);
 									listOfButtons.put("residenceStatusLocalLanguage", buttonsLocalLang);
 								}
+
+								setButtonFieldListener(button, buttonLocalLang);
 							}
 						});
 					});
@@ -911,10 +949,82 @@ public class DemographicDetailController extends BaseController {
 				// TODO
 				break;
 			}
+
 		} catch (RegBaseCheckedException e) {
 			LOGGER.error("populateDropDowns", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 					ExceptionUtils.getStackTrace(e));
 		}
+	}
+
+	private void setButtonFieldListener(Button primaryButton, Button secondaryButton) {
+//		1. style class set,,,local also
+
+		primaryButton.addEventHandler(ActionEvent.ACTION, event -> {
+
+			if (primaryButton.getStyleClass().contains("residence")) {
+				primaryButton.getStyleClass().clear();
+
+				/** Pink colour Ui style class "selectedResidence", "button" */
+				/** White colour Ui style class "residence", "button" */
+				primaryButton.getStyleClass().addAll("selectedResidence", "button");
+				primaryButton.getParent().getChildrenUnmodifiable().forEach(node -> {
+					if (node instanceof Button && !node.getId().equals(primaryButton.getId())) {
+						node.getStyleClass().clear();
+						node.getStyleClass().addAll("residence", "button");
+					}
+				});
+
+				if (secondaryButton != null) {
+					secondaryButton.getStyleClass().clear();
+					secondaryButton.getStyleClass().addAll("selectedResidence", "button");
+
+					secondaryButton.getParent().getChildrenUnmodifiable().forEach(node -> {
+						if (node instanceof Button && !node.getId().equals(secondaryButton.getId())) {
+							node.getStyleClass().clear();
+							node.getStyleClass().addAll("residence", "button");
+						}
+					});
+				}
+			}
+
+//			3. label/error message
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"Show error Label for primary button Field : " + false);
+
+			fxUtils.toggleUIField(parentFlowPane, primaryButton.getParent().getId() + RegistrationConstants.MESSAGE,
+					false);
+
+			if (secondaryButton != null) {
+
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						"Show error Label for secondary button Field : " + false);
+
+				fxUtils.toggleUIField(parentFlowPane,
+						secondaryButton.getParent().getId() + RegistrationConstants.MESSAGE, false);
+			}
+
+//			4. button val ,,add to session
+
+			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
+
+			String[] buttonIdVal = primaryButton.getId().split(UNDERSCORE);
+
+			if (buttonIdVal != null && registrationDTO != null) {
+
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						"Add button value to session");
+				registrationDTO.addDemographicField(buttonIdVal[0], applicationContext.getApplicationLanguage(),
+						primaryButton.getText(), applicationContext.getLocalLanguage(),
+						secondaryButton != null ? secondaryButton.getText() : null);
+
+//				5. refresh 
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						"Refresh demographics");
+				refreshDemographicGroups(registrationDTO.getMVELDataContext());
+			}
+
+		});
+
 	}
 
 	/**
@@ -1802,8 +1912,10 @@ public class DemographicDetailController extends BaseController {
 								&& registrationDTO.getDefaultUpdatableFields().contains(textField.getId())) {
 							addTextFieldToSession(textField.getId(), registrationDTO, true);
 						}
-						if (!registrationDTO.getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE) || (registrationDTO.getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE)
-								&& registrationDTO.getUpdatableFields().contains(textField.getId()))) {
+						if (!registrationDTO.getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE)
+								|| (registrationDTO.getRegistrationCategory()
+										.equals(RegistrationConstants.PACKET_TYPE_UPDATE)
+										&& registrationDTO.getUpdatableFields().contains(textField.getId()))) {
 							addTextFieldToSession(textField.getId(), registrationDTO, false);
 						}
 
@@ -1960,5 +2072,108 @@ public class DemographicDetailController extends BaseController {
 		}
 		return templateGroupMap;
 
+	}
+
+	private void setComboBoxFieldListener(ComboBox<GenericDto> primaryComboBox,
+			ComboBox<GenericDto> secondaryComboBox) {
+
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Setting combo box Field Listener");
+
+		primaryComboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
+
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"Setting secondary language combo box Field");
+			if (secondaryComboBox != null && !secondaryComboBox.getItems().isEmpty()) {
+
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						"Setting secondary language combo box Field and items were not null");
+				setSecondaryLangComboBoxVal(secondaryComboBox, primaryComboBox);
+			}
+
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"Show Label for primary language combo box Field : " + true);
+			fxUtils.toggleUIField(parentFlowPane, primaryComboBox.getId() + RegistrationConstants.LABEL, true);
+
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"Show Message for primary language combo box Field: " + false);
+			fxUtils.toggleUIField(parentFlowPane, primaryComboBox.getId() + RegistrationConstants.MESSAGE, false);
+
+			if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
+
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						"Show Label for secondary language combo box Field : " + true);
+				fxUtils.toggleUIField(parentFlowPane, secondaryComboBox.getId() + RegistrationConstants.LABEL, true);
+
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						"Show Message for secondary language combo box Field: " + false);
+				fxUtils.toggleUIField(parentFlowPane, secondaryComboBox.getId() + RegistrationConstants.MESSAGE, false);
+			}
+
+			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
+
+			if (registrationDTO != null) {
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						"Adding combox field to session ");
+//		 Save information to session
+				registrationDTO.addDemographicField(primaryComboBox.getId(),
+						applicationContext.getApplicationLanguage(),
+						primaryComboBox == null ? null
+								: primaryComboBox.getValue() != null ? primaryComboBox.getValue().getName() : null,
+						applicationContext.getLocalLanguage(), secondaryComboBox == null ? null
+								: secondaryComboBox.getValue() != null ? secondaryComboBox.getValue().getName() : null);
+
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						"Refresh all groups");
+
+				// Group level visibility listeners
+				refreshDemographicGroups(registrationDTO.getMVELDataContext());
+			}
+		});
+
+	}
+
+	private void setSecondaryLangComboBoxVal(ComboBox<?> localComboBox, ComboBox<?> ComboBox) {
+
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Setting secondary language combo box Field");
+		ObservableList<?> localComboBoxValues = localComboBox.getItems();
+		ObservableList<?> comboBoxValues = ComboBox.getItems();
+		Object selectedOption = ComboBox.getValue();
+
+		if (!localComboBoxValues.isEmpty() && selectedOption != null) {
+			IntPredicate findIndexOfSelectedItem = null;
+			if (localComboBoxValues.get(0) instanceof GenericDto && selectedOption instanceof GenericDto) {
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						"Setting secondary language combo box Field of generic dto");
+				findIndexOfSelectedItem = index -> ((GenericDto) localComboBoxValues.get(index)).getCode()
+						.equals(((GenericDto) selectedOption).getCode());
+			} else if (localComboBoxValues.get(0) instanceof String && selectedOption instanceof String) {
+
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						"Setting secondary language combo box Field of STRING");
+				findIndexOfSelectedItem = index -> ((String) comboBoxValues.get(index))
+						.equals(((String) ComboBox.getSelectionModel().getSelectedItem()));
+				OptionalInt indexOfSelectedLocation = IntStream.range(0, comboBoxValues.size())
+						.filter(findIndexOfSelectedItem).findFirst();
+				if (indexOfSelectedLocation.isPresent()) {
+
+					LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+							"Found index of location of string value");
+					localComboBox.getSelectionModel().select(indexOfSelectedLocation.getAsInt());
+				}
+				return;
+			}
+			OptionalInt indexOfSelectedLocation = IntStream.range(0, localComboBoxValues.size())
+					.filter(findIndexOfSelectedItem).findFirst();
+
+			if (indexOfSelectedLocation.isPresent()) {
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						"Setting Secondary language combo box field based on index");
+				localComboBox.getSelectionModel().select(indexOfSelectedLocation.getAsInt());
+			}
+		}
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Setting secondary language combo box value completed");
 	}
 }
