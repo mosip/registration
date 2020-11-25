@@ -1331,7 +1331,7 @@ public class RegistrationConstants {
 	public static final String ENGLISH_LANG_CODE = "eng";
 	public static final String USER_ID_CODE = "USERID";
 	public static final String OTP_CHANNELS = "mosip.registration.otp_channels";
-	public static final String AUTH_TOKEN_NOT_RECEIVED_ERROR = "No Auth Token Received";
+	public static final String AUTH_TOKEN_NOT_RECEIVED_ERROR = "Auth failed, Invalid/expired auth token";
 
 	//flag for quality check with SDK
 	public static final String QUALITY_CHECK_WITH_SDK = "mosip.registration.quality_check_with_sdk";
@@ -1810,4 +1810,7 @@ public class RegistrationConstants {
 	// UI Schema field group name
 	public static final String UI_SCHEMA_GROUP_FULL_NAME = "FullName";
 	public static final String MVEL_TYPE = "MVEL";
+
+
+	public static final String MACHINE_VERIFICATION_SUCCESS = "Machine Verification Success";
 }

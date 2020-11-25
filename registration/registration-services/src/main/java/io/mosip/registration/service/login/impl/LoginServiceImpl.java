@@ -9,6 +9,7 @@ import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
 import io.mosip.registration.constants.*;
 import io.mosip.registration.dto.*;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
@@ -116,6 +117,9 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 
 	@Autowired
 	private AuthTokenUtilService authTokenUtilService;
+
+	@Autowired
+	private ClientCryptoFacade clientCryptoFacade;
 
 	/*
 	 * (non-Javadoc)
@@ -319,51 +323,63 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 	 * 3. global parameters sync
 	 * 4. client-settings / master-data sync
 	 * 5. user details sync
-	 * 6. user salts sync
-	 * 
+	 * user salt sync is removed @Since 1.1.3
 	 */
 	@Override
 	public List<String> initialSync(String triggerPoint) {
+		long start = System.currentTimeMillis();
 		LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "Started Initial sync");
 		List<String> results = new LinkedList<>();		
 		final boolean isInitialSetUp = RegistrationConstants.ENABLE.equalsIgnoreCase(getGlobalConfigValueOf(RegistrationConstants.INITIAL_SETUP));		
 		ResponseDTO responseDTO = null;
 		
-		try {			
+		try {
+			long taskStart = System.currentTimeMillis();
 			responseDTO = publicKeySyncImpl.getPublicKey(triggerPoint);
 			validateResponse(responseDTO, PUBLIC_KEY_SYNC_STEP);
-			
-			String keyIndex = tpmPublicKeySyncService.syncTPMPublicKey();
-			if(null!=keyIndex) {
-				ApplicationContext.map().put(RegistrationConstants.KEY_INDEX, keyIndex);
-			}
+			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, PUBLIC_KEY_SYNC_STEP+ " task completed in (ms) : " +
+					(System.currentTimeMillis() - taskStart));
+
+			taskStart = System.currentTimeMillis();
+			responseDTO = tpmPublicKeySyncService.syncTPMPublicKey();
+			validateResponse(responseDTO, MACHINE_KEY_VERIFICATION_STEP);
+			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, MACHINE_KEY_VERIFICATION_STEP+ " task completed in (ms) : " +
+					(System.currentTimeMillis() - taskStart));
+
+			String keyIndex = CryptoUtil.computeFingerPrint(clientCryptoFacade.getClientSecurity().getEncryptionPublicPart(), null);
+			ApplicationContext.map().put(RegistrationConstants.KEY_INDEX, keyIndex);
+
 			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "Initial Verifiation Done : " + MACHINE_KEY_VERIFICATION_STEP);
-						
+
+			taskStart = System.currentTimeMillis();
 			responseDTO = globalParamService.synchConfigData(false);
 			validateResponse(responseDTO, GLOBAL_PARAM_SYNC_STEP);
 			if(responseDTO.getSuccessResponseDTO().getOtherAttributes() != null)
 				results.add(RegistrationConstants.RESTART);
-			
-			responseDTO = isInitialSetUp ? masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
-					triggerPoint, keyIndex) :
-							masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
-									triggerPoint);
+			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, GLOBAL_PARAM_SYNC_STEP+ " task completed in (ms) : " +
+					(System.currentTimeMillis() - taskStart));
+
+			taskStart = System.currentTimeMillis();
+			responseDTO = masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001, triggerPoint, keyIndex) ;
 			validateResponse(responseDTO, CLIENTSETTINGS_SYNC_STEP);
-			
+			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, CLIENTSETTINGS_SYNC_STEP+ " task completed in (ms) : " +
+					(System.currentTimeMillis() - taskStart));
+
+			taskStart = System.currentTimeMillis();
 			responseDTO = userDetailService.save(triggerPoint);
 			validateResponse(responseDTO, USER_DETAIL_SYNC_STEP);
+			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, USER_DETAIL_SYNC_STEP+ " task completed in (ms) : " +
+					(System.currentTimeMillis() - taskStart));
 
 			if(isInitialSetUp) {
 				LoginUserDTO loginUserDTO = (LoginUserDTO) ApplicationContext.map().get(RegistrationConstants.USER_DTO);
 				userDetailDAO.updateUserPwd(loginUserDTO.getUserId(), loginUserDTO.getPassword());
 			}
 
-			//responseDTO = userSaltDetailsService.getUserSaltDetails(RegistrationConstants.JOB_TRIGGER_POINT_USER);
-			//validateResponse(responseDTO, USER_SALT_SYNC_STEP);
-			
 			results.add(RegistrationConstants.SUCCESS);
 			
-			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "completed Initial sync");
+			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "completed Initial sync in (ms) : " +
+					(System.currentTimeMillis() - start));
 		
 		} catch (RegBaseCheckedException e) {
 			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(e));

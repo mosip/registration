@@ -23,6 +23,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.registration.dao.DynamicFieldDAO;
 import io.mosip.registration.dto.mastersync.*;
 import org.apache.commons.io.IOUtils;
@@ -125,6 +127,9 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	@Autowired
 	private DynamicFieldDAO dynamicFieldDAO;
 
+	@Autowired
+	private ClientCryptoFacade clientCryptoFacade;
+
 	/** Object for Logger. */
 	private static final Logger LOGGER = AppConfig.getLogger(MasterSyncServiceImpl.class);
 
@@ -146,10 +151,6 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 
 			ResponseDTO responseDto = syncClientSettings(masterSyncDtls, triggerPoint,
 					getRequestParamsForClientSettingsSync(masterSyncDtls, null));
-
-			if (responseDto.getSuccessResponseDTO() != null) {
-				responseDto = syncSchema(triggerPoint);
-			}
 
 			return responseDto;
 
@@ -186,13 +187,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 		if (masterSyncFieldsValidateWithIndex(masterSyncDtls, triggerPoint, keyIndex)) {
 			ResponseDTO responseDTO = syncClientSettings(masterSyncDtls, triggerPoint,
 					getRequestParamsForClientSettingsSync(masterSyncDtls, keyIndex));
-
-			if (responseDTO.getSuccessResponseDTO() != null) {
-				responseDTO = syncSchema(triggerPoint);
-			}
-
 			return responseDTO;
-
 		} else {
 			LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
 					"masterSyncDtls/triggerPoint/keyIndex is mandatory...");
@@ -205,7 +200,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	/**
 	 * Find location or region by hierarchy code.
 	 *
-	 * @param hierarchyCode the hierarchy code
+	 * @param hierarchyLevel the hierarchy code
 	 * @param langCode      the lang code
 	 * @return the list holds the Location data to be displayed in the UI.
 	 * @throws RegBaseCheckedException
@@ -653,7 +648,8 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 			String keyIndexBasedOnMachineName = machineMappingDAO.getKeyIndexByMachineName(machineName);
 			requestParamMap.put(RegistrationConstants.KEY_INDEX.toLowerCase(), keyIndexBasedOnMachineName);
 		} else
-			requestParamMap.put(RegistrationConstants.KEY_INDEX.toLowerCase(), keyIndex);
+			requestParamMap.put(RegistrationConstants.KEY_INDEX.toLowerCase(),
+					CryptoUtil.computeFingerPrint(clientCryptoFacade.getClientSecurity().getEncryptionPublicPart(), null));
 
 		// getting Last Sync date from Data from sync table
 		SyncControl masterSyncDetails = masterSyncDao.syncJobDetails(masterSyncDtls);
@@ -687,17 +683,12 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 		LinkedHashMap<String, Object> masterSyncResponse = null;
 
 		try {
-			String serviceName = RegistrationConstants.ENABLE
-					.equalsIgnoreCase((String) ApplicationContext.map().get(RegistrationConstants.INITIAL_SETUP))
-							? RegistrationConstants.MASTER_VALIDATOR_SERVICE_NAME
-							: RegistrationConstants.MASTER_CENTER_REMAP_SERVICE_NAME;
-
 			LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, new JSONObject(requestParam).toString());
 
 			if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
 
-				masterSyncResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil.get(serviceName, requestParam,
-						true, triggerPoint);
+				masterSyncResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil.get(RegistrationConstants.MASTER_VALIDATOR_SERVICE_NAME,
+						requestParam, true, triggerPoint);
 
 				if (null != masterSyncResponse.get(RegistrationConstants.RESPONSE)) {
 					saveClientSettings(masterSyncDtls, triggerPoint, masterSyncResponse, responseDTO);
@@ -726,11 +717,10 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	private void saveClientSettings(String masterSyncDtls, String triggerPoint,
 			LinkedHashMap<String, Object> masterSyncResponse, ResponseDTO responseDTO) throws Exception {
 		LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, "save Client Settings started...");
-		String jsonString = MapperUtils
-				.convertObjectToJsonString(masterSyncResponse.get(RegistrationConstants.RESPONSE));
+		String jsonString = MapperUtils.convertObjectToJsonString(masterSyncResponse.get(RegistrationConstants.RESPONSE));
 		SyncDataResponseDto syncDataResponseDto = MapperUtils.convertJSONStringToDto(jsonString,
-				new TypeReference<SyncDataResponseDto>() {
-				});
+				new TypeReference<SyncDataResponseDto>() {});
+
 		String response = masterSyncDao.saveSyncData(syncDataResponseDto);
 
 		if (response.equals(RegistrationConstants.SUCCESS)) {

@@ -1,5 +1,6 @@
 package io.mosip.registration.service.sync;
 
+import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 
 /**
@@ -20,6 +21,6 @@ public interface TPMPublicKeySyncService {
 	 * @throws RegBaseCheckedException
 	 *             throws checked exception
 	 */
-	String syncTPMPublicKey() throws RegBaseCheckedException;
+	ResponseDTO syncTPMPublicKey() throws RegBaseCheckedException;
 
 }
