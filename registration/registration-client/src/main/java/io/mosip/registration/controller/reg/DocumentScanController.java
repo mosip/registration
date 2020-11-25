@@ -426,10 +426,8 @@ public class DocumentScanController extends BaseController {
 				refNumVBox.getStyleClass().add(RegistrationConstants.SCAN_VBOX);
 				TextField numberOfDocs = new TextField();
 				numberOfDocs.setId(docCategoryCode + "RefNum");
-				numberOfDocs.setPromptText("Ref Number");
-				numberOfDocs.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
-				numberOfDocs.setStyle("-fx-font-size:13");
-				//numberOfDocs.setPrefWidth(40);
+				numberOfDocs.setPromptText(RegistrationUIConstants.REF_NUMBER);
+				numberOfDocs.getStyleClass().add(RegistrationConstants.DOC_TEXT_FIELD);
 				
 				documentVBoxes.put(refNumVBox.getId(), refNumVBox);	
 				
