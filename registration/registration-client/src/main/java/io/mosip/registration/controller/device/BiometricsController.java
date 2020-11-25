@@ -310,11 +310,19 @@ public class BiometricsController extends BaseController /* implements Initializ
 	@Autowired
 	private DocumentScanController documentScanController;
 
-	private Service<List<BiometricsDto>> taskService;
+	private Service<List<BiometricsDto>> rCaptureTaskService;
+
+	private Service<MdmBioDevice> deviceSearchTask;
 
 	public void stopRCaptureService() {
-		if (taskService != null && taskService.isRunning()) {
-			taskService.cancel();
+		if (rCaptureTaskService != null && rCaptureTaskService.isRunning()) {
+			rCaptureTaskService.cancel();
+		}
+	}
+
+	public void stopDeviceSearchService() {
+		if (deviceSearchTask != null && deviceSearchTask.isRunning()) {
+			deviceSearchTask.cancel();
 		}
 	}
 
@@ -1007,7 +1015,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		scanPopUpViewController.init(this, "Biometrics");
 
-		Service<MdmBioDevice> deviceSearchTask = new Service<MdmBioDevice>() {
+		deviceSearchTask = new Service<MdmBioDevice>() {
 			@Override
 			protected Task<MdmBioDevice> createTask() {
 				return new Task<MdmBioDevice>() {
@@ -1184,7 +1192,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Capture request called" + System.currentTimeMillis());
 
-		taskService = new Service<List<BiometricsDto>>() {
+		rCaptureTaskService = new Service<List<BiometricsDto>>() {
 			@Override
 			protected Task<List<BiometricsDto>> createTask() {
 				return new Task<List<BiometricsDto>>() {
@@ -1206,9 +1214,9 @@ public class BiometricsController extends BaseController /* implements Initializ
 				};
 			}
 		};
-		taskService.start();
+		rCaptureTaskService.start();
 
-		taskService.setOnFailed(new EventHandler<WorkerStateEvent>() {
+		rCaptureTaskService.setOnFailed(new EventHandler<WorkerStateEvent>() {
 			@Override
 			public void handle(WorkerStateEvent t) {
 
@@ -1227,14 +1235,14 @@ public class BiometricsController extends BaseController /* implements Initializ
 				streamer.setUrlStream(null);
 			}
 		});
-		taskService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+		rCaptureTaskService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
 			public void handle(WorkerStateEvent t) {
 
 				LOGGER.debug(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 						"RCapture task was successful");
 				try {
-					List<BiometricsDto> mdsCapturedBiometricsList = taskService.getValue();
+					List<BiometricsDto> mdsCapturedBiometricsList = rCaptureTaskService.getValue();
 
 					LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 							"biometrics captured from mock/real MDM");
