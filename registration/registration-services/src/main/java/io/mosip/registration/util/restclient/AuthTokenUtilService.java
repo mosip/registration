@@ -155,13 +155,17 @@ public class AuthTokenUtilService {
                 RegistrationExceptionConstants.AUTH_TOKEN_COOKIE_NOT_FOUND.getErrorMessage());
     }
 
-
     public AuthTokenDTO getAuthTokenAndRefreshToken(LoginMode loginMode) throws RegBaseCheckedException {
+        LoginUserDTO loginUserDTO = (LoginUserDTO) ApplicationContext.map().get(RegistrationConstants.USER_DTO);
+        return getAuthTokenAndRefreshToken(loginMode, loginUserDTO);
+    }
+
+
+    public AuthTokenDTO getAuthTokenAndRefreshToken(LoginMode loginMode, LoginUserDTO loginUserDTO) throws RegBaseCheckedException {
         LOGGER.info(AUTH_REFRESH_TOKEN_UTIL, APPLICATION_NAME, APPLICATION_ID,
                 "Fetching Auth Token and refresh token based on Login Mode >>> " + loginMode);
         try {
             String timestamp = DateUtils.formatToISOString(LocalDateTime.now(ZoneOffset.UTC));
-            LoginUserDTO loginUserDTO = (LoginUserDTO) ApplicationContext.map().get(RegistrationConstants.USER_DTO);
             String header = String.format("{\"kid\" : \"%s\"}", CryptoUtil.computeFingerPrint(clientCryptoFacade.getClientSecurity().getSigningPublicPart(), null));
 
             String payload = "";

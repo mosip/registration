@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Objects;
 
 import io.mosip.registration.constants.LoginMode;
+import io.mosip.registration.dto.LoginUserDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import io.mosip.registration.util.restclient.AuthTokenUtilService;
@@ -154,8 +155,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		LOGGER.debug("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
 				"Validating credentials using database >>>> " + authenticationValidatorDTO.getUserId());
 		try {
-			if(RegistrationAppHealthCheckUtil.isNetworkAvailable())
-				authTokenUtilService.getAuthTokenAndRefreshToken(LoginMode.PASSWORD);
+			if(RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
+				LoginUserDTO loginUserDTO = new LoginUserDTO();
+				loginUserDTO.setUserId(authenticationValidatorDTO.getUserId());
+				loginUserDTO.setPassword(authenticationValidatorDTO.getPassword());
+				authTokenUtilService.getAuthTokenAndRefreshToken(LoginMode.PASSWORD, loginUserDTO);
+			}
 
 			UserDTO userDTO = loginService.getUserDetail(authenticationValidatorDTO.getUserId());
 

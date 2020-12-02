@@ -207,11 +207,7 @@ public class OTPManager extends BaseService {
 			/* Check Network Connectivity */
 			if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
 
-				if (ApplicationContext.map().get(RegistrationConstants.USER_DTO) == null) {
-					ApplicationContext.map().put(RegistrationConstants.USER_DTO, new LoginUserDTO());
-				}
-
-				LoginUserDTO loginUserDTO = (LoginUserDTO) ApplicationContext.map().get(RegistrationConstants.USER_DTO);
+				LoginUserDTO loginUserDTO = new LoginUserDTO();
 				loginUserDTO.setUserId(userId);
 				loginUserDTO.setOtp(otp);
 				
@@ -219,7 +215,7 @@ public class OTPManager extends BaseService {
 						RegistrationConstants.APPLICATION_ID, "Validate OTP ended");				
 
 				// Obtain otpValidatorResponseDto from service delegate util
-				authTokenDTO = authTokenUtilService.getAuthTokenAndRefreshToken(LoginMode.OTP);
+				authTokenDTO = authTokenUtilService.getAuthTokenAndRefreshToken(LoginMode.OTP, loginUserDTO);
 			} 
 		} catch (RegBaseCheckedException | HttpClientErrorException | HttpServerErrorException | ResourceAccessException
 				| RegBaseUncheckedException exception) {
