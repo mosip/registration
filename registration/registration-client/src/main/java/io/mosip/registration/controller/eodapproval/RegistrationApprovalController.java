@@ -221,6 +221,7 @@ public class RegistrationApprovalController extends BaseController implements In
 		id.setResizable(false);
 		statusComment.setResizable(false);
 		disableColumnsReorder(table);
+		table.getColumns().forEach(column -> column.setReorderable(false));
 	}
 
 	private void tableCellColorChangeListener() {

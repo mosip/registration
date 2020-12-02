@@ -603,6 +603,7 @@ public class PacketUploadController extends BaseController implements Initializa
 		exportCSVIcon.setDisable(synchedPackets.isEmpty());
 		filterField.setDisable(synchedPackets.isEmpty());
 		table.setDisable(synchedPackets.isEmpty());
+		table.getColumns().forEach(column -> column.setReorderable(false));
 		saveToDevice.setVisible(!synchedPackets.isEmpty());
 		uploadBtn.setVisible(!synchedPackets.isEmpty());
 		selectAllCheckBox.setSelected(false);
