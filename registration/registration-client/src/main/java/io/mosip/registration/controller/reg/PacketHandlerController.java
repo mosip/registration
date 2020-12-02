@@ -150,7 +150,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 				lastSyncTime.setText(Timestamp.valueOf(latestUpdateTime).toLocalDateTime()
 						.format(DateTimeFormatter.ofPattern(RegistrationConstants.ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT))
-						+ " (UTC)");
+						+ RegistrationConstants.UTC_APPENDER);
 
 				setLastPreRegPacketDownloadedTime();
 			}
@@ -331,8 +331,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 			if (ts != null) {
 				DateTimeFormatter format = DateTimeFormatter
 						.ofPattern(RegistrationConstants.ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT);
-				lastBiometricTime
-						.setText(RegistrationUIConstants.LAST_DOWNLOADED + " " + ts.toLocalDateTime().format(format)+ " (UTC)");
+				lastBiometricTime.setText(RegistrationUIConstants.LAST_DOWNLOADED + " "
+						+ ts.toLocalDateTime().format(format) + RegistrationConstants.UTC_APPENDER);
 			}
 
 			if (!(getValueFromApplicationContext(RegistrationConstants.LOST_UIN_CONFIG_FLAG))

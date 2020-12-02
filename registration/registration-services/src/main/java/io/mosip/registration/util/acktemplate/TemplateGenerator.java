@@ -14,6 +14,9 @@ import java.io.Writer;
 import java.math.BigInteger;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -44,6 +47,7 @@ import io.mosip.kernel.core.qrcodegenerator.exception.QrcodeGenerationException;
 import io.mosip.kernel.core.qrcodegenerator.spi.QrCodeGenerator;
 import io.mosip.kernel.core.templatemanager.spi.TemplateManager;
 import io.mosip.kernel.core.templatemanager.spi.TemplateManagerBuilder;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.qrcode.generator.zxing.constant.QrVersion;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
@@ -314,7 +318,8 @@ public class TemplateGenerator extends BaseService {
 			Map<String, Object> fieldTemplateValues = new HashMap<String, Object>();
 			UiSchemaDTO field = fields.stream().filter(f -> f.getId().equals(fieldId)).findFirst().get();
 			fieldTemplateValues.put("BiometricsFieldPrimLabel", field.getLabel().get("primary"));
-			fieldTemplateValues.put("BiometricsFieldSecLabel", isLocalLanguageAvailable() ? field.getLabel().get("secondary") : RegistrationConstants.EMPTY);
+			fieldTemplateValues.put("BiometricsFieldSecLabel",
+					isLocalLanguageAvailable() ? field.getLabel().get("secondary") : RegistrationConstants.EMPTY);
 
 			List<BiometricsDto> dataCaptured = biometricDetails.get(fieldId);
 
@@ -813,8 +818,10 @@ public class TemplateGenerator extends BaseService {
 		String platformLanguageCode = ApplicationContext.applicationLanguage();
 		String localLanguageCode = ApplicationContext.localLanguage();
 
-		SimpleDateFormat sdf = new SimpleDateFormat(RegistrationConstants.TEMPLATE_DATE_FORMAT);
-		String currentDate = sdf.format(new Date());
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(RegistrationConstants.TEMPLATE_DATE_FORMAT);
+
+		String currentDate = DateUtils.getUTCCurrentDateTime().format(formatter) + RegistrationConstants.UTC_APPENDER;
+
 
 		// map the respective fields with the values in the registrationDTO
 		templateValues.put(RegistrationConstants.TEMPLATE_DATE, currentDate);
@@ -846,7 +853,8 @@ public class TemplateGenerator extends BaseService {
 				templateValues.put(RegistrationConstants.TEMPLATE_APPLICANT_NAME_SECONDARY_VALUE,
 						RegistrationConstants.EMPTY);
 			} else {
-				templateValues.put(RegistrationConstants.TEMPLATE_APPLICANT_NAME_SECONDARY_VALUE, applicantNameLocalLanguage.toString());
+				templateValues.put(RegistrationConstants.TEMPLATE_APPLICANT_NAME_SECONDARY_VALUE,
+						applicantNameLocalLanguage.toString());
 			}
 		} else {
 			templateValues.put("DisplayName", RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
@@ -868,12 +876,15 @@ public class TemplateGenerator extends BaseService {
 			String value = getValue(registration.getDemographics().get(field.getId()));
 			if (value != null || !value.isEmpty() || !"".equals(value)) {
 				data.put("primaryLabel", field.getLabel().get("primary"));
-				data.put("secondaryLabel", field.getLabel().containsKey("secondary") && isLocalLanguageAvailable() ? field.getLabel().get("secondary")
-						: RegistrationConstants.EMPTY);
+				data.put("secondaryLabel",
+						field.getLabel().containsKey("secondary") && isLocalLanguageAvailable()
+								? field.getLabel().get("secondary")
+								: RegistrationConstants.EMPTY);
 				data.put("primaryValue", getValueForTemplate(value, platformLanguageCode));
 				String secondaryVal = getSecondaryLanguageValue(registration.getDemographics().get(field.getId()),
 						localLanguageCode);
-				data.put("secondaryValue", secondaryVal != null && !secondaryVal.isEmpty() ? "/" + secondaryVal : secondaryVal);
+				data.put("secondaryValue",
+						secondaryVal != null && !secondaryVal.isEmpty() ? "/" + secondaryVal : secondaryVal);
 				demographicsdata.add(data);
 			}
 		}
@@ -1137,13 +1148,13 @@ public class TemplateGenerator extends BaseService {
 	private boolean isLocalLanguageAvailable() {
 		String platformLanguageCode = ApplicationContext.applicationLanguage();
 		String localLanguageCode = ApplicationContext.localLanguage();
-		
+
 		if (localLanguageCode != null && !localLanguageCode.isEmpty()) {
 			if (!platformLanguageCode.equalsIgnoreCase(localLanguageCode)) {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
 }
