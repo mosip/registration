@@ -646,7 +646,7 @@ public class RegistrationConstants {
 	public static final String TEMPLATE_PHOTO_USER_LANG = "PhotoPrim";
 	public static final String TEMPLATE_PHOTO_LOCAL_LANG = "PhotoSec";
 	public static final String TEMPLATE_APPLICANT_IMAGE_SOURCE = "ApplicantImageSource";
-	public static final String TEMPLATE_DATE_FORMAT = "dd/MM/yyyy";
+	public static final String TEMPLATE_DATE_FORMAT = "dd/MM/yyyy hh:mm a";
 	public static final String TEMPLATE_JPG_IMAGE_ENCODING = "data:image/jpg;base64,";
 	public static final String TEMPLATE_PNG_IMAGE_ENCODING = "data:image/png;base64,";
 	public static final String TEMPLATE_CROSS_MARK = "&#10008;";
@@ -1811,4 +1811,7 @@ public class RegistrationConstants {
 	// UI Schema field group name
 	public static final String UI_SCHEMA_GROUP_FULL_NAME = "FullName";
 	public static final String MVEL_TYPE = "MVEL";
+	
+	public static final String UTC_APPENDER = " (UTC)";
+	
 }
