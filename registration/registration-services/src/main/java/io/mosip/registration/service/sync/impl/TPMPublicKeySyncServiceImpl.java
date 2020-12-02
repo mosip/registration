@@ -8,6 +8,8 @@ import java.util.Map;
 
 import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
 import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.registration.dto.ResponseDTO;
+import io.mosip.registration.service.BaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +38,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
  *
  */
 @Service
-public class TPMPublicKeySyncServiceImpl implements TPMPublicKeySyncService {
+public class TPMPublicKeySyncServiceImpl  extends BaseService implements TPMPublicKeySyncService {
 
 	private static final Logger LOGGER = AppConfig.getLogger(TPMPublicKeySyncServiceImpl.class);
 	
@@ -54,7 +56,7 @@ public class TPMPublicKeySyncServiceImpl implements TPMPublicKeySyncService {
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public String syncTPMPublicKey() throws RegBaseCheckedException {
+	public ResponseDTO syncTPMPublicKey() throws RegBaseCheckedException {
 
 		LOGGER.info(LoggerConstants.TPM_PUBLIC_KEY_UPLOAD, APPLICATION_NAME, APPLICATION_ID, "Sync TPM Public Key");
 
@@ -79,8 +81,8 @@ public class TPMPublicKeySyncServiceImpl implements TPMPublicKeySyncService {
 
 			if (null != publicKeyResponse.get(RegistrationConstants.RESPONSE)) {
 				// Add the Key Index and Machine Name to Application Context
-				return ((Map<String, String>) publicKeyResponse.get(RegistrationConstants.RESPONSE))
-						.get(RegistrationConstants.KEY_INDEX);
+				return setSuccessResponse(new ResponseDTO(), RegistrationConstants.MACHINE_VERIFICATION_SUCCESS, null);
+
 			} else {
 				if (null != publicKeyResponse.get(RegistrationConstants.ERRORS)) {
 					LOGGER.error(LoggerConstants.TPM_PUBLIC_KEY_UPLOAD, APPLICATION_NAME, APPLICATION_ID,

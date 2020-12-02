@@ -713,6 +713,15 @@ public class AuthenticationController extends BaseController implements Initiali
 
 		Set<String> roleSet = new HashSet<>(SessionContext.userContext().getRoles());
 
+		if (isSupervisor) {
+
+			LOGGER.info("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
+					"Setting role as only supervisor");
+
+			roleSet.clear();
+
+			roleSet.add(RegistrationConstants.SUPERVISOR);
+		}
 		userAuthenticationTypeList = loginService.getModesOfLogin(authType, roleSet);
 		userAuthenticationTypeListValidation = loginService.getModesOfLogin(authType, roleSet);
 		userAuthenticationTypeListSupervisorValidation = loginService.getModesOfLogin(authType, roleSet);

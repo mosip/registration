@@ -75,7 +75,7 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 	public List<MdmBioDevice> getMdmDevices(String deviceInfoResponse, int port) {
 
 		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-				"received device info response : " + deviceInfoResponse);
+				"received device info response for port : " + port);
 
 		List<MdmBioDevice> mdmBioDevices = new LinkedList<>();
 

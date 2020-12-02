@@ -8,6 +8,8 @@ public class ReprocessorConstants {
 	
 	/** The Constant USER. */
 	public static final String USER = "MOSIP_SYSTEM";
+	//Based on the below ceylon chime version, the required ceylon dependencies are zipped 
+	//and uploaded to artifactory and downloaded and unzipped while starting the docker container
 	public static final String CEYLON_SCHEDULER = "ceylon:herd.schedule.chime/0.2.0";
 	public static final String TIMER_EVENT= "scheduler:stage_timer";
 	public static final String TYPE = "type";

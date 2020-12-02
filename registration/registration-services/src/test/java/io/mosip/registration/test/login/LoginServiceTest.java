@@ -277,7 +277,7 @@ public class LoginServiceTest {
 		successResponseDTO.setOtherAttributes(new HashMap<>());
 		responseDTO.setSuccessResponseDTO(successResponseDTO);
 
-		Mockito.when(tpmPublicKeySyncService.syncTPMPublicKey()).thenReturn("MyIndex");
+		Mockito.when(tpmPublicKeySyncService.syncTPMPublicKey()).thenReturn(responseDTO);
 
 		Mockito.when(publicKeySyncImpl.getPublicKey(RegistrationConstants.JOB_TRIGGER_POINT_USER))
 				.thenReturn(responseDTO);
@@ -311,7 +311,7 @@ public class LoginServiceTest {
 		
 		responseDTO.setErrorResponseDTOs(errorResponseDTOs);
 		
-		Mockito.when(tpmPublicKeySyncService.syncTPMPublicKey()).thenReturn("MyIndex");
+		Mockito.when(tpmPublicKeySyncService.syncTPMPublicKey()).thenReturn(responseDTO);
 
 		Mockito.when(publicKeySyncImpl.getPublicKey(RegistrationConstants.JOB_TRIGGER_POINT_USER))
 				.thenReturn(responseDTO);
@@ -367,7 +367,7 @@ public class LoginServiceTest {
 		
 		responseDTO.setErrorResponseDTOs(errorResponseDTOs);
 		
-		Mockito.when(tpmPublicKeySyncService.syncTPMPublicKey()).thenReturn("MyIndex");
+		Mockito.when(tpmPublicKeySyncService.syncTPMPublicKey()).thenReturn(responseDTO);
 
 		Mockito.when(publicKeySyncImpl.getPublicKey(RegistrationConstants.JOB_TRIGGER_POINT_USER))
 				.thenReturn(responseDTO);
