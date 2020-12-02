@@ -429,11 +429,13 @@ public class TemplateGenerator extends BaseService {
 				setPreviewBiometricImage(templateValues, RegistrationConstants.TEMPLATE_APPLICANT_IMAGE_SOURCE,
 						RegistrationConstants.FACE_IMG_PATH, response, getStreamImageBytes(biometricsDto.getSubType(),
 								biometricsDto.getModalityName(), biometricsDto.getNumOfRetries(), registration));
-			} else {
-				templateValues.put("uinUpdateWithoutBiometrics", RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
 			}
 
 			((List) templateValues.get("biometricsData")).add(fieldTemplateValues);
+		}
+
+		if (templateValues.get(RegistrationConstants.TEMPLATE_APPLICANT_IMAGE_SOURCE) == null) {
+			templateValues.put("uinUpdateWithoutBiometrics", RegistrationConstants.TEMPLATE_STYLE_HIDE_PROPERTY);
 		}
 	}
 
@@ -821,7 +823,6 @@ public class TemplateGenerator extends BaseService {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(RegistrationConstants.TEMPLATE_DATE_FORMAT);
 
 		String currentDate = DateUtils.getUTCCurrentDateTime().format(formatter) + RegistrationConstants.UTC_APPENDER;
-
 
 		// map the respective fields with the values in the registrationDTO
 		templateValues.put(RegistrationConstants.TEMPLATE_DATE, currentDate);
