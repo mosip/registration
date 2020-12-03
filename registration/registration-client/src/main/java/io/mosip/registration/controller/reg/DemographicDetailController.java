@@ -364,9 +364,9 @@ public class DemographicDetailController extends BaseController {
 						orderOfAddressMapByGroup.put(uiSchemaDTO.getGroup(), hirearchyMap);
 					}
 //					orderOfAddressMapByGroup.(location.getHierarchyLevel(), matchedfield.get(0).getId());
-					LOGGER.info("REGISTRATION - CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					/*LOGGER.info("REGISTRATION - CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 							"location.getHierarchyLevel() >>> " + location.getHierarchyLevel()
-									+ " matchedfield.get(0).getId() >>> " + matchedfield.get(0).getId());
+									+ " matchedfield.get(0).getId() >>> " + matchedfield.get(0).getId());*/
 				}
 			}
 
