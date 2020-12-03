@@ -234,7 +234,8 @@ public class HeaderController extends BaseController {
 	 */
 	public void redirectHome(ActionEvent event) {
 
-		if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
+		Object obj = SessionContext.map().get(RegistrationConstants.ONBOARD_USER);
+		if ( obj != null && (boolean)obj ) {
 			goToHomePageFromOnboard();
 		} else {
 			goToHomePageFromRegistration();
