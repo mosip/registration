@@ -513,6 +513,7 @@ public class BaseController {
 			if (!(label.isVisible() && id.equals(RegistrationConstants.DOB))) {
 				String[] split = context.split(type);
 				label.setText(split[0]);
+				label.setWrapText(true);
 			}
 
 			Tooltip tool = new Tooltip(context.contains(type) ? context.split(type)[0] : context);

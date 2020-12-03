@@ -1348,6 +1348,22 @@ public class BiometricsController extends BaseController /* implements Initializ
 									}
 									addBioStreamImage(currentSubType, currentModality,
 											registrationDTOBiometricsList.get(0).getNumOfRetries(), byteimage);
+
+									if (currentModality.equalsIgnoreCase(RegistrationConstants.IRIS_DOUBLE)
+											&& bioService.isMdmEnabled()) {
+
+										for (BiometricsDto biometricsDto : registrationDTOBiometricsList) {
+											byteimage = extractIrisImageData(biometricsDto.getAttributeISO());
+
+											if (byteimage != null) {
+												addRegistrationStreamImage(currentSubType,
+														biometricsDto.getBioAttribute(),
+														registrationDTOBiometricsList.get(0).getNumOfRetries(),
+														byteimage);
+											}
+										}
+									}
+
 								} catch (IOException exception) {
 									LOGGER.error(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 											ExceptionUtils.getStackTrace(exception));
@@ -1950,22 +1966,26 @@ public class BiometricsController extends BaseController /* implements Initializ
 			String imagePath = getStubStreamImagePath(modality);
 			STREAM_IMAGES.put(String.format("%s_%s_%s", subType, modality, attempt),
 					new Image(this.getClass().getResourceAsStream(imagePath)));
-			if (getRegistrationDTOFromSession() != null) {
-				getRegistrationDTOFromSession().streamImages.put(
-						String.format("%s_%s_%s", subType,
-								isFace(modality) ? RegistrationConstants.FACE_FULLFACE : modality, attempt),
-						IOUtils.toByteArray(this.getClass().getResourceAsStream(imagePath)));
-			}
+
+			addRegistrationStreamImage(subType, isFace(modality) ? RegistrationConstants.FACE_FULLFACE : modality,
+					attempt, IOUtils.toByteArray(this.getClass().getResourceAsStream(imagePath)));
+
 		} else {
 			STREAM_IMAGES.put(String.format("%s_%s_%s", subType, modality, attempt),
 					new Image(new ByteArrayInputStream(streamImage)));
-			if (getRegistrationDTOFromSession() != null) {
-				getRegistrationDTOFromSession().streamImages.put(
-						String.format("%s_%s_%s", subType,
-								isFace(modality) ? RegistrationConstants.FACE_FULLFACE : modality, attempt),
-						streamImage);
-			}
+
+			addRegistrationStreamImage(subType, isFace(modality) ? RegistrationConstants.FACE_FULLFACE : modality,
+					attempt, streamImage);
+
 		}
+	}
+
+	private void addRegistrationStreamImage(String subType, String modality, int attempt, byte[] streamImage) {
+		if (getRegistrationDTOFromSession() != null) {
+			getRegistrationDTOFromSession().streamImages.put(String.format("%s_%s_%s", subType, modality, attempt),
+					streamImage);
+		}
+
 	}
 
 	public Image getBioStreamImage(String subType, String modality, int attempt) {
@@ -2657,6 +2677,80 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 				byte[] image = new byte[lengthOfImageData];
 				rdin.read(image, 0, lengthOfImageData);
+
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				ImageIO.write(ImageIO.read(new ByteArrayInputStream(image)), "jpg", baos);
+
+				LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "Converted JP2 to jpg");
+
+				return baos.toByteArray();
+			}
+		} catch (Exception exception) {
+			LOGGER.error(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+					"Error while parsing iso to jpg : " + ExceptionUtils.getStackTrace(exception));
+
+		}
+		return null;
+	}
+
+	public byte[] extractIrisImageData(byte[] decodedBioValue) {
+
+		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+				"Extracting iris image from decode bio value");
+
+		try (DataInputStream din = new DataInputStream(new ByteArrayInputStream(decodedBioValue))) {
+
+			// general header parsing
+			byte[] formatIdentifier = new byte[4];
+			din.read(formatIdentifier, 0, formatIdentifier.length);
+
+			LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+					"formatIdentifier >>>> " + new String(formatIdentifier));
+
+			int version = din.readInt();
+			int recordLength = din.readInt();
+			short noOfRepresentations = din.readShort();
+			byte certificationFlag = din.readByte();
+
+			// 1 -- left / right
+			// 2 -- both left and right
+			// 0 -- unknown
+			byte noOfIrisRepresented = din.readByte();
+
+			for (int i = 0; i < noOfRepresentations; i++) {
+				// Reading representation header
+				int representationLength = din.readInt();
+
+				byte[] captureDetails = new byte[14];
+				din.read(captureDetails, 0, captureDetails.length);
+
+				// qualityBlock
+				byte noOfQualityBlocks = din.readByte();
+				if (noOfQualityBlocks > 0) {
+					byte[] qualityBlocks = new byte[noOfQualityBlocks * 5];
+					din.read(qualityBlocks, 0, qualityBlocks.length);
+				}
+
+				short representationSequenceNo = din.readShort();
+
+				// 0 -- undefined
+				// 1 -- right
+				// 2 - left
+				byte eyeLabel = din.readByte();
+
+				byte imageType = din.readByte(); // cropped / uncropped
+
+				// 2 -- raw
+				// 10 -- jpeg2000
+				// 14 -- png
+				byte imageFormat = din.readByte();
+
+				byte[] otherDetails = new byte[24];
+				din.read(otherDetails, 0, otherDetails.length);
+
+				int imageLength = din.readInt();
+				byte[] image = new byte[imageLength];
+				din.read(image, 0, image.length);
 
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				ImageIO.write(ImageIO.read(new ByteArrayInputStream(image)), "jpg", baos);

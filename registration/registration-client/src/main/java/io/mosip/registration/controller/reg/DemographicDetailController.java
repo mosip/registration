@@ -1052,6 +1052,11 @@ public class DemographicDetailController extends BaseController {
 					}
 				}
 			});
+			ageField.textProperty().addListener((obsValue, oldValue, newValue) -> {
+				if (!oldValue.equalsIgnoreCase(newValue)) {
+					ageValidation(parentPane, ageField, dobMessage, true, dd, mm, yyyy);
+				}
+			});
 			LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, "Validating the age given by age field");
 		} catch (RuntimeException runtimeException) {
@@ -1939,7 +1944,7 @@ public class DemographicDetailController extends BaseController {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void refreshDemographicGroups(Map<String, Object> mvelDataMap) {
+	protected void refreshDemographicGroups(Map<String, Object> mvelDataMap) {
 
 		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 				"Refreshing demographic groups");
