@@ -419,5 +419,7 @@ public class RegistrationUIConstants {
 	public static final String STREAMING_ERROR = bundle.getString("STREAMING_ERROR");
 	
 	public static final String EXCEPTION_PHOTO_REQUIRED = bundle.getString("EXCEPTION_PHOTO_REQUIRED");
+
+	public static final String USER_RELOGIN_REQUIRED = bundle.getString("USER_RELOGIN_REQUIRED");
 	
 }

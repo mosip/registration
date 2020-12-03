@@ -71,6 +71,8 @@ public class AuthTokenUtilService {
         if(userToken != null) {
             return true;
         }
+
+        LOGGER.error(AUTH_REFRESH_TOKEN_UTIL, APPLICATION_NAME, APPLICATION_ID, "No valid auth token found! Needs new token to be fetched");
         return false;
     }
 

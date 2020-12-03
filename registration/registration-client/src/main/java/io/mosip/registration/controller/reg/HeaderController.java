@@ -42,6 +42,8 @@ import io.mosip.registration.service.sync.PreRegistrationDataSyncService;
 import io.mosip.registration.service.sync.SyncStatusValidatorService;
 import io.mosip.registration.update.SoftwareUpdateHandler;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
+
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
@@ -144,6 +146,9 @@ public class HeaderController extends BaseController {
 
 	@Autowired
 	private Streamer streamer;
+
+	@Autowired
+	private AuthTokenUtilService authTokenUtilService;
 
 	/**
 	 * Mapping Registration Officer details
@@ -390,6 +395,11 @@ public class HeaderController extends BaseController {
 	public void intiateRemapProcess() {
 		if (pageNavigantionAlert()) {
 
+			if(!authTokenUtilService.hasAnyValidToken()) {
+				generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
+				return;
+			}
+
 			try {
 				masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
 						RegistrationConstants.JOB_TRIGGER_POINT_USER);
@@ -490,7 +500,15 @@ public class HeaderController extends BaseController {
 		};
 
 		progressIndicator.progressProperty().bind(taskService.progressProperty());
-		taskService.start();
+		
+		if(authTokenUtilService.hasAnyValidToken())
+			taskService.start();
+		else {
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
+			gridPane.setDisable(false);
+			progressIndicator.setVisible(false);
+		}
+
 		taskService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
 			public void handle(WorkerStateEvent t) {
@@ -717,7 +735,15 @@ public class HeaderController extends BaseController {
 		};
 
 		progressIndicator.progressProperty().bind(taskService.progressProperty());
-		taskService.start();
+		
+		if(authTokenUtilService.hasAnyValidToken())
+			taskService.start();
+		else {
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
+			pane.setDisable(false);
+			progressIndicator.setVisible(false);
+		}
+		
 		taskService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
 			public void handle(WorkerStateEvent workerStateEvent) {
