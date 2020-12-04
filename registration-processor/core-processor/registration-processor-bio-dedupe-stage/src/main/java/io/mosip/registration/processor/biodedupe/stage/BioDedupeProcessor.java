@@ -601,8 +601,6 @@ public class BioDedupeProcessor {
 		JSONObject mapperIdentity = new JSONObject();
 		mapperIdentity.putAll(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY));
 		mapperIdentity.putAll(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT));
-		mapperIdentity
-				.putAll(utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.INDIVIDUAL_BIOMETRICS));
 
 		List<String> mapperJsonKeys = new ArrayList<>(mapperIdentity.keySet());
 
