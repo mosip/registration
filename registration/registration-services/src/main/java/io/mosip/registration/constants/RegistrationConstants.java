@@ -736,8 +736,8 @@ public class RegistrationConstants {
 	public static final String DEFAULT_EXCEPTION_IMAGE_PATH = "/images/ExceptionPhoto.png";
 	public static final String IMAGE_PATH = "/images/Photo.png";
 
-	public static final String WEBCAM_WIDTH = "camera.resolution.width";
-	public static final String WEBCAM_HEIGHT = "camera.resolution.height";
+	public static final String WEBCAM_WIDTH = "mosip.camera.resolution.width";
+	public static final String WEBCAM_HEIGHT = "mosip.camera.resolution.height";
 
 	// Acknowledgement Form
 	public static final String ACKNOWLEDGEMENT_FORM_TITLE = "Registration Acknowledgement";
