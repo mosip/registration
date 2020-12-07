@@ -580,7 +580,8 @@ public class DocumentScanController extends BaseController {
 				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 						RegistrationConstants.APPLICATION_ID, "Opening webcam");
 
-				webcamSarxosServiceImpl.openWebCam(webcam, 640, 480);
+				webcamSarxosServiceImpl.openWebCam(webcam, webcamSarxosServiceImpl.getWidth(),
+						webcamSarxosServiceImpl.getHeight());
 				JPanel jPanelWindow = webcamSarxosServiceImpl.getJPanel(webcam);
 				scanPopUpViewController.setWebCamPanel(jPanelWindow);
 

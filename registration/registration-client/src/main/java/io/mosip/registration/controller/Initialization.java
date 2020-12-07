@@ -72,10 +72,16 @@ public class Initialization extends Application {
 			System.setProperty("java.net.useSystemProxies", "true");
 			System.setProperty("file.encoding", "UTF-8");
 			io.mosip.registration.context.ApplicationContext.getInstance();
-			if(args.length > 1) {
+			if (args.length > 1) {
 				upgradeServer = args[0];
 				tpmRequired = args[1];
 				io.mosip.registration.context.ApplicationContext.setTPMUsageFlag(args[1]);
+				if (args.length > 2) {
+					System.setProperty(RegistrationConstants.WEBCAM_HEIGHT, args[2]);
+				}
+				if (args.length > 3) {
+					System.setProperty(RegistrationConstants.WEBCAM_WIDTH, args[3]);
+				}
 			}
 
 			applicationContext = new AnnotationConfigApplicationContext(AppConfig.class);
@@ -110,7 +116,7 @@ public class Initialization extends Application {
 			System.exit(0);
 		}
 	}
-	
+
 	private ClientCryptoFacade getClientCryptoFacade() {
 		return applicationContext.getBean(ClientCryptoFacade.class);
 	}

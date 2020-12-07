@@ -736,6 +736,9 @@ public class RegistrationConstants {
 	public static final String DEFAULT_EXCEPTION_IMAGE_PATH = "/images/ExceptionPhoto.png";
 	public static final String IMAGE_PATH = "/images/Photo.png";
 
+	public static final String WEBCAM_WIDTH = "camera.resolution.width";
+	public static final String WEBCAM_HEIGHT = "camera.resolution.height";
+
 	// Acknowledgement Form
 	public static final String ACKNOWLEDGEMENT_FORM_TITLE = "Registration Acknowledgement";
 	public static final String REGISTRATION = "Registration";
@@ -1333,9 +1336,9 @@ public class RegistrationConstants {
 	public static final String OTP_CHANNELS = "mosip.registration.otp_channels";
 	public static final String AUTH_TOKEN_NOT_RECEIVED_ERROR = "Auth failed, Invalid/expired auth token";
 
-	//flag for quality check with SDK
+	// flag for quality check with SDK
 	public static final String QUALITY_CHECK_WITH_SDK = "mosip.registration.quality_check_with_sdk";
-	
+
 	// Packet Sync
 	public static final String PACKET_SYNC = "packet_sync";
 
@@ -1810,7 +1813,6 @@ public class RegistrationConstants {
 	// UI Schema field group name
 	public static final String UI_SCHEMA_GROUP_FULL_NAME = "FullName";
 	public static final String MVEL_TYPE = "MVEL";
-
 
 	public static final String MACHINE_VERIFICATION_SUCCESS = "Machine Verification Success";
 }
