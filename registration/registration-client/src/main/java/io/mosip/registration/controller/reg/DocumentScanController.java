@@ -3,6 +3,7 @@ package io.mosip.registration.controller.reg;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -53,22 +54,35 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
 import javafx.geometry.NodeOrientation;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
+import javafx.scene.Group;
 import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.StrokeLineCap;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
+import lombok.SneakyThrows;
 
 /**
  * {@code DocumentScanController} is to handle the screen of the Demographic
@@ -158,6 +172,9 @@ public class DocumentScanController extends BaseController {
 	@FXML
 	private Label biometricExceptionReq;
 
+	@FXML
+	private Button cropButton;
+
 	@Autowired
 	private Validations validation;
 
@@ -165,6 +182,11 @@ public class DocumentScanController extends BaseController {
 	private WebcamSarxosServiceImpl webcamSarxosServiceImpl;
 
 	private String selectedScanDeviceName;
+	private RubberBandSelection rubberBandSelection;
+	private ImageView imageView;
+	private Stage primaryStage;
+
+	private String cropDocumentKey;
 
 	private Webcam webcam;
 
@@ -995,6 +1017,8 @@ public class DocumentScanController extends BaseController {
 				RegistrationConstants.APPLICATION_ID, "Creating Image to delete the attached document");
 
 		imageView.setOnMouseClicked((event) -> {
+
+			cropButton.setVisible(false);
 			String hyperLinkArray[] = ((ImageView) event.getSource()).getParent().getId().split("_");
 
 			LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
@@ -1077,6 +1101,7 @@ public class DocumentScanController extends BaseController {
 
 		hyperLink.setOnAction((actionEvent) -> {
 
+			cropButton.setVisible(true);
 			LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, "Document action listener started for view ");
 
@@ -1084,6 +1109,7 @@ public class DocumentScanController extends BaseController {
 			GridPane pane = (GridPane) ((Hyperlink) actionEvent.getSource()).getParent();
 			String hyperLinkArray[] = ((Hyperlink) actionEvent.getSource()).getId().split("_");
 			String documentKey = ((VBox) pane.getParent()).getId();
+			cropDocumentKey = documentKey;
 
 			AuditEvent auditEvent = null;
 			try {
@@ -1303,4 +1329,186 @@ public class DocumentScanController extends BaseController {
 		return imageInByte;
 	}
 
+	@FXML
+	public void crop() {
+		Stage primaryStage = new Stage();
+		BorderPane root = new BorderPane();
+
+		ScrollPane scrollPane = new ScrollPane();
+
+		Group imageLayer = new Group();
+
+		Image image = docPreviewImgView.getImage();
+
+		imageView = new ImageView(image);
+
+		imageLayer.getChildren().add(imageView);
+
+		scrollPane.setContent(imageLayer);
+
+		root.setCenter(scrollPane);
+
+		rubberBandSelection = new RubberBandSelection(imageLayer);
+
+		primaryStage.setScene(new Scene(root, image.getWidth(), image.getHeight()));
+		primaryStage.setTitle("Crop Document");
+		primaryStage.setMaximized(false);
+
+		primaryStage.show();
+		this.primaryStage = primaryStage;
+
+	}
+
+	private void save(Bounds bounds) throws IOException {
+		if (bounds.getHeight() == 1.0 || bounds.getWidth() == 1.0)
+			return;
+
+		int width = (int) bounds.getWidth();
+		int height = (int) bounds.getHeight();
+
+		SnapshotParameters parameters = new SnapshotParameters();
+		parameters.setFill(Color.TRANSPARENT);
+		parameters.setViewport(new Rectangle2D(bounds.getMinX(), bounds.getMinY(), width, height));
+
+		WritableImage wi = new WritableImage(width, height);
+		imageView.snapshot(parameters, wi);
+
+		BufferedImage bufImageARGB = SwingFXUtils.fromFXImage(wi, null);
+		BufferedImage bufImageRGB = new BufferedImage(bufImageARGB.getWidth(), bufImageARGB.getHeight(),
+				BufferedImage.OPAQUE);
+
+		Graphics2D graphics = bufImageRGB.createGraphics();
+		graphics.drawImage(bufImageARGB, 0, 0, null);
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ImageIO.write(bufImageRGB, "jpg", baos);
+
+		// attachDocuments(documentCategoryDto, selectedDocVBox, baos.toByteArray(),
+		// true);
+
+		DocumentDto documentDto = getDocumentsMapFromSession().get(cropDocumentKey);
+		documentDto.setDocument(baos.toByteArray());
+		getRegistrationDTOFromSession().addDocument(cropDocumentKey, documentDto);
+		generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.CROP_DOC_SUCCESS);
+		docPreviewImgView.setImage(convertBytesToImage(documentDto.getDocument()));
+		graphics.dispose();
+		primaryStage.close();
+
+	}
+
+	/**
+	 * Drag rectangle with mouse cursor in order to get selection bounds
+	 */
+	public class RubberBandSelection {
+
+		final DragContext dragContext = new DragContext();
+		javafx.scene.shape.Rectangle rect = new javafx.scene.shape.Rectangle();
+
+		Group group;
+
+		public Bounds getBounds() {
+			return rect.getBoundsInParent();
+		}
+
+		public RubberBandSelection(Group group) {
+
+			this.group = group;
+
+			rect = new Rectangle(0, 0, 0, 0);
+			rect.setStroke(Color.BLUE);
+			rect.setStrokeWidth(1);
+			rect.setStrokeLineCap(StrokeLineCap.ROUND);
+			rect.setFill(Color.LIGHTBLUE.deriveColor(0, 1.2, 1, 0.6));
+
+			group.addEventHandler(MouseEvent.MOUSE_PRESSED, onMousePressedEventHandler);
+			group.addEventHandler(MouseEvent.MOUSE_DRAGGED, onMouseDraggedEventHandler);
+			group.addEventHandler(MouseEvent.MOUSE_RELEASED, onMouseReleasedEventHandler);
+
+		}
+
+		EventHandler<MouseEvent> onMousePressedEventHandler = new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent event) {
+
+				if (event.isSecondaryButtonDown())
+					return;
+
+				// remove old rect
+				rect.setX(0);
+				rect.setY(0);
+				rect.setWidth(0);
+				rect.setHeight(0);
+
+				group.getChildren().remove(rect);
+
+				// prepare new drag operation
+				dragContext.mouseAnchorX = event.getX();
+				dragContext.mouseAnchorY = event.getY();
+
+				rect.setX(dragContext.mouseAnchorX);
+				rect.setY(dragContext.mouseAnchorY);
+				rect.setWidth(0);
+				rect.setHeight(0);
+
+				group.getChildren().add(rect);
+
+			}
+		};
+
+		EventHandler<MouseEvent> onMouseDraggedEventHandler = new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent event) {
+
+				if (event.isSecondaryButtonDown())
+					return;
+
+				double offsetX = event.getX() - dragContext.mouseAnchorX;
+				double offsetY = event.getY() - dragContext.mouseAnchorY;
+
+				if (offsetX > 0)
+					rect.setWidth(offsetX);
+				else {
+					rect.setX(event.getX());
+					rect.setWidth(dragContext.mouseAnchorX - rect.getX());
+				}
+
+				if (offsetY > 0) {
+					rect.setHeight(offsetY);
+				} else {
+					rect.setY(event.getY());
+					rect.setHeight(dragContext.mouseAnchorY - rect.getY());
+				}
+			}
+		};
+
+		EventHandler<MouseEvent> onMouseReleasedEventHandler = new EventHandler<MouseEvent>() {
+
+			@SneakyThrows
+			@Override
+			public void handle(MouseEvent event) {
+
+//                if( event.isSecondaryButtonDown())
+//                    return;
+
+				// get bounds for image crop
+				Bounds selectionBounds = rubberBandSelection.getBounds();
+
+				// show bounds info
+				System.out.println("Selected area: " + selectionBounds);
+
+				// crop the image
+				save(selectionBounds);
+
+			}
+		};
+
+		private final class DragContext {
+
+			public double mouseAnchorX;
+			public double mouseAnchorY;
+
+		}
+	}
 }

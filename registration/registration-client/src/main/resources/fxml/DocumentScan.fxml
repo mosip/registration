@@ -160,6 +160,8 @@
                                                             <Label fx:id="docPreviewNext" onMouseClicked="#previewNextPage" text="%previewnext" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.valignment="CENTER" />
                                                             <Label fx:id="docPreviewPrev" onMouseClicked="#previewPrevPage" text="%previewprevious" GridPane.halignment="LEFT" GridPane.valignment="CENTER" />
                                                             <Label fx:id="docPageNumber" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+                                                            <Button fx:id="cropButton" mnemonicParsing="false"  visible="false"  onAction="#crop" styleClass="scanButton" text="crop">
+                                                            </Button>
                                                          </children>
                                                       </GridPane>
                                                    </children>
