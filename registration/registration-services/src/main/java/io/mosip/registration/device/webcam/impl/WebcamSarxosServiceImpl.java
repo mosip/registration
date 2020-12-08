@@ -6,6 +6,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 import javax.swing.JPanel;
@@ -20,6 +21,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
+import io.mosip.registration.device.scanner.dto.ScanDevice;
 import io.mosip.registration.device.webcam.MosipWebcamServiceImpl;
 
 /**
@@ -194,4 +196,32 @@ public class WebcamSarxosServiceImpl extends MosipWebcamServiceImpl {
 		return height;
 	}
 
+	public BufferedImage captureImage(String webCamName) {
+
+		Webcam webcam = getWebCam(webCamName);
+
+		if (webcam != null) {
+			return captureImage(webcam);
+		}
+
+		return null;
+	}
+
+	public Webcam getWebCam(String webCamName) {
+
+		if (webCamName != null) {
+
+			List<Webcam> webcams = getWebCams();
+
+			Optional<Webcam> selectedWebCam = webcams.stream()
+					.filter(device -> device.getName().equalsIgnoreCase(webCamName)).findFirst();
+			if (selectedWebCam.isPresent()) {
+
+				return selectedWebCam.get();
+			}
+
+		}
+
+		return null;
+	}
 }

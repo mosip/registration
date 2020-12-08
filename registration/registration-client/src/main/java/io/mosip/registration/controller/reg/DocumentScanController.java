@@ -563,10 +563,6 @@ public class DocumentScanController extends BaseController {
 	 * This method will display Scan window to scan and upload documents
 	 */
 	private void scanWindow() {
-		if (RegistrationConstants.YES
-				.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.DOC_SCANNER_ENABLED))) {
-			scanPopUpViewController.setDocumentScan(true);
-		}
 
 		String poeDocValue = getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE);
 		if (poeDocValue != null && selectedComboBox.getValue().getCode().matches(poeDocValue)) {
@@ -574,7 +570,17 @@ public class DocumentScanController extends BaseController {
 			startStream(this);
 		} else {
 			scanPopUpViewController.setDocumentScan(true);
-			startStream(this);
+			scanPopUpViewController.init(this, RegistrationUIConstants.SCAN_DOC_TITLE);
+			Webcam webcam = webcamSarxosServiceImpl.getWebCam(selectedScanDeviceName);
+
+			if (webcam != null) {
+
+				documentScanFacade.setStubScannerFactory();
+				webcamSarxosServiceImpl.openWebCam(webcam, webcamSarxosServiceImpl.getWidth(),
+						webcamSarxosServiceImpl.getHeight());
+				JPanel jPanelWindow = webcamSarxosServiceImpl.getJPanel(webcam);
+				scanPopUpViewController.setWebCamPanel(jPanelWindow);
+			}
 
 		}
 
@@ -667,16 +673,17 @@ public class DocumentScanController extends BaseController {
 	private void scanFromStubbed(Stage popupStage) throws IOException {
 
 		byte[] byteArray = null;
-
+		documentScanFacade.setStubScannerFactory();
 		BufferedImage bufferedImage = null;
 		String poeDocValue = getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE);
 		if (poeDocValue != null && selectedComboBox.getValue().getCode().matches(poeDocValue)) {
 
-			bufferedImage = webcamSarxosServiceImpl.captureImage(webcam);
+//			bufferedImage = webcamSarxosServiceImpl.captureImage(webcam);
+			bufferedImage = documentScanFacade.getScannedDocument();
 
 		} else {
 
-			bufferedImage = webcamSarxosServiceImpl.captureImage(webcam);
+			bufferedImage = documentScanFacade.getScannedDocument();
 
 		}
 
@@ -695,13 +702,7 @@ public class DocumentScanController extends BaseController {
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "converting image bytes from buffered image");
 
-//		byteArray = documentScannerService.getImageBytesFromBufferedImage(bufferedImage);
-
-		ByteArrayOutputStream imagebyteArray = new ByteArrayOutputStream();
-		ImageIO.write(bufferedImage, RegistrationConstants.SCANNER_IMG_TYPE, imagebyteArray);
-		imagebyteArray.flush();
-		byteArray = imagebyteArray.toByteArray();
-		imagebyteArray.close();
+		byteArray = documentScanFacade.getImageBytesFromBufferedImage(bufferedImage);
 
 		/* show the scanned page in the preview */
 		scanPopUpViewController.getScanImage().setImage(convertBytesToImage(byteArray));
@@ -1371,9 +1372,9 @@ public class DocumentScanController extends BaseController {
 
 			rubberBandSelection = new RubberBandSelection(imageLayer);
 
-			primaryStage.setScene(new Scene(root, image.getWidth(), image.getHeight()));
+			primaryStage.setScene(new Scene(root));
 			primaryStage.setTitle("Crop Document");
-			primaryStage.setMaximized(false);
+			primaryStage.setMaximized(true);
 
 			LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, "Shown stage for crop");

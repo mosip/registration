@@ -7,12 +7,16 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 import javax.imageio.ImageIO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.github.sarxos.webcam.Webcam;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -20,6 +24,8 @@ import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.device.scanner.IMosipDocumentScannerService;
 import io.mosip.registration.device.scanner.dto.ScanDevice;
+import io.mosip.registration.device.webcam.impl.WebcamSarxosServiceImpl;
+import io.mosip.registration.dto.packetmanager.BiometricsDto;
 
 /**
  * This class is used to select the document scanner provider and scan the
@@ -38,6 +44,9 @@ public class DocumentScanFacade {
 	private List<IMosipDocumentScannerService> documentScannerServices;
 
 	private static final Logger LOGGER = AppConfig.getLogger(DocumentScanFacade.class);
+
+	@Autowired
+	private WebcamSarxosServiceImpl webcamSarxosServiceImpl;
 
 	/**
 	 * <p>
@@ -125,7 +134,7 @@ public class DocumentScanFacade {
 								+ ExceptionUtils.getStackTrace(exception));
 			}
 		}
-		return false;
+		return webcamSarxosServiceImpl.getWebCams() != null && !webcamSarxosServiceImpl.getWebCams().isEmpty();
 	}
 
 	public boolean setStubScannerFactory() {
@@ -145,7 +154,30 @@ public class DocumentScanFacade {
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Getting the list of connected scanner devices");
 
-		return documentScannerService.getDevices();
+		List<ScanDevice> scanDevices = null;
+
+		if (documentScannerService != null) {
+			scanDevices = documentScannerService.getDevices();
+
+		}
+
+		List<Webcam> webcams = webcamSarxosServiceImpl.getWebCams();
+
+		if (webcams != null && !webcams.isEmpty()) {
+			scanDevices = scanDevices == null ? new LinkedList<ScanDevice>() : scanDevices;
+
+			for (Webcam webcam : webcams) {
+
+				ScanDevice scanDevice = new ScanDevice();
+
+				scanDevice.setName(webcam.getName());
+				scanDevice.setId(webcam.getName());
+				scanDevice.setWebCam(true);
+
+				scanDevices.add(scanDevice);
+			}
+		}
+		return scanDevices;
 	}
 
 	/**
@@ -159,7 +191,21 @@ public class DocumentScanFacade {
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Reading byte array from Scanner");
 
-		return documentScannerService.scan(deviceName);
+		BufferedImage bufferedImage = null;
+
+		ScanDevice scanDevice = getScanDevice(deviceName);
+
+		if (scanDevice != null) {
+			if (scanDevice.isWebCam()) {
+				bufferedImage = webcamSarxosServiceImpl.captureImage();
+			} else if (scanDevice.isWIA()) {
+				bufferedImage = documentScannerService.scan(deviceName);
+			}
+
+		}
+
+		return bufferedImage;
+
 	}
 
 	/**
@@ -246,5 +292,21 @@ public class DocumentScanFacade {
 //	public boolean isConnected() {
 //		return documentScannerService.isConnected();
 //	}
+
+	public ScanDevice getScanDevice(String deviceName) {
+
+		List<ScanDevice> scanDevices = getDevices();
+
+		if (scanDevices != null) {
+			Optional<ScanDevice> selectedDevice = scanDevices.stream()
+					.filter(device -> device.getName().equalsIgnoreCase(deviceName)).findFirst();
+			if (selectedDevice.isPresent()) {
+				return selectedDevice.get();
+			}
+		}
+
+		return null;
+
+	}
 
 }
