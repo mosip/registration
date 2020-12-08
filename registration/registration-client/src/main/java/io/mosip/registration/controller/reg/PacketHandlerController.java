@@ -66,7 +66,6 @@ import io.mosip.registration.update.SoftwareUpdateHandler;
 import io.mosip.registration.util.acktemplate.TemplateGenerator;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import io.mosip.registration.util.restclient.AuthTokenUtilService;
-
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
@@ -263,6 +262,12 @@ public class PacketHandlerController extends BaseController implements Initializ
 	@FXML
 	private GridPane viewReportsPane;
 	@FXML
+	private GridPane uploadPacketPane;
+	@FXML
+	private GridPane centerRemapPane;
+	@FXML
+	private GridPane checkUpdatesPane;
+	@FXML
 	private ImageView viewReportsImageView;
 	@Autowired
 	private SoftwareUpdateHandler softwareUpdateHandler;
@@ -274,7 +279,15 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 	@Autowired
 	private AuthTokenUtilService authTokenUtilService;
-
+	
+	@FXML
+	private ImageView uploadPacketImageView;
+	
+	@FXML
+	private ImageView remapImageView;
+	
+	@FXML
+	private ImageView checkUpdatesImageView;
 
 	@Value("${object.store.base.location}")
 	private String baseLocation;
@@ -427,6 +440,33 @@ public class PacketHandlerController extends BaseController implements Initializ
 			} else {
 				viewReportsImageView
 						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.VIEW_REPORTS_IMAGE)));
+			}
+		});
+		uploadPacketPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
+			if (newValue) {
+				uploadPacketImageView.setImage(
+						new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_OP_BIOMETRICS_FOCUSED)));
+			} else {
+				uploadPacketImageView
+						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_OP_BIOMETRICS_IMAGE)));
+			}
+		});
+		centerRemapPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
+			if (newValue) {
+				remapImageView.setImage(
+						new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_FOCUSED)));
+			} else {
+				remapImageView
+						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_IMAGE)));
+			}
+		});
+		checkUpdatesPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
+			if (newValue) {
+				checkUpdatesImageView.setImage(
+						new Image(getClass().getResourceAsStream(RegistrationConstants.DOWNLOAD_PREREG_FOCUSED)));
+			} else {
+				checkUpdatesImageView
+						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.DOWNLOAD_PREREG_IMAGE)));
 			}
 		});
 	}
@@ -840,7 +880,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 			return;
 		}
 
-		if(!authTokenUtilService.hasAnyValidToken()) {
+		if (!authTokenUtilService.hasAnyValidToken()) {
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
 			return;
 		}
@@ -1189,5 +1229,23 @@ public class PacketHandlerController extends BaseController implements Initializ
 						? true
 						: false;
 
+	}
+
+	@FXML
+	public void uploadPacketToServer() {
+		auditFactory.audit(AuditEvent.SYNC_PRE_REGISTRATION_PACKET, Components.SYNC_SERVER_TO_CLIENT,
+				SessionContext.userContext().getUserId(), AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+
+		uploadPacket();
+	}
+
+	@FXML
+	public void intiateRemapProcess() {
+		headerController.intiateRemapProcess();
+	}
+
+	@FXML
+	public void hasUpdate() {
+		headerController.hasUpdate(null);
 	}
 }

@@ -42,7 +42,6 @@ import io.mosip.registration.controller.FXUtils;
 import io.mosip.registration.controller.device.BiometricsController;
 import io.mosip.registration.controller.device.ScanPopUpViewController;
 import io.mosip.registration.device.scanner.dto.ScanDevice;
-import io.mosip.registration.device.scanner.impl.DocumentScannerService;
 import io.mosip.registration.device.webcam.impl.WebcamSarxosServiceImpl;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
@@ -75,17 +74,15 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.StrokeLineCap;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
-import lombok.SneakyThrows;
 
 /**
  * {@code DocumentScanController} is to handle the screen of the Demographic
@@ -1356,28 +1353,37 @@ public class DocumentScanController extends BaseController {
 		Stage primaryStage = new Stage();
 		BorderPane root = new BorderPane();
 
-		ScrollPane scrollPane = new ScrollPane();
-
 		Group imageLayer = new Group();
 
-		Image image = docPreviewImgView.getImage();
+		Image image = docPreviewImgView.getImage();		
 
 		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 				"Set Image for crop");
 
 		if (image != null) {
-			imageView = new ImageView(image);
+			
+			GridPane gridpane = new GridPane();
 
-			imageLayer.getChildren().add(imageView);
+	        RowConstraints rc = new RowConstraints();
+	        rc.setVgrow(Priority.ALWAYS);
 
-			scrollPane.setContent(imageLayer);
+	        gridpane.getRowConstraints().add(rc);
 
-			root.setCenter(scrollPane);
+	        HBox hBox = new HBox();
+
+	        hBox.setMinHeight(0);
+	        imageView = new ImageView(image);
+	        imageView.fitHeightProperty().bind(hBox.heightProperty());
+	        imageView.setPreserveRatio(true);
+	        imageLayer.getChildren().add(imageView);
+	        hBox.getChildren().add(imageLayer);
+	        gridpane.add(hBox, 0, 0);
+
+			root.setCenter(gridpane);
 
 			RubberBandSelection rubberBandSelection = new RubberBandSelection(imageLayer);
 
 			rubberBandSelection.setDocumentScanController(this);
-
 			primaryStage.setScene(new Scene(root));
 			primaryStage.setTitle("Crop Document");
 			primaryStage.setMaximized(true);
@@ -1425,10 +1431,10 @@ public class DocumentScanController extends BaseController {
 		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 				"Saving cropped image into session");
 
-		String pageNumber = docPageNumber.getText();
+		int pageNumber = Integer.valueOf(docPageNumber.getText().isEmpty() ? "1" : docPageNumber.getText());
 
-		pageNumber = pageNumber.isEmpty() ? "1" : pageNumber;
-		docPages.add(Integer.valueOf(pageNumber) - 1, ImageIO.read(new ByteArrayInputStream(baos.toByteArray())));
+		docPages.remove(pageNumber - 1);
+		docPages.add(pageNumber - 1, ImageIO.read(new ByteArrayInputStream(baos.toByteArray())));
 		DocumentDto documentDto = getDocumentsMapFromSession().get(cropDocumentKey);
 		documentDto.setDocument(documentScanFacade.asPDF(docPages));
 		getRegistrationDTOFromSession().addDocument(cropDocumentKey, documentDto);
