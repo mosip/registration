@@ -11,6 +11,7 @@ import java.net.MalformedURLException;
 import javax.swing.JPanel;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -18,6 +19,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
+import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.reg.DocumentScanController;
 import io.mosip.registration.device.webcam.impl.WebcamSarxosServiceImpl;
@@ -89,6 +91,12 @@ public class ScanPopUpViewController extends BaseController {
 
 	public TextField streamerValue;
 
+	@Value("${mosip.doc.stage.width:1200}")
+	private int width;
+
+	@Value("${mosip.doc.stage.height:620}")
+	private int height;
+
 	/**
 	 * @return the scanImage
 	 */
@@ -112,8 +120,7 @@ public class ScanPopUpViewController extends BaseController {
 	}
 
 	/**
-	 * @param popupStage
-	 *            the popupStage to set
+	 * @param popupStage the popupStage to set
 	 */
 	public void setPopupStage(Stage popupStage) {
 		this.popupStage = popupStage;
@@ -166,7 +173,23 @@ public class ScanPopUpViewController extends BaseController {
 			setDefaultImageGridPaneVisibility();
 			popupStage.setResizable(false);
 			popupTitle.setText(title);
-			Scene scene = new Scene(scanPopup);
+			Scene scene = null;
+
+			if (!isDocumentScan) {
+
+				scene = new Scene(scanPopup);
+				captureBtn.setVisible(false);
+			} else {
+				LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+						"Setting doc screen width : " + width);
+
+				LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
+						"Setting doc screen height : " + height);
+
+				scene = new Scene(scanPopup, width, height);
+				closeButton.setVisible(false);
+
+			}
 			scene.getStylesheets().add(ClassLoader.getSystemClassLoader()
 					.getResource(RegistrationConstants.CSS_FILE_PATH).toExternalForm());
 			popupStage.setScene(scene);
@@ -176,18 +199,16 @@ public class ScanPopUpViewController extends BaseController {
 
 			LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "scan screen launched");
 
+			closeButton.setVisible(false);
 			if (!isDocumentScan) {
 				totalScannedPages.setVisible(false);
 				saveBtn.setVisible(false);
 				scannedPagesLabel.setVisible(false);
 			} else {
 				isDocumentScan = false;
+
 			}
 
-			if (title.equalsIgnoreCase("Biometrics")) {
-				captureBtn.setVisible(false);
-				// scanningMsg.setVisible(false);
-			}
 			scanningMsg.textProperty().addListener((observable, oldValue, newValue) -> {
 
 				Platform.runLater(() -> {
@@ -270,6 +291,10 @@ public class ScanPopUpViewController extends BaseController {
 
 	@FXML
 	private void save() {
+		webcamSarxosServiceImpl.close();
+		setDefaultImageGridPaneVisibility();
+		// Enable Auto-Logout
+		SessionContext.setAutoLogout(true);
 		if (baseController instanceof DocumentScanController) {
 			DocumentScanController documentScanController = (DocumentScanController) baseController;
 			try {

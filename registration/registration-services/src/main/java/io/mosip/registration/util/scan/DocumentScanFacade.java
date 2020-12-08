@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import javax.imageio.ImageIO;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -46,17 +48,14 @@ public class DocumentScanFacade {
 	 * @return byte[] - image file in bytes
 	 * @throws IOException - holds the ioexception
 	 */
-	public byte[] getScannedDocument() throws IOException {
+	public BufferedImage getScannedDocument() throws IOException {
 
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Reading byte array from Scanner");
 
 		InputStream inputStream = this.getClass().getResourceAsStream(RegistrationConstants.DOC_STUB_PATH);
 
-		byte[] byteArray = new byte[inputStream.available()];
-		inputStream.read(byteArray);
-
-		return byteArray;
+		return ImageIO.read(inputStream);
 
 	}
 

@@ -41,6 +41,7 @@ import io.mosip.registration.controller.FXUtils;
 import io.mosip.registration.controller.device.BiometricsController;
 import io.mosip.registration.controller.device.ScanPopUpViewController;
 import io.mosip.registration.device.scanner.dto.ScanDevice;
+import io.mosip.registration.device.scanner.impl.DocumentScannerService;
 import io.mosip.registration.device.webcam.impl.WebcamSarxosServiceImpl;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
@@ -572,7 +573,9 @@ public class DocumentScanController extends BaseController {
 
 			startStream(this);
 		} else {
-			scanPopUpViewController.init(this, RegistrationUIConstants.SCAN_DOC_TITLE);
+			scanPopUpViewController.setDocumentScan(true);
+			startStream(this);
+
 		}
 
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
@@ -665,38 +668,48 @@ public class DocumentScanController extends BaseController {
 
 		byte[] byteArray = null;
 
+		BufferedImage bufferedImage = null;
 		String poeDocValue = getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE);
 		if (poeDocValue != null && selectedComboBox.getValue().getCode().matches(poeDocValue)) {
 
-			byteArray = captureAndConvertBufferedImage();
+			bufferedImage = webcamSarxosServiceImpl.captureImage(webcam);
 
 		} else {
-			byteArray = documentScanFacade.getScannedDocument();
+
+			bufferedImage = webcamSarxosServiceImpl.captureImage(webcam);
+
 		}
+
+		if (bufferedImage == null) {
+			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "captured buffered image was null");
+
+			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOCUMENT_ERROR);
+			return;
+		}
+		if (scannedPages == null) {
+			scannedPages = new ArrayList<>();
+		}
+		scannedPages.add(bufferedImage);
 
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
-				RegistrationConstants.APPLICATION_ID, "Converting byte array to image");
+				RegistrationConstants.APPLICATION_ID, "converting image bytes from buffered image");
 
-		if (selectedDocument != null) {
+//		byteArray = documentScannerService.getImageBytesFromBufferedImage(bufferedImage);
 
-			scanPopUpViewController.getScanImage().setImage(convertBytesToImage(byteArray));
+		ByteArrayOutputStream imagebyteArray = new ByteArrayOutputStream();
+		ImageIO.write(bufferedImage, RegistrationConstants.SCANNER_IMG_TYPE, imagebyteArray);
+		imagebyteArray.flush();
+		byteArray = imagebyteArray.toByteArray();
+		imagebyteArray.close();
 
-			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
-					RegistrationConstants.APPLICATION_ID, "Adding documents to Screen");
+		/* show the scanned page in the preview */
+		scanPopUpViewController.getScanImage().setImage(convertBytesToImage(byteArray));
 
-			selectedComboBox.getValue().setScanned(true);
-			// DocumentDetailsDTO documentDetailsDTO = new DocumentDetailsDTO();
+		scanPopUpViewController.getTotalScannedPages().setText(String.valueOf(scannedPages.size()));
 
-			// getDocumentsMapFromSession().put(selectedComboBox.getValue().getName(),
-			// documentDetailsDTO);
-			attachDocuments(selectedComboBox.getValue(), selectedDocVBox, byteArray, true);
+		scanPopUpViewController.getScanningMsg().setVisible(false);
 
-			popupStage.close();
-			selectedComboBox = null;
-			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
-					RegistrationConstants.APPLICATION_ID, "Documents added successfully");
-
-		}
 	}
 
 	public byte[] captureAndConvertBufferedImage() throws IOException {
@@ -1098,7 +1111,7 @@ public class DocumentScanController extends BaseController {
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID,
 				"Binding OnAction event to Hyperlink to display Scanned document");
-
+		cropButton.setVisible(false);
 		hyperLink.setOnAction((actionEvent) -> {
 
 			cropButton.setVisible(true);
@@ -1331,6 +1344,10 @@ public class DocumentScanController extends BaseController {
 
 	@FXML
 	public void crop() {
+
+		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"crop has been selected");
+
 		Stage primaryStage = new Stage();
 		BorderPane root = new BorderPane();
 
@@ -1340,26 +1357,38 @@ public class DocumentScanController extends BaseController {
 
 		Image image = docPreviewImgView.getImage();
 
-		imageView = new ImageView(image);
+		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Set Image for crop");
 
-		imageLayer.getChildren().add(imageView);
+		if (image != null) {
+			imageView = new ImageView(image);
 
-		scrollPane.setContent(imageLayer);
+			imageLayer.getChildren().add(imageView);
 
-		root.setCenter(scrollPane);
+			scrollPane.setContent(imageLayer);
 
-		rubberBandSelection = new RubberBandSelection(imageLayer);
+			root.setCenter(scrollPane);
 
-		primaryStage.setScene(new Scene(root, image.getWidth(), image.getHeight()));
-		primaryStage.setTitle("Crop Document");
-		primaryStage.setMaximized(false);
+			rubberBandSelection = new RubberBandSelection(imageLayer);
 
-		primaryStage.show();
-		this.primaryStage = primaryStage;
+			primaryStage.setScene(new Scene(root, image.getWidth(), image.getHeight()));
+			primaryStage.setTitle("Crop Document");
+			primaryStage.setMaximized(false);
+
+			LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "Shown stage for crop");
+
+			primaryStage.show();
+			this.primaryStage = primaryStage;
+		}
 
 	}
 
 	private void save(Bounds bounds) throws IOException {
+
+		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Saving cropped image");
+
 		if (bounds.getHeight() == 1.0 || bounds.getWidth() == 1.0)
 			return;
 
@@ -1386,6 +1415,9 @@ public class DocumentScanController extends BaseController {
 		// attachDocuments(documentCategoryDto, selectedDocVBox, baos.toByteArray(),
 		// true);
 
+		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Saving cropped image into session");
+
 		DocumentDto documentDto = getDocumentsMapFromSession().get(cropDocumentKey);
 		documentDto.setDocument(baos.toByteArray());
 		getRegistrationDTOFromSession().addDocument(cropDocumentKey, documentDto);
@@ -1393,6 +1425,9 @@ public class DocumentScanController extends BaseController {
 		docPreviewImgView.setImage(convertBytesToImage(documentDto.getDocument()));
 		graphics.dispose();
 		primaryStage.close();
+
+		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Saving cropped image completed");
 
 	}
 
@@ -1489,14 +1524,8 @@ public class DocumentScanController extends BaseController {
 			@Override
 			public void handle(MouseEvent event) {
 
-//                if( event.isSecondaryButtonDown())
-//                    return;
-
 				// get bounds for image crop
 				Bounds selectionBounds = rubberBandSelection.getBounds();
-
-				// show bounds info
-				System.out.println("Selected area: " + selectionBounds);
 
 				// crop the image
 				save(selectionBounds);
