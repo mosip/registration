@@ -65,6 +65,7 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.service.sync.PreRegistrationDataSyncService;
+import io.mosip.registration.util.common.ComboBoxAutoComplete;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -364,9 +365,12 @@ public class DemographicDetailController extends BaseController {
 						orderOfAddressMapByGroup.put(uiSchemaDTO.getGroup(), hirearchyMap);
 					}
 //					orderOfAddressMapByGroup.(location.getHierarchyLevel(), matchedfield.get(0).getId());
-					/*LOGGER.info("REGISTRATION - CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-							"location.getHierarchyLevel() >>> " + location.getHierarchyLevel()
-									+ " matchedfield.get(0).getId() >>> " + matchedfield.get(0).getId());*/
+					/*
+					 * LOGGER.info("REGISTRATION - CONTROLLER", APPLICATION_NAME,
+					 * RegistrationConstants.APPLICATION_ID, "location.getHierarchyLevel() >>> " +
+					 * location.getHierarchyLevel() + " matchedfield.get(0).getId() >>> " +
+					 * matchedfield.get(0).getId());
+					 */
 				}
 			}
 
@@ -1054,6 +1058,7 @@ public class DemographicDetailController extends BaseController {
 	}
 
 	private void addFirstOrderAddress(ComboBox<GenericDto> location, int id, String languageType) {
+
 		if (location != null) {
 			location.getItems().clear();
 			try {
@@ -1072,6 +1077,7 @@ public class DemographicDetailController extends BaseController {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			new ComboBoxAutoComplete<GenericDto>(location);
 		}
 	}
 
@@ -1578,6 +1584,7 @@ public class DemographicDetailController extends BaseController {
 					} else {
 						destLocationHierarchy.getItems().addAll(locations);
 					}
+					new ComboBoxAutoComplete<GenericDto>(destLocationHierarchy);
 					if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
 						List<GenericDto> locationsSecondary = masterSync.findProvianceByHierarchyCode(
 								selectedLocationHierarchy.getCode(), ApplicationContext.localLanguage());
@@ -1588,9 +1595,11 @@ public class DemographicDetailController extends BaseController {
 							lC.setName(RegistrationConstants.AUDIT_DEFAULT_USER);
 							lC.setLangCode(ApplicationContext.localLanguage());
 							destLocationHierarchyInLocal.getItems().add(lC);
+
 						} else {
 							destLocationHierarchyInLocal.getItems().addAll(locationsSecondary);
 						}
+						new ComboBoxAutoComplete<GenericDto>(destLocationHierarchyInLocal);
 					}
 				}
 			}
@@ -1802,8 +1811,10 @@ public class DemographicDetailController extends BaseController {
 								&& registrationDTO.getDefaultUpdatableFields().contains(textField.getId())) {
 							addTextFieldToSession(textField.getId(), registrationDTO, true);
 						}
-						if (!registrationDTO.getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE) || (registrationDTO.getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE)
-								&& registrationDTO.getUpdatableFields().contains(textField.getId()))) {
+						if (!registrationDTO.getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE)
+								|| (registrationDTO.getRegistrationCategory()
+										.equals(RegistrationConstants.PACKET_TYPE_UPDATE)
+										&& registrationDTO.getUpdatableFields().contains(textField.getId()))) {
 							addTextFieldToSession(textField.getId(), registrationDTO, false);
 						}
 

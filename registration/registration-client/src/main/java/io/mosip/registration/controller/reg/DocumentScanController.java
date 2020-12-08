@@ -50,6 +50,7 @@ import io.mosip.registration.dto.packetmanager.DocumentDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.doc.category.DocumentCategoryService;
 import io.mosip.registration.service.sync.MasterSyncService;
+import io.mosip.registration.util.common.RubberBandSelection;
 import io.mosip.registration.util.scan.DocumentScanFacade;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
@@ -184,7 +185,7 @@ public class DocumentScanController extends BaseController {
 	private WebcamSarxosServiceImpl webcamSarxosServiceImpl;
 
 	private String selectedScanDeviceName;
-	private RubberBandSelection rubberBandSelection;
+
 	private ImageView imageView;
 	private Stage primaryStage;
 
@@ -494,7 +495,7 @@ public class DocumentScanController extends BaseController {
 
 			}
 		}
-		
+
 		cropButton.setVisible(false);
 
 	}
@@ -1373,7 +1374,9 @@ public class DocumentScanController extends BaseController {
 
 			root.setCenter(scrollPane);
 
-			rubberBandSelection = new RubberBandSelection(imageLayer);
+			RubberBandSelection rubberBandSelection = new RubberBandSelection(imageLayer);
+
+			rubberBandSelection.setDocumentScanController(this);
 
 			primaryStage.setScene(new Scene(root));
 			primaryStage.setTitle("Crop Document");
@@ -1388,7 +1391,7 @@ public class DocumentScanController extends BaseController {
 
 	}
 
-	private void save(Bounds bounds) throws IOException {
+	public void save(Bounds bounds) throws IOException {
 
 		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 				"Saving cropped image");
@@ -1422,8 +1425,10 @@ public class DocumentScanController extends BaseController {
 		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 				"Saving cropped image into session");
 
-		docPages.add(Integer.valueOf(docPageNumber.getText())-1,
-				ImageIO.read(new ByteArrayInputStream(baos.toByteArray())));
+		String pageNumber = docPageNumber.getText();
+
+		pageNumber = pageNumber.isEmpty() ? "1" : pageNumber;
+		docPages.add(Integer.valueOf(pageNumber) - 1, ImageIO.read(new ByteArrayInputStream(baos.toByteArray())));
 		DocumentDto documentDto = getDocumentsMapFromSession().get(cropDocumentKey);
 		documentDto.setDocument(documentScanFacade.asPDF(docPages));
 		getRegistrationDTOFromSession().addDocument(cropDocumentKey, documentDto);
@@ -1437,113 +1442,4 @@ public class DocumentScanController extends BaseController {
 
 	}
 
-	/**
-	 * Drag rectangle with mouse cursor in order to get selection bounds
-	 */
-	public class RubberBandSelection {
-
-		final DragContext dragContext = new DragContext();
-		javafx.scene.shape.Rectangle rect = new javafx.scene.shape.Rectangle();
-
-		Group group;
-
-		public Bounds getBounds() {
-			return rect.getBoundsInParent();
-		}
-
-		public RubberBandSelection(Group group) {
-
-			this.group = group;
-
-			rect = new Rectangle(0, 0, 0, 0);
-			rect.setStroke(Color.BLUE);
-			rect.setStrokeWidth(1);
-			rect.setStrokeLineCap(StrokeLineCap.ROUND);
-			rect.setFill(Color.LIGHTBLUE.deriveColor(0, 1.2, 1, 0.6));
-
-			group.addEventHandler(MouseEvent.MOUSE_PRESSED, onMousePressedEventHandler);
-			group.addEventHandler(MouseEvent.MOUSE_DRAGGED, onMouseDraggedEventHandler);
-			group.addEventHandler(MouseEvent.MOUSE_RELEASED, onMouseReleasedEventHandler);
-
-		}
-
-		EventHandler<MouseEvent> onMousePressedEventHandler = new EventHandler<MouseEvent>() {
-
-			@Override
-			public void handle(MouseEvent event) {
-
-				if (event.isSecondaryButtonDown())
-					return;
-
-				// remove old rect
-				rect.setX(0);
-				rect.setY(0);
-				rect.setWidth(0);
-				rect.setHeight(0);
-
-				group.getChildren().remove(rect);
-
-				// prepare new drag operation
-				dragContext.mouseAnchorX = event.getX();
-				dragContext.mouseAnchorY = event.getY();
-
-				rect.setX(dragContext.mouseAnchorX);
-				rect.setY(dragContext.mouseAnchorY);
-				rect.setWidth(0);
-				rect.setHeight(0);
-
-				group.getChildren().add(rect);
-
-			}
-		};
-
-		EventHandler<MouseEvent> onMouseDraggedEventHandler = new EventHandler<MouseEvent>() {
-
-			@Override
-			public void handle(MouseEvent event) {
-
-				if (event.isSecondaryButtonDown())
-					return;
-
-				double offsetX = event.getX() - dragContext.mouseAnchorX;
-				double offsetY = event.getY() - dragContext.mouseAnchorY;
-
-				if (offsetX > 0)
-					rect.setWidth(offsetX);
-				else {
-					rect.setX(event.getX());
-					rect.setWidth(dragContext.mouseAnchorX - rect.getX());
-				}
-
-				if (offsetY > 0) {
-					rect.setHeight(offsetY);
-				} else {
-					rect.setY(event.getY());
-					rect.setHeight(dragContext.mouseAnchorY - rect.getY());
-				}
-			}
-		};
-
-		EventHandler<MouseEvent> onMouseReleasedEventHandler = new EventHandler<MouseEvent>() {
-
-			@SneakyThrows
-			@Override
-			public void handle(MouseEvent event) {
-
-				// get bounds for image crop
-				Bounds selectionBounds = rubberBandSelection.getBounds();
-
-				// crop the image
-				save(selectionBounds);
-
-			}
-		};
-
-		private final class DragContext {
-
-			public double mouseAnchorX;
-			public double mouseAnchorY;
-
-		}
-	}
 }
