@@ -189,16 +189,6 @@
                      <items>
                      	<MenuItem fx:id="userGuide" mnemonicParsing="false" onAction="#userGuide" text="%userGuide" />
                         <SeparatorMenuItem />
-                        <MenuItem mnemonicParsing="false" onAction="#uploadPacketToServer" text="%uploadpacket" />
-                        <SeparatorMenuItem />
-                        <MenuItem mnemonicParsing="false" onAction="#syncData" text="%syncdata" />
-                        <SeparatorMenuItem />
-                        <MenuItem mnemonicParsing="false" onAction="#downloadPreRegData" text="%downloadpre-registrationdata" />
-                        <SeparatorMenuItem />
-                        <MenuItem fx:id="remap" mnemonicParsing="false" onAction="#intiateRemapProcess" text="%remap" />
-                        <SeparatorMenuItem />
-                        <MenuItem mnemonicParsing="false" onAction="#hasUpdate" text="%checkUpdates" />
-                        <SeparatorMenuItem />
                         <MenuItem mnemonicParsing="false" onAction="#redirectHome" text="%home" />
                         <SeparatorMenuItem />
                         <MenuItem fx:id="logout" mnemonicParsing="false" onAction="#logout" text="%logout" />
