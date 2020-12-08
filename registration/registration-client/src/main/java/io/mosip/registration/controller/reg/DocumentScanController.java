@@ -5,6 +5,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -493,6 +494,8 @@ public class DocumentScanController extends BaseController {
 
 			}
 		}
+		
+		cropButton.setVisible(false);
 
 	}
 
@@ -1419,8 +1422,10 @@ public class DocumentScanController extends BaseController {
 		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 				"Saving cropped image into session");
 
+		docPages.add(Integer.valueOf(docPageNumber.getText())-1,
+				ImageIO.read(new ByteArrayInputStream(baos.toByteArray())));
 		DocumentDto documentDto = getDocumentsMapFromSession().get(cropDocumentKey);
-		documentDto.setDocument(baos.toByteArray());
+		documentDto.setDocument(documentScanFacade.asPDF(docPages));
 		getRegistrationDTOFromSession().addDocument(cropDocumentKey, documentDto);
 		generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.CROP_DOC_SUCCESS);
 		docPreviewImgView.setImage(convertBytesToImage(documentDto.getDocument()));
