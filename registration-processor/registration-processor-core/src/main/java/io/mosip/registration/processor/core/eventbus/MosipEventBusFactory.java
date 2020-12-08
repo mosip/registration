@@ -15,19 +15,22 @@ import io.vertx.core.Vertx;
 @Component
 public class MosipEventBusFactory {
 
-    @Value("${mosip.regproc.eventbus.kafka.bootstrap.servers}")
+    //The below properties of the kafka should never be directly configured from the config server, 
+    //since this factory is defined in a library. The configurations should always be piped through
+    //bootstrap.properties file of each app that uses this library
+    @Value("${mosip.regproc.eventbus.kafka.bootstrap.servers:}")
     private String kafkaBootstrapServers;
     
-    @Value("${mosip.regproc.eventbus.kafka.group.id}")
+    @Value("${mosip.regproc.eventbus.kafka.group.id:}")
     private String kafkaGroupId;
     
-    @Value("${mosip.regproc.eventbus.kafka.commit.type}")
+    @Value("${mosip.regproc.eventbus.kafka.commit.type:}")
     private String kafkaCommitType;
 
-    @Value("${mosip.regproc.eventbus.kafka.max.poll.records}")
+    @Value("${mosip.regproc.eventbus.kafka.max.poll.records:}")
     String maxPollRecords;
     
-    @Value("${mosip.regproc.eventbus.kafka.poll.frequency}")
+    @Value("${mosip.regproc.eventbus.kafka.poll.frequency:0}")
     int pollFrequency;
 
     /**
