@@ -561,7 +561,7 @@ public class RegistrationApprovalController extends BaseController implements In
 			Pane authRoot = BaseController.load(getClass().getResource(fxmlPath));
 			Scene scene = new Scene(authRoot);
 			scene.getStylesheets().add(ClassLoader.getSystemClassLoader()
-					.getResource(RegistrationConstants.CSS_FILE_PATH).toExternalForm());
+					.getResource(getCssName()).toExternalForm());
 			primarystage.initStyle(StageStyle.UNDECORATED);
 			primarystage.setScene(scene);
 			primarystage.initModality(Modality.WINDOW_MODAL);

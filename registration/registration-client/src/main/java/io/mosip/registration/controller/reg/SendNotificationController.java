@@ -75,7 +75,7 @@ public class SendNotificationController extends BaseController implements Initia
 			popupStage.setResizable(false);
 			Scene scene = new Scene(sendEmailPopup);
 			ClassLoader loader = ClassLoader.getSystemClassLoader();
-			scene.getStylesheets().add(loader.getResource(RegistrationConstants.CSS_FILE_PATH).toExternalForm());
+			scene.getStylesheets().add(loader.getResource(getCssName()).toExternalForm());
 			popupStage.setScene(scene);
 			popupStage.initModality(Modality.WINDOW_MODAL);
 			popupStage.initOwner(fXComponents.getStage());

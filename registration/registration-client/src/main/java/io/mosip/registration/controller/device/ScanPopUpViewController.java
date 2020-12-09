@@ -191,7 +191,7 @@ public class ScanPopUpViewController extends BaseController {
 
 			}
 			scene.getStylesheets().add(ClassLoader.getSystemClassLoader()
-					.getResource(RegistrationConstants.CSS_FILE_PATH).toExternalForm());
+					.getResource(getCssName()).toExternalForm());
 			popupStage.setScene(scene);
 			popupStage.initModality(Modality.WINDOW_MODAL);
 			popupStage.initOwner(fXComponents.getStage());

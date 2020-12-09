@@ -108,7 +108,7 @@ public class RegistrationConstants {
 	public static final String ONBOARD = "onboard";
 
 	// CSS file
-	public static final String CSS_FILE_PATH = "application.css";
+	//public static final String CSS_FILE_PATH = "application.css";
 
 	public static final String MOSIP_URL = "http://mosip.io";
 
