@@ -1772,14 +1772,15 @@ public class BaseController {
 	protected void helperMethodForComboBox(ComboBox<?> field, String fieldName, UiSchemaDTO schema, Label label,
 			Label validationMessage, VBox vbox, String languageType) {
 
+		String mandatoryAstrik = demographicDetailController.getMandatorySuffix(schema);
 		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
-			field.setPromptText(schema.getLabel().get(RegistrationConstants.SECONDARY));
-			label.setText(schema.getLabel().get(RegistrationConstants.SECONDARY));
+			field.setPromptText(schema.getLabel().get(RegistrationConstants.SECONDARY) + mandatoryAstrik);
+			label.setText(schema.getLabel().get(RegistrationConstants.SECONDARY) + mandatoryAstrik);
 			field.setDisable(true);
 			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.SECONDARY));
 		} else {
-			field.setPromptText(schema.getLabel().get(RegistrationConstants.PRIMARY));
-			label.setText(schema.getLabel().get(RegistrationConstants.PRIMARY));
+			field.setPromptText(schema.getLabel().get(RegistrationConstants.PRIMARY) + mandatoryAstrik);
+			label.setText(schema.getLabel().get(RegistrationConstants.PRIMARY) + mandatoryAstrik);
 			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.PRIMARY));
 		}
 		// vbox.setStyle("-fx-background-color:BLUE");

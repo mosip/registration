@@ -60,6 +60,7 @@ import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.Validator;
 import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.mastersync.LocationDto;
+import io.mosip.registration.dto.response.SchemaDto;
 import io.mosip.registration.entity.Location;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.IdentitySchemaService;
@@ -501,7 +502,7 @@ public class DemographicDetailController extends BaseController {
 			}
 			break;
 		case RegistrationConstants.AGE_DATE:
-			content = addContentForDobAndAge(schemaDTO.getId(), languageType);
+			content = addContentForDobAndAge(schemaDTO, languageType);
 			break;
 		case "age":
 			// TODO Not yet supported
@@ -516,10 +517,11 @@ public class DemographicDetailController extends BaseController {
 		return gridPane;
 	}
 
-	public VBox addContentForDobAndAge(String fieldId, String languageType) {
+	public VBox addContentForDobAndAge(UiSchemaDTO schema, String languageType) {
 
 		VBox vBoxDD = new VBox();
 
+		String fieldId = schema.getId();
 		TextField dd = new TextField();
 		dd.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
 		dd.setId(fieldId + "__" + RegistrationConstants.DD + languageType);
@@ -561,20 +563,21 @@ public class DemographicDetailController extends BaseController {
 
 		boolean localLanguage = languageType.equals(RegistrationConstants.LOCAL_LANGUAGE);
 
+		String mandatorySuffix = getMandatorySuffix(schema);
 		dd.setPromptText(localLanguage ? localLabelBundle.getString(RegistrationConstants.DD)
-				: applicationLabelBundle.getString(RegistrationConstants.DD));
+				: applicationLabelBundle.getString(RegistrationConstants.DD) + mandatorySuffix);
 		ddLabel.setText(localLanguage ? localLabelBundle.getString(RegistrationConstants.DD)
-				: applicationLabelBundle.getString(RegistrationConstants.DD));
+				: applicationLabelBundle.getString(RegistrationConstants.DD) + mandatorySuffix);
 		mm.setPromptText(localLanguage ? localLabelBundle.getString(RegistrationConstants.MM)
-				: applicationLabelBundle.getString(RegistrationConstants.MM));
+				: applicationLabelBundle.getString(RegistrationConstants.MM) + mandatorySuffix);
 		mmLabel.setText(localLanguage ? localLabelBundle.getString(RegistrationConstants.MM)
-				: applicationLabelBundle.getString(RegistrationConstants.MM));
+				: applicationLabelBundle.getString(RegistrationConstants.MM) + mandatorySuffix);
 		dobMessage.setText("");
 
 		yyyy.setPromptText(localLanguage ? localLabelBundle.getString(RegistrationConstants.YYYY)
-				: applicationLabelBundle.getString(RegistrationConstants.YYYY));
+				: applicationLabelBundle.getString(RegistrationConstants.YYYY) + mandatorySuffix);
 		yyyyLabel.setText(localLanguage ? localLabelBundle.getString(RegistrationConstants.YYYY)
-				: applicationLabelBundle.getString(RegistrationConstants.YYYY));
+				: applicationLabelBundle.getString(RegistrationConstants.YYYY) + mandatorySuffix);
 
 		HBox hB = new HBox();
 		hB.setSpacing(10);
@@ -595,9 +598,9 @@ public class DemographicDetailController extends BaseController {
 		listOfTextField.put(RegistrationConstants.AGE_FIELD + languageType, ageField);
 
 		ageField.setPromptText(localLanguage ? localLabelBundle.getString(RegistrationConstants.AGE_FIELD)
-				: applicationLabelBundle.getString(RegistrationConstants.AGE_FIELD));
+				: applicationLabelBundle.getString(RegistrationConstants.AGE_FIELD) + mandatorySuffix);
 		ageFieldLabel.setText(localLanguage ? localLabelBundle.getString(RegistrationConstants.AGE_FIELD)
-				: applicationLabelBundle.getString(RegistrationConstants.AGE_FIELD));
+				: applicationLabelBundle.getString(RegistrationConstants.AGE_FIELD) + mandatorySuffix);
 
 		hB.setPrefWidth(250);
 
@@ -672,10 +675,11 @@ public class DemographicDetailController extends BaseController {
 		}
 		listOfTextField.put(field.getId(), field);
 
+		String mandatorySuffix = getMandatorySuffix(schema);
 		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
-			field.setPromptText(schema.getLabel().get(RegistrationConstants.SECONDARY));
+			field.setPromptText(schema.getLabel().get(RegistrationConstants.SECONDARY) + mandatorySuffix);
 			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.SECONDARY));
-			label.setText(schema.getLabel().get(RegistrationConstants.SECONDARY));
+			label.setText(schema.getLabel().get(RegistrationConstants.SECONDARY) + mandatorySuffix);
 			if (!schema.getType().equals(RegistrationConstants.SIMPLE_TYPE)) {
 				field.setDisable(true);
 			} else {
@@ -702,9 +706,9 @@ public class DemographicDetailController extends BaseController {
 				hB.getChildren().add(imageView);
 			}
 		} else {
-			field.setPromptText(schema.getLabel().get(RegistrationConstants.PRIMARY));
+			field.setPromptText(schema.getLabel().get(RegistrationConstants.PRIMARY) + mandatorySuffix);
 			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.PRIMARY));
-			label.setText(schema.getLabel().get(RegistrationConstants.PRIMARY));
+			label.setText(schema.getLabel().get(RegistrationConstants.PRIMARY) + mandatorySuffix);
 		}
 
 		hB.getChildren().add(validationMessage);
@@ -788,11 +792,13 @@ public class DemographicDetailController extends BaseController {
 
 		VBox vbox = new VBox();
 		vbox.setId(fieldName + RegistrationConstants.Parent);
+
+		String mandatorySuffix = getMandatorySuffix(schema);
 		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
-			label.setText(schema.getLabel().get(RegistrationConstants.SECONDARY));
+			label.setText(schema.getLabel().get(RegistrationConstants.SECONDARY) + mandatorySuffix);
 			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.SECONDARY));
 		} else {
-			label.setText(schema.getLabel().get(RegistrationConstants.PRIMARY));
+			label.setText(schema.getLabel().get(RegistrationConstants.PRIMARY) + mandatorySuffix);
 			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.PRIMARY));
 		}
 		vbox.setPrefWidth(500);
@@ -838,6 +844,27 @@ public class DemographicDetailController extends BaseController {
 		});
 		vbox.getChildren().addAll(hBox, validationMessage);
 		return vbox;
+	}
+
+	public String getMandatorySuffix(UiSchemaDTO schema) {
+
+		String mandatorySuffix = "";
+		RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
+		String categeory = registrationDTO.getRegistrationCategory();
+		switch (categeory) {
+		case RegistrationConstants.PACKET_TYPE_UPDATE:
+			if (registrationDTO.getUpdatableFields().contains(schema.getId())) {
+				mandatorySuffix = schema.isRequired() ? RegistrationConstants.ASTRIK : "";
+			}
+			break;
+
+		case RegistrationConstants.PACKET_TYPE_NEW:
+			mandatorySuffix = schema.isRequired() ? RegistrationConstants.ASTRIK : "";
+			break;
+		}
+
+		return mandatorySuffix;
+
 	}
 
 	private void populateButtons(String key) {
