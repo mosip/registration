@@ -574,6 +574,7 @@ public class DemographicDetailController extends BaseController {
 		hB2.getChildren().addAll(hB, orVbox, vboxAgeField);
 
 		VBox vB = new VBox();
+		vB.setId(fieldId);
 		vB.getChildren().addAll(hB2, dobMessage);
 
 		ageBasedOperation(vB, ageField, dobMessage, dd, mm, yyyy);
