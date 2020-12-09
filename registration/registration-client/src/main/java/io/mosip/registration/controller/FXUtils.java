@@ -196,7 +196,7 @@ public class FXUtils {
 	 *                   toggled
 	 * @param visibility the visibility property value
 	 */
-	private void toggleUIField(Pane parentPane, String uiFieldId, boolean visibility) {
+    public void toggleUIField(Pane parentPane, String uiFieldId, boolean visibility) {
 		try {
 			((Label) parentPane.lookup(RegistrationConstants.HASH.concat(uiFieldId))).setVisible(visibility);
 		} catch (RuntimeException runtimeException) {

@@ -36,7 +36,7 @@
 		<mockito.version>3.4.4</mockito.version>
 
 		<!-- Lombok -->
-		<lombok.version>1.18.8</lombok.version>
+		<lombok.version>1.18.16</lombok.version>
 
 		<!-- Orika Mapper -->
 		<orika.version>1.4.6</orika.version>

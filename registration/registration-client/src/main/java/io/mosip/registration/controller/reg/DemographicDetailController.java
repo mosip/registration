@@ -3,7 +3,6 @@ package io.mosip.registration.controller.reg;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -20,6 +19,8 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.util.common.DemographicChangeActionHandler;
+import javafx.scene.control.*;
 import org.joda.time.LocalDate;
 import org.joda.time.Period;
 import org.joda.time.PeriodType;
@@ -31,7 +32,6 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Controller;
 
 import io.mosip.commons.packet.dto.packet.SimpleDto;
-import io.mosip.kernel.core.applicanttype.exception.InvalidApplicantArgumentException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
 import io.mosip.kernel.core.idvalidator.spi.PridValidator;
@@ -57,7 +57,6 @@ import io.mosip.registration.dto.RequiredOnExpr;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.SuccessResponseDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
-import io.mosip.registration.dto.Validator;
 import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.mastersync.LocationDto;
 import io.mosip.registration.dto.response.SchemaDto;
@@ -72,11 +71,6 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -105,32 +99,14 @@ public class DemographicDetailController extends BaseController {
 	 * Instance of {@link Logger}
 	 */
 	private static final Logger LOGGER = AppConfig.getLogger(DemographicDetailController.class);
+	private static final String loggerClassName = "DemographicDetailController";
 
-	@FXML
-	public TextField preRegistrationId;
-
-	@FXML
-	public Label languageLabelLocalLanguage;
-
-	@FXML
-	private GridPane parentDetailPane;
-	@FXML
-	private ScrollPane parentScrollPane;
-	private boolean isChild;
-	private Node keyboardNode;
 	@Autowired
 	private PridValidator<String> pridValidatorImpl;
-
 	@Autowired
 	private Validations validation;
 	@Autowired
 	private MasterSyncService masterSync;
-	@FXML
-	private FlowPane parentFlowPane;
-	@FXML
-	private GridPane scrollParentPane;
-	@FXML
-	private GridPane preRegParentPane;
 	@Autowired
 	private DateValidation dateValidation;
 	@Autowired
@@ -141,56 +117,71 @@ public class DemographicDetailController extends BaseController {
 	private Transliteration<String> transliteration;
 	@Autowired
 	private PreRegistrationDataSyncService preRegistrationDataSyncService;
-
-	private FXUtils fxUtils;
-	private int minAge;
-	private int maxAge;
-
-	@FXML
-	private HBox parentDetailsHbox;
-	@FXML
-	private HBox localParentDetailsHbox;
-	@FXML
-	private AnchorPane ridOrUinToggle;
-
 	@Autowired
 	private MasterSyncService masterSyncService;
+	@Autowired
+	private IdentitySchemaService identitySchemaService;
+	@Autowired
+	private MasterSyncDao masterSyncDao;
+	@Autowired
+	private BiometricsController guardianBiometricsController;
+	@Autowired
+	private ResourceLoader resourceLoader;
+	@Autowired
+	private DemographicChangeActionHandler demographicChangeActionHandler;
+
+	@FXML
+	private FlowPane parentFlowPane;
+	@FXML
+	private GridPane scrollParentPane;
+	@FXML
+	private GridPane preRegParentPane;
 	@FXML
 	private GridPane borderToDo;
 	@FXML
 	private Label registrationNavlabel;
 	@FXML
 	private AnchorPane keyboardPane;
+	@FXML
+	public TextField preRegistrationId;
+	@FXML
+	public Label languageLabelLocalLanguage;
+	/*@FXML
+	private GridPane parentDetailPane;
+	@FXML
+	private ScrollPane parentScrollPane;
+	@FXML
+	private HBox parentDetailsHbox;
+	@FXML
+	private HBox localParentDetailsHbox;
+	@FXML
+	private AnchorPane ridOrUinToggle;*/
+
+	private boolean isChild;
+	private Node keyboardNode;
+	private FXUtils fxUtils;
+	private int minAge;
+	private int maxAge;
 	private boolean lostUIN = false;
 	private ResourceBundle applicationLabelBundle;
 	private ResourceBundle localLabelBundle;
 	private String primaryLanguage;
 	private String secondaryLanguage;
-//	private List<String> orderOfAddress;
 	boolean hasToBeTransliterated = true;
-	// public Map<String, ComboBox<String>> listOfComboBoxWithString;
+	public Map<String, CheckBox> listOfCheckboxes;
 	public Map<String, ComboBox<GenericDto>> listOfComboBoxWithObject;
 	public Map<String, List<Button>> listOfButtons;
 	public Map<String, TextField> listOfTextField;
 	private int age = 0;
-	@Autowired
-	private IdentitySchemaService identitySchemaService;
-	@Autowired
-	private MasterSyncDao masterSyncDao;
 	private VirtualKeyboard vk;
 	private HashMap<String, Integer> positionTracker;
 	int lastPosition;
 	private ObservableList<Node> parentFlow;
 	private boolean keyboardVisible = false;
-
-	@Autowired
-	private BiometricsController guardianBiometricsController;
-
 	private Map<String, TreeMap<Integer, String>> orderOfAddressMapByGroup = new HashMap<>();
-
 	private Map<String, List<String>> orderOfAddressListByGroup = new LinkedHashMap<>();
-	// TODO find template based group fields
 	Map<String, List<UiSchemaDTO>> templateGroup = null;
+
 
 	/*
 	 * (non-Javadoc)
@@ -198,15 +189,14 @@ public class DemographicDetailController extends BaseController {
 	 * @see javafx.fxml.Initializable#initialize()
 	 */
 	@FXML
-	private void initialize() throws IOException {
-
+	private void initialize() {
 		LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Entering the Demographic Details Screen");
 
-		// listOfComboBoxWithString = new HashMap<>();
 		listOfComboBoxWithObject = new HashMap<>();
 		listOfButtons = new HashMap<>();
 		listOfTextField = new HashMap<>();
+		listOfCheckboxes = new HashMap<>();
 		lastPosition = -1;
 		positionTracker = new HashMap<>();
 		fillOrderOfLocation();
@@ -257,8 +247,6 @@ public class DemographicDetailController extends BaseController {
 			parentFlow = parentFlowPane.getChildren();
 			int position = parentFlow.size() - 1;
 
-//			for (Entry<String, UiSchemaDTO> entry : validation.getValidationMap().entrySet()) {
-
 			templateGroup = getTemplateGroupMap();
 			for (Entry<String, List<UiSchemaDTO>> templateGroupEntry : templateGroup.entrySet()) {
 
@@ -272,18 +260,9 @@ public class DemographicDetailController extends BaseController {
 						int toIndex = ((index * 4) + 3) <= list.size() - 1 ? ((index * 4) + 4) : list.size();
 						List<UiSchemaDTO> subList = list.subList(index * 4, toIndex);
 						addGroupInUI(subList, position, templateGroupEntry.getKey() + position);
-
 					}
 				}
-
-//					if (isDemographicField(entry.getValue())) {
-//						GridPane mainGridPane = addContent(entry.getValue());
-//						parentFlow.add(mainGridPane);
-//						position++;
-//						positionTracker.put(mainGridPane.getId(), position);
-//					}
 			}
-//			}
 
 			populateDropDowns();
 			for (Entry<String, List<String>> orderOfAdd : orderOfAddressListByGroup.entrySet()) {
@@ -312,6 +291,9 @@ public class DemographicDetailController extends BaseController {
 					}
 				}
 			}
+
+			refreshDemographicGroups();
+
 			auditFactory.audit(AuditEvent.REG_DEMO_CAPTURE, Components.REGISTRATION_CONTROLLER,
 					SessionContext.userContext().getUserId(), AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 		} catch (RuntimeException runtimeException) {
@@ -365,13 +347,6 @@ public class DemographicDetailController extends BaseController {
 
 						orderOfAddressMapByGroup.put(uiSchemaDTO.getGroup(), hirearchyMap);
 					}
-//					orderOfAddressMapByGroup.(location.getHierarchyLevel(), matchedfield.get(0).getId());
-					/*
-					 * LOGGER.info("REGISTRATION - CONTROLLER", APPLICATION_NAME,
-					 * RegistrationConstants.APPLICATION_ID, "location.getHierarchyLevel() >>> " +
-					 * location.getHierarchyLevel() + " matchedfield.get(0).getId() >>> " +
-					 * matchedfield.get(0).getId());
-					 */
 				}
 			}
 
@@ -383,7 +358,6 @@ public class DemographicDetailController extends BaseController {
 					entry.getValue().values().stream().collect(Collectors.toList()));
 
 		}
-//		orderOfAddress = treeMap.values().stream().collect(Collectors.toList());
 	}
 
 	private void disablePreRegFetch() {
@@ -391,21 +365,6 @@ public class DemographicDetailController extends BaseController {
 		preRegParentPane.setManaged(false);
 		preRegParentPane.setDisable(true);
 	}
-
-//	public GridPane addContent(UiSchemaDTO schemaDTO) {
-//		GridPane gridPane = prepareMainGridPane();
-//		GridPane primary = subGridPane(schemaDTO, "");
-//		gridPane.addColumn(0, primary);
-//		if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
-//			GridPane secondary = subGridPane(schemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
-//
-//			gridPane.addColumn(2, secondary);
-//		}
-//
-//		gridPane.setId(schemaDTO.getId() + "ParentGridPane");
-//
-//		return gridPane;
-//	}
 
 	private boolean isAppLangAndLocalLangSame() {
 
@@ -477,11 +436,8 @@ public class DemographicDetailController extends BaseController {
 
 		ObservableList<RowConstraints> rowConstraints = gridPane.getRowConstraints();
 		RowConstraints rowConstraint1 = new RowConstraints();
-//		columnConstraint1.setPercentWidth(10);
 		RowConstraints rowConstraint2 = new RowConstraints();
-//		columnConstraint1.setPercentWidth(100);
 		RowConstraints rowConstraint3 = new RowConstraints();
-//		columnConstraint1.setPercentWidth(10);
 		rowConstraints.addAll(rowConstraint1, rowConstraint2, rowConstraint3);
 
 		VBox content = null;
@@ -509,6 +465,9 @@ public class DemographicDetailController extends BaseController {
 			break;
 		case RegistrationConstants.TEXTBOX:
 			content = addContentWithTextField(schemaDTO, schemaDTO.getId(), languageType);
+			break;
+		case RegistrationConstants.CHECKBOX:
+			content = addContentWithCheckbox(schemaDTO.getId(), schemaDTO, languageType);
 			break;
 		}
 
@@ -559,7 +518,7 @@ public class DemographicDetailController extends BaseController {
 
 		Label dobMessage = new Label();
 		dobMessage.setId(fieldId + "__" + RegistrationConstants.DOB_MESSAGE + languageType);
-		dobMessage.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
+		dobMessage.getStyleClass().add(RegistrationConstants.DemoGraphicFieldMessageLabel);
 
 		boolean localLanguage = languageType.equals(RegistrationConstants.LOCAL_LANGUAGE);
 
@@ -589,8 +548,7 @@ public class DemographicDetailController extends BaseController {
 		ageField.setId(fieldId + "__" + RegistrationConstants.AGE_FIELD + languageType);
 		ageField.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
 		Label ageFieldLabel = new Label();
-		ageFieldLabel
-				.setId(fieldId + "__" + RegistrationConstants.AGE_FIELD + languageType + RegistrationConstants.LABEL);
+		ageFieldLabel.setId(fieldId + "__" + RegistrationConstants.AGE_FIELD + languageType + RegistrationConstants.LABEL);
 		ageFieldLabel.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
 		ageFieldLabel.setVisible(false);
 		vboxAgeField.getChildren().addAll(ageFieldLabel, ageField);
@@ -633,10 +591,7 @@ public class DemographicDetailController extends BaseController {
 		return vB;
 	}
 
-	@Autowired
-	ResourceLoader resourceLoader;
 
-	private String loggerClassName = "DemographicDetailController";
 
 	public VBox addContentWithTextField(UiSchemaDTO schema, String fieldName, String languageType) {
 		TextField field = new TextField();
@@ -663,16 +618,7 @@ public class DemographicDetailController extends BaseController {
 		hB.setSpacing(20);
 
 		vbox.getChildren().add(validationMessage);
-//		if (primaryLanguage.equals(secondaryLanguage)) {
-//			vbox.setDisable(true);
-//		}
-
-		if (listOfTextField.get(fieldName) != null) {
-//			fxUtils.populateLocalFieldWithFocus(parentFlowPane, listOfTextField.get(fieldName), field,
-//					hasToBeTransliterated, validation);
-
-			setTextFieldListener(listOfTextField.get(fieldName));
-		}
+		setFieldChangeListener(field);
 		listOfTextField.put(field.getId(), field);
 
 		String mandatorySuffix = getMandatorySuffix(schema);
@@ -766,23 +712,59 @@ public class DemographicDetailController extends BaseController {
 		}
 	}
 
+	public <T> VBox addContentWithCheckbox(String fieldName, UiSchemaDTO schema, String languageType) {
+		CheckBox field = new CheckBox();
+		Label label = new Label();
+		Label validationMessage = new Label();
+		VBox vbox = new VBox();
+		vbox.setId(fieldName + RegistrationConstants.Parent + RegistrationConstants.Parent);
+		field.setId(fieldName + languageType);
+
+		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
+			label.setText(schema.getLabel().get(RegistrationConstants.SECONDARY));
+			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.SECONDARY));
+		} else {
+			label.setText(schema.getLabel().get(RegistrationConstants.PRIMARY));
+			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.PRIMARY));
+		}
+		label.setId(fieldName + languageType + RegistrationConstants.LABEL);
+		label.setVisible(true);
+		label.getStyleClass().add("buttonsLabel");
+		validationMessage.setId(fieldName + languageType + RegistrationConstants.MESSAGE);
+		validationMessage.getStyleClass().add(RegistrationConstants.DemoGraphicFieldMessageLabel);
+		label.setPrefWidth(vbox.getPrefWidth());
+		validationMessage.setPrefWidth(vbox.getPrefWidth());
+		validationMessage.setVisible(false);
+
+		if (applicationContext.getApplicationLanguage().equals(applicationContext.getLocalLanguage())
+				&& languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
+			vbox.setDisable(true);
+		}
+		HBox hBox = new HBox();
+		hBox.setSpacing(10);
+		hBox.setId(fieldName + RegistrationConstants.Parent);
+		hBox.getChildren().add(field);
+		hBox.getChildren().add(label);
+		listOfCheckboxes.put(fieldName + languageType, field);
+		vbox.getChildren().addAll(hBox, validationMessage);
+		setFieldChangeListener(field);
+		return vbox;
+	}
+
 	public <T> VBox addContentWithComboBoxObject(String fieldName, UiSchemaDTO schema, String languageType) {
 
 		ComboBox<GenericDto> field = new ComboBox<GenericDto>();
 		Label label = new Label();
 		Label validationMessage = new Label();
 		StringConverter<T> uiRenderForComboBox = fxUtils.getStringConverterForComboBox();
-
 		VBox vbox = new VBox();
 		field.setId(fieldName + languageType);
 		field.setPrefWidth(vbox.getPrefWidth());
-//		if (listOfComboBoxWithObject.get(fieldName) != null) {
-//			fxUtils.populateLocalComboBox(parentFlowPane, listOfComboBoxWithObject.get(fieldName), field);
-//		}
 		helperMethodForComboBox(field, fieldName, schema, label, validationMessage, vbox, languageType);
 		field.setConverter((StringConverter<GenericDto>) uiRenderForComboBox);
 		listOfComboBoxWithObject.put(fieldName + languageType, field);
 		fxUtils.populateLocalComboBox(parentFlowPane, listOfComboBoxWithObject.get(fieldName), field);
+		setFieldChangeListener(field);
 		return vbox;
 	}
 
@@ -824,22 +806,15 @@ public class DemographicDetailController extends BaseController {
 			hBox.setPadding(new Insets(10, 10, 10, 10));
 			localButton.setPrefWidth(vbox.getPrefWidth());
 			localButton.getStyleClass().addAll("residence", "button");
-//			if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
-//				button.setDisable(true);
-//			} else {
 			if (listOfButtons.get(fieldName) != null) {
 				listOfButtons.get(fieldName).forEach(applicationButton -> {
-//					if ((btn.getId().concat(RegistrationConstants.LOCAL_LANGUAGE)).equals(button.getId())) {
-
 					if ((!isLocalLanguageAvailable() || isAppLangAndLocalLangSame())
 							|| (applicationButton.getId().concat(RegistrationConstants.LOCAL_LANGUAGE))
 									.equals(localButton.getId())) {
 						fxUtils.populateLocalButton(parentFlowPane, applicationButton, localButton);
 					}
-//					}
 				});
 			}
-//			}
 			hBox.getChildren().add(localButton);
 		});
 		vbox.getChildren().addAll(hBox, validationMessage);
@@ -1054,7 +1029,7 @@ public class DemographicDetailController extends BaseController {
 					}
 
 					getRegistrationDTOFromSession().setDateField(null, dd.getText(), mm.getText(), yyyy.getText());
-					refreshDemographicGroups(getRegistrationDTOFromSession().getMVELDataContext());
+					refreshDemographicGroups();
 					fxUtils.validateOnFocusOut(dobParentPane, ageField, validation, false);
 				} else {
 					ageField.getStyleClass().remove("demoGraphicTextFieldOnType");
@@ -1067,19 +1042,13 @@ public class DemographicDetailController extends BaseController {
 					dobMessage.setVisible(true);
 
 					generateAlert(dobParentPane, RegistrationConstants.DOB, dobMessage.getText());
-					// parentFieldValidation();
 				}
 			} else {
-				// updatePageFlow(RegistrationConstants.GUARDIAN_BIOMETRIC, false);
-				// updatePageFlow(RegistrationConstants.FINGERPRINT_CAPTURE, true);
-				// updatePageFlow(RegistrationConstants.IRIS_CAPTURE, true);
-
 				dd.clear();
 				mm.clear();
 				yyyy.clear();
 			}
 		} else {
-
 			ageField.setText(RegistrationConstants.EMPTY);
 		}
 	}
@@ -1127,84 +1096,85 @@ public class DemographicDetailController extends BaseController {
 				if (schemaField.getControlType() == null)
 					continue;
 
-				if (registrationDTO.getDefaultUpdatableFields() != null
-						&& registrationDTO.getDefaultUpdatableFields().contains(schemaField.getId())) {
-
-					addTextFieldToSession(schemaField.getId(), registrationDTO, true);
-				}
 				if (registrationDTO.getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE)
 						&& !registrationDTO.getUpdatableFields().contains(schemaField.getId()))
 					continue;
 
-				switch (schemaField.getType()) {
-				case RegistrationConstants.SIMPLE_TYPE:
-					if (schemaField.getControlType().equals(RegistrationConstants.DROPDOWN)) {
-						ComboBox<GenericDto> platformField = listOfComboBoxWithObject.get(schemaField.getId());
-						ComboBox<GenericDto> localField = listOfComboBoxWithObject
-								.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE);
-						registrationDTO.addDemographicField(schemaField.getId(),
-								applicationContext.getApplicationLanguage(),
-								platformField == null ? null
-										: platformField.getValue() != null ? platformField.getValue().getName() : null,
-								applicationContext.getLocalLanguage(), localField == null ? null
-										: localField.getValue() != null ? localField.getValue().getName() : null);
-						if (schemaField.getId().equalsIgnoreCase("gender")
-								|| schemaField.getId().equalsIgnoreCase("residencestatus")) {
-							List<Button> platformFieldButtons = listOfButtons.get(schemaField.getId());
-							List<Button> localFieldButtons = listOfButtons
-									.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE);
-							AtomicReference<Boolean> buttonSelected = new AtomicReference<>(false);
-
-							if (platformFieldButtons != null) {
-								platformFieldButtons.forEach(button -> {
-									if (button.getStyleClass().contains("selectedResidence")) {
-										buttonSelected.set(true);
-										registrationDTO.addDemographicField(schemaField.getId(),
-												applicationContext.getApplicationLanguage(), button.getText(),
-												applicationContext.getLocalLanguage(),
-												getLocalFieldButtonText(button, localFieldButtons));
-									}
-								});
-								if (!buttonSelected.get()) {
-									registrationDTO.addDemographicField(schemaField.getId(),
-											applicationContext.getApplicationLanguage(), null,
-											applicationContext.getLocalLanguage(), null);
-								}
-							}
-						}
-					} else {
-
-						addTextFieldToSession(schemaField.getId(), registrationDTO, false);
-
-					}
-					break;
-				case RegistrationConstants.NUMBER:
-				case RegistrationConstants.STRING:
-					if (schemaField.getControlType().equalsIgnoreCase(RegistrationConstants.AGE_DATE))
-						registrationDTO.setDateField(schemaField.getId(),
-								listOfTextField.get(schemaField.getId() + "__" + RegistrationConstants.DD).getText(),
-								listOfTextField.get(schemaField.getId() + "__" + RegistrationConstants.MM).getText(),
-								listOfTextField.get(schemaField.getId() + "__" + RegistrationConstants.YYYY).getText());
-					else {
-						if (schemaField.getControlType().equals(RegistrationConstants.DROPDOWN)) {
-							ComboBox<GenericDto> platformField = listOfComboBoxWithObject.get(schemaField.getId());
-							registrationDTO.addDemographicField(schemaField.getId(), platformField == null ? null
-									: platformField.getValue() != null ? platformField.getValue().getName() : null);
-						} else {
-							TextField platformField = listOfTextField.get(schemaField.getId());
-							registrationDTO.addDemographicField(schemaField.getId(),
-									platformField != null ? platformField.getText() : null);
-						}
-					}
-					break;
-
-				default:
-					break;
-				}
+				addFieldValueToSession(schemaField, registrationDTO);
 			}
 		} catch (Exception exception) {
 			LOGGER.error("addDemoGraphicDetailsToSession", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+		}
+	}
+
+	private void addFieldValueToSession(UiSchemaDTO schemaField, RegistrationDTO registrationDTO) {
+		switch (schemaField.getType()) {
+			case RegistrationConstants.SIMPLE_TYPE:
+				if (schemaField.getControlType().equals(RegistrationConstants.DROPDOWN)) {
+					ComboBox<GenericDto> platformField = listOfComboBoxWithObject.get(schemaField.getId());
+					ComboBox<GenericDto> localField = listOfComboBoxWithObject
+							.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE);
+					registrationDTO.addDemographicField(schemaField.getId(),
+							applicationContext.getApplicationLanguage(),
+							platformField == null ? null
+									: platformField.getValue() != null ? platformField.getValue().getName() : null,
+							applicationContext.getLocalLanguage(), localField == null ? null
+									: localField.getValue() != null ? localField.getValue().getName() : null);
+					if (schemaField.getId().equalsIgnoreCase("gender")
+							|| schemaField.getId().equalsIgnoreCase("residencestatus")) {
+						List<Button> platformFieldButtons = listOfButtons.get(schemaField.getId());
+						List<Button> localFieldButtons = listOfButtons
+								.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE);
+						AtomicReference<Boolean> buttonSelected = new AtomicReference<>(false);
+
+						if (platformFieldButtons != null) {
+							platformFieldButtons.forEach(button -> {
+								if (button.getStyleClass().contains("selectedResidence")) {
+									buttonSelected.set(true);
+									registrationDTO.addDemographicField(schemaField.getId(),
+											applicationContext.getApplicationLanguage(), button.getText(),
+											applicationContext.getLocalLanguage(),
+											getLocalFieldButtonText(button, localFieldButtons));
+								}
+							});
+							if (!buttonSelected.get()) {
+								registrationDTO.addDemographicField(schemaField.getId(),
+										applicationContext.getApplicationLanguage(), null,
+										applicationContext.getLocalLanguage(), null);
+							}
+						}
+					}
+				} else {
+					addTextFieldToSession(schemaField.getId(), registrationDTO, false);
+				}
+				break;
+			case RegistrationConstants.NUMBER:
+			case RegistrationConstants.STRING:
+				if (schemaField.getControlType().equalsIgnoreCase(RegistrationConstants.AGE_DATE))
+					registrationDTO.setDateField(schemaField.getId(),
+							listOfTextField.get(schemaField.getId() + "__" + RegistrationConstants.DD).getText(),
+							listOfTextField.get(schemaField.getId() + "__" + RegistrationConstants.MM).getText(),
+							listOfTextField.get(schemaField.getId() + "__" + RegistrationConstants.YYYY).getText());
+				else if(schemaField.getControlType().equalsIgnoreCase(RegistrationConstants.CHECKBOX)) {
+					CheckBox checkBox = listOfCheckboxes.get(schemaField.getId());
+					registrationDTO.addDemographicField(schemaField.getId(), checkBox == null ? "N"
+							: checkBox.isSelected() ? "Y" : "N");
+				}
+				else {
+					if (schemaField.getControlType().equals(RegistrationConstants.DROPDOWN)) {
+						ComboBox<GenericDto> platformField = listOfComboBoxWithObject.get(schemaField.getId());
+						registrationDTO.addDemographicField(schemaField.getId(), platformField == null ? null
+								: platformField.getValue() != null ? platformField.getValue().getName() : null);
+					} else {
+						TextField platformField = listOfTextField.get(schemaField.getId());
+						registrationDTO.addDemographicField(schemaField.getId(),
+								platformField != null ? platformField.getText() : null);
+					}
+				}
+				break;
+			default:
+				break;
 		}
 	}
 
@@ -1275,11 +1245,6 @@ public class DemographicDetailController extends BaseController {
 					SessionContext.userContext().getUserId(), RegistrationConstants.ONBOARD_DEVICES_REF_ID_TYPE);
 
 			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
-			/*
-			 * if (preRegistrationId.getText() == null &&
-			 * preRegistrationId.getText().isEmpty()) {
-			 * registrationDTO.setPreRegistrationId(""); }
-			 */
 
 			addDemoGraphicDetailsToSession();
 
@@ -1302,21 +1267,12 @@ public class DemographicDetailController extends BaseController {
 		if (selectionList != null) {
 			disablePreRegFetch();
 			registrationNavlabel.setText(applicationLabelBundle.getString("uinUpdateNavLbl"));
-
-//			for (Node pane : parentFlowPane.getChildren()) {
-//
-//				pane.setDisable(true);
-//
-//			}
 		}
 		for (Entry<String, UiSchemaDTO> selectionField : validation.getValidationMap().entrySet()) {
 
 			updateDemographicScreen(selectionField.getKey(), selectionList, false);
 			updateDemographicScreen(selectionField.getKey() + RegistrationConstants.LOCAL_LANGUAGE, selectionList,
 					false);
-
-//			updateDemographicScreen(selectionField.getKey(),
-//					getRegistrationDTOFromSession().getDefaultUpdatableFields());
 
 			if (getRegistrationDTOFromSession().getDefaultUpdatableFields().contains(selectionField.getKey())) {
 				updateDemographicScreen(selectionField.getKey(), selectionList, true);
@@ -1390,21 +1346,19 @@ public class DemographicDetailController extends BaseController {
 						if (platformField != null) {
 							platformField.setValue(new GenericDto((String) value, (String) value, "eng"));
 						}
-					} else {
+					} else if(RegistrationConstants.CHECKBOX.equalsIgnoreCase(schemaField.getControlType())) {
+						CheckBox checkBox = listOfCheckboxes.get(schemaField.getId());
+						if(checkBox != null) {
+							checkBox.setSelected(((String) value).equalsIgnoreCase("Y") ? true : false);
+						}
+					}
+					else {
 						TextField textField = listOfTextField.get(schemaField.getId());
 						if (textField != null)
 							textField.setText((String) value);
 					}
 				}
 			}
-
-			/*
-			 * if (SessionContext.map().get(RegistrationConstants.IS_Child) != null) {
-			 * boolean isChild = (boolean)
-			 * SessionContext.map().get(RegistrationConstants.IS_Child);
-			 * parentDetailPane.setDisable(!isChild); parentDetailPane.setVisible(isChild);
-			 * }
-			 */
 
 			preRegistrationId.setText(registrationDTO.getPreRegistrationId());
 
@@ -1539,33 +1493,21 @@ public class DemographicDetailController extends BaseController {
 	 * Method to go back to next page
 	 */
 	@FXML
-	private void next() throws InvalidApplicantArgumentException, ParseException {
-
+	private void next() {
 		if (preRegistrationId.getText().isEmpty()) {
 			preRegistrationId.clear();
 		}
-
-		// Its required to save before validation as on spot check for values during
+		// Its required to save before validation as, on spot check for values during
 		// MVEL validation
 		saveDetail();
 
 		if (registrationController.validateDemographicPane(parentFlowPane)) {
-			// saveDetail();
-
 			guardianBiometricsController.populateBiometricPage(false, false);
-			/*
-			 * SessionContext.map().put("demographicDetail", false);
-			 * SessionContext.map().put("documentScan", true);
-			 */
-
 			documentScanController.populateDocumentCategories();
-
 			auditFactory.audit(AuditEvent.REG_DEMO_NEXT, Components.REG_DEMO_DETAILS, SessionContext.userId(),
 					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
-
 			registrationController.showCurrentPage(RegistrationConstants.DEMOGRAPHIC_DETAIL,
 					getPageByAction(RegistrationConstants.DEMOGRAPHIC_DETAIL, RegistrationConstants.NEXT));
-
 		}
 	}
 
@@ -1671,14 +1613,7 @@ public class DemographicDetailController extends BaseController {
 
 				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 						"Adding ui schema of application language");
-
-//				boolean isLeftSpaceRequired = true;
-//				if (uiSchemaDTOs.size() > 1) {
-//					isLeftSpaceRequired = false;
-//				}
 				GridPane applicationLanguageGridPane = subGridPane(uiSchemaDTOs.get(index), "", uiSchemaDTOs.size());
-
-//				applicationLanguageGridPane.setId(uiSchemaDTOs.get(index).getId());
 
 				GridPane rowGridPane = horizontalRowGridPane == null ? prepareRowGridPane(1) : horizontalRowGridPane;
 
@@ -1693,10 +1628,6 @@ public class DemographicDetailController extends BaseController {
 							uiSchemaDTOs.size() > 1 ? uiSchemaDTOs.size() + 4 : uiSchemaDTOs.size());
 
 					if (localLanguageGridPane != null) {
-
-//						localLanguageGridPane
-//								.setId(uiSchemaDTOs.get(index).getId() + RegistrationConstants.LOCAL_LANGUAGE);
-
 						rowGridPane.addColumn(horizontalRowGridPane == null ? 2 : uiSchemaDTOs.size() + index,
 								localLanguageGridPane);
 					}
@@ -1732,17 +1663,12 @@ public class DemographicDetailController extends BaseController {
 
 			// Left Hand Side
 			setColumnConstraints(columnConstraints, 50, noOfItems);
-//		LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
-//				RegistrationConstants.APPLICATION_ID, "Preparing grid pane space in middle");
-//		// Middle Space
-//			setColumnConstraints(columnConstraints, 10, 1);
+
 			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 					"Preparing grid pane for items : " + noOfItems + " right hand side");
 			// Right Hand Side
 			setColumnConstraints(columnConstraints, 50, noOfItems);
 
-//			// Right most gap space
-//			setColumnConstraints(columnConstraints, 10, 1);
 		} else {
 			setColumnConstraints(columnConstraints, 100, noOfItems);
 		}
@@ -1751,210 +1677,151 @@ public class DemographicDetailController extends BaseController {
 
 	private void setColumnConstraints(ObservableList<ColumnConstraints> columnConstraints, int currentPaneWidth,
 			int noOfItems) {
-
-		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"Setting column constraints");
-
 		if (columnConstraints != null) {
 			for (int index = 1; index <= noOfItems; ++index) {
-
 				ColumnConstraints columnConstraint = new ColumnConstraints();
 				columnConstraint.setPercentWidth(currentPaneWidth / noOfItems);
 				columnConstraints.add(columnConstraint);
-
 			}
 		}
 	}
 
-	private void setTextFieldListener(TextField textField) {
 
-		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"Setting Text Field Listener");
+	private void setFieldChangeListener(Node node) {
+		node.focusedProperty().addListener((observable, oldValue, newValue) -> {
+			if (!node.isFocused()) {
+				//auto fills secondary language combo-boxes
+				fxUtils.toggleUIField(parentFlowPane, node.getId(), true);
+				// Validate Field
+				if (validateFieldValue(node)) {
+					// Group level visibility listeners
+					refreshDemographicGroups();
 
-		textField.focusedProperty().addListener((observable, oldValue, newValue) -> {
-
-			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-					"text field listener started : " + textField.getId());
-
-			if (!textField.isFocused()) {
-
-				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-						"text field not in focused now");
-
-				TextField localField = (TextField) getFxElement(
-						textField.getId() + RegistrationConstants.LOCAL_LANGUAGE);
-
-				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-						"Show text field label");
-
-				fxUtils.showLabel(parentFlowPane, textField);
-				if (localField != null) {
-
-					LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-							"Setting secondary langauge text");
-
-					// Set Local lang
-					setSecondaryLangText(textField, localField, hasToBeTransliterated);
-
-					LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-							"showing secondary label");
-
-					fxUtils.showLabel(parentFlowPane, localField);
-
-				}
-
-				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-						"validating text field primary");
-
-				boolean isPrimaryFieldValid = isInputTextValid(textField, textField.getId());
-
-				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-						"validating text field secondary");
-
-				boolean isLocalFieldValid = isInputTextValid(localField, localField.getId());
-
-				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-						"Text field primary field valid : " + isPrimaryFieldValid + " and secondary field valid : "
-								+ isLocalFieldValid);
-				// Validate Text Field
-				if (isPrimaryFieldValid && isLocalFieldValid) {
-
-					fxUtils.setTextValidLabel(parentFlowPane, textField);
-
-					if (localField != null) {
-						fxUtils.setTextValidLabel(parentFlowPane, localField);
-
+					//handling other handlers
+					UiSchemaDTO uiSchemaDTO = validation.getValidationMap().get(node.getId().replaceAll(RegistrationConstants.ON_TYPE,
+							RegistrationConstants.EMPTY).replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY));
+					if(uiSchemaDTO != null) {
+						LOGGER.info(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+								"Invoking external action handler for .... " + uiSchemaDTO.getId());
+						demographicChangeActionHandler.actionHandle(parentFlowPane, node.getId(), uiSchemaDTO.getChangeAction());
 					}
-//					fxUtils.hideErrorMessageLabel(parentFlowPane, textField);
-
-					LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-							"add text field value to session");
-
-					RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
-
-					if (registrationDTO != null) {
-//				 Save information to session
-						if (registrationDTO.getDefaultUpdatableFields() != null
-								&& registrationDTO.getDefaultUpdatableFields().contains(textField.getId())) {
-							addTextFieldToSession(textField.getId(), registrationDTO, true);
-						}
-						if (!registrationDTO.getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE)
-								|| (registrationDTO.getRegistrationCategory()
-										.equals(RegistrationConstants.PACKET_TYPE_UPDATE)
-										&& registrationDTO.getUpdatableFields().contains(textField.getId()))) {
-							addTextFieldToSession(textField.getId(), registrationDTO, false);
-						}
-
-						LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-								"Refresh all groups");
-
-						// Group level visibility listeners
-						refreshDemographicGroups(registrationDTO.getMVELDataContext());
-					}
-				} else {
-
-					fxUtils.showErrorLabel(textField, parentFlowPane);
-
-					if (localField != null) {
-						fxUtils.showErrorLabel(localField, parentFlowPane);
-
-					}
+					// Group level visibility listeners
+					refreshDemographicGroups();
 				}
 			}
 		});
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void refreshDemographicGroups(Map<String, Object> mvelDataMap) {
+	private boolean validateFieldValue(Node field) {
+		if(field == null) {
+			LOGGER.warn(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"Field not found in demographic screen");
+			return false;
+		}
 
-		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"Refreshing demographic groups");
-
-		Map<String, Map<String, Object>> context = new HashMap();
-		context.put("identity", mvelDataMap);
-		for (Entry<String, List<UiSchemaDTO>> group : templateGroup.entrySet()) {
+		if(field instanceof TextField) {
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"validating text field primary");
+			if (!isInputTextValid((TextField) field, field.getId())) {
+				fxUtils.showErrorLabel((TextField) field, parentFlowPane);
+				return false;
+			}
+			else
+				fxUtils.setTextValidLabel(parentFlowPane, (TextField) field);
 
 			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-					"Fetching visible validator for group ");
+					"validating text field secondary");
 
+			TextField localField = (TextField) getFxElement(field.getId() + RegistrationConstants.LOCAL_LANGUAGE);
+			if (localField != null) {
+				//on valid value of primary set secondary language value
+				setSecondaryLangText((TextField) field, localField, hasToBeTransliterated);
+
+				if (!isInputTextValid(localField, localField.getId())) {
+					fxUtils.showErrorLabel(localField, parentFlowPane);
+					return false;
+				}
+				else
+					fxUtils.setTextValidLabel(parentFlowPane, (TextField) localField);
+			}
+		}
+		return true;
+	}
+
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private void refreshDemographicGroups() {
+		addDemoGraphicDetailsToSession();
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Refreshing demographic groups");
+		Map<String, Map<String, Object>> context = new HashMap();
+		context.put("identity", getRegistrationDTOFromSession() == null ?  new HashMap<>():
+				getRegistrationDTOFromSession().getMVELDataContext());
+		for (Entry<String, List<UiSchemaDTO>> group : templateGroup.entrySet()) {
 			for (UiSchemaDTO uiSchemaDTO : group.getValue()) {
-
-				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-						"Refreshing field : " + uiSchemaDTO.getId());
-
-				RequiredOnExpr requiredOnExpr = uiSchemaDTO.getVisible();
-
-				if (uiSchemaDTO.getVisible() != null && requiredOnExpr.getEngine() != null
-						&& !requiredOnExpr.getEngine().isEmpty()) {
-					if (requiredOnExpr.getEngine().equalsIgnoreCase(RegistrationConstants.MVEL_TYPE)) {
-
+				RequiredOnExpr visibilityExpr = uiSchemaDTO.getVisible();
+				if (uiSchemaDTO.getVisible() != null && visibilityExpr.getEngine() != null
+						&& !visibilityExpr.getEngine().isEmpty()) {
+					if (visibilityExpr.getEngine().equalsIgnoreCase(RegistrationConstants.MVEL_TYPE)) {
 						VariableResolverFactory resolverFactory = new MapVariableResolverFactory(context);
-						boolean required = MVEL.evalToBoolean(requiredOnExpr.getExpr(), resolverFactory);
-
-						updateFields(Arrays.asList(uiSchemaDTO), required);
-
+						Object required = MVEL.eval(visibilityExpr.getExpr(), resolverFactory);
+						updateFields(Arrays.asList(uiSchemaDTO), required != null ? (boolean) required : false);
 					}
 				}
 			}
-
-			// TODO Required On
-
 		}
 	}
 
 	private void updateFields(List<UiSchemaDTO> fields, boolean isVisible) {
-
 		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID, "Updating fields");
-
 		for (UiSchemaDTO field : fields) {
-
-			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-					"Updating field : " + field.getId());
-
-			Node node = getFxElement(field.getId());
-
 			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 					"Updating visibility for field : " + field.getId() + " as visibility : " + isVisible);
-
+			Node node = getFxElement(field.getId());
 			if (node != null) {
+				if(!isVisible) { clearFieldValue(node); }
+				node.setVisible(isVisible);
 				node.getParent().getParent().getParent().setVisible(isVisible);
 				node.getParent().getParent().getParent().setManaged(isVisible);
 			}
 
-			// TODO same for local lang tooo
 			Node localLangNode = getFxElement(field.getId() + RegistrationConstants.LOCAL_LANGUAGE);
-
-			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-					"Updating visibility for field : " + field.getId() + RegistrationConstants.LOCAL_LANGUAGE
-							+ " as visibility : " + isVisible);
-
 			if (localLangNode != null) {
+				if(!isVisible) { clearFieldValue(localLangNode); }
+				localLangNode.setVisible(isVisible);
 				localLangNode.getParent().getParent().getParent().setVisible(isVisible);
 				localLangNode.getParent().getParent().getParent().setManaged(isVisible);
 			}
 		}
 	}
 
-	private Node getFxElement(String fieldId) {
 
-		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"Fetch fx element : " + fieldId);
+	private void clearFieldValue(Node node) {
+		node.setDisable(false);
+		getRegistrationDTOFromSession().removeDemographicField(node.getId());
+
+		if(node instanceof TextField)
+			((TextField) node).setText("");
+
+		else if (node instanceof ComboBox)
+			((ComboBox<?>) node).getSelectionModel().clearSelection();
+
+		else if(node instanceof Button)
+			((Button) node).setDefaultButton(false);
+
+		else if(node instanceof CheckBox)
+			((CheckBox) node).setSelected(false);
+	}
+
+	private Node getFxElement(String fieldId) {
 		return parentFlowPane.lookup(RegistrationConstants.HASH + fieldId);
 	}
 
 	private boolean isInputTextValid(TextField textField, String id) {
-
-		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"Validating text field " + textField.getId());
-
 		return validation.validateTextField(parentFlowPane, textField, id, true);
-
-//		return validation.validateTextField(parentFlowPane, primaryLangTextField,
-//				primaryLangTextField.getId() + "_ontype", true);
 	}
 
 	private void setSecondaryLangText(TextField primaryField, TextField secondaryField, boolean haveToTransliterate) {
-
 		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 				"Setting secondary language for field : " + primaryField.getId());
 		if (secondaryField != null) {
@@ -1964,15 +1831,11 @@ public class DemographicDetailController extends BaseController {
 							ApplicationContext.localLanguage(), primaryField.getText()));
 				} catch (RuntimeException runtimeException) {
 					LOGGER.error(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-							runtimeException.getMessage());
-
-					LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 							"Exception occured while transliterating secondary language for field : "
-									+ primaryField.getId());
+									+ primaryField.getId()  + " due to >>>> " + runtimeException.getMessage());
 					secondaryField.setText(primaryField.getText());
 				}
 			} else {
-
 				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 						"Not transliteration into local language" + primaryField.getId());
 				secondaryField.setText(primaryField.getText());

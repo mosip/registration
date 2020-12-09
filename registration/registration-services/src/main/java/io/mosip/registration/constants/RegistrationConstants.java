@@ -277,6 +277,7 @@ public class RegistrationConstants {
 	public static final String STRING = "string";
 	public static final String AGE_DATE = "ageDate";
 	public static final String DROPDOWN = "dropdown";
+	public static final String CHECKBOX = "checkbox";
 	public static final String TEXTBOX = "textbox";
 	public static final String RESIDENCE_STATUS = "residenceStatus";
 	public static final String PRIMARY = "primary";
