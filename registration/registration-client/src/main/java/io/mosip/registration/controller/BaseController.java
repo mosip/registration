@@ -25,6 +25,7 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.mosip.commons.packet.constants.PacketManagerConstants;
@@ -186,6 +187,9 @@ public class BaseController {
 	@Autowired
 	protected PageFlow pageFlow;
 
+	@Value("${mosip.registration.css_file_path:}")
+	private String cssName;
+	
 	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
 
 	public Text getScanningMsg() {
@@ -325,7 +329,7 @@ public class BaseController {
 		scene.setRoot(borderPane);
 		fXComponents.getStage().setScene(scene);
 		scene.getStylesheets().add(
-				ClassLoader.getSystemClassLoader().getResource(RegistrationConstants.CSS_FILE_PATH).toExternalForm());
+				ClassLoader.getSystemClassLoader().getResource(getCssName()).toExternalForm());
 		return scene;
 	}
 
@@ -371,7 +375,7 @@ public class BaseController {
 			Pane authRoot = BaseController.load(getClass().getResource(RegistrationConstants.ALERT_GENERATION));
 			Scene scene = new Scene(authRoot);
 			scene.getStylesheets().add(ClassLoader.getSystemClassLoader()
-					.getResource(RegistrationConstants.CSS_FILE_PATH).toExternalForm());
+					.getResource(getCssName()).toExternalForm());
 			alertStage.initStyle(StageStyle.UNDECORATED);
 			alertStage.setScene(scene);
 			alertStage.initModality(Modality.WINDOW_MODAL);
@@ -411,7 +415,7 @@ public class BaseController {
 			Pane authRoot = BaseController.load(getClass().getResource(RegistrationConstants.ALERT_GENERATION));
 			Scene scene = new Scene(authRoot);
 			scene.getStylesheets().add(ClassLoader.getSystemClassLoader()
-					.getResource(RegistrationConstants.CSS_FILE_PATH).toExternalForm());
+					.getResource(getCssName()).toExternalForm());
 			alertStage.initStyle(StageStyle.UNDECORATED);
 			alertStage.setScene(scene);
 			alertStage.initModality(Modality.WINDOW_MODAL);
@@ -1278,7 +1282,7 @@ public class BaseController {
 		alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
 		alert.getDialogPane().setMinWidth(500);
 		alert.getDialogPane().getStylesheets().add(
-				ClassLoader.getSystemClassLoader().getResource(RegistrationConstants.CSS_FILE_PATH).toExternalForm());
+				ClassLoader.getSystemClassLoader().getResource(getCssName()).toExternalForm());
 		Button okButton = (Button) alert.getDialogPane().lookupButton(ButtonType.OK);
 		okButton.setText(RegistrationUIConstants.getMessageLanguageSpecific(confirmButtonText));
 
@@ -1861,5 +1865,9 @@ public class BaseController {
 		return validation.getValidationMap().values().stream()
 				.filter(schemaDto -> schemaDto.getGroup() != null && schemaDto.getGroup().equalsIgnoreCase(group))
 				.collect(Collectors.toList());
+	}
+	
+	protected String getCssName() {
+		return cssName;
 	}
 }
