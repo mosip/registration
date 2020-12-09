@@ -1815,4 +1815,8 @@ public class RegistrationConstants {
 	public static final String MVEL_TYPE = "MVEL";
 
 	public static final String MACHINE_VERIFICATION_SUCCESS = "Machine Verification Success";
+	
+	
+	//Mandatory Astrik
+	public static final String ASTRIK = "(*)";
 }
