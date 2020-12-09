@@ -1,8 +1,13 @@
 package io.mosip.registration.util.common;
 
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.controller.reg.DemographicDetailController;
 import io.mosip.registration.controller.reg.DocumentScanController;
 import javafx.event.EventHandler;
@@ -19,16 +24,17 @@ import lombok.SneakyThrows;
  */
 public class RubberBandSelection {
 
+	private static final Logger LOGGER = AppConfig.getLogger(RubberBandSelection.class);
+	private static final String loggerClassName = "RubberBandSelection";
 	private DocumentScanController documentScanController = null;
+	private final DragContext dragContext = new DragContext();
+	private Rectangle rect = new Rectangle();
+
+	private Group group;
 
 	public void setDocumentScanController(DocumentScanController documentScanController) {
 		this.documentScanController = documentScanController;
 	}
-
-	final DragContext dragContext = new DragContext();
-	Rectangle rect = new Rectangle();
-
-	Group group;
 
 	public Bounds getBounds() {
 		return rect.getBoundsInParent();
@@ -36,6 +42,8 @@ public class RubberBandSelection {
 
 	public RubberBandSelection(Group group) {
 
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Rubber band selection called");
 //		rubberBandSelection = this;
 		this.group = group;
 
@@ -45,6 +53,8 @@ public class RubberBandSelection {
 		rect.setStrokeLineCap(StrokeLineCap.ROUND);
 		rect.setFill(Color.LIGHTBLUE.deriveColor(0, 1.2, 1, 0.6));
 
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Setting listeners on mouse,pressed,dragged and released for crop");
 		group.addEventHandler(MouseEvent.MOUSE_PRESSED, onMousePressedEventHandler);
 		group.addEventHandler(MouseEvent.MOUSE_DRAGGED, onMouseDraggedEventHandler);
 		group.addEventHandler(MouseEvent.MOUSE_RELEASED, onMouseReleasedEventHandler);
@@ -56,6 +66,8 @@ public class RubberBandSelection {
 		@Override
 		public void handle(MouseEvent event) {
 
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"Crop on mouse pressed startred");
 			if (event.isSecondaryButtonDown())
 				return;
 
@@ -78,6 +90,8 @@ public class RubberBandSelection {
 
 			group.getChildren().add(rect);
 
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"Crop on mouse pressed completed");
 		}
 	};
 
@@ -86,6 +100,8 @@ public class RubberBandSelection {
 		@Override
 		public void handle(MouseEvent event) {
 
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"Crop on mouse draged startred");
 			if (event.isSecondaryButtonDown())
 				return;
 
@@ -105,7 +121,10 @@ public class RubberBandSelection {
 				rect.setY(event.getY());
 				rect.setHeight(dragContext.mouseAnchorY - rect.getY());
 			}
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"Crop on mouse draged completed");
 		}
+
 	};
 
 	EventHandler<MouseEvent> onMouseReleasedEventHandler = new EventHandler<MouseEvent>() {
@@ -114,12 +133,16 @@ public class RubberBandSelection {
 		@Override
 		public void handle(MouseEvent event) {
 
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"Crop on mouse released started");
 			// get bounds for image crop
 			Bounds selectionBounds = getBounds();
 
 			// crop the image
 			documentScanController.save(selectionBounds);
 
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"Crop on mouse released completed");
 		}
 	};
 
