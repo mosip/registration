@@ -43,7 +43,6 @@ import io.mosip.registration.service.sync.SyncStatusValidatorService;
 import io.mosip.registration.update.SoftwareUpdateHandler;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import io.mosip.registration.util.restclient.AuthTokenUtilService;
-
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
@@ -61,6 +60,7 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
@@ -187,8 +187,7 @@ public class HeaderController extends BaseController {
 	/**
 	 * Redirecting to Home page on Logout and destroying Session context
 	 * 
-	 * @param event
-	 *            logout event
+	 * @param event logout event
 	 */
 	public void logout(ActionEvent event) {
 		streamer.stop();
@@ -200,7 +199,7 @@ public class HeaderController extends BaseController {
 					"Clearing Session context" + SessionContext.authTokenDTO());
 
 			closeAlreadyExistedAlert();
-			
+
 			logoutCleanUp();
 
 		}
@@ -209,8 +208,7 @@ public class HeaderController extends BaseController {
 	/**
 	 * Logout clean up.
 	 *
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public void logoutCleanUp() {
 
@@ -234,34 +232,33 @@ public class HeaderController extends BaseController {
 	/**
 	 * Redirecting to Home page
 	 * 
-	 * @param event
-	 *            event for redirecting to home
+	 * @param event event for redirecting to home
 	 */
-	public void redirectHome(ActionEvent event) {
+	@FXML
+	public void redirectHome(MouseEvent event) {
 
 		Object obj = SessionContext.map().get(RegistrationConstants.ONBOARD_USER);
-		if ( obj != null && (boolean)obj ) {
+		if (obj != null && (boolean) obj) {
 			goToHomePageFromOnboard();
 		} else {
 			goToHomePageFromRegistration();
 		}
-		
-		//Enable Auto-Logout
+
+		// Enable Auto-Logout
 		SessionContext.setAutoLogout(true);
-		
+
 	}
 
 	/**
 	 * Sync data through batch jobs.
 	 *
-	 * @param event
-	 *            the event
+	 * @param event the event
 	 */
 	public void syncData(ActionEvent event) {
 
 		try {
 
-			redirectHome(event);
+			redirectHome(null);
 
 			// Clear all registration data
 			clearRegistrationData();
@@ -304,8 +301,7 @@ public class HeaderController extends BaseController {
 	/**
 	 * Redirecting to PacketStatusSync Page
 	 * 
-	 * @param event
-	 *            event for sync packet status
+	 * @param event event for sync packet status
 	 */
 	public void syncPacketStatus(ActionEvent event) {
 		if (isMachineRemapProcessStarted()) {
@@ -345,15 +341,14 @@ public class HeaderController extends BaseController {
 	/**
 	 * This method is to trigger the Pre registration sync service
 	 * 
-	 * @param event
-	 *            event for downloading pre reg data
+	 * @param event event for downloading pre reg data
 	 */
 	@FXML
 	public void downloadPreRegData(ActionEvent event) {
 
 		try {
 			// Go To Home Page
-			redirectHome(event);
+			redirectHome(null);
 
 			// Clear all registration data
 			clearRegistrationData();
@@ -395,7 +390,7 @@ public class HeaderController extends BaseController {
 	public void intiateRemapProcess() {
 		if (pageNavigantionAlert()) {
 
-			if(!authTokenUtilService.hasAnyValidToken()) {
+			if (!authTokenUtilService.hasAnyValidToken()) {
 				generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
 				return;
 			}
@@ -500,8 +495,8 @@ public class HeaderController extends BaseController {
 		};
 
 		progressIndicator.progressProperty().bind(taskService.progressProperty());
-		
-		if(authTokenUtilService.hasAnyValidToken())
+
+		if (authTokenUtilService.hasAnyValidToken())
 			taskService.start();
 		else {
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
@@ -735,15 +730,15 @@ public class HeaderController extends BaseController {
 		};
 
 		progressIndicator.progressProperty().bind(taskService.progressProperty());
-		
-		if(authTokenUtilService.hasAnyValidToken())
+
+		if (authTokenUtilService.hasAnyValidToken())
 			taskService.start();
 		else {
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
 			pane.setDisable(false);
 			progressIndicator.setVisible(false);
 		}
-		
+
 		taskService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
 			public void handle(WorkerStateEvent workerStateEvent) {
@@ -777,8 +772,7 @@ public class HeaderController extends BaseController {
 	/**
 	 * Redirecting to PacketStatusSync Page
 	 * 
-	 * @param event
-	 *            event for sync packet status
+	 * @param event event for sync packet status
 	 */
 	public void userGuide(ActionEvent event) {
 		userGuide.setOnAction(e -> {
