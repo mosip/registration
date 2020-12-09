@@ -175,10 +175,14 @@ public class ScanPopUpViewController extends BaseController {
 			popupTitle.setText(title);
 			Scene scene = null;
 
+			
 			if (!isDocumentScan) {
 
 				scene = new Scene(scanPopup);
 				captureBtn.setVisible(false);
+				totalScannedPages.setVisible(false);
+				saveBtn.setVisible(false);
+				scannedPagesLabel.setVisible(false);
 			} else {
 				LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 						"Setting doc screen width : " + width);
@@ -187,27 +191,17 @@ public class ScanPopUpViewController extends BaseController {
 						"Setting doc screen height : " + height);
 
 				scene = new Scene(scanPopup, width, height);
-				closeButton.setVisible(false);
+
+				isDocumentScan = false;
 
 			}
-			scene.getStylesheets().add(ClassLoader.getSystemClassLoader()
-					.getResource(getCssName()).toExternalForm());
+			scene.getStylesheets().add(ClassLoader.getSystemClassLoader().getResource(getCssName()).toExternalForm());
 			popupStage.setScene(scene);
 			popupStage.initModality(Modality.WINDOW_MODAL);
 			popupStage.initOwner(fXComponents.getStage());
 			popupStage.show();
 
 			LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "scan screen launched");
-
-			closeButton.setVisible(false);
-			if (!isDocumentScan) {
-				totalScannedPages.setVisible(false);
-				saveBtn.setVisible(false);
-				scannedPagesLabel.setVisible(false);
-			} else {
-				isDocumentScan = false;
-
-			}
 
 			scanningMsg.textProperty().addListener((observable, oldValue, newValue) -> {
 
