@@ -14,14 +14,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
 import io.mosip.kernel.core.util.CryptoUtil;
@@ -401,43 +394,9 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 		return documentsDTO;
 	}
 
-	/**
-	 * Gets the individual type.
-	 *
-	 * @param code     the code
-	 * @param langCode the lang code
-	 * @return the individual type
-	 * @throws RegBaseCheckedException
-	 */
-	@Override
-	public List<IndividualTypeDto> getIndividualType(String code, String langCode) throws RegBaseCheckedException {
-		List<IndividualTypeDto> listOfIndividualDTO = new ArrayList<>();
-
-		if (codeAndlangCodeNullCheck(code, langCode)) {
-			List<IndividualType> masterDocuments = masterSyncDao.getIndividulType(code, langCode);
-
-			masterDocuments.forEach(individual -> {
-				IndividualTypeDto individualDto = new IndividualTypeDto();
-				individualDto.setName(individual.getName());
-				individualDto.setCode(individual.getIndividualTypeId().getCode().trim());
-				individualDto.setLangCode(individual.getIndividualTypeId().getLangCode());
-				listOfIndividualDTO.add(individualDto);
-			});
-		} else {
-
-			LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
-					RegistrationConstants.CODE_AND_LANG_CODE_MANDATORY);
-			throw new RegBaseCheckedException(
-					RegistrationExceptionConstants.REG_MASTER_SYNC_SERVICE_IMPL_CODE_AND_LANGCODE.getErrorCode(),
-					RegistrationExceptionConstants.REG_MASTER_SYNC_SERVICE_IMPL_CODE_AND_LANGCODE.getErrorMessage());
-		}
-		return listOfIndividualDTO;
-	}
 
 	/**
 	 * Gets the individual type.
-	 *
-	 * @param code     the code
 	 * @param langCode the lang code
 	 * @return the individual type
 	 * @throws RegBaseCheckedException
@@ -475,6 +434,15 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 			}
 		}
 		return fieldValues;
+	}
+
+	@Override
+	public List<GenericDto> getFieldValues(String fieldName, String langCode) throws RegBaseCheckedException {
+		switch (fieldName) {
+			case "gender": return  getGenderDtls(langCode);
+			case "residenceStatus" : return getIndividualType(langCode);
+			default: return getDynamicField(fieldName, langCode);
+		}
 	}
 
 	/**
