@@ -69,12 +69,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -1351,7 +1349,6 @@ public class DocumentScanController extends BaseController {
 				"crop has been selected");
 
 		Stage primaryStage = new Stage();
-		BorderPane root = new BorderPane();
 
 		Group imageLayer = new Group();
 
@@ -1379,12 +1376,10 @@ public class DocumentScanController extends BaseController {
 	        hBox.getChildren().add(imageLayer);
 	        gridpane.add(hBox, 0, 0);
 
-			root.setCenter(gridpane);
-
 			RubberBandSelection rubberBandSelection = new RubberBandSelection(imageLayer);
 
 			rubberBandSelection.setDocumentScanController(this);
-			primaryStage.setScene(new Scene(root));
+			primaryStage.setScene(new Scene(gridpane));
 			primaryStage.setTitle("Crop Document");
 			primaryStage.setMaximized(true);
 
