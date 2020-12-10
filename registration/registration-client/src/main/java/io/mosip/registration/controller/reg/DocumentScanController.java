@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -67,20 +69,19 @@ import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.ComboBoxBase;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
-import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -385,8 +386,7 @@ public class DocumentScanController extends BaseController {
 
 			String docCategoryCode = documentCategory.getSubType();
 
-			String docCategoryName = documentCategory.getLabel() != null ? documentCategory.getLabel().get("primary")
-					: documentCategory.getDescription();
+			String docCategoryName = getDocName(documentCategory);
 
 			List<DocumentCategoryDto> documentCategoryDtos = null;
 
@@ -417,6 +417,7 @@ public class DocumentScanController extends BaseController {
 						new Image(this.getClass().getResourceAsStream(RegistrationConstants.CLOSE_IMAGE_PATH), 15, 15,
 								true, true));
 				comboBox.setPromptText(docCategoryName);
+
 				comboBox.getStyleClass().add(RegistrationConstants.DOC_COMBO_BOX);
 				Label documentLabel = new Label(docCategoryName);
 				documentLabel.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
@@ -561,6 +562,24 @@ public class DocumentScanController extends BaseController {
 		}
 
 		cropButton.setVisible(false);
+
+	}
+
+	private String getDocName(UiSchemaDTO documentCategory) {
+		return documentCategory.getLabel() != null ? documentCategory.getLabel().get("primary")
+				: documentCategory.getDescription();
+	}
+
+	private String getDocName(String docId) {
+
+		Optional<Entry<String, UiSchemaDTO>> optional = validation.getValidationMap().entrySet().stream()
+				.filter(map -> map.getValue().getId().equalsIgnoreCase(docId)).findFirst();
+
+		if (optional.isPresent()) {
+			return getDocName(optional.get().getValue());
+		}
+
+		return null;
 
 	}
 
@@ -1137,8 +1156,10 @@ public class DocumentScanController extends BaseController {
 
 			HBox hbox = (HBox) vboxElement.getParent();
 			ComboBox<String> comboBox = (ComboBox) hbox.getChildren().get(1);
-			(((VBox) hbox.getParent()).lookup(RegistrationConstants.HASH + hbox.getId() + RegistrationConstants.LABEL))
-					.setVisible(false);
+
+			/** label not disabled as not clearing combo box */
+//			(((VBox) hbox.getParent()).lookup(RegistrationConstants.HASH + hbox.getId() + RegistrationConstants.LABEL))
+//					.setVisible(false);
 
 			((ImageView) ((VBox) ((hbox).getChildren().get(0))).getChildren().get(1)).setImage(new Image(
 					this.getClass().getResourceAsStream(RegistrationConstants.CLOSE_IMAGE_PATH), 15, 15, true, true));
@@ -1148,13 +1169,9 @@ public class DocumentScanController extends BaseController {
 			GridPane gridpane = (GridPane) ((ImageView) event.getSource()).getParent();
 			String key = comboBox.getId();
 			getDocumentsMapFromSession().remove(key);
-			comboBox.getSelectionModel().clearSelection();
+//			comboBox.getSelectionModel().clearSelection();
 			ObservableList<Node> nodes = ((HBox) vboxElement.getParent()).getChildren();
 			for (Node node : nodes) {
-				if (node instanceof ComboBox<?>) {
-					ComboBox<?> document = (ComboBox<?>) node;
-					document.setValue(null);
-				}
 				if (node instanceof VBox) {
 
 					for (Node vBoxChilder : ((VBox) node).getChildren()) {
