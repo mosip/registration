@@ -67,6 +67,7 @@ import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ComboBoxBase;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -74,6 +75,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -180,7 +182,7 @@ public class DocumentScanController extends BaseController {
 
 	@Autowired
 	private WebcamSarxosServiceImpl webcamSarxosServiceImpl;
-	
+
 	private String selectedScanDeviceName;
 
 	private ImageView imageView;
@@ -279,8 +281,9 @@ public class DocumentScanController extends BaseController {
 					addDocumentsToScreen(documentDetailsDTO.getValue(), documentDetailsDTO.getFormat(),
 							documentVBoxes.get(docCategoryKey));
 
-					addDocumentRefNumber(documentDetailsDTO.getRefNumber(), documentVBoxes.get(documentDetailsDTO.getCategory() + "RefNumVBox"));
-					
+					addDocumentRefNumber(documentDetailsDTO.getRefNumber(),
+							documentVBoxes.get(documentDetailsDTO.getCategory() + "RefNumVBox"));
+
 					FXUtils.getInstance().selectComboBoxValue(documentComboBoxes.get(docCategoryKey),
 							documentDetailsDTO.getValue().substring(
 									documentDetailsDTO.getValue().lastIndexOf(RegistrationConstants.UNDER_SCORE) + 1));
@@ -439,40 +442,44 @@ public class DocumentScanController extends BaseController {
 				documentVBox.getStyleClass().add(RegistrationConstants.SCAN_VBOX);
 				documentVBox.setId(documentCategory.getId());
 
-				documentVBoxes.put(documentCategory.getId(), documentVBox);				
-				
+				documentVBoxes.put(documentCategory.getId(), documentVBox);
+
 				VBox refNumVBox = new VBox();
 				refNumVBox.setId(docCategoryCode + "RefNumVBox");
 				refNumVBox.getStyleClass().add(RegistrationConstants.SCAN_VBOX);
-				TextField numberOfDocs = new TextField();
-				numberOfDocs.setId(docCategoryCode + "RefNum");
-				numberOfDocs.setPromptText("Ref Number");
-				numberOfDocs.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
-				numberOfDocs.setStyle("-fx-font-size:13");
-				//numberOfDocs.setPrefWidth(40);
-				
-				documentVBoxes.put(refNumVBox.getId(), refNumVBox);	
-				
+				TextField documentNumberTxtField = new TextField();
+				documentNumberTxtField.setId(docCategoryCode + "RefNum");
+				documentNumberTxtField.setPromptText(RegistrationUIConstants.REF_NUMBER);
+				documentNumberTxtField.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
+				documentNumberTxtField.setStyle("-fx-font-size:13");
+				documentNumberTxtField.setMinWidth(100);
+
+				// numberOfDocs.setPrefWidth(40);
+
+				documentVBoxes.put(refNumVBox.getId(), refNumVBox);
+
 				GridPane gridPane = new GridPane();
+
 				gridPane.setId(docCategoryCode + "RefNumGridPane");
 				gridPane.setVgap(10);
 				gridPane.setHgap(10);
 				gridPane.setPrefWidth(80);
-				gridPane.add(numberOfDocs, 1, 0);
+				gridPane.add(documentNumberTxtField, 1, 0);
 
 				refNumVBox.getChildren().add(gridPane);
-				
+
 				Label refNumLabel = new Label(RegistrationUIConstants.REF_NUMBER);
 				refNumLabel.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
-				//pagesLabel.setPrefWidth(docScanVbox.getWidth() / 2);
+				// pagesLabel.setPrefWidth(docScanVbox.getWidth() / 2);
 				refNumLabel.setVisible(false);
 				refNumLabel.setId(docCategoryCode + "RefNumLabel");
-				FXUtils.getInstance().onTypeFocusUnfocusListener((Pane)docScanVbox.getParent(), numberOfDocs);
-				
+				FXUtils.getInstance().onTypeFocusUnfocusListener((Pane) docScanVbox.getParent(),
+						documentNumberTxtField);
+
 				if (applicationContext.isPrimaryLanguageRightToLeft()) {
 					comboBox.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
 					documentLabel.setAlignment(Pos.CENTER_RIGHT);
-					numberOfDocs.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
+					documentNumberTxtField.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
 					refNumLabel.setAlignment(Pos.CENTER_RIGHT);
 				}
 
@@ -529,9 +536,23 @@ public class DocumentScanController extends BaseController {
 								this.getClass().getResourceAsStream(RegistrationConstants.SCAN), 12, 12, true, true)));
 					}
 				});
-				
-				hBox.getChildren().addAll(new VBox(new Label(), indicatorImage), comboBox, refNumVBox, documentVBox, scanButton);
-				docScanVbox.getChildren().addAll(new HBox(documentLabel, refNumLabel), hBox);
+
+				GridPane scanButtonGridPane = new GridPane();
+//				gridPane.setId(docCategoryCode + "RefNumGridPane");
+//				scanButtonGridPane.setVgap(10);
+//				scanButtonGridPane.setHgap(10);
+				scanButtonGridPane.setPrefWidth(80);
+				scanButtonGridPane.add(scanButton, 0, 0);
+				hBox.getChildren().addAll(new VBox(new Label(), indicatorImage), comboBox, refNumVBox, documentVBox,
+						scanButtonGridPane);
+
+				GridPane labelGridPane = new GridPane();
+
+				labelGridPane.setHgap(-20);
+				labelGridPane.add(documentLabel, 0, 0);
+				labelGridPane.add(refNumLabel, 1, 0);
+
+				docScanVbox.getChildren().addAll(new HBox(labelGridPane), hBox);
 				hBox.setId(documentCategory.getSubType());
 				documentLabel.setId(documentCategory.getSubType() + RegistrationConstants.LABEL);
 				comboBox.getItems().addAll(documentCategoryDtos);
@@ -920,7 +941,7 @@ public class DocumentScanController extends BaseController {
 				}
 			}
 		});
-		
+
 		documentDto.setFormat(docType);
 		documentDto.setCategory(selectedDocument);
 		documentDto.setOwner("Applicant");
@@ -1133,6 +1154,27 @@ public class DocumentScanController extends BaseController {
 				if (node instanceof ComboBox<?>) {
 					ComboBox<?> document = (ComboBox<?>) node;
 					document.setValue(null);
+				}
+				if (node instanceof VBox) {
+
+					for (Node vBoxChilder : ((VBox) node).getChildren()) {
+
+						if (vBoxChilder instanceof GridPane) {
+
+							if (((GridPane) vBoxChilder).getChildren() != null) {
+
+								for (Node gridPaneChid : ((GridPane) vBoxChilder).getChildren()) {
+
+									if (gridPaneChid instanceof TextField) {
+
+										((TextField) gridPaneChid).setText("");
+//										((TextField) gridPaneChid).setPromptText(RegistrationUIConstants.REF_NUMBER);
+									}
+								}
+							}
+						}
+					}
+
 				}
 			}
 
@@ -1412,29 +1454,29 @@ public class DocumentScanController extends BaseController {
 
 		Group imageLayer = new Group();
 
-		Image image = docPreviewImgView.getImage();		
+		Image image = docPreviewImgView.getImage();
 
 		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 				"Set Image for crop");
 
 		if (image != null) {
-			
+
 			GridPane gridpane = new GridPane();
 
-	        RowConstraints rc = new RowConstraints();
-	        rc.setVgrow(Priority.ALWAYS);
+			RowConstraints rc = new RowConstraints();
+			rc.setVgrow(Priority.ALWAYS);
 
-	        gridpane.getRowConstraints().add(rc);
+			gridpane.getRowConstraints().add(rc);
 
-	        HBox hBox = new HBox();
+			HBox hBox = new HBox();
 
-	        hBox.setMinHeight(0);
-	        imageView = new ImageView(image);
-	        imageView.fitHeightProperty().bind(hBox.heightProperty());
-	        imageView.setPreserveRatio(true);
-	        imageLayer.getChildren().add(imageView);
-	        hBox.getChildren().add(imageLayer);
-	        gridpane.add(hBox, 0, 0);
+			hBox.setMinHeight(0);
+			imageView = new ImageView(image);
+			imageView.fitHeightProperty().bind(hBox.heightProperty());
+			imageView.setPreserveRatio(true);
+			imageLayer.getChildren().add(imageView);
+			hBox.getChildren().add(imageLayer);
+			gridpane.add(hBox, 0, 0);
 
 			RubberBandSelection rubberBandSelection = new RubberBandSelection(imageLayer);
 
