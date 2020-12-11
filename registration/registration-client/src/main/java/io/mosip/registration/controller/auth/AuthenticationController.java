@@ -446,14 +446,14 @@ public class AuthenticationController extends BaseController implements Initiali
 						// TODO Enable continue button
 						operatorAuthContinue.setDisable(false);
 					}
-					generateAlert(RegistrationConstants.ALERT_INFORMATION,
-							RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
-
-					loadNextScreen();
 					if (fingerPrintScanButton != null) {
 						fingerPrintScanButton.setDisable(true);
 //						
 					}
+					generateAlert(RegistrationConstants.ALERT_INFORMATION,
+							RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
+
+					loadNextScreen();					
 				} else {
 					if (operatorAuthContinue != null) {
 						operatorAuthContinue.setDisable(true);
@@ -854,7 +854,7 @@ public class AuthenticationController extends BaseController implements Initiali
 	 */
 	public void loadAuthenticationScreen(String loginMode) {
 		LOGGER.info("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
-				"Loading the respective authentication screen in UI");
+				"Loading the respective authentication screen in UI >> " + loginMode);
 		errorPane.setVisible(false);
 		pwdBasedLogin.setVisible(false);
 		otpBasedLogin.setVisible(false);

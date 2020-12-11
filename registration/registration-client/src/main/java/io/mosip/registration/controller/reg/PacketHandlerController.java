@@ -65,6 +65,8 @@ import io.mosip.registration.service.template.TemplateService;
 import io.mosip.registration.update.SoftwareUpdateHandler;
 import io.mosip.registration.util.acktemplate.TemplateGenerator;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
+
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
@@ -270,6 +272,10 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 	@Autowired
 	HeaderController headerController;
+
+	@Autowired
+	private AuthTokenUtilService authTokenUtilService;
+
 
 	@Value("${object.store.base.location}")
 	private String baseLocation;
@@ -832,6 +838,11 @@ public class PacketHandlerController extends BaseController implements Initializ
 		if (isPrimaryOrSecondaryLanguageEmpty()) {
 			generateAlert(RegistrationConstants.ERROR,
 					RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
+			return;
+		}
+
+		if(!authTokenUtilService.hasAnyValidToken()) {
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
 			return;
 		}
 
