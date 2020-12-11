@@ -598,17 +598,17 @@ public class DocumentScanController extends BaseController {
 
 				generateAlert(RegistrationConstants.ERROR, errorMessage);
 				documents.requestFocus();
-			} else if (!vboxElement.getChildren().isEmpty()) {
-				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
-						RegistrationConstants.APPLICATION_ID, "only One Document can be added to the Category");
-
-				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOC_CATEGORY_MULTIPLE);
-			} else if (!vboxElement.getChildren().isEmpty() && vboxElement.getChildren().stream()
-					.noneMatch(index -> index.getId().contains(documents.getValue().getName()))) {
-				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
-						RegistrationConstants.APPLICATION_ID, "Select only one document category for scan");
-
-				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOC_CATEGORY_MULTIPLE);
+//			} else if (!vboxElement.getChildren().isEmpty()) {
+//				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+//						RegistrationConstants.APPLICATION_ID, "only One Document can be added to the Category");
+//
+//				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOC_CATEGORY_MULTIPLE);
+//			} else if (!vboxElement.getChildren().isEmpty() && vboxElement.getChildren().stream()
+//					.noneMatch(index -> index.getId().contains(documents.getValue().getName()))) {
+//				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+//						RegistrationConstants.APPLICATION_ID, "Select only one document category for scan");
+//
+//				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOC_CATEGORY_MULTIPLE);
 			} else {
 				selectedDocument = document;
 				selectedComboBox = documents;
@@ -622,17 +622,17 @@ public class DocumentScanController extends BaseController {
 
 				generateAlert(RegistrationConstants.ERROR, errorMessage);
 				documents.requestFocus();
-			} else if (!vboxElement.getChildren().isEmpty()) {
-				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
-						RegistrationConstants.APPLICATION_ID, "only One Document can be added to the Category");
-
-				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOC_CATEGORY_MULTIPLE);
-			} else if (!vboxElement.getChildren().isEmpty() && vboxElement.getChildren().stream()
-					.noneMatch(index -> index.getId().contains(documents.getValue().getName()))) {
-				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
-						RegistrationConstants.APPLICATION_ID, "Select only one document category for scan");
-
-				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOC_CATEGORY_MULTIPLE);
+//			} else if (!vboxElement.getChildren().isEmpty()) {
+//				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+//						RegistrationConstants.APPLICATION_ID, "only One Document can be added to the Category");
+//
+//				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOC_CATEGORY_MULTIPLE);
+//			} else if (!vboxElement.getChildren().isEmpty() && vboxElement.getChildren().stream()
+//					.noneMatch(index -> index.getId().contains(documents.getValue().getName()))) {
+//				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+//						RegistrationConstants.APPLICATION_ID, "Select only one document category for scan");
+//
+//				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOC_CATEGORY_MULTIPLE);
 			} else {
 				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 						RegistrationConstants.APPLICATION_ID, "Displaying Scan window to scan Documents");
@@ -901,12 +901,8 @@ public class DocumentScanController extends BaseController {
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOCUMENT_EMPTY);
 			return;
 		}
-		byte[] byteArray;
-		if (!"pdf".equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.DOC_TYPE))) {
-			byteArray = documentScanFacade.asImage(scannedPages);
-		} else {
-			byteArray = pdfGenerator.asPDF(scannedPages);
-		}
+		byte[] byteArray = getScannedPagesToBytes(scannedPages);
+
 		if (byteArray == null) {
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOCUMENT_CONVERTION_ERR);
 			return;
@@ -932,40 +928,72 @@ public class DocumentScanController extends BaseController {
 		}
 	}
 
+	private byte[] getScannedPagesToBytes(List<BufferedImage> scannedPages) throws IOException {
+
+		byte[] byteArray = null;
+		if (!"pdf".equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.DOC_TYPE))) {
+			byteArray = documentScanFacade.asImage(scannedPages);
+		} else {
+			byteArray = documentScanFacade.asPDF(scannedPages);
+		}
+		return byteArray;
+	}
+
+	
+
 	/**
 	 * This method will add Hyperlink and Image for scanned documents
+	 * 
+	 * @throws IOException
 	 */
-	private void attachDocuments(DocumentCategoryDto document, VBox vboxElement, byte[] byteArray, boolean isStubbed) {
+	private void attachDocuments(DocumentCategoryDto document, VBox vboxElement, byte[] byteArray, boolean isStubbed)
+			throws IOException {
 
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Attaching documemnts to Pane");
 
-		DocumentDto documentDto = new DocumentDto();
-		documentDto.setDocument(byteArray);
-		documentDto.setType(document.getCode());
+		DocumentDto documentDto = getRegistrationDTOFromSession().getDocuments().get(selectedComboBox.getId());
 
-		String docType = getValueFromApplicationContext(RegistrationConstants.DOC_TYPE);
-		if (isStubbed) {
-			docType = RegistrationConstants.SCANNER_IMG_TYPE;
+		if (documentDto == null) {
+			documentDto = new DocumentDto();
+			documentDto.setDocument(byteArray);
+			documentDto.setType(document.getCode());
+
+			String docType = getValueFromApplicationContext(RegistrationConstants.DOC_TYPE);
+			if (isStubbed) {
+				docType = RegistrationConstants.SCANNER_IMG_TYPE;
+			}
+
+			documentDto.setFormat(docType);
+			documentDto.setCategory(selectedDocument);
+			documentDto.setOwner("Applicant");
+			documentDto.setValue(selectedDocument.concat(RegistrationConstants.UNDER_SCORE).concat(document.getCode()));
+		} else {
+			byte[] documentBytes = documentDto.getDocument();
+
+			List<BufferedImage> existingBufferedImages = documentScanFacade.pdfToImages(documentBytes);
+
+			List<BufferedImage> capBufferedImages = documentScanFacade.pdfToImages(byteArray);
+
+			if (existingBufferedImages != null && !existingBufferedImages.isEmpty()) {
+				capBufferedImages.addAll(existingBufferedImages);
+			}
+			documentDto.setDocument(getScannedPagesToBytes(capBufferedImages));
+
 		}
 
 		HBox hBox = (HBox) vboxElement.getParent();
-		hBox.getChildren().forEach(node -> {
+		for (Node node : hBox.getChildren()) {
 			if (node.getId() != null && node.getId().contains("RefNumVBox")) {
 				VBox vbox = (VBox) node;
 				GridPane gridPane = (GridPane) vbox.getChildren().get(0);
 				TextField textField = (TextField) gridPane.getChildren().get(0);
 				if (textField.getText() != null && !textField.getText().isEmpty()) {
+
 					documentDto.setRefNumber(textField.getText());
 				}
 			}
-		});
-
-		documentDto.setFormat(docType);
-		documentDto.setCategory(selectedDocument);
-		documentDto.setOwner("Applicant");
-		documentDto.setValue(selectedDocument.concat(RegistrationConstants.UNDER_SCORE).concat(document.getCode()));
-
+		}
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Set details to DocumentDetailsDTO");
 
@@ -1000,7 +1028,9 @@ public class DocumentScanController extends BaseController {
 		gridPane.add(createHyperLink(document.concat(RegistrationConstants.DOT + documentFormat)), 1, 0);
 		gridPane.add(createImageView(vboxElement), 2, 0);
 
-		vboxElement.getChildren().add(gridPane);
+		if (vboxElement.getChildren().isEmpty()) {
+			vboxElement.getChildren().add(gridPane);
+		}
 
 		((ImageView) ((VBox) (((HBox) vboxElement.getParent()).getChildren().get(0))).getChildren().get(1))
 				.setImage(new Image(this.getClass().getResourceAsStream(RegistrationConstants.DONE_IMAGE_PATH), 15, 15,

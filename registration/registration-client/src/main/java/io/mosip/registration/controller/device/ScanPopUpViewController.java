@@ -175,7 +175,6 @@ public class ScanPopUpViewController extends BaseController {
 			popupTitle.setText(title);
 			Scene scene = null;
 
-			
 			if (!isDocumentScan) {
 
 				scene = new Scene(scanPopup);
@@ -293,7 +292,7 @@ public class ScanPopUpViewController extends BaseController {
 			DocumentScanController documentScanController = (DocumentScanController) baseController;
 			try {
 				documentScanController.attachScannedDocument(popupStage);
-			} catch (IOException ioException) {
+			} catch (IOException | RuntimeException ioException) {
 				LOGGER.error(LOG_REG_SCAN_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 						ExceptionUtils.getStackTrace(ioException));
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOCUMENT_ERROR);
