@@ -470,7 +470,19 @@ public class DemographicDetailController extends BaseController {
 		ddLabel.setId(fieldId + "__" + RegistrationConstants.DD + languageType + RegistrationConstants.LABEL);
 		ddLabel.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
 		vBoxDD.getChildren().addAll(ddLabel, dd);
-
+		dd.textProperty().addListener((ob, ov, nv) -> {
+			fxUtils.showLabel(parentFlowPane, dd);
+			if(!dateValidation.isNewValueValid(nv, RegistrationConstants.DD)) {
+				dd.setText(ov);
+			}
+			boolean isValid = dateValidation.validateDate(parentFlowPane, fieldId);
+			if(isValid) {
+				addFieldValueToSession(validation.getValidationMap().get(fieldId), getRegistrationDTOFromSession());
+			}
+		});
+		putIntoLabelMap(fieldId + "__" + RegistrationConstants.DD + languageType,
+				schema.getLabel().get(RegistrationConstants.LOCAL_LANGUAGE.equals(languageType) ?
+						RegistrationConstants.SECONDARY : RegistrationConstants.PRIMARY));
 		listOfTextField.put(fieldId + "__" + RegistrationConstants.DD + languageType, dd);
 
 		VBox vBoxMM = new VBox();
@@ -482,7 +494,19 @@ public class DemographicDetailController extends BaseController {
 		mmLabel.setId(fieldId + "__" + RegistrationConstants.MM + languageType + RegistrationConstants.LABEL);
 		mmLabel.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
 		vBoxMM.getChildren().addAll(mmLabel, mm);
-
+		mm.textProperty().addListener((ob, ov, nv) -> {
+			fxUtils.showLabel(parentFlowPane, mm);
+			if(!dateValidation.isNewValueValid(nv, RegistrationConstants.MM)) {
+				mm.setText(ov);
+			}
+			boolean isValid = dateValidation.validateDate(parentFlowPane, fieldId);
+			if(isValid) {
+				addFieldValueToSession(validation.getValidationMap().get(fieldId), getRegistrationDTOFromSession());
+			}
+		});
+		putIntoLabelMap(fieldId + "__" + RegistrationConstants.MM + languageType,
+				schema.getLabel().get(RegistrationConstants.LOCAL_LANGUAGE.equals(languageType) ?
+						RegistrationConstants.SECONDARY : RegistrationConstants.PRIMARY));
 		listOfTextField.put(fieldId + "__" + RegistrationConstants.MM + languageType, mm);
 
 		VBox vBoxYYYY = new VBox();
@@ -494,7 +518,19 @@ public class DemographicDetailController extends BaseController {
 		yyyyLabel.setId(fieldId + "__" + RegistrationConstants.YYYY + languageType + RegistrationConstants.LABEL);
 		yyyyLabel.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
 		vBoxYYYY.getChildren().addAll(yyyyLabel, yyyy);
-
+		yyyy.textProperty().addListener((ob, ov, nv) -> {
+			fxUtils.showLabel(parentFlowPane, yyyy);
+			if(!dateValidation.isNewValueValid(nv, RegistrationConstants.YYYY)) {
+				yyyy.setText(ov);
+			}
+			boolean isValid = dateValidation.validateDate(parentFlowPane, fieldId);
+			if(isValid) {
+				addFieldValueToSession(validation.getValidationMap().get(fieldId), getRegistrationDTOFromSession());
+			}
+		});
+		putIntoLabelMap(fieldId + "__" + RegistrationConstants.YYYY + languageType,
+				schema.getLabel().get(RegistrationConstants.LOCAL_LANGUAGE.equals(languageType) ?
+						RegistrationConstants.SECONDARY : RegistrationConstants.PRIMARY));
 		listOfTextField.put(fieldId + "__" + RegistrationConstants.YYYY + languageType, yyyy);
 
 		Label dobMessage = new Label();
@@ -533,7 +569,21 @@ public class DemographicDetailController extends BaseController {
 		ageFieldLabel.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
 		ageFieldLabel.setVisible(false);
 		vboxAgeField.getChildren().addAll(ageFieldLabel, ageField);
-
+		ageField.textProperty().addListener((ob, ov, nv) -> {
+			fxUtils.showLabel(parentFlowPane, ageField);
+			if(!dateValidation.isNewValueValid(nv, RegistrationConstants.AGE_FIELD)) {
+				ageField.setText(ov);
+			}
+			if(nv != null) {
+				boolean isValid = dateValidation.validateAge(parentFlowPane, ageField);
+				if(isValid) {
+					addFieldValueToSession(validation.getValidationMap().get(fieldId), getRegistrationDTOFromSession());
+				}
+			}
+		});
+		putIntoLabelMap(fieldId + "__" + RegistrationConstants.AGE_FIELD + languageType,
+				schema.getLabel().get(RegistrationConstants.LOCAL_LANGUAGE.equals(languageType) ?
+						RegistrationConstants.SECONDARY : RegistrationConstants.PRIMARY));
 		listOfTextField.put(fieldId + "__" + RegistrationConstants.AGE_FIELD + languageType, ageField);
 
 		ageField.setPromptText(localLanguage ? localLabelBundle.getString(RegistrationConstants.AGE_FIELD)
@@ -542,32 +592,24 @@ public class DemographicDetailController extends BaseController {
 				: applicationLabelBundle.getString(RegistrationConstants.AGE_FIELD) + mandatorySuffix);
 
 		hB.setPrefWidth(250);
-
 		hB2.setSpacing(10);
-
 		Label orLabel = new Label(localLanguage ? localLabelBundle.getString("ageOrDOBField")
 				: applicationLabelBundle.getString("ageOrDOBField"));
 
 		VBox orVbox = new VBox();
 		orVbox.setPrefWidth(100);
 		orVbox.getChildren().addAll(new Label(), orLabel);
-
 		hB2.getChildren().addAll(hB, orVbox, vboxAgeField);
-
 		VBox vB = new VBox();
 		vB.setId(fieldId);
 		vB.getChildren().addAll(hB2, dobMessage);
 
-		ageBasedOperation(vB, ageField, dobMessage, dd, mm, yyyy);
+		/*fxUtils.onTypeFocusUnfocusListener(parentFlowPane, dd);
+		fxUtils.onTypeFocusUnfocusListener(parentFlowPane, mm);
+		fxUtils.onTypeFocusUnfocusListener(parentFlowPane, yyyy);
+		fxUtils.onTypeFocusUnfocusListener(parentFlowPane, ageField);*/
 
-		fxUtils.focusedAction(hB, dd);
-		fxUtils.focusedAction(hB, mm);
-		fxUtils.focusedAction(hB, yyyy);
-
-		dateValidation.validateDate(parentFlowPane, dd, mm, yyyy, validation, fxUtils, ageField, null, dobMessage);
-		dateValidation.validateMonth(parentFlowPane, dd, mm, yyyy, validation, fxUtils, ageField, null, dobMessage);
-		dateValidation.validateYear(parentFlowPane, dd, mm, yyyy, validation, fxUtils, ageField, null, dobMessage);
-
+		//NOTE: by default local/secondary language DOB fields are disabled
 		vB.setDisable(languageType.equals(RegistrationConstants.LOCAL_LANGUAGE));
 
 		return vB;
@@ -1091,21 +1133,6 @@ public class DemographicDetailController extends BaseController {
 		}
 	}
 
-	/*private void addTextFieldToSession(String id, RegistrationDTO registrationDTO, boolean isDefaultField) {
-		if (registrationDTO != null) {
-			TextField platformField = listOfTextField.get(id);
-			TextField localField = listOfTextField.get(id + RegistrationConstants.LOCAL_LANGUAGE);
-			if (!isDefaultField) {
-				registrationDTO.addDemographicField(id, applicationContext.getApplicationLanguage(),
-						platformField.getText(), applicationContext.getLocalLanguage(),
-						localField == null ? null : localField.getText());
-			} else {
-				registrationDTO.addDefaultDemographicField(id, applicationContext.getApplicationLanguage(),
-						platformField.getText(), applicationContext.getLocalLanguage(),
-						localField == null ? null : localField.getText());
-			}
-		}
-	}*/
 
 	private String getLocalFieldButtonText(Button button, List<Button> localFieldButtons) {
 		if (!isLocalLanguageAvailable() || isAppLangAndLocalLangSame()) {
@@ -1602,13 +1629,10 @@ public class DemographicDetailController extends BaseController {
 	private void setFieldChangeListener(Node node) {
 		node.focusedProperty().addListener((observable, oldValue, newValue) -> {
 			if (!node.isFocused()) {
-				//auto fills secondary language combo-boxes
-				fxUtils.toggleUIField(parentFlowPane, node.getId(), true);
 				// Validate Field
 				if (validateFieldValue(node)) {
 					// Group level visibility listeners
 					refreshDemographicGroups();
-
 					//handling other handlers
 					UiSchemaDTO uiSchemaDTO = validation.getValidationMap().get(node.getId().replaceAll(RegistrationConstants.ON_TYPE,
 							RegistrationConstants.EMPTY).replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY));

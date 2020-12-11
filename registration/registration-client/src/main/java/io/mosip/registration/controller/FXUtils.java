@@ -70,7 +70,8 @@ public class FXUtils {
 	/**
 	 * Listener to change the style when field is selected for.
 	 *
-	 * @param field the {@link CheckBox}
+	 * @param parentOrGuardian the {@link CheckBox}
+	 * @param biometrics
 	 */
 	public void listenOnSelectedCheckBoxParentOrGuardian(CheckBox parentOrGuardian, CheckBox biometrics) {
 
@@ -215,7 +216,6 @@ public class FXUtils {
 	 *                            present
 	 * @param field               the {@link TextField} to be validated
 	 * @param validation          the instance of {@link Validations}
-	 * @param localField          the local or secondary language {@link TextField}
 	 * @param haveToTransliterate the flag to know whether the field value has to be
 	 *                            transliterated
 	 */
@@ -262,7 +262,6 @@ public class FXUtils {
 	 *                            present
 	 * @param field               the {@link TextField} to be validated
 	 * @param validation          the instance of {@link Validations}
-	 * @param localField          the local or secondary language {@link TextField}
 	 * @param haveToTransliterate the flag to know whether the field value has to be
 	 *                            transliterated
 	 */
@@ -449,7 +448,7 @@ public class FXUtils {
 		}
 	}
 
-	private void focusAction(Pane parentPane, TextField field) {
+	public void focusAction(Pane parentPane, TextField field) {
 		if (field != null) {
 			field.focusedProperty().addListener((obsValue, oldValue, newValue) -> {
 				if (newValue) {
@@ -504,8 +503,9 @@ public class FXUtils {
 	 *                   or hidden
 	 */
 	public void hideErrorMessageLabel(Pane parentPane, TextField field) {
-		if (field.getId().matches("ageField|dd|mm|yyyy|ddLocalLanguage|mmLocalLanguage|yyyyLocalLanguage")) {
-			toggleUIField(parentPane, RegistrationConstants.DOB_MESSAGE, false);
+		String[] parts = field.getId().split("__");
+		if (parts.length > 1 && parts[1].matches(RegistrationConstants.DTAE_MONTH_YEAR_REGEX)) {
+			toggleUIField(parentPane, parts[0]+"__"+RegistrationConstants.DOB_MESSAGE, false);
 		} else {
 			toggleUIField(parentPane, field.getId() + RegistrationConstants.MESSAGE, false);
 		}

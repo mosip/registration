@@ -75,7 +75,8 @@ public class Validations extends BaseController {
 	private UinValidator<String> uinValidator;
 	@Autowired
 	private RidValidator<String> ridValidator;
-
+	@Autowired
+	private DateValidation dateValidation;
 	/**
 	 * Instantiates a new validations.
 	 */
@@ -328,6 +329,14 @@ public class Validations extends BaseController {
 	private boolean checkForValidValue(Pane parentPane, TextField node, String fieldId, String value, ResourceBundle messageBundle,
 									boolean showAlert, boolean isPreviousValid, List<String> blackListedWords, UiSchemaDTO uiSchemaDTO) {
 
+		if(RegistrationConstants.AGE_DATE.equals(uiSchemaDTO.getControlType())) {
+			boolean isValid = dateValidation.validateDate(parentPane, uiSchemaDTO.getId());
+			LOGGER.debug(RegistrationConstants.VALIDATION_LOGGER, APPLICATION_NAME, APPLICATION_ID,
+					"Date validation FAILED :: " + uiSchemaDTO.getId());
+			if(!isValid)
+				return false;
+		}
+
 		boolean isNonBlacklisted = validateBlackListedWords(parentPane, node, node.getId(), blackListedWords, showAlert,
 				String.format("%s %s %s",
 						messageBundle.getString(RegistrationConstants.BLACKLISTED_1),
@@ -383,8 +392,6 @@ public class Validations extends BaseController {
 		}
 		return fieldFilled;
 	}
-
-
 
 
 	private void addValidInputStyleClass(Pane parentPane, TextField node) {
@@ -450,15 +457,10 @@ public class Validations extends BaseController {
 
 	private String getAgeDateFieldId(String nodeId) {
 		String[] parts = nodeId.split("__");
-		if (parts.length < 2)
-			return null;
-
-		List<String> ageDateNodeIds = new ArrayList<String>();
-		ageDateNodeIds.add("dd");
-		ageDateNodeIds.add("mm");
-		ageDateNodeIds.add("yyyy");
-		ageDateNodeIds.add("ageField");
-		return ageDateNodeIds.contains(parts[1]) ? parts[0] : null;
+		if(parts.length > 1 && parts[1].matches(RegistrationConstants.DTAE_MONTH_YEAR_REGEX)) {
+			return parts[0];
+		}
+		return null;
 	}
 
 	private boolean validateBlackListedWords(Pane parentPane, TextField node, String id, List<String> blackListedWords,
@@ -599,8 +601,8 @@ public class Validations extends BaseController {
 	 * @return <code>true</code>, if successful, else <code>false</code>
 	 */
 	public boolean validateSingleString(String value, String id) {
-
-		return value.matches(getRegex(id, RegistrationUIConstants.REGEX_TYPE));
+		String regex = getRegex(id, RegistrationUIConstants.REGEX_TYPE);
+		return regex != null ? value.matches(regex) : true;
 	}
 
 	/**

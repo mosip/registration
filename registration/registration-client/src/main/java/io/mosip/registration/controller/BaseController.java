@@ -508,8 +508,10 @@ public class BaseController {
 			id = id.replaceAll(RegistrationConstants.UNDER_SCORE + RegistrationConstants.ONTYPE,
 					RegistrationConstants.EMPTY);
 		}
-		if (id.matches(RegistrationConstants.DTAE_MONTH_YEAR_REGEX)) {
-			id = RegistrationConstants.DOB;
+
+		String[] parts = id.split("__");
+		if (parts.length > 1 && parts[1].matches(RegistrationConstants.DTAE_MONTH_YEAR_REGEX)) {
+			id = parts[0]+"__"+RegistrationConstants.DOB;
 			parentPane = (Pane) parentPane.getParent().getParent();
 		}
 		Label label = ((Label) (parentPane.lookup(RegistrationConstants.HASH + id + RegistrationConstants.MESSAGE)));
