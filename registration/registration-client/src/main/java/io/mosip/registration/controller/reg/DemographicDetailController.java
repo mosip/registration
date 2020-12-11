@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import io.mosip.registration.util.common.DemographicChangeActionHandler;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.scene.control.*;
 import org.joda.time.LocalDate;
 import org.joda.time.Period;
@@ -1627,23 +1628,20 @@ public class DemographicDetailController extends BaseController {
 
 
 	private void setFieldChangeListener(Node node) {
-		node.focusedProperty().addListener((observable, oldValue, newValue) -> {
-			if (!node.isFocused()) {
-				// Validate Field
-				if (validateFieldValue(node)) {
-					// Group level visibility listeners
-					refreshDemographicGroups();
-					//handling other handlers
-					UiSchemaDTO uiSchemaDTO = validation.getValidationMap().get(node.getId().replaceAll(RegistrationConstants.ON_TYPE,
-							RegistrationConstants.EMPTY).replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY));
-					if(uiSchemaDTO != null) {
-						LOGGER.info(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-								"Invoking external action handler for .... " + uiSchemaDTO.getId());
-						demographicChangeActionHandler.actionHandle(parentFlowPane, node.getId(), uiSchemaDTO.getChangeAction());
-					}
-					// Group level visibility listeners
-					refreshDemographicGroups();
+		node.addEventHandler(Event.ANY, event -> {
+			if (validateFieldValue(node)) {
+				// Group level visibility listeners
+				refreshDemographicGroups();
+				//handling other handlers
+				UiSchemaDTO uiSchemaDTO = validation.getValidationMap().get(node.getId().replaceAll(RegistrationConstants.ON_TYPE,
+						RegistrationConstants.EMPTY).replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY));
+				if(uiSchemaDTO != null) {
+					LOGGER.info(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+							"Invoking external action handler for .... " + uiSchemaDTO.getId());
+					demographicChangeActionHandler.actionHandle(parentFlowPane, node.getId(), uiSchemaDTO.getChangeAction());
 				}
+				// Group level visibility listeners
+				refreshDemographicGroups();
 			}
 		});
 	}
