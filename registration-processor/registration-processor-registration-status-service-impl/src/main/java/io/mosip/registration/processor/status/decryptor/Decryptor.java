@@ -54,6 +54,9 @@ public class Decryptor {
 	@Value("${registration.processor.application.id}")
 	private String applicationId;
 
+	@Value("${crypto.PrependThumbprint.enable:true}")
+	private boolean isPrependThumbprintEnabled;
+
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> restClientService;
 
@@ -102,6 +105,7 @@ public class Decryptor {
 		try {
 			byte[] packet = CryptoUtil.decodeBase64(encryptedSyncMetaInfo.toString());
 			CryptomanagerRequestDto cryptomanagerRequestDto = new CryptomanagerRequestDto();
+			cryptomanagerRequestDto.setPrependThumbprint(isPrependThumbprintEnabled);
 			io.mosip.kernel.core.http.RequestWrapper<CryptomanagerRequestDto> request = new RequestWrapper<>();
 			cryptomanagerRequestDto.setApplicationId(applicationId);
 			cryptomanagerRequestDto.setReferenceId(referenceId);

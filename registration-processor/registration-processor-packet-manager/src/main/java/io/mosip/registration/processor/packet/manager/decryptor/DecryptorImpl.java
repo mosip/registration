@@ -63,6 +63,9 @@ public class DecryptorImpl implements Decryptor {
 	@Value("${registration.processor.rid.machineidsubstring}")
 	private int machineIdSubStringLength;
 
+	@Value("${crypto.PrependThumbprint.enable:true}")
+	private boolean isPrependThumbprintEnabled;
+
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> restClientService;
 
@@ -102,6 +105,7 @@ public class DecryptorImpl implements Decryptor {
 			String machineId = registrationId.substring(centerIdLength, machineIdSubStringLength);
 			String refId = centerId + "_" + machineId;
 			CryptomanagerRequestDto cryptomanagerRequestDto = new CryptomanagerRequestDto();
+			cryptomanagerRequestDto.setPrependThumbprint(isPrependThumbprintEnabled);
 			io.mosip.kernel.core.http.RequestWrapper<CryptomanagerRequestDto> request = new RequestWrapper<>();
 			cryptomanagerRequestDto.setApplicationId(applicationId);
 			cryptomanagerRequestDto.setReferenceId(refId);
