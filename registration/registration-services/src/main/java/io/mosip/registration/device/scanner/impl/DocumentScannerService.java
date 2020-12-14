@@ -17,12 +17,12 @@ import javax.imageio.ImageIO;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Image;
+import com.itextpdf.text.PageSize;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfWriter;
 
@@ -94,8 +94,12 @@ public abstract class DocumentScannerService implements IMosipDocumentScannerSer
 			PdfContentByte pdfPage = new PdfContentByte(writer);
 			for (BufferedImage bufferedImage : bufferedImages) {
 				Image image = Image.getInstance(pdfPage, bufferedImage, 1);
-				image.scaleToFit(600, 750);
+				image.scaleToFit(PageSize.A4.getWidth(), PageSize.A4.getHeight());
+				float x = (PageSize.A4.getWidth() - image.getScaledWidth()) / 2;
+				float y = (PageSize.A4.getHeight() - image.getScaledHeight()) / 2;
+				image.setAbsolutePosition(x, y);
 				document.add(image);
+				document.newPage();
 			}
 
 			document.close();

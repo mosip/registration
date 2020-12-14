@@ -926,10 +926,10 @@ public class DocumentScanController extends BaseController {
 	private byte[] getScannedPagesToBytes(List<BufferedImage> scannedPages) throws IOException {
 
 		byte[] byteArray = null;
-		if (!"pdf".equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.DOC_TYPE))) {
-			byteArray = documentScanFacade.asImage(scannedPages);
-		} else {
+		if ("pdf".equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.DOC_TYPE))) {
 			byteArray = documentScanFacade.asPDF(scannedPages);
+		} else {
+			byteArray = documentScanFacade.asImage(scannedPages);			
 		}
 		return byteArray;
 	}
