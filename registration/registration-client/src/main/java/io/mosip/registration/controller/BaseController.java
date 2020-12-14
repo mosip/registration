@@ -893,7 +893,7 @@ public class BaseController {
 	 * @param templateCode the template code
 	 * @return the notification template
 	 */
-	protected Writer getNotificationTemplate(String templateCode) {
+	/*protected Writer getNotificationTemplate(String templateCode) {
 		RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 		Writer writeNotificationTemplate = new StringWriter();
 		try {
@@ -914,7 +914,7 @@ public class BaseController {
 					regBaseCheckedException.getMessage() + ExceptionUtils.getStackTrace(regBaseCheckedException));
 		}
 		return writeNotificationTemplate;
-	}
+	}*/
 
 	/**
 	 * Gets the registration DTO from session.
