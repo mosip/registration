@@ -175,9 +175,6 @@ public class DocumentScanController extends BaseController {
 	@FXML
 	private Label biometricExceptionReq;
 
-	@FXML
-	private Button cropButton;
-
 	@Autowired
 	private Validations validation;
 
@@ -561,8 +558,6 @@ public class DocumentScanController extends BaseController {
 			}
 		}
 
-		cropButton.setVisible(false);
-
 	}
 
 	private String getDocName(UiSchemaDTO documentCategory) {
@@ -939,8 +934,6 @@ public class DocumentScanController extends BaseController {
 		return byteArray;
 	}
 
-	
-
 	/**
 	 * This method will add Hyperlink and Image for scanned documents
 	 * 
@@ -1161,7 +1154,6 @@ public class DocumentScanController extends BaseController {
 
 		imageView.setOnMouseClicked((event) -> {
 
-			cropButton.setVisible(false);
 			String hyperLinkArray[] = ((ImageView) event.getSource()).getParent().getId().split("_");
 
 			LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
@@ -1260,10 +1252,8 @@ public class DocumentScanController extends BaseController {
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID,
 				"Binding OnAction event to Hyperlink to display Scanned document");
-		cropButton.setVisible(false);
 		hyperLink.setOnAction((actionEvent) -> {
 
-			cropButton.setVisible(true);
 			LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, "Document action listener started for view ");
 
@@ -1491,105 +1481,9 @@ public class DocumentScanController extends BaseController {
 		return imageInByte;
 	}
 
-	@FXML
-	public void crop() {
+	public BufferedImage getScannedImage(int docPageNumber) {
 
-		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"crop has been selected");
-
-		Stage primaryStage = new Stage();
-
-		Group imageLayer = new Group();
-
-		Image image = docPreviewImgView.getImage();
-
-		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"Set Image for crop");
-
-		if (image != null) {
-
-			GridPane gridpane = new GridPane();
-
-			RowConstraints rc = new RowConstraints();
-			rc.setVgrow(Priority.ALWAYS);
-
-			gridpane.getRowConstraints().add(rc);
-
-			HBox hBox = new HBox();
-
-			hBox.setMinHeight(0);
-			imageView = new ImageView(image);
-			imageView.fitHeightProperty().bind(hBox.heightProperty());
-			imageView.setPreserveRatio(true);
-			imageLayer.getChildren().add(imageView);
-			hBox.getChildren().add(imageLayer);
-			gridpane.add(hBox, 0, 0);
-
-			RubberBandSelection rubberBandSelection = new RubberBandSelection(imageLayer);
-
-			rubberBandSelection.setDocumentScanController(this);
-			primaryStage.setScene(new Scene(gridpane));
-			primaryStage.setTitle("Crop Document");
-			primaryStage.setMaximized(true);
-
-			LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
-					RegistrationConstants.APPLICATION_ID, "Shown stage for crop");
-
-			primaryStage.show();
-			this.primaryStage = primaryStage;
-		}
-
-	}
-
-	public void save(Bounds bounds) throws IOException {
-
-		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"Saving cropped image");
-
-		if (bounds.getHeight() == 1.0 || bounds.getWidth() == 1.0)
-			return;
-
-		int width = (int) bounds.getWidth();
-		int height = (int) bounds.getHeight();
-
-		SnapshotParameters parameters = new SnapshotParameters();
-		parameters.setFill(Color.TRANSPARENT);
-		parameters.setViewport(new Rectangle2D(bounds.getMinX(), bounds.getMinY(), width, height));
-
-		WritableImage wi = new WritableImage(width, height);
-		imageView.snapshot(parameters, wi);
-
-		BufferedImage bufImageARGB = SwingFXUtils.fromFXImage(wi, null);
-		BufferedImage bufImageRGB = new BufferedImage(bufImageARGB.getWidth(), bufImageARGB.getHeight(),
-				BufferedImage.OPAQUE);
-
-		Graphics2D graphics = bufImageRGB.createGraphics();
-		graphics.drawImage(bufImageARGB, 0, 0, null);
-
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ImageIO.write(bufImageRGB, "jpg", baos);
-
-		// attachDocuments(documentCategoryDto, selectedDocVBox, baos.toByteArray(),
-		// true);
-
-		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"Saving cropped image into session");
-
-		int pageNumber = Integer.valueOf(docPageNumber.getText().isEmpty() ? "1" : docPageNumber.getText());
-
-		docPages.remove(pageNumber - 1);
-		docPages.add(pageNumber - 1, ImageIO.read(new ByteArrayInputStream(baos.toByteArray())));
-		DocumentDto documentDto = getDocumentsMapFromSession().get(cropDocumentKey);
-		documentDto.setDocument(documentScanFacade.asPDF(docPages));
-		getRegistrationDTOFromSession().addDocument(cropDocumentKey, documentDto);
-		generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.CROP_DOC_SUCCESS);
-		docPreviewImgView.setImage(convertBytesToImage(documentDto.getDocument()));
-		graphics.dispose();
-		primaryStage.close();
-
-		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"Saving cropped image completed");
-
+		return scannedPages.get(docPageNumber);
 	}
 
 }

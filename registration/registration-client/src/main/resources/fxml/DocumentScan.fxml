@@ -149,7 +149,6 @@
                                                       </GridPane>
                                                       <GridPane GridPane.rowIndex="1">
                                                         <columnConstraints>
-                                                            <ColumnConstraints hgrow="SOMETIMES" maxWidth="90.0" minWidth="10.0" prefWidth="84.0" />
                                                           <ColumnConstraints hgrow="SOMETIMES" maxWidth="68.0" minWidth="10.0" prefWidth="43.0" />
                                                           <ColumnConstraints hgrow="SOMETIMES" maxWidth="43.0" minWidth="10.0" prefWidth="20.0" />
                                                             <ColumnConstraints hgrow="SOMETIMES" maxWidth="74.0" minWidth="10.0" prefWidth="47.0" />
@@ -158,11 +157,9 @@
                                                           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                                         </rowConstraints>
                                                          <children>
-                                                            <Label fx:id="docPreviewNext" onMouseClicked="#previewNextPage" text="%previewnext" GridPane.columnIndex="3" GridPane.halignment="RIGHT" GridPane.valignment="CENTER" />
-                                                            <Label fx:id="docPreviewPrev" onMouseClicked="#previewPrevPage" text="%previewprevious" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.valignment="CENTER" />
-                                                            <Label fx:id="docPageNumber" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
-                                                            <Button fx:id="cropButton" mnemonicParsing="false" onAction="#crop" prefHeight="39.0" prefWidth="88.0" styleClass="scanButton" text="crop">
-                                                            </Button>
+                                                            <Label fx:id="docPreviewNext" onMouseClicked="#previewNextPage" text="%previewnext" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.valignment="CENTER" />
+                                                            <Label fx:id="docPreviewPrev" onMouseClicked="#previewPrevPage" text="%previewprevious" GridPane.halignment="LEFT" GridPane.valignment="CENTER" />
+                                                            <Label fx:id="docPageNumber" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
                                                          </children>
                                                       </GridPane>
                                                    </children>

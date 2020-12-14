@@ -5,9 +5,14 @@ import static io.mosip.registration.constants.LoggerConstants.LOG_REG_SCAN_CONTR
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 
+import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,19 +28,32 @@ import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.reg.DocumentScanController;
 import io.mosip.registration.device.webcam.impl.WebcamSarxosServiceImpl;
+import io.mosip.registration.dto.packetmanager.DocumentDto;
+import io.mosip.registration.util.common.RubberBandSelection;
 import javafx.application.Platform;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.embed.swing.SwingNode;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.RowConstraints;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -97,12 +115,17 @@ public class ScanPopUpViewController extends BaseController {
 	@Value("${mosip.doc.stage.height:620}")
 	private int height;
 
-	/**
-	 * @return the scanImage
-	 */
-	public ImageView getScanImage() {
-		return scanImage;
-	}
+	@FXML
+	protected Label docPreviewNext;
+
+	@FXML
+	protected Label docPreviewPrev;
+
+	@FXML
+	protected Label docPageNumber;
+
+	@FXML
+	protected GridPane previewOption;
 
 	private Stage popupStage;
 
@@ -112,11 +135,22 @@ public class ScanPopUpViewController extends BaseController {
 	@Autowired
 	private BiometricsController biometricsController;
 
+	private Stage cropStage;
+
+	private ImageView cropImageView;
+
 	/**
 	 * @return the popupStage
 	 */
 	public Stage getPopupStage() {
 		return popupStage;
+	}
+
+	/**
+	 * @return the scanImage
+	 */
+	public ImageView getScanImage() {
+		return scanImage;
 	}
 
 	/**
@@ -173,6 +207,8 @@ public class ScanPopUpViewController extends BaseController {
 			setDefaultImageGridPaneVisibility();
 			popupStage.setResizable(false);
 			popupTitle.setText(title);
+
+			previewOption.setVisible(false);
 			Scene scene = null;
 
 			if (!isDocumentScan) {
@@ -244,6 +280,21 @@ public class ScanPopUpViewController extends BaseController {
 		LOGGER.info(LOG_REG_SCAN_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Invoke scan method for the passed controller");
 		baseController.scan(popupStage);
+
+		String docNumber = docPageNumber.getText();
+
+		if (docNumber == null || docNumber.isEmpty()) {
+			docPageNumber.setText("1");
+			docPreviewPrev.setDisable(true);
+			docPreviewNext.setDisable(true);
+
+		} else {
+			docPageNumber.setText(String.valueOf(documentScanController.getScannedPages().size()));
+			docPreviewPrev.setDisable(false);
+			docPreviewNext.setDisable(true);
+		}
+
+		previewOption.setVisible(true);
 	}
 
 	/**
@@ -292,6 +343,7 @@ public class ScanPopUpViewController extends BaseController {
 			DocumentScanController documentScanController = (DocumentScanController) baseController;
 			try {
 				documentScanController.attachScannedDocument(popupStage);
+
 			} catch (IOException | RuntimeException ioException) {
 				LOGGER.error(LOG_REG_SCAN_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 						ExceptionUtils.getStackTrace(ioException));
@@ -345,6 +397,190 @@ public class ScanPopUpViewController extends BaseController {
 		webcamParent.setVisible(true);
 
 		LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "Setting jPanel completed");
+	}
+
+	/**
+	 * This method will preview the next document
+	 */
+	public void previewNextPage() {
+
+		Integer docNumber = getDocPreviewNumber();
+
+		if (docNumber != null && docNumber > 0) {
+
+			int previousDocNumber = docNumber;
+
+			BufferedImage bufferedImage = null;
+			if (documentScanController.getScannedPages().size() > (previousDocNumber)) {
+
+				bufferedImage = documentScanController.getScannedImage(previousDocNumber);
+
+			}
+
+			if (bufferedImage != null) {
+
+				scanImage.setImage(SwingFXUtils.toFXImage(bufferedImage, null));
+
+				docPageNumber.setText(String.valueOf(previousDocNumber + 1));
+
+				docPreviewPrev.setDisable(false);
+
+				if (documentScanController.getScannedPages().size() == (previousDocNumber + 1)) {
+
+					docPreviewNext.setDisable(true);
+				}
+
+			}
+
+		}
+	}
+
+	/**
+	 * This method will preview the previous document
+	 */
+	public void previewPrevPage() {
+
+		Integer docNumber = getDocPreviewNumber();
+
+		if (docNumber != null && docNumber > 0) {
+
+			int previousDocNumber = docNumber - 2;
+
+			BufferedImage bufferedImage = null;
+
+			if (documentScanController.getScannedPages().size() > (previousDocNumber)) {
+
+				bufferedImage = documentScanController.getScannedImage(previousDocNumber);
+
+			}
+
+			if (bufferedImage != null) {
+
+				scanImage.setImage(SwingFXUtils.toFXImage(bufferedImage, null));
+
+				docPageNumber.setText(String.valueOf(docNumber - 1));
+
+				docPreviewNext.setDisable(false);
+
+				if ((previousDocNumber) == 0) {
+
+					docPreviewPrev.setDisable(true);
+				}
+			}
+
+		}
+	}
+
+	private Integer getDocPreviewNumber() {
+
+		Integer docNumber = null;
+		String docPreviewNumber = docPageNumber.getText();
+
+		if (docPreviewNumber != null && !docPreviewNumber.isEmpty()) {
+
+			docNumber = Integer.valueOf(docPreviewNumber);
+
+		}
+
+		return docNumber;
+	}
+
+	@FXML
+	public void crop() {
+
+		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"crop has been selected");
+
+		cropStage = new Stage();
+
+		Group imageLayer = new Group();
+
+		Image image = scanImage.getImage();
+
+		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Set Image for crop");
+
+		if (image != null) {
+
+			GridPane gridpane = new GridPane();
+
+			RowConstraints rc = new RowConstraints();
+			rc.setVgrow(Priority.ALWAYS);
+
+			gridpane.getRowConstraints().add(rc);
+
+			HBox hBox = new HBox();
+
+			hBox.setMinHeight(0);
+			cropImageView = new ImageView(image);
+			cropImageView.fitHeightProperty().bind(hBox.heightProperty());
+			cropImageView.setPreserveRatio(true);
+			imageLayer.getChildren().add(cropImageView);
+			hBox.getChildren().add(imageLayer);
+			gridpane.add(hBox, 0, 0);
+
+			RubberBandSelection rubberBandSelection = new RubberBandSelection(imageLayer);
+
+			rubberBandSelection.setscanPopUpViewController(this);
+			cropStage.setScene(new Scene(gridpane));
+			cropStage.setTitle("Crop Document");
+			cropStage.setMaximized(true);
+
+			LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "Shown stage for crop");
+
+			cropStage.show();
+		}
+
+	}
+
+	public void save(Bounds bounds) throws IOException {
+
+		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Saving cropped image");
+
+		if (bounds.getHeight() == 1.0 || bounds.getWidth() == 1.0)
+			return;
+
+		int width = (int) bounds.getWidth();
+		int height = (int) bounds.getHeight();
+
+		SnapshotParameters parameters = new SnapshotParameters();
+		parameters.setFill(Color.TRANSPARENT);
+		parameters.setViewport(new Rectangle2D(bounds.getMinX(), bounds.getMinY(), width, height));
+
+		WritableImage wi = new WritableImage(width, height);
+		cropImageView.snapshot(parameters, wi);
+
+		BufferedImage bufImageARGB = SwingFXUtils.fromFXImage(wi, null);
+		BufferedImage bufImageRGB = new BufferedImage(bufImageARGB.getWidth(), bufImageARGB.getHeight(),
+				BufferedImage.OPAQUE);
+
+		Graphics2D graphics = bufImageRGB.createGraphics();
+		graphics.drawImage(bufImageARGB, 0, 0, null);
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ImageIO.write(bufImageRGB, "jpg", baos);
+
+		// attachDocuments(documentCategoryDto, selectedDocVBox, baos.toByteArray(),
+		// true);
+
+		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Saving cropped image into session");
+
+		int pageNumber = Integer.valueOf(docPageNumber.getText().isEmpty() ? "1" : docPageNumber.getText());
+
+		documentScanController.getScannedPages().remove(pageNumber - 1);
+		documentScanController.getScannedPages().add(pageNumber - 1,
+				ImageIO.read(new ByteArrayInputStream(baos.toByteArray())));
+
+		scanImage.setImage(SwingFXUtils.toFXImage(documentScanController.getScannedPages().get(pageNumber - 1), null));
+		graphics.dispose();
+		cropStage.close();
+
+		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"Saving cropped image completed");
+
 	}
 
 }

@@ -72,8 +72,19 @@
                                     <VBox alignment="TOP_RIGHT" spacing="15.0" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP">
                                        <children>
                                           <Text fx:id="scanningMsg" text="%scanning" />
-                                          <Label fx:id="scannedPagesLabel" styleClass="scanButton" text="%totalpages" />
-                                          <Text fx:id="totalScannedPages" strokeType="OUTSIDE" strokeWidth="0.0" text="0" />
+                                          <GridPane alignment="TOP_RIGHT" prefHeight="27.0" prefWidth="157.0">
+                                            <columnConstraints>
+                                              <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" maxWidth="132.0" minWidth="10.0" prefWidth="132.0" />
+                                              <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" maxWidth="96.0" minWidth="10.0" prefWidth="25.0" />
+                                            </columnConstraints>
+                                            <rowConstraints>
+                                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                            </rowConstraints>
+                                             <children>
+                                                <Label fx:id="scannedPagesLabel" alignment="TOP_RIGHT" contentDisplay="RIGHT" styleClass="scanButton" text="%totalpages" />
+                                                <Text fx:id="totalScannedPages" strokeType="OUTSIDE" strokeWidth="0.0" text="0" GridPane.columnIndex="1" />
+                                             </children>
+                                          </GridPane>
                                           <Button fx:id="saveBtn" mnemonicParsing="false" onAction="#save" styleClass="scanButton" text="%save">
                                     </Button>
                                           <Button fx:id="captureBtn" mnemonicParsing="false" onAction="#scan" styleClass="scanButton" text="%capture">
@@ -125,6 +136,36 @@
                </children>
             </GridPane>
          </top>
+         <bottom>
+            <GridPane fx:id="previewOption" BorderPane.alignment="CENTER">
+               <children>
+                  <Label fx:id="docPreviewNext" onMouseClicked="#previewNextPage" text="%previewnext" GridPane.columnIndex="5" GridPane.halignment="RIGHT" GridPane.valignment="CENTER" />
+                  <Label fx:id="docPreviewPrev" onMouseClicked="#previewPrevPage" text="%previewprevious" GridPane.columnIndex="3" GridPane.halignment="LEFT" GridPane.valignment="CENTER" />
+                  <Label fx:id="docPageNumber" GridPane.columnIndex="4" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+                  <Button fx:id="cropButton" mnemonicParsing="false" onAction="#crop" prefHeight="39.0" prefWidth="92.0" styleClass="scanButton" text="crop" GridPane.columnIndex="1">
+                     <graphic>
+                        <ImageView fx:id="backImageView" fitHeight="20.0" fitWidth="27.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/crop.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+               </children>
+               <columnConstraints>
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="91.39999999999999" minWidth="1.0" percentWidth="2.0" prefWidth="41.39999999999999" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="143.39999999999998" minWidth="10.0" percentWidth="15.0" prefWidth="143.39999999999998" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="143.39999999999998" minWidth="10.0" percentWidth="3.0" prefWidth="143.39999999999998" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="68.0" minWidth="10.0" percentWidth="15.0" prefWidth="43.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="43.0" minWidth="10.0" prefWidth="20.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="74.0" minWidth="10.0" percentWidth="15.0" prefWidth="47.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints maxHeight="56.0" minHeight="10.0" prefHeight="56.0" vgrow="SOMETIMES" />
+                  <RowConstraints maxHeight="25.0" minHeight="4.0" prefHeight="4.0" vgrow="SOMETIMES" />
+               </rowConstraints>
+            </GridPane>
+         </bottom>
       </BorderPane>
    </children>
 </GridPane>

@@ -2,14 +2,10 @@ package io.mosip.registration.util.common;
 
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
-import io.mosip.registration.controller.reg.DemographicDetailController;
-import io.mosip.registration.controller.reg.DocumentScanController;
+import io.mosip.registration.controller.device.ScanPopUpViewController;
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.scene.Group;
@@ -26,14 +22,14 @@ public class RubberBandSelection {
 
 	private static final Logger LOGGER = AppConfig.getLogger(RubberBandSelection.class);
 	private static final String loggerClassName = "RubberBandSelection";
-	private DocumentScanController documentScanController = null;
+	private ScanPopUpViewController scanPopUpViewController = null;
 	private final DragContext dragContext = new DragContext();
 	private Rectangle rect = new Rectangle();
 
 	private Group group;
 
-	public void setDocumentScanController(DocumentScanController documentScanController) {
-		this.documentScanController = documentScanController;
+	public void setscanPopUpViewController(ScanPopUpViewController scanPopUpViewController) {
+		this.scanPopUpViewController = scanPopUpViewController;
 	}
 
 	public Bounds getBounds() {
@@ -139,7 +135,7 @@ public class RubberBandSelection {
 			Bounds selectionBounds = getBounds();
 
 			// crop the image
-			documentScanController.save(selectionBounds);
+			scanPopUpViewController.save(selectionBounds);
 
 			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 					"Crop on mouse released completed");
