@@ -101,6 +101,9 @@ public class AuthUtil {
 	@Value("${mosipbox.public.url:null}")
 	private String domainUrl;
 
+	@Value("${crypto.PrependThumbprint.enable:true}")
+	private boolean isPrependThumbprintEnabled;
+
 	@Autowired
 	private Environment env;
 
@@ -308,6 +311,7 @@ public class AuthUtil {
 		encryptDto.setSalt(salt);
 		encryptDto.setTimeStamp(timeStamp);
 		encryptDto.setData(CryptoUtil.encodeBase64(data));
+		encryptDto.setPrependThumbprint(isPrependThumbprintEnabled);
 
 		request.setId(authRequestId);
 		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));

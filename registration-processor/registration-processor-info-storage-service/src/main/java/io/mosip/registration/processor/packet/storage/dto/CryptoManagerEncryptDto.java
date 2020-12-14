@@ -15,5 +15,6 @@ public class CryptoManagerEncryptDto {
 	private String referenceId;
 	private String salt;
 	private String timeStamp;
+	private Boolean prependThumbprint;
 
 }
