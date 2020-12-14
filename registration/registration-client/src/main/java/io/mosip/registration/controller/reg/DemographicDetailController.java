@@ -5,16 +5,12 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import io.mosip.registration.util.common.DemographicChangeActionHandler;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.scene.control.*;
-import org.joda.time.LocalDate;
-import org.joda.time.Period;
-import org.joda.time.PeriodType;
 import org.mvel2.MVEL;
 import org.mvel2.integration.VariableResolverFactory;
 import org.mvel2.integration.impl.MapVariableResolverFactory;
@@ -50,7 +46,6 @@ import io.mosip.registration.dto.SuccessResponseDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.mastersync.LocationDto;
-import io.mosip.registration.dto.response.SchemaDto;
 import io.mosip.registration.entity.Location;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.IdentitySchemaService;
@@ -70,7 +65,6 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
@@ -137,16 +131,6 @@ public class DemographicDetailController extends BaseController {
 	public TextField preRegistrationId;
 	@FXML
 	public Label languageLabelLocalLanguage;
-	/*@FXML
-	private GridPane parentDetailPane;
-	@FXML
-	private ScrollPane parentScrollPane;
-	@FXML
-	private HBox parentDetailsHbox;
-	@FXML
-	private HBox localParentDetailsHbox;
-	@FXML
-	private AnchorPane ridOrUinToggle;*/
 
 	private boolean isChild;
 	private Node keyboardNode;
@@ -439,9 +423,6 @@ public class DemographicDetailController extends BaseController {
 			case RegistrationConstants.AGE_DATE:
 				content = addContentForDobAndAge(schemaDTO, languageType);
 				break;
-			case "age":
-				// TODO Not yet supported
-				break;
 			case RegistrationConstants.TEXTBOX:
 				content = addContentWithTextField(schemaDTO, schemaDTO.getId(), languageType);
 				break;
@@ -458,162 +439,78 @@ public class DemographicDetailController extends BaseController {
 		return gridPane;
 	}
 
-	public VBox addContentForDobAndAge(UiSchemaDTO schema, String languageType) {
-
-		VBox vBoxDD = new VBox();
-
-		String fieldId = schema.getId();
-		TextField dd = new TextField();
-		dd.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
-		dd.setId(fieldId + "__" + RegistrationConstants.DD + languageType);
-		Label ddLabel = new Label();
-		ddLabel.setVisible(false);
-		ddLabel.setId(fieldId + "__" + RegistrationConstants.DD + languageType + RegistrationConstants.LABEL);
-		ddLabel.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
-		vBoxDD.getChildren().addAll(ddLabel, dd);
-		dd.textProperty().addListener((ob, ov, nv) -> {
-			fxUtils.showLabel(parentFlowPane, dd);
-			if(!dateValidation.isNewValueValid(nv, RegistrationConstants.DD)) {
-				dd.setText(ov);
-			}
-			boolean isValid = dateValidation.validateDate(parentFlowPane, fieldId);
-			if(isValid) {
-				addFieldValueToSession(validation.getValidationMap().get(fieldId), getRegistrationDTOFromSession());
-			}
-		});
-		putIntoLabelMap(fieldId + "__" + RegistrationConstants.DD + languageType,
-				schema.getLabel().get(RegistrationConstants.LOCAL_LANGUAGE.equals(languageType) ?
-						RegistrationConstants.SECONDARY : RegistrationConstants.PRIMARY));
-		listOfTextField.put(fieldId + "__" + RegistrationConstants.DD + languageType, dd);
-
-		VBox vBoxMM = new VBox();
-		TextField mm = new TextField();
-		mm.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
-		mm.setId(fieldId + "__" + RegistrationConstants.MM + languageType);
-		Label mmLabel = new Label();
-		mmLabel.setVisible(false);
-		mmLabel.setId(fieldId + "__" + RegistrationConstants.MM + languageType + RegistrationConstants.LABEL);
-		mmLabel.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
-		vBoxMM.getChildren().addAll(mmLabel, mm);
-		mm.textProperty().addListener((ob, ov, nv) -> {
-			fxUtils.showLabel(parentFlowPane, mm);
-			if(!dateValidation.isNewValueValid(nv, RegistrationConstants.MM)) {
-				mm.setText(ov);
-			}
-			boolean isValid = dateValidation.validateDate(parentFlowPane, fieldId);
-			if(isValid) {
-				addFieldValueToSession(validation.getValidationMap().get(fieldId), getRegistrationDTOFromSession());
-			}
-		});
-		putIntoLabelMap(fieldId + "__" + RegistrationConstants.MM + languageType,
-				schema.getLabel().get(RegistrationConstants.LOCAL_LANGUAGE.equals(languageType) ?
-						RegistrationConstants.SECONDARY : RegistrationConstants.PRIMARY));
-		listOfTextField.put(fieldId + "__" + RegistrationConstants.MM + languageType, mm);
-
-		VBox vBoxYYYY = new VBox();
-		TextField yyyy = new TextField();
-		yyyy.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
-		yyyy.setId(fieldId + "__" + RegistrationConstants.YYYY + languageType);
-		Label yyyyLabel = new Label();
-		yyyyLabel.setVisible(false);
-		yyyyLabel.setId(fieldId + "__" + RegistrationConstants.YYYY + languageType + RegistrationConstants.LABEL);
-		yyyyLabel.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
-		vBoxYYYY.getChildren().addAll(yyyyLabel, yyyy);
-		yyyy.textProperty().addListener((ob, ov, nv) -> {
-			fxUtils.showLabel(parentFlowPane, yyyy);
-			if(!dateValidation.isNewValueValid(nv, RegistrationConstants.YYYY)) {
-				yyyy.setText(ov);
-			}
-			boolean isValid = dateValidation.validateDate(parentFlowPane, fieldId);
-			if(isValid) {
-				addFieldValueToSession(validation.getValidationMap().get(fieldId), getRegistrationDTOFromSession());
-			}
-		});
-		putIntoLabelMap(fieldId + "__" + RegistrationConstants.YYYY + languageType,
-				schema.getLabel().get(RegistrationConstants.LOCAL_LANGUAGE.equals(languageType) ?
-						RegistrationConstants.SECONDARY : RegistrationConstants.PRIMARY));
-		listOfTextField.put(fieldId + "__" + RegistrationConstants.YYYY + languageType, yyyy);
-
-		Label dobMessage = new Label();
-		dobMessage.setId(fieldId + "__" + RegistrationConstants.DOB_MESSAGE + languageType);
-		dobMessage.getStyleClass().add(RegistrationConstants.DemoGraphicFieldMessageLabel);
+	private VBox addDateTextField(UiSchemaDTO schema, String type, String languageType, String mandatorySuffix) {
+		VBox vBoxParent = new VBox();
+		TextField textField = new TextField();
+		textField.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
+		textField.setId(schema.getId() + "__" + type + languageType);
+		Label label = new Label();
+		label.setVisible(false);
+		label.setId(schema.getId() + "__" + type + languageType + RegistrationConstants.LABEL);
+		label.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
+		vBoxParent.getChildren().addAll(label, textField);
 
 		boolean localLanguage = languageType.equals(RegistrationConstants.LOCAL_LANGUAGE);
+		textField.setPromptText(localLanguage ? localLabelBundle.getString(type)
+				: applicationLabelBundle.getString(type) + mandatorySuffix);
+		label.setText(localLanguage ? localLabelBundle.getString(type)
+				: applicationLabelBundle.getString(type) + mandatorySuffix);
 
-		String mandatorySuffix = getMandatorySuffix(schema);
-		dd.setPromptText(localLanguage ? localLabelBundle.getString(RegistrationConstants.DD)
-				: applicationLabelBundle.getString(RegistrationConstants.DD) + mandatorySuffix);
-		ddLabel.setText(localLanguage ? localLabelBundle.getString(RegistrationConstants.DD)
-				: applicationLabelBundle.getString(RegistrationConstants.DD) + mandatorySuffix);
-		mm.setPromptText(localLanguage ? localLabelBundle.getString(RegistrationConstants.MM)
-				: applicationLabelBundle.getString(RegistrationConstants.MM) + mandatorySuffix);
-		mmLabel.setText(localLanguage ? localLabelBundle.getString(RegistrationConstants.MM)
-				: applicationLabelBundle.getString(RegistrationConstants.MM) + mandatorySuffix);
-		dobMessage.setText("");
-
-		yyyy.setPromptText(localLanguage ? localLabelBundle.getString(RegistrationConstants.YYYY)
-				: applicationLabelBundle.getString(RegistrationConstants.YYYY) + mandatorySuffix);
-		yyyyLabel.setText(localLanguage ? localLabelBundle.getString(RegistrationConstants.YYYY)
-				: applicationLabelBundle.getString(RegistrationConstants.YYYY) + mandatorySuffix);
-
-		HBox hB = new HBox();
-		hB.setSpacing(10);
-		hB.getChildren().addAll(vBoxDD, vBoxMM, vBoxYYYY);
-
-		HBox hB2 = new HBox();
-		VBox vboxAgeField = new VBox();
-		TextField ageField = new TextField();
-		ageField.setId(fieldId + "__" + RegistrationConstants.AGE_FIELD + languageType);
-		ageField.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
-		Label ageFieldLabel = new Label();
-		ageFieldLabel.setId(fieldId + "__" + RegistrationConstants.AGE_FIELD + languageType + RegistrationConstants.LABEL);
-		ageFieldLabel.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
-		ageFieldLabel.setVisible(false);
-		vboxAgeField.getChildren().addAll(ageFieldLabel, ageField);
-		ageField.textProperty().addListener((ob, ov, nv) -> {
-			fxUtils.showLabel(parentFlowPane, ageField);
-			if(!dateValidation.isNewValueValid(nv, RegistrationConstants.AGE_FIELD)) {
-				ageField.setText(ov);
+		textField.textProperty().addListener((ob, ov, nv) -> {
+			fxUtils.showLabel(parentFlowPane, textField);
+			if(!dateValidation.isNewValueValid(nv, type)) {
+				textField.setText(ov);
 			}
-			if(nv != null) {
-				boolean isValid = dateValidation.validateAge(parentFlowPane, ageField);
-				if(isValid) {
-					addFieldValueToSession(validation.getValidationMap().get(fieldId), getRegistrationDTOFromSession());
-				}
+			boolean isValid = RegistrationConstants.AGE_FIELD.equalsIgnoreCase(type) ?
+					dateValidation.validateAge(parentFlowPane, textField) :
+					dateValidation.validateDate(parentFlowPane, schema.getId());
+			if(isValid) {
+				refreshDemographicGroups();
 			}
 		});
-		putIntoLabelMap(fieldId + "__" + RegistrationConstants.AGE_FIELD + languageType,
+
+		putIntoLabelMap(schema.getId() + "__" + type + languageType,
 				schema.getLabel().get(RegistrationConstants.LOCAL_LANGUAGE.equals(languageType) ?
 						RegistrationConstants.SECONDARY : RegistrationConstants.PRIMARY));
-		listOfTextField.put(fieldId + "__" + RegistrationConstants.AGE_FIELD + languageType, ageField);
+		listOfTextField.put(schema.getId() + "__" + type + languageType, textField);
+		return vBoxParent;
+	}
 
-		ageField.setPromptText(localLanguage ? localLabelBundle.getString(RegistrationConstants.AGE_FIELD)
-				: applicationLabelBundle.getString(RegistrationConstants.AGE_FIELD) + mandatorySuffix);
-		ageFieldLabel.setText(localLanguage ? localLabelBundle.getString(RegistrationConstants.AGE_FIELD)
-				: applicationLabelBundle.getString(RegistrationConstants.AGE_FIELD) + mandatorySuffix);
+	public VBox addContentForDobAndAge(UiSchemaDTO schema, String languageType) {
+		String mandatorySuffix = getMandatorySuffix(schema);
+		boolean localLanguage = languageType.equals(RegistrationConstants.LOCAL_LANGUAGE);
+		VBox vBoxDD = addDateTextField(schema, RegistrationConstants.DD, languageType, mandatorySuffix);
+		VBox vBoxMM = addDateTextField(schema, RegistrationConstants.MM, languageType, mandatorySuffix);
+		VBox vBoxYYYY = addDateTextField(schema, RegistrationConstants.YYYY, languageType, mandatorySuffix);
+		VBox vboxAgeField = addDateTextField(schema, RegistrationConstants.AGE_FIELD, languageType, mandatorySuffix);
 
-		hB.setPrefWidth(250);
-		hB2.setSpacing(10);
+		Label dobMessage = new Label();
+		dobMessage.setId(schema.getId() + "__" + RegistrationConstants.DOB_MESSAGE + languageType);
+		dobMessage.getStyleClass().add(RegistrationConstants.DemoGraphicFieldMessageLabel);
+		dobMessage.setText("");
+
+		HBox dateHbox = new HBox();
+		dateHbox.setSpacing(10);
+		dateHbox.setPrefWidth(250);
+		dateHbox.getChildren().addAll(vBoxDD, vBoxMM, vBoxYYYY);
+
 		Label orLabel = new Label(localLanguage ? localLabelBundle.getString("ageOrDOBField")
 				: applicationLabelBundle.getString("ageOrDOBField"));
 
 		VBox orVbox = new VBox();
 		orVbox.setPrefWidth(100);
 		orVbox.getChildren().addAll(new Label(), orLabel);
-		hB2.getChildren().addAll(hB, orVbox, vboxAgeField);
-		VBox vB = new VBox();
-		vB.setId(fieldId);
-		vB.getChildren().addAll(hB2, dobMessage);
 
-		/*fxUtils.onTypeFocusUnfocusListener(parentFlowPane, dd);
-		fxUtils.onTypeFocusUnfocusListener(parentFlowPane, mm);
-		fxUtils.onTypeFocusUnfocusListener(parentFlowPane, yyyy);
-		fxUtils.onTypeFocusUnfocusListener(parentFlowPane, ageField);*/
+		HBox dateAgeHbox = new HBox();
+		dateAgeHbox.setSpacing(10);
+		dateAgeHbox.getChildren().addAll(dateHbox, orVbox, vboxAgeField);
 
+		VBox finalVbox = new VBox();
+		finalVbox.setId(schema.getId());
+		finalVbox.getChildren().addAll(dateAgeHbox, dobMessage);
 		//NOTE: by default local/secondary language DOB fields are disabled
-		vB.setDisable(languageType.equals(RegistrationConstants.LOCAL_LANGUAGE));
-
-		return vB;
+		finalVbox.setDisable(languageType.equals(RegistrationConstants.LOCAL_LANGUAGE));
+		return finalVbox;
 	}
 
 
@@ -891,129 +788,6 @@ public class DemographicDetailController extends BaseController {
 				.setText(ApplicationContext.applicationLanguageBundle().getString(RegistrationConstants.LOSTUINLBL));
 	}
 
-	/**
-	 * To restrict the user not to eavcdnter any values other than integer values.
-	 */
-	private void ageBasedOperation(Pane parentPane, TextField ageField, Label dobMessage, TextField dd, TextField mm,
-			TextField yyyy) {
-		try {
-			LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
-					RegistrationConstants.APPLICATION_ID, "Validating the age given by age field");
-			fxUtils.validateLabelFocusOut(parentPane, ageField);
-			ageField.focusedProperty().addListener((obsValue, oldValue, newValue) -> {
-				if (!getAge(yyyy.getText(), mm.getText(), dd.getText()).equals(ageField.getText())) {
-					if (oldValue) {
-						ageValidation(parentPane, ageField, dobMessage, oldValue, dd, mm, yyyy);
-					}
-				}
-			});
-			LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
-					RegistrationConstants.APPLICATION_ID, "Validating the age given by age field");
-		} catch (RuntimeException runtimeException) {
-			LOGGER.error("REGISTRATION - AGE FIELD VALIDATION FAILED ", APPLICATION_NAME,
-					RegistrationConstants.APPLICATION_ID,
-					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
-		}
-	}
-
-	/**
-	 * Gets the age.
-	 *
-	 * @param year  the year
-	 * @param month the month
-	 * @param date  the date
-	 * @return the age
-	 */
-	String getAge(String year, String month, String date) {
-		if (year != null && !year.isEmpty() && month != null && !month.isEmpty() && date != null && !date.isEmpty()) {
-			LocalDate birthdate = new LocalDate(Integer.parseInt(year), Integer.parseInt(month),
-					Integer.parseInt(date)); // Birth
-												// date
-			LocalDate now = new LocalDate(); // Today's date
-
-			Period period = new Period(birthdate, now, PeriodType.yearMonthDay());
-			return String.valueOf(period.getYears());
-		} else {
-			return "";
-		}
-
-	}
-
-	public void ageValidation(Pane dobParentPane, TextField ageField, Label dobMessage, Boolean oldValue, TextField dd,
-			TextField mm, TextField yyyy) {
-		if (ageField.getText().matches(RegistrationConstants.NUMBER_OR_NOTHING_REGEX)) {
-			if (ageField.getText().matches(RegistrationConstants.NUMBER_REGEX)) {
-				if (maxAge >= Integer.parseInt(ageField.getText())) {
-					age = Integer.parseInt(ageField.getText());
-
-					// Not to re-calulate DOB and populate DD, MM and YYYY UI fields based on Age,
-					// since Age was calculated based on DOB entered by the user. Calculate DOB and
-					// populate DD, MM and YYYY UI fields based on user entered Age.
-					Calendar defaultDate = Calendar.getInstance();
-					defaultDate.set(Calendar.DATE, 1);
-					defaultDate.set(Calendar.MONTH, 0);
-					defaultDate.add(Calendar.YEAR, -age);
-
-					dd.setText(String.valueOf(defaultDate.get(Calendar.DATE)));
-
-					dd.requestFocus();
-					mm.setText(String.valueOf(defaultDate.get(Calendar.MONTH + 1)));
-					mm.requestFocus();
-					yyyy.setText(String.valueOf(defaultDate.get(Calendar.YEAR)));
-
-					yyyy.requestFocus();
-					dd.requestFocus();
-
-					if (getFxElement(dd.getId() + RegistrationConstants.LOCAL_LANGUAGE) != null) {
-						((TextField) getFxElement(dd.getId() + RegistrationConstants.LOCAL_LANGUAGE))
-								.setText(dd.getText());
-
-					}
-
-					if (getFxElement(yyyy.getId() + RegistrationConstants.LOCAL_LANGUAGE) != null) {
-						((TextField) getFxElement(yyyy.getId() + RegistrationConstants.LOCAL_LANGUAGE))
-								.setText(yyyy.getText());
-
-					}
-
-					if (getFxElement(mm.getId() + RegistrationConstants.LOCAL_LANGUAGE) != null) {
-						((TextField) getFxElement(mm.getId() + RegistrationConstants.LOCAL_LANGUAGE))
-								.setText(mm.getText());
-
-					}
-
-					if (getFxElement(ageField.getId() + RegistrationConstants.LOCAL_LANGUAGE) != null) {
-						((TextField) getFxElement(ageField.getId() + RegistrationConstants.LOCAL_LANGUAGE))
-								.setText(ageField.getText());
-					}
-
-					System.out.println("ageField.getId().substring(0, ageField.getId().indexOf(\"__\")) >> " + ageField.getId().substring(0, ageField.getId().indexOf("__")));
-					getRegistrationDTOFromSession().setDateField(ageField.getId().substring(0, ageField.getId().indexOf("__")),
-							dd.getText(), mm.getText(), yyyy.getText());
-					refreshDemographicGroups();
-					fxUtils.validateOnFocusOut(dobParentPane, ageField, validation, false);
-				} else {
-					ageField.getStyleClass().remove("demoGraphicTextFieldOnType");
-					ageField.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
-					Label ageFieldLabel = (Label) dobParentPane
-							.lookup("#" + ageField.getId() + RegistrationConstants.LABEL);
-					ageFieldLabel.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
-					ageField.getStyleClass().remove("demoGraphicFieldLabelOnType");
-					dobMessage.setText(RegistrationUIConstants.INVALID_AGE + maxAge);
-					dobMessage.setVisible(true);
-
-					generateAlert(dobParentPane, RegistrationConstants.DOB, dobMessage.getText());
-				}
-			} else {
-				dd.clear();
-				mm.clear();
-				yyyy.clear();
-			}
-		} else {
-			ageField.setText(RegistrationConstants.EMPTY);
-		}
-	}
-
 	private void addFirstOrderAddress(ComboBox<GenericDto> location, int id, String languageType) {
 
 		if (location != null) {
@@ -1061,7 +835,7 @@ public class DemographicDetailController extends BaseController {
 						&& !registrationDTO.getUpdatableFields().contains(schemaField.getId()))
 					continue;
 
-				addFieldValueToSession(schemaField, registrationDTO);
+				addFieldValueToSession(schemaField);
 			}
 		} catch (Exception exception) {
 			LOGGER.error("addDemoGraphicDetailsToSession", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
@@ -1069,7 +843,8 @@ public class DemographicDetailController extends BaseController {
 		}
 	}
 
-	private void addFieldValueToSession(UiSchemaDTO schemaField, RegistrationDTO registrationDTO) {
+	private void addFieldValueToSession(UiSchemaDTO schemaField) {
+		RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 		switch (schemaField.getType()) {
 			case RegistrationConstants.SIMPLE_TYPE:
 				switch (schemaField.getControlType()) {

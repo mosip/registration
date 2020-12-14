@@ -35,7 +35,7 @@ public class CopytoActionHandler extends ChangeActionHandler {
                 return;
 
             if(fromNode instanceof TextField) {
-                copy((TextField) fromNode, (TextField) toNode);
+                copy(parentPane, (TextField) fromNode, (TextField) toNode);
             }
             else if(fromNode instanceof ComboBox) {
                 copy((ComboBox) fromNode, (ComboBox) toNode);
@@ -45,8 +45,12 @@ public class CopytoActionHandler extends ChangeActionHandler {
         }
     }
 
-    private void copy(TextField fromNode, TextField toNode) {
+    private void copy(Pane parentPane, TextField fromNode, TextField toNode) {
         toNode.setText(fromNode.getText());
+        Node localLangNode = parentPane.lookup(HASH.concat(toNode.getId()).concat("LocalLanguage"));
+        if(isValidNode(localLangNode) && localLangNode instanceof TextField) {
+            ((TextField)localLangNode).setText(fromNode.getText());
+        }
     }
 
     private void copy(ComboBox fromNode, ComboBox toNode) {
