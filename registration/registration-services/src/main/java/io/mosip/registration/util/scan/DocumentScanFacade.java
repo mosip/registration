@@ -96,18 +96,7 @@ public class DocumentScanFacade {
 	 *         properly or not
 	 */
 	public boolean setScannerFactory() {
-		/*
-		 * String factoryName = "";
-		 * 
-		 * if (RegistrationAppHealthCheckUtil.isWindows()) { factoryName = "wia"; } else
-		 * if (RegistrationAppHealthCheckUtil.isLinux()) { factoryName = "sane"; }
-		 * 
-		 * for (IMosipDocumentScannerService documentScannerService :
-		 * documentScannerServices) { if
-		 * (documentScannerService.getClass().getName().toLowerCase().contains(
-		 * factoryName.toLowerCase())) { this.documentScannerService =
-		 * documentScannerService; return true; } } return false;
-		 */
+
 		for (IMosipDocumentScannerService documentScannerService : documentScannerServices) {
 			LOGGER.info(LOG_REG_DOC_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID,

@@ -1005,6 +1005,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 		auditFactory.audit(getAuditEventForScan(currentModality), Components.REG_BIOMETRICS, SessionContext.userId(),
 				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
+		scanPopUpViewController.setDocumentScan(false);
 		scanPopUpViewController.init(this, "Biometrics");
 
 		Service<MdmBioDevice> deviceSearchTask = new Service<MdmBioDevice>() {

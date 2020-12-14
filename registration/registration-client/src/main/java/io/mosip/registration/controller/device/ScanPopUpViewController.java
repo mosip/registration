@@ -85,9 +85,6 @@ public class ScanPopUpViewController extends BaseController {
 	private Button saveBtn;
 
 	@FXML
-	private Label scannedPagesLabel;
-
-	@FXML
 	private Text scanningMsg;
 
 	@FXML
@@ -122,7 +119,7 @@ public class ScanPopUpViewController extends BaseController {
 	protected Label docPreviewPrev;
 
 	@FXML
-	protected Label docPageNumber;
+	protected Text docCurrentPageNumber;
 
 	@FXML
 	protected GridPane previewOption;
@@ -131,6 +128,12 @@ public class ScanPopUpViewController extends BaseController {
 
 	@FXML
 	private Button captureBtn;
+
+	@FXML
+	private Button cancelBtn;
+
+	@FXML
+	private Button cropButton;
 
 	@Autowired
 	private BiometricsController biometricsController;
@@ -215,9 +218,9 @@ public class ScanPopUpViewController extends BaseController {
 
 				scene = new Scene(scanPopup);
 				captureBtn.setVisible(false);
-				totalScannedPages.setVisible(false);
 				saveBtn.setVisible(false);
-				scannedPagesLabel.setVisible(false);
+				cancelBtn.setVisible(false);
+				cropButton.setVisible(false);
 			} else {
 				LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 						"Setting doc screen width : " + width);
@@ -227,7 +230,12 @@ public class ScanPopUpViewController extends BaseController {
 
 				scene = new Scene(scanPopup, width, height);
 
-				isDocumentScan = false;
+				if (documentScanController.getScannedPages() != null
+						&& !documentScanController.getScannedPages().isEmpty()) {
+
+					initializeDocPages(1, documentScanController.getScannedPages().size());
+					previewOption.setVisible(true);
+				}
 
 			}
 			scene.getStylesheets().add(ClassLoader.getSystemClassLoader().getResource(getCssName()).toExternalForm());
@@ -281,20 +289,25 @@ public class ScanPopUpViewController extends BaseController {
 				"Invoke scan method for the passed controller");
 		baseController.scan(popupStage);
 
-		String docNumber = docPageNumber.getText();
+		if (isDocumentScan) {
 
-		if (docNumber == null || docNumber.isEmpty()) {
-			docPageNumber.setText("1");
-			docPreviewPrev.setDisable(true);
-			docPreviewNext.setDisable(true);
+			String docNumber = docCurrentPageNumber.getText();
 
-		} else {
-			docPageNumber.setText(String.valueOf(documentScanController.getScannedPages().size()));
-			docPreviewPrev.setDisable(false);
-			docPreviewNext.setDisable(true);
+			totalScannedPages.setText(String.valueOf(documentScanController.getScannedPages().size()));
+			if (docNumber == null || docNumber.isEmpty()) {
+				docCurrentPageNumber.setText("1");
+				docPreviewPrev.setDisable(true);
+				docPreviewNext.setDisable(true);
+
+			} else {
+				docCurrentPageNumber.setText(String.valueOf(documentScanController.getScannedPages().size()));
+				docPreviewPrev.setDisable(false);
+				docPreviewNext.setDisable(true);
+			}
+
+			previewOption.setVisible(true);
 		}
 
-		previewOption.setVisible(true);
 	}
 
 	/**
@@ -344,6 +357,8 @@ public class ScanPopUpViewController extends BaseController {
 			try {
 				documentScanController.attachScannedDocument(popupStage);
 
+				documentScanController.getScannedPages().clear();
+				popupStage.close();
 			} catch (IOException | RuntimeException ioException) {
 				LOGGER.error(LOG_REG_SCAN_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 						ExceptionUtils.getStackTrace(ioException));
@@ -359,14 +374,6 @@ public class ScanPopUpViewController extends BaseController {
 
 	public void setDocumentScan(boolean isDocumentScan) {
 		this.isDocumentScan = isDocumentScan;
-	}
-
-	public Text getTotalScannedPages() {
-		return totalScannedPages;
-	}
-
-	public void setTotalScannedPages(Text totalScannedPages) {
-		this.totalScannedPages = totalScannedPages;
 	}
 
 	public Text getScanningMsg() {
@@ -421,7 +428,7 @@ public class ScanPopUpViewController extends BaseController {
 
 				scanImage.setImage(SwingFXUtils.toFXImage(bufferedImage, null));
 
-				docPageNumber.setText(String.valueOf(previousDocNumber + 1));
+				docCurrentPageNumber.setText(String.valueOf(previousDocNumber + 1));
 
 				docPreviewPrev.setDisable(false);
 
@@ -458,7 +465,7 @@ public class ScanPopUpViewController extends BaseController {
 
 				scanImage.setImage(SwingFXUtils.toFXImage(bufferedImage, null));
 
-				docPageNumber.setText(String.valueOf(docNumber - 1));
+				docCurrentPageNumber.setText(String.valueOf(docNumber - 1));
 
 				docPreviewNext.setDisable(false);
 
@@ -474,7 +481,7 @@ public class ScanPopUpViewController extends BaseController {
 	private Integer getDocPreviewNumber() {
 
 		Integer docNumber = null;
-		String docPreviewNumber = docPageNumber.getText();
+		String docPreviewNumber = docCurrentPageNumber.getText();
 
 		if (docPreviewNumber != null && !docPreviewNumber.isEmpty()) {
 
@@ -568,7 +575,8 @@ public class ScanPopUpViewController extends BaseController {
 		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 				"Saving cropped image into session");
 
-		int pageNumber = Integer.valueOf(docPageNumber.getText().isEmpty() ? "1" : docPageNumber.getText());
+		int pageNumber = Integer
+				.valueOf(docCurrentPageNumber.getText().isEmpty() ? "1" : docCurrentPageNumber.getText());
 
 		documentScanController.getScannedPages().remove(pageNumber - 1);
 		documentScanController.getScannedPages().add(pageNumber - 1,
@@ -583,4 +591,83 @@ public class ScanPopUpViewController extends BaseController {
 
 	}
 
+	@FXML
+	public void cancel() {
+
+		int currentDocPageNumber = Integer.valueOf(docCurrentPageNumber.getText());
+		int pageNumberIndex = currentDocPageNumber - 1;
+
+		// Remove current page
+		documentScanController.getScannedPages().remove(pageNumberIndex);
+
+		// If first page
+		if (currentDocPageNumber == 1) {
+
+			// Remove current doc
+			if (documentScanController.getScannedPages().size() > 0) {
+
+				BufferedImage bufferedImage = documentScanController.getScannedImage(0);
+
+				if (bufferedImage != null) {
+
+					scanImage.setImage(SwingFXUtils.toFXImage(bufferedImage, null));
+
+				}
+
+				initializeDocPages(1, documentScanController.getScannedPages().size());
+
+			} else {
+
+				scanImage.setImage(null);
+
+				initializeDocPages(0, 0);
+
+				previewOption.setVisible(false);
+
+			}
+		}
+
+		// If last page
+		else if (currentDocPageNumber == documentScanController.getScannedPages().size() + 1) {
+
+			BufferedImage bufferedImage = documentScanController.getScannedImage(pageNumberIndex - 1);
+
+			if (bufferedImage != null) {
+
+				scanImage.setImage(SwingFXUtils.toFXImage(bufferedImage, null));
+
+				initializeDocPages(currentDocPageNumber - 1, documentScanController.getScannedPages().size());
+
+			}
+		}
+
+		// If middle page
+		else {
+			BufferedImage bufferedImage = documentScanController.getScannedImage(pageNumberIndex);
+
+			if (bufferedImage != null) {
+
+				scanImage.setImage(SwingFXUtils.toFXImage(bufferedImage, null));
+
+				initializeDocPages(currentDocPageNumber, documentScanController.getScannedPages().size());
+
+			}
+		}
+
+	}
+
+	private void initializeDocPages(int currentPage, int totalPages) {
+		docCurrentPageNumber.setText(String.valueOf(currentPage));
+
+		totalScannedPages.setText(String.valueOf(totalPages));
+
+		boolean prevPageDisable = currentPage > 1 ? false : true;
+
+		docPreviewPrev.setDisable(prevPageDisable);
+
+		boolean nextPageDisable = currentPage < totalPages ? false : true;
+
+		docPreviewNext.setDisable(nextPageDisable);
+
+	}
 }

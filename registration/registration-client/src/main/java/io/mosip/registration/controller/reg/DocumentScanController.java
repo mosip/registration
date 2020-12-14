@@ -646,17 +646,39 @@ public class DocumentScanController extends BaseController {
 	 */
 	private void scanWindow() {
 
+		Webcam webcam = webcamSarxosServiceImpl.getWebCam(selectedScanDeviceName);
+		if ((selectedScanDeviceName == null || selectedScanDeviceName.isEmpty()) || webcam == null) {
+			documentScanFacade.setStubScannerFactory();
+		} else {
+			documentScanFacade.setScannerFactory();
+		}
+
+		if (getRegistrationDTOFromSession().getDocuments() != null) {
+			DocumentDto documentDto = getRegistrationDTOFromSession().getDocuments().get(selectedComboBox.getId());
+
+			try {
+
+				if (documentDto != null) {
+					setScannedPages(documentScanFacade.pdfToImages(documentDto.getDocument()));
+				}
+			} catch (IOException exception) {
+				LOGGER.error("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
+						RegistrationConstants.APPLICATION_ID,
+						exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+
+			}
+
+		}
 		String poeDocValue = getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE);
 		if (poeDocValue != null && selectedComboBox.getValue().getCode().matches(poeDocValue)) {
 
 			startStream(this);
 		} else {
 			scanPopUpViewController.setDocumentScan(true);
+
 			scanPopUpViewController.init(this, RegistrationUIConstants.SCAN_DOC_TITLE);
-			Webcam webcam = webcamSarxosServiceImpl.getWebCam(selectedScanDeviceName);
 
 			if (webcam != null) {
-
 				documentScanFacade.setStubScannerFactory();
 				webcamSarxosServiceImpl.openWebCam(webcam, webcamSarxosServiceImpl.getWidth(),
 						webcamSarxosServiceImpl.getHeight());
@@ -723,8 +745,6 @@ public class DocumentScanController extends BaseController {
 	public void scan(Stage popupStage) {
 		try {
 
-			// TODO this check has to removed after when the stubbed data is no
-			// more needed
 			if (RegistrationConstants.YES
 					.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.DOC_SCANNER_ENABLED))) {
 				scanFromScanner();
@@ -788,8 +808,6 @@ public class DocumentScanController extends BaseController {
 
 		/* show the scanned page in the preview */
 		scanPopUpViewController.getScanImage().setImage(convertBytesToImage(byteArray));
-
-		scanPopUpViewController.getTotalScannedPages().setText(String.valueOf(scannedPages.size()));
 
 		scanPopUpViewController.getScanningMsg().setVisible(false);
 
@@ -878,8 +896,6 @@ public class DocumentScanController extends BaseController {
 		/* show the scanned page in the preview */
 		scanPopUpViewController.getScanImage().setImage(convertBytesToImage(byteArray));
 
-		scanPopUpViewController.getTotalScannedPages().setText(String.valueOf(scannedPages.size()));
-
 		scanPopUpViewController.getScanningMsg().setVisible(false);
 	}
 
@@ -913,9 +929,6 @@ public class DocumentScanController extends BaseController {
 						RegistrationConstants.APPLICATION_ID, "Adding documents to Screen");
 
 				attachDocuments(selectedComboBox.getValue(), selectedDocVBox, byteArray, false);
-
-				scannedPages.clear();
-				popupStage.close();
 
 				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 						RegistrationConstants.APPLICATION_ID, "Documents added successfully");
