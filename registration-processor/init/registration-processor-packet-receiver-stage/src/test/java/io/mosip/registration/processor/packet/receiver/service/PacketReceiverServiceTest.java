@@ -46,7 +46,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
-import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.virusscanner.exception.VirusScannerException;
 import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -83,7 +83,7 @@ import io.mosip.registration.processor.status.service.SyncRegistrationService;
 @RefreshScope
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
-@PrepareForTest({ZipUtils.class, IOUtils.class, HMACUtils.class, org.h2.store.fs.FileUtils.class })
+@PrepareForTest({ZipUtils.class, IOUtils.class, HMACUtils2.class, org.h2.store.fs.FileUtils.class })
 public class PacketReceiverServiceTest {
 
 	private static final String fileExtension = ".zip";
@@ -155,8 +155,8 @@ public class PacketReceiverServiceTest {
 		PowerMockito.mockStatic(ZipUtils.class);
 		PowerMockito.when(ZipUtils.unzipAndGetFile(any(), anyString()))
 				.thenReturn(new ByteArrayInputStream(new String("abc").getBytes()));
-		PowerMockito.mockStatic(HMACUtils.class);
-		PowerMockito.when(HMACUtils.digestAsPlainText(any())).thenReturn("abcd1234");
+		PowerMockito.mockStatic(HMACUtils2.class);
+		PowerMockito.when(HMACUtils2.digestAsPlainText(any())).thenReturn("abcd1234");
 		try {
 			ClassLoader classLoader = getClass().getClassLoader();
 			File file = new File(classLoader.getResource("0000.zip").getFile());

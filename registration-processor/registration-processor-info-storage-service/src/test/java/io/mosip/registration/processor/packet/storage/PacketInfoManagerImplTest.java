@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -1000,7 +1001,7 @@ public class PacketInfoManagerImplTest {
 	}
 
 	@Test
-	public void testsaveIndividualDemographicDedupe() {
+	public void testsaveIndividualDemographicDedupe() throws NoSuchAlgorithmException {
 
 		IndividualDemographicDedupe demographicData = new IndividualDemographicDedupe();
 		demographicData.setDateOfBirth("2019-03-02T06:29:41.011Z");
@@ -1017,7 +1018,7 @@ public class PacketInfoManagerImplTest {
 	}
 
 	@Test(expected = UnableToInsertData.class)
-	public void testsaveIndividualDemographicDedupeException() {
+	public void testsaveIndividualDemographicDedupeException() throws NoSuchAlgorithmException {
 
 		IndividualDemographicDedupe demographicData = new IndividualDemographicDedupe();
 		demographicData.setDateOfBirth("2019-03-02T06:29:41.011Z");

@@ -40,7 +40,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
-import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.AbisStatusCode;
@@ -92,7 +92,7 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
  */
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*","com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", })
-@PrepareForTest({ JsonUtil.class, IOUtils.class, HMACUtils.class })
+@PrepareForTest({ JsonUtil.class, IOUtils.class, HMACUtils2.class })
 public class DemodedupeProcessorTest {
 
 	/** The registration status service. */
