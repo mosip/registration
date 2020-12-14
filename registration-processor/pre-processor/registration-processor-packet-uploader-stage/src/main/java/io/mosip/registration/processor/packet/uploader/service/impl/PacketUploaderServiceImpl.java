@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.commons.khazana.spi.ObjectStoreAdapter;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.virusscanner.exception.VirusScannerException;
 import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -55,6 +55,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import java.io.*;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -281,7 +282,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
 
             description.setMessage(PlatformErrorMessages.RPR_PUM_NGINX_ACCESS_FAILED.getMessage());
             description.setCode(PlatformErrorMessages.RPR_PUM_NGINX_ACCESS_FAILED.getCode());
-        } catch (IOException e) {
+        } catch (IOException | NoSuchAlgorithmException e) {
             dto.setLatestTransactionStatusCode(
                     registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.IOEXCEPTION));
             dto.setStatusComment(
@@ -430,11 +431,11 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
      * @throws IOException Signals that an I/O exception has occurred.
      */
     private boolean validateHashCode(InputStream inputStream, SyncRegistrationEntity regEntity, String registrationId,
-                                     InternalRegistrationStatusDto dto, LogDescription description) throws IOException {
+                                     InternalRegistrationStatusDto dto, LogDescription description) throws IOException, NoSuchAlgorithmException {
         boolean isValidHash = false;
         byte[] isbytearray = IOUtils.toByteArray(inputStream);
-        byte[] dataByte = HMACUtils.generateHash(isbytearray);
-        String hashSequence = HMACUtils.digestAsPlainText(dataByte);
+        byte[] dataByte = HMACUtils2.generateHash(isbytearray);
+        String hashSequence = HMACUtils2.digestAsPlainText(dataByte);
         String packetHashSequence = regEntity.getPacketHashValue();
         if (!(MessageDigest.isEqual(packetHashSequence.getBytes(), hashSequence.getBytes()))) {
             description.setMessage(PlatformErrorMessages.RPR_PKR_PACKET_HASH_NOT_EQUALS_SYNCED_HASH.getMessage());

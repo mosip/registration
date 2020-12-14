@@ -6,7 +6,7 @@ import io.mosip.kernel.core.crypto.spi.CryptoCoreSpec;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.keygenerator.bouncycastle.KeyGenerator;
 import io.mosip.registration.processor.core.auth.dto.AuthRequestDTO;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
@@ -45,6 +45,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.crypto.SecretKey;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.CertificateException;
@@ -110,7 +111,7 @@ public class AuthUtil {
 	private static final String KERNEL_KEY_SPLITTER = "mosip.kernel.data-key-splitter";
 
 	public AuthResponseDTO authByIdAuthentication(String individualId, String individualType, List<io.mosip.kernel.biometrics.entities.BIR> list)
-			throws ApisResourceAccessException, IOException, BioTypeException, CertificateException {
+			throws ApisResourceAccessException, IOException, BioTypeException, CertificateException, NoSuchAlgorithmException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), individualId,
 				"AuthUtil::authByIdAuthentication()::entry");
 
@@ -152,7 +153,7 @@ public class AuthUtil {
 		// sha256 of the request block before encryption and the hash is encrypted
 		// using the requestSessionKey
 		byte[] byteArray = encryptor.symmetricEncrypt(secretKey,
-				HMACUtils.digestAsPlainText(HMACUtils.generateHash(identityBlock.getBytes())).getBytes(), null);
+				HMACUtils2.digestAsPlainText(HMACUtils2.generateHash(identityBlock.getBytes())).getBytes(), null);
 		authRequestDTO.setRequestHMAC(Base64.encodeBase64String(byteArray));
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), individualId,
 				"AuthUtil::authByIdAuthentication()::INTERNALAUTH POST service call started");
@@ -203,9 +204,9 @@ public class AuthUtil {
 
 	}
 
-	private List<BioInfo> getBiometricsList(List<io.mosip.kernel.biometrics.entities.BIR> list) throws BioTypeException {
+	private List<BioInfo> getBiometricsList(List<io.mosip.kernel.biometrics.entities.BIR> list) throws BioTypeException, NoSuchAlgorithmException {
 
-		String previousHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash("".getBytes()));
+		String previousHash = HMACUtils2.digestAsPlainText(HMACUtils2.generateHash("".getBytes()));
 		CbeffToBiometricUtil CbeffToBiometricUtil = new CbeffToBiometricUtil();
 		List<BioInfo> biometrics = new ArrayList<>();
 		try {
@@ -235,14 +236,14 @@ public class AuthUtil {
 				String encodedData = CryptoUtil
 						.encodeBase64String(JsonUtil.objectMapperObjectToJson(dataInfoDTO).getBytes());
 				bioInfo.setData(encodedData);
-				String presentHash = HMACUtils.digestAsPlainText(
-						HMACUtils.generateHash(JsonUtil.objectMapperObjectToJson(dataInfoDTO).getBytes()));
+				String presentHash = HMACUtils2.digestAsPlainText(
+						HMACUtils2.generateHash(JsonUtil.objectMapperObjectToJson(dataInfoDTO).getBytes()));
 				StringBuilder concatenatedHash = new StringBuilder();
 				concatenatedHash.append(previousHash);
 				concatenatedHash.append(presentHash);
 				// String concatenatedHash = previousHash + presentHash;
-				String finalHash = HMACUtils
-						.digestAsPlainText(HMACUtils.generateHash(concatenatedHash.toString().getBytes()));
+				String finalHash = HMACUtils2
+						.digestAsPlainText(HMACUtils2.generateHash(concatenatedHash.toString().getBytes()));
 				bioInfo.setHash(finalHash);
 				bioInfo.setSessionKey(splittedEncryptData.getEncryptedSessionKey());
 				bioInfo.setThumbprint("");

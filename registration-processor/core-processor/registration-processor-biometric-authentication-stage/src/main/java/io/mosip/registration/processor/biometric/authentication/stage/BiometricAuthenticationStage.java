@@ -54,6 +54,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -211,7 +212,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 				registrationStatusDto.setStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
 			}
 
-		} catch (IOException e) {
+		} catch (IOException | NoSuchAlgorithmException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
 			registrationStatusDto.setSubStatusCode(StatusUtil.IO_EXCEPTION.getCode());
 			registrationStatusDto.setStatusComment(
@@ -328,7 +329,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 	}
 
 	private boolean idaAuthenticate(List<BIR> segments, String uin, InternalRegistrationStatusDto registrationStatusDto)
-			throws IOException, ApisResourceAccessException, BioTypeException, AuthSystemException, CertificateException {
+			throws IOException, ApisResourceAccessException, BioTypeException, AuthSystemException, CertificateException, NoSuchAlgorithmException {
 		TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
 
 		boolean idaAuth = false;
@@ -361,7 +362,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 
 	private boolean checkIndividualAuthentication(String registrationId, String process,
 			InternalRegistrationStatusDto registrationStatusDto) throws IOException, BioTypeException,
-			AuthSystemException, ApisResourceAccessException, PacketManagerException, JsonProcessingException, CertificateException {
+			AuthSystemException, ApisResourceAccessException, PacketManagerException, JsonProcessingException, CertificateException, NoSuchAlgorithmException {
 
 		BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId,
                 MappingJsonConstants.AUTHENTICATION_BIOMETRICS, null, process);

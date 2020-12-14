@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.packet.storage.service.impl;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -347,7 +348,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 			isTransactionSuccessful = true;
 			description.setMessage("Individual Demographic Dedupe data saved ");
 
-		} catch (DataAccessLayerException e) {
+		} catch (DataAccessLayerException | NoSuchAlgorithmException e) {
 			description.setMessage("DataAccessLayerException while saving Individual Demographic Dedupe data " + "::"
 					+ e.getMessage());
 
