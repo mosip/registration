@@ -115,7 +115,6 @@
 		<packet.info.storage.service.version>1.2.0-SNAPSHOT</packet.info.storage.service.version>
 		<packet.bio.dedupe.service.impl.version>1.2.0-SNAPSHOT</packet.bio.dedupe.service.impl.version>
 		<registration.processor.message.sender.version>1.2.0-SNAPSHOT</registration.processor.message.sender.version>
-		<registration.processor.print.service.impl.version>1.2.0-SNAPSHOT</registration.processor.print.service.impl.version>
 
 		<!-- Kernel -->
 		<kernel.core.version>1.2.0-SNAPSHOT</kernel.core.version>
@@ -317,7 +316,6 @@
 		<module>registration-processor-packet-manager</module>
 		<module>registration-processor-common-camel-bridge</module>
 		<module>registration-processor-bio-dedupe-service-impl</module>
-		<module>registration-processor-print-service-impl</module>
 		<module>registration-processor-info-storage-service</module>
 		<module>registration-processor-registration-status-service-impl</module>
         <!-- <module>registration-processor-quality-checker</module> -->
