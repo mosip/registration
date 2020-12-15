@@ -102,7 +102,7 @@ public class TemplateGenerator extends BaseService {
 			Map<String, Object> templateValues = new WeakHashMap<>();
 			boolean isPrevTemplate = templateType.equals(RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE) ? false : true;
 			ResourceBundle applicationLanguageProperties = ApplicationContext.applicationLanguageBundle();
-			InputStream is = new ByteArrayInputStream(Files.readAllBytes(Path.of("/home/anusha/Desktop/template.html")));
+			InputStream is = new ByteArrayInputStream(templateText.getBytes(StandardCharsets.UTF_8));
 			List<UiSchemaDTO> schemaFields = getSchemaFields(registration.getIdSchemaVersion());
 
 			//Basic values
