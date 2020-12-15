@@ -1,36 +1,38 @@
 package io.mosip.registration.processor.manual.verification.service.impl;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.packet.manager.exception.FileNotFoundInDestinationException;
-import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
-import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.DedupeSourceName;
@@ -42,10 +44,10 @@ import io.mosip.registration.processor.core.code.RegistrationExceptionTypeCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionStatusCode;
 import io.mosip.registration.processor.core.code.RegistrationTransactionTypeCode;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.util.PacketStructure;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
@@ -53,29 +55,41 @@ import io.mosip.registration.processor.core.kernel.master.dto.UserResponseDTOWra
 import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Identity;
-import io.mosip.registration.processor.core.packet.dto.regcentermachine.RegistrationCenterUserMachineMappingHistoryResponseDto;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
+import io.mosip.registration.processor.manual.verification.Listener;
 import io.mosip.registration.processor.manual.verification.constants.ManualVerificationConstants;
 import io.mosip.registration.processor.manual.verification.dto.DataShareResponseDto;
 import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDTO;
 import io.mosip.registration.processor.manual.verification.dto.ManualVerificationStatus;
 import io.mosip.registration.processor.manual.verification.dto.MatchDetail;
 import io.mosip.registration.processor.manual.verification.dto.UserDto;
+import io.mosip.registration.processor.manual.verification.exception.DataShareException;
 import io.mosip.registration.processor.manual.verification.exception.InvalidFileNameException;
+import io.mosip.registration.processor.manual.verification.exception.InvalidRidException;
 import io.mosip.registration.processor.manual.verification.exception.InvalidUpdateException;
 import io.mosip.registration.processor.manual.verification.exception.MatchTypeNotFoundException;
+import io.mosip.registration.processor.manual.verification.exception.MatchedRefNotExistsException;
 import io.mosip.registration.processor.manual.verification.exception.NoRecordAssignedException;
 import io.mosip.registration.processor.manual.verification.exception.UserIDNotPresentException;
+import io.mosip.registration.processor.manual.verification.request.dto.Gallery;
+import io.mosip.registration.processor.manual.verification.request.dto.ManualAdjudicationRequestDTO;
+import io.mosip.registration.processor.manual.verification.request.dto.ReferenceIds;
+import io.mosip.registration.processor.manual.verification.response.dto.ManualAdjudicationResponseDTO;
 import io.mosip.registration.processor.manual.verification.service.ManualVerificationService;
 import io.mosip.registration.processor.manual.verification.stage.ManualVerificationStage;
+import io.mosip.registration.processor.packet.manager.exception.FileNotFoundInDestinationException;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationEntity;
+import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
+import io.mosip.registration.processor.packet.storage.utils.BIRConverter;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -98,10 +112,28 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 	@Value("${packet.default.source}")
 	private String defaultSource;
-	
+
+	@Value("${registration.processor.manual.adjudication.policy.id}")
+	private String policyId;
+
+	@Value("${registration.processor.manual.adjudication.subscriber.id}")
+	private String subscriberId;
+
+	@Autowired
+	private RegistrationProcessorRestClientService registrationProcessorRestClientService;
+
+	@Autowired
+	private CbeffUtil cbeffutil;
+
+	@Autowired
+	private Utilities utility;
+
 //	@Value("${registration.processor.datasharejson}")
 //	private String dataShareJsonString;
 
+	@Autowired
+	private Listener l;
+	
 	@Autowired
 	private PacketManagerService packetManagerService;
 
@@ -152,87 +184,88 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		List<ManualVerificationEntity> entities;
 		String matchType = dto.getMatchType();
 		try {
-		
-		if (dto.getUserId() == null || dto.getUserId().isEmpty()) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-					dto.getUserId(), "ManualVerificationServiceImpl::assignApplicant()::UserIDNotPresentException"
-							+ PlatformErrorMessages.RPR_MVS_NO_USER_ID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
-			throw new UserIDNotPresentException(
-					PlatformErrorMessages.RPR_MVS_NO_USER_ID_SHOULD_NOT_EMPTY_OR_NULL.getCode(),
-					PlatformErrorMessages.RPR_MVS_NO_USER_ID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
-		}
-		checkUserIDExistsInMasterList(dto);
-		entities = basePacketRepository.getAssignedApplicantDetails(dto.getUserId(),
-				ManualVerificationStatus.ASSIGNED.name());
 
-		if (!(matchType.equalsIgnoreCase(DedupeSourceName.ALL.toString()) || isMatchTypeDemoOrBio(matchType))) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
-					dto.getUserId(), "ManualVerificationServiceImpl::assignApplicant()"
-							+ PlatformErrorMessages.RPR_MVS_NO_MATCH_TYPE_PRESENT.getMessage());
-			throw new MatchTypeNotFoundException(PlatformErrorMessages.RPR_MVS_NO_MATCH_TYPE_PRESENT.getCode(),
-					PlatformErrorMessages.RPR_MVS_NO_MATCH_TYPE_PRESENT.getMessage());
-		}
-		
+			if (dto.getUserId() == null || dto.getUserId().isEmpty()) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+						dto.getUserId(), "ManualVerificationServiceImpl::assignApplicant()::UserIDNotPresentException"
+								+ PlatformErrorMessages.RPR_MVS_NO_USER_ID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
+				throw new UserIDNotPresentException(
+						PlatformErrorMessages.RPR_MVS_NO_USER_ID_SHOULD_NOT_EMPTY_OR_NULL.getCode(),
+						PlatformErrorMessages.RPR_MVS_NO_USER_ID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
+			}
+			checkUserIDExistsInMasterList(dto);
+			entities = basePacketRepository.getAssignedApplicantDetails(dto.getUserId(),
+					ManualVerificationStatus.ASSIGNED.name());
 
-		if (!entities.isEmpty()) {
-			
-			manualVerificationDTO.setRegId(entities.get(0).getId().getRegId());
-			manualVerificationDTO.setUrl(getDatashareUrl(entities.get(0).getId().getRegId()));
-			List<MatchDetail> gallery=new ArrayList<>();
-			for(ManualVerificationEntity entity: entities) {
-				MatchDetail detail=new MatchDetail();
-				detail.setMatchedRegId(entity.getId().getMatchedRefId());
-				detail.setMatchedRefType(entity.getId().getMatchedRefType());
-				detail.setReasonCode(entity.getReasonCode());
-					detail.setUrl(getDatashareUrl(entity.getId().getMatchedRefId()));
-					gallery.add(detail);
-			}
-			manualVerificationDTO.setGallery(gallery);
-			
-			manualVerificationDTO.setMvUsrId(entities.get(0).getMvUsrId());
-			manualVerificationDTO.setStatusCode(entities.get(0).getStatusCode());
-			
-		} else {
-			if (matchType.equalsIgnoreCase(DedupeSourceName.ALL.toString())) {
-				entities = basePacketRepository.getFirstApplicantDetailsForAll(ManualVerificationStatus.PENDING.name());
-			} else if (isMatchTypeDemoOrBio(matchType)) {
-				entities = basePacketRepository.getFirstApplicantDetails(ManualVerificationStatus.PENDING.name(),
-						matchType);
-			}
-			if (entities.isEmpty()) {
+			if (!(matchType.equalsIgnoreCase(DedupeSourceName.ALL.toString()) || isMatchTypeDemoOrBio(matchType))) {
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 						dto.getUserId(), "ManualVerificationServiceImpl::assignApplicant()"
-								+ PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
-				throw new NoRecordAssignedException(PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getCode(),
-						PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
-			} else {
-				
-				manualVerificationDTO.setMvUsrId(dto.getUserId());
-				manualVerificationDTO.setStatusCode(ManualVerificationStatus.ASSIGNED.name());
-				manualVerificationDTO.setUrl(getDatashareUrl(entities.get(0).getId().getRegId()));
+								+ PlatformErrorMessages.RPR_MVS_NO_MATCH_TYPE_PRESENT.getMessage());
+				throw new MatchTypeNotFoundException(PlatformErrorMessages.RPR_MVS_NO_MATCH_TYPE_PRESENT.getCode(),
+						PlatformErrorMessages.RPR_MVS_NO_MATCH_TYPE_PRESENT.getMessage());
+			}
+
+			if (!entities.isEmpty()) {
+
 				manualVerificationDTO.setRegId(entities.get(0).getId().getRegId());
-				List<MatchDetail> gallery=new ArrayList<>();
-				for(ManualVerificationEntity manualVerificationEntity: entities) {
-					manualVerificationEntity.setStatusCode(ManualVerificationStatus.ASSIGNED.name());
-					manualVerificationEntity.setMvUsrId(dto.getUserId());
-					ManualVerificationEntity updatedManualVerificationEntity = basePacketRepository
-							.update(manualVerificationEntity);
-					if (updatedManualVerificationEntity != null) {
-						MatchDetail detail=new MatchDetail();
-						detail.setMatchedRegId(updatedManualVerificationEntity.getId().getMatchedRefId());
-						detail.setMatchedRefType(updatedManualVerificationEntity.getId().getMatchedRefType());
-						detail.setReasonCode(updatedManualVerificationEntity.getReasonCode());
-						detail.setUrl(getDatashareUrl(updatedManualVerificationEntity.getId().getMatchedRefId()));
-						gallery.add(detail);
+				manualVerificationDTO.setUrl(getDatashareUrl(entities.get(0).getId().getRegId()));
+				List<MatchDetail> gallery = new ArrayList<>();
+				for (ManualVerificationEntity entity : entities) {
+					MatchDetail detail = new MatchDetail();
+					detail.setMatchedRegId(entity.getId().getMatchedRefId());
+					detail.setMatchedRefType(entity.getId().getMatchedRefType());
+					detail.setReasonCode(entity.getReasonCode());
+					detail.setUrl(getDatashareUrl(entity.getId().getMatchedRefId()));
+					gallery.add(detail);
+				}
+				manualVerificationDTO.setGallery(gallery);
+
+				manualVerificationDTO.setMvUsrId(entities.get(0).getMvUsrId());
+				manualVerificationDTO.setStatusCode(entities.get(0).getStatusCode());
+
+			} else {
+				if (matchType.equalsIgnoreCase(DedupeSourceName.ALL.toString())) {
+					entities = basePacketRepository
+							.getFirstApplicantDetailsForAll(ManualVerificationStatus.PENDING.name());
+				} else if (isMatchTypeDemoOrBio(matchType)) {
+					entities = basePacketRepository.getFirstApplicantDetails(ManualVerificationStatus.PENDING.name(),
+							matchType);
+				}
+				if (entities.isEmpty()) {
+					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+							dto.getUserId(), "ManualVerificationServiceImpl::assignApplicant()"
+									+ PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
+					throw new NoRecordAssignedException(PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getCode(),
+							PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
+				} else {
+
+					manualVerificationDTO.setMvUsrId(dto.getUserId());
+					manualVerificationDTO.setStatusCode(ManualVerificationStatus.ASSIGNED.name());
+					manualVerificationDTO.setUrl(getDatashareUrl(entities.get(0).getId().getRegId()));
+					manualVerificationDTO.setRegId(entities.get(0).getId().getRegId());
+					List<MatchDetail> gallery = new ArrayList<>();
+					for (ManualVerificationEntity manualVerificationEntity : entities) {
+						manualVerificationEntity.setStatusCode(ManualVerificationStatus.ASSIGNED.name());
+						manualVerificationEntity.setMvUsrId(dto.getUserId());
+						ManualVerificationEntity updatedManualVerificationEntity = basePacketRepository
+								.update(manualVerificationEntity);
+						if (updatedManualVerificationEntity != null) {
+							MatchDetail detail = new MatchDetail();
+							detail.setMatchedRegId(updatedManualVerificationEntity.getId().getMatchedRefId());
+							detail.setMatchedRefType(updatedManualVerificationEntity.getId().getMatchedRefType());
+							detail.setReasonCode(updatedManualVerificationEntity.getReasonCode());
+							detail.setUrl(getDatashareUrl(updatedManualVerificationEntity.getId().getMatchedRefId()));
+							gallery.add(detail);
+						}
+					}
+					manualVerificationDTO.setGallery(gallery);
 				}
 			}
-				manualVerificationDTO.setGallery(gallery);
-			}
-		}
 		} catch (IOException | ApisResourceAccessException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					dto.getUserId(), PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage() + ExceptionUtils.getStackTrace(e));
-		
+					dto.getUserId(),
+					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage() + ExceptionUtils.getStackTrace(e));
+
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				dto.getUserId(), "ManualVerificationServiceImpl::assignApplicant()::exit");
@@ -240,7 +273,8 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 	}
 
-	private String getDatashareUrl(String matchedRegId) throws JsonParseException, JsonMappingException, IOException, ApisResourceAccessException {
+	private String getDatashareUrl(String matchedRegId)
+			throws JsonParseException, JsonMappingException, IOException, ApisResourceAccessException {
 //		JSONObject dataShareJson=mapper.readValue(dataShareJsonString, JSONObject.class);
 //		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
 //				.getRegistrationStatus(matchedRegId);
@@ -270,7 +304,8 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	 * java.lang.String)
 	 */
 	@Override
-	public byte[] getApplicantFile(String regId, String fileName, String source) throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
+	public byte[] getApplicantFile(String regId, String fileName, String source)
+			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 
 		byte[] file = null;
 		InputStream fileInStream = null;
@@ -293,34 +328,42 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		}
 		String process = registrationStatusDto.getRegistrationType();
 		if (PacketFiles.BIOMETRIC.name().equals(fileName)) {
-            JSONObject mappingJson = utilities.getRegistrationProcessorMappingJson();
-            String individualBiometrics = JsonUtil
-                    .getJSONValue(JsonUtil.getJSONObject(mappingJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), MappingJsonConstants.VALUE);
-            // get individual biometrics file name from id.json
-			BiometricRecord biometricRecord = packetManagerService.getBiometrics(regId, individualBiometrics, null, source, process);
-            /*if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().isEmpty())
-				throw new FileNotFoundInDestinationException("Identity json not present inside packet");
-            JSONObject idJsonObject = JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class);
-            JSONObject identity = JsonUtil.getJSONObject(idJsonObject,
-                    utilities.getGetRegProcessorDemographicIdentity());
-            if (identity == null)
-				throw new FileNotFoundInDestinationException("Identity json not present inside packet");
-
-            JSONObject individualBiometricsObject = JsonUtil.getJSONObject(identity, individualBiometrics);
-			if (individualBiometricsObject == null)
-				throw new FileNotFoundInDestinationException("Individual biometrics field not present inside identity");
-            String biometricFileName = JsonUtil.getJSONValue(individualBiometricsObject, MappingJsonConstants.VALUE);
-			fileInStream = getApplicantBiometricFile(regId, biometricFileName, fileSource);
-		} else if (PacketFiles.DEMOGRAPHIC.name().equals(fileName)) {
-			fileInStream = getApplicantDemographicFile(regId, PacketFiles.ID.name(), source);
-		} else if (PacketFiles.PACKET_META_INFO.name().equals(fileName)) {
-			fileInStream = getApplicantMetaInfoFile(regId, PacketFiles.PACKET_META_INFO.name(), source);
-		} else {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					regId, "ManualVerificationServiceImpl::getApplicantFile()"
-							+ PlatformErrorMessages.RPR_MVS_INVALID_FILE_REQUEST.getMessage());
-			throw new InvalidFileNameException(PlatformErrorMessages.RPR_MVS_INVALID_FILE_REQUEST.getCode(),
-					PlatformErrorMessages.RPR_MVS_INVALID_FILE_REQUEST.getMessage());*/
+			JSONObject mappingJson = utilities.getRegistrationProcessorMappingJson();
+			String individualBiometrics = JsonUtil.getJSONValue(
+					JsonUtil.getJSONObject(mappingJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
+					MappingJsonConstants.VALUE);
+			// get individual biometrics file name from id.json
+			BiometricRecord biometricRecord = packetManagerService.getBiometrics(regId, individualBiometrics, null,
+					source, process);
+			/*
+			 * if (biometricRecord == null || biometricRecord.getSegments() == null ||
+			 * biometricRecord.getSegments().isEmpty()) throw new
+			 * FileNotFoundInDestinationException("Identity json not present inside packet"
+			 * ); JSONObject idJsonObject = JsonUtil.objectMapperReadValue(idJsonString,
+			 * JSONObject.class); JSONObject identity = JsonUtil.getJSONObject(idJsonObject,
+			 * utilities.getGetRegProcessorDemographicIdentity()); if (identity == null)
+			 * throw new
+			 * FileNotFoundInDestinationException("Identity json not present inside packet"
+			 * );
+			 * 
+			 * JSONObject individualBiometricsObject = JsonUtil.getJSONObject(identity,
+			 * individualBiometrics); if (individualBiometricsObject == null) throw new
+			 * FileNotFoundInDestinationException("Individual biometrics field not present inside identity"
+			 * ); String biometricFileName =
+			 * JsonUtil.getJSONValue(individualBiometricsObject,
+			 * MappingJsonConstants.VALUE); fileInStream = getApplicantBiometricFile(regId,
+			 * biometricFileName, fileSource); } else if
+			 * (PacketFiles.DEMOGRAPHIC.name().equals(fileName)) { fileInStream =
+			 * getApplicantDemographicFile(regId, PacketFiles.ID.name(), source); } else if
+			 * (PacketFiles.PACKET_META_INFO.name().equals(fileName)) { fileInStream =
+			 * getApplicantMetaInfoFile(regId, PacketFiles.PACKET_META_INFO.name(), source);
+			 * } else { regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+			 * LoggerFileConstant.REGISTRATIONID.toString(), regId,
+			 * "ManualVerificationServiceImpl::getApplicantFile()" +
+			 * PlatformErrorMessages.RPR_MVS_INVALID_FILE_REQUEST.getMessage()); throw new
+			 * InvalidFileNameException(PlatformErrorMessages.RPR_MVS_INVALID_FILE_REQUEST.
+			 * getCode(), PlatformErrorMessages.RPR_MVS_INVALID_FILE_REQUEST.getMessage());
+			 */
 		}
 		if (fileInStream == null)
 			throw new FileNotFoundInDestinationException("File not found inside packet");
@@ -346,16 +389,16 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	public ManualVerificationDTO updatePacketStatus(ManualVerificationDTO manualVerificationDTO, String stageName) {
 		TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
 		String registrationId = manualVerificationDTO.getRegId();
-		List<MatchDetail> gallery= manualVerificationDTO.getGallery();
+		List<MatchDetail> gallery = manualVerificationDTO.getGallery();
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setInternalError(false);
 		messageDTO.setIsValid(false);
 		messageDTO.setRid(manualVerificationDTO.getRegId());
-		validateRegAndMactedRefIdEmpty(registrationId,  gallery);
+		validateRegAndMactedRefIdEmpty(registrationId, gallery);
 
 		LogDescription description = new LogDescription();
 		boolean isTransactionSuccessful = false;
-		
+
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				manualVerificationDTO.getRegId(), "ManualVerificationServiceImpl::updatePacketStatus()::entry");
 		if (!manualVerificationDTO.getStatusCode().equalsIgnoreCase(ManualVerificationStatus.REJECTED.name())
@@ -366,11 +409,11 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			throw new InvalidUpdateException(PlatformErrorMessages.RPR_MVS_INVALID_STATUS_UPDATE.getCode(),
 					PlatformErrorMessages.RPR_MVS_INVALID_STATUS_UPDATE.getMessage());
 		}
-		List<ManualVerificationEntity> entities=new ArrayList<>();
-		for(MatchDetail detail:manualVerificationDTO.getGallery()) {
-		 entities.addAll(basePacketRepository.getSingleAssignedRecord(
-				manualVerificationDTO.getRegId(), detail.getMatchedRegId(),
-				manualVerificationDTO.getMvUsrId(), ManualVerificationStatus.ASSIGNED.name()));
+		List<ManualVerificationEntity> entities = new ArrayList<>();
+		for (MatchDetail detail : manualVerificationDTO.getGallery()) {
+			entities.addAll(basePacketRepository.getSingleAssignedRecord(manualVerificationDTO.getRegId(),
+					detail.getMatchedRegId(), manualVerificationDTO.getMvUsrId(),
+					ManualVerificationStatus.ASSIGNED.name()));
 		}
 		if (entities.isEmpty()) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
@@ -380,17 +423,17 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 					PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
 		} else {
 			for (int i = 0; i < entities.size(); i++) {
-				ManualVerificationEntity manualVerificationEntity=entities.get(i);
-				for(MatchDetail detail:manualVerificationDTO.getGallery()) {	
-					if(manualVerificationEntity.getId().getMatchedRefId().equalsIgnoreCase(detail.getMatchedRegId())) {
+				ManualVerificationEntity manualVerificationEntity = entities.get(i);
+				for (MatchDetail detail : manualVerificationDTO.getGallery()) {
+					if (manualVerificationEntity.getId().getMatchedRefId().equalsIgnoreCase(detail.getMatchedRegId())) {
 						manualVerificationEntity.setStatusCode(manualVerificationDTO.getStatusCode());
 						manualVerificationEntity.setReasonCode(detail.getReasonCode());
 						entities.set(i, manualVerificationEntity);
 					}
 				}
-				
+
 			}
-			
+
 		}
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
 				.getRegistrationStatus(registrationId);
@@ -402,10 +445,10 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 			if (manualVerificationDTO.getStatusCode().equalsIgnoreCase(ManualVerificationStatus.APPROVED.name())) {
 				if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(RegistrationType.LOST.toString())) {
-					for(MatchDetail detail: manualVerificationDTO.getGallery()) {
+					for (MatchDetail detail : manualVerificationDTO.getGallery()) {
 						packetInfoManager.saveRegLostUinDet(registrationId, detail.getMatchedRegId(),
-							PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_APPROVED.getCode(),
-							ModuleName.MANUAL_VERIFICATION.toString());
+								PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_APPROVED.getCode(),
+								ModuleName.MANUAL_VERIFICATION.toString());
 					}
 				}
 				messageDTO.setIsValid(true);
@@ -433,8 +476,8 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 				manualVerificationStage.sendMessage(messageDTO);
 			}
 			List<ManualVerificationEntity> maVerificationEntity = new ArrayList<>();
-			for(ManualVerificationEntity manualVerificationEntity: entities) {
-			 maVerificationEntity.add( basePacketRepository.update(manualVerificationEntity));
+			for (ManualVerificationEntity manualVerificationEntity : entities) {
+				maVerificationEntity.add(basePacketRepository.update(manualVerificationEntity));
 			}
 			manualVerificationDTO.setStatusCode(maVerificationEntity.get(0).getStatusCode());
 			registrationStatusDto.setUpdatedBy(USER);
@@ -482,7 +525,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 	}
 
-	private void validateRegAndMactedRefIdEmpty(String registrationId,List<MatchDetail> gallery) {
+	private void validateRegAndMactedRefIdEmpty(String registrationId, List<MatchDetail> gallery) {
 
 		if (registrationId == null || registrationId.isEmpty() || gallery == null || gallery.isEmpty()) {
 
@@ -542,6 +585,220 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 					PlatformErrorMessages.RPR_MVS_NO_USER_ID_PRESENT.getMessage());
 
 		}
+	}
+
+	/*
+	 * Get matched ref id for given RID and form request ,push to queue
+	 */
+	public void pushRequestToQueue(String refId) throws Exception {
+
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				refId, "ManualVerificationServiceImpl::pushRequestToQueue()::entry");
+		List<ManualVerificationEntity> mves = getMatchingEntitiesforRefId(refId);
+		if (mves.size() == 0 || null == mves)
+			throw new MatchedRefNotExistsException(
+					PlatformErrorMessages.RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID.getCode(),
+					PlatformErrorMessages.RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID.getMessage());
+
+		ManualAdjudicationRequestDTO mar = formAdjudicationRequest(mves);
+		System.out.println("Request===>"+mar);
+		
+		l.sendAdjudicationRequest(mar);
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				refId, "ManualVerificationServiceImpl::pushRequestToQueue()::entry");
+
+	}
+
+	private String getDataShareUrl(String id, String process) throws Exception {
+		String source = utility.getDefaultSource();
+		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
+		String individualBiometricsLabel = JsonUtil.getJSONValue(
+				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
+				MappingJsonConstants.VALUE);
+		BiometricRecord biometricRecord = packetManagerService.getBiometrics(id, individualBiometricsLabel, null,
+				source, process);
+		byte[] content = cbeffutil.createXML(BIRConverter.convertSegmentsToBIRList(biometricRecord.getSegments()));
+
+		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+		map.add("name", individualBiometricsLabel);
+		map.add("filename", individualBiometricsLabel);
+
+		ByteArrayResource contentsAsResource = new ByteArrayResource(content) {
+			@Override
+			public String getFilename() {
+				return individualBiometricsLabel;
+			}
+		};
+		map.add("file", contentsAsResource);
+
+		List<String> pathSegments = new ArrayList<>();
+		pathSegments.add(policyId);
+		pathSegments.add(subscriberId);
+
+		DataShareResponseDto response = (DataShareResponseDto) registrationProcessorRestClientService.postApi(
+				ApiName.DATASHARECREATEURL, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map,
+				DataShareResponseDto.class);
+		if (response == null || (response.getErrors() != null && response.getErrors().size() > 0))
+			throw new DataShareException(
+					response == null ? "Datashare response is null" : response.getErrors().get(0).getMessage());
+
+		return response.getUrl();
+	}
+
+	/*
+	 * get matched ref id for a given registration id
+	 */
+	private List<ManualVerificationEntity> getMatchingEntitiesforRefId(String rid) {
+		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+				"ManualVerificationServiceImpl::getMatchingEntitiesforRefId()::entry");
+
+		List<ManualVerificationEntity> matchedEntities = basePacketRepository.getMatchedIds(rid);
+
+		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+				"ManualVerificationServiceImpl::getMatchingEntitiesforRefId()::entry");
+
+		return matchedEntities;
+	}
+
+	/*
+	 * Form manual adjudication request
+	 */
+	private ManualAdjudicationRequestDTO formAdjudicationRequest(List<ManualVerificationEntity> mve) throws Exception {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+				"ManualVerificationServiceImpl::formAdjudicationRequest()::entry");
+
+		ManualAdjudicationRequestDTO req = new ManualAdjudicationRequestDTO();
+		req.setId(ManualVerificationConstants.MANUAL_ADJUDICATION_ID);
+		req.setVersion(ManualVerificationConstants.VERSION);
+		req.setRequestId(mve.get(0).getRequestId());
+		req.setReferenceId(mve.get(0).getId().getRegId());
+		InternalRegistrationStatusDto registrationStatusDto = null;
+		registrationStatusDto = registrationStatusService.getRegistrationStatus(mve.get(0).getId().getRegId());
+		try {
+
+			req.setReferenceURL(
+					getDataShareUrl(mve.get(0).getId().getRegId(), registrationStatusDto.getRegistrationType()));
+
+		} catch (PacketManagerException | ApisResourceAccessException ex) {
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					ex.getErrorCode(), ex.getErrorText());
+			req.setReferenceURL(null);
+
+		}
+
+		List<ReferenceIds> referenceIds = new ArrayList<>();
+		mve.forEach(e -> {
+			ReferenceIds r = new ReferenceIds();
+			InternalRegistrationStatusDto registrationStatusDto1 = null;
+			registrationStatusDto1 = registrationStatusService.getRegistrationStatus(e.getId().getMatchedRefId());
+		
+			try {
+				r.setReferenceId(e.getId().getMatchedRefId());
+				r.setReferenceURL(getDataShareUrl(e.getId().getMatchedRefId(),registrationStatusDto1.getRegistrationType()));
+				referenceIds.add(r);
+			} catch (PacketManagerException | ApisResourceAccessException ex) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+						LoggerFileConstant.REGISTRATIONID.toString(), ex.getErrorCode(), ex.getErrorText());
+				r.setReferenceURL(null);
+				referenceIds.add(r);
+			} catch (Exception exp) {
+
+				exp.printStackTrace();
+			}
+
+		});
+		Gallery g = new Gallery();
+		g.setReferenceIds(referenceIds);
+		req.setGallery(g);
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
+				"ManualVerificationServiceImpl::formAdjudicationRequest()::entry");
+
+		return req;
+	}
+
+	/*
+	 * Once response is obtained from queue it is saved in manual verification
+	 * entity
+	 */
+	public void saveToDB(ManualAdjudicationResponseDTO res) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				res.getId(), "ManualVerificationServiceImpl::saveToDB()::entry");
+
+		if (res.getCandidateList().getCount() > 0) {
+			res.getCandidateList().getCandidates().forEach(candidate -> {
+				ManualVerificationEntity mve = basePacketRepository.getManualVerificationEntitty(res.getRequestId(),
+				 candidate.getReferenceId());
+				mve.setReponseText(res.toString().getBytes());
+				basePacketRepository.update(mve);
+			});
+
+		}
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				res.getId(), "ManualVerificationServiceImpl::saveToDB()::entry");
+
+	}
+
+	/*
+	 * This method will be called from the event bus passing messageDTO object
+	 * containing rid Based o Rid fetch match reference Id and form request which is
+	 * pushed to queue and update Manual verification entity
+	 */
+
+	@Override
+	public MessageDTO process(MessageDTO object) {
+		try {
+			object.setInternalError(false);
+			object.setIsValid(false);
+			object.setMessageBusAddress(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN);
+
+			if (null == object.getRid() || object.getRid().isEmpty())
+				throw new InvalidRidException(PlatformErrorMessages.RPR_MVS_NO_RID_SHOULD_NOT_EMPTY_OR_NULL.getCode(),
+						PlatformErrorMessages.RPR_MVS_NO_RID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					object.getRid(), "ManualVerificationServiceImpl::process()::entry");
+			pushRequestToQueue(object.getRid());
+			updateManualVerificationEntityRID(object.getRid());
+
+		} catch (DataShareException de) {
+			object.setInternalError(true);
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					de.getErrorCode(), de.getErrorText());
+
+		} catch (InvalidRidException exp) {
+			object.setInternalError(true);
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), null, exp.getErrorCode(), exp.getErrorText());
+		} catch (MatchedRefNotExistsException exp) {
+			object.setInternalError(true);
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					exp.getErrorCode(), exp.getErrorText());
+
+		} catch (Exception e) {
+			object.setInternalError(true);
+			e.printStackTrace();
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					e.getMessage(), e.getMessage());
+		}
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				object.getRid(), "ManualVerificationServiceImpl::process()::entry");
+
+		return object;
+	}
+
+	/*
+	 * Update manual verification entity once request is pushed to queue for a given
+	 * RID
+	 */
+	private void updateManualVerificationEntityRID(String rid) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+				"ManualVerificationServiceImpl::updateManualVerificationEntityRID()::entry");
+		ManualVerificationEntity mve = basePacketRepository.getManualVerificationEntityForRID(rid);
+		mve.setStatusCode("Inqueue");
+		mve.setStatusComment("Sent to manual adjudication queue");
+		mve.setUpdDtimes(Timestamp.valueOf(LocalDateTime.now(ZoneId.of("UTC"))));
+		basePacketRepository.update(mve);
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), rid,
+				"ManualVerificationServiceImpl::updateManualVerificationEntityRID()::exit");
+
 	}
 
 }

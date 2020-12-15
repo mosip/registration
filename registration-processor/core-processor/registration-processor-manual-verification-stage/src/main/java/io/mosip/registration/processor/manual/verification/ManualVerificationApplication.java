@@ -1,9 +1,9 @@
 package io.mosip.registration.processor.manual.verification;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-
+import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
+import io.mosip.registration.processor.core.constant.RegistrationType;
 import io.mosip.registration.processor.manual.verification.stage.ManualVerificationStage;
-
 /**
  * ManualAdjudicationApplication Main class .
  *
@@ -28,8 +28,17 @@ public class ManualVerificationApplication {
 				"io.mosip.registration.processor.core.kernel.beans",
 				"io.mosip.registration.processor.packet.storage.config");
 		configApplicationContext.refresh();
+		try {
+		configApplicationContext.getBean(Listener.class).runQueue();
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
 		ManualVerificationStage manualVerificationStage = configApplicationContext
 				.getBean(ManualVerificationStage.class);
 		manualVerificationStage.deployStage();
+		/*MessageDTO object = new MessageDTO();
+		object.setRid("10011100120000120201112052345");
+		object.setReg_type(RegistrationType.NEW);
+		manualVerificationStage.process(object);*/
 	}
 }

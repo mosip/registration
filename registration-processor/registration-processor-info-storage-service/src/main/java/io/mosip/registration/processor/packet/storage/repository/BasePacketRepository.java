@@ -106,7 +106,45 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.mvUsrId=:mvUserId and mve.statusCode=:statusCode")
 	public List<E> getAssignedApplicantDetails(@Param("mvUserId") String mvUserId,
 			@Param("statusCode") String statusCode);
+	
+	/**
+	 * Gets the matched ids for ref id.
+	 *
+	 * @param refId
+	 *            the reference id
+	 * @return the List of ManualVerificationEntity records
+	 */
+	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.id.regId =:regId")
+	public List<ManualVerificationEntity> getMatchedIds(@Param("regId") String regId);
+	
+	
 
+	/**
+	 * Gets the Manual verification entity based on request id and matchedreference id
+	 *
+	 * @param requestId
+	 *            the requestId
+	 *  @param matchedRefId
+	 *            the Matched reference Id           
+	 * @return the ManualVerificationEntity record
+	 */
+	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.requestId=:requestId  and mve.id.matchedRefId=:matchedRefId")
+	public E getManualVerificationEntitty(@Param("requestId") String requestId,@Param("matchedRefId") String matchedRefId);
+	
+	/**
+	 * Gets the Manual verification entity based on request id and matchedreference id
+	 *
+	 * @param requestId
+	 *            the requestId
+    
+	 * @return the ManualVerificationEntity record
+	 */
+	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.requestId=:requestId")
+	public E getManualVerificationEntityForRID(@Param("requestId") String requestId);
+	
+
+	
+	
 	/**
 	 * Update is active if duplicate found.
 	 *
