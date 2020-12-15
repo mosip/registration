@@ -1182,7 +1182,7 @@ public class DocumentScanController extends BaseController {
 			GridPane gridpane = (GridPane) ((ImageView) event.getSource()).getParent();
 			String key = comboBox.getId();
 			getDocumentsMapFromSession().remove(key);
-//			comboBox.getSelectionModel().clearSelection();
+			comboBox.getSelectionModel().clearSelection();
 			ObservableList<Node> nodes = ((HBox) vboxElement.getParent()).getChildren();
 			for (Node node : nodes) {
 				if (node instanceof VBox) {

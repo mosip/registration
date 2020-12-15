@@ -85,10 +85,10 @@ public class ComboBoxAutoComplete<T> {
 			cmb.getTooltip().hide();
 			cmb.getEditor().setText(filter.get());
 		}
-		if (filter.get().length() == 0) {
+		if (filter.get() != null && filter.get().length() == 0) {
 			filteredList = originalItems;
 			cmb.getTooltip().hide();
-		} else {
+		} else if (filter.get() != null) {
 			Stream<T> itens = cmb.getItems().stream();
 			String txtUsr = filter.get().toLowerCase();
 			itens.filter(el -> el.toString().toLowerCase().contains(txtUsr)).forEach(filteredList::add);
