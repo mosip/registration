@@ -245,9 +245,9 @@ public class Listener {
 	public List<QueueDetails> getQueueDetails() throws RegistrationProcessorCheckedException {
 		List<QueueDetails> queueDetailsList = new ArrayList<>();
 		RestTemplate restTemplate = new RestTemplate();
-		//String registrationProcessorAbis=restTemplate.getForObject(configServerFileStorageURL + registrationProcessorJson, String.class);
+		String registrationProcessorAbis=restTemplate.getForObject(configServerFileStorageURL + registrationProcessorJson, String.class);
 		///////////// read from local file
-		String registrationProcessorAbis = "";
+		/*String registrationProcessorAbis = "";
 		try {
 			BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\M1053288\\Desktop\\doc.txt"));
 
@@ -258,7 +258,7 @@ public class Listener {
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
-		}
+		}*/
 		//////////////////////
 		JSONObject regProcessorAbisJson;
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
