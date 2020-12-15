@@ -23,6 +23,8 @@ import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.device.BiometricsController;
 import io.mosip.registration.service.operator.UserOnboardService;
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
+
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
@@ -85,6 +87,9 @@ public class UserOnboardController extends BaseController implements Initializab
 	@Autowired
 	private UserOnboardService userOnboardService;
 
+	@Autowired
+	private AuthTokenUtilService authTokenUtilService;
+
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		setImagesOnHover();
@@ -108,6 +113,10 @@ public class UserOnboardController extends BaseController implements Initializab
 		
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "User Onboard Controller initUserOnboard Method Exit");
+
+		if(!authTokenUtilService.hasAnyValidToken()) {
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
+		}
 	}
 
 	public void clearOnboard() {

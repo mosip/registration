@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -49,7 +50,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.virusscanner.exception.VirusScannerException;
 import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -81,7 +82,7 @@ import io.mosip.registration.processor.status.service.SyncRegistrationService;
 @RefreshScope
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
-@PrepareForTest({ IOUtils.class, HMACUtils.class, ZipUtils.class})
+@PrepareForTest({ IOUtils.class, HMACUtils2.class, ZipUtils.class})
 public class PacketUploaderServiceTest {
 
 	@InjectMocks
@@ -142,7 +143,7 @@ public class PacketUploaderServiceTest {
 	private File file;
 
 	@Before
-	public void setUp() throws IOException, ApisResourceAccessException, JsonProcessingException {
+	public void setUp() throws IOException, ApisResourceAccessException, JsonProcessingException, NoSuchAlgorithmException {
 		file = new File("src/test/resources/1001.zip");
 		dto.setRid("1001");
 		entry.setRegistrationId("1001");
@@ -163,8 +164,8 @@ public class PacketUploaderServiceTest {
 		regEntity.setPacketSize(size);
 		is = new FileInputStream(file);
 		enrypteddata = IOUtils.toByteArray(is);
-		PowerMockito.mockStatic(HMACUtils.class);
-		PowerMockito.when(HMACUtils.digestAsPlainText(any())).thenReturn("abcd1234");
+		PowerMockito.mockStatic(HMACUtils2.class);
+		PowerMockito.when(HMACUtils2.digestAsPlainText(any())).thenReturn("abcd1234");
 		Mockito.when(syncRegistrationService.findByRegistrationId(Mockito.any())).thenReturn(regEntity);
 		AuditResponseDto auditResponseDto = new AuditResponseDto();
 		ResponseWrapper<AuditResponseDto> responseWrapper = new ResponseWrapper<>();
@@ -366,11 +367,11 @@ public class PacketUploaderServiceTest {
 	}
 
 	@Test
-	public void testUnknownExceptionOccured() {
+	public void testUnknownExceptionOccured() throws NoSuchAlgorithmException {
 		BaseUncheckedException exception = new BaseUncheckedException("Unknown");
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(entry);
-		PowerMockito.mockStatic(HMACUtils.class);
-		PowerMockito.when(HMACUtils.digestAsPlainText(any())).thenThrow(exception);
+		PowerMockito.mockStatic(HMACUtils2.class);
+		PowerMockito.when(HMACUtils2.digestAsPlainText(any())).thenThrow(exception);
 
 		MessageDTO result = packetuploaderservice.validateAndUploadPacket(dto.getRid(), "PacketUploaderStage");
 		assertFalse(result.getIsValid());

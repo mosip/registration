@@ -3,6 +3,7 @@ package io.mosip.registration.service.config.impl;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.sql.Timestamp;
 import java.util.Arrays;
@@ -14,6 +15,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
+import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -64,6 +69,11 @@ public class GlobalParamServiceImpl extends BaseService implements GlobalParamSe
 	 */
 	@Autowired
 	private GlobalParamDAO globalParamDAO;
+
+	@Autowired
+	private ClientCryptoFacade clientCryptoFacade;
+
+	private static final ObjectMapper objectMapper = new ObjectMapper();
 
 	/*
 	 * (non-Javadoc)
@@ -139,6 +149,7 @@ public class GlobalParamServiceImpl extends BaseService implements GlobalParamSe
 			try {
 				boolean isToBeRestarted = false;
 				Map<String, String> requestParamMap = new HashMap<>();
+				requestParamMap.put("machine_name", RegistrationSystemPropertiesChecker.getMachineId());
 				if (validate(responseDTO, triggerPoinnt)) {
 					/* REST CALL */
 					@SuppressWarnings("unchecked")
@@ -151,13 +162,23 @@ public class GlobalParamServiceImpl extends BaseService implements GlobalParamSe
 						@SuppressWarnings("unchecked")
 						HashMap<String, Object> responseMap = (HashMap<String, Object>) globalParamJsonMap
 								.get(RegistrationConstants.RESPONSE);
-						@SuppressWarnings("unchecked")
-						HashMap<String, Object> configDetailJsonMap = (HashMap<String, Object>) responseMap
-								.get("configDetail");
 
 						HashMap<String, String> globalParamMap = new HashMap<>();
 
-						parseToMap(configDetailJsonMap, globalParamMap);
+						if(responseMap.containsKey("configDetail") && responseMap.get("configDetail") != null) {
+							HashMap<String, Object> configDetailJsonMap = (HashMap<String, Object>) responseMap
+									.get("configDetail");
+
+							if(configDetailJsonMap.get("globalConfiguration") != null) {
+								parseToMap((HashMap<String, Object>) getParams((String) configDetailJsonMap.get("globalConfiguration")),
+										globalParamMap);
+							}
+
+							if(configDetailJsonMap.get("registrationConfiguration") != null) {
+								parseToMap((HashMap<String, Object>) getParams((String) configDetailJsonMap.get("registrationConfiguration")),
+										globalParamMap);
+							}
+						}
 
 						List<GlobalParam> globalParamList = globalParamDAO.getAllEntries();
 
@@ -374,5 +395,17 @@ public class GlobalParamServiceImpl extends BaseService implements GlobalParamSe
 					RegistrationExceptionConstants.REG_POLICY_SYNC_SERVICE_IMPL.getErrorMessage());
 		}
 
+	}
+
+	private Map<String, Object> getParams(String encodedCipher) {
+		try {
+			byte[] data = clientCryptoFacade.decrypt(CryptoUtil.decodeBase64(encodedCipher));
+			Map<String, Object> paramMap = objectMapper.readValue(data, HashMap.class);
+			return paramMap;
+		} catch (IOException e) {
+			LOGGER.error(LoggerConstants.GLOBAL_PARAM_SERVICE_LOGGER_TITLE, APPLICATION_NAME, APPLICATION_ID,
+					"Failed to decrypt and parse config response >> " + ExceptionUtils.getStackTrace(e));
+		}
+		return null;
 	}
 }

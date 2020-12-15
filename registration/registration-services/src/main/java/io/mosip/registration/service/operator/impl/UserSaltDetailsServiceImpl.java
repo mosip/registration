@@ -53,7 +53,7 @@ public class UserSaltDetailsServiceImpl extends BaseService implements UserSaltD
 
 		ResponseDTO responseDTO = new ResponseDTO();
 
-		if (triggerPointNullCheck(trigger)) {
+		/*if (triggerPointNullCheck(trigger)) {
 
 			try {
 
@@ -103,6 +103,8 @@ public class UserSaltDetailsServiceImpl extends BaseService implements UserSaltD
 							RegistrationConstants.MASTER_SYNC_FAILURE_MSG_INFO);
 					setErrorResponse(responseDTO, RegistrationConstants.ERROR, null);
 				}
+
+
 			} catch (RegBaseCheckedException regBaseCheckedException) {
 				LOGGER.error(LOG_REG_USER_SALT_SYNC, APPLICATION_NAME, APPLICATION_ID,
 						ExceptionUtils.getStackTrace(regBaseCheckedException));
@@ -117,7 +119,8 @@ public class UserSaltDetailsServiceImpl extends BaseService implements UserSaltD
 			LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, RegistrationConstants.TRIGGER_POINT_MSG);
 			throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_TRIGGER_POINT_MISSING.getErrorCode(),
 					RegistrationExceptionConstants.REG_TRIGGER_POINT_MISSING.getErrorMessage());
-		}
+		}*/
+		setSuccessResponse(responseDTO, RegistrationConstants.SUCCESS, null);
 		return responseDTO;
 
 	}

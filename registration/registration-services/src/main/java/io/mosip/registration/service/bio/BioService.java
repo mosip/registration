@@ -3,6 +3,7 @@ package io.mosip.registration.service.bio;
 import java.io.InputStream;
 import java.util.List;
 
+import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
@@ -30,20 +31,33 @@ public interface BioService {
 	public List<BiometricsDto> captureModalityForAuth(MDMRequestDto mdmRequestDto) throws RegBaseCheckedException;
 
 	/**
-	 * @param modality
-	 *            modality to find device subId
+	 * @param modality modality to find device subId
 	 * @return live stream
 	 * @throws RegBaseCheckedException
 	 */
 	public InputStream getStream(String modality) throws RegBaseCheckedException;
 
 	/**
-	 * @param mdmBioDevice
-	 *            bio Device info
-	 * @param modality
-	 *            modality to find device subId
+	 * @param mdmBioDevice bio Device info
+	 * @param modality     modality to find device subId
 	 * @return live stream
 	 * @throws RegBaseCheckedException
 	 */
 	public InputStream getStream(MdmBioDevice mdmBioDevice, String modality) throws RegBaseCheckedException;
+
+	/**
+	 * @param biometricsDto captured biometrics dto
+	 * 
+	 * @return bir builded for biometrics dto
+	 * 
+	 */
+	public BIR buildBir(BiometricsDto biometricsDto);
+
+	/**
+	 * @param bioAttribute biometric segment name
+	 * @param qualityScore biometric quality score
+	 * @param iso          biometric value in iso format
+	 * @return bir builder for biometric
+	 */
+	public BIR buildBir(String bioAttribute, long qualityScore, byte[] iso);
 }

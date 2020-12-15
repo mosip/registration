@@ -2,19 +2,27 @@ package io.mosip.registration.util.mastersync;
 
 
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_MASTER_SYNC;
-import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
-import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
+import static io.mosip.registration.constants.LoggerConstants.LOG_REG_SCHEMA_SYNC;
+import static io.mosip.registration.constants.RegistrationConstants.*;
 
 import java.io.IOException;
 import java.io.SyncFailedException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
+import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
+import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.registration.dao.IdentitySchemaDao;
+import io.mosip.registration.dto.ResponseDTO;
+import io.mosip.registration.dto.response.SchemaDto;
+import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
+import io.mosip.registration.util.restclient.ServiceDelegateUtil;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -71,6 +79,7 @@ import io.mosip.registration.repositories.TemplateRepository;
 import io.mosip.registration.repositories.TemplateTypeRepository;
 import io.mosip.registration.repositories.TitleRepository;
 import io.mosip.registration.repositories.ValidDocumentRepository;
+import org.springframework.web.client.HttpClientErrorException;
 
 @Component
 public class ClientSettingSyncHelper {
@@ -246,7 +255,15 @@ public class ClientSettingSyncHelper {
 	
 	@Autowired
 	private DynamicFieldRepository dynamicFieldRepository;
-	
+
+	@Autowired
+	private ClientCryptoFacade clientCryptoFacade;
+
+	@Autowired
+	private ServiceDelegateUtil serviceDelegateUtil;
+
+	@Autowired
+	private IdentitySchemaDao identitySchemaDao;
 		
 	private static final Map<String, String> ENTITY_CLASS_NAMES = new HashMap<String, String>();
 	
@@ -278,16 +295,32 @@ public class ClientSettingSyncHelper {
 	 */
 	@SuppressWarnings("unchecked")
 	public String saveClientSettings(SyncDataResponseDto syncDataResponseDto) throws RegBaseUncheckedException {
+		long start = System.currentTimeMillis();
 		try {
-			handleDeviceSync(syncDataResponseDto);
-			handleMachineSync(syncDataResponseDto);
-			handleRegistrationCenterSync(syncDataResponseDto);
-			handleAppDetailSync(syncDataResponseDto);
-			handleTemplateSync(syncDataResponseDto);
-			handleDocumentSync(syncDataResponseDto);
-			handleIdSchemaPossibleValuesSync(syncDataResponseDto);
-			handleMisellaneousSync(syncDataResponseDto);
-			handleDynamicFieldSync(syncDataResponseDto);
+			List<CompletableFuture> futures = new ArrayList<CompletableFuture>();
+			futures.add(handleDeviceSync(syncDataResponseDto));
+			futures.add(handleMachineSync(syncDataResponseDto));
+			futures.add(handleRegistrationCenterSync(syncDataResponseDto));
+			futures.add(handleAppDetailSync(syncDataResponseDto));
+			futures.add(handleTemplateSync(syncDataResponseDto));
+			futures.add(handleDocumentSync(syncDataResponseDto));
+			futures.add(handleIdSchemaPossibleValuesSync(syncDataResponseDto));
+			futures.add(handleMisellaneousSync1(syncDataResponseDto));
+			futures.add(handleMisellaneousSync2(syncDataResponseDto));
+			futures.add(handleDynamicFieldSync(syncDataResponseDto));
+			futures.add(syncSchema("System"));
+
+			CompletableFuture array [] = new CompletableFuture[futures.size()];
+			CompletableFuture<Void> future = CompletableFuture.allOf(futures.toArray(array));
+
+			try {
+				future.join();
+			} catch (CompletionException e) {
+				throw e.getCause();
+			}
+
+			LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
+					"Complete master sync completed in (ms) : " + (System.currentTimeMillis() - start));
 			return RegistrationConstants.SUCCESS;
 		} catch (Throwable e) {	
 			throw new RegBaseUncheckedException(RegistrationConstants.MASTER_SYNC_EXCEPTION + RegistrationConstants.FAILURE,
@@ -307,15 +340,19 @@ public class ClientSettingSyncHelper {
 			List<Object> entities = new ArrayList<Object>();
 			if(syncDataBaseDto == null || syncDataBaseDto.getData() == null || syncDataBaseDto.getData().isEmpty())
 				return entities;
-			
-			for(String jsonString : syncDataBaseDto.getData()) {
-				if(jsonString == null)
-					continue;
-				
-				JSONObject jsonObject = new JSONObject(jsonString);				
+
+			LOGGER.debug(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, "Building entity of type : " +
+					syncDataBaseDto.getEntityName());
+
+			byte[] data = clientCryptoFacade.decrypt(CryptoUtil.decodeBase64(syncDataBaseDto.getData()));
+			JSONArray jsonArray = new JSONArray(new String(data));
+
+			for(int i =0; i < jsonArray.length(); i++) {
+				JSONObject jsonObject = new JSONObject(jsonArray.getString(i));
 				Object entity = MetaDataUtils.setCreateJSONObjectToMetaData(jsonObject, getEntityClass(syncDataBaseDto.getEntityName()));
 				entities.add(entity);
 			}
+
 			return entities;
 		} catch (Throwable e) {
 			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(e));
@@ -348,20 +385,17 @@ public class ClientSettingSyncHelper {
 	 * @param syncDataResponseDto
 	 * @throws Exception 
 	 */
-	@SuppressWarnings("unchecked")
-	private void handleDeviceSync(SyncDataResponseDto syncDataResponseDto) throws Exception {
+	@Async
+	private CompletableFuture<Boolean> handleDeviceSync(SyncDataResponseDto syncDataResponseDto) throws Exception {
 		try {		
 			deviceTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "DeviceType")));
 			deviceSpecificationRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"DeviceSpecification")));
 			deviceMasterRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"Device")));
-			registeredDeviceTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"DeviceTypeDPM")));
-			registeredSubDeviceTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"DeviceSubTypeDPM")));
-			mosipDeviceServiceRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"DeviceService")));
-			deviceProviderRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"DeviceProvider")));
-//			registeredDeviceRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto,"RegisteredDevice")));
+			foundationalTrustProviderRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "FoundationalTrustProvider")));
 		} catch (Exception e) {
 			throw new SyncFailedException(e.getMessage()+"Saving the entities into machine sync is failed ");
-		}		
+		}
+		return CompletableFuture.completedFuture(true);
 	}
 	
 	/**
@@ -369,8 +403,8 @@ public class ClientSettingSyncHelper {
 	 * @param syncDataResponseDto
 	 * @throws SyncFailedException
 	 */
-	@SuppressWarnings("unchecked")
-	private void handleMachineSync(SyncDataResponseDto syncDataResponseDto) throws SyncFailedException {
+	@Async
+	private CompletableFuture handleMachineSync(SyncDataResponseDto syncDataResponseDto) throws SyncFailedException {
 		try {
 			machineTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "MachineType")));
 			machineSpecificationRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "MachineSpecification")));
@@ -378,7 +412,8 @@ public class ClientSettingSyncHelper {
 		}  catch (Exception e) {
 			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
 			throw new SyncFailedException("Machine data sync failed due to " +  e.getMessage());
-		}	
+		}
+		return CompletableFuture.completedFuture(true);
 	}
 	
 	/**
@@ -386,20 +421,20 @@ public class ClientSettingSyncHelper {
 	 * @param syncDataResponseDto
 	 * @throws SyncFailedException
 	 */
-	@SuppressWarnings("unchecked")
-	private void handleRegistrationCenterSync(SyncDataResponseDto syncDataResponseDto) throws SyncFailedException  {
+	@Async
+	private CompletableFuture handleRegistrationCenterSync(SyncDataResponseDto syncDataResponseDto) throws SyncFailedException  {
 		try {
 			registrationCenterTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "RegistrationCenterType")));
 			registrationCenterRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "RegistrationCenter")));			
 			registrationCenterDeviceRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "RegistrationCenterDevice")));
 			centerMachineRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "RegistrationCenterMachine")));
 			registrationCenterMachineDeviceRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "RegistrationCenterMachineDevice")));
-			//TODO need to check if userdetails are synced before this ?
 			registrationCenterUserRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "RegistrationCenterUser")));
 		} catch (Exception e ) {
 			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
 			throw new SyncFailedException("RegistrationCenter data sync failed due to " +  e.getMessage());
-		} 
+		}
+		return CompletableFuture.completedFuture(true);
 	}
 	
 	/**
@@ -407,8 +442,8 @@ public class ClientSettingSyncHelper {
 	 * @param syncDataResponseDto
 	 * @throws SyncFailedException
 	 */
-	@SuppressWarnings("unchecked")
-	private void handleAppDetailSync(SyncDataResponseDto syncDataResponseDto) throws SyncFailedException {
+	@Async
+	private CompletableFuture handleAppDetailSync(SyncDataResponseDto syncDataResponseDto) throws SyncFailedException {
 		try {
 			appDetailRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "AppDetail")));
 			appRolePriorityRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "AppRolePriority")));
@@ -417,6 +452,7 @@ public class ClientSettingSyncHelper {
 			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
 			throw new SyncFailedException("AppDetail data sync failed due to " +  e.getMessage());
 		}
+		return CompletableFuture.completedFuture(true);
 	}
 	
 	/**
@@ -424,8 +460,8 @@ public class ClientSettingSyncHelper {
 	 * @param syncDataResponseDto
 	 * @throws SyncFailedException
 	 */
-	@SuppressWarnings("unchecked")
-	private void handleTemplateSync(SyncDataResponseDto syncDataResponseDto) throws SyncFailedException{	
+	@Async
+	private CompletableFuture handleTemplateSync(SyncDataResponseDto syncDataResponseDto) throws SyncFailedException{
 		try {
 			templateFileFormatRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "TemplateFileFormat")));
 			templateTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "TemplateType")));
@@ -434,7 +470,7 @@ public class ClientSettingSyncHelper {
 			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
 			throw new SyncFailedException("Template data sync failed due to " +  e.getMessage());
 		}
-		
+		return CompletableFuture.completedFuture(true);
 	}
 	
 	/**
@@ -442,8 +478,8 @@ public class ClientSettingSyncHelper {
 	 * @param syncDataResponseDto
 	 * @throws SyncFailedException
 	 */
-	@SuppressWarnings("unchecked")
-	private void handleDocumentSync(SyncDataResponseDto syncDataResponseDto) throws SyncFailedException  {
+	@Async
+	private CompletableFuture handleDocumentSync(SyncDataResponseDto syncDataResponseDto) throws SyncFailedException  {
 		try {
 			documentTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "DocumentType")));
 			documentCategoryRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "DocumentCategory")));
@@ -453,6 +489,7 @@ public class ClientSettingSyncHelper {
 			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
 			throw new SyncFailedException("Document data sync failed due to " +  e.getMessage());
 		}
+		return CompletableFuture.completedFuture(true);
 	}
 	
 	/**
@@ -460,8 +497,8 @@ public class ClientSettingSyncHelper {
 	 * @param syncDataResponseDto
 	 * @throws SyncFailedException
 	 */
-	@SuppressWarnings("unchecked")
-	private void handleIdSchemaPossibleValuesSync(SyncDataResponseDto syncDataResponseDto) throws SyncFailedException  {
+	@Async
+	private CompletableFuture handleIdSchemaPossibleValuesSync(SyncDataResponseDto syncDataResponseDto) throws SyncFailedException  {
 		try {
 			biometricTypeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "BiometricType")));
 			biometricAttributeRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "BiometricAttribute")));
@@ -473,7 +510,8 @@ public class ClientSettingSyncHelper {
 		} catch (Exception e) {
 			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
 			throw new SyncFailedException("IdSchema data sync failed due to " +  e.getMessage());
-		}		
+		}
+		return CompletableFuture.completedFuture(true);
 	}
 	
 	/**
@@ -481,30 +519,45 @@ public class ClientSettingSyncHelper {
 	 * @param syncDataResponseDto
 	 * @throws SyncFailedException
 	 */
-	@SuppressWarnings("unchecked")
-	private void handleMisellaneousSync(SyncDataResponseDto syncDataResponseDto) throws SyncFailedException  {
+	@Async
+	private CompletableFuture handleMisellaneousSync1(SyncDataResponseDto syncDataResponseDto) throws SyncFailedException  {
 		try {
 			blacklistedWordsRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "BlacklistedWords")));
 			processListRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "ProcessList")));
 			screenDetailRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "ScreenDetail")));
 			screenAuthorizationRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "ScreenAuthorization")));
-			foundationalTrustProviderRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "FoundationalTrustProvider")));
-			languageRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "Language")));
-			reasonCategoryRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "ReasonCategory")));
-			reasonListRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "ReasonList")));
-			syncJobDefRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "SyncJobDef")));
-			
 		} catch (Exception e) {
 			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
 			throw new SyncFailedException("Miscellaneous data sync failed due to " +  e.getMessage());
 		}
+		return CompletableFuture.completedFuture(true);
+	}
+
+	/**
+	 * save the entities data in respective repository
+	 * @param syncDataResponseDto
+	 * @throws SyncFailedException
+	 */
+	@Async
+	private CompletableFuture handleMisellaneousSync2(SyncDataResponseDto syncDataResponseDto) throws SyncFailedException  {
+		try {
+			languageRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "Language")));
+			reasonCategoryRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "ReasonCategory")));
+			reasonListRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "ReasonList")));
+			syncJobDefRepository.saveAll(buildEntities(getSyncDataBaseDto(syncDataResponseDto, "SyncJobDef")));
+		} catch (Exception e) {
+			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
+			throw new SyncFailedException("Miscellaneous data sync failed due to " +  e.getMessage());
+		}
+		return CompletableFuture.completedFuture(true);
 	}
 	
 	/**
 	 * save dynamic fields with value json
 	 * @param syncDataResponseDto
 	 */
-	private void handleDynamicFieldSync(SyncDataResponseDto syncDataResponseDto) throws SyncFailedException {
+	@Async
+	private CompletableFuture handleDynamicFieldSync(SyncDataResponseDto syncDataResponseDto) throws SyncFailedException {
 		try {
 			Iterator<SyncDataBaseDto> iterator = syncDataResponseDto.getDataToSync().stream()
 					.filter(obj -> FIELD_TYPE_DYNAMIC.equalsIgnoreCase(obj.getEntityType()))
@@ -514,21 +567,20 @@ public class ClientSettingSyncHelper {
 			while(iterator.hasNext()) {
 				SyncDataBaseDto syncDataBaseDto = iterator.next();
 				
-				if(syncDataBaseDto != null && syncDataBaseDto.getData() != null) {
-					for(String jsonString : syncDataBaseDto.getData()) {
-						if(jsonString == null)
-							continue;
-						
-						DynamicFieldDto dynamicFieldDto = MapperUtils.convertJSONStringToDto(jsonString, 
+				if(syncDataBaseDto != null && syncDataBaseDto.getData() != null && !syncDataBaseDto.getData().isEmpty()) {
+					byte[] data = clientCryptoFacade.decrypt(CryptoUtil.decodeBase64(syncDataBaseDto.getData()));
+					JSONArray jsonArray = new JSONArray(new String(data));
+
+					for(int i=0; i< jsonArray.length(); i++) {
+						DynamicFieldDto dynamicFieldDto = MapperUtils.convertJSONStringToDto(jsonArray.getString(i),
 								new TypeReference<DynamicFieldDto>() {});
-							
 						DynamicField dynamicField = new DynamicField();
 						dynamicField.setId(dynamicFieldDto.getId());
 						dynamicField.setDataType(dynamicFieldDto.getDataType());
 						dynamicField.setName(dynamicFieldDto.getName());
 						dynamicField.setLangCode(dynamicFieldDto.getLangCode());
 						dynamicField.setValueJson(dynamicFieldDto.getFieldVal() == null ?
-								"[]" : MapperUtils.convertObjectToJsonString(dynamicFieldDto.getFieldVal()));	
+								"[]" : MapperUtils.convertObjectToJsonString(dynamicFieldDto.getFieldVal()));
 						fields.add(dynamicField);
 					}
 				}
@@ -545,7 +597,8 @@ public class ClientSettingSyncHelper {
 		} catch(IOException e) {
 			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
 			throw new SyncFailedException("Dynamic field sync failed due to " +  e.getMessage());
-		}		
+		}
+		return CompletableFuture.completedFuture(true);
 	}
 
 	private void checkForDuplicates(List<DynamicField> fields, List<DynamicField> existingFields) {
@@ -556,5 +609,39 @@ public class ClientSettingSyncHelper {
 				}
 			}
 		}
+	}
+
+	@Async
+	public CompletableFuture syncSchema(String triggerPoint) throws RegBaseCheckedException, SyncFailedException {
+		LOGGER.info(LOG_REG_SCHEMA_SYNC, APPLICATION_NAME, APPLICATION_ID, "ID Schema sync started .....");
+
+		if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
+			try {
+				LinkedHashMap<String, Object> syncResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil.get(
+						RegistrationConstants.ID_SCHEMA_SYNC_SERVICE, new HashMap<String, String>(), true,
+						triggerPoint);
+
+				if (null != syncResponse.get(RegistrationConstants.RESPONSE)) {
+					LOGGER.info(LOG_REG_SCHEMA_SYNC, APPLICATION_NAME, APPLICATION_ID,
+							"ID Schema sync fetched from server.");
+
+					String jsonString = MapperUtils
+							.convertObjectToJsonString(syncResponse.get(RegistrationConstants.RESPONSE));
+					SchemaDto schemaDto = MapperUtils.convertJSONStringToDto(jsonString,
+							new TypeReference<SchemaDto>() {});
+
+					identitySchemaDao.createIdentitySchema(schemaDto);
+				} else {
+					throw new SyncFailedException("Schema sync failed");
+				}
+
+			} catch (Exception e) {
+				LOGGER.error(LOG_REG_SCHEMA_SYNC, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(e));
+				throw new SyncFailedException("Schema sync failed due to " +  e.getMessage());
+			}
+		} else
+			throw new SyncFailedException(RegistrationConstants.NO_INTERNET);
+
+		return CompletableFuture.completedFuture(true);
 	}
 }

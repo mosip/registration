@@ -37,11 +37,14 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.jobs.BaseJob;
 import io.mosip.registration.scheduler.SchedulerUtil;
 import io.mosip.registration.service.config.JobConfigurationService;
+import io.mosip.registration.service.remap.CenterMachineReMapService;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.service.sync.PreRegistrationDataSyncService;
 import io.mosip.registration.service.sync.SyncStatusValidatorService;
 import io.mosip.registration.update.SoftwareUpdateHandler;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
+
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
@@ -145,6 +148,9 @@ public class HeaderController extends BaseController {
 	@Autowired
 	private Streamer streamer;
 
+	@Autowired
+	private CenterMachineReMapService centerMachineReMapService;
+
 	/**
 	 * Mapping Registration Officer details
 	 */
@@ -182,8 +188,7 @@ public class HeaderController extends BaseController {
 	/**
 	 * Redirecting to Home page on Logout and destroying Session context
 	 * 
-	 * @param event
-	 *            logout event
+	 * @param event logout event
 	 */
 	public void logout(ActionEvent event) {
 		streamer.stop();
@@ -194,15 +199,8 @@ public class HeaderController extends BaseController {
 			LOGGER.info(LoggerConstants.LOG_REG_HEADER, APPLICATION_NAME, APPLICATION_ID,
 					"Clearing Session context" + SessionContext.authTokenDTO());
 
-			if (SessionContext.authTokenDTO() != null && SessionContext.authTokenDTO().getCookie() != null
-					&& RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
-
-				serviceDelegateUtil.invalidateToken(SessionContext.authTokenDTO().getCookie());
-
-			}
-
 			closeAlreadyExistedAlert();
-			
+
 			logoutCleanUp();
 
 		}
@@ -211,8 +209,7 @@ public class HeaderController extends BaseController {
 	/**
 	 * Logout clean up.
 	 *
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public void logoutCleanUp() {
 
@@ -236,27 +233,26 @@ public class HeaderController extends BaseController {
 	/**
 	 * Redirecting to Home page
 	 * 
-	 * @param event
-	 *            event for redirecting to home
+	 * @param event event for redirecting to home
 	 */
 	public void redirectHome(ActionEvent event) {
 
-		if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
+		Object obj = SessionContext.map().get(RegistrationConstants.ONBOARD_USER);
+		if ( obj != null && (boolean)obj ) {
 			goToHomePageFromOnboard();
 		} else {
 			goToHomePageFromRegistration();
 		}
-		
-		//Enable Auto-Logout
+
+		// Enable Auto-Logout
 		SessionContext.setAutoLogout(true);
-		
+
 	}
 
 	/**
 	 * Sync data through batch jobs.
 	 *
-	 * @param event
-	 *            the event
+	 * @param event the event
 	 */
 	public void syncData(ActionEvent event) {
 
@@ -305,8 +301,7 @@ public class HeaderController extends BaseController {
 	/**
 	 * Redirecting to PacketStatusSync Page
 	 * 
-	 * @param event
-	 *            event for sync packet status
+	 * @param event event for sync packet status
 	 */
 	public void syncPacketStatus(ActionEvent event) {
 		if (isMachineRemapProcessStarted()) {
@@ -346,8 +341,7 @@ public class HeaderController extends BaseController {
 	/**
 	 * This method is to trigger the Pre registration sync service
 	 * 
-	 * @param event
-	 *            event for downloading pre reg data
+	 * @param event event for downloading pre reg data
 	 */
 	@FXML
 	public void downloadPreRegData(ActionEvent event) {
@@ -380,12 +374,12 @@ public class HeaderController extends BaseController {
 
 	public void uploadPacketToServer() {
 		if (pageNavigantionAlert()) {
-			if (isMachineRemapProcessStarted()) {
-
-				LOGGER.info(LoggerConstants.LOG_REG_HEADER, APPLICATION_NAME, APPLICATION_ID,
-						RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
-				return;
-			}
+//			if (isMachineRemapProcessStarted()) {
+//
+//				LOGGER.info(LoggerConstants.LOG_REG_HEADER, APPLICATION_NAME, APPLICATION_ID,
+//						RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
+//				return;
+//			}
 			auditFactory.audit(AuditEvent.SYNC_PRE_REGISTRATION_PACKET, Components.SYNC_SERVER_TO_CLIENT,
 					SessionContext.userContext().getUserId(), AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
@@ -394,19 +388,105 @@ public class HeaderController extends BaseController {
 	}
 
 	public void intiateRemapProcess() {
+
+		LOGGER.debug("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+				"Cliked on remap process");
+
+		LOGGER.debug("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+				"Show navigation alert for remap process");
+
 		if (pageNavigantionAlert()) {
 
-			try {
-				masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
-						RegistrationConstants.JOB_TRIGGER_POINT_USER);
-			} catch (RegBaseCheckedException exMasterSync) {
-				generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.SYNC_FAILURE);
+			LOGGER.debug("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+					"Navigation success for center remap process");
+
+			Service<ResponseDTO> remapTaskService = new Service<ResponseDTO>() {
+				@Override
+				protected Task<ResponseDTO> createTask() {
+					return /**
+							 * @author SaravanaKumar
+							 *
+							 */
+					new Task<ResponseDTO>() {
+						/*
+						 * (non-Javadoc)
+						 *
+						 * @see javafx.concurrent.Task#call()
+						 */
+						@Override
+						protected ResponseDTO call() throws RegBaseCheckedException {
+
+							LOGGER.info("REGISTRATION - SYNC - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+									"Executing client settings to check remap process");
+
+							return masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
+									RegistrationConstants.JOB_TRIGGER_POINT_USER);
+
+						}
+					};
+				}
+			};
+
+			progressIndicator.progressProperty().bind(remapTaskService.progressProperty());
+
+			remapTaskService.setOnFailed((new EventHandler<WorkerStateEvent>() {
+				@Override
+				public void handle(WorkerStateEvent t) {
+					LOGGER.debug("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+							"Center remap process failed");
+
+					generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.SYNC_FAILURE);
+
+					if (!isMachineRemapProcessStarted()) {
+
+						generateAlert(RegistrationConstants.ALERT_INFORMATION,
+								RegistrationUIConstants.REMAP_NOT_APPLICABLE);
+					}
+
+					progressIndicator.setVisible(false);
+				}
+			}));
+
+			remapTaskService.setOnSucceeded(((new EventHandler<WorkerStateEvent>() {
+				@Override
+				public void handle(WorkerStateEvent t) {
+
+					LOGGER.debug("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+							"Center remap process success");
+
+					if (!isMachineRemapProcessStarted()) {
+
+						generateAlert(RegistrationConstants.ALERT_INFORMATION,
+								RegistrationUIConstants.REMAP_NOT_APPLICABLE);
+					}
+
+					progressIndicator.setVisible(false);
+				}
+			})));
+
+			if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
+
+				progressIndicator = packetHandlerController.getProgressIndicator();
+				GridPane gridPane = homeController.getMainBox();
+				gridPane.setDisable(true);
+				progressIndicator.setVisible(true);
+				remapTaskService.start();
+			} else {
+
+				LOGGER.debug("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+						"Internet not available to check center remap process");
+
+				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_INTERNET_CONNECTION);
+
+				if (centerMachineReMapService.isMachineRemapped()) {
+					if (!isMachineRemapProcessStarted()) {
+
+						generateAlert(RegistrationConstants.ALERT_INFORMATION,
+								RegistrationUIConstants.REMAP_NOT_APPLICABLE);
+					}
+				}
 			}
 
-			if (!isMachineRemapProcessStarted()) {
-
-				generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.REMAP_NOT_APPLICABLE);
-			}
 		}
 	}
 
@@ -496,7 +576,15 @@ public class HeaderController extends BaseController {
 		};
 
 		progressIndicator.progressProperty().bind(taskService.progressProperty());
-		taskService.start();
+
+		if(authTokenUtilService.hasAnyValidToken())
+			taskService.start();
+		else {
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
+			gridPane.setDisable(false);
+			progressIndicator.setVisible(false);
+		}
+
 		taskService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
 			public void handle(WorkerStateEvent t) {
@@ -723,7 +811,15 @@ public class HeaderController extends BaseController {
 		};
 
 		progressIndicator.progressProperty().bind(taskService.progressProperty());
-		taskService.start();
+
+		if(authTokenUtilService.hasAnyValidToken())
+			taskService.start();
+		else {
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
+			pane.setDisable(false);
+			progressIndicator.setVisible(false);
+		}
+
 		taskService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
 			public void handle(WorkerStateEvent workerStateEvent) {
@@ -757,8 +853,7 @@ public class HeaderController extends BaseController {
 	/**
 	 * Redirecting to PacketStatusSync Page
 	 * 
-	 * @param event
-	 *            event for sync packet status
+	 * @param event event for sync packet status
 	 */
 	public void userGuide(ActionEvent event) {
 		userGuide.setOnAction(e -> {

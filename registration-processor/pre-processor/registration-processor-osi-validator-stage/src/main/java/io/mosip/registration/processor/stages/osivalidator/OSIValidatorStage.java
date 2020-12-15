@@ -25,7 +25,7 @@ import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
-import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -40,6 +40,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
 /**
@@ -139,14 +140,13 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 		registrationStatusDto.setRegistrationStageName(this.getClass().getSimpleName());
 
 		try {
-			String source = utility.getDefaultSource();
-			Map<String, String> metaInfo = packetManagerService.getMetaInfo(registrationId, source, registrationStatusDto.getRegistrationType());
+			Map<String, String> metaInfo = packetManagerService.getMetaInfo(registrationId, registrationStatusDto.getRegistrationType());
 			if(validateUMC)
 				isValidUMC = umcValidator.isValidUMC(registrationId, registrationStatusDto, metaInfo);
 			else
 				isValidUMC = true;
 			if (isValidUMC) {
-				isValidOSI = osiValidator.isValidOSI(registrationId, source, registrationStatusDto, metaInfo);
+				isValidOSI = osiValidator.isValidOSI(registrationId, registrationStatusDto, metaInfo);
 				if (isValidOSI) {
 					registrationStatusDto
 							.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
@@ -167,6 +167,8 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 					description.setCode(PlatformSuccessMessages.RPR_PKR_OSI_VALIDATE.getCode());
 					description.setMessage(PlatformSuccessMessages.RPR_PKR_OSI_VALIDATE.getMessage() + registrationId
 							+ "::" + "OSI(" + isValidOSI + ") is not valid");
+					registrationStatusDto.setLatestTransactionStatusCode(registrationStatusMapperUtil
+							.getStatusCode(RegistrationExceptionTypeCode.PACKET_OSI_VALIDATION_FAILED));
 				}
 			} else {
 				object.setIsValid(Boolean.FALSE);
@@ -194,13 +196,12 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId,
 					RegistrationStatusCode.FAILED.toString() + e.getMessage() + ExceptionUtils.getStackTrace(e));
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
 			registrationStatusDto.setStatusComment(
 					trimExceptionMessage.trimExceptionMessage(StatusUtil.PACKET_MANAGER_EXCEPTION.getMessage() + e.getMessage()));
 			registrationStatusDto.setSubStatusCode(StatusUtil.PACKET_MANAGER_EXCEPTION.getCode());
 			registrationStatusDto.setLatestTransactionStatusCode(
 					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.PACKET_MANAGER_EXCEPTION));
-			isTransactionSuccessful = false;
+			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
 			description.setMessage(PlatformErrorMessages.PACKET_MANAGER_EXCEPTION.getMessage());
 			description.setCode(PlatformErrorMessages.PACKET_MANAGER_EXCEPTION.getCode());
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), description.getCode(), registrationId,
@@ -256,7 +257,7 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 					description.getMessage() + e.getMessage() + ExceptionUtils.getStackTrace(e));
 			object.setInternalError(Boolean.TRUE);
 			object.setIsValid(Boolean.FALSE);
-		} catch (IOException e) {
+		} catch (IOException | NoSuchAlgorithmException e) {
 			registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.name());
 			registrationStatusDto.setStatusComment(
 					trimExceptionMessage.trimExceptionMessage(StatusUtil.IO_EXCEPTION.getMessage() + e.getMessage()));

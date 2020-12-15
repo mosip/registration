@@ -1,44 +1,19 @@
 package io.mosip.registration.processor.packet.storage.utils;
 
-import java.io.IOException;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.IntStream;
-
-import javax.crypto.SecretKey;
-
-import io.mosip.kernel.core.cbeffutil.entity.BIR;
-import io.mosip.registration.processor.rest.client.utils.RestApiClient;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
-import org.springframework.http.*;
-import org.springframework.util.CollectionUtils;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.kernel.core.crypto.spi.CryptoCoreSpec;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.keygenerator.bouncycastle.KeyGenerator;
 import io.mosip.registration.processor.core.auth.dto.AuthRequestDTO;
 import io.mosip.registration.processor.core.auth.dto.AuthResponseDTO;
 import io.mosip.registration.processor.core.auth.dto.AuthTypeDTO;
 import io.mosip.registration.processor.core.auth.dto.BioInfo;
+import io.mosip.registration.processor.core.auth.dto.CertificateResponseDto;
 import io.mosip.registration.processor.core.auth.dto.DataInfoDTO;
-import io.mosip.registration.processor.core.auth.dto.PublicKeyResponseDto;
 import io.mosip.registration.processor.core.auth.dto.RequestDTO;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.code.BioType;
@@ -54,7 +29,34 @@ import io.mosip.registration.processor.core.util.CbeffToBiometricUtil;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.manager.dto.CryptomanagerResponseDto;
 import io.mosip.registration.processor.packet.storage.dto.CryptoManagerEncryptDto;
+import io.mosip.registration.processor.rest.client.utils.RestApiClient;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
+
+import javax.crypto.SecretKey;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.IntStream;
 
 /**
  * @author Ranjitha Siddegowda
@@ -99,6 +101,9 @@ public class AuthUtil {
 	@Value("${mosipbox.public.url:null}")
 	private String domainUrl;
 
+	@Value("${crypto.PrependThumbprint.enable:true}")
+	private boolean isPrependThumbprintEnabled;
+
 	@Autowired
 	private Environment env;
 
@@ -109,8 +114,7 @@ public class AuthUtil {
 	private static final String KERNEL_KEY_SPLITTER = "mosip.kernel.data-key-splitter";
 
 	public AuthResponseDTO authByIdAuthentication(String individualId, String individualType, List<io.mosip.kernel.biometrics.entities.BIR> list)
-			throws ApisResourceAccessException, InvalidKeySpecException, NoSuchAlgorithmException, IOException,
-			BioTypeException {
+			throws ApisResourceAccessException, IOException, BioTypeException, CertificateException, NoSuchAlgorithmException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), individualId,
 				"AuthUtil::authByIdAuthentication()::entry");
 
@@ -146,14 +150,13 @@ public class AuthUtil {
 		// rbase64 encoded for request
 		authRequestDTO.setRequest(Base64.encodeBase64URLSafeString(encryptedIdentityBlock));
 		// encrypted with MOSIP public key and encoded session key
-		byte[] encryptedSessionKeyByte = encryptRSA(secretKey.getEncoded(), PARTNER_ID,
-				DateUtils.getUTCCurrentDateTimeString(), mapper);
+		byte[] encryptedSessionKeyByte = encryptRSA(secretKey.getEncoded(), PARTNER_ID, mapper);
 		authRequestDTO.setRequestSessionKey(Base64.encodeBase64URLSafeString(encryptedSessionKeyByte));
 
 		// sha256 of the request block before encryption and the hash is encrypted
 		// using the requestSessionKey
 		byte[] byteArray = encryptor.symmetricEncrypt(secretKey,
-				HMACUtils.digestAsPlainText(HMACUtils.generateHash(identityBlock.getBytes())).getBytes(), null);
+				HMACUtils2.digestAsPlainText(HMACUtils2.generateHash(identityBlock.getBytes())).getBytes(), null);
 		authRequestDTO.setRequestHMAC(Base64.encodeBase64String(byteArray));
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), individualId,
 				"AuthUtil::authByIdAuthentication()::INTERNALAUTH POST service call started");
@@ -175,34 +178,38 @@ public class AuthUtil {
 
 	}
 
-	private byte[] encryptRSA(final byte[] sessionKey, String refId, String creationTime, ObjectMapper mapper)
-			throws ApisResourceAccessException, InvalidKeySpecException, java.security.NoSuchAlgorithmException,
-			IOException {
+	private byte[] encryptRSA(final byte[] sessionKey, String refId, ObjectMapper mapper)
+			throws ApisResourceAccessException, IOException, CertificateException {
 
 		// encrypt AES Session Key using RSA public key
-		List<String> pathsegments = new ArrayList<>();
-		pathsegments.add(IDA_APP_ID);
 		ResponseWrapper<?> responseWrapper;
-		PublicKeyResponseDto publicKeyResponsedto;
+		CertificateResponseDto certificateResponseDto;
 
-		responseWrapper = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(ApiName.IDAUTHPUBLICKEY,
-				pathsegments, "timeStamp,referenceId", creationTime + ',' + refId, ResponseWrapper.class);
-		publicKeyResponsedto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
-				PublicKeyResponseDto.class);
+		responseWrapper = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(ApiName.IDAUTHCERTIFICATE,
+				null, "applicationId,referenceId", IDA_APP_ID + ',' + refId, ResponseWrapper.class);
+		certificateResponseDto = mapper.readValue(mapper.writeValueAsString(responseWrapper.getResponse()),
+				CertificateResponseDto.class);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), refId,
 				"AuthUtil::encryptRSA():: ENCRYPTIONSERVICE GET service call ended with response data "
 						+ JsonUtil.objectMapperObjectToJson(responseWrapper));
 
-		PublicKey publicKey = KeyFactory.getInstance(RSA)
-				.generatePublic(new X509EncodedKeySpec(CryptoUtil.decodeBase64(publicKeyResponsedto.getPublicKey())));
+		if (responseWrapper.getErrors() != null && responseWrapper.getErrors().size() > 0)
+			throw new IOException(responseWrapper.getErrors().get(0).getMessage());
+
+		String certificate = trimBeginEnd(certificateResponseDto.getCertificate());
+
+		CertificateFactory cf = CertificateFactory.getInstance("X.509");
+		X509Certificate x509cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(java.util.Base64.getDecoder().decode(certificate)));
+
+		PublicKey publicKey = x509cert.getPublicKey();
 
 		return encryptor.asymmetricEncrypt(publicKey, sessionKey);
 
 	}
 
-	private List<BioInfo> getBiometricsList(List<io.mosip.kernel.biometrics.entities.BIR> list) throws BioTypeException {
+	private List<BioInfo> getBiometricsList(List<io.mosip.kernel.biometrics.entities.BIR> list) throws BioTypeException, NoSuchAlgorithmException {
 
-		String previousHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash("".getBytes()));
+		String previousHash = HMACUtils2.digestAsPlainText(HMACUtils2.generateHash("".getBytes()));
 		CbeffToBiometricUtil CbeffToBiometricUtil = new CbeffToBiometricUtil();
 		List<BioInfo> biometrics = new ArrayList<>();
 		try {
@@ -232,14 +239,14 @@ public class AuthUtil {
 				String encodedData = CryptoUtil
 						.encodeBase64String(JsonUtil.objectMapperObjectToJson(dataInfoDTO).getBytes());
 				bioInfo.setData(encodedData);
-				String presentHash = HMACUtils.digestAsPlainText(
-						HMACUtils.generateHash(JsonUtil.objectMapperObjectToJson(dataInfoDTO).getBytes()));
+				String presentHash = HMACUtils2.digestAsPlainText(
+						HMACUtils2.generateHash(JsonUtil.objectMapperObjectToJson(dataInfoDTO).getBytes()));
 				StringBuilder concatenatedHash = new StringBuilder();
 				concatenatedHash.append(previousHash);
 				concatenatedHash.append(presentHash);
 				// String concatenatedHash = previousHash + presentHash;
-				String finalHash = HMACUtils
-						.digestAsPlainText(HMACUtils.generateHash(concatenatedHash.toString().getBytes()));
+				String finalHash = HMACUtils2
+						.digestAsPlainText(HMACUtils2.generateHash(concatenatedHash.toString().getBytes()));
 				bioInfo.setHash(finalHash);
 				bioInfo.setSessionKey(splittedEncryptData.getEncryptedSessionKey());
 				bioInfo.setThumbprint("");
@@ -304,6 +311,7 @@ public class AuthUtil {
 		encryptDto.setSalt(salt);
 		encryptDto.setTimeStamp(timeStamp);
 		encryptDto.setData(CryptoUtil.encodeBase64(data));
+		encryptDto.setPrependThumbprint(isPrependThumbprintEnabled);
 
 		request.setId(authRequestId);
 		DateTimeFormatter format = DateTimeFormatter.ofPattern(env.getProperty(DATETIME_PATTERN));
@@ -363,6 +371,13 @@ public class AuthUtil {
 			return false;
 		}).findFirst() // first occurence
 				.orElse(-1); // No element found
+	}
+
+	private static String trimBeginEnd(String pKey) {
+		pKey = pKey.replaceAll("-*BEGIN([^-]*)-*(\r?\n)?", "");
+		pKey = pKey.replaceAll("-*END([^-]*)-*(\r?\n)?", "");
+		pKey = pKey.replaceAll("\\s", "");
+		return pKey;
 	}
 
 }

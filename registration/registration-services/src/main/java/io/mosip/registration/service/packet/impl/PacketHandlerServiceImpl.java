@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -56,7 +57,6 @@ import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.dao.AuditDAO;
 import io.mosip.registration.dao.AuditLogControlDAO;
 import io.mosip.registration.dao.MachineMappingDAO;
-import io.mosip.registration.dao.PolicySyncDAO;
 import io.mosip.registration.dao.RegistrationDAO;
 import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.RegistrationCenterDetailDTO;
@@ -69,18 +69,15 @@ import io.mosip.registration.dto.packetmanager.DocumentDto;
 import io.mosip.registration.dto.packetmanager.metadata.BiometricsMetaInfoDto;
 import io.mosip.registration.dto.packetmanager.metadata.DocumentMetaInfoDTO;
 import io.mosip.registration.dto.response.SchemaDto;
-import io.mosip.registration.entity.KeyStore;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
 import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.IdentitySchemaService;
-import io.mosip.registration.service.external.StorageService;
 import io.mosip.registration.service.packet.PacketHandlerService;
 import io.mosip.registration.update.SoftwareUpdateHandler;
 import io.mosip.registration.util.checksum.CheckSumUtil;
 import io.mosip.registration.util.common.BIRBuilder;
-import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
 import io.mosip.registration.validator.RegIdObjectMasterDataValidator;
 
 /**
@@ -102,9 +99,6 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 	@Autowired
 	private AuditManagerService auditFactory;
-
-	@Autowired
-	private PolicySyncDAO policySyncDAO;
 
 	@Autowired
 	private RegistrationDAO registrationDAO;
@@ -281,23 +275,27 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 		/** Operator/officer/supervisor Biometrics */
 		if (!operatorBiometrics.isEmpty()) {
+
+			List<BIR> birList = new ArrayList<>();
+
 			for (BiometricsDto biometricsDto : operatorBiometrics) {
-				List<BIR> list = new ArrayList<>();
 				BIR bir = getBIR(biometricsDto);
 
-				list.add(bir);
+				LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "Adding bir");
 
-				BiometricRecord biometricRecord = new BiometricRecord();
+				birList.add(bir);
 
-				// TODO set version type,bir info
-				biometricRecord.setSegments(list);
-
-				LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID,
-						"Adding operator biometrics to packet manager :  " + fileName);
-
-				packetWriter.setBiometric(registrationId, fileName, biometricRecord, source.toUpperCase(),
-						registrationCategory.toUpperCase());
 			}
+
+			BiometricRecord biometricRecord = new BiometricRecord();
+
+			biometricRecord.setSegments(birList);
+
+			LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID,
+					"Adding operator biometrics to packet manager :  " + fileName);
+
+			packetWriter.setBiometric(registrationId, fileName, biometricRecord, source.toUpperCase(),
+					registrationCategory.toUpperCase());
 		}
 
 	}
@@ -441,23 +439,19 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			switch (registrationDTO.getRegistrationCategory()) {
 			case RegistrationConstants.PACKET_TYPE_UPDATE:
 				if (demographics.get(fieldName) != null && registrationDTO.getUpdatableFields().contains(fieldName))
-					// packetCreator.setField(fieldName, demographics.get(fieldName));
-
 					setField(registrationDTO.getRegistrationId(), fieldName, demographics.get(fieldName),
 							registrationDTO.getRegistrationCategory(), source);
 				break;
 			case RegistrationConstants.PACKET_TYPE_LOST:
 				if (demographics.get(fieldName) != null)
-					// packetCreator.setField(fieldName, demographics.get(fieldName));
-
 					setField(registrationDTO.getRegistrationId(), fieldName, demographics.get(fieldName),
 							registrationDTO.getRegistrationCategory(), source);
 				break;
 			case RegistrationConstants.PACKET_TYPE_NEW:
-				// packetCreator.setField(fieldName, demographics.get(fieldName));
-
-				setField(registrationDTO.getRegistrationId(), fieldName, demographics.get(fieldName),
-						registrationDTO.getRegistrationCategory(), source);
+				if (demographics.get(fieldName) != null) {
+					setField(registrationDTO.getRegistrationId(), fieldName, demographics.get(fieldName),
+							registrationDTO.getRegistrationCategory(), source);
+				}
 				break;
 			}
 
@@ -497,6 +491,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			documentMetaInfoDTO.setDocumentName(document.getValue());
 			documentMetaInfoDTO.setDocumentOwner(document.getOwner());
 			documentMetaInfoDTO.setDocumentType(document.getType());
+			documentMetaInfoDTO.setRefNumber(document.getRefNumber());
 
 			documentMetaInfoDTOs.add(documentMetaInfoDTO);
 
@@ -589,16 +584,16 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 	}
 
-	private byte[] getPublicKeyToEncrypt() throws RegBaseCheckedException {
-		String stationId = getStationId(RegistrationSystemPropertiesChecker.getMachineId());
-		String centerMachineId = getCenterId(stationId) + "_" + stationId;
-		KeyStore keyStore = policySyncDAO.getPublicKey(centerMachineId);
-		if (keyStore != null && keyStore.getPublicKey() != null)
-			return keyStore.getPublicKey();
-
-		throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_RSA_PUBLIC_KEY_NOT_FOUND.getErrorCode(),
-				RegistrationExceptionConstants.REG_RSA_PUBLIC_KEY_NOT_FOUND.getErrorMessage());
-	}
+//	private byte[] getPublicKeyToEncrypt() throws RegBaseCheckedException {
+//		String stationId = getStationId(RegistrationSystemPropertiesChecker.getMachineId());
+//		String centerMachineId = getCenterId(stationId) + "_" + stationId;
+//		KeyStore keyStore = policySyncDAO.getPublicKey(centerMachineId);
+//		if (keyStore != null && keyStore.getPublicKey() != null)
+//			return keyStore.getPublicKey();
+//
+//		throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_RSA_PUBLIC_KEY_NOT_FOUND.getErrorCode(),
+//				RegistrationExceptionConstants.REG_RSA_PUBLIC_KEY_NOT_FOUND.getErrorMessage());
+//	}
 
 	private void setAudits(RegistrationDTO registrationDTO) {
 		List<Audit> audits = auditDAO.getAudits(auditLogControlDAO.getLatestRegistrationAuditDates(),
@@ -609,9 +604,10 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		for (Audit audit : audits) {
 
 			Map<String, String> auditMap = new LinkedHashMap<>();
-
+			// Fix to resolve date format issue in reg-proc
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 			auditMap.put("uuid", audit.getUuid());
-			auditMap.put("createdAt", String.valueOf(audit.getCreatedAt()));
+			auditMap.put("createdAt", String.valueOf(audit.getCreatedAt().format(formatter)));
 			auditMap.put("eventId", audit.getEventId());
 			auditMap.put("eventName", audit.getEventName());
 			auditMap.put("eventType", audit.getEventType());
@@ -627,7 +623,8 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			auditMap.put("moduleName", audit.getModuleName());
 			auditMap.put("moduleId", audit.getModuleId());
 			auditMap.put("description", audit.getDescription());
-			auditMap.put("actionTimeStamp", String.valueOf(audit.getActionTimeStamp()));
+
+			auditMap.put("actionTimeStamp", String.valueOf(audit.getActionTimeStamp().format(formatter)));
 
 			auditList.add(auditMap);
 		}
@@ -729,6 +726,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		document.setFormat(documentDto.getFormat());
 		document.setType(documentDto.getType());
 		document.setValue(documentDto.getValue());
+		document.setRefNumber(documentDto.getRefNumber());
 		return document;
 	}
 

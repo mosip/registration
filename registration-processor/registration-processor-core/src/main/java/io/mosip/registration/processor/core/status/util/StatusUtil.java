@@ -1,5 +1,7 @@
 package io.mosip.registration.processor.core.status.util;
 
+import io.mosip.registration.processor.core.exception.util.PlatformConstants;
+
 public enum StatusUtil {
 	// Packet Receiver Stage
 	PACKET_RECEIVED(StatusConstants.PACKET_RECEIVER_MODULE_SUCCESS + "001","Packet has reached Packet Receiver"),
@@ -79,7 +81,7 @@ public enum StatusUtil {
 	OSI_VALIDATION_SUCCESS(StatusConstants.OSI_VALIDAOR_MODULE_SUCCESS + "001", "OSI Validation is Successful"),
 
 	// printing stage
-	PDF_ADDED_TO_QUEUE_SUCCESS(StatusConstants.PRINT_STAGE_MODULE_SUCCESS + "001", "PDF is added to Queue for Printing"),
+	PRINT_REQUEST_SUCCESS(StatusConstants.PRINT_STAGE_MODULE_SUCCESS + "001", "Print request submitted"),
 	PDF_ADDED_TO_QUEUE_FAILED(StatusConstants.PRINT_STAGE_MODULE_FAILED + "001","PDF was not added to Queue due to Queue Failure"),
 	PRINT_POST_COMPLETED(StatusConstants.PRINT_STAGE_MODULE_SUCCESS + "002","Printing and Post Completed"), 
 	RESEND_UIN_CARD(StatusConstants.PRINT_STAGE_MODULE_SUCCESS + "003","Re-Sent UIN Card for Printing"), 
@@ -88,6 +90,12 @@ public enum StatusUtil {
 	QUEUE_CONNECTION_NOT_FOUND(StatusConstants.PRINT_STAGE_MODULE_SUCCESS + "006","Queue Connection not found "),
 	QUEUE_CONNECTION_UNAVAILABLE(StatusConstants.PRINT_STAGE_MODULE_SUCCESS + "007","Queue Connection unavailable for "),
 	PDF_SIGNTURED_FAILED(StatusConstants.PRINT_STAGE_MODULE_SUCCESS + "008", "Pdf Signature failed "),
+	PRINT_REQUEST_FAILED(StatusConstants.PRINT_STAGE_MODULE_FAILED + "009",
+			"Print request failed"),
+	UIN_NOT_FOUND_IN_DATABASE(StatusConstants.PRINT_STAGE_MODULE_FAILED + "010", "UIN not found in database"),
+	/** The rpr prt vid exception. */
+	VID_NOT_AVAILABLE(PlatformConstants.RPR_PRINTING_MODULE + "011",
+			"vid not available"),
 
 	// Abis middleware stage
 	INSERT_IDENTIFY_REQUEST_SUCCESS(StatusConstants.ABIS_MIDDLEWARE_MODULE_SUCCESS + "001","Insert or Identify Request sent to ABIS Queue is succesful"),
@@ -108,7 +116,7 @@ public enum StatusUtil {
 	BIOMETRIC_AUTHENTICATION_FAILED(StatusConstants.BIO_METRIC_AUTHENTICATION_MODULE_FAILED + "001", "Biometric Authentication has Failed"),
 	BIOMETRIC_AUTHENTICATION_SUCCESS(StatusConstants.BIO_METRIC_AUTHENTICATION_MODULE_SUCCESS + "001", "Biometric Authentication is Successful"),
 	BIOMETRIC_FILE_NOT_FOUND(StatusConstants.SYSTEM_EXCEPTION_CODE, "Biometric File Not Found"),
-	BIOMETRIC_AUTHENTICATION_FAILED_FILE_NOT_FOUND(StatusConstants.SYSTEM_EXCEPTION_CODE, "Biometric Authentication Failed File is not present"),
+	BIOMETRIC_AUTHENTICATION_FAILED_FILE_NOT_FOUND(StatusConstants.SYSTEM_EXCEPTION_CODE, "Biometric Authentication Failed File is not present inside identity json"),
 	INDIVIDUAL_BIOMETRIC_AUTHENTICATION_FAILED(StatusConstants.BIO_METRIC_AUTHENTICATION_MODULE_FAILED + "001","Individual authentication failed"),
 
 	// Demo dedupe stage

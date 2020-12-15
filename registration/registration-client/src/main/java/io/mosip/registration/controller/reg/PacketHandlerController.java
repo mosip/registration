@@ -65,6 +65,8 @@ import io.mosip.registration.service.template.TemplateService;
 import io.mosip.registration.update.SoftwareUpdateHandler;
 import io.mosip.registration.util.acktemplate.TemplateGenerator;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
+
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
@@ -148,8 +150,9 @@ public class PacketHandlerController extends BaseController implements Initializ
 				String latestUpdateTime = timestamps.stream().sorted((timestamp1, timestamp2) -> Timestamp
 						.valueOf(timestamp2).compareTo(Timestamp.valueOf(timestamp1))).findFirst().get();
 
-				lastSyncTime.setText(Timestamp.valueOf(latestUpdateTime).toLocalDateTime().format(
-						DateTimeFormatter.ofPattern(RegistrationConstants.ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT)));
+				lastSyncTime.setText(Timestamp.valueOf(latestUpdateTime).toLocalDateTime()
+						.format(DateTimeFormatter.ofPattern(RegistrationConstants.ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT))
+						+ RegistrationConstants.UTC_APPENDER);
 
 				setLastPreRegPacketDownloadedTime();
 			}
@@ -269,10 +272,14 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 	@Autowired
 	HeaderController headerController;
-	
+
+	@Autowired
+	private AuthTokenUtilService authTokenUtilService;
+
+
 	@Value("${object.store.base.location}")
 	private String baseLocation;
-	
+
 	@Value("${packet.manager.account.name}")
 	private String packetsLocation;
 
@@ -330,8 +337,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 			if (ts != null) {
 				DateTimeFormatter format = DateTimeFormatter
 						.ofPattern(RegistrationConstants.ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT);
-				lastBiometricTime
-						.setText(RegistrationUIConstants.LAST_DOWNLOADED + " " + ts.toLocalDateTime().format(format));
+				lastBiometricTime.setText(RegistrationUIConstants.LAST_DOWNLOADED + " "
+						+ ts.toLocalDateTime().format(format) + RegistrationConstants.UTC_APPENDER);
 			}
 
 			if (!(getValueFromApplicationContext(RegistrationConstants.LOST_UIN_CONFIG_FLAG))
@@ -654,16 +661,16 @@ public class PacketHandlerController extends BaseController implements Initializ
 			return;
 		}
 
-		if (isMachineRemapProcessStarted()) {
-
-			LOGGER.info("REGISTRATION - UPLOAD_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
-					APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
-			/*
-			 * check if there is no pending packets and blocks the user to proceed further
-			 */
-			if (!isPacketsPendingForEOD())
-				return;
-		}
+//		if (isMachineRemapProcessStarted()) {
+//
+//			LOGGER.info("REGISTRATION - UPLOAD_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
+//					APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
+//			/*
+//			 * check if there is no pending packets and blocks the user to proceed further
+//			 */
+//			if (!isPacketsPendingForEOD())
+//				return;
+//		}
 		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Loading Pending Approval screen started.");
 		try {
 			auditFactory.audit(AuditEvent.NAV_APPROVE_REG, Components.NAVIGATION,
@@ -701,12 +708,12 @@ public class PacketHandlerController extends BaseController implements Initializ
 			return;
 		}
 
-		if (isMachineRemapProcessStarted()) {
-
-			LOGGER.info("REGISTRATION - UPLOAD_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
-					APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
-			return;
-		}
+//		if (isMachineRemapProcessStarted()) {
+//
+//			LOGGER.info("REGISTRATION - UPLOAD_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
+//					APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
+//			return;
+//		}
 		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Loading Packet Upload screen started.");
 		try {
 			auditFactory.audit(AuditEvent.NAV_UPLOAD_PACKETS, Components.NAVIGATION,
@@ -834,6 +841,11 @@ public class PacketHandlerController extends BaseController implements Initializ
 			return;
 		}
 
+		if(!authTokenUtilService.hasAnyValidToken()) {
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
+			return;
+		}
+
 		if (isMachineRemapProcessStarted()) {
 
 			LOGGER.info("REGISTRATION - ONBOARD_USER_UPDATE - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
@@ -906,7 +918,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 				// Generate the file path for storing the Encrypted Packet and Acknowledgement
 				// Receipt
 				String separator = "/";
-				String filePath = baseLocation.concat(separator).concat(packetsLocation).concat(separator).concat(registrationDTO.getRegistrationId());
+				String filePath = baseLocation.concat(separator).concat(packetsLocation).concat(separator)
+						.concat(registrationDTO.getRegistrationId());
 
 				// Storing the Registration Acknowledge Receipt Image
 				FileUtils.copyToFile(new ByteArrayInputStream(ackInBytes),
@@ -965,17 +978,17 @@ public class PacketHandlerController extends BaseController implements Initializ
 			return;
 		}
 
-		if (isMachineRemapProcessStarted()) {
-
-			LOGGER.info("REGISTRATION - LOAD_RE_REGISTRATION_SCREEN - REGISTRATION_OFFICER_PACKET_CONTROLLER",
-					APPLICATION_NAME, APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
-			/*
-			 * check if there is no pending re register packets and blocks the user to
-			 * proceed further
-			 */
-			if (!isPacketsPendingForReRegister())
-				return;
-		}
+//		if (isMachineRemapProcessStarted()) {
+//
+//			LOGGER.info("REGISTRATION - LOAD_RE_REGISTRATION_SCREEN - REGISTRATION_OFFICER_PACKET_CONTROLLER",
+//					APPLICATION_NAME, APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
+//			/*
+//			 * check if there is no pending re register packets and blocks the user to
+//			 * proceed further
+//			 */
+//			if (!isPacketsPendingForReRegister())
+//				return;
+//		}
 		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Loading re-registration screen sarted.");
 		try {
 			auditFactory.audit(AuditEvent.NAV_RE_REGISTRATION, Components.NAVIGATION,
@@ -1017,8 +1030,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 	/**
 	 * Sync and upload packet.
 	 *
-	 * @throws RegBaseCheckedException
-	 *             the reg base checked exception
+	 * @throws RegBaseCheckedException the reg base checked exception
 	 */
 	private void syncAndUploadPacket() throws RegBaseCheckedException {
 		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Sync and Upload of created Packet started");
@@ -1172,8 +1184,10 @@ public class PacketHandlerController extends BaseController implements Initializ
 	 */
 	private boolean getCenterAndMachineActiveStatus() {
 
-		return (null != userOnboardService.getMachineCenterId().get(RegistrationConstants.USER_STATION_ID)
-				|| null != userOnboardService.getMachineCenterId().get(RegistrationConstants.USER_CENTER_ID)) ? true
+		return ((null != userOnboardService.getMachineCenterId().get(RegistrationConstants.USER_STATION_ID)
+				|| null != userOnboardService.getMachineCenterId().get(RegistrationConstants.USER_CENTER_ID))
+				&& SessionContext.userContext().getRegistrationCenterDetailDTO().getRegistrationCenterId() != null)
+						? true
 						: false;
 
 	}

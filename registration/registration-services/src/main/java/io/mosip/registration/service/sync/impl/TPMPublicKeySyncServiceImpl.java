@@ -6,13 +6,15 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.registration.service.security.ClientSecurityFacade;
+import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
+import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.registration.dto.ResponseDTO;
+import io.mosip.registration.service.BaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.LoggerConstants;
@@ -22,9 +24,7 @@ import io.mosip.registration.dto.tpm.PublicKeyUploadRequestDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
-import io.mosip.registration.service.security.ClientSecurity;
 import io.mosip.registration.service.sync.TPMPublicKeySyncService;
-import io.mosip.registration.tpm.spi.TPMUtil;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
@@ -38,12 +38,15 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
  *
  */
 @Service
-public class TPMPublicKeySyncServiceImpl implements TPMPublicKeySyncService {
+public class TPMPublicKeySyncServiceImpl  extends BaseService implements TPMPublicKeySyncService {
 
 	private static final Logger LOGGER = AppConfig.getLogger(TPMPublicKeySyncServiceImpl.class);
 	
 	@Autowired
 	private ServiceDelegateUtil serviceDelegateUtil;
+
+	@Autowired
+	private ClientCryptoFacade clientCryptoFacade;
 
 	/*
 	 * (non-Javadoc)
@@ -53,7 +56,7 @@ public class TPMPublicKeySyncServiceImpl implements TPMPublicKeySyncService {
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public String syncTPMPublicKey() throws RegBaseCheckedException {
+	public ResponseDTO syncTPMPublicKey() throws RegBaseCheckedException {
 
 		LOGGER.info(LoggerConstants.TPM_PUBLIC_KEY_UPLOAD, APPLICATION_NAME, APPLICATION_ID, "Sync TPM Public Key");
 
@@ -66,7 +69,10 @@ public class TPMPublicKeySyncServiceImpl implements TPMPublicKeySyncService {
 			tpmKeyUploadRequest.setRequesttime(DateUtils.getUTCCurrentDateTime());
 			PublicKeyUploadRequestDTO publicKeyUploadRequestDTO = new PublicKeyUploadRequestDTO();
 			publicKeyUploadRequestDTO.setMachineName(InetAddress.getLocalHost().getHostName());
-			publicKeyUploadRequestDTO.setPublicKey(ClientSecurityFacade.getClientInstancePublicKey());
+			publicKeyUploadRequestDTO.setPublicKey(CryptoUtil.encodeBase64(clientCryptoFacade.getClientSecurity()
+					.getEncryptionPublicPart()));
+			publicKeyUploadRequestDTO.setSignPublicKey(CryptoUtil.encodeBase64(clientCryptoFacade.getClientSecurity()
+					.getSigningPublicPart()));
 			tpmKeyUploadRequest.setRequest(publicKeyUploadRequestDTO);
 
 			Map<String, Object> publicKeyResponse = (Map<String, Object>) serviceDelegateUtil.post(
@@ -75,8 +81,8 @@ public class TPMPublicKeySyncServiceImpl implements TPMPublicKeySyncService {
 
 			if (null != publicKeyResponse.get(RegistrationConstants.RESPONSE)) {
 				// Add the Key Index and Machine Name to Application Context
-				return ((Map<String, String>) publicKeyResponse.get(RegistrationConstants.RESPONSE))
-						.get(RegistrationConstants.KEY_INDEX);
+				return setSuccessResponse(new ResponseDTO(), RegistrationConstants.MACHINE_VERIFICATION_SUCCESS, null);
+
 			} else {
 				if (null != publicKeyResponse.get(RegistrationConstants.ERRORS)) {
 					LOGGER.error(LoggerConstants.TPM_PUBLIC_KEY_UPLOAD, APPLICATION_NAME, APPLICATION_ID,

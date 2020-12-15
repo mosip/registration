@@ -318,10 +318,10 @@ public class Validations extends BaseController {
 							addInvalidInputStyleClass(parentPane, node, true);
 						}
 					} else {
-						
+
 						/** Remove Error message for fields */
 						Label messageLable = ((Label) (parentPane
-								.lookup(RegistrationConstants.HASH + id + RegistrationConstants.MESSAGE)));
+								.lookup(RegistrationConstants.HASH + node.getId() + RegistrationConstants.MESSAGE)));
 
 						if (messageLable != null) {
 							messageLable.setText(RegistrationConstants.EMPTY);
@@ -330,17 +330,24 @@ public class Validations extends BaseController {
 					break;
 				}
 
-				if (!node.isDisabled() && isInputValid) {
-					String regex = getRegex(id, RegistrationUIConstants.REGEX_TYPE);
+				/** !node.isDisabled() */
+				if (isInputValid) {
+					String regex = getRegex(
+							id.replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY)
+									.replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY),
+							RegistrationUIConstants.REGEX_TYPE);
+
+					boolean isBlackListed = false;
 					if (regex != null) {
 						if (inputText.matches(regex)) {
-							isInputValid = validateBlackListedWords(parentPane, node, id, blackListedWords, showAlert,
+							isBlackListed = validateBlackListedWords(parentPane, node, id, blackListedWords, showAlert,
 									String.format("%s %s %s",
 											messageBundle.getString(RegistrationConstants.BLACKLISTED_1),
 											getFromLabelMap(id),
 											messageBundle.getString(RegistrationConstants.BLACKLISTED_2)),
 									messageBundle.getString(RegistrationConstants.BLACKLISTED_ARE),
 									messageBundle.getString(RegistrationConstants.BLACKLISTED_IS));
+							isInputValid = isBlackListed;
 						} else {
 							isInputValid = false;
 						}
@@ -350,10 +357,13 @@ public class Validations extends BaseController {
 					}
 
 					if (!isInputValid) {
-						generateInvalidValueAlert(parentPane, id,
-								getFromLabelMap(label).concat(RegistrationConstants.SPACE)
-										.concat(messageBundle.getString(RegistrationConstants.REG_DDC_004)),
-								showAlert);
+
+						if (isBlackListed) {
+							generateInvalidValueAlert(
+									parentPane, node.getId(), getFromLabelMap(label).concat(RegistrationConstants.SPACE)
+											.concat(messageBundle.getString(RegistrationConstants.REG_DDC_004)),
+									showAlert);
+						}
 						if (isPreviousValid && !id.contains(RegistrationConstants.ON_TYPE)) {
 							addInvalidInputStyleClass(parentPane, node, false);
 						}
@@ -374,6 +384,10 @@ public class Validations extends BaseController {
 
 	private void addValidInputStyleClass(Pane parentPane, TextField node) {
 		Label nodeLabel = (Label) parentPane.lookup("#" + node.getId() + "Label");
+		if (nodeLabel == null && parentPane.getParent() != null && parentPane.getParent().getParent() != null
+				&& parentPane.getParent().getParent().getParent() != null) {
+			nodeLabel = (Label) parentPane.getParent().getParent().getParent().lookup("#" + node.getId() + "Label");
+		}
 		// node.requestFocus();
 		node.getStyleClass().removeIf((s) -> {
 			return s.equals(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
@@ -389,7 +403,6 @@ public class Validations extends BaseController {
 
 	private void addInvalidInputStyleClass(Pane parentPane, Node node, boolean mandatoryCheck) {
 		if (mandatoryCheck) {
-			node.requestFocus();
 			node.getStyleClass().removeIf((s) -> {
 				return s.equals(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
 			});
@@ -412,6 +425,7 @@ public class Validations extends BaseController {
 
 	private boolean doMandatoryCheckOnNewReg(String inputText, UiSchemaDTO schemaField, boolean isMandatory) {
 		if (schemaField != null) {
+
 			if (isMandatory && (inputText == null || inputText.isEmpty())) {
 				return false;
 			}

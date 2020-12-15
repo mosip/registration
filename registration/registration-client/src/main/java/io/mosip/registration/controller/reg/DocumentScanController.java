@@ -61,11 +61,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
@@ -257,6 +259,8 @@ public class DocumentScanController extends BaseController {
 					addDocumentsToScreen(documentDetailsDTO.getValue(), documentDetailsDTO.getFormat(),
 							documentVBoxes.get(docCategoryKey));
 
+					addDocumentRefNumber(documentDetailsDTO.getRefNumber(), documentVBoxes.get(documentDetailsDTO.getCategory() + "RefNumVBox"));
+					
 					FXUtils.getInstance().selectComboBoxValue(documentComboBoxes.get(docCategoryKey),
 							documentDetailsDTO.getValue().substring(
 									documentDetailsDTO.getValue().lastIndexOf(RegistrationConstants.UNDER_SCORE) + 1));
@@ -273,6 +277,14 @@ public class DocumentScanController extends BaseController {
 		validateDocumentsPane();
 	}
 
+	private void addDocumentRefNumber(String refNumber, VBox vBox) {
+		if (refNumber != null && vBox != null) {
+			GridPane gridPane = (GridPane) vBox.getChildren().get(0);
+			TextField textField = (TextField) gridPane.getChildren().get(0);
+			textField.setText(refNumber);
+		}
+	}
+
 	private Map<String, DocumentDto> getDocumentsMapFromSession() {
 		return getRegistrationDTOFromSession().getDocuments();
 	}
@@ -282,8 +294,16 @@ public class DocumentScanController extends BaseController {
 	 */
 	@SuppressWarnings("unchecked")
 	private <T> void prepareDocumentScanSection(List<UiSchemaDTO> documentFields) {
+
+		LOGGER.debug(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "Preparing document section");
+
 		if (RegistrationConstants.YES
 				.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.DOC_SCANNER_ENABLED))) {
+
+			LOGGER.debug(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "Found Document scanner with device enabled");
+
 			HBox scannerHbox = new HBox();
 			scannerHbox.setStyle("-fx-padding: 10;");
 			Label selectScannerLabel = new Label();
@@ -295,24 +315,43 @@ public class DocumentScanController extends BaseController {
 			scannerComboBox.setPrefWidth(docScanVbox.getWidth() / 2);
 			scannerComboBox.getStyleClass().add(RegistrationConstants.DOC_COMBO_BOX);
 			scannerComboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
-				selectedScanDeviceName = newValue; 
+				selectedScanDeviceName = newValue;
 			});
+
+			LOGGER.debug(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "Setting Document scanner factory");
+
 			if (documentScanFacade.setScannerFactory()) {
+
+				LOGGER.debug(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, APPLICATION_NAME,
+						RegistrationConstants.APPLICATION_ID, "Finding the devices used to scan the documents");
+
 				List<ScanDevice> scannerDevices = documentScanFacade.getDevices();
+
 				if (scannerDevices.isEmpty()) {
+					LOGGER.debug(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, APPLICATION_NAME,
+							RegistrationConstants.APPLICATION_ID,
+							"Not Found the devices used to scan the document : " + scannerDevices);
 					scannerComboBox.setPromptText(RegistrationUIConstants.NO_SCANNER_FOUND);
 					scannerComboBox.setDisable(true);
 				} else {
-					List<String> deviceNames = scannerDevices.stream().map(device -> device.getName()).collect(Collectors.toList());
+					LOGGER.debug(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, APPLICATION_NAME,
+							RegistrationConstants.APPLICATION_ID,
+							"Found the devices used to scan the document : " + scannerDevices);
+					List<String> deviceNames = scannerDevices.stream().map(device -> device.getName())
+							.collect(Collectors.toList());
+					LOGGER.debug(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, APPLICATION_NAME,
+							RegistrationConstants.APPLICATION_ID,
+							"Found the devices used to scan the document : " + scannerDevices);
 					scannerComboBox.getItems().addAll(deviceNames);
 					scannerComboBox.getSelectionModel().selectFirst();
 					selectedScanDeviceName = scannerComboBox.getSelectionModel().getSelectedItem();
 				}
-			}			
+			}
 			scannerHbox.getChildren().addAll(selectScannerLabel, scannerComboBox);
 			docScanVbox.getChildren().add(scannerHbox);
 		}
-		
+
 		/* show the scan doc info label for format and size */
 		Label fileSizeInfoLabel = new Label();
 		fileSizeInfoLabel.setWrapText(true);
@@ -380,7 +419,40 @@ public class DocumentScanController extends BaseController {
 				documentVBox.getStyleClass().add(RegistrationConstants.SCAN_VBOX);
 				documentVBox.setId(documentCategory.getId());
 
-				documentVBoxes.put(documentCategory.getId(), documentVBox);
+				documentVBoxes.put(documentCategory.getId(), documentVBox);				
+				
+				VBox refNumVBox = new VBox();
+				refNumVBox.setId(docCategoryCode + "RefNumVBox");
+				refNumVBox.getStyleClass().add(RegistrationConstants.SCAN_VBOX);
+				TextField numberOfDocs = new TextField();
+				numberOfDocs.setId(docCategoryCode + "RefNum");
+				numberOfDocs.setPromptText(RegistrationUIConstants.REF_NUMBER);
+				numberOfDocs.getStyleClass().add(RegistrationConstants.DOC_TEXT_FIELD);
+				
+				documentVBoxes.put(refNumVBox.getId(), refNumVBox);	
+				
+				GridPane gridPane = new GridPane();
+				gridPane.setId(docCategoryCode + "RefNumGridPane");
+				gridPane.setVgap(10);
+				gridPane.setHgap(10);
+				gridPane.setPrefWidth(80);
+				gridPane.add(numberOfDocs, 1, 0);
+
+				refNumVBox.getChildren().add(gridPane);
+				
+				Label refNumLabel = new Label(RegistrationUIConstants.REF_NUMBER);
+				refNumLabel.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
+				//pagesLabel.setPrefWidth(docScanVbox.getWidth() / 2);
+				refNumLabel.setVisible(false);
+				refNumLabel.setId(docCategoryCode + "RefNumLabel");
+				FXUtils.getInstance().onTypeFocusUnfocusListener((Pane)docScanVbox.getParent(), numberOfDocs);
+				
+				if (applicationContext.isPrimaryLanguageRightToLeft()) {
+					comboBox.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
+					documentLabel.setAlignment(Pos.CENTER_RIGHT);
+					numberOfDocs.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
+					refNumLabel.setAlignment(Pos.CENTER_RIGHT);
+				}
 
 				Button scanButton = new Button();
 				scanButton.setText(RegistrationUIConstants.SCAN);
@@ -393,10 +465,24 @@ public class DocumentScanController extends BaseController {
 					@Override
 					public void handle(ActionEvent event) {
 
-						auditFactory.audit(
-								AuditEvent.valueOf(
-										String.format("REG_DOC_%S_SCAN", ((Button) event.getSource()).getId())),
-								Components.REG_DOCUMENTS, SessionContext.userId(),
+						LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
+								RegistrationConstants.APPLICATION_ID,
+								"Document Action listener started for scan" + ((Button) event.getSource()).getId());
+
+						AuditEvent auditEvent = null;
+						try {
+							auditEvent = AuditEvent
+									.valueOf(String.format("REG_DOC_%S_SCAN", ((Button) event.getSource()).getId()));
+						} catch (Exception exception) {
+
+							LOGGER.error("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
+									RegistrationConstants.APPLICATION_ID,
+									"Unable to find audit event for button : " + ((Button) event.getSource()).getId());
+
+							auditEvent = AuditEvent.REG_DOC_SCAN;
+
+						}
+						auditFactory.audit(auditEvent, Components.REG_DOCUMENTS, SessionContext.userId(),
 								AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 						Button clickedBtn = (Button) event.getSource();
@@ -404,6 +490,11 @@ public class DocumentScanController extends BaseController {
 						scanDocument(comboBox, documentVBox, documentCategory.getSubType(),
 								RegistrationUIConstants.PLEASE_SELECT + RegistrationConstants.SPACE
 										+ documentCategory.getSubType() + " " + RegistrationUIConstants.DOCUMENT);
+
+						LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
+								RegistrationConstants.APPLICATION_ID,
+								"Document Action listener completed for scan" + ((Button) event.getSource()).getId());
+
 					}
 				});
 				scanButton.hoverProperty().addListener((ov, oldValue, newValue) -> {
@@ -416,8 +507,9 @@ public class DocumentScanController extends BaseController {
 								this.getClass().getResourceAsStream(RegistrationConstants.SCAN), 12, 12, true, true)));
 					}
 				});
-				hBox.getChildren().addAll(new VBox(new Label(), indicatorImage), comboBox, documentVBox, scanButton);
-				docScanVbox.getChildren().addAll(new HBox(new Label("       "), documentLabel), hBox);
+				
+				hBox.getChildren().addAll(new VBox(new Label(), indicatorImage), comboBox, refNumVBox, documentVBox, scanButton);
+				docScanVbox.getChildren().addAll(new HBox(documentLabel, refNumLabel), hBox);
 				hBox.setId(documentCategory.getSubType());
 				documentLabel.setId(documentCategory.getSubType() + RegistrationConstants.LABEL);
 				comboBox.getItems().addAll(documentCategoryDtos);
@@ -645,25 +737,49 @@ public class DocumentScanController extends BaseController {
 	 * This method is to scan from the scanner
 	 */
 	private void scanFromScanner() throws IOException {
+		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "Scanning from scanner");
+
+		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "Setting scanner factory");
 
 		/* setting the scanner factory */
 		if (!documentScanFacade.setScannerFactory()) {
+			LOGGER.error(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "Setting scanner factory failed");
+
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOCUMENT_CONNECTION_ERR);
 			return;
 		}
 		if (selectedScanDeviceName == null || selectedScanDeviceName.isEmpty()) {
+			LOGGER.error(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "Selected device name was empty");
+
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOCUMENT_CONNECTION_ERR);
 			return;
 		}
+
+		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "Setting scan message name visible");
 
 		scanPopUpViewController.getScanningMsg().setVisible(true);
 
 		byte[] byteArray;
 		BufferedImage bufferedImage;
 
+		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "checking for POE value");
+
 		if (selectedComboBox.getValue().getCode()
-				.matches(getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE))) {
+				.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE))) {
+			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "capturing POE document using native library webcam");
+
 			bufferedImage = webcamSarxosServiceImpl.captureImage(webcam);
+
+			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "closing web cam");
+
 			webcamSarxosServiceImpl.close(webcam);
 			scanPopUpViewController.setDefaultImageGridPaneVisibility();
 		} else {
@@ -671,6 +787,9 @@ public class DocumentScanController extends BaseController {
 		}
 
 		if (bufferedImage == null) {
+			LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "captured buffered image was null");
+
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOCUMENT_ERROR);
 			return;
 		}
@@ -678,6 +797,9 @@ public class DocumentScanController extends BaseController {
 			scannedPages = new ArrayList<>();
 		}
 		scannedPages.add(bufferedImage);
+
+		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "converting image bytes from buffered image");
 
 		byteArray = documentScanFacade.getImageBytesFromBufferedImage(bufferedImage);
 		/* show the scanned page in the preview */
@@ -749,6 +871,18 @@ public class DocumentScanController extends BaseController {
 			docType = RegistrationConstants.SCANNER_IMG_TYPE;
 		}
 
+		HBox hBox = (HBox) vboxElement.getParent();
+		hBox.getChildren().forEach(node -> {
+			if (node.getId() != null && node.getId().contains("RefNumVBox")) {
+				VBox vbox = (VBox) node;
+				GridPane gridPane = (GridPane) vbox.getChildren().get(0);
+				TextField textField = (TextField) gridPane.getChildren().get(0);
+				if (textField.getText() != null && !textField.getText().isEmpty()) {
+					documentDto.setRefNumber(textField.getText());
+				}
+			}
+		});
+		
 		documentDto.setFormat(docType);
 		documentDto.setCategory(selectedDocument);
 		documentDto.setOwner("Applicant");
@@ -761,9 +895,17 @@ public class DocumentScanController extends BaseController {
 				RegistrationConstants.APPLICATION_ID, "Set DocumentDetailsDTO to RegistrationDTO");
 		addDocumentsToScreen(documentDto.getValue(), documentDto.getFormat(), vboxElement);
 
+		selectedComboBox.getValue().setScanned(true);
+
+		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "Validating document screen");
+
 		validateDocumentsPane();
 
 		generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.SCAN_DOC_SUCCESS);
+
+		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID, "Adding document to session");
 
 		getRegistrationDTOFromSession().addDocument(selectedComboBox.getId(), documentDto);
 	}
@@ -775,8 +917,8 @@ public class DocumentScanController extends BaseController {
 
 		GridPane gridPane = new GridPane();
 		gridPane.setId(document);
-		gridPane.setVgap(20);
-		gridPane.setHgap(20);
+		gridPane.setVgap(15);
+		gridPane.setHgap(15);
 		gridPane.add(createHyperLink(document.concat(RegistrationConstants.DOT + documentFormat)), 1, 0);
 		gridPane.add(createImageView(vboxElement), 2, 0);
 
@@ -800,7 +942,12 @@ public class DocumentScanController extends BaseController {
 		 * TODO - pdf to images to be replaced wit ketrnal and setscanner factory has to
 		 * be removed here
 		 */
-		documentScanFacade.setScannerFactory();
+		if (RegistrationConstants.YES
+				.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.DOC_SCANNER_ENABLED))) {
+			documentScanFacade.setScannerFactory();
+		} else {
+			documentScanFacade.setStubScannerFactory();
+		}
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Converting bytes to Image to display scanned document");
 		/* clearing the previously loaded pdf pages inorder to clear up the memory */
@@ -877,10 +1024,8 @@ public class DocumentScanController extends BaseController {
 	/**
 	 * This method will set the inde and page number for the document
 	 * 
-	 * @param index
-	 *            - index of the preview section
-	 * @param pageNumber
-	 *            - page number for the preview section
+	 * @param index      - index of the preview section
+	 * @param pageNumber - page number for the preview section
 	 */
 	private void setDocPreview(int index, int pageNumber) {
 		docPreviewImgView.setImage(SwingFXUtils.toFXImage(docPages.get(index), null));
@@ -890,8 +1035,7 @@ public class DocumentScanController extends BaseController {
 	/**
 	 * This method will create Image to delete scanned document
 	 * 
-	 * @param field
-	 *            the {@link VBox}
+	 * @param field the {@link VBox}
 	 */
 	private ImageView createImageView(VBox vboxElement) {
 
@@ -909,8 +1053,25 @@ public class DocumentScanController extends BaseController {
 
 		imageView.setOnMouseClicked((event) -> {
 			String hyperLinkArray[] = ((ImageView) event.getSource()).getParent().getId().split("_");
-			auditFactory.audit(AuditEvent.valueOf(String.format("REG_DOC_%S_DELETE", hyperLinkArray[0])),
-					Components.REG_DOCUMENTS, SessionContext.userId(),
+
+			LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID,
+					" Document On Mouse click listener started for delete " + hyperLinkArray[0]);
+
+			AuditEvent auditEvent = null;
+			try {
+				auditEvent = AuditEvent.valueOf(String.format("REG_DOC_%S_DELETE", hyperLinkArray[0]));
+			} catch (Exception exception) {
+
+				LOGGER.error("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
+						RegistrationConstants.APPLICATION_ID,
+						"Unable to find audit event for button : " + hyperLinkArray[0]);
+
+				auditEvent = AuditEvent.REG_DOC_DELETE;
+
+			}
+
+			auditFactory.audit(auditEvent, Components.REG_DOCUMENTS, SessionContext.userId(),
 					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 			HBox hbox = (HBox) vboxElement.getParent();
@@ -938,6 +1099,11 @@ public class DocumentScanController extends BaseController {
 			vboxElement.getChildren().remove(gridpane);
 
 			validateDocumentsPane();
+
+			LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID,
+					" Document On Mouse click listener started for delete " + hyperLinkArray[0]);
+
 		});
 
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
@@ -949,8 +1115,7 @@ public class DocumentScanController extends BaseController {
 	/**
 	 * This method will create Hyperlink to view scanned document
 	 * 
-	 * @param field
-	 *            the {@link String}
+	 * @param field the {@link String}
 	 */
 	private Hyperlink createHyperLink(String document) {
 
@@ -968,12 +1133,29 @@ public class DocumentScanController extends BaseController {
 				"Binding OnAction event to Hyperlink to display Scanned document");
 
 		hyperLink.setOnAction((actionEvent) -> {
+
+			LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "Document action listener started for view ");
+
 			actionEvent.getEventType().getName();
 			GridPane pane = (GridPane) ((Hyperlink) actionEvent.getSource()).getParent();
 			String hyperLinkArray[] = ((Hyperlink) actionEvent.getSource()).getId().split("_");
 			String documentKey = ((VBox) pane.getParent()).getId();
-			auditFactory.audit(AuditEvent.valueOf(String.format("REG_DOC_%S_VIEW", hyperLinkArray[0])),
-					Components.REG_DOCUMENTS, SessionContext.userId(),
+
+			AuditEvent auditEvent = null;
+			try {
+				auditEvent = AuditEvent.valueOf(String.format("REG_DOC_%S_VIEW", hyperLinkArray[0]));
+			} catch (Exception exception) {
+
+				LOGGER.error("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
+						RegistrationConstants.APPLICATION_ID,
+						"Unable to find audit event for button : " + hyperLinkArray[0]);
+
+				auditEvent = AuditEvent.REG_DOC_VIEW;
+
+			}
+
+			auditFactory.audit(auditEvent, Components.REG_DOCUMENTS, SessionContext.userId(),
 					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 			DocumentDto selectedDocumentToDisplay = getDocumentsMapFromSession().get(documentKey);
@@ -982,6 +1164,10 @@ public class DocumentScanController extends BaseController {
 				displayDocument(selectedDocumentToDisplay.getDocument(), selectedDocumentToDisplay.getValue()
 						+ RegistrationConstants.DOT + selectedDocumentToDisplay.getFormat());
 			}
+
+			LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID, "Document action listener completed for view ");
+
 		});
 
 		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
@@ -1129,9 +1315,10 @@ public class DocumentScanController extends BaseController {
 	 * exception required. While for Individual, text will be displayed as Biometric
 	 * exception required.
 	 * 
-	 * @param isParentOrGuardianBiometricsCaptured
-	 *            boolean value indicating whose biometric exception has to be
-	 *            captured either individual or parent/ guardian
+	 * @param isParentOrGuardianBiometricsCaptured boolean value indicating whose
+	 *                                             biometric exception has to be
+	 *                                             captured either individual or
+	 *                                             parent/ guardian
 	 */
 	public void setExceptionDescriptionText(boolean isParentOrGuardianBiometricsCaptured) {
 		ResourceBundle applicationLanguage = ApplicationContext.applicationLanguageBundle();
@@ -1157,11 +1344,9 @@ public class DocumentScanController extends BaseController {
 	/**
 	 * This method converts the BufferedImage to byte[]
 	 * 
-	 * @param bufferedImage
-	 *            - holds the scanned image from the scanner
+	 * @param bufferedImage - holds the scanned image from the scanner
 	 * @return byte[] - scanned document Content
-	 * @throws IOException
-	 *             - holds the IOExcepion
+	 * @throws IOException - holds the IOExcepion
 	 */
 	private byte[] getImageBytesFromBufferedImage(BufferedImage bufferedImage) throws IOException {
 		byte[] imageInByte;

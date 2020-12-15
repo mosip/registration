@@ -177,6 +177,7 @@ public class RegistrationUIConstants {
 	public static final String PRE_REG_ID_NOT_VALID = bundle.getString("PRE_REG_ID_NOT_VALID");
 	public static final String REG_ID_JSON_VALIDATION_FAILED = bundle.getString("REG_ID_JSON_VALIDATION_FAILED");
 	public static final String SCAN = bundle.getString("SCAN");
+	public static final String REF_NUMBER = bundle.getString("REF_NUMBER");
 	public static final String PLEASE_SELECT = bundle.getString("PLEASE_SELECT");
 	public static final String DOCUMENT = bundle.getString("DOCUMENT");
 	public static final String DATE_VALIDATION_MSG = bundle.getString("DATE_VALIDATION_MSG");
@@ -419,5 +420,7 @@ public class RegistrationUIConstants {
 	public static final String STREAMING_ERROR = bundle.getString("STREAMING_ERROR");
 	
 	public static final String EXCEPTION_PHOTO_REQUIRED = bundle.getString("EXCEPTION_PHOTO_REQUIRED");
+
+	public static final String USER_RELOGIN_REQUIRED = bundle.getString("USER_RELOGIN_REQUIRED");
 	
 }

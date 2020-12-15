@@ -1,7 +1,6 @@
 package io.mosip.registration.processor.packet.storage.utils;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -12,7 +11,8 @@ import java.time.Period;
 import java.util.*;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
-import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.packet.storage.dto.ConfigEnum;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -31,7 +31,6 @@ import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorUnCheckedException;
@@ -42,7 +41,6 @@ import io.mosip.registration.processor.core.idrepo.dto.IdResponseDTO1;
 import io.mosip.registration.processor.core.idrepo.dto.RequestDto;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.Identity;
-import io.mosip.registration.processor.core.packet.dto.PacketMetaInfo;
 import io.mosip.registration.processor.core.packet.dto.vid.VidResponseDTO;
 import io.mosip.registration.processor.core.queue.factory.MosipQueue;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
@@ -52,7 +50,6 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.exception.IdRepoAppException;
-import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.exception.QueueConnectionNotFound;
 import io.mosip.registration.processor.packet.storage.exception.VidCreationException;
@@ -75,7 +72,12 @@ import lombok.Data;
 public class Utilities {
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(Utilities.class);
-	private static final String sourceStr = "source";
+	private static final String SOURCE = "source";
+	private static final String PROCESS = "process";
+	private static final String PROVIDER = "provider";
+
+	private static Map<String, String> readerConfiguration;
+	private static Map<String, String> writerConfiguration;
 
 	/** The Constant UIN. */
 	private static final String UIN = "UIN";
@@ -154,10 +156,6 @@ public class Utilities {
 	@Value("${registration.processor.id.repo.vidVersion}")
 	private String vidVersion;
 
-	@Value("${packet.default.source}")
-	private String defaultSource;
-	/** The packet info dao. */
-
 	@Autowired
 	private PacketInfoDao packetInfoDao;
 
@@ -206,6 +204,11 @@ public class Utilities {
 
 	private String mappingJsonString = null;
 
+	public static void initialize(Map<String, String> reader, Map<String, String> writer) {
+		readerConfiguration = reader;
+		writerConfiguration = writer;
+	}
+
 	/**
 	 * Gets the json.
 	 *
@@ -236,29 +239,25 @@ public class Utilities {
 	 *             the packet decryption failure exception
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	public int getApplicantAge(String id, String source, String process) throws IOException,
+	public int getApplicantAge(String id, String process) throws IOException,
 			ApisResourceAccessException, JsonProcessingException, PacketManagerException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				id, "Utilities::getApplicantAge()::entry");
 
-		JSONObject regProcessorIdentityJson = getRegistrationProcessorMappingJson();
-		String ageKey = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.AGE), VALUE);
-		String dobKey = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.DOB), VALUE);
-
-
-		String applicantDob = packetManagerService.getField(id, dobKey, source, process);
-	    String applicantAge = packetManagerService.getField(id, ageKey, source, process);
+		String applicantDob = packetManagerService.getFieldByKey(id, MappingJsonConstants.DOB, process);
+	    String applicantAge = packetManagerService.getFieldByKey(id, MappingJsonConstants.AGE, process);
 		if (applicantDob != null) {
 			return calculateAge(applicantDob);
 		} else if (applicantAge != null) {
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 					id, "Utilities::getApplicantAge()::exit when applicantAge is not null");
 			return Integer.valueOf(applicantAge);
-
 		} else {
-
-			String uin = getUIn(id, source, process);
+			String uin = getUIn(id, process);
 			JSONObject identityJSONOject = retrieveIdrepoJson(uin);
+			JSONObject regProcessorIdentityJson = getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+			String ageKey = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.AGE), VALUE);
+			String dobKey = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.DOB), VALUE);
 			String idRepoApplicantDob = JsonUtil.getJSONValue(identityJSONOject, dobKey);
 			if (idRepoApplicantDob != null) {
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
@@ -274,12 +273,72 @@ public class Utilities {
 
 	}
 
-	public String getDefaultSource() {
-		String[] strs = provider.split(",");
-		List<String> strList = Arrays.asList(strs);
-		Optional<String> optional = strList.stream().filter(s -> s.contains(sourceStr)).findAny();
-		String source = optional.isPresent() ? optional.get().replace(sourceStr + ":", "") : null;
+	public String getDefaultSource(String process, ConfigEnum config) {
+		Map<String, String> configMap = null;
+		if (config.equals(ConfigEnum.READER))
+			configMap = readerConfiguration;
+		else if (config.equals(ConfigEnum.WRITER))
+			configMap = writerConfiguration;
+
+		if (configMap != null) {
+			for (Map.Entry<String, String> entry : configMap.entrySet()) {
+				String[] values = entry.getValue().split(",");
+				String source = null;
+				for (String val : values) {
+					if (val.startsWith("process:") && val.contains(process))
+						for (String sVal : values) {
+							if (sVal.startsWith("source:")) {
+								source = sVal.replace("source:", "");
+								return source;
+							}
+						}
+				}
+			}
+		}
+		return null;
+	}
+
+	public String getSource(String packetSegment, String process, String field) throws IOException {
+		String source = null;
+		JSONObject jsonObject = getRegistrationProcessorMappingJson(packetSegment);
+		Object obj = field == null ? jsonObject.get(PROVIDER) : getField(jsonObject, field);
+		if (obj != null && obj instanceof ArrayList) {
+			List<String> providerList = (List) obj;
+			for (String value : providerList) {
+				String[] values = value.split(",");
+				for (String provider : values) {
+					if (provider != null) {
+						if (provider.startsWith(PROCESS) && provider.contains(process)) {
+							for (String val : values) {
+								if (val.startsWith(SOURCE)) {
+									return val.replace(SOURCE + ":", "").trim();
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
 		return source;
+	}
+
+	private Object getField(JSONObject jsonObject, String field) {
+		LinkedHashMap lm = (LinkedHashMap) jsonObject.get(field);
+		return lm.get(PROVIDER);
+	}
+
+
+	public String getSourceFromIdField(String packetSegment, String process, String idField) throws IOException {
+		JSONObject jsonObject = getRegistrationProcessorMappingJson(packetSegment);
+		for (Object key : jsonObject.keySet()) {
+			LinkedHashMap hMap = (LinkedHashMap) jsonObject.get(key);
+			String value = (String) hMap.get(VALUE);
+			if (value != null && value.contains(idField)) {
+				return getSource(packetSegment, process, key.toString());
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -398,7 +457,7 @@ public class Utilities {
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-	public JSONObject getRegistrationProcessorMappingJson() throws IOException {
+	public JSONObject getRegistrationProcessorMappingJson(String packetSegment) throws IOException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"Utilities::getRegistrationProcessorMappingJson()::entry");
 
@@ -407,12 +466,12 @@ public class Utilities {
 		ObjectMapper mapIdentityJsonStringToObject = new ObjectMapper();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"Utilities::getRegistrationProcessorMappingJson()::exit");
-		return JsonUtil.getJSONObject(mapIdentityJsonStringToObject.readValue(mappingJsonString, JSONObject.class), MappingJsonConstants.IDENTITY);
+		return JsonUtil.getJSONObject(mapIdentityJsonStringToObject.readValue(mappingJsonString, JSONObject.class), packetSegment);
 
 	}
 
-	public String getMappingJsonValue(String key) throws IOException {
-		JSONObject jsonObject = getRegistrationProcessorMappingJson();
+	public String getMappingJsonValue(String key, String packetSegment) throws IOException {
+		JSONObject jsonObject = getRegistrationProcessorMappingJson(packetSegment);
 		Object obj = jsonObject.get(key);
 		if (obj instanceof LinkedHashMap) {
 			LinkedHashMap hm = (LinkedHashMap) obj;
@@ -437,12 +496,10 @@ public class Utilities {
 	 *             the apis resource access exception
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	public String getUIn(String id, String source, String process) throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
+	public String getUIn(String id, String process) throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				id, "Utilities::getUIn()::entry");
-		String uinKey = JsonUtil.getJSONValue(JsonUtil.getJSONObject(getRegistrationProcessorMappingJson(), MappingJsonConstants.UIN), VALUE);
-		String UIN = packetManagerService.getField(id, uinKey, source, process);
-
+		String UIN = packetManagerService.getFieldByKey(id, MappingJsonConstants.UIN, process);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				id, "Utilities::getUIn()::exit");
 
@@ -750,7 +807,7 @@ public class Utilities {
 
 	private void addSchemaVersion(JSONObject identityObject) throws IOException {
 
-		JSONObject regProcessorIdentityJson = getRegistrationProcessorMappingJson();
+		JSONObject regProcessorIdentityJson = getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 		String schemaVersion = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.IDSCHEMA_VERSION),
 				MappingJsonConstants.VALUE);

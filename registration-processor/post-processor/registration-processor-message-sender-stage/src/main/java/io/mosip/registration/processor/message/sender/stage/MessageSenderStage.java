@@ -347,7 +347,8 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 			type = NotificationTemplateType.LOST_UIN;
 		else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.NEW.getValue()))
 			type = NotificationTemplateType.UIN_CREATED;
-		else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.UPDATE.getValue()))
+		else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.UPDATE.getValue())
+		|| registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.RES_UPDATE.getValue()))
 			type = NotificationTemplateType.UIN_UPDATE;
 		else if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(SyncTypeDto.ACTIVATED.getValue()))
 			type = NotificationTemplateType.UIN_UPDATE;
@@ -551,7 +552,8 @@ public class MessageSenderStage extends MosipVerticleAPIManager {
 				messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_UIN_DEAC_EMAIL);
 				messageSenderDto.setIdType(IdType.UIN);
 				messageSenderDto.setSubject(uinDeactivateSubject);
-			} else if (regType.equalsIgnoreCase(RegistrationType.UPDATE.name())) {
+			} else if (regType.equalsIgnoreCase(RegistrationType.UPDATE.name())
+			|| regType.equalsIgnoreCase(RegistrationType.RES_UPDATE.name())) {
 				messageSenderDto.setSmsTemplateCode(NotificationTemplateCode.RPR_UIN_UPD_SMS);
 				messageSenderDto.setEmailTemplateCode(NotificationTemplateCode.RPR_UIN_UPD_EMAIL);
 				messageSenderDto.setIdType(IdType.UIN);

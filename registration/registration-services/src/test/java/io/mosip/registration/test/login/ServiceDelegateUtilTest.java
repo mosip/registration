@@ -190,7 +190,7 @@ public class ServiceDelegateUtilTest {
 		assertNotNull(delegateUtil.post("otp_generator", generatorRequestDto,"System"));
 	}
 
-	@Test
+	/*@Test
 	public void getAuthTokenByPassword() throws Exception {
 		// Return Object
 		Map<String, Object> responseMap = new HashMap<>();
@@ -371,6 +371,6 @@ public class ServiceDelegateUtilTest {
 		when(restClientUtil.invoke(Mockito.any(RequestHTTPDTO.class))).thenThrow(new SocketTimeoutException());
 		
 		delegateUtil.invalidateToken("authZToken");
-	}
+	}*/
 
 }

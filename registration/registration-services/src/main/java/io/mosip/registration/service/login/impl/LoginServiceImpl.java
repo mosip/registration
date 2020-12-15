@@ -6,15 +6,14 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.mapper.CustomObjectMapper.MAPPER_FACADE;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
+import io.mosip.registration.constants.*;
+import io.mosip.registration.dto.*;
+import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,21 +23,11 @@ import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
-import io.mosip.registration.constants.AuditEvent;
-import io.mosip.registration.constants.AuditReferenceIdTypes;
-import io.mosip.registration.constants.Components;
-import io.mosip.registration.constants.LoggerConstants;
-import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.dao.AppAuthenticationDAO;
 import io.mosip.registration.dao.RegistrationCenterDAO;
 import io.mosip.registration.dao.ScreenAuthorizationDAO;
 import io.mosip.registration.dao.UserDetailDAO;
-import io.mosip.registration.dto.AuthorizationDTO;
-import io.mosip.registration.dto.RegistrationCenterDetailDTO;
-import io.mosip.registration.dto.ResponseDTO;
-import io.mosip.registration.dto.UserDTO;
-import io.mosip.registration.dto.UserMachineMappingDTO;
 import io.mosip.registration.entity.UserDetail;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
@@ -48,7 +37,6 @@ import io.mosip.registration.service.login.LoginService;
 import io.mosip.registration.service.operator.UserDetailService;
 import io.mosip.registration.service.operator.UserOnboardService;
 import io.mosip.registration.service.operator.UserSaltDetailsService;
-import io.mosip.registration.service.security.ClientSecurity;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.service.sync.PublicKeySync;
 import io.mosip.registration.service.sync.TPMPublicKeySyncService;
@@ -126,9 +114,12 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 	
 	@Autowired
 	private TPMPublicKeySyncService tpmPublicKeySyncService;
-	
+
 	@Autowired
-	private ClientSecurity clientSecurity;
+	private AuthTokenUtilService authTokenUtilService;
+
+	@Autowired
+	private ClientCryptoFacade clientCryptoFacade;
 
 	/*
 	 * (non-Javadoc)
@@ -148,13 +139,40 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 		try {
 			getModesOfLoginValidation(authType, roleList);
 
+			boolean mandatePwdLogin = RegistrationAppHealthCheckUtil.isNetworkAvailable() && !authTokenUtilService.hasAnyValidToken();
+
+			LOGGER.info(LOG_REG_LOGIN_SERVICE, APPLICATION_NAME, APPLICATION_ID, "PWD LOGIN MANDATED ? " + mandatePwdLogin);
+
 			auditFactory.audit(AuditEvent.LOGIN_MODES_FETCH, Components.LOGIN_MODES,
 					RegistrationConstants.APPLICATION_NAME, AuditReferenceIdTypes.APPLICATION_ID.getReferenceTypeId());
-			if (roleList != null && roleList.contains(RegistrationConstants.ROLE_DEFAULT)) {
+			if ((roleList != null && roleList.contains(RegistrationConstants.ROLE_DEFAULT))) {
 				loginModes.clear();
 				loginModes.add(RegistrationConstants.PWORD);
-			} else {
+			}
+			else {
 				loginModes = appAuthenticationDAO.getModesOfLogin(authType, roleList);
+
+				if(mandatePwdLogin) {
+					Optional<String> pwdMode = loginModes.stream().filter(loginMode ->
+							loginMode.equalsIgnoreCase(LoginMode.OTP.getCode()) ||
+									loginMode.equalsIgnoreCase(LoginMode.PASSWORD.getCode()) ||
+									loginMode.equalsIgnoreCase(RegistrationConstants.PWORD)).findFirst();
+
+					LOGGER.info(LOG_REG_LOGIN_SERVICE, APPLICATION_NAME, APPLICATION_ID, "PWD LOGIN mode already present ? " + pwdMode.isPresent());
+					if(!pwdMode.isPresent())
+						loginModes.add(RegistrationConstants.PWORD);
+
+					return loginModes;
+				}
+
+				if(loginModes != null && loginModes.size() > 1) {
+					if(RegistrationConstants.DISABLE.equalsIgnoreCase(RegistrationConstants.FINGERPRINT_DISABLE_FLAG))
+						loginModes.remove(RegistrationConstants.FINGERPRINT);
+					if(RegistrationConstants.DISABLE.equalsIgnoreCase(RegistrationConstants.IRIS_DISABLE_FLAG))
+						loginModes.remove(RegistrationConstants.IRIS);
+					if(RegistrationConstants.DISABLE.equalsIgnoreCase(RegistrationConstants.FACE_DISABLE_FLAG))
+						loginModes.remove(RegistrationConstants.FACE);
+				}
 			}
 			
 			LOGGER.info(LOG_REG_LOGIN_SERVICE, APPLICATION_NAME, APPLICATION_ID,
@@ -305,47 +323,63 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 	 * 3. global parameters sync
 	 * 4. client-settings / master-data sync
 	 * 5. user details sync
-	 * 6. user salts sync
-	 * 
-	 * @see io.mosip.registration.service.login.LoginService#initialSync()
+	 * user salt sync is removed @Since 1.1.3
 	 */
 	@Override
-	public List<String> initialSync() {
+	public List<String> initialSync(String triggerPoint) {
+		long start = System.currentTimeMillis();
 		LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "Started Initial sync");
 		List<String> results = new LinkedList<>();		
 		final boolean isInitialSetUp = RegistrationConstants.ENABLE.equalsIgnoreCase(getGlobalConfigValueOf(RegistrationConstants.INITIAL_SETUP));		
 		ResponseDTO responseDTO = null;
 		
-		try {			
-			responseDTO = publicKeySyncImpl.getPublicKey(RegistrationConstants.JOB_TRIGGER_POINT_USER);
+		try {
+			long taskStart = System.currentTimeMillis();
+			responseDTO = publicKeySyncImpl.getPublicKey(triggerPoint);
 			validateResponse(responseDTO, PUBLIC_KEY_SYNC_STEP);
-			
-			String keyIndex = tpmPublicKeySyncService.syncTPMPublicKey();
-			if(null!=keyIndex) {
-				ApplicationContext.map().put(RegistrationConstants.KEY_INDEX, keyIndex);
-			}
+			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, PUBLIC_KEY_SYNC_STEP+ " task completed in (ms) : " +
+					(System.currentTimeMillis() - taskStart));
+
+			taskStart = System.currentTimeMillis();
+			responseDTO = tpmPublicKeySyncService.syncTPMPublicKey();
+			validateResponse(responseDTO, MACHINE_KEY_VERIFICATION_STEP);
+			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, MACHINE_KEY_VERIFICATION_STEP+ " task completed in (ms) : " +
+					(System.currentTimeMillis() - taskStart));
+
+			String keyIndex = CryptoUtil.computeFingerPrint(clientCryptoFacade.getClientSecurity().getEncryptionPublicPart(), null);
+			ApplicationContext.map().put(RegistrationConstants.KEY_INDEX, keyIndex);
+
 			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "Initial Verifiation Done : " + MACHINE_KEY_VERIFICATION_STEP);
-						
+
+			taskStart = System.currentTimeMillis();
 			responseDTO = globalParamService.synchConfigData(false);
 			validateResponse(responseDTO, GLOBAL_PARAM_SYNC_STEP);
 			if(responseDTO.getSuccessResponseDTO().getOtherAttributes() != null)
 				results.add(RegistrationConstants.RESTART);
-			
-			responseDTO = isInitialSetUp ? masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
-								RegistrationConstants.JOB_TRIGGER_POINT_USER, keyIndex) : 
-							masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
-								RegistrationConstants.JOB_TRIGGER_POINT_USER);
-			validateResponse(responseDTO, CLIENTSETTINGS_SYNC_STEP);
-			
-			responseDTO = userDetailService.save(RegistrationConstants.JOB_TRIGGER_POINT_USER);
-			validateResponse(responseDTO, USER_DETAIL_SYNC_STEP);
+			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, GLOBAL_PARAM_SYNC_STEP+ " task completed in (ms) : " +
+					(System.currentTimeMillis() - taskStart));
 
-			responseDTO = userSaltDetailsService.getUserSaltDetails(RegistrationConstants.JOB_TRIGGER_POINT_USER);
-			validateResponse(responseDTO, USER_SALT_SYNC_STEP);
-			
+			taskStart = System.currentTimeMillis();
+			responseDTO = masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001, triggerPoint, keyIndex) ;
+			validateResponse(responseDTO, CLIENTSETTINGS_SYNC_STEP);
+			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, CLIENTSETTINGS_SYNC_STEP+ " task completed in (ms) : " +
+					(System.currentTimeMillis() - taskStart));
+
+			taskStart = System.currentTimeMillis();
+			responseDTO = userDetailService.save(triggerPoint);
+			validateResponse(responseDTO, USER_DETAIL_SYNC_STEP);
+			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, USER_DETAIL_SYNC_STEP+ " task completed in (ms) : " +
+					(System.currentTimeMillis() - taskStart));
+
+			if(isInitialSetUp) {
+				LoginUserDTO loginUserDTO = (LoginUserDTO) ApplicationContext.map().get(RegistrationConstants.USER_DTO);
+				userDetailDAO.updateUserPwd(loginUserDTO.getUserId(), loginUserDTO.getPassword());
+			}
+
 			results.add(RegistrationConstants.SUCCESS);
 			
-			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "completed Initial sync");
+			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "completed Initial sync in (ms) : " +
+					(System.currentTimeMillis() - start));
 		
 		} catch (RegBaseCheckedException e) {
 			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(e));
@@ -596,5 +630,4 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 			throwRegBaseCheckedException(RegistrationExceptionConstants.REG_LOGIN_USER_DTO_EXCEPTION);
 		} 
 	}
-
 }

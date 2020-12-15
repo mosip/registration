@@ -18,7 +18,6 @@ public class SelectionListDTO {
 	private boolean phone;
 	private boolean email;
 	private boolean biometrics;
-	private boolean cnieNumber;
 	private boolean parentOrGuardianDetails;
 	private boolean foreigner;
 }

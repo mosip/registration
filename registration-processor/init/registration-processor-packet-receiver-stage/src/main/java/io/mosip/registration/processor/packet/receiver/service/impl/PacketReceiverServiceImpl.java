@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +21,7 @@ import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.virusscanner.exception.VirusScannerException;
 import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -158,7 +159,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 						PlatformSuccessMessages.PACKET_RECEIVER_VALIDATION_SUCCESS.getMessage());
 				storageFlag = storePacket(stageName, regEntity, dto, description);
 				isTransactionSuccessful = true;
-			} catch (IOException e) {
+			} catch (IOException | NoSuchAlgorithmException e) {
 
 				description.setMessage(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage());
 				description.setCode(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode());
@@ -308,16 +309,6 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 			InputStream inputStream = new ByteArrayInputStream(input);
 			boolean isInputFileClean = virusScannerService.scanFile(inputStream);
 
-			// scanning the source packets (Like - id, evidence, optional packets).
-			if (isInputFileClean) {
-				Map<String, InputStream> sourcePackets = ZipUtils.unzipAndGetFiles(inputStream);
-				for (InputStream source : sourcePackets.values()) {
-					isInputFileClean = virusScannerService.scanFile(source);
-					if (!isInputFileClean)
-						break;
-				}
-			}
-
 			if (!isInputFileClean) {
 				description.setMessage(PlatformErrorMessages.PRP_PKR_PACKET_VIRUS_SCAN_FAILED.getMessage());
 				description.setCode(PlatformErrorMessages.PRP_PKR_PACKET_VIRUS_SCAN_FAILED.getCode());
@@ -345,20 +336,6 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 					registrationId, PlatformErrorMessages.PRP_PKR_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getMessage()
 							+ ExceptionUtils.getStackTrace(e));
 			return false;
-		} catch (IOException e) {
-			description.setMessage(PlatformErrorMessages.PRP_PKR_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getMessage());
-			description.setCode(PlatformErrorMessages.PRP_PKR_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getCode());
-			dto.setStatusCode(RegistrationStatusCode.FAILED.toString());
-			dto.setStatusComment(trimExpMessage.trimExceptionMessage(
-					StatusUtil.IO_EXCEPTION.getMessage() + e.getMessage()));
-			dto.setSubStatusCode(StatusUtil.IO_EXCEPTION.getCode());
-			dto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
-					.getStatusCode(RegistrationExceptionTypeCode.VIRUS_SCANNER_SERVICE_FAILED));
-
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, PlatformErrorMessages.PRP_PKR_PACKET_VIRUS_SCANNER_SERVICE_FAILED.getMessage()
-							+ ExceptionUtils.getStackTrace(e));
-            return false;
 		}
 
 	}
@@ -428,11 +405,11 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	 *             Signals that an I/O exception has occurred.
 	 */
 	private void validateHashCode(InputStream inputStream, SyncRegistrationEntity regEntity, String registrationId,
-			LogDescription description) throws IOException {
+			LogDescription description) throws IOException, NoSuchAlgorithmException {
 		// TO-DO testing
 		byte[] isbytearray = IOUtils.toByteArray(inputStream);
-		byte[] dataByte = HMACUtils.generateHash(isbytearray);
-		String hashSequence = HMACUtils.digestAsPlainText(dataByte);
+		byte[] dataByte = HMACUtils2.generateHash(isbytearray);
+		String hashSequence = HMACUtils2.digestAsPlainText(dataByte);
 		String packetHashSequence = regEntity.getPacketHashValue();
 		if (!(MessageDigest.isEqual(packetHashSequence.getBytes(), hashSequence.getBytes()))) {
 			description.setMessage(PlatformErrorMessages.UNEQUAL_PACKET_HASH_PR.getMessage());

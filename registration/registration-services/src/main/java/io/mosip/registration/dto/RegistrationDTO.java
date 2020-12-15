@@ -6,6 +6,7 @@ import java.time.Period;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -59,9 +60,11 @@ public class RegistrationDTO {
 	private boolean isNameNotUpdated;
 	private boolean isUpdateUINChild;
 	private boolean isAgeCalculatedByDOB;
-
+	private List<String> defaultUpdatableFields;
+	private List<String> defaultUpdatableFieldGroups;
 	private BiometricDTO biometricDTO = new BiometricDTO();
 	private Map<String, Object> demographics = new HashMap<>();
+	private Map<String, Object> defaultDemographics = new LinkedHashMap<>();
 	private Map<String, DocumentDto> documents = new HashMap<>();
 	private Map<String, BiometricsDto> biometrics = new HashMap<>();
 	private Map<String, BiometricsException> biometricExceptions = new HashMap<>();
@@ -99,6 +102,19 @@ public class RegistrationDTO {
 			this.demographics.put(fieldId, values);
 	}
 
+	public void addDefaultDemographicField(String fieldId, String applicationLanguage, String value,
+			String localLanguage, String localValue) {
+		List<SimpleDto> values = new ArrayList<SimpleDto>();
+		if (value != null && !value.isEmpty())
+			values.add(new SimpleDto(applicationLanguage, value));
+
+		if (localValue != null && !localValue.isEmpty())
+			values.add(new SimpleDto(localLanguage, localValue));
+
+		if (!values.isEmpty())
+			this.defaultDemographics.put(fieldId, values);
+	}
+
 	public void removeDemographicField(String fieldId) {
 		this.demographics.remove(fieldId);
 	}
@@ -106,7 +122,10 @@ public class RegistrationDTO {
 	public void setDateField(String fieldId, String day, String month, String year) {
 		if (isValidValue(day) && isValidValue(month) && isValidValue(year)) {
 			LocalDate date = LocalDate.of(Integer.valueOf(year), Integer.valueOf(month), Integer.valueOf(day));
-			this.demographics.put(fieldId, date.format(DateTimeFormatter.ofPattern(DATE_FORMAT)));
+			if (fieldId != null) {
+				this.demographics.put(fieldId, date.format(DateTimeFormatter.ofPattern(DATE_FORMAT)));
+			}
+			
 			this.age = Period.between(date, LocalDate.now(ZoneId.of("UTC"))).getYears();
 
 			int minAge = Integer
@@ -116,7 +135,7 @@ public class RegistrationDTO {
 			this.isChild = this.age < minAge;
 		}
 	}
-	
+
 	public void setDateField(String fieldId, String dateString) {
 		if (isValidValue(dateString)) {
 			LocalDate date = LocalDate.parse(dateString, DateTimeFormatter.ofPattern(DATE_FORMAT));
@@ -258,6 +277,10 @@ public class RegistrationDTO {
 			savedBiometrics = new LinkedList<>();
 
 			boolean isForceCaptured = false;
+			
+			if (!biometricsDTOMap.isEmpty()) {
+				thresholdScore = thresholdScore * biometricsDTOMap.size();
+			}
 
 			/** Find force capture or not */
 			if (getQualityScore(biometricsDTOMap.values().stream().collect(Collectors.toList())) < thresholdScore) {
@@ -265,8 +288,10 @@ public class RegistrationDTO {
 				if (maxRetryAttempt == 1) {
 					isForceCaptured = true;
 				} else {
+					Collection<BiometricsDto> values = biometricsDTOMap.values();
+					List<BiometricsDto> biometricsList = new ArrayList<>(values);
 					BiometricsDto biometricsDto = getBiometric(subType, Biometric
-							.getBiometricByMDMConstant(biometricsDTOMap.get(0).getBioAttribute()).getAttributeName());
+							.getBiometricByAttribute(biometricsList.get(0).getBioAttribute()).getAttributeName());
 
 					if (biometricsDto != null && biometricsDto.getNumOfRetries() + 1 >= maxRetryAttempt) {
 						isForceCaptured = true;

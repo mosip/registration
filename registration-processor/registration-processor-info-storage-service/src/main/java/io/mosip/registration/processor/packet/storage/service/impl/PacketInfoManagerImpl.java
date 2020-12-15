@@ -1,20 +1,17 @@
 package io.mosip.registration.processor.packet.storage.service.impl;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.util.StringUtils;
-import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
-import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONArray;
@@ -205,14 +202,14 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 * PacketDecryptionFailureException @throws ApiNotAccessibleException @throws
 	 */
 	@Override
-	public IndividualDemographicDedupe getIdentityKeysAndFetchValuesFromJSON(String registrationId, String source, String process) {
+	public IndividualDemographicDedupe getIdentityKeysAndFetchValuesFromJSON(String registrationId, String process) {
 		IndividualDemographicDedupe demographicData = new IndividualDemographicDedupe();
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"PacketInfoManagerImpl::getIdentityKeysAndFetchValuesFromJSON()::entry");
 		try {
 			List<String> fields = new ArrayList<>();
 
-			JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
+			JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 			String nameKey = JsonUtil.getJSONValue(
 					JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.NAME),
 					MappingJsonConstants.VALUE);
@@ -235,16 +232,16 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 			fields.add(email);
 			fields.add(phone);
 
-			Map<String, String> fieldMap = packetManagerService.getFields(registrationId, fields, source, process);
+			Map<String, String> fieldMap = packetManagerService.getFields(registrationId, fields, process);
 
 
-			String[] names = ((String) JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, "name"),
+			String[] names = ((String) JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.NAME),
 					"value")).split(",");
 			List<JsonValue[]> jsonValueList = new ArrayList<>();
 			for (String name : names) {
-				if (fieldMap.get(nameKey) != null) {
+				if (fieldMap.get(name) != null) {
 					JSONObject jsonObject = new JSONObject();
-					jsonObject.put(nameKey, objectMapper.readValue(fieldMap.get(nameKey), Object.class));
+					jsonObject.put(name, objectMapper.readValue(fieldMap.get(name), Object.class));
 					JsonValue[] nameArray = JsonUtil.getJsonValues(jsonObject, name);
 					if (nameArray != null)
 						jsonValueList.add(nameArray);
@@ -293,8 +290,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 		boolean isTransactionSuccessful = false;
 
-		String source = utility.getDefaultSource();
-		IndividualDemographicDedupe demographicData = getIdentityKeysAndFetchValuesFromJSON(regId, source, process);
+		IndividualDemographicDedupe demographicData = getIdentityKeysAndFetchValuesFromJSON(regId, process);
 
 		try {
 			List<IndividualDemographicDedupeEntity> applicantDemographicEntities = PacketInfoMapper
@@ -352,7 +348,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 			isTransactionSuccessful = true;
 			description.setMessage("Individual Demographic Dedupe data saved ");
 
-		} catch (DataAccessLayerException e) {
+		} catch (DataAccessLayerException | NoSuchAlgorithmException e) {
 			description.setMessage("DataAccessLayerException while saving Individual Demographic Dedupe data " + "::"
 					+ e.getMessage());
 

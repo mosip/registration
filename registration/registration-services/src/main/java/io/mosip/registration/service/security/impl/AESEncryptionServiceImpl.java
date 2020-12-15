@@ -8,8 +8,10 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Security;
 
+import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
+import io.mosip.kernel.keygenerator.bouncycastle.util.KeyGeneratorUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +20,6 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.security.exception.MosipInvalidDataException;
 import io.mosip.kernel.core.security.exception.MosipInvalidKeyException;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.keygenerator.bouncycastle.KeyGenerator;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.AuditEvent;
@@ -57,9 +58,7 @@ public class AESEncryptionServiceImpl extends BaseService implements AESEncrypti
 	 */
 	@Autowired
 	private AuditManagerService auditFactory;
-	/** The key generator. */
-	@Autowired
-	private KeyGenerator keyGenerator;
+
 	
 	/*
 	 * (non-Javadoc)
@@ -78,9 +77,10 @@ public class AESEncryptionServiceImpl extends BaseService implements AESEncrypti
 
 			// Enable AES 256 bit encryption
 			Security.setProperty("crypto.policy", "unlimited");
-			
+
+			KeyGenerator keyGenerator = KeyGeneratorUtils.getKeyGenerator("AES", 256);
 			// Generate AES Session Key
-			final SecretKey symmetricKey = keyGenerator.getSymmetricKey();
+			final SecretKey symmetricKey = keyGenerator.generateKey();
 
 			// Encrypt the Data using AES
 			final byte[] encryptedData = cryptoCore.symmetricEncrypt(symmetricKey, dataToEncrypt,null);

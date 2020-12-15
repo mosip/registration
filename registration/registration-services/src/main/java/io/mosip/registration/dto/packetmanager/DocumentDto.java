@@ -11,4 +11,5 @@ public class DocumentDto {
 	private String category;
 	private String owner;
 	private String format;
+	private String refNumber;
 }

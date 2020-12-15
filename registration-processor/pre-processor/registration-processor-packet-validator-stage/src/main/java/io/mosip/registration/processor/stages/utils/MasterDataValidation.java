@@ -3,11 +3,11 @@ package io.mosip.registration.processor.stages.utils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -31,7 +31,6 @@ import io.mosip.registration.processor.core.packet.dto.demographicinfo.JsonValue
 import io.mosip.registration.processor.core.packet.dto.masterdata.StatusResponseDto;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.core.util.JsonUtil;
-import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 
 /**
@@ -104,7 +103,7 @@ public class MasterDataValidation {
 			if (env.getProperty(ApiName.valueOf(element.toUpperCase()).name()) != null) {
 				String primaryLangValue = null;
 				String secondaryLangValue = null;
-				String val = packetManagerService.getField(id, element, source, process);
+				String val = packetManagerService.getField(id, element, utility.getSourceFromIdField(MappingJsonConstants.IDENTITY, process, element), process);
 				if (val != null) {
 					Object object = objectMapper.readValue(val, Object.class);
 					if (object instanceof ArrayList) {

@@ -1,7 +1,7 @@
 package io.mosip.registration.processor.manual.verification.request.dto;
 
 import io.mosip.registration.processor.core.common.rest.dto.BaseRestRequestDTO;
-import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDTO;
+import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDecisionDto;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -19,6 +19,6 @@ public class ManualVerificationDecisionRequestDTO extends BaseRestRequestDTO {
 	
 	private static final long serialVersionUID = -8968744480450135803L;
 	/** The request. */
-	private ManualVerificationDTO request;
+	private ManualVerificationDecisionDto request;
 		
 }

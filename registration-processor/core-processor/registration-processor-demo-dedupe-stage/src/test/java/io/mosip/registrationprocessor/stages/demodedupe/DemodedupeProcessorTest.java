@@ -40,7 +40,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.fsadapter.exception.FSAdapterException;
-import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.AbisStatusCode;
@@ -93,7 +93,7 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
  */
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*","com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", })
-@PrepareForTest({ JsonUtil.class, IOUtils.class, HMACUtils.class })
+@PrepareForTest({ JsonUtil.class, IOUtils.class, HMACUtils2.class })
 public class DemodedupeProcessorTest {
 
 	/** The registration status service. */
@@ -178,7 +178,7 @@ public class DemodedupeProcessorTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		when(utility.getDefaultSource()).thenReturn(source);
+		when(utility.getDefaultSource(any(), any())).thenReturn(source);
 		ReflectionTestUtils.setField(demodedupeProcessor, "infantDedupe", "Y");
 		ReflectionTestUtils.setField(demodedupeProcessor, "ageLimit", "4");
 		dto.setRid("2018701130000410092018110735");
@@ -303,7 +303,7 @@ public class DemodedupeProcessorTest {
 		String mappingJsonString = IOUtils.toString(inputStream,"UTF-8");
 		JSONObject mappingJsonObj= new ObjectMapper().readValue(mappingJsonString, JSONObject.class);
 		
-		Mockito.when(utility.getRegistrationProcessorMappingJson()).thenReturn(JsonUtil.getJSONObject(mappingJsonObj, MappingJsonConstants.IDENTITY));
+		Mockito.when(utility.getRegistrationProcessorMappingJson(anyString())).thenReturn(JsonUtil.getJSONObject(mappingJsonObj, MappingJsonConstants.IDENTITY));
 
 
 	}
@@ -375,7 +375,7 @@ public class DemodedupeProcessorTest {
 
 		IdentityJsonValues identityJsonValues = new IdentityJsonValues();
 		identityJsonValues.setValue("fullName");
-		when(utility.getDefaultSource()).thenReturn(source);
+		when(utility.getDefaultSource(any(),any())).thenReturn(source);
 		Mockito.when(utility.getUIn(anyString(), anyString(), anyString())).thenReturn("2345");
 		
 		Mockito.when(utility.retrieveIdrepoJson(any())).thenReturn(null);
@@ -404,7 +404,7 @@ public class DemodedupeProcessorTest {
 
 		IdentityJsonValues identityJsonValues = new IdentityJsonValues();
 		identityJsonValues.setValue("fullName");
-		when(utility.getDefaultSource()).thenReturn(source);
+		when(utility.getDefaultSource(any(),any())).thenReturn(source);
 		Mockito.when(utility.getUIn(anyString(), anyString(), anyString())).thenReturn("2345");
 
 		JSONArray arr = new JSONArray();
@@ -657,7 +657,7 @@ public class DemodedupeProcessorTest {
 		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
 
 		List<DemographicInfoDto> emptyDuplicateDtoSet = new ArrayList<>();
-		when(utility.getDefaultSource()).thenReturn(source);
+		when(utility.getDefaultSource(any(),any())).thenReturn(source);
 		Mockito.when(utility.getApplicantAge(anyString(),anyString(),anyString())).thenReturn(20);
 
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);

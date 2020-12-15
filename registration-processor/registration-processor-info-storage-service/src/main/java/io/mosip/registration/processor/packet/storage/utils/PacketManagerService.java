@@ -9,14 +9,16 @@ import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.http.RequestWrapper;
 import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
+import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.dto.BiometricRequestDto;
 import io.mosip.registration.processor.packet.storage.dto.BiometricType;
+import io.mosip.registration.processor.packet.storage.dto.ConfigEnum;
 import io.mosip.registration.processor.packet.storage.dto.Document;
 import io.mosip.registration.processor.packet.storage.dto.DocumentDto;
 import io.mosip.registration.processor.packet.storage.dto.FieldDto;
@@ -24,14 +26,17 @@ import io.mosip.registration.processor.packet.storage.dto.FieldDtos;
 import io.mosip.registration.processor.packet.storage.dto.FieldResponseDto;
 import io.mosip.registration.processor.packet.storage.dto.InfoDto;
 import io.mosip.registration.processor.packet.storage.dto.ValidatePacketResponse;
-import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import org.apache.commons.lang.StringUtils;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -48,9 +53,22 @@ public class PacketManagerService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private Utilities utilities;
+
     @PostConstruct
     private void setObjectMapper() {
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    }
+
+    public String getFieldByKey(String id, String key, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+        JSONObject regProcessorIdentityJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+        String field = JsonUtil.getJSONValue(
+                JsonUtil.getJSONObject(regProcessorIdentityJson, key),
+                MappingJsonConstants.VALUE);
+        String source = utilities.getSource(MappingJsonConstants.IDENTITY, process, key);
+
+        return getField(id, field, source, process);
     }
 
 
@@ -77,6 +95,24 @@ public class PacketManagerService {
         return responseField;
     }
 
+    public Map<String, String> getFields(String id, List<String> idjsonKeys, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+        Map<String, String> response = new HashMap<>();
+        if (idjsonKeys != null && !idjsonKeys.isEmpty()) {
+            Map<String, String> sourceFieldMap = new HashMap<>();
+            for (String field : idjsonKeys) {
+                String source = utilities.getSourceFromIdField(MappingJsonConstants.IDENTITY, process, field);
+                String val = sourceFieldMap.get(source) != null ? sourceFieldMap.get(source) + "," + field : field;
+                sourceFieldMap.put(source, val);
+            }
+
+            for (Map.Entry<String, String> entry : sourceFieldMap.entrySet()) {
+                List<String> items = Arrays.asList(entry.getValue().split(","));
+                response.putAll(getFields(id, items, entry.getKey(), process));
+            }
+        }
+        return response;
+    }
+
     public Map<String, String> getFields(String id, List<String> fields, String source, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
         FieldDtos fieldDto = new FieldDtos(id, fields, source, process, false);
 
@@ -97,8 +133,13 @@ public class PacketManagerService {
         return fieldResponseDto.getFields();
     }
 
-    public Document getDocument(String id, String documentName, String source, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
-        DocumentDto fieldDto = new DocumentDto(id, documentName, source, process);
+    public Document getDocument(String id, String documentName, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+        JSONObject regProcessorIdentityJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT);
+        String docKey = JsonUtil.getJSONValue(
+                JsonUtil.getJSONObject(regProcessorIdentityJson, documentName),
+                MappingJsonConstants.VALUE);
+        String source = utilities.getSource(MappingJsonConstants.DOCUMENT, process, documentName);
+        DocumentDto fieldDto = new DocumentDto(id, docKey, source, process);
 
         RequestWrapper<DocumentDto> request = new RequestWrapper<>();
         request.setId(ID);
@@ -117,8 +158,8 @@ public class PacketManagerService {
         return document;
     }
 
-    public ValidatePacketResponse validate(String id, String source, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
-        InfoDto fieldDto = new InfoDto(id, source, process, false);
+    public ValidatePacketResponse validate(String id, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+        InfoDto fieldDto = new InfoDto(id, utilities.getDefaultSource(process, ConfigEnum.READER), process, false);
 
         RequestWrapper<InfoDto> request = new RequestWrapper<>();
         request.setId(ID);
@@ -136,7 +177,9 @@ public class PacketManagerService {
         return validatePacketResponse;
     }
 
-    public List<FieldResponseDto> getAudits(String id, String source, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+    public List<FieldResponseDto> getAudits(String id, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+        String source = utilities.getSource(MappingJsonConstants.AUDITS, process, null);
+
         InfoDto fieldDto = new InfoDto(id, source, process, false);
         List<FieldResponseDto> response = new ArrayList<>();
 
@@ -160,8 +203,16 @@ public class PacketManagerService {
         return response;
     }
 
-    public BiometricRecord getBiometrics(String id, String person, List<BiometricType> modalities, String source, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
-        BiometricRequestDto fieldDto = new BiometricRequestDto(id, person, modalities, source, process, false);
+    public BiometricRecord getBiometrics(String id, String person, List<String> modalities, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+
+        JSONObject regProcessorIdentityJson = utilities.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
+        String personField = JsonUtil.getJSONValue(
+                JsonUtil.getJSONObject(regProcessorIdentityJson, person),
+                MappingJsonConstants.VALUE);
+        String source = utilities.getSource(MappingJsonConstants.IDENTITY, process, person);
+
+
+        BiometricRequestDto fieldDto = new BiometricRequestDto(id, personField, modalities, source, process, false);
 
         RequestWrapper<BiometricRequestDto> request = new RequestWrapper<>();
         request.setId(ID);
@@ -182,7 +233,8 @@ public class PacketManagerService {
 
     }
 
-    public Map<String, String> getMetaInfo(String id, String source, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+    public Map<String, String> getMetaInfo(String id, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+        String source = utilities.getSource(MappingJsonConstants.METAINFO, process, null);
         InfoDto fieldDto = new InfoDto(id, source, process, false);
 
         RequestWrapper<InfoDto> request = new RequestWrapper<>();

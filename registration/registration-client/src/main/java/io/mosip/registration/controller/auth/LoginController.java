@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
 
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
@@ -202,6 +203,9 @@ public class LoginController extends BaseController implements Initializable {
 
 	@Autowired
 	private MosipDeviceSpecificationFactory deviceSpecificationFactory;
+
+	@Autowired
+	private AuthTokenUtilService authTokenUtilService;
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
@@ -444,20 +448,6 @@ public class LoginController extends BaseController implements Initializable {
 
 							loginList = loginService.getModesOfLogin(ProcessNames.LOGIN.getType(), roles);
 
-							String fingerprintDisableFlag = getValueFromApplicationContext(
-									RegistrationConstants.FINGERPRINT_DISABLE_FLAG);
-							String irisDisableFlag = getValueFromApplicationContext(
-									RegistrationConstants.IRIS_DISABLE_FLAG);
-							String faceDisableFlag = getValueFromApplicationContext(
-									RegistrationConstants.FACE_DISABLE_FLAG);
-
-							LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-									"Ignoring FingerPrint login if the configuration is off");
-
-							removeLoginParam(fingerprintDisableFlag, RegistrationConstants.FINGERPRINT);
-							removeLoginParam(irisDisableFlag, RegistrationConstants.IRIS);
-							removeLoginParam(faceDisableFlag, RegistrationConstants.FINGERPRINT);
-
 							String loginMode = !loginList.isEmpty() ? loginList.get(RegistrationConstants.PARAM_ZERO)
 									: null;
 
@@ -468,22 +458,8 @@ public class LoginController extends BaseController implements Initializable {
 								userIdPane.setVisible(false);
 								errorPane.setVisible(true);
 							} else {
-
-								if ((RegistrationConstants.DISABLE.equalsIgnoreCase(fingerprintDisableFlag)
-										&& RegistrationConstants.FINGERPRINT.equalsIgnoreCase(loginMode))
-										|| (RegistrationConstants.DISABLE.equalsIgnoreCase(irisDisableFlag)
-												&& RegistrationConstants.IRIS.equalsIgnoreCase(loginMode))
-										|| (RegistrationConstants.DISABLE.equalsIgnoreCase(faceDisableFlag)
-												&& RegistrationConstants.FACE.equalsIgnoreCase(loginMode))) {
-
-									generateAlert(RegistrationConstants.ERROR,
-											RegistrationUIConstants.BIOMETRIC_DISABLE_SCREEN_1
-													.concat(RegistrationUIConstants.BIOMETRIC_DISABLE_SCREEN_2));
-
-								} else {
-									userIdPane.setVisible(false);
-									loadLoginScreen(loginMode);
-								}
+								userIdPane.setVisible(false);
+								loadLoginScreen(loginMode);
 							}
 						}
 					}
@@ -518,23 +494,18 @@ public class LoginController extends BaseController implements Initializable {
 		LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 				"Validating Credentials entered through UI");
 
+		LoginUserDTO loginUserDTO = new LoginUserDTO();
+		loginUserDTO.setUserId(userId.getText());
+		loginUserDTO.setPassword(password.getText());
+		ApplicationContext.map().put(RegistrationConstants.USER_DTO, loginUserDTO);
 		UserDTO userDTO = loginService.getUserDetail(userId.getText());
 
 		if (isInitialSetUp) {
-
 			if (!RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_INTERNET_CONNECTION);
 
 			} else {
-				LoginUserDTO loginUserDTO = new LoginUserDTO();
-				loginUserDTO.setUserId(userId.getText());
-				loginUserDTO.setPassword(password.getText());
-
-				ApplicationContext.map().put(RegistrationConstants.USER_DTO, loginUserDTO);
-
 				try {
-					// Get Auth Token
-					ApplicationContext.map().put(RegistrationConstants.USER_DTO, loginUserDTO);
 					if (SessionContext.create(userDTO, RegistrationConstants.PWORD, isInitialSetUp, isUserNewToMachine,
 							null)) {
 						if (isInitialSetUp) {
@@ -822,7 +793,7 @@ public class LoginController extends BaseController implements Initializable {
 				if (bioLoginStatus) {
 					LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 							loginMode + " validation success");
-					fingerprintPane.setVisible(false);
+					pane.setVisible(false);
 					loadNextScreen(userDTO, loginMode);
 				} else {
 					LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
@@ -923,7 +894,7 @@ public class LoginController extends BaseController implements Initializable {
 	/**
 	 * Loading next login screen in case of multifactor authentication
 	 * 
-	 * @param userDetail the userDetail
+	 * @param userDTO the userDetail
 	 * @param loginMode  the loginMode
 	 */
 	private void loadNextScreen(UserDTO userDTO, String loginMode) {
@@ -1011,8 +982,13 @@ public class LoginController extends BaseController implements Initializable {
 
 						LOGGER.info("REGISTRATION - INITIAL_SYNC - LOGIN_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 								"Handling all the sync activities before login");
-
-						return loginService.initialSync();
+						if(RegistrationAppHealthCheckUtil.isNetworkAvailable() && ( isInitialSetUp || authTokenUtilService.hasAnyValidToken() ))
+							return loginService.initialSync(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
+						else {
+							List<String> list = new ArrayList<>();
+							list.add(RegistrationConstants.SUCCESS);
+							return list;
+						}
 					}
 				};
 			}
@@ -1023,7 +999,6 @@ public class LoginController extends BaseController implements Initializable {
 		taskService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
 			public void handle(WorkerStateEvent t) {
-
 				if (taskService.getValue().contains(RegistrationConstants.FAILURE)) {
 					generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SYNC_CONFIG_DATA_FAILURE);
 					if (isInitialSetUp) {
@@ -1059,8 +1034,8 @@ public class LoginController extends BaseController implements Initializable {
 	/**
 	 * Validating invalid number of login attempts
 	 * 
-	 * @param userDetail user details
-	 * @param userId     entered userId
+	 * @param userDTO user details
+	 * @param errorMessage
 	 * @return boolean
 	 */
 	private boolean validateInvalidLogin(UserDTO userDTO, String errorMessage) {
@@ -1102,21 +1077,6 @@ public class LoginController extends BaseController implements Initializable {
 
 	}
 
-	/**
-	 * This method will remove the loginmethod from list
-	 * 
-	 * @param disableFlag configuration flag
-	 * @param loginMethod login method
-	 */
-	private void removeLoginParam(String disableFlag, String loginMethod) {
-
-		loginList.removeIf(login -> loginList.size() > 1 && RegistrationConstants.DISABLE.equalsIgnoreCase(disableFlag)
-				&& login.equalsIgnoreCase(loginMethod));
-
-		LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-				"Ignoring login method if the configuration is off");
-
-	}
 
 	/**
 	 * Redirects to mosip username page

@@ -162,33 +162,6 @@ public class FXUtils {
 	}
 
 	/**
-	 * Populate local or secondary language combo box based on the application or
-	 * primary language. The value in the local or secondary language
-	 * {@link ComboBox} will be selected based on the code of the value selected in
-	 * application or secondary language {@link ComboBox}.
-	 *
-	 * @param parentPane       the {@link Pane} in which {@link TextField} is
-	 *                         present
-	 * @param applicationField the {@link ComboBox} in application or primary
-	 *                         language
-	 * @param localField       the {@link ComboBox} in local or secondary language
-	 */
-	public void populateLocalComboBox(Pane parentPane, ComboBox<?> applicationField, ComboBox<?> localField) {
-		applicationField.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
-			selectComboBoxValueByCode(localField, applicationField.getValue(), applicationField);
-			toggleUIField(parentPane, applicationField.getId() + RegistrationConstants.LABEL, true);
-
-			toggleUIField(parentPane, applicationField.getId() + RegistrationConstants.MESSAGE, false);
-			if (!isAppLangAndLocalLangSame()) {
-
-				toggleUIField(parentPane, localField.getId() + RegistrationConstants.LABEL, true);
-
-				toggleUIField(parentPane, localField.getId() + RegistrationConstants.MESSAGE, false);
-			}
-		});
-	}
-
-	/**
 	 * Toggle the visibility of the UI field based on the input visibility
 	 * 
 	 * @param parentPane the {@link Pane} containing the UI Field
@@ -196,7 +169,7 @@ public class FXUtils {
 	 *                   toggled
 	 * @param visibility the visibility property value
 	 */
-	private void toggleUIField(Pane parentPane, String uiFieldId, boolean visibility) {
+	public void toggleUIField(Pane parentPane, String uiFieldId, boolean visibility) {
 		try {
 			((Label) parentPane.lookup(RegistrationConstants.HASH.concat(uiFieldId))).setVisible(visibility);
 		} catch (RuntimeException runtimeException) {
@@ -225,27 +198,31 @@ public class FXUtils {
 		field.textProperty().addListener((obsValue, oldValue, newValue) -> {
 			showLabel(parentPane, field);
 			if (isInputTextValid(parentPane, field, field.getId().concat(RegistrationConstants.ON_TYPE), validation)) {
-				field.getStyleClass().removeIf((s) -> {
-					return s.equals("demoGraphicTextField");
-				});
-				field.getStyleClass().add("demoGraphicTextFieldOnType");
-				if (field.isFocused()) {
-					Label fieldLabel = (Label) parentPane.lookup("#" + field.getId() + "Label");
-					fieldLabel.getStyleClass().add("demoGraphicFieldLabelOnType");
-					fieldLabel.getStyleClass().remove("demoGraphicFieldLabel");
-
-					if (field.getId().equals("ageField")) {
-						((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA))
-								.setAgeCalculatedByDOB(false);
-					}
-				}
-				hideErrorMessageLabel(parentPane, field);
+				setTextValidLabel(parentPane, field);
 			} else {
 				if (!field.getText().equals(RegistrationConstants.EMPTY))
 					field.setText(oldValue);
 			}
 		});
 
+	}
+
+	public void setTextValidLabel(Pane parentPane, TextField field) {
+		field.getStyleClass().removeIf((s) -> {
+			return s.equals("demoGraphicTextField");
+		});
+		field.getStyleClass().add("demoGraphicTextFieldOnType");
+		if (field.isFocused()) {
+			Label fieldLabel = (Label) parentPane.lookup("#" + field.getId() + "Label");
+			fieldLabel.getStyleClass().add("demoGraphicFieldLabelOnType");
+			fieldLabel.getStyleClass().remove("demoGraphicFieldLabel");
+
+			if (field.getId().equals("ageField")) {
+				((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA))
+						.setAgeCalculatedByDOB(false);
+			}
+		}
+		hideErrorMessageLabel(parentPane, field);
 	}
 
 	/**
@@ -301,11 +278,7 @@ public class FXUtils {
 						}
 					}
 				} else {
-					field.getStyleClass().removeIf((s) -> {
-						return s.equals("demoGraphicTextFieldOnType");
-					});
-					field.getStyleClass().add("demoGraphicTextFieldFocused");
-					toggleUIField(parentPane, field.getId() + RegistrationConstants.MESSAGE, true);
+					showErrorLabel(field, parentPane);
 				}
 
 				Label fieldLabel = (Label) parentPane.lookup("#" + field.getId() + "Label");
@@ -316,6 +289,14 @@ public class FXUtils {
 			}
 		});
 
+	}
+
+	public void showErrorLabel(TextField field, Pane parentPane) {
+		field.getStyleClass().removeIf((s) -> {
+			return s.equals("demoGraphicTextFieldOnType");
+		});
+		field.getStyleClass().add("demoGraphicTextFieldFocused");
+		toggleUIField(parentPane, field.getId() + RegistrationConstants.MESSAGE, true);
 	}
 
 	public void focusedAction(Pane parentPane, TextField field) {
@@ -495,7 +476,7 @@ public class FXUtils {
 	 * @param field      the {@link TextField} whose {@link Label} has to be removed
 	 *                   or hidden
 	 */
-	private void hideErrorMessageLabel(Pane parentPane, TextField field) {
+	public void hideErrorMessageLabel(Pane parentPane, TextField field) {
 		if (field.getId().matches("ageField|dd|mm|yyyy|ddLocalLanguage|mmLocalLanguage|yyyyLocalLanguage")) {
 			toggleUIField(parentPane, RegistrationConstants.DOB_MESSAGE, false);
 		} else {
@@ -599,35 +580,7 @@ public class FXUtils {
 		}
 	}
 
-	private void selectComboBoxValueByCode(ComboBox<?> localComboBox, Object selectedOption, ComboBox<?> ComboBox) {
-		ObservableList<?> localComboBoxValues = localComboBox.getItems();
-		ObservableList<?> comboBoxValues = ComboBox.getItems();
 
-		if (!localComboBoxValues.isEmpty() && selectedOption != null) {
-			IntPredicate findIndexOfSelectedItem = null;
-			if (localComboBoxValues.get(0) instanceof GenericDto && selectedOption instanceof GenericDto) {
-				findIndexOfSelectedItem = index -> ((GenericDto) localComboBoxValues.get(index)).getCode()
-						.equals(((GenericDto) selectedOption).getCode());
-			} else if (localComboBoxValues.get(0) instanceof DocumentCategoryDto
-					&& selectedOption instanceof DocumentCategoryDto) {
-				findIndexOfSelectedItem = index -> ((DocumentCategoryDto) localComboBoxValues.get(index)).getCode()
-						.equals(((DocumentCategoryDto) selectedOption).getCode());
-			} else if (localComboBoxValues.get(0) instanceof String && selectedOption instanceof String) {
-				findIndexOfSelectedItem = index -> ((String) comboBoxValues.get(index))
-						.equals(((String) ComboBox.getSelectionModel().getSelectedItem()));
-				OptionalInt indexOfSelectedLocation = getIndexOfSelectedItem(comboBoxValues, findIndexOfSelectedItem);
-				if (indexOfSelectedLocation.isPresent()) {
-					localComboBox.getSelectionModel().select(indexOfSelectedLocation.getAsInt());
-				}
-				return;
-			}
-			OptionalInt indexOfSelectedLocation = getIndexOfSelectedItem(localComboBoxValues, findIndexOfSelectedItem);
-
-			if (indexOfSelectedLocation.isPresent()) {
-				localComboBox.getSelectionModel().select(indexOfSelectedLocation.getAsInt());
-			}
-		}
-	}
 
 	/**
 	 * Shows the selected value in the combo-box
@@ -692,44 +645,10 @@ public class FXUtils {
 		};
 	}
 
-	public void populateLocalButton(FlowPane parentPane, Button applicationField, Button localField) {
-		applicationField.addEventHandler(ActionEvent.ACTION, event -> {
-			if (applicationField.getStyleClass().contains("residence")) {
-				applicationField.getStyleClass().clear();
-
-				applicationField.getStyleClass().addAll("selectedResidence", "button");
-				applicationField.getParent().getChildrenUnmodifiable().forEach(node -> {
-					if (node instanceof Button && !node.getId().equals(applicationField.getId())) {
-						node.getStyleClass().clear();
-						node.getStyleClass().addAll("residence", "button");
-					}
-				});
-
-				if (!isAppLangAndLocalLangSame()) {
-					localField.getStyleClass().clear();
-					localField.getStyleClass().addAll("selectedResidence", "button");
-
-					localField.getParent().getChildrenUnmodifiable().forEach(node -> {
-						if (node instanceof Button && !node.getId().equals(localField.getId())) {
-							node.getStyleClass().clear();
-							node.getStyleClass().addAll("residence", "button");
-						}
-					});
-				}
-			}
-			toggleUIField(parentPane, applicationField.getParent().getId() + RegistrationConstants.MESSAGE, false);
-
-			if (!isAppLangAndLocalLangSame()) {
-				toggleUIField(parentPane, localField.getParent().getId() + RegistrationConstants.MESSAGE, false);
-			}
-		});
-	}
-
 	private boolean isAppLangAndLocalLangSame() {
 
 		return ApplicationContext.getInstance().getApplicationLanguage()
 				.equals(ApplicationContext.getInstance().getLocalLanguage());
 	}
 
-	
 }

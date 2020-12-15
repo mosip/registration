@@ -496,8 +496,6 @@ public class MapperUtils {
 	 * @throws IllegalArgumentException 
 	 */
 	public static <D> D mapJSONObjectToEntity(final JSONObject jsonObject, Class<?> entityClass) throws IllegalAccessException, InstantiationException, ParseException, IllegalArgumentException, SecurityException, JSONException {
-		LOGGER.debug(MAPPER_UTILL, APPLICATION_NAME, APPLICATION_ID, "Building entity of type : " + entityClass.getName());
-		
 		Objects.requireNonNull(jsonObject, SOURCE_NULL_MESSAGE);
 		Objects.requireNonNull(entityClass, "destination class should not be null");
 		Object destination = null;
@@ -545,7 +543,7 @@ public class MapperUtils {
 			//avoids failure of complete sync on missing of non-mandatory field
 			if(!jsonObject.has(dfield.getName()) || jsonObject.get(dfield.getName()) == JSONObject.NULL) {
 				//throw new RegBaseUncheckedException(MAPPER_UTILL, String.format(FIELD_MISSING_ERROR_MESSAGE, dfield.getName()));
-				LOGGER.warn(MAPPER_UTILL, APPLICATION_NAME, APPLICATION_ID, String.format(FIELD_MISSING_ERROR_MESSAGE, dfield.getName()));
+				//LOGGER.warn(MAPPER_UTILL, APPLICATION_NAME, APPLICATION_ID, String.format(FIELD_MISSING_ERROR_MESSAGE, dfield.getName()));
 				continue;
 			}
 			

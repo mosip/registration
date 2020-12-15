@@ -1,15 +1,9 @@
 package io.mosip.registration.device.scanner.impl;
 
-import com.amazonaws.services.dynamodbv2.xspec.S;
-import eu.gnome.morena.*;
-import io.mosip.kernel.core.exception.ExceptionUtils;
-import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.registration.config.AppConfig;
-import io.mosip.registration.constants.RegistrationConstants;
-import io.mosip.registration.context.ApplicationContext;
-import io.mosip.registration.device.scanner.dto.ScanDevice;
+import static io.mosip.registration.constants.LoggerConstants.LOG_REG_DOC_SCAN_CONTROLLER;
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -18,15 +12,28 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static io.mosip.registration.constants.LoggerConstants.LOG_REG_DOC_SCAN_CONTROLLER;
-import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
-import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
+import javax.imageio.ImageIO;
+
+import org.springframework.stereotype.Service;
+
+import eu.gnome.morena.Configuration;
+import eu.gnome.morena.Device;
+import eu.gnome.morena.DeviceBase;
+import eu.gnome.morena.Manager;
+import eu.gnome.morena.TransferDoneListener;
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.context.ApplicationContext;
+import io.mosip.registration.device.scanner.dto.ScanDevice;
 
 /**
  *
  * @author Anusha Sunkada
  * @since 1.2.0
  */
+@Service
 public class DocumentScannerServiceImpl extends DocumentScannerService {
 
     private static final Logger LOGGER = AppConfig.getLogger(DocumentScannerServiceImpl.class);

@@ -317,7 +317,7 @@ public interface PacketInfoManager<T, /** D, M, */
 	 *            the demographic json string
 	 * @return the identity keys and fetch values from JSON
 	 */
-	public IndividualDemographicDedupe getIdentityKeysAndFetchValuesFromJSON(String rid, String source, String process)
+	public IndividualDemographicDedupe getIdentityKeysAndFetchValuesFromJSON(String rid, String process)
 			throws PacketDecryptionFailureException;
 
 	/**

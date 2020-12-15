@@ -112,8 +112,7 @@ public class ScanPopUpViewController extends BaseController {
 	}
 
 	/**
-	 * @param popupStage
-	 *            the popupStage to set
+	 * @param popupStage the popupStage to set
 	 */
 	public void setPopupStage(Stage popupStage) {
 		this.popupStage = popupStage;
@@ -243,6 +242,7 @@ public class ScanPopUpViewController extends BaseController {
 				"Calling exit window to close the popup");
 
 		biometricsController.stopRCaptureService();
+		biometricsController.stopDeviceSearchService();
 		streamer.stop();
 		if (webcamSarxosServiceImpl.isWebcamConnected()) {
 			webcamSarxosServiceImpl.close();

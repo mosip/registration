@@ -446,15 +446,14 @@ public class AuthenticationController extends BaseController implements Initiali
 						// TODO Enable continue button
 						operatorAuthContinue.setDisable(false);
 					}
-					generateAlert(RegistrationConstants.ALERT_INFORMATION,
-							RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
-
 					if (fingerPrintScanButton != null) {
 						fingerPrintScanButton.setDisable(true);
 //						
-					} else {
-						loadNextScreen();
 					}
+					generateAlert(RegistrationConstants.ALERT_INFORMATION,
+							RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
+
+					loadNextScreen();					
 				} else {
 					if (operatorAuthContinue != null) {
 						operatorAuthContinue.setDisable(true);
@@ -557,11 +556,10 @@ public class AuthenticationController extends BaseController implements Initiali
 					}
 					if (irisScanButton != null) {
 						irisScanButton.setDisable(true);
-					} else {
-						loadNextScreen();
 					}
 					generateAlert(RegistrationConstants.ALERT_INFORMATION,
 							RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
+					loadNextScreen();
 				} else {
 
 					if (operatorAuthContinue != null) {
@@ -688,11 +686,10 @@ public class AuthenticationController extends BaseController implements Initiali
 					}
 					if (faceScanButton != null) {
 						faceScanButton.setDisable(true);
-					} else {
-						loadNextScreen();
 					}
 					generateAlert(RegistrationConstants.ALERT_INFORMATION,
 							RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
+					loadNextScreen();
 
 				} else {
 					if (operatorAuthContinue != null) {
@@ -716,6 +713,15 @@ public class AuthenticationController extends BaseController implements Initiali
 
 		Set<String> roleSet = new HashSet<>(SessionContext.userContext().getRoles());
 
+		if (isSupervisor) {
+
+			LOGGER.info("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
+					"Setting role as only supervisor");
+
+			roleSet.clear();
+
+			roleSet.add(RegistrationConstants.SUPERVISOR);
+		}
 		userAuthenticationTypeList = loginService.getModesOfLogin(authType, roleSet);
 		userAuthenticationTypeListValidation = loginService.getModesOfLogin(authType, roleSet);
 		userAuthenticationTypeListSupervisorValidation = loginService.getModesOfLogin(authType, roleSet);
@@ -848,7 +854,7 @@ public class AuthenticationController extends BaseController implements Initiali
 	 */
 	public void loadAuthenticationScreen(String loginMode) {
 		LOGGER.info("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
-				"Loading the respective authentication screen in UI");
+				"Loading the respective authentication screen in UI >> " + loginMode);
 		errorPane.setVisible(false);
 		pwdBasedLogin.setVisible(false);
 		otpBasedLogin.setVisible(false);

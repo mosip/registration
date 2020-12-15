@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>io.mosip</groupId>
 		<artifactId>registration</artifactId>
-		<version>1.0.10</version>
+		<version>1.2.0-SNAPSHOT</version>
 	</parent>
 
 	<groupId>io.mosip.registration</groupId>
@@ -55,6 +55,7 @@
 		<jackson.mapper.asl.version>1.7.1</jackson.mapper.asl.version>
 
 		<mosip.core.kernel.version>1.2.0-SNAPSHOT</mosip.core.kernel.version>
+		<mosip.kernel.virusscanner.version>1.2.0-SNAPSHOT</mosip.kernel.virusscanner.version>
 		<!-- Derby Version -->
 		<apache.derby.version>10.13.1.1</apache.derby.version>
 
@@ -212,16 +213,16 @@
 				<artifactId>kernel-idgenerator-rid</artifactId>
 				<version>${mosip.core.kernel.version}</version>
 			</dependency>
-			<dependency>
+			<!--<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-crypto-signature</artifactId>
 				<version>${mosip.core.kernel.version}</version>
-			</dependency>
-			<dependency>
+			</dependency>-->
+			<!--<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-keygenerator-bouncycastle</artifactId>
 				<version>1.0.6</version>
-			</dependency>
+			</dependency>-->
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-templatemanager-velocity</artifactId>
@@ -295,11 +296,11 @@
 				<artifactId>javassist</artifactId>
 				<version>3.27.0-GA</version>
 			</dependency>
-			<dependency>
+			<!--<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-crypto-jce</artifactId>
 				<version>1.0.6</version>
-			</dependency>
+			</dependency>-->
 			<dependency>
 				<groupId>com.cronutils</groupId>
 				<artifactId>cron-utils</artifactId>
@@ -309,7 +310,7 @@
 			<dependency>
 				<groupId>io.mosip.kernel</groupId>
 				<artifactId>kernel-virusscanner-clamav</artifactId>
-				<version>${mosip.core.kernel.version}</version>
+				<version>${mosip.kernel.virusscanner.version}</version>
 			</dependency>
 
 			<dependency>
@@ -322,11 +323,7 @@
 				<artifactId>kernel-applicanttype-api</artifactId>
 				<version>${mosip.core.kernel.version}</version>
 			</dependency>
-			<dependency>
-				<groupId>io.mosip.kernel</groupId>
-				<artifactId>kernel-cbeffutil-api</artifactId>
-				<version>1.0.6</version>
-			</dependency>
+			
 			<!-- https://mvnrepository.com/artifact/com.github.microsoft/TSS.Java -->
 			<dependency>
 				<groupId>com.github.microsoft</groupId>

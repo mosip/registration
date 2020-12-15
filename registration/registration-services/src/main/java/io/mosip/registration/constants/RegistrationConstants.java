@@ -263,6 +263,7 @@ public class RegistrationConstants {
 	public static final String BUTTONS_LABEL = "buttonsLabel";
 	public static final String DEMOGRAPHIC_FIELD_LABEL = "demoGraphicFieldLabel";
 	public static final String SCAN_VBOX = "scanVBox";
+	public static final String DOC_TEXT_FIELD = "documentTextField";
 	public static final String DOCUMENT_CONTENT_BUTTON = "documentContentButton";
 
 	public static final String UIN_UPDATE_ISUINUPDATE = "isUINUpdate";
@@ -329,7 +330,6 @@ public class RegistrationConstants {
 	public static final String UIN_UPDATE_FOREIGNER = "foreigner";
 	public static final String UIN_UPDATE_GENDER = "gender";
 	public static final String UIN_UPDATE_PARENT_DETAILS = "parentOrGuardianDetails";
-	public static final String UIN_UPDATE_CNIE_NUMBER = "cnieNumber";
 	public static final String UIN_UPDATE_DEMOGRAPHICDETAIL = "demographicDetail";
 	public static final String UIN_UPDATE_DOCUMENTSCAN = "documentScan";
 	public static final String UIN_UPDATE_FINGERPRINTCAPTURE = "fingerPrintCapture";
@@ -646,7 +646,7 @@ public class RegistrationConstants {
 	public static final String TEMPLATE_PHOTO_USER_LANG = "PhotoPrim";
 	public static final String TEMPLATE_PHOTO_LOCAL_LANG = "PhotoSec";
 	public static final String TEMPLATE_APPLICANT_IMAGE_SOURCE = "ApplicantImageSource";
-	public static final String TEMPLATE_DATE_FORMAT = "dd/MM/yyyy";
+	public static final String TEMPLATE_DATE_FORMAT = "dd/MM/yyyy hh:mm a";
 	public static final String TEMPLATE_JPG_IMAGE_ENCODING = "data:image/jpg;base64,";
 	public static final String TEMPLATE_PNG_IMAGE_ENCODING = "data:image/png;base64,";
 	public static final String TEMPLATE_CROSS_MARK = "&#10008;";
@@ -692,6 +692,10 @@ public class RegistrationConstants {
 	public static final String SPLIT_DELIMITOR = "\\.";
 	public static final String TEMPLATE_GUIDELINES = "Guidelines";
 	public static final String TEMPLATE_IS_UIN_UPDATE = "IsUINUpdate";
+	public static final String TEMPLATE_APPLICANT_NAME_PRIMARY_LABEL = "NamePrimLabel";
+	public static final String TEMPLATE_APPLICANT_NAME_SECONDARY_LABEL = "NameSecLabel";
+	public static final String TEMPLATE_APPLICANT_NAME_PRIMARY_VALUE = "NamePrimValue";
+	public static final String TEMPLATE_APPLICANT_NAME_SECONDARY_VALUE = "NameSecValue";
 
 	public static final String MODIFY_DEMO_INFO = "modifyDemographicInfo";
 	public static final String MODIFY_DOCUMENTS = "modifyDocuments";
@@ -1203,6 +1207,9 @@ public class RegistrationConstants {
 	public static final String MASTER_DATA_LASTUPDTAE = "lastUpdated";
 	public static final String MASTER_SYNC_LOGGER_INFO = "Entering into Master Sync Dao Impl...";
 	// POLICY SYNC
+	public static final String REG_APP_ID = "REGISTRATION";
+	public static final String KERNEL_APP_ID = "KERNEL";
+	public static final String KERNEL_REF_ID = "SIGNATUREKEY";
 	public static final String POLICY_SYNC_SUCCESS_CODE = "REG-MDS‌-001 ";
 	public static final String POLICY_SYNC_SUCCESS_MESSAGE = "SYNC_SUCCESS";
 	public static final String POLICY_SYNC_ERROR_CODE = "REG-MDS‌-003 ";
@@ -1325,8 +1332,11 @@ public class RegistrationConstants {
 	public static final String ENGLISH_LANG_CODE = "eng";
 	public static final String USER_ID_CODE = "USERID";
 	public static final String OTP_CHANNELS = "mosip.registration.otp_channels";
-	public static final String AUTH_TOKEN_NOT_RECEIVED_ERROR = "No Auth Token Received";
+	public static final String AUTH_TOKEN_NOT_RECEIVED_ERROR = "Auth failed, Invalid/expired auth token";
 
+	//flag for quality check with SDK
+	public static final String QUALITY_CHECK_WITH_SDK = "mosip.registration.quality_check_with_sdk";
+	
 	// Packet Sync
 	public static final String PACKET_SYNC = "packet_sync";
 
@@ -1457,7 +1467,10 @@ public class RegistrationConstants {
 	public static final String PUBLIC_KEY_EXPIRE_DATE = "expiryAt";
 	public static final String PUBLIC_KEY = "publicKey";
 	public static final String PUBLIC_KEY_REST = "public_key";
+	public static final String GET_CERTIFICATE = "getcert_sync";
+	public static final String GET_CERT_APP_ID = "applicationId";
 	public static final String KER = "SIGN";
+	public static final String CERTIFICATE = "certificate";
 	public static final String DTAE_MONTH_YEAR_REGEX = "dd|mm|yyyy|ddLocalLanguage|mmLocalLanguage|yyyyLocalLanguage|ageField|dob";
 
 	public static final String UIN_UPDATE_PARENTGUARDIAN_DETAILS = "parentOrGuardianDetails";
@@ -1794,4 +1807,14 @@ public class RegistrationConstants {
 	public static final String LEFTTHUMB_IMG_PATH = "/images/exceptionmarks/leftThumb.png";
 	public static final String RIGHTEYE_IMG_PATH = "/images/exceptionmarks/lightBlueCrossMark.png";
 	public static final String LEFTEYE_IMG_PATH = "/images/exceptionmarks/lightBlueCrossMark.png";
+
+	// UI Schema field group name
+	public static final String UI_SCHEMA_GROUP_FULL_NAME = "FullName";
+	public static final String MVEL_TYPE = "MVEL";
+	public static final String UI_SCHEMA_GROUP_EMAIL = "Email";
+	public static final String UI_SCHEMA_GROUP_PHONE = "Phone";
+	
+	public static final String MACHINE_VERIFICATION_SUCCESS = "Machine Verification Success";
+	
+	public static final String UTC_APPENDER = " (UTC)";
 }

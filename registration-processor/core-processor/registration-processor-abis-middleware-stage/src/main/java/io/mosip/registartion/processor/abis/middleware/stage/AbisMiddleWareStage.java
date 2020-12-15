@@ -5,12 +5,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.jms.Message;
+import javax.jms.TextMessage;
 
 import org.apache.activemq.command.ActiveMQBytesMessage;
 import org.assertj.core.util.Arrays;
@@ -124,6 +123,10 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
 
+	/** Message Format. */
+	@Value("${activemq.message.format}")
+	private String messageFormat;
+
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
 
@@ -138,6 +141,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 	private static final String DEMOGRAPHIC_VERIFICATION = "DEMOGRAPHIC_VERIFICATION";
 	private static final String BIOGRAPHIC_VERIFICATION = "BIOGRAPHIC_VERIFICATION";
 	private static final String ABIS_QUEUE_NOT_FOUND = "ABIS_QUEUE_NOT_FOUND";
+	private static final String TEXT_MESSAGE = "text";
 
 	/**
 	 * Get all the abis queue details,register listener to outbound queue's
@@ -342,9 +346,14 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 		String moduleId = "";
 		String moduleName = ModuleName.ABIS_MIDDLEWARE.toString();
 
-		String response = new String(((ActiveMQBytesMessage) message).getContent().data);
+		String response = null;
 
 		try {
+			if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE)) {
+				TextMessage textMessage = (TextMessage) message;
+				response =textMessage.getText();
+			} else
+				response = new String(((ActiveMQBytesMessage) message).getContent().data);
 			JSONObject inserOrIdentifyResponse = JsonUtil.objectMapperReadValue(response, JSONObject.class);
 			String requestId = JsonUtil.getJSONValue(inserOrIdentifyResponse, REQUESTID);
 			String batchId = packetInfoManager.getBatchIdByRequestId(requestId);
@@ -400,7 +409,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 						"AbisMiddlewareStage::consumerListener()::Identify Response received from abis ::"
 								+ inserOrIdentifyResponse);
 
-				AbisIdentifyResponseDto abisIdentifyResponseDto = JsonUtil.objectMapperReadValue(response,
+				AbisIdentifyResponseDto abisIdentifyResponseDto = JsonUtil.readValueWithUnknownProperties(response,
 						AbisIdentifyResponseDto.class);
 				if (!abisIdentifyResponseDto.getReturnValue().equalsIgnoreCase("1")){
 					internalRegStatusDto
@@ -486,7 +495,11 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 				"AbisMiddlewareStage::sendToQueue()::Entry");
 		boolean isAddedToQueue;
 		try {
-			isAddedToQueue = mosipQueueManager.send(queue, abisReqTextString.getBytes(), abisQueueAddress);
+			if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE))
+				isAddedToQueue = mosipQueueManager.send(queue, abisReqTextString, abisQueueAddress);
+			else
+				isAddedToQueue = mosipQueueManager.send(queue, abisReqTextString.getBytes(), abisQueueAddress);
+
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"AbisMiddlewareStage:: sent to abis queue ::" + abisReqTextString);
 
