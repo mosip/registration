@@ -62,38 +62,70 @@
                 <RowConstraints maxHeight="542.0" minHeight="10.0" prefHeight="532.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                  <Label styleClass="optionHeaderStyle" text="%registrationTasks" GridPane.rowIndex="1">
+                  <Label styleClass="optionHeaderStyle" text="%operationalTasks" GridPane.rowIndex="1">
                      <GridPane.margin>
                         <Insets left="40.0" />
                      </GridPane.margin>
                   </Label>
-                  <VBox fx:id="vHolder" prefHeight="200.0" prefWidth="100.0" spacing="20.0" GridPane.rowIndex="2">
+                  <VBox fx:id="vHolder" prefHeight="200.0" prefWidth="100.0" spacing="10.0" GridPane.rowIndex="2">
                      <GridPane.margin>
                         <Insets left="20.0" />
                      </GridPane.margin>
                      <children>
-                        <GridPane fx:id="newRegGridPane" onMouseClicked="#createPacket" prefHeight="90.0" prefWidth="250.0" styleClass="uinUpdateStyle">
-                          <columnConstraints>
-                            <ColumnConstraints hgrow="SOMETIMES" maxWidth="121.0" minWidth="10.0" prefWidth="90.0" />
-                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="156.0" />
-                          </columnConstraints>
-                          <rowConstraints>
-                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                          </rowConstraints>
+                        <GridPane styleClass="uinUpdateStyle">
+                           <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                           </columnConstraints>
+                           <rowConstraints>
+                              <RowConstraints minHeight="10.0" percentHeight="98.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="1.0" percentHeight="2.0" prefHeight="1.0" vgrow="SOMETIMES" />
+                           </rowConstraints>
                            <children>
-                              <Label styleClass="uinUpdateBtnStyle" text="%newregistration" wrapText="true" GridPane.columnIndex="1" />
-                              <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                              <GridPane fx:id="syncDataPane" onMouseClicked="#syncData" prefHeight="90.0" prefWidth="250.0">
+                                <columnConstraints>
+                                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="121.0" minWidth="10.0" prefWidth="90.0" />
+                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="156.0" />
+                                </columnConstraints>
+                                <rowConstraints>
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                </rowConstraints>
                                  <children>
-                                    <ImageView fx:id="newRegImage" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
-                                       <image>
-                                          <Image url="@../images/NewReg.png" />
-                                       </image>
-                                    </ImageView>
+                                    <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                                       <children>
+                                          <ImageView fx:id="syncDataImageView" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                             <image>
+                                                <Image url="@../images/sync.png" />
+                                             </image>
+                                          </ImageView>
+                                       </children>
+                                    </VBox>
+                                    <VBox alignment="CENTER_LEFT" prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="1">
+                                       <children>
+                                          <HBox alignment="CENTER_LEFT" prefHeight="12.0" prefWidth="205.0" spacing="2.0">
+                                             <children>
+                                                <Label alignment="TOP_LEFT" contentDisplay="TOP" styleClass="operationalDetails" text="%lastsynctemp" wrapText="true" />
+                                                <Label fx:id="lastSyncTime" styleClass="operationalDetails" />
+                                             </children>
+                                          </HBox>
+                                          <Label styleClass="operationalTitle" text="%synchronizeData" wrapText="true" />
+                                       </children>
+                                    </VBox>
                                  </children>
-                              </VBox>
+                              </GridPane>
+                              <GridPane fx:id="progressPane" GridPane.rowIndex="1">
+                                <columnConstraints>
+                                  <ColumnConstraints hgrow="SOMETIMES" percentWidth="100.0" />
+                                </columnConstraints>
+                                <rowConstraints>
+                                  <RowConstraints percentHeight="0.0" vgrow="SOMETIMES" />
+                                </rowConstraints>
+                                 <children>
+                                    <ProgressBar fx:id="syncProgressBar" minHeight="1.0" prefHeight="${progressPane.height}" prefWidth="${progressPane.width}" progress="0.0" />
+                                 </children>
+                              </GridPane>
                            </children>
                         </GridPane>
-                        <GridPane fx:id="uinUpdateGridPane" onMouseClicked="#updateUIN" prefHeight="90.0" prefWidth="25.0" styleClass="uinUpdateStyle">
+                        <GridPane fx:id="downloadPreRegDataPane" onMouseClicked="#downloadPreRegData" prefHeight="90.0" prefWidth="25.0" styleClass="uinUpdateStyle">
                            <columnConstraints>
                               <ColumnConstraints hgrow="SOMETIMES" maxWidth="121.0" minWidth="10.0" prefWidth="90.0" />
                               <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="156.0" />
@@ -102,19 +134,24 @@
                               <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                            </rowConstraints>
                            <children>
-                              <Label styleClass="uinUpdateBtnStyle" text="%uinupdate" wrapText="true" GridPane.columnIndex="1" />
                               <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
                                  <children>
-                                    <ImageView fx:id="uinUpdateImage" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                    <ImageView fx:id="downloadPreRegDataImageView" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
                                        <image>
-                                          <Image url="@../images/UINUpdate.png" />
+                                          <Image url="@../images/DownloadPreRegData.png" />
                                        </image>
                                     </ImageView>
                                  </children>
                               </VBox>
+                              <VBox alignment="CENTER_LEFT" prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="1">
+                                 <children>
+                                    <Label fx:id="lastPreRegPacketDownloadedTime" styleClass="operationalDetails" wrapText="true" />
+                                    <Label styleClass="operationalTitle" text="%downloadPreregistrationData" wrapText="true" />
+                                 </children>
+                              </VBox>
                            </children>
                         </GridPane>
-                        <GridPane fx:id="lostUINPane" onMouseClicked="#lostUIN" prefHeight="90.0" prefWidth="250.0" styleClass="uinUpdateStyle">
+                        <GridPane fx:id="updateOperatorBiometricsPane" onMouseClicked="#onBoardUser" prefHeight="90.0" prefWidth="250.0" styleClass="uinUpdateStyle">
                            <columnConstraints>
                               <ColumnConstraints hgrow="SOMETIMES" maxWidth="121.0" minWidth="10.0" prefWidth="90.0" />
                               <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="156.0" />
@@ -123,17 +160,97 @@
                               <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                            </rowConstraints>
                            <children>
-                              <Label styleClass="uinUpdateBtnStyle" text="%lostuin" wrapText="true" GridPane.columnIndex="1" />
                               <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
                                  <children>
-                                    <ImageView fx:id="lostUINImage" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                    <ImageView fx:id="updateOperatorBiometricsImageView" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
                                        <image>
-                                          <Image url="@../images/LostUIN.png" />
+                                          <Image url="@../images/UpdateOperatorBiometrics.png" />
                                        </image>
                                     </ImageView>
                                  </children>
                               </VBox>
+                              <VBox alignment="CENTER_LEFT" prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="1">
+                                 <children>
+                                    <Label fx:id="lastBiometricTime" styleClass="operationalDetails" wrapText="true" />
+                                    <Label styleClass="operationalTitle" text="%updateOperatorBiometrics" wrapText="true" />
+                                 </children>
+                              </VBox>
                            </children>
+                        </GridPane>
+                        <GridPane fx:id="uploadPacketPane" layoutX="10.0" layoutY="212.0" onMouseClicked="#uploadPacketToServer" prefHeight="90.0" prefWidth="250.0" styleClass="uinUpdateStyle">
+                           <children>
+                              <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                                 <children>
+                                    <ImageView fx:id="uploadPacketImageView" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/UpdateOperatorBiometrics.png" />
+                                       </image>
+                                    </ImageView>
+                                 </children>
+                              </VBox>
+                              <VBox alignment="CENTER_LEFT" prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="1">
+                                 <children>
+                                    <Label styleClass="operationalTitle" text="%uploadpacket" wrapText="true" />
+                                 </children>
+                              </VBox>
+                           </children>
+                           <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="121.0" minWidth="10.0" prefWidth="90.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="156.0" />
+                           </columnConstraints>
+                           <rowConstraints>
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                           </rowConstraints>
+                        </GridPane>
+                        <GridPane fx:id="centerRemapPane" layoutX="10.0" layoutY="312.0" onMouseClicked="#intiateRemapProcess" prefHeight="90.0" prefWidth="250.0" styleClass="uinUpdateStyle">
+                           <children>
+                              <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                                 <children>
+                                    <ImageView fx:id="remapImageView" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/sync.png" />
+                                       </image>
+                                    </ImageView>
+                                 </children>
+                              </VBox>
+                              <VBox alignment="CENTER_LEFT" prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="1">
+                                 <children>
+                                    <Label styleClass="operationalTitle" text="%remap" wrapText="true" />
+                                 </children>
+                              </VBox>
+                           </children>
+                           <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="121.0" minWidth="10.0" prefWidth="90.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="156.0" />
+                           </columnConstraints>
+                           <rowConstraints>
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                           </rowConstraints>
+                        </GridPane>
+                        <GridPane fx:id="checkUpdatesPane" layoutX="10.0" layoutY="412.0" onMouseClicked="#hasUpdate" prefHeight="90.0" prefWidth="250.0" styleClass="uinUpdateStyle">
+                           <children>
+                              <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                                 <children>
+                                    <ImageView fx:id="checkUpdatesImageView" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/DownloadPreRegData.png" />
+                                       </image>
+                                    </ImageView>
+                                 </children>
+                              </VBox>
+                              <VBox alignment="CENTER_LEFT" prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="1">
+                                 <children>
+                                    <Label fx:id="checkUpdates" styleClass="operationalTitle" text="%checkUpdates" wrapText="true" />
+                                 </children>
+                              </VBox>
+                           </children>
+                           <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="121.0" minWidth="10.0" prefWidth="90.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="156.0" />
+                           </columnConstraints>
+                           <rowConstraints>
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                           </rowConstraints>
                         </GridPane>
                      </children>
                   </VBox>
@@ -151,7 +268,7 @@
                 <RowConstraints maxHeight="288.0" minHeight="10.0" percentHeight="37.0" prefHeight="270.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                  <Label styleClass="optionHeaderStyle" text="%operationalTasks" GridPane.rowIndex="1">
+                  <Label styleClass="optionHeaderStyle" text="%registrationTasks" GridPane.rowIndex="1">
                      <GridPane.margin>
                         <Insets left="40.0" />
                      </GridPane.margin>
@@ -162,12 +279,12 @@
                     </columnConstraints>
                     <rowConstraints>
                         <RowConstraints percentHeight="33.0" vgrow="SOMETIMES" />
-                        <RowConstraints percentHeight="1.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="1.0" percentHeight="33.0" prefHeight="1.0" vgrow="SOMETIMES" />
+                        <RowConstraints maxHeight="81.25999999999999" minHeight="1.0" percentHeight="33.0" prefHeight="81.25999999999999" vgrow="SOMETIMES" />
                       <RowConstraints percentHeight="33.0" vgrow="SOMETIMES" />
+                        <RowConstraints maxHeight="0.0" minHeight="0.0" percentHeight="1.0" prefHeight="0.0" vgrow="SOMETIMES" />
                     </rowConstraints>
                      <children>
-                        <GridPane fx:id="syncDataPane" onMouseClicked="#syncData" styleClass="operationalPaneDetailsSync">
+                        <GridPane fx:id="newRegGridPane" onMouseClicked="#createPacket" styleClass="operationalPaneDetailsSync">
                           <columnConstraints>
                             <ColumnConstraints hgrow="SOMETIMES" maxWidth="131.0" minWidth="10.0" prefWidth="90.0" />
                             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="178.0" />
@@ -176,45 +293,30 @@
                             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                           </rowConstraints>
                            <children>
-                              <VBox alignment="CENTER_LEFT" prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="1">
-                                 <children>
-                                    <HBox alignment="CENTER_LEFT" prefHeight="12.0" prefWidth="205.0" spacing="2.0">
-                                       <children>
-                                          <Label alignment="TOP_LEFT" contentDisplay="TOP" styleClass="operationalDetails" text="%lastsynctemp" wrapText="true" />
-                                          <Label fx:id="lastSyncTime" styleClass="operationalDetails" />
-                                       </children>
-                                    </HBox>
-                                    <Label styleClass="operationalTitle" text="%synchronizeData" wrapText="true" />
-                                 </children>
-                              </VBox>
                               <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
                                  <children>
-                                    <ImageView fx:id="syncDataImageView" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                    <ImageView fx:id="newRegImage" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
                                        <image>
-                                          <Image url="@../images/sync.png" />
+                                          <Image url="@../images/NewReg.png" />
                                        </image>
                                     </ImageView>
                                  </children>
                               </VBox>
+                              <Label styleClass="uinUpdateBtnStyle" text="%newregistration" wrapText="true" GridPane.columnIndex="1" />
                            </children>
                         </GridPane>
-                        <GridPane fx:id="downloadPreRegDataPane" onMouseClicked="#downloadPreRegData" styleClass="operationalPaneDetails" GridPane.rowIndex="2">
+                        <GridPane fx:id="uinUpdateGridPane" onMouseClicked="#updateUIN" styleClass="operationalPaneDetailsPreReg" GridPane.rowIndex="1">
                            <children>
-                              <VBox alignment="CENTER_LEFT" prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="1">
-                                 <children>
-                                    <Label fx:id="lastPreRegPacketDownloadedTime" styleClass="operationalDetails" wrapText="true" />
-                                    <Label styleClass="operationalTitle" text="%downloadPreregistrationData" wrapText="true" />
-                                 </children>
-                              </VBox>
                               <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
                                  <children>
-                                    <ImageView fx:id="downloadPreRegDataImageView" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                    <ImageView fx:id="uinUpdateImage" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
                                        <image>
-                                          <Image url="@../images/DownloadPreRegData.png" />
+                                          <Image url="@../images/UINUpdate.png" />
                                        </image>
                                     </ImageView>
                                  </children>
                               </VBox>
+                              <Label styleClass="uinUpdateBtnStyle" text="%uinupdate" wrapText="true" GridPane.columnIndex="1" />
                            </children>
                            <columnConstraints>
                               <ColumnConstraints hgrow="SOMETIMES" maxWidth="131.0" minWidth="10.0" prefWidth="90.0" />
@@ -224,23 +326,18 @@
                               <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                            </rowConstraints>
                         </GridPane>
-                        <GridPane fx:id="updateOperatorBiometricsPane" onMouseClicked="#onBoardUser" styleClass="operationalPaneDetailsBioUpdate" GridPane.rowIndex="3">
+                        <GridPane fx:id="lostUINPane" onMouseClicked="#lostUIN" styleClass="operationalPaneDetailsBioUpdate" GridPane.rowIndex="2">
                            <children>
-                              <VBox alignment="CENTER_LEFT" prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="1">
-                                 <children>
-                                    <Label fx:id="lastBiometricTime" styleClass="operationalDetails" wrapText="true" />
-                                    <Label styleClass="operationalTitle" text="%updateOperatorBiometrics" wrapText="true" />
-                                 </children>
-                              </VBox>
                               <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
                                  <children>
-                                    <ImageView fx:id="updateOperatorBiometricsImageView" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                    <ImageView fx:id="lostUINImage" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
                                        <image>
-                                          <Image url="@../images/UpdateOperatorBiometrics.png" />
+                                          <Image url="@../images/LostUIN.png" />
                                        </image>
                                     </ImageView>
                                  </children>
                               </VBox>
+                              <Label styleClass="uinUpdateBtnStyle" text="%lostuin" wrapText="true" GridPane.columnIndex="1" />
                            </children>
                            <columnConstraints>
                               <ColumnConstraints hgrow="SOMETIMES" maxWidth="131.0" minWidth="10.0" prefWidth="90.0" />
@@ -249,17 +346,6 @@
                            <rowConstraints>
                               <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                            </rowConstraints>
-                        </GridPane>
-                        <GridPane fx:id="progressPane" GridPane.rowIndex="1">
-                          <columnConstraints>
-                            <ColumnConstraints hgrow="SOMETIMES" percentWidth="100.0" />
-                          </columnConstraints>
-                          <rowConstraints>
-                            <RowConstraints percentHeight="0.0" vgrow="SOMETIMES" />
-                          </rowConstraints>
-                           <children>
-                              <ProgressBar fx:id="syncProgressBar" minHeight="1.0" prefHeight="${progressPane.height}" prefWidth="${progressPane.width}" progress="0.0" />
-                           </children>
                         </GridPane>
                      </children>
                   </GridPane>

@@ -59,4 +59,6 @@ public class UiSchemaDTO {
 	private String contactType;
 	private String group;
 
+	private String changeAction;
+
 }

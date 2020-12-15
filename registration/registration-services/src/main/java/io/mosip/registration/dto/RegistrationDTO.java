@@ -40,7 +40,7 @@ import lombok.Data;
 public class RegistrationDTO {
 
 	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
-	private static final String DATE_FORMAT = "yyyy/MM/dd";
+	public static final String DATE_FORMAT = "yyyy/MM/dd";
 
 	private double idSchemaVersion;
 	private String registrationId;
