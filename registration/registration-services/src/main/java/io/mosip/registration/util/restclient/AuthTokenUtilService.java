@@ -222,10 +222,19 @@ public class AuthTokenUtilService {
 
     private JSONObject getAuthTokenResponse(Map<String, Object> responseMap) throws RegBaseCheckedException {
         if(responseMap.get(RegistrationConstants.REST_RESPONSE_BODY) != null) {
-            Map<String, String> respBody = (Map<String, String>) responseMap.get(RegistrationConstants.REST_RESPONSE_BODY);
+            Map<String, Object> respBody = (Map<String, Object>) responseMap.get(RegistrationConstants.REST_RESPONSE_BODY);
             if (respBody.get("response") != null) {
-                byte[] decryptedData = clientCryptoFacade.decrypt(CryptoUtil.decodeBase64(respBody.get("response")));
+                byte[] decryptedData = clientCryptoFacade.decrypt(CryptoUtil.decodeBase64((String)respBody.get("response")));
                 return new JSONObject(new String(decryptedData));
+            }
+
+            if(respBody.get("errors") != null) {
+                List<LinkedHashMap<String, Object>> errorMap = (List<LinkedHashMap<String, Object>>) respBody
+                        .get(RegistrationConstants.ERRORS);
+                if(!errorMap.isEmpty()) {
+                    throw new RegBaseCheckedException((String)errorMap.get(0).get("errorCode"),
+                            (String)errorMap.get(0).get("message"));
+                }
             }
         }
         throw new RegBaseCheckedException(

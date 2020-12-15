@@ -120,14 +120,10 @@ public interface MasterSyncService {
 
 	/**
 	 * Gets the individual type.
-	 *
-	 * @param code     the code
 	 * @param langCode the lang code
 	 * @return the individual type
 	 * @throws RegBaseCheckedException
 	 */
-	List<IndividualTypeDto> getIndividualType(String code, String langCode) throws RegBaseCheckedException;
-
 	List<GenericDto> getIndividualType(String langCode) throws RegBaseCheckedException;
 	
 	/**
@@ -147,4 +143,13 @@ public interface MasterSyncService {
 	 * @throws RegBaseCheckedException
 	 */
 	List<GenericDto> getDynamicField(String fieldName, String langCode) throws RegBaseCheckedException;
+
+	/**
+	 *
+	 * @param fieldName
+	 * @param langCode
+	 * @return
+	 * @throws RegBaseCheckedException
+	 */
+	List<GenericDto> getFieldValues(String fieldName, String langCode) throws RegBaseCheckedException;
 }
