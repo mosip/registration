@@ -24,16 +24,12 @@ public class RegistrationUIConstants {
 	public static final String MINUTES = bundle.getString("MINUTES");
 
 	public static String getMessageLanguageSpecific(String key) {
-		String message = "ERROR";
 		try {
-			message = bundle.getString(key);
+			return bundle.getString(key);
 		} catch (Exception runtimeException) {
-			LOGGER.error("REGISTRATION_UI_CONSTANTS", APPLICATION_NAME, APPLICATION_ID,
-					String.format(
-							"Exception while initializing Fingerprint Capture page for user registration  %s",
-							runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException)));
+			LOGGER.error("REGISTRATION_UI_CONSTANTS", APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(runtimeException));
 		}
-		return message;
+		return key != null ? String.format(ERROR+ " : %s", key) : ERROR;
 	}
 
 	// ALERT
