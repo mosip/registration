@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.registration.entity.*;
 import io.mosip.registration.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -291,14 +291,14 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 	}
 
 	@Override
-	public void updateUserPwd(String userId, String password) {
+	public void updateUserPwd(String userId, String password) throws Exception {
 		List<UserDetail> userDetail = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
 		if (userDetail != null && !userDetail.isEmpty()) {
 			if (userDetail.get(0).getSalt() == null)
 				userDetail.get(0)
 						.setSalt(CryptoUtil.encodeBase64(DateUtils.formatToISOString(LocalDateTime.now()).getBytes()));
 
-			userDetail.get(0).getUserPassword().setPwd(HMACUtils.digestAsPlainTextWithSalt(password.getBytes(),
+			userDetail.get(0).getUserPassword().setPwd(HMACUtils2.digestAsPlainTextWithSalt(password.getBytes(),
 					CryptoUtil.decodeBase64(userDetail.get(0).getSalt())));
 			userDetail.get(0).getUserPassword().setUpdDtimes(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
 

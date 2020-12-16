@@ -381,7 +381,7 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "completed Initial sync in (ms) : " +
 					(System.currentTimeMillis() - start));
 		
-		} catch (RegBaseCheckedException e) {
+		} catch (Exception e) {
 			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(e));
 			results.add(isAuthTokenEmptyException(e) ? RegistrationConstants.AUTH_TOKEN_NOT_RECEIVED_ERROR : RegistrationConstants.FAILURE);			
 		}

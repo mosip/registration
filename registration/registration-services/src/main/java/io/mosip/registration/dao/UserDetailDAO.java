@@ -90,6 +90,6 @@ public interface UserDetailDAO {
 
 	void updateAuthTokens(String userId, String authToken, String refreshToken, long tokenExpiry, long refreshTokenExpiry);
 
-	void updateUserPwd(String userId, String password);
+	void updateUserPwd(String userId, String password) throws Exception;
 
 }
