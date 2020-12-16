@@ -7,6 +7,7 @@ import static org.mockito.Mockito.doNothing;
 
 import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.kernel.core.util.HMACUtils2;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -34,7 +36,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 
-import io.mosip.kernel.core.util.HMACUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.constants.AuditEvent;
@@ -57,7 +58,7 @@ import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
-@PrepareForTest({ HMACUtils.class, SessionContext.class })
+@PrepareForTest({ HMACUtils2.class, SessionContext.class })
 public class PacketSynchServiceImplTest {
 	@Rule
 	public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -81,7 +82,7 @@ public class PacketSynchServiceImplTest {
 	@Before
 	public void initialize() throws Exception{
 		
-		PowerMockito.mockStatic(HMACUtils.class);
+		PowerMockito.mockStatic(HMACUtils2.class);
 		PowerMockito.mockStatic(SessionContext.class);
 				
 		doNothing().when(auditFactory).audit(Mockito.any(AuditEvent.class), Mockito.any(Components.class),
@@ -183,7 +184,7 @@ public class PacketSynchServiceImplTest {
 
 	@Test
 	public void packetSyncTest() throws RegBaseCheckedException, JsonProcessingException, URISyntaxException,
-			HttpClientErrorException, ResourceAccessException, SocketTimeoutException {
+			HttpClientErrorException, ResourceAccessException, SocketTimeoutException, NoSuchAlgorithmException {
 		
 		List<PacketStatusDTO> synchedPackets = new ArrayList<>();
 		HashMap<String, Object> obj = new LinkedHashMap<>();
@@ -205,7 +206,7 @@ public class PacketSynchServiceImplTest {
 				.thenReturn(obj);
 		Mockito.when(registrationDAO.updatePacketSyncStatus(packetStatusDTO)).thenReturn(reg);
 				
-		Mockito.when(HMACUtils.generateHash(Mockito.anyString().getBytes())).thenReturn("asa".getBytes());		
+		Mockito.when(HMACUtils2.generateHash(Mockito.anyString().getBytes())).thenReturn("asa".getBytes());
 		packetSynchServiceImpl.packetSync("123456789");
 		assertEquals("SYNCED", reg.getClientStatusCode());
 	}
@@ -213,7 +214,7 @@ public class PacketSynchServiceImplTest {
 	@Ignore
 	@Test(expected = RegBaseCheckedException.class)
 	public void testsyncPacketException() throws RegBaseCheckedException, JsonProcessingException, URISyntaxException,
-			HttpClientErrorException, ResourceAccessException, SocketTimeoutException {
+			HttpClientErrorException, ResourceAccessException, SocketTimeoutException, NoSuchAlgorithmException {
 		List<SyncRegistrationDTO> syncDtoList = new ArrayList<>();
 		syncDtoList.add(new SyncRegistrationDTO());
 		Registration reg = new Registration();
@@ -224,14 +225,14 @@ public class PacketSynchServiceImplTest {
 		Mockito.when(registrationDAO.getRegistrationById(Mockito.anyString(), Mockito.anyString())).thenReturn(reg);
 		Mockito.when(serviceDelegateUtil.post(Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
 				.thenThrow(new RuntimeException());
-		Mockito.when(HMACUtils.generateHash(Mockito.anyString().getBytes())).thenReturn("asa".getBytes());
+		Mockito.when(HMACUtils2.generateHash(Mockito.anyString().getBytes())).thenReturn("asa".getBytes());
 		packetSynchServiceImpl.packetSync("");
 	}
 
 	@Test(expected = RegBaseCheckedException.class)
 	public void testsyncPacketException1()
 			throws HttpClientErrorException, HttpServerErrorException, ResourceAccessException, SocketTimeoutException,
-			RegBaseCheckedException, JsonProcessingException, URISyntaxException {
+			RegBaseCheckedException, JsonProcessingException, URISyntaxException, NoSuchAlgorithmException {
 		Registration reg = new Registration();
 		reg.setId("123456789");
 		reg.setAckFilename("10001100010025920190430051904_Ack.html");
@@ -245,7 +246,7 @@ public class PacketSynchServiceImplTest {
 		Mockito.when(serviceDelegateUtil.post(Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
 				.thenThrow(new HttpClientErrorException(HttpStatus.ACCEPTED));
 		RegistrationPacketSyncDTO registrationPacketSyncDTO = new RegistrationPacketSyncDTO();
-		Mockito.when(HMACUtils.generateHash(Mockito.anyString().getBytes())).thenReturn("asa".getBytes());
+		Mockito.when(HMACUtils2.generateHash(Mockito.anyString().getBytes())).thenReturn("asa".getBytes());
 		packetSynchServiceImpl.packetSync("123456789");
 		Mockito.when(aesEncryptionService.encrypt(javaObjectToJsonString(registrationPacketSyncDTO).getBytes())).thenReturn("aes".getBytes());
 		assertEquals(respObj, packetSynchServiceImpl.syncPacketsToServer("123456789", "System"));
@@ -253,7 +254,7 @@ public class PacketSynchServiceImplTest {
 
 	@Test
 	public void testsyncEODPackets() throws HttpClientErrorException, ResourceAccessException, SocketTimeoutException,
-			RegBaseCheckedException, JsonProcessingException, URISyntaxException {
+			RegBaseCheckedException, JsonProcessingException, URISyntaxException, NoSuchAlgorithmException {
 		List<String> idlist = new ArrayList<>();
 		idlist.add("123456789");
 		List<Registration> synchedPackets = new ArrayList<>();
@@ -269,7 +270,7 @@ public class PacketSynchServiceImplTest {
 		syncDtoList.add(new SyncRegistrationDTO());
 		Mockito.when(serviceDelegateUtil.post(Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(new LinkedHashMap<>());
-		Mockito.when(HMACUtils.generateHash(Mockito.anyString().getBytes())).thenReturn("asa".getBytes());
+		Mockito.when(HMACUtils2.generateHash(Mockito.anyString().getBytes())).thenReturn("asa".getBytes());
 		packetSynchServiceImpl.syncEODPackets(idlist);
 		assertEquals("SYNCED", reg.getClientStatusCode());
 	}

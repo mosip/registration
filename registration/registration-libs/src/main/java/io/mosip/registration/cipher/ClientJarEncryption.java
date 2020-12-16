@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.HashMap;
@@ -29,11 +30,11 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import io.mosip.kernel.core.util.HMACUtils2;
 import org.apache.commons.io.FileUtils;
 
 import io.mosip.kernel.core.crypto.exception.InvalidDataException;
 import io.mosip.kernel.core.crypto.exception.InvalidKeyException;
-import io.mosip.kernel.core.util.HMACUtils;
 
 
 /**
@@ -263,9 +264,9 @@ public class ClientJarEncryption {
 		}
 	}
 
-	private static void addToManifest(String fileName, byte[] bytes, Manifest manifest) {
+	private static void addToManifest(String fileName, byte[] bytes, Manifest manifest) throws NoSuchAlgorithmException {
 
-		String hashText = HMACUtils.digestAsPlainText(HMACUtils.generateHash(bytes));
+		String hashText = HMACUtils2.digestAsPlainText(bytes);
 
 		Attributes attribute = new Attributes();
 		attribute.put(Attributes.Name.CONTENT_TYPE, hashText);
