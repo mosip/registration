@@ -156,7 +156,7 @@ public class AuthUtil {
 		// sha256 of the request block before encryption and the hash is encrypted
 		// using the requestSessionKey
 		byte[] byteArray = encryptor.symmetricEncrypt(secretKey,
-				HMACUtils2.digestAsPlainText(HMACUtils2.generateHash(identityBlock.getBytes())).getBytes(), null);
+				HMACUtils2.digestAsPlainText(identityBlock.getBytes()).getBytes(), null);
 		authRequestDTO.setRequestHMAC(Base64.encodeBase64String(byteArray));
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), individualId,
 				"AuthUtil::authByIdAuthentication()::INTERNALAUTH POST service call started");
@@ -209,7 +209,7 @@ public class AuthUtil {
 
 	private List<BioInfo> getBiometricsList(List<io.mosip.kernel.biometrics.entities.BIR> list) throws BioTypeException, NoSuchAlgorithmException {
 
-		String previousHash = HMACUtils2.digestAsPlainText(HMACUtils2.generateHash("".getBytes()));
+		String previousHash = HMACUtils2.digestAsPlainText("".getBytes());
 		CbeffToBiometricUtil CbeffToBiometricUtil = new CbeffToBiometricUtil();
 		List<BioInfo> biometrics = new ArrayList<>();
 		try {
@@ -239,14 +239,13 @@ public class AuthUtil {
 				String encodedData = CryptoUtil
 						.encodeBase64String(JsonUtil.objectMapperObjectToJson(dataInfoDTO).getBytes());
 				bioInfo.setData(encodedData);
-				String presentHash = HMACUtils2.digestAsPlainText(
-						HMACUtils2.generateHash(JsonUtil.objectMapperObjectToJson(dataInfoDTO).getBytes()));
+				String presentHash = HMACUtils2.digestAsPlainText(JsonUtil.objectMapperObjectToJson(dataInfoDTO).getBytes());
 				StringBuilder concatenatedHash = new StringBuilder();
 				concatenatedHash.append(previousHash);
 				concatenatedHash.append(presentHash);
 				// String concatenatedHash = previousHash + presentHash;
 				String finalHash = HMACUtils2
-						.digestAsPlainText(HMACUtils2.generateHash(concatenatedHash.toString().getBytes()));
+						.digestAsPlainText((concatenatedHash.toString().getBytes()));
 				bioInfo.setHash(finalHash);
 				bioInfo.setSessionKey(splittedEncryptData.getEncryptedSessionKey());
 				bioInfo.setThumbprint("");

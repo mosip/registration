@@ -101,6 +101,8 @@ public class PacketManagerService {
             Map<String, String> sourceFieldMap = new HashMap<>();
             for (String field : idjsonKeys) {
                 String source = utilities.getSourceFromIdField(MappingJsonConstants.IDENTITY, process, field);
+                if (source == null)
+                    source = utilities.getSourceFromIdField(MappingJsonConstants.DOCUMENT, process, field);
                 String val = sourceFieldMap.get(source) != null ? sourceFieldMap.get(source) + "," + field : field;
                 sourceFieldMap.put(source, val);
             }
