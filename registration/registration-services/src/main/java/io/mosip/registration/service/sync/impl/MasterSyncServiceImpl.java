@@ -18,6 +18,7 @@ import java.util.*;
 
 import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
 import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.registration.dao.DocumentCategoryDAO;
 import io.mosip.registration.dao.DynamicFieldDAO;
 import io.mosip.registration.dto.mastersync.*;
 import org.apache.commons.io.IOUtils;
@@ -48,6 +49,7 @@ import io.mosip.registration.dto.response.SchemaDto;
 import io.mosip.registration.dto.response.SyncDataResponseDto;
 import io.mosip.registration.entity.BiometricAttribute;
 import io.mosip.registration.entity.BlacklistedWords;
+import io.mosip.registration.entity.DocumentCategory;
 import io.mosip.registration.entity.DocumentType;
 import io.mosip.registration.entity.Gender;
 import io.mosip.registration.entity.IndividualType;
@@ -123,6 +125,9 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	@Autowired
 	private ClientCryptoFacade clientCryptoFacade;
 
+	@Autowired
+	private DocumentCategoryDAO documentCategoryDAO;
+
 	/** Object for Logger. */
 	private static final Logger LOGGER = AppConfig.getLogger(MasterSyncServiceImpl.class);
 
@@ -194,7 +199,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	 * Find location or region by hierarchy code.
 	 *
 	 * @param hierarchyLevel the hierarchy code
-	 * @param langCode      the lang code
+	 * @param langCode       the lang code
 	 * @return the list holds the Location data to be displayed in the UI.
 	 * @throws RegBaseCheckedException
 	 */
@@ -367,23 +372,29 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 		List<String> validDocuments = new ArrayList<>();
 		List<DocumentCategoryDto> documentsDTO = new ArrayList<>();
 		if (codeAndlangCodeNullCheck(docCode, langCode)) {
-			List<ValidDocument> masterValidDocuments = masterSyncDao.getValidDocumets(docCode);
-			masterValidDocuments.forEach(docs -> {
-				validDocuments.add(docs.getDocTypeCode());
-			});
 
-			List<DocumentType> masterDocuments = masterSyncDao.getDocumentTypes(validDocuments, langCode);
+			DocumentCategory documentCategory = documentCategoryDAO.getDocumentCategoryByCodeAndByLangCode(docCode,
+					langCode);
+			if (documentCategory != null && documentCategory.getIsActive()) {
 
-			masterDocuments.forEach(document -> {
+				List<ValidDocument> masterValidDocuments = masterSyncDao.getValidDocumets(docCode);
+				masterValidDocuments.forEach(docs -> {
+					validDocuments.add(docs.getDocTypeCode());
+				});
 
-				DocumentCategoryDto documents = new DocumentCategoryDto();
-				documents.setCode(document.getCode());
-				documents.setDescription(document.getDescription());
-				documents.setLangCode(document.getLangCode());
-				documents.setName(document.getName());
-				documentsDTO.add(documents);
+				List<DocumentType> masterDocuments = masterSyncDao.getDocumentTypes(validDocuments, langCode);
 
-			});
+				masterDocuments.forEach(document -> {
+
+					DocumentCategoryDto documents = new DocumentCategoryDto();
+					documents.setCode(document.getCode());
+					documents.setDescription(document.getDescription());
+					documents.setLangCode(document.getLangCode());
+					documents.setName(document.getName());
+					documentsDTO.add(documents);
+
+				});
+			}
 		} else {
 			LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
 					RegistrationConstants.CODE_AND_LANG_CODE_MANDATORY);
@@ -394,9 +405,9 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 		return documentsDTO;
 	}
 
-
 	/**
 	 * Gets the individual type.
+	 * 
 	 * @param langCode the lang code
 	 * @return the individual type
 	 * @throws RegBaseCheckedException
@@ -439,9 +450,12 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	@Override
 	public List<GenericDto> getFieldValues(String fieldName, String langCode) throws RegBaseCheckedException {
 		switch (fieldName) {
-			case "gender": return  getGenderDtls(langCode);
-			case "residenceStatus" : return getIndividualType(langCode);
-			default: return getDynamicField(fieldName, langCode);
+		case "gender":
+			return getGenderDtls(langCode);
+		case "residenceStatus":
+			return getIndividualType(langCode);
+		default:
+			return getDynamicField(fieldName, langCode);
 		}
 	}
 
@@ -616,8 +630,8 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 			String keyIndexBasedOnMachineName = machineMappingDAO.getKeyIndexByMachineName(machineName);
 			requestParamMap.put(RegistrationConstants.KEY_INDEX.toLowerCase(), keyIndexBasedOnMachineName);
 		} else
-			requestParamMap.put(RegistrationConstants.KEY_INDEX.toLowerCase(),
-					CryptoUtil.computeFingerPrint(clientCryptoFacade.getClientSecurity().getEncryptionPublicPart(), null));
+			requestParamMap.put(RegistrationConstants.KEY_INDEX.toLowerCase(), CryptoUtil
+					.computeFingerPrint(clientCryptoFacade.getClientSecurity().getEncryptionPublicPart(), null));
 
 		// getting Last Sync date from Data from sync table
 		SyncControl masterSyncDetails = masterSyncDao.syncJobDetails(masterSyncDtls);
@@ -655,8 +669,8 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 
 			if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
 
-				masterSyncResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil.get(RegistrationConstants.MASTER_VALIDATOR_SERVICE_NAME,
-						requestParam, true, triggerPoint);
+				masterSyncResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil
+						.get(RegistrationConstants.MASTER_VALIDATOR_SERVICE_NAME, requestParam, true, triggerPoint);
 
 				if (null != masterSyncResponse.get(RegistrationConstants.RESPONSE)) {
 					saveClientSettings(masterSyncDtls, triggerPoint, masterSyncResponse, responseDTO);
@@ -685,9 +699,11 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	private void saveClientSettings(String masterSyncDtls, String triggerPoint,
 			LinkedHashMap<String, Object> masterSyncResponse, ResponseDTO responseDTO) throws Exception {
 		LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, "save Client Settings started...");
-		String jsonString = MapperUtils.convertObjectToJsonString(masterSyncResponse.get(RegistrationConstants.RESPONSE));
+		String jsonString = MapperUtils
+				.convertObjectToJsonString(masterSyncResponse.get(RegistrationConstants.RESPONSE));
 		SyncDataResponseDto syncDataResponseDto = MapperUtils.convertJSONStringToDto(jsonString,
-				new TypeReference<SyncDataResponseDto>() {});
+				new TypeReference<SyncDataResponseDto>() {
+				});
 
 		String response = masterSyncDao.saveSyncData(syncDataResponseDto);
 
