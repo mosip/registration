@@ -434,8 +434,7 @@ public class PacketUploaderServiceImpl implements PacketUploaderService<MessageD
                                      InternalRegistrationStatusDto dto, LogDescription description) throws IOException, NoSuchAlgorithmException {
         boolean isValidHash = false;
         byte[] isbytearray = IOUtils.toByteArray(inputStream);
-        byte[] dataByte = HMACUtils2.generateHash(isbytearray);
-        String hashSequence = HMACUtils2.digestAsPlainText(dataByte);
+        String hashSequence = HMACUtils2.digestAsPlainText(isbytearray);
         String packetHashSequence = regEntity.getPacketHashValue();
         if (!(MessageDigest.isEqual(packetHashSequence.getBytes(), hashSequence.getBytes()))) {
             description.setMessage(PlatformErrorMessages.RPR_PKR_PACKET_HASH_NOT_EQUALS_SYNCED_HASH.getMessage());

@@ -408,8 +408,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 			LogDescription description) throws IOException, NoSuchAlgorithmException {
 		// TO-DO testing
 		byte[] isbytearray = IOUtils.toByteArray(inputStream);
-		byte[] dataByte = HMACUtils2.generateHash(isbytearray);
-		String hashSequence = HMACUtils2.digestAsPlainText(dataByte);
+		String hashSequence = HMACUtils2.digestAsPlainText(isbytearray);
 		String packetHashSequence = regEntity.getPacketHashValue();
 		if (!(MessageDigest.isEqual(packetHashSequence.getBytes(), hashSequence.getBytes()))) {
 			description.setMessage(PlatformErrorMessages.UNEQUAL_PACKET_HASH_PR.getMessage());

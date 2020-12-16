@@ -8,6 +8,7 @@ import java.util.Collections;
 
 import javax.annotation.PostConstruct;
 
+import io.mosip.registration.processor.stages.utils.ApplicantDocumentValidation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +20,6 @@ import org.springframework.web.client.RestTemplate;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
-import io.mosip.registration.processor.core.exception.PacketValidatorException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.packet.dto.applicantcategory.ApplicantTypeDocument;
@@ -65,6 +65,11 @@ public class ValidatorConfig {
 	@Bean
 	public MasterDataValidation masterDataValidation() {
 		return new MasterDataValidation();
+	}
+
+	@Bean
+	public ApplicantDocumentValidation applicantDocumentValidation() {
+		return new ApplicantDocumentValidation();
 	}
 
 	@Bean

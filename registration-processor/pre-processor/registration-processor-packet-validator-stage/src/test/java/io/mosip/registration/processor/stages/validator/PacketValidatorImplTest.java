@@ -25,6 +25,7 @@ import io.mosip.registration.processor.packet.storage.exception.IdentityNotFound
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.stages.utils.ApplicantDocumentValidation;
 import io.mosip.registration.processor.stages.utils.MandatoryValidation;
 import io.mosip.registration.processor.stages.utils.MasterDataValidation;
 import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl;
@@ -103,7 +104,10 @@ public class PacketValidatorImplTest {
 	private RegistrationProcessorRestClientService<Object> registrationProcessorRestService;
 	
 	@Mock
-	RegistrationExceptionMapperUtil registrationStatusMapperUtil;
+	private RegistrationExceptionMapperUtil registrationStatusMapperUtil;
+
+	@Mock
+	private ApplicantDocumentValidation applicantDocumentValidation;
 
 	@Value("${packet.default.source}")
 	private String source;
@@ -243,6 +247,7 @@ public class PacketValidatorImplTest {
         BIR bir = new BIR.BIRBuilder().build();
         biometricRecord.setSegments(Lists.newArrayList(bir,bir));
         when(packetManagerService.getBiometrics(anyString(),anyString(),any(),anyString())).thenReturn(biometricRecord);
+        when(applicantDocumentValidation.validateDocument(any(), any())).thenReturn(true);
 	}
 	
 	@Test
