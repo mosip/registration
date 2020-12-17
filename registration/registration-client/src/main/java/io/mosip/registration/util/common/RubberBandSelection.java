@@ -9,7 +9,11 @@ import io.mosip.registration.controller.device.ScanPopUpViewController;
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.scene.Group;
+import javafx.scene.Node;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeLineCap;
@@ -23,8 +27,12 @@ public class RubberBandSelection {
 	private static final Logger LOGGER = AppConfig.getLogger(RubberBandSelection.class);
 	private static final String loggerClassName = "RubberBandSelection";
 	private ScanPopUpViewController scanPopUpViewController = null;
-	private final DragContext dragContext = new DragContext();
 	private Rectangle rect = new Rectangle();
+	private ImageView imageView = null;
+
+	private BorderPane imageViewBorderPane;
+	private double startSelectionX;
+	private double startSelectionY;
 
 	private Group group;
 
@@ -40,7 +48,6 @@ public class RubberBandSelection {
 
 		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 				"Rubber band selection called");
-//		rubberBandSelection = this;
 		this.group = group;
 
 		rect = new Rectangle(0, 0, 0, 0);
@@ -48,6 +55,21 @@ public class RubberBandSelection {
 		rect.setStrokeWidth(1);
 		rect.setStrokeLineCap(StrokeLineCap.ROUND);
 		rect.setFill(Color.LIGHTBLUE.deriveColor(0, 1.2, 1, 0.6));
+
+		for (Node node : group.getChildren()) {
+			if (node instanceof BorderPane) {
+				imageViewBorderPane = (BorderPane) node;
+
+				GridPane gridPane = (GridPane) imageViewBorderPane.getCenter();
+
+				for (Node gridChildren : gridPane.getChildren()) {
+					if (gridChildren instanceof ImageView) {
+						imageView = (ImageView) gridChildren;
+
+					}
+				}
+			}
+		}
 
 		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 				"Setting listeners on mouse,pressed,dragged and released for crop");
@@ -67,20 +89,12 @@ public class RubberBandSelection {
 			if (event.isSecondaryButtonDown())
 				return;
 
-			// remove old rect
-			rect.setX(0);
-			rect.setY(0);
-			rect.setWidth(0);
-			rect.setHeight(0);
-
-			group.getChildren().remove(rect);
-
 			// prepare new drag operation
-			dragContext.mouseAnchorX = event.getX();
-			dragContext.mouseAnchorY = event.getY();
+			startSelectionX = event.getX();
+			startSelectionY = event.getY();
 
-			rect.setX(dragContext.mouseAnchorX);
-			rect.setY(dragContext.mouseAnchorY);
+			rect.setX(startSelectionX);
+			rect.setY(startSelectionY);
 			rect.setWidth(0);
 			rect.setHeight(0);
 
@@ -101,21 +115,39 @@ public class RubberBandSelection {
 			if (event.isSecondaryButtonDown())
 				return;
 
-			double offsetX = event.getX() - dragContext.mouseAnchorX;
-			double offsetY = event.getY() - dragContext.mouseAnchorY;
+			double endSelectionX = event.getX() - startSelectionX;
+			double endSelectionY = event.getY() - startSelectionY;
 
-			if (offsetX > 0)
-				rect.setWidth(offsetX);
-			else {
-				rect.setX(event.getX());
-				rect.setWidth(dragContext.mouseAnchorX - rect.getX());
+			Bounds bounds = imageView.getLayoutBounds();
+			double xScale = bounds.getWidth() / imageView.getImage().getWidth();
+			double yScale = bounds.getHeight() / imageView.getImage().getHeight();
+
+			endSelectionX /= xScale;
+			endSelectionY /= yScale;
+
+			double xLimit = bounds.getMaxX() - startSelectionX;
+
+			double yLimit = bounds.getMaxY() - startSelectionY;
+			if (endSelectionX > xLimit) {
+				endSelectionX = xLimit;
 			}
 
-			if (offsetY > 0) {
-				rect.setHeight(offsetY);
+			if (endSelectionY > yLimit) {
+				endSelectionY = yLimit;
+			}
+
+			if (endSelectionX > 0)
+				rect.setWidth(endSelectionX);
+			else {
+				rect.setX(event.getX());
+				rect.setWidth(startSelectionX - rect.getX());
+			}
+
+			if (endSelectionY > 0) {
+				rect.setHeight(endSelectionY);
 			} else {
 				rect.setY(event.getY());
-				rect.setHeight(dragContext.mouseAnchorY - rect.getY());
+				rect.setHeight(startSelectionY - rect.getY());
 			}
 			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 					"Crop on mouse draged completed");
@@ -137,15 +169,13 @@ public class RubberBandSelection {
 			// crop the image
 			scanPopUpViewController.save(selectionBounds);
 
+			group.removeEventHandler(MouseEvent.MOUSE_PRESSED, onMousePressedEventHandler);
+			group.removeEventHandler(MouseEvent.MOUSE_DRAGGED, onMouseDraggedEventHandler);
+			group.removeEventHandler(MouseEvent.MOUSE_RELEASED, onMouseReleasedEventHandler);
+			group.getChildren().remove(rect);
 			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 					"Crop on mouse released completed");
 		}
 	};
 
-	private final class DragContext {
-
-		public double mouseAnchorX;
-		public double mouseAnchorY;
-
-	}
 }
