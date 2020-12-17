@@ -13,6 +13,7 @@ public class RegistrationApprovalVO {
 	private SimpleStringProperty id;
 	private SimpleStringProperty date;
 	private SimpleStringProperty acknowledgementFormPath;
+	private SimpleStringProperty operatorId;
 	private SimpleStringProperty statusComment;
 
 	/**
@@ -22,12 +23,13 @@ public class RegistrationApprovalVO {
 	 * @param acknowledgementFormPath the acknowledgement form path
 	 * @param statusComment           the status comment
 	 */
-	public RegistrationApprovalVO(String slno, String id, String date,String acknowledgementFormPath, String statusComment) {
+	public RegistrationApprovalVO(String slno, String id, String date,String acknowledgementFormPath, String operatorId, String statusComment) {
 		super();
 		this.slno = new SimpleStringProperty(slno);
 		this.id = new SimpleStringProperty(id);
 		this.date = new SimpleStringProperty(date);
 		this.acknowledgementFormPath = new SimpleStringProperty(acknowledgementFormPath);
+		this.operatorId = new SimpleStringProperty(operatorId);
 		this.statusComment = new SimpleStringProperty(statusComment);
 	}
 
@@ -70,5 +72,9 @@ public class RegistrationApprovalVO {
 	 */
 	public String getStatusComment() {
 		return statusComment.get();
+	}
+	
+	public String getOperatorId() {
+		return operatorId.get();
 	}
 }

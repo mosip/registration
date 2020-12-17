@@ -122,6 +122,9 @@ public class RegistrationApprovalController extends BaseController implements In
 	/** status comment column in the table. */
 	@FXML
 	private TableColumn<RegistrationApprovalVO, String> statusComment;
+	
+	@FXML
+	private TableColumn<RegistrationApprovalVO, String> operatorId;
 
 	/** Acknowledgement form column in the table. */
 
@@ -220,6 +223,7 @@ public class RegistrationApprovalController extends BaseController implements In
 		tableCellColorChangeListener();
 		id.setResizable(false);
 		statusComment.setResizable(false);
+		operatorId.setResizable(false);
 		disableColumnsReorder(table);
 		table.getColumns().forEach(column -> column.setReorderable(false));
 	}
@@ -264,6 +268,8 @@ public class RegistrationApprovalController extends BaseController implements In
 				RegistrationConstants.EOD_PROCESS_STATUSCOMMENT));
 		acknowledgementFormPath.setCellValueFactory(new PropertyValueFactory<RegistrationApprovalVO, String>(
 				RegistrationConstants.EOD_PROCESS_ACKNOWLEDGEMENTFORMPATH));
+		operatorId.setCellValueFactory(new PropertyValueFactory<RegistrationApprovalVO, String>(
+				RegistrationConstants.OPERATOR_ID));
 
 		populateTable();
 
@@ -345,7 +351,7 @@ public class RegistrationApprovalController extends BaseController implements In
 				for (RegistrationApprovalDTO approvalDTO : listData) {
 					registrationApprovalVO.add(
 							new RegistrationApprovalVO("    " + count++, approvalDTO.getId(), approvalDTO.getDate(),
-									approvalDTO.getAcknowledgementFormPath(), RegistrationUIConstants.PENDING));
+									approvalDTO.getAcknowledgementFormPath(), approvalDTO.getOperatorId(), RegistrationUIConstants.PENDING));
 				}
 				int rowNum = 0;
 				for (RegistrationApprovalDTO approvalDTO : listData) {
@@ -502,6 +508,7 @@ public class RegistrationApprovalController extends BaseController implements In
 					table.getSelectionModel().getSelectedItem().getId(),
 					table.getSelectionModel().getSelectedItem().getDate(),
 					table.getSelectionModel().getSelectedItem().getAcknowledgementFormPath(),
+					table.getSelectionModel().getSelectedItem().getOperatorId(),
 					RegistrationUIConstants.APPROVED);
 			observableList.set(row, approvalDTO);
 			wrapListAndAddFiltering(observableList);
@@ -676,11 +683,13 @@ public class RegistrationApprovalController extends BaseController implements In
 					.map(approvaldto -> approvaldto.getSlno().trim().concat(RegistrationConstants.COMMA).concat("'")
 							.concat(approvaldto.getId()).concat("'").concat(RegistrationConstants.COMMA).concat("'")
 							.concat(approvaldto.getDate()).concat("'").concat(RegistrationConstants.COMMA)
+							.concat(approvaldto.getOperatorId()).concat("'").concat(RegistrationConstants.COMMA)
 							.concat(approvaldto.getStatusComment()))
 					.collect(Collectors.joining(RegistrationConstants.NEW_LINE));
 			String headers = RegistrationUIConstants.EOD_SLNO_LABEL.concat(RegistrationConstants.COMMA)
 					.concat(RegistrationUIConstants.EOD_REGISTRATIONID_LABEL).concat(RegistrationConstants.COMMA)
 					.concat(RegistrationUIConstants.EOD_REGISTRATIONDATE_LABEL).concat(RegistrationConstants.COMMA)
+					.concat(RegistrationUIConstants.EOD_OPERATORID_LABEL).concat(RegistrationConstants.COMMA)
 					.concat(RegistrationUIConstants.EOD_STATUS_LABEL).concat(RegistrationConstants.NEW_LINE);
 			fileData = headers + fileData;
 			filterField.setText(str);

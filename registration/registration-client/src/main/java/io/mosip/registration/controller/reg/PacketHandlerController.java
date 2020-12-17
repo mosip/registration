@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.ResourceBundle;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +48,6 @@ import io.mosip.registration.dto.SyncDataProcessDTO;
 import io.mosip.registration.entity.PreRegistrationList;
 import io.mosip.registration.entity.SyncControl;
 import io.mosip.registration.exception.RegBaseCheckedException;
-import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.service.config.JobConfigurationService;
 import io.mosip.registration.service.operator.UserOnboardService;
@@ -148,18 +146,15 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 				String latestUpdateTime = timestamps.stream().sorted((timestamp1, timestamp2) -> Timestamp
 						.valueOf(timestamp2).compareTo(Timestamp.valueOf(timestamp1))).findFirst().get();
-
-				lastSyncTime.setText(Timestamp.valueOf(latestUpdateTime).toLocalDateTime()
-						.format(DateTimeFormatter.ofPattern(RegistrationConstants.ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT))
-						+ RegistrationConstants.UTC_APPENDER);
+				
+				lastSyncTime.setText(getLocalZoneTime(latestUpdateTime));
 
 				setLastPreRegPacketDownloadedTime();
 			}
-		} catch (RuntimeException expception) {
-
+		} catch (RuntimeException exception) {
+			LOGGER.error("REGISTRATION - ALERT - BASE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+					ExceptionUtils.getStackTrace(exception));
 			lastSyncTime.setText("---");
-
-			expception.printStackTrace();
 		}
 	}
 
@@ -348,10 +343,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 			}
 			Timestamp ts = userOnboardService.getLastUpdatedTime(SessionContext.userId());
 			if (ts != null) {
-				DateTimeFormatter format = DateTimeFormatter
-						.ofPattern(RegistrationConstants.ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT);
 				lastBiometricTime.setText(RegistrationUIConstants.LAST_DOWNLOADED + " "
-						+ ts.toLocalDateTime().format(format) + RegistrationConstants.UTC_APPENDER);
+						+ getLocalZoneTime(ts.toString()));
 			}
 
 			if (!(getValueFromApplicationContext(RegistrationConstants.LOST_UIN_CONFIG_FLAG))
@@ -1113,13 +1106,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 			Timestamp lastPreRegPacketDownloaded = syncControl.getLastSyncDtimes();
 
 			if (lastPreRegPacketDownloaded != null) {
-
-				DateTimeFormatter format = DateTimeFormatter
-						.ofPattern(RegistrationConstants.ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT);
-
 				lastPreRegPacketDownloadedTime.setText(RegistrationUIConstants.LAST_DOWNLOADED + " "
-						+ lastPreRegPacketDownloaded.toLocalDateTime().format(format));
-
+						+ getLocalZoneTime(lastPreRegPacketDownloaded.toString()));
 			}
 		}
 	}
