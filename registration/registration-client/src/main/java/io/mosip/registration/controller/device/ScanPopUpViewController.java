@@ -87,11 +87,11 @@ public class ScanPopUpViewController extends BaseController {
 	@FXML
 	private Text scanningMsg;
 
-	@FXML
-	private GridPane imageParent;
-
-	@FXML
-	private GridPane webcamParent;
+//	@FXML
+//	private GridPane imageParent;
+//
+//	@FXML
+//	private GridPane webcamParent;
 
 	@FXML
 	private SwingNode webcamNode;
@@ -142,6 +142,9 @@ public class ScanPopUpViewController extends BaseController {
 
 	private ImageView cropImageView;
 
+	@FXML
+	private Group scanImageGroup;
+
 	/**
 	 * @return the popupStage
 	 */
@@ -163,21 +166,21 @@ public class ScanPopUpViewController extends BaseController {
 		this.popupStage = popupStage;
 	}
 
-	public GridPane getImageParent() {
-		return imageParent;
-	}
-
-	public void setImageParent(GridPane imageParent) {
-		this.imageParent = imageParent;
-	}
-
-	public GridPane getWebcamParent() {
-		return webcamParent;
-	}
-
-	public void setWebcamParent(GridPane webcamParent) {
-		this.webcamParent = webcamParent;
-	}
+//	public GridPane getImageParent() {
+//		return imageParent;
+//	}
+//
+//	public void setImageParent(GridPane imageParent) {
+//		this.imageParent = imageParent;
+//	}
+//
+//	public GridPane getWebcamParent() {
+//		return webcamParent;
+//	}
+//
+//	public void setWebcamParent(GridPane webcamParent) {
+//		this.webcamParent = webcamParent;
+//	}
 
 	public SwingNode getWebcamNode() {
 		return webcamNode;
@@ -210,6 +213,8 @@ public class ScanPopUpViewController extends BaseController {
 			setDefaultImageGridPaneVisibility();
 			popupStage.setResizable(false);
 			popupTitle.setText(title);
+
+			scanImage.setPreserveRatio(true);
 
 			previewOption.setVisible(false);
 			Scene scene = null;
@@ -294,7 +299,8 @@ public class ScanPopUpViewController extends BaseController {
 			String docNumber = docCurrentPageNumber.getText();
 
 			totalScannedPages.setText(String.valueOf(documentScanController.getScannedPages().size()));
-			if (docNumber == null || docNumber.isEmpty()) {
+			if (docNumber == null || docNumber.isEmpty() || docCurrentPageNumber.getText().isEmpty()
+					|| docCurrentPageNumber.getText().equals("0")) {
 				docCurrentPageNumber.setText("1");
 				docPreviewPrev.setDisable(true);
 				docPreviewNext.setDisable(true);
@@ -392,8 +398,8 @@ public class ScanPopUpViewController extends BaseController {
 
 		LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Setting default visibilities for webCamParent and imageParent");
-		webcamParent.setVisible(false);
-		imageParent.setVisible(true);
+//		webcamParent.setVisible(false);
+//		imageParent.setVisible(true);
 	}
 
 	public void setWebCamPanel(JPanel jPanelWindow) {
@@ -401,8 +407,12 @@ public class ScanPopUpViewController extends BaseController {
 		LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Setting jPanel : " + jPanelWindow);
 		webcamNode.setContent(jPanelWindow);
-		imageParent.setVisible(false);
-		webcamParent.setVisible(true);
+
+		scanImage.setVisible(false);
+//		imageParent.setVisible(false);
+//		webcamParent.setVisible(true);
+
+		webcamNode.setVisible(true);
 
 		LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "Setting jPanel completed");
 	}
@@ -499,46 +509,12 @@ public class ScanPopUpViewController extends BaseController {
 		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 				"crop has been selected");
 
-		cropStage = new Stage();
+		RubberBandSelection rubberBandSelection = new RubberBandSelection(scanImageGroup);
 
-		Group imageLayer = new Group();
-
-		Image image = scanImage.getImage();
+		rubberBandSelection.setscanPopUpViewController(this);
 
 		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"Set Image for crop");
-
-		if (image != null) {
-
-			GridPane gridpane = new GridPane();
-
-			RowConstraints rc = new RowConstraints();
-			rc.setVgrow(Priority.ALWAYS);
-
-			gridpane.getRowConstraints().add(rc);
-
-			HBox hBox = new HBox();
-
-			hBox.setMinHeight(0);
-			cropImageView = new ImageView(image);
-			cropImageView.fitHeightProperty().bind(hBox.heightProperty());
-			cropImageView.setPreserveRatio(true);
-			imageLayer.getChildren().add(cropImageView);
-			hBox.getChildren().add(imageLayer);
-			gridpane.add(hBox, 0, 0);
-
-			RubberBandSelection rubberBandSelection = new RubberBandSelection(imageLayer);
-
-			rubberBandSelection.setscanPopUpViewController(this);
-			cropStage.setScene(new Scene(gridpane));
-			cropStage.setTitle("Crop Document");
-			cropStage.setMaximized(true);
-
-			LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
-					RegistrationConstants.APPLICATION_ID, "Shown stage for crop");
-
-			cropStage.show();
-		}
+				"Shown stage for crop");
 
 	}
 
@@ -558,7 +534,7 @@ public class ScanPopUpViewController extends BaseController {
 		parameters.setViewport(new Rectangle2D(bounds.getMinX(), bounds.getMinY(), width, height));
 
 		WritableImage wi = new WritableImage(width, height);
-		cropImageView.snapshot(parameters, wi);
+		scanImage.snapshot(parameters, wi);
 
 		BufferedImage bufImageARGB = SwingFXUtils.fromFXImage(wi, null);
 		BufferedImage bufImageRGB = new BufferedImage(bufImageARGB.getWidth(), bufImageARGB.getHeight(),
@@ -569,9 +545,6 @@ public class ScanPopUpViewController extends BaseController {
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ImageIO.write(bufImageRGB, "jpg", baos);
-
-		// attachDocuments(documentCategoryDto, selectedDocVBox, baos.toByteArray(),
-		// true);
 
 		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 				"Saving cropped image into session");
@@ -585,7 +558,8 @@ public class ScanPopUpViewController extends BaseController {
 
 		scanImage.setImage(SwingFXUtils.toFXImage(documentScanController.getScannedPages().get(pageNumber - 1), null));
 		graphics.dispose();
-		cropStage.close();
+		generateAlert(RegistrationConstants.SUCCESS, RegistrationUIConstants.CROP_DOC_SUCCESS);
+//		cropStage.close();
 
 		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 				"Saving cropped image completed");
