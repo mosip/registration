@@ -316,6 +316,7 @@ public class RegistrationUIConstants {
 	public static final String EOD_SLNO_LABEL = bundle.getString("EOD_SLNO_LABEL");
 	public static final String EOD_REGISTRATIONID_LABEL = bundle.getString("EOD_REGISTRATIONID_LABEL");
 	public static final String EOD_REGISTRATIONDATE_LABEL = bundle.getString("EOD_REGISTRATIONDATE_LABEL");
+	public static final String EOD_OPERATORID_LABEL = bundle.getString("EOD_OPERATORID_LABEL");
 	public static final String EOD_STATUS_LABEL = bundle.getString("EOD_STATUS_LABEL");
 	public static final String PACKETUPLOAD_PACKETID_LABEL = bundle.getString("PACKETUPLOAD_PACKETID_LABEL");
 	public static final String AUTH_FAILURE = bundle.getString("AUTH_FAILURE");
