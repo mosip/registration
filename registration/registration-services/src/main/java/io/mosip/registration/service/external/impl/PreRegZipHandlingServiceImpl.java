@@ -284,7 +284,7 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 						break;
 					}
 					
-					if(field.getType() != "documentType" && field.getType() != "biometricsType") {
+					/*if(field.getType() != "documentType" && field.getType() != "biometricsType") {
 						Object fieldValue = getValueFromJson(field.getId(), field.getType(), jsonObject);
 						if(fieldValue != null) {
 							if(field.getControlType().equalsIgnoreCase("ageDate"))
@@ -292,7 +292,7 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 							else
 								getRegistrationDtoContent().getDemographics().put(field.getId(), fieldValue);
 						}
-					}
+					}*/
 				}
 			}
 		} catch (JSONException | IOException e) {
