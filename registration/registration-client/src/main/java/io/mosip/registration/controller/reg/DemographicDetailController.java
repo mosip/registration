@@ -1024,8 +1024,8 @@ public class DemographicDetailController extends BaseController {
 			LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, "Preparing the Edit page content");
 
-			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
-			Map<String, Object> demographics = registrationDTO.getDemographics();
+			Map<String, Object> demographics = new HashMap<>();
+			demographics.putAll(getRegistrationDTOFromSession().getDemographics());
 
 			for (UiSchemaDTO schemaField : validation.getValidationMap().values()) {
 				Object value = demographics.get(schemaField.getId());
@@ -1034,48 +1034,66 @@ public class DemographicDetailController extends BaseController {
 
 				switch (schemaField.getType()) {
 					case RegistrationConstants.SIMPLE_TYPE:
-						if (schemaField.getControlType().equals(RegistrationConstants.DROPDOWN)
-								|| isLocationField(schemaField.getId())) {
-							populateFieldValue(listOfComboBoxWithObject.get(schemaField.getId()),
-									listOfComboBoxWithObject
-											.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE),
-									(List<SimpleDto>) value);
-						} else
-							populateFieldValue(listOfTextField.get(schemaField.getId()),
-									listOfTextField.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE),
-									(List<SimpleDto>) value);
+						switch (schemaField.getControlType()) {
+							case RegistrationConstants.DROPDOWN:
+								populateFieldValue(listOfComboBoxWithObject.get(schemaField.getId()),
+										listOfComboBoxWithObject.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE),
+										(List<SimpleDto>) value);
+								break;
+							case RegistrationConstants.BUTTON:
+								String platformLanguageCode = applicationContext.getApplicationLanguage();
+								List<Button> platformFieldButtons = listOfButtons.get(schemaField.getId());
+								for (SimpleDto fieldValue : (List<SimpleDto>) value) {
+									if (fieldValue.getLanguage().equalsIgnoreCase(platformLanguageCode)) {
+										Optional<Button> button = platformFieldButtons.stream()
+												.filter(b -> b.getId().equals(schemaField.getId() + fieldValue.getValue())).findFirst();
+										if(button.isPresent())
+											resetButtons(button.get());
+									}
+								}
+								break;
+							default:
+								populateFieldValue(listOfTextField.get(schemaField.getId()),
+										listOfTextField.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE),
+										(List<SimpleDto>) value);
+								break;
+						}
 						break;
-
 					case RegistrationConstants.NUMBER:
 					case RegistrationConstants.STRING:
-						if (RegistrationConstants.AGE_DATE.equalsIgnoreCase(schemaField.getControlType())) {
-							String[] dateParts = ((String) value).split("/");
-							if (dateParts.length == 3) {
-								listOfTextField.get(schemaField.getId() + "__" + "dd").setText(dateParts[2]);
-								listOfTextField.get(schemaField.getId() + "__" + "mm").setText(dateParts[1]);
-								listOfTextField.get(schemaField.getId() + "__" + "yyyy").setText(dateParts[0]);
-							}
-						} else if (RegistrationConstants.DROPDOWN.equalsIgnoreCase(schemaField.getControlType())
-								|| isLocationField(schemaField.getId())) {
-							ComboBox<GenericDto> platformField = listOfComboBoxWithObject.get(schemaField.getId());
-							if (platformField != null) {
-								platformField.setValue(new GenericDto((String) value, (String) value, "eng"));
-							}
-						} else if(RegistrationConstants.CHECKBOX.equalsIgnoreCase(schemaField.getControlType())) {
-							CheckBox checkBox = listOfCheckboxes.get(schemaField.getId());
-							if(checkBox != null) {
-								checkBox.setSelected(((String) value).equalsIgnoreCase("Y") ? true : false);
-							}
+						switch (schemaField.getControlType()) {
+							case RegistrationConstants.AGE_DATE:
+								String[] dateParts = ((String) value).split("/");
+								if (dateParts.length == 3) {
+									listOfTextField.get(schemaField.getId() + "__" + "dd").setText(dateParts[2]);
+									listOfTextField.get(schemaField.getId() + "__" + "mm").setText(dateParts[1]);
+									listOfTextField.get(schemaField.getId() + "__" + "yyyy").setText(dateParts[0]);
+								}
+								break;
+							case RegistrationConstants.DROPDOWN:
+								ComboBox<GenericDto> platformField = listOfComboBoxWithObject.get(schemaField.getId());
+								if (platformField != null) {
+									platformField.setValue(new GenericDto((String) value, (String) value, "eng"));
+								}
+								break;
+							case RegistrationConstants.CHECKBOX:
+								CheckBox checkBox = listOfCheckboxes.get(schemaField.getId());
+								if(checkBox != null) {
+									checkBox.setSelected(((String) value).equalsIgnoreCase("Y") ? true : false);
+								}
+								break;
+							default:
+								TextField textField = listOfTextField.get(schemaField.getId());
+								if (textField != null) {
+									textField.setText((String) value);
+								}
+								break;
 						}
-						else {
-							TextField textField = listOfTextField.get(schemaField.getId());
-							if (textField != null)
-								textField.setText((String) value);
-						}
+						break;
 				}
 			}
 
-			preRegistrationId.setText(registrationDTO.getPreRegistrationId());
+			preRegistrationId.setText(getRegistrationDTOFromSession().getPreRegistrationId());
 
 		} catch (RuntimeException runtimeException) {
 			LOGGER.error(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
@@ -1482,10 +1500,10 @@ public class DemographicDetailController extends BaseController {
 	}
 
 	private void updateFields(List<UiSchemaDTO> fields, boolean isVisible) {
-		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID, "Updating fields");
+		//LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID, "Updating fields");
 		for (UiSchemaDTO field : fields) {
-			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-					"Updating visibility for field : " + field.getId() + " as visibility : " + isVisible);
+			/*LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"Updating visibility for field : " + field.getId() + " as visibility : " + isVisible);*/
 			Node node = getFxElement(field.getId());
 			if (node != null) {
 				if(!isVisible) { clearFieldValue(node); }
