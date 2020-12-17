@@ -364,6 +364,7 @@ public class RegistrationConstants {
 
 	public static final String TICK_CIRICLE_IMG_PATH = "/images/tick-circle.png";
 	public static final String ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT = "EEEE dd MMM hh:mm a";
+	public static final String UTC_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
 	// RegistrationApproval
 	public static final String PLACEHOLDER_LABEL = "PLACEHOLDER_LABEL";
@@ -382,6 +383,7 @@ public class RegistrationConstants {
 	public static final String EOD_PROCESS_ID = "id";
 	public static final String EOD_PROCESS_STATUSCOMMENT = "statusComment";
 	public static final String EOD_PROCESS_ACKNOWLEDGEMENTFORMPATH = "acknowledgementFormPath";
+	public static final String OPERATOR_ID = "operatorId";
 	public static final String EOD_PROCESS_REGISTRATIONAPPROVALCONTROLLER = "RegistrationApprovalController";
 	public static final String EXPORT_FILE_NAME = "PendingApprovalList";
 	public static final String EXPORT_FILE_TYPE = ".csv";
