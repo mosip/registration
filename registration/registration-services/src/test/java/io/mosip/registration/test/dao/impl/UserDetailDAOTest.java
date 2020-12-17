@@ -153,7 +153,7 @@ public class UserDetailDAOTest {
 		Mockito.when(userPwdRepository.saveAll(Mockito.anyCollection())).thenReturn(new ArrayList<>());
 		Mockito.when(userRoleRepository.saveAll(Mockito.anyCollection())).thenReturn(new ArrayList<>());
 		doNothing().when(userRoleRepository).deleteByUserRoleIdUsrId(Mockito.any());
-		userDetailDAOImpl.save(userDetailsResponse);
+		userDetailDAOImpl.save(userDetails);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -178,7 +178,7 @@ public class UserDetailDAOTest {
 		userDetails.add(user1);
 		userDetailsResponse.setUserDetails(userDetails);
 		Mockito.when(userDetailRepository.saveAll(Mockito.anyCollection())).thenThrow(RegBaseUncheckedException.class);
-		userDetailDAOImpl.save(userDetailsResponse);
+		userDetailDAOImpl.save(userDetails);
 	}
 	
 	@Test
