@@ -37,8 +37,8 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.jobs.BaseJob;
 import io.mosip.registration.scheduler.SchedulerUtil;
 import io.mosip.registration.service.config.JobConfigurationService;
+import io.mosip.registration.service.remap.CenterMachineReMapService;
 import io.mosip.registration.service.sync.MasterSyncService;
-import io.mosip.registration.service.sync.PreRegistrationDataSyncService;
 import io.mosip.registration.service.sync.SyncStatusValidatorService;
 import io.mosip.registration.update.SoftwareUpdateHandler;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
@@ -113,9 +113,6 @@ public class HeaderController extends BaseController {
 	private MenuItem userGuide;
 
 	@Autowired
-	private PreRegistrationDataSyncService preRegistrationDataSyncService;
-
-	@Autowired
 	private JobConfigurationService jobConfigurationService;
 
 	@Autowired
@@ -149,6 +146,9 @@ public class HeaderController extends BaseController {
 
 	@Autowired
 	private AuthTokenUtilService authTokenUtilService;
+	
+	@Autowired
+	private CenterMachineReMapService centerMachineReMapService;
 
 	/**
 	 * Mapping Registration Officer details
@@ -388,23 +388,93 @@ public class HeaderController extends BaseController {
 	}
 
 	public void intiateRemapProcess() {
+		LOGGER.debug("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+				"Cliked on remap process");
+		LOGGER.debug("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+				"Show navigation alert for remap process");
+
 		if (pageNavigantionAlert()) {
+			progressIndicator = packetHandlerController.getProgressIndicator();
+			LOGGER.debug("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+					"Navigation success for center remap process");
 
-			if (!authTokenUtilService.hasAnyValidToken()) {
-				generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
-				return;
-			}
+			Service<ResponseDTO> remapTaskService = new Service<ResponseDTO>() {
+				@Override
+				protected Task<ResponseDTO> createTask() {
+					return /**
+							 * @author SaravanaKumar
+							 *
+							 */
+					new Task<ResponseDTO>() {
+						/*
+						 * (non-Javadoc)
+						 * 
+						 * @see javafx.concurrent.Task#call()
+						 */
+						@Override
+						protected ResponseDTO call() throws RegBaseCheckedException {
+							LOGGER.info("REGISTRATION - SYNC - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+									"Executing client settings to check remap process");
 
-			try {
-				masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
-						RegistrationConstants.JOB_TRIGGER_POINT_USER);
-			} catch (RegBaseCheckedException exMasterSync) {
-				generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.SYNC_FAILURE);
-			}
+							return masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
+									RegistrationConstants.JOB_TRIGGER_POINT_USER);
+						}
+					};
+				}
+			};
+			progressIndicator.progressProperty().bind(remapTaskService.progressProperty());
+			remapTaskService.setOnFailed((new EventHandler<WorkerStateEvent>() {
+				@Override
+				public void handle(WorkerStateEvent t) {
+					LOGGER.debug("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+							"Center remap process failed");
 
-			if (!isMachineRemapProcessStarted()) {
+					generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.SYNC_FAILURE);
+					if (!isMachineRemapProcessStarted()) {
+						generateAlert(RegistrationConstants.ALERT_INFORMATION,
+								RegistrationUIConstants.REMAP_NOT_APPLICABLE);
+					}
+					progressIndicator.setVisible(false);
+				}
+			}));
 
-				generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.REMAP_NOT_APPLICABLE);
+			remapTaskService.setOnSucceeded(((new EventHandler<WorkerStateEvent>() {
+				@Override
+				public void handle(WorkerStateEvent t) {
+					LOGGER.debug("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+							"Center remap process success");
+
+					if (!isMachineRemapProcessStarted()) {
+						generateAlert(RegistrationConstants.ALERT_INFORMATION,
+								RegistrationUIConstants.REMAP_NOT_APPLICABLE);
+					}
+					progressIndicator.setVisible(false);
+				}
+			})));
+
+			if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
+				if (!authTokenUtilService.hasAnyValidToken()) {
+					generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
+					return;
+				} else {
+					progressIndicator = packetHandlerController.getProgressIndicator();
+					GridPane gridPane = homeController.getMainBox();
+					gridPane.setDisable(true);
+					progressIndicator.setVisible(true);
+					remapTaskService.start();
+				}
+			} else {
+				LOGGER.debug("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+						"Internet not available to check center remap process");
+
+				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_INTERNET_CONNECTION);
+
+				if (centerMachineReMapService.isMachineRemapped()) {
+					if (!isMachineRemapProcessStarted()) {
+						generateAlert(RegistrationConstants.ALERT_INFORMATION,
+								RegistrationUIConstants.REMAP_NOT_APPLICABLE);
+					}
+				}
 			}
 		}
 	}
