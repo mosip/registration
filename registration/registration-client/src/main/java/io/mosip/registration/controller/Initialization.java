@@ -76,12 +76,6 @@ public class Initialization extends Application {
 				upgradeServer = args[0];
 				tpmRequired = args[1];
 				io.mosip.registration.context.ApplicationContext.setTPMUsageFlag(args[1]);
-				if (args.length > 2) {
-					System.setProperty(RegistrationConstants.WEBCAM_HEIGHT, args[2]);
-				}
-				if (args.length > 3) {
-					System.setProperty(RegistrationConstants.WEBCAM_WIDTH, args[3]);
-				}
 			}
 
 			applicationContext = new AnnotationConfigApplicationContext(AppConfig.class);
