@@ -65,7 +65,7 @@
                               </GridPane>
                            </right>
                            <bottom>
-                              <GridPane fx:id="previewOption" prefHeight="50.0" prefWidth="487.0" styleClass="demoGraphicFieldLabel" BorderPane.alignment="CENTER">
+                              <GridPane fx:id="previewOption" prefHeight="50.0" prefWidth="487.0" styleClass="demoGraphicFieldLabel" visible="false" BorderPane.alignment="CENTER">
                                  <children>
                                     <Label fx:id="docPreviewNext" onMouseClicked="#previewNextPage" text="%previewnext" GridPane.columnIndex="5" GridPane.halignment="RIGHT" GridPane.valignment="CENTER" />
                                     <Label fx:id="docPreviewPrev" onMouseClicked="#previewPrevPage" text="%previewprevious" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.valignment="CENTER" />
@@ -133,39 +133,72 @@
             </GridPane>
          </top>
          <right>
-            <GridPane alignment="TOP_RIGHT" prefHeight="264.0" prefWidth="157.0" vgap="7.0" BorderPane.alignment="CENTER">
+            <GridPane alignment="TOP_RIGHT" prefHeight="364.0" prefWidth="157.0" vgap="7.0" BorderPane.alignment="CENTER">
               <columnConstraints>
                 <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" maxWidth="132.0" minWidth="10.0" prefWidth="132.0" />
               </columnConstraints>
               <rowConstraints>
                   <RowConstraints maxHeight="90.0" minHeight="10.0" percentHeight="5.0" prefHeight="60.0" vgrow="SOMETIMES" />
-                  <RowConstraints maxHeight="90.0" minHeight="10.0" percentHeight="5.0" prefHeight="60.0" vgrow="SOMETIMES" />
-                  <RowConstraints maxHeight="90.0" minHeight="0.0" prefHeight="0.0" vgrow="SOMETIMES" />
-                  <RowConstraints maxHeight="90.0" minHeight="0.0" prefHeight="0.0" vgrow="SOMETIMES" />
-                <RowConstraints maxHeight="90.0" minHeight="0.0" percentHeight="10.0" prefHeight="34.0" vgrow="SOMETIMES" />
-                  <RowConstraints maxHeight="166.0" minHeight="0.0" percentHeight="10.0" prefHeight="31.0" vgrow="SOMETIMES" />
-                  <RowConstraints maxHeight="211.0" minHeight="10.0" percentHeight="10.0" prefHeight="17.0" vgrow="SOMETIMES" />
-                  <RowConstraints maxHeight="252.0" minHeight="0.0" percentHeight="10.0" prefHeight="84.0" vgrow="SOMETIMES" />
-                  <RowConstraints maxHeight="196.0" minHeight="10.0" prefHeight="15.0" vgrow="SOMETIMES" />
-                  <RowConstraints maxHeight="196.0" minHeight="10.0" prefHeight="25.0" vgrow="SOMETIMES" />
-                  <RowConstraints maxHeight="196.0" minHeight="10.0" prefHeight="46.0" vgrow="SOMETIMES" />
+                  <RowConstraints maxHeight="90.0" minHeight="10.0" percentHeight="8.0" prefHeight="60.0" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="90.0" minHeight="0.0" percentHeight="8.0" prefHeight="0.0" vgrow="SOMETIMES" />
+                  <RowConstraints maxHeight="90.0" minHeight="0.0" percentHeight="8.0" prefHeight="0.0" vgrow="SOMETIMES" />
+                  <RowConstraints maxHeight="90.0" minHeight="0.0" percentHeight="8.0" prefHeight="34.0" vgrow="SOMETIMES" />
+                  <RowConstraints maxHeight="166.0" minHeight="0.0" percentHeight="8.0" prefHeight="31.0" vgrow="SOMETIMES" />
+                  <RowConstraints maxHeight="211.0" minHeight="10.0" percentHeight="8.0" prefHeight="17.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                  <Button fx:id="captureBtn" mnemonicParsing="false" onAction="#scan" prefHeight="39.0" prefWidth="167.0" styleClass="scanButton" text="%capture" GridPane.rowIndex="4" />
-                  <Button fx:id="saveBtn" mnemonicParsing="false" onAction="#save" prefHeight="39.0" prefWidth="143.0" styleClass="scanButton" text="%save" GridPane.rowIndex="5">
-                                    </Button>
-                  <Button fx:id="cancelBtn" mnemonicParsing="false" onAction="#cancel" prefHeight="39.0" prefWidth="154.0" styleClass="scanButton" text="%cancel" GridPane.rowIndex="7">
-                                    </Button>
-                  <Button fx:id="cropButton" mnemonicParsing="false" onAction="#crop" prefHeight="39.0" prefWidth="154.0" styleClass="scanButton" text="crop" GridPane.rowIndex="6">
+                  <Button fx:id="captureBtn" mnemonicParsing="false" onAction="#scan" prefHeight="39.0" prefWidth="167.0" styleClass="scanButton" text="%capture" GridPane.rowIndex="2">
+                     <graphic>
+                        <ImageView fitHeight="24.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/scan.png" />
+                           </image>
+                        </ImageView>
+                     </graphic></Button>
+                  <Button fx:id="saveBtn" mnemonicParsing="false" onAction="#save" prefHeight="39.0" prefWidth="143.0" styleClass="scanButton" text="%save" GridPane.halignment="LEFT" GridPane.rowIndex="3">
+                     <graphic>
+                        <ImageView fitHeight="19.0" fitWidth="77.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/DownloadPreRegData.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <GridPane.margin>
+                        <Insets top="1.0" />
+                     </GridPane.margin></Button>
+                  <Button fx:id="cancelBtn" mnemonicParsing="false" onAction="#cancel" prefHeight="39.0" prefWidth="154.0" styleClass="scanButton" text="%cancel" GridPane.rowIndex="5">
+                     <graphic>
+                        <ImageView fitHeight="22.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/reject.png" />
+                           </image>
+                        </ImageView>
+                     </graphic></Button>
+                  <Button fx:id="cropButton" mnemonicParsing="false" nodeOrientation="LEFT_TO_RIGHT" onAction="#crop" prefHeight="19.0" prefWidth="132.0" styleClass="scanButton" text="%crop" GridPane.rowIndex="4">
                      <graphic>
                         <ImageView fx:id="backImageView" fitHeight="20.0" fitWidth="27.0" pickOnBounds="true" preserveRatio="true">
                            <image>
                               <Image url="@../images/crop.png" />
                            </image>
                         </ImageView>
-                     </graphic>
-                  </Button>
-                  <Text fx:id="scanningMsg" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="132.205078125" GridPane.rowIndex="9" />
+                     </graphic></Button>
+                  <Button fx:id="previewBtn" mnemonicParsing="false" onAction="#preview" prefHeight="39.0" prefWidth="154.0" styleClass="scanButton" text="%view" GridPane.rowIndex="6">
+                     <graphic>
+                        <ImageView fitHeight="26.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/hover.png" />
+                           </image>
+                        </ImageView>
+                     </graphic></Button>
+                  <Button fx:id="streamBtn" mnemonicParsing="false" nodeOrientation="LEFT_TO_RIGHT" onAction="#stream" prefHeight="39.0" prefWidth="167.0" styleClass="scanButton" text="%stream" GridPane.rowIndex="1">
+                     <graphic>
+                        <ImageView fitHeight="14.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/stream.png" />
+                           </image>
+                        </ImageView>
+                     </graphic></Button>
+                  <Text fx:id="scanningMsg" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="alertContext" />
                </children>
                <padding>
                   <Insets right="20.0" />
