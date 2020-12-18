@@ -27,9 +27,10 @@ public class RegistrationUIConstants {
 		try {
 			return bundle.getString(key);
 		} catch (Exception runtimeException) {
-			LOGGER.error("REGISTRATION_UI_CONSTANTS", APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(runtimeException));
+			LOGGER.error("REGISTRATION_UI_CONSTANTS", APPLICATION_NAME, APPLICATION_ID,
+					ExceptionUtils.getStackTrace(runtimeException));
 		}
-		return key != null ? String.format(ERROR+ " : %s", key) : ERROR;
+		return key != null ? String.format(ERROR + " : %s", key) : ERROR;
 	}
 
 	// ALERT
@@ -412,13 +413,17 @@ public class RegistrationUIConstants {
 
 	public static final String BIOMETRIC_CAPTURE_SUCCESS = bundle.getString("BIOMETRIC_CAPTURE_SUCCESS");
 	public static final String BIOMETRIC_CAPTURE_FAILURE = bundle.getString("BIOMETRIC_CAPTURE_FAILURE");
-	
+
 	public static final String LOCAL_DEDUP_CHECK_FAILED = bundle.getString("LOCAL_DEDUP_CHECK_FAILED");
 
 	public static final String STREAMING_ERROR = bundle.getString("STREAMING_ERROR");
-	
+
 	public static final String EXCEPTION_PHOTO_REQUIRED = bundle.getString("EXCEPTION_PHOTO_REQUIRED");
 
 	public static final String USER_RELOGIN_REQUIRED = bundle.getString("USER_RELOGIN_REQUIRED");
-	
+
+	public static final String DOC_CAPTURE_SUCCESS = bundle.getString("DOC_CAPTURE_SUCCESS");
+
+	public static final String DOC_DELETE_SUCCESS = bundle.getString("DOC_DELETE_SUCCESS");
+
 }

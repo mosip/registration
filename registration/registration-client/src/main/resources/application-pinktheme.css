@@ -922,6 +922,11 @@ Working on new Css by taleev
 		
 }
 
+.docPreviewImgViewPane {
+	-fx-border-width: 1.5;
+	-fx-border-color: #ff0080;
+}
+
 .documentCombobox .combo-box-popup  > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover {
     -fx-background-color: #E63A74;
     -fx-text-fill: #FFFFFF;

@@ -28,7 +28,6 @@ import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.reg.DocumentScanController;
 import io.mosip.registration.device.webcam.impl.WebcamSarxosServiceImpl;
-import io.mosip.registration.dto.packetmanager.DocumentDto;
 import io.mosip.registration.util.common.RubberBandSelection;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
@@ -46,13 +45,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.RowConstraints;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
@@ -135,6 +130,11 @@ public class ScanPopUpViewController extends BaseController {
 	@FXML
 	private Button cropButton;
 
+	@FXML
+	private Button streamBtn;
+	@FXML
+	private Button previewBtn;
+
 	@Autowired
 	private BiometricsController biometricsController;
 
@@ -214,8 +214,12 @@ public class ScanPopUpViewController extends BaseController {
 			popupStage.setResizable(false);
 			popupTitle.setText(title);
 
+//			scanImageGroup.getParent().minHeight(1000);
+//			scanImageGroup.getParent().minWidth(1000);
 			scanImage.setPreserveRatio(true);
 
+			cropButton.setDisable(true);
+			cancelBtn.setDisable(true);
 			previewOption.setVisible(false);
 			Scene scene = null;
 
@@ -226,6 +230,8 @@ public class ScanPopUpViewController extends BaseController {
 				saveBtn.setVisible(false);
 				cancelBtn.setVisible(false);
 				cropButton.setVisible(false);
+				previewBtn.setVisible(false);
+				streamBtn.setVisible(false);
 			} else {
 				LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 						"Setting doc screen width : " + width);
@@ -239,7 +245,13 @@ public class ScanPopUpViewController extends BaseController {
 						&& !documentScanController.getScannedPages().isEmpty()) {
 
 					initializeDocPages(1, documentScanController.getScannedPages().size());
-					previewOption.setVisible(true);
+
+					previewBtn.setDisable(false);
+				} else {
+					saveBtn.setDisable(true);
+					cropButton.setDisable(true);
+					cancelBtn.setDisable(true);
+					previewBtn.setDisable(true);
 				}
 
 			}
@@ -311,9 +323,17 @@ public class ScanPopUpViewController extends BaseController {
 				docPreviewNext.setDisable(true);
 			}
 
-			previewOption.setVisible(true);
+//			previewOption.setVisible(true);
+
+			if (!documentScanController.getScannedPages().isEmpty()) {
+				previewBtn.setDisable(false);
+				saveBtn.setDisable(false);
+			} else {
+				previewBtn.setDisable(true);
+			}
 		}
 
+		generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.DOC_CAPTURE_SUCCESS);
 	}
 
 	/**
@@ -509,6 +529,8 @@ public class ScanPopUpViewController extends BaseController {
 		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 				"crop has been selected");
 
+		scanImage.setVisible(true);
+		webcamNode.setVisible(false);
 		RubberBandSelection rubberBandSelection = new RubberBandSelection(scanImageGroup);
 
 		rubberBandSelection.setscanPopUpViewController(this);
@@ -558,7 +580,15 @@ public class ScanPopUpViewController extends BaseController {
 
 		scanImage.setImage(SwingFXUtils.toFXImage(documentScanController.getScannedPages().get(pageNumber - 1), null));
 		graphics.dispose();
-		generateAlert(RegistrationConstants.SUCCESS, RegistrationUIConstants.CROP_DOC_SUCCESS);
+		generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.CROP_DOC_SUCCESS);
+
+//		if (webcamSarxosServiceImpl.isWebcamConnected()) {
+//			scanImage.setVisible(false);
+//			webcamNode.setVisible(true);
+//		}
+
+		showPreview(true);
+
 //		cropStage.close();
 
 		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
@@ -575,6 +605,7 @@ public class ScanPopUpViewController extends BaseController {
 		// Remove current page
 		documentScanController.getScannedPages().remove(pageNumberIndex);
 
+		generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.DOC_DELETE_SUCCESS);
 		// If first page
 		if (currentDocPageNumber == 1) {
 
@@ -629,6 +660,15 @@ public class ScanPopUpViewController extends BaseController {
 			}
 		}
 
+		if (!documentScanController.getScannedPages().isEmpty()) {
+			previewBtn.setDisable(false);
+			saveBtn.setDisable(false);
+		} else {
+			previewBtn.setDisable(true);
+			saveBtn.setDisable(true);
+			cancelBtn.setDisable(true);
+			cropButton.setDisable(true);
+		}
 	}
 
 	private void initializeDocPages(int currentPage, int totalPages) {
@@ -644,5 +684,56 @@ public class ScanPopUpViewController extends BaseController {
 
 		docPreviewNext.setDisable(nextPageDisable);
 
+	}
+
+	@FXML
+	public void stream() {
+
+		showPreview(false);
+		showStream(true);
+
+		cancelBtn.setDisable(true);
+		cropButton.setDisable(true);
+	}
+
+	@FXML
+	public void preview() {
+
+		showPreview(true);
+
+		scanImage.setImage(SwingFXUtils.toFXImage(
+				documentScanController.getScannedImage(documentScanController.getScannedPages().size() - 1), null));
+
+	}
+
+	private void showPreview(boolean isVisible) {
+		previewOption.setVisible(isVisible);
+		webcamNode.setVisible(false);
+		scanImage.setVisible(true);
+		cancelBtn.setDisable(false);
+		cropButton.setDisable(false);
+//		setCancelBtn(documentScanController.getScannedPages() == null);
+
+	}
+
+	private void setCancelBtn(boolean isDisable) {
+		cancelBtn.setDisable(isDisable);
+		cropButton.setDisable(isDisable);
+	}
+
+	private void showStream(boolean isVisible) {
+
+		if (isVisible) {
+			if (webcamSarxosServiceImpl.isWebcamConnected()) {
+				webcamNode.setVisible(true);
+				scanImage.setVisible(false);
+			} else {
+				webcamNode.setVisible(false);
+				scanImage.setVisible(true);
+			}
+		} else {
+			webcamNode.setVisible(false);
+			scanImage.setVisible(false);
+		}
 	}
 }
