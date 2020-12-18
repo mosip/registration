@@ -3,7 +3,7 @@ Registration module provides a desktop application for Registration Officers/Sup
 Registration module uses data captured by `Pre-Registration` module if an Individual has booked for an appointment in the Registration Centre.
 Registration Processor processes the data captured by Registration module to complete the registration process.
 
-Registration Client setup on a local system can be done by following the documentation at https://github.com/mosip/mosip-docs/wiki/Registration-Client-Setup
+Registration Client setup on a local system can be done by following the documentation at https://github.com/mosip/documentation/blob/master/docs/Registration-Client-Setup.md
 
 **Configuration**
 Configurations used for ID Repo are available in [mosip-config](https://github.com/mosip/mosip-config)
