@@ -31,9 +31,7 @@ import io.mosip.registration.device.webcam.MosipWebcamServiceImpl;
  */
 @Component
 public class WebcamSarxosServiceImpl extends MosipWebcamServiceImpl {
-	/**
-	 * Instance of {@link MosipLogger}
-	 */
+
 	private static final Logger LOGGER = AppConfig.getLogger(WebcamSarxosServiceImpl.class);
 
 	private Webcam webcam;
@@ -48,12 +46,12 @@ public class WebcamSarxosServiceImpl extends MosipWebcamServiceImpl {
 
 	@PostConstruct
 	public void initializeWebCamResolutions() {
-		width = System.getProperty(RegistrationConstants.WEBCAM_WIDTH) != null
-				? Integer.valueOf(System.getProperty(RegistrationConstants.WEBCAM_WIDTH))
+		width = System.getenv(RegistrationConstants.WEBCAM_WIDTH) != null
+				? Integer.valueOf(System.getenv(RegistrationConstants.WEBCAM_WIDTH))
 				: width;
 
-		height = System.getProperty(RegistrationConstants.WEBCAM_HEIGHT) != null
-				? Integer.valueOf(System.getProperty(RegistrationConstants.WEBCAM_HEIGHT))
+		height = System.getenv(RegistrationConstants.WEBCAM_HEIGHT) != null
+				? Integer.valueOf(System.getenv(RegistrationConstants.WEBCAM_HEIGHT))
 				: height;
 	}
 

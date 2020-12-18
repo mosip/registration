@@ -81,6 +81,8 @@ public class DaoConfig extends HibernateDaoConfig {
 	private static PropertySourcesPlaceholderConfigurer ppc = null;
 
 	static {
+
+		//TODO - Remove this in next release
 		ClientCryptoFacade.setIsTPMRequired(RegistrationConstants.ENABLE.equalsIgnoreCase(ApplicationContext.getTPMUsageFlag()));
 
 		try (InputStream keyStream = DaoConfig.class.getClassLoader().getResourceAsStream("spring.properties")) {
