@@ -1070,6 +1070,8 @@ public class RegistrationConstants {
 	public static final String THUMBS_FINGERPRINT_THRESHOLD = "mosip.registration.thumbs_fingerprint_threshold";
 	public static final String FINGERPRINT_RETRIES_COUNT = "mosip.registration.num_of_fingerprint_retries";
 	public static final String IRIS_RETRY_COUNT = "mosip.registration.num_of_iris_retries";
+	public static final String FACE_RETRY_COUNT = "mosip.registration.num_of_face_retries";
+
 	public static final String[] LEFTHAND_SEGMNTD_FILE_PATHS = new String[] { "/fingerprints/lefthand/leftIndex/",
 			"/fingerprints/lefthand/leftLittle/", "/fingerprints/lefthand/leftMiddle/",
 			"/fingerprints/lefthand/leftRing/" };
