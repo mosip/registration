@@ -10,7 +10,11 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -27,11 +31,13 @@ import org.springframework.util.MultiValueMap;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
+
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.code.ApiName;
@@ -66,7 +72,7 @@ import io.mosip.registration.processor.manual.verification.constants.ManualVerif
 import io.mosip.registration.processor.manual.verification.dto.DataShareResponseDto;
 import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDTO;
 import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDecisionDto;
-
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.manual.verification.dto.ManualVerificationStatus;
 import io.mosip.registration.processor.manual.verification.dto.MatchDetail;
 import io.mosip.registration.processor.manual.verification.dto.UserDto;
@@ -87,7 +93,7 @@ import io.mosip.registration.processor.manual.verification.stage.ManualVerificat
 import io.mosip.registration.processor.packet.manager.exception.FileNotFoundInDestinationException;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.entity.ManualVerificationEntity;
-import io.mosip.registration.processor.packet.storage.exception.PacketManagerException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
 import io.mosip.registration.processor.packet.storage.utils.BIRConverter;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
@@ -98,7 +104,9 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
-
+import io.mosip.registration.processor.manual.verification.request.dto.ShareableAttributes;
+import io.mosip.registration.processor.manual.verification.request.dto.Source;
+import io.mosip.registration.processor.manual.verification.request.dto.Filter;
 /**
  * The Class ManualVerificationServiceImpl.
  */
@@ -186,7 +194,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		List<ManualVerificationEntity> entities;
 		String matchType = dto.getMatchType();
 		try {
-
+		
 		if (dto.getUserId() == null || dto.getUserId().isEmpty()) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 					dto.getUserId(), "ManualVerificationServiceImpl::assignApplicant()::UserIDNotPresentException"
@@ -195,6 +203,10 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 					PlatformErrorMessages.RPR_MVS_NO_USER_ID_SHOULD_NOT_EMPTY_OR_NULL.getCode(),
 					PlatformErrorMessages.RPR_MVS_NO_USER_ID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
 		}
+		checkUserIDExistsInMasterList(dto);
+		entities = basePacketRepository.getAssignedApplicantDetails(dto.getUserId(),
+				ManualVerificationStatus.ASSIGNED.name());
+
 		if (!(matchType.equalsIgnoreCase(DedupeSourceName.ALL.toString()) || isMatchTypeDemoOrBio(matchType))) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 					dto.getUserId(), "ManualVerificationServiceImpl::assignApplicant()"
@@ -203,6 +215,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 					PlatformErrorMessages.RPR_MVS_NO_MATCH_TYPE_PRESENT.getMessage());
 		}
 		
+
 		if (!entities.isEmpty()) {
 			
 			manualVerificationDTO.setRegId(entities.get(0).getId().getRegId());
@@ -231,21 +244,18 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 						matchType);
 			}
 			if (entities.isEmpty()) {
-
-		checkUserIDExistsInMasterList(dto);
-		entities = basePacketRepository.getAssignedApplicantDetails(dto.getUserId(),
-				ManualVerificationStatus.ASSIGNED.name());
-			SDfasdfdffd
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 						dto.getUserId(), "ManualVerificationServiceImpl::assignApplicant()"
-							+ PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
+								+ PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
 				throw new NoRecordAssignedException(PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getCode(),
 						PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
 			} else {
 				
 				manualVerificationDTO.setMvUsrId(dto.getUserId());
 				manualVerificationDTO.setStatusCode(ManualVerificationStatus.ASSIGNED.name());
-			List<MatchDetail> gallery=new ArrayList<>();
+				manualVerificationDTO.setUrl(getDatashareUrl(entities.get(0).getId().getRegId()));
+				manualVerificationDTO.setRegId(entities.get(0).getId().getRegId());
+				List<MatchDetail> gallery=new ArrayList<>();
 				List<ManualVerificationEntity> mentities=entities.stream().filter(entity -> entity.getId()
 						.getRegId().equals(manualVerificationDTO.getRegId())).collect(Collectors.toList());
 				for(ManualVerificationEntity manualVerificationEntity: mentities) {
@@ -261,17 +271,14 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 						detail.setUrl(getDatashareUrl(updatedManualVerificationEntity.getId().getMatchedRefId()));
 						gallery.add(detail);
 				}
-				manualVerificationDTO.setGallery(gallery);
-
-					}
-					manualVerificationDTO.setGallery(gallery);
-				}
 			}
+				manualVerificationDTO.setGallery(gallery);
+			}
+		}
 		} catch (IOException | ApisResourceAccessException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					dto.getUserId(),
-					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage() + ExceptionUtils.getStackTrace(e));
-
+					dto.getUserId(), PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage() + ExceptionUtils.getStackTrace(e));
+		
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				dto.getUserId(), "ManualVerificationServiceImpl::assignApplicant()::exit");
@@ -310,8 +317,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	 * java.lang.String)
 	 */
 	@Override
-	public byte[] getApplicantFile(String regId, String fileName, String source)
-			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
+	public byte[] getApplicantFile(String regId, String fileName, String source) throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 
 		byte[] file = null;
 		InputStream fileInStream = null;
@@ -334,14 +340,6 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		}
 		String process = registrationStatusDto.getRegistrationType();
 		if (PacketFiles.BIOMETRIC.name().equals(fileName)) {
-			JSONObject mappingJson = utilities.getRegistrationProcessorMappingJson();
-			String individualBiometrics = JsonUtil.getJSONValue(
-					JsonUtil.getJSONObject(mappingJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
-					MappingJsonConstants.VALUE);
-			// get individual biometrics file name from id.json
-			BiometricRecord biometricRecord = packetManagerService.getBiometrics(regId, individualBiometrics, null,
-					source, process);
-		
             // get individual biometrics file name from id.json
 			BiometricRecord biometricRecord = packetManagerService.getBiometrics(regId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, null, process);
             /*if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().isEmpty())
@@ -388,10 +386,9 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	 * manual.adjudication.dto.ManualVerificationDTO)
 	 */
 	@Override
-	public ManualVerificationDTO updatePacketStatus(ManualVerificationDecisionDto manualVerificationDecisionDTO, String stageName) {
+	public ManualVerificationDecisionDto updatePacketStatus(ManualVerificationDecisionDto manualVerificationDTO, String stageName) {
 		TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
 		String registrationId = manualVerificationDTO.getRegId();
-		
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setInternalError(false);
 		messageDTO.setIsValid(false);
@@ -400,7 +397,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 		LogDescription description = new LogDescription();
 		boolean isTransactionSuccessful = false;
-
+		
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				manualVerificationDTO.getRegId(), "ManualVerificationServiceImpl::updatePacketStatus()::entry");
 		if (!manualVerificationDTO.getStatusCode().equalsIgnoreCase(ManualVerificationStatus.REJECTED.name())
@@ -411,12 +408,12 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			throw new InvalidUpdateException(PlatformErrorMessages.RPR_MVS_INVALID_STATUS_UPDATE.getCode(),
 					PlatformErrorMessages.RPR_MVS_INVALID_STATUS_UPDATE.getMessage());
 		}
-		List<ManualVerificationEntity> entities = new ArrayList<>();
-	List<ManualVerificationEntity> entities=new ArrayList<>();
+		List<ManualVerificationEntity> entities=new ArrayList<>();
 		
 		 entities.addAll(basePacketRepository.getAllAssignedRecord(
 				manualVerificationDTO.getRegId(), 
 				manualVerificationDTO.getMvUsrId(), ManualVerificationStatus.ASSIGNED.name()));
+		
 		if (entities.isEmpty()) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId, "ManualVerificationServiceImpl::updatePacketStatus()"
@@ -425,13 +422,13 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 					PlatformErrorMessages.RPR_MVS_NO_ASSIGNED_RECORD.getMessage());
 		} else {
 			for (int i = 0; i < entities.size(); i++) {
-				ManualVerificationEntity manualVerificationEntity = entities.get(i);
+				ManualVerificationEntity manualVerificationEntity=entities.get(i);
 				manualVerificationEntity.setStatusCode(manualVerificationDTO.getStatusCode());
 				manualVerificationEntity.setReasonCode(manualVerificationDTO.getReasonCode());
 				entities.set(i, manualVerificationEntity);
-
+				
 			}
-
+			
 		}
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
 				.getRegistrationStatus(registrationId);
@@ -443,7 +440,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 			if (manualVerificationDTO.getStatusCode().equalsIgnoreCase(ManualVerificationStatus.APPROVED.name())) {
 				if (registrationStatusDto.getRegistrationType().equalsIgnoreCase(RegistrationType.LOST.toString())) {
-				 for(ManualVerificationEntity detail: entities) {
+					for(ManualVerificationEntity detail: entities) {
 						packetInfoManager.saveRegLostUinDet(registrationId, detail.getId().getMatchedRefId(),
 							PlatformSuccessMessages.RPR_MANUAL_VERIFICATION_APPROVED.getCode(),
 							ModuleName.MANUAL_VERIFICATION.toString());
@@ -474,8 +471,8 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 				manualVerificationStage.sendMessage(messageDTO);
 			}
 			List<ManualVerificationEntity> maVerificationEntity = new ArrayList<>();
-			for (ManualVerificationEntity manualVerificationEntity : entities) {
-				maVerificationEntity.add(basePacketRepository.update(manualVerificationEntity));
+			for(ManualVerificationEntity manualVerificationEntity: entities) {
+			 maVerificationEntity.add( basePacketRepository.update(manualVerificationEntity));
 			}
 			manualVerificationDTO.setStatusCode(maVerificationEntity.get(0).getStatusCode());
 			registrationStatusDto.setUpdatedBy(USER);
@@ -534,6 +531,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 					PlatformErrorMessages.RPR_MVS_REG_ID_SHOULD_NOT_EMPTY_OR_NULL.getMessage());
 		}
 	}
+
 
 	@SuppressWarnings("unchecked")
 	private void checkUserIDExistsInMasterList(UserDto dto) {
@@ -607,14 +605,22 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 	}
 
+	
 	private String getDataShareUrl(String id, String process) throws Exception {
-		String source = utility.getDefaultSource();
-		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson();
+		Map<String,List<String>> typeAndSubtypMap=createTypeSubtypeMapping();
+		List<String> modalities=new ArrayList<>();
+		for(Map.Entry<String,List<String>> entry:typeAndSubtypMap.entrySet()) {
+			if(entry.getValue()==null) {
+				modalities.add(entry.getKey());
+			} else {
+				modalities.addAll(entry.getValue());
+			}
+		}
+		JSONObject regProcessorIdentityJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 		String individualBiometricsLabel = JsonUtil.getJSONValue(
 				JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS),
 				MappingJsonConstants.VALUE);
-		BiometricRecord biometricRecord = packetManagerService.getBiometrics(id, individualBiometricsLabel, null,
-				source, process);
+		BiometricRecord biometricRecord = packetManagerService.getBiometrics(id, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, modalities, process);
 		byte[] content = cbeffutil.createXML(BIRConverter.convertSegmentsToBIRList(biometricRecord.getSegments()));
 
 		MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
@@ -633,14 +639,44 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		pathSegments.add(policyId);
 		pathSegments.add(subscriberId);
 
-		DataShareResponseDto response = (DataShareResponseDto) registrationProcessorRestClientService.postApi(
-				ApiName.DATASHARECREATEURL, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map,
-				DataShareResponseDto.class);
-		if (response == null || (response.getErrors() != null && response.getErrors().size() > 0))
-			throw new DataShareException(
-					response == null ? "Datashare response is null" : response.getErrors().get(0).getMessage());
+		DataShareResponseDto response = (DataShareResponseDto) registrationProcessorRestClientService.postApi(ApiName.DATASHARECREATEURL, MediaType.MULTIPART_FORM_DATA, pathSegments, null, null, map, DataShareResponseDto.class);
+		if (response == null || (response.getErrors() != null && response.getErrors().size() >0))
+			throw new DataShareException(response == null ? "Datashare response is null" : response.getErrors().get(0).getMessage());
 
 		return response.getUrl();
+	}
+	
+	
+	public Map<String, List<String>> createTypeSubtypeMapping() throws ApisResourceAccessException, DataShareException, JsonParseException, JsonMappingException, com.fasterxml.jackson.core.JsonProcessingException, IOException{
+		Map<String, List<String>> typeAndSubTypeMap = new HashMap<>();
+		ResponseWrapper<?> policyResponse = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(
+				ApiName.PMS, Lists.newArrayList(subscriberId, ManualVerificationConstants.POLICY_ID, policyId), "", "", ResponseWrapper.class);
+		if (policyResponse == null || (policyResponse.getErrors() != null && policyResponse.getErrors().size() >0)) {
+			throw new DataShareException(policyResponse == null ? "Policy Response response is null" : policyResponse.getErrors().get(0).getMessage());
+			
+		} else {
+			LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) policyResponse.getResponse();
+			LinkedHashMap<String, Object> policies = (LinkedHashMap<String, Object>) responseMap.get(ManualVerificationConstants.POLICIES);
+			List<?> attributes = (List<?>) policies.get(ManualVerificationConstants.SHAREABLE_ATTRIBUTES);
+			ObjectMapper mapper = new ObjectMapper();
+			ShareableAttributes shareableAttributes = mapper.readValue(mapper.writeValueAsString(attributes.get(0)),
+					ShareableAttributes.class);
+			for (Source source : shareableAttributes.getSource()) {
+				List<Filter> filterList = source.getFilter();
+				if (filterList != null && !filterList.isEmpty()) {
+
+					filterList.forEach(filter -> {
+						if (filter.getSubType() != null && !filter.getSubType().isEmpty()) {
+							typeAndSubTypeMap.put(filter.getType(), filter.getSubType());
+						} else {
+							typeAndSubTypeMap.put(filter.getType(), null);
+						}
+					});
+				}
+			}
+		}
+		return typeAndSubTypeMap;
+		
 	}
 
 	/*

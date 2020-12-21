@@ -91,16 +91,18 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	 */
 	public void deployStage() {
 		this.mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+		this.consumeAndSend(mosipEventBus, MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, MessageBusAddress.MANUAL_VERIFICATION_BUS_OUT);
+	
 	}
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(vertx, null, MessageBusAddress.MANUAL_VERIFICATION_BUS));
-		this.routes(router);
+		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, MessageBusAddress.MANUAL_VERIFICATION_BUS_OUT));
+		//this.routes(router);
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}
 
-	private void routes(MosipRouter router) {
+	/*private void routes(MosipRouter router) {
 		
 
 		router.post(contextPath + "/assignment");
@@ -169,12 +171,12 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 					"", "ManualVerificationStage::processDecision::success");
 		}
 
-	}
+	}*/
 
 	
 
 	public void sendMessage(MessageDTO messageDTO) {
-		this.send(this.mosipEventBus, MessageBusAddress.MANUAL_VERIFICATION_BUS, messageDTO);
+		this.send(this.mosipEventBus, MessageBusAddress.MANUAL_VERIFICATION_BUS_OUT, messageDTO);
 	}
 
 	@Override

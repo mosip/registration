@@ -1,5 +1,8 @@
 package io.mosip.registration.processor.manual.verification.response.dto;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import lombok.Data;
 
 @Data
@@ -13,7 +16,9 @@ public class AnalyticsDTO {
 	
 	private String secondaryOperatorComments;
 	
-	private String key1="value1";
+	private Map<String,String> map=new HashMap<>();
 	
-	private String key2="value2";
+	//private String key1="value1";
+	
+	//private String key2="value2";
 }
