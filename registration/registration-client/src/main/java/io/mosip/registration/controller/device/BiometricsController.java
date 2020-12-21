@@ -780,25 +780,27 @@ public class BiometricsController extends BaseController /* implements Initializ
 		// get List of captured Biometrics based on nonExceptionBio Attributes
 		List<BiometricsDto> capturedBiometrics = null;
 
-		if (!isFace(modality)) {
+		//if (!isFace(modality)) {
 			List<Node> checkBoxNodes = getCheckBoxes(currentSubType, currentModality);
 
 			List<String> exceptionBioAttributes = null;
-			List<String> nonExceptionBioAttributes = null;
+			List<String> nonExceptionBioAttributes = isFace(modality) ? RegistrationConstants.faceUiAttributes : null;
 
-			for (Node node : ((Pane) checkBoxNodes.get(1)).getChildren()) {
-				if (node instanceof ImageView) {
-					ImageView imageView = (ImageView) node;
-					String bioAttribute = imageView.getId();
-					if (bioAttribute != null && !bioAttribute.isEmpty()) {
-						if (imageView.getOpacity() == 1) {
-							exceptionBioAttributes = exceptionBioAttributes != null ? exceptionBioAttributes
-									: new LinkedList<String>();
-							exceptionBioAttributes.add(bioAttribute);
-						} else {
-							nonExceptionBioAttributes = nonExceptionBioAttributes != null ? nonExceptionBioAttributes
-									: new LinkedList<String>();
-							nonExceptionBioAttributes.add(bioAttribute);
+			if(!checkBoxNodes.isEmpty()) {
+				for (Node node : ((Pane) checkBoxNodes.get(1)).getChildren()) {
+					if (node instanceof ImageView) {
+						ImageView imageView = (ImageView) node;
+						String bioAttribute = imageView.getId();
+						if (bioAttribute != null && !bioAttribute.isEmpty()) {
+							if (imageView.getOpacity() == 1) {
+								exceptionBioAttributes = exceptionBioAttributes != null ? exceptionBioAttributes
+										: new LinkedList<String>();
+								exceptionBioAttributes.add(bioAttribute);
+							} else {
+								nonExceptionBioAttributes = nonExceptionBioAttributes != null ? nonExceptionBioAttributes
+										: new LinkedList<String>();
+								nonExceptionBioAttributes.add(bioAttribute);
+							}
 						}
 					}
 				}
@@ -808,10 +810,10 @@ public class BiometricsController extends BaseController /* implements Initializ
 				capturedBiometrics = getBiometrics(currentSubType, nonExceptionBioAttributes);
 			}
 
-		} else {
+		/*} else {
 			capturedBiometrics = getBiometrics(currentSubType,
 					Arrays.asList(RegistrationConstants.faceUiAttributes.get(0)));
-		}
+		}*/
 
 		updateBiometric(modality, getImageIconPath(modality), getBiometricThreshold(modality), getRetryCount(modality));
 
@@ -833,7 +835,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 			switch (modality) {
 
 			case RegistrationConstants.FACE:
-				irisRetryCount = null;
+				irisRetryCount = RegistrationConstants.FACE_RETRY_COUNT;
 				break;
 			case RegistrationConstants.IRIS_DOUBLE:
 				irisRetryCount = RegistrationConstants.IRIS_RETRY_COUNT;
@@ -864,7 +866,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 			switch (modality) {
 
 			case RegistrationConstants.FACE:
-				biomnetricThreshold = null;
+				biomnetricThreshold = RegistrationConstants.FACE_THRESHOLD;
 				break;
 			case RegistrationConstants.IRIS_DOUBLE:
 				biomnetricThreshold = RegistrationConstants.IRIS_THRESHOLD;
@@ -1780,7 +1782,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 								: modality.equalsIgnoreCase(RegistrationConstants.IRIS_DOUBLE)
 										? RegistrationConstants.IRIS_RETRY_COUNT
 										: modality.equalsIgnoreCase(RegistrationConstants.FACE)
-												? RegistrationConstants.IRIS_RETRY_COUNT
+												? RegistrationConstants.FACE_RETRY_COUNT
 												: modality;
 	}
 
