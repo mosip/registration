@@ -56,8 +56,4 @@ public class CopytoActionHandler extends ChangeActionHandler {
     private void copy(ComboBox fromNode, ComboBox toNode) {
         toNode.getSelectionModel().select(fromNode.getSelectionModel().getSelectedItem());
     }
-
-    private boolean isValidNode(Node node) {
-        return (node != null && node.isVisible()) ? true : false;
-    }
 }

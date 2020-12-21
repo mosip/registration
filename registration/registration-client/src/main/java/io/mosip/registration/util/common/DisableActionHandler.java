@@ -28,8 +28,4 @@ public class DisableActionHandler extends ChangeActionHandler {
             }
         }
     }
-
-    private boolean isValidNode(Node node) {
-        return (node != null && node.isVisible()) ? true : false;
-    }
 }
