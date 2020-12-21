@@ -754,7 +754,7 @@ public class PacketInfoManagerImplTest {
 		List<String> uniqueMatchedRefIds = Arrays.asList("123av", "124abc", "125abcd");
 
 		packetInfoManagerImpl.saveManualAdjudicationData(uniqueMatchedRefIds, registrationId, DedupeSourceName.DEMO, "",
-				"");
+				"",null,null);
 
 	}
 
@@ -768,7 +768,7 @@ public class PacketInfoManagerImplTest {
 		List<String> uniqueMatchedRefIds = Arrays.asList("123av", "124abc", "125abcd");
 
 		packetInfoManagerImpl.saveManualAdjudicationData(uniqueMatchedRefIds, registrationId, DedupeSourceName.DEMO, "",
-				"");
+				"",null,null);
 
 	}
 
