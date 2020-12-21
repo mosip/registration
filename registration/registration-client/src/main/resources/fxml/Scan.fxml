@@ -155,7 +155,7 @@
                            </image>
                         </ImageView>
                      </graphic></Button>
-                  <Button fx:id="saveBtn" mnemonicParsing="false" onAction="#save" prefHeight="39.0" prefWidth="143.0" styleClass="scanButton" text="%save" GridPane.halignment="LEFT" GridPane.rowIndex="3">
+                  <Button fx:id="saveBtn" mnemonicParsing="false" onAction="#save" prefHeight="39.0" prefWidth="143.0" styleClass="scanButton" text="%save" GridPane.rowIndex="3">
                      <graphic>
                         <ImageView fitHeight="19.0" fitWidth="77.0" pickOnBounds="true" preserveRatio="true">
                            <image>
