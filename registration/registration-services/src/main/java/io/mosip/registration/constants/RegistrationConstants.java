@@ -1035,7 +1035,7 @@ public class RegistrationConstants {
 
 	// Iris & Fingerprint Capture for Individual Registration
 	public static final String IRIS_THRESHOLD = "mosip.registration.iris_threshold";
-	public static final String FACE_THRESHOLD = "mosip.facequalitythreshold";
+	public static final String FACE_THRESHOLD = "mosip.registration.face_threshold";
 	public static final String IMAGE_FORMAT_KEY = "imageFormat";
 	public static final String IMAGE_BYTE_ARRAY_KEY = "imageBytes";
 	public static final String IMAGE_BYTE_ISO = "byteIso";
