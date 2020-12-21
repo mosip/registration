@@ -1,7 +1,5 @@
 package io.mosip.registration.processor.manual.verification;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -40,7 +38,6 @@ import io.mosip.registration.processor.manual.verification.dto.QueueDetails;
 import io.mosip.registration.processor.manual.verification.request.dto.ManualAdjudicationRequestDTO;
 import io.mosip.registration.processor.manual.verification.response.dto.ManualAdjudicationResponseDTO;
 import io.mosip.registration.processor.manual.verification.service.ManualVerificationService;
-import io.mosip.registration.processor.manual.verification.service.impl.ManualVerificationServiceImpl;
 import io.mosip.registration.processor.packet.storage.exception.QueueConnectionNotFound;
 
 @Component
@@ -102,7 +99,7 @@ public class Listener {
 	private static final String VALUE = "value";
 
 	/** The reg proc logger. */
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(ManualVerificationServiceImpl.class);
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(Listener.class);
 
 	/** The is connection. */
 	boolean isConnection = false;
