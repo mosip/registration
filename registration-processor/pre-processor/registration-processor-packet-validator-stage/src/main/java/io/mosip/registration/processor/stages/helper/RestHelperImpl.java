@@ -62,7 +62,6 @@ public class RestHelperImpl implements RestHelper {
 	public Supplier<Object> requestAsync(@Valid AsyncRequestDTO request) {
 		try {
 			Mono<?> sendRequest = request(request, getSslContext());
-			sendRequest.subscribe();
 			return () -> sendRequest.block();
 		} catch (RestServiceException | IOException e) {
 			mosipLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
