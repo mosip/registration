@@ -1845,7 +1845,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 		String retryCountVal = getValueFromApplicationContext(retryCount);
 
-		retryCountVal = retryCount == null || retryCount.isEmpty() ? "0" : retryCountVal;
+		retryCountVal = retryCountVal == null || retryCountVal.isEmpty() ? "0" : retryCountVal;
 		for (int retry = 0; retry < Integer.parseInt(retryCountVal); retry++) {
 			Label label = new Label();
 			label.getStyleClass().add(RegistrationConstants.QUALITY_LABEL_GREY);
