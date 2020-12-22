@@ -217,7 +217,7 @@ public class DocumentScanController extends BaseController {
 			if (getRegistrationDTOFromSession() != null
 					&& getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory() != null
 					&& getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory()
-					.equals(RegistrationConstants.PACKET_TYPE_LOST)) {
+							.equals(RegistrationConstants.PACKET_TYPE_LOST)) {
 
 				registrationNavlabel.setText(
 						ApplicationContext.applicationLanguageBundle().getString(RegistrationConstants.LOSTUINLBL));
@@ -569,7 +569,7 @@ public class DocumentScanController extends BaseController {
 	 * This method scans and uploads documents
 	 */
 	private void scanDocument(ComboBox<DocumentCategoryDto> documents, VBox vboxElement, String document,
-							  String errorMessage) {
+			String errorMessage) {
 
 		String poeDocValue = getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE);
 		if (null != documents.getValue() && poeDocValue != null
@@ -667,10 +667,7 @@ public class DocumentScanController extends BaseController {
 
 			if (webcam != null) {
 				documentScanFacade.setStubScannerFactory();
-				webcamSarxosServiceImpl.openWebCam(webcam, webcamSarxosServiceImpl.getWidth(),
-						webcamSarxosServiceImpl.getHeight());
-				JPanel jPanelWindow = webcamSarxosServiceImpl.getJPanel(webcam);
-				scanPopUpViewController.setWebCamPanel(jPanelWindow);
+				startStream(webcam);
 			}
 
 		}
@@ -702,11 +699,7 @@ public class DocumentScanController extends BaseController {
 				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 						RegistrationConstants.APPLICATION_ID, "Opening webcam");
 
-				webcamSarxosServiceImpl.openWebCam(webcam, webcamSarxosServiceImpl.getWidth(),
-						webcamSarxosServiceImpl.getHeight());
-				JPanel jPanelWindow = webcamSarxosServiceImpl.getJPanel(webcam);
-				scanPopUpViewController.setWebCamPanel(jPanelWindow);
-
+				startStream(webcam);
 				// Enable Auto-Logout
 				SessionContext.setAutoLogout(false);
 				LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
@@ -723,6 +716,36 @@ public class DocumentScanController extends BaseController {
 			scanPopUpViewController.setDefaultImageGridPaneVisibility();
 			return;
 		}
+	}
+
+	private void startStream(Webcam webcam) {
+		webcamSarxosServiceImpl.openWebCam(webcam, webcamSarxosServiceImpl.getWidth(),
+				webcamSarxosServiceImpl.getHeight());
+		scanPopUpViewController.setWebCamStream(true);
+		Thread streamer_thread = new Thread(new Runnable() {
+
+			public void run() {
+
+				while (scanPopUpViewController.isWebCamStream()) {
+
+					try {
+						if (!scanPopUpViewController.isStreamPaused()) {
+							scanPopUpViewController.getScanImage().setImage(
+									SwingFXUtils.toFXImage(webcamSarxosServiceImpl.captureImage(webcam), null));
+						}
+					} catch (NullPointerException nullPointerException) {
+						LOGGER.error(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, APPLICATION_NAME,
+								RegistrationConstants.APPLICATION_ID,
+								ExceptionUtils.getStackTrace(nullPointerException));
+
+						scanPopUpViewController.setWebCamStream(false);
+					}
+				}
+			}
+
+		});
+
+		streamer_thread.start();
 	}
 
 	/**
