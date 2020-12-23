@@ -1,12 +1,7 @@
 package io.mosip.registration.controller.reg;
 
 import static io.mosip.registration.constants.LoggerConstants.PACKET_HANDLER;
-import static io.mosip.registration.constants.RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE_PART_1;
-import static io.mosip.registration.constants.RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE_PART_2;
-import static io.mosip.registration.constants.RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE_PART_3;
-import static io.mosip.registration.constants.RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE_PART_4;
-import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
-import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
+import static io.mosip.registration.constants.RegistrationConstants.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -624,17 +619,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 		try {
 			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 
-			StringBuilder templateContent = new StringBuilder();
 			String platformLanguageCode = ApplicationContext.applicationLanguage();
-			templateContent
-					.append(templateService.getHtmlTemplate(ACKNOWLEDGEMENT_TEMPLATE_PART_1, platformLanguageCode));
-			templateContent
-					.append(templateService.getHtmlTemplate(ACKNOWLEDGEMENT_TEMPLATE_PART_2, platformLanguageCode));
-			templateContent
-					.append(templateService.getHtmlTemplate(ACKNOWLEDGEMENT_TEMPLATE_PART_3, platformLanguageCode));
-			templateContent
-					.append(templateService.getHtmlTemplate(ACKNOWLEDGEMENT_TEMPLATE_PART_4, platformLanguageCode));
-			String ackTemplateText = templateContent.toString();
+			String ackTemplateText = templateService.getHtmlTemplate(ACKNOWLEDGEMENT_TEMPLATE_CODE, platformLanguageCode);
 
 			if (ApplicationContext.applicationLanguage().equalsIgnoreCase(ApplicationContext.localLanguage())) {
 				ackTemplateText = ackTemplateText.replace("} / ${", "}  ${");

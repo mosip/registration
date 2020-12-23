@@ -48,4 +48,6 @@ public interface TemplateDao {
 	 * @return the list of {@link TemplateFileFormat} 
 	 */
 	List<TemplateFileFormat> getAllTemplateFileFormats();
+
+	List<Template> getAllTemplates(String templateTypeCode, String langCode);
 }
