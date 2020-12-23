@@ -108,7 +108,7 @@ public class RegistrationConstants {
 	public static final String ONBOARD = "onboard";
 
 	// CSS file
-	//public static final String CSS_FILE_PATH = "application.css";
+	// public static final String CSS_FILE_PATH = "application.css";
 
 	public static final String MOSIP_URL = "http://mosip.io";
 
@@ -1816,7 +1816,11 @@ public class RegistrationConstants {
 	public static final String MACHINE_VERIFICATION_SUCCESS = "Machine Verification Success";
 	public static final String UTC_APPENDER = " (UTC)";
 
-	//Mandatory Astrik
+	// Mandatory Astrik
 	public static final String ASTRIK = " * ";
+
+	public static final String MACHINE_INACTIVE_FLAG = "mosip.registration.machine.inactive";
+	public static String MACHINE_REMAP_CODE = "KER-SNC-149";
+	public static String MACHINE_INACTIVE_CODE = "KER-SNC-163";
 
 }

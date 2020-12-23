@@ -1,5 +1,7 @@
 package io.mosip.registration.repositories;
 
+import java.util.List;
+
 import io.mosip.kernel.core.dataaccess.spi.repository.BaseRepository;
 import io.mosip.registration.entity.UserRole;
 import io.mosip.registration.entity.id.UserRoleId;
@@ -13,6 +15,8 @@ import io.mosip.registration.entity.id.UserRoleId;
  */
 public interface UserRoleRepository extends BaseRepository<UserRole, UserRoleId> {
 
-void deleteByUserRoleIdUsrId(String usrId);
+	void deleteByUserRoleIdUsrId(String usrId);
+
+	List<UserRole> findByUserRoleIdUsrId(String usrId);
 
 }
