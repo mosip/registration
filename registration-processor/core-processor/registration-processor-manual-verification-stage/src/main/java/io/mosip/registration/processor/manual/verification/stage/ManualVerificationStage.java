@@ -1,5 +1,10 @@
 package io.mosip.registration.processor.manual.verification.stage;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
+
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -11,9 +16,9 @@ import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.manual.verification.constants.ManualVerificationConstants;
 import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDTO;
-import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDecisionDto;
 import io.mosip.registration.processor.manual.verification.exception.handler.ManualVerificationExceptionHandler;
 import io.mosip.registration.processor.manual.verification.request.dto.ManualVerificationAssignmentRequestDTO;
+import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDecisionDto;
 import io.mosip.registration.processor.manual.verification.request.dto.ManualVerificationDecisionRequestDTO;
 import io.mosip.registration.processor.manual.verification.response.builder.ManualVerificationResponseBuilder;
 import io.mosip.registration.processor.manual.verification.response.dto.ManualVerificationAssignResponseDTO;
@@ -22,10 +27,6 @@ import io.mosip.registration.processor.manual.verification.util.ManualVerificati
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
 
 /**
  * This class sends message to next stage after successful completion of manual
@@ -37,12 +38,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class ManualVerificationStage extends MosipVerticleAPIManager {
 
+	
 	@Autowired
 	private ManualVerificationService manualAdjudicationService;
 
 	/** The mosip event bus. */
 	private MosipEventBus mosipEventBus;
-
+	
 	/**
 	 * vertx Cluster Manager Url
 	 */
@@ -89,16 +91,18 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	 */
 	public void deployStage() {
 		this.mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
+		this.consumeAndSend(mosipEventBus, MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, MessageBusAddress.MANUAL_VERIFICATION_BUS_OUT);
+	
 	}
 
 	@Override
 	public void start() {
-		router.setRoute(this.postUrl(vertx, null, MessageBusAddress.MANUAL_VERIFICATION_BUS));
-		this.routes(router);
+		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, MessageBusAddress.MANUAL_VERIFICATION_BUS_OUT));
+		//this.routes(router);
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}
 
-	private void routes(MosipRouter router) {
+	/*private void routes(MosipRouter router) {
 		
 
 		router.post(contextPath + "/assignment");
@@ -167,16 +171,17 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 					"", "ManualVerificationStage::processDecision::success");
 		}
 
-	}
+	}*/
 
 	
 
 	public void sendMessage(MessageDTO messageDTO) {
-		this.send(this.mosipEventBus, MessageBusAddress.MANUAL_VERIFICATION_BUS, messageDTO);
+		this.send(this.mosipEventBus, MessageBusAddress.MANUAL_VERIFICATION_BUS_OUT, messageDTO);
 	}
 
 	@Override
 	public MessageDTO process(MessageDTO object) {
-		return null;
+		return manualAdjudicationService.process(object);
 	}
 }
+

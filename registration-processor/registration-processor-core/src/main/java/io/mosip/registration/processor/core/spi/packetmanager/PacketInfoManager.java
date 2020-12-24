@@ -70,7 +70,7 @@ public interface PacketInfoManager<T, /** D, M, */
 	 */
 
 	public void saveManualAdjudicationData(List<String> uniqueMatchedRefIds, String registrationId,
-			DedupeSourceName sourceName, String moduleId, String moduleName);
+			DedupeSourceName sourceName, String moduleId, String moduleName,String transactionId, String requestId);
 
 	/**
 	 * Save abis ref.
@@ -344,5 +344,6 @@ public interface PacketInfoManager<T, /** D, M, */
 			String processed);
 
 	public void saveRegLostUinDet(String regId, String latestRegId, String moduleId, String moduleName);
+
 
 }

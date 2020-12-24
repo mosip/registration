@@ -440,7 +440,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 */
 	@Override
 	public void saveManualAdjudicationData(List<String> uniqueMatchedRefIds, String registrationId,
-			DedupeSourceName sourceName, String moduleId, String moduleName) {
+			DedupeSourceName sourceName, String moduleId, String moduleName,String transactionId,String requestId) {
 		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
 
@@ -456,7 +456,10 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 				manualVerificationEntity.setId(manualVerificationPKEntity);
 				manualVerificationEntity.setLangCode("eng");
-				manualVerificationEntity.setMatchedScore(null);
+				//manualVerificationEntity.setMatchedScore(null);
+				manualVerificationEntity.setReponseText(null);
+				manualVerificationEntity.setRequestId(requestId);
+				manualVerificationEntity.setTransactionId(transactionId);
 				manualVerificationEntity.setMvUsrId(null);
 				manualVerificationEntity.setReasonCode("Potential Match");
 				if (sourceName.equals(DedupeSourceName.DEMO)) {
