@@ -113,11 +113,7 @@ public class UserDetailServiceImpl extends BaseService implements UserDetailServ
 
 							LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID,
 									"Deleting User : " + existingUserDetail.getId());
-//							existingUserDetail.setIsActive(false);
-//							existingUserDetail.setIsDeleted(true);
-//							userDetailDAO.update(existingUserDetail);
 
-							// TODO Delete complete UserDetail bio/token/pwd,...etc.
 							userDetailDAO.deleteUser(existingUserDetail);
 
 						}
