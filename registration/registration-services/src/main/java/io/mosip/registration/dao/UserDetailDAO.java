@@ -2,6 +2,7 @@ package io.mosip.registration.dao;
 
 import java.util.List;
 
+import io.mosip.registration.dto.UserDetailDto;
 import io.mosip.registration.entity.UserDetail;
 import io.mosip.registration.dto.UserDetailResponseDto;
 import io.mosip.registration.entity.UserBiometric;
@@ -76,10 +77,10 @@ public interface UserDetailDAO {
 	/**
 	 * This method is used to save the user details response to the {@link UserDetail} table.
 	 *
-	 * @param userDetailsResponse
+	 * @param userDetails
 	 *            the user details response
 	 */
-	void save(UserDetailResponseDto userDetailsResponse);
+	void save(List<UserDetailDto> userDetails);
 	
 	/**
 	 * 
@@ -90,6 +91,6 @@ public interface UserDetailDAO {
 
 	void updateAuthTokens(String userId, String authToken, String refreshToken, long tokenExpiry, long refreshTokenExpiry);
 
-	void updateUserPwd(String userId, String password);
+	void updateUserPwd(String userId, String password) throws Exception;
 
 }

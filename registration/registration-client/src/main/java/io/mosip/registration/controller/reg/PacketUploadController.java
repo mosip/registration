@@ -15,6 +15,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -24,12 +25,12 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
+import io.mosip.kernel.core.util.HMACUtils2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.HMACUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.AuditEvent;
 import io.mosip.registration.constants.AuditReferenceIdTypes;
@@ -189,11 +190,10 @@ public class PacketUploadController extends BaseController implements Initializa
 											RegistrationConstants.ZIP_FILE_EXTENSION)))) {
 								byte[] byteArray = new byte[(int) fis.available()];
 								fis.read(byteArray);
-								byte[] packetHash = HMACUtils.generateHash(byteArray);
-								packetStatusVO.setPacketHash(HMACUtils.digestAsPlainText(packetHash));
+								packetStatusVO.setPacketHash(HMACUtils2.digestAsPlainText(byteArray));
 								packetStatusVO.setPacketSize(BigInteger.valueOf(byteArray.length));
 
-							} catch (IOException ioException) {
+							} catch (IOException | NoSuchAlgorithmException ioException) {
 								LOGGER.error("REGISTRATION_BASE_SERVICE", APPLICATION_NAME, APPLICATION_ID,
 										ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
 							}
@@ -433,11 +433,10 @@ public class PacketUploadController extends BaseController implements Initializa
 									RegistrationConstants.ZIP_FILE_EXTENSION)))) {
 						byte[] byteArray = new byte[(int) fis.available()];
 						fis.read(byteArray);
-						byte[] packetHash = HMACUtils.generateHash(byteArray);
-						packetStatusVO.setPacketHash(HMACUtils.digestAsPlainText(packetHash));
+						packetStatusVO.setPacketHash(HMACUtils2.digestAsPlainText(byteArray));
 						packetStatusVO.setPacketSize(BigInteger.valueOf(byteArray.length));
 
-					} catch (IOException ioException) {
+					} catch (IOException | NoSuchAlgorithmException ioException) {
 						LOGGER.error("REGISTRATION_BASE_SERVICE", APPLICATION_NAME, APPLICATION_ID,
 								ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
 					}
@@ -675,7 +674,7 @@ public class PacketUploadController extends BaseController implements Initializa
 			statusTable.getColumns().addAll(fileNameCol, statusCol);
 			Scene scene = new Scene(new StackPane(statusTable), 800, 800);
 			scene.getStylesheets().add(ClassLoader.getSystemClassLoader()
-					.getResource(RegistrationConstants.CSS_FILE_PATH).toExternalForm());
+					.getResource(getCssName()).toExternalForm());
 			stage.initStyle(StageStyle.UTILITY);
 			stage.initModality(Modality.WINDOW_MODAL);
 			stage.initOwner(fXComponents.getStage());

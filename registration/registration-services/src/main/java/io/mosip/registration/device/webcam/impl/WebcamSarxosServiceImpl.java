@@ -6,9 +6,12 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.util.List;
+import java.util.Optional;
 
+import javax.annotation.PostConstruct;
 import javax.swing.JPanel;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.github.sarxos.webcam.Webcam;
@@ -18,6 +21,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
+import io.mosip.registration.device.scanner.dto.ScanDevice;
 import io.mosip.registration.device.webcam.MosipWebcamServiceImpl;
 
 /**
@@ -27,14 +31,29 @@ import io.mosip.registration.device.webcam.MosipWebcamServiceImpl;
  */
 @Component
 public class WebcamSarxosServiceImpl extends MosipWebcamServiceImpl {
-	/**
-	 * Instance of {@link MosipLogger}
-	 */
+
 	private static final Logger LOGGER = AppConfig.getLogger(WebcamSarxosServiceImpl.class);
 
 	private Webcam webcam;
 
 	private JPanel jPanelWindow;
+
+	@Value("${mosip.camera.resolution.width:640}")
+	private int width;
+
+	@Value("${mosip.camera.resolution.height:480}")
+	private int height;
+
+	@PostConstruct
+	public void initializeWebCamResolutions() {
+		width = System.getenv(RegistrationConstants.WEBCAM_WIDTH) != null
+				? Integer.valueOf(System.getenv(RegistrationConstants.WEBCAM_WIDTH))
+				: width;
+
+		height = System.getenv(RegistrationConstants.WEBCAM_HEIGHT) != null
+				? Integer.valueOf(System.getenv(RegistrationConstants.WEBCAM_HEIGHT))
+				: height;
+	}
 
 	@Override
 	public JPanel getCameraPanel() {
@@ -56,7 +75,7 @@ public class WebcamSarxosServiceImpl extends MosipWebcamServiceImpl {
 	public boolean isWebcamConnected() {
 		return webcam != null ? webcam.isOpen() : false;
 	}
-	
+
 	public boolean isWebcamConnected(Webcam webcam) {
 		return webcam != null ? webcam.isOpen() : false;
 	}
@@ -106,7 +125,7 @@ public class WebcamSarxosServiceImpl extends MosipWebcamServiceImpl {
 		LOGGER.info("REGISTRATION - WEBCAMDEVICE", APPLICATION_NAME, APPLICATION_ID, "capturing the image from webcam");
 		return webcam != null ? webcam.getImage() : null;
 	}
-	
+
 	/**
 	 * Gets the web cams.
 	 *
@@ -117,7 +136,6 @@ public class WebcamSarxosServiceImpl extends MosipWebcamServiceImpl {
 		LOGGER.info("REGISTRATION - WEBCAMDEVICE", APPLICATION_NAME, APPLICATION_ID, "Get All Web cams");
 		return Webcam.getWebcams();
 	}
-	
 
 	@Override
 	public void close() {
@@ -128,7 +146,7 @@ public class WebcamSarxosServiceImpl extends MosipWebcamServiceImpl {
 			webcam.close();
 		}
 	}
-	
+
 	@Override
 	public void openWebCam(Webcam webcam, int width, int height) {
 
@@ -137,14 +155,12 @@ public class WebcamSarxosServiceImpl extends MosipWebcamServiceImpl {
 
 		if (webcam != null && !webcam.isOpen()) {
 			Dimension requiredDimension = new Dimension(width, height);
-		
-			webcam.setCustomViewSizes(new Dimension[] {
-				   requiredDimension,         
-				});
+
+			webcam.setCustomViewSizes(new Dimension[] { requiredDimension, });
 			webcam.setViewSize(requiredDimension);
 			webcam.getLock().disable();
-			
-			//Open Web camera
+
+			// Open Web camera
 			webcam.open();
 			this.webcam = webcam;
 
@@ -160,7 +176,7 @@ public class WebcamSarxosServiceImpl extends MosipWebcamServiceImpl {
 		LOGGER.info("REGISTRATION - WEBCAMDEVICE", APPLICATION_NAME, APPLICATION_ID, "capturing the image from webcam");
 		return webcam != null ? webcam.getImage() : null;
 	}
-	
+
 	public void close(Webcam webcam) {
 		LOGGER.info("REGISTRATION - WEBCAMDEVICE", APPLICATION_NAME, APPLICATION_ID, "closing the webcam");
 
@@ -168,5 +184,42 @@ public class WebcamSarxosServiceImpl extends MosipWebcamServiceImpl {
 			jPanelWindow = null;
 			webcam.close();
 		}
+	}
+
+	public int getWidth() {
+		return width;
+	}
+
+	public int getHeight() {
+		return height;
+	}
+
+	public BufferedImage captureImage(String webCamName) {
+
+		Webcam webcam = getWebCam(webCamName);
+
+		if (webcam != null) {
+			return captureImage(webcam);
+		}
+
+		return null;
+	}
+
+	public Webcam getWebCam(String webCamName) {
+
+		if (webCamName != null) {
+
+			List<Webcam> webcams = getWebCams();
+
+			Optional<Webcam> selectedWebCam = webcams.stream()
+					.filter(device -> device.getName().equalsIgnoreCase(webCamName)).findFirst();
+			if (selectedWebCam.isPresent()) {
+
+				return selectedWebCam.get();
+			}
+
+		}
+
+		return null;
 	}
 }

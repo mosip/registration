@@ -10,6 +10,7 @@ public class RegistrationApprovalDTO {
 	private String id;
 	private String date;
 	private String acknowledgementFormPath;
+	private String operatorId;
 	private String statusComment;
 
 	/**
@@ -24,14 +25,15 @@ public class RegistrationApprovalDTO {
 	 * @param statusComment 
 	 * 				the status comment
 	 */
-	public RegistrationApprovalDTO(String id, String date, String acknowledgementFormPath, String statusComment) {
+	public RegistrationApprovalDTO(String id, String date, String acknowledgementFormPath, String operatorId, String statusComment) {
 		super();
 		
 		this.id = id;		
 		this.date = date;
 		this.acknowledgementFormPath =acknowledgementFormPath;
+		this.operatorId = operatorId;
 		this.statusComment = statusComment;
-		}
+	}
 	
 	/**
 	 * Gets the id.
@@ -65,5 +67,9 @@ public class RegistrationApprovalDTO {
 	 */
 	public String getStatusComment() {
 		return statusComment;
+	}
+	
+	public String getOperatorId() {
+		return operatorId;
 	}
 }

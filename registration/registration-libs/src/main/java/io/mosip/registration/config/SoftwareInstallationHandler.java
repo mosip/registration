@@ -9,6 +9,7 @@ import java.net.NoRouteToHostException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
+import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -20,12 +21,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
+import io.mosip.kernel.core.util.HMACUtils2;
 import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.FileUtils;
-import io.mosip.kernel.core.util.HMACUtils;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.util.LoggerFactory;
 
@@ -358,13 +359,13 @@ public class SoftwareInstallationHandler {
 
 		String checkSum;
 		try {
-			checkSum = HMACUtils.digestAsPlainText(HMACUtils.generateHash(Files.readAllBytes(jarFile.toPath())));
+			checkSum = HMACUtils2.digestAsPlainText(Files.readAllBytes(jarFile.toPath()));
 			String manifestCheckSum = (String) manifest.getEntries().get(jarFile.getName())
 					.get(Attributes.Name.CONTENT_TYPE);
 
 			return manifestCheckSum.equals(checkSum);
 
-		} catch (IOException ioException) {
+		} catch (IOException | NoSuchAlgorithmException ioException) {
 			
 			LOGGER.error(LoggerConstants.CLIENT_JAR_DECRYPTION, LoggerConstants.APPLICATION_NAME,
 					LoggerConstants.APPLICATION_ID,

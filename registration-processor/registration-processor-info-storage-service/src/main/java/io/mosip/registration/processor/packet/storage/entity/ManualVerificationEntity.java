@@ -7,6 +7,7 @@ import java.sql.Timestamp;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 /**
  * The persistent class for the reg_manual_verification database table.
@@ -47,8 +48,8 @@ public class ManualVerificationEntity extends BasePacketEntity<ManualVerificatio
 	private String langCode;
 
 	/** The matched score. */
-	@Column(name = "matched_score")
-	private BigDecimal matchedScore;
+	//@Column(name = "matched_score")
+	//private BigDecimal matchedScore;
 
 	/** The mv usr id. */
 	@Column(name = "mv_usr_id")
@@ -77,6 +78,18 @@ public class ManualVerificationEntity extends BasePacketEntity<ManualVerificatio
 	/** The dedupe source name. */
 	@Column(name = "trntyp_code")
 	private String trnTypCode;
+	
+	
+	@Column(name="ref_regtrn_id",nullable = true)
+	private String transactionId;
+	
+
+	@Column(name="request_id",nullable = true)
+	private String requestId;
+	
+
+	@Column(name="res_text",nullable = true)
+	private byte[] reponseText;
 
 	/**
 	 * Gets the source name.
@@ -218,9 +231,9 @@ public class ManualVerificationEntity extends BasePacketEntity<ManualVerificatio
 	 *
 	 * @return the matchedScore
 	 */
-	public BigDecimal getMatchedScore() {
+	/*public BigDecimal getMatchedScore() {
 		return matchedScore;
-	}
+	}*/
 
 	/**
 	 * Sets the matched score.
@@ -228,9 +241,9 @@ public class ManualVerificationEntity extends BasePacketEntity<ManualVerificatio
 	 * @param matchedScore
 	 *            the matchedScore to set
 	 */
-	public void setMatchedScore(BigDecimal matchedScore) {
+	/*public void setMatchedScore(BigDecimal matchedScore) {
 		this.matchedScore = matchedScore;
-	}
+	}*/
 
 	/**
 	 * Gets the mv usr id.
@@ -354,4 +367,30 @@ public class ManualVerificationEntity extends BasePacketEntity<ManualVerificatio
 	public static long getSerialversionuid() {
 		return serialVersionUID;
 	}
+
+	public String getTransactionId() {
+		return transactionId;
+	}
+
+	public void setTransactionId(String transactionId) {
+		this.transactionId = transactionId;
+	}
+
+	public String getRequestId() {
+		return requestId;
+	}
+
+	public void setRequestId(String requestId) {
+		this.requestId = requestId;
+	}
+
+	public byte[] getReponseText() {
+		return reponseText;
+	}
+
+	public void setReponseText(byte[] reponseText) {
+		this.reponseText = reponseText;
+	}
+	
+	
 }

@@ -5,11 +5,11 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,12 +25,14 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.mosip.commons.packet.constants.PacketManagerConstants;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.templatemanager.spi.TemplateManagerBuilder;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
@@ -57,7 +59,6 @@ import io.mosip.registration.dto.biometric.BiometricExceptionDTO;
 import io.mosip.registration.dto.biometric.BiometricInfoDTO;
 import io.mosip.registration.dto.biometric.FaceDetailsDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
-import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.scheduler.SchedulerUtil;
 import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.bio.BioService;
@@ -186,6 +187,9 @@ public class BaseController {
 	@Autowired
 	protected PageFlow pageFlow;
 
+	@Value("${mosip.registration.css_file_path:}")
+	private String cssName;
+	
 	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
 
 	public Text getScanningMsg() {
@@ -325,7 +329,7 @@ public class BaseController {
 		scene.setRoot(borderPane);
 		fXComponents.getStage().setScene(scene);
 		scene.getStylesheets().add(
-				ClassLoader.getSystemClassLoader().getResource(RegistrationConstants.CSS_FILE_PATH).toExternalForm());
+				ClassLoader.getSystemClassLoader().getResource(getCssName()).toExternalForm());
 		return scene;
 	}
 
@@ -371,7 +375,7 @@ public class BaseController {
 			Pane authRoot = BaseController.load(getClass().getResource(RegistrationConstants.ALERT_GENERATION));
 			Scene scene = new Scene(authRoot);
 			scene.getStylesheets().add(ClassLoader.getSystemClassLoader()
-					.getResource(RegistrationConstants.CSS_FILE_PATH).toExternalForm());
+					.getResource(getCssName()).toExternalForm());
 			alertStage.initStyle(StageStyle.UNDECORATED);
 			alertStage.setScene(scene);
 			alertStage.initModality(Modality.WINDOW_MODAL);
@@ -411,7 +415,7 @@ public class BaseController {
 			Pane authRoot = BaseController.load(getClass().getResource(RegistrationConstants.ALERT_GENERATION));
 			Scene scene = new Scene(authRoot);
 			scene.getStylesheets().add(ClassLoader.getSystemClassLoader()
-					.getResource(RegistrationConstants.CSS_FILE_PATH).toExternalForm());
+					.getResource(getCssName()).toExternalForm());
 			alertStage.initStyle(StageStyle.UNDECORATED);
 			alertStage.setScene(scene);
 			alertStage.initModality(Modality.WINDOW_MODAL);
@@ -504,8 +508,10 @@ public class BaseController {
 			id = id.replaceAll(RegistrationConstants.UNDER_SCORE + RegistrationConstants.ONTYPE,
 					RegistrationConstants.EMPTY);
 		}
-		if (id.matches(RegistrationConstants.DTAE_MONTH_YEAR_REGEX)) {
-			id = RegistrationConstants.DOB;
+
+		String[] parts = id.split("__");
+		if (parts.length > 1 && parts[1].matches(RegistrationConstants.DTAE_MONTH_YEAR_REGEX)) {
+			id = parts[0]+"__"+RegistrationConstants.DOB;
 			parentPane = (Pane) parentPane.getParent().getParent();
 		}
 		Label label = ((Label) (parentPane.lookup(RegistrationConstants.HASH + id + RegistrationConstants.MESSAGE)));
@@ -888,7 +894,7 @@ public class BaseController {
 	 * @param templateCode the template code
 	 * @return the notification template
 	 */
-	protected Writer getNotificationTemplate(String templateCode) {
+	/*protected Writer getNotificationTemplate(String templateCode) {
 		RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 		Writer writeNotificationTemplate = new StringWriter();
 		try {
@@ -909,7 +915,7 @@ public class BaseController {
 					regBaseCheckedException.getMessage() + ExceptionUtils.getStackTrace(regBaseCheckedException));
 		}
 		return writeNotificationTemplate;
-	}
+	}*/
 
 	/**
 	 * Gets the registration DTO from session.
@@ -917,15 +923,10 @@ public class BaseController {
 	 * @return the registration DTO from session
 	 */
 	protected RegistrationDTO getRegistrationDTOFromSession() {
-		LOGGER.info("REGISTRATION - BaseController", APPLICATION_NAME, APPLICATION_ID,
-				"Fetching Registration DTO From Session started");
 		RegistrationDTO registrationDTO = null;
 		if (SessionContext.map() != null || !SessionContext.map().isEmpty()) {
 			registrationDTO = (RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA);
 		}
-
-		LOGGER.info("REGISTRATION - BaseController", APPLICATION_NAME, APPLICATION_ID,
-				"Fetching Registration DTO From Session completed");
 		return registrationDTO;
 
 	}
@@ -1279,7 +1280,7 @@ public class BaseController {
 		alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
 		alert.getDialogPane().setMinWidth(500);
 		alert.getDialogPane().getStylesheets().add(
-				ClassLoader.getSystemClassLoader().getResource(RegistrationConstants.CSS_FILE_PATH).toExternalForm());
+				ClassLoader.getSystemClassLoader().getResource(getCssName()).toExternalForm());
 		Button okButton = (Button) alert.getDialogPane().lookupButton(ButtonType.OK);
 		okButton.setText(RegistrationUIConstants.getMessageLanguageSpecific(confirmButtonText));
 
@@ -1773,14 +1774,15 @@ public class BaseController {
 	protected void helperMethodForComboBox(ComboBox<?> field, String fieldName, UiSchemaDTO schema, Label label,
 			Label validationMessage, VBox vbox, String languageType) {
 
+		String mandatoryAstrik = demographicDetailController.getMandatorySuffix(schema);
 		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
-			field.setPromptText(schema.getLabel().get(RegistrationConstants.SECONDARY));
-			label.setText(schema.getLabel().get(RegistrationConstants.SECONDARY));
+			field.setPromptText(schema.getLabel().get(RegistrationConstants.SECONDARY) + mandatoryAstrik);
+			label.setText(schema.getLabel().get(RegistrationConstants.SECONDARY) + mandatoryAstrik);
 			field.setDisable(true);
 			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.SECONDARY));
 		} else {
-			field.setPromptText(schema.getLabel().get(RegistrationConstants.PRIMARY));
-			label.setText(schema.getLabel().get(RegistrationConstants.PRIMARY));
+			field.setPromptText(schema.getLabel().get(RegistrationConstants.PRIMARY) + mandatoryAstrik);
+			label.setText(schema.getLabel().get(RegistrationConstants.PRIMARY) + mandatoryAstrik);
 			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.PRIMARY));
 		}
 		// vbox.setStyle("-fx-background-color:BLUE");
@@ -1862,4 +1864,23 @@ public class BaseController {
 				.filter(schemaDto -> schemaDto.getGroup() != null && schemaDto.getGroup().equalsIgnoreCase(group))
 				.collect(Collectors.toList());
 	}
+	
+	protected String getCssName() {
+		return cssName;
+	}
+	
+	
+	protected String getLocalZoneTime(String time) {
+		try {
+			String formattedTime = Timestamp.valueOf(time).toLocalDateTime().format(DateTimeFormatter.ofPattern(RegistrationConstants.UTC_PATTERN));
+			LocalDateTime dateTime = DateUtils.parseUTCToLocalDateTime(formattedTime);
+		    return dateTime.format(DateTimeFormatter.ofPattern(RegistrationConstants.ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT));
+		} catch (RuntimeException exception) {
+			LOGGER.error("REGISTRATION - ALERT - BASE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+					ExceptionUtils.getStackTrace(exception));
+			return time + RegistrationConstants.UTC_APPENDER;
+		}
+		
+	}
+
 }

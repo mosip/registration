@@ -70,7 +70,8 @@ public class FXUtils {
 	/**
 	 * Listener to change the style when field is selected for.
 	 *
-	 * @param field the {@link CheckBox}
+	 * @param parentOrGuardian the {@link CheckBox}
+	 * @param biometrics
 	 */
 	public void listenOnSelectedCheckBoxParentOrGuardian(CheckBox parentOrGuardian, CheckBox biometrics) {
 
@@ -162,6 +163,33 @@ public class FXUtils {
 	}
 
 	/**
+	 * Populate local or secondary language combo box based on the application or
+	 * primary language. The value in the local or secondary language
+	 * {@link ComboBox} will be selected based on the code of the value selected in
+	 * application or secondary language {@link ComboBox}.
+	 *
+	 * @param parentPane       the {@link Pane} in which {@link TextField} is
+	 *                         present
+	 * @param applicationField the {@link ComboBox} in application or primary
+	 *                         language
+	 * @param localField       the {@link ComboBox} in local or secondary language
+	 */
+	public void populateLocalComboBox(Pane parentPane, ComboBox<?> applicationField, ComboBox<?> localField) {
+		applicationField.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
+			selectComboBoxValueByCode(localField, applicationField.getValue(), applicationField);
+			toggleUIField(parentPane, applicationField.getId() + RegistrationConstants.LABEL, true);
+
+			toggleUIField(parentPane, applicationField.getId() + RegistrationConstants.MESSAGE, false);
+			if (!isAppLangAndLocalLangSame()) {
+
+				toggleUIField(parentPane, localField.getId() + RegistrationConstants.LABEL, true);
+
+				toggleUIField(parentPane, localField.getId() + RegistrationConstants.MESSAGE, false);
+			}
+		});
+	}
+
+	/**
 	 * Toggle the visibility of the UI field based on the input visibility
 	 * 
 	 * @param parentPane the {@link Pane} containing the UI Field
@@ -169,7 +197,7 @@ public class FXUtils {
 	 *                   toggled
 	 * @param visibility the visibility property value
 	 */
-	public void toggleUIField(Pane parentPane, String uiFieldId, boolean visibility) {
+    public void toggleUIField(Pane parentPane, String uiFieldId, boolean visibility) {
 		try {
 			((Label) parentPane.lookup(RegistrationConstants.HASH.concat(uiFieldId))).setVisible(visibility);
 		} catch (RuntimeException runtimeException) {
@@ -188,7 +216,6 @@ public class FXUtils {
 	 *                            present
 	 * @param field               the {@link TextField} to be validated
 	 * @param validation          the instance of {@link Validations}
-	 * @param localField          the local or secondary language {@link TextField}
 	 * @param haveToTransliterate the flag to know whether the field value has to be
 	 *                            transliterated
 	 */
@@ -235,7 +262,6 @@ public class FXUtils {
 	 *                            present
 	 * @param field               the {@link TextField} to be validated
 	 * @param validation          the instance of {@link Validations}
-	 * @param localField          the local or secondary language {@link TextField}
 	 * @param haveToTransliterate the flag to know whether the field value has to be
 	 *                            transliterated
 	 */
@@ -422,7 +448,7 @@ public class FXUtils {
 		}
 	}
 
-	private void focusAction(Pane parentPane, TextField field) {
+	public void focusAction(Pane parentPane, TextField field) {
 		if (field != null) {
 			field.focusedProperty().addListener((obsValue, oldValue, newValue) -> {
 				if (newValue) {
@@ -477,8 +503,9 @@ public class FXUtils {
 	 *                   or hidden
 	 */
 	public void hideErrorMessageLabel(Pane parentPane, TextField field) {
-		if (field.getId().matches("ageField|dd|mm|yyyy|ddLocalLanguage|mmLocalLanguage|yyyyLocalLanguage")) {
-			toggleUIField(parentPane, RegistrationConstants.DOB_MESSAGE, false);
+		String[] parts = field.getId().split("__");
+		if (parts.length > 1 && parts[1].matches(RegistrationConstants.DTAE_MONTH_YEAR_REGEX)) {
+			toggleUIField(parentPane, parts[0]+"__"+RegistrationConstants.DOB_MESSAGE, false);
 		} else {
 			toggleUIField(parentPane, field.getId() + RegistrationConstants.MESSAGE, false);
 		}
@@ -580,7 +607,35 @@ public class FXUtils {
 		}
 	}
 
+	private void selectComboBoxValueByCode(ComboBox<?> localComboBox, Object selectedOption, ComboBox<?> ComboBox) {
+		ObservableList<?> localComboBoxValues = localComboBox.getItems();
+		ObservableList<?> comboBoxValues = ComboBox.getItems();
 
+		if (!localComboBoxValues.isEmpty() && selectedOption != null) {
+			IntPredicate findIndexOfSelectedItem = null;
+			if (localComboBoxValues.get(0) instanceof GenericDto && selectedOption instanceof GenericDto) {
+				findIndexOfSelectedItem = index -> ((GenericDto) localComboBoxValues.get(index)).getCode()
+						.equals(((GenericDto) selectedOption).getCode());
+			} else if (localComboBoxValues.get(0) instanceof DocumentCategoryDto
+					&& selectedOption instanceof DocumentCategoryDto) {
+				findIndexOfSelectedItem = index -> ((DocumentCategoryDto) localComboBoxValues.get(index)).getCode()
+						.equals(((DocumentCategoryDto) selectedOption).getCode());
+			} else if (localComboBoxValues.get(0) instanceof String && selectedOption instanceof String) {
+				findIndexOfSelectedItem = index -> ((String) comboBoxValues.get(index))
+						.equals(((String) ComboBox.getSelectionModel().getSelectedItem()));
+				OptionalInt indexOfSelectedLocation = getIndexOfSelectedItem(comboBoxValues, findIndexOfSelectedItem);
+				if (indexOfSelectedLocation.isPresent()) {
+					localComboBox.getSelectionModel().select(indexOfSelectedLocation.getAsInt());
+				}
+				return;
+			}
+			OptionalInt indexOfSelectedLocation = getIndexOfSelectedItem(localComboBoxValues, findIndexOfSelectedItem);
+
+			if (indexOfSelectedLocation.isPresent()) {
+				localComboBox.getSelectionModel().select(indexOfSelectedLocation.getAsInt());
+			}
+		}
+	}
 
 	/**
 	 * Shows the selected value in the combo-box

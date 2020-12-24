@@ -1,12 +1,7 @@
 package io.mosip.registration.controller.reg;
 
 import static io.mosip.registration.constants.LoggerConstants.PACKET_HANDLER;
-import static io.mosip.registration.constants.RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE_PART_1;
-import static io.mosip.registration.constants.RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE_PART_2;
-import static io.mosip.registration.constants.RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE_PART_3;
-import static io.mosip.registration.constants.RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE_PART_4;
-import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
-import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
+import static io.mosip.registration.constants.RegistrationConstants.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -19,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.ResourceBundle;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +43,6 @@ import io.mosip.registration.dto.SyncDataProcessDTO;
 import io.mosip.registration.entity.PreRegistrationList;
 import io.mosip.registration.entity.SyncControl;
 import io.mosip.registration.exception.RegBaseCheckedException;
-import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.service.config.JobConfigurationService;
 import io.mosip.registration.service.operator.UserOnboardService;
@@ -66,7 +59,6 @@ import io.mosip.registration.update.SoftwareUpdateHandler;
 import io.mosip.registration.util.acktemplate.TemplateGenerator;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import io.mosip.registration.util.restclient.AuthTokenUtilService;
-
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
@@ -149,18 +141,15 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 				String latestUpdateTime = timestamps.stream().sorted((timestamp1, timestamp2) -> Timestamp
 						.valueOf(timestamp2).compareTo(Timestamp.valueOf(timestamp1))).findFirst().get();
-
-				lastSyncTime.setText(Timestamp.valueOf(latestUpdateTime).toLocalDateTime()
-						.format(DateTimeFormatter.ofPattern(RegistrationConstants.ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT))
-						+ RegistrationConstants.UTC_APPENDER);
+				
+				lastSyncTime.setText(getLocalZoneTime(latestUpdateTime));
 
 				setLastPreRegPacketDownloadedTime();
 			}
-		} catch (RuntimeException expception) {
-
+		} catch (RuntimeException exception) {
+			LOGGER.error("REGISTRATION - ALERT - BASE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+					ExceptionUtils.getStackTrace(exception));
 			lastSyncTime.setText("---");
-
-			expception.printStackTrace();
 		}
 	}
 
@@ -264,6 +253,12 @@ public class PacketHandlerController extends BaseController implements Initializ
 	@FXML
 	private GridPane viewReportsPane;
 	@FXML
+	private GridPane uploadPacketPane;
+	@FXML
+	private GridPane centerRemapPane;
+	@FXML
+	private GridPane checkUpdatesPane;
+	@FXML
 	private ImageView viewReportsImageView;
 	@Autowired
 	private SoftwareUpdateHandler softwareUpdateHandler;
@@ -275,7 +270,15 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 	@Autowired
 	private AuthTokenUtilService authTokenUtilService;
-
+	
+	@FXML
+	private ImageView uploadPacketImageView;
+	
+	@FXML
+	private ImageView remapImageView;
+	
+	@FXML
+	private ImageView checkUpdatesImageView;
 
 	@Value("${object.store.base.location}")
 	private String baseLocation;
@@ -335,10 +338,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 			}
 			Timestamp ts = userOnboardService.getLastUpdatedTime(SessionContext.userId());
 			if (ts != null) {
-				DateTimeFormatter format = DateTimeFormatter
-						.ofPattern(RegistrationConstants.ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT);
 				lastBiometricTime.setText(RegistrationUIConstants.LAST_DOWNLOADED + " "
-						+ ts.toLocalDateTime().format(format) + RegistrationConstants.UTC_APPENDER);
+						+ getLocalZoneTime(ts.toString()));
 			}
 
 			if (!(getValueFromApplicationContext(RegistrationConstants.LOST_UIN_CONFIG_FLAG))
@@ -428,6 +429,33 @@ public class PacketHandlerController extends BaseController implements Initializ
 			} else {
 				viewReportsImageView
 						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.VIEW_REPORTS_IMAGE)));
+			}
+		});
+		uploadPacketPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
+			if (newValue) {
+				uploadPacketImageView.setImage(
+						new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_OP_BIOMETRICS_FOCUSED)));
+			} else {
+				uploadPacketImageView
+						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_OP_BIOMETRICS_IMAGE)));
+			}
+		});
+		centerRemapPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
+			if (newValue) {
+				remapImageView.setImage(
+						new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_FOCUSED)));
+			} else {
+				remapImageView
+						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_IMAGE)));
+			}
+		});
+		checkUpdatesPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
+			if (newValue) {
+				checkUpdatesImageView.setImage(
+						new Image(getClass().getResourceAsStream(RegistrationConstants.DOWNLOAD_PREREG_FOCUSED)));
+			} else {
+				checkUpdatesImageView
+						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.DOWNLOAD_PREREG_IMAGE)));
 			}
 		});
 	}
@@ -591,17 +619,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 		try {
 			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 
-			StringBuilder templateContent = new StringBuilder();
 			String platformLanguageCode = ApplicationContext.applicationLanguage();
-			templateContent
-					.append(templateService.getHtmlTemplate(ACKNOWLEDGEMENT_TEMPLATE_PART_1, platformLanguageCode));
-			templateContent
-					.append(templateService.getHtmlTemplate(ACKNOWLEDGEMENT_TEMPLATE_PART_2, platformLanguageCode));
-			templateContent
-					.append(templateService.getHtmlTemplate(ACKNOWLEDGEMENT_TEMPLATE_PART_3, platformLanguageCode));
-			templateContent
-					.append(templateService.getHtmlTemplate(ACKNOWLEDGEMENT_TEMPLATE_PART_4, platformLanguageCode));
-			String ackTemplateText = templateContent.toString();
+			String ackTemplateText = templateService.getHtmlTemplate(ACKNOWLEDGEMENT_TEMPLATE_CODE, platformLanguageCode);
 
 			if (ApplicationContext.applicationLanguage().equalsIgnoreCase(ApplicationContext.localLanguage())) {
 				ackTemplateText = ackTemplateText.replace("} / ${", "}  ${");
@@ -841,7 +860,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 			return;
 		}
 
-		if(!authTokenUtilService.hasAnyValidToken()) {
+		if (!authTokenUtilService.hasAnyValidToken()) {
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
 			return;
 		}
@@ -1059,99 +1078,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 	}
 
-	@SuppressWarnings("resource")
-	private void sendNotification(String email, String mobile, String regID) {
-		try {
-			boolean emailSent = false;
-			boolean smsSent = false;
-			if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
-				String notificationServiceName = String.valueOf(
-						applicationContext.getApplicationMap().get(RegistrationConstants.MODE_OF_COMMUNICATION));
-				if (notificationServiceName != null && !notificationServiceName.equals("NONE")) {
-					ResponseDTO notificationResponse;
-					Writer writeNotificationTemplate = null;
-					if (email != null && (notificationServiceName.toUpperCase())
-							.contains(RegistrationConstants.EMAIL_SERVICE.toUpperCase())) {
-
-						if (getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory()
-								.equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_LOST)) {
-							writeNotificationTemplate = getNotificationTemplate(
-									RegistrationConstants.LOST_UIN_EMAIL_TEMPLATE);
-						} else if (getRegistrationDTOFromSession().getRegistrationMetaDataDTO()
-								.getRegistrationCategory().equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_UPDATE)) {
-							writeNotificationTemplate = getNotificationTemplate(
-									RegistrationConstants.UPDATE_UIN_EMAIL_TEMPLATE);
-						} else {
-							writeNotificationTemplate = getNotificationTemplate(RegistrationConstants.EMAIL_TEMPLATE);
-						}
-
-						if (!writeNotificationTemplate.toString().isEmpty()) {
-							notificationResponse = notificationService.sendEmail(writeNotificationTemplate.toString(),
-									email, regID);
-							if (notificationResponse.getErrorResponseDTOs() == null
-									|| notificationResponse.getSuccessResponseDTO() != null) {
-								emailSent = true;
-							} else {
-								notificationAlert(notificationResponse, RegistrationUIConstants.EMAIL_ERROR_MSG);
-							}
-						}
-					}
-					if (mobile != null && (notificationServiceName.toUpperCase())
-							.contains(RegistrationConstants.SMS_SERVICE.toUpperCase())) {
-
-						if (getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory()
-								.equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_LOST)) {
-							writeNotificationTemplate = getNotificationTemplate(
-									RegistrationConstants.LOST_UIN_SMS_TEMPLATE);
-						} else if (getRegistrationDTOFromSession().getRegistrationMetaDataDTO()
-								.getRegistrationCategory().equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_UPDATE)) {
-							writeNotificationTemplate = getNotificationTemplate(
-									RegistrationConstants.UPDATE_UIN_SMS_TEMPLATE);
-						} else {
-							writeNotificationTemplate = getNotificationTemplate(RegistrationConstants.SMS_TEMPLATE);
-						}
-
-						if (!writeNotificationTemplate.toString().isEmpty()) {
-							notificationResponse = notificationService.sendSMS(writeNotificationTemplate.toString(),
-									mobile, regID);
-							if (notificationResponse.getErrorResponseDTOs() == null
-									|| notificationResponse.getSuccessResponseDTO() != null) {
-								smsSent = true;
-							} else {
-								notificationAlert(notificationResponse, RegistrationUIConstants.SMS_ERROR_MSG);
-							}
-						}
-					}
-				}
-			}
-			if (emailSent) {
-				if (smsSent) {
-					generateAlert(RegistrationConstants.ALERT_INFORMATION,
-							RegistrationUIConstants.NOTIFICATION_SUCCESS);
-				} else {
-					generateAlert(RegistrationConstants.ALERT_INFORMATION,
-							RegistrationUIConstants.EMAIL_NOTIFICATION_SUCCESS);
-				}
-			} else if (smsSent) {
-				generateAlert(RegistrationConstants.ALERT_INFORMATION,
-						RegistrationUIConstants.SMS_NOTIFICATION_SUCCESS);
-			}
-		} catch (RegBaseCheckedException regBaseCheckedException) {
-			LOGGER.error("REGISTRATION - UI - GENERATE_NOTIFICATION", APPLICATION_NAME, APPLICATION_ID,
-					regBaseCheckedException.getMessage());
-		} catch (RegBaseUncheckedException regBaseUncheckedException) {
-			LOGGER.error("REGISTRATION - UI - GENERATE_NOTIFICATION", APPLICATION_NAME, APPLICATION_ID,
-					regBaseUncheckedException.getMessage() + ExceptionUtils.getStackTrace(regBaseUncheckedException));
-		}
-	}
-
-	private void notificationAlert(ResponseDTO notificationResponse, String alertMsg) {
-
-		Optional.ofNullable(notificationResponse).map(ResponseDTO::getErrorResponseDTOs)
-				.flatMap(list -> list.stream().findFirst()).map(ErrorResponseDTO::getMessage)
-				.ifPresent(message -> generateAlert("ERROR", alertMsg));
-
-	}
 
 	public ProgressIndicator getProgressIndicator() {
 		return progressIndicator;
@@ -1166,13 +1092,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 			Timestamp lastPreRegPacketDownloaded = syncControl.getLastSyncDtimes();
 
 			if (lastPreRegPacketDownloaded != null) {
-
-				DateTimeFormatter format = DateTimeFormatter
-						.ofPattern(RegistrationConstants.ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT);
-
 				lastPreRegPacketDownloadedTime.setText(RegistrationUIConstants.LAST_DOWNLOADED + " "
-						+ lastPreRegPacketDownloaded.toLocalDateTime().format(format));
-
+						+ getLocalZoneTime(lastPreRegPacketDownloaded.toString()));
 			}
 		}
 	}
@@ -1190,5 +1111,23 @@ public class PacketHandlerController extends BaseController implements Initializ
 						? true
 						: false;
 
+	}
+
+	@FXML
+	public void uploadPacketToServer() {
+		auditFactory.audit(AuditEvent.SYNC_PRE_REGISTRATION_PACKET, Components.SYNC_SERVER_TO_CLIENT,
+				SessionContext.userContext().getUserId(), AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+
+		uploadPacket();
+	}
+
+	@FXML
+	public void intiateRemapProcess() {
+		headerController.intiateRemapProcess();
+	}
+
+	@FXML
+	public void hasUpdate() {
+		headerController.hasUpdate(null);
 	}
 }

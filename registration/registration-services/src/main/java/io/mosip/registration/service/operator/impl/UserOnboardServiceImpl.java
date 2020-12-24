@@ -27,6 +27,7 @@ import java.util.stream.IntStream;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
+import io.mosip.kernel.core.util.*;
 import io.mosip.kernel.cryptomanager.dto.CryptomanagerRequestDto;
 import io.mosip.kernel.cryptomanager.dto.CryptomanagerResponseDto;
 import io.mosip.kernel.cryptomanager.service.CryptomanagerService;
@@ -52,10 +53,6 @@ import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.crypto.spi.CryptoCoreSpec;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.kernel.core.util.HMACUtils;
-import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
@@ -111,8 +108,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 
 	@Override
 	public ResponseDTO validateWithIDAuthAndSave(List<BiometricsDto> biometrics) throws RegBaseCheckedException {
-		boolean idAuthEnabled = RegistrationConstants.ENABLE
-				.equalsIgnoreCase((String) ApplicationContext.map().get(RegistrationConstants.USER_ON_BOARD_IDA_AUTH));
+		boolean idAuthEnabled = true;
 
 		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
 				"validateWithIDAuthAndSave invoked idAuthEnabled >> " + idAuthEnabled);
@@ -171,7 +167,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 			String certificateData = getCertificate(requestParamMap);
 
 			if (Objects.nonNull(biometrics) && !biometrics.isEmpty()) {
-				String previousHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash("".getBytes()));
+				String previousHash = HMACUtils2.digestAsPlainText("".getBytes());
 
 				for (BiometricsDto dto : biometrics) {
 					SingleType bioType = Biometric.getSingleTypeByAttribute(dto.getBioAttribute());
@@ -198,7 +194,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 			if(certificateData != null) {
 				Map<String, Object> response = getIdaAuthResponse(idaRequestMap, requestMap, requestParamMap,
 						certificateData, responseDTO);
-				boolean onboardAuthFlag = userOnBoardStatusFlag(response);
+				boolean onboardAuthFlag = userOnBoardStatusFlag(response, responseDTO);
 				LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
 						"User Onboarded authentication flag... :" + onboardAuthFlag);
 
@@ -219,6 +215,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 			}
 		} catch (Exception e) {
 			LOGGER.error(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(e));
+			setErrorResponse(responseDTO, e.getMessage(), null);
 		}
 		return false;
 	}
@@ -253,7 +250,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 	}
 
 	private LinkedHashMap<String, Object> buildDataBlock(String bioType, String bioSubType, byte[] attributeISO,
-			String previousHash, BiometricsDto biometricsDto) {
+			String previousHash, BiometricsDto biometricsDto) throws NoSuchAlgorithmException {
 		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
 				"Building data block for User Onboard Authentication with IDA");
 
@@ -281,9 +278,9 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 					ExceptionUtils.getStackTrace(exIoException));
 		}
 
-		String presentHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash(dataBlockJsonString.getBytes()));
+		String presentHash = HMACUtils2.digestAsPlainText(dataBlockJsonString.getBytes());
 		String concatenatedHash = previousHash + presentHash;
-		String finalHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash(concatenatedHash.getBytes()));
+		String finalHash = HMACUtils2.digestAsPlainText(concatenatedHash.getBytes());
 
 		dataBlock.put(RegistrationConstants.AUTH_HASH, finalHash);
 		dataBlock.put(RegistrationConstants.SESSION_KEY, responseMap.getEncryptedSessionKey());
@@ -327,7 +324,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 	 * @param responseDTO       the response DTO
 	 */
 	private void addFaceData(List<Map<String, Object>> listOfBiometric, byte[] faceISO, String[] previousHashArray,
-			ResponseDTO responseDTO) {
+			ResponseDTO responseDTO) throws NoSuchAlgorithmException {
 		if (null != faceISO) {
 			LinkedHashMap<String, Object> faceData = new LinkedHashMap<>();
 			Map<String, Object> data = new HashMap<>();
@@ -350,10 +347,10 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 				setErrorResponse(responseDTO, RegistrationConstants.USER_ON_BOARDING_EXCEPTION, null);
 			}
 
-			String presentHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash(dataBlockJsonString.getBytes()));
+			String presentHash = HMACUtils2.digestAsPlainText(dataBlockJsonString.getBytes());
 
 			String concatenatedHash = previousHashArray[0] + presentHash;
-			String finalHash = HMACUtils.digestAsPlainText(HMACUtils.generateHash(concatenatedHash.getBytes()));
+			String finalHash = HMACUtils2.digestAsPlainText(concatenatedHash.getBytes());
 			faceData.put(RegistrationConstants.AUTH_HASH, finalHash);
 			faceData.put(RegistrationConstants.SIGNATURE, "");
 			listOfBiometric.add(faceData);
@@ -442,7 +439,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 	 * @return the boolean
 	 */
 	@SuppressWarnings("unchecked")
-	private Boolean userOnBoardStatusFlag(Map<String, Object> onBoardResponseMap) {
+	private Boolean userOnBoardStatusFlag(Map<String, Object> onBoardResponseMap, ResponseDTO responseDTO) {
 
 		Boolean userOnbaordFlag = false;
 
@@ -458,7 +455,9 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 			LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) onBoardResponseMap
 					.get(RegistrationConstants.RESPONSE);
 			userOnbaordFlag = (Boolean) responseMap.get(RegistrationConstants.ON_BOARD_AUTH_STATUS);
-			LOGGER.debug(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, listOfFailureResponse.toString());
+			LOGGER.error(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, listOfFailureResponse.toString());
+			setErrorResponse(responseDTO, listOfFailureResponse.size()>0 ? (String) listOfFailureResponse.get(0).get("errorMessage") :
+					RegistrationConstants.USER_ON_BOARDING_THRESHOLD_NOT_MET_MSG, null);
 		}
 
 		return userOnbaordFlag;
@@ -492,8 +491,6 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 			Map<String, String> requestParamMap, String certificateData, ResponseDTO responseDTO) {
 		try {
 			PublicKey publicKey = keymanagerUtil.convertToCertificate(certificateData).getPublicKey();
-			/*PublicKey publicKey = PublicKeyGenerationUtil
-					.generatePublicKey(responseMap.get(RegistrationConstants.CERTIFICATE).toString().getBytes());*/
 
 			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "Getting Symmetric Key.....");
 			// Symmetric key alias session key
@@ -511,11 +508,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 			// requestHMAC
 			idaRequestMap.put(RegistrationConstants.ON_BOARD_REQUEST_HMAC,
 					CryptoUtil.encodeBase64(cryptoCore.symmetricEncrypt(symmentricKey,
-							HMACUtils
-									.digestAsPlainText(HMACUtils
-											.generateHash(new ObjectMapper().writeValueAsString(requestMap).getBytes()))
-									.getBytes(),
-							null)));
+							HMACUtils2.digestAsPlainText(new ObjectMapper().writeValueAsString(requestMap).getBytes()).getBytes(),null)));
 
 			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "preparing request Session Key.....");
 			// requestSession Key
@@ -529,35 +522,8 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 					RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
 
 			return onBoardResponse;
-			/*
-			 * boolean onboardAuthFlag = userOnBoardStatusFlag(onBoardResponse);
-			 * 
-			 * LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
-			 * "User Onboarded authentication flag... :" + onboardAuthFlag);
-			 * 
-			 * if (onboardAuthFlag) { responseDTO = save(biometricDTO);
-			 * LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
-			 * RegistrationConstants.USER_ON_BOARDING_SUCCESS_MSG); } else {
-			 * LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
-			 * RegistrationConstants.USER_ON_BOARDING_THRESHOLD_NOT_MET_MSG);
-			 * setErrorResponse(responseDTO,
-			 * RegistrationConstants.USER_ON_BOARDING_THRESHOLD_NOT_MET_MSG,
-			 * onBoardResponse); }
-			 * 
-			 * } else { LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
-			 * RegistrationConstants.ON_BOARD_PUBLIC_KEY_ERROR);
-			 * setErrorResponse(responseDTO,
-			 * RegistrationConstants.ON_BOARD_PUBLIC_KEY_ERROR, null); }
-			 */
 
-			/*
-			 * } else { responseDTO = save(biometricDTO); LOGGER.info(LOG_REG_USER_ONBOARD,
-			 * APPLICATION_NAME, APPLICATION_ID,
-			 * RegistrationConstants.USER_ON_BOARDING_SUCCESS_MSG); }
-			 */
-
-		} catch (RegBaseCheckedException | IOException
-				| RuntimeException regBasedCheckedException) {
+		} catch (RegBaseCheckedException | IOException | RuntimeException | NoSuchAlgorithmException regBasedCheckedException) {
 			LOGGER.error(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(regBasedCheckedException));
 			setErrorResponse(responseDTO, RegistrationConstants.USER_ON_BOARDING_EXCEPTION, null);

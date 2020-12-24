@@ -289,10 +289,6 @@
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-transliteration-icu4j</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>io.mosip.kernel</groupId>
-			<artifactId>kernel-applicanttype-api</artifactId>
-		</dependency>
 
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
@@ -312,7 +308,7 @@
 		<dependency>
 			<groupId>io.mosip.commons</groupId>
 			<artifactId>commons-packet-manager</artifactId>
-			<version>${mosip.core.kernel.version}</version>
+			<version>1.2.0-SNAPSHOT</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.springframework.boot</groupId>

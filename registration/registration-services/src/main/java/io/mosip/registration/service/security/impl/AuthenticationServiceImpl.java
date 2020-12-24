@@ -3,11 +3,13 @@ package io.mosip.registration.service.security.impl;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.registration.constants.LoginMode;
 import io.mosip.registration.dto.LoginUserDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
@@ -30,7 +32,6 @@ import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.HMACUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dao.UserDetailDAO;
@@ -164,7 +165,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
 			UserDTO userDTO = loginService.getUserDetail(authenticationValidatorDTO.getUserId());
 
-			if (null != userDTO && null != userDTO.getSalt() && HMACUtils
+			if (null != userDTO && null != userDTO.getSalt() && HMACUtils2
 							.digestAsPlainTextWithSalt(authenticationValidatorDTO.getPassword().getBytes(),
 									CryptoUtil.decodeBase64(userDTO.getSalt()))
 							.equals(userDTO.getUserPassword().getPwd())) {
@@ -173,7 +174,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 				return RegistrationConstants.PWD_MISMATCH;
 			}
 
-		} catch (RuntimeException | RegBaseCheckedException runtimeException) {
+		} catch (RuntimeException | RegBaseCheckedException | NoSuchAlgorithmException runtimeException) {
 			LOGGER.info("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(runtimeException));
 			return RegistrationConstants.PWD_MISMATCH;

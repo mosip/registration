@@ -193,10 +193,4 @@ public class TemplateGeneratorTest {
 		assertNotNull(response.getSuccessResponseDTO());
 	}
 
-	@Test
-	public void generateNotificationTemplateTest() throws IOException, URISyntaxException, RegBaseCheckedException {
-		Writer writer = templateGenerator.generateNotificationTemplate("sample text", registrationDTO, template);
-		assertNotNull(writer);
-	}
-
 }

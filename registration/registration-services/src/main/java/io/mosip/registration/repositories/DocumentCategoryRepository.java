@@ -6,7 +6,7 @@ import io.mosip.kernel.core.dataaccess.spi.repository.BaseRepository;
 import io.mosip.registration.entity.DocumentCategory;
 
 /**
- * Interface for {@link DocumentCategory} 
+ * Interface for {@link DocumentCategory}
  * 
  * @author Brahmananda Reddy
  *
@@ -14,7 +14,9 @@ import io.mosip.registration.entity.DocumentCategory;
 public interface DocumentCategoryRepository extends BaseRepository<DocumentCategory, String> {
 
 	List<DocumentCategory> findByIsActiveTrueAndLangCode(String langCode);
-	
+
 	List<DocumentCategory> findAllByIsActiveTrue();
+
+	DocumentCategory findByIsActiveTrueAndCodeAndLangCode(String docCategeoryCode, String langCode);
 
 }

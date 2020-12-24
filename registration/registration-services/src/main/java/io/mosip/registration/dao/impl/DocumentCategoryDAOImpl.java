@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.dao.DocumentCategoryDAO;
+import io.mosip.registration.dto.packetmanager.DocumentDto;
 import io.mosip.registration.entity.DocumentCategory;
 import io.mosip.registration.repositories.DocumentCategoryRepository;
 
@@ -43,5 +44,14 @@ public class DocumentCategoryDAOImpl implements DocumentCategoryDAO {
 				"fetching the document categories by lang code");
 
 		return documentCategoryRepository.findByIsActiveTrueAndLangCode(langCode);
+	}
+
+	@Override
+	public DocumentCategory getDocumentCategoryByCodeAndByLangCode(String docCategeoryCode, String langCode) {
+		LOGGER.info("REGISTRATION-PACKET_CREATION-DOCUMENTCATEGORY", APPLICATION_NAME, APPLICATION_ID,
+				"fetching the document categories by lang code");
+
+		return documentCategoryRepository.findByIsActiveTrueAndCodeAndLangCode(docCategeoryCode, langCode);
+
 	}
 }

@@ -10,7 +10,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
+import io.mosip.registration.dto.UserDetailDto;
 import io.mosip.registration.entity.*;
 import io.mosip.registration.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -139,7 +140,7 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 	 * @see io.mosip.registration.dao.UserDetailDAO#save(io.mosip.registration.dto.
 	 * UserDetailResponseDto)
 	 */
-	public void save(UserDetailResponseDto userDetailsResponse) throws RegBaseUncheckedException {
+	public void save(List<UserDetailDto> userDetails) throws RegBaseUncheckedException {
 
 		LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "Entering user detail save method...");
 
@@ -149,7 +150,7 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 
 			// deleting Role if Exist
 			LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "Deleting User role if exist....");
-			userDetailsResponse.getUserDetails().forEach(userRole -> {
+			userDetails.forEach(userRole -> {
 				userRole.getRoles().forEach(userRoleId -> {
 					UserRoleId roleId = new UserRoleId();
 					roleId.setRoleCode(userRoleId);
@@ -160,7 +161,7 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 			});
 
 			// Saving User Details user name and password
-			userDetailsResponse.getUserDetails().forEach(userDtals -> {
+			userDetails.forEach(userDtals -> {
 
 				List<UserDetail> users = userDetailRepository
 						.findByIdIgnoreCaseAndIsActiveTrue(userDtals.getUserName());
@@ -214,7 +215,7 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 			userPwdRepository.saveAll(userPassword);
 
 			// Saving User Roles
-			userDetailsResponse.getUserDetails().forEach(role -> {
+			userDetails.forEach(role -> {
 
 				UserRole roles = new UserRole();
 				roles.setIsActive(role.getIsActive() != null ? role.getIsActive().booleanValue() : true);
@@ -291,14 +292,14 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 	}
 
 	@Override
-	public void updateUserPwd(String userId, String password) {
+	public void updateUserPwd(String userId, String password) throws Exception {
 		List<UserDetail> userDetail = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
 		if (userDetail != null && !userDetail.isEmpty()) {
 			if (userDetail.get(0).getSalt() == null)
 				userDetail.get(0)
 						.setSalt(CryptoUtil.encodeBase64(DateUtils.formatToISOString(LocalDateTime.now()).getBytes()));
 
-			userDetail.get(0).getUserPassword().setPwd(HMACUtils.digestAsPlainTextWithSalt(password.getBytes(),
+			userDetail.get(0).getUserPassword().setPwd(HMACUtils2.digestAsPlainTextWithSalt(password.getBytes(),
 					CryptoUtil.decodeBase64(userDetail.get(0).getSalt())));
 			userDetail.get(0).getUserPassword().setUpdDtimes(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
 
