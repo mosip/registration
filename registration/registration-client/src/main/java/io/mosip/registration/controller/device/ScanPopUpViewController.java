@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 
 import javax.imageio.ImageIO;
-import javax.swing.JPanel;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,7 +30,6 @@ import io.mosip.registration.device.webcam.impl.WebcamSarxosServiceImpl;
 import io.mosip.registration.util.common.RubberBandSelection;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.embed.swing.SwingNode;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
@@ -68,9 +66,6 @@ public class ScanPopUpViewController extends BaseController {
 	private WebcamSarxosServiceImpl webcamSarxosServiceImpl;
 
 	@FXML
-	private ImageView scanImage;
-
-	@FXML
 	private Label popupTitle;
 
 	@FXML
@@ -81,12 +76,6 @@ public class ScanPopUpViewController extends BaseController {
 
 	@FXML
 	private Text scanningMsg;
-
-//	@FXML
-//	private GridPane imageParent;
-//
-//	@FXML
-//	private GridPane webcamParent;
 
 	private boolean isDocumentScan;
 
@@ -131,12 +120,18 @@ public class ScanPopUpViewController extends BaseController {
 	private Button streamBtn;
 	@FXML
 	private Button previewBtn;
-
+	
+	@FXML
+	private GridPane imageViewGridPane;
+	
+	@FXML
+	private ImageView scanImage;
+	
+	@FXML
+	private Group imageGroup;
+	
 	@Autowired
 	private BiometricsController biometricsController;
-
-	@FXML
-	private Group scanImageGroup;
 
 	private boolean isStreamPaused;
 
@@ -182,26 +177,24 @@ public class ScanPopUpViewController extends BaseController {
 	 * @param title
 	 */
 	public void init(BaseController parentControllerObj, String title) {
-
 		try {
-
 			LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					"Opening pop-up screen to scan for user registration");
-
+			
 			streamerValue = new TextField();
 			baseController = parentControllerObj;
 			popupStage = new Stage();
 			popupStage.initStyle(StageStyle.UNDECORATED);
 
 			LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "loading scan.fxml");
-			Parent scanPopup = BaseController.load(getClass().getResource(RegistrationConstants.SCAN_PAGE));
+			Parent scanPopup = BaseController.load(getClass().getResource(RegistrationConstants.SCAN_PAGE));			
+			
+			scanImage.fitWidthProperty().bind(imageViewGridPane.widthProperty());
+			scanImage.fitHeightProperty().bind(imageViewGridPane.heightProperty());
+			
 			setDefaultImageGridPaneVisibility();
 			popupStage.setResizable(false);
 			popupTitle.setText(title);
-
-//			scanImageGroup.getParent().minHeight(1000);
-//			scanImageGroup.getParent().minWidth(1000);
-			scanImage.setPreserveRatio(true);
 
 			cropButton.setDisable(true);
 			cancelBtn.setDisable(true);
@@ -209,7 +202,6 @@ public class ScanPopUpViewController extends BaseController {
 			Scene scene = null;
 
 			if (!isDocumentScan) {
-
 				scene = new Scene(scanPopup);
 				captureBtn.setVisible(false);
 				saveBtn.setVisible(false);
@@ -222,8 +214,8 @@ public class ScanPopUpViewController extends BaseController {
 						"Setting doc screen width : " + width);
 
 				LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-						"Setting doc screen height : " + height);
-
+						"Setting doc screen height : " + height);				
+				
 				scene = new Scene(scanPopup, width, height);
 
 				if (documentScanController.getScannedPages() != null
@@ -238,7 +230,6 @@ public class ScanPopUpViewController extends BaseController {
 					cancelBtn.setDisable(true);
 					previewBtn.setDisable(true);
 				}
-
 			}
 			scene.getStylesheets().add(ClassLoader.getSystemClassLoader().getResource(getCssName()).toExternalForm());
 			popupStage.setScene(scene);
@@ -500,7 +491,7 @@ public class ScanPopUpViewController extends BaseController {
 				"crop has been selected");
 		isStreamPaused = true;
 		scanImage.setVisible(true);
-		RubberBandSelection rubberBandSelection = new RubberBandSelection(scanImageGroup);
+		RubberBandSelection rubberBandSelection = new RubberBandSelection(imageGroup);
 
 		rubberBandSelection.setscanPopUpViewController(this);
 
