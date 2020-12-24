@@ -217,7 +217,6 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 			userDetailRepository.saveAll(userList);
 			userPwdRepository.saveAll(userPassword);
 
-			System.out.println(getAllUsers().size());
 			// Saving User Roles
 			userDetails.forEach(role -> {
 
@@ -336,21 +335,17 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 	public void deleteUserRole(String userName) {
 		LOGGER.info("REGISTRATION - USER_DETAIL - REGISTRATION_USER_DETAIL_DAO_IMPL", APPLICATION_NAME, APPLICATION_ID,
 				"Deleting Roles for user : " + userName);
-//
-		try {
-//			List<UserRole> userRole = userRoleRepository.findByUserRoleIdUsrId(userName);
-//
-//			if (userRole != null && !userRole.isEmpty()) {
-			userRoleRepository.deleteByUserRoleIdUsrId(userName);
-//			}
-		} catch (Exception exception) {
 
-//			exception.printStackTrace();
-		}
+		userRoleRepository.deleteByUserRoleIdUsrId(userName);
+
 	}
 
 	@Override
 	public void update(UserDetail userDetail) {
+
+		LOGGER.info("REGISTRATION - USER_DETAIL - REGISTRATION_USER_DETAIL_DAO_IMPL", APPLICATION_NAME, APPLICATION_ID,
+				"Updating User : " + userDetail.getId());
+
 		userDetailRepository.update(userDetail);
 	}
 

@@ -108,7 +108,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 
 	@Override
 	public ResponseDTO validateWithIDAuthAndSave(List<BiometricsDto> biometrics) throws RegBaseCheckedException {
-		boolean idAuthEnabled = true;
+		boolean idAuthEnabled = false;
 
 		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
 				"validateWithIDAuthAndSave invoked idAuthEnabled >> " + idAuthEnabled);

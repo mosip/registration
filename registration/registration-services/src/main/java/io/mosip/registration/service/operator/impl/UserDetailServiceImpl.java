@@ -11,11 +11,13 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.registration.dto.*;
+import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.entity.UserDetail;
 
 import org.json.JSONObject;
@@ -102,25 +104,21 @@ public class UserDetailServiceImpl extends BaseService implements UserDetailServ
 
 					List<UserDetail> existingUserDetails = userDetailDAO.getAllUsers();
 
-					for (UserDetail userDetail : existingUserDetails) {
+					for (UserDetail existingUserDetail : existingUserDetails) {
 
-						boolean found = false;
-						for (UserDetailDto userDetailDto : userDtls) {
+						Optional<UserDetailDto> result = userDtls.stream().filter(userDetailDto -> userDetailDto
+								.getUserName().equalsIgnoreCase(existingUserDetail.getId())).findFirst();
 
-							if (userDetail.getId().equalsIgnoreCase(userDetailDto.getUserName())) {
-								found = true;
-								break;
-							}
+						if (result == null || !result.isPresent()) {
 
-						}
+							LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID,
+									"Deleting User : " + existingUserDetail.getId());
+//							existingUserDetail.setIsActive(false);
+//							existingUserDetail.setIsDeleted(true);
+//							userDetailDAO.update(existingUserDetail);
 
-						if (!found) {
-
-							userDetail.setIsActive(false);
-							userDetail.setIsDeleted(true);
-							userDetailDAO.update(userDetail);
-
-//							userDetailDAO.deleteUserRole(userDetail.getId());
+							// TODO Delete complete UserDetail bio/token/pwd,...etc.
+							userDetailDAO.deleteUser(existingUserDetail);
 
 						}
 					}
