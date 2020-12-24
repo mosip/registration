@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ResourceBundle;
-import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 
@@ -58,7 +57,6 @@ import io.mosip.registration.controller.reg.DocumentScanController;
 import io.mosip.registration.controller.reg.RegistrationController;
 import io.mosip.registration.controller.reg.UserOnboardParentController;
 import io.mosip.registration.dao.UserDetailDAO;
-import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.BiometricAttributeDto;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.dto.packetmanager.DocumentDto;
@@ -80,7 +78,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
@@ -532,8 +529,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 				ImageView tickImageView = new ImageView(
 						new Image(this.getClass().getResourceAsStream(RegistrationConstants.TICK_CIRICLE_IMG_PATH)));
 
-				tickImageView.setFitWidth(30);
-				tickImageView.setFitHeight(30);
+				tickImageView.setFitWidth(40);
+				tickImageView.setFitHeight(40);
 				hBox.getChildren().add(tickImageView);
 			}
 		}
@@ -2343,11 +2340,16 @@ public class BiometricsController extends BaseController /* implements Initializ
 		}
 		if (image != null || isAllExceptions) {
 			if (hBox.getChildren().size() == 1) {
-				ImageView tickImageView = new ImageView(
-						new Image(this.getClass().getResourceAsStream(RegistrationConstants.TICK_CIRICLE_IMG_PATH)));
-
-				tickImageView.setFitWidth(30);
-				tickImageView.setFitHeight(30);
+				ImageView tickImageView;
+				if (isAllExceptions) {
+					tickImageView = new ImageView(new Image(this.getClass()
+							.getResourceAsStream(RegistrationConstants.EXCLAMATION_IMG_PATH)));
+				} else {
+					tickImageView = new ImageView(new Image(this.getClass()
+							.getResourceAsStream(RegistrationConstants.TICK_CIRICLE_IMG_PATH)));
+				}
+				tickImageView.setFitWidth(40);
+				tickImageView.setFitHeight(40);
 				hBox.getChildren().add(tickImageView);
 			}
 		}
@@ -2387,11 +2389,17 @@ public class BiometricsController extends BaseController /* implements Initializ
 
 						if (isCaptured) {
 							if (hBox.getChildren().size() == 1) {
-								ImageView imageView = new ImageView(new Image(this.getClass()
-										.getResourceAsStream(RegistrationConstants.TICK_CIRICLE_IMG_PATH)));
+								ImageView imageView;
+								if (uiImage == null) {
+									imageView = new ImageView(new Image(this.getClass()
+											.getResourceAsStream(RegistrationConstants.EXCLAMATION_IMG_PATH)));
+								} else {
+									imageView = new ImageView(new Image(this.getClass()
+											.getResourceAsStream(RegistrationConstants.TICK_CIRICLE_IMG_PATH)));
+								}								
 
-								imageView.setFitWidth(30);
-								imageView.setFitHeight(30);
+								imageView.setFitWidth(40);
+								imageView.setFitHeight(40);
 								hBox.getChildren().add(imageView);
 							}
 						} else {

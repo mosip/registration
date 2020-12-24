@@ -12,8 +12,6 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeLineCap;
@@ -30,7 +28,6 @@ public class RubberBandSelection {
 	private Rectangle rect = new Rectangle();
 	private ImageView imageView = null;
 
-	private BorderPane imageViewBorderPane;
 	private double startSelectionX;
 	private double startSelectionY;
 
@@ -57,17 +54,8 @@ public class RubberBandSelection {
 		rect.setFill(Color.LIGHTBLUE.deriveColor(0, 1.2, 1, 0.6));
 
 		for (Node node : group.getChildren()) {
-			if (node instanceof BorderPane) {
-				imageViewBorderPane = (BorderPane) node;
-
-				GridPane gridPane = (GridPane) imageViewBorderPane.getCenter();
-
-				for (Node gridChildren : gridPane.getChildren()) {
-					if (gridChildren instanceof ImageView) {
-						imageView = (ImageView) gridChildren;
-
-					}
-				}
+			if (node instanceof ImageView) {
+				imageView = (ImageView) node;
 			}
 		}
 

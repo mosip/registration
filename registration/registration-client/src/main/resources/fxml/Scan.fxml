@@ -12,209 +12,205 @@
 
 <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="420.0" prefWidth="616.0" styleClass="scanPage" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.mosip.registration.controller.device.ScanPopUpViewController">
   <columnConstraints>
-    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="100.0" prefWidth="100.0" />
   </columnConstraints>
   <rowConstraints>
-    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+    <RowConstraints minHeight="10.0" percentHeight="100.0" prefHeight="30.0" vgrow="SOMETIMES" />
   </rowConstraints>
    <children>
-      <BorderPane prefHeight="200.0" prefWidth="200.0">
-         <center>
-            <GridPane BorderPane.alignment="CENTER">
-              <columnConstraints>
-                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="234.0" minWidth="10.0" prefWidth="23.0" />
-                <ColumnConstraints hgrow="SOMETIMES" maxWidth="443.0" minWidth="10.0" prefWidth="436.0" />
-              </columnConstraints>
-              <rowConstraints>
-                <RowConstraints minHeight="10.0" percentHeight="8.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-              </rowConstraints>
+      <GridPane>
+        <columnConstraints>
+          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="100.0" prefWidth="100.0" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints minHeight="10.0" percentHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" percentHeight="80.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" percentHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+         <children>
+            <GridPane prefHeight="29.0" prefWidth="232.0" styleClass="documentScanHeader">
                <children>
-                  <Group fx:id="scanImageGroup" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                     <children>
-                        <BorderPane prefHeight="358.0" prefWidth="426.0" styleClass="docPreviewImgViewPane">
-                           <top>
-                              <GridPane prefHeight="13.0" prefWidth="393.0" BorderPane.alignment="CENTER">
-                                <columnConstraints>
-                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                </columnConstraints>
-                                <rowConstraints>
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                </rowConstraints>
-                              </GridPane>
-                           </top>
-                           <left>
-                              <GridPane prefHeight="283.0" prefWidth="12.0" BorderPane.alignment="CENTER">
-                                <columnConstraints>
-                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                </columnConstraints>
-                                <rowConstraints>
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                </rowConstraints>
-                              </GridPane>
-                           </left>
-                           <right>
-                              <GridPane prefHeight="283.0" prefWidth="15.0" BorderPane.alignment="CENTER">
-                                <columnConstraints>
-                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                </columnConstraints>
-                                <rowConstraints>
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                </rowConstraints>
-                              </GridPane>
-                           </right>
-                           <bottom>
-                              <GridPane fx:id="previewOption" prefHeight="50.0" prefWidth="487.0" styleClass="demoGraphicFieldLabel" visible="false" BorderPane.alignment="CENTER">
-                                 <children>
-                                    <Label fx:id="docPreviewNext" onMouseClicked="#previewNextPage" text="%previewnext" GridPane.columnIndex="5" GridPane.halignment="RIGHT" GridPane.valignment="CENTER" />
-                                    <Label fx:id="docPreviewPrev" onMouseClicked="#previewPrevPage" text="%previewprevious" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.valignment="CENTER" />
-                                    <Text fx:id="totalScannedPages" strokeType="OUTSIDE" strokeWidth="0.0" text="0" GridPane.columnIndex="4" />
-                                    <Text fx:id="docCurrentPageNumber" strokeType="OUTSIDE" strokeWidth="0.0" text="0" GridPane.columnIndex="2" />
-                                    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="/" GridPane.columnIndex="3" />
-                                 </children>
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="91.39999999999999" minWidth="1.0" percentWidth="2.0" prefWidth="41.39999999999999" />
-                                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="68.0" minWidth="10.0" percentWidth="43.0" prefWidth="43.0" />
-                                    <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" maxWidth="68.0" minWidth="10.0" percentWidth="4.0" prefWidth="43.0" />
-                                    <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" maxWidth="43.0" minWidth="10.0" percentWidth="6.0" prefWidth="20.0" />
-                                    <ColumnConstraints halignment="LEFT" hgrow="SOMETIMES" maxWidth="43.0" minWidth="10.0" percentWidth="12.0" prefWidth="20.0" />
-                                    <ColumnConstraints halignment="LEFT" hgrow="SOMETIMES" maxWidth="43.0" minWidth="10.0" percentWidth="54.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints maxHeight="56.0" minHeight="10.0" prefHeight="56.0" vgrow="SOMETIMES" />
-                                    <RowConstraints maxHeight="25.0" minHeight="4.0" prefHeight="4.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                              </GridPane>
-                           </bottom>
-                           <center>
-                              <GridPane prefHeight="228.0" prefWidth="300.0" BorderPane.alignment="CENTER">
-                                <columnConstraints>
-                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                </columnConstraints>
-                                <rowConstraints>
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                </rowConstraints>
-                                 <children>
-                                    <ImageView fx:id="scanImage" fitHeight="295.0" fitWidth="400.0" pickOnBounds="true" preserveRatio="true" />
-                                    <SwingNode fx:id="webcamNode" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS" />
-                                 </children>
-                              </GridPane>
-                           </center>
-                        </BorderPane>
-                     </children>
-                  </Group>
-               </children>
-            </GridPane>
-         </center>
-         <top>
-            <GridPane prefHeight="29.0" prefWidth="232.0" styleClass="documentScanHeader" BorderPane.alignment="CENTER">
-              <columnConstraints>
-                  <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" maxWidth="589.0" minWidth="10.0" prefWidth="164.0" />
-                <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" maxWidth="589.0" minWidth="10.0" prefWidth="337.0" />
-                  <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" maxWidth="302.0" minWidth="10.0" prefWidth="18.0" />
-                  <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" maxWidth="302.0" minWidth="10.0" prefWidth="100.0" />
-                  <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" maxWidth="302.0" minWidth="10.0" prefWidth="46.0" />
-              </columnConstraints>
-              <rowConstraints>
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-              </rowConstraints>
-               <children>
-                  <Label fx:id="popupTitle" prefHeight="27.0" prefWidth="431.0" styleClass="scanPopupHeaderTitle" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" />
-                  <Hyperlink fx:id="closeButton" onAction="#exitWindow" styleClass="exit" GridPane.columnIndex="4">
+                  <Label fx:id="popupTitle" prefHeight="27.0" prefWidth="431.0" styleClass="scanPopupHeaderTitle" GridPane.hgrow="ALWAYS" />
+                  <Hyperlink fx:id="closeButton" onAction="#exitWindow" styleClass="exit" GridPane.columnIndex="1">
                      <graphic>
                         <ImageView fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
                            <image>
                               <Image url="@../images/DocumentClose.png" />
                            </image>
                         </ImageView>
-                     </graphic></Hyperlink>
+                     </graphic>
+                  </Hyperlink>
                </children>
+               <columnConstraints>
+                  <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" maxWidth="589.0" minWidth="10.0" percentWidth="95.0" prefWidth="337.0" />
+                  <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" maxWidth="302.0" minWidth="10.0" percentWidth="5.0" prefWidth="46.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints minHeight="10.0" percentHeight="100.0" prefHeight="30.0" vgrow="SOMETIMES" />
+               </rowConstraints>
             </GridPane>
-         </top>
-         <right>
-            <GridPane alignment="TOP_RIGHT" prefHeight="364.0" prefWidth="157.0" vgap="7.0" BorderPane.alignment="CENTER">
+            <GridPane GridPane.rowIndex="1">
               <columnConstraints>
-                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" maxWidth="132.0" minWidth="10.0" prefWidth="132.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="80.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="20.0" prefWidth="100.0" />
               </columnConstraints>
               <rowConstraints>
-                  <RowConstraints maxHeight="90.0" minHeight="10.0" percentHeight="5.0" prefHeight="60.0" vgrow="SOMETIMES" />
-                  <RowConstraints maxHeight="90.0" minHeight="10.0" percentHeight="8.0" prefHeight="60.0" vgrow="SOMETIMES" />
-                <RowConstraints maxHeight="90.0" minHeight="0.0" percentHeight="8.0" prefHeight="0.0" vgrow="SOMETIMES" />
-                  <RowConstraints maxHeight="90.0" minHeight="0.0" percentHeight="8.0" prefHeight="0.0" vgrow="SOMETIMES" />
-                  <RowConstraints maxHeight="90.0" minHeight="0.0" percentHeight="8.0" prefHeight="34.0" vgrow="SOMETIMES" />
-                  <RowConstraints maxHeight="166.0" minHeight="0.0" percentHeight="8.0" prefHeight="31.0" vgrow="SOMETIMES" />
-                  <RowConstraints maxHeight="211.0" minHeight="10.0" percentHeight="8.0" prefHeight="17.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" percentHeight="100.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                  <Button fx:id="captureBtn" mnemonicParsing="false" onAction="#scan" prefHeight="39.0" prefWidth="167.0" styleClass="scanButton" text="%capture" GridPane.rowIndex="2">
-                     <graphic>
-                        <ImageView fitHeight="24.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/scan.png" />
-                           </image>
-                        </ImageView>
-                     </graphic></Button>
-                  <Button fx:id="saveBtn" mnemonicParsing="false" onAction="#save" prefHeight="39.0" prefWidth="143.0" styleClass="scanButton" text="%save" GridPane.rowIndex="3">
-                     <graphic>
-                        <ImageView fitHeight="19.0" fitWidth="77.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/DownloadPreRegData.png" />
-                           </image>
-                        </ImageView>
-                     </graphic>
-                     <GridPane.margin>
-                        <Insets top="1.0" />
-                     </GridPane.margin></Button>
-                  <Button fx:id="cancelBtn" mnemonicParsing="false" onAction="#cancel" prefHeight="39.0" prefWidth="154.0" styleClass="scanButton" text="%cancel" GridPane.rowIndex="5">
-                     <graphic>
-                        <ImageView fitHeight="22.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/reject.png" />
-                           </image>
-                        </ImageView>
-                     </graphic></Button>
-                  <Button fx:id="cropButton" mnemonicParsing="false" nodeOrientation="LEFT_TO_RIGHT" onAction="#crop" prefHeight="19.0" prefWidth="132.0" styleClass="scanButton" text="%crop" GridPane.rowIndex="4">
-                     <graphic>
-                        <ImageView fx:id="backImageView" fitHeight="20.0" fitWidth="27.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/crop.png" />
-                           </image>
-                        </ImageView>
-                     </graphic></Button>
-                  <Button fx:id="previewBtn" mnemonicParsing="false" onAction="#preview" prefHeight="39.0" prefWidth="154.0" styleClass="scanButton" text="%view" GridPane.rowIndex="6">
-                     <graphic>
-                        <ImageView fitHeight="26.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/hover.png" />
-                           </image>
-                        </ImageView>
-                     </graphic></Button>
-                  <Button fx:id="streamBtn" mnemonicParsing="false" nodeOrientation="LEFT_TO_RIGHT" onAction="#stream" prefHeight="39.0" prefWidth="167.0" styleClass="scanButton" text="%stream" GridPane.rowIndex="1">
-                     <graphic>
-                        <ImageView fitHeight="14.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/stream.png" />
-                           </image>
-                        </ImageView>
-                     </graphic></Button>
-                  <Text fx:id="scanningMsg" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="alertContext" />
+                  <GridPane>
+                    <columnConstraints>
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="10.0" prefWidth="100.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="80.0" prefWidth="100.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="10.0" prefWidth="100.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                      <RowConstraints minHeight="10.0" percentHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" percentHeight="80.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" percentHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                    </rowConstraints>
+                     <children>
+                        <GridPane styleClass="docPreviewImgViewPane" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                          <columnConstraints>
+                            <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" percentWidth="2.0" />
+                              <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" percentWidth="96.0" prefWidth="100.0" />
+                              <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" percentWidth="2.0" />
+                          </columnConstraints>
+                          <rowConstraints>
+                            <RowConstraints percentHeight="2.0" vgrow="SOMETIMES" />
+                              <RowConstraints percentHeight="96.0" vgrow="SOMETIMES" />
+                              <RowConstraints percentHeight="2.0" vgrow="SOMETIMES" />
+                          </rowConstraints>
+                           <children>
+                              <GridPane fx:id="imageViewGridPane" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                <columnConstraints>
+                                  <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" percentWidth="100.0" />
+                                </columnConstraints>
+                                <rowConstraints>
+                                  <RowConstraints percentHeight="100.0" vgrow="SOMETIMES" />
+                                </rowConstraints>
+                                 <children>
+                                    <Group fx:id="imageGroup">
+                                       <children>
+                                          <ImageView fx:id="scanImage" pickOnBounds="true" preserveRatio="true" />
+                                       </children>
+                                    </Group>
+                                 </children>
+                              </GridPane>
+                           </children>
+                        </GridPane>
+                     </children>
+                  </GridPane>
+                  <GridPane GridPane.columnIndex="1">
+                    <columnConstraints>
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="100.0" prefWidth="100.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                      <RowConstraints minHeight="10.0" percentHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" percentHeight="5.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" percentHeight="75.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" percentHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                    </rowConstraints>
+                     <children>
+                        <GridPane alignment="CENTER_RIGHT" hgap="20.0" vgap="20.0" GridPane.rowIndex="2">
+                           <children>
+                              <Button fx:id="streamBtn" graphicTextGap="10.0" mnemonicParsing="false" onAction="#stream" styleClass="scanButton" text="%stream">
+                                 <graphic>
+                                    <ImageView fitHeight="14.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/stream.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button>
+                              <Button fx:id="captureBtn" graphicTextGap="10.0" mnemonicParsing="false" onAction="#scan" styleClass="scanButton" text="%capture" GridPane.rowIndex="1">
+                                 <graphic>
+                                    <ImageView fitHeight="24.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/scan.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button>
+                              <Button fx:id="saveBtn" graphicTextGap="10.0" mnemonicParsing="false" onAction="#save" styleClass="scanButton" text="%save" GridPane.rowIndex="2">
+                                 <graphic>
+                                    <ImageView fitHeight="19.0" fitWidth="77.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/DownloadPreRegData.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button>
+                              <Button fx:id="cropButton" graphicTextGap="10.0" mnemonicParsing="false" onAction="#crop" styleClass="scanButton" text="%crop" GridPane.rowIndex="3">
+                                 <graphic>
+                                    <ImageView fx:id="backImageView1" fitHeight="20.0" fitWidth="27.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/crop.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button>
+                              <Button fx:id="cancelBtn" graphicTextGap="10.0" mnemonicParsing="false" onAction="#cancel" styleClass="scanButton" text="%cancel" GridPane.rowIndex="4">
+                                 <graphic>
+                                    <ImageView fitHeight="22.0" fitWidth="28.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/reject.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button>
+                              <Button fx:id="previewBtn" graphicTextGap="10.0" mnemonicParsing="false" onAction="#preview" styleClass="scanButton" text="%view" GridPane.rowIndex="5">
+                                 <graphic>
+                                    <ImageView fitHeight="26.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/hover.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button>
+                              <Text fx:id="scanningMsg" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="alertContext" GridPane.rowIndex="6" />
+                           </children>
+                           <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" percentWidth="100.0" />
+                           </columnConstraints>
+                           <rowConstraints>
+                              <RowConstraints percentHeight="10.0" vgrow="SOMETIMES" />
+                              <RowConstraints percentHeight="10.0" vgrow="SOMETIMES" />
+                              <RowConstraints percentHeight="10.0" vgrow="SOMETIMES" />
+                              <RowConstraints percentHeight="10.0" vgrow="SOMETIMES" />
+                              <RowConstraints percentHeight="10.0" vgrow="SOMETIMES" />
+                              <RowConstraints percentHeight="10.0" vgrow="SOMETIMES" />
+                              <RowConstraints percentHeight="10.0" vgrow="SOMETIMES" />
+                              <RowConstraints percentHeight="30.0" vgrow="SOMETIMES" />
+                           </rowConstraints>
+                        </GridPane>
+                     </children>
+                  </GridPane>
                </children>
-               <padding>
-                  <Insets right="20.0" />
-               </padding>
             </GridPane>
-         </right>
-         <bottom>
-            <GridPane BorderPane.alignment="CENTER">
-              <columnConstraints>
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-              </columnConstraints>
-              <rowConstraints>
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-              </rowConstraints>
+            <GridPane fx:id="previewOption" prefHeight="50.0" prefWidth="487.0" styleClass="demoGraphicFieldLabel" visible="false" GridPane.rowIndex="2">
+               <children>
+                  <Label fx:id="docPreviewNext" onMouseClicked="#previewNextPage" text="%previewnext" GridPane.columnIndex="5" GridPane.halignment="RIGHT" GridPane.valignment="CENTER" />
+                  <Label fx:id="docPreviewPrev" onMouseClicked="#previewPrevPage" text="%previewprevious" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.valignment="CENTER" />
+                  <Text fx:id="totalScannedPages" strokeType="OUTSIDE" strokeWidth="0.0" text="0" GridPane.columnIndex="4" />
+                  <Text fx:id="docCurrentPageNumber" strokeType="OUTSIDE" strokeWidth="0.0" text="0" GridPane.columnIndex="2" />
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text="/" GridPane.columnIndex="3" />
+               </children>
+               <columnConstraints>
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="91.39999999999999" minWidth="1.0" percentWidth="5.0" prefWidth="41.39999999999999" />
+                  <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" maxWidth="68.0" minWidth="10.0" percentWidth="37.0" prefWidth="43.0" />
+                  <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" maxWidth="68.0" minWidth="10.0" percentWidth="5.0" prefWidth="43.0" />
+                  <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" maxWidth="43.0" minWidth="10.0" percentWidth="6.0" prefWidth="20.0" />
+                  <ColumnConstraints halignment="LEFT" hgrow="SOMETIMES" maxWidth="43.0" minWidth="10.0" percentWidth="5.0" prefWidth="20.0" />
+                  <ColumnConstraints halignment="LEFT" hgrow="SOMETIMES" maxWidth="43.0" minWidth="10.0" percentWidth="37.0" prefWidth="100.0" />
+                  <ColumnConstraints halignment="LEFT" hgrow="SOMETIMES" maxWidth="43.0" minWidth="10.0" percentWidth="5.0" prefWidth="100.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints maxHeight="56.0" minHeight="10.0" prefHeight="56.0" vgrow="SOMETIMES" />
+                  <RowConstraints maxHeight="25.0" minHeight="4.0" prefHeight="4.0" vgrow="SOMETIMES" />
+               </rowConstraints>
             </GridPane>
-         </bottom>
-      </BorderPane>
+         </children>
+      </GridPane>
    </children>
 </GridPane>
