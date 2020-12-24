@@ -363,6 +363,7 @@ public class RegistrationConstants {
 	public static final String ONBOARD_IMG_PATH = "/images/tick.png";
 
 	public static final String TICK_CIRICLE_IMG_PATH = "/images/tick-circle.png";
+	public static final String EXCLAMATION_IMG_PATH = "/images/exclamation.png";
 	public static final String ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT = "EEEE dd MMM hh:mm a";
 	public static final String UTC_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
