@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.TimeZone;
 
+import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,7 +105,7 @@ public class DateValidation extends BaseController {
 					defaultDate.add(Calendar.YEAR, -age);
 					LocalDate date = LocalDate.of(defaultDate.get(Calendar.YEAR), defaultDate.get(Calendar.MONTH + 1),
 							defaultDate.get(Calendar.DATE));
-					isValid = validation.validateSingleString(date.format(DateTimeFormatter.ofPattern(RegistrationDTO.DATE_FORMAT)),
+					isValid = validation.validateSingleString(date.format(DateTimeFormatter.ofPattern(ApplicationContext.getDateFormat())),
 							fieldId);
 
 					if(isValid) {
@@ -186,7 +187,7 @@ public class DateValidation extends BaseController {
 		if(isValidValue(dd) && isValidValue(mm) && isValidValue(yyyy)) {
 			try {
 				LocalDate date = LocalDate.of(Integer.valueOf(yyyy), Integer.valueOf(mm), Integer.valueOf(dd));
-				String dob = date.format(DateTimeFormatter.ofPattern(RegistrationDTO.DATE_FORMAT));
+				String dob = date.format(DateTimeFormatter.ofPattern(ApplicationContext.getDateFormat()));
 				populateAge(parentPane, fieldId, date);
 				return validation.validateSingleString(dob, fieldId);
 			} catch (Exception ex) {
@@ -216,18 +217,17 @@ public class DateValidation extends BaseController {
 	}
 
 
-
 	/**
 	 * Validate the date and populate its corresponding local or secondary language
-	 * field if date is valid
-	 *
-	 * @param parentPane  the {@link Pane} containing the date fields
-	 * @param date        the date(dd) {@link TextField}
-	 * @param month       the month {@link TextField}
-	 * @param year        the year {@link TextField}
-	 * @param validations the instance of {@link Validations}
-	 * @param fxUtils     the instance of {@link FXUtils}
-	 * @param localField  the local field to be populated if input is valid.
+	 * 	 * field if date is valid
+	 * @param parentPane
+	 * @param date
+	 * @param month
+	 * @param year
+	 * @param fxUtils
+	 * @param ageField
+	 * @param ageLocalField
+	 * @param dobMessage
 	 */
 	public void validateDate(Pane parentPane, TextField date, TextField month, TextField year,
 			FXUtils fxUtils, TextField ageField, TextField ageLocalField, Label dobMessage) {
@@ -248,15 +248,15 @@ public class DateValidation extends BaseController {
 
 	/**
 	 * Validate the month and populate its corresponding local or secondary language
-	 * field if month is valid
-	 *
-	 * @param parentPane  the {@link Pane} containing the date fields
-	 * @param date        the date(dd) {@link TextField}
-	 * @param month       the month {@link TextField}
-	 * @param year        the year {@link TextField}
-	 * @param validations the instance of {@link Validations}
-	 * @param fxUtils     the instance of {@link FXUtils}
-	 * @param localField  the local field to be populated if input is valid.
+	 * 	 * field if month is valid
+	 * @param parentPane
+	 * @param date
+	 * @param month
+	 * @param year
+	 * @param fxUtils
+	 * @param ageField
+	 * @param ageLocalField
+	 * @param dobMessage
 	 */
 	public void validateMonth(Pane parentPane, TextField date, TextField month, TextField year,
 			FXUtils fxUtils, TextField ageField, TextField ageLocalField, Label dobMessage) {
@@ -275,15 +275,15 @@ public class DateValidation extends BaseController {
 
 	/**
 	 * Validate the year and populate its corresponding local or secondary language
-	 * field if year is valid
-	 *
-	 * @param parentPane  the {@link Pane} containing the date fields
-	 * @param date        the date(dd) {@link TextField}
-	 * @param month       the month {@link TextField}
-	 * @param year        the year {@link TextField}
-	 * @param validations the instance of {@link Validations}
-	 * @param fxUtils     the instance of {@link FXUtils}
-	 * @param localField  the local field to be populated if input is valid.
+	 * 	 * field if year is valid
+	 * @param parentPane
+	 * @param date
+	 * @param month
+	 * @param year
+	 * @param fxUtils
+	 * @param ageField
+	 * @param ageLocalField
+	 * @param dobMessage
 	 */
 	public void validateYear(Pane parentPane, TextField date, TextField month, TextField year,
 			FXUtils fxUtils, TextField ageField, TextField ageLocalField, Label dobMessage) {
