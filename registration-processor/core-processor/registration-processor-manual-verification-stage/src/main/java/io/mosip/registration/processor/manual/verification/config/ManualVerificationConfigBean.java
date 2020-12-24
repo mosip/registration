@@ -8,17 +8,29 @@ import io.mosip.registration.processor.manual.verification.service.ManualVerific
 import io.mosip.registration.processor.manual.verification.service.impl.ManualVerificationServiceImpl;
 import io.mosip.registration.processor.manual.verification.stage.ManualVerificationStage;
 import io.mosip.registration.processor.manual.verification.util.ManualVerificationRequestValidator;
+import io.mosip.registration.processor.packet.storage.dao.PacketInfoDao;
+import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
+import io.mosip.registration.processor.packet.storage.service.impl.PacketInfoManagerImpl;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.core.packet.dto.Identity;
+import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
+import io.mosip.registration.processor.manual.verification.Listener;
 
 @Configuration
 public class ManualVerificationConfigBean {
-
-	@Bean
-	public ManualVerificationStage getManualVerificationStage() {
-		return new ManualVerificationStage();
-	}
+	
 	
 	@Bean ManualVerificationService getManualVerificationService() {
 		return new ManualVerificationServiceImpl();
+	}
+	
+	@Bean Listener getListener() {
+		return new Listener();
+	}
+	
+	@Bean
+	public ManualVerificationStage getManualVerificationStage() {
+		return new ManualVerificationStage();
 	}
 
 	@Bean
