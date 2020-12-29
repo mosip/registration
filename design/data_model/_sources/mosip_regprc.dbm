@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.2-alpha" last-position="480,498" last-zoom="0.65"
+<dbmodel pgmodeler-ver="0.9.2-alpha" last-position="0,264" last-zoom="0.65"
 	 default-schema="public" default-owner="postgres">
 <role name="sysadmin"
       superuser="true"
@@ -442,7 +442,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="regprc"/>
 	<role name="sysadmin"/>
 	<comment><![CDATA[Manual Verification: Stores all the registration request which goes through manual verification process, registration can be assinged to single/multiple manual verifier as part of the verification process]]></comment>
-	<position x="60" y="440"/>
+	<position x="0" y="500"/>
 	<column name="reg_id" not-null="true">
 		<type name="character varying" length="39"/>
 		<comment><![CDATA[Registration ID: ID of the registration request]]></comment>
@@ -459,9 +459,17 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="character varying" length="256"/>
 		<comment><![CDATA[Manual Verifier ID: User ID of the manual verifier]]></comment>
 	</column>
-	<column name="matched_score">
-		<type name="numeric" length="6" precision="3"/>
-		<comment><![CDATA[Mached Score: Mached score as part deduplication process, This will be the combined score of multiple ABISapplications]]></comment>
+	<column name="ref_regtrn_id">
+		<type name="character varying" length="36"/>
+		<comment><![CDATA[Reference Transaction ID: Transaction id for the manual adjudication transaction refered from registration transaction table]]></comment>
+	</column>
+	<column name="request_id">
+		<type name="character varying" length="36"/>
+		<comment><![CDATA[Request ID: Request id of the request is been sent for manual adjudication at external applications]]></comment>
+	</column>
+	<column name="res_text">
+		<type name="bytea" length="6" precision="3"/>
+		<comment><![CDATA[Response Text: Text which is recived from external application for manual adjudication]]></comment>
 	</column>
 	<column name="status_code">
 		<type name="character varying" length="36"/>
