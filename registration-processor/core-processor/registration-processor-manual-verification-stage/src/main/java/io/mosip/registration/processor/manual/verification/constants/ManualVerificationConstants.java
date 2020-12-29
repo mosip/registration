@@ -30,4 +30,9 @@ public class ManualVerificationConstants {
 	public static final String USERS = "users";
 	public static final String TIME_FORMAT = "yyyy-MM-dd'T'hh:mm:ss.000'Z'";
 	public static final String ACT ="ACT";
+	public static final String MANUAL_ADJUDICATION_ID = "mosip.manual.adjudication.adjudicate";
+	public static final String VERSION="1.0";
+	public static final String POLICY_ID = "policyId";
+	public static final String POLICIES = "policies";
+	public static final String SHAREABLE_ATTRIBUTES = "shareableAttributes";
 }

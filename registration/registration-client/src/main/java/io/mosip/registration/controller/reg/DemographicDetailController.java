@@ -492,7 +492,20 @@ public class DemographicDetailController extends BaseController {
 		HBox dateHbox = new HBox();
 		dateHbox.setSpacing(10);
 		dateHbox.setPrefWidth(250);
-		dateHbox.getChildren().addAll(vBoxDD, vBoxMM, vBoxYYYY);
+		String dateFormat = ApplicationContext.getDateFormat();
+		String[] parts = dateFormat.split("/|-");
+		if(parts.length > 0) {
+			for(String part : parts) {
+				switch (part.toLowerCase()) {
+					case "dd" : dateHbox.getChildren().add(vBoxDD);	break;
+					case "mm": dateHbox.getChildren().add(vBoxMM);	break;
+					case "yyyy": dateHbox.getChildren().add(vBoxYYYY); break;
+				}
+			}
+		}
+		else {
+			dateHbox.getChildren().addAll(vBoxDD, vBoxMM, vBoxYYYY);
+		}
 
 		Label orLabel = new Label(localLanguage ? localLabelBundle.getString("ageOrDOBField")
 				: applicationLabelBundle.getString("ageOrDOBField"));

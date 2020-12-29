@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.TimerTask;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,10 +34,13 @@ import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.SuccessResponseDTO;
+import io.mosip.registration.dto.UserDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.jobs.BaseJob;
 import io.mosip.registration.scheduler.SchedulerUtil;
 import io.mosip.registration.service.config.JobConfigurationService;
+import io.mosip.registration.service.login.LoginService;
+import io.mosip.registration.service.operator.UserDetailService;
 import io.mosip.registration.service.remap.CenterMachineReMapService;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.service.sync.SyncStatusValidatorService;
@@ -146,9 +150,15 @@ public class HeaderController extends BaseController {
 
 	@Autowired
 	private AuthTokenUtilService authTokenUtilService;
-	
+
 	@Autowired
 	private CenterMachineReMapService centerMachineReMapService;
+
+	@Autowired
+	private LoginService loginService;
+
+	@Autowired
+	private UserDetailService userDetailService;
 
 	/**
 	 * Mapping Registration Officer details
@@ -416,8 +426,19 @@ public class HeaderController extends BaseController {
 							LOGGER.info("REGISTRATION - SYNC - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 									"Executing client settings to check remap process");
 
-							return masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
-									RegistrationConstants.JOB_TRIGGER_POINT_USER);
+							ResponseDTO responseDTO = null;
+
+							try {
+
+								responseDTO = userDetailService.save(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
+								responseDTO = masterSyncService.getMasterSync(
+										RegistrationConstants.OPT_TO_REG_MDS_J00001,
+										RegistrationConstants.JOB_TRIGGER_POINT_USER);
+							} catch (Exception exception) {
+								LOGGER.error("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME,
+										APPLICATION_ID, ExceptionUtils.getStackTrace(exception));
+							}
+							return responseDTO;
 						}
 					};
 				}
@@ -444,17 +465,22 @@ public class HeaderController extends BaseController {
 					LOGGER.debug("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 							"Center remap process success");
 
-					if (!isMachineRemapProcessStarted()) {
-						generateAlert(RegistrationConstants.ALERT_INFORMATION,
-								RegistrationUIConstants.REMAP_NOT_APPLICABLE);
+					boolean showAlert = true;
+					boolean userRemapFound = userRemapCheck(showAlert);
+
+					if (!userRemapFound) {
+						machineRemapCheck(showAlert);
 					}
+
 					progressIndicator.setVisible(false);
 				}
+
 			})));
 
 			if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
 				if (!authTokenUtilService.hasAnyValidToken()) {
-					generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
+					generateAlert(RegistrationConstants.ALERT_INFORMATION,
+							RegistrationUIConstants.USER_RELOGIN_REQUIRED);
 					return;
 				} else {
 					progressIndicator = packetHandlerController.getProgressIndicator();
@@ -542,25 +568,25 @@ public class HeaderController extends BaseController {
 			@Override
 			protected Task<ResponseDTO> createTask() {
 				return /**
-				 * @author SaravanaKumar
-				 *
-				 */
-						new Task<ResponseDTO>() {
-							/*
-							 * (non-Javadoc)
-							 *
-							 * @see javafx.concurrent.Task#call()
-							 */
-							@Override
-							protected ResponseDTO call() {
+						 * @author SaravanaKumar
+						 *
+						 */
+				new Task<ResponseDTO>() {
+					/*
+					 * (non-Javadoc)
+					 *
+					 * @see javafx.concurrent.Task#call()
+					 */
+					@Override
+					protected ResponseDTO call() {
 
-								LOGGER.info("REGISTRATION - SYNC - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
-										"Handling all the sync activities");
+						LOGGER.info("REGISTRATION - SYNC - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+								"Handling all the sync activities");
 
-								return jobConfigurationService.executeAllJobs();
+						return jobConfigurationService.executeAllJobs();
 
-							}
-						};
+					}
+				};
 			}
 		};
 
@@ -593,6 +619,10 @@ public class HeaderController extends BaseController {
 					generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.SYNC_SUCCESS);
 
 				}
+
+				boolean showAlert = false;
+				machineRemapCheck(showAlert);
+				userRemapCheck(showAlert);
 				progressIndicator.setVisible(false);
 			}
 		});
@@ -639,27 +669,27 @@ public class HeaderController extends BaseController {
 			@Override
 			protected Task<String> createTask() {
 				return /**
-				 * @author SaravanaKumar
-				 *
-				 */
-						new Task<String>() {
-							/*
-							 * (non-Javadoc)
-							 *
-							 * @see javafx.concurrent.Task#call()
-							 */
-							@Override
-							protected String call() {
+						 * @author SaravanaKumar
+						 *
+						 */
+				new Task<String>() {
+					/*
+					 * (non-Javadoc)
+					 *
+					 * @see javafx.concurrent.Task#call()
+					 */
+					@Override
+					protected String call() {
 
-								LOGGER.info("REGISTRATION - SOFTWARE_UPDATE - HEADER_CONTROLLER", APPLICATION_NAME,
-										APPLICATION_ID, "Handling all the Software Update activities");
+						LOGGER.info("REGISTRATION - SOFTWARE_UPDATE - HEADER_CONTROLLER", APPLICATION_NAME,
+								APPLICATION_ID, "Handling all the Software Update activities");
 
-								progressIndicator.setVisible(true);
-								pane.setDisable(true);
-								return softwareUpdate();
+						progressIndicator.setVisible(true);
+						pane.setDisable(true);
+						return softwareUpdate();
 
-							}
-						};
+					}
+				};
 			}
 		};
 
@@ -690,7 +720,7 @@ public class HeaderController extends BaseController {
 	}
 
 	public void softwareUpdate(Pane pane, ProgressIndicator progressIndicator, String context,
-							   boolean isPreLaunchTaskToBeStopped) {
+			boolean isPreLaunchTaskToBeStopped) {
 		Alert updateAlert = createAlert(AlertType.CONFIRMATION, RegistrationUIConstants.UPDATE_AVAILABLE,
 				RegistrationUIConstants.ALERT_NOTE_LABEL, context, RegistrationConstants.UPDATE_NOW_LABEL,
 				RegistrationConstants.UPDATE_LATER_LABEL);
@@ -744,7 +774,7 @@ public class HeaderController extends BaseController {
 	}
 
 	private void softwareUpdateInitiate(Pane pane, ProgressIndicator progressIndicator, String context,
-										boolean isPreLaunchTaskToBeStopped) {
+			boolean isPreLaunchTaskToBeStopped) {
 		if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
 			executeSoftwareUpdateTask(pane, progressIndicator);
 		} else {
@@ -774,28 +804,28 @@ public class HeaderController extends BaseController {
 			@Override
 			protected Task<ResponseDTO> createTask() {
 				return /**
-				 * @author Yaswanth S
-				 *
-				 */
-						new Task<ResponseDTO>() {
-							/*
-							 * (non-Javadoc)
-							 *
-							 * @see javafx.concurrent.Task#call()
-							 */
-							@Override
-							protected ResponseDTO call() {
+						 * @author Yaswanth S
+						 *
+						 */
+				new Task<ResponseDTO>() {
+					/*
+					 * (non-Javadoc)
+					 *
+					 * @see javafx.concurrent.Task#call()
+					 */
+					@Override
+					protected ResponseDTO call() {
 
-								LOGGER.info("REGISTRATION - HEADER_CONTROLLER - DOWNLOAD_PRE_REG_DATA_TASK", APPLICATION_NAME,
-										APPLICATION_ID, "Started pre reg download task");
+						LOGGER.info("REGISTRATION - HEADER_CONTROLLER - DOWNLOAD_PRE_REG_DATA_TASK", APPLICATION_NAME,
+								APPLICATION_ID, "Started pre reg download task");
 
-								progressIndicator.setVisible(true);
-								pane.setDisable(true);
-								return jobConfigurationService.executeJob(RegistrationConstants.OPT_TO_REG_PDS_J00003,
-										RegistrationConstants.JOB_TRIGGER_POINT_USER);
+						progressIndicator.setVisible(true);
+						pane.setDisable(true);
+						return jobConfigurationService.executeJob(RegistrationConstants.OPT_TO_REG_PDS_J00003,
+								RegistrationConstants.JOB_TRIGGER_POINT_USER);
 
-							}
-						};
+					}
+				};
 			}
 		};
 
@@ -858,5 +888,43 @@ public class HeaderController extends BaseController {
 				}
 			}
 		});
+	}
+
+	private void machineRemapCheck(boolean showAlert) {
+		if (centerMachineReMapService.isMachineRemapped() || centerMachineReMapService.isMachineInActive()) {
+
+			remapMachine();
+
+		} else if (showAlert) {
+
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.REMAP_NOT_APPLICABLE);
+		}
+
+	}
+
+	private boolean userRemapCheck(boolean showAlert) {
+		boolean userNotFoundOrNotActive = false;
+		ResponseDTO responseDTO = loginService.validateUser(SessionContext.getInstance().getUserContext().getUserId());
+		SuccessResponseDTO successResponseDTO = responseDTO.getSuccessResponseDTO();
+		if (successResponseDTO != null) {
+			UserDTO userDTO = (UserDTO) responseDTO.getSuccessResponseDTO().getOtherAttributes()
+					.get(RegistrationConstants.USER_DTO);
+
+			userNotFoundOrNotActive = userDTO == null || userDTO.getId() == null || !userDTO.getIsActive();
+		} else if (responseDTO.getErrorResponseDTOs() != null) {
+			userNotFoundOrNotActive = true;
+		}
+
+		if (userNotFoundOrNotActive) {
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_IN_ACTIVE);
+
+			logout(null);
+
+		} else if (showAlert) {
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USERMAP_NOT_APPLICABLE);
+
+		}
+
+		return userNotFoundOrNotActive;
 	}
 }

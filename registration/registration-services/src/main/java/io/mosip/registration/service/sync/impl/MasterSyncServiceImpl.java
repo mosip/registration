@@ -672,18 +672,31 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 				masterSyncResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil
 						.get(RegistrationConstants.MASTER_VALIDATOR_SERVICE_NAME, requestParam, true, triggerPoint);
 
+				boolean isMachineRemap = isMachineActiveWithCenter(getErrorCode(getErrorList(masterSyncResponse)),
+						RegistrationConstants.MACHINE_REMAP_CODE);
+
+				boolean isMachineInActive = isMachineActiveWithCenter(getErrorCode(getErrorList(masterSyncResponse)),
+						RegistrationConstants.MACHINE_INACTIVE_CODE);
+
 				if (null != masterSyncResponse.get(RegistrationConstants.RESPONSE)) {
 					saveClientSettings(masterSyncDtls, triggerPoint, masterSyncResponse, responseDTO);
 
 					globalParamService.update(RegistrationConstants.MACHINE_CENTER_REMAP_FLAG,
 							RegistrationConstants.FALSE);
-				} else if (null != masterSyncResponse.get(RegistrationConstants.ERRORS)
-						&& isMachineRemapped(masterSyncResponse))
-					initiateMachineCenterRemapping(masterSyncResponse, responseDTO);
-				else
+
+					globalParamService.update(RegistrationConstants.MACHINE_INACTIVE_FLAG, RegistrationConstants.FALSE);
+				} else if (isMachineRemap || isMachineInActive) {
+					globalParamService.update(RegistrationConstants.MACHINE_CENTER_REMAP_FLAG,
+							isMachineRemap ? RegistrationConstants.TRUE : RegistrationConstants.FALSE);
+
+					globalParamService.update(RegistrationConstants.MACHINE_INACTIVE_FLAG,
+							isMachineInActive ? RegistrationConstants.TRUE : RegistrationConstants.FALSE);
+				} else {
 					setErrorResponse(responseDTO, errorMsg(masterSyncResponse), null);
-			} else
+				}
+			} else {
 				setErrorResponse(responseDTO, RegistrationConstants.NO_INTERNET, null);
+			}
 
 		} catch (Exception e) {
 			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
@@ -718,20 +731,6 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 					"Save Client Settings completed successfully.");
 		} else
 			setErrorResponse(responseDTO, RegistrationConstants.MASTER_SYNC_FAILURE_MSG, null);
-	}
-
-	private void initiateMachineCenterRemapping(LinkedHashMap<String, Object> masterSyncResponse,
-			ResponseDTO responseDTO) {
-		LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, "Machine center remapping ...");
-
-		auditFactory.audit(AuditEvent.MACHINE_REMAPPED, Components.CENTER_MACHINE_REMAP,
-				RegistrationConstants.APPLICATION_NAME, AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
-		globalParamService.update(RegistrationConstants.MACHINE_CENTER_REMAP_FLAG, RegistrationConstants.TRUE);
-		centerMachineReMapService.startRemapProcess();
-
-		setSuccessResponse(responseDTO,
-				(String) globalParamService.getGlobalParams().get(RegistrationConstants.INITIAL_SETUP),
-				masterSyncResponse);
 	}
 
 	/**
@@ -791,14 +790,30 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 		return responseDTO;
 	}
 
-	private boolean isMachineRemapped(LinkedHashMap<String, Object> syncReponse) {
+	@SuppressWarnings("unchecked")
+	private List<Map<String, Object>> getErrorList(LinkedHashMap<String, Object> syncReponse) {
 
-		@SuppressWarnings("unchecked")
-		List<Map<String, Object>> errorList = (List<Map<String, Object>>) syncReponse.get(RegistrationConstants.ERRORS);
+		return syncReponse.get(RegistrationConstants.ERRORS) != null
+				? (List<Map<String, Object>>) syncReponse.get(RegistrationConstants.ERRORS)
+				: null;
 
-		if (errorList != null && !errorList.isEmpty())
-			return "KER-SNC-149".equalsIgnoreCase((String) errorList.get(0).get("errorCode"));
+	}
 
-		return false;
+	private String getErrorCode(List<Map<String, Object>> errorList) {
+
+		return errorList != null && errorList.get(0) != null
+				? (String) errorList.get(0).get(RegistrationConstants.ERROR_CODE)
+				: null;
+
+	}
+
+	private boolean isMachineActiveWithCenter(String responseErrorCode, String errorCode) {
+
+		boolean isMatch = false;
+		if (responseErrorCode != null) {
+			isMatch = responseErrorCode.equalsIgnoreCase(errorCode);
+		}
+
+		return isMatch;
 	}
 }

@@ -1,9 +1,5 @@
 package io.mosip.registration.controller.reg;
 
-import static io.mosip.registration.constants.RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE_PART_1;
-import static io.mosip.registration.constants.RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE_PART_2;
-import static io.mosip.registration.constants.RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE_PART_3;
-import static io.mosip.registration.constants.RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE_PART_4;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
@@ -82,7 +78,6 @@ public class RegistrationPreviewController extends BaseController implements Ini
 
 	private String consentText;
 
-	private StringBuilder templateContent;
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
@@ -101,8 +96,6 @@ public class RegistrationPreviewController extends BaseController implements Ini
 
 		String key = RegistrationConstants.REG_CONSENT + applicationContext.getApplicationLanguage();
 		consentText = getValueFromApplicationContext(key);
-
-		templateContent = new StringBuilder();
 
 		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getSelectionListDTO() != null) {
 
@@ -193,18 +186,9 @@ public class RegistrationPreviewController extends BaseController implements Ini
 		LOGGER.info("REGISTRATION - UI - REGISTRATION_PREVIEW_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 				"Setting up preview content has been started");
 		try {
-			if (templateContent.length() == 0) {
-				String platformLanguageCode = ApplicationContext.applicationLanguage();
-				templateContent
-						.append(templateService.getHtmlTemplate(ACKNOWLEDGEMENT_TEMPLATE_PART_1, platformLanguageCode));
-				templateContent
-						.append(templateService.getHtmlTemplate(ACKNOWLEDGEMENT_TEMPLATE_PART_2, platformLanguageCode));
-				templateContent
-						.append(templateService.getHtmlTemplate(ACKNOWLEDGEMENT_TEMPLATE_PART_3, platformLanguageCode));
-				templateContent
-						.append(templateService.getHtmlTemplate(ACKNOWLEDGEMENT_TEMPLATE_PART_4, platformLanguageCode));
-			}
-			String ackTemplateText = templateContent.toString();
+			String ackTemplateText = templateService.getHtmlTemplate(RegistrationConstants.PREVIEW_TEMPLATE_CODE,
+					ApplicationContext.applicationLanguage());
+
 			if (ApplicationContext.applicationLanguage().equalsIgnoreCase(ApplicationContext.localLanguage())) {
 				ackTemplateText = ackTemplateText.replace("} / ${", "}  ${");
 			}

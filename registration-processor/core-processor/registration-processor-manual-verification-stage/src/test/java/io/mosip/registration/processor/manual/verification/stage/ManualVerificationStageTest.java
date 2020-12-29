@@ -135,7 +135,7 @@ public class ManualVerificationStageTest{
 		manualverificationstage.sendMessage(dto);
 		manualverificationstage.start();
 	}
-	@Test
+/*	@Test
 	public void testAllProcess() throws PacketDecryptionFailureException, ApisResourceAccessException, IOException, java.io.IOException, JsonProcessingException, PacketManagerException {
 		
 		testProcessAssignment();
@@ -160,7 +160,7 @@ public class ManualVerificationStageTest{
 		ManualVerificationDecisionDto updatedManualVerificationDTO=new ManualVerificationDecisionDto();
 		Mockito.when(manualAdjudicationService.updatePacketStatus(any(),any())).thenReturn(updatedManualVerificationDTO);
 		manualverificationstage.processDecision(ctx);
-	}
+	}*/
 	
 	private FileUpload setFileUpload() {
 		return new FileUpload() {

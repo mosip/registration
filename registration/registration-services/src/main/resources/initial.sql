@@ -358,6 +358,7 @@ INSERT INTO "REG"."GLOBAL_PARAM" VALUES ('mosip.kernel.xsdfile','mosip.kernel.xs
 INSERT INTO "REG"."GLOBAL_PARAM" VALUES ('mosip.kernel.jsonvalidator.schema-name','mosip.kernel.jsonvalidator.schema-name','mosip-identity-json-schema.json','CONFIGURATION','eng',true,'SYSTEM',current timestamp, 'SYSTEM',current timestamp, false, current timestamp);
 
 INSERT INTO "REG"."GLOBAL_PARAM" VALUES ('mosip.registration.machinecenterchanged','mosip.registration.machinecenterchanged','false','CONFIGURATION','eng',true,'System',current timestamp,'SYSTEM',current timestamp, false, current timestamp);
+INSERT INTO "REG"."GLOBAL_PARAM" VALUES ('mosip.registration.machine.inactive','mosip.registration.machine.inactive','false','CONFIGURATION','eng',true,'System',current timestamp,'SYSTEM',current timestamp, false, current timestamp);
 
 INSERT INTO "REG"."GLOBAL_PARAM" VALUES ('mosip.registration.initial_setup','mosip.registration.initial_setup','Y','CONFIGURATION','eng',true,'System',current timestamp,'SYSTEM',current timestamp, false, current timestamp);
 

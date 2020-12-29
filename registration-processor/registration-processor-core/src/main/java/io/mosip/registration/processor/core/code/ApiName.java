@@ -228,3 +228,4 @@ public enum ApiName {
 	CREDENTIALREQUEST, GETVIDSBYUIN;
 
 }
+
