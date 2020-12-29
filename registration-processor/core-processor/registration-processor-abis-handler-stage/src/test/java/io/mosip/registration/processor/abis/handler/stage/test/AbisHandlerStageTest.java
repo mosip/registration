@@ -37,6 +37,7 @@ import io.mosip.registration.processor.abis.handler.dto.DataShare;
 import io.mosip.registration.processor.abis.handler.dto.DataShareResponseDto;
 import io.mosip.registration.processor.abis.handler.stage.AbisHandlerStage;
 import io.mosip.registration.processor.abis.queue.dto.AbisQueueDetails;
+import io.mosip.registration.processor.core.abstractverticle.EventDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -51,6 +52,7 @@ import io.mosip.registration.processor.core.packet.dto.abis.AbisInsertRequestDto
 import io.mosip.registration.processor.core.packet.dto.abis.AbisRequestDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegBioRefDto;
 import io.mosip.registration.processor.core.packet.dto.abis.RegDemoDedupeListDto;
+import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
@@ -61,6 +63,8 @@ import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 
 @RunWith(PowerMockRunner.class)
@@ -112,7 +116,29 @@ public class AbisHandlerStageTest {
 		public MosipEventBus getEventBus(Object verticleName, String url, int instanceNumber) {
 			vertx = Vertx.vertx();
 
-			return new MosipEventBus(vertx) {
+			return new MosipEventBus() {
+
+				@Override
+				public Vertx getEventbus() {
+					return vertx;
+				}
+
+				@Override
+				public void consume(MessageBusAddress fromAddress,
+						EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler) {
+
+				}
+
+				@Override
+				public void consumeAndSend(MessageBusAddress fromAddress, MessageBusAddress toAddress,
+						EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler) {
+
+				}
+
+				@Override
+				public void send(MessageBusAddress toAddress, MessageDTO message) {
+
+				}
 			};
 		}
 

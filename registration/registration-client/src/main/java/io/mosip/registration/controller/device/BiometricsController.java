@@ -777,35 +777,38 @@ public class BiometricsController extends BaseController /* implements Initializ
 		// get List of captured Biometrics based on nonExceptionBio Attributes
 		List<BiometricsDto> capturedBiometrics = null;
 
-		// if (!isFace(modality)) {
-		List<Node> checkBoxNodes = getCheckBoxes(currentSubType, currentModality);
+		//if (!isFace(modality)) {
+			List<Node> checkBoxNodes = getCheckBoxes(currentSubType, currentModality);
 
-		List<String> exceptionBioAttributes = null;
-		List<String> nonExceptionBioAttributes = isFace(modality) ? RegistrationConstants.faceUiAttributes : null;
+			List<String> exceptionBioAttributes = null;
+			List<String> nonExceptionBioAttributes = isFace(modality) ? RegistrationConstants.faceUiAttributes : null;
 
-		if (!checkBoxNodes.isEmpty()) {
-			for (Node node : ((Pane) checkBoxNodes.get(1)).getChildren()) {
-				if (node instanceof ImageView) {
-					ImageView imageView = (ImageView) node;
-					String bioAttribute = imageView.getId();
-					if (bioAttribute != null && !bioAttribute.isEmpty()) {
-						if (imageView.getOpacity() == 1) {
-							exceptionBioAttributes = exceptionBioAttributes != null ? exceptionBioAttributes
-									: new LinkedList<String>();
-							exceptionBioAttributes.add(bioAttribute);
-						} else {
-							nonExceptionBioAttributes = nonExceptionBioAttributes != null ? nonExceptionBioAttributes
-									: new LinkedList<String>();
-							nonExceptionBioAttributes.add(bioAttribute);
+			if(!checkBoxNodes.isEmpty()) {
+				for (Node node : ((Pane) checkBoxNodes.get(1)).getChildren()) {
+					if (node instanceof ImageView) {
+						ImageView imageView = (ImageView) node;
+						String bioAttribute = imageView.getId();
+						if (bioAttribute != null && !bioAttribute.isEmpty()) {
+							if (imageView.getOpacity() == 1) {
+								exceptionBioAttributes = exceptionBioAttributes != null ? exceptionBioAttributes
+										: new LinkedList<String>();
+								exceptionBioAttributes.add(bioAttribute);
+							} else {
+								nonExceptionBioAttributes = nonExceptionBioAttributes != null ? nonExceptionBioAttributes
+										: new LinkedList<String>();
+								nonExceptionBioAttributes.add(bioAttribute);
+							}
 						}
 					}
 				}
 			}
 		}
 
+
 		if (nonExceptionBioAttributes != null) {
 			capturedBiometrics = getBiometrics(currentSubType, nonExceptionBioAttributes);
 		}
+
 
 		/*
 		 * } else { capturedBiometrics = getBiometrics(currentSubType,

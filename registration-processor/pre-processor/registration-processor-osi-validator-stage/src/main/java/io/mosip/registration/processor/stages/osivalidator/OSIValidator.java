@@ -112,12 +112,6 @@ public class OSIValidator {
 	@Value("${registration.processor.validate.introducer}")
 	private boolean introducerValidation;
 
-	@Value("${packet.default.source}")
-	private String officerBiometricFileSource;
-
-	@Value("${packet.default.source}")
-	private String supervisorBiometricFileSource;
-
 	@Autowired
 	private Utilities utility;
 

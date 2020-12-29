@@ -13,10 +13,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import io.mosip.registration.processor.core.abstractverticle.EventDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
+import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.impl.RouterImpl;
@@ -50,7 +54,29 @@ public class BioDedupeStageTest {
 		public MosipEventBus getEventBus(Object verticleName, String url, int instanceNumber) {
 			vertx = Vertx.vertx();
 
-			return new MosipEventBus(vertx) {
+			return new MosipEventBus() {
+
+				@Override
+				public Vertx getEventbus() {
+					return vertx;
+				}
+
+				@Override
+				public void consume(MessageBusAddress fromAddress,
+						EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler) {
+
+				}
+
+				@Override
+				public void consumeAndSend(MessageBusAddress fromAddress, MessageBusAddress toAddress,
+						EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler) {
+
+				}
+
+				@Override
+				public void send(MessageBusAddress toAddress, MessageDTO message) {
+
+				}
 			};
 		}
 
