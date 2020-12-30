@@ -65,19 +65,19 @@ public class UserDetail extends RegistrationCommonFields implements Serializable
 	@Column(name = "del_dtimes")
 	private Timestamp delDtimes;
 
-	@OneToMany(fetch = FetchType.EAGER, mappedBy = "userDetail")
+	@OneToMany(fetch = FetchType.EAGER, mappedBy = "userDetail", cascade = CascadeType.ALL)
 	private Set<UserRole> userRole;
 
-	@OneToMany(fetch = FetchType.EAGER, mappedBy = "userDetail")
+	@OneToMany(fetch = FetchType.EAGER, mappedBy = "userDetail", cascade = CascadeType.ALL)
 	private Set<UserMachineMapping> userMachineMapping;
 
-	@OneToMany(fetch = FetchType.EAGER, mappedBy = "userDetail")
+	@OneToMany(fetch = FetchType.EAGER, mappedBy = "userDetail", cascade = CascadeType.ALL)
 	private Set<UserBiometric> userBiometric;
 
-	@OneToOne(fetch = FetchType.EAGER, mappedBy = "userDetail")
+	@OneToOne(fetch = FetchType.EAGER, mappedBy = "userDetail", cascade = CascadeType.ALL)
 	private UserPassword userPassword;
 
-	@OneToOne(fetch = FetchType.EAGER, mappedBy = "userDetail")
+	@OneToOne(fetch = FetchType.EAGER, mappedBy = "userDetail", cascade = CascadeType.ALL)
 	private RegCenterUser regCenterUser;
 
 	@OneToOne(fetch = FetchType.EAGER, mappedBy = "userDetail", cascade = CascadeType.ALL)

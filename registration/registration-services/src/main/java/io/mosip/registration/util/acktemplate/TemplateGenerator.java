@@ -388,6 +388,10 @@ public class TemplateGenerator extends BaseService {
 			templateValues.put("FacePrimLabel",	applicationLanguageProperties.getString("FACE"));
 			templateValues.put("FaceSecLabel", getSecondaryLanguageLabel("FACE"));
 
+			templateValues.put("LOGO1", getImage("/images/LOGO1.png"));
+			templateValues.put("LOGO2", getImage("/images/LOGO2.png"));
+			templateValues.put("LOGO3", getImage("/images/LOGO3.png"));
+
 		} catch (RegBaseCheckedException ex) {
 			setErrorResponse(responseDTO, ex.getMessage(), null);
 		}
@@ -421,11 +425,7 @@ public class TemplateGenerator extends BaseService {
 				String encodedBytes = StringUtils.newStringUtf8(Base64.encodeBase64(streamImage, false));
 				templateValues.put(key, RegistrationConstants.TEMPLATE_JPG_IMAGE_ENCODING + encodedBytes);
 			} else if(imagePath != null) {
-				BufferedImage eyeImage = ImageIO.read(this.getClass().getResourceAsStream(imagePath));
-				ImageIO.write(eyeImage, RegistrationConstants.IMAGE_FORMAT_PNG, byteArrayOutputStream);
-				byte[] eyeImageBytes = byteArrayOutputStream.toByteArray();
-				String eyeImageEncodedBytes = StringUtils.newStringUtf8(Base64.encodeBase64(eyeImageBytes, false));
-				templateValues.put(key, RegistrationConstants.TEMPLATE_PNG_IMAGE_ENCODING + eyeImageEncodedBytes);
+				templateValues.put(key, getImage(imagePath));
 			}
 		} catch (IOException ioException) {
 			LOGGER.error(LOG_TEMPLATE_GENERATOR, APPLICATION_NAME, APPLICATION_ID, ioException.getMessage());
@@ -553,5 +553,21 @@ public class TemplateGenerator extends BaseService {
 		}
 
 		return false;
+	}
+
+	private String getImage(String imagePath) {
+		try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();) {
+			if(imagePath != null) {
+				LOGGER.info(LOG_TEMPLATE_GENERATOR, APPLICATION_NAME, APPLICATION_ID, "setting image >> " + imagePath);
+				BufferedImage image = ImageIO.read(this.getClass().getResourceAsStream(imagePath));
+				ImageIO.write(image, RegistrationConstants.IMAGE_FORMAT_PNG, byteArrayOutputStream);
+				byte[] imageBytes = byteArrayOutputStream.toByteArray();
+				String imageEncodedBytes = StringUtils.newStringUtf8(Base64.encodeBase64(imageBytes, false));
+				return  RegistrationConstants.TEMPLATE_PNG_IMAGE_ENCODING + imageEncodedBytes;
+			}
+		} catch (Throwable throwable) {
+			LOGGER.error(LOG_TEMPLATE_GENERATOR, APPLICATION_NAME, APPLICATION_ID, throwable.getMessage());
+		}
+		return RegistrationConstants.EMPTY;
 	}
 }

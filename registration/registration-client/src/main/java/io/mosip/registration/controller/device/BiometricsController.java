@@ -802,15 +802,18 @@ public class BiometricsController extends BaseController /* implements Initializ
 					}
 				}
 			}
+		}
 
-			if (nonExceptionBioAttributes != null) {
-				capturedBiometrics = getBiometrics(currentSubType, nonExceptionBioAttributes);
-			}
 
-		/*} else {
-			capturedBiometrics = getBiometrics(currentSubType,
-					Arrays.asList(RegistrationConstants.faceUiAttributes.get(0)));
-		}*/
+		if (nonExceptionBioAttributes != null) {
+			capturedBiometrics = getBiometrics(currentSubType, nonExceptionBioAttributes);
+		}
+
+
+		/*
+		 * } else { capturedBiometrics = getBiometrics(currentSubType,
+		 * Arrays.asList(RegistrationConstants.faceUiAttributes.get(0))); }
+		 */
 
 		updateBiometric(modality, getImageIconPath(modality), getBiometricThreshold(modality), getRetryCount(modality));
 
@@ -1858,10 +1861,12 @@ public class BiometricsController extends BaseController /* implements Initializ
 		String threshold = biometricThreshold != null ? getValueFromApplicationContext(biometricThreshold) : "0";
 
 		thresholdLabel.setAlignment(Pos.CENTER);
-		thresholdLabel.setText(RegistrationUIConstants.THRESHOLD.concat("  ").concat(threshold)
+
+		double thresholdValDouble = threshold != null && !threshold.isEmpty() ? Double.parseDouble(threshold) : 0;
+		thresholdLabel.setText(RegistrationUIConstants.THRESHOLD.concat("  ").concat(String.valueOf(thresholdValDouble))
 				.concat(RegistrationConstants.PERCENTAGE));
-		thresholdPane1.setPercentWidth(Double.parseDouble(threshold));
-		thresholdPane2.setPercentWidth(100.00 - (Double.parseDouble(threshold)));
+		thresholdPane1.setPercentWidth(thresholdValDouble);
+		thresholdPane2.setPercentWidth(100.00 - (thresholdValDouble));
 		// }
 
 		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,

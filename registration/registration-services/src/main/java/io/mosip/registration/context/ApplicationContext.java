@@ -454,4 +454,9 @@ public class ApplicationContext {
 		return applicationMap.get("client.tpm.required") == null ? "Y"
 				: String.valueOf(applicationMap.get("client.tpm.required"));
 	}
+
+	public static String getDateFormat() {
+		return applicationMap.get("mosip.default.date.format") == null ? "yyyy/MM/dd"
+				: String.valueOf(applicationMap.get("mosip.default.date.format"));
+	}
 }

@@ -2,20 +2,24 @@ package io.mosip.registration.processor.abstractverticle;
 
 import java.net.URL;
 
+import org.springframework.boot.test.mock.mockito.MockBean;
+
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleManager;
 import io.mosip.registration.processor.core.constant.RegistrationType;
+import io.mosip.registration.processor.core.eventbus.MosipEventBusFactory;
+import io.mosip.registration.processor.core.exception.UnsupportedEventBusTypeException;
 
 public class ConsumerVerticle extends MosipVerticleManager {
 	private MessageDTO messageDTO;
 	private MosipEventBus mosipEventBus;
 
-	public void start() {
+	public void start() throws UnsupportedEventBusTypeException {
 		ConsumerVerticle consumerVerticle = new ConsumerVerticle();
 		vertx.deployVerticle(consumerVerticle);
-		this.mosipEventBus = new MosipEventBus(vertx);
+		this.mosipEventBus = (new MosipEventBusFactory()).getEventBus(vertx, "vertx");
 		this.messageDTO = new MessageDTO();
 		this.messageDTO.setRid("1001");
 		this.messageDTO.setRetryCount(0);
@@ -35,6 +39,7 @@ public class ConsumerVerticle extends MosipVerticleManager {
 	}
 
 	public MosipEventBus deployVerticle() {
+		this.setMosipEventBusFactory(new MosipEventBusFactory());
 		MosipEventBus mosipEventBus = this.getEventBus(this,this.findUrl().toString());
 		return mosipEventBus;
 	}
@@ -48,6 +53,11 @@ public class ConsumerVerticle extends MosipVerticleManager {
 	@Override
 	public Integer getEventBusPort() {
 		return 5711;
+	}
+
+	@Override
+	public String getEventBusType() {
+		return "vertx";
 	}
 
 }

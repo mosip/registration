@@ -6,12 +6,15 @@ import java.net.UnknownHostException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.config.UrlXmlConfig;
 
+import io.mosip.registration.processor.core.eventbus.MosipEventBusFactory;
 import io.mosip.registration.processor.core.exception.DeploymentFailureException;
+import io.mosip.registration.processor.core.exception.UnsupportedEventBusTypeException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.spi.eventbus.EventBusManager;
 import io.vertx.core.AbstractVerticle;
@@ -42,16 +45,27 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	/** The logger. */
 	private Logger logger = LoggerFactory.getLogger(MosipVerticleManager.class);
 
+	@Value("${mosip.regproc.eventbus.type:vertx}")
+	private String eventBusType;
+
 	@Value("${eventbus.port}")
 	private String eventBusPort;
-	
-	/* (non-Javadoc)
-	 * @see io.mosip.registration.processor.core.spi.eventbus.EventBusManager#getEventBus(java.lang.Class, java.lang.String)
+
+	@Autowired
+	private MosipEventBusFactory mosipEventBusFactory;
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * io.mosip.registration.processor.core.spi.eventbus.EventBusManager#getEventBus
+	 * (java.lang.Class, java.lang.String)
 	 */
 	@Override
 	public MosipEventBus getEventBus(Object verticleName, String clusterManagerUrl) {
 		return getEventBus(verticleName, clusterManagerUrl, 1);
 	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -91,11 +105,11 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 		});
 
 		try {
-			mosipEventBus = new MosipEventBus(eventBus.get());
-		} catch (InterruptedException | ExecutionException e) {
+			Vertx vert = eventBus.get();
+			mosipEventBus = mosipEventBusFactory.getEventBus(vert, getEventBusType());
+		} catch (InterruptedException | ExecutionException | UnsupportedEventBusTypeException e) {
 			Thread.currentThread().interrupt();
 			throw new DeploymentFailureException(PlatformErrorMessages.RPR_CMB_DEPLOYMENT_FAILURE.getMessage(), e);
-
 		}
 		return mosipEventBus;
 	}
@@ -109,20 +123,14 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	@Override
 	public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
 			MessageBusAddress toAddress) {
-		Vertx vertx = mosipEventBus.getEventbus();
-		vertx.eventBus().consumer(fromAddress.getAddress(), msg -> {
-			logger.debug("received from " + fromAddress.toString() + msg.body());
+		mosipEventBus.consumeAndSend(fromAddress, toAddress, (msg, handler) -> {
+			logger.debug("received from " + fromAddress.toString() + " " + msg.getBody());
 			vertx.executeBlocking(future -> {
-				JsonObject jsonObject = (JsonObject) msg.body();
+				JsonObject jsonObject = (JsonObject) msg.getBody();
 				MessageDTO messageDTO = jsonObject.mapTo(MessageDTO.class);
 				MessageDTO result = process(messageDTO);
-				future.complete();
-				send(mosipEventBus, toAddress, result);
-			}, false, res -> {
-				if (!res.succeeded()) {
-					logger.error("failure " + res.cause());
-				}
-			});
+				future.complete(result);
+			}, false, handler);
 		});
 	}
 
@@ -137,11 +145,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	 *            The message that needs to be sent
 	 */
 	public void send(MosipEventBus mosipEventBus, MessageBusAddress toAddress, MessageDTO message) {
-		Vertx vertx = mosipEventBus.getEventbus();
-		MessageBusAddress messageBusAddress = new MessageBusAddress(toAddress, message.getReg_type());
-		JsonObject jsonObject = JsonObject.mapFrom(message);
-		vertx.eventBus().send(messageBusAddress.getAddress(), jsonObject);
-		logger.debug("sent to " + toAddress.toString() + " message " + jsonObject);
+		mosipEventBus.send(toAddress, message);
 	}
 
 	/**
@@ -153,24 +157,28 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	 *            The address from which message needs to be consumed
 	 */
 	public void consume(MosipEventBus mosipEventBus, MessageBusAddress fromAddress) {
-		Vertx vertx = mosipEventBus.getEventbus();
-		vertx.eventBus().consumer(fromAddress.getAddress(), message -> {
-			logger.debug("received from " + fromAddress.toString() + " message " + message.body());
-			vertx.executeBlocking(future -> {
-				JsonObject jsonObject = (JsonObject) message.body();
-				MessageDTO messageDTO = jsonObject.mapTo(MessageDTO.class);
-				process(messageDTO);
-				future.complete();
-			}, false, res -> {
-				if (!res.succeeded()) {
-					logger.error("failure " + res.cause());
-				}
+		mosipEventBus.consume(fromAddress, (msg, handler) -> {
+				logger.debug("Received from " + fromAddress.toString() + " " + msg.getBody());
+				vertx.executeBlocking(future -> {
+					JsonObject jsonObject = (JsonObject) msg.getBody();
+					MessageDTO messageDTO = jsonObject.mapTo(MessageDTO.class);
+					MessageDTO result = process(messageDTO);
+					future.complete(result);
+				}, false, handler);
 			});
-		});
 	}
 
 	public Integer getEventBusPort() {
 		return Integer.parseInt(eventBusPort);
+	}
+
+	public String getEventBusType() {
+		return this.eventBusType;
+	}
+
+	//TODO Temporarely added for passing the existing unit test case, later to be removed and unit test case to be changed based on SpringRunner
+	protected void setMosipEventBusFactory(MosipEventBusFactory mosipEventBusFactory) {
+		this.mosipEventBusFactory = mosipEventBusFactory;
 	}
 
 }
