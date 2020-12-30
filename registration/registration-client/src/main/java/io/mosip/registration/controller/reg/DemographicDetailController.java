@@ -156,6 +156,7 @@ public class DemographicDetailController extends BaseController {
 	private Map<String, TreeMap<Integer, String>> orderOfAddressMapByGroup = new HashMap<>();
 	private Map<String, List<String>> orderOfAddressListByGroup = new LinkedHashMap<>();
 	Map<String, List<UiSchemaDTO>> templateGroup = null;
+	private Node previousNode;
 
 
 	/*
@@ -534,7 +535,7 @@ public class DemographicDetailController extends BaseController {
 		Label validationMessage = new Label();
 
 		VBox vbox = new VBox();
-		vbox.setId(fieldName + RegistrationConstants.Parent);
+		vbox.setId(fieldName + languageType + RegistrationConstants.Parent);
 		field.setId(fieldName + languageType);
 		field.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
 		label.setId(fieldName + languageType + RegistrationConstants.LABEL);
@@ -553,8 +554,8 @@ public class DemographicDetailController extends BaseController {
 		hB.setSpacing(20);
 
 		vbox.getChildren().add(validationMessage);
-		setFieldChangeListener(field);
 		listOfTextField.put(field.getId(), field);
+		setFieldChangeListener(field);
 
 		String mandatorySuffix = getMandatorySuffix(schema);
 		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
@@ -1200,16 +1201,26 @@ public class DemographicDetailController extends BaseController {
 	private void setFocusonLocalField(MouseEvent event) {
 		try {
 			Node node = (Node) event.getSource();
-			if (!isAppLangAndLocalLangSame()) {
-				listOfTextField.get(node.getId() + "LocalLanguage").requestFocus();
-			}
-
 			if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
 				keyboardNode.setVisible(true);
 				keyboardNode.setManaged(true);
+				//addKeyboard(positionTracker.get((node.getId() + "ParentGridPane")) + 1);
+				Node parentNode = node.getParent().getParent();
+				if (keyboardVisible) {
+					if(previousNode != null) {
+						((VBox)previousNode).getChildren().remove(lastPosition - 1);
+					}
+					keyboardVisible = false;
+				} else {
+					listOfTextField.get(node.getId() + "LocalLanguage").requestFocus();
+					GridPane gridPane = prepareMainGridPaneForKeyboard();
+					gridPane.addColumn(1, keyboardNode);
+					((VBox)parentNode).getChildren().add(gridPane);
+					previousNode = parentNode;
+					keyboardVisible = true;
+					lastPosition = ((VBox)parentNode).getChildren().size();
+				}
 			}
-			addKeyboard(positionTracker.get((node.getId() + "ParentGridPane")) + 1);
-
 		} catch (RuntimeException runtimeException) {
 			LOGGER.error("REGISTRATION - SETTING FOCUS ON LOCAL FIELD FAILED", APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID,
@@ -1461,7 +1472,7 @@ public class DemographicDetailController extends BaseController {
 
 		if(field instanceof TextField) {
 			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-					"validating text field primary");
+					"validating text field");
 			if (!isInputTextValid((TextField) field, field.getId())) {
 				fxUtils.showErrorLabel((TextField) field, parentFlowPane);
 				return false;
