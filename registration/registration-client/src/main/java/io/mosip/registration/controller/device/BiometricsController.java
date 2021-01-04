@@ -1718,7 +1718,6 @@ public class BiometricsController extends BaseController /* implements Initializ
 	/**
 	 * Updating captured values
 	 *
-	 * @param capturedBio    biometric
 	 * @param qltyScore      Qulaity score
 	 * @param retry          retrycount
 	 * @param thresholdValue threshold value
