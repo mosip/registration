@@ -1824,4 +1824,6 @@ public class RegistrationConstants {
 	public static String MACHINE_REMAP_CODE = "KER-SNC-149";
 	public static String MACHINE_INACTIVE_CODE = "KER-SNC-163";
 
+	public static String OPERATOR_ONBOARDING_BIO_ATTRIBUTES = "mosip.registration.operator.onboarding.bioattributes";
+
 }

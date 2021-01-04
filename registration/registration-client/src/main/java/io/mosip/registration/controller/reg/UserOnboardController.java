@@ -113,10 +113,6 @@ public class UserOnboardController extends BaseController implements Initializab
 		
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "User Onboard Controller initUserOnboard Method Exit");
-
-		if(!authTokenUtilService.hasAnyValidToken()) {
-			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
-		}
 	}
 
 	public void clearOnboard() {
