@@ -116,9 +116,6 @@ public class BioDedupeProcessor {
 
 	@Autowired
 	private Environment env;
-	
-	@Autowired
-	private BioDedupeStage biodedupestage;
 
 	/** The config server file storage URL. */
 	@Value("${config.server.file.storage.uri}")
@@ -415,17 +412,7 @@ public class BioDedupeProcessor {
 			registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.FAILED.toString());
 			moduleId = PlatformSuccessMessages.RPR_BIO_METRIC_POTENTIAL_MATCH.getCode();
 			packetInfoManager.saveManualAdjudicationData(matchedRegIds, registrationStatusDto.getRegistrationId(),
-					DedupeSourceName.BIO, moduleId, moduleName,null,null);
-			//send message to manual adjudication
-			MessageDTO msgDto=new MessageDTO();
-			msgDto.setInternalError(Boolean.FALSE);
-			msgDto.setRid(registrationStatusDto.getRegistrationId());
-			msgDto.setIsValid(Boolean.FALSE);
-			msgDto.setMessageBusAddress(MessageBusAddress.BIO_DEDUPE_BUS_OUT);
-			
-			biodedupestage.sendMessage(msgDto);
-			//
-			
+					DedupeSourceName.BIO, moduleId, moduleName);
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationStatusDto.getRegistrationId(), BioDedupeConstants.ABIS_RESPONSE_NOT_NULL);
 
@@ -570,7 +557,7 @@ public class BioDedupeProcessor {
 						BioDedupeConstants.MULTIPLE_RID_FOUND);
 				moduleId = PlatformErrorMessages.RPR_BIO_LOST_PACKET_MULTIPLE_MATCH_FOUND.getCode();
 				packetInfoManager.saveManualAdjudicationData(matchedRegIds,
-						registrationStatusDto.getRegistrationId(), DedupeSourceName.BIO, moduleId, moduleName,null,null);
+						registrationStatusDto.getRegistrationId(), DedupeSourceName.BIO, moduleId, moduleName);
 			}
 		}
 	}
