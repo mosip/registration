@@ -587,10 +587,6 @@ public class ClientSettingSyncHelper {
 			}
 			
 			if (!fields.isEmpty()) {
-				List<DynamicField> existingFields = dynamicFieldRepository.findAll();
-				checkForDuplicates(fields, existingFields);
-				List<DynamicField> updatedFields = dynamicFieldRepository.findAll();
-				checkForDuplicates(fields, updatedFields);
 				dynamicFieldRepository.saveAll(fields);
 			}
 				

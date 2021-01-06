@@ -39,7 +39,7 @@ public class DynamicFieldDAOImpl implements DynamicFieldDAO {
 		LOGGER.info("DynamicFieldDAOImpl", APPLICATION_NAME, APPLICATION_ID,
 				"fetching the dynamic field >>> " + fieldName + " for langCode >>> " + langCode);
 
-		return dynamicFieldRepository.findByNameAndLangCode(fieldName, langCode);
+		return dynamicFieldRepository.findByIsActiveTrueAndNameAndLangCode(fieldName, langCode);
 	}
 
 	@Override
