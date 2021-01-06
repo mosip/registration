@@ -581,6 +581,7 @@ public class ClientSettingSyncHelper {
 						dynamicField.setLangCode(dynamicFieldDto.getLangCode());
 						dynamicField.setValueJson(dynamicFieldDto.getFieldVal() == null ?
 								"[]" : MapperUtils.convertObjectToJsonString(dynamicFieldDto.getFieldVal()));
+						dynamicField.setActive(dynamicFieldDto.isActive());
 						fields.add(dynamicField);
 					}
 				}
