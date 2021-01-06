@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import io.mosip.registration.util.common.DemographicChangeActionHandler;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
+import javafx.geometry.NodeOrientation;
 import javafx.scene.control.*;
 import org.mvel2.MVEL;
 import org.mvel2.integration.VariableResolverFactory;
@@ -229,7 +230,6 @@ public class DemographicDetailController extends BaseController {
 				List<UiSchemaDTO> list = templateGroupEntry.getValue();
 				if (list.size() <= 4) {
 					addGroupInUI(list, position, templateGroupEntry.getKey() + position);
-
 				} else {
 					for (int index = 0; index <= list.size() / 4; index++) {
 
@@ -562,6 +562,7 @@ public class DemographicDetailController extends BaseController {
 			field.setPromptText(schema.getLabel().get(RegistrationConstants.SECONDARY) + mandatorySuffix);
 			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.SECONDARY));
 			label.setText(schema.getLabel().get(RegistrationConstants.SECONDARY) + mandatorySuffix);
+
 			if (!schema.getType().equals(RegistrationConstants.SIMPLE_TYPE)) {
 				field.setDisable(true);
 			} else {
@@ -593,12 +594,22 @@ public class DemographicDetailController extends BaseController {
 			label.setText(schema.getLabel().get(RegistrationConstants.PRIMARY) + mandatorySuffix);
 		}
 
+		changeNodeOrientation(field, languageType);
 		hB.getChildren().add(validationMessage);
 		hB.setStyle("-fx-background-color:WHITE");
 		vbox.getChildren().add(hB);
 
 		fxUtils.onTypeFocusUnfocusListener(parentFlowPane, field);
 		return vbox;
+	}
+
+	private void changeNodeOrientation(Node node, String langType) {
+		String langCode = langType.equalsIgnoreCase(RegistrationConstants.LOCAL_LANGUAGE) ?
+				ApplicationContext.secondaryLanguageLocal() : ApplicationContext.primaryLanguageLocal();
+		String langauages = (String) ApplicationContext.map().getOrDefault(RegistrationConstants.RIGHT_TO_LEFT_ORIENTATION_LANGUAGES, "ar");
+		if(langauages.contains(langCode)) {
+			node.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
+		}
 	}
 
 	private void populateDropDowns() {
@@ -1202,6 +1213,7 @@ public class DemographicDetailController extends BaseController {
 		try {
 			Node node = (Node) event.getSource();
 			if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
+				node.requestFocus();
 				keyboardNode.setVisible(true);
 				keyboardNode.setManaged(true);
 				//addKeyboard(positionTracker.get((node.getId() + "ParentGridPane")) + 1);

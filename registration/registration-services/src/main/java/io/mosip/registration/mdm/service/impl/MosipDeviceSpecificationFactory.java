@@ -234,23 +234,15 @@ public class MosipDeviceSpecificationFactory {
 
 						List<MdmBioDevice> mdmBioDevices = deviceSpecificationProvider.getMdmDevices(deviceInfoResponse,
 								availablePort);
+
 						for (MdmBioDevice bioDevice : mdmBioDevices) {
-
 							if (bioDevice != null) {
-
 								LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 										"Checking for device registratrion : " + bioDevice.getDeviceCode());
 
-								List<RegDeviceMaster> registeredDevices = machineMappingDAO
-										.getRegisteredDevicesBySerialNumber(bioDevice.getSerialNumber());
-								if (registeredDevices != null && !registeredDevices.isEmpty()) {
-									LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-											"Device Registration found : " + bioDevice.getDeviceCode());
-
-									// Add to Device Info Map
-									addToDeviceInfoMap(getDeviceType(bioDevice.getDeviceType()).toLowerCase(),
-											getDeviceSubType(bioDevice.getDeviceSubType()), bioDevice);
-								}
+								// Add to Device Info Map
+								addToDeviceInfoMap(getDeviceType(bioDevice.getDeviceType()).toLowerCase(),
+										getDeviceSubType(bioDevice.getDeviceSubType()), bioDevice);
 							}
 						}
 					}
