@@ -11,6 +11,9 @@ import java.util.Set;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
+import io.mosip.registration.processor.core.queue.factory.MosipQueue;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,6 +62,12 @@ import io.vertx.ext.web.Session;
 public class ManualVerificationStageTest{
 
 	@Mock
+	private MosipQueueConnectionFactory<MosipQueue> mosipConnectionFactory;
+	@Mock
+	private MosipQueue mosipQueue;
+	@Mock
+	private MosipQueueManager<MosipQueue, byte[]> mosipQueueManager;
+	@Mock
 	private MosipRouter router;
 	public RoutingContext ctx;
 	@Mock
@@ -69,6 +78,8 @@ public class ManualVerificationStageTest{
 	private ManualVerificationService manualAdjudicationService;
 	@Mock
 	private Environment env;
+	@Mock
+	private MosipEventBus mockEventbus;
 	private File file;
 	private String id = "2018782130000113112018183001.zip";
 	private String newId = "2018782130000113112018183000.zip";
@@ -85,7 +96,7 @@ public class ManualVerificationStageTest{
 
 		@Override
 		public MosipEventBus getEventBus(Object verticleName, String clusterManagerUrl, int instanceNumber) {
-			return null;
+			return mockEventbus;
 		}
 		@Override
 		public void createServer(Router router, int port) {
@@ -103,11 +114,15 @@ public class ManualVerificationStageTest{
 	};
 	@Before
 	public void setUp() throws java.io.IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
+		ReflectionTestUtils.setField(manualverificationstage, "mosipConnectionFactory", mosipConnectionFactory);
+		ReflectionTestUtils.setField(manualverificationstage, "mosipQueueManager", mosipQueueManager);
 		ReflectionTestUtils.setField(manualverificationstage, "port", "8080");
 		ReflectionTestUtils.setField(manualverificationstage, "contextPath", "/registrationprocessor/v1/manualverification");
 		ReflectionTestUtils.setField(manualverificationstage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(manualverificationstage, "clusterManagerUrl", "/dummyPath");
 		//Mockito.when(env.getProperty(SwaggerConstant.SERVER_SERVLET_PATH)).thenReturn("/registrationprocessor/v1/manualverification");
+		Mockito.when(mosipConnectionFactory.createConnection(any(),any(),any(),any())).thenReturn(mosipQueue);
+		Mockito.doReturn(new String("str").getBytes()).when(mosipQueueManager).consume(any(), any(), any());
 		Mockito.doNothing().when(router).setRoute(any());
 		Mockito.when(router.post(any())).thenReturn(null);
 		Mockito.when(router.get(any())).thenReturn(null);

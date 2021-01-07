@@ -1,32 +1,47 @@
 package io.mosip.registration.processor.manual.verification.stage;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
-
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
 import io.mosip.registration.processor.core.common.rest.dto.BaseRestResponseDTO;
+import io.mosip.registration.processor.core.constant.JsonConstant;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
+import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.queue.factory.MosipQueue;
+import io.mosip.registration.processor.core.queue.factory.QueueListener;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueConnectionFactory;
+import io.mosip.registration.processor.core.spi.queue.MosipQueueManager;
+import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.manual.verification.constants.ManualVerificationConstants;
-import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDTO;
-import io.mosip.registration.processor.manual.verification.exception.handler.ManualVerificationExceptionHandler;
-import io.mosip.registration.processor.manual.verification.request.dto.ManualVerificationAssignmentRequestDTO;
 import io.mosip.registration.processor.manual.verification.dto.ManualVerificationDecisionDto;
-import io.mosip.registration.processor.manual.verification.request.dto.ManualVerificationDecisionRequestDTO;
+import io.mosip.registration.processor.manual.verification.exception.InvalidMessageException;
+import io.mosip.registration.processor.manual.verification.exception.handler.ManualVerificationExceptionHandler;
 import io.mosip.registration.processor.manual.verification.response.builder.ManualVerificationResponseBuilder;
-import io.mosip.registration.processor.manual.verification.response.dto.ManualVerificationAssignResponseDTO;
 import io.mosip.registration.processor.manual.verification.service.ManualVerificationService;
 import io.mosip.registration.processor.manual.verification.util.ManualVerificationRequestValidator;
-import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.RoutingContext;
+import io.mosip.registration.processor.packet.storage.exception.QueueConnectionNotFound;
+import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
+import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
+import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
+import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
+import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import org.apache.activemq.command.ActiveMQBytesMessage;
+import org.apache.activemq.command.ActiveMQTextMessage;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
+
+import javax.jms.Message;
+import javax.jms.TextMessage;
+import java.util.LinkedHashMap;
 
 /**
  * This class sends message to next stage after successful completion of manual
@@ -42,8 +57,20 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	@Autowired
 	private ManualVerificationService manualAdjudicationService;
 
+	/** The core audit request builder. */
+	@Autowired
+	private AuditLogRequestBuilder auditLogRequestBuilder;
+
+	/** The registration status service. */
+	@Autowired
+	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
+
 	/** The mosip event bus. */
 	private MosipEventBus mosipEventBus;
+
+	/** The mosip queue manager. */
+	@Autowired
+	private MosipQueueManager<MosipQueue, byte[]> mosipQueueManager;
 	
 	/**
 	 * vertx Cluster Manager Url
@@ -71,6 +98,40 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	@Autowired
 	MosipRouter router;
 
+	private MosipQueue queue;
+
+	/** The mosip connection factory. */
+	@Autowired
+	private MosipQueueConnectionFactory<MosipQueue> mosipConnectionFactory;
+
+	/** The username. */
+	@Value("${registration.processor.queue.username}")
+	private String username;
+
+	/** The password. */
+	@Value("${registration.processor.queue.password}")
+	private String password;
+
+	/** The type of queue. */
+	@Value("${registration.processor.queue.typeOfQueue}")
+	private String typeOfQueue;
+
+	/** The address. */
+	@Value("${registration.processor.queue.manualverification.response:mv-to-mosip}")
+	private String mvResponseAddress;
+
+	/** The Constant FAIL_OVER. */
+	private static final String FAIL_OVER = "failover:(";
+
+	/** The Constant RANDOMIZE_FALSE. */
+	private static final String RANDOMIZE_FALSE = ")?randomize=false";
+
+	private static final String CONFIGURE_MONITOR_IN_ACTIVITY = "?wireFormat.maxInactivityDuration=0";
+
+	/** The url. */
+	@Value("${registration.processor.queue.url}")
+	private String url;
+
 	/**
 	 * server port number
 	 */
@@ -92,87 +153,29 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	public void deployStage() {
 		this.mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, MessageBusAddress.MANUAL_VERIFICATION_BUS_OUT);
+		queue = getQueueConnection();
+		if (queue != null) {
+
+			QueueListener listener = new QueueListener() {
+				@Override
+				public void setListener(Message message) {
+					consumerListener(message);
+				}
+			};
+
+			mosipQueueManager.consume(queue, mvResponseAddress, listener);
+
+		} else {
+			throw new QueueConnectionNotFound(PlatformErrorMessages.RPR_PRT_QUEUE_CONNECTION_NULL.getMessage());
+		}
 	
 	}
 
 	@Override
 	public void start() {
 		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, MessageBusAddress.MANUAL_VERIFICATION_BUS_OUT));
-		//this.routes(router);
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}
-
-	/*private void routes(MosipRouter router) {
-		
-
-		router.post(contextPath + "/assignment");
-		router.handler(this::processAssignment, handlerObj -> {
-			manualVerificationExceptionHandler
-					.setId(env.getProperty(ManualVerificationConstants.ASSIGNMENT_SERVICE_ID));
-			manualVerificationExceptionHandler.setResponseDtoType(new ManualVerificationAssignResponseDTO());
-			this.setResponseWithDigitalSignature(handlerObj,
-					manualVerificationExceptionHandler.handler(handlerObj.failure()), APPLICATION_JSON);
-
-		});
-
-		router.post(contextPath + "/decision");
-		router.handler(this::processDecision, handlerObj -> {
-			manualVerificationExceptionHandler.setId(env.getProperty(ManualVerificationConstants.DECISION_SERVICE_ID));
-			manualVerificationExceptionHandler.setResponseDtoType(new ManualVerificationAssignResponseDTO());
-			this.setResponseWithDigitalSignature(handlerObj,
-					manualVerificationExceptionHandler.handler(handlerObj.failure()), APPLICATION_JSON);
-
-		});
-
-
-	}
-
-	
-
-	public void processAssignment(RoutingContext ctx) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"ManualVerificationStage::processAssignment::entry");
-		JsonObject obj = ctx.getBodyAsJson();
-		ManualVerificationAssignmentRequestDTO pojo = Json.mapper.convertValue(obj.getMap(),
-				ManualVerificationAssignmentRequestDTO.class);
-		manualVerificationRequestValidator.validate(obj,
-				env.getProperty(ManualVerificationConstants.ASSIGNMENT_SERVICE_ID));
-		ManualVerificationDTO manualVerificationDTO = manualAdjudicationService.assignApplicant(pojo.getRequest());
-		if (manualVerificationDTO != null) {
-			BaseRestResponseDTO responseData = ManualVerificationResponseBuilder.buildManualVerificationSuccessResponse(
-					manualVerificationDTO, env.getProperty(ManualVerificationConstants.ASSIGNMENT_SERVICE_ID),
-					env.getProperty(ManualVerificationConstants.MVS_APPLICATION_VERSION),
-					env.getProperty(ManualVerificationConstants.DATETIME_PATTERN));
-			this.setResponseWithDigitalSignature(ctx, responseData, APPLICATION_JSON);
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					manualVerificationDTO.getMvUsrId(), "ManualVerificationStage::processAssignment::success");
-
-		}
-
-	}
-
-	public void processDecision(RoutingContext ctx) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"ManualVerificationStage::processDecision::entry");
-		JsonObject obj = ctx.getBodyAsJson();
-		ManualVerificationDecisionRequestDTO pojo = Json.mapper.convertValue(obj.getMap(),
-				ManualVerificationDecisionRequestDTO.class);
-		manualVerificationRequestValidator.validate(obj,
-				env.getProperty(ManualVerificationConstants.DECISION_SERVICE_ID));
-		ManualVerificationDecisionDto updatedManualVerificationDTO = manualAdjudicationService
-				.updatePacketStatus(pojo.getRequest(), this.getClass().getSimpleName());
-		if (updatedManualVerificationDTO != null) {
-			BaseRestResponseDTO responseData = ManualVerificationResponseBuilder.buildManualVerificationSuccessResponse(
-					updatedManualVerificationDTO, env.getProperty(ManualVerificationConstants.DECISION_SERVICE_ID),
-					env.getProperty(ManualVerificationConstants.MVS_APPLICATION_VERSION),
-					env.getProperty(ManualVerificationConstants.DATETIME_PATTERN));
-			this.setResponseWithDigitalSignature(ctx, responseData, APPLICATION_JSON);
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					"", "ManualVerificationStage::processDecision::success");
-		}
-
-	}*/
-
 	
 
 	public void sendMessage(MessageDTO messageDTO) {
@@ -181,7 +184,45 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 
 	@Override
 	public MessageDTO process(MessageDTO object) {
-		return manualAdjudicationService.process(object);
+		return manualAdjudicationService.process(object, queue);
+	}
+
+	private MosipQueue getQueueConnection() {
+		String failOverBrokerUrl = FAIL_OVER + url + "," + url + RANDOMIZE_FALSE;
+		return mosipConnectionFactory.createConnection(typeOfQueue, username, password, failOverBrokerUrl);
+	}
+
+	public void consumerListener(Message message) {
+		try {
+			String response = null;
+			if (message instanceof ActiveMQBytesMessage) {
+				response = new String(((ActiveMQBytesMessage) message).getContent().data);
+			} else if (message instanceof ActiveMQTextMessage) {
+				TextMessage textMessage = (TextMessage) message;
+				response = textMessage.getText();
+			}
+			if (response == null) {
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.APPLICATIONID.toString(),
+						PlatformErrorMessages.RPR_INVALID_MESSSAGE.getCode(), PlatformErrorMessages.RPR_INVALID_MESSSAGE.getMessage());
+				throw new InvalidMessageException(PlatformErrorMessages.RPR_INVALID_MESSSAGE.getCode(), PlatformErrorMessages.RPR_INVALID_MESSSAGE.getMessage());
+			}
+			LinkedHashMap respMap = JsonUtil.readValueWithUnknownProperties(response, LinkedHashMap.class);
+			if (respMap != null && respMap.get(IdSchemaUtil.RESPONSE) != null) {
+				Object obj = respMap.get(IdSchemaUtil.RESPONSE);
+				ManualVerificationDecisionDto resp = JsonUtil.readValueWithUnknownProperties(
+						JsonUtils.javaObjectToJsonString(obj), ManualVerificationDecisionDto.class);
+				ManualVerificationDecisionDto decisionDto = manualAdjudicationService
+						.updatePacketStatus(resp, this.getClass().getSimpleName());
+				if (decisionDto != null) {
+					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+							"", "ManualVerificationStage::processDecision::success");
+				}
+
+			}
+		} catch (Exception e) {
+			regProcLogger.error("","","", ExceptionUtils.getStackTrace(e));
+		}
+
 	}
 }
 

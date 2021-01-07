@@ -626,6 +626,10 @@ public enum PlatformErrorMessages {
 	RPR_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "022",
 			"TablenotAccessibleException in Manual verification"),
 
+	/** The rpr table not accessible. */
+	RPR_INVALID_MESSSAGE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "023",
+			"Invalid message received from queue"),
+
 	/** The rpr tem not found. */
 	// Registration processor Message sender Exception error code
 	RPR_TEM_NOT_FOUND(PlatformConstants.RPR_MESSAGE_SENDER_TEMPLATE + "001", "Template was Not Found"),
