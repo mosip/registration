@@ -8,6 +8,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.util.StringUtils;
@@ -456,6 +457,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 				manualVerificationEntity.setId(manualVerificationPKEntity);
 				manualVerificationEntity.setLangCode("eng");
+				manualVerificationEntity.setRequestId(UUID.randomUUID().toString());
 				//manualVerificationEntity.setMatchedScore(null);
 				manualVerificationEntity.setReponseText(null);
 				manualVerificationEntity.setRequestId(requestId);

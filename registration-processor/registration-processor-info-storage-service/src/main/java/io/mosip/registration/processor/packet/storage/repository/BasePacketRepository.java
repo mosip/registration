@@ -106,9 +106,8 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 *            the status code
 	 * @return {@link ManualVerificationEntity}
 	 */
-	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.id.regId=:regId and mve.mvUsrId=:mvUserId and  mve.statusCode=:statusCode")
-	public List<E> getAllAssignedRecord(@Param("regId") String regId,
-			@Param("mvUserId") String mvUserId, @Param("statusCode") String statusCode);
+	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.id.regId=:regId and  mve.statusCode=:statusCode")
+	public List<E> getAllAssignedRecord(@Param("regId") String regId, @Param("statusCode") String statusCode);
   
 	/**
 	 * Gets the assigned applicant details.
@@ -130,8 +129,8 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 *            the reference id
 	 * @return the List of ManualVerificationEntity records
 	 */
-	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.id.regId =:regId")
-	public List<ManualVerificationEntity> getMatchedIds(@Param("regId") String regId);
+	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.id.regId =:regId and status_code =:status_code")
+	public List<ManualVerificationEntity> getMatchedIds(@Param("regId") String regId, @Param("status_code") String status_code);
 	
 	
 

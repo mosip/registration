@@ -31,12 +31,6 @@ public class ManualVerificationApplication {
 				"io.mosip.registration.processor.core.kernel.beans",
 				"io.mosip.registration.processor.packet.storage.config");
 		configApplicationContext.refresh();
-		try {
-		configApplicationContext.getBean(Listener.class).runQueue();
-		}catch (Exception e) {
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),LoggerFileConstant.APPLICATIONID.toString(),e.getMessage(),e.getMessage());
-			e.printStackTrace();
-		}
 		ManualVerificationStage manualVerificationStage = configApplicationContext
 				.getBean(ManualVerificationStage.class);
 		manualVerificationStage.deployStage();

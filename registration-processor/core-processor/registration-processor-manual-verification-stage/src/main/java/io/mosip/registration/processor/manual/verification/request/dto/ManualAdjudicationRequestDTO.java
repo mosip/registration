@@ -15,13 +15,12 @@ public class ManualAdjudicationRequestDTO {
 	private String id;
 	
 	private String version;
-	
+
 	private String requestId;
-	
+
 	private String referenceId;
-	
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = ManualVerificationConstants.TIME_FORMAT)
-	private LocalDateTime requesttime = LocalDateTime.now(ZoneId.of("UTC"));
+
+	private String requesttime;
 	
 	private String referenceURL;
 	
