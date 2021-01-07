@@ -24,6 +24,7 @@ import java.util.Timer;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -209,9 +210,6 @@ public class BaseController {
 	@Autowired
 	private BioService bioService;
 
-	/**
-	 * Instance of {@link MosipLogger}
-	 */
 	private static final Logger LOGGER = AppConfig.getLogger(BaseController.class);
 
 	@Autowired
@@ -1245,9 +1243,6 @@ public class BaseController {
 	/**
 	 * Popup statge.
 	 *
-	 * @param messgae    the messgae
-	 * @param imageUrl   the image url
-	 * @param styleClass the style class
 	 */
 	public void onboardAlertMsg() {
 		packetHandlerController.getUserOnboardMessage().setVisible(true);
@@ -1838,23 +1833,31 @@ public class BaseController {
 		}
 	}
 
-	// TODO - based on configuration
 	public Map<Entry<String, String>, Map<String, List<List<String>>>> getOnboardUserMap() {
 		Map<Entry<String, String>, Map<String, List<List<String>>>> mapToProcess = new HashMap<>();
 
 		Map<String, String> labels = new HashMap<>();
-		labels.put("OPERATOR", "Supervisor / Officer Biometrics");
+		labels.put("OPERATOR", RegistrationUIConstants.ONBOARD_USER_TITLE);
 
+		Object value = ApplicationContext.map().get(RegistrationConstants.OPERATOR_ONBOARDING_BIO_ATTRIBUTES);
+		List<String> attributes = (value != null) ? Arrays.asList(((String)value).split(",")) :
+				new ArrayList<String>();
+		//subMap.put(slabType, Arrays.asList(configBiometrics, nonConfigBiometrics));
 		HashMap<String, List<List<String>>> subMap = new HashMap<String, List<List<String>>>();
 		subMap.put(RegistrationConstants.FINGERPRINT_SLAB_LEFT,
-				Arrays.asList(RegistrationConstants.leftHandUiAttributes, Arrays.asList()));
+				Arrays.asList(ListUtils.intersection(RegistrationConstants.leftHandUiAttributes, attributes),
+			ListUtils.subtract(RegistrationConstants.leftHandUiAttributes, attributes)));
 		subMap.put(RegistrationConstants.FINGERPRINT_SLAB_RIGHT,
-				Arrays.asList(RegistrationConstants.rightHandUiAttributes, Arrays.asList()));
+				Arrays.asList(ListUtils.intersection(RegistrationConstants.rightHandUiAttributes, attributes),
+						ListUtils.subtract(RegistrationConstants.rightHandUiAttributes, attributes)));
 		subMap.put(RegistrationConstants.FINGERPRINT_SLAB_THUMBS,
-				Arrays.asList(RegistrationConstants.twoThumbsUiAttributes, Arrays.asList()));
+				Arrays.asList(ListUtils.intersection(RegistrationConstants.twoThumbsUiAttributes, attributes),
+				ListUtils.subtract(RegistrationConstants.twoThumbsUiAttributes, attributes)));
 		subMap.put(RegistrationConstants.IRIS_DOUBLE,
-				Arrays.asList(RegistrationConstants.eyesUiAttributes, Arrays.asList()));
-		subMap.put(RegistrationConstants.FACE, Arrays.asList(RegistrationConstants.faceUiAttributes, Arrays.asList()));
+				Arrays.asList(ListUtils.intersection(RegistrationConstants.eyesUiAttributes, attributes),
+				ListUtils.subtract(RegistrationConstants.eyesUiAttributes, attributes)));
+		subMap.put(RegistrationConstants.FACE, Arrays.asList(ListUtils.intersection(RegistrationConstants.faceUiAttributes, attributes),
+						ListUtils.subtract(RegistrationConstants.faceUiAttributes, attributes)));
 
 		for (Entry<String, String> entry : labels.entrySet()) {
 			mapToProcess.put(entry, subMap);

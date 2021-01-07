@@ -860,6 +860,11 @@ public class PacketHandlerController extends BaseController implements Initializ
 			return;
 		}
 
+		if (!RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.NO_INTERNET_CONNECTION);
+			return;
+		}
+
 		if (!authTokenUtilService.hasAnyValidToken()) {
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
 			return;

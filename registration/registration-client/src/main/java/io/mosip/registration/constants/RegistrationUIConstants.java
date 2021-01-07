@@ -429,4 +429,5 @@ public class RegistrationUIConstants {
 	
 	public static final String USER_IN_ACTIVE = bundle.getString("USER_IN_ACTIVE");
 
+	public static final String ONBOARD_USER_TITLE = bundle.getString("officerbiometrics");
 }
