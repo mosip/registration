@@ -1,21 +1,21 @@
 -- -------------------------------------------------------------------------------------------------
 -- Database Name: mosip_regprc
--- Release Version 	: 1.0.5
+-- Release Version 	: 1.1.4
 -- Purpose    		: Database Alter scripts for the release for Registration Processor DB.       
 -- Create By   		: Sadanandegowda DM
--- Created Date		: 03-Jan-2020
+-- Created Date		: Dec-2020
 -- 
 -- Modified Date        Modified By         Comments / Remarks
 -- -------------------------------------------------------------------------------------------------
 
 \c mosip_regprc sysadmin
 
-ALTER TABLE regprc.individual_demographic_dedup ADD COLUMN mobile_number character varying(64);
+ALTER TABLE regprc.reg_manual_verification DROP COLUMN IF EXISTS matched_score;
 
-ALTER TABLE regprc.individual_demographic_dedup ADD COLUMN email character varying(512);
+ALTER TABLE regprc.reg_manual_verification ADD COLUMN IF NOT EXISTS ref_regtrn_id character varying(36);
 
-ALTER TABLE regprc.individual_demographic_dedup ADD COLUMN pincode character varying(64);
+ALTER TABLE regprc.reg_manual_verification ADD COLUMN IF NOT EXISTS request_id character varying(36);
 
+ALTER TABLE regprc.reg_manual_verification ADD COLUMN IF NOT EXISTS res_text bytea;
 
-ALTER TABLE regprc.abis_request DROP CONSTRAINT IF EXISTS uk_abisreq;
 ----------------------------------------------------------------------------------------------------

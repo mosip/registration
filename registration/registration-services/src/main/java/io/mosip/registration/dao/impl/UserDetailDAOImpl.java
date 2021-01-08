@@ -9,6 +9,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.registration.dto.UserDetailDto;
@@ -150,12 +151,14 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 
 			// deleting Role if Exist
 			LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "Deleting User role if exist....");
-			userDetails.forEach(userRole -> {
-				userRole.getRoles().forEach(userRoleId -> {
+			userDetails.forEach(userDetail -> {
+				userDetail.getRoles().forEach(userRoleId -> {
 					UserRoleId roleId = new UserRoleId();
 					roleId.setRoleCode(userRoleId);
-					roleId.setUsrId(userRole.getUserName());
-					userRoleRepository.deleteByUserRoleIdUsrId(userRole.getUserName());
+					roleId.setUsrId(userDetail.getUserName());
+
+					deleteUserRole(userDetail.getUserName());
+
 				});
 
 			});
@@ -231,11 +234,17 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 					roleId.setRoleCode(rol);
 					roleId.setUsrId(role.getUserName());
 					roles.setUserRoleId(roleId);
-					userRoleRepository.save(roles);
+
+					try {
+
+						userRoleRepository.save(roles);
+
+					} catch (Exception exception) {
+						exception.printStackTrace();
+					}
 				});
 
 			});
-
 			LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "Leaving user detail save method...");
 
 		} catch (RuntimeException exRuntimeException) {
@@ -306,6 +315,38 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 			userPwdRepository.save(userDetail.get(0).getUserPassword());
 			userDetailRepository.save(userDetail.get(0));
 		}
+	}
+
+	@Override
+	public List<UserDetail> getAllUsers() {
+		LOGGER.info("REGISTRATION - USER_DETAIL - REGISTRATION_USER_DETAIL_DAO_IMPL", APPLICATION_NAME, APPLICATION_ID,
+				"Fetching All User details");
+		return userDetailRepository.findAll();
+	}
+
+	@Override
+	public void deleteUser(UserDetail userDetail) {
+		LOGGER.info("REGISTRATION - USER_DETAIL - REGISTRATION_USER_DETAIL_DAO_IMPL", APPLICATION_NAME, APPLICATION_ID,
+				"Deleting user  : " + userDetail.getId());
+		userDetailRepository.delete(userDetail);
+	}
+
+	@Override
+	public void deleteUserRole(String userName) {
+		LOGGER.info("REGISTRATION - USER_DETAIL - REGISTRATION_USER_DETAIL_DAO_IMPL", APPLICATION_NAME, APPLICATION_ID,
+				"Deleting Roles for user : " + userName);
+
+		userRoleRepository.deleteByUserRoleIdUsrId(userName);
+
+	}
+
+	@Override
+	public void update(UserDetail userDetail) {
+
+		LOGGER.info("REGISTRATION - USER_DETAIL - REGISTRATION_USER_DETAIL_DAO_IMPL", APPLICATION_NAME, APPLICATION_ID,
+				"Updating User : " + userDetail.getId());
+
+		userDetailRepository.update(userDetail);
 	}
 
 }

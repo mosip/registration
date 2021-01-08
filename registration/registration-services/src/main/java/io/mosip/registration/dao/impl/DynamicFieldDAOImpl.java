@@ -36,16 +36,16 @@ public class DynamicFieldDAOImpl implements DynamicFieldDAO {
 	@Override
 	public DynamicField getDynamicField(String fieldName, String langCode) {
 
-		LOGGER.info("DynamicFieldDAOImpl", APPLICATION_NAME, APPLICATION_ID,
+		LOGGER.debug("DynamicFieldDAOImpl", APPLICATION_NAME, APPLICATION_ID,
 				"fetching the dynamic field >>> " + fieldName + " for langCode >>> " + langCode);
 
-		return dynamicFieldRepository.findByNameAndLangCode(fieldName, langCode);
+		return dynamicFieldRepository.findByIsActiveTrueAndNameAndLangCode(fieldName, langCode);
 	}
 
 	@Override
 	public List<DynamicFieldValueDto> getDynamicFieldValues(String fieldName, String langCode) {
 		
-		LOGGER.info("DynamicFieldDAOImpl", APPLICATION_NAME, APPLICATION_ID,
+		LOGGER.debug("DynamicFieldDAOImpl", APPLICATION_NAME, APPLICATION_ID,
 				"fetching the valueJSON ");		
 		
 		DynamicField dynamicField = getDynamicField(fieldName, langCode);

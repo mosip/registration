@@ -13,8 +13,7 @@ public interface CenterMachineReMapService {
 	 * Checks and handles all the operations to be done when the machine is re
 	 * mapped to another center based on the given step number
 	 * 
-	 * @param step
-	 *            - step number for a particular remap operation
+	 * @param step - step number for a particular remap operation
 	 */
 	void handleReMapProcess(int step);
 
@@ -40,6 +39,13 @@ public interface CenterMachineReMapService {
 	 * @return Boolean - true if machine is remappped
 	 */
 	Boolean isMachineRemapped();
+
+	/**
+	 * checks if the Machine was in-active
+	 * 
+	 * @return Boolean - true if machine is in-active
+	 */
+	Boolean isMachineInActive();
 
 	/**
 	 * starts the remap process if the remap flag is enabled

@@ -581,16 +581,13 @@ public class ClientSettingSyncHelper {
 						dynamicField.setLangCode(dynamicFieldDto.getLangCode());
 						dynamicField.setValueJson(dynamicFieldDto.getFieldVal() == null ?
 								"[]" : MapperUtils.convertObjectToJsonString(dynamicFieldDto.getFieldVal()));
+						dynamicField.setActive(dynamicFieldDto.isActive());
 						fields.add(dynamicField);
 					}
 				}
 			}
 			
 			if (!fields.isEmpty()) {
-				List<DynamicField> existingFields = dynamicFieldRepository.findAll();
-				checkForDuplicates(fields, existingFields);
-				List<DynamicField> updatedFields = dynamicFieldRepository.findAll();
-				checkForDuplicates(fields, updatedFields);
 				dynamicFieldRepository.saveAll(fields);
 			}
 				

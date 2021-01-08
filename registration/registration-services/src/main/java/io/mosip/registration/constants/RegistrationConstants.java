@@ -108,7 +108,7 @@ public class RegistrationConstants {
 	public static final String ONBOARD = "onboard";
 
 	// CSS file
-	//public static final String CSS_FILE_PATH = "application.css";
+	// public static final String CSS_FILE_PATH = "application.css";
 
 	public static final String MOSIP_URL = "http://mosip.io";
 
@@ -363,6 +363,7 @@ public class RegistrationConstants {
 	public static final String ONBOARD_IMG_PATH = "/images/tick.png";
 
 	public static final String TICK_CIRICLE_IMG_PATH = "/images/tick-circle.png";
+	public static final String EXCLAMATION_IMG_PATH = "/images/exclamation.png";
 	public static final String ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT = "EEEE dd MMM hh:mm a";
 	public static final String UTC_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
@@ -869,16 +870,8 @@ public class RegistrationConstants {
 
 	// Template Name
 	public static final String ACKNOWLEDGEMENT_TEMPLATE = "Ack Template";
-	public static final String ACKNOWLEDGEMENT_TEMPLATE_PART_1 = "reg-ack-template-part1";
-	public static final String ACKNOWLEDGEMENT_TEMPLATE_PART_2 = "reg-ack-template-part2";
-	public static final String ACKNOWLEDGEMENT_TEMPLATE_PART_3 = "reg-ack-template-part3";
-	public static final String ACKNOWLEDGEMENT_TEMPLATE_PART_4 = "reg-ack-template-part4";
-	public static final String EMAIL_TEMPLATE = "reg-email-notification";
-	public static final String UPDATE_UIN_EMAIL_TEMPLATE = "updateUIN-email-notification";
-	public static final String LOST_UIN_EMAIL_TEMPLATE = "lostUIN-email-notification";
-	public static final String SMS_TEMPLATE = "reg-sms-notification";
-	public static final String UPDATE_UIN_SMS_TEMPLATE = "updateUIN-sms-notification";
-	public static final String LOST_UIN_SMS_TEMPLATE = "lostUIN-sms-notification";
+	public static final String ACKNOWLEDGEMENT_TEMPLATE_CODE = "reg-ack-template-part";
+	public static final String PREVIEW_TEMPLATE_CODE = "reg-preview-template-part";
 
 	// Notification Service
 	public static final String EMAIL_SUBJECT = "MOSIP REGISTRATION NOTIFICATION";
@@ -1035,7 +1028,7 @@ public class RegistrationConstants {
 
 	// Iris & Fingerprint Capture for Individual Registration
 	public static final String IRIS_THRESHOLD = "mosip.registration.iris_threshold";
-	public static final String FACE_THRESHOLD = "mosip.facequalitythreshold";
+	public static final String FACE_THRESHOLD = "mosip.registration.face_threshold";
 	public static final String IMAGE_FORMAT_KEY = "imageFormat";
 	public static final String IMAGE_BYTE_ARRAY_KEY = "imageBytes";
 	public static final String IMAGE_BYTE_ISO = "byteIso";
@@ -1070,6 +1063,8 @@ public class RegistrationConstants {
 	public static final String THUMBS_FINGERPRINT_THRESHOLD = "mosip.registration.thumbs_fingerprint_threshold";
 	public static final String FINGERPRINT_RETRIES_COUNT = "mosip.registration.num_of_fingerprint_retries";
 	public static final String IRIS_RETRY_COUNT = "mosip.registration.num_of_iris_retries";
+	public static final String FACE_RETRY_COUNT = "mosip.registration.num_of_face_retries";
+
 	public static final String[] LEFTHAND_SEGMNTD_FILE_PATHS = new String[] { "/fingerprints/lefthand/leftIndex/",
 			"/fingerprints/lefthand/leftLittle/", "/fingerprints/lefthand/leftMiddle/",
 			"/fingerprints/lefthand/leftRing/" };
@@ -1822,7 +1817,13 @@ public class RegistrationConstants {
 	public static final String MACHINE_VERIFICATION_SUCCESS = "Machine Verification Success";
 	public static final String UTC_APPENDER = " (UTC)";
 
-	//Mandatory Astrik
+	// Mandatory Astrik
 	public static final String ASTRIK = " * ";
 
+	public static final String MACHINE_INACTIVE_FLAG = "mosip.registration.machine.inactive";
+	public static String MACHINE_REMAP_CODE = "KER-SNC-149";
+	public static String MACHINE_INACTIVE_CODE = "KER-SNC-155";
+
+	public static String OPERATOR_ONBOARDING_BIO_ATTRIBUTES = "mosip.registration.operator.onboarding.bioattributes";
+	public static String RIGHT_TO_LEFT_ORIENTATION_LANGUAGES = "mosip.language.righttoleft.orientation";
 }

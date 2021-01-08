@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 
 import javax.imageio.ImageIO;
-import javax.swing.JPanel;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,7 +30,6 @@ import io.mosip.registration.device.webcam.impl.WebcamSarxosServiceImpl;
 import io.mosip.registration.util.common.RubberBandSelection;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.embed.swing.SwingNode;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
@@ -68,9 +66,6 @@ public class ScanPopUpViewController extends BaseController {
 	private WebcamSarxosServiceImpl webcamSarxosServiceImpl;
 
 	@FXML
-	private ImageView scanImage;
-
-	@FXML
 	private Label popupTitle;
 
 	@FXML
@@ -81,15 +76,6 @@ public class ScanPopUpViewController extends BaseController {
 
 	@FXML
 	private Text scanningMsg;
-
-//	@FXML
-//	private GridPane imageParent;
-//
-//	@FXML
-//	private GridPane webcamParent;
-
-	@FXML
-	private SwingNode webcamNode;
 
 	private boolean isDocumentScan;
 
@@ -134,16 +120,34 @@ public class ScanPopUpViewController extends BaseController {
 	private Button streamBtn;
 	@FXML
 	private Button previewBtn;
-
+	
+	@FXML
+	private GridPane imageViewGridPane;
+	
+	@FXML
+	private ImageView scanImage;
+	
+	@FXML
+	private Group imageGroup;
+	
 	@Autowired
 	private BiometricsController biometricsController;
 
-	private Stage cropStage;
+	private boolean isStreamPaused;
 
-	private ImageView cropImageView;
+	public boolean isStreamPaused() {
+		return isStreamPaused;
+	}
 
-	@FXML
-	private Group scanImageGroup;
+	private boolean isWebCamStream;
+
+	public boolean isWebCamStream() {
+		return isWebCamStream;
+	}
+
+	public void setWebCamStream(boolean isWebCamStream) {
+		this.isWebCamStream = isWebCamStream;
+	}
 
 	/**
 	 * @return the popupStage
@@ -166,30 +170,6 @@ public class ScanPopUpViewController extends BaseController {
 		this.popupStage = popupStage;
 	}
 
-//	public GridPane getImageParent() {
-//		return imageParent;
-//	}
-//
-//	public void setImageParent(GridPane imageParent) {
-//		this.imageParent = imageParent;
-//	}
-//
-//	public GridPane getWebcamParent() {
-//		return webcamParent;
-//	}
-//
-//	public void setWebcamParent(GridPane webcamParent) {
-//		this.webcamParent = webcamParent;
-//	}
-
-	public SwingNode getWebcamNode() {
-		return webcamNode;
-	}
-
-	public void setWebcamNode(SwingNode webcamNode) {
-		this.webcamNode = webcamNode;
-	}
-
 	/**
 	 * This method will open popup to scan
 	 * 
@@ -197,26 +177,24 @@ public class ScanPopUpViewController extends BaseController {
 	 * @param title
 	 */
 	public void init(BaseController parentControllerObj, String title) {
-
 		try {
-
 			LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					"Opening pop-up screen to scan for user registration");
-
+			
 			streamerValue = new TextField();
 			baseController = parentControllerObj;
 			popupStage = new Stage();
 			popupStage.initStyle(StageStyle.UNDECORATED);
 
 			LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "loading scan.fxml");
-			Parent scanPopup = BaseController.load(getClass().getResource(RegistrationConstants.SCAN_PAGE));
+			Parent scanPopup = BaseController.load(getClass().getResource(RegistrationConstants.SCAN_PAGE));			
+			
+			scanImage.fitWidthProperty().bind(imageViewGridPane.widthProperty());
+			scanImage.fitHeightProperty().bind(imageViewGridPane.heightProperty());
+			
 			setDefaultImageGridPaneVisibility();
 			popupStage.setResizable(false);
 			popupTitle.setText(title);
-
-//			scanImageGroup.getParent().minHeight(1000);
-//			scanImageGroup.getParent().minWidth(1000);
-			scanImage.setPreserveRatio(true);
 
 			cropButton.setDisable(true);
 			cancelBtn.setDisable(true);
@@ -224,7 +202,6 @@ public class ScanPopUpViewController extends BaseController {
 			Scene scene = null;
 
 			if (!isDocumentScan) {
-
 				scene = new Scene(scanPopup);
 				captureBtn.setVisible(false);
 				saveBtn.setVisible(false);
@@ -237,8 +214,8 @@ public class ScanPopUpViewController extends BaseController {
 						"Setting doc screen width : " + width);
 
 				LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-						"Setting doc screen height : " + height);
-
+						"Setting doc screen height : " + height);				
+				
 				scene = new Scene(scanPopup, width, height);
 
 				if (documentScanController.getScannedPages() != null
@@ -253,7 +230,6 @@ public class ScanPopUpViewController extends BaseController {
 					cancelBtn.setDisable(true);
 					previewBtn.setDisable(true);
 				}
-
 			}
 			scene.getStylesheets().add(ClassLoader.getSystemClassLoader().getResource(getCssName()).toExternalForm());
 			popupStage.setScene(scene);
@@ -422,21 +398,6 @@ public class ScanPopUpViewController extends BaseController {
 //		imageParent.setVisible(true);
 	}
 
-	public void setWebCamPanel(JPanel jPanelWindow) {
-
-		LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-				"Setting jPanel : " + jPanelWindow);
-		webcamNode.setContent(jPanelWindow);
-
-		scanImage.setVisible(false);
-//		imageParent.setVisible(false);
-//		webcamParent.setVisible(true);
-
-		webcamNode.setVisible(true);
-
-		LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "Setting jPanel completed");
-	}
-
 	/**
 	 * This method will preview the next document
 	 */
@@ -528,10 +489,9 @@ public class ScanPopUpViewController extends BaseController {
 
 		LOGGER.debug("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 				"crop has been selected");
-
+		isStreamPaused = true;
 		scanImage.setVisible(true);
-		webcamNode.setVisible(false);
-		RubberBandSelection rubberBandSelection = new RubberBandSelection(scanImageGroup);
+		RubberBandSelection rubberBandSelection = new RubberBandSelection(imageGroup);
 
 		rubberBandSelection.setscanPopUpViewController(this);
 
@@ -694,11 +654,14 @@ public class ScanPopUpViewController extends BaseController {
 
 		cancelBtn.setDisable(true);
 		cropButton.setDisable(true);
+
+		isStreamPaused = false;
 	}
 
 	@FXML
 	public void preview() {
 
+		isStreamPaused = true;
 		showPreview(true);
 
 		scanImage.setImage(SwingFXUtils.toFXImage(
@@ -708,32 +671,15 @@ public class ScanPopUpViewController extends BaseController {
 
 	private void showPreview(boolean isVisible) {
 		previewOption.setVisible(isVisible);
-		webcamNode.setVisible(false);
 		scanImage.setVisible(true);
 		cancelBtn.setDisable(false);
 		cropButton.setDisable(false);
-//		setCancelBtn(documentScanController.getScannedPages() == null);
 
-	}
-
-	private void setCancelBtn(boolean isDisable) {
-		cancelBtn.setDisable(isDisable);
-		cropButton.setDisable(isDisable);
 	}
 
 	private void showStream(boolean isVisible) {
 
-		if (isVisible) {
-			if (webcamSarxosServiceImpl.isWebcamConnected()) {
-				webcamNode.setVisible(true);
-				scanImage.setVisible(false);
-			} else {
-				webcamNode.setVisible(false);
-				scanImage.setVisible(true);
-			}
-		} else {
-			webcamNode.setVisible(false);
-			scanImage.setVisible(false);
-		}
+		isStreamPaused = false;
+
 	}
 }

@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import io.mosip.registration.util.common.DemographicChangeActionHandler;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
+import javafx.geometry.NodeOrientation;
 import javafx.scene.control.*;
 import org.mvel2.MVEL;
 import org.mvel2.integration.VariableResolverFactory;
@@ -156,6 +157,7 @@ public class DemographicDetailController extends BaseController {
 	private Map<String, TreeMap<Integer, String>> orderOfAddressMapByGroup = new HashMap<>();
 	private Map<String, List<String>> orderOfAddressListByGroup = new LinkedHashMap<>();
 	Map<String, List<UiSchemaDTO>> templateGroup = null;
+	private Node previousNode;
 
 
 	/*
@@ -228,7 +230,6 @@ public class DemographicDetailController extends BaseController {
 				List<UiSchemaDTO> list = templateGroupEntry.getValue();
 				if (list.size() <= 4) {
 					addGroupInUI(list, position, templateGroupEntry.getKey() + position);
-
 				} else {
 					for (int index = 0; index <= list.size() / 4; index++) {
 
@@ -492,7 +493,20 @@ public class DemographicDetailController extends BaseController {
 		HBox dateHbox = new HBox();
 		dateHbox.setSpacing(10);
 		dateHbox.setPrefWidth(250);
-		dateHbox.getChildren().addAll(vBoxDD, vBoxMM, vBoxYYYY);
+		String dateFormat = ApplicationContext.getDateFormat();
+		String[] parts = dateFormat.split("/|-");
+		if(parts.length > 0) {
+			for(String part : parts) {
+				switch (part.toLowerCase()) {
+					case "dd" : dateHbox.getChildren().add(vBoxDD);	break;
+					case "mm": dateHbox.getChildren().add(vBoxMM);	break;
+					case "yyyy": dateHbox.getChildren().add(vBoxYYYY); break;
+				}
+			}
+		}
+		else {
+			dateHbox.getChildren().addAll(vBoxDD, vBoxMM, vBoxYYYY);
+		}
 
 		Label orLabel = new Label(localLanguage ? localLabelBundle.getString("ageOrDOBField")
 				: applicationLabelBundle.getString("ageOrDOBField"));
@@ -521,7 +535,7 @@ public class DemographicDetailController extends BaseController {
 		Label validationMessage = new Label();
 
 		VBox vbox = new VBox();
-		vbox.setId(fieldName + RegistrationConstants.Parent);
+		vbox.setId(fieldName + languageType + RegistrationConstants.Parent);
 		field.setId(fieldName + languageType);
 		field.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
 		label.setId(fieldName + languageType + RegistrationConstants.LABEL);
@@ -540,14 +554,15 @@ public class DemographicDetailController extends BaseController {
 		hB.setSpacing(20);
 
 		vbox.getChildren().add(validationMessage);
-		setFieldChangeListener(field);
 		listOfTextField.put(field.getId(), field);
+		setFieldChangeListener(field);
 
 		String mandatorySuffix = getMandatorySuffix(schema);
 		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
 			field.setPromptText(schema.getLabel().get(RegistrationConstants.SECONDARY) + mandatorySuffix);
 			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.SECONDARY));
 			label.setText(schema.getLabel().get(RegistrationConstants.SECONDARY) + mandatorySuffix);
+
 			if (!schema.getType().equals(RegistrationConstants.SIMPLE_TYPE)) {
 				field.setDisable(true);
 			} else {
@@ -579,12 +594,22 @@ public class DemographicDetailController extends BaseController {
 			label.setText(schema.getLabel().get(RegistrationConstants.PRIMARY) + mandatorySuffix);
 		}
 
+		changeNodeOrientation(field, languageType);
 		hB.getChildren().add(validationMessage);
 		hB.setStyle("-fx-background-color:WHITE");
 		vbox.getChildren().add(hB);
 
 		fxUtils.onTypeFocusUnfocusListener(parentFlowPane, field);
 		return vbox;
+	}
+
+	private void changeNodeOrientation(Node node, String langType) {
+		String langCode = langType.equalsIgnoreCase(RegistrationConstants.LOCAL_LANGUAGE) ?
+				ApplicationContext.secondaryLanguageLocal() : ApplicationContext.primaryLanguageLocal();
+		String langauages = (String) ApplicationContext.map().getOrDefault(RegistrationConstants.RIGHT_TO_LEFT_ORIENTATION_LANGUAGES, "ar");
+		if(langauages.contains(langCode)) {
+			node.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
+		}
 	}
 
 	private void populateDropDowns() {
@@ -1187,16 +1212,27 @@ public class DemographicDetailController extends BaseController {
 	private void setFocusonLocalField(MouseEvent event) {
 		try {
 			Node node = (Node) event.getSource();
-			if (!isAppLangAndLocalLangSame()) {
-				listOfTextField.get(node.getId() + "LocalLanguage").requestFocus();
-			}
-
 			if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
+				node.requestFocus();
 				keyboardNode.setVisible(true);
 				keyboardNode.setManaged(true);
+				//addKeyboard(positionTracker.get((node.getId() + "ParentGridPane")) + 1);
+				Node parentNode = node.getParent().getParent();
+				if (keyboardVisible) {
+					if(previousNode != null) {
+						((VBox)previousNode).getChildren().remove(lastPosition - 1);
+					}
+					keyboardVisible = false;
+				} else {
+					listOfTextField.get(node.getId() + "LocalLanguage").requestFocus();
+					GridPane gridPane = prepareMainGridPaneForKeyboard();
+					gridPane.addColumn(1, keyboardNode);
+					((VBox)parentNode).getChildren().add(gridPane);
+					previousNode = parentNode;
+					keyboardVisible = true;
+					lastPosition = ((VBox)parentNode).getChildren().size();
+				}
 			}
-			addKeyboard(positionTracker.get((node.getId() + "ParentGridPane")) + 1);
-
 		} catch (RuntimeException runtimeException) {
 			LOGGER.error("REGISTRATION - SETTING FOCUS ON LOCAL FIELD FAILED", APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID,
@@ -1448,7 +1484,7 @@ public class DemographicDetailController extends BaseController {
 
 		if(field instanceof TextField) {
 			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-					"validating text field primary");
+					"validating text field");
 			if (!isInputTextValid((TextField) field, field.getId())) {
 				fxUtils.showErrorLabel((TextField) field, parentFlowPane);
 				return false;

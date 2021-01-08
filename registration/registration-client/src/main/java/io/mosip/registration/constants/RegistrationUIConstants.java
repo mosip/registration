@@ -84,6 +84,7 @@ public class RegistrationUIConstants {
 	public static final String REMAP_CLICK_OK = bundle.getString("REMAP_CLICK_OK");
 	public static final String REMAP_PROCESS_SUCCESS = bundle.getString("REMAP_PROCESS_SUCCESS");
 	public static final String REMAP_NOT_APPLICABLE = bundle.getString("REMAP_NOT_APPLICABLE");
+	public static final String USERMAP_NOT_APPLICABLE = bundle.getString("USERMAP_NOT_APPLICABLE");
 	public static final String REMAP_PROCESS_STILL_PENDING = bundle.getString("REMAP_PROCESS_STILL_PENDING");
 
 	// DEVICE
@@ -425,5 +426,8 @@ public class RegistrationUIConstants {
 	public static final String DOC_CAPTURE_SUCCESS = bundle.getString("DOC_CAPTURE_SUCCESS");
 
 	public static final String DOC_DELETE_SUCCESS = bundle.getString("DOC_DELETE_SUCCESS");
+	
+	public static final String USER_IN_ACTIVE = bundle.getString("USER_IN_ACTIVE");
 
+	public static final String ONBOARD_USER_TITLE = bundle.getString("officerbiometrics");
 }

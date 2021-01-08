@@ -329,6 +329,8 @@ public class Validations extends BaseController {
 	private boolean checkForValidValue(Pane parentPane, TextField node, String fieldId, String value, ResourceBundle messageBundle,
 									boolean showAlert, boolean isPreviousValid, List<String> blackListedWords, UiSchemaDTO uiSchemaDTO) {
 
+		boolean isLocalLanguageField = node.getId().contains(RegistrationConstants.LOCAL_LANGUAGE);
+
 		if(RegistrationConstants.AGE_DATE.equals(uiSchemaDTO.getControlType())) {
 			boolean isValid = dateValidation.validateDate(parentPane, uiSchemaDTO.getId());
 			LOGGER.debug(RegistrationConstants.VALIDATION_LOGGER, APPLICATION_NAME, APPLICATION_ID,
@@ -348,7 +350,7 @@ public class Validations extends BaseController {
 			return false;
 
 		String regex = getRegex(fieldId, RegistrationUIConstants.REGEX_TYPE);
-		if(regex != null && !value.matches(regex)) {
+		if(!isLocalLanguageField && regex != null && !value.matches(regex)) {
 			generateInvalidValueAlert(parentPane, node.getId(), getFromLabelMap(fieldId).concat(RegistrationConstants.SPACE)
 					.concat(messageBundle.getString(RegistrationConstants.REG_DDC_004)), showAlert);
 			if (isPreviousValid && !node.getId().contains(RegistrationConstants.ON_TYPE)) {
@@ -357,7 +359,7 @@ public class Validations extends BaseController {
 			return false;
 		}
 
-		if(uiSchemaDTO != null && Arrays.asList("UIN", "RID").contains(uiSchemaDTO.getSubType()) &&
+		if(!isLocalLanguageField && uiSchemaDTO != null && Arrays.asList("UIN", "RID").contains(uiSchemaDTO.getSubType()) &&
 				!validateUinOrRidField(value, getRegistrationDTOFromSession(), uiSchemaDTO)) {
 			generateInvalidValueAlert(parentPane, node.getId(), getFromLabelMap(fieldId).concat(RegistrationConstants.SPACE)
 					.concat(messageBundle.getString(RegistrationConstants.REG_DDC_004)), showAlert);

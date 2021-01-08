@@ -159,7 +159,7 @@ public class ABISHandlerUtil {
 	 *                                               has occurred.
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 */
-	private List<String> getUniqueRegIds(List<String> matchedRegistrationIds, String registrationId,
+	public List<String> getUniqueRegIds(List<String> matchedRegistrationIds, String registrationId,
 			String registrationType) throws ApisResourceAccessException, IOException,
 			JsonProcessingException, PacketManagerException {
 

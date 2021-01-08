@@ -24,6 +24,7 @@ import java.util.Timer;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -189,7 +190,7 @@ public class BaseController {
 
 	@Value("${mosip.registration.css_file_path:}")
 	private String cssName;
-	
+
 	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
 
 	public Text getScanningMsg() {
@@ -209,9 +210,6 @@ public class BaseController {
 	@Autowired
 	private BioService bioService;
 
-	/**
-	 * Instance of {@link MosipLogger}
-	 */
 	private static final Logger LOGGER = AppConfig.getLogger(BaseController.class);
 
 	@Autowired
@@ -328,8 +326,7 @@ public class BaseController {
 		}
 		scene.setRoot(borderPane);
 		fXComponents.getStage().setScene(scene);
-		scene.getStylesheets().add(
-				ClassLoader.getSystemClassLoader().getResource(getCssName()).toExternalForm());
+		scene.getStylesheets().add(ClassLoader.getSystemClassLoader().getResource(getCssName()).toExternalForm());
 		return scene;
 	}
 
@@ -374,8 +371,7 @@ public class BaseController {
 			alertStage = new Stage();
 			Pane authRoot = BaseController.load(getClass().getResource(RegistrationConstants.ALERT_GENERATION));
 			Scene scene = new Scene(authRoot);
-			scene.getStylesheets().add(ClassLoader.getSystemClassLoader()
-					.getResource(getCssName()).toExternalForm());
+			scene.getStylesheets().add(ClassLoader.getSystemClassLoader().getResource(getCssName()).toExternalForm());
 			alertStage.initStyle(StageStyle.UNDECORATED);
 			alertStage.setScene(scene);
 			alertStage.initModality(Modality.WINDOW_MODAL);
@@ -414,8 +410,7 @@ public class BaseController {
 			alertStage = new Stage();
 			Pane authRoot = BaseController.load(getClass().getResource(RegistrationConstants.ALERT_GENERATION));
 			Scene scene = new Scene(authRoot);
-			scene.getStylesheets().add(ClassLoader.getSystemClassLoader()
-					.getResource(getCssName()).toExternalForm());
+			scene.getStylesheets().add(ClassLoader.getSystemClassLoader().getResource(getCssName()).toExternalForm());
 			alertStage.initStyle(StageStyle.UNDECORATED);
 			alertStage.setScene(scene);
 			alertStage.initModality(Modality.WINDOW_MODAL);
@@ -511,7 +506,7 @@ public class BaseController {
 
 		String[] parts = id.split("__");
 		if (parts.length > 1 && parts[1].matches(RegistrationConstants.DTAE_MONTH_YEAR_REGEX)) {
-			id = parts[0]+"__"+RegistrationConstants.DOB;
+			id = parts[0] + "__" + RegistrationConstants.DOB;
 			parentPane = (Pane) parentPane.getParent().getParent();
 		}
 		Label label = ((Label) (parentPane.lookup(RegistrationConstants.HASH + id + RegistrationConstants.MESSAGE)));
@@ -894,28 +889,28 @@ public class BaseController {
 	 * @param templateCode the template code
 	 * @return the notification template
 	 */
-	/*protected Writer getNotificationTemplate(String templateCode) {
-		RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
-		Writer writeNotificationTemplate = new StringWriter();
-		try {
-			// get the data for notification template
-			String platformLanguageCode = ApplicationContext.applicationLanguage();
-			String notificationTemplate = templateService.getHtmlTemplate(templateCode, platformLanguageCode);
-			if (notificationTemplate != null && !notificationTemplate.isEmpty()) {
-				// generate the notification template
-				writeNotificationTemplate = templateGenerator.generateNotificationTemplate(notificationTemplate,
-						registrationDTO, templateManagerBuilder);
-			}
-
-		} catch (RegBaseUncheckedException regBaseUncheckedException) {
-			LOGGER.error("REGISTRATION - UI - GENERATE_NOTIFICATION", APPLICATION_NAME, APPLICATION_ID,
-					regBaseUncheckedException.getMessage() + ExceptionUtils.getStackTrace(regBaseUncheckedException));
-		} catch (RegBaseCheckedException regBaseCheckedException) {
-			LOGGER.error("REGISTRATION - UI- GENERATE_NOTIFICATION", APPLICATION_NAME, APPLICATION_ID,
-					regBaseCheckedException.getMessage() + ExceptionUtils.getStackTrace(regBaseCheckedException));
-		}
-		return writeNotificationTemplate;
-	}*/
+	/*
+	 * protected Writer getNotificationTemplate(String templateCode) {
+	 * RegistrationDTO registrationDTO = getRegistrationDTOFromSession(); Writer
+	 * writeNotificationTemplate = new StringWriter(); try { // get the data for
+	 * notification template String platformLanguageCode =
+	 * ApplicationContext.applicationLanguage(); String notificationTemplate =
+	 * templateService.getHtmlTemplate(templateCode, platformLanguageCode); if
+	 * (notificationTemplate != null && !notificationTemplate.isEmpty()) { //
+	 * generate the notification template writeNotificationTemplate =
+	 * templateGenerator.generateNotificationTemplate(notificationTemplate,
+	 * registrationDTO, templateManagerBuilder); }
+	 * 
+	 * } catch (RegBaseUncheckedException regBaseUncheckedException) {
+	 * LOGGER.error("REGISTRATION - UI - GENERATE_NOTIFICATION", APPLICATION_NAME,
+	 * APPLICATION_ID, regBaseUncheckedException.getMessage() +
+	 * ExceptionUtils.getStackTrace(regBaseUncheckedException)); } catch
+	 * (RegBaseCheckedException regBaseCheckedException) {
+	 * LOGGER.error("REGISTRATION - UI- GENERATE_NOTIFICATION", APPLICATION_NAME,
+	 * APPLICATION_ID, regBaseCheckedException.getMessage() +
+	 * ExceptionUtils.getStackTrace(regBaseCheckedException)); } return
+	 * writeNotificationTemplate; }
+	 */
 
 	/**
 	 * Gets the registration DTO from session.
@@ -1138,60 +1133,66 @@ public class BaseController {
 	 */
 	public boolean isMachineRemapProcessStarted() {
 
-		Boolean isRemapped = centerMachineReMapService.isMachineRemapped();
+		Boolean isRemapped = centerMachineReMapService.isMachineRemapped()
+				|| centerMachineReMapService.isMachineInActive();
 		if (isRemapped) {
 
-			String message = RegistrationUIConstants.REMAP_NO_ACCESS_MESSAGE;
-
-			if (isPacketsPendingForEODOrReRegister()) {
-				message += RegistrationConstants.NEW_LINE + RegistrationUIConstants.REMAP_EOD_PROCESS_MESSAGE;
-			}
-			message += RegistrationConstants.NEW_LINE + RegistrationUIConstants.REMAP_CLICK_OK;
-			generateAlert(RegistrationConstants.ALERT_INFORMATION, message);
-
-			disableHomePage(true);
-
-			Service<String> service = new Service<String>() {
-				@Override
-				protected Task<String> createTask() {
-					return new Task<String>() {
-
-						@Override
-						protected String call() {
-
-							packetHandlerController.getProgressIndicator().setVisible(true);
-
-							for (int i = 1; i <= 4; i++) {
-								/* starts the remap process */
-								centerMachineReMapService.handleReMapProcess(i);
-								this.updateProgress(i, 4);
-							}
-							LOGGER.info("BASECONTROLLER_REGISTRATION CENTER MACHINE REMAP : ", APPLICATION_NAME,
-									APPLICATION_ID, "center remap process completed");
-							return null;
-						}
-					};
-				}
-			};
-			packetHandlerController.getProgressIndicator().progressProperty().bind(service.progressProperty());
-
-			service.restart();
-
-			service.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-				@Override
-				public void handle(WorkerStateEvent t) {
-					handleRemapResponse(service);
-				}
-			});
-			service.setOnFailed(new EventHandler<WorkerStateEvent>() {
-				@Override
-				public void handle(WorkerStateEvent t) {
-					handleRemapResponse(service);
-				}
-			});
-
+			remapMachine();
 		}
 		return isRemapped;
+	}
+
+	public void remapMachine() {
+
+		String message = RegistrationUIConstants.REMAP_NO_ACCESS_MESSAGE;
+
+		if (isPacketsPendingForEODOrReRegister()) {
+			message += RegistrationConstants.NEW_LINE + RegistrationUIConstants.REMAP_EOD_PROCESS_MESSAGE;
+		}
+		message += RegistrationConstants.NEW_LINE + RegistrationUIConstants.REMAP_CLICK_OK;
+		generateAlert(RegistrationConstants.ALERT_INFORMATION, message);
+
+		disableHomePage(true);
+
+		Service<String> service = new Service<String>() {
+			@Override
+			protected Task<String> createTask() {
+				return new Task<String>() {
+
+					@Override
+					protected String call() {
+
+						packetHandlerController.getProgressIndicator().setVisible(true);
+
+						for (int i = 1; i <= 4; i++) {
+							/* starts the remap process */
+							centerMachineReMapService.handleReMapProcess(i);
+							this.updateProgress(i, 4);
+						}
+						LOGGER.info("BASECONTROLLER_REGISTRATION CENTER MACHINE REMAP : ", APPLICATION_NAME,
+								APPLICATION_ID, "center remap process completed");
+						return null;
+					}
+				};
+			}
+		};
+		packetHandlerController.getProgressIndicator().progressProperty().bind(service.progressProperty());
+
+		service.restart();
+
+		service.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+			@Override
+			public void handle(WorkerStateEvent t) {
+				handleRemapResponse(service);
+			}
+		});
+		service.setOnFailed(new EventHandler<WorkerStateEvent>() {
+			@Override
+			public void handle(WorkerStateEvent t) {
+				handleRemapResponse(service);
+			}
+		});
+
 	}
 
 	private void handleRemapResponse(Service<String> service) {
@@ -1242,9 +1243,6 @@ public class BaseController {
 	/**
 	 * Popup statge.
 	 *
-	 * @param messgae    the messgae
-	 * @param imageUrl   the image url
-	 * @param styleClass the style class
 	 */
 	public void onboardAlertMsg() {
 		packetHandlerController.getUserOnboardMessage().setVisible(true);
@@ -1279,8 +1277,8 @@ public class BaseController {
 		alert.setResizable(true);
 		alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
 		alert.getDialogPane().setMinWidth(500);
-		alert.getDialogPane().getStylesheets().add(
-				ClassLoader.getSystemClassLoader().getResource(getCssName()).toExternalForm());
+		alert.getDialogPane().getStylesheets()
+				.add(ClassLoader.getSystemClassLoader().getResource(getCssName()).toExternalForm());
 		Button okButton = (Button) alert.getDialogPane().lookupButton(ButtonType.OK);
 		okButton.setText(RegistrationUIConstants.getMessageLanguageSpecific(confirmButtonText));
 
@@ -1835,23 +1833,31 @@ public class BaseController {
 		}
 	}
 
-	// TODO - based on configuration
 	public Map<Entry<String, String>, Map<String, List<List<String>>>> getOnboardUserMap() {
 		Map<Entry<String, String>, Map<String, List<List<String>>>> mapToProcess = new HashMap<>();
 
 		Map<String, String> labels = new HashMap<>();
-		labels.put("OPERATOR", "Supervisor / Officer Biometrics");
+		labels.put("OPERATOR", RegistrationUIConstants.ONBOARD_USER_TITLE);
 
+		Object value = ApplicationContext.map().get(RegistrationConstants.OPERATOR_ONBOARDING_BIO_ATTRIBUTES);
+		List<String> attributes = (value != null) ? Arrays.asList(((String)value).split(",")) :
+				new ArrayList<String>();
+		//subMap.put(slabType, Arrays.asList(configBiometrics, nonConfigBiometrics));
 		HashMap<String, List<List<String>>> subMap = new HashMap<String, List<List<String>>>();
 		subMap.put(RegistrationConstants.FINGERPRINT_SLAB_LEFT,
-				Arrays.asList(RegistrationConstants.leftHandUiAttributes, Arrays.asList()));
+				Arrays.asList(ListUtils.intersection(RegistrationConstants.leftHandUiAttributes, attributes),
+			ListUtils.subtract(RegistrationConstants.leftHandUiAttributes, attributes)));
 		subMap.put(RegistrationConstants.FINGERPRINT_SLAB_RIGHT,
-				Arrays.asList(RegistrationConstants.rightHandUiAttributes, Arrays.asList()));
+				Arrays.asList(ListUtils.intersection(RegistrationConstants.rightHandUiAttributes, attributes),
+						ListUtils.subtract(RegistrationConstants.rightHandUiAttributes, attributes)));
 		subMap.put(RegistrationConstants.FINGERPRINT_SLAB_THUMBS,
-				Arrays.asList(RegistrationConstants.twoThumbsUiAttributes, Arrays.asList()));
+				Arrays.asList(ListUtils.intersection(RegistrationConstants.twoThumbsUiAttributes, attributes),
+				ListUtils.subtract(RegistrationConstants.twoThumbsUiAttributes, attributes)));
 		subMap.put(RegistrationConstants.IRIS_DOUBLE,
-				Arrays.asList(RegistrationConstants.eyesUiAttributes, Arrays.asList()));
-		subMap.put(RegistrationConstants.FACE, Arrays.asList(RegistrationConstants.faceUiAttributes, Arrays.asList()));
+				Arrays.asList(ListUtils.intersection(RegistrationConstants.eyesUiAttributes, attributes),
+				ListUtils.subtract(RegistrationConstants.eyesUiAttributes, attributes)));
+		subMap.put(RegistrationConstants.FACE, Arrays.asList(ListUtils.intersection(RegistrationConstants.faceUiAttributes, attributes),
+						ListUtils.subtract(RegistrationConstants.faceUiAttributes, attributes)));
 
 		for (Entry<String, String> entry : labels.entrySet()) {
 			mapToProcess.put(entry, subMap);
@@ -1864,23 +1870,24 @@ public class BaseController {
 				.filter(schemaDto -> schemaDto.getGroup() != null && schemaDto.getGroup().equalsIgnoreCase(group))
 				.collect(Collectors.toList());
 	}
-	
+
 	protected String getCssName() {
 		return cssName;
 	}
-	
-	
+
 	protected String getLocalZoneTime(String time) {
 		try {
-			String formattedTime = Timestamp.valueOf(time).toLocalDateTime().format(DateTimeFormatter.ofPattern(RegistrationConstants.UTC_PATTERN));
+			String formattedTime = Timestamp.valueOf(time).toLocalDateTime()
+					.format(DateTimeFormatter.ofPattern(RegistrationConstants.UTC_PATTERN));
 			LocalDateTime dateTime = DateUtils.parseUTCToLocalDateTime(formattedTime);
-		    return dateTime.format(DateTimeFormatter.ofPattern(RegistrationConstants.ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT));
+			return dateTime
+					.format(DateTimeFormatter.ofPattern(RegistrationConstants.ONBOARD_LAST_BIOMETRIC_UPDTAE_FORMAT));
 		} catch (RuntimeException exception) {
 			LOGGER.error("REGISTRATION - ALERT - BASE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(exception));
 			return time + RegistrationConstants.UTC_APPENDER;
 		}
-		
+
 	}
 
 }
