@@ -94,8 +94,8 @@ public class ABISHandlerUtil {
 				if (!CollectionUtils.isEmpty(machedRefIds)) {
 					List<String> matchedRegIds = packetInfoDao.getAbisRefRegIdsByMatchedRefIds(machedRefIds);
 					if (!CollectionUtils.isEmpty(matchedRegIds)) {
-						List<String> processingRegIds = packetInfoDao.getProcessedOrProcessingRegIds(matchedRegIds,
-								RegistrationTransactionStatusCode.IN_PROGRESS.toString());
+						List<String> processingRegIds = packetInfoDao.getWithoutStatusCodes(matchedRegIds,
+								RegistrationTransactionStatusCode.REJECTED.toString(), RegistrationTransactionStatusCode.PROCESSED.toString());
 						List<String> processedRegIds = packetInfoDao.getProcessedOrProcessingRegIds(matchedRegIds,
 								RegistrationTransactionStatusCode.PROCESSED.toString());
 						uniqueRIDs = getUniqueRegIds(processedRegIds, registrationId, registrationType);
@@ -184,10 +184,10 @@ public class ABISHandlerUtil {
 			if (registrationType.equalsIgnoreCase(SyncTypeDto.LOST.toString()) && matchedUin != null) {
 				filteredRegMap.put(matchedUin, machedRegId);
 			}
-			if (!filteredRegMap.isEmpty()) {
-				filteredRIds = new ArrayList<>(filteredRegMap.values());
-			}
 
+		}
+		if (!filteredRegMap.isEmpty()) {
+			filteredRIds = new ArrayList<>(filteredRegMap.values());
 		}
 
 		return filteredRIds;
