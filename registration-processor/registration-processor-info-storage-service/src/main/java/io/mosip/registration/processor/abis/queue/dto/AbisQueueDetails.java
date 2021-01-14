@@ -21,5 +21,6 @@ public class AbisQueueDetails {
 	private String password;
 	private String typeOfQueue;
 	private MosipQueue mosipQueue;
+	private int inboundMessageTTL;
 
 }

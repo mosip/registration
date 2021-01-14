@@ -149,6 +149,10 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	@Value("${registration.processor.queue.manualverification.request:mosip-to-mv}")
 	private String mvRequestAddress;
 
+	/**Manual verification queue message expiry in seconds, if given 0 then message will never expire*/
+	@Value("${registration.processor.queue.manualverification.request.messageTTL}")
+	private int mvRequestMessageTTL;
+
 	@Value("${packet.default.source}")
 	private String defaultSource;
 
@@ -616,9 +620,9 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 		ManualAdjudicationRequestDTO mar = prepareManualAdjudicationRequest(mves);
 		if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE))
-			mosipQueueManager.send(queue, JsonUtils.javaObjectToJsonString(mar), mvRequestAddress);
+			mosipQueueManager.send(queue, JsonUtils.javaObjectToJsonString(mar), mvRequestAddress, mvRequestMessageTTL);
 		else
-			mosipQueueManager.send(queue, JsonUtils.javaObjectToJsonString(mar).getBytes(), mvRequestAddress);
+			mosipQueueManager.send(queue, JsonUtils.javaObjectToJsonString(mar).getBytes(), mvRequestAddress, mvRequestMessageTTL);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				refId, "ManualVerificationServiceImpl::pushRequestToQueue()::entry");
 
