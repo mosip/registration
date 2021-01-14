@@ -52,9 +52,9 @@ public class AppConfigurationsValidator {
                 //TTL is multiplied by 2 to compute both Insert and Identify request expiry time
                 allowedReprocessTime += (abisQueueDetail.getInboundMessageTTL() * 2);
             }
-            if(allowedReprocessTime >= reprocessorElapseTime) {
+            if(reprocessorElapseTime <= allowedReprocessTime) {
                 logger.warn("registration.processor.reprocess.elapse.time config {} is invalid," +
-                    " it should should be greater than all the queue expiry put tother with an" +
+                    " it should should be greater than all the queue expiry put together with an" +
                     " additional buffer {}", reprocessorElapseTime, allowedReprocessTime);
             }
         } catch (RegistrationProcessorCheckedException e) {
