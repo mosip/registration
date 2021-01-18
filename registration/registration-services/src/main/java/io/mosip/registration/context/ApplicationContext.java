@@ -435,18 +435,19 @@ public class ApplicationContext {
 
 	}
 
-	@Deprecated(since = "1.1.4")
 	public static void setUpgradeServerURL(String url) {
 		applicationMap.put("client.upgrade.server.url", url);
 	}
 
+	@Deprecated(since = "1.1.4")
 	public static void setTPMUsageFlag(String tpmUsageFlag) {
 		applicationMap.put("client.tpm.required", tpmUsageFlag);
 	}
 
 	public static String getUpgradeServerURL() {
-		return applicationMap.get("client.upgrade.server.url") == null ? RegistrationAppHealthCheckUtil.getHostName()
-				: String.valueOf(applicationMap.get("client.upgrade.server.url"));
+		return applicationMap.get("client.upgrade.server.url") == null ?
+				String.format("https://%s", RegistrationAppHealthCheckUtil.getHostName()) :
+				String.valueOf(applicationMap.get("client.upgrade.server.url"));
 	}
 
 	@Deprecated(since = "1.1.4")
