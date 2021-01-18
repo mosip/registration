@@ -327,35 +327,18 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 				bioMetricsList.add(bioMetrics);
 			});
 
-
-
-			List<UserBiometric> biovalues = userBiometricRepository.findByUserBiometricIdUsrId(SessionContext.userContext().getUserId());
-			for(UserBiometric userBiometric : biovalues) {
-				userBiometric.setUserDetail(null);
-				userBiometricRepository.delete(userBiometric);
-			}
-
-			List<UserDetail> userDetails = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(SessionContext.userContext().getUserId());
-			if(userDetails != null && !userDetails.isEmpty()) {
-				userDetails.get(0).getUserBiometric().clear();
-				userDetailRepository.saveAndFlush(userDetails.get(0));
-			}
-
+			clearUserBiometrics(SessionContext.userContext().getUserId());
 			userBiometricRepository.saveAll(bioMetricsList);
+
 			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
 					"Biometric information insertion successful");
-			response = RegistrationConstants.SUCCESS;
+			return RegistrationConstants.SUCCESS;
 
 		} catch (RuntimeException runtimeException) {
-	
-			LOGGER.error(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
-					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
+			LOGGER.error(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(runtimeException));
 			response = RegistrationConstants.USER_ON_BOARDING_ERROR_RESPONSE;
-			throw new RegBaseUncheckedException(RegistrationConstants.USER_ON_BOARDING_EXCEPTION + response,
-					runtimeException.getMessage());
 		}
-		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "Leaving insert method");
-		return response;
+		throw new RegBaseUncheckedException(RegistrationConstants.USER_ON_BOARDING_EXCEPTION, response);
 	}
 	
 	/**
@@ -395,8 +378,8 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 				bioMetrics.setIsActive(true);
 				bioMetricsList.add(bioMetrics);
 			});
-			
-			userBiometricRepository.deleteByUserBiometricIdUsrId(SessionContext.userContext().getUserId());
+
+			clearUserBiometrics(SessionContext.userContext().getUserId());
 			userBiometricRepository.saveAll(bioMetricsList);
 			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
 					"Biometric information insertion successful");
@@ -417,5 +400,21 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 	private String getBioAttribute(List<String> subType) {
 		String subTypeName = String.join("", subType);
 		return BiometricAttributes.getAttributeBySubType(subTypeName);
+	}
+
+	private void clearUserBiometrics(String userId) {
+		List<UserBiometric> existingBiometrics = userBiometricRepository.findByUserBiometricIdUsrId(userId);
+		if(existingBiometrics != null) {
+			for(UserBiometric userBiometric : existingBiometrics) {
+				userBiometric.setUserDetail(null);
+			}
+			userBiometricRepository.saveAll(existingBiometrics);
+		}
+		List<UserDetail> userDetails = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
+		if(userDetails != null && !userDetails.isEmpty()) {
+			userDetails.get(0).getUserBiometric().clear();
+			userDetailRepository.save(userDetails.get(0));
+		}
+		userBiometricRepository.deleteByUserBiometricIdUsrId(userId);
 	}
 }
