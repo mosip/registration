@@ -15,18 +15,21 @@ import javafx.scene.layout.Pane;
  * @author YASWANTH S
  *
  */
-public class TextFieldControlType extends AbstractControlType {
+public class TextFieldControlType extends ControlType {
 
 	@Override
 	public Node build(UiSchemaDTO uiSchemaDTO, Pane parentPane) {
-
 		this.uiSchemaDTO = uiSchemaDTO;
 
 		this.fieldType = this;
-		createUiElements(parentPane);
 
-		addListener();
-		
+		Node textFieldNode = null;
+
+		// TODO Create Label
+		// Create text field
+		// Create error label
+		setListener();
+
 		return null;
 	}
 
@@ -72,19 +75,10 @@ public class TextFieldControlType extends AbstractControlType {
 		return null;
 	}
 
-	private void createUiElements(Pane parentPane) {
-
-		// TODO Create Label, field , error message
-	}
-
-	private void addListener() {
-
-	}
-
 	@Override
-	public void actionHandle(Pane parentPane, String fieldId, String changeAction) {
+	public void setListener() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

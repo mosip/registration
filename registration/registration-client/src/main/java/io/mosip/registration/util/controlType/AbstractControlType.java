@@ -11,7 +11,7 @@ import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 
-public abstract class AbstractControlType implements ControlType {
+public abstract class AbstractControlType {
 
 	private static final Logger LOGGER = AppConfig.getLogger(DemographicDetailController.class);
 	private static final String loggerClassName = "AbstractControlType";
@@ -30,7 +30,7 @@ public abstract class AbstractControlType implements ControlType {
 		node.addEventHandler(Event.ANY, event -> {
 			if (validateFieldValue(node)) {
 
-				Object currentValue = this.getData();
+//				Object currentValue = this.getData();
 
 				// TODO Translate and set secondary language
 
@@ -56,12 +56,12 @@ public abstract class AbstractControlType implements ControlType {
 		}
 
 		// TODO
-		if (this.isValid()) {
-			// Hide Error Label
-
-		} else {
-			// Show Error Label
-		}
+//		if (this.isValid()) {
+//			// Hide Error Label
+//
+//		} else {
+//			// Show Error Label
+//		}
 
 		return false;
 	}

@@ -5,6 +5,9 @@ package io.mosip.registration.util.controlType;
 
 import java.util.List;
 
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.controller.reg.DemographicDetailController;
 import io.mosip.registration.dto.UiSchemaDTO;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
@@ -19,15 +22,28 @@ import javafx.scene.layout.Pane;
  * @author YASWANTH S
  *
  */
-public interface ControlType{
+public abstract class ControlType extends Node {
+
+	private static final Logger LOGGER = AppConfig.getLogger(DemographicDetailController.class);
+	private static final String loggerClassName = "AbstractControlType";
+
+	protected UiSchemaDTO uiSchemaDTO;
+
+	protected ControlType fieldType;
+
+	protected Pane parentPane;
+
+	public void refreshFields() {
+
+	}
 
 	/**
 	 * Build Error code, title and fx Element Set Listeners Set Actione events
 	 * 
 	 * @param uiSchemaDTO field information
-	 * @param parentPane field to be placed
+	 * @param parentPane  field to be placed
 	 */
-	public Node build(UiSchemaDTO uiSchemaDTO, Pane parentPane);
+	public abstract Node build(UiSchemaDTO uiSchemaDTO, Pane parentPane);
 
 	/**
 	 * Copy the value from source node to target nodes
@@ -35,7 +51,7 @@ public interface ControlType{
 	 * @param srcNode     copy from
 	 * @param targetNodes copy to
 	 */
-	public void copyTo(Node srcNode, List<Node> targetNodes);
+	public abstract void copyTo(Node srcNode, List<Node> targetNodes);
 
 	/**
 	 * 
@@ -43,31 +59,33 @@ public interface ControlType{
 	 * 
 	 * @param data value
 	 */
-	public void setData(Object data);
+	public abstract void setData(Object data);
 
 	/**
 	 * Get Value from fx element
 	 * 
 	 * @return Value
 	 */
-	public Object getData();
+	public abstract Object getData();
 
 	/**
 	 * Check value is valid or not
 	 * 
 	 * @return boolean is valid or not
 	 */
-	public boolean isValid();
+	public abstract boolean isValid();
 
 	/**
 	 * Disable the field
 	 */
-	public void disable();
+	public abstract void disable();
 
 	/**
 	 * Hide the field
 	 */
-	public void visible();
+	public abstract void visible();
 
-	public UiSchemaDTO getUiSchemaDTO();
+	public abstract UiSchemaDTO getUiSchemaDTO();
+
+	public abstract void setListener();
 }
