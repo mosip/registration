@@ -149,7 +149,11 @@ public class DemographicDetailController extends BaseController {
 	public Map<String, List<Button>> listOfButtons;
 	public Map<String, TextField> listOfTextField;
 	private int age = 0;
-	private VirtualKeyboard vk;
+	private VirtualKeyboard virtualKeyBoard;
+	public VirtualKeyboard getVirtualKeyBoard() {
+		return virtualKeyBoard;
+	}
+
 	private HashMap<String, Integer> positionTracker;
 	int lastPosition;
 	private ObservableList<Node> parentFlow;
@@ -188,8 +192,8 @@ public class DemographicDetailController extends BaseController {
 		languageLabelLocalLanguage.setText(localLanguageTextVal);
 
 		if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
-			vk = VirtualKeyboard.getInstance();
-			keyboardNode = vk.view();
+			virtualKeyBoard = VirtualKeyboard.getInstance();
+			keyboardNode = virtualKeyBoard.view();
 		}
 		if (ApplicationContext.getInstance().getApplicationLanguage()
 				.equals(ApplicationContext.getInstance().getLocalLanguage())) {
@@ -578,7 +582,7 @@ public class DemographicDetailController extends BaseController {
 					});
 
 					if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
-						vk.changeControlOfKeyboard(field);
+						virtualKeyBoard.changeControlOfKeyboard(field);
 					}
 				} catch (IOException runtimeException) {
 					LOGGER.error("keyboard.png image not found in resource folder", APPLICATION_NAME,
@@ -1209,7 +1213,7 @@ public class DemographicDetailController extends BaseController {
 	 * Setting the focus to specific fields when keyboard loads
 	 *
 	 */
-	private void setFocusonLocalField(MouseEvent event) {
+	public void setFocusonLocalField(MouseEvent event) {
 		try {
 			Node node = (Node) event.getSource();
 			if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
