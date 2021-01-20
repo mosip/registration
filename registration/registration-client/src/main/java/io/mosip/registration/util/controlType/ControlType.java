@@ -43,7 +43,7 @@ public abstract class ControlType extends Node {
 	 * @param uiSchemaDTO field information
 	 * @param parentPane  field to be placed
 	 */
-	public abstract Node build(UiSchemaDTO uiSchemaDTO, Pane parentPane);
+	public abstract Node build(UiSchemaDTO uiSchemaDTO, String languageType);
 
 	/**
 	 * Copy the value from source node to target nodes
