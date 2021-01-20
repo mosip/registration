@@ -98,12 +98,13 @@ public class TemplateGenerator extends BaseService {
 		this.consentText = consentText;
 	}
 
-	public ResponseDTO generateTemplate(String templateText, RegistrationDTO registration, TemplateManagerBuilder
-			templateManagerBuilder, String templateType) throws RegBaseCheckedException {
+	public ResponseDTO generateTemplate(String templateText, RegistrationDTO registration,
+			TemplateManagerBuilder templateManagerBuilder, String templateType) throws RegBaseCheckedException {
 		ResponseDTO response = new ResponseDTO();
 
 		try {
-			LOGGER.info(LOG_TEMPLATE_GENERATOR, RegistrationConstants.APPLICATION_NAME,	RegistrationConstants.APPLICATION_ID,
+			LOGGER.info(LOG_TEMPLATE_GENERATOR, RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID,
 					"generateTemplate had been called for preparing Acknowledgement Template.");
 
 			Map<String, Object> templateValues = new WeakHashMap<>();
@@ -112,7 +113,7 @@ public class TemplateGenerator extends BaseService {
 			InputStream is = new ByteArrayInputStream(templateText.getBytes(StandardCharsets.UTF_8));
 			List<UiSchemaDTO> schemaFields = getSchemaFields(registration.getIdSchemaVersion());
 
-			//Basic values
+			// Basic values
 			setBasicDetails(templateValues, registration, isPrevTemplate, applicationLanguageProperties, response);
 
 			Map<String, Map<String, Object>> demographicsData = new HashMap<>();
@@ -121,21 +122,27 @@ public class TemplateGenerator extends BaseService {
 
 			for (UiSchemaDTO field : schemaFields) {
 				switch (field.getType()) {
-					case "documentType":
-						Map<String, Object> doc_data = getDocumentData(registration, field, templateValues);
-						if(doc_data != null) { documentsData.put(field.getId(), doc_data); }
-						break;
+				case "documentType":
+					Map<String, Object> doc_data = getDocumentData(registration, field, templateValues);
+					if (doc_data != null) {
+						documentsData.put(field.getId(), doc_data);
+					}
+					break;
 
-					case "biometricsType":
-						Map<String, Object> bio_data = getBiometericData(registration, field, isPrevTemplate, templateValues,
-								applicationLanguageProperties);
-						if(bio_data != null) { biometricsData.put(field.getId(), bio_data); }
-						break;
+				case "biometricsType":
+					Map<String, Object> bio_data = getBiometericData(registration, field, isPrevTemplate,
+							templateValues, applicationLanguageProperties);
+					if (bio_data != null) {
+						biometricsData.put(field.getId(), bio_data);
+					}
+					break;
 
-					default:
-						Map<String, Object> demo_data = getDemographicData(registration, field);
-						if(demo_data != null) { demographicsData.put(field.getId(), demo_data); }
-						break;
+				default:
+					Map<String, Object> demo_data = getDemographicData(registration, field);
+					if (demo_data != null) {
+						demographicsData.put(field.getId(), demo_data);
+					}
+					break;
 				}
 			}
 			templateValues.put("demographics", demographicsData);
@@ -163,8 +170,8 @@ public class TemplateGenerator extends BaseService {
 		return response;
 	}
 
-	private Map<String, Object> getBiometericData(RegistrationDTO registration, UiSchemaDTO field, boolean isPrevTemplate,
-												  Map<String, Object> templateValues, ResourceBundle applicationLanguageProperties)
+	private Map<String, Object> getBiometericData(RegistrationDTO registration, UiSchemaDTO field,
+			boolean isPrevTemplate, Map<String, Object> templateValues, ResourceBundle applicationLanguageProperties)
 			throws RegBaseCheckedException {
 		List<BiometricsDto> capturedList = new ArrayList<>();
 		for (String attribute : field.getBioAttributes()) {
@@ -178,7 +185,9 @@ public class TemplateGenerator extends BaseService {
 			}
 		}
 
-		if(capturedList.isEmpty()) { return null; }
+		if (capturedList.isEmpty()) {
+			return null;
+		}
 
 		Map<String, Object> bio_data = new HashMap<>();
 		List<BiometricsDto> capturedFingers = capturedList.stream()
@@ -199,36 +208,39 @@ public class TemplateGenerator extends BaseService {
 				.filter(b -> b.getBioAttribute().equalsIgnoreCase("leftEye")).findFirst();
 		if (result.isPresent()) {
 			BiometricsDto biometricsDto = result.get();
-			bio_data.put(RegistrationConstants.TEMPLATE_LEFT_EYE, (biometricsDto.getAttributeISO() != null) ?
-					RegistrationConstants.TEMPLATE_RIGHT_MARK : RegistrationConstants.TEMPLATE_CROSS_MARK);
+			bio_data.put(RegistrationConstants.TEMPLATE_LEFT_EYE,
+					(biometricsDto.getAttributeISO() != null) ? RegistrationConstants.TEMPLATE_RIGHT_MARK
+							: RegistrationConstants.TEMPLATE_CROSS_MARK);
 			setBiometricImage(bio_data, RegistrationConstants.TEMPLATE_CAPTURED_LEFT_EYE,
 					isPrevTemplate ? null : RegistrationConstants.TEMPLATE_EYE_IMAGE_PATH,
-					isPrevTemplate ? getStreamImageBytes(biometricsDto, registration) : null);
+					isPrevTemplate ? getSegmentedImageBytes(biometricsDto, registration) : null);
 		}
 
-		result = capturedIris.stream()
-				.filter(b -> b.getBioAttribute().equalsIgnoreCase("rightEye")).findFirst();
+		result = capturedIris.stream().filter(b -> b.getBioAttribute().equalsIgnoreCase("rightEye")).findFirst();
 		if (result.isPresent()) {
 			BiometricsDto biometricsDto = result.get();
-			bio_data.put(RegistrationConstants.TEMPLATE_RIGHT_EYE, (biometricsDto.getAttributeISO() != null) ?
-					RegistrationConstants.TEMPLATE_RIGHT_MARK : RegistrationConstants.TEMPLATE_CROSS_MARK);
+			bio_data.put(RegistrationConstants.TEMPLATE_RIGHT_EYE,
+					(biometricsDto.getAttributeISO() != null) ? RegistrationConstants.TEMPLATE_RIGHT_MARK
+							: RegistrationConstants.TEMPLATE_CROSS_MARK);
 			setBiometricImage(bio_data, RegistrationConstants.TEMPLATE_CAPTURED_RIGHT_EYE,
 					isPrevTemplate ? null : RegistrationConstants.TEMPLATE_EYE_IMAGE_PATH,
-					isPrevTemplate ? getStreamImageBytes(biometricsDto, registration) : null);
+					isPrevTemplate ? getSegmentedImageBytes(biometricsDto, registration) : null);
 		}
 
-		List<BiometricsDto> resultList = capturedFingers.stream().filter(b -> b.getModalityName().equalsIgnoreCase("FINGERPRINT_SLAB_LEFT"))
+		List<BiometricsDto> resultList = capturedFingers.stream()
+				.filter(b -> b.getModalityName().equalsIgnoreCase("FINGERPRINT_SLAB_LEFT"))
 				.collect(Collectors.toList());
-		if(!resultList.isEmpty()) {
+		if (!resultList.isEmpty()) {
 			setFingerRankings(resultList, Biometric.getDefaultAttributes("FINGERPRINT_SLAB_LEFT"), bio_data);
 			setBiometricImage(bio_data, RegistrationConstants.TEMPLATE_CAPTURED_LEFT_SLAP,
 					isPrevTemplate ? null : RegistrationConstants.LEFTPALM_IMG_PATH,
 					isPrevTemplate ? getStreamImageBytes(resultList, registration) : null);
 		}
 
-		resultList = capturedFingers.stream().filter(b -> b.getModalityName().equalsIgnoreCase("FINGERPRINT_SLAB_RIGHT"))
+		resultList = capturedFingers.stream()
+				.filter(b -> b.getModalityName().equalsIgnoreCase("FINGERPRINT_SLAB_RIGHT"))
 				.collect(Collectors.toList());
-		if(!resultList.isEmpty()) {
+		if (!resultList.isEmpty()) {
 			setFingerRankings(resultList, Biometric.getDefaultAttributes("FINGERPRINT_SLAB_RIGHT"), bio_data);
 			setBiometricImage(bio_data, RegistrationConstants.TEMPLATE_CAPTURED_RIGHT_SLAP,
 					isPrevTemplate ? null : RegistrationConstants.RIGHTPALM_IMG_PATH,
@@ -237,27 +249,28 @@ public class TemplateGenerator extends BaseService {
 
 		resultList = capturedFingers.stream().filter(b -> b.getModalityName().toLowerCase().contains("thumb"))
 				.collect(Collectors.toList());
-		if(!resultList.isEmpty()) {
+		if (!resultList.isEmpty()) {
 			setFingerRankings(resultList, Biometric.getDefaultAttributes("FINGERPRINT_SLAB_THUMBS"), bio_data);
 			setBiometricImage(bio_data, RegistrationConstants.TEMPLATE_CAPTURED_THUMBS,
 					isPrevTemplate ? null : RegistrationConstants.THUMB_IMG_PATH,
 					isPrevTemplate ? getStreamImageBytes(resultList, registration) : null);
 		}
 
-		if(!capturedFace.isEmpty()) {
+		if (!capturedFace.isEmpty()) {
 			setBiometricImage(bio_data, RegistrationConstants.TEMPLATE_FACE_IMAGE_SOURCE,
 					isPrevTemplate ? null : RegistrationConstants.FACE_IMG_PATH,
 					isPrevTemplate ? getStreamImageBytes(capturedFace, registration) : null);
 
-			if("applicant".equalsIgnoreCase(capturedFace.get(0).getSubType())) {
+			if ("applicant".equalsIgnoreCase(capturedFace.get(0).getSubType())) {
 				setBiometricImage(templateValues, RegistrationConstants.TEMPLATE_APPLICANT_IMAGE_SOURCE,
-						RegistrationConstants.FACE_IMG_PATH,  getStreamImageBytes(capturedFace.get(0), registration));
+						RegistrationConstants.FACE_IMG_PATH, getStreamImageBytes(capturedFace.get(0), registration));
 			}
 		}
 		return bio_data;
 	}
 
-	private void setFingerRankings(List<BiometricsDto> capturedFingers,	List<String> fingers, Map<String, Object> data) {
+	private void setFingerRankings(List<BiometricsDto> capturedFingers, List<String> fingers,
+			Map<String, Object> data) {
 		Map<String, Double> sortedvalues = capturedFingers.stream()
 				.filter(b -> fingers.contains(b.getBioAttribute()) && b.getAttributeISO() != null)
 				.sorted(Comparator.comparing(BiometricsDto::getQualityScore))
@@ -275,16 +288,16 @@ public class TemplateGenerator extends BaseService {
 			Optional<BiometricsDto> result = capturedFingers.stream()
 					.filter(b -> b.getBioAttribute().equalsIgnoreCase(finger)).findFirst();
 			if (result.isPresent()) {
-				data.put(finger, result.get().getAttributeISO() == null ? RegistrationConstants.TEMPLATE_CROSS_MARK :
-						rankings.get(finger));
+				data.put(finger, result.get().getAttributeISO() == null ? RegistrationConstants.TEMPLATE_CROSS_MARK
+						: rankings.get(finger));
 			}
 		}
 	}
 
 	private Map<String, Object> getDocumentData(RegistrationDTO registration, UiSchemaDTO field,
-												Map<String, Object> templateValues) {
+			Map<String, Object> templateValues) {
 		Map<String, Object> data = null;
-		if(registration.getDocuments().get(field.getId()) != null) {
+		if (registration.getDocuments().get(field.getId()) != null) {
 			data = new HashMap<>();
 			data.put("primaryLabel", field.getLabel().get("primary"));
 			data.put("secondaryLabel", field.getLabel().get("secondary"));
@@ -293,9 +306,10 @@ public class TemplateGenerator extends BaseService {
 			data.put("format", registration.getDocuments().get(field.getId()).getFormat());
 			data.put("refNumber", registration.getDocuments().get(field.getId()).getRefNumber());
 
-			if("POE".equalsIgnoreCase(field.getSubType())) {
-				templateValues.put(RegistrationConstants.TEMPLATE_EXCEPTION_IMAGE_SOURCE, RegistrationConstants.TEMPLATE_JPG_IMAGE_ENCODING +
-						StringUtils.newStringUtf8(Base64.encodeBase64(registration.getDocuments().get(field.getId()).getDocument(), false)));
+			if ("POE".equalsIgnoreCase(field.getSubType())) {
+				templateValues.put(RegistrationConstants.TEMPLATE_EXCEPTION_IMAGE_SOURCE,
+						RegistrationConstants.TEMPLATE_JPG_IMAGE_ENCODING + StringUtils.newStringUtf8(Base64
+								.encodeBase64(registration.getDocuments().get(field.getId()).getDocument(), false)));
 			}
 		}
 		return data;
@@ -303,7 +317,7 @@ public class TemplateGenerator extends BaseService {
 
 	private Map<String, Object> getDemographicData(RegistrationDTO registration, UiSchemaDTO field) {
 		Map<String, Object> data = null;
-		if("UIN".equalsIgnoreCase(field.getId()) || "IDSchemaVersion".equalsIgnoreCase(field.getId()))
+		if ("UIN".equalsIgnoreCase(field.getId()) || "IDSchemaVersion".equalsIgnoreCase(field.getId()))
 			return null;
 
 		String value = getValue(registration.getDemographics().get(field.getId()));
@@ -317,75 +331,116 @@ public class TemplateGenerator extends BaseService {
 		return data;
 	}
 
-	private void setBasicDetails(Map<String, Object> templateValues, RegistrationDTO registration, boolean isPrevTemplate,
-								 ResourceBundle applicationLanguageProperties, ResponseDTO responseDTO) {
+	private void setBasicDetails(Map<String, Object> templateValues, RegistrationDTO registration,
+			boolean isPrevTemplate, ResourceBundle applicationLanguageProperties, ResponseDTO responseDTO) {
 		try {
 			templateValues.put("isPreview", isPrevTemplate);
 			templateValues.put("IDSchemaVersion", registration.getIdSchemaVersion());
 			templateValues.put("secLangPresent", isLocalLanguageAvailable());
-			templateValues.put(RegistrationConstants.TEMPLATE_RID_USER_LANG_LABEL, applicationLanguageProperties.getString("registrationid"));
-			templateValues.put(RegistrationConstants.TEMPLATE_RID_LOCAL_LANG_LABEL,	getSecondaryLanguageLabel("registrationid"));
+			templateValues.put(RegistrationConstants.TEMPLATE_RID_USER_LANG_LABEL,
+					applicationLanguageProperties.getString("registrationid"));
+			templateValues.put(RegistrationConstants.TEMPLATE_RID_LOCAL_LANG_LABEL,
+					getSecondaryLanguageLabel("registrationid"));
 			templateValues.put(RegistrationConstants.TEMPLATE_RID, registration.getRegistrationId());
-			templateValues.put(RegistrationConstants.TEMPLATE_UIN_USER_LANG_LABEL, applicationLanguageProperties.getString("uin"));
+			templateValues.put(RegistrationConstants.TEMPLATE_UIN_USER_LANG_LABEL,
+					applicationLanguageProperties.getString("uin"));
 			templateValues.put(RegistrationConstants.TEMPLATE_UIN_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("uin"));
 			templateValues.put(RegistrationConstants.TEMPLATE_UIN, registration.getDemographics().get("UIN"));
-			templateValues.put(RegistrationConstants.TEMPLATE_PRE_REG_ID_USER_LANG_LABEL, applicationLanguageProperties.getString("preRegistrationId"));
-			templateValues.put(RegistrationConstants.TEMPLATE_PRE_REG_ID_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("preRegistrationId"));
+			templateValues.put(RegistrationConstants.TEMPLATE_PRE_REG_ID_USER_LANG_LABEL,
+					applicationLanguageProperties.getString("preRegistrationId"));
+			templateValues.put(RegistrationConstants.TEMPLATE_PRE_REG_ID_LOCAL_LANG_LABEL,
+					getSecondaryLanguageLabel("preRegistrationId"));
 			templateValues.put(RegistrationConstants.TEMPLATE_PRE_REG_ID, registration.getPreRegistrationId());
-			templateValues.put(RegistrationConstants.TEMPLATE_MODIFY, applicationLanguageProperties.getString("modify"));
-			templateValues.put(RegistrationConstants.TEMPLATE_MODIFY_IMAGE_SOURCE, getEncodedImage(RegistrationConstants.TEMPLATE_MODIFY_IMAGE_PATH,
-					RegistrationConstants.TEMPLATE_PNG_IMAGE_ENCODING));
+			templateValues.put(RegistrationConstants.TEMPLATE_MODIFY,
+					applicationLanguageProperties.getString("modify"));
+			templateValues.put(RegistrationConstants.TEMPLATE_MODIFY_IMAGE_SOURCE,
+					getEncodedImage(RegistrationConstants.TEMPLATE_MODIFY_IMAGE_PATH,
+							RegistrationConstants.TEMPLATE_PNG_IMAGE_ENCODING));
 			generateQRCode(registration, templateValues, applicationLanguageProperties);
 			setUpImportantGuidelines(templateValues, guidelines);
-			templateValues.put(RegistrationConstants.TEMPLATE_CONSENT_HEADING, applicationLanguageProperties.getString("consentHeading"));
+			templateValues.put(RegistrationConstants.TEMPLATE_CONSENT_HEADING,
+					applicationLanguageProperties.getString("consentHeading"));
 			templateValues.put(RegistrationConstants.TEMPLATE_CONSENT_DATA, consentText);
-			templateValues.put(RegistrationConstants.TEMPLATE_CONSENT_YES, applicationLanguageProperties.getString("yes"));
-			templateValues.put(RegistrationConstants.TEMPLATE_CONSENT_NO, applicationLanguageProperties.getString("no"));
+			templateValues.put(RegistrationConstants.TEMPLATE_CONSENT_YES,
+					applicationLanguageProperties.getString("yes"));
+			templateValues.put(RegistrationConstants.TEMPLATE_CONSENT_NO,
+					applicationLanguageProperties.getString("no"));
 			if (registration.getRegistrationMetaDataDTO().getConsentOfApplicant() != null) {
 				String consent = registration.getRegistrationMetaDataDTO().getConsentOfApplicant();
 				if (consent.equalsIgnoreCase(RegistrationConstants.YES)) {
-					templateValues.put(RegistrationConstants.TEMPLATE_CONSENT_SELECTED_YES, RegistrationConstants.TEMPLATE_CONSENT_CHECKED);
+					templateValues.put(RegistrationConstants.TEMPLATE_CONSENT_SELECTED_YES,
+							RegistrationConstants.TEMPLATE_CONSENT_CHECKED);
 				} else if (consent.equalsIgnoreCase(RegistrationConstants.NO)) {
-					templateValues.put(RegistrationConstants.TEMPLATE_CONSENT_SELECTED_NO, RegistrationConstants.TEMPLATE_CONSENT_CHECKED);
+					templateValues.put(RegistrationConstants.TEMPLATE_CONSENT_SELECTED_NO,
+							RegistrationConstants.TEMPLATE_CONSENT_CHECKED);
 				}
 			}
-			LocalDateTime currentTime = OffsetDateTime.now().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-			templateValues.put(RegistrationConstants.TEMPLATE_DATE, currentTime.format(DateTimeFormatter.ofPattern(RegistrationConstants.TEMPLATE_DATE_FORMAT)));
-			templateValues.put(RegistrationConstants.TEMPLATE_DATE_USER_LANG_LABEL,	applicationLanguageProperties.getString("date"));
+			LocalDateTime currentTime = OffsetDateTime.now().toInstant().atZone(ZoneId.systemDefault())
+					.toLocalDateTime();
+			templateValues.put(RegistrationConstants.TEMPLATE_DATE,
+					currentTime.format(DateTimeFormatter.ofPattern(RegistrationConstants.TEMPLATE_DATE_FORMAT)));
+			templateValues.put(RegistrationConstants.TEMPLATE_DATE_USER_LANG_LABEL,
+					applicationLanguageProperties.getString("date"));
 			templateValues.put(RegistrationConstants.TEMPLATE_DATE_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("date"));
 
-			templateValues.put(RegistrationConstants.TEMPLATE_RO_NAME_USER_LANG_LABEL, applicationLanguageProperties.getString("ro_name"));
-			templateValues.put(RegistrationConstants.TEMPLATE_RO_NAME_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("ro_name"));
-			templateValues.put(RegistrationConstants.TEMPLATE_RO_NAME, getValue(registration.getOsiDataDTO().getOperatorID()));
+			templateValues.put(RegistrationConstants.TEMPLATE_RO_NAME_USER_LANG_LABEL,
+					applicationLanguageProperties.getString("ro_name"));
+			templateValues.put(RegistrationConstants.TEMPLATE_RO_NAME_LOCAL_LANG_LABEL,
+					getSecondaryLanguageLabel("ro_name"));
+			templateValues.put(RegistrationConstants.TEMPLATE_RO_NAME,
+					getValue(registration.getOsiDataDTO().getOperatorID()));
 			templateValues.put(RegistrationConstants.TEMPLATE_RO_NAME_LOCAL_LANG, RegistrationConstants.EMPTY);
-			templateValues.put(RegistrationConstants.TEMPLATE_REG_CENTER_USER_LANG_LABEL, applicationLanguageProperties.getString("registrationcenter"));
-			templateValues.put(RegistrationConstants.TEMPLATE_REG_CENTER_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("registrationcenter"));
-			templateValues.put(RegistrationConstants.TEMPLATE_REG_CENTER, SessionContext.userContext().getRegistrationCenterDetailDTO().getRegistrationCenterName());
+			templateValues.put(RegistrationConstants.TEMPLATE_REG_CENTER_USER_LANG_LABEL,
+					applicationLanguageProperties.getString("registrationcenter"));
+			templateValues.put(RegistrationConstants.TEMPLATE_REG_CENTER_LOCAL_LANG_LABEL,
+					getSecondaryLanguageLabel("registrationcenter"));
+			templateValues.put(RegistrationConstants.TEMPLATE_REG_CENTER,
+					SessionContext.userContext().getRegistrationCenterDetailDTO().getRegistrationCenterName());
 			templateValues.put(RegistrationConstants.TEMPLATE_REG_CENTER_LOCAL_LANG, RegistrationConstants.EMPTY);
-			templateValues.put(RegistrationConstants.TEMPLATE_IMPORTANT_GUIDELINES, applicationLanguageProperties.getString("importantguidelines"));
+			templateValues.put(RegistrationConstants.TEMPLATE_IMPORTANT_GUIDELINES,
+					applicationLanguageProperties.getString("importantguidelines"));
 
-			templateValues.put(RegistrationConstants.TEMPLATE_DEMO_INFO, applicationLanguageProperties.getString("demographicInformation"));
+			templateValues.put(RegistrationConstants.TEMPLATE_DEMO_INFO,
+					applicationLanguageProperties.getString("demographicInformation"));
 			templateValues.put("DemographicInfoSecondary", getSecondaryLanguageLabel("demographicInformation"));
-			templateValues.put(RegistrationConstants.TEMPLATE_DOCUMENTS_USER_LANG_LABEL, applicationLanguageProperties.getString("documents"));
-			templateValues.put(RegistrationConstants.TEMPLATE_DOCUMENTS_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("documents"));
-			templateValues.put(RegistrationConstants.TEMPLATE_BIOMETRICS_USER_LANG_LABEL, applicationLanguageProperties.getString("biometricsHeading"));
-			templateValues.put(RegistrationConstants.TEMPLATE_BIOMETRICS_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("biometricsHeading"));
-			templateValues.put(RegistrationConstants.TEMPLATE_EXCEPTION_PHOTO_USER_LANG_LABEL, applicationLanguageProperties.getString("exceptionphoto"));
-			templateValues.put(RegistrationConstants.TEMPLATE_EXCEPTION_PHOTO_LOCAL_LANG_LABEL,	getSecondaryLanguageLabel("exceptionphoto"));
-			templateValues.put(RegistrationConstants.TEMPLATE_PHOTO_USER_LANG, applicationLanguageProperties.getString("individualphoto"));
-			templateValues.put(RegistrationConstants.TEMPLATE_PHOTO_LOCAL_LANG, getSecondaryLanguageLabel("individualphoto"));
+			templateValues.put(RegistrationConstants.TEMPLATE_DOCUMENTS_USER_LANG_LABEL,
+					applicationLanguageProperties.getString("documents"));
+			templateValues.put(RegistrationConstants.TEMPLATE_DOCUMENTS_LOCAL_LANG_LABEL,
+					getSecondaryLanguageLabel("documents"));
+			templateValues.put(RegistrationConstants.TEMPLATE_BIOMETRICS_USER_LANG_LABEL,
+					applicationLanguageProperties.getString("biometricsHeading"));
+			templateValues.put(RegistrationConstants.TEMPLATE_BIOMETRICS_LOCAL_LANG_LABEL,
+					getSecondaryLanguageLabel("biometricsHeading"));
+			templateValues.put(RegistrationConstants.TEMPLATE_EXCEPTION_PHOTO_USER_LANG_LABEL,
+					applicationLanguageProperties.getString("exceptionphoto"));
+			templateValues.put(RegistrationConstants.TEMPLATE_EXCEPTION_PHOTO_LOCAL_LANG_LABEL,
+					getSecondaryLanguageLabel("exceptionphoto"));
+			templateValues.put(RegistrationConstants.TEMPLATE_PHOTO_USER_LANG,
+					applicationLanguageProperties.getString("individualphoto"));
+			templateValues.put(RegistrationConstants.TEMPLATE_PHOTO_LOCAL_LANG,
+					getSecondaryLanguageLabel("individualphoto"));
 
-			templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE_USER_LANG_LABEL, applicationLanguageProperties.getString("lefteye"));
-			templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("lefteye"));
-			templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE_USER_LANG_LABEL, applicationLanguageProperties.getString("righteye"));
-			templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("righteye"));
-			templateValues.put(RegistrationConstants.TEMPLATE_LEFT_PALM_USER_LANG_LABEL, applicationLanguageProperties.getString("lefthandpalm"));
-			templateValues.put(RegistrationConstants.TEMPLATE_LEFT_PALM_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("lefthandpalm"));
-			templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_PALM_USER_LANG_LABEL, applicationLanguageProperties.getString("righthandpalm"));
-			templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_PALM_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("righthandpalm"));
-			templateValues.put(RegistrationConstants.TEMPLATE_THUMBS_USER_LANG_LABEL, applicationLanguageProperties.getString("thumbs"));
-			templateValues.put(RegistrationConstants.TEMPLATE_THUMBS_LOCAL_LANG_LABEL, getSecondaryLanguageLabel("thumbs"));
-			templateValues.put("FacePrimLabel",	applicationLanguageProperties.getString("FACE"));
+			templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE_USER_LANG_LABEL,
+					applicationLanguageProperties.getString("lefteye"));
+			templateValues.put(RegistrationConstants.TEMPLATE_LEFT_EYE_LOCAL_LANG_LABEL,
+					getSecondaryLanguageLabel("lefteye"));
+			templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE_USER_LANG_LABEL,
+					applicationLanguageProperties.getString("righteye"));
+			templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_EYE_LOCAL_LANG_LABEL,
+					getSecondaryLanguageLabel("righteye"));
+			templateValues.put(RegistrationConstants.TEMPLATE_LEFT_PALM_USER_LANG_LABEL,
+					applicationLanguageProperties.getString("lefthandpalm"));
+			templateValues.put(RegistrationConstants.TEMPLATE_LEFT_PALM_LOCAL_LANG_LABEL,
+					getSecondaryLanguageLabel("lefthandpalm"));
+			templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_PALM_USER_LANG_LABEL,
+					applicationLanguageProperties.getString("righthandpalm"));
+			templateValues.put(RegistrationConstants.TEMPLATE_RIGHT_PALM_LOCAL_LANG_LABEL,
+					getSecondaryLanguageLabel("righthandpalm"));
+			templateValues.put(RegistrationConstants.TEMPLATE_THUMBS_USER_LANG_LABEL,
+					applicationLanguageProperties.getString("thumbs"));
+			templateValues.put(RegistrationConstants.TEMPLATE_THUMBS_LOCAL_LANG_LABEL,
+					getSecondaryLanguageLabel("thumbs"));
+			templateValues.put("FacePrimLabel", applicationLanguageProperties.getString("FACE"));
 			templateValues.put("FaceSecLabel", getSecondaryLanguageLabel("FACE"));
 
 			templateValues.put("LOGO1", getImage("/images/LOGO1.png"));
@@ -398,14 +453,15 @@ public class TemplateGenerator extends BaseService {
 	}
 
 	private void setUpImportantGuidelines(Map<String, Object> templateValues, String guidelines) {
-		String[] importantGuidelines = guidelines!=null ?
-				guidelines.split(RegistrationConstants.SPLIT_DELIMITOR) : new String[]{};
+		String[] importantGuidelines = guidelines != null ? guidelines.split(RegistrationConstants.SPLIT_DELIMITOR)
+				: new String[] {};
 		templateValues.put(RegistrationConstants.TEMPLATE_GUIDELINES, Arrays.asList(importantGuidelines));
 	}
 
 	private byte[] getStreamImageBytes(List<BiometricsDto> biometricsDtos, RegistrationDTO registration) {
-		Optional<BiometricsDto> biometricsDto = biometricsDtos.stream().filter(b-> b.getAttributeISO() != null).findFirst();
-		if(biometricsDto.isPresent()) {
+		Optional<BiometricsDto> biometricsDto = biometricsDtos.stream().filter(b -> b.getAttributeISO() != null)
+				.findFirst();
+		if (biometricsDto.isPresent()) {
 			return registration.streamImages.get(String.format("%s_%s_%s", biometricsDto.get().getSubType(),
 					biometricsDto.get().getModalityName(), biometricsDto.get().getNumOfRetries()));
 		}
@@ -417,19 +473,19 @@ public class TemplateGenerator extends BaseService {
 				biometricsDto.getModalityName(), biometricsDto.getNumOfRetries()));
 	}
 
-
 	private void setBiometricImage(Map<String, Object> templateValues, String key, String imagePath, byte[] streamImage)
 			throws RegBaseCheckedException {
 		try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();) {
 			if (streamImage != null && streamImage.length > 0) {
 				String encodedBytes = StringUtils.newStringUtf8(Base64.encodeBase64(streamImage, false));
 				templateValues.put(key, RegistrationConstants.TEMPLATE_JPG_IMAGE_ENCODING + encodedBytes);
-			} else if(imagePath != null) {
+			} else if (imagePath != null) {
 				templateValues.put(key, getImage(imagePath));
 			}
 		} catch (IOException ioException) {
 			LOGGER.error(LOG_TEMPLATE_GENERATOR, APPLICATION_NAME, APPLICATION_ID, ioException.getMessage());
-			throw new RegBaseCheckedException(RegistrationConstants.TEMPLATE_GENERATOR_ACK_RECEIPT_EXCEPTION, ioException.getMessage());
+			throw new RegBaseCheckedException(RegistrationConstants.TEMPLATE_GENERATOR_ACK_RECEIPT_EXCEPTION,
+					ioException.getMessage());
 		}
 	}
 
@@ -449,7 +505,8 @@ public class TemplateGenerator extends BaseService {
 		} catch (IOException ioException) {
 			LOGGER.error(LOG_TEMPLATE_GENERATOR, APPLICATION_NAME, APPLICATION_ID,
 					ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
-			throw new RegBaseCheckedException(RegistrationConstants.TEMPLATE_GENERATOR_ACK_RECEIPT_EXCEPTION, ioException.getMessage());
+			throw new RegBaseCheckedException(RegistrationConstants.TEMPLATE_GENERATOR_ACK_RECEIPT_EXCEPTION,
+					ioException.getMessage());
 		}
 	}
 
@@ -464,11 +521,12 @@ public class TemplateGenerator extends BaseService {
 			templateValues.put(RegistrationConstants.TEMPLATE_QRCODE_SOURCE,
 					RegistrationConstants.TEMPLATE_PNG_IMAGE_ENCODING + qrCodeImageEncodedBytes);
 		} catch (QrcodeGenerationException | IOException exception) {
-			LOGGER.error(LOG_TEMPLATE_GENERATOR, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(exception));
-			throw  new RegBaseCheckedException(RegistrationConstants.TEMPLATE_GENERATOR_ACK_RECEIPT_EXCEPTION, exception.getMessage());
+			LOGGER.error(LOG_TEMPLATE_GENERATOR, APPLICATION_NAME, APPLICATION_ID,
+					ExceptionUtils.getStackTrace(exception));
+			throw new RegBaseCheckedException(RegistrationConstants.TEMPLATE_GENERATOR_ACK_RECEIPT_EXCEPTION,
+					exception.getMessage());
 		}
 	}
-
 
 	@SuppressWarnings("unchecked")
 	private String getValueForTemplate(Object fieldValue) {
@@ -557,17 +615,23 @@ public class TemplateGenerator extends BaseService {
 
 	private String getImage(String imagePath) {
 		try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();) {
-			if(imagePath != null) {
+			if (imagePath != null) {
 				LOGGER.info(LOG_TEMPLATE_GENERATOR, APPLICATION_NAME, APPLICATION_ID, "setting image >> " + imagePath);
 				BufferedImage image = ImageIO.read(this.getClass().getResourceAsStream(imagePath));
 				ImageIO.write(image, RegistrationConstants.IMAGE_FORMAT_PNG, byteArrayOutputStream);
 				byte[] imageBytes = byteArrayOutputStream.toByteArray();
 				String imageEncodedBytes = StringUtils.newStringUtf8(Base64.encodeBase64(imageBytes, false));
-				return  RegistrationConstants.TEMPLATE_PNG_IMAGE_ENCODING + imageEncodedBytes;
+				return RegistrationConstants.TEMPLATE_PNG_IMAGE_ENCODING + imageEncodedBytes;
 			}
 		} catch (Throwable throwable) {
 			LOGGER.error(LOG_TEMPLATE_GENERATOR, APPLICATION_NAME, APPLICATION_ID, throwable.getMessage());
 		}
 		return RegistrationConstants.EMPTY;
 	}
+
+	private byte[] getSegmentedImageBytes(BiometricsDto biometricsDto, RegistrationDTO registration) {
+		return registration.streamImages.get(String.format("%s_%s_%s", biometricsDto.getSubType(),
+				biometricsDto.getBioAttribute(), biometricsDto.getNumOfRetries()));
+	}
+
 }
