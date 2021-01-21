@@ -9,9 +9,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import io.mosip.commons.packet.constants.CryptomanagerConstant;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.keymanagerservice.dto.KeyPairGenerateResponseDto;
+import io.mosip.kernel.keymanagerservice.exception.KeymanagerServiceException;
+import io.mosip.kernel.keymanagerservice.exception.NoUniqueAliasException;
 import io.mosip.kernel.signature.dto.TimestampRequestDto;
 import io.mosip.kernel.signature.service.SignatureService;
 import org.aspectj.lang.JoinPoint;
@@ -160,18 +164,27 @@ public class ResponseSignatureAdvice {
 			RequestHTTPDTO requestDto = (RequestHTTPDTO) joinPoint.getArgs()[0];
 
 			UriComponents uriComponents = UriComponentsBuilder.fromUri(requestDto.getUri()).build();
-			if(uriComponents.getPath().equals(CERTIFICATE_API_PATH) &&
+			if(!(uriComponents.getPath().equals(CERTIFICATE_API_PATH) &&
 					uriComponents.getQueryParams().containsKey(RegistrationConstants.GET_CERT_APP_ID) &&
-					uriComponents.getQueryParams().get(RegistrationConstants.GET_CERT_APP_ID).equals(RegistrationConstants.KERNEL_APP_ID) &&
+					uriComponents.getQueryParams().getFirst(RegistrationConstants.GET_CERT_APP_ID).equals(RegistrationConstants.KERNEL_APP_ID) &&
 					uriComponents.getQueryParams().containsKey(RegistrationConstants.REF_ID) &&
-					uriComponents.getQueryParams().get(RegistrationConstants.REF_ID).equals(RegistrationConstants.KER)) {
+					uriComponents.getQueryParams().getFirst(RegistrationConstants.REF_ID).equals(RegistrationConstants.KER))) {
+				return;
+			}
+
+			try {
+				KeyPairGenerateResponseDto keyPairGenerateResponseDto = keymanagerService.getCertificate(RegistrationConstants.KERNEL_APP_ID,
+						Optional.of(RegistrationConstants.KER));
+			} catch (KeymanagerServiceException exception) {
+				//TODO - Need to get exact exception on expire and revocation
+				if(!exception.getErrorCode().equals("KER-KMS-012")) //Key Generation Process is not completed.
+					throw exception;
 
 				UploadCertificateRequestDto uploadCertRequestDto = new UploadCertificateRequestDto();
-				uploadCertRequestDto.setApplicationId(String.valueOf(uriComponents.getQueryParams().get(RegistrationConstants.GET_CERT_APP_ID)));
+				uploadCertRequestDto.setApplicationId(uriComponents.getQueryParams().getFirst(RegistrationConstants.GET_CERT_APP_ID));
 				uploadCertRequestDto.setCertificateData(resp.get(RegistrationConstants.CERTIFICATE).toString());
-				uploadCertRequestDto.setReferenceId(RegistrationConstants.KERNEL_REF_ID);
+				uploadCertRequestDto.setReferenceId(RegistrationConstants.KER);
 				keymanagerService.uploadOtherDomainCertificate(uploadCertRequestDto);
-
 				LOGGER.info(LoggerConstants.RESPONSE_SIGNATURE_VALIDATION, APPLICATION_ID, APPLICATION_NAME,
 						"Uploaded certificate with request..." + uploadCertRequestDto);
 			}
