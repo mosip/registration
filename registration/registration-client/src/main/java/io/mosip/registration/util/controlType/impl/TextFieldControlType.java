@@ -6,21 +6,27 @@ package io.mosip.registration.util.controlType.impl;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 
+import io.mosip.commons.packet.dto.packet.SimpleDto;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.controller.BaseController;
+import io.mosip.registration.controller.FXUtils;
 import io.mosip.registration.controller.reg.DemographicDetailController;
+import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
+import io.mosip.registration.util.common.DemographicChangeActionHandler;
 import io.mosip.registration.util.controlType.ControlType;
+import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -50,17 +56,32 @@ public class TextFieldControlType extends ControlType {
 	private DemographicDetailController demographicDetailController;
 	@Autowired
 	private ResourceLoader resourceLoader;
+	@Autowired
+	private Validations validation;
+	@Autowired
+	private DemographicChangeActionHandler demographicChangeActionHandler;
+
+	private VBox simpleTypeVBox;
+
+	private TextField textField;
 
 	@Override
-	public Node build(UiSchemaDTO uiSchemaDTO, String languageType) {
+	public Node build(UiSchemaDTO uiSchemaDTO) {
 		this.uiSchemaDTO = uiSchemaDTO;
 
 		this.fieldType = this;
 
-		VBox simpleTypeVBox = create(uiSchemaDTO, languageType);
+		VBox simpleTypeVBox = create(uiSchemaDTO, "");
 
-		TextField textField = (TextField) simpleTypeVBox
-				.lookup(RegistrationConstants.HASH + uiSchemaDTO.getId() + languageType);
+//		if (baseController.isLocalLanguageAvailable() && !baseController.isAppLangAndLocalLangSame()) {
+//
+//			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
+//
+//		}
+
+		textField = (TextField) simpleTypeVBox.lookup(RegistrationConstants.HASH + uiSchemaDTO.getId());
+
+		setListener(textField);
 
 		return null;
 	}
@@ -73,43 +94,40 @@ public class TextFieldControlType extends ControlType {
 
 	@Override
 	public void setData(Object data) {
-		// TODO Auto-generated method stub
 
-	}
-
-	@Override
-	public Object getData() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public boolean isValid() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public void disable() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visible() {
-		// TODO Auto-generated method stub
-
+		// TODO Set Data in registration DTO
 	}
 
 	@Override
 	public UiSchemaDTO getUiSchemaDTO() {
-		// TODO Auto-generated method stub
-		return null;
+
+		return this.uiSchemaDTO;
 	}
 
 	@Override
 	public void setListener(Node node) {
-		// TODO Auto-generated method stub
+		FXUtils.getInstance().onTypeFocusUnfocusListener(simpleTypeVBox, (TextField) node);
+
+		node.addEventHandler(Event.ANY, event -> {
+			if (isValid(textField)) {
+
+				Object object = getData(node);
+				setData(object);
+
+				// handling other handlers
+				UiSchemaDTO uiSchemaDTO = validation.getValidationMap()
+						.get(node.getId().replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY)
+								.replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY));
+				if (uiSchemaDTO != null) {
+					LOGGER.info(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+							"Invoking external action handler for .... " + uiSchemaDTO.getId());
+					demographicChangeActionHandler.actionHandle(simpleTypeVBox, node.getId(),
+							uiSchemaDTO.getChangeAction());
+				}
+				// Group level visibility listeners
+				refreshFields();
+			}
+		});
 
 	}
 
@@ -236,6 +254,66 @@ public class TextFieldControlType extends ControlType {
 			break;
 		}
 		return mandatorySuffix;
+	}
+
+	@Override
+	public Object getData(Node node) {
+
+		if (this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE)) {
+
+			List<SimpleDto> simpleDtos = new LinkedList<>();
+
+			// TODO set Simple DTO
+			SimpleDto primaryLangSimpleDto = null;
+
+			simpleDtos.add(primaryLangSimpleDto);
+
+			if (baseController.isLocalLanguageAvailable() && !baseController.isAppLangAndLocalLangSame()) {
+				// TODO set Simple DTO
+				SimpleDto secondaryLangSimpleDto = null;
+
+				simpleDtos.add(secondaryLangSimpleDto);
+			}
+			return simpleDtos;
+		} else {
+			return ((TextField) node).getText();
+		}
+
+	}
+
+	@Override
+	public boolean isValid(Node node) {
+
+		if (node == null) {
+			LOGGER.warn(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"Field not found in demographic screen");
+			return false;
+		}
+
+		if (validation.validateTextField(simpleTypeVBox, textField, textField.getId(), true)) {
+
+			FXUtils.getInstance().setTextValidLabel(simpleTypeVBox, (TextField) node);
+			return true;
+		} else {
+
+			FXUtils.getInstance().showErrorLabel((TextField) node, simpleTypeVBox);
+			return false;
+		}
+//			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+//					"validating text field secondary");
+//
+//			TextField localField = (TextField) getFxElement(field.getId() + RegistrationConstants.LOCAL_LANGUAGE);
+//			if (localField != null) {
+//				// on valid value of primary set secondary language value
+//				setSecondaryLangText((TextField) field, localField, hasToBeTransliterated);
+//
+//				if (!isInputTextValid(localField, localField.getId())) {
+//					fxUtils.showErrorLabel(localField, parentFlowPane);
+//					return false;
+//				} else
+//					fxUtils.setTextValidLabel(parentFlowPane, (TextField) localField);
+//			}
+
 	}
 
 }

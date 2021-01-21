@@ -1840,23 +1840,24 @@ public class BaseController {
 		labels.put("OPERATOR", RegistrationUIConstants.ONBOARD_USER_TITLE);
 
 		Object value = ApplicationContext.map().get(RegistrationConstants.OPERATOR_ONBOARDING_BIO_ATTRIBUTES);
-		List<String> attributes = (value != null) ? Arrays.asList(((String)value).split(",")) :
-				new ArrayList<String>();
-		//subMap.put(slabType, Arrays.asList(configBiometrics, nonConfigBiometrics));
+		List<String> attributes = (value != null) ? Arrays.asList(((String) value).split(","))
+				: new ArrayList<String>();
+		// subMap.put(slabType, Arrays.asList(configBiometrics, nonConfigBiometrics));
 		HashMap<String, List<List<String>>> subMap = new HashMap<String, List<List<String>>>();
 		subMap.put(RegistrationConstants.FINGERPRINT_SLAB_LEFT,
 				Arrays.asList(ListUtils.intersection(RegistrationConstants.leftHandUiAttributes, attributes),
-			ListUtils.subtract(RegistrationConstants.leftHandUiAttributes, attributes)));
+						ListUtils.subtract(RegistrationConstants.leftHandUiAttributes, attributes)));
 		subMap.put(RegistrationConstants.FINGERPRINT_SLAB_RIGHT,
 				Arrays.asList(ListUtils.intersection(RegistrationConstants.rightHandUiAttributes, attributes),
 						ListUtils.subtract(RegistrationConstants.rightHandUiAttributes, attributes)));
 		subMap.put(RegistrationConstants.FINGERPRINT_SLAB_THUMBS,
 				Arrays.asList(ListUtils.intersection(RegistrationConstants.twoThumbsUiAttributes, attributes),
-				ListUtils.subtract(RegistrationConstants.twoThumbsUiAttributes, attributes)));
+						ListUtils.subtract(RegistrationConstants.twoThumbsUiAttributes, attributes)));
 		subMap.put(RegistrationConstants.IRIS_DOUBLE,
 				Arrays.asList(ListUtils.intersection(RegistrationConstants.eyesUiAttributes, attributes),
-				ListUtils.subtract(RegistrationConstants.eyesUiAttributes, attributes)));
-		subMap.put(RegistrationConstants.FACE, Arrays.asList(ListUtils.intersection(RegistrationConstants.faceUiAttributes, attributes),
+						ListUtils.subtract(RegistrationConstants.eyesUiAttributes, attributes)));
+		subMap.put(RegistrationConstants.FACE,
+				Arrays.asList(ListUtils.intersection(RegistrationConstants.faceUiAttributes, attributes),
 						ListUtils.subtract(RegistrationConstants.faceUiAttributes, attributes)));
 
 		for (Entry<String, String> entry : labels.entrySet()) {
@@ -1890,4 +1891,13 @@ public class BaseController {
 
 	}
 
+	public boolean isAppLangAndLocalLangSame() {
+
+		return applicationContext.getApplicationLanguage().equals(applicationContext.getLocalLanguage());
+	}
+
+	public boolean isLocalLanguageAvailable() {
+
+		return applicationContext.getLocalLanguage() != null && !applicationContext.getLocalLanguage().isEmpty();
+	}
 }
