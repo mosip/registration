@@ -87,5 +87,5 @@ public abstract class ControlType extends Node {
 
 	public abstract UiSchemaDTO getUiSchemaDTO();
 
-	public abstract void setListener();
+	public abstract void setListener(Node node);
 }

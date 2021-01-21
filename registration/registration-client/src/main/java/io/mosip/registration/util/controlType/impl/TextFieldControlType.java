@@ -26,6 +26,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 /**
@@ -56,91 +57,12 @@ public class TextFieldControlType extends ControlType {
 
 		this.fieldType = this;
 
-		Node textFieldNode = null;
+		VBox simpleTypeVBox = create(uiSchemaDTO, languageType);
 
-		// TODO Create Label
-		// Create text field
-		// Create error label
-
-		createField(uiSchemaDTO, languageType);
-		setListener();
+		TextField textField = (TextField) simpleTypeVBox
+				.lookup(RegistrationConstants.HASH + uiSchemaDTO.getId() + languageType);
 
 		return null;
-	}
-
-	private void createField(UiSchemaDTO uiSchemaDTO, String languageType) {
-
-		String fieldName = uiSchemaDTO.getId();
-
-		// Get Mandatory Astrix
-		String mandatorySuffix = getMandatorySuffix(uiSchemaDTO);
-
-		/** Container holds title, fields and validation message elements */
-		VBox vbox = new VBox();
-		vbox.setId(fieldName + languageType + RegistrationConstants.VBOX);
-		vbox.setSpacing(5);
-
-		String titleText = (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)
-				? uiSchemaDTO.getLabel().get(RegistrationConstants.SECONDARY)
-				: uiSchemaDTO.getLabel().get(RegistrationConstants.PRIMARY)) + mandatorySuffix;
-		/** Field Title */
-		Label fieldTitle = new Label();
-		fieldTitle.setId(fieldName + languageType + RegistrationConstants.LABEL);
-		fieldTitle.setText(titleText);
-		fieldTitle.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
-		fieldTitle.setVisible(false);
-		fieldTitle.setPrefWidth(vbox.getPrefWidth());
-		vbox.getChildren().add(fieldTitle);
-
-		/** Text Field */
-		TextField textField = new TextField();
-		textField.setId(fieldName + languageType);
-		textField.setPromptText(titleText);
-		textField.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
-		textField.setPrefWidth(vbox.getPrefWidth());
-		textField.setDisable(languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)
-				&& !uiSchemaDTO.getType().equals(RegistrationConstants.SIMPLE_TYPE) ? true : false);
-		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE) && !textField.isDisable()) {
-			// If Local Language and simpleType : Set KeyBoard
-
-			ImageView keyBoardImgView = getKeyBoardImage();
-
-			if (keyBoardImgView != null) {
-				keyBoardImgView.setOnMouseClicked((event) -> {
-					demographicDetailController.setFocusonLocalField(event);
-				});
-
-				demographicDetailController.getVirtualKeyBoard().changeControlOfKeyboard(textField);
-			}
-
-		}
-		vbox.getChildren().add(textField);
-
-		/** Validation message (Invalid/wrong,,etc,.) */
-		Label validationMessage = new Label();
-		validationMessage.setId(fieldName + languageType + RegistrationConstants.MESSAGE);
-		validationMessage.getStyleClass().add(RegistrationConstants.DemoGraphicFieldMessageLabel);
-		validationMessage.setPrefWidth(vbox.getPrefWidth());
-		vbox.getChildren().add(validationMessage);
-
-	}
-
-	private ImageView getKeyBoardImage() {
-		ImageView imageView = null;
-		try {
-			imageView = new ImageView(new Image(
-					resourceLoader.getResource(RegistrationConstants.KEYBOARD_WITH_CLASSPATH).getInputStream()));
-			imageView.setId(uiSchemaDTO.getId());
-			imageView.setFitHeight(20.00);
-			imageView.setFitWidth(22.00);
-		} catch (IOException runtimeException) {
-			LOGGER.error(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-					"keyboard.png image not found in resource folder" + runtimeException.getMessage()
-							+ ExceptionUtils.getStackTrace(runtimeException));
-
-		}
-
-		return imageView;
 	}
 
 	@Override
@@ -186,9 +108,116 @@ public class TextFieldControlType extends ControlType {
 	}
 
 	@Override
-	public void setListener() {
+	public void setListener(Node node) {
 		// TODO Auto-generated method stub
 
+	}
+
+	private VBox create(UiSchemaDTO uiSchemaDTO, String languageType) {
+
+		String fieldName = uiSchemaDTO.getId();
+
+		// Get Mandatory Astrix
+		String mandatorySuffix = getMandatorySuffix(uiSchemaDTO);
+
+		/** Container holds title, fields and validation message elements */
+		VBox simpleTypeVBox = new VBox();
+		simpleTypeVBox.setId(fieldName + languageType + RegistrationConstants.VBOX);
+		simpleTypeVBox.setSpacing(5);
+
+		String titleText = (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)
+				? uiSchemaDTO.getLabel().get(RegistrationConstants.SECONDARY)
+				: uiSchemaDTO.getLabel().get(RegistrationConstants.PRIMARY)) + mandatorySuffix;
+
+		double prefWidth = simpleTypeVBox.getPrefWidth();
+
+		/** Title label */
+		Label fieldTitle = getLabel(fieldName + languageType + RegistrationConstants.LABEL, titleText,
+				RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, false, prefWidth);
+		simpleTypeVBox.getChildren().add(fieldTitle);
+
+		/** Text Field */
+		TextField textField = getTextField(fieldName + languageType, titleText,
+				RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, prefWidth,
+				languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)
+						&& !uiSchemaDTO.getType().equals(RegistrationConstants.SIMPLE_TYPE) ? true : false);
+		simpleTypeVBox.getChildren().add(textField);
+
+		/** Validation message (Invalid/wrong,,etc,.) */
+		Label validationMessage = getLabel(fieldName + languageType + RegistrationConstants.MESSAGE, null,
+				RegistrationConstants.DemoGraphicFieldMessageLabel, false, prefWidth);
+		simpleTypeVBox.getChildren().add(validationMessage);
+
+		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE) && !textField.isDisable()) {
+			// If Local Language and simpleType : Set KeyBoard
+
+			addKeyBoard(simpleTypeVBox, validationMessage, textField);
+
+		}
+
+		return simpleTypeVBox;
+	}
+
+	private void addKeyBoard(VBox simpleTypeVBox, Label validationMessage, TextField textField) {
+		ImageView keyBoardImgView = getKeyBoardImage();
+
+		if (keyBoardImgView != null) {
+			keyBoardImgView.setOnMouseClicked((event) -> {
+				demographicDetailController.setFocusonLocalField(event);
+			});
+
+			demographicDetailController.getVirtualKeyBoard().changeControlOfKeyboard(textField);
+
+			HBox keyBoardHBox = new HBox();
+			keyBoardHBox.setSpacing(20);
+			keyBoardHBox.getChildren().add(keyBoardImgView);
+			keyBoardHBox.getChildren().add(validationMessage);
+			keyBoardHBox.setStyle("-fx-background-color:WHITE");
+			simpleTypeVBox.getChildren().add(keyBoardHBox);
+		}
+	}
+
+	private TextField getTextField(String id, String titleText, String demographicTextfield, double prefWidth,
+			boolean isDisable) {
+
+		/** Text Field */
+		TextField textField = new TextField();
+		textField.setId(id);
+		textField.setPromptText(titleText);
+		textField.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
+		textField.setPrefWidth(prefWidth);
+		textField.setDisable(isDisable);
+
+		return textField;
+	}
+
+	private Label getLabel(String id, String titleText, String styleClass, boolean isVisible, double prefWidth) {
+		/** Field Title */
+		Label label = new Label();
+		label.setId(id);
+		label.setText(titleText);
+		label.getStyleClass().add(styleClass);
+		label.setVisible(isVisible);
+		label.setPrefWidth(prefWidth);
+		return label;
+	}
+
+	private ImageView getKeyBoardImage() {
+		ImageView imageView = null;
+		try {
+			imageView = new ImageView(new Image(
+					resourceLoader.getResource(RegistrationConstants.KEYBOARD_WITH_CLASSPATH).getInputStream()));
+			imageView.setId(uiSchemaDTO.getId());
+			imageView.setFitHeight(20.00);
+			imageView.setFitWidth(22.00);
+		} catch (IOException runtimeException) {
+			LOGGER.error(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					"keyboard.png image not found in resource folder" + runtimeException.getMessage()
+							+ ExceptionUtils.getStackTrace(runtimeException));
+
+		}
+
+		return imageView;
 	}
 
 	private String getMandatorySuffix(UiSchemaDTO schema) {
@@ -208,4 +237,5 @@ public class TextFieldControlType extends ControlType {
 		}
 		return mandatorySuffix;
 	}
+
 }
