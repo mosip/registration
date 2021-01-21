@@ -43,7 +43,7 @@ public abstract class ControlType extends Node {
 	 * @param uiSchemaDTO field information
 	 * @param parentPane  field to be placed
 	 */
-	public abstract Node build(UiSchemaDTO uiSchemaDTO, String languageType);
+	public abstract Node build(UiSchemaDTO uiSchemaDTO);
 
 	/**
 	 * Copy the value from source node to target nodes
@@ -66,24 +66,32 @@ public abstract class ControlType extends Node {
 	 * 
 	 * @return Value
 	 */
-	public abstract Object getData();
+	public abstract Object getData(Node node);
 
 	/**
 	 * Check value is valid or not
 	 * 
 	 * @return boolean is valid or not
 	 */
-	public abstract boolean isValid();
+	public abstract boolean isValid(Node node);
 
 	/**
 	 * Disable the field
 	 */
-	public abstract void disable();
+	public void disable(Node node, boolean isDisable) {
+
+		node.setDisable(isDisable);
+
+	}
 
 	/**
 	 * Hide the field
 	 */
-	public abstract void visible();
+	public void visible(Node node, boolean isVisible) {
+
+		node.setVisible(isVisible);
+
+	}
 
 	public abstract UiSchemaDTO getUiSchemaDTO();
 
