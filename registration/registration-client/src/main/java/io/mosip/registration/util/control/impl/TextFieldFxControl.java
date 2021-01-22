@@ -1,7 +1,7 @@
 /**
  * 
  */
-package io.mosip.registration.util.controlType.impl;
+package io.mosip.registration.util.control.impl;
 
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
@@ -25,7 +25,7 @@ import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.util.common.DemographicChangeActionHandler;
-import io.mosip.registration.util.controlType.ControlType;
+import io.mosip.registration.util.control.FxControl;
 import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -40,7 +40,7 @@ import javafx.scene.layout.VBox;
  *
  */
 @Component
-public class TextFieldControlType extends ControlType {
+public class TextFieldFxControl extends FxControl {
 
 	/**
 	 * Instance of {@link Logger}
@@ -61,35 +61,43 @@ public class TextFieldControlType extends ControlType {
 	@Autowired
 	private DemographicChangeActionHandler demographicChangeActionHandler;
 
-	private VBox simpleTypeVBox;
-
 	private TextField textField;
 
 	@Override
-	public Node build(UiSchemaDTO uiSchemaDTO) {
+	public FxControl build(UiSchemaDTO uiSchemaDTO) {
 		this.uiSchemaDTO = uiSchemaDTO;
 
-		this.fieldType = this;
+		this.control = this;
 
-		VBox simpleTypeVBox = create(uiSchemaDTO, "");
+		this.node = create(uiSchemaDTO, "");
 
 //		if (baseController.isLocalLanguageAvailable() && !baseController.isAppLangAndLocalLangSame()) {
 //
+		
 //			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
 //
 //		}
 
-		textField = (TextField) simpleTypeVBox.lookup(RegistrationConstants.HASH + uiSchemaDTO.getId());
+		textField = (TextField) node.lookup(RegistrationConstants.HASH + uiSchemaDTO.getId());
 
 		setListener(textField);
 
-		return null;
+		return this.control;
 	}
 
 	@Override
 	public void copyTo(Node srcNode, List<Node> targetNodes) {
-		// TODO Auto-generated method stub
 
+		// TODO Throw Reg Check based exception if src or target nodes were not present
+		if (srcNode != null && targetNodes != null && !targetNodes.isEmpty()) {
+			TextField srctextField = (TextField) srcNode;
+
+			for (Node targetNode : targetNodes) {
+
+				TextField targetTextField = (TextField) targetNode;
+				targetTextField.setText(srctextField.getText());
+			}
+		}
 	}
 
 	@Override
@@ -106,7 +114,7 @@ public class TextFieldControlType extends ControlType {
 
 	@Override
 	public void setListener(Node node) {
-		FXUtils.getInstance().onTypeFocusUnfocusListener(simpleTypeVBox, (TextField) node);
+		FXUtils.getInstance().onTypeFocusUnfocusListener(getNode(), (TextField) node);
 
 		node.addEventHandler(Event.ANY, event -> {
 			if (isValid(textField)) {
@@ -121,8 +129,7 @@ public class TextFieldControlType extends ControlType {
 				if (uiSchemaDTO != null) {
 					LOGGER.info(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 							"Invoking external action handler for .... " + uiSchemaDTO.getId());
-					demographicChangeActionHandler.actionHandle(simpleTypeVBox, node.getId(),
-							uiSchemaDTO.getChangeAction());
+					demographicChangeActionHandler.actionHandle(getNode(), node.getId(), uiSchemaDTO.getChangeAction());
 				}
 				// Group level visibility listeners
 				refreshFields();
@@ -259,6 +266,10 @@ public class TextFieldControlType extends ControlType {
 	@Override
 	public Object getData(Node node) {
 
+		
+		//TODO get value form registration DTIO
+		
+		//TODO move logic to set data
 		if (this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE)) {
 
 			List<SimpleDto> simpleDtos = new LinkedList<>();
@@ -290,13 +301,13 @@ public class TextFieldControlType extends ControlType {
 			return false;
 		}
 
-		if (validation.validateTextField(simpleTypeVBox, textField, textField.getId(), true)) {
+		if (validation.validateTextField(getNode(), textField, textField.getId(), true)) {
 
-			FXUtils.getInstance().setTextValidLabel(simpleTypeVBox, (TextField) node);
+			FXUtils.getInstance().setTextValidLabel(getNode(), (TextField) node);
 			return true;
 		} else {
 
-			FXUtils.getInstance().showErrorLabel((TextField) node, simpleTypeVBox);
+			FXUtils.getInstance().showErrorLabel((TextField) node, getNode());
 			return false;
 		}
 //			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
@@ -314,6 +325,11 @@ public class TextFieldControlType extends ControlType {
 //					fxUtils.setTextValidLabel(parentFlowPane, (TextField) localField);
 //			}
 
+	}
+
+	@Override
+	public VBox getNode() {
+		return (VBox) this.node;
 	}
 
 }

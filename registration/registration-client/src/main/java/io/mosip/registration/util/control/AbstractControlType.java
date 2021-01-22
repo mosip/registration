@@ -1,4 +1,4 @@
-package io.mosip.registration.util.controlType;
+package io.mosip.registration.util.control;
 
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 

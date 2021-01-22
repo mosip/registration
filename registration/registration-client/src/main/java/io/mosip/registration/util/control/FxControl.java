@@ -1,7 +1,7 @@
 /**
  * 
  */
-package io.mosip.registration.util.controlType;
+package io.mosip.registration.util.control;
 
 import java.util.List;
 
@@ -22,16 +22,17 @@ import javafx.scene.layout.Pane;
  * @author YASWANTH S
  *
  */
-public abstract class ControlType extends Node {
+public abstract class FxControl extends Node {
 
 	private static final Logger LOGGER = AppConfig.getLogger(DemographicDetailController.class);
 	private static final String loggerClassName = "AbstractControlType";
 
 	protected UiSchemaDTO uiSchemaDTO;
 
-	protected ControlType fieldType;
+	protected FxControl control;
 
 	protected Pane parentPane;
+	public Node node;
 
 	public void refreshFields() {
 
@@ -43,7 +44,7 @@ public abstract class ControlType extends Node {
 	 * @param uiSchemaDTO field information
 	 * @param parentPane  field to be placed
 	 */
-	public abstract Node build(UiSchemaDTO uiSchemaDTO);
+	public abstract FxControl build(UiSchemaDTO uiSchemaDTO);
 
 	/**
 	 * Copy the value from source node to target nodes
@@ -96,4 +97,6 @@ public abstract class ControlType extends Node {
 	public abstract UiSchemaDTO getUiSchemaDTO();
 
 	public abstract void setListener(Node node);
+
+	public abstract Node getNode();
 }
