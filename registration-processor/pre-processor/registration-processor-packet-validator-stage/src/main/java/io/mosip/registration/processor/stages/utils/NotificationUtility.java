@@ -231,7 +231,7 @@ public class NotificationUtility {
 				subjectTemplateCode = messageSenderDTO.getSubjectTemplateCode().name();
 			}
 			ResponseDto emailResponse = sendEmail(registrationAdditionalInfoDTO,
-					messageSenderDTO.getSmsTemplateCode().name(), subjectTemplateCode, attributes);
+					messageSenderDTO.getEmailTemplateCode().name(), subjectTemplateCode, attributes);
 			if (emailResponse.getStatus().equals("success")) {
 				description.setCode(PlatformSuccessMessages.RPR_MESSAGE_SENDER_STAGE_SUCCESS.getCode());
 				description.setMessage(StatusUtil.MESSAGE_SENDER_EMAIL_SUCCESS.getMessage());

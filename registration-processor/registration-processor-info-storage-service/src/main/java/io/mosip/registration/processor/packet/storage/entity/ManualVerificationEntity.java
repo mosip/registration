@@ -78,15 +78,15 @@ public class ManualVerificationEntity extends BasePacketEntity<ManualVerificatio
 	/** The dedupe source name. */
 	@Column(name = "trntyp_code")
 	private String trnTypCode;
-	
-	
+
+
 	@Column(name="ref_regtrn_id",nullable = true)
 	private String transactionId;
-	
+
 
 	@Column(name="request_id",nullable = true)
 	private String requestId;
-	
+
 
 	@Column(name="res_text",nullable = true)
 	private byte[] reponseText;
@@ -391,6 +391,6 @@ public class ManualVerificationEntity extends BasePacketEntity<ManualVerificatio
 	public void setReponseText(byte[] reponseText) {
 		this.reponseText = reponseText;
 	}
-	
-	
+
+
 }

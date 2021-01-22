@@ -1090,7 +1090,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 			JSONObject identityObject = new JSONObject();
 			identityObject.put(UINConstants.UIN, uin);
-			identityObject.put(idschemaversion, packetManagerService.getFieldByKey(lostPacketRegId, MappingJsonConstants.IDSCHEMA_VERSION, process)); /*packetReaderService.getIdSchemaVersionFromPacket(lostPacketRegId));*/
+			double schemaVersion = Double.valueOf(packetManagerService.getFieldByKey(lostPacketRegId, MappingJsonConstants.IDSCHEMA_VERSION, process));
+			identityObject.put(idschemaversion, schemaVersion);
 
 			requestDto.setRegistrationId(lostPacketRegId);
 			requestDto.setIdentity(identityObject);

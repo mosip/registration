@@ -542,7 +542,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 	}
 
-	
+
 	private void validateRegAndMactedRefIdEmpty(String registrationId) {
 		if (registrationId == null || registrationId.isEmpty() ) {
 
@@ -774,7 +774,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		}
 
 		return modalities;
-		
+
 	}
 
 	/*
@@ -823,7 +823,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			ReferenceIds r = new ReferenceIds();
 			InternalRegistrationStatusDto registrationStatusDto1 = null;
 			registrationStatusDto1 = registrationStatusService.getRegistrationStatus(e.getId().getMatchedRefId());
-		
+
 			try {
 				r.setReferenceId(e.getId().getMatchedRefId());
 				r.setReferenceURL(getDataShareUrl(e.getId().getMatchedRefId(),registrationStatusDto1.getRegistrationType()));

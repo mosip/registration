@@ -603,10 +603,10 @@ public enum PlatformErrorMessages {
 	/** The rpr mvs no registration id should not empty or null. */
 	RPR_MVS_NO_RID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "022",
 			"Registration Id should not empty or null "),
-	
+
 	/** The rpr mvs no matched ref id found for given ref id. */
 	RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "023",
-			"No matched reference id found for given RID"),	
+			"No matched reference id found for given RID"),
 	/** The rpr mvs user status not active. */
 	RPR_MVS_USER_STATUS_NOT_ACTIVE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "015",
 			"User is not in ACTIVE status"),
@@ -1162,7 +1162,7 @@ public enum PlatformErrorMessages {
 	/** The queue json validation failed. */
 	QUEUE_JSON_VALIDATION_FAILED(PlatformConstants.RPR_MA_MIDDLEWARE + "004",
 			"Unable to find Connection Properties");
-	
+
 	/** The error message. */
 	private final String errorMessage; 
 

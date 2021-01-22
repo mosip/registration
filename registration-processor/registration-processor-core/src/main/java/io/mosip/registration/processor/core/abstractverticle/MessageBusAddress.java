@@ -134,7 +134,7 @@ public class MessageBusAddress implements Serializable {
 	/** The Constant MANUAL_VERIFICATION_BUS_IN. */
 	public static final MessageBusAddress MANUAL_VERIFICATION_BUS_IN = new MessageBusAddress("manual-verification-bus-in");
 
-	
+
 	/** The Constant UIN_GENERATION_BUS_IN. */
 	public static final MessageBusAddress UIN_GENERATION_BUS_IN = new MessageBusAddress("uin-generator-bus-in");
 
@@ -196,8 +196,8 @@ public class MessageBusAddress implements Serializable {
 	/** The Constant SECUREZONE_NOTIFICATION_OUT. */
 	public static final MessageBusAddress SECUREZONE_NOTIFICATION_OUT = new MessageBusAddress("securezone-notification-bus-out");
 
-	
-	
+
+
 	/*
 	 * (non-Javadoc)
 	 *

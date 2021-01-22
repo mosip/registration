@@ -53,7 +53,7 @@ import java.util.LinkedHashMap;
 @Component
 public class ManualVerificationStage extends MosipVerticleAPIManager {
 
-	
+
 	@Autowired
 	private ManualVerificationService manualAdjudicationService;
 
@@ -71,7 +71,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	/** The mosip queue manager. */
 	@Autowired
 	private MosipQueueManager<MosipQueue, byte[]> mosipQueueManager;
-	
+
 	/**
 	 * vertx Cluster Manager Url
 	 */
@@ -168,7 +168,7 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 		} else {
 			throw new QueueConnectionNotFound(PlatformErrorMessages.RPR_PRT_QUEUE_CONNECTION_NULL.getMessage());
 		}
-	
+
 	}
 
 	@Override

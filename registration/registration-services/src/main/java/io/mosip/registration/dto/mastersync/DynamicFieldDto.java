@@ -14,5 +14,7 @@ public class DynamicFieldDto {
 	private String name;
 	private String dataType;
 	private List<DynamicFieldValueDto> fieldVal;
-	private String langCode;	
+	private String langCode;
+	private boolean isActive;
+	private boolean isDeleted;
 }
