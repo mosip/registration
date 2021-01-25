@@ -61,26 +61,28 @@ public class TextFieldFxControl extends FxControl {
 	@Autowired
 	private DemographicChangeActionHandler demographicChangeActionHandler;
 
-	private TextField textField;
-
 	@Override
 	public FxControl build(UiSchemaDTO uiSchemaDTO) {
 		this.uiSchemaDTO = uiSchemaDTO;
 
 		this.control = this;
 
-		this.node = create(uiSchemaDTO, "");
+		VBox primaryLangVBox = create(uiSchemaDTO, "");
 
-//		if (baseController.isLocalLanguageAvailable() && !baseController.isAppLangAndLocalLangSame()) {
-//
-		
-//			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
-//
-//		}
+		HBox hBox = new HBox();
+		hBox.getChildren().add(primaryLangVBox);
 
-		textField = (TextField) node.lookup(RegistrationConstants.HASH + uiSchemaDTO.getId());
+		if (baseController.isLocalLanguageAvailable() && !baseController.isAppLangAndLocalLangSame()) {
 
-		setListener(textField);
+			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
+
+			hBox.getChildren().add(secondaryLangVBox);
+
+		}
+
+		this.node = hBox;
+
+		setListener((TextField) getField(RegistrationConstants.HASH + uiSchemaDTO.getId()));
 
 		return this.control;
 	}
@@ -116,7 +118,8 @@ public class TextFieldFxControl extends FxControl {
 	public void setListener(Node node) {
 		FXUtils.getInstance().onTypeFocusUnfocusListener(getNode(), (TextField) node);
 
-		node.addEventHandler(Event.ANY, event -> {
+		TextField textField = (TextField) node;
+		textField.addEventHandler(Event.ANY, event -> {
 			if (isValid(textField)) {
 
 				Object object = getData(node);
@@ -266,10 +269,9 @@ public class TextFieldFxControl extends FxControl {
 	@Override
 	public Object getData(Node node) {
 
-		
-		//TODO get value form registration DTIO
-		
-		//TODO move logic to set data
+		// TODO get value form registration DTIO
+
+		// TODO move logic to set data
 		if (this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE)) {
 
 			List<SimpleDto> simpleDtos = new LinkedList<>();
@@ -295,35 +297,39 @@ public class TextFieldFxControl extends FxControl {
 	@Override
 	public boolean isValid(Node node) {
 
+		boolean isValid;
 		if (node == null) {
 			LOGGER.warn(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 					"Field not found in demographic screen");
 			return false;
 		}
 
-		if (validation.validateTextField(getNode(), textField, textField.getId(), true)) {
+		TextField field = (TextField) node;
+		if (validation.validateTextField(getNode(), field, field.getId(), true)) {
 
-			FXUtils.getInstance().setTextValidLabel(getNode(), (TextField) node);
-			return true;
+			FXUtils.getInstance().setTextValidLabel(getNode(), field);
+			isValid = true;
 		} else {
 
-			FXUtils.getInstance().showErrorLabel((TextField) node, getNode());
+			FXUtils.getInstance().showErrorLabel(field, getNode());
 			return false;
 		}
-//			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-//					"validating text field secondary");
-//
-//			TextField localField = (TextField) getFxElement(field.getId() + RegistrationConstants.LOCAL_LANGUAGE);
-//			if (localField != null) {
-//				// on valid value of primary set secondary language value
-//				setSecondaryLangText((TextField) field, localField, hasToBeTransliterated);
-//
-//				if (!isInputTextValid(localField, localField.getId())) {
-//					fxUtils.showErrorLabel(localField, parentFlowPane);
-//					return false;
-//				} else
-//					fxUtils.setTextValidLabel(parentFlowPane, (TextField) localField);
-//			}
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"validating text field secondary");
+
+		TextField localField = (TextField) getField(uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE);
+		if (localField != null) {
+			if (validation.validateTextField(getNode(), field, field.getId(), true)) {
+
+				FXUtils.getInstance().setTextValidLabel(getNode(), localField);
+				isValid = true;
+			} else {
+
+				FXUtils.getInstance().showErrorLabel(localField, getNode());
+				return false;
+			}
+		}
+		return isValid;
 
 	}
 
@@ -332,4 +338,7 @@ public class TextFieldFxControl extends FxControl {
 		return (VBox) this.node;
 	}
 
+	private Node getField(String id) {
+		return node.lookup(RegistrationConstants.HASH + uiSchemaDTO.getId());
+	}
 }
