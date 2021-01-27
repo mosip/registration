@@ -194,6 +194,9 @@ public class Utilities {
 	/** The Constant NAME. */
 	private static final String NAME = "name";
 
+	/** The Constant NAME. */
+	private static final String INBOUNDMESSAGETTL = "inboundMessageTTL";
+
 	/** The Constant FAIL_OVER. */
 	private static final String FAIL_OVER = "failover:(";
 
@@ -425,6 +428,7 @@ public class Utilities {
 				String inboundQueueName = validateAbisQueueJsonAndReturnValue(json, INBOUNDQUEUENAME);
 				String outboundQueueName = validateAbisQueueJsonAndReturnValue(json, OUTBOUNDQUEUENAME);
 				String queueName = validateAbisQueueJsonAndReturnValue(json, NAME);
+				int inboundMessageTTL = validateAbisQueueJsonAndReturnIntValue(json, INBOUNDMESSAGETTL);
 				MosipQueue mosipQueue = mosipConnectionFactory.createConnection(typeOfQueue, userName, password,
 						failOverBrokerUrl);
 				if (mosipQueue == null)
@@ -435,6 +439,7 @@ public class Utilities {
 				abisQueueDetails.setInboundQueueName(inboundQueueName);
 				abisQueueDetails.setOutboundQueueName(outboundQueueName);
 				abisQueueDetails.setName(queueName);
+				abisQueueDetails.setInboundMessageTTL(inboundMessageTTL);
 				abisQueueDetailsList.add(abisQueueDetails);
 
 			}
@@ -665,6 +670,28 @@ public class Utilities {
 		}
 
 		return value;
+	}
+
+	/**
+	 * Validate abis queue json and return long value.
+	 *
+	 * @param jsonObject
+	 *            the json object
+	 * @param key
+	 *            the key
+	 * @return the long value
+	 */
+	private int validateAbisQueueJsonAndReturnIntValue(JSONObject jsonObject, String key) {
+
+		Integer value = JsonUtil.getJSONValue(jsonObject, key);
+		if (value == null) {
+
+			throw new RegistrationProcessorUnCheckedException(
+					PlatformErrorMessages.ABIS_QUEUE_JSON_VALIDATION_FAILED.getCode(),
+					PlatformErrorMessages.ABIS_QUEUE_JSON_VALIDATION_FAILED.getMessage() + "::" + key);
+		}
+
+		return value.intValue();
 	}
 
 	/**

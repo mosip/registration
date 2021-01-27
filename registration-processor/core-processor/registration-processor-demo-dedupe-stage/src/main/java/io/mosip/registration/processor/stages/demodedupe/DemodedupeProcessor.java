@@ -588,7 +588,7 @@ public class DemodedupeProcessor {
 			String moduleId = PlatformErrorMessages.RPR_DEMO_SENDING_FOR_MANUAL.getCode();
 			String moduleName = ModuleName.DEMO_DEDUPE.toString();
 			packetInfoManager.saveManualAdjudicationData(matchedRegIds, registrationStatusDto.getRegistrationId(),
-					DedupeSourceName.DEMO, moduleId, moduleName);
+					DedupeSourceName.DEMO, moduleId, moduleName,null,null);
 		} else {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationStatusDto.getRegistrationId(), DemoDedupeConstants.NO_MATCH_FOUND);
