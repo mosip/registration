@@ -5,11 +5,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
+import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.controller.reg.RegistrationController;
+import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dto.UiSchemaDTO;
+import io.mosip.registration.util.control.FxControl;
+import io.mosip.registration.util.control.impl.TextFieldFxControl;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 
@@ -37,6 +45,15 @@ public class GenericController extends BaseController {
 	@FXML
 	private FlowPane flowPane;
 
+	@FXML
+	private BorderPane borderPane;
+
+	@Autowired
+	private Validations validation;
+
+	@Autowired
+	private RegistrationController registrationController;
+
 	/**
 	 * Key- String : is a screen name Value - Node : screenNode {@summary all screen
 	 * fields will be inside the screen node}
@@ -61,9 +78,20 @@ public class GenericController extends BaseController {
 	 */
 	public void populateScreens(Map<String, List<String>> screens) {
 
+		if (getRegistrationDTOFromSession() == null) {
+			validation.updateAsLostUIN(false);
+			registrationController.createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_NEW);
+		}
+
+		flowPane.setVgap(10);
+		flowPane.setHgap(10);
+		int count = 0;
 		if (screens != null && !screens.isEmpty()) {
 			for (Entry<String, List<String>> screenEntry : screens.entrySet()) {
 
+				GridPane screenGridPane = new GridPane();
+
+				flowPane.getChildren().add(screenGridPane);
 				String screenName = screenEntry.getKey();
 
 				List<String> fields = screenEntry.getValue();
@@ -76,7 +104,9 @@ public class GenericController extends BaseController {
 
 							UiSchemaDTO uiSchemaDTO = getValidationMap().get(field);
 
-							Node fieldNode = buildFxElement(uiSchemaDTO);
+							FxControl fieldNode = (FxControl) buildFxElement(uiSchemaDTO);
+
+							screenGridPane.add(fieldNode.getNode(), 0, count++);
 						}
 					}
 				}
@@ -87,15 +117,10 @@ public class GenericController extends BaseController {
 
 	private Node buildFxElement(UiSchemaDTO uiSchemaDTO) {
 
-		Node fieldNode = null;
-		
-//		ControlType controlType= new TextFieldControlType();
-		
-//		controlType.ge
-		switch (uiSchemaDTO.getContactType()) {
+		switch (uiSchemaDTO.getControlType()) {
 
 		case CONTROLTYPE_TEXTFIELD:
-			break;
+			return new TextFieldFxControl().build(uiSchemaDTO);
 		case CONTROLTYPE_BIOMETRICS:
 			break;
 		case CONTROLTYPE_BUTTON:
@@ -113,7 +138,7 @@ public class GenericController extends BaseController {
 
 		}
 
-		return fieldNode;
+		return null;
 	}
 
 }

@@ -5,21 +5,20 @@ package io.mosip.registration.util.control.impl;
 
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.stereotype.Component;
 
 import io.mosip.commons.packet.dto.packet.SimpleDto;
-import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.FXUtils;
+import io.mosip.registration.controller.Initialization;
+import io.mosip.registration.controller.VirtualKeyboard;
 import io.mosip.registration.controller.reg.DemographicDetailController;
 import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dto.RegistrationDTO;
@@ -39,7 +38,6 @@ import javafx.scene.layout.VBox;
  * @author YASWANTH S
  *
  */
-@Component
 public class TextFieldFxControl extends FxControl {
 
 	/**
@@ -49,17 +47,29 @@ public class TextFieldFxControl extends FxControl {
 
 	private static String loggerClassName = " Text Field Control Type Class";
 
-	@Autowired
+//	@Autowired
 	private BaseController baseController;
 
-	@Autowired
+//	@Autowired
 	private DemographicDetailController demographicDetailController;
-	@Autowired
+//	@Autowired
 	private ResourceLoader resourceLoader;
-	@Autowired
+//	@Autowired
 	private Validations validation;
-	@Autowired
+//	@Autowired
 	private DemographicChangeActionHandler demographicChangeActionHandler;
+
+	public TextFieldFxControl() {
+
+		ApplicationContext applicationContext = Initialization.getApplicationContext();
+//		baseController = applicationContext.getBean(BaseController.class);
+		demographicDetailController = applicationContext.getBean(DemographicDetailController.class);
+
+//		resourceLoader = applicationContext.getBean(ResourceLoader.class);
+		validation = applicationContext.getBean(Validations.class);
+		demographicChangeActionHandler = applicationContext.getBean(DemographicChangeActionHandler.class);
+
+	}
 
 	@Override
 	public FxControl build(UiSchemaDTO uiSchemaDTO) {
@@ -70,9 +80,11 @@ public class TextFieldFxControl extends FxControl {
 		VBox primaryLangVBox = create(uiSchemaDTO, "");
 
 		HBox hBox = new HBox();
+		hBox.setSpacing(20);
 		hBox.getChildren().add(primaryLangVBox);
 
-		if (baseController.isLocalLanguageAvailable() && !baseController.isAppLangAndLocalLangSame()) {
+		if (demographicDetailController.isLocalLanguageAvailable()
+				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
 
 			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
 
@@ -194,7 +206,9 @@ public class TextFieldFxControl extends FxControl {
 				demographicDetailController.setFocusonLocalField(event);
 			});
 
-			demographicDetailController.getVirtualKeyBoard().changeControlOfKeyboard(textField);
+			VirtualKeyboard keyBoard = VirtualKeyboard.getInstance();
+			keyBoard.view();
+			keyBoard.changeControlOfKeyboard(textField);
 
 			HBox keyBoardHBox = new HBox();
 			keyBoardHBox.setSpacing(20);
@@ -232,25 +246,18 @@ public class TextFieldFxControl extends FxControl {
 
 	private ImageView getKeyBoardImage() {
 		ImageView imageView = null;
-		try {
-			imageView = new ImageView(new Image(
-					resourceLoader.getResource(RegistrationConstants.KEYBOARD_WITH_CLASSPATH).getInputStream()));
-			imageView.setId(uiSchemaDTO.getId());
-			imageView.setFitHeight(20.00);
-			imageView.setFitWidth(22.00);
-		} catch (IOException runtimeException) {
-			LOGGER.error(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-					"keyboard.png image not found in resource folder" + runtimeException.getMessage()
-							+ ExceptionUtils.getStackTrace(runtimeException));
 
-		}
+		imageView = new ImageView(new Image(getClass().getResourceAsStream("/images/keyboard.png")));
+		imageView.setId(uiSchemaDTO.getId());
+		imageView.setFitHeight(20.00);
+		imageView.setFitWidth(22.00);
 
 		return imageView;
 	}
 
 	private String getMandatorySuffix(UiSchemaDTO schema) {
 		String mandatorySuffix = RegistrationConstants.EMPTY;
-		RegistrationDTO registrationDTO = baseController.getRegistrationDTOFromSession();
+		RegistrationDTO registrationDTO = demographicDetailController.getRegistrationDTOFromSession();
 		String categeory = registrationDTO.getRegistrationCategory();
 		switch (categeory) {
 		case RegistrationConstants.PACKET_TYPE_UPDATE:
@@ -281,7 +288,8 @@ public class TextFieldFxControl extends FxControl {
 
 			simpleDtos.add(primaryLangSimpleDto);
 
-			if (baseController.isLocalLanguageAvailable() && !baseController.isAppLangAndLocalLangSame()) {
+			if (demographicDetailController.isLocalLanguageAvailable()
+					&& !demographicDetailController.isAppLangAndLocalLangSame()) {
 				// TODO set Simple DTO
 				SimpleDto secondaryLangSimpleDto = null;
 
@@ -334,8 +342,8 @@ public class TextFieldFxControl extends FxControl {
 	}
 
 	@Override
-	public VBox getNode() {
-		return (VBox) this.node;
+	public HBox getNode() {
+		return (HBox) this.node;
 	}
 
 	private Node getField(String id) {

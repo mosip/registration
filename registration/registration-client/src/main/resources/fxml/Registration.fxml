@@ -21,11 +21,7 @@
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-           	<fx:include fx:id="demographicDetail" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="DemographicDetail.fxml" visible="true" />
-         	<fx:include fx:id="documentScan" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="DocumentScan.fxml" visible="false" />
-         	<fx:include fx:id="biometric" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="Biometrics.fxml" visible="false" />
-            <fx:include fx:id="registrationPreview" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="RegistrationPreview.fxml" visible="false" />
-            <fx:include fx:id="operatorAuthenticationPane" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="OperatorAuthentication.fxml" visible="false" />
+         <fx:include fx:id="genericScreen" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="GenericRegistrationLayout.fxml" visible="true" />
          </children>
       </GridPane>
       <GridPane fx:id="headerHolder">
