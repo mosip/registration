@@ -495,7 +495,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 							AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 					Parent createRoot = BaseController.load(
-							getClass().getResource(RegistrationConstants.GENERIC_LAYOUT),
+							getClass().getResource(RegistrationConstants.CREATE_PACKET_PAGE),
 							applicationContext.getApplicationLanguageBundle());
 					LOGGER.info("REGISTRATION - CREATE_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER",
 							APPLICATION_NAME, APPLICATION_ID, "Validating Create Packet screen for specific role");
