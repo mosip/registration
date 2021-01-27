@@ -528,12 +528,14 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		String proofOfDateOfBirthLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(docJson, MappingJsonConstants.POB), MappingJsonConstants.VALUE);
 		String proofOfIdentityLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(docJson, MappingJsonConstants.POI), MappingJsonConstants.VALUE);
 		String proofOfRelationshipLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(docJson, MappingJsonConstants.POR), MappingJsonConstants.VALUE);
+		String proofOfExceptionLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(docJson, MappingJsonConstants.POE), MappingJsonConstants.VALUE);
 		String applicantBiometricLabel = JsonUtil.getJSONValue(JsonUtil.getJSONObject(identityJson, MappingJsonConstants.INDIVIDUAL_BIOMETRICS), MappingJsonConstants.VALUE);
 
 		HashMap<String, String> proofOfAddress = (HashMap<String, String>) idJSON.get(proofOfAddressLabel);
 		HashMap<String, String> proofOfDateOfBirth = (HashMap<String, String>) idJSON.get(proofOfDateOfBirthLabel);
 		HashMap<String, String> proofOfIdentity = (HashMap<String, String>) idJSON.get(proofOfIdentityLabel);
 		HashMap<String, String> proofOfRelationship = (HashMap<String, String>) idJSON.get(proofOfRelationshipLabel);
+		HashMap<String, String> proofOfException = (HashMap<String, String>) idJSON.get(proofOfExceptionLabel);
 		HashMap<String, String> applicantBiometric = (HashMap<String, String>) idJSON.get(applicantBiometricLabel);
 		if (proofOfAddress != null) {
 			applicantDocuments
@@ -550,6 +552,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		if (proofOfRelationship != null) {
 			applicantDocuments.add(getIdDocumnet(regId, process, MappingJsonConstants.POR));
 		}
+		if (proofOfException != null) {
+			applicantDocuments.add(getIdDocumnet(regId, process, MappingJsonConstants.POE));
+		}
 		if (applicantBiometric != null) {
 			applicantDocuments.add(getBiometrics(regId, process, MappingJsonConstants.INDIVIDUAL_BIOMETRICS));
 		}
@@ -561,9 +566,12 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		Documents documentsInfoDto = new Documents();
 
 		Document document = packetManagerService.getDocument(registrationId, idDocLabel, process);
-		documentsInfoDto.setValue(CryptoUtil.encodeBase64(document.getDocument()));
-		documentsInfoDto.setCategory(document.getValue());
-		return documentsInfoDto;
+		if (document != null) {
+			documentsInfoDto.setValue(CryptoUtil.encodeBase64(document.getDocument()));
+			documentsInfoDto.setCategory(document.getValue());
+			return documentsInfoDto;
+		}
+		return null;
 	}
 
 	private Documents getBiometrics(String registrationId, String process, String idDocLabel)

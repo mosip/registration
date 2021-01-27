@@ -1,7 +1,9 @@
 package io.mosip.registration.controller.reg;
 
 import static io.mosip.registration.constants.LoggerConstants.PACKET_HANDLER;
-import static io.mosip.registration.constants.RegistrationConstants.*;
+import static io.mosip.registration.constants.RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE_CODE;
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -9,11 +11,12 @@ import java.io.IOException;
 import java.io.Writer;
 import java.net.URL;
 import java.sql.Timestamp;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +37,7 @@ import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
+import io.mosip.registration.controller.GenericController;
 import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.PacketStatusDTO;
 import io.mosip.registration.dto.RegistrationApprovalDTO;
@@ -141,7 +145,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 				String latestUpdateTime = timestamps.stream().sorted((timestamp1, timestamp2) -> Timestamp
 						.valueOf(timestamp2).compareTo(Timestamp.valueOf(timestamp1))).findFirst().get();
-				
+
 				lastSyncTime.setText(getLocalZoneTime(latestUpdateTime));
 
 				setLastPreRegPacketDownloadedTime();
@@ -270,13 +274,16 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 	@Autowired
 	private AuthTokenUtilService authTokenUtilService;
-	
+
+	@Autowired
+	private GenericController genericController;
+
 	@FXML
 	private ImageView uploadPacketImageView;
-	
+
 	@FXML
 	private ImageView remapImageView;
-	
+
 	@FXML
 	private ImageView checkUpdatesImageView;
 
@@ -338,8 +345,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 			}
 			Timestamp ts = userOnboardService.getLastUpdatedTime(SessionContext.userId());
 			if (ts != null) {
-				lastBiometricTime.setText(RegistrationUIConstants.LAST_DOWNLOADED + " "
-						+ getLocalZoneTime(ts.toString()));
+				lastBiometricTime
+						.setText(RegistrationUIConstants.LAST_DOWNLOADED + " " + getLocalZoneTime(ts.toString()));
 			}
 
 			if (!(getValueFromApplicationContext(RegistrationConstants.LOST_UIN_CONFIG_FLAG))
@@ -436,14 +443,14 @@ public class PacketHandlerController extends BaseController implements Initializ
 				uploadPacketImageView.setImage(
 						new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_OP_BIOMETRICS_FOCUSED)));
 			} else {
-				uploadPacketImageView
-						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_OP_BIOMETRICS_IMAGE)));
+				uploadPacketImageView.setImage(
+						new Image(getClass().getResourceAsStream(RegistrationConstants.UPDATE_OP_BIOMETRICS_IMAGE)));
 			}
 		});
 		centerRemapPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
-				remapImageView.setImage(
-						new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_FOCUSED)));
+				remapImageView
+						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_FOCUSED)));
 			} else {
 				remapImageView
 						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.SYNC_DATA_IMAGE)));
@@ -454,8 +461,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 				checkUpdatesImageView.setImage(
 						new Image(getClass().getResourceAsStream(RegistrationConstants.DOWNLOAD_PREREG_FOCUSED)));
 			} else {
-				checkUpdatesImageView
-						.setImage(new Image(getClass().getResourceAsStream(RegistrationConstants.DOWNLOAD_PREREG_IMAGE)));
+				checkUpdatesImageView.setImage(
+						new Image(getClass().getResourceAsStream(RegistrationConstants.DOWNLOAD_PREREG_IMAGE)));
 			}
 		});
 	}
@@ -488,7 +495,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 							AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 					Parent createRoot = BaseController.load(
-							getClass().getResource(RegistrationConstants.CREATE_PACKET_PAGE),
+							getClass().getResource(RegistrationConstants.GENERIC_LAYOUT),
 							applicationContext.getApplicationLanguageBundle());
 					LOGGER.info("REGISTRATION - CREATE_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER",
 							APPLICATION_NAME, APPLICATION_ID, "Validating Create Packet screen for specific role");
@@ -508,6 +515,17 @@ public class PacketHandlerController extends BaseController implements Initializ
 							generateAlert(RegistrationConstants.ERROR, errorMessage.toString().trim());
 						} else {
 							getScene(createRoot).setRoot(createRoot);
+
+							Map<String, List<String>> var = new LinkedHashMap<>();
+							List<String> list = new LinkedList<String>();
+							list.add("fullName");
+							list.add("addressLine1");
+
+							list.add("addressLine2");
+							list.add("addressLine3");
+							var.put("screen1", list);
+
+							genericController.populateScreens(var);
 						}
 					}
 
@@ -620,7 +638,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 
 			String platformLanguageCode = ApplicationContext.applicationLanguage();
-			String ackTemplateText = templateService.getHtmlTemplate(ACKNOWLEDGEMENT_TEMPLATE_CODE, platformLanguageCode);
+			String ackTemplateText = templateService.getHtmlTemplate(ACKNOWLEDGEMENT_TEMPLATE_CODE,
+					platformLanguageCode);
 
 			if (ApplicationContext.applicationLanguage().equalsIgnoreCase(ApplicationContext.localLanguage())) {
 				ackTemplateText = ackTemplateText.replace("} / ${", "}  ${");
@@ -1082,7 +1101,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 		return policySyncService.checkKeyValidation();
 
 	}
-
 
 	public ProgressIndicator getProgressIndicator() {
 		return progressIndicator;

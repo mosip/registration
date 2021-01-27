@@ -51,6 +51,7 @@ public class RegistrationConstants {
 	public static final String SEND_NOTIFICATION_PAGE = "/fxml/SendNotification.fxml";
 	public static final String PACKET_UPLOAD_STATUS_UI = "/fxml/PacketUploadStatus.fxml";
 	public static final String ALERT_GENERATION = "/fxml/Alert.fxml";
+	public static final String GENERIC_LAYOUT = "/fxml/GenericRegistrationLayout.fxml";
 
 	// FXML Id
 	public static final String DEMOGRAPHIC_DETAIL = "demographicDetail";

@@ -159,8 +159,7 @@ public class RegistrationController extends BaseController {
 	/**
 	 * To detect the face from the captured photograph for validation.
 	 * 
-	 * @param applicantImage
-	 *            the image that is captured as applicant photograph
+	 * @param applicantImage the image that is captured as applicant photograph
 	 * @return BufferedImage the face that is detected from the applicant photograph
 	 */
 	/*
@@ -179,8 +178,7 @@ public class RegistrationController extends BaseController {
 	 * To compress the detected face from the image of applicant and store it in DTO
 	 * to use it for QR Code generation
 	 * 
-	 * @param applicantImage
-	 *            the image that is captured as applicant photograph
+	 * @param applicantImage the image that is captured as applicant photograph
 	 */
 	/*
 	 * private void compressImageForQRCode(BufferedImage detectedFace) { try {
@@ -335,7 +333,7 @@ public class RegistrationController extends BaseController {
 	/**
 	 * This method will create registration DTO object
 	 */
-	protected void createRegistrationDTOObject(String registrationCategory) {
+	public void createRegistrationDTOObject(String registrationCategory) {
 		RegistrationDTO registrationDTO = new RegistrationDTO();
 
 		// set id-schema version to be followed for this registration
@@ -394,7 +392,7 @@ public class RegistrationController extends BaseController {
 		// Used to update printing name as default
 		registrationDTO.setDefaultUpdatableFieldGroups(defaultFieldGroups);
 		registrationDTO.setDefaultUpdatableFields(defaultFields);
-		
+
 		// Put the RegistrationDTO object to SessionContext Map
 		SessionContext.map().put(RegistrationConstants.REGISTRATION_DATA, registrationDTO);
 	}

@@ -600,6 +600,13 @@ public enum PlatformErrorMessages {
 	RPR_MVS_NO_USER_ID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "017",
 			"User Id should not empty or null "),
 
+	/** The rpr mvs no registration id should not empty or null. */
+	RPR_MVS_NO_RID_SHOULD_NOT_EMPTY_OR_NULL(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "022",
+			"Registration Id should not empty or null "),
+
+	/** The rpr mvs no matched ref id found for given ref id. */
+	RPR_MVS_NO_MATCHEDRID_FOUND_FOR_GIVEN_RID(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "023",
+			"No matched reference id found for given RID"),
 	/** The rpr mvs user status not active. */
 	RPR_MVS_USER_STATUS_NOT_ACTIVE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "015",
 			"User is not in ACTIVE status"),
@@ -618,6 +625,10 @@ public enum PlatformErrorMessages {
 	/** The rpr table not accessible. */
 	RPR_TABLE_NOT_ACCESSIBLE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "022",
 			"TablenotAccessibleException in Manual verification"),
+
+	/** The rpr table not accessible. */
+	RPR_INVALID_MESSSAGE(PlatformConstants.RPR_MANUAL_VERIFICATION_MODULE + "023",
+			"Invalid message received from queue"),
 
 	/** The rpr tem not found. */
 	// Registration processor Message sender Exception error code
@@ -1146,7 +1157,11 @@ public enum PlatformErrorMessages {
 	RPR_SECUREZONE_FAILURE(PlatformConstants.RPR_SECUREZONE_NOTIFICATION_MODULE + "001",
 			"Exception occured in securezone notification stage. Check logs for more info"),
 
-	RPR_AUTH_SYSTEM_EXCEPTION(PlatformConstants.RPR_AUTHENTICATION + "03", "Request could not be processed. Please try again");
+	RPR_AUTH_SYSTEM_EXCEPTION(PlatformConstants.RPR_AUTHENTICATION + "03", "Request could not be processed. Please try again"),
+
+	/** The queue json validation failed. */
+	QUEUE_JSON_VALIDATION_FAILED(PlatformConstants.RPR_MA_MIDDLEWARE + "004",
+			"Unable to find Connection Properties");
 
 	/** The error message. */
 	private final String errorMessage; 

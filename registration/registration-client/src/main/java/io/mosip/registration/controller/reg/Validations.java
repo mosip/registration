@@ -135,7 +135,7 @@ public class Validations extends BaseController {
 	 *
 	 * @param isLostUIN the flag indicating whether work flow is for Lost UIN
 	 */
-	protected void updateAsLostUIN(boolean isLostUIN) {
+	public void updateAsLostUIN(boolean isLostUIN) {
 		this.isLostUIN = isLostUIN;
 	}
 

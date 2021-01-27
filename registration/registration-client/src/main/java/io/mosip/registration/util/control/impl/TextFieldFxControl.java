@@ -1,31 +1,30 @@
 /**
  * 
  */
-package io.mosip.registration.util.controlType.impl;
+package io.mosip.registration.util.control.impl;
 
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.stereotype.Component;
 
 import io.mosip.commons.packet.dto.packet.SimpleDto;
-import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.FXUtils;
+import io.mosip.registration.controller.Initialization;
+import io.mosip.registration.controller.VirtualKeyboard;
 import io.mosip.registration.controller.reg.DemographicDetailController;
 import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.util.common.DemographicChangeActionHandler;
-import io.mosip.registration.util.controlType.ControlType;
+import io.mosip.registration.util.control.FxControl;
 import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -39,8 +38,7 @@ import javafx.scene.layout.VBox;
  * @author YASWANTH S
  *
  */
-@Component
-public class TextFieldControlType extends ControlType {
+public class TextFieldFxControl extends FxControl {
 
 	/**
 	 * Instance of {@link Logger}
@@ -49,47 +47,71 @@ public class TextFieldControlType extends ControlType {
 
 	private static String loggerClassName = " Text Field Control Type Class";
 
-	@Autowired
+//	@Autowired
 	private BaseController baseController;
 
-	@Autowired
+//	@Autowired
 	private DemographicDetailController demographicDetailController;
-	@Autowired
+//	@Autowired
 	private ResourceLoader resourceLoader;
-	@Autowired
+//	@Autowired
 	private Validations validation;
-	@Autowired
+//	@Autowired
 	private DemographicChangeActionHandler demographicChangeActionHandler;
 
-	private VBox simpleTypeVBox;
+	public TextFieldFxControl() {
 
-	private TextField textField;
+		ApplicationContext applicationContext = Initialization.getApplicationContext();
+//		baseController = applicationContext.getBean(BaseController.class);
+		demographicDetailController = applicationContext.getBean(DemographicDetailController.class);
+
+//		resourceLoader = applicationContext.getBean(ResourceLoader.class);
+		validation = applicationContext.getBean(Validations.class);
+		demographicChangeActionHandler = applicationContext.getBean(DemographicChangeActionHandler.class);
+
+	}
 
 	@Override
-	public Node build(UiSchemaDTO uiSchemaDTO) {
+	public FxControl build(UiSchemaDTO uiSchemaDTO) {
 		this.uiSchemaDTO = uiSchemaDTO;
 
-		this.fieldType = this;
+		this.control = this;
 
-		VBox simpleTypeVBox = create(uiSchemaDTO, "");
+		VBox primaryLangVBox = create(uiSchemaDTO, "");
 
-//		if (baseController.isLocalLanguageAvailable() && !baseController.isAppLangAndLocalLangSame()) {
-//
-//			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
-//
-//		}
+		HBox hBox = new HBox();
+		hBox.setSpacing(20);
+		hBox.getChildren().add(primaryLangVBox);
 
-		textField = (TextField) simpleTypeVBox.lookup(RegistrationConstants.HASH + uiSchemaDTO.getId());
+		if (demographicDetailController.isLocalLanguageAvailable()
+				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
 
-		setListener(textField);
+			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
 
-		return null;
+			hBox.getChildren().add(secondaryLangVBox);
+
+		}
+
+		this.node = hBox;
+
+		setListener((TextField) getField(RegistrationConstants.HASH + uiSchemaDTO.getId()));
+
+		return this.control;
 	}
 
 	@Override
 	public void copyTo(Node srcNode, List<Node> targetNodes) {
-		// TODO Auto-generated method stub
 
+		// TODO Throw Reg Check based exception if src or target nodes were not present
+		if (srcNode != null && targetNodes != null && !targetNodes.isEmpty()) {
+			TextField srctextField = (TextField) srcNode;
+
+			for (Node targetNode : targetNodes) {
+
+				TextField targetTextField = (TextField) targetNode;
+				targetTextField.setText(srctextField.getText());
+			}
+		}
 	}
 
 	@Override
@@ -106,9 +128,10 @@ public class TextFieldControlType extends ControlType {
 
 	@Override
 	public void setListener(Node node) {
-		FXUtils.getInstance().onTypeFocusUnfocusListener(simpleTypeVBox, (TextField) node);
+		FXUtils.getInstance().onTypeFocusUnfocusListener(getNode(), (TextField) node);
 
-		node.addEventHandler(Event.ANY, event -> {
+		TextField textField = (TextField) node;
+		textField.addEventHandler(Event.ANY, event -> {
 			if (isValid(textField)) {
 
 				Object object = getData(node);
@@ -121,8 +144,7 @@ public class TextFieldControlType extends ControlType {
 				if (uiSchemaDTO != null) {
 					LOGGER.info(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 							"Invoking external action handler for .... " + uiSchemaDTO.getId());
-					demographicChangeActionHandler.actionHandle(simpleTypeVBox, node.getId(),
-							uiSchemaDTO.getChangeAction());
+					demographicChangeActionHandler.actionHandle(getNode(), node.getId(), uiSchemaDTO.getChangeAction());
 				}
 				// Group level visibility listeners
 				refreshFields();
@@ -184,7 +206,9 @@ public class TextFieldControlType extends ControlType {
 				demographicDetailController.setFocusonLocalField(event);
 			});
 
-			demographicDetailController.getVirtualKeyBoard().changeControlOfKeyboard(textField);
+			VirtualKeyboard keyBoard = VirtualKeyboard.getInstance();
+			keyBoard.view();
+			keyBoard.changeControlOfKeyboard(textField);
 
 			HBox keyBoardHBox = new HBox();
 			keyBoardHBox.setSpacing(20);
@@ -222,25 +246,18 @@ public class TextFieldControlType extends ControlType {
 
 	private ImageView getKeyBoardImage() {
 		ImageView imageView = null;
-		try {
-			imageView = new ImageView(new Image(
-					resourceLoader.getResource(RegistrationConstants.KEYBOARD_WITH_CLASSPATH).getInputStream()));
-			imageView.setId(uiSchemaDTO.getId());
-			imageView.setFitHeight(20.00);
-			imageView.setFitWidth(22.00);
-		} catch (IOException runtimeException) {
-			LOGGER.error(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-					"keyboard.png image not found in resource folder" + runtimeException.getMessage()
-							+ ExceptionUtils.getStackTrace(runtimeException));
 
-		}
+		imageView = new ImageView(new Image(getClass().getResourceAsStream("/images/keyboard.png")));
+		imageView.setId(uiSchemaDTO.getId());
+		imageView.setFitHeight(20.00);
+		imageView.setFitWidth(22.00);
 
 		return imageView;
 	}
 
 	private String getMandatorySuffix(UiSchemaDTO schema) {
 		String mandatorySuffix = RegistrationConstants.EMPTY;
-		RegistrationDTO registrationDTO = baseController.getRegistrationDTOFromSession();
+		RegistrationDTO registrationDTO = demographicDetailController.getRegistrationDTOFromSession();
 		String categeory = registrationDTO.getRegistrationCategory();
 		switch (categeory) {
 		case RegistrationConstants.PACKET_TYPE_UPDATE:
@@ -259,6 +276,9 @@ public class TextFieldControlType extends ControlType {
 	@Override
 	public Object getData(Node node) {
 
+		// TODO get value form registration DTIO
+
+		// TODO move logic to set data
 		if (this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE)) {
 
 			List<SimpleDto> simpleDtos = new LinkedList<>();
@@ -268,7 +288,8 @@ public class TextFieldControlType extends ControlType {
 
 			simpleDtos.add(primaryLangSimpleDto);
 
-			if (baseController.isLocalLanguageAvailable() && !baseController.isAppLangAndLocalLangSame()) {
+			if (demographicDetailController.isLocalLanguageAvailable()
+					&& !demographicDetailController.isAppLangAndLocalLangSame()) {
 				// TODO set Simple DTO
 				SimpleDto secondaryLangSimpleDto = null;
 
@@ -284,36 +305,48 @@ public class TextFieldControlType extends ControlType {
 	@Override
 	public boolean isValid(Node node) {
 
+		boolean isValid;
 		if (node == null) {
 			LOGGER.warn(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 					"Field not found in demographic screen");
 			return false;
 		}
 
-		if (validation.validateTextField(simpleTypeVBox, textField, textField.getId(), true)) {
+		TextField field = (TextField) node;
+		if (validation.validateTextField(getNode(), field, field.getId(), true)) {
 
-			FXUtils.getInstance().setTextValidLabel(simpleTypeVBox, (TextField) node);
-			return true;
+			FXUtils.getInstance().setTextValidLabel(getNode(), field);
+			isValid = true;
 		} else {
 
-			FXUtils.getInstance().showErrorLabel((TextField) node, simpleTypeVBox);
+			FXUtils.getInstance().showErrorLabel(field, getNode());
 			return false;
 		}
-//			LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-//					"validating text field secondary");
-//
-//			TextField localField = (TextField) getFxElement(field.getId() + RegistrationConstants.LOCAL_LANGUAGE);
-//			if (localField != null) {
-//				// on valid value of primary set secondary language value
-//				setSecondaryLangText((TextField) field, localField, hasToBeTransliterated);
-//
-//				if (!isInputTextValid(localField, localField.getId())) {
-//					fxUtils.showErrorLabel(localField, parentFlowPane);
-//					return false;
-//				} else
-//					fxUtils.setTextValidLabel(parentFlowPane, (TextField) localField);
-//			}
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+				"validating text field secondary");
+
+		TextField localField = (TextField) getField(uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE);
+		if (localField != null) {
+			if (validation.validateTextField(getNode(), field, field.getId(), true)) {
+
+				FXUtils.getInstance().setTextValidLabel(getNode(), localField);
+				isValid = true;
+			} else {
+
+				FXUtils.getInstance().showErrorLabel(localField, getNode());
+				return false;
+			}
+		}
+		return isValid;
 
 	}
 
+	@Override
+	public HBox getNode() {
+		return (HBox) this.node;
+	}
+
+	private Node getField(String id) {
+		return node.lookup(RegistrationConstants.HASH + uiSchemaDTO.getId());
+	}
 }
