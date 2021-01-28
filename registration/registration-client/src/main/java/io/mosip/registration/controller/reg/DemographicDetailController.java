@@ -11,7 +11,9 @@ import io.mosip.registration.util.common.DemographicChangeActionHandler;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.geometry.NodeOrientation;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.text.TextAlignment;
 import org.mvel2.MVEL;
 import org.mvel2.integration.VariableResolverFactory;
 import org.mvel2.integration.impl.MapVariableResolverFactory;
@@ -594,11 +596,10 @@ public class DemographicDetailController extends BaseController {
 			label.setText(schema.getLabel().get(RegistrationConstants.PRIMARY) + mandatorySuffix);
 		}
 
-		changeNodeOrientation(field, languageType);
 		hB.getChildren().add(validationMessage);
 		hB.setStyle("-fx-background-color:WHITE");
 		vbox.getChildren().add(hB);
-
+		changeNodeOrientation(vbox, languageType);
 		fxUtils.onTypeFocusUnfocusListener(parentFlowPane, field);
 		return vbox;
 	}
@@ -683,6 +684,7 @@ public class DemographicDetailController extends BaseController {
 		listOfComboBoxWithObject.put(fieldName + languageType, field);
 		fxUtils.populateLocalComboBox(parentFlowPane, listOfComboBoxWithObject.get(fieldName), field);
 		setFieldChangeListener(field);
+		changeNodeOrientation(vbox, languageType);
 		return vbox;
 	}
 
@@ -730,6 +732,7 @@ public class DemographicDetailController extends BaseController {
 			hBox.getChildren().add(localButton);
 		});
 		vbox.getChildren().addAll(hBox, validationMessage);
+		changeNodeOrientation(vbox, languageType);
 		return vbox;
 	}
 
@@ -853,7 +856,7 @@ public class DemographicDetailController extends BaseController {
 		try {
 			RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 			for (UiSchemaDTO schemaField : validation.getValidationMap().values()) {
-				if (schemaField.getControlType() == null)
+				if (schemaField.getControlType() == null || !schemaField.isInputRequired())
 					continue;
 
 				if (registrationDTO.getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE)
@@ -899,8 +902,8 @@ public class DemographicDetailController extends BaseController {
 						TextField platformTextField = listOfTextField.get(schemaField.getId());
 						TextField localTextField = listOfTextField.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE);
 						registrationDTO.addDemographicField(schemaField.getId(), applicationContext.getApplicationLanguage(),
-								platformTextField.getText(), applicationContext.getLocalLanguage(),
-								localTextField == null ? null : localTextField.getText());
+								platformTextField.getText() == null ? null : platformTextField.getText(), applicationContext.getLocalLanguage(),
+								(localTextField == null || localTextField.getText() == null) ? null : localTextField.getText());
 						break;
 				}
 				break;
@@ -1068,13 +1071,14 @@ public class DemographicDetailController extends BaseController {
 							case RegistrationConstants.BUTTON:
 								String platformLanguageCode = applicationContext.getApplicationLanguage();
 								List<Button> platformFieldButtons = listOfButtons.get(schemaField.getId());
+								List<Button> localLangFieldButtons = listOfButtons.get(schemaField.getId() + RegistrationConstants.LOCAL_LANGUAGE);
 								for (SimpleDto fieldValue : (List<SimpleDto>) value) {
-									if (fieldValue.getLanguage().equalsIgnoreCase(platformLanguageCode)) {
-										Optional<Button> button = platformFieldButtons.stream()
-												.filter(b -> b.getId().equals(schemaField.getId() + fieldValue.getValue())).findFirst();
-										if(button.isPresent())
-											resetButtons(button.get());
-									}
+									Optional<Button> button = fieldValue.getLanguage().equalsIgnoreCase(platformLanguageCode) ?
+											platformFieldButtons.stream().filter(b -> b.getId().equals(schemaField.getId() + fieldValue.getValue())).findFirst() :
+											localLangFieldButtons.stream().filter(b -> b.getId().equals(schemaField.getId() + fieldValue.getValue() +
+													RegistrationConstants.LOCAL_LANGUAGE)).findFirst();
+									if(button.isPresent())
+										resetButtons(button.get());
 								}
 								break;
 							default:
@@ -1098,7 +1102,7 @@ public class DemographicDetailController extends BaseController {
 							case RegistrationConstants.DROPDOWN:
 								ComboBox<GenericDto> platformField = listOfComboBoxWithObject.get(schemaField.getId());
 								if (platformField != null) {
-									platformField.setValue(new GenericDto((String) value, (String) value, "eng"));
+									platformField.setValue(new GenericDto((String) value, (String) value, applicationContext.getApplicationLanguage()));
 								}
 								break;
 							case RegistrationConstants.CHECKBOX:
@@ -1387,7 +1391,9 @@ public class DemographicDetailController extends BaseController {
 				GridPane rowGridPane = horizontalRowGridPane == null ? prepareRowGridPane(1) : horizontalRowGridPane;
 
 				rowGridPane.addColumn(horizontalRowGridPane == null ? 0 : index, applicationLanguageGridPane);
-				if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
+
+				if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()
+						&& uiSchemaDTOs.get(index).getType().equals(RegistrationConstants.SIMPLE_TYPE)) {
 
 					LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 							"Adding ui schema of local language");

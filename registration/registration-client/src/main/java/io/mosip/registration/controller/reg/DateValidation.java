@@ -40,8 +40,6 @@ public class DateValidation extends BaseController {
 	private static final Logger LOGGER = AppConfig.getLogger(DateValidation.class);
 	@Autowired
 	private Validations validation;
-	@Autowired
-	private DemographicDetailController demographicDetailController;
 
 	int maxAge = 0;
 
@@ -240,7 +238,9 @@ public class DateValidation extends BaseController {
 
 
 	private void setTextFieldStyle(Pane parentPane, TextField node, boolean isError) {
-		Label label = (Label)getFxElement(parentPane, node.getId()+RegistrationConstants.LABEL);
+		Node labelNode = getFxElement(parentPane, node.getId()+RegistrationConstants.LABEL);
+		if(labelNode == null) { return; }
+		Label label = (Label)labelNode;
 		if(isError) {
 			node.getStyleClass().clear();
 			node.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
@@ -379,18 +379,17 @@ public class DateValidation extends BaseController {
 						dobMessage.setText(RegistrationConstants.EMPTY);
 						dobMessage.setVisible(false);
 						date.getStyleClass().removeIf((s) -> {
-							return s.equals("demoGraphicTextFieldFocused");
+							return s.equals(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
 						});
 						month.getStyleClass().removeIf((s) -> {
-							return s.equals("demoGraphicTextFieldFocused");
+							return s.equals(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
 						});
 						year.getStyleClass().removeIf((s) -> {
-							return s.equals("demoGraphicTextFieldFocused");
+							return s.equals(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
 						});
-						date.getStyleClass().add("demoGraphicTextField");
-						month.getStyleClass().add("demoGraphicTextField");
-						year.getStyleClass().add("demoGraphicTextField");
-						// demographicDetailController.ageValidation(false);
+						date.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
+						month.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
+						year.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
 
 						if (getFxElement(parentPane, ageField.getId() + RegistrationConstants.LOCAL_LANGUAGE) != null) {
 							((TextField) getFxElement(parentPane,
@@ -433,9 +432,9 @@ public class DateValidation extends BaseController {
 		year.getStyleClass().removeIf((s) -> {
 			return s.equals("demoGraphicTextFieldOnType");
 		});
-		date.getStyleClass().add("demoGraphicTextFieldFocused");
-		month.getStyleClass().add("demoGraphicTextFieldFocused");
-		year.getStyleClass().add("demoGraphicTextFieldFocused");
+		date.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
+		month.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
+		year.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
 		dobMessage.setText(RegistrationUIConstants.INVALID_DATE);
 		ageField.clear();
 		dobMessage.setVisible(true);
