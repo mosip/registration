@@ -56,8 +56,8 @@ public interface ManualVerificationService {
 	 *            {@link ManualVerificationDTO}
 	 * @return The updated {@link ManualVerificationDTO}
 	 */
-	public ManualVerificationDecisionDto updatePacketStatus(ManualVerificationDecisionDto manualVerificationDTO, String stageName);
-
+	public ManualAdjudicationResponseDTO updatePacketStatus(ManualAdjudicationResponseDTO resp, String stageName, MosipQueue queue);
+	
 	/**
 	 * This method receives response from the queue and saves to DB
 	 *
