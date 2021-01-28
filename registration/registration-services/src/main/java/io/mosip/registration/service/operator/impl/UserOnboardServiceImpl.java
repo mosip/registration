@@ -117,7 +117,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 					RegistrationExceptionConstants.REG_BIOMETRIC_DTO_NULL.getErrorMessage());
 
 		ResponseDTO responseDTO = new ResponseDTO();
-		if (!validateWithIDA(biometrics, responseDTO)) {
+		if (validateWithIDA(biometrics, responseDTO)) {
 			responseDTO = save(biometrics);
 			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
 					RegistrationConstants.USER_ON_BOARDING_SUCCESS_MSG);
