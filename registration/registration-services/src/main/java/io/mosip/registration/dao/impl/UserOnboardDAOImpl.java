@@ -15,10 +15,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import io.mosip.commons.packet.constants.Biometric;
+import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.constants.BiometricAttributes;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
@@ -315,7 +317,7 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 				UserBiometric bioMetrics = new UserBiometric();
 				UserBiometricId biometricId = new UserBiometricId();
 				biometricId.setBioAttributeCode(dto.getBioAttribute());
-				biometricId.setBioTypeCode(getBioAttribute(dto.getBioAttribute()));
+				biometricId.setBioTypeCode(getBioAttributeCode(dto.getBioAttribute()));
 				biometricId.setUsrId(SessionContext.userContext().getUserId());
 				bioMetrics.setBioIsoImage(dto.getAttributeISO());
 				bioMetrics.setNumberOfRetry(dto.getNumOfRetries());
@@ -352,11 +354,58 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 	 * @param bioAttribute the bio attribute
 	 * @return the bio attribute
 	 */
-	private String getBioAttribute(String bioAttribute) {
+	private String getBioAttributeCode(String bioAttribute) {
 
 		Biometric bioType = Biometric.getBiometricByAttribute(bioAttribute);
 		return bioType.getSingleType().value();
 
 	}
+	
+	@Override
+	public String insertExtractedTemplates(List<BIR> templates) {
+		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "Entering insertExtractedTemplates method");
+		String response = RegistrationConstants.EMPTY;
+		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
+				"Biometric information insertion into table");
+		List<UserBiometric> bioMetricsList = new ArrayList<>();
+		
+		try {
+			templates.forEach( template -> {
+				UserBiometric bioMetrics = new UserBiometric();
+				UserBiometricId biometricId = new UserBiometricId();
+				biometricId.setBioAttributeCode(getBioAttribute(template.getBdbInfo().getSubtype()));
+				biometricId.setBioTypeCode(getBioAttributeCode(getBioAttribute(template.getBdbInfo().getSubtype())));
+				biometricId.setUsrId(SessionContext.userContext().getUserId());
+				bioMetrics.setBioIsoImage(template.getBdb());
+				bioMetrics.setUserBiometricId(biometricId);
+				Long qualityScore = template.getBdbInfo().getQuality().getScore();
+				bioMetrics.setQualityScore(qualityScore.intValue());
+				bioMetrics.setCrBy(SessionContext.userContext().getUserId());
+				bioMetrics.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
+				bioMetrics.setIsActive(true);
+				bioMetricsList.add(bioMetrics);
+			});
+			
+			userBiometricRepository.deleteByUserBiometricIdUsrId(SessionContext.userContext().getUserId());
+			userBiometricRepository.saveAll(bioMetricsList);
+			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
+					"Biometric information insertion successful");
+	
+			response = RegistrationConstants.SUCCESS;
+		} catch (RuntimeException runtimeException) {
+	
+			LOGGER.error(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
+					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
+			response = RegistrationConstants.USER_ON_BOARDING_ERROR_RESPONSE;
+			throw new RegBaseUncheckedException(RegistrationConstants.USER_ON_BOARDING_EXCEPTION + response,
+					runtimeException.getMessage());
+		}
+		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "Leaving insertExtractedTemplates method");
+		return response;
+	}
 
+	private String getBioAttribute(List<String> subType) {
+		String subTypeName = String.join("", subType);
+		return BiometricAttributes.getAttributeBySubType(subTypeName);
+	}
 }
