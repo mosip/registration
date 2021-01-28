@@ -203,7 +203,7 @@ public class TemplateGenerator extends BaseService {
 					RegistrationConstants.TEMPLATE_RIGHT_MARK : RegistrationConstants.TEMPLATE_CROSS_MARK);
 			setBiometricImage(bio_data, RegistrationConstants.TEMPLATE_CAPTURED_LEFT_EYE,
 					isPrevTemplate ? null : RegistrationConstants.TEMPLATE_EYE_IMAGE_PATH,
-					isPrevTemplate ? getStreamImageBytes(biometricsDto, registration) : null);
+					isPrevTemplate ? getSegmentedImageBytes(biometricsDto, registration) : null);
 		}
 
 		result = capturedIris.stream()
@@ -214,7 +214,7 @@ public class TemplateGenerator extends BaseService {
 					RegistrationConstants.TEMPLATE_RIGHT_MARK : RegistrationConstants.TEMPLATE_CROSS_MARK);
 			setBiometricImage(bio_data, RegistrationConstants.TEMPLATE_CAPTURED_RIGHT_EYE,
 					isPrevTemplate ? null : RegistrationConstants.TEMPLATE_EYE_IMAGE_PATH,
-					isPrevTemplate ? getStreamImageBytes(biometricsDto, registration) : null);
+					isPrevTemplate ? getSegmentedImageBytes(biometricsDto, registration) : null);
 		}
 
 		List<BiometricsDto> resultList = capturedFingers.stream().filter(b -> b.getModalityName().equalsIgnoreCase("FINGERPRINT_SLAB_LEFT"))
@@ -569,5 +569,10 @@ public class TemplateGenerator extends BaseService {
 			LOGGER.error(LOG_TEMPLATE_GENERATOR, APPLICATION_NAME, APPLICATION_ID, throwable.getMessage());
 		}
 		return RegistrationConstants.EMPTY;
+	}
+	
+	private byte[] getSegmentedImageBytes(BiometricsDto biometricsDto, RegistrationDTO registration) {
+		return registration.streamImages.get(String.format("%s_%s_%s", biometricsDto.getSubType(),
+				biometricsDto.getBioAttribute(), biometricsDto.getNumOfRetries()));
 	}
 }
