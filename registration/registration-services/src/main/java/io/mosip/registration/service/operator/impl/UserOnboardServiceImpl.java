@@ -5,11 +5,9 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,32 +25,35 @@ import java.util.stream.IntStream;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
-import io.mosip.kernel.core.util.*;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import io.mosip.commons.packet.constants.Biometric;
+import io.mosip.kernel.biometrics.constant.BiometricFunction;
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.biosdk.provider.factory.BioAPIFactory;
+import io.mosip.kernel.core.bioapi.exception.BiometricException;
+import io.mosip.kernel.core.cbeffutil.entity.BIR;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleAnySubtypeType;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
+import io.mosip.kernel.core.crypto.spi.CryptoCoreSpec;
+import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.CryptoUtil;
+import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.cryptomanager.dto.CryptomanagerRequestDto;
 import io.mosip.kernel.cryptomanager.dto.CryptomanagerResponseDto;
 import io.mosip.kernel.cryptomanager.service.CryptomanagerService;
 import io.mosip.kernel.keygenerator.bouncycastle.util.KeyGeneratorUtils;
 import io.mosip.kernel.keymanagerservice.dto.KeyPairGenerateResponseDto;
 import io.mosip.kernel.keymanagerservice.dto.UploadCertificateRequestDto;
-import io.mosip.kernel.keymanagerservice.dto.UploadCertificateResponseDto;
-import io.mosip.kernel.keymanagerservice.entity.KeyPolicy;
 import io.mosip.kernel.keymanagerservice.exception.InvalidApplicationIdException;
 import io.mosip.kernel.keymanagerservice.exception.KeymanagerServiceException;
-import io.mosip.kernel.keymanagerservice.repository.KeyPolicyRepository;
 import io.mosip.kernel.keymanagerservice.service.KeymanagerService;
 import io.mosip.kernel.keymanagerservice.util.KeymanagerUtil;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.ResourceAccessException;
-
-import io.mosip.commons.packet.constants.Biometric;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleAnySubtypeType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
-import io.mosip.kernel.core.crypto.spi.CryptoCoreSpec;
-import io.mosip.kernel.core.exception.ExceptionUtils;
-import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
@@ -68,7 +69,6 @@ import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.operator.UserOnboardService;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
-import io.mosip.registration.util.publickey.PublicKeyGenerationUtil;
 
 /**
  * Implementation for {@link UserOnboardService}
@@ -95,7 +95,8 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 	@Autowired
 	private KeymanagerService keymanagerService;
 
-
+	@Autowired
+	private BioAPIFactory bioAPIFactory;
 
 	/**
 	 * logger for logging
@@ -116,7 +117,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 					RegistrationExceptionConstants.REG_BIOMETRIC_DTO_NULL.getErrorMessage());
 
 		ResponseDTO responseDTO = new ResponseDTO();
-		if (validateWithIDA(biometrics, responseDTO)) {
+		if (!validateWithIDA(biometrics, responseDTO)) {
 			responseDTO = save(biometrics);
 			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
 					RegistrationConstants.USER_ON_BOARDING_SUCCESS_MSG);
@@ -368,7 +369,19 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "Entering save method");
 
 		try {
-			onBoardingResponse = userOnBoardDao.insert(biometrics);
+			List<BIR> birList = new ArrayList<>();
+			for (BiometricsDto biometricsDto : biometrics) {
+				BIR bir = buildBir(biometricsDto);
+				LOGGER.debug(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "Adding bir");
+				birList.add(bir);
+			}
+
+			List<BIR> templates = bioAPIFactory
+					.getBioProvider(BiometricType.fromValue(birList.get(0).getBdbInfo().getType().get(0).value()),
+							BiometricFunction.EXTRACT)
+					.extractTemplate(birList, null);
+			
+			onBoardingResponse = userOnBoardDao.insertExtractedTemplates(templates);
 			if (onBoardingResponse.equalsIgnoreCase(RegistrationConstants.SUCCESS)) {
 				LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "operator details inserted");
 
@@ -381,7 +394,7 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 					LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "user onboarding sucessful");
 				}
 			}
-		} catch (RegBaseUncheckedException uncheckedException) {
+		} catch (RegBaseUncheckedException | BiometricException uncheckedException) {
 			LOGGER.error(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, uncheckedException.getMessage()
 					+ onBoardingResponse + ExceptionUtils.getStackTrace(uncheckedException));
 
