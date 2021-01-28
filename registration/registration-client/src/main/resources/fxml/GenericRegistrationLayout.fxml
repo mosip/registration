@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<GridPane fx:id="parentGridPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="837.0" prefWidth="932.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8" fx:controller="io.mosip.registration.controller.GenericController">
+<GridPane fx:id="parentGridPane" hgap="5.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="837.0" prefWidth="932.0" vgap="5.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.mosip.registration.controller.GenericController">
    <rowConstraints>
       <RowConstraints />
    </rowConstraints>
@@ -19,20 +19,26 @@
       <ColumnConstraints />
    </columnConstraints>
    <children>
-      <BorderPane fx:id="borderPane" prefHeight="855.0" prefWidth="932.0">
-         <top>
-            <GridPane BorderPane.alignment="CENTER">
+      <GridPane fx:id="layOutGridPane" prefHeight="899.0" prefWidth="932.0">
+        <columnConstraints>
+          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints maxHeight="413.0" minHeight="10.0" prefHeight="39.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="802.0" minHeight="10.0" prefHeight="793.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="802.0" minHeight="10.0" percentHeight="5.0" prefHeight="34.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+         <children>
+            <FlowPane fx:id="flowPane" prefHeight="745.0" prefWidth="932.0" GridPane.rowIndex="1" />
+            <GridPane fx:id="headerGridPane">
               <columnConstraints>
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
               </columnConstraints>
               <rowConstraints>
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
             </GridPane>
-         </top>
-         <bottom>
-            <GridPane BorderPane.alignment="CENTER">
+            <GridPane fx:id="footerGridPane" alignment="TOP_CENTER" GridPane.rowIndex="2">
               <columnConstraints>
                 <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
               </columnConstraints>
@@ -40,13 +46,10 @@
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                  <Button mnemonicParsing="false" text="CONTINUE" />
+                  <Button alignment="BOTTOM_RIGHT" mnemonicParsing="false" text="CONTINUE" />
                </children>
             </GridPane>
-         </bottom>
-         <center>
-            <FlowPane fx:id="flowPane" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
-         </center>
-      </BorderPane>
+         </children>
+      </GridPane>
    </children>
 </GridPane>
