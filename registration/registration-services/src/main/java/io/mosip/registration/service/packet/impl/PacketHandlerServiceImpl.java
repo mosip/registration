@@ -658,7 +658,8 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 	private String getPrintingNameFieldName(SchemaDto schema) {
 		Optional<UiSchemaDTO> result = schema.getSchema().stream()
-				.filter(field -> field.getSubType() != null && field.getSubType().equals("name")).findFirst();
+				.filter(field -> field.getSubType() != null &&
+						field.getSubType().equals(RegistrationConstants.UI_SCHEMA_SUBTYPE_FULL_NAME)).findFirst();
 
 		if (result.isPresent() && result.get() != null)
 			return result.get().getId();
