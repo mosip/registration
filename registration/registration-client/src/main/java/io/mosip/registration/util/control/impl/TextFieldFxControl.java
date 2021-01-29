@@ -51,7 +51,6 @@ public class TextFieldFxControl extends FxControl {
 	private BaseController baseController;
 
 //	@Autowired
-	private DemographicDetailController demographicDetailController;
 //	@Autowired
 	private ResourceLoader resourceLoader;
 //	@Autowired
@@ -63,7 +62,7 @@ public class TextFieldFxControl extends FxControl {
 
 		ApplicationContext applicationContext = Initialization.getApplicationContext();
 //		baseController = applicationContext.getBean(BaseController.class);
-		demographicDetailController = applicationContext.getBean(DemographicDetailController.class);
+		this.demographicDetailController = applicationContext.getBean(DemographicDetailController.class);
 
 //		resourceLoader = applicationContext.getBean(ResourceLoader.class);
 		validation = applicationContext.getBean(Validations.class);
@@ -233,16 +232,7 @@ public class TextFieldFxControl extends FxControl {
 		return textField;
 	}
 
-	private Label getLabel(String id, String titleText, String styleClass, boolean isVisible, double prefWidth) {
-		/** Field Title */
-		Label label = new Label();
-		label.setId(id);
-		label.setText(titleText);
-		label.getStyleClass().add(styleClass);
-		label.setVisible(isVisible);
-		label.setPrefWidth(prefWidth);
-		return label;
-	}
+	
 
 	private ImageView getKeyBoardImage() {
 		ImageView imageView = null;
@@ -253,24 +243,6 @@ public class TextFieldFxControl extends FxControl {
 		imageView.setFitWidth(22.00);
 
 		return imageView;
-	}
-
-	private String getMandatorySuffix(UiSchemaDTO schema) {
-		String mandatorySuffix = RegistrationConstants.EMPTY;
-		RegistrationDTO registrationDTO = demographicDetailController.getRegistrationDTOFromSession();
-		String categeory = registrationDTO.getRegistrationCategory();
-		switch (categeory) {
-		case RegistrationConstants.PACKET_TYPE_UPDATE:
-			if (registrationDTO.getUpdatableFields().contains(schema.getId())) {
-				mandatorySuffix = schema.isRequired() ? RegistrationConstants.ASTRIK : RegistrationConstants.EMPTY;
-			}
-			break;
-
-		case RegistrationConstants.PACKET_TYPE_NEW:
-			mandatorySuffix = schema.isRequired() ? RegistrationConstants.ASTRIK : RegistrationConstants.EMPTY;
-			break;
-		}
-		return mandatorySuffix;
 	}
 
 	@Override
@@ -346,7 +318,5 @@ public class TextFieldFxControl extends FxControl {
 		return (HBox) this.node;
 	}
 
-	private Node getField(String id) {
-		return node.lookup(RegistrationConstants.HASH + uiSchemaDTO.getId());
-	}
+	
 }
