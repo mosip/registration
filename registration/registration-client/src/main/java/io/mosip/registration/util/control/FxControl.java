@@ -7,9 +7,12 @@ import java.util.List;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.controller.reg.DemographicDetailController;
+import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 
 /**
@@ -33,6 +36,8 @@ public abstract class FxControl extends Node {
 
 	protected Pane parentPane;
 	public Node node;
+
+	protected DemographicDetailController demographicDetailController;
 
 	public void refreshFields() {
 
@@ -92,6 +97,39 @@ public abstract class FxControl extends Node {
 
 		node.setVisible(isVisible);
 
+	}
+
+	protected String getMandatorySuffix(UiSchemaDTO schema) {
+		String mandatorySuffix = RegistrationConstants.EMPTY;
+		RegistrationDTO registrationDTO = demographicDetailController.getRegistrationDTOFromSession();
+		String categeory = registrationDTO.getRegistrationCategory();
+		switch (categeory) {
+		case RegistrationConstants.PACKET_TYPE_UPDATE:
+			if (registrationDTO.getUpdatableFields().contains(schema.getId())) {
+				mandatorySuffix = schema.isRequired() ? RegistrationConstants.ASTRIK : RegistrationConstants.EMPTY;
+			}
+			break;
+
+		case RegistrationConstants.PACKET_TYPE_NEW:
+			mandatorySuffix = schema.isRequired() ? RegistrationConstants.ASTRIK : RegistrationConstants.EMPTY;
+			break;
+		}
+		return mandatorySuffix;
+	}
+
+	protected Label getLabel(String id, String titleText, String styleClass, boolean isVisible, double prefWidth) {
+		/** Field Title */
+		Label label = new Label();
+		label.setId(id);
+		label.setText(titleText);
+		label.getStyleClass().add(styleClass);
+		label.setVisible(isVisible);
+		label.setPrefWidth(prefWidth);
+		return label;
+	}
+
+	protected Node getField(String id) {
+		return node.lookup(RegistrationConstants.HASH + uiSchemaDTO.getId());
 	}
 
 	public abstract UiSchemaDTO getUiSchemaDTO();
