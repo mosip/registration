@@ -13,6 +13,7 @@ import io.mosip.registration.controller.reg.RegistrationController;
 import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.util.control.FxControl;
+import io.mosip.registration.util.control.impl.DropDownFxControl;
 import io.mosip.registration.util.control.impl.TextFieldFxControl;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -162,7 +163,7 @@ public class GenericController extends BaseController {
 		case CONTROLTYPE_DOCUMENTS:
 			break;
 		case CONTROLTYPE_DROPDOWN:
-			break;
+			return new DropDownFxControl().build(uiSchemaDTO);
 
 		}
 
