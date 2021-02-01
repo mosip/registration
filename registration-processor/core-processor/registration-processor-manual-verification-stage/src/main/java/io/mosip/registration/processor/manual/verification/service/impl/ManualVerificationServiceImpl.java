@@ -404,9 +404,9 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		String requestId = manualVerificationDTO.getRequestId();
 		String regId=basePacketRepository.getRegistrationIdbyRequestId(
 				manualVerificationDTO.getRequestId());
-		
+
 		String statusCode=null;
-		
+
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setInternalError(false);
 		messageDTO.setIsValid(false);
@@ -424,13 +424,13 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				regId, "ManualVerificationServiceImpl::updatePacketStatus()::entry");
-		
+
 		List<ManualVerificationEntity> entities=new ArrayList<>();
 		
 		 entities.addAll(basePacketRepository.getAllAssignedRecord(
 				 regId, ManualVerificationStatus.INQUEUE.name()));
 		
-		
+
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
 				.getRegistrationStatus(regId);
 		messageDTO.setReg_type(RegistrationType.valueOf(registrationStatusDto.getRegistrationType()));
@@ -448,16 +448,16 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 				for (int i = 0; i < entities.size(); i++) {
 					ObjectMapper objectMapper = new ObjectMapper();
 					byte[] responsetext = objectMapper.writeValueAsBytes(manualVerificationDTO);
-					  
+
 					ManualVerificationEntity manualVerificationEntity=entities.get(i);
 					manualVerificationEntity.setStatusCode(statusCode);
 					manualVerificationEntity.setReponseText(responsetext);
 					entities.set(i, manualVerificationEntity);
-					
+
 				}
-				
+
 			}
-			
+
 			registrationStatusDto
 					.setLatestTransactionTypeCode(RegistrationTransactionTypeCode.MANUAL_VERIFICATION.toString());
 			registrationStatusDto.setRegistrationStageName(stageName);
@@ -498,7 +498,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			for(ManualVerificationEntity manualVerificationEntity: entities) {
 			 maVerificationEntity.add( basePacketRepository.update(manualVerificationEntity));
 			}
-			
+
 			registrationStatusDto.setUpdatedBy(USER);
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					regId, description.getMessage());
@@ -706,7 +706,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 			List<String> modalities = getModalities(policy);
 			BiometricRecord biometricRecord = packetManagerService.getBiometrics(id, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, modalities, process);
 			byte[] content = cbeffutil.createXML(BIRConverter.convertSegmentsToBIRList(biometricRecord.getSegments()));
-			requestDto.setBiometrics(content != null ? new String(content) : null);
+			requestDto.setBiometrics(content != null ? CryptoUtil.encodeBase64(content) : null);
 		}
 
 
@@ -754,7 +754,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		if (policies != null && policies.size() > 0)
 			return policies;
 
-		ResponseWrapper<?> policyResponse = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(
+		io.mosip.kernel.core.http.ResponseWrapper<?> policyResponse = (io.mosip.kernel.core.http.ResponseWrapper<?>) registrationProcessorRestClientService.getApi(
 				ApiName.PMS, Lists.newArrayList(subscriberId, ManualVerificationConstants.POLICY_ID, policyId), "", "", ResponseWrapper.class);
 		if (policyResponse == null || (policyResponse.getErrors() != null && policyResponse.getErrors().size() >0)) {
 			throw new DataShareException(policyResponse == null ? "Policy Response response is null" : policyResponse.getErrors().get(0).getMessage());
@@ -838,8 +838,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		} catch (PacketManagerException | ApisResourceAccessException ex) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					ex.getErrorCode(), ex.getErrorText());
-			req.setReferenceURL(null);
-
+			throw ex;
 		}
 
 		List<ReferenceIds> referenceIds = new ArrayList<>();
