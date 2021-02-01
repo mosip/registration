@@ -114,9 +114,27 @@ public class TextFieldFxControl extends FxControl {
 	}
 
 	@Override
-	public void setData(Object data) {
+	public void setData() {
 
-		// TODO Set Data in registration DTO
+		RegistrationDTO registrationDTO = getRegistrationDTo();
+
+		if (this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE)) {
+
+			String primaryLang = null;
+			String primaryVal = null;
+			String localLanguage = null;
+			String localVal = null;
+			if (demographicDetailController.isLocalLanguageAvailable()
+					&& !demographicDetailController.isAppLangAndLocalLangSame()) {
+
+			}
+			registrationDTO.addDemographicField(uiSchemaDTO.getId(), primaryLang, primaryVal, localLanguage, localVal);
+
+		} else {
+			registrationDTO.addDemographicField(uiSchemaDTO.getId(),
+					((TextField) getField(uiSchemaDTO.getId())).getText());
+
+		}
 	}
 
 	@Override
@@ -133,8 +151,7 @@ public class TextFieldFxControl extends FxControl {
 		textField.addEventHandler(Event.ANY, event -> {
 			if (isValid(textField)) {
 
-				Object object = getData(node);
-				setData(object);
+				setData();
 
 				// handling other handlers
 				UiSchemaDTO uiSchemaDTO = validation.getValidationMap()
@@ -232,8 +249,6 @@ public class TextFieldFxControl extends FxControl {
 		return textField;
 	}
 
-	
-
 	private ImageView getKeyBoardImage() {
 		ImageView imageView = null;
 
@@ -246,32 +261,9 @@ public class TextFieldFxControl extends FxControl {
 	}
 
 	@Override
-	public Object getData(Node node) {
+	public Object getData() {
 
-		// TODO get value form registration DTIO
-
-		// TODO move logic to set data
-		if (this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE)) {
-
-			List<SimpleDto> simpleDtos = new LinkedList<>();
-
-			// TODO set Simple DTO
-			SimpleDto primaryLangSimpleDto = null;
-
-			simpleDtos.add(primaryLangSimpleDto);
-
-			if (demographicDetailController.isLocalLanguageAvailable()
-					&& !demographicDetailController.isAppLangAndLocalLangSame()) {
-				// TODO set Simple DTO
-				SimpleDto secondaryLangSimpleDto = null;
-
-				simpleDtos.add(secondaryLangSimpleDto);
-			}
-			return simpleDtos;
-		} else {
-			return ((TextField) node).getText();
-		}
-
+		return getRegistrationDTo().getDemographics().get(uiSchemaDTO.getId());
 	}
 
 	@Override
@@ -318,5 +310,4 @@ public class TextFieldFxControl extends FxControl {
 		return (HBox) this.node;
 	}
 
-	
 }

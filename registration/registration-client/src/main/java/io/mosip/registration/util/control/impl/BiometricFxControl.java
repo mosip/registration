@@ -21,13 +21,13 @@ public class BiometricFxControl extends FxControl {
 	}
 
 	@Override
-	public void setData(Object data) {
+	public void setData() {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public Object getData(Node node) {
+	public Object getData() {
 		// TODO Auto-generated method stub
 		return null;
 	}

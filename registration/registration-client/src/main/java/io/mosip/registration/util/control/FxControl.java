@@ -65,14 +65,14 @@ public abstract class FxControl extends Node {
 	 * 
 	 * @param data value
 	 */
-	public abstract void setData(Object data);
+	public abstract void setData();
 
 	/**
 	 * Get Value from fx element
 	 * 
 	 * @return Value
 	 */
-	public abstract Object getData(Node node);
+	public abstract Object getData();
 
 	/**
 	 * Check value is valid or not
@@ -130,6 +130,10 @@ public abstract class FxControl extends Node {
 
 	protected Node getField(String id) {
 		return node.lookup(RegistrationConstants.HASH + uiSchemaDTO.getId());
+	}
+
+	protected RegistrationDTO getRegistrationDTo() {
+		return demographicDetailController.getRegistrationDTOFromSession();
 	}
 
 	public abstract UiSchemaDTO getUiSchemaDTO();

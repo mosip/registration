@@ -33,6 +33,8 @@ public class DropDownFxControl extends FxControl {
 	private Validations validation;
 	private DemographicChangeActionHandler demographicChangeActionHandler;
 
+	private String languageType;
+
 	@Override
 	public FxControl build(UiSchemaDTO uiSchemaDTO) {
 
@@ -100,21 +102,20 @@ public class DropDownFxControl extends FxControl {
 	}
 
 	@Override
-	public void setData(Object data) {
+	public void setData() {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public Object getData(Node node) {
+	public Object getData() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public boolean isValid(Node node) {
-		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 	@Override
@@ -126,9 +127,10 @@ public class DropDownFxControl extends FxControl {
 	@Override
 	public void setListener(Node node) {
 
-		FXUtils.getInstance().populateLocalComboBox((Pane) getNode(), (ComboBox<?>) getField(uiSchemaDTO.getId()),
-				(ComboBox<?>) getField(uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE));
-
+		if (RegistrationConstants.LOCAL_LANGUAGE.equalsIgnoreCase(languageType)) {
+			FXUtils.getInstance().populateLocalComboBox((Pane) getNode(), (ComboBox<?>) getField(uiSchemaDTO.getId()),
+					(ComboBox<?>) getField(uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE));
+		}
 		node.addEventHandler(Event.ANY, event -> {
 			if (isValid(getField(uiSchemaDTO.getId()))) {
 
