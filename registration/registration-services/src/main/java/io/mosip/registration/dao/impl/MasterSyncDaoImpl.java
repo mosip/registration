@@ -230,7 +230,7 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 	@Override
 	public List<Gender> getGenderDtls(String langCode) {
 
-		return genderRepository.findByIsActiveTrueAndLangCode(langCode);
+		return genderRepository.findByIsActiveTrueAndLangCodeOrderByCodeAsc(langCode);
 	}
 
 	/*
@@ -266,7 +266,7 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 	 */
 	@Override
 	public List<IndividualType> getIndividulType(String langCode) {
-		return individualTypeRepository.findByIndividualTypeIdLangCodeAndIsActiveTrue(
+		return individualTypeRepository.findByIndividualTypeIdLangCodeAndIsActiveTrueOrderByIndividualTypeIdCodeDesc(
 				langCode);
 	}
 	
