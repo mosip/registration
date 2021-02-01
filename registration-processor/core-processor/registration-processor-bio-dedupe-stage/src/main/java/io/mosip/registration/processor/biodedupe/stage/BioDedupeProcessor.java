@@ -116,7 +116,7 @@ public class BioDedupeProcessor {
 
 	@Autowired
 	private Environment env;
-	
+
 	@Autowired
 	private BioDedupeStage biodedupestage;
 
@@ -422,10 +422,10 @@ public class BioDedupeProcessor {
 			msgDto.setRid(registrationStatusDto.getRegistrationId());
 			msgDto.setIsValid(Boolean.FALSE);
 			msgDto.setMessageBusAddress(MessageBusAddress.BIO_DEDUPE_BUS_OUT);
-			
+
 			biodedupestage.sendMessage(msgDto);
 			//
-			
+
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationStatusDto.getRegistrationId(), BioDedupeConstants.ABIS_RESPONSE_NOT_NULL);
 

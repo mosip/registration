@@ -122,14 +122,14 @@
 		<kernel.templatemanager.velocity.version>1.2.0-SNAPSHOT</kernel.templatemanager.velocity.version>
 		<kernel.idvalidator.uin.version>1.2.0-SNAPSHOT</kernel.idvalidator.uin.version>
 		<kernel.idvalidator.rid.version>1.2.0-SNAPSHOT</kernel.idvalidator.rid.version>
-		<kernel.clamav.version>1.1.3</kernel.clamav.version>
-		<kernel.cbeffutil.version>1.1.0</kernel.cbeffutil.version>
-        <kernel.bioapi.provider.version>1.0.8</kernel.bioapi.provider.version>
+		<kernel.clamav.version>1.2.0-SNAPSHOT</kernel.clamav.version>
+		<kernel.cbeffutil.version>1.2.0-SNAPSHOT</kernel.cbeffutil.version>
+        <kernel.bioapi.provider.version>1.2.0-SNAPSHOT</kernel.bioapi.provider.version>
         <kernel.auth.adapter.version>1.2.0-SNAPSHOT</kernel.auth.adapter.version>
-        <kernel.pdfgenerator.itext.version>1.0.6</kernel.pdfgenerator.itext.version>
-		<kernel.qrcodegenerator.zxing.version>1.0.6</kernel.qrcodegenerator.zxing.version>
+        <kernel.pdfgenerator.itext.version>1.2.0-SNAPSHOT</kernel.pdfgenerator.itext.version>
+		<kernel.qrcodegenerator.zxing.version>1.2.0-SNAPSHOT</kernel.qrcodegenerator.zxing.version>
 		<kernel.logger.logback.version>1.2.0-SNAPSHOT</kernel.logger.logback.version>
-		<kernel.idvalidator.vid.version>1.0.6</kernel.idvalidator.vid.version>
+		<kernel.idvalidator.vid.version>1.2.0-SNAPSHOT</kernel.idvalidator.vid.version>
 		<object.store.khazana.version>1.2.0-SNAPSHOT</object.store.khazana.version>
 		<kernel.biometrics.api.version>1.2.0-SNAPSHOT</kernel.biometrics.api.version>
 		<kernel-keymanager-service.version>1.2.0-SNAPSHOT</kernel-keymanager-service.version>

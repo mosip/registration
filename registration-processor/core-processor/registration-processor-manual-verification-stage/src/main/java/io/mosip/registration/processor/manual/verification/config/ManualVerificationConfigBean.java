@@ -16,7 +16,7 @@ public class ManualVerificationConfigBean {
 	@Bean ManualVerificationService getManualVerificationService() {
 		return new ManualVerificationServiceImpl();
 	}
-	
+
 	@Bean
 	public ManualVerificationStage getManualVerificationStage() {
 		return new ManualVerificationStage();

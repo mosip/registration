@@ -108,7 +108,7 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 */
 	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.id.regId=:regId and  mve.statusCode=:statusCode")
 	public List<E> getAllAssignedRecord(@Param("regId") String regId, @Param("statusCode") String statusCode);
-  
+
 	/**
 	 * Gets the assigned applicant details.
 	 *
@@ -140,26 +140,26 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	 * @param requestId
 	 *            the requestId
 	 *  @param matchedRefId
-	 *            the Matched reference Id           
+	 *            the Matched reference Id
 	 * @return the ManualVerificationEntity record
 	 */
 	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.requestId=:requestId  and mve.id.matchedRefId=:matchedRefId")
 	public E getManualVerificationEntitty(@Param("requestId") String requestId,@Param("matchedRefId") String matchedRefId);
-	
+
 	/**
 	 * Gets the Manual verification entity based on request id and matchedreference id
 	 *
 	 * @param requestId
 	 *            the requestId
-    
+
 	 * @return the ManualVerificationEntity record
 	 */
 	@Query("SELECT mve FROM ManualVerificationEntity mve where mve.requestId=:requestId")
 	public E getManualVerificationEntityForRID(@Param("requestId") String requestId);
-	
 
-	
-	
+
+
+
 	/**
 	 * Update is active if duplicate found.
 	 *
@@ -441,4 +441,7 @@ public interface BasePacketRepository<E extends BasePacketEntity<?>, T> extends 
 	
 	@Query("SELECT latestRegId FROM RegLostUinDetEntity lostUin WHERE lostUin.id.regId =:regId")
 	public String getLostUinMatchedRegId(@Param("regId") String regId);
+
+	@Query(value ="SELECT m.reg_id FROM reg_manual_verification m WHERE m.request_id =:requestId",nativeQuery=true)
+	public String getRegistrationIdbyRequestId(String requestId);
 }

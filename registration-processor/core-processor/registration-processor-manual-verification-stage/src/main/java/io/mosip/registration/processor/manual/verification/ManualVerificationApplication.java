@@ -20,7 +20,7 @@ public class ManualVerificationApplication {
 	 * @param args the command line arguments
 	 */
 	public static void main(String[] args) {
-		
+
 		AnnotationConfigApplicationContext configApplicationContext = new AnnotationConfigApplicationContext();
 		configApplicationContext.scan("io.mosip.registration.processor.core.config",
 				"io.mosip.registration.processor.manual.verification.config",
