@@ -9,6 +9,7 @@ import javax.annotation.PostConstruct;
 import javax.crypto.SecretKey;
 
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.SourceProcessFilter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -48,6 +49,12 @@ public class PacketStorageBeanConfig {
 	}
 
 	@Bean
+	@ConfigurationProperties(prefix = "packetmanager.provider")
+	public Map<String, String> providerConfiguration() {
+		return new HashMap<>();
+	}
+
+	@Bean
 	@ConfigurationProperties(prefix = "provider.packetwriter")
 	public Map<String, String> writerConfiguration() {
 		return new HashMap<>();
@@ -56,6 +63,7 @@ public class PacketStorageBeanConfig {
 	@PostConstruct
 	public void initialize() {
 		Utilities.initialize(readerConfiguration(), writerConfiguration());
+		SourceProcessFilter.initialize(providerConfiguration());
 	}
 
 	@Bean
@@ -102,5 +110,10 @@ public class PacketStorageBeanConfig {
 	@Bean
 	public IdRepoService getIdRepoService() {
 		return new IdRepoServiceImpl();
+	}
+
+	@Bean
+	public SourceProcessFilter sourceProcessFilter() {
+		return new SourceProcessFilter();
 	}
 }
