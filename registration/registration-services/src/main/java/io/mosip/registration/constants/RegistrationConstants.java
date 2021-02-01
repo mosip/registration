@@ -1211,7 +1211,7 @@ public class RegistrationConstants {
 	// POLICY SYNC
 	public static final String REG_APP_ID = "REGISTRATION";
 	public static final String KERNEL_APP_ID = "KERNEL";
-	public static final String KERNEL_REF_ID = "SIGNATUREKEY";
+	//public static final String KERNEL_REF_ID = "SIGNATUREKEY";
 	public static final String POLICY_SYNC_SUCCESS_CODE = "REG-MDS‌-001 ";
 	public static final String POLICY_SYNC_SUCCESS_MESSAGE = "SYNC_SUCCESS";
 	public static final String POLICY_SYNC_ERROR_CODE = "REG-MDS‌-003 ";
@@ -1828,4 +1828,6 @@ public class RegistrationConstants {
 	public static String RIGHT_TO_LEFT_ORIENTATION_LANGUAGES = "mosip.language.righttoleft.orientation";
 
 	public static String CONFIGURATION = "CONFIGURATION";
+
+	public static String ONBOARD_CERT_THUMBPRINT = "thumbprint";
 }
