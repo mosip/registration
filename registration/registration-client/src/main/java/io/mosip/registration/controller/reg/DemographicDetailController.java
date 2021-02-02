@@ -8,11 +8,16 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import io.mosip.registration.util.common.DemographicChangeActionHandler;
+import javafx.beans.InvalidationListener;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableBooleanValue;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.geometry.NodeOrientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.layout.*;
 import javafx.scene.text.TextAlignment;
 import org.mvel2.MVEL;
 import org.mvel2.integration.VariableResolverFactory;
@@ -63,13 +68,6 @@ import javafx.scene.Parent;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.RowConstraints;
-import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 
 /**
@@ -287,10 +285,11 @@ public class DemographicDetailController extends BaseController {
 		groupGridPane.setId(gridPaneId);
 
 		addGroupContent(subList, groupGridPane);
+		parentFlowPane.getChildren().add(groupGridPane);
 
-		parentFlow.add(groupGridPane);
-		position++;
-		positionTracker.put(groupGridPane.getId(), position);
+		//parentFlow.add(groupGridPane);
+		//position++;
+		//positionTracker.put(groupGridPane.getId(), position);
 	}
 
 	private void fillOrderOfLocation() {
@@ -438,7 +437,8 @@ public class DemographicDetailController extends BaseController {
 		}
 
 		gridPane.add(content, 1, 2);
-
+		gridPane.visibleProperty().bind(content.visibleProperty());
+		gridPane.managedProperty().bind(content.visibleProperty());
 		return gridPane;
 	}
 
@@ -454,10 +454,9 @@ public class DemographicDetailController extends BaseController {
 		vBoxParent.getChildren().addAll(label, textField);
 
 		boolean localLanguage = languageType.equals(RegistrationConstants.LOCAL_LANGUAGE);
-		textField.setPromptText(localLanguage ? localLabelBundle.getString(type)
-				: applicationLabelBundle.getString(type) + mandatorySuffix);
 		label.setText(localLanguage ? localLabelBundle.getString(type)
 				: applicationLabelBundle.getString(type) + mandatorySuffix);
+		textField.setPromptText(label.getText());
 
 		textField.textProperty().addListener((ob, ov, nv) -> {
 			fxUtils.showLabel(parentFlowPane, textField);
@@ -549,21 +548,21 @@ public class DemographicDetailController extends BaseController {
 		field.setPrefWidth(vbox.getPrefWidth());
 		validationMessage.setPrefWidth(vbox.getPrefWidth());
 		vbox.setSpacing(5);
+
 		vbox.getChildren().add(label);
 		vbox.getChildren().add(field);
-
-		HBox hB = new HBox();
-		hB.setSpacing(20);
-
 		vbox.getChildren().add(validationMessage);
 		listOfTextField.put(field.getId(), field);
 		setFieldChangeListener(field);
 
+		HBox hB = new HBox();
+		hB.setSpacing(20);
+
 		String mandatorySuffix = getMandatorySuffix(schema);
 		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
-			field.setPromptText(schema.getLabel().get(RegistrationConstants.SECONDARY) + mandatorySuffix);
-			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.SECONDARY));
 			label.setText(schema.getLabel().get(RegistrationConstants.SECONDARY) + mandatorySuffix);
+			field.setPromptText(label.getText());
+			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.SECONDARY));
 
 			if (!schema.getType().equals(RegistrationConstants.SIMPLE_TYPE)) {
 				field.setDisable(true);
@@ -575,6 +574,8 @@ public class DemographicDetailController extends BaseController {
 					imageView.setId(fieldName);
 					imageView.setFitHeight(20.00);
 					imageView.setFitWidth(22.00);
+					imageView.visibleProperty().bind(field.visibleProperty());
+					imageView.managedProperty().bind(field.visibleProperty());
 					imageView.setOnMouseClicked((event) -> {
 						setFocusonLocalField(event);
 					});
@@ -591,9 +592,9 @@ public class DemographicDetailController extends BaseController {
 				hB.getChildren().add(imageView);
 			}
 		} else {
-			field.setPromptText(schema.getLabel().get(RegistrationConstants.PRIMARY) + mandatorySuffix);
-			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.PRIMARY));
 			label.setText(schema.getLabel().get(RegistrationConstants.PRIMARY) + mandatorySuffix);
+			field.setPromptText(label.getText());
+			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.PRIMARY));
 		}
 
 		hB.getChildren().add(validationMessage);
@@ -601,6 +602,15 @@ public class DemographicDetailController extends BaseController {
 		vbox.getChildren().add(hB);
 		changeNodeOrientation(vbox, languageType);
 		fxUtils.onTypeFocusUnfocusListener(parentFlowPane, field);
+
+		field.managedProperty().bind(field.visibleProperty());
+		validationMessage.visibleProperty().bind(field.visibleProperty());
+		validationMessage.managedProperty().bind(field.visibleProperty());
+		hB.visibleProperty().bind(field.visibleProperty());
+		hB.managedProperty().bind(field.visibleProperty());
+		vbox.visibleProperty().bind(field.visibleProperty());
+		vbox.managedProperty().bind(field.visibleProperty());
+
 		return vbox;
 	}
 
@@ -685,6 +695,13 @@ public class DemographicDetailController extends BaseController {
 		fxUtils.populateLocalComboBox(parentFlowPane, listOfComboBoxWithObject.get(fieldName), field);
 		setFieldChangeListener(field);
 		changeNodeOrientation(vbox, languageType);
+
+		field.managedProperty().bind(field.visibleProperty());
+		validationMessage.visibleProperty().bind(field.visibleProperty());
+		validationMessage.managedProperty().bind(field.visibleProperty());
+		vbox.visibleProperty().bind(field.visibleProperty());
+		vbox.managedProperty().bind(field.visibleProperty());
+
 		return vbox;
 	}
 
@@ -729,10 +746,12 @@ public class DemographicDetailController extends BaseController {
 			hBox.setPadding(new Insets(10, 10, 10, 10));
 			localButton.setPrefWidth(vbox.getPrefWidth());
 			localButton.getStyleClass().addAll("residence", "button");
+			setFieldChangeListener(localButton);
 			hBox.getChildren().add(localButton);
 		});
 		vbox.getChildren().addAll(hBox, validationMessage);
 		changeNodeOrientation(vbox, languageType);
+
 		return vbox;
 	}
 
@@ -1461,7 +1480,6 @@ public class DemographicDetailController extends BaseController {
 		}
 	}
 
-
 	private void setFieldChangeListener(Node node) {
 		node.addEventHandler(Event.ANY, event -> {
 			if (validateFieldValue(node)) {
@@ -1526,46 +1544,67 @@ public class DemographicDetailController extends BaseController {
 		Map<String, Map<String, Object>> context = new HashMap();
 		context.put("identity", getRegistrationDTOFromSession() == null ?  new HashMap<>():
 				getRegistrationDTOFromSession().getMVELDataContext());
-		for (Entry<String, List<UiSchemaDTO>> group : templateGroup.entrySet()) {
-			for (UiSchemaDTO uiSchemaDTO : group.getValue()) {
-				RequiredOnExpr visibilityExpr = uiSchemaDTO.getVisible();
-				if (uiSchemaDTO.getVisible() != null && visibilityExpr.getEngine() != null
-						&& !visibilityExpr.getEngine().isEmpty()) {
-					if (visibilityExpr.getEngine().equalsIgnoreCase(RegistrationConstants.MVEL_TYPE)) {
-						VariableResolverFactory resolverFactory = new MapVariableResolverFactory(context);
-						Object required = MVEL.eval(visibilityExpr.getExpr(), resolverFactory);
-						updateFields(Arrays.asList(uiSchemaDTO), required != null ? (boolean) required : false);
-					}
+
+		validation.getValidationMap().values().stream().filter(f -> isDemographicField(f)).forEach(field -> {
+			try {
+				if (field.getVisible() != null && RegistrationConstants.MVEL_TYPE.equalsIgnoreCase(field.getVisible().getEngine())) {
+					VariableResolverFactory resolverFactory = new MapVariableResolverFactory(context);
+					Object required = MVEL.eval(field.getVisible().getExpr(), resolverFactory);
+					updateFields(Arrays.asList(field), required != null ? (boolean) required : false);
 				}
+			} catch (Throwable t) {
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						ExceptionUtils.getStackTrace(t));
 			}
-		}
+		});
 	}
 
 	private void updateFields(List<UiSchemaDTO> fields, boolean isVisible) {
-		//LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID, "Updating fields");
 		for (UiSchemaDTO field : fields) {
-			/*LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-					"Updating visibility for field : " + field.getId() + " as visibility : " + isVisible);*/
 			Node node = getFxElement(field.getId());
-			if (node != null) {
-				if(!isVisible) { clearFieldValue(node); }
+			Node localLangNode = getFxElement(field.getId() + RegistrationConstants.LOCAL_LANGUAGE);
+			Node labelNode = getFxElement(field.getId()+RegistrationConstants.LABEL);
+			Node localLabelNode = getFxElement(field.getId()+ RegistrationConstants.LOCAL_LANGUAGE+RegistrationConstants.LABEL);
+
+			if(node != null) {
+				if(!isVisible) {
+					clearFieldValue(node);
+					if(labelNode != null) {
+						labelNode.setVisible(isVisible);
+						labelNode.setManaged(isVisible);
+					}
+				}
+				else {
+					if(labelNode != null) {
+						labelNode.setVisible(isVisible);
+						labelNode.setManaged(isVisible);
+					}
+				}
+
 				node.setVisible(isVisible);
-				node.getParent().getParent().getParent().setVisible(isVisible);
-				node.getParent().getParent().getParent().setManaged(isVisible);
 			}
 
-			Node localLangNode = getFxElement(field.getId() + RegistrationConstants.LOCAL_LANGUAGE);
-			if (localLangNode != null) {
-				if(!isVisible) { clearFieldValue(localLangNode); }
+			if(localLangNode != null) {
+				if(!isVisible) {
+					clearFieldValue(localLangNode);
+					if(localLabelNode != null) {
+						localLabelNode.setVisible(isVisible);
+						localLabelNode.setManaged(isVisible);
+					}
+				}
+				else {
+					if(localLabelNode != null) {
+						localLabelNode.setVisible(isVisible);
+						localLabelNode.setManaged(isVisible);
+					}
+				}
 				localLangNode.setVisible(isVisible);
-				localLangNode.getParent().getParent().getParent().setVisible(isVisible);
-				localLangNode.getParent().getParent().getParent().setManaged(isVisible);
 			}
 		}
 	}
 
-
 	private void clearFieldValue(Node node) {
+		if(node == null) { return; }
 		node.setDisable(false);
 		getRegistrationDTOFromSession().removeDemographicField(node.getId());
 
