@@ -152,10 +152,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 				"Validating credentials using database >>>> " + authenticationValidatorDTO.getUserId());
 		try {
 			if(RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
-				LoginUserDTO loginUserDTO = new LoginUserDTO();
-				loginUserDTO.setUserId(authenticationValidatorDTO.getUserId());
-				loginUserDTO.setPassword(authenticationValidatorDTO.getPassword());
-				authTokenUtilService.getAuthTokenAndRefreshToken(LoginMode.PASSWORD, loginUserDTO);
+				authTokenUtilService.fetchAuthToken("System");
 			}
 
 			UserDTO userDTO = loginService.getUserDetail(authenticationValidatorDTO.getUserId());

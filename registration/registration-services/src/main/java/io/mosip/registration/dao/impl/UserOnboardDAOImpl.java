@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import io.mosip.registration.entity.*;
+import io.mosip.registration.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -28,18 +30,10 @@ import io.mosip.registration.dao.UserOnboardDAO;
 import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.dto.biometric.FingerprintDetailsDTO;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
-import io.mosip.registration.entity.CenterMachine;
-import io.mosip.registration.entity.MachineMaster;
-import io.mosip.registration.entity.UserBiometric;
-import io.mosip.registration.entity.UserMachineMapping;
 import io.mosip.registration.entity.id.UserBiometricId;
 import io.mosip.registration.entity.id.UserMachineMappingID;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
-import io.mosip.registration.repositories.CenterMachineRepository;
-import io.mosip.registration.repositories.MachineMasterRepository;
-import io.mosip.registration.repositories.UserBiometricRepository;
-import io.mosip.registration.repositories.UserMachineMappingRepository;
 
 /**
  * The implementation class of {@link UserOnboardDAO}
@@ -72,6 +66,9 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 	 */
 	@Autowired
 	private UserMachineMappingRepository machineMappingRepository;
+
+	@Autowired
+	private UserDetailRepository userDetailRepository;
 
 	/**
 	 * logger for logging
@@ -329,23 +326,19 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 				bioMetrics.setIsActive(true);
 				bioMetricsList.add(bioMetrics);
 			});
-			
-			userBiometricRepository.deleteByUserBiometricIdUsrId(SessionContext.userContext().getUserId());
+
+			clearUserBiometrics(SessionContext.userContext().getUserId());
 			userBiometricRepository.saveAll(bioMetricsList);
+
 			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
 					"Biometric information insertion successful");
-	
-			response = RegistrationConstants.SUCCESS;
+			return RegistrationConstants.SUCCESS;
+
 		} catch (RuntimeException runtimeException) {
-	
-			LOGGER.error(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
-					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
+			LOGGER.error(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(runtimeException));
 			response = RegistrationConstants.USER_ON_BOARDING_ERROR_RESPONSE;
-			throw new RegBaseUncheckedException(RegistrationConstants.USER_ON_BOARDING_EXCEPTION + response,
-					runtimeException.getMessage());
 		}
-		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "Leaving insert method");
-		return response;
+		throw new RegBaseUncheckedException(RegistrationConstants.USER_ON_BOARDING_EXCEPTION, response);
 	}
 	
 	/**
@@ -385,8 +378,8 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 				bioMetrics.setIsActive(true);
 				bioMetricsList.add(bioMetrics);
 			});
-			
-			userBiometricRepository.deleteByUserBiometricIdUsrId(SessionContext.userContext().getUserId());
+
+			clearUserBiometrics(SessionContext.userContext().getUserId());
 			userBiometricRepository.saveAll(bioMetricsList);
 			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
 					"Biometric information insertion successful");
@@ -407,5 +400,21 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 	private String getBioAttribute(List<String> subType) {
 		String subTypeName = String.join("", subType);
 		return BiometricAttributes.getAttributeBySubType(subTypeName);
+	}
+
+	private void clearUserBiometrics(String userId) {
+		List<UserBiometric> existingBiometrics = userBiometricRepository.findByUserBiometricIdUsrId(userId);
+		if(existingBiometrics != null) {
+			for(UserBiometric userBiometric : existingBiometrics) {
+				userBiometric.setUserDetail(null);
+			}
+			userBiometricRepository.saveAll(existingBiometrics);
+		}
+		List<UserDetail> userDetails = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
+		if(userDetails != null && !userDetails.isEmpty()) {
+			userDetails.get(0).getUserBiometric().clear();
+			userDetailRepository.save(userDetails.get(0));
+		}
+		userBiometricRepository.deleteByUserBiometricIdUsrId(userId);
 	}
 }

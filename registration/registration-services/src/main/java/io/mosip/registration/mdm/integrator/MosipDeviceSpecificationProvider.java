@@ -23,8 +23,8 @@ import io.mosip.registration.mdm.dto.MdmBioDevice;
  * on url
  * </p>
  * <p>
- * Upon findin the devices , these devices will be regiestered in the device
- * registery and from there we can find any particular device
+ * Upon finding the devices , these devices will be registered in the device
+ * registry and from there we can find any particular device
  * </p>
  * <p>
  * This class will be used to capture the biometric details
@@ -46,7 +46,7 @@ public interface MosipDeviceSpecificationProvider {
 	 * @param bioDevice
 	 *            Device Information
 	 * 
-	 * @param registrationStreamRequestDto
+	 * @param modality
 	 *            Stream request information to be sent
 	 * @return Input Stream from the MDS
 	 * @throws IOException
@@ -55,9 +55,9 @@ public interface MosipDeviceSpecificationProvider {
 	public InputStream stream(MdmBioDevice bioDevice, String modality) throws RegBaseCheckedException;
 
 	/**
-	 * @param BioDevice
+	 * @param bioDevice
 	 *            Device Information
-	 * @param registrationCaptureRequestDto
+	 * @param mdmRequestDto
 	 *            capture request information to be sent
 	 * @return Capture response from the MDS
 	 * @throws IOException
