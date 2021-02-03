@@ -3,7 +3,7 @@ package io.mosip.registration.processor.manual.verification.response.dto;
 import lombok.Data;
 
 @Data
-public class Candidates {
+public class Candidate {
 	
 	private String referenceId;
 	

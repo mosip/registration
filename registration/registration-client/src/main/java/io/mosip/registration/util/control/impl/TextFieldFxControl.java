@@ -51,7 +51,6 @@ public class TextFieldFxControl extends FxControl {
 	private BaseController baseController;
 
 //	@Autowired
-	private DemographicDetailController demographicDetailController;
 //	@Autowired
 	private ResourceLoader resourceLoader;
 //	@Autowired
@@ -63,7 +62,7 @@ public class TextFieldFxControl extends FxControl {
 
 		ApplicationContext applicationContext = Initialization.getApplicationContext();
 //		baseController = applicationContext.getBean(BaseController.class);
-		demographicDetailController = applicationContext.getBean(DemographicDetailController.class);
+		this.demographicDetailController = applicationContext.getBean(DemographicDetailController.class);
 
 //		resourceLoader = applicationContext.getBean(ResourceLoader.class);
 		validation = applicationContext.getBean(Validations.class);
@@ -115,9 +114,27 @@ public class TextFieldFxControl extends FxControl {
 	}
 
 	@Override
-	public void setData(Object data) {
+	public void setData() {
 
-		// TODO Set Data in registration DTO
+		RegistrationDTO registrationDTO = getRegistrationDTo();
+
+		if (this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE)) {
+
+			String primaryLang = null;
+			String primaryVal = null;
+			String localLanguage = null;
+			String localVal = null;
+			if (demographicDetailController.isLocalLanguageAvailable()
+					&& !demographicDetailController.isAppLangAndLocalLangSame()) {
+
+			}
+			registrationDTO.addDemographicField(uiSchemaDTO.getId(), primaryLang, primaryVal, localLanguage, localVal);
+
+		} else {
+			registrationDTO.addDemographicField(uiSchemaDTO.getId(),
+					((TextField) getField(uiSchemaDTO.getId())).getText());
+
+		}
 	}
 
 	@Override
@@ -134,8 +151,7 @@ public class TextFieldFxControl extends FxControl {
 		textField.addEventHandler(Event.ANY, event -> {
 			if (isValid(textField)) {
 
-				Object object = getData(node);
-				setData(object);
+				setData();
 
 				// handling other handlers
 				UiSchemaDTO uiSchemaDTO = validation.getValidationMap()
@@ -173,7 +189,7 @@ public class TextFieldFxControl extends FxControl {
 
 		/** Title label */
 		Label fieldTitle = getLabel(fieldName + languageType + RegistrationConstants.LABEL, titleText,
-				RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, false, prefWidth);
+				RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, prefWidth);
 		simpleTypeVBox.getChildren().add(fieldTitle);
 
 		/** Text Field */
@@ -233,17 +249,6 @@ public class TextFieldFxControl extends FxControl {
 		return textField;
 	}
 
-	private Label getLabel(String id, String titleText, String styleClass, boolean isVisible, double prefWidth) {
-		/** Field Title */
-		Label label = new Label();
-		label.setId(id);
-		label.setText(titleText);
-		label.getStyleClass().add(styleClass);
-		label.setVisible(isVisible);
-		label.setPrefWidth(prefWidth);
-		return label;
-	}
-
 	private ImageView getKeyBoardImage() {
 		ImageView imageView = null;
 
@@ -255,51 +260,10 @@ public class TextFieldFxControl extends FxControl {
 		return imageView;
 	}
 
-	private String getMandatorySuffix(UiSchemaDTO schema) {
-		String mandatorySuffix = RegistrationConstants.EMPTY;
-		RegistrationDTO registrationDTO = demographicDetailController.getRegistrationDTOFromSession();
-		String categeory = registrationDTO.getRegistrationCategory();
-		switch (categeory) {
-		case RegistrationConstants.PACKET_TYPE_UPDATE:
-			if (registrationDTO.getUpdatableFields().contains(schema.getId())) {
-				mandatorySuffix = schema.isRequired() ? RegistrationConstants.ASTRIK : RegistrationConstants.EMPTY;
-			}
-			break;
-
-		case RegistrationConstants.PACKET_TYPE_NEW:
-			mandatorySuffix = schema.isRequired() ? RegistrationConstants.ASTRIK : RegistrationConstants.EMPTY;
-			break;
-		}
-		return mandatorySuffix;
-	}
-
 	@Override
-	public Object getData(Node node) {
+	public Object getData() {
 
-		// TODO get value form registration DTIO
-
-		// TODO move logic to set data
-		if (this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE)) {
-
-			List<SimpleDto> simpleDtos = new LinkedList<>();
-
-			// TODO set Simple DTO
-			SimpleDto primaryLangSimpleDto = null;
-
-			simpleDtos.add(primaryLangSimpleDto);
-
-			if (demographicDetailController.isLocalLanguageAvailable()
-					&& !demographicDetailController.isAppLangAndLocalLangSame()) {
-				// TODO set Simple DTO
-				SimpleDto secondaryLangSimpleDto = null;
-
-				simpleDtos.add(secondaryLangSimpleDto);
-			}
-			return simpleDtos;
-		} else {
-			return ((TextField) node).getText();
-		}
-
+		return getRegistrationDTo().getDemographics().get(uiSchemaDTO.getId());
 	}
 
 	@Override
@@ -346,7 +310,4 @@ public class TextFieldFxControl extends FxControl {
 		return (HBox) this.node;
 	}
 
-	private Node getField(String id) {
-		return node.lookup(RegistrationConstants.HASH + uiSchemaDTO.getId());
-	}
 }

@@ -13,11 +13,15 @@ import io.mosip.registration.controller.reg.RegistrationController;
 import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.util.control.FxControl;
+import io.mosip.registration.util.control.impl.DocumentFxControl;
+import io.mosip.registration.util.control.impl.DropDownFxControl;
 import io.mosip.registration.util.control.impl.TextFieldFxControl;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 
@@ -46,7 +50,13 @@ public class GenericController extends BaseController {
 	private FlowPane flowPane;
 
 	@FXML
-	private BorderPane borderPane;
+	private GridPane layOutGridPane;
+
+	@FXML
+	private GridPane headerGridPane;
+
+	@FXML
+	private GridPane footerGridPane;
 
 	@Autowired
 	private Validations validation;
@@ -85,13 +95,19 @@ public class GenericController extends BaseController {
 
 		flowPane.setVgap(10);
 		flowPane.setHgap(10);
+
+		ObservableList<Node> flowPaneNodes = flowPane.getChildren();
 		int count = 0;
 		if (screens != null && !screens.isEmpty()) {
 			for (Entry<String, List<String>> screenEntry : screens.entrySet()) {
 
 				GridPane screenGridPane = new GridPane();
 
-				flowPane.getChildren().add(screenGridPane);
+				screenGridPane.getStyleClass().add("-fx-background-color: blue; -fx-grid-lines-visible: true");
+
+				flowPane.prefWidthProperty().bind(layOutGridPane.widthProperty());
+
+				flowPaneNodes.add(screenGridPane);
 				String screenName = screenEntry.getKey();
 
 				List<String> fields = screenEntry.getValue();
@@ -106,7 +122,21 @@ public class GenericController extends BaseController {
 
 							FxControl fieldNode = (FxControl) buildFxElement(uiSchemaDTO);
 
-							screenGridPane.add(fieldNode.getNode(), 0, count++);
+							Node node = fieldNode.getNode();
+
+							GridPane gridPane = new GridPane();
+
+							ObservableList<ColumnConstraints> columnConstraints = gridPane.getColumnConstraints();
+							ColumnConstraints columnConstraint1 = new ColumnConstraints();
+							columnConstraint1.setPercentWidth(100);
+							ColumnConstraints columnConstraint2 = new ColumnConstraints();
+							columnConstraint2.setPercentWidth(900);
+							ColumnConstraints columnConstraint3 = new ColumnConstraints();
+							columnConstraint3.setPercentWidth(10);
+							columnConstraints.addAll(columnConstraint1, columnConstraint2, columnConstraint3);
+							gridPane.add(node, 1, 2);
+
+							screenGridPane.add(gridPane, 0, count++);
 						}
 					}
 				}
@@ -132,9 +162,9 @@ public class GenericController extends BaseController {
 		case CONTROLTYPE_DOB_AGE:
 			break;
 		case CONTROLTYPE_DOCUMENTS:
-			break;
+			return new DocumentFxControl().build(uiSchemaDTO);
 		case CONTROLTYPE_DROPDOWN:
-			break;
+			return new DropDownFxControl().build(uiSchemaDTO);
 
 		}
 
