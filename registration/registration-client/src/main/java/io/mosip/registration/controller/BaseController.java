@@ -365,7 +365,7 @@ public class BaseController {
 	 * @param title   alert title
 	 * @param context alert context
 	 */
-	protected void generateAlert(String title, String context) {
+	public void generateAlert(String title, String context) {
 		try {
 			closeAlreadyExistedAlert();
 			alertStage = new Stage();
@@ -1368,7 +1368,7 @@ public class BaseController {
 	 * @param key the key
 	 * @return the value from application context
 	 */
-	protected String getValueFromApplicationContext(String key) {
+	public String getValueFromApplicationContext(String key) {
 
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Fetching value from application Context");

@@ -13,6 +13,7 @@ import io.mosip.registration.controller.reg.RegistrationController;
 import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.util.control.FxControl;
+import io.mosip.registration.util.control.impl.DocumentFxControl;
 import io.mosip.registration.util.control.impl.DropDownFxControl;
 import io.mosip.registration.util.control.impl.TextFieldFxControl;
 import javafx.collections.ObservableList;
@@ -161,7 +162,7 @@ public class GenericController extends BaseController {
 		case CONTROLTYPE_DOB_AGE:
 			break;
 		case CONTROLTYPE_DOCUMENTS:
-			break;
+			return new DocumentFxControl().build(uiSchemaDTO);
 		case CONTROLTYPE_DROPDOWN:
 			return new DropDownFxControl().build(uiSchemaDTO);
 

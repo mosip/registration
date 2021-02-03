@@ -6,6 +6,7 @@ package io.mosip.registration.util.control;
 import java.util.List;
 
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.controller.reg.DemographicDetailController;
@@ -38,6 +39,7 @@ public abstract class FxControl extends Node {
 	public Node node;
 
 	protected DemographicDetailController demographicDetailController;
+	protected AuditManagerService auditFactory;
 
 	public void refreshFields() {
 

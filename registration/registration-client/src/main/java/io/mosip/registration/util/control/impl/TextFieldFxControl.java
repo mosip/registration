@@ -189,7 +189,7 @@ public class TextFieldFxControl extends FxControl {
 
 		/** Title label */
 		Label fieldTitle = getLabel(fieldName + languageType + RegistrationConstants.LABEL, titleText,
-				RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, false, prefWidth);
+				RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, prefWidth);
 		simpleTypeVBox.getChildren().add(fieldTitle);
 
 		/** Text Field */

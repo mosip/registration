@@ -68,7 +68,7 @@ public class DropDownFxControl extends FxControl {
 
 		/** comboBox Field */
 		ComboBox<GenericDto> comboBox = getComboBox(fieldName + languageType, titleText,
-				RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, prefWidth,
+				RegistrationConstants.DOC_COMBO_BOX, prefWidth,
 				languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)
 						&& !uiSchemaDTO.getType().equals(RegistrationConstants.SIMPLE_TYPE) ? true : false);
 		simpleTypeVBox.getChildren().add(comboBox);
@@ -78,11 +78,11 @@ public class DropDownFxControl extends FxControl {
 				RegistrationConstants.DemoGraphicFieldMessageLabel, false, prefWidth);
 		simpleTypeVBox.getChildren().add(validationMessage);
 
-		return null;
+		return simpleTypeVBox;
 	}
 
-	private <T> ComboBox<GenericDto> getComboBox(String id, String titleText, String demographicTextfield,
-			double prefWidth, boolean isDisable) {
+	private <T> ComboBox<GenericDto> getComboBox(String id, String titleText, String stycleClass, double prefWidth,
+			boolean isDisable) {
 		ComboBox<GenericDto> field = new ComboBox<GenericDto>();
 		StringConverter<T> uiRenderForComboBox = FXUtils.getInstance().getStringConverterForComboBox();
 		VBox vbox = new VBox();
