@@ -35,7 +35,6 @@ public abstract class FxControl extends Node {
 
 	protected FxControl control;
 
-	protected Pane parentPane;
 	public Node node;
 
 	protected DemographicDetailController demographicDetailController;
@@ -67,7 +66,7 @@ public abstract class FxControl extends Node {
 	 * 
 	 * @param data value
 	 */
-	public abstract void setData();
+	public abstract void setData(Object data);
 
 	/**
 	 * Get Value from fx element
@@ -138,7 +137,9 @@ public abstract class FxControl extends Node {
 		return demographicDetailController.getRegistrationDTOFromSession();
 	}
 
-	public abstract UiSchemaDTO getUiSchemaDTO();
+	public UiSchemaDTO getUiSchemaDTO() {
+		return uiSchemaDTO;
+	}
 
 	public abstract void setListener(Node node);
 

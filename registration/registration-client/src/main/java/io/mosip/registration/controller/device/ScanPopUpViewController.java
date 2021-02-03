@@ -28,6 +28,7 @@ import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.reg.DocumentScanController;
 import io.mosip.registration.device.webcam.impl.WebcamSarxosServiceImpl;
 import io.mosip.registration.util.common.RubberBandSelection;
+import io.mosip.registration.util.control.FxControl;
 import io.mosip.registration.util.control.impl.DocumentFxControl;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
@@ -134,7 +135,7 @@ public class ScanPopUpViewController extends BaseController {
 	@Autowired
 	private BiometricsController biometricsController;
 
-	private DocumentFxControl documentFxControl;
+	private FxControl fxControl;
 
 	private boolean isStreamPaused;
 
@@ -362,7 +363,7 @@ public class ScanPopUpViewController extends BaseController {
 			DocumentScanController documentScanController = (DocumentScanController) baseController;
 			try {
 
-				documentFxControl.save(documentScanController.getScannedPages());
+				fxControl.setData(documentScanController.getScannedPages());
 
 				documentScanController.attachScannedDocument(popupStage);
 
