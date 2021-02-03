@@ -24,6 +24,7 @@ import io.mosip.registration.processor.manual.verification.dto.ManualVerificatio
 import io.mosip.registration.processor.manual.verification.exception.InvalidMessageException;
 import io.mosip.registration.processor.manual.verification.exception.handler.ManualVerificationExceptionHandler;
 import io.mosip.registration.processor.manual.verification.response.builder.ManualVerificationResponseBuilder;
+import io.mosip.registration.processor.manual.verification.response.dto.ManualAdjudicationResponseDTO;
 import io.mosip.registration.processor.manual.verification.service.ManualVerificationService;
 import io.mosip.registration.processor.manual.verification.util.ManualVerificationRequestValidator;
 import io.mosip.registration.processor.packet.storage.exception.QueueConnectionNotFound;
@@ -208,11 +209,11 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 			}
 			LinkedHashMap respMap = JsonUtil.readValueWithUnknownProperties(response, LinkedHashMap.class);
 			if (respMap != null && respMap.get(IdSchemaUtil.RESPONSE) != null) {
-				Object obj = respMap.get(IdSchemaUtil.RESPONSE);
-				ManualVerificationDecisionDto resp = JsonUtil.readValueWithUnknownProperties(
-						JsonUtils.javaObjectToJsonString(obj), ManualVerificationDecisionDto.class);
-				ManualVerificationDecisionDto decisionDto = manualAdjudicationService
-						.updatePacketStatus(resp, this.getClass().getSimpleName());
+				ManualAdjudicationResponseDTO resp = JsonUtil.readValueWithUnknownProperties(
+						JsonUtils.javaObjectToJsonString(respMap), ManualAdjudicationResponseDTO.class);
+				ManualAdjudicationResponseDTO decisionDto = manualAdjudicationService
+						.updatePacketStatus(resp, this.getClass().getSimpleName(),queue);
+				
 				if (decisionDto != null) {
 					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 							"", "ManualVerificationStage::processDecision::success");

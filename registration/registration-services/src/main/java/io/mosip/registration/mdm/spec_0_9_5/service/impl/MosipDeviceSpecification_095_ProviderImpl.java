@@ -13,6 +13,8 @@ import java.util.Base64;
 import java.util.LinkedList;
 import java.util.List;
 
+import io.mosip.registration.exception.DeviceException;
+import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationHelper;
 import org.apache.http.Consts;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -64,6 +66,10 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 	private static final String loggerClassName = "MosipDeviceSpecification_095_ProviderImpl";
 
 	@Autowired
+	private MosipDeviceSpecificationHelper mosipDeviceSpecificationHelper;
+
+	//TODO - remove, and use helper. as this leads to circular dependency
+	@Autowired
 	private MosipDeviceSpecificationFactory deviceSpecificationFactory;
 
 	@Override
@@ -73,49 +79,33 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 
 	@Override
 	public List<MdmBioDevice> getMdmDevices(String deviceInfoResponse, int port) {
-
 		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-				"received device info response for port : " + port);
+				"received device info response on port : " + port);
 
-		List<MdmBioDevice> mdmBioDevices = new LinkedList<>();
-
-		List<MdmDeviceInfo> mdmDeviceInfos = new LinkedList<>();
-
+		List<MdmBioDevice> mdmBioDevices = new LinkedList<>();;
 		List<MdmDeviceInfoResponse> deviceInfoResponses;
 		try {
 
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "parsing device info response to 095 dto");
-
-			deviceInfoResponses = (deviceSpecificationFactory.getMapper().readValue(deviceInfoResponse,
+			deviceInfoResponses = (mosipDeviceSpecificationHelper.getMapper().readValue(deviceInfoResponse,
 					new TypeReference<List<MdmDeviceInfoResponse>>() {
 					}));
 
 			for (MdmDeviceInfoResponse mdmDeviceInfoResponse : deviceInfoResponses) {
 
 				if (mdmDeviceInfoResponse.getDeviceInfo() != null && !mdmDeviceInfoResponse.getDeviceInfo().isEmpty()) {
-					mdmDeviceInfos.add(getDeviceInfoDecoded(mdmDeviceInfoResponse.getDeviceInfo()));
+					MdmDeviceInfo deviceInfo = mosipDeviceSpecificationHelper.getDeviceInfoDecoded(mdmDeviceInfoResponse.getDeviceInfo());
+					MdmBioDevice bioDevice = getBioDevice(deviceInfo);
+					if (bioDevice != null) {
+						bioDevice.setPort(port);
+						mdmBioDevices.add(bioDevice);
+					}
 				}
-			}
-
-			for (MdmDeviceInfo deviceInfo : mdmDeviceInfos) {
-
-				MdmBioDevice bioDevice = getBioDevice(deviceInfo);
-
-				if (bioDevice != null) {
-
-					LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "prepared bio Device");
-
-					mdmBioDevices.add(bioDevice);
-
-				}
-
 			}
 		} catch (Exception exception) {
-			LOGGER.error(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_GET, APPLICATION_NAME, APPLICATION_ID,
-					String.format(" Exception while mapping the response ",
-							exception.getMessage() + ExceptionUtils.getStackTrace(exception)));
+			LOGGER.error(APPLICATION_NAME, APPLICATION_ID, "Exception while parsing deviceinfo response(095 spec)",
+					ExceptionUtils.getStackTrace(exception));
 		}
-
 		return mdmBioDevices;
 	}
 
@@ -203,8 +193,6 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 
 			RCaptureResponseDTO captureResponse = mapper.readValue(val.getBytes(StandardCharsets.UTF_8),
 					RCaptureResponseDTO.class);
-			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-					"Response Recived.... " + System.currentTimeMillis());
 
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 					"Response Decode and leaving the method.... " + System.currentTimeMillis());
@@ -227,10 +215,11 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 				}
 				if (rCaptureResponseBiometricsDTO.getData() != null
 						&& !rCaptureResponseBiometricsDTO.getData().isEmpty()) {
-					String payLoad = deviceSpecificationFactory.getPayLoad(rCaptureResponseBiometricsDTO.getData());
+					mosipDeviceSpecificationHelper.validateJWTResponse(rCaptureResponseBiometricsDTO.getData());
+					String payLoad = mosipDeviceSpecificationHelper.getPayLoad(rCaptureResponseBiometricsDTO.getData());
 
-					RCaptureResponseDataDTO dataDTO = (RCaptureResponseDataDTO) (mapper.readValue(
-							new String(Base64.getUrlDecoder().decode(payLoad)), RCaptureResponseDataDTO.class));
+					RCaptureResponseDataDTO dataDTO = mapper.readValue(new String(Base64.getUrlDecoder().decode(payLoad)),
+							RCaptureResponseDataDTO.class);
 
 					LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 							"Parsed decoded payload" + System.currentTimeMillis());
@@ -319,8 +308,8 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 
 			rCaptureRequestDTO = new RCaptureRequestDTO(mdmRequestDto.getEnvironment(), "Registration", "0.9.5",
 					String.valueOf(mdmRequestDto.getTimeout()),
-					LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).toString(),
-					String.valueOf(deviceSpecificationFactory.generateID()), captureRequestBioDTOs, null);
+					LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+					String.valueOf(mosipDeviceSpecificationHelper.generateMDMTransactionId()), captureRequestBioDTOs, null);
 		}
 
 		return rCaptureRequestDTO;
@@ -335,23 +324,8 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 								: modality.contains("face") ? "0" : "0";
 	}
 
-	private MdmDeviceInfo getDeviceInfoDecoded(String deviceInfo) {
-		try {
-			String result = new String(
-					Base64.getUrlDecoder().decode(deviceSpecificationFactory.getPayLoad(deviceInfo)));
-			return (MdmDeviceInfo) (deviceSpecificationFactory.getMapper().readValue(result, MdmDeviceInfo.class));
-		} catch (Exception exception) {
-			LOGGER.error(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_GET, APPLICATION_NAME, APPLICATION_ID,
-					"Exception while trying to extract the response through regex: " +
-							exception.getMessage() + ExceptionUtils.getStackTrace(exception));
-
-		}
-		return null;
-
-	}
-
 	private MdmBioDevice getBioDevice(MdmDeviceInfo deviceInfo)
-			throws JsonParseException, JsonMappingException, IOException, RegBaseCheckedException {
+			throws IOException, RegBaseCheckedException, DeviceException {
 
 		MdmBioDevice bioDevice = null;
 
@@ -383,11 +357,11 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 		return bioDevice;
 	}
 
-	private DigitalId getDigitalId(String digitalId)
-			throws JsonParseException, JsonMappingException, IOException, RegBaseCheckedException {
-		return (DigitalId) (deviceSpecificationFactory.getMapper().readValue(
-				new String(Base64.getUrlDecoder().decode(deviceSpecificationFactory.getPayLoad(digitalId))),
-				DigitalId.class));
+	private DigitalId getDigitalId(String digitalId) throws IOException, RegBaseCheckedException, DeviceException {
+		mosipDeviceSpecificationHelper.validateJWTResponse(digitalId);
+		return mosipDeviceSpecificationHelper.getMapper().readValue(
+				new String(Base64.getUrlDecoder().decode(mosipDeviceSpecificationHelper.getPayLoad(digitalId))),
+				DigitalId.class);
 
 	}
 

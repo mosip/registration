@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 import java.util.ResourceBundle;
 import java.util.Timer;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.ListUtils;
@@ -51,6 +52,7 @@ import io.mosip.registration.controller.reg.HeaderController;
 import io.mosip.registration.controller.reg.HomeController;
 import io.mosip.registration.controller.reg.PacketHandlerController;
 import io.mosip.registration.controller.reg.RegistrationPreviewController;
+import io.mosip.registration.controller.reg.UserOnboardParentController;
 import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
 import io.mosip.registration.dto.RegistrationDTO;
@@ -59,6 +61,7 @@ import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.biometric.BiometricExceptionDTO;
 import io.mosip.registration.dto.biometric.BiometricInfoDTO;
 import io.mosip.registration.dto.biometric.FaceDetailsDTO;
+import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.scheduler.SchedulerUtil;
 import io.mosip.registration.service.IdentitySchemaService;
@@ -187,6 +190,9 @@ public class BaseController {
 
 	@Autowired
 	protected PageFlow pageFlow;
+	
+	@Autowired
+	private UserOnboardParentController userOnboardParentController;
 
 	@Value("${mosip.registration.css_file_path:}")
 	private String cssName;
@@ -1062,41 +1068,83 @@ public class BaseController {
 
 			LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID, "Validating User Onboard data");
 
-			ResponseDTO response = null;
-			try {
-				response = userOnboardService.validateWithIDAuthAndSave(userOnboardService.getAllBiometrics());
-
-			} catch (RegBaseCheckedException checkedException) {
-				LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
-						ExceptionUtils.getStackTrace(checkedException));
-			}
-			if (response != null && response.getErrorResponseDTOs() != null
-					&& response.getErrorResponseDTOs().get(0) != null) {
-
-				LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
-						"Displaying Alert if validation is not success");
-
-				generateAlertLanguageSpecific(RegistrationConstants.ERROR,
-						response.getErrorResponseDTOs().get(0).getMessage());
-				returnPage = currentPage;
-			} else if (response != null && response.getSuccessResponseDTO() != null) {
-
-				LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
-						"User Onboard is success and clearing Onboard data");
-
-				clearOnboardData();
-				SessionContext.map().put(RegistrationConstants.ISPAGE_NAVIGATION_ALERT_REQ,
-						RegistrationConstants.ENABLE);
-				goToHomePage();
-				onboardAlertMsg();
-
-				LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
-						"Redirecting to Home page after success onboarding");
+			if (executeUserOnboardTask(userOnboardService.getAllBiometrics())) {
 				returnPage = RegistrationConstants.EMPTY;
+			} else {
+				returnPage = currentPage;
 			}
 		}
 
 		return returnPage;
+	}
+
+	private boolean executeUserOnboardTask(List<BiometricsDto> allBiometrics) {
+		AtomicBoolean returnPage = new AtomicBoolean(false);
+		userOnboardParentController.getParentPane().setDisable(true);
+		userOnboardParentController.getProgressIndicatorParentPane().setVisible(true);
+		userOnboardParentController.getProgressIndicator().setVisible(true);
+
+		Service<ResponseDTO> taskService = new Service<ResponseDTO>() {
+			@Override
+			protected Task<ResponseDTO> createTask() {
+				return new Task<ResponseDTO>() {
+					/*
+					 * (non-Javadoc)
+					 * 
+					 * @see javafx.concurrent.Task#call()
+					 */
+					@Override
+					protected ResponseDTO call() {
+						try {
+							return userOnboardService.validateWithIDAuthAndSave(allBiometrics);
+						} catch (RegBaseCheckedException checkedException) {
+							LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
+									ExceptionUtils.getStackTrace(checkedException));
+						}
+						return null;
+					}
+				};
+			}
+		};
+		
+		userOnboardParentController.getProgressIndicator().progressProperty().bind(taskService.progressProperty());
+		taskService.start();
+		taskService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+			@Override
+			public void handle(WorkerStateEvent workerStateEvent) {
+				ResponseDTO response = taskService.getValue();
+				if (response != null && response.getErrorResponseDTOs() != null
+						&& response.getErrorResponseDTOs().get(0) != null) {
+					LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
+							"Displaying Alert if validation is not success");
+
+					generateAlertLanguageSpecific(RegistrationConstants.ERROR,
+							response.getErrorResponseDTOs().get(0).getMessage());
+					returnPage.set(false);
+				} else if (response != null && response.getSuccessResponseDTO() != null) {
+
+					LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
+							"User Onboard is success and clearing Onboard data");
+
+					clearOnboardData();
+					SessionContext.map().put(RegistrationConstants.ISPAGE_NAVIGATION_ALERT_REQ,
+							RegistrationConstants.ENABLE);
+					goToHomePage();
+					onboardAlertMsg();
+
+					LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
+							"Redirecting to Home page after success onboarding");
+					returnPage.set(true);
+				}
+				userOnboardParentController.getParentPane().setDisable(false);
+				userOnboardParentController.getProgressIndicatorParentPane().setVisible(false);
+				userOnboardParentController.getProgressIndicator().setVisible(false);
+
+				LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+						"Onboarded User biometrics validation and insertion done");
+			}
+		});
+		return returnPage.get();
 	}
 
 	/**
