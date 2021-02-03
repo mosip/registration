@@ -47,21 +47,12 @@ public class TextFieldFxControl extends FxControl {
 
 	private static String loggerClassName = " Text Field Control Type Class";
 
-//	@Autowired
-	private BaseController baseController;
-
-//	@Autowired
-//	@Autowired
-	private ResourceLoader resourceLoader;
-//	@Autowired
 	private Validations validation;
-//	@Autowired
 	private DemographicChangeActionHandler demographicChangeActionHandler;
 
 	public TextFieldFxControl() {
 
 		ApplicationContext applicationContext = Initialization.getApplicationContext();
-//		baseController = applicationContext.getBean(BaseController.class);
 		this.demographicDetailController = applicationContext.getBean(DemographicDetailController.class);
 
 //		resourceLoader = applicationContext.getBean(ResourceLoader.class);
@@ -114,7 +105,7 @@ public class TextFieldFxControl extends FxControl {
 	}
 
 	@Override
-	public void setData() {
+	public void setData(Object data) {
 
 		RegistrationDTO registrationDTO = getRegistrationDTo();
 
@@ -151,7 +142,7 @@ public class TextFieldFxControl extends FxControl {
 		textField.addEventHandler(Event.ANY, event -> {
 			if (isValid(textField)) {
 
-				setData();
+				setData(null);
 
 				// handling other handlers
 				UiSchemaDTO uiSchemaDTO = validation.getValidationMap()

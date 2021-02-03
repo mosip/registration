@@ -102,7 +102,7 @@ public class DropDownFxControl extends FxControl {
 	}
 
 	@Override
-	public void setData() {
+	public void setData(Object data) {
 		// TODO Auto-generated method stub
 
 	}
@@ -153,7 +153,7 @@ public class DropDownFxControl extends FxControl {
 	@Override
 	public Node getNode() {
 		// TODO Auto-generated method stub
-		return null;
+		return this.node;
 	}
 
 }

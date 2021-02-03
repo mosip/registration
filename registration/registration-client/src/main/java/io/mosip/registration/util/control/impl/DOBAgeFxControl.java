@@ -28,7 +28,7 @@ public class DOBAgeFxControl extends FxControl {
 	}
 
 	@Override
-	public void setData() {
+	public void setData(Object data) {
 		// TODO Auto-generated method stub
 
 	}
