@@ -6,12 +6,12 @@
 	<parent>
 		<groupId>io.mosip.registration</groupId>
 		<artifactId>registration-parent</artifactId>
-		<version>1.1.4-SNAPSHOT</version>
+		<version>1.1.4-rc1</version>
 	</parent>
 	<artifactId>registration-services</artifactId>
 	<name>registration-services</name>
 	<description>Maven project of MOSIP Registration Service</description>
-	<version>1.1.4-SNAPSHOT</version>
+	<version>1.1.4-rc1</version>
 
 	<dependencies>
 		<!-- Lombok -->
@@ -309,7 +309,7 @@
 		<dependency>
 			<groupId>io.mosip.commons</groupId>
 			<artifactId>commons-packet-manager</artifactId>
-			<version>1.1.4-SNAPSHOT</version>
+			<version>1.1.4-rc1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.springframework.boot</groupId>
@@ -371,7 +371,7 @@
 		<dependency>
 			<groupId>io.mosip.kernel</groupId>
 			<artifactId>kernel-auth-adapter</artifactId>
-			<version>1.1.4-SNAPSHOT</version>
+			<version>1.1.4-rc1</version>
 		</dependency>
 
 	</dependencies>
