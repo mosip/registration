@@ -523,6 +523,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 							list.add("addressLine2");
 							list.add("addressLine3");
+							list.add("proofOfIdentity");
 							var.put("screen1", list);
 
 							genericController.populateScreens(var);

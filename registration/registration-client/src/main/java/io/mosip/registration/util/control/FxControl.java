@@ -130,7 +130,7 @@ public abstract class FxControl extends Node {
 	}
 
 	protected Node getField(String id) {
-		return node.lookup(RegistrationConstants.HASH + uiSchemaDTO.getId());
+		return node.lookup(RegistrationConstants.HASH + id);
 	}
 
 	protected RegistrationDTO getRegistrationDTo() {
@@ -143,5 +143,7 @@ public abstract class FxControl extends Node {
 
 	public abstract void setListener(Node node);
 
-	public abstract Node getNode();
+	public Node getNode() {
+		return this.node;
+	}
 }

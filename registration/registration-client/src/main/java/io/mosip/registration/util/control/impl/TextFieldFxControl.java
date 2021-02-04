@@ -84,7 +84,7 @@ public class TextFieldFxControl extends FxControl {
 
 		this.node = hBox;
 
-		setListener((TextField) getField(RegistrationConstants.HASH + uiSchemaDTO.getId()));
+		setListener((TextField) getField(uiSchemaDTO.getId()));
 
 		return this.control;
 	}
@@ -126,12 +126,6 @@ public class TextFieldFxControl extends FxControl {
 					((TextField) getField(uiSchemaDTO.getId())).getText());
 
 		}
-	}
-
-	@Override
-	public UiSchemaDTO getUiSchemaDTO() {
-
-		return this.uiSchemaDTO;
 	}
 
 	@Override

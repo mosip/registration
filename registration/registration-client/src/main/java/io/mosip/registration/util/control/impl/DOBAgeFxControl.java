@@ -57,10 +57,4 @@ public class DOBAgeFxControl extends FxControl {
 
 	}
 
-	@Override
-	public Node getNode() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }

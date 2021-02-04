@@ -19,6 +19,7 @@ import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
@@ -38,8 +39,22 @@ public class DropDownFxControl extends FxControl {
 	@Override
 	public FxControl build(UiSchemaDTO uiSchemaDTO) {
 
-// Create UI Element
-		VBox vBox = create(uiSchemaDTO, "");
+		this.uiSchemaDTO = uiSchemaDTO;
+		VBox primaryLangVBox = create(uiSchemaDTO, "");
+		HBox hBox = new HBox();
+		hBox.setSpacing(20);
+		hBox.getChildren().add(primaryLangVBox);
+
+		if (demographicDetailController.isLocalLanguageAvailable()
+				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
+
+			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
+
+			hBox.getChildren().add(secondaryLangVBox);
+
+		}
+
+		this.node = hBox;
 		setListener(node);
 		return null;
 	}
@@ -119,12 +134,6 @@ public class DropDownFxControl extends FxControl {
 	}
 
 	@Override
-	public UiSchemaDTO getUiSchemaDTO() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public void setListener(Node node) {
 
 		if (RegistrationConstants.LOCAL_LANGUAGE.equalsIgnoreCase(languageType)) {
@@ -148,12 +157,6 @@ public class DropDownFxControl extends FxControl {
 				refreshFields();
 			}
 		});
-	}
-
-	@Override
-	public Node getNode() {
-		// TODO Auto-generated method stub
-		return this.node;
 	}
 
 }
