@@ -1,16 +1,33 @@
 package io.mosip.registration.util.control.impl;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.util.control.FxControl;
 import javafx.scene.Node;
+import javafx.scene.layout.GridPane;
 
 public class BiometricFxControl extends FxControl {
 
 	@Override
 	public FxControl build(UiSchemaDTO uiSchemaDTO) {
+
+		this.uiSchemaDTO = uiSchemaDTO;
+		this.control = this;
+		
+		GridPane biometricGridPane = create(uiSchemaDTO);
+
 		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private GridPane create(UiSchemaDTO uiSchemaDTO) {
+		
+		
+		Map<String, List<String>> modalityAttributeMap = new LinkedHashMap<>();
+		
 		return null;
 	}
 

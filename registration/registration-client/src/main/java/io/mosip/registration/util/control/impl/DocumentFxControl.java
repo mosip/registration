@@ -110,7 +110,8 @@ public class DocumentFxControl extends FxControl {
 			documentScanController.scanDocument(this, uiSchemaDTO.getId(), comboBox.getValue().getCode());
 
 		} else {
-			// TODO Generate ALert Not valid doc selected
+			documentScanController.generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.PLEASE_SELECT
+					+ RegistrationConstants.SPACE + uiSchemaDTO.getSubType() + " " + RegistrationUIConstants.DOCUMENT);
 		}
 
 	}
@@ -296,8 +297,8 @@ public class DocumentFxControl extends FxControl {
 					auditEvent = AuditEvent.REG_DOC_SCAN;
 
 				}
-				auditFactory.audit(auditEvent, Components.REG_DOCUMENTS, SessionContext.userId(),
-						AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+//				auditFactory.audit(auditEvent, Components.REG_DOCUMENTS, SessionContext.userId(),
+//						AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 				Button clickedBtn = (Button) event.getSource();
 				clickedBtn.getId();
