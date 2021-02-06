@@ -11,14 +11,18 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import io.mosip.registration.entity.*;
+import io.mosip.registration.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import io.mosip.commons.packet.constants.Biometric;
+import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.constants.BiometricAttributes;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
@@ -26,18 +30,10 @@ import io.mosip.registration.dao.UserOnboardDAO;
 import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.dto.biometric.FingerprintDetailsDTO;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
-import io.mosip.registration.entity.CenterMachine;
-import io.mosip.registration.entity.MachineMaster;
-import io.mosip.registration.entity.UserBiometric;
-import io.mosip.registration.entity.UserMachineMapping;
 import io.mosip.registration.entity.id.UserBiometricId;
 import io.mosip.registration.entity.id.UserMachineMappingID;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
-import io.mosip.registration.repositories.CenterMachineRepository;
-import io.mosip.registration.repositories.MachineMasterRepository;
-import io.mosip.registration.repositories.UserBiometricRepository;
-import io.mosip.registration.repositories.UserMachineMappingRepository;
 
 /**
  * The implementation class of {@link UserOnboardDAO}
@@ -70,6 +66,9 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 	 */
 	@Autowired
 	private UserMachineMappingRepository machineMappingRepository;
+
+	@Autowired
+	private UserDetailRepository userDetailRepository;
 
 	/**
 	 * logger for logging
@@ -315,7 +314,7 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 				UserBiometric bioMetrics = new UserBiometric();
 				UserBiometricId biometricId = new UserBiometricId();
 				biometricId.setBioAttributeCode(dto.getBioAttribute());
-				biometricId.setBioTypeCode(getBioAttribute(dto.getBioAttribute()));
+				biometricId.setBioTypeCode(getBioAttributeCode(dto.getBioAttribute()));
 				biometricId.setUsrId(SessionContext.userContext().getUserId());
 				bioMetrics.setBioIsoImage(dto.getAttributeISO());
 				bioMetrics.setNumberOfRetry(dto.getNumOfRetries());
@@ -327,8 +326,60 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 				bioMetrics.setIsActive(true);
 				bioMetricsList.add(bioMetrics);
 			});
-			
-			userBiometricRepository.deleteByUserBiometricIdUsrId(SessionContext.userContext().getUserId());
+
+			clearUserBiometrics(SessionContext.userContext().getUserId());
+			userBiometricRepository.saveAll(bioMetricsList);
+
+			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
+					"Biometric information insertion successful");
+			return RegistrationConstants.SUCCESS;
+
+		} catch (RuntimeException runtimeException) {
+			LOGGER.error(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(runtimeException));
+			response = RegistrationConstants.USER_ON_BOARDING_ERROR_RESPONSE;
+		}
+		throw new RegBaseUncheckedException(RegistrationConstants.USER_ON_BOARDING_EXCEPTION, response);
+	}
+	
+	/**
+	 * Gets the bio attribute.
+	 *
+	 * @param bioAttribute the bio attribute
+	 * @return the bio attribute
+	 */
+	private String getBioAttributeCode(String bioAttribute) {
+
+		Biometric bioType = Biometric.getBiometricByAttribute(bioAttribute);
+		return bioType.getSingleType().value();
+
+	}
+	
+	@Override
+	public String insertExtractedTemplates(List<BIR> templates) {
+		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "Entering insertExtractedTemplates method");
+		String response = RegistrationConstants.EMPTY;
+		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
+				"Biometric information insertion into table");
+		List<UserBiometric> bioMetricsList = new ArrayList<>();
+		
+		try {
+			templates.forEach( template -> {
+				UserBiometric bioMetrics = new UserBiometric();
+				UserBiometricId biometricId = new UserBiometricId();
+				biometricId.setBioAttributeCode(getBioAttribute(template.getBdbInfo().getSubtype()));
+				biometricId.setBioTypeCode(getBioAttributeCode(getBioAttribute(template.getBdbInfo().getSubtype())));
+				biometricId.setUsrId(SessionContext.userContext().getUserId());
+				bioMetrics.setBioIsoImage(template.getBdb());
+				bioMetrics.setUserBiometricId(biometricId);
+				Long qualityScore = template.getBdbInfo().getQuality().getScore();
+				bioMetrics.setQualityScore(qualityScore.intValue());
+				bioMetrics.setCrBy(SessionContext.userContext().getUserId());
+				bioMetrics.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
+				bioMetrics.setIsActive(true);
+				bioMetricsList.add(bioMetrics);
+			});
+
+			clearUserBiometrics(SessionContext.userContext().getUserId());
 			userBiometricRepository.saveAll(bioMetricsList);
 			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
 					"Biometric information insertion successful");
@@ -342,21 +393,28 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 			throw new RegBaseUncheckedException(RegistrationConstants.USER_ON_BOARDING_EXCEPTION + response,
 					runtimeException.getMessage());
 		}
-		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "Leaving insert method");
+		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "Leaving insertExtractedTemplates method");
 		return response;
 	}
-	
-	/**
-	 * Gets the bio attribute.
-	 *
-	 * @param bioAttribute the bio attribute
-	 * @return the bio attribute
-	 */
-	private String getBioAttribute(String bioAttribute) {
 
-		Biometric bioType = Biometric.getBiometricByAttribute(bioAttribute);
-		return bioType.getSingleType().value();
-
+	private String getBioAttribute(List<String> subType) {
+		String subTypeName = String.join("", subType);
+		return BiometricAttributes.getAttributeBySubType(subTypeName);
 	}
 
+	private void clearUserBiometrics(String userId) {
+		List<UserBiometric> existingBiometrics = userBiometricRepository.findByUserBiometricIdUsrId(userId);
+		if(existingBiometrics != null) {
+			for(UserBiometric userBiometric : existingBiometrics) {
+				userBiometric.setUserDetail(null);
+			}
+			userBiometricRepository.saveAll(existingBiometrics);
+		}
+		List<UserDetail> userDetails = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
+		if(userDetails != null && !userDetails.isEmpty()) {
+			userDetails.get(0).getUserBiometric().clear();
+			userDetailRepository.save(userDetails.get(0));
+		}
+		userBiometricRepository.deleteByUserBiometricIdUsrId(userId);
+	}
 }

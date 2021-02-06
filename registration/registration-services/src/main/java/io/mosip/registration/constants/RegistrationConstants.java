@@ -1204,14 +1204,14 @@ public class RegistrationConstants {
 	public static final String MASTER_SYNC = "MASTER_SYNC";
 	public static final String NO_INTERNET = "NO_INTERNET";
 	public static final String MASTER_VALIDATOR_SERVICE_NAME = "master_sync";
-	public static final String MASTER_CENTER_REMAP_SERVICE_NAME = "center_remap_sync";
+	//public static final String MASTER_CENTER_REMAP_SERVICE_NAME = "center_remap_sync";
 	public static final String MASTER_CENTER_PARAM = "regcenterId";
 	public static final String MASTER_DATA_LASTUPDTAE = "lastUpdated";
 	public static final String MASTER_SYNC_LOGGER_INFO = "Entering into Master Sync Dao Impl...";
 	// POLICY SYNC
 	public static final String REG_APP_ID = "REGISTRATION";
 	public static final String KERNEL_APP_ID = "KERNEL";
-	public static final String KERNEL_REF_ID = "SIGNATUREKEY";
+	//public static final String KERNEL_REF_ID = "SIGNATUREKEY";
 	public static final String POLICY_SYNC_SUCCESS_CODE = "REG-MDS‌-001 ";
 	public static final String POLICY_SYNC_SUCCESS_MESSAGE = "SYNC_SUCCESS";
 	public static final String POLICY_SYNC_ERROR_CODE = "REG-MDS‌-003 ";
@@ -1828,4 +1828,5 @@ public class RegistrationConstants {
 	public static String RIGHT_TO_LEFT_ORIENTATION_LANGUAGES = "mosip.language.righttoleft.orientation";
 
 	public static String CONFIGURATION = "CONFIGURATION";
+	public static String ONBOARD_CERT_THUMBPRINT = "thumbprint";
 }

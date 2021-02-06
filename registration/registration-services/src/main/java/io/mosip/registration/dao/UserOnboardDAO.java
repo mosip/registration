@@ -3,6 +3,7 @@ package io.mosip.registration.dao;
 import java.sql.Timestamp;
 import java.util.List;
 
+import io.mosip.kernel.core.cbeffutil.entity.BIR;
 import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.entity.UserBiometric;
@@ -68,4 +69,6 @@ public interface UserOnboardDAO {
 	 * @return the last updated operator bio-metric date time
 	 */
 	Timestamp getLastUpdatedTime(String usrId);
+
+	String insertExtractedTemplates(List<BIR> templates);
 }

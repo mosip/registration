@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.manual.verification.response.dto;
 
 import java.util.List;
+import java.util.Map;
 
 import lombok.Data;
 
@@ -8,8 +9,8 @@ import lombok.Data;
 public class CandidateList {
 
 	private Integer count;
-	
-	private List<Candidates> candidates;
+	private Map<String,String> analytics;
+	private List<Candidate> candidates;
 	
 	
 }
