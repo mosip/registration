@@ -14,7 +14,8 @@ import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.layout.Pane;
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 /**
  * 
@@ -28,7 +29,7 @@ import javafx.scene.layout.Pane;
  */
 public abstract class FxControl extends Node {
 
-	private static final Logger LOGGER = AppConfig.getLogger(DemographicDetailController.class);
+	protected static final Logger LOGGER = AppConfig.getLogger(DemographicDetailController.class);
 	private static final String loggerClassName = "AbstractControlType";
 
 	protected UiSchemaDTO uiSchemaDTO;
