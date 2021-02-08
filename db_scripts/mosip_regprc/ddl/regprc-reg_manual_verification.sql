@@ -18,9 +18,7 @@ CREATE TABLE regprc.reg_manual_verification(
 	matched_ref_id character varying(39) NOT NULL,
 	matched_ref_type character varying(36) NOT NULL,
 	mv_usr_id character varying(256),
-	ref_regtrn_id character varying(36),
-	request_id character varying(36),
-	res_text bytea,
+	matched_score numeric(6,3),
 	status_code character varying(36),
 	reason_code character varying(36),
 	status_comment character varying(256),
@@ -47,11 +45,7 @@ COMMENT ON COLUMN regprc.reg_manual_verification.matched_ref_type IS 'Mached ref
 -- ddl-end --
 COMMENT ON COLUMN regprc.reg_manual_verification.mv_usr_id IS 'Manual Verifier ID: User ID of the manual verifier';
 -- ddl-end --
-COMMENT ON COLUMN regprc.reg_manual_verification.ref_regtrn_id IS 'Reference Transaction ID: Transaction id for the manual adjudication transaction refered from registration transaction table';
--- ddl-end --
-COMMENT ON COLUMN regprc.reg_manual_verification.request_id IS 'Request ID: Request id of the request is been sent for manual adjudication at external applications';
--- ddl-end --
-COMMENT ON COLUMN regprc.reg_manual_verification.res_text IS 'Response Text: Text which is recived from external application for manual adjudication';
+COMMENT ON COLUMN regprc.reg_manual_verification.matched_score IS 'Mached Score: Mached score as part deduplication process, This will be the combined score of multiple ABISapplications';
 -- ddl-end --
 COMMENT ON COLUMN regprc.reg_manual_verification.status_code IS 'Status Code : Status of the manual verification';
 -- ddl-end --
