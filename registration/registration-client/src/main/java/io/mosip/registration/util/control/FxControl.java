@@ -9,6 +9,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.reg.DemographicDetailController;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
@@ -121,7 +122,7 @@ public abstract class FxControl extends Node {
 
 	protected String getMandatorySuffix(UiSchemaDTO schema) {
 		String mandatorySuffix = RegistrationConstants.EMPTY;
-		RegistrationDTO registrationDTO = demographicDetailController.getRegistrationDTOFromSession();
+		RegistrationDTO registrationDTO = getRegistrationDTo();
 		String categeory = registrationDTO.getRegistrationCategory();
 		switch (categeory) {
 		case RegistrationConstants.PACKET_TYPE_UPDATE:
@@ -153,7 +154,11 @@ public abstract class FxControl extends Node {
 	}
 
 	protected RegistrationDTO getRegistrationDTo() {
-		return demographicDetailController.getRegistrationDTOFromSession();
+		RegistrationDTO registrationDTO = null;
+		if (SessionContext.map() != null || !SessionContext.map().isEmpty()) {
+			registrationDTO = (RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA);
+		}
+		return registrationDTO;
 	}
 
 }

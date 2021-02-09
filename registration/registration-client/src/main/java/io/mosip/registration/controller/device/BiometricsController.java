@@ -515,6 +515,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 		imageView.setFitHeight(80);
 		imageView.setFitWidth(85);
 
+		applicationLabelBundle = applicationContext.getApplicationLanguageBundle();
 		Tooltip tooltip = new Tooltip(applicationLabelBundle.getString(modality));
 		tooltip.getStyleClass().add(RegistrationConstants.TOOLTIP_STYLE);
 		// Tooltip.install(hBox, tooltip);

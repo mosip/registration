@@ -1832,4 +1832,6 @@ public class RegistrationConstants {
 	public static String VBOX = "VBOX";
 
 	public static String ONBOARD_CERT_THUMBPRINT = "thumbprint";
+	
+	public static String LOCATION = "Location";
 }
