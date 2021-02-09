@@ -272,4 +272,10 @@ public class BiometricFxControl extends FxControl {
 
 		return vBox;
 	}
+
+	@Override
+	public void fillData(Object data) {
+		// TODO Auto-generated method stub
+		
+	}
 }
