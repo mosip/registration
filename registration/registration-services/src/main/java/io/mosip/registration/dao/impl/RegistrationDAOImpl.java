@@ -158,18 +158,21 @@ public class RegistrationDAOImpl implements RegistrationDAO {
 	}
 
 	private String getAdditionalInfo(Object fieldValue) {
-		String value = null;
-		if (fieldValue != null && fieldValue instanceof List<?>) {
+		if(fieldValue == null) { return null; }
+
+		if (fieldValue instanceof List<?>) {
 			Optional<SimpleDto> demoValueInRequiredLang = ((List<SimpleDto>) fieldValue).stream()
 					.filter(valueDTO -> valueDTO.getLanguage().equals(ApplicationContext.applicationLanguage())).findFirst();
 
-			if (demoValueInRequiredLang.isPresent() && demoValueInRequiredLang.get().getValue() != null) {
-				value = demoValueInRequiredLang.get().getValue();
+			if (demoValueInRequiredLang.isPresent()) {
+				return demoValueInRequiredLang.get().getValue();
 			}
-		} else if (fieldValue != null && fieldValue instanceof String) {
-			value = (String) fieldValue;
 		}
-		return value;
+
+		if (fieldValue instanceof String) {
+			return (String) fieldValue;
+		}
+		return null;
 	}
 
 	/*
