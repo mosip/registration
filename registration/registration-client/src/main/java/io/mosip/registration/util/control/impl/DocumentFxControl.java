@@ -10,21 +10,18 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.AuditEvent;
-import io.mosip.registration.constants.AuditReferenceIdTypes;
-import io.mosip.registration.constants.Components;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.ApplicationContext;
-import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.FXUtils;
 import io.mosip.registration.controller.Initialization;
 import io.mosip.registration.controller.reg.DemographicDetailController;
 import io.mosip.registration.controller.reg.DocumentScanController;
-import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
 import io.mosip.registration.dto.packetmanager.DocumentDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.util.control.FxControl;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -53,12 +50,15 @@ public class DocumentFxControl extends FxControl {
 
 	private DocumentScanController documentScanController;
 
+	private MasterSyncService masterSyncService;
+
 	public DocumentFxControl() {
 
 		org.springframework.context.ApplicationContext applicationContext = Initialization.getApplicationContext();
 		this.demographicDetailController = applicationContext.getBean(DemographicDetailController.class);
 
 		documentScanController = applicationContext.getBean(DocumentScanController.class);
+		masterSyncService = applicationContext.getBean(MasterSyncService.class);
 	}
 
 	@Override
@@ -81,6 +81,14 @@ public class DocumentFxControl extends FxControl {
 
 		this.node = hBox;
 		setListener(getField(uiSchemaDTO.getId() + RegistrationConstants.BUTTON));
+
+		try {
+			fillData(masterSyncService.getDocumentCategories(uiSchemaDTO.getSubType(),
+					ApplicationContext.applicationLanguage()));
+		} catch (RegBaseCheckedException regBaseCheckedException) {
+			// TODO log it
+			regBaseCheckedException.printStackTrace();
+		}
 
 		return this.control;
 	}
@@ -356,5 +364,18 @@ public class DocumentFxControl extends FxControl {
 		textField.setDisable(isDisable);
 
 		return textField;
+	}
+
+	@Override
+	public void fillData(Object data) {
+
+		ComboBox<DocumentCategoryDto> comboBox = (ComboBox<DocumentCategoryDto>) getField(uiSchemaDTO.getId());
+
+		if (data != null) {
+
+			List<DocumentCategoryDto> vals = (List<DocumentCategoryDto>) data;
+			comboBox.getItems().addAll(vals);
+		}
+
 	}
 }

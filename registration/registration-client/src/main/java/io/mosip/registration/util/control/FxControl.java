@@ -63,11 +63,19 @@ public abstract class FxControl extends Node {
 
 	/**
 	 * 
-	 * Set Data into fx element
+	 * Set Data into Registration DTO
 	 * 
 	 * @param data value
 	 */
 	public abstract void setData(Object data);
+
+	/**
+	 * 
+	 * Fill Data into fx element
+	 * 
+	 * @param data value
+	 */
+	public abstract void fillData(Object data);
 
 	/**
 	 * Get Value from fx element
@@ -99,6 +107,16 @@ public abstract class FxControl extends Node {
 
 		node.setVisible(isVisible);
 
+	}
+
+	public UiSchemaDTO getUiSchemaDTO() {
+		return uiSchemaDTO;
+	}
+
+	public abstract void setListener(Node node);
+
+	public Node getNode() {
+		return this.node;
 	}
 
 	protected String getMandatorySuffix(UiSchemaDTO schema) {
@@ -138,13 +156,4 @@ public abstract class FxControl extends Node {
 		return demographicDetailController.getRegistrationDTOFromSession();
 	}
 
-	public UiSchemaDTO getUiSchemaDTO() {
-		return uiSchemaDTO;
-	}
-
-	public abstract void setListener(Node node);
-
-	public Node getNode() {
-		return this.node;
-	}
 }
