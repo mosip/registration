@@ -641,14 +641,15 @@ public class BaseService {
 		List<ErrorResponseDTO> erResponseDTOs = new ArrayList<>();
 		ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO();
 		errorResponseDTO.setCode(RegistrationConstants.ERRORS);
-		String errorMessage = httpResponse != null && httpResponse.containsKey(RegistrationConstants.ERRORS)
-				? ((List<LinkedHashMap<String, String>>) httpResponse
-				.get(RegistrationConstants.ERRORS)).get(0).get(RegistrationConstants.ERROR_MSG)
-				: "Rest call Failure";
+		String errorMessage = RegistrationConstants.API_CALL_FAILED;
+		if(httpResponse != null && httpResponse.get(RegistrationConstants.ERRORS) != null) {
+			List<HashMap<String, String>> errors = (List<HashMap<String, String>>) httpResponse.get(RegistrationConstants.ERRORS);
+			LOGGER.error("Response Errors >>>> {}", errors);
+			errorMessage = errors.isEmpty() ? RegistrationConstants.API_CALL_FAILED : errors.get(0).get(RegistrationConstants.ERROR_MSG);
+		}
 		errorResponseDTO.setMessage(errorMessage);
 		erResponseDTOs.add(errorResponseDTO);
 		responseDTO.setErrorResponseDTOs(erResponseDTOs);
-		LOGGER.error("", APPLICATION_NAME, APPLICATION_ID, errorMessage);
 		return responseDTO;
 	}
 
