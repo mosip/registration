@@ -1566,40 +1566,20 @@ public class DemographicDetailController extends BaseController {
 			Node labelNode = getFxElement(field.getId()+RegistrationConstants.LABEL);
 			Node localLabelNode = getFxElement(field.getId()+ RegistrationConstants.LOCAL_LANGUAGE+RegistrationConstants.LABEL);
 
-			if(node != null) {
-				if(!isVisible) {
-					clearFieldValue(node);
-					if(labelNode != null) {
-						labelNode.setVisible(isVisible);
-						labelNode.setManaged(isVisible);
-					}
-				}
-				else {
-					if(labelNode != null) {
-						labelNode.setVisible(isVisible);
-						labelNode.setManaged(isVisible);
-					}
-				}
+			manageFieldVisibility(node, labelNode, isVisible);
+			manageFieldVisibility(localLangNode, localLabelNode, isVisible);			
+		}
+	}
+	
+	private void manageFieldVisibility(Node node, Node labelNode, boolean isVisible) {
+		if(!isVisible) { clearFieldValue(node); }
 
-				node.setVisible(isVisible);
+		if(node != null) {
+			if(labelNode != null) {
+				labelNode.setVisible(isVisible);
+				labelNode.setManaged(isVisible);
 			}
-
-			if(localLangNode != null) {
-				if(!isVisible) {
-					clearFieldValue(localLangNode);
-					if(localLabelNode != null) {
-						localLabelNode.setVisible(isVisible);
-						localLabelNode.setManaged(isVisible);
-					}
-				}
-				else {
-					if(localLabelNode != null) {
-						localLabelNode.setVisible(isVisible);
-						localLabelNode.setManaged(isVisible);
-					}
-				}
-				localLangNode.setVisible(isVisible);
-			}
+			node.setVisible(isVisible);
 		}
 	}
 
