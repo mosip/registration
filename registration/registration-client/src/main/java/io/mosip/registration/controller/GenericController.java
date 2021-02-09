@@ -13,6 +13,7 @@ import io.mosip.registration.controller.reg.RegistrationController;
 import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.util.control.FxControl;
+import io.mosip.registration.util.control.impl.BiometricFxControl;
 import io.mosip.registration.util.control.impl.DocumentFxControl;
 import io.mosip.registration.util.control.impl.DropDownFxControl;
 import io.mosip.registration.util.control.impl.TextFieldFxControl;
@@ -152,7 +153,8 @@ public class GenericController extends BaseController {
 		case CONTROLTYPE_TEXTFIELD:
 			return new TextFieldFxControl().build(uiSchemaDTO);
 		case CONTROLTYPE_BIOMETRICS:
-			break;
+			
+			return new BiometricFxControl().build(uiSchemaDTO);
 		case CONTROLTYPE_BUTTON:
 			break;
 		case CONTROLTYPE_CHECKBOX:

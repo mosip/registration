@@ -64,6 +64,8 @@ public class DocumentFxControl extends FxControl {
 	@Override
 	public FxControl build(UiSchemaDTO uiSchemaDTO) {
 
+		this.uiSchemaDTO = uiSchemaDTO;
+		this.control = this;
 		VBox comboField = create(uiSchemaDTO);
 
 		HBox hBox = new HBox();
@@ -80,7 +82,7 @@ public class DocumentFxControl extends FxControl {
 		this.node = hBox;
 		setListener(getField(uiSchemaDTO.getId() + RegistrationConstants.BUTTON));
 
-		return null;
+		return this.control;
 	}
 
 	private GridPane createScanButton(UiSchemaDTO uiSchemaDTO) {
@@ -94,8 +96,8 @@ public class DocumentFxControl extends FxControl {
 
 		GridPane scanButtonGridPane = new GridPane();
 //		gridPane.setId(docCategoryCode + "RefNumGridPane");
-//		scanButtonGridPane.setVgap(10);
-//		scanButtonGridPane.setHgap(10);
+		scanButtonGridPane.setVgap(10);
+		scanButtonGridPane.setHgap(10);
 		scanButtonGridPane.setPrefWidth(80);
 		scanButtonGridPane.add(scanButton, 0, 0);
 
@@ -108,7 +110,8 @@ public class DocumentFxControl extends FxControl {
 			documentScanController.scanDocument(this, uiSchemaDTO.getId(), comboBox.getValue().getCode());
 
 		} else {
-			// TODO Generate ALert Not valid doc selected
+			documentScanController.generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.PLEASE_SELECT
+					+ RegistrationConstants.SPACE + uiSchemaDTO.getSubType() + " " + RegistrationUIConstants.DOCUMENT);
 		}
 
 	}
@@ -129,7 +132,7 @@ public class DocumentFxControl extends FxControl {
 
 		/** Text Field */
 		TextField textField = getTextField(id + RegistrationConstants.DOC_TEXT_FIELD,
-				RegistrationUIConstants.REF_NUMBER, RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, prefWidth, true);
+				RegistrationUIConstants.REF_NUMBER, RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, prefWidth, false);
 		simpleTypeVBox.getChildren().add(textField);
 
 		if (ApplicationContext.getInstance().isPrimaryLanguageRightToLeft()) {
@@ -277,11 +280,6 @@ public class DocumentFxControl extends FxControl {
 	}
 
 	@Override
-	public UiSchemaDTO getUiSchemaDTO() {
-		return this.uiSchemaDTO;
-	}
-
-	@Override
 	public void setListener(Node node) {
 
 		Button scanButton = (Button) node;
@@ -299,8 +297,8 @@ public class DocumentFxControl extends FxControl {
 					auditEvent = AuditEvent.REG_DOC_SCAN;
 
 				}
-				auditFactory.audit(auditEvent, Components.REG_DOCUMENTS, SessionContext.userId(),
-						AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+//				auditFactory.audit(auditEvent, Components.REG_DOCUMENTS, SessionContext.userId(),
+//						AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 				Button clickedBtn = (Button) event.getSource();
 				clickedBtn.getId();
@@ -321,12 +319,6 @@ public class DocumentFxControl extends FxControl {
 			}
 		});
 
-	}
-
-	@Override
-	public Node getNode() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	private <T> ComboBox<DocumentCategoryDto> getComboBox(String id, String titleText, String styleClass,
