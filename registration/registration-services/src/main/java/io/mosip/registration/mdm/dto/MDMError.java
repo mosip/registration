@@ -6,7 +6,9 @@ public enum MDMError {
 	DEVICE_NOT_REGISTERED("REG-MDM-102", "Device not registered"),
 	UNSUPPORTED_SPEC("REG-MDM-103", "Unsupported SpecVersion"),
 	DEVICE_NOT_FOUND("REG-MDM-104", "Device not found"),
-	MDM_REQUEST_FAILED("REG-MDM-105", "MDM request Failed : ");
+	MDM_REQUEST_FAILED("REG-MDM-105", "MDM request Failed : "),
+	MDM_INVALID_SIGNATURE("REG-MDM-106", "Device response with invalid signature"),
+	MDM_CERT_PATH_TRUST_FAILED("REG-MDM-108", "Certificate path trust validation failed");
 	
 	MDMError(String errorCode, String errorMessage) {
 		this.setErrorCode(errorCode);
