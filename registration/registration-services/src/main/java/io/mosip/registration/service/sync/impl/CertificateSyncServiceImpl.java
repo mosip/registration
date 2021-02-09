@@ -58,9 +58,8 @@ public class CertificateSyncServiceImpl extends BaseService implements Certifica
     private PartnerCertificateManagerService partnerCertificateManagerService;
 
     @Override
-    public ResponseDTO getCACertificates(String triggerPoint) throws RegBaseCheckedException {
+    public ResponseDTO getCACertificates(String triggerPoint) {
         ResponseDTO responseDTO = new ResponseDTO();
-
         Map<String, String> requestParamMap = new LinkedHashMap<>();
         SyncControl syncControl = masterSyncDao.syncJobDetails(RegistrationConstants.OPT_TO_REG_CCS_J00017);
         if (syncControl != null) {
@@ -68,39 +67,39 @@ public class CertificateSyncServiceImpl extends BaseService implements Certifica
                     LocalDateTime.ofInstant(syncControl.getLastSyncDtimes().toInstant(), ZoneOffset.ofHours(0))));
         }
 
-        if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
-            LOGGER.info("", RegistrationConstants.APPLICATION_NAME,
-                    RegistrationConstants.APPLICATION_ID, "Network available cacerts sync started");
-            try {
-                LinkedHashMap<String, Object> certResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil
-                        .get(GET_CA_CERTIFICATE, requestParamMap, false, triggerPoint);
+        if(!RegistrationAppHealthCheckUtil.isNetworkAvailable())
+            return setErrorResponse(responseDTO, RegistrationConstants.NO_INTERNET, null);
 
-                if (null != certResponse.get(RegistrationConstants.RESPONSE)) {
-                    LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) certResponse
-                            .get(RegistrationConstants.RESPONSE);
+        LOGGER.info("", RegistrationConstants.APPLICATION_NAME,
+                RegistrationConstants.APPLICATION_ID, "Network available cacerts sync started");
+        try {
+            LinkedHashMap<String, Object> certResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil
+                    .get(GET_CA_CERTIFICATE, requestParamMap, false, triggerPoint);
 
-                    String lastSyncTime = responseMap.get(LAST_SYNC_TIME).toString();
-                    List<CaCertificateDto> certs = (List<CaCertificateDto>) responseMap.get(CERT_LIST);
-                    if(certs != null) {
-                        certs.sort((CaCertificateDto d1, CaCertificateDto d2) -> d1.getCreatedtimes().compareTo(d2.getCreatedtimes()));
-                        for(CaCertificateDto cert : certs) {
-                            CACertificateRequestDto caCertificateRequestDto = new CACertificateRequestDto();
-                            caCertificateRequestDto.setCertificateData(cert.getCertData());
-                            caCertificateRequestDto.setPartnerDomain(cert.getPartnerDomain());
-                            CACertificateResponseDto caCertificateResponseDto = partnerCertificateManagerService.uploadCACertificate(caCertificateRequestDto);
-                            LOGGER.debug("", RegistrationConstants.APPLICATION_NAME,
-                                    RegistrationConstants.APPLICATION_ID,  caCertificateResponseDto.getStatus());
-                        }
-                        return saveLastSuccessfulSyncTime(responseDTO, triggerPoint, lastSyncTime);
-                    }
-                }
-                else
-                    return getHttpResponseErrors(responseDTO, certResponse);
+            if (null == certResponse.get(RegistrationConstants.RESPONSE))
+                return getHttpResponseErrors(responseDTO, certResponse);
 
-            } catch (Throwable t) {
-                LOGGER.error("", RegistrationConstants.APPLICATION_NAME,
-                        RegistrationConstants.APPLICATION_ID, ExceptionUtils.getStackTrace(t));
+            LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) certResponse
+                    .get(RegistrationConstants.RESPONSE);
+
+            List<CaCertificateDto> certs = (List<CaCertificateDto>) responseMap.get(CERT_LIST);
+            if(null == certs) { return responseDTO; }
+
+            String lastSyncTime = responseMap.get(LAST_SYNC_TIME).toString();
+            certs.sort((CaCertificateDto d1, CaCertificateDto d2) -> d1.getCreatedtimes().compareTo(d2.getCreatedtimes()));
+            for(CaCertificateDto cert : certs) {
+                CACertificateRequestDto caCertificateRequestDto = new CACertificateRequestDto();
+                caCertificateRequestDto.setCertificateData(cert.getCertData());
+                caCertificateRequestDto.setPartnerDomain(cert.getPartnerDomain());
+                CACertificateResponseDto caCertificateResponseDto = partnerCertificateManagerService.uploadCACertificate(caCertificateRequestDto);
+                LOGGER.debug("", RegistrationConstants.APPLICATION_NAME,
+                        RegistrationConstants.APPLICATION_ID,  caCertificateResponseDto.getStatus());
             }
+            return saveLastSuccessfulSyncTime(responseDTO, triggerPoint, lastSyncTime);
+
+        } catch (Throwable t) {
+            LOGGER.error("", RegistrationConstants.APPLICATION_NAME,
+                    RegistrationConstants.APPLICATION_ID, ExceptionUtils.getStackTrace(t));
         }
         return responseDTO;
     }
@@ -112,7 +111,7 @@ public class CertificateSyncServiceImpl extends BaseService implements Certifica
                 RegistrationConstants.JOB_EXECUTION_SUCCESS, RegistrationConstants.JOB_EXECUTION_SUCCESS,
                 triggerPoint, RegistrationConstants.OPT_TO_REG_CCS_J00017);
         syncManager.updateClientSettingLastSyncTime(syncTransaction, getTimestamp(lastSyncTime));
-        LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
+        LOGGER.info("", APPLICATION_NAME, APPLICATION_ID,
                 "Saved CA certificate lastSyncTime completed successfully.");
         return responseDTO;
     }
