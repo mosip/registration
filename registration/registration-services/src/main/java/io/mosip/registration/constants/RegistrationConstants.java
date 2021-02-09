@@ -1833,4 +1833,5 @@ public class RegistrationConstants {
 	public static String ONBOARD_CERT_THUMBPRINT = "thumbprint";
 
 	public static final String OPT_TO_REG_CCS_J00017 = "CCS_J00017";
+	public static final String API_CALL_FAILED = "API call failed with unknown error";
 }
