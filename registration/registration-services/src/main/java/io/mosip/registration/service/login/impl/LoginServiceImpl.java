@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
 import io.mosip.registration.constants.*;
 import io.mosip.registration.dto.*;
+import io.mosip.registration.service.sync.CertificateSyncService;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +58,7 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 	private final String GLOBAL_PARAM_SYNC_STEP = "Global parameter Sync";
 	private final String CLIENTSETTINGS_SYNC_STEP = "Client settings / Master data Sync";
 	private final String USER_DETAIL_SYNC_STEP = "User detail Sync";
-	private final String USER_SALT_SYNC_STEP = "User salt Sync";
+	private final String CACERT_SYNC_STEP = "CA CERT Sync";
 
 	/**
 	 * Instance of LOGGER
@@ -120,6 +121,9 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 
 	@Autowired
 	private ClientCryptoFacade clientCryptoFacade;
+
+	@Autowired
+	private CertificateSyncService certificateSyncService;
 
 	/*
 	 * (non-Javadoc)
@@ -369,6 +373,12 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 			responseDTO = userDetailService.save(triggerPoint);
 			validateResponse(responseDTO, USER_DETAIL_SYNC_STEP);
 			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, USER_DETAIL_SYNC_STEP+ " task completed in (ms) : " +
+					(System.currentTimeMillis() - taskStart));
+
+			taskStart = System.currentTimeMillis();
+			responseDTO = certificateSyncService.getCACertificates(triggerPoint);
+			validateResponse(responseDTO, CACERT_SYNC_STEP);
+			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, CACERT_SYNC_STEP+ " task completed in (ms) : " +
 					(System.currentTimeMillis() - taskStart));
 
 			if(isInitialSetUp) {

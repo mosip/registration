@@ -1831,4 +1831,6 @@ public class RegistrationConstants {
 	public static String CONFIGURATION = "CONFIGURATION";
 
 	public static String ONBOARD_CERT_THUMBPRINT = "thumbprint";
+
+	public static final String OPT_TO_REG_CCS_J00017 = "CCS_J00017";
 }
