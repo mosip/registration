@@ -1415,7 +1415,7 @@ public class RegistrationConstants {
 
 	public static final String JOB_ID = "JOB_ID";
 
-	public static final String SYNC_DATA_FREQ = "mosip.registration.sync_data_freq";
+	public static final String SYNC_DATA_FREQ = "mosip.registration.sync_jobs_restart_freq";
 
 	public static final String LABEL = "Label";
 	public static final String LABEL_SMALL_CASE = "label";
