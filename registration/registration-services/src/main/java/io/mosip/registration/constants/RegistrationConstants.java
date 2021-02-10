@@ -1832,4 +1832,9 @@ public class RegistrationConstants {
 
 	public static final String OPT_TO_REG_CCS_J00017 = "CCS_J00017";
 	public static final String API_CALL_FAILED = "API call failed with unknown error";
+	
+	public static final String FORGOT_USERNAME_URL = "mosip.registration.forgot_username_url";
+	public static final String FORGOT_PWORD_URL = "mosip.registration.forgot_password_url";
+	public static final String RESET_PWORD_URL = "mosip.registration.reset_password_url";
+	public static final String EMAIL_PLACEHOLDER = "{EMAIL}";
 }
