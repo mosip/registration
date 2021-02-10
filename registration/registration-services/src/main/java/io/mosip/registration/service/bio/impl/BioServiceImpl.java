@@ -130,10 +130,18 @@ public class BioServiceImpl extends BaseService implements BioService {
 								.getBioProvider(biometricType, BiometricFunction.QUALITY_CHECK)
 								.getModalityQuality(birList, null);
 
-						LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
-								"Quality score is evaluated and assigning to biometricsDto..");
+						if (ApplicationContext.map().containsKey(RegistrationConstants.UPDATE_SDK_QUALITY_SCORE)
+								&& ApplicationContext
+										.getStringValueFromApplicationMap(RegistrationConstants.UPDATE_SDK_QUALITY_SCORE)
+										.equalsIgnoreCase(RegistrationConstants.ENABLE)) {
+							LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+									"Flag to update quality score evaluated from Biometric SDK is enabled");
 
-						biometricsDto.setQualityScore(scoreMap.get(biometricType));
+							biometricsDto.setQualityScore(scoreMap.get(biometricType));
+							
+							LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+									"Quality score is evaluated and assigned to biometricsDto");
+						}
 					}
 					list.add(biometricsDto);
 				}
