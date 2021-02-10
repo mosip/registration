@@ -139,21 +139,23 @@ public class GenericController extends BaseController {
 
 							FxControl fieldNode = (FxControl) buildFxElement(uiSchemaDTO);
 
-							Node node = fieldNode.getNode();
+							if (fieldNode != null && fieldNode.getNode() != null) {
+								Node node = fieldNode.getNode();
 
-							GridPane gridPane = new GridPane();
+								GridPane gridPane = new GridPane();
 
-							ObservableList<ColumnConstraints> columnConstraints = gridPane.getColumnConstraints();
-							ColumnConstraints columnConstraint1 = new ColumnConstraints();
-							columnConstraint1.setPercentWidth(100);
-							ColumnConstraints columnConstraint2 = new ColumnConstraints();
-							columnConstraint2.setPercentWidth(900);
-							ColumnConstraints columnConstraint3 = new ColumnConstraints();
-							columnConstraint3.setPercentWidth(10);
-							columnConstraints.addAll(columnConstraint1, columnConstraint2, columnConstraint3);
-							gridPane.add(node, 1, 2);
+								ObservableList<ColumnConstraints> columnConstraints = gridPane.getColumnConstraints();
+								ColumnConstraints columnConstraint1 = new ColumnConstraints();
+								columnConstraint1.setPercentWidth(100);
+								ColumnConstraints columnConstraint2 = new ColumnConstraints();
+								columnConstraint2.setPercentWidth(900);
+								ColumnConstraints columnConstraint3 = new ColumnConstraints();
+								columnConstraint3.setPercentWidth(10);
+								columnConstraints.addAll(columnConstraint1, columnConstraint2, columnConstraint3);
+								gridPane.add(node, 1, 2);
 
-							screenGridPane.add(gridPane, 0, count++);
+								screenGridPane.add(gridPane, 0, count++);
+							}
 						}
 					}
 				}
@@ -218,6 +220,22 @@ public class GenericController extends BaseController {
 				hirearcyMap.put(value.get(0).getHierarchyLevel(), fxControl);
 
 				locationMap.put(uiSchemaDTO.getGroup(), hirearcyMap);
+
+			} else {
+
+				Map<String, Object> data = new LinkedHashMap<>();
+
+				try {
+					data.put(RegistrationConstants.PRIMARY, masterSyncService.getFieldValues(uiSchemaDTO.getId(),
+							ApplicationContext.applicationLanguage()));
+					data.put(RegistrationConstants.SECONDARY,
+							masterSyncService.getFieldValues(uiSchemaDTO.getId(), ApplicationContext.localLanguage()));
+				} catch (RegBaseCheckedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} finally {
+					fxControl.fillData(data);
+				}
 
 			}
 

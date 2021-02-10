@@ -519,6 +519,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 							Map<String, List<String>> var = new LinkedHashMap<>();
 							List<String> list = new LinkedList<String>();
 							list.add("fullName");
+							list.add("gender");
 							list.add("addressLine1");
 
 							list.add("addressLine2");

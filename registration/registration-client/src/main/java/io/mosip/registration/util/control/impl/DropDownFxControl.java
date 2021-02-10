@@ -163,52 +163,60 @@ public class DropDownFxControl extends FxControl {
 			FXUtils.getInstance().populateLocalComboBox((Pane) getNode(), (ComboBox<?>) getField(uiSchemaDTO.getId()),
 					(ComboBox<?>) getField(uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE));
 		}
-		node.addEventHandler(Event.ANY, event -> {
-			if (isValid(getField(uiSchemaDTO.getId()))) {
 
-				// TODO Set Local vals
+		((ComboBox<GenericDto>) getField(uiSchemaDTO.getId())).getSelectionModel().selectedItemProperty()
+				.addListener((options, oldValue, newValue) -> {
+					if (isValid(getField(uiSchemaDTO.getId()))) {
 
-				Map<Integer, FxControl> hirearchyMap = GenericController.locationMap.get(uiSchemaDTO.getGroup());
+						// TODO Set Local vals
 
-				for (Entry<Integer, FxControl> entry : hirearchyMap.entrySet()) {
+						Map<Integer, FxControl> hirearchyMap = GenericController.locationMap
+								.get(uiSchemaDTO.getGroup());
 
-					if (entry.getValue() == this.control) {
+						if (hirearchyMap != null && !hirearchyMap.isEmpty()) {
+							for (Entry<Integer, FxControl> entry : hirearchyMap.entrySet()) {
 
-						Entry<Integer, FxControl> nextEntry = GenericController.locationMap.get(uiSchemaDTO.getGroup())
-								.higherEntry(entry.getKey());
+								if (entry.getValue() == this.control) {
 
-						if (nextEntry != null) {
-							FxControl nextLocation = nextEntry.getValue();
+									Entry<Integer, FxControl> nextEntry = GenericController.locationMap
+											.get(uiSchemaDTO.getGroup()).higherEntry(entry.getKey());
 
-							Map<String, Object> data = new LinkedHashMap<>();
+									if (nextEntry != null) {
+										FxControl nextLocation = nextEntry.getValue();
 
-							ComboBox<GenericDto> comboBox = (ComboBox<GenericDto>) getField(uiSchemaDTO.getId());
+										Map<String, Object> data = new LinkedHashMap<>();
 
-							if (comboBox != null && comboBox.getValue() != null) {
-								GenericDto genericDto = comboBox.getValue();
+										ComboBox<GenericDto> comboBox = (ComboBox<GenericDto>) getField(
+												uiSchemaDTO.getId());
 
-								data.put(RegistrationConstants.PRIMARY,
-										getLocations(genericDto.getCode(), genericDto.getLangCode()));
-								data.put(RegistrationConstants.SECONDARY, getLocations(genericDto.getCode(),
-										io.mosip.registration.context.ApplicationContext.localLanguage()));
+										if (comboBox != null && comboBox.getValue() != null) {
+											GenericDto genericDto = comboBox.getValue();
+
+											data.put(RegistrationConstants.PRIMARY,
+													getLocations(genericDto.getCode(), genericDto.getLangCode()));
+											data.put(RegistrationConstants.SECONDARY, getLocations(genericDto.getCode(),
+													io.mosip.registration.context.ApplicationContext.localLanguage()));
+										}
+
+										nextLocation.fillData(data);
+
+									}
+
+									break;
+								}
 							}
-
-							nextLocation.fillData(data);
-
 						}
-					}
-				}
 
-				if (uiSchemaDTO != null) {
-					LOGGER.info(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-							"Invoking external action handler for .... " + uiSchemaDTO.getId());
-					demographicChangeActionHandler.actionHandle((Pane) getNode(), node.getId(),
-							uiSchemaDTO.getChangeAction());
-				}
-				// Group level visibility listeners
-				refreshFields();
-			}
-		});
+						if (uiSchemaDTO != null) {
+							LOGGER.info(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+									"Invoking external action handler for .... " + uiSchemaDTO.getId());
+							demographicChangeActionHandler.actionHandle((Pane) getNode(), node.getId(),
+									uiSchemaDTO.getChangeAction());
+						}
+						// Group level visibility listeners
+						refreshFields();
+					}
+				});
 	}
 
 	private List<GenericDto> getLocations(String hirearchCode, String langCode) {
