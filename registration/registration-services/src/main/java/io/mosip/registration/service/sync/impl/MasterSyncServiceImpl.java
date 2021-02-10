@@ -335,7 +335,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	 */
 	@Override
 	public List<GenericDto> getGenderDtls(String langCode) throws RegBaseCheckedException {
-		List<GenericDto> gendetDtoList = new ArrayList<>();
+		List<GenericDto> gendetDtoList = new LinkedList<>();
 		if (langCodeNullCheck(langCode)) {
 			List<Gender> masterDocuments = masterSyncDao.getGenderDtls(langCode);
 			masterDocuments.forEach(gender -> {
@@ -412,7 +412,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	 */
 	@Override
 	public List<GenericDto> getIndividualType(String langCode) throws RegBaseCheckedException {
-		List<GenericDto> listOfIndividualDTO = new ArrayList<>();
+		List<GenericDto> listOfIndividualDTO = new LinkedList<>();
 
 		List<IndividualType> masterDocuments = masterSyncDao.getIndividulType(langCode);
 
@@ -428,7 +428,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 
 	@Override
 	public List<GenericDto> getDynamicField(String fieldName, String langCode) throws RegBaseCheckedException {
-		List<GenericDto> fieldValues = new ArrayList<>();
+		List<GenericDto> fieldValues = new LinkedList<>();
 		List<DynamicFieldValueDto> syncedValues = dynamicFieldDAO.getDynamicFieldValues(fieldName, langCode);
 
 		if (syncedValues != null) {

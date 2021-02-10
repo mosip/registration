@@ -1811,8 +1811,9 @@ public class RegistrationConstants {
 
 	// UI Schema field group name
 	public static final String UI_SCHEMA_GROUP_FULL_NAME = "FullName";
-	public static final String UI_SCHEMA_GROUP_EMAIL = "Email";
-	public static final String UI_SCHEMA_GROUP_PHONE = "Phone";
+	public static final String UI_SCHEMA_SUBTYPE_FULL_NAME = "name";
+	public static final String UI_SCHEMA_SUBTYPE_EMAIL = "Email";
+	public static final String UI_SCHEMA_SUBTYPE_PHONE = "Phone";
 	public static final String MVEL_TYPE = "MVEL";
 	public static final String MACHINE_VERIFICATION_SUCCESS = "Machine Verification Success";
 	public static final String UTC_APPENDER = " (UTC)";
