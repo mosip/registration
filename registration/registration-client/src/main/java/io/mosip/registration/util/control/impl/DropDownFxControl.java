@@ -30,6 +30,8 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 
@@ -67,13 +69,18 @@ public class DropDownFxControl extends FxControl {
 		HBox hBox = new HBox();
 		hBox.setSpacing(20);
 		hBox.getChildren().add(primaryLangVBox);
+		HBox.setHgrow(primaryLangVBox, Priority.ALWAYS);
 
 		if (demographicDetailController.isLocalLanguageAvailable()
 				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
 
 			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
 
-			hBox.getChildren().add(secondaryLangVBox);
+			Region region = new Region();
+	        HBox.setHgrow(region, Priority.ALWAYS);
+	        
+	        //HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
+			hBox.getChildren().addAll(region, secondaryLangVBox);
 
 		}
 
