@@ -519,11 +519,19 @@ public class PacketHandlerController extends BaseController implements Initializ
 							Map<String, List<String>> var = new LinkedHashMap<>();
 							List<String> list = new LinkedList<String>();
 							list.add("fullName");
+							list.add("gender");
 							list.add("addressLine1");
 
 							list.add("addressLine2");
 							list.add("addressLine3");
 							list.add("proofOfIdentity");
+
+							list.add("region");
+							list.add("province");
+							list.add("city");
+							list.add("zone");
+
+							list.add("individualBiometrics");
 							var.put("screen1", list);
 
 							genericController.populateScreens(var);

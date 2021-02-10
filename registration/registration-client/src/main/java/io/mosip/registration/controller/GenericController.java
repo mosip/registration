@@ -4,14 +4,22 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.controller.reg.RegistrationController;
 import io.mosip.registration.controller.reg.Validations;
+import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dto.UiSchemaDTO;
+import io.mosip.registration.dto.mastersync.GenericDto;
+import io.mosip.registration.dto.mastersync.LocationDto;
+import io.mosip.registration.entity.Location;
+import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.util.control.FxControl;
 import io.mosip.registration.util.control.impl.BiometricFxControl;
 import io.mosip.registration.util.control.impl.DocumentFxControl;
@@ -21,6 +29,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.control.ComboBox;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
@@ -64,6 +73,13 @@ public class GenericController extends BaseController {
 
 	@Autowired
 	private RegistrationController registrationController;
+
+	@Autowired
+	private MasterSyncDao masterSyncDao;
+
+	@Autowired
+	private MasterSyncService masterSyncService;
+	public static Map<String, TreeMap<Integer, FxControl>> locationMap = new LinkedHashMap<String, TreeMap<Integer, FxControl>>();
 
 	/**
 	 * Key- String : is a screen name Value - Node : screenNode {@summary all screen
@@ -123,23 +139,47 @@ public class GenericController extends BaseController {
 
 							FxControl fieldNode = (FxControl) buildFxElement(uiSchemaDTO);
 
-							Node node = fieldNode.getNode();
+							if (fieldNode != null && fieldNode.getNode() != null) {
+								Node node = fieldNode.getNode();
 
-							GridPane gridPane = new GridPane();
+								GridPane gridPane = new GridPane();
 
-							ObservableList<ColumnConstraints> columnConstraints = gridPane.getColumnConstraints();
-							ColumnConstraints columnConstraint1 = new ColumnConstraints();
-							columnConstraint1.setPercentWidth(100);
-							ColumnConstraints columnConstraint2 = new ColumnConstraints();
-							columnConstraint2.setPercentWidth(900);
-							ColumnConstraints columnConstraint3 = new ColumnConstraints();
-							columnConstraint3.setPercentWidth(10);
-							columnConstraints.addAll(columnConstraint1, columnConstraint2, columnConstraint3);
-							gridPane.add(node, 1, 2);
+								ObservableList<ColumnConstraints> columnConstraints = gridPane.getColumnConstraints();
+								ColumnConstraints columnConstraint1 = new ColumnConstraints();
+								columnConstraint1.setPercentWidth(100);
+								ColumnConstraints columnConstraint2 = new ColumnConstraints();
+								columnConstraint2.setPercentWidth(900);
+								ColumnConstraints columnConstraint3 = new ColumnConstraints();
+								columnConstraint3.setPercentWidth(10);
+								columnConstraints.addAll(columnConstraint1, columnConstraint2, columnConstraint3);
+								gridPane.add(node, 1, 2);
 
-							screenGridPane.add(gridPane, 0, count++);
+								screenGridPane.add(gridPane, 0, count++);
+							}
 						}
 					}
+				}
+
+				for (Entry<String, TreeMap<Integer, FxControl>> locatioEntrySet : locationMap.entrySet()) {
+
+					TreeMap<Integer, FxControl> treeMap = locatioEntrySet.getValue();
+
+					Entry<Integer, FxControl> val = treeMap.firstEntry();
+					try {
+
+						Map<String, Object> data = new LinkedHashMap<>();
+
+						data.put(RegistrationConstants.PRIMARY, masterSyncService
+								.findLocationByHierarchyCode(val.getKey(), ApplicationContext.applicationLanguage()));
+						data.put(RegistrationConstants.SECONDARY, masterSyncService
+								.findLocationByHierarchyCode(val.getKey(), ApplicationContext.localLanguage()));
+
+						val.getValue().fillData(data);
+					} catch (RegBaseCheckedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
 				}
 			}
 
@@ -153,7 +193,7 @@ public class GenericController extends BaseController {
 		case CONTROLTYPE_TEXTFIELD:
 			return new TextFieldFxControl().build(uiSchemaDTO);
 		case CONTROLTYPE_BIOMETRICS:
-			
+
 			return new BiometricFxControl().build(uiSchemaDTO);
 		case CONTROLTYPE_BUTTON:
 			break;
@@ -166,7 +206,40 @@ public class GenericController extends BaseController {
 		case CONTROLTYPE_DOCUMENTS:
 			return new DocumentFxControl().build(uiSchemaDTO);
 		case CONTROLTYPE_DROPDOWN:
-			return new DropDownFxControl().build(uiSchemaDTO);
+
+			FxControl fxControl = new DropDownFxControl().build(uiSchemaDTO);
+			if (uiSchemaDTO.getGroup().contains(RegistrationConstants.LOCATION)) {
+
+				List<Location> value = masterSyncDao.getLocationDetails(uiSchemaDTO.getSubType(),
+						applicationContext.getApplicationLanguage());
+
+				TreeMap<Integer, FxControl> hirearcyMap = locationMap.get(uiSchemaDTO.getGroup()) != null
+						? locationMap.get(uiSchemaDTO.getGroup())
+						: new TreeMap<Integer, FxControl>();
+
+				hirearcyMap.put(value.get(0).getHierarchyLevel(), fxControl);
+
+				locationMap.put(uiSchemaDTO.getGroup(), hirearcyMap);
+
+			} else {
+
+				Map<String, Object> data = new LinkedHashMap<>();
+
+				try {
+					data.put(RegistrationConstants.PRIMARY, masterSyncService.getFieldValues(uiSchemaDTO.getId(),
+							ApplicationContext.applicationLanguage()));
+					data.put(RegistrationConstants.SECONDARY,
+							masterSyncService.getFieldValues(uiSchemaDTO.getId(), ApplicationContext.localLanguage()));
+				} catch (RegBaseCheckedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} finally {
+					fxControl.fillData(data);
+				}
+
+			}
+
+			return fxControl;
 
 		}
 

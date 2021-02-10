@@ -2,23 +2,32 @@ package io.mosip.registration.util.control.impl;
 
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.springframework.context.ApplicationContext;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.controller.FXUtils;
+import io.mosip.registration.controller.GenericController;
+import io.mosip.registration.controller.Initialization;
 import io.mosip.registration.controller.reg.DemographicDetailController;
 import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.GenericDto;
+import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.service.sync.MasterSyncService;
+import io.mosip.registration.util.common.ComboBoxAutoComplete;
 import io.mosip.registration.util.common.DemographicChangeActionHandler;
 import io.mosip.registration.util.control.FxControl;
 import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -33,13 +42,27 @@ public class DropDownFxControl extends FxControl {
 	private static final String loggerClassName = "DropDownFxControl";
 	private Validations validation;
 	private DemographicChangeActionHandler demographicChangeActionHandler;
-
+	private MasterSyncService masterSyncService;
 	private String languageType;
+
+	public DropDownFxControl() {
+
+		ApplicationContext applicationContext = Initialization.getApplicationContext();
+		this.demographicDetailController = applicationContext.getBean(DemographicDetailController.class);
+
+		validation = applicationContext.getBean(Validations.class);
+		demographicChangeActionHandler = applicationContext.getBean(DemographicChangeActionHandler.class);
+
+		masterSyncService = applicationContext.getBean(MasterSyncService.class);
+
+	}
 
 	@Override
 	public FxControl build(UiSchemaDTO uiSchemaDTO) {
 
 		this.uiSchemaDTO = uiSchemaDTO;
+
+		this.control = this;
 		VBox primaryLangVBox = create(uiSchemaDTO, "");
 		HBox hBox = new HBox();
 		hBox.setSpacing(20);
@@ -56,7 +79,7 @@ public class DropDownFxControl extends FxControl {
 
 		this.node = hBox;
 		setListener(node);
-		return null;
+		return this.control;
 	}
 
 	private VBox create(UiSchemaDTO uiSchemaDTO, String languageType) {
@@ -78,7 +101,7 @@ public class DropDownFxControl extends FxControl {
 
 		/** Title label */
 		Label fieldTitle = getLabel(fieldName + languageType + RegistrationConstants.LABEL, titleText,
-				RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, false, prefWidth);
+				RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, prefWidth);
 		simpleTypeVBox.getChildren().add(fieldTitle);
 
 		/** comboBox Field */
@@ -104,7 +127,7 @@ public class DropDownFxControl extends FxControl {
 		field.setId(id);
 		field.setPrefWidth(prefWidth);
 		field.setPromptText(titleText);
-		field.setDisable(true);
+		field.setDisable(isDisable);
 		field.setConverter((StringConverter<GenericDto>) uiRenderForComboBox);
 
 		return field;
@@ -140,29 +163,103 @@ public class DropDownFxControl extends FxControl {
 			FXUtils.getInstance().populateLocalComboBox((Pane) getNode(), (ComboBox<?>) getField(uiSchemaDTO.getId()),
 					(ComboBox<?>) getField(uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE));
 		}
-		node.addEventHandler(Event.ANY, event -> {
-			if (isValid(getField(uiSchemaDTO.getId()))) {
 
-				// handling other handlers
-				UiSchemaDTO uiSchemaDTO = validation.getValidationMap()
-						.get(node.getId().replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY)
-								.replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY));
-				if (uiSchemaDTO != null) {
-					LOGGER.info(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-							"Invoking external action handler for .... " + uiSchemaDTO.getId());
-					demographicChangeActionHandler.actionHandle((Pane) getNode(), node.getId(),
-							uiSchemaDTO.getChangeAction());
-				}
-				// Group level visibility listeners
-				refreshFields();
+		((ComboBox<GenericDto>) getField(uiSchemaDTO.getId())).getSelectionModel().selectedItemProperty()
+				.addListener((options, oldValue, newValue) -> {
+					if (isValid(getField(uiSchemaDTO.getId()))) {
+
+						// TODO Set Local vals
+
+						Map<Integer, FxControl> hirearchyMap = GenericController.locationMap
+								.get(uiSchemaDTO.getGroup());
+
+						if (hirearchyMap != null && !hirearchyMap.isEmpty()) {
+							for (Entry<Integer, FxControl> entry : hirearchyMap.entrySet()) {
+
+								if (entry.getValue() == this.control) {
+
+									Entry<Integer, FxControl> nextEntry = GenericController.locationMap
+											.get(uiSchemaDTO.getGroup()).higherEntry(entry.getKey());
+
+									if (nextEntry != null) {
+										FxControl nextLocation = nextEntry.getValue();
+
+										Map<String, Object> data = new LinkedHashMap<>();
+
+										ComboBox<GenericDto> comboBox = (ComboBox<GenericDto>) getField(
+												uiSchemaDTO.getId());
+
+										if (comboBox != null && comboBox.getValue() != null) {
+											GenericDto genericDto = comboBox.getValue();
+
+											data.put(RegistrationConstants.PRIMARY,
+													getLocations(genericDto.getCode(), genericDto.getLangCode()));
+											data.put(RegistrationConstants.SECONDARY, getLocations(genericDto.getCode(),
+													io.mosip.registration.context.ApplicationContext.localLanguage()));
+										}
+
+										nextLocation.fillData(data);
+
+									}
+
+									break;
+								}
+							}
+						}
+
+						if (uiSchemaDTO != null) {
+							LOGGER.info(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+									"Invoking external action handler for .... " + uiSchemaDTO.getId());
+							demographicChangeActionHandler.actionHandle((Pane) getNode(), node.getId(),
+									uiSchemaDTO.getChangeAction());
+						}
+						// Group level visibility listeners
+						refreshFields();
+					}
+				});
+	}
+
+	private List<GenericDto> getLocations(String hirearchCode, String langCode) {
+
+		List<GenericDto> locations = null;
+		try {
+			locations = masterSyncService.findProvianceByHierarchyCode(hirearchCode, langCode);
+		} catch (RegBaseCheckedException e) {
+			// TODO
+			e.printStackTrace();
+		} finally {
+			if (locations.isEmpty()) {
+				GenericDto lC = new GenericDto();
+				lC.setCode(RegistrationConstants.AUDIT_DEFAULT_USER);
+				lC.setName(RegistrationConstants.AUDIT_DEFAULT_USER);
+				lC.setLangCode(langCode);
+				locations.add(lC);
 			}
-		});
+		}
+
+		return locations;
+
 	}
 
 	@Override
 	public void fillData(Object data) {
-		// TODO Auto-generated method stub
-		
+
+		if (data != null) {
+
+			Map<String, List<GenericDto>> val = (Map<String, List<GenericDto>>) data;
+
+			setItems((ComboBox<GenericDto>) getField(uiSchemaDTO.getId()), val.get(RegistrationConstants.PRIMARY));
+			setItems((ComboBox<GenericDto>) getField(uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE),
+					val.get(RegistrationConstants.SECONDARY));
+
+		}
+	}
+
+	private void setItems(ComboBox<GenericDto> comboBox, List<GenericDto> val) {
+		if (comboBox != null && val != null && !val.isEmpty()) {
+			comboBox.getItems().clear();
+			comboBox.getItems().addAll(val);
+		}
 	}
 
 }
