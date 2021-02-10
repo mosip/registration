@@ -1338,6 +1338,7 @@ public class RegistrationConstants {
 
 	// flag for quality check with SDK
 	public static final String QUALITY_CHECK_WITH_SDK = "mosip.registration.quality_check_with_sdk";
+	public static final String UPDATE_SDK_QUALITY_SCORE = "mosip.registration.replace_sdk_quality_score";
 
 	// Packet Sync
 	public static final String PACKET_SYNC = "packet_sync";
