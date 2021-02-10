@@ -15,8 +15,6 @@ import io.mosip.registration.controller.reg.RegistrationController;
 import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dto.UiSchemaDTO;
-import io.mosip.registration.dto.mastersync.GenericDto;
-import io.mosip.registration.dto.mastersync.LocationDto;
 import io.mosip.registration.entity.Location;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.sync.MasterSyncService;
@@ -27,10 +25,7 @@ import io.mosip.registration.util.control.impl.DropDownFxControl;
 import io.mosip.registration.util.control.impl.TextFieldFxControl;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.control.ComboBox;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -119,6 +114,9 @@ public class GenericController extends BaseController {
 			for (Entry<String, List<String>> screenEntry : screens.entrySet()) {
 
 				GridPane screenGridPane = new GridPane();
+				
+				screenGridPane.setHgap(15);
+				screenGridPane.setVgap(15);
 
 				screenGridPane.getStyleClass().add("-fx-background-color: blue; -fx-grid-lines-visible: true");
 
@@ -144,14 +142,13 @@ public class GenericController extends BaseController {
 
 								GridPane gridPane = new GridPane();
 
-								ObservableList<ColumnConstraints> columnConstraints = gridPane.getColumnConstraints();
 								ColumnConstraints columnConstraint1 = new ColumnConstraints();
-								columnConstraint1.setPercentWidth(100);
+								columnConstraint1.setPercentWidth(20);
 								ColumnConstraints columnConstraint2 = new ColumnConstraints();
-								columnConstraint2.setPercentWidth(900);
+								columnConstraint2.setPercentWidth(60);
 								ColumnConstraints columnConstraint3 = new ColumnConstraints();
-								columnConstraint3.setPercentWidth(10);
-								columnConstraints.addAll(columnConstraint1, columnConstraint2, columnConstraint3);
+								columnConstraint3.setPercentWidth(20);
+								gridPane.getColumnConstraints().addAll(columnConstraint1, columnConstraint2, columnConstraint3);
 								gridPane.add(node, 1, 2);
 
 								screenGridPane.add(gridPane, 0, count++);

@@ -5,17 +5,13 @@ package io.mosip.registration.util.control.impl;
 
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
-import java.util.LinkedList;
 import java.util.List;
 
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.io.ResourceLoader;
 
-import io.mosip.commons.packet.dto.packet.SimpleDto;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
-import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.FXUtils;
 import io.mosip.registration.controller.Initialization;
 import io.mosip.registration.controller.VirtualKeyboard;
@@ -32,6 +28,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 /**
@@ -70,16 +68,18 @@ public class TextFieldFxControl extends FxControl {
 		VBox primaryLangVBox = create(uiSchemaDTO, "");
 
 		HBox hBox = new HBox();
-		hBox.setSpacing(20);
 		hBox.getChildren().add(primaryLangVBox);
-
+		HBox.setHgrow(primaryLangVBox, Priority.ALWAYS);
+        
 		if (demographicDetailController.isLocalLanguageAvailable()
 				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
-
 			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
 
-			hBox.getChildren().add(secondaryLangVBox);
-
+			Region region = new Region();
+	        HBox.setHgrow(region, Priority.ALWAYS);
+	        
+	        HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
+			hBox.getChildren().addAll(region, secondaryLangVBox);
 		}
 
 		this.node = hBox;
