@@ -49,6 +49,7 @@ import io.mosip.registration.dto.packetmanager.DocumentDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.doc.category.DocumentCategoryService;
 import io.mosip.registration.service.sync.MasterSyncService;
+import io.mosip.registration.util.control.FxControl;
 import io.mosip.registration.util.control.impl.DocumentFxControl;
 import io.mosip.registration.util.scan.DocumentScanFacade;
 import javafx.collections.ObservableList;
@@ -177,6 +178,7 @@ public class DocumentScanController extends BaseController {
 	private String cropDocumentKey;
 
 	private Webcam webcam;
+	private FxControl fxControl;
 
 	public Webcam getWebcam() {
 		return webcam;
@@ -634,7 +636,7 @@ public class DocumentScanController extends BaseController {
 	/**
 	 * This method will display Scan window to scan and upload documents
 	 */
-	private void scanWindow() {
+	public void scanWindow() {
 
 		Webcam webcam = webcamSarxosServiceImpl.getWebCam(selectedScanDeviceName);
 		if ((selectedScanDeviceName == null || selectedScanDeviceName.isEmpty()) || webcam == null) {
@@ -1506,7 +1508,6 @@ public class DocumentScanController extends BaseController {
 	public void scanDocument(DocumentFxControl documentFxControl, String fieldId, String docCode) {
 
 		this.documentFxControl = documentFxControl;
-		scannedPages.clear();
 		Webcam webcam = webcamSarxosServiceImpl.getWebCam(selectedScanDeviceName);
 		if ((selectedScanDeviceName == null || selectedScanDeviceName.isEmpty()) || webcam == null) {
 			documentScanFacade.setStubScannerFactory();
@@ -1553,6 +1554,14 @@ public class DocumentScanController extends BaseController {
 
 	public DocumentScanFacade getDocumentScanFacade() {
 		return documentScanFacade;
+	}
+
+	public FxControl getFxControl() {
+		return fxControl;
+	}
+
+	public void setFxControl(FxControl fxControl) {
+		this.fxControl = fxControl;
 	}
 
 }

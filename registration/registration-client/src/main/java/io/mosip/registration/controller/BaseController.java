@@ -786,7 +786,7 @@ public class BaseController {
 	 * @param imageBytes the image bytes
 	 * @return the image
 	 */
-	protected Image convertBytesToImage(byte[] imageBytes) {
+	public Image convertBytesToImage(byte[] imageBytes) {
 		Image image = null;
 		if (imageBytes != null) {
 			image = new Image(new ByteArrayInputStream(imageBytes));
@@ -1551,7 +1551,7 @@ public class BaseController {
 		return false;
 	}
 
-	protected String getThresholdKeyByBioType(String bioType) {
+	public String getThresholdKeyByBioType(String bioType) {
 		return bioType.equals(RegistrationConstants.FINGERPRINT_SLAB_LEFT)
 				? RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD
 				: bioType.equals(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)

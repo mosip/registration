@@ -363,13 +363,13 @@ public class ScanPopUpViewController extends BaseController {
 			DocumentScanController documentScanController = (DocumentScanController) baseController;
 			try {
 
-				fxControl.setData(documentScanController.getScannedPages());
+				documentScanController.getFxControl().setData(documentScanController.getScannedPages());
 
-				documentScanController.attachScannedDocument(popupStage);
+//				documentScanController.attachScannedDocument(popupStage);
 
 				documentScanController.getScannedPages().clear();
 				popupStage.close();
-			} catch (IOException | RuntimeException ioException) {
+			} catch (RuntimeException ioException) {
 				LOGGER.error(LOG_REG_SCAN_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 						ExceptionUtils.getStackTrace(ioException));
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOCUMENT_ERROR);
