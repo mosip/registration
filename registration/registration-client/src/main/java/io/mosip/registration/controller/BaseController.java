@@ -1822,13 +1822,13 @@ public class BaseController {
 
 		String mandatoryAstrik = demographicDetailController.getMandatorySuffix(schema);
 		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
-			field.setPromptText(schema.getLabel().get(RegistrationConstants.SECONDARY) + mandatoryAstrik);
 			label.setText(schema.getLabel().get(RegistrationConstants.SECONDARY) + mandatoryAstrik);
+			field.setPromptText(label.getText());
 			field.setDisable(true);
 			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.SECONDARY));
 		} else {
-			field.setPromptText(schema.getLabel().get(RegistrationConstants.PRIMARY) + mandatoryAstrik);
 			label.setText(schema.getLabel().get(RegistrationConstants.PRIMARY) + mandatoryAstrik);
+			field.setPromptText(label.getText());
 			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.PRIMARY));
 		}
 		// vbox.setStyle("-fx-background-color:BLUE");

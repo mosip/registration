@@ -85,9 +85,7 @@ import io.mosip.registration.util.mastersync.MapperUtils;
 @Service
 public class MasterSyncServiceImpl extends BaseService implements MasterSyncService {
 
-	private static final String TIMESTAMP_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
-	private SimpleDateFormat simpleDateFormat = new SimpleDateFormat(TIMESTAMP_FORMAT);
 
 	/**
 	 * The SncTransactionManagerImpl, which Have the functionalities to get the job
@@ -337,7 +335,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	 */
 	@Override
 	public List<GenericDto> getGenderDtls(String langCode) throws RegBaseCheckedException {
-		List<GenericDto> gendetDtoList = new ArrayList<>();
+		List<GenericDto> gendetDtoList = new LinkedList<>();
 		if (langCodeNullCheck(langCode)) {
 			List<Gender> masterDocuments = masterSyncDao.getGenderDtls(langCode);
 			masterDocuments.forEach(gender -> {
@@ -414,7 +412,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	 */
 	@Override
 	public List<GenericDto> getIndividualType(String langCode) throws RegBaseCheckedException {
-		List<GenericDto> listOfIndividualDTO = new ArrayList<>();
+		List<GenericDto> listOfIndividualDTO = new LinkedList<>();
 
 		List<IndividualType> masterDocuments = masterSyncDao.getIndividulType(langCode);
 
@@ -430,7 +428,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 
 	@Override
 	public List<GenericDto> getDynamicField(String fieldName, String langCode) throws RegBaseCheckedException {
-		List<GenericDto> fieldValues = new ArrayList<>();
+		List<GenericDto> fieldValues = new LinkedList<>();
 		List<DynamicFieldValueDto> syncedValues = dynamicFieldDAO.getDynamicFieldValues(fieldName, langCode);
 
 		if (syncedValues != null) {
@@ -731,25 +729,6 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 					"Save Client Settings completed successfully.");
 		} else
 			setErrorResponse(responseDTO, RegistrationConstants.MASTER_SYNC_FAILURE_MSG, null);
-	}
-
-	/**
-	 * Converts string to java.sql.Timestamp
-	 * 
-	 * @param time
-	 * @return
-	 * @throws RegBaseCheckedException
-	 */
-	private Timestamp getTimestamp(String time) throws RegBaseCheckedException {
-		try {
-			Date date = simpleDateFormat.parse(time);
-			Timestamp timestamp = new Timestamp(date.getTime());
-			return timestamp;
-		} catch (ParseException e) {
-			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, e.getMessage());
-		}
-		throw new RegBaseCheckedException(RegistrationConstants.SYNC_TRANSACTION_RUNTIME_EXCEPTION,
-				"Failed to parse lastSyncTime from server : " + time);
 	}
 
 	@SuppressWarnings("unchecked")

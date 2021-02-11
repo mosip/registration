@@ -300,6 +300,10 @@ public class BiometricFxControl extends FxControl {
 
 	public boolean isAllExceptions(String modality) {
 
+		if (biometricsController.isExceptionPhoto(modality)) {
+			return getRegistrationDTo().getDocuments().get("proofOfException") == null;
+
+		}
 		boolean isAllExceptions = true;
 		for (String configBioAttribute : modalityAttributeMap.get(modality).get(0)) {
 
@@ -358,7 +362,14 @@ public class BiometricFxControl extends FxControl {
 
 	public void refreshExceptionMarks() {
 
-		if (isAllExceptions(modality) || !biometricsController
+		if (biometricsController.isExceptionPhoto(modality)) {
+			DocumentDto documentDto = getRegistrationDTo().getDocuments().get("proofOfException");
+			if (documentDto != null) {
+				addTickMark(modality);
+			} else {
+				removeTickMark(modality);
+			}
+		} else if (isAllExceptions(modality) || !biometricsController
 				.getBiometrics(uiSchemaDTO.getSubType(), modalityAttributeMap.get(modality).get(0)).isEmpty()) {
 			addTickMark(modality);
 		} else {

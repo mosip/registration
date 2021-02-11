@@ -1,49 +1,5 @@
 package io.mosip.registration.service.operator.impl;
 
-import static io.mosip.registration.constants.LoggerConstants.LOG_REG_USER_ONBOARD;
-import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
-import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
-
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateEncodingException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.WeakHashMap;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-
-import io.mosip.kernel.cryptomanager.dto.CryptomanagerRequestDto;
-import io.mosip.kernel.cryptomanager.dto.CryptomanagerResponseDto;
-import io.mosip.kernel.cryptomanager.service.CryptomanagerService;
-import io.mosip.kernel.keygenerator.bouncycastle.util.KeyGeneratorUtils;
-import io.mosip.kernel.keymanagerservice.dto.KeyPairGenerateResponseDto;
-import io.mosip.kernel.keymanagerservice.dto.UploadCertificateRequestDto;
-import io.mosip.kernel.keymanagerservice.exception.InvalidApplicationIdException;
-import io.mosip.kernel.keymanagerservice.exception.KeymanagerServiceException;
-import io.mosip.kernel.keymanagerservice.service.KeymanagerService;
-import io.mosip.kernel.keymanagerservice.util.KeymanagerUtil;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import io.mosip.commons.packet.constants.Biometric;
 import io.mosip.kernel.biometrics.constant.BiometricFunction;
 import io.mosip.kernel.biometrics.constant.BiometricType;
@@ -59,10 +15,18 @@ import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.StringUtils;
-
+import io.mosip.kernel.cryptomanager.dto.CryptomanagerRequestDto;
+import io.mosip.kernel.cryptomanager.dto.CryptomanagerResponseDto;
+import io.mosip.kernel.cryptomanager.service.CryptomanagerService;
+import io.mosip.kernel.keygenerator.bouncycastle.util.KeyGeneratorUtils;
+import io.mosip.kernel.keymanagerservice.dto.KeyPairGenerateResponseDto;
+import io.mosip.kernel.keymanagerservice.dto.UploadCertificateRequestDto;
+import io.mosip.kernel.keymanagerservice.exception.InvalidApplicationIdException;
+import io.mosip.kernel.keymanagerservice.exception.KeymanagerServiceException;
+import io.mosip.kernel.keymanagerservice.service.KeymanagerService;
+import io.mosip.kernel.keymanagerservice.util.KeymanagerUtil;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
-import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.dao.UserOnboardDAO;
 import io.mosip.registration.dto.ResponseDTO;
@@ -75,6 +39,30 @@ import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.operator.UserOnboardService;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.sql.Timestamp;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+import io.mosip.registration.context.ApplicationContext;
+
+import static io.mosip.registration.constants.LoggerConstants.LOG_REG_USER_ONBOARD;
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 /**
  * Implementation for {@link UserOnboardService}

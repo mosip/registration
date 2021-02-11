@@ -223,7 +223,7 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 	@Override
 	public List<Gender> getGenderDtls(String langCode) {
 
-		return genderRepository.findByIsActiveTrueAndLangCode(langCode);
+		return genderRepository.findByIsActiveTrueAndLangCodeOrderByCodeAsc(langCode);
 	}
 
 	/*
@@ -259,7 +259,8 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 	 */
 	@Override
 	public List<IndividualType> getIndividulType(String langCode) {
-		return individualTypeRepository.findByIndividualTypeIdLangCodeAndIsActiveTrue(langCode);
+		return individualTypeRepository
+				.findByIndividualTypeIdLangCodeAndIsActiveTrueOrderByIndividualTypeIdCodeDesc(langCode);
 	}
 
 	public List<SyncJobDef> getSyncJobs() {
@@ -298,10 +299,6 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 		return locationRepository.findByIsActiveTrueAndLangCode(langCode);
 	}
 
-	public List<Location> getLocationDetails(String hierarchyName, String langCode) {
-		return locationRepository.findByIsActiveTrueAndHierarchyNameAndLangCode(hierarchyName, langCode);
-	}
-
 	/**
 	 * All the master data such as Location, gender,Registration center, Document
 	 * types,category etc., will be saved in the DB(These details will be getting
@@ -326,4 +323,7 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 		throw new RegBaseUncheckedException(RegistrationConstants.MASTER_SYNC_EXCEPTION, syncStatusMessage);
 	}
 
+	public List<Location> getLocationDetails(String hierarchyName, String langCode) {
+		return locationRepository.findByIsActiveTrueAndHierarchyNameAndLangCode(hierarchyName, langCode);
+	}
 }
