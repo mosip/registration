@@ -52,6 +52,8 @@ public class DocumentFxControl extends FxControl {
 
 	private MasterSyncService masterSyncService;
 
+	private String TICK_MARK_ID = "tickMark";
+
 	public DocumentFxControl() {
 
 		org.springframework.context.ApplicationContext applicationContext = Initialization.getApplicationContext();
@@ -66,18 +68,21 @@ public class DocumentFxControl extends FxControl {
 
 		this.uiSchemaDTO = uiSchemaDTO;
 		this.control = this;
-		VBox comboField = create(uiSchemaDTO);
 
 		HBox hBox = new HBox();
 		hBox.setSpacing(20);
-		hBox.getChildren().add(comboField);
 
-		VBox docRefField = createDocRef(uiSchemaDTO.getId());
-		hBox.getChildren().add(docRefField);
+		// DROP-DOWN
+		hBox.getChildren().add(create(uiSchemaDTO));
 
-		GridPane scanButtonGridPane = createScanButton(uiSchemaDTO);
+		// REF-FIELD
+		hBox.getChildren().add(createDocRef(uiSchemaDTO.getId()));
 
-		hBox.getChildren().add(scanButtonGridPane);
+		// TICK-MARK
+		hBox.getChildren().add(getTickMarkImgVBox());
+
+		// SCAN-BUTTON
+		hBox.getChildren().add(createScanButton(uiSchemaDTO));
 
 		this.node = hBox;
 		setListener(getField(uiSchemaDTO.getId() + RegistrationConstants.BUTTON));
@@ -91,6 +96,22 @@ public class DocumentFxControl extends FxControl {
 		}
 
 		return this.control;
+	}
+
+	private Node getTickMarkImgVBox() {
+		VBox tickImgVBox = new VBox();
+		tickImgVBox.setId(uiSchemaDTO.getId() + TICK_MARK_ID);
+		tickImgVBox.setSpacing(50);
+		ImageView imageView = new ImageView((new Image(
+				this.getClass().getResourceAsStream(RegistrationConstants.DONE_IMAGE_PATH), 15, 15, true, true)));
+
+		boolean isVisible = getData() != null ? true : false;
+
+		tickImgVBox.setVisible(isVisible);
+
+		tickImgVBox.getChildren().add(imageView);
+
+		return tickImgVBox;
 	}
 
 	private GridPane createScanButton(UiSchemaDTO uiSchemaDTO) {
@@ -199,57 +220,71 @@ public class DocumentFxControl extends FxControl {
 	public void setData(Object data) {
 
 		try {
-			List<BufferedImage> bufferedImages = (List<BufferedImage>) data;
 
-			String documentSize = documentScanController.getValueFromApplicationContext(RegistrationConstants.DOC_SIZE);
-			int docSize = Integer.parseInt(documentSize) / (1024 * 1024);
-			if (bufferedImages == null || bufferedImages.isEmpty()) {
-				documentScanController.generateAlert(RegistrationConstants.ERROR,
-						RegistrationUIConstants.SCAN_DOCUMENT_EMPTY);
-				return;
-			}
-			byte[] byteArray = documentScanController.getScannedPagesToBytes(bufferedImages);
+			if (data == null) {
 
-			if (byteArray == null) {
-				documentScanController.generateAlert(RegistrationConstants.ERROR,
-						RegistrationUIConstants.SCAN_DOCUMENT_CONVERTION_ERR);
-				return;
-			}
-
-			if (docSize <= (byteArray.length / (1024 * 1024))) {
-				bufferedImages.clear();
-				documentScanController.generateAlert(RegistrationConstants.ERROR,
-						RegistrationUIConstants.SCAN_DOC_SIZE.replace("1", Integer.toString(docSize)));
+				getField(uiSchemaDTO.getId() + TICK_MARK_ID).setVisible(false);
 			} else {
+				List<BufferedImage> bufferedImages = (List<BufferedImage>) data;
 
-				ComboBox<DocumentCategoryDto> comboBox = (ComboBox<DocumentCategoryDto>) getField(uiSchemaDTO.getId());
+				if (bufferedImages != null && !bufferedImages.isEmpty()) {
+					String documentSize = documentScanController
+							.getValueFromApplicationContext(RegistrationConstants.DOC_SIZE);
+					int docSize = Integer.parseInt(documentSize) / (1024 * 1024);
+					if (bufferedImages == null || bufferedImages.isEmpty()) {
+						documentScanController.generateAlert(RegistrationConstants.ERROR,
+								RegistrationUIConstants.SCAN_DOCUMENT_EMPTY);
+						return;
+					}
+					byte[] byteArray = documentScanController.getScannedPagesToBytes(bufferedImages);
 
-				DocumentDto documentDto = documentScanController.getRegistrationDTOFromSession().getDocuments()
-						.get(uiSchemaDTO.getId());
+					if (byteArray == null) {
+						documentScanController.generateAlert(RegistrationConstants.ERROR,
+								RegistrationUIConstants.SCAN_DOCUMENT_CONVERTION_ERR);
+						return;
+					}
 
-				if (documentDto == null) {
-					documentDto = new DocumentDto();
-					documentDto.setDocument(byteArray);
-					documentDto.setType(comboBox.getValue().getCode());
+					if (docSize <= (byteArray.length / (1024 * 1024))) {
+						bufferedImages.clear();
+						documentScanController.generateAlert(RegistrationConstants.ERROR,
+								RegistrationUIConstants.SCAN_DOC_SIZE.replace("1", Integer.toString(docSize)));
+					} else {
 
-					String docType = documentScanController
-							.getValueFromApplicationContext(RegistrationConstants.DOC_TYPE);
+						ComboBox<DocumentCategoryDto> comboBox = (ComboBox<DocumentCategoryDto>) getField(
+								uiSchemaDTO.getId());
 
-					documentDto.setFormat(docType);
-					documentDto.setCategory(uiSchemaDTO.getFieldCategory());
-					documentDto.setOwner("Applicant");
-					documentDto.setValue(uiSchemaDTO.getFieldCategory().concat(RegistrationConstants.UNDER_SCORE)
-							.concat(comboBox.getValue().getCode()));
-				} else {
+						DocumentDto documentDto = documentScanController.getRegistrationDTOFromSession().getDocuments()
+								.get(uiSchemaDTO.getId());
 
-					documentDto.setDocument(byteArray);
+						if (documentDto == null) {
+							documentDto = new DocumentDto();
+							documentDto.setDocument(byteArray);
+							documentDto.setType(comboBox.getValue().getCode());
+
+							String docType = documentScanController
+									.getValueFromApplicationContext(RegistrationConstants.DOC_TYPE);
+
+							documentDto.setFormat(docType);
+							documentDto.setCategory(uiSchemaDTO.getFieldCategory());
+							documentDto.setOwner("Applicant");
+							documentDto.setValue(uiSchemaDTO.getFieldCategory()
+									.concat(RegistrationConstants.UNDER_SCORE).concat(comboBox.getValue().getCode()));
+						} else {
+
+							documentDto.setDocument(byteArray);
+						}
+
+						TextField textField = (TextField) getField(
+								uiSchemaDTO.getId() + RegistrationConstants.DOC_TEXT_FIELD);
+
+						documentDto.setRefNumber(textField.getText());
+
+						documentScanController.getRegistrationDTOFromSession().addDocument(uiSchemaDTO.getId(),
+								documentDto);
+
+						getField(uiSchemaDTO.getId() + TICK_MARK_ID).setVisible(true);
+					}
 				}
-
-				TextField textField = (TextField) getField(uiSchemaDTO.getId() + RegistrationConstants.DOC_TEXT_FIELD);
-
-				documentDto.setRefNumber(textField.getText());
-
-				documentScanController.getRegistrationDTOFromSession().addDocument(uiSchemaDTO.getId(), documentDto);
 			}
 		} catch (IOException regBaseCheckedException) {
 
@@ -257,7 +292,7 @@ public class DocumentFxControl extends FxControl {
 					RegistrationConstants.APPLICATION_ID,
 					"Unable to parse the buffered images to byte array " + regBaseCheckedException.getMessage()
 							+ ExceptionUtils.getStackTrace(regBaseCheckedException));
-
+			getField(uiSchemaDTO.getId() + TICK_MARK_ID).setVisible(false);
 			// TODO Generate the alert
 //			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
 		}
@@ -312,6 +347,8 @@ public class DocumentFxControl extends FxControl {
 				clickedBtn.getId();
 				// TODO Check the scan option
 
+				documentScanController.setFxControl(control);
+//				documentScanController.scanWindow();
 				scanDocument((ComboBox<DocumentCategoryDto>) getField(uiSchemaDTO.getId()), uiSchemaDTO.getSubType());
 
 			}

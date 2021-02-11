@@ -52,7 +52,7 @@ public class RegistrationConstants {
 	public static final String PACKET_UPLOAD_STATUS_UI = "/fxml/PacketUploadStatus.fxml";
 	public static final String ALERT_GENERATION = "/fxml/Alert.fxml";
 	public static final String GENERIC_LAYOUT = "/fxml/GenericRegistrationLayout.fxml";
-
+	public static final String BIOMETRIC_FXML = "/fxml/Biometrics.fxml";
 	// FXML Id
 	public static final String DEMOGRAPHIC_DETAIL = "demographicDetail";
 	public static final String DOCUMENT_SCAN = "documentScan";
@@ -1830,8 +1830,10 @@ public class RegistrationConstants {
 	public static String RIGHT_TO_LEFT_ORIENTATION_LANGUAGES = "mosip.language.righttoleft.orientation";
 
 	public static String VBOX = "VBOX";
+	public static String HBOX = "HBOX";
 
 	public static String ONBOARD_CERT_THUMBPRINT = "thumbprint";
 	
 	public static String LOCATION = "Location";
+	public static String IMAGE_VIEW = "imageView";
 }
