@@ -165,7 +165,7 @@ public class GlobalParamServiceImpl extends BaseService implements GlobalParamSe
 
 						HashMap<String, String> globalParamMap = new HashMap<>();
 
-						if (responseMap.containsKey("configDetail") && responseMap.get("configDetail") != null) {
+						if (responseMap.get("configDetail") != null) {
 							HashMap<String, Object> configDetailJsonMap = (HashMap<String, Object>) responseMap
 									.get("configDetail");
 
