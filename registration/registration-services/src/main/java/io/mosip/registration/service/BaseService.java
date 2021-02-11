@@ -1,6 +1,6 @@
 package io.mosip.registration.service;
 
-import static io.mosip.registration.constants.LoggerConstants.BIO_SERVICE;
+import static io.mosip.registration.constants.LoggerConstants.*;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
@@ -10,17 +10,12 @@ import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import io.mosip.kernel.core.util.HMACUtils2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,6 +77,10 @@ public class BaseService {
 	 */
 	private static final Logger LOGGER = AppConfig.getLogger(NotificationServiceImpl.class);
 
+	private static final String TIMESTAMP_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+
+	private SimpleDateFormat simpleDateFormat = new SimpleDateFormat(TIMESTAMP_FORMAT);
+
 	/**
 	 * serviceDelegateUtil which processes the HTTPRequestDTO requests
 	 */
@@ -100,12 +99,9 @@ public class BaseService {
 	/**
 	 * create success response.
 	 *
-	 * @param responseDTO
-	 *            the response DTO
-	 * @param message
-	 *            the message
-	 * @param attributes
-	 *            the attributes
+	 * @param responseDTO the response DTO
+	 * @param message     the message
+	 * @param attributes  the attributes
 	 * @return ResponseDTO returns the responseDTO after creating appropriate
 	 *         success response and mapping to it
 	 */
@@ -127,12 +123,9 @@ public class BaseService {
 	/**
 	 * create error response.
 	 *
-	 * @param response
-	 *            the response
-	 * @param message
-	 *            the message
-	 * @param attributes
-	 *            the attributes
+	 * @param response   the response
+	 * @param message    the message
+	 * @param attributes the attributes
 	 * @return ResponseDTO returns the responseDTO after creating appropriate error
 	 *         response and mapping to it
 	 */
@@ -181,10 +174,8 @@ public class BaseService {
 	/**
 	 * To check the device is valid or not.
 	 *
-	 * @param deviceType
-	 *            the device type
-	 * @param serialNo
-	 *            the serial no
+	 * @param deviceType the device type
+	 * @param serialNo   the serial no
 	 * @return true, if is valid device
 	 */
 	public boolean isValidDevice(DeviceTypes deviceType, String serialNo) {
@@ -197,8 +188,7 @@ public class BaseService {
 	/**
 	 * Checks if is null.
 	 *
-	 * @param list
-	 *            the list
+	 * @param list the list
 	 * @return true, if is null
 	 */
 	public boolean isNull(List<?> list) {
@@ -210,8 +200,7 @@ public class BaseService {
 	/**
 	 * Checks if is empty.
 	 *
-	 * @param list
-	 *            the list
+	 * @param list the list
 	 * @return true, if is empty
 	 */
 	public boolean isEmpty(List<?> list) {
@@ -222,8 +211,7 @@ public class BaseService {
 	/**
 	 * Gets the station id.
 	 *
-	 * @param machineName
-	 *            the machine Name
+	 * @param machineName the machine Name
 	 * @return the station id
 	 */
 	public String getStationId(String machineName) {
@@ -266,8 +254,7 @@ public class BaseService {
 	/**
 	 * Gets the center id.
 	 *
-	 * @param stationId
-	 *            the station id
+	 * @param stationId the station id
 	 * @return the center id
 	 */
 	public String getCenterId(String stationId) {
@@ -285,12 +272,10 @@ public class BaseService {
 		return centerId;
 	}
 
-	
 	/**
 	 * Get Global Param configuration value.
 	 *
-	 * @param key
-	 *            the name
+	 * @param key the name
 	 * @return value
 	 */
 	public String getGlobalConfigValueOf(String key) {
@@ -314,8 +299,7 @@ public class BaseService {
 	/**
 	 * Conversion of Registration to Packet Status DTO.
 	 *
-	 * @param registration
-	 *            the registration
+	 * @param registration the registration
 	 * @return the packet status DTO
 	 */
 	public PacketStatusDTO packetStatusDtoPreperation(Registration registration) {
@@ -327,12 +311,13 @@ public class BaseService {
 		statusDTO.setUploadStatus(registration.getFileUploadStatus());
 		statusDTO.setPacketStatus(registration.getStatusCode());
 		statusDTO.setSupervisorStatus(registration.getClientStatusCode());
-		statusDTO.setSupervisorComments(registration.getClientStatusComments());		
-		
+		statusDTO.setSupervisorComments(registration.getClientStatusComments());
+
 		try {
 			if (registration.getAdditionalInfo() != null) {
 				String additionalInfo = new String(registration.getAdditionalInfo());
-				RegistrationDataDto registrationDataDto = (RegistrationDataDto) JsonUtils.jsonStringToJavaObject(RegistrationDataDto.class, additionalInfo);
+				RegistrationDataDto registrationDataDto = (RegistrationDataDto) JsonUtils
+						.jsonStringToJavaObject(RegistrationDataDto.class, additionalInfo);
 				statusDTO.setName(registrationDataDto.getName());
 				statusDTO.setPhone(registrationDataDto.getPhone());
 				statusDTO.setEmail(registrationDataDto.getEmail());
@@ -368,8 +353,7 @@ public class BaseService {
 	/**
 	 * Registration date conversion.
 	 *
-	 * @param timestamp
-	 *            the timestamp
+	 * @param timestamp the timestamp
 	 * @return the string
 	 */
 	protected String regDateConversion(Timestamp timestamp) {
@@ -378,10 +362,11 @@ public class BaseService {
 		Date date = new Date(timestamp.getTime());
 		return dateFormat.format(date);
 	}
-	
+
 	protected String regDateTimeConversion(String time) {
 		try {
-			String formattedTime = Timestamp.valueOf(time).toLocalDateTime().format(DateTimeFormatter.ofPattern(RegistrationConstants.UTC_PATTERN));
+			String formattedTime = Timestamp.valueOf(time).toLocalDateTime()
+					.format(DateTimeFormatter.ofPattern(RegistrationConstants.UTC_PATTERN));
 			LocalDateTime dateTime = DateUtils.parseUTCToLocalDateTime(formattedTime);
 			return dateTime.format(DateTimeFormatter.ofPattern(RegistrationConstants.TEMPLATE_DATE_FORMAT));
 		} catch (RuntimeException exception) {
@@ -400,11 +385,9 @@ public class BaseService {
 	 * {@link RegistrationExceptionConstants} enum passed as parameter. Extracts the
 	 * error code and error message from the enum parameter.
 	 * 
-	 * @param exceptionEnum
-	 *            the enum of {@link RegistrationExceptionConstants} containing the
-	 *            error code and error message to be thrown
-	 * @throws RegBaseCheckedException
-	 *             the checked exception
+	 * @param exceptionEnum the enum of {@link RegistrationExceptionConstants}
+	 *                      containing the error code and error message to be thrown
+	 * @throws RegBaseCheckedException the checked exception
 	 */
 	protected void throwRegBaseCheckedException(RegistrationExceptionConstants exceptionEnum)
 			throws RegBaseCheckedException {
@@ -414,20 +397,18 @@ public class BaseService {
 	/**
 	 * Validates the input {@link List} is either <code>null</code> or empty
 	 * 
-	 * @param listToBeValidated
-	 *            the {@link List} object to be validated
+	 * @param listToBeValidated the {@link List} object to be validated
 	 * @return <code>true</code> if {@link List} is either <code>null</code> or
 	 *         empty, else <code>false</code>
 	 */
 	protected boolean isListEmpty(List<?> listToBeValidated) {
 		return listToBeValidated == null || listToBeValidated.isEmpty();
 	}
-	
+
 	/**
 	 * Validates the input {@link Set} is either <code>null</code> or empty
 	 * 
-	 * @param setToBeValidated
-	 *            the {@link Set} object to be validated
+	 * @param setToBeValidated the {@link Set} object to be validated
 	 * @return <code>true</code> if {@link Set} is either <code>null</code> or
 	 *         empty, else <code>false</code>
 	 */
@@ -438,8 +419,7 @@ public class BaseService {
 	/**
 	 * Validates the input {@link String} is either <code>null</code> or empty
 	 * 
-	 * @param stringToBeValidated
-	 *            the {@link String} object to be validated
+	 * @param stringToBeValidated the {@link String} object to be validated
 	 * @return <code>true</code> if input {@link String} is either <code>null</code>
 	 *         or empty, else <code>false</code>
 	 */
@@ -450,8 +430,7 @@ public class BaseService {
 	/**
 	 * Validates the input {@link Map} is either <code>null</code> or empty
 	 * 
-	 * @param mapToBeValidated
-	 *            the {@link Map} object to be validated
+	 * @param mapToBeValidated the {@link Map} object to be validated
 	 * @return <code>true</code> if {@link Map} is either <code>null</code> or
 	 *         empty, else <code>false</code>
 	 */
@@ -462,8 +441,7 @@ public class BaseService {
 	/**
 	 * Validates the input byte array is either <code>null</code> or empty
 	 * 
-	 * @param byteArrayToBeValidated
-	 *            the byte array to be validated
+	 * @param byteArrayToBeValidated the byte array to be validated
 	 * @return <code>true</code> if byte array is either <code>null</code> or empty,
 	 *         else <code>false</code>
 	 */
@@ -475,8 +453,7 @@ public class BaseService {
 	 * Validates if the error code of the input {@link Exception} is same of the
 	 * error code of Auth Token Empty
 	 * 
-	 * @param exception
-	 *            the {@link Exception} to be validated
+	 * @param exception the {@link Exception} to be validated
 	 * @return <code>true</code> if error code is same as Auth Token empty
 	 */
 	protected boolean isAuthTokenEmptyException(Exception exception) {
@@ -489,8 +466,7 @@ public class BaseService {
 	 * Validates if the error code of the input {@link ResponseDTO} is same of the
 	 * error code of Auth Token Empty
 	 * 
-	 * @param responseDTO
-	 *            the {@link ResponseDTO} to be validated
+	 * @param responseDTO the {@link ResponseDTO} to be validated
 	 * @return <code>true</code> if error code is same as Auth Token empty
 	 */
 	protected boolean isAuthTokenEmptyError(ResponseDTO responseDTO) {
@@ -503,14 +479,12 @@ public class BaseService {
 
 		return isAuthTokenEmptyError;
 	}
-	
-	
 
 	public static boolean isChild() {
-		
+
 		return (boolean) SessionContext.map().get(RegistrationConstants.IS_Child);
 	}
-	
+
 	/**
 	 * Gets the registration DTO from session.
 	 *
@@ -519,7 +493,7 @@ public class BaseService {
 	protected RegistrationDTO getRegistrationDTOFromSession() {
 		return (RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA);
 	}
-	
+
 	/**
 	 * Check of update UIN whether only demo update or bio includes.
 	 *
@@ -591,7 +565,7 @@ public class BaseService {
 						.build())
 				.build();
 	}
-	
+
 	private List<String> getSubTypes(SingleType singleType, String bioAttribute) {
 		List<String> subtypes = new LinkedList<>();
 		switch (singleType) {
@@ -617,6 +591,45 @@ public class BaseService {
 			break;
 		}
 		return subtypes;
-	}	
+	}
+
+	/**
+	 * Converts string to java.sql.Timestamp
+	 *
+	 * @param time
+	 * @return
+	 * @throws RegBaseCheckedException
+	 */
+	public Timestamp getTimestamp(String time) throws RegBaseCheckedException {
+		try {
+			Date date = simpleDateFormat.parse(time);
+			Timestamp timestamp = new Timestamp(date.getTime());
+			return timestamp;
+		} catch (ParseException e) {
+			LOGGER.error("", APPLICATION_NAME, APPLICATION_ID, e.getMessage());
+		}
+		throw new RegBaseCheckedException(RegistrationConstants.SYNC_TRANSACTION_RUNTIME_EXCEPTION,
+				"Failed to parse lastSyncTime from server : " + time);
+	}
+
+	public ResponseDTO getHttpResponseErrors(ResponseDTO responseDTO, LinkedHashMap<String, Object> httpResponse) {
+		List<ErrorResponseDTO> erResponseDTOs = new ArrayList<>();
+		ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO();
+		errorResponseDTO.setCode(RegistrationConstants.ERRORS);
+		String errorMessage = RegistrationConstants.API_CALL_FAILED;
+		if (httpResponse != null && httpResponse.get(RegistrationConstants.ERRORS) != null) {
+			List<HashMap<String, String>> errors = (List<HashMap<String, String>>) httpResponse
+					.get(RegistrationConstants.ERRORS);
+
+			// TODO Commented as getting error
+//			LOGGER.error("Response Errors >>>> {}", errors);
+			errorMessage = errors.isEmpty() ? RegistrationConstants.API_CALL_FAILED
+					: errors.get(0).get(RegistrationConstants.ERROR_MSG);
+		}
+		errorResponseDTO.setMessage(errorMessage);
+		erResponseDTOs.add(errorResponseDTO);
+		responseDTO.setErrorResponseDTOs(erResponseDTOs);
+		return responseDTO;
+	}
 
 }
