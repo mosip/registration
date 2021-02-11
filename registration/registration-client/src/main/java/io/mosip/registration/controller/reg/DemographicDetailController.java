@@ -1232,7 +1232,7 @@ public class DemographicDetailController extends BaseController {
 	 * Setting the focus to specific fields when keyboard loads
 	 *
 	 */
-	private void setFocusonLocalField(MouseEvent event) {
+	public void setFocusonLocalField(MouseEvent event) {
 		try {
 			Node node = (Node) event.getSource();
 			if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
