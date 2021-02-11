@@ -316,7 +316,6 @@ public class PacketClassificationProcessor {
 			requiredIdObjectFieldNames);
 		Map<String, String> identityFieldValueMap = packetManagerService.getFields(registrationId, 
 			requiredIdObjectFieldNames, process);
-			regProcLogger.info("identityFieldValueMap tags {}", new JSONObject(identityFieldValueMap).toString());
 		Map<String, String> fieldTypeMap = getFieldTypeMap(identityFieldValueMap.get(idSchemaVersionLabel));
 		Map<String, FieldDTO> idObjectFieldDTOMap = 
 			getIdObjectFieldDTOMap(identityFieldValueMap, fieldTypeMap);
@@ -328,7 +327,7 @@ public class PacketClassificationProcessor {
 			if(tags != null && !tags.isEmpty())
 				allTags.putAll(tags);
 		}
-		regProcLogger.info("generated tags {}", new JSONObject(allTags).toString());
+		regProcLogger.debug("generated tags {}", new JSONObject(allTags).toString());
 		if(!allTags.isEmpty())
 			packetManagerService.addOrUpdateTags(registrationId, allTags);
 	}
