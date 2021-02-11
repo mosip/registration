@@ -1813,8 +1813,9 @@ public class RegistrationConstants {
 
 	// UI Schema field group name
 	public static final String UI_SCHEMA_GROUP_FULL_NAME = "FullName";
-	public static final String UI_SCHEMA_GROUP_EMAIL = "Email";
-	public static final String UI_SCHEMA_GROUP_PHONE = "Phone";
+	public static final String UI_SCHEMA_SUBTYPE_FULL_NAME = "name";
+	public static final String UI_SCHEMA_SUBTYPE_EMAIL = "Email";
+	public static final String UI_SCHEMA_SUBTYPE_PHONE = "Phone";
 	public static final String MVEL_TYPE = "MVEL";
 	public static final String MACHINE_VERIFICATION_SUCCESS = "Machine Verification Success";
 	public static final String UTC_APPENDER = " (UTC)";
@@ -1833,7 +1834,10 @@ public class RegistrationConstants {
 	public static String HBOX = "HBOX";
 
 	public static String ONBOARD_CERT_THUMBPRINT = "thumbprint";
-	
+
 	public static String LOCATION = "Location";
 	public static String IMAGE_VIEW = "imageView";
+
+	public static final String OPT_TO_REG_CCS_J00017 = "CCS_J00017";
+	public static final String API_CALL_FAILED = "API call failed with unknown error";
 }
