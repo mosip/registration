@@ -17,6 +17,9 @@ public enum ModuleName {
 	/** The packet validator. */
 	PACKET_VALIDATOR,
 
+	/** The packet validator. */
+	PACKET_CLASSIFIER,
+
 	/** The osi validator. */
 	OSI_VALIDATOR,
 

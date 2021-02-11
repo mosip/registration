@@ -232,4 +232,12 @@ public class JsonConstant {
 	public static final String CAPTUREDREGISTEREDDEVICES = "capturedRegisteredDevices";
 
 	public static final String ID = "id";
+
+	public static final String EXCEPTIONBIOMETRICS = "exceptionBiometrics";
+
+	public static final String DIGITALID = "digitalId";
+
+	public static final String DIGITALIDTYPE = "type";
+
+	public static final String DIGITALIDSERIALNO = "serialNo";
 }
