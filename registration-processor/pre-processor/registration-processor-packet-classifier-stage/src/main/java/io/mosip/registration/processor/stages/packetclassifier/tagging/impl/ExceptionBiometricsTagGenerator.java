@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 @ConditionalOnExpression(value = "'${mosip.regproc.packet.classifier.tag-generators}'.contains('MosipExceptionBiometrics')")
 public class ExceptionBiometricsTagGenerator implements TagGenerator {
 
-    /** Tag name that will used while tagging exception biometrics */
+    /** Tag name that will used be while tagging exception biometrics */
     @Value("${mosip.regproc.packet.classifier.tagging.exceptionbiometrics.tag-name:EXCEPTION_BIOMETRICS}")
     private String tagName;
 

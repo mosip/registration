@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 @ConditionalOnExpression(value = "'${mosip.regproc.packet.classifier.tag-generators}'.contains('MosipSupervisorApprovalStatus')")
 public class SupervisorApprovalStatusTagGenerator implements TagGenerator {
 
-    /** Tag name that will used while tagging supervisor approval status */
+    /** Tag name that will be used while tagging supervisor approval status */
     @Value("${mosip.regproc.packet.classifier.tagging.supervisorapprovalstatus.tag-name:SUPERVISOR_APPROVAL_STATUS}")
 	private String tagName;
 

@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @ConditionalOnExpression(value = "'${mosip.regproc.packet.classifier.tag-generators}'.contains('MosipAgeGroup')")
 public class AgeGroupTagGenerator implements TagGenerator {
 
-    /** Tag name that will used while tagging age group */
+    /** Tag name that will be used while tagging age group */
     @Value("${mosip.regproc.packet.classifier.tagging.agegroup.tag-name:AGE_GROUP}")
     private String tagName;
 
