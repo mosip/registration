@@ -1,6 +1,3 @@
-/**
- * 
- */
 package io.mosip.registration.util.control.impl;
 
 import java.util.List;
@@ -20,7 +17,6 @@ import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.util.common.DemographicChangeActionHandler;
 import io.mosip.registration.util.control.FxControl;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -28,11 +24,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
-/**
- * @author M1044402
- *
- */
-public class DOBAgeFxControl extends FxControl {
+public class DOBFxControl extends FxControl {
 	/**
 	 * Instance of {@link Logger}
 	 */
@@ -52,7 +44,7 @@ public class DOBAgeFxControl extends FxControl {
 
 	private DateValidation dateValidation;
 
-	public DOBAgeFxControl() {
+	public DOBFxControl() {
 
 		fxUtils = FXUtils.getInstance();
 		regApplicationContext = io.mosip.registration.context.ApplicationContext.getInstance();
@@ -116,9 +108,6 @@ public class DOBAgeFxControl extends FxControl {
 		/** Add Year */
 		dobHBox.getChildren()
 				.add(addDateTextField(uiSchemaDTO, RegistrationConstants.YYYY, languageType, mandatorySuffix));
-		/** Add Age Field */
-		dobHBox.getChildren()
-				.add(addDateTextField(uiSchemaDTO, RegistrationConstants.AGE_FIELD, languageType, mandatorySuffix));
 
 		VBox ageVBox = new VBox();
 		ageVBox.getChildren().add(dobHBox);
@@ -204,10 +193,6 @@ public class DOBAgeFxControl extends FxControl {
 				(TextField) getField(
 						uiSchemaDTO.getId() + RegistrationConstants.YYYY + RegistrationConstants.TEXT_FIELD),
 				RegistrationConstants.YYYY);
-		addListener(
-				(TextField) getField(
-						uiSchemaDTO.getId() + RegistrationConstants.AGE_FIELD + RegistrationConstants.TEXT_FIELD),
-				RegistrationConstants.AGE_FIELD);
 
 	}
 
@@ -217,9 +202,7 @@ public class DOBAgeFxControl extends FxControl {
 			if (!dateValidation.isNewValueValid(nv, dateTyep)) {
 				textField.setText(ov);
 			}
-			boolean isValid = RegistrationConstants.AGE_FIELD.equalsIgnoreCase(dateTyep)
-					? dateValidation.validateAge((Pane) node, uiSchemaDTO.getId())
-					: dateValidation.validateDate((Pane) node, uiSchemaDTO.getId());
+			boolean isValid = dateValidation.validateDate((Pane) node, uiSchemaDTO.getId());
 			if (isValid) {
 				setData(null);
 				refreshFields();

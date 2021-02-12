@@ -21,6 +21,8 @@ import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.util.control.FxControl;
 import io.mosip.registration.util.control.impl.BiometricFxControl;
 import io.mosip.registration.util.control.impl.ButtonFxControl;
+import io.mosip.registration.util.control.impl.DOBAgeFxControl;
+import io.mosip.registration.util.control.impl.DOBFxControl;
 import io.mosip.registration.util.control.impl.DocumentFxControl;
 import io.mosip.registration.util.control.impl.DropDownFxControl;
 import io.mosip.registration.util.control.impl.TextFieldFxControl;
@@ -115,7 +117,7 @@ public class GenericController extends BaseController {
 			for (Entry<String, List<String>> screenEntry : screens.entrySet()) {
 
 				GridPane screenGridPane = new GridPane();
-				
+
 				screenGridPane.setHgap(15);
 				screenGridPane.setVgap(15);
 
@@ -149,7 +151,8 @@ public class GenericController extends BaseController {
 								columnConstraint2.setPercentWidth(60);
 								ColumnConstraints columnConstraint3 = new ColumnConstraints();
 								columnConstraint3.setPercentWidth(20);
-								gridPane.getColumnConstraints().addAll(columnConstraint1, columnConstraint2, columnConstraint3);
+								gridPane.getColumnConstraints().addAll(columnConstraint1, columnConstraint2,
+										columnConstraint3);
 								gridPane.add(node, 1, 2);
 
 								screenGridPane.add(gridPane, 0, count++);
@@ -212,9 +215,9 @@ public class GenericController extends BaseController {
 		case CONTROLTYPE_CHECKBOX:
 			break;
 		case CONTROLTYPE_DOB:
-			break;
+			return new DOBFxControl().build(uiSchemaDTO);
 		case CONTROLTYPE_DOB_AGE:
-			break;
+			return new DOBAgeFxControl().build(uiSchemaDTO);
 		case CONTROLTYPE_DOCUMENTS:
 			return new DocumentFxControl().build(uiSchemaDTO);
 		case CONTROLTYPE_DROPDOWN:

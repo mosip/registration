@@ -41,7 +41,7 @@ public class TextFieldFxControl extends FxControl {
 	/**
 	 * Instance of {@link Logger}
 	 */
-	private static final Logger LOGGER = AppConfig.getLogger(DemographicDetailController.class);
+	private static final Logger LOGGER = AppConfig.getLogger(TextFieldFxControl.class);
 
 	private static String loggerClassName = " Text Field Control Type Class";
 
