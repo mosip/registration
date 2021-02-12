@@ -23,8 +23,10 @@ import io.mosip.registration.dto.packetmanager.DocumentDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.util.control.FxControl;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.NodeOrientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -34,8 +36,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 
@@ -101,17 +105,26 @@ public class DocumentFxControl extends FxControl {
 	private Node getTickMarkImgVBox() {
 		VBox tickImgVBox = new VBox();
 		tickImgVBox.setId(uiSchemaDTO.getId() + TICK_MARK_ID);
-		tickImgVBox.setSpacing(50);
+		//tickImgVBox.setSpacing(50);
 		ImageView imageView = new ImageView((new Image(
-				this.getClass().getResourceAsStream(RegistrationConstants.DONE_IMAGE_PATH), 15, 15, true, true)));
+				this.getClass().getResourceAsStream(RegistrationConstants.DONE_IMAGE_PATH), 25, 25, true, true)));
 
 		boolean isVisible = getData() != null ? true : false;
 
 		tickImgVBox.setVisible(isVisible);
 
 		tickImgVBox.getChildren().add(imageView);
+		
+		GridPane tickMarkGridPane = new GridPane();
+		RowConstraints rowConstraint1 = new RowConstraints();
+		RowConstraints rowConstraint2 = new RowConstraints();
+		rowConstraint1.setPercentHeight(45);
+		rowConstraint2.setPercentHeight(55);
+		tickMarkGridPane.getRowConstraints().addAll(rowConstraint1, rowConstraint2);
+		//tickMarkGridPane.setPrefWidth(80);
+		tickMarkGridPane.add(tickImgVBox, 0, 1);
 
-		return tickImgVBox;
+		return tickMarkGridPane;
 	}
 
 	private GridPane createScanButton(UiSchemaDTO uiSchemaDTO) {
@@ -122,13 +135,15 @@ public class DocumentFxControl extends FxControl {
 		scanButton.getStyleClass().add(RegistrationConstants.DOCUMENT_CONTENT_BUTTON);
 		scanButton.setGraphic(new ImageView(
 				new Image(this.getClass().getResourceAsStream(RegistrationConstants.SCAN), 12, 12, true, true)));
-
+		
 		GridPane scanButtonGridPane = new GridPane();
-//		gridPane.setId(docCategoryCode + "RefNumGridPane");
-		scanButtonGridPane.setVgap(10);
-		scanButtonGridPane.setHgap(10);
+		RowConstraints rowConstraint1 = new RowConstraints();
+		RowConstraints rowConstraint2 = new RowConstraints();
+		rowConstraint1.setPercentHeight(35);
+		rowConstraint2.setPercentHeight(65);
+		scanButtonGridPane.getRowConstraints().addAll(rowConstraint1, rowConstraint2);
 		scanButtonGridPane.setPrefWidth(80);
-		scanButtonGridPane.add(scanButton, 0, 0);
+		scanButtonGridPane.add(scanButton, 0, 1);
 
 		return scanButtonGridPane;
 	}
@@ -150,12 +165,13 @@ public class DocumentFxControl extends FxControl {
 		VBox simpleTypeVBox = new VBox();
 		simpleTypeVBox.setId(id + RegistrationConstants.DOC_TEXT_FIELD + RegistrationConstants.VBOX);
 		simpleTypeVBox.setSpacing(5);
+		simpleTypeVBox.getStyleClass().add(RegistrationConstants.SCAN_VBOX);
 
 		double prefWidth = simpleTypeVBox.getPrefWidth();
 
 		/** Title label */
 		Label fieldTitle = getLabel(id + RegistrationConstants.DOC_TEXT_FIELD + RegistrationConstants.LABEL,
-				RegistrationUIConstants.REF_NUMBER, RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, true, prefWidth);
+				RegistrationUIConstants.REF_NUMBER,"demoGraphicFieldLabel", true, prefWidth);
 
 		simpleTypeVBox.getChildren().add(fieldTitle);
 
