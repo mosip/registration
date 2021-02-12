@@ -243,6 +243,8 @@ public class BiometricFxControl extends FxControl {
 
 			image = biometricsController.getBioStreamImage(subtype, modality, biometricsDtos.get(0).getNumOfRetries());
 		}
+		
+		VBox imgVBox = new VBox();
 
 		ImageView imageView = new ImageView(image != null ? image
 				: new Image(this.getClass().getResourceAsStream(biometricsController.getImageIconPath(modality))));
@@ -250,13 +252,16 @@ public class BiometricFxControl extends FxControl {
 		imageView.setId(uiSchemaDTO.getId() + RegistrationConstants.IMAGE_VIEW + modality);
 		imageView.setFitHeight(80);
 		imageView.setFitWidth(85);
+		
+		imgVBox.getStyleClass().add(RegistrationConstants.BIOMETRICS_DISPLAY);
+		imgVBox.getChildren().add(imageView);
 
 		Tooltip tooltip = new Tooltip(applicationBundle.getString(modality));
 		tooltip.getStyleClass().add(RegistrationConstants.TOOLTIP_STYLE);
 		// Tooltip.install(hBox, tooltip);
 		hBox.setOnMouseEntered(event -> tooltip.show(hBox, event.getScreenX(), event.getScreenY() + 15));
 		hBox.setOnMouseExited(event -> tooltip.hide());
-		hBox.getChildren().add(imageView);
+		hBox.getChildren().add(imgVBox);
 
 		boolean isAllExceptions = isAllExceptions(modality);
 
@@ -286,8 +291,6 @@ public class BiometricFxControl extends FxControl {
 
 		vBox.setFillWidth(true);
 		vBox.setMinWidth(100);
-
-		vBox.getStyleClass().add(RegistrationConstants.BIOMETRICS_DISPLAY);
 
 		return vBox;
 	}
@@ -322,8 +325,8 @@ public class BiometricFxControl extends FxControl {
 		ImageView tickImageView = new ImageView(new Image(this.getClass().getResourceAsStream(imgPath)));
 
 		tickImageView.setId(uiSchemaDTO.getId() + modality + TICK_MARK);
-		tickImageView.setFitWidth(40);
-		tickImageView.setFitHeight(40);
+		tickImageView.setFitWidth(35);
+		tickImageView.setFitHeight(35);
 		return tickImageView;
 	}
 

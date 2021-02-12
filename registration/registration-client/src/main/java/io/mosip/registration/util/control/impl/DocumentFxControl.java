@@ -23,10 +23,8 @@ import io.mosip.registration.dto.packetmanager.DocumentDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.util.control.FxControl;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
 import javafx.geometry.NodeOrientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -36,7 +34,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.RowConstraints;
@@ -171,7 +168,7 @@ public class DocumentFxControl extends FxControl {
 
 		/** Title label */
 		Label fieldTitle = getLabel(id + RegistrationConstants.DOC_TEXT_FIELD + RegistrationConstants.LABEL,
-				RegistrationUIConstants.REF_NUMBER,"demoGraphicFieldLabel", true, prefWidth);
+				RegistrationUIConstants.REF_NUMBER, RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, prefWidth);
 
 		simpleTypeVBox.getChildren().add(fieldTitle);
 
