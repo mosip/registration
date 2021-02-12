@@ -207,4 +207,6 @@ public interface RegistrationDAO {
 
 	List<Registration> fetchReRegisterPendingPackets();
 
+	List<Registration> getAllRegistrations();
+
 }
