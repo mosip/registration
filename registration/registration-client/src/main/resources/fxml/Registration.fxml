@@ -22,6 +22,8 @@
         </rowConstraints>
          <children>
          <fx:include fx:id="genericScreen" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="GenericRegistrationLayout.fxml" visible="true" />
+         <fx:include fx:id="registrationPreview" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="RegistrationPreview.fxml" visible="false" />
+         <fx:include fx:id="operatorAuthenticationPane" prefHeight="${registrationId.height}" prefWidth="${registrationId.width}" source="OperatorAuthentication.fxml" visible="false" />
          </children>
       </GridPane>
       <GridPane fx:id="headerHolder">

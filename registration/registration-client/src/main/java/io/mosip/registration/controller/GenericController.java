@@ -14,6 +14,7 @@ import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.controller.reg.RegistrationController;
 import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dao.MasterSyncDao;
+import io.mosip.registration.dto.ScreenDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.entity.Location;
 import io.mosip.registration.exception.RegBaseCheckedException;
@@ -79,11 +80,13 @@ public class GenericController extends BaseController {
 	private MasterSyncService masterSyncService;
 	public static Map<String, TreeMap<Integer, FxControl>> locationMap = new LinkedHashMap<String, TreeMap<Integer, FxControl>>();
 
+	private int currentPage;
+
 	/**
-	 * Key- String : is a screen name Value - Node : screenNode {@summary all screen
-	 * fields will be inside the screen node}
+	 * Key- Integer : is a screen order Value - Node : screenNode {@summary all
+	 * screen fields will be inside the screen node}
 	 */
-	private Map<String, Node> screenMap = new LinkedHashMap<>();
+	private TreeMap<Integer, ScreenDTO> screenMap = new TreeMap<>();
 
 	private static final String CONTROLTYPE_TEXTFIELD = "textbox";
 	private static final String CONTROLTYPE_BIOMETRICS = "biometrics";
@@ -117,6 +120,11 @@ public class GenericController extends BaseController {
 			for (Entry<String, List<String>> screenEntry : screens.entrySet()) {
 
 				GridPane screenGridPane = new GridPane();
+
+				ScreenDTO screenDTO = new ScreenDTO();
+				screenDTO.setScreenName(screenEntry.getKey());
+				screenDTO.setScreenNode(screenGridPane);
+				screenMap.put(screenMap.size() + 1, screenDTO);
 
 				screenGridPane.setHgap(15);
 				screenGridPane.setVgap(15);
@@ -254,6 +262,37 @@ public class GenericController extends BaseController {
 		}
 
 		return null;
+	}
+
+	public void next() {
+
+		Node currentNode = screenMap.get(currentPage).getScreenNode();
+
+		Entry<Integer, ScreenDTO> nextScreen = screenMap.higherEntry(currentPage);
+
+		show(currentNode, nextScreen != null ? nextScreen.getValue().getScreenNode() : null, 1);
+
+	}
+
+	private void show(Node currentNode, Node nextNode, int updateScreen) {
+
+		if (nextNode != null) {
+			currentNode.setVisible(false);
+			currentNode.setManaged(false);
+			nextNode.setVisible(true);
+			nextNode.setManaged(true);
+			currentPage += updateScreen;
+		}
+	}
+
+	public void previous() {
+
+		Node currentNode = screenMap.get(currentPage).getScreenNode();
+
+		Entry<Integer, ScreenDTO> nextScreen = screenMap.lowerEntry(currentPage);
+
+		show(currentNode, nextScreen != null ? nextScreen.getValue().getScreenNode() : null, -1);
+
 	}
 
 }
