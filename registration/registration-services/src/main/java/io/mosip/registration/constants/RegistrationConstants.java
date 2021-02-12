@@ -1837,6 +1837,7 @@ public class RegistrationConstants {
 
 	public static String LOCATION = "Location";
 	public static String IMAGE_VIEW = "imageView";
+	public static final String DEMOGRAPHIC_COMBOBOX = "demographicCombobox";
 	public static String TEXT_FIELD = "TextField";
 
 	public static final String OPT_TO_REG_CCS_J00017 = "CCS_J00017";

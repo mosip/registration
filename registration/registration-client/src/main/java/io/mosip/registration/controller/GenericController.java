@@ -20,6 +20,7 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.util.control.FxControl;
 import io.mosip.registration.util.control.impl.BiometricFxControl;
+import io.mosip.registration.util.control.impl.ButtonFxControl;
 import io.mosip.registration.util.control.impl.DOBAgeFxControl;
 import io.mosip.registration.util.control.impl.DOBFxControl;
 import io.mosip.registration.util.control.impl.DocumentFxControl;
@@ -196,7 +197,21 @@ public class GenericController extends BaseController {
 
 			return new BiometricFxControl().build(uiSchemaDTO);
 		case CONTROLTYPE_BUTTON:
-			break;
+			FxControl buttonFxControl = new ButtonFxControl().build(uiSchemaDTO);
+			Map<String, Object> buttonsData = new LinkedHashMap<>();
+
+			try {
+				buttonsData.put(RegistrationConstants.PRIMARY, masterSyncService.getFieldValues(uiSchemaDTO.getId(),
+						ApplicationContext.applicationLanguage()));
+				buttonsData.put(RegistrationConstants.SECONDARY,
+						masterSyncService.getFieldValues(uiSchemaDTO.getId(), ApplicationContext.localLanguage()));
+			} catch (RegBaseCheckedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
+				buttonFxControl.fillData(buttonsData);
+			}
+			return buttonFxControl;
 		case CONTROLTYPE_CHECKBOX:
 			break;
 		case CONTROLTYPE_DOB:
@@ -206,10 +221,8 @@ public class GenericController extends BaseController {
 		case CONTROLTYPE_DOCUMENTS:
 			return new DocumentFxControl().build(uiSchemaDTO);
 		case CONTROLTYPE_DROPDOWN:
-
 			FxControl fxControl = new DropDownFxControl().build(uiSchemaDTO);
 			if (uiSchemaDTO.getGroup().contains(RegistrationConstants.LOCATION)) {
-
 				List<Location> value = masterSyncDao.getLocationDetails(uiSchemaDTO.getSubType(),
 						applicationContext.getApplicationLanguage());
 
@@ -222,9 +235,7 @@ public class GenericController extends BaseController {
 				locationMap.put(uiSchemaDTO.getGroup(), hirearcyMap);
 
 			} else {
-
 				Map<String, Object> data = new LinkedHashMap<>();
-
 				try {
 					data.put(RegistrationConstants.PRIMARY, masterSyncService.getFieldValues(uiSchemaDTO.getId(),
 							ApplicationContext.applicationLanguage()));
@@ -236,7 +247,6 @@ public class GenericController extends BaseController {
 				} finally {
 					fxControl.fillData(data);
 				}
-
 			}
 
 			return fxControl;

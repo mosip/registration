@@ -195,6 +195,11 @@ public class TextFieldFxControl extends FxControl {
 			addKeyBoard(simpleTypeVBox, validationMessage, textField);
 
 		}
+		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
+			Validations.putIntoLabelMap(fieldName + languageType, uiSchemaDTO.getLabel().get(RegistrationConstants.SECONDARY));
+		} else {
+			Validations.putIntoLabelMap(fieldName + languageType, uiSchemaDTO.getLabel().get(RegistrationConstants.PRIMARY));
+		}
 
 		return simpleTypeVBox;
 	}
