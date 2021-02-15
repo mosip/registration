@@ -409,6 +409,7 @@ public class AbisMiddleWareStageTest {
 		AbisRequestDto abisCommonRequestDto1 = new AbisRequestDto();
 		abisCommonRequestDto1.setRequestType("INSERT");
 		abisCommonRequestDto1.setAbisAppCode("Abis1");
+		abisCommonRequestDto1.setStatusCode("SENT");
 		Mockito.when(packetInfoManager.getAbisRequestByRequestId(Mockito.any())).thenReturn(abisCommonRequestDto1);
 		stage.consumerListener(amq, "abis1_inboundAddress", queue, evenBus, messageTTL);
 
@@ -429,6 +430,7 @@ public class AbisMiddleWareStageTest {
 		MosipQueue queue = Mockito.mock(MosipQueue.class);
 		AbisRequestDto abisCommonRequestDto = new AbisRequestDto();
 		abisCommonRequestDto.setRequestType("IDENTIFY");
+		abisCommonRequestDto.setStatusCode("SENT");
 		Mockito.when(packetInfoManager.getAbisRequestByRequestId(Mockito.any())).thenReturn(abisCommonRequestDto);
 		stage.consumerListener(amq, "abis1_inboundAddress", queue, evenBus, messageTTL);
 
@@ -474,6 +476,7 @@ public class AbisMiddleWareStageTest {
 		MosipQueue queue1 = Mockito.mock(MosipQueue.class);
 		AbisRequestDto abisCommonRequestDto1 = new AbisRequestDto();
 		abisCommonRequestDto1.setRequestType("IDENTIFY");
+		abisCommonRequestDto1.setStatusCode("SENT");
 		Mockito.when(packetInfoManager.getAbisRequestByRequestId(Mockito.any())).thenReturn(abisCommonRequestDto1);
 		stage.consumerListener(amq1, "abis1_inboundAddress", queue1, evenBus1, messageTTL);
 		// test for identify failed response
@@ -510,6 +513,7 @@ public class AbisMiddleWareStageTest {
 		MosipQueue queue = Mockito.mock(MosipQueue.class);
 		AbisRequestDto abisCommonRequestDto = new AbisRequestDto();
 		abisCommonRequestDto.setRequestType("IDENTIFY");
+		abisCommonRequestDto.setStatusCode("SENT");
 		Mockito.when(packetInfoManager.getAbisRequestByRequestId(Mockito.any())).thenReturn(abisCommonRequestDto);
 		
 		AbisIdentifyResponseDto abisIdentifyResponseDto = new AbisIdentifyResponseDto();
@@ -542,6 +546,7 @@ public class AbisMiddleWareStageTest {
 		MosipQueue queue = Mockito.mock(MosipQueue.class);
 		AbisRequestDto abisCommonRequestDto = new AbisRequestDto();
 		abisCommonRequestDto.setRequestType("IDENTIFY");
+		abisCommonRequestDto.setStatusCode("SENT");
 		Mockito.when(packetInfoManager.getAbisRequestByRequestId(Mockito.any())).thenReturn(abisCommonRequestDto);
 		
 		AbisIdentifyResponseDto abisIdentifyResponseDto = new AbisIdentifyResponseDto();

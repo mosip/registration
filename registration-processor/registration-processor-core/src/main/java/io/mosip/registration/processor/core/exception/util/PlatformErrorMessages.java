@@ -447,6 +447,12 @@ public enum PlatformErrorMessages {
 	/** The system exception occured. */
 	SYSTEM_EXCEPTION_OCCURED(PlatformConstants.RPR_ABIS_MIDDLEWARE + "008", "Internal error occured"),
 
+	DUPLICATE_INSERT_RESPONSE(PlatformConstants.RPR_ABIS_MIDDLEWARE + "009",
+			"Duplicate Insert Response received from abis for same request id : "),
+
+	DUPLICATE_IDENTITY_RESPONSE(PlatformConstants.RPR_ABIS_MIDDLEWARE + "010",
+			"Duplicate Identify Response received from abis for same request id : "),
+
 	/** The packet bio dedupe failed. */
 	// Stages - Bio-Dedupe error code and message
 	PACKET_BIO_DEDUPE_FAILED(PlatformConstants.RPR_BIO_DEDUPE_SERVICE_MODULE + "001", "Bio Dedupe Failed"),
