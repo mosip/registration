@@ -138,10 +138,9 @@ public class ServiceDelegateUtil {
 				requestHTTPDTO.setUri(UriComponentsBuilder.fromUriString(url).build(requestParams));
 				url = requestHTTPDTO.getUri().toString();
 			}
-			if (!queryParams.isEmpty()) {
-				/** Set URI */
-				setURI(requestHTTPDTO, queryParams, url);
-			}
+
+			/** Set URI */
+			setURI(requestHTTPDTO, queryParams, url);
 
 			LOGGER.debug(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_GET, APPLICATION_NAME, APPLICATION_ID,
 					"set uri method called");
