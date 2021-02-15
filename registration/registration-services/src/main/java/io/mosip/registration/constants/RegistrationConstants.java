@@ -1828,6 +1828,7 @@ public class RegistrationConstants {
 	public static String OPERATOR_ONBOARDING_BIO_ATTRIBUTES = "mosip.registration.operator.onboarding.bioattributes";
 	public static String RIGHT_TO_LEFT_ORIENTATION_LANGUAGES = "mosip.language.righttoleft.orientation";
 
+	public static String CONFIGURATION = "CONFIGURATION";
 	public static String ONBOARD_CERT_THUMBPRINT = "thumbprint";
 
 	public static final String OPT_TO_REG_CCS_J00017 = "CCS_J00017";
