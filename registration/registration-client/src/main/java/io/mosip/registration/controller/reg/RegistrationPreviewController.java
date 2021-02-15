@@ -78,7 +78,6 @@ public class RegistrationPreviewController extends BaseController implements Ini
 
 	private String consentText;
 
-
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
 		Image backInWhite = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK_FOCUSED));
@@ -124,7 +123,7 @@ public class RegistrationPreviewController extends BaseController implements Ini
 		// }
 		registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
 				getPageByAction(RegistrationConstants.REGISTRATION_PREVIEW, RegistrationConstants.PREVIOUS));
-		guardianBiometricsController.populateBiometricPage(false, true);
+//		guardianBiometricsController.populateBiometricPage(false, true);
 		/*
 		 * } else { registrationController.showCurrentPage(RegistrationConstants.
 		 * REGISTRATION_PREVIEW,

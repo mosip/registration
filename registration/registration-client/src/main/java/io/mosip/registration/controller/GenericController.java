@@ -1,5 +1,6 @@
 package io.mosip.registration.controller;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.controller.reg.RegistrationController;
+import io.mosip.registration.controller.reg.RegistrationPreviewController;
 import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dto.ScreenDTO;
@@ -51,7 +53,7 @@ public class GenericController extends BaseController {
 	 * Top most Grid pane in FXML
 	 */
 	@FXML
-	private GridPane parentGridPane;
+	private GridPane genericScreen;
 
 	/**
 	 * All Elements created and placed in flowPane
@@ -85,6 +87,15 @@ public class GenericController extends BaseController {
 	@Autowired
 	private MasterSyncService masterSyncService;
 	public static Map<String, TreeMap<Integer, FxControl>> locationMap = new LinkedHashMap<String, TreeMap<Integer, FxControl>>();
+
+	private static Map<String, FxControl> fxControlMap = new HashMap<String, FxControl>();
+
+	@Autowired
+	private RegistrationPreviewController registrationPreviewController;
+
+	public static Map<String, FxControl> getFxControlMap() {
+		return fxControlMap;
+	}
 
 	private int currentPage;
 
@@ -156,14 +167,21 @@ public class GenericController extends BaseController {
 
 							UiSchemaDTO uiSchemaDTO = getValidationMap().get(field);
 
-							FxControl fieldNode = null;
+							FxControl fxConrol = null;
 							if (uiSchemaDTO != null) {
-								fieldNode = (FxControl) buildFxElement(uiSchemaDTO);
+								fxConrol = (FxControl) buildFxElement(uiSchemaDTO);
 							}
 
-							if (fieldNode != null && fieldNode.getNode() != null) {
-								Node node = fieldNode.getNode();
+							if (fxConrol != null && fxConrol.getNode() != null) {
+								Node node = fxConrol.getNode();
 
+//								GridPane groupGridPane = (GridPane) screenGridPane.lookup(RegistrationConstants.HASH+uiSchemaDTO.getGroup());
+//								
+//								if(groupGridPane!=null) {
+//									
+//								}
+
+								fxControlMap.put(field, fxConrol);
 								GridPane gridPane = new GridPane();
 
 								ColumnConstraints columnConstraint1 = new ColumnConstraints();
@@ -292,6 +310,7 @@ public class GenericController extends BaseController {
 
 		if (nextScreen == null) {
 
+			registrationPreviewController.setUpPreviewContent();
 			registrationController.showCurrentPage(RegistrationConstants.GENERIC_DETAIL,
 					getPageByAction(RegistrationConstants.GENERIC_DETAIL, RegistrationConstants.NEXT));
 		} else {

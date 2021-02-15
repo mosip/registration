@@ -78,6 +78,7 @@ public class PageFlow {
 
 		Map<String, Boolean> guardianBioMap = new LinkedHashMap<>();
 		guardianBioMap.put(RegistrationConstants.VISIBILITY, true);
+		onboardMap.put(RegistrationConstants.GUARDIAN_BIOMETRIC, guardianBioMap);
 		registrationMap.put(RegistrationConstants.GENERIC_DETAIL, guardianBioMap);
 
 		Map<String, Boolean> onBoardSuccessMap = new LinkedHashMap<>();

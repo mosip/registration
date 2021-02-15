@@ -10,13 +10,16 @@ import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.SessionContext;
+import io.mosip.registration.controller.GenericController;
+import io.mosip.registration.controller.Initialization;
 import io.mosip.registration.controller.reg.DemographicDetailController;
+import io.mosip.registration.controller.reg.RegistrationPreviewController;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
+import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.validator.RequiredFieldValidator;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
-import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 /**
  * 
@@ -42,7 +45,24 @@ public abstract class FxControl extends Node {
 	protected DemographicDetailController demographicDetailController;
 	protected AuditManagerService auditFactory;
 
+	protected RequiredFieldValidator requiredFieldValidator;
+
 	public void refreshFields() {
+
+		for (UiSchemaDTO uiSchemaDto : demographicDetailController.getValidationMap().values()) {
+
+			FxControl control = getFxControl(uiSchemaDto.getId());
+
+			if (control != null) {
+				control.refresh();
+			}
+		}
+
+		// TODO is All fields valid
+
+		// TODO hide not required biometrics
+
+		// TODO hide not required fields
 
 	}
 
@@ -99,6 +119,17 @@ public abstract class FxControl extends Node {
 
 		node.setDisable(isDisable);
 
+	}
+
+	public void refresh() {
+
+		if (isFieldVisible(uiSchemaDTO)) {
+			this.node.setVisible(true);
+			this.node.setManaged(true);
+		} else {
+			this.node.setVisible(false);
+			this.node.setManaged(false);
+		}
 	}
 
 	/**
@@ -161,4 +192,30 @@ public abstract class FxControl extends Node {
 		return registrationDTO;
 	}
 
+	protected boolean isFieldVisible(UiSchemaDTO schemaDTO) {
+		if (requiredFieldValidator == null) {
+			requiredFieldValidator = Initialization.getApplicationContext().getBean(RequiredFieldValidator.class);
+		}
+		try {
+			return requiredFieldValidator.isFieldVisible(schemaDTO, getRegistrationDTo());
+		} catch (RegBaseCheckedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return true;
+	}
+
+	private FxControl getFxControl(String fieldId) {
+
+		return GenericController.getFxControlMap().get(fieldId);
+	}
+
+	public String getLocalLanguage() {
+		return io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage();
+	}
+
+	public String getAppLanguage() {
+		return io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage();
+	}
 }
