@@ -36,16 +36,16 @@ public class DynamicFieldDAOImpl implements DynamicFieldDAO {
 	@Override
 	public DynamicField getDynamicField(String fieldName, String langCode) {
 
-		LOGGER.info("DynamicFieldDAOImpl", APPLICATION_NAME, APPLICATION_ID,
+		LOGGER.debug("DynamicFieldDAOImpl", APPLICATION_NAME, APPLICATION_ID,
 				"fetching the dynamic field >>> " + fieldName + " for langCode >>> " + langCode);
 
-		return dynamicFieldRepository.findByNameAndLangCode(fieldName, langCode);
+		return dynamicFieldRepository.findByIsActiveTrueAndNameAndLangCode(fieldName, langCode);
 	}
 
 	@Override
 	public List<DynamicFieldValueDto> getDynamicFieldValues(String fieldName, String langCode) {
 		
-		LOGGER.info("DynamicFieldDAOImpl", APPLICATION_NAME, APPLICATION_ID,
+		LOGGER.debug("DynamicFieldDAOImpl", APPLICATION_NAME, APPLICATION_ID,
 				"fetching the valueJSON ");		
 		
 		DynamicField dynamicField = getDynamicField(fieldName, langCode);
@@ -53,8 +53,13 @@ public class DynamicFieldDAOImpl implements DynamicFieldDAO {
 		try {
 			String valueJson = (dynamicField != null) ? dynamicField.getValueJson() : "[]" ;
 
-			return MapperUtils.convertJSONStringToDto(valueJson == null ? "[]" : valueJson,
-					new TypeReference<List<DynamicFieldValueDto>>() {});			
+			List<DynamicFieldValueDto> fields = MapperUtils.convertJSONStringToDto(valueJson == null ? "[]" : valueJson,
+					new TypeReference<List<DynamicFieldValueDto>>() {});
+
+			if(fields != null)
+				fields.sort((DynamicFieldValueDto d1, DynamicFieldValueDto d2) -> d1.getCode().compareTo(d2.getCode()));
+
+			return fields;
 			
 		} catch (IOException e) {
 			LOGGER.error("Unable to parse value json for dynamic field: " + fieldName, APPLICATION_NAME,

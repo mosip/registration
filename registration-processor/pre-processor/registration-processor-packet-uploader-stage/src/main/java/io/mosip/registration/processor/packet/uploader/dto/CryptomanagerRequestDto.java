@@ -48,4 +48,6 @@ public class CryptomanagerRequestDto {
 	@ApiModelProperty(notes = "Data in BASE64 encoding to encrypt/decrypt", required = true)
 	@NotBlank(message = CryptomanagerConstant.INVALID_REQUEST)
 	private String data;
+
+	private Boolean prependThumbprint;
 }

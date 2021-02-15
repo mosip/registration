@@ -254,7 +254,7 @@ public class LoginController extends BaseController implements Initializable {
 		} catch (RuntimeException runtimeException) {
 			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
-		} catch (Exception exception) {
+		} catch (Throwable exception) {
 			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 		}
@@ -793,7 +793,7 @@ public class LoginController extends BaseController implements Initializable {
 				if (bioLoginStatus) {
 					LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 							loginMode + " validation success");
-					fingerprintPane.setVisible(false);
+					pane.setVisible(false);
 					loadNextScreen(userDTO, loginMode);
 				} else {
 					LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,

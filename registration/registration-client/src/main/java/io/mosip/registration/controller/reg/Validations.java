@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javafx.scene.control.*;
 import org.bridj.cpp.std.list;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -37,11 +38,6 @@ import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.validator.RequiredFieldValidator;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Hyperlink;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -79,7 +75,8 @@ public class Validations extends BaseController {
 	private UinValidator<String> uinValidator;
 	@Autowired
 	private RidValidator<String> ridValidator;
-
+	@Autowired
+	private DateValidation dateValidation;
 	/**
 	 * Instantiates a new validations.
 	 */
@@ -118,8 +115,6 @@ public class Validations extends BaseController {
 	 * @param notTovalidate  the {@link List} of UI fields not be validated
 	 * @param isValid        the flag indicating whether validation is success or
 	 *                       fail
-	 * @param isConsolidated the flag to indicate for displaying consolidated
-	 *                       message
 	 * @return true, if successful
 	 */
 	public boolean validateTheFields(Pane pane, List<String> notTovalidate, boolean isValid) {
@@ -158,10 +153,10 @@ public class Validations extends BaseController {
 	private boolean nodeToValidate(List<String> notTovalidate, Node node) {
 		if (node.getId() != null && (node.getId().contains("gender") || node.getId().contains("residence"))) {
 			return !(node.getId() == null || notTovalidate.contains(node.getId()) || node instanceof ImageView
-					|| node instanceof Label || node instanceof Hyperlink || node.isDisabled());
+					|| node instanceof Label || node instanceof Hyperlink );
 		}
 		return !(node.getId() == null || notTovalidate.contains(node.getId()) || node instanceof ImageView
-				|| node instanceof Button || node instanceof Label || node instanceof Hyperlink || node.isDisabled());
+				|| node instanceof Button || node instanceof Label || node instanceof Hyperlink);
 	}
 
 	/**
@@ -199,8 +194,7 @@ public class Validations extends BaseController {
 	 *                       validated
 	 * @param node           the {@link Node} to be validated
 	 * @param id             the id of the field to be validated
-	 * @param isConsolidated the flag to indicate for displaying consolidated
-	 *                       message
+	 * @param isPreviousValid
 	 * @return true, if successful
 	 */
 	public boolean validateTheNode(Pane parentPane, Node node, String id, boolean isPreviousValid) {
@@ -208,6 +202,8 @@ public class Validations extends BaseController {
 			return validateComboBox(parentPane, (ComboBox<?>) node, id, isPreviousValid);
 		} else if (node instanceof Button) {
 			return validateButtons(parentPane, (Button) node, id);
+		} else if(node instanceof CheckBox) {
+			return true;
 		}
 		return validateTextField(parentPane, (TextField) node, id, isPreviousValid);
 	}
@@ -253,8 +249,7 @@ public class Validations extends BaseController {
 	 * @param parentPane     the {@link Pane} containing the fields
 	 * @param node           the {@link Node} to be validated
 	 * @param id             the id of the UI field
-	 * @param isConsolidated the flag to indicate for displaying consolidated
-	 *                       message
+	 * @param isPreviousValid
 	 * @return true, if successful
 	 */
 	public boolean validateTextField(Pane parentPane, TextField node, String id, boolean isPreviousValid) {
@@ -273,11 +268,9 @@ public class Validations extends BaseController {
 	 * @param parentPane     the {@link Pane} containing the fields
 	 * @param node           the {@link Node} to be validated
 	 * @param id             the id of the UI field
-	 * @param isConsolidated the flag to indicate for displaying consolidated
-	 *                       message
+	 * @param isPreviousValid
 	 * @return true, if successful
 	 */
-	// TODO validate for UIN and RID based on subtype
 	private boolean languageSpecificValidation(Pane parentPane, TextField node, String id, ResourceBundle messageBundle,
 			List<String> blackListedWords, boolean isPreviousValid) {
 		LOGGER.debug(RegistrationConstants.VALIDATION_LOGGER, APPLICATION_NAME, APPLICATION_ID,
@@ -287,87 +280,42 @@ public class Validations extends BaseController {
 			String label = id.replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY)
 					.replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY);
 
-			// During lostUIN and during updateUIN & field is not part of the selection then
-			// donot do any validation
-			if (isLostUIN && !id.contains(RegistrationConstants.ON_TYPE)) {
-				return true;
-			}
-
-			RegistrationDTO registrationDto = getRegistrationDTOFromSession();
 			boolean showAlert = (noAlert.contains(node.getId()) && id.contains(RegistrationConstants.ON_TYPE));
-			String inputText = node.getText();
 			String ageDateFieldId = getAgeDateFieldId(label);
 			UiSchemaDTO uiSchemaDTO = getValidationMap().get(ageDateFieldId == null ? label : ageDateFieldId);
 
+			// During lostUIN and during updateUIN & field is not part of the selection then
+			// donot do any validation
+			if (isLostUIN && !id.contains(RegistrationConstants.ON_TYPE)) {
+				if(node.isVisible() && (node.getText() != null && !node.getText().isEmpty())) {
+					isInputValid = checkForValidValue(parentPane, node, label, node.getText(), messageBundle, showAlert,
+							isPreviousValid, blackListedWords, uiSchemaDTO);
+				}
+				return isInputValid;
+			}
+
 			if (uiSchemaDTO != null) {
-				boolean isMandatory = requiredFieldValidator.isRequiredField(uiSchemaDTO, registrationDto);
-
-				switch (registrationDto.getRegistrationCategory()) {
-				case RegistrationConstants.PACKET_TYPE_UPDATE:
-					isInputValid = doMandatoryCheckOnUpdateUIN(parentPane, inputText, id, uiSchemaDTO, isMandatory,
-							node, registrationDto);
-					break;
-				case RegistrationConstants.PACKET_TYPE_NEW:
-					isInputValid = doMandatoryCheckOnNewReg(inputText, uiSchemaDTO, isMandatory);
-					if (!isInputValid) {
-						generateInvalidValueAlert(parentPane, id,
-								getFromLabelMap(label).concat(RegistrationConstants.SPACE)
-										.concat(messageBundle.getString(RegistrationConstants.REG_LGN_001)),
-								showAlert);
-						if (isPreviousValid && !id.contains(RegistrationConstants.ON_TYPE)) {
-							addInvalidInputStyleClass(parentPane, node, true);
-						}
-					} else {
-
-						/** Remove Error message for fields */
-						Label messageLable = ((Label) (parentPane
-								.lookup(RegistrationConstants.HASH + node.getId() + RegistrationConstants.MESSAGE)));
-
-						if (messageLable != null) {
-							messageLable.setText(RegistrationConstants.EMPTY);
-						}
+				if(requiredFieldValidator.isRequiredField(uiSchemaDTO, getRegistrationDTOFromSession()) &&
+						!isMandatoryFieldFilled(parentPane, uiSchemaDTO, node, node.getText()) ) {
+					generateInvalidValueAlert(parentPane, id, getFromLabelMap(label).concat(RegistrationConstants.SPACE)
+									.concat(messageBundle.getString(RegistrationConstants.REG_LGN_001)), showAlert);
+					if (isPreviousValid && !id.contains(RegistrationConstants.ON_TYPE)) {
+						addInvalidInputStyleClass(parentPane, node, true);
 					}
-					break;
+					isInputValid = false;
+				}
+				else { /** Remove Error message for fields */
+					Label messageLable = ((Label) (parentPane
+							.lookup(RegistrationConstants.HASH + node.getId() + RegistrationConstants.MESSAGE)));
+					if (messageLable != null) {
+						messageLable.setText(RegistrationConstants.EMPTY);
+					}
+					isInputValid = true;
 				}
 
-				/** !node.isDisabled() */
-				if (isInputValid) {
-					String regex = getRegex(
-							id.replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY)
-									.replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY),
-							RegistrationUIConstants.REGEX_TYPE);
-
-					boolean isBlackListed = false;
-					if (regex != null) {
-						if (inputText.matches(regex)) {
-							isBlackListed = validateBlackListedWords(parentPane, node, id, blackListedWords, showAlert,
-									String.format("%s %s %s",
-											messageBundle.getString(RegistrationConstants.BLACKLISTED_1),
-											getFromLabelMap(id),
-											messageBundle.getString(RegistrationConstants.BLACKLISTED_2)),
-									messageBundle.getString(RegistrationConstants.BLACKLISTED_ARE),
-									messageBundle.getString(RegistrationConstants.BLACKLISTED_IS));
-							isInputValid = isBlackListed;
-						} else {
-							isInputValid = false;
-						}
-					} else if ((inputText != null && !inputText.isEmpty())
-							&& Arrays.asList("UIN", "RID").contains(uiSchemaDTO.getSubType())) {
-						isInputValid = validateUinOrRidField(inputText, registrationDto, uiSchemaDTO);
-					}
-
-					if (!isInputValid) {
-
-						if (isBlackListed) {
-							generateInvalidValueAlert(
-									parentPane, node.getId(), getFromLabelMap(label).concat(RegistrationConstants.SPACE)
-											.concat(messageBundle.getString(RegistrationConstants.REG_DDC_004)),
-									showAlert);
-						}
-						if (isPreviousValid && !id.contains(RegistrationConstants.ON_TYPE)) {
-							addInvalidInputStyleClass(parentPane, node, false);
-						}
-					}
+				if(node.isVisible() && (node.getText() != null && !node.getText().isEmpty())) {
+					isInputValid = checkForValidValue(parentPane, node, label, node.getText(), messageBundle, showAlert,
+							isPreviousValid, blackListedWords, uiSchemaDTO);
 				}
 			}
 
@@ -375,17 +323,83 @@ public class Validations extends BaseController {
 			LOGGER.error(RegistrationConstants.VALIDATION_LOGGER, APPLICATION_NAME, APPLICATION_ID,
 					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 		}
-
-		if (isInputValid) {
-			addValidInputStyleClass(parentPane, node);
-		}
 		return isInputValid;
 	}
 
+	private boolean checkForValidValue(Pane parentPane, TextField node, String fieldId, String value, ResourceBundle messageBundle,
+									boolean showAlert, boolean isPreviousValid, List<String> blackListedWords, UiSchemaDTO uiSchemaDTO) {
+
+		boolean isLocalLanguageField = node.getId().contains(RegistrationConstants.LOCAL_LANGUAGE);
+
+		if(RegistrationConstants.AGE_DATE.equals(uiSchemaDTO.getControlType())) {
+			boolean isValid = dateValidation.validateDate(parentPane, uiSchemaDTO.getId());
+			LOGGER.debug(RegistrationConstants.VALIDATION_LOGGER, APPLICATION_NAME, APPLICATION_ID,
+					"Date validation FAILED :: " + uiSchemaDTO.getId());
+			if(!isValid)
+				return false;
+		}
+
+		boolean isNonBlacklisted = validateBlackListedWords(parentPane, node, node.getId(), blackListedWords, showAlert,
+				String.format("%s %s %s",
+						messageBundle.getString(RegistrationConstants.BLACKLISTED_1),
+						getFromLabelMap(fieldId), messageBundle.getString(RegistrationConstants.BLACKLISTED_2)),
+				messageBundle.getString(RegistrationConstants.BLACKLISTED_ARE),
+				messageBundle.getString(RegistrationConstants.BLACKLISTED_IS));
+
+		if(!isNonBlacklisted)
+			return false;
+
+		String regex = getRegex(fieldId, RegistrationUIConstants.REGEX_TYPE);
+		if(!isLocalLanguageField && regex != null && !value.matches(regex)) {
+			generateInvalidValueAlert(parentPane, node.getId(), getFromLabelMap(fieldId).concat(RegistrationConstants.SPACE)
+					.concat(messageBundle.getString(RegistrationConstants.REG_DDC_004)), showAlert);
+			if (isPreviousValid && !node.getId().contains(RegistrationConstants.ON_TYPE)) {
+				addInvalidInputStyleClass(parentPane, node, false);
+			}
+			return false;
+		}
+
+		if(!isLocalLanguageField && uiSchemaDTO != null && Arrays.asList("UIN", "RID").contains(uiSchemaDTO.getSubType()) &&
+				!validateUinOrRidField(value, getRegistrationDTOFromSession(), uiSchemaDTO)) {
+			generateInvalidValueAlert(parentPane, node.getId(), getFromLabelMap(fieldId).concat(RegistrationConstants.SPACE)
+					.concat(messageBundle.getString(RegistrationConstants.REG_DDC_004)), showAlert);
+			if (isPreviousValid && !node.getId().contains(RegistrationConstants.ON_TYPE)) {
+				addInvalidInputStyleClass(parentPane, node, false);
+			}
+			return false;
+		}
+
+		addValidInputStyleClass(parentPane, node);
+		return true;
+	}
+
+
+	private boolean isMandatoryFieldFilled(Pane parentPane, UiSchemaDTO uiSchemaDTO, TextField node, String value) {
+		boolean fieldFilled = false;
+
+		if(!node.isVisible()) {
+			generateAlert(parentPane, "Mandatory field is hidden : " + uiSchemaDTO.getId() ,RegistrationConstants.ERROR);
+			return fieldFilled;
+		}
+
+		RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
+		switch (registrationDTO.getRegistrationCategory()) {
+			case RegistrationConstants.PACKET_TYPE_UPDATE:
+				if (node.isDisabled()) {  return true; 	}
+				fieldFilled = doMandatoryCheckOnUpdateUIN(parentPane, value, node.getId(), uiSchemaDTO, true, node, registrationDTO);
+				break;
+			case RegistrationConstants.PACKET_TYPE_NEW:
+				fieldFilled = doMandatoryCheckOnNewReg(value, uiSchemaDTO, true);
+				break;
+		}
+		return fieldFilled;
+	}
+
+
 	private void addValidInputStyleClass(Pane parentPane, TextField node) {
 		Label nodeLabel = (Label) parentPane.lookup("#" + node.getId() + "Label");
-		if (nodeLabel == null && parentPane.getParent() != null && parentPane.getParent().getParent() != null
-				&& parentPane.getParent().getParent().getParent() != null) {
+
+		if (nodeLabel == null && parentPane.getParent() != null && parentPane.getParent().getParent() != null && parentPane.getParent().getParent().getParent() != null) {
 			nodeLabel = (Label) parentPane.getParent().getParent().getParent().lookup("#" + node.getId() + "Label");
 		}
 		// node.requestFocus();
@@ -446,15 +460,10 @@ public class Validations extends BaseController {
 
 	private String getAgeDateFieldId(String nodeId) {
 		String[] parts = nodeId.split("__");
-		if (parts.length < 2)
-			return null;
-
-		List<String> ageDateNodeIds = new ArrayList<String>();
-		ageDateNodeIds.add("dd");
-		ageDateNodeIds.add("mm");
-		ageDateNodeIds.add("yyyy");
-		ageDateNodeIds.add("ageField");
-		return ageDateNodeIds.contains(parts[1]) ? parts[0] : null;
+		if(parts.length > 1 && parts[1].matches(RegistrationConstants.DTAE_MONTH_YEAR_REGEX)) {
+			return parts[0];
+		}
+		return null;
 	}
 
 	private boolean validateBlackListedWords(Pane parentPane, TextField node, String id, List<String> blackListedWords,
@@ -559,69 +568,6 @@ public class Validations extends BaseController {
 		}
 	}
 
-	/**
-	 * Validates the Parent or Guardian's UIN or RID UI Field
-	 * 
-	 * @param field        the {@link TextField} to be validated
-	 * @param isChild      the flag to determine whether the individual or applicant
-	 *                     is child
-	 * @param uinValidator the instance of {@link UinValidator} required to validate
-	 *                     the UIN
-	 * @param ridValidator the instance of {@link RidValidator} required to validate
-	 *                     the RID
-	 * @return <code>true</code> if UIN or RID is valid, else <code>false</code>
-	 */
-	/*
-	 * public boolean validateUinOrRid(Pane parentPane, TextField uinId, TextField
-	 * regId, boolean isChild) { boolean isIdValid = false;
-	 * 
-	 * if (isChild) { if (!uinId.isDisabled()) { if ("" == uinId.getText() ||
-	 * uinId.getText().isEmpty()) { generateInvalidValueAlert(parentPane,
-	 * uinId.getId(), applicationLabelBundle.getString(uinId.getId()) + " " +
-	 * applicationMessageBundle.getString(RegistrationConstants.REG_LGN_001),
-	 * false);
-	 * 
-	 * uinId.getStyleClass().remove(RegistrationConstants.
-	 * DEMOGRAPHIC_TEXTFIELD_FOCUSED); uinId.requestFocus(); } else { try {
-	 * isIdValid = uinValidator.validateId(uinId.getText()); } catch
-	 * (InvalidIDException invalidUinException) {
-	 * 
-	 * generateInvalidValueAlert(parentPane, uinId.getId(),
-	 * applicationLabelBundle.getString(uinId.getId()) + " " +
-	 * applicationMessageBundle.getString(RegistrationConstants.REG_DDC_004),
-	 * false);
-	 * 
-	 * LOGGER.error("UIN VALIDATION FAILED", APPLICATION_NAME,
-	 * RegistrationConstants.APPLICATION_ID, invalidUinException.getMessage() +
-	 * ExceptionUtils.getStackTrace(invalidUinException));
-	 * //uinId.getStyleClass().remove(RegistrationConstants.
-	 * DEMOGRAPHIC_TEXTFIELD_FOCUSED); //uinId.requestFocus();
-	 * addInvalidInputStyleClass(parentPane, uinId, true); }
-	 * 
-	 * } } else { if (getRegistrationDTOFromSession().getSelectionListDTO() == null
-	 * && !regId.isDisabled()) { if ("" == regId.getText() ||
-	 * regId.getText().isEmpty()) { generateInvalidValueAlert(parentPane,
-	 * regId.getId(), applicationLabelBundle.getString(regId.getId()) + " " +
-	 * applicationMessageBundle.getString(RegistrationConstants.REG_LGN_001),
-	 * false); regId.getStyleClass().remove(RegistrationConstants.
-	 * DEMOGRAPHIC_TEXTFIELD_FOCUSED); regId.requestFocus(); } else { try {
-	 * isIdValid = ridValidator.validateId(regId.getText()); } catch
-	 * (InvalidIDException invalidRidException) {
-	 * generateInvalidValueAlert(parentPane, regId.getId(),
-	 * applicationLabelBundle.getString(regId.getId()) + " " +
-	 * applicationMessageBundle.getString(RegistrationConstants.REG_DDC_004),
-	 * false); LOGGER.error("RID VALIDATION FAILED", APPLICATION_NAME,
-	 * RegistrationConstants.APPLICATION_ID, invalidRidException.getMessage() +
-	 * ExceptionUtils.getStackTrace(invalidRidException));
-	 * //regId.getStyleClass().remove(RegistrationConstants.
-	 * DEMOGRAPHIC_TEXTFIELD_FOCUSED); //regId.requestFocus();
-	 * addInvalidInputStyleClass(parentPane, regId, true); } } } else {
-	 * generateAlert(RegistrationConstants.ERROR,
-	 * RegistrationUIConstants.UIN_INVALID); } } } else { isIdValid = true; }
-	 * 
-	 * return isIdValid; }
-	 */
-
 	private boolean validateUinOrRidField(String inputText, RegistrationDTO registrationDto, UiSchemaDTO schemaField) {
 		boolean isValid = true;
 		try {
@@ -658,8 +604,8 @@ public class Validations extends BaseController {
 	 * @return <code>true</code>, if successful, else <code>false</code>
 	 */
 	public boolean validateSingleString(String value, String id) {
-
-		return value.matches(getRegex(id, RegistrationUIConstants.REGEX_TYPE));
+		String regex = getRegex(id, RegistrationUIConstants.REGEX_TYPE);
+		return regex != null ? value.matches(regex) : true;
 	}
 
 	/**
@@ -696,27 +642,6 @@ public class Validations extends BaseController {
 		validationMessage.delete(0, validationMessage.length());
 	}
 
-	/*
-	 * private UiSchemaDTO getUiSchemaDTO(String id, boolean isLostUIN) {
-	 * UiSchemaDTO uiSchemaDTO = null;
-	 * 
-	 * if (getValidationMap().containsKey(id)) { uiSchemaDTO =
-	 * getValidationMap().get(id); } return uiSchemaDTO;
-	 * 
-	 * }
-	 * 
-	 * 
-	 * private String getRegex(UiSchemaDTO uiSchemaDTO, String regexType) {
-	 * 
-	 * String regex = null;
-	 * 
-	 * if (uiSchemaDTO != null && uiSchemaDTO.getValidators() != null) { for
-	 * (Validator validator : uiSchemaDTO.getValidators()) { if
-	 * (validator.getType().equalsIgnoreCase(regexType)) { return
-	 * validator.getValidator(); } } }
-	 * 
-	 * return regex; }
-	 */
 
 	private String getRegex(String fieldId, String regexType) {
 		UiSchemaDTO uiSchemaDTO = getValidationMap().get(fieldId);

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import io.mosip.registration.processor.core.constant.PolicyConstant;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -560,14 +561,14 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	public Map<String, List<String>> createTypeSubtypeMapping() throws ApisResourceAccessException, DataShareException, JsonParseException, JsonMappingException, com.fasterxml.jackson.core.JsonProcessingException, IOException{
 		Map<String, List<String>> typeAndSubTypeMap = new HashMap<>();
 		ResponseWrapper<?> policyResponse = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(
-				ApiName.PMS, Lists.newArrayList(subscriberId, AbisHandlerStageConstant.POLICY_ID, policyId), "", "", ResponseWrapper.class);
+				ApiName.PMS, Lists.newArrayList(subscriberId, PolicyConstant.POLICY_ID, policyId), "", "", ResponseWrapper.class);
 		if (policyResponse == null || (policyResponse.getErrors() != null && policyResponse.getErrors().size() >0)) {
 			throw new DataShareException(policyResponse == null ? "Policy Response response is null" : policyResponse.getErrors().get(0).getMessage());
 			
 		} else {
 			LinkedHashMap<String, Object> responseMap = (LinkedHashMap<String, Object>) policyResponse.getResponse();
-			LinkedHashMap<String, Object> policies = (LinkedHashMap<String, Object>) responseMap.get(AbisHandlerStageConstant.POLICIES);
-			List<?> attributes = (List<?>) policies.get(AbisHandlerStageConstant.SHAREABLE_ATTRIBUTES);
+			LinkedHashMap<String, Object> policies = (LinkedHashMap<String, Object>) responseMap.get(PolicyConstant.POLICIES);
+			List<?> attributes = (List<?>) policies.get(PolicyConstant.SHAREABLE_ATTRIBUTES);
 			ObjectMapper mapper = new ObjectMapper();
 			ShareableAttributes shareableAttributes = mapper.readValue(mapper.writeValueAsString(attributes.get(0)),
 					ShareableAttributes.class);

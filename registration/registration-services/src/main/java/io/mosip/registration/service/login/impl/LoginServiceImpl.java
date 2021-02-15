@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
 import io.mosip.registration.constants.*;
 import io.mosip.registration.dto.*;
+import io.mosip.registration.service.sync.CertificateSyncService;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +58,7 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 	private final String GLOBAL_PARAM_SYNC_STEP = "Global parameter Sync";
 	private final String CLIENTSETTINGS_SYNC_STEP = "Client settings / Master data Sync";
 	private final String USER_DETAIL_SYNC_STEP = "User detail Sync";
-	private final String USER_SALT_SYNC_STEP = "User salt Sync";
+	private final String CACERT_SYNC_STEP = "CA CERT Sync";
 
 	/**
 	 * Instance of LOGGER
@@ -120,6 +121,9 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 
 	@Autowired
 	private ClientCryptoFacade clientCryptoFacade;
+
+	@Autowired
+	private CertificateSyncService certificateSyncService;
 
 	/*
 	 * (non-Javadoc)
@@ -371,6 +375,12 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, USER_DETAIL_SYNC_STEP+ " task completed in (ms) : " +
 					(System.currentTimeMillis() - taskStart));
 
+			taskStart = System.currentTimeMillis();
+			responseDTO = certificateSyncService.getCACertificates(triggerPoint);
+			validateResponse(responseDTO, CACERT_SYNC_STEP);
+			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, CACERT_SYNC_STEP+ " task completed in (ms) : " +
+					(System.currentTimeMillis() - taskStart));
+
 			if(isInitialSetUp) {
 				LoginUserDTO loginUserDTO = (LoginUserDTO) ApplicationContext.map().get(RegistrationConstants.USER_DTO);
 				userDetailDAO.updateUserPwd(loginUserDTO.getUserId(), loginUserDTO.getPassword());
@@ -381,7 +391,7 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "completed Initial sync in (ms) : " +
 					(System.currentTimeMillis() - start));
 		
-		} catch (RegBaseCheckedException e) {
+		} catch (Exception e) {
 			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(e));
 			results.add(isAuthTokenEmptyException(e) ? RegistrationConstants.AUTH_TOKEN_NOT_RECEIVED_ERROR : RegistrationConstants.FAILURE);			
 		}

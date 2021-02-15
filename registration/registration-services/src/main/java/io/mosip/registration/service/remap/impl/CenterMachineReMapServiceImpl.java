@@ -100,7 +100,7 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 	@Override
 	public void handleReMapProcess(int step) {
 
-		Boolean isMachineReMapped = isMachineRemapped();
+		Boolean isMachineReMapped = isMachineRemapped() || isMachineInActive();
 		if (isMachineReMapped) {
 			LOGGER.info("REGISTRATION CENTER MACHINE REMAP : ", APPLICATION_NAME, APPLICATION_ID,
 					"handleReMapProcess called and machine has been remapped");
@@ -228,7 +228,7 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 			/* enable intial set up flag */
 			globalParamService.update(RegistrationConstants.INITIAL_SETUP, RegistrationConstants.ENABLE);
 			/* disable the remap flag after completing the remap process */
-			GlobalParam globalParam = getRemapFlagValue();
+			GlobalParam globalParam = getGlobalParam(RegistrationConstants.MACHINE_CENTER_REMAP_FLAG);
 			if (null != globalParam) {
 				globalParam.setVal(RegistrationConstants.TRUE);
 				globalParamDAO.saveAll(Arrays.asList(globalParam));
@@ -299,13 +299,13 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 	 */
 	@Override
 	public Boolean isMachineRemapped() {
-		GlobalParam globalParam = getRemapFlagValue();
+		GlobalParam globalParam = getGlobalParam(RegistrationConstants.MACHINE_CENTER_REMAP_FLAG);
 		return globalParam != null ? Boolean.valueOf(globalParam.getVal()) : false;
 	}
 
-	protected GlobalParam getRemapFlagValue() {
+	protected GlobalParam getGlobalParam(String key) {
 		GlobalParamId globalParamId = new GlobalParamId();
-		globalParamId.setCode(RegistrationConstants.MACHINE_CENTER_REMAP_FLAG);
+		globalParamId.setCode(key);
 		globalParamId.setLangCode("eng");
 		return globalParamDAO.get(globalParamId);
 	}
@@ -352,6 +352,12 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 
 		}
 
+	}
+
+	@Override
+	public Boolean isMachineInActive() {
+		GlobalParam globalParam = getGlobalParam(RegistrationConstants.MACHINE_INACTIVE_FLAG);
+		return globalParam != null ? Boolean.valueOf(globalParam.getVal()) : false;
 	}
 
 }

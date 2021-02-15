@@ -14,6 +14,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.LinkedList;
@@ -27,6 +28,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.registration.context.ApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,7 +41,6 @@ import org.xml.sax.SAXException;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.FileUtils;
-import io.mosip.kernel.core.util.HMACUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
@@ -461,7 +462,7 @@ public class SoftwareUpdateHandler extends BaseService {
 				"Checking of checksum started for jar :" + jarFile.getName());
 		String checkSum;
 		try {
-			checkSum = HMACUtils.digestAsPlainText(HMACUtils.generateHash(Files.readAllBytes(jarFile.toPath())));
+			checkSum = HMACUtils2.digestAsPlainText(Files.readAllBytes(jarFile.toPath()));
 
 			// Get Check sum
 			String manifestCheckSum = getCheckSum(jarFile.getName(), manifest);
@@ -470,7 +471,7 @@ public class SoftwareUpdateHandler extends BaseService {
 					"Checking of checksum completed for jar :" + jarFile.getName());
 			return checkSum.equals(manifestCheckSum);
 
-		} catch (IOException ioException) {
+		} catch (IOException | NoSuchAlgorithmException ioException) {
 			LOGGER.error(LoggerConstants.LOG_REG_UPDATE, APPLICATION_NAME, APPLICATION_ID,
 					ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
 			return false;

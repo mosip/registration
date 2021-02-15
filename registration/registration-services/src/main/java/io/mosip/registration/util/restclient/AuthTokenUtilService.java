@@ -71,6 +71,8 @@ public class AuthTokenUtilService {
         if(userToken != null) {
             return true;
         }
+
+        LOGGER.error(AUTH_REFRESH_TOKEN_UTIL, APPLICATION_NAME, APPLICATION_ID, "No valid auth token found! Needs new token to be fetched");
         return false;
     }
 
@@ -155,13 +157,17 @@ public class AuthTokenUtilService {
                 RegistrationExceptionConstants.AUTH_TOKEN_COOKIE_NOT_FOUND.getErrorMessage());
     }
 
-
     public AuthTokenDTO getAuthTokenAndRefreshToken(LoginMode loginMode) throws RegBaseCheckedException {
+        LoginUserDTO loginUserDTO = (LoginUserDTO) ApplicationContext.map().get(RegistrationConstants.USER_DTO);
+        return getAuthTokenAndRefreshToken(loginMode, loginUserDTO);
+    }
+
+
+    public AuthTokenDTO getAuthTokenAndRefreshToken(LoginMode loginMode, LoginUserDTO loginUserDTO) throws RegBaseCheckedException {
         LOGGER.info(AUTH_REFRESH_TOKEN_UTIL, APPLICATION_NAME, APPLICATION_ID,
                 "Fetching Auth Token and refresh token based on Login Mode >>> " + loginMode);
         try {
             String timestamp = DateUtils.formatToISOString(LocalDateTime.now(ZoneOffset.UTC));
-            LoginUserDTO loginUserDTO = (LoginUserDTO) ApplicationContext.map().get(RegistrationConstants.USER_DTO);
             String header = String.format("{\"kid\" : \"%s\"}", CryptoUtil.computeFingerPrint(clientCryptoFacade.getClientSecurity().getSigningPublicPart(), null));
 
             String payload = "";
@@ -216,10 +222,19 @@ public class AuthTokenUtilService {
 
     private JSONObject getAuthTokenResponse(Map<String, Object> responseMap) throws RegBaseCheckedException {
         if(responseMap.get(RegistrationConstants.REST_RESPONSE_BODY) != null) {
-            Map<String, String> respBody = (Map<String, String>) responseMap.get(RegistrationConstants.REST_RESPONSE_BODY);
+            Map<String, Object> respBody = (Map<String, Object>) responseMap.get(RegistrationConstants.REST_RESPONSE_BODY);
             if (respBody.get("response") != null) {
-                byte[] decryptedData = clientCryptoFacade.decrypt(CryptoUtil.decodeBase64(respBody.get("response")));
+                byte[] decryptedData = clientCryptoFacade.decrypt(CryptoUtil.decodeBase64((String)respBody.get("response")));
                 return new JSONObject(new String(decryptedData));
+            }
+
+            if(respBody.get("errors") != null) {
+                List<LinkedHashMap<String, Object>> errorMap = (List<LinkedHashMap<String, Object>>) respBody
+                        .get(RegistrationConstants.ERRORS);
+                if(!errorMap.isEmpty()) {
+                    throw new RegBaseCheckedException((String)errorMap.get(0).get("errorCode"),
+                            (String)errorMap.get(0).get("message"));
+                }
             }
         }
         throw new RegBaseCheckedException(

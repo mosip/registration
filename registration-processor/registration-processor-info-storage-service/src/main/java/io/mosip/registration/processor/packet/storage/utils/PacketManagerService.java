@@ -25,6 +25,8 @@ import io.mosip.registration.processor.packet.storage.dto.FieldDto;
 import io.mosip.registration.processor.packet.storage.dto.FieldDtos;
 import io.mosip.registration.processor.packet.storage.dto.FieldResponseDto;
 import io.mosip.registration.processor.packet.storage.dto.InfoDto;
+import io.mosip.registration.processor.packet.storage.dto.InfoRequestDto;
+import io.mosip.registration.processor.packet.storage.dto.InfoResponseDto;
 import io.mosip.registration.processor.packet.storage.dto.ValidatePacketResponse;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import org.apache.commons.lang.StringUtils;
@@ -101,6 +103,8 @@ public class PacketManagerService {
             Map<String, String> sourceFieldMap = new HashMap<>();
             for (String field : idjsonKeys) {
                 String source = utilities.getSourceFromIdField(MappingJsonConstants.IDENTITY, process, field);
+                if (source == null)
+                    source = utilities.getSourceFromIdField(MappingJsonConstants.DOCUMENT, process, field);
                 String val = sourceFieldMap.get(source) != null ? sourceFieldMap.get(source) + "," + field : field;
                 sourceFieldMap.put(source, val);
             }
@@ -139,7 +143,12 @@ public class PacketManagerService {
                 JsonUtil.getJSONObject(regProcessorIdentityJson, documentName),
                 MappingJsonConstants.VALUE);
         String source = utilities.getSource(MappingJsonConstants.DOCUMENT, process, documentName);
-        DocumentDto fieldDto = new DocumentDto(id, docKey, source, process);
+        return getDocument(id, docKey, source, process);
+
+    }
+
+    public Document getDocument(String id, String documentName, String source, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+        DocumentDto fieldDto = new DocumentDto(id, documentName, source, process);
 
         RequestWrapper<DocumentDto> request = new RequestWrapper<>();
         request.setId(ID);
@@ -211,8 +220,12 @@ public class PacketManagerService {
                 MappingJsonConstants.VALUE);
         String source = utilities.getSource(MappingJsonConstants.IDENTITY, process, person);
 
+        return getBiometrics(id, personField, modalities, source, process);
+    }
 
-        BiometricRequestDto fieldDto = new BiometricRequestDto(id, personField, modalities, source, process, false);
+    public BiometricRecord getBiometrics(String id, String person, List<String> modalities, String source, String process) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+
+        BiometricRequestDto fieldDto = new BiometricRequestDto(id, person, modalities, source, process, false);
 
         RequestWrapper<BiometricRequestDto> request = new RequestWrapper<>();
         request.setId(ID);
@@ -252,6 +265,26 @@ public class PacketManagerService {
         FieldResponseDto fieldResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), FieldResponseDto.class);
 
         return fieldResponseDto.getFields();
+    }
+
+    public InfoResponseDto info(String id) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+        InfoRequestDto infoRequestDto = new InfoRequestDto(id);
+
+        RequestWrapper<InfoRequestDto> request = new RequestWrapper<>();
+        request.setId(ID);
+        request.setVersion(VERSION);
+        request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+        request.setRequest(infoRequestDto);
+        ResponseWrapper<InfoResponseDto> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_INFO, "", "", request, ResponseWrapper.class);
+
+        if (response.getErrors() != null && response.getErrors().size() > 0) {
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
+            throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), response.getErrors().get(0).getMessage());
+        }
+
+        InfoResponseDto infoResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), InfoResponseDto.class);
+
+        return infoResponseDto;
     }
 
 }

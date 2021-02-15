@@ -3,15 +3,11 @@ package io.mosip.registration.service.security.impl;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import io.mosip.registration.constants.LoginMode;
-import io.mosip.registration.exception.RegBaseCheckedException;
-import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
-import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,27 +16,28 @@ import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biosdk.provider.factory.BioAPIFactory;
 import io.mosip.kernel.biosdk.provider.spi.iBioProviderApi;
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
-import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
-import io.mosip.kernel.core.cbeffutil.entity.BIR.BIRBuilder;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.PurposeType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.ProcessedLevelType;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.constants.LoginMode;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dao.UserDetailDAO;
 import io.mosip.registration.dto.AuthTokenDTO;
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
+import io.mosip.registration.dto.LoginUserDTO;
 import io.mosip.registration.dto.UserDTO;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.entity.UserBiometric;
+import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.login.LoginService;
 import io.mosip.registration.service.security.AuthenticationService;
+import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import io.mosip.registration.validator.OTPValidatorImpl;
 
 /**
@@ -95,7 +92,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 //				record.add(buildBir(userBiometric.getBioIsoImage(), biometricType));
 
 				record.add(bioService.buildBir(userBiometric.getUserBiometricId().getBioAttributeCode(),
-						userBiometric.getQualityScore(), userBiometric.getBioIsoImage()));
+						userBiometric.getQualityScore(), userBiometric.getBioIsoImage(), ProcessedLevelType.PROCESSED));
 			});
 
 			List<BIR> sample = new ArrayList<>(biometrics.size());
@@ -154,12 +151,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		LOGGER.debug("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
 				"Validating credentials using database >>>> " + authenticationValidatorDTO.getUserId());
 		try {
-			if(RegistrationAppHealthCheckUtil.isNetworkAvailable())
-				authTokenUtilService.getAuthTokenAndRefreshToken(LoginMode.PASSWORD);
+			if(RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
+				authTokenUtilService.fetchAuthToken("System");
+			}
 
 			UserDTO userDTO = loginService.getUserDetail(authenticationValidatorDTO.getUserId());
 
-			if (null != userDTO && null != userDTO.getSalt() && HMACUtils
+			if (null != userDTO && null != userDTO.getSalt() && HMACUtils2
 							.digestAsPlainTextWithSalt(authenticationValidatorDTO.getPassword().getBytes(),
 									CryptoUtil.decodeBase64(userDTO.getSalt()))
 							.equals(userDTO.getUserPassword().getPwd())) {
@@ -168,7 +166,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 				return RegistrationConstants.PWD_MISMATCH;
 			}
 
-		} catch (RuntimeException | RegBaseCheckedException runtimeException) {
+		} catch (RuntimeException | RegBaseCheckedException | NoSuchAlgorithmException runtimeException) {
 			LOGGER.info("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(runtimeException));
 			return RegistrationConstants.PWD_MISMATCH;

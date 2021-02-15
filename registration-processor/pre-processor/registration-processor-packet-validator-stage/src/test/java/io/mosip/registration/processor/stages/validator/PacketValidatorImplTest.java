@@ -3,7 +3,7 @@ package io.mosip.registration.processor.stages.validator;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
-import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.constant.PacketFiles;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
@@ -25,6 +25,7 @@ import io.mosip.registration.processor.packet.storage.exception.IdentityNotFound
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.stages.utils.ApplicantDocumentValidation;
 import io.mosip.registration.processor.stages.utils.MandatoryValidation;
 import io.mosip.registration.processor.stages.utils.MasterDataValidation;
 import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl;
@@ -63,7 +64,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ JsonUtil.class, IOUtils.class, HMACUtils.class, Utilities.class, MasterDataValidation.class,
+@PrepareForTest({ JsonUtil.class, IOUtils.class, HMACUtils2.class, Utilities.class, MasterDataValidation.class,
 		MessageDigest.class })
 @PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*","com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*" })
 @TestPropertySource(locations = "classpath:application.properties")
@@ -103,7 +104,10 @@ public class PacketValidatorImplTest {
 	private RegistrationProcessorRestClientService<Object> registrationProcessorRestService;
 	
 	@Mock
-	RegistrationExceptionMapperUtil registrationStatusMapperUtil;
+	private RegistrationExceptionMapperUtil registrationStatusMapperUtil;
+
+	@Mock
+	private ApplicantDocumentValidation applicantDocumentValidation;
 
 	@Value("${packet.default.source}")
 	private String source;
@@ -243,6 +247,7 @@ public class PacketValidatorImplTest {
         BIR bir = new BIR.BIRBuilder().build();
         biometricRecord.setSegments(Lists.newArrayList(bir,bir));
         when(packetManagerService.getBiometrics(anyString(),anyString(),any(),anyString())).thenReturn(biometricRecord);
+        when(applicantDocumentValidation.validateDocument(any(), any())).thenReturn(true);
 	}
 	
 	@Test

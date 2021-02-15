@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import javax.transaction.Transactional;
 
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -40,6 +41,7 @@ import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.repositories.RegistrationRepository;
 import io.mosip.registration.service.IdentitySchemaService;
+import org.springframework.util.StringUtils;
 
 /**
  * The implementation class of {@link RegistrationDAO}.
@@ -96,11 +98,21 @@ public class RegistrationDAOImpl implements RegistrationDAO {
 			
 			RegistrationDataDto registrationDataDto = new RegistrationDataDto();
 			
-			Object fullNameObj = registrationDTO.getDemographics().get(getKey(RegistrationConstants.UI_SCHEMA_GROUP_FULL_NAME));
-			Object emailObj = registrationDTO.getDemographics().get(getKey(RegistrationConstants.UI_SCHEMA_GROUP_EMAIL));
-			Object phoneObj = registrationDTO.getDemographics().get(getKey(RegistrationConstants.UI_SCHEMA_GROUP_PHONE));
+			String applicantName = null;
+			String fullNameKey = getKey(RegistrationConstants.UI_SCHEMA_SUBTYPE_FULL_NAME);
+			if(fullNameKey != null) {
+				List<String> fullNameKeys = Arrays.asList(fullNameKey.split(RegistrationConstants.COMMA));
+				for (String key : fullNameKeys) {
+					Object fullNameObj = registrationDTO.getDemographics().get(key);
+					applicantName = applicantName == null ? getAdditionalInfo(fullNameObj) :
+							applicantName.concat(RegistrationConstants.SPACE).concat(getAdditionalInfo(fullNameObj));
+				}
+			}
+
+			Object emailObj = registrationDTO.getDemographics().get(getKey(RegistrationConstants.UI_SCHEMA_SUBTYPE_EMAIL));
+			Object phoneObj = registrationDTO.getDemographics().get(getKey(RegistrationConstants.UI_SCHEMA_SUBTYPE_PHONE));
 			
-			registrationDataDto.setName(getAdditionalInfo(fullNameObj));
+			registrationDataDto.setName(applicantName);
 			registrationDataDto.setEmail(getAdditionalInfo(emailObj));
 			registrationDataDto.setPhone(getAdditionalInfo(phoneObj));
 			
@@ -128,31 +140,39 @@ public class RegistrationDAOImpl implements RegistrationDAO {
 		}
 	}
 	
-	private String getKey(String groupName) throws RegBaseCheckedException {
+	private String getKey(String subType) throws RegBaseCheckedException {
 		String key = null;
 		List<UiSchemaDTO> schemaFields = identitySchemaService.getLatestEffectiveUISchema();
 		for (UiSchemaDTO schemaField : schemaFields) {
-			if (schemaField.getGroup() != null && schemaField.getGroup().equalsIgnoreCase(groupName)) {
-				key = schemaField.getId();
-				return key;
+			if (schemaField.getSubType() != null && schemaField.getSubType().equalsIgnoreCase(subType)) {
+
+				if (subType.equalsIgnoreCase(RegistrationConstants.UI_SCHEMA_SUBTYPE_FULL_NAME)) {
+					key = key == null ? schemaField.getId() : key.concat(RegistrationConstants.COMMA).concat(schemaField.getId());
+				} else {
+					key = schemaField.getId();
+					return key;
+				}
 			}
 		}
 		return key;
 	}
 
 	private String getAdditionalInfo(Object fieldValue) {
-		String value = null;
+		if(fieldValue == null) { return null; }
+
 		if (fieldValue instanceof List<?>) {
 			Optional<SimpleDto> demoValueInRequiredLang = ((List<SimpleDto>) fieldValue).stream()
 					.filter(valueDTO -> valueDTO.getLanguage().equals(ApplicationContext.applicationLanguage())).findFirst();
 
-			if (demoValueInRequiredLang.isPresent() && demoValueInRequiredLang.get().getValue() != null) {
-				value = demoValueInRequiredLang.get().getValue();
+			if (demoValueInRequiredLang.isPresent()) {
+				return demoValueInRequiredLang.get().getValue();
 			}
-		} else if (fieldValue instanceof String) {
-			value = (String) fieldValue;
 		}
-		return value;
+
+		if (fieldValue instanceof String) {
+			return (String) fieldValue;
+		}
+		return null;
 	}
 
 	/*

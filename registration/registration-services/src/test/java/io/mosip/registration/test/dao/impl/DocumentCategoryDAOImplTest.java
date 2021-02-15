@@ -37,9 +37,9 @@ public class DocumentCategoryDAOImplTest {
 		documentCategory.setCrBy("createdBy");
 		// documentCategory.setDeletedTimesZone(timestamp);
 		documentCategory.setLangCode("languageCode");
-		GenericId genericId = new GenericId();
-		genericId.setActive(true);
-		genericId.setCode("code");
+//		GenericId genericId = new GenericId();
+		documentCategory.setIsActive(true);
+		documentCategory.setCode("code");
 		// documentCategory.setGenericId(genericId);
 		List<DocumentCategory> list = new ArrayList<>();
 		list.add(documentCategory);
@@ -52,9 +52,33 @@ public class DocumentCategoryDAOImplTest {
 
 	@Test
 	public void getDocumentCategoriesByLangCodeTest() {
-		Mockito.when(registrationDocumentCategoryRepository.findByIsActiveTrueAndLangCode("eng")).thenReturn(new ArrayList<>());
+		Mockito.when(registrationDocumentCategoryRepository.findByIsActiveTrueAndLangCode("eng"))
+				.thenReturn(new ArrayList<>());
 
 		assertNotNull(registrationDocumentCategoryDAOImpl.getDocumentCategoriesByLangCode("eng"));
+
+	}
+
+	@Test
+	public void getDocumentCategorieByCodeTest() {
+
+		DocumentCategory documentCategory = new DocumentCategory();
+		documentCategory.setDescription("description");
+		documentCategory.setName("name");
+		// documentCategory.setCreatedTimesZone(timestamp);
+		documentCategory.setCrBy("createdBy");
+		// documentCategory.setDeletedTimesZone(timestamp);
+		documentCategory.setLangCode("languageCode");
+//		GenericId genericId = new GenericId();
+		documentCategory.setIsActive(true);
+		documentCategory.setCode("code");
+
+		Mockito.when(
+				registrationDocumentCategoryRepository.findByIsActiveTrueAndCodeAndLangCode("code", "languageCode"))
+				.thenReturn(documentCategory);
+
+		assertEquals(registrationDocumentCategoryDAOImpl.getDocumentCategoriesByLangCode("languageCode"),
+				documentCategory);
 
 	}
 

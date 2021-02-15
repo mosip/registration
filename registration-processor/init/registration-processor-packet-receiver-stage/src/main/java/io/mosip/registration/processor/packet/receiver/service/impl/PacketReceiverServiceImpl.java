@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +21,7 @@ import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.virusscanner.exception.VirusScannerException;
 import io.mosip.kernel.core.virusscanner.spi.VirusScanner;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -158,7 +159,7 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 						PlatformSuccessMessages.PACKET_RECEIVER_VALIDATION_SUCCESS.getMessage());
 				storageFlag = storePacket(stageName, regEntity, dto, description);
 				isTransactionSuccessful = true;
-			} catch (IOException e) {
+			} catch (IOException | NoSuchAlgorithmException e) {
 
 				description.setMessage(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage());
 				description.setCode(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode());
@@ -404,11 +405,10 @@ public class PacketReceiverServiceImpl implements PacketReceiverService<File, Me
 	 *             Signals that an I/O exception has occurred.
 	 */
 	private void validateHashCode(InputStream inputStream, SyncRegistrationEntity regEntity, String registrationId,
-			LogDescription description) throws IOException {
+			LogDescription description) throws IOException, NoSuchAlgorithmException {
 		// TO-DO testing
 		byte[] isbytearray = IOUtils.toByteArray(inputStream);
-		byte[] dataByte = HMACUtils.generateHash(isbytearray);
-		String hashSequence = HMACUtils.digestAsPlainText(dataByte);
+		String hashSequence = HMACUtils2.digestAsPlainText(isbytearray);
 		String packetHashSequence = regEntity.getPacketHashValue();
 		if (!(MessageDigest.isEqual(packetHashSequence.getBytes(), hashSequence.getBytes()))) {
 			description.setMessage(PlatformErrorMessages.UNEQUAL_PACKET_HASH_PR.getMessage());

@@ -81,6 +81,8 @@ public class DaoConfig extends HibernateDaoConfig {
 	private static PropertySourcesPlaceholderConfigurer ppc = null;
 
 	static {
+
+		//TODO - Remove this in next release
 		ClientCryptoFacade.setIsTPMRequired(RegistrationConstants.ENABLE.equalsIgnoreCase(ApplicationContext.getTPMUsageFlag()));
 
 		try (InputStream keyStream = DaoConfig.class.getClassLoader().getResourceAsStream("spring.properties")) {
@@ -276,7 +278,7 @@ public class DaoConfig extends HibernateDaoConfig {
 					globalParamProps.put(globalParamResultset.getString(KEY),globalParamResultset.getString(VALUE));
 				}
 				globalParamProps.put("objectstore.adapter.name", "PosixAdapter");
-		        globalParamProps.put("mosip.sign.refid", "SIGNATUREKEY");
+				globalParamProps.put("mosip.sign.refid", keys.getProperty("mosip.sign.refid", "SIGN"));
 				return globalParamProps;
 			}
 		});

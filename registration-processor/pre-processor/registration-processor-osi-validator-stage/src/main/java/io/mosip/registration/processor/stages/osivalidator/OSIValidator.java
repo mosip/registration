@@ -112,12 +112,6 @@ public class OSIValidator {
 	@Value("${registration.processor.validate.introducer}")
 	private boolean introducerValidation;
 
-	@Value("${packet.default.source}")
-	private String officerBiometricFileSource;
-
-	@Value("${packet.default.source}")
-	private String supervisorBiometricFileSource;
-
 	@Autowired
 	private Utilities utility;
 
@@ -297,7 +291,7 @@ public class OSIValidator {
 	private boolean isValidOperator(RegOsiDto regOsi, String registrationId,
 			InternalRegistrationStatusDto registrationStatusDto)
 			throws IOException, ApisResourceAccessException, BioTypeException,
-			AuthSystemException, JsonProcessingException, PacketManagerException, CertificateException {
+			AuthSystemException, JsonProcessingException, PacketManagerException, CertificateException, NoSuchAlgorithmException {
 		boolean isValid = false;
 		String officerId = regOsi.getOfficerId();
 		if (officerId != null) {
@@ -522,7 +516,7 @@ public class OSIValidator {
 	private boolean validateIntroducerBiometric(String registrationId,
 			InternalRegistrationStatusDto registrationStatusDto, String introducerBiometricsFileName,
 			String introducerUIN) throws IOException, ApisResourceAccessException,
-			BioTypeException, AuthSystemException, JsonProcessingException, PacketManagerException, CertificateException {
+			BioTypeException, AuthSystemException, JsonProcessingException, PacketManagerException, CertificateException, NoSuchAlgorithmException {
 		BiometricRecord biometricRecord = packetManagerService.getBiometrics(registrationId,
 				introducerBiometricsFileName, null, registrationStatusDto.getRegistrationType());
 		if (introducerBiometricsFileName != null && (!introducerBiometricsFileName.trim().isEmpty())
@@ -615,7 +609,7 @@ public class OSIValidator {
 
 	private boolean validateUserBiometric(String registrationId, String userId, List<BIR> list,
 			String individualType, InternalRegistrationStatusDto registrationStatusDto)
-			throws ApisResourceAccessException, IOException, BioTypeException, AuthSystemException, CertificateException {
+			throws ApisResourceAccessException, IOException, BioTypeException, AuthSystemException, CertificateException, NoSuchAlgorithmException {
 
 		AuthResponseDTO authResponseDTO = authUtil.authByIdAuthentication(userId, individualType, list);
 		if (authResponseDTO.getErrors() == null || authResponseDTO.getErrors().isEmpty()) {

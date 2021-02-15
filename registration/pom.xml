@@ -36,7 +36,7 @@
 		<mockito.version>3.4.4</mockito.version>
 
 		<!-- Lombok -->
-		<lombok.version>1.18.8</lombok.version>
+		<lombok.version>1.18.16</lombok.version>
 
 		<!-- Orika Mapper -->
 		<orika.version>1.4.6</orika.version>
@@ -55,7 +55,7 @@
 		<jackson.mapper.asl.version>1.7.1</jackson.mapper.asl.version>
 
 		<mosip.core.kernel.version>1.2.0-SNAPSHOT</mosip.core.kernel.version>
-		<mosip.kernel.virusscanner.version>1.2.0-SNAPSHOT</mosip.kernel.virusscanner.version>
+		<mosip.kernel.virusscanner.version>1.1.3</mosip.kernel.virusscanner.version>
 		<!-- Derby Version -->
 		<apache.derby.version>10.13.1.1</apache.derby.version>
 

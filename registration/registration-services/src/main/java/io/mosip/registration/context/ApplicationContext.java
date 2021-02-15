@@ -10,6 +10,7 @@ import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dto.AuthTokenDTO;
+import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 
 /**
  * This class will load all the property files as bundles All application level
@@ -438,17 +439,25 @@ public class ApplicationContext {
 		applicationMap.put("client.upgrade.server.url", url);
 	}
 
+	@Deprecated(since = "1.1.4")
 	public static void setTPMUsageFlag(String tpmUsageFlag) {
 		applicationMap.put("client.tpm.required", tpmUsageFlag);
 	}
 
 	public static String getUpgradeServerURL() {
-		return applicationMap.get("client.upgrade.server.url") == null ? ""
-				: String.valueOf(applicationMap.get("client.upgrade.server.url"));
+		return applicationMap.get("client.upgrade.server.url") == null ?
+				String.format("https://%s", RegistrationAppHealthCheckUtil.getHostName()) :
+				String.valueOf(applicationMap.get("client.upgrade.server.url"));
 	}
 
+	@Deprecated(since = "1.1.4")
 	public static String getTPMUsageFlag() {
 		return applicationMap.get("client.tpm.required") == null ? "Y"
 				: String.valueOf(applicationMap.get("client.tpm.required"));
+	}
+
+	public static String getDateFormat() {
+		return applicationMap.get("mosip.default.date.format") == null ? "yyyy/MM/dd"
+				: String.valueOf(applicationMap.get("mosip.default.date.format"));
 	}
 }

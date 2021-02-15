@@ -1,12 +1,14 @@
 package io.mosip.registration.processor.packet.storage.service.impl;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.util.StringUtils;
@@ -347,7 +349,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 			isTransactionSuccessful = true;
 			description.setMessage("Individual Demographic Dedupe data saved ");
 
-		} catch (DataAccessLayerException e) {
+		} catch (DataAccessLayerException | NoSuchAlgorithmException e) {
 			description.setMessage("DataAccessLayerException while saving Individual Demographic Dedupe data " + "::"
 					+ e.getMessage());
 
@@ -439,7 +441,7 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 	 */
 	@Override
 	public void saveManualAdjudicationData(List<String> uniqueMatchedRefIds, String registrationId,
-			DedupeSourceName sourceName, String moduleId, String moduleName) {
+			DedupeSourceName sourceName, String moduleId, String moduleName,String transactionId,String requestId) {
 		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
 
@@ -455,7 +457,11 @@ public class PacketInfoManagerImpl implements PacketInfoManager<Identity, Applic
 
 				manualVerificationEntity.setId(manualVerificationPKEntity);
 				manualVerificationEntity.setLangCode("eng");
-				manualVerificationEntity.setMatchedScore(null);
+				manualVerificationEntity.setRequestId(UUID.randomUUID().toString());
+				//manualVerificationEntity.setMatchedScore(null);
+				manualVerificationEntity.setReponseText(null);
+				manualVerificationEntity.setRequestId(requestId);
+				manualVerificationEntity.setTransactionId(transactionId);
 				manualVerificationEntity.setMvUsrId(null);
 				manualVerificationEntity.setReasonCode("Potential Match");
 				if (sourceName.equals(DedupeSourceName.DEMO)) {

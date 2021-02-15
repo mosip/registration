@@ -49,6 +49,9 @@ public class Encryptor {
 	@Value("${registration.processor.application.id}")
 	private String applicationId;
 
+	@Value("${crypto.PrependThumbprint.enable:true}")
+	private boolean isPrependThumbprintEnabled;
+
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> restClientService;
 
@@ -80,6 +83,7 @@ public class Encryptor {
 			String syncInfo = CryptoUtil.encodeBase64String(syncMetaInfo.getBytes());
 	        
 			CryptomanagerRequestDto cryptomanagerRequestDto = new CryptomanagerRequestDto();
+			cryptomanagerRequestDto.setPrependThumbprint(isPrependThumbprintEnabled);
 			RequestWrapper<CryptomanagerRequestDto> request = new RequestWrapper<>();
 			ResponseWrapper<CryptomanagerResponseDto> response;
 			cryptomanagerRequestDto.setApplicationId(applicationId);

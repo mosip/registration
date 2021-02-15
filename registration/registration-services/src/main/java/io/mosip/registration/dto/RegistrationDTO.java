@@ -40,7 +40,6 @@ import lombok.Data;
 public class RegistrationDTO {
 
 	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
-	private static final String DATE_FORMAT = "yyyy/MM/dd";
 
 	private double idSchemaVersion;
 	private String registrationId;
@@ -123,7 +122,9 @@ public class RegistrationDTO {
 		if (isValidValue(day) && isValidValue(month) && isValidValue(year)) {
 			LocalDate date = LocalDate.of(Integer.valueOf(year), Integer.valueOf(month), Integer.valueOf(day));
 			if (fieldId != null) {
-				this.demographics.put(fieldId, date.format(DateTimeFormatter.ofPattern(DATE_FORMAT)));
+				this.demographics.put(fieldId, date.format(DateTimeFormatter.ofPattern(
+						ApplicationContext.getDateFormat()
+				)));
 			}
 			
 			this.age = Period.between(date, LocalDate.now(ZoneId.of("UTC"))).getYears();
@@ -138,7 +139,9 @@ public class RegistrationDTO {
 
 	public void setDateField(String fieldId, String dateString) {
 		if (isValidValue(dateString)) {
-			LocalDate date = LocalDate.parse(dateString, DateTimeFormatter.ofPattern(DATE_FORMAT));
+			LocalDate date = LocalDate.parse(dateString, DateTimeFormatter.ofPattern(
+					ApplicationContext.getDateFormat()
+			));
 			setDateField(fieldId, String.valueOf(date.getDayOfMonth()), String.valueOf(date.getMonthValue()),
 					String.valueOf(date.getYear()));
 		}
@@ -147,7 +150,9 @@ public class RegistrationDTO {
 	public String[] getDateField(String fieldId) {
 		if (this.demographics.containsKey(fieldId)) {
 			String value = (String) this.demographics.get(fieldId);
-			LocalDate date = LocalDate.parse(value, DateTimeFormatter.ofPattern(DATE_FORMAT));
+			LocalDate date = LocalDate.parse(value, DateTimeFormatter.ofPattern(
+					ApplicationContext.getDateFormat()
+			));
 			return new String[] { String.valueOf(date.getDayOfMonth()), String.valueOf(date.getMonthValue()),
 					String.valueOf(date.getYear()) };
 		}

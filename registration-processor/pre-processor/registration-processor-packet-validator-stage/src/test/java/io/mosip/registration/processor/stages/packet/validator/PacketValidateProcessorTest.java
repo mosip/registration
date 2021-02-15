@@ -2,7 +2,7 @@ package io.mosip.registration.processor.stages.packet.validator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.exception.BaseUncheckedException;
-import io.mosip.kernel.core.util.HMACUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -82,7 +82,7 @@ import static org.mockito.Matchers.anyString;
  */
 @RefreshScope
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ JsonUtils.class, JsonUtil.class, IOUtils.class, HMACUtils.class, Utilities.class, MasterDataValidation.class,
+@PrepareForTest({ JsonUtils.class, JsonUtil.class, IOUtils.class, HMACUtils2.class, Utilities.class, MasterDataValidation.class,
 		MessageDigest.class })
 @PowerMockIgnore({ "javax.management.*", "javax.net.ssl.*","com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*" })
 @TestPropertySource(locations = "classpath:application.properties")

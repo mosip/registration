@@ -19,6 +19,7 @@ import io.mosip.registration.processor.packet.storage.exception.IdRepoAppExcepti
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
+import io.mosip.registration.processor.stages.utils.ApplicantDocumentValidation;
 import io.mosip.registration.processor.stages.utils.MandatoryValidation;
 import io.mosip.registration.processor.stages.utils.MasterDataValidation;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -43,6 +44,7 @@ public class PacketValidatorImpl implements PacketValidator {
     private static final String VALUE = "value";
     private static final String VALIDATEMASTERDATA = "registration.processor.validateMasterData";
     private static final String VALIDATEMANDATORY = "registration-processor.validatemandotary";
+    private static final String VALIDATEAPPLICANTDOCUMENT = "registration.processor.validateApplicantDocument";
 
     @Autowired
     private PacketManagerService packetManagerService;
@@ -61,6 +63,9 @@ public class PacketValidatorImpl implements PacketValidator {
 
     @Autowired
     private MasterDataValidation masterDataValidation;
+
+    @Autowired
+    private ApplicantDocumentValidation applicantDocumentValidation;
 
     @Value("${packet.default.source}")
     private String source;
@@ -119,6 +124,13 @@ public class PacketValidatorImpl implements PacketValidator {
                         id, "ERROR =======>" + StatusUtil.MASTER_DATA_VALIDATION_FAILED.getMessage());
                 packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.MASTER_DATA_VALIDATION_FAILED.getMessage());
                 packetValidationDto.setPacketValidatonStatusCode(StatusUtil.MASTER_DATA_VALIDATION_FAILED.getCode());
+                return false;
+            }
+
+            // document validation
+            if (!applicantDocumentValidation(id, process, packetValidationDto)) {
+                regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+                        id, "ERROR =======>" + StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getMessage());
                 return false;
             }
 
@@ -196,6 +208,19 @@ public class PacketValidatorImpl implements PacketValidator {
             }
             return result;
         }
+    }
+
+    private boolean applicantDocumentValidation(String registrationId, String process, PacketValidationDto packetValidationDto)
+            throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
+        if (env.getProperty(VALIDATEAPPLICANTDOCUMENT).trim().equalsIgnoreCase(VALIDATIONFALSE))
+            return true;
+
+        boolean result = applicantDocumentValidation.validateDocument(registrationId, process);
+        if (!result) {
+            packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getMessage());
+            packetValidationDto.setPacketValidatonStatusCode(StatusUtil.APPLICANT_DOCUMENT_VALIDATION_FAILED.getCode());
+        }
+        return result;
     }
 
 

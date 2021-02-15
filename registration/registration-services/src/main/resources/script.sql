@@ -19,3 +19,4 @@ delete from reg.machine_master;
 delete from reg.device_type;
 delete from reg.device_spec;
 delete from reg.device_master;
+delete from reg.user_token;

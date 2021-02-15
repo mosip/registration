@@ -154,12 +154,14 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 			abisQueueDetails = utility.getAbisQueueDetails();
 			for (AbisQueueDetails abisQueue : abisQueueDetails) {
 				String abisInBoundaddress = abisQueue.getInboundQueueName();
+				int inboundMessageTTL = abisQueue.getInboundMessageTTL();
 				MosipQueue queue = abisQueue.getMosipQueue();
 				QueueListener listener = new QueueListener() {
 					@Override
 					public void setListener(Message message) {
 						try {
-							consumerListener(message, abisInBoundaddress, queue, mosipEventBus);
+							consumerListener(message, abisInBoundaddress, queue, mosipEventBus, 
+								inboundMessageTTL);
 						} catch (Exception e) {
 
 							regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
@@ -299,7 +301,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 				byte[] reqBytearray = abisIdentifyRequest.getReqText();
 
 				boolean isAddedToQueue = sendToQueue(abisQueue.get(0).getMosipQueue(), new String(reqBytearray),
-						abisQueue.get(0).getInboundQueueName());
+						abisQueue.get(0).getInboundQueueName(), abisQueue.get(0).getInboundMessageTTL());
 
 				updateAbisRequest(isAddedToQueue, abisIdentifyRequest, internalRegDto);
 			}
@@ -315,7 +317,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 			byte[] reqBytearray = abisInprogressRequest.getReqText();
 
 			boolean isAddedToQueue = sendToQueue(abisQueue.get(0).getMosipQueue(), new String(reqBytearray),
-					abisQueue.get(0).getInboundQueueName());
+					abisQueue.get(0).getInboundQueueName(), abisQueue.get(0).getInboundMessageTTL());
 
 			updateAbisRequest(isAddedToQueue, abisInprogressRequest, internalRegDto);
 		}
@@ -330,13 +332,14 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 					.collect(Collectors.toList());
 			byte[] reqBytearray = identifyRequest.get(0).getReqText();
 			boolean isAddedToQueue = sendToQueue(abisQueue.get(0).getMosipQueue(), new String(reqBytearray),
-					abisQueue.get(0).getInboundQueueName());
+					abisQueue.get(0).getInboundQueueName(), abisQueue.get(0).getInboundMessageTTL());
 			updateAbisRequest(isAddedToQueue, identifyRequest.get(0), internalRegDto);
 
 		}
 	}
 
-	public void consumerListener(Message message, String abisInBoundAddress, MosipQueue queue, MosipEventBus eventBus)
+	public void consumerListener(Message message, String abisInBoundAddress, MosipQueue queue, 
+			MosipEventBus eventBus, int inboundMessageTTL)
 			throws RegistrationProcessorCheckedException {
 		TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
 		InternalRegistrationStatusDto internalRegStatusDto = null;
@@ -389,7 +392,7 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 					validateNullCheck(abisIdentifyRequest, "IDENTIFY_REQUESTS_NOT_FOUND");
 					AbisRequestDto abisIdentifyRequestDto = abisIdentifyRequest.get(0);
 					boolean isAddedToQueue = sendToQueue(queue, new String(abisIdentifyRequestDto.getReqText()),
-							abisInBoundAddress);
+							abisInBoundAddress, inboundMessageTTL);
 					updateAbisRequest(isAddedToQueue, abisIdentifyRequestDto, internalRegStatusDto);
 				} else {
 					internalRegStatusDto
@@ -489,16 +492,18 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 
 	}
 
-	private boolean sendToQueue(MosipQueue queue, String abisReqTextString, String abisQueueAddress)
-			throws RegistrationProcessorCheckedException {
+	private boolean sendToQueue(MosipQueue queue, String abisReqTextString, String abisQueueAddress, 
+			int messageTTL) throws RegistrationProcessorCheckedException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"AbisMiddlewareStage::sendToQueue()::Entry");
 		boolean isAddedToQueue;
 		try {
 			if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE))
-				isAddedToQueue = mosipQueueManager.send(queue, abisReqTextString, abisQueueAddress);
+				isAddedToQueue = mosipQueueManager.send(queue, abisReqTextString, 
+					abisQueueAddress, messageTTL);
 			else
-				isAddedToQueue = mosipQueueManager.send(queue, abisReqTextString.getBytes(), abisQueueAddress);
+				isAddedToQueue = mosipQueueManager.send(queue, abisReqTextString.getBytes(), 
+					abisQueueAddress, messageTTL);
 
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"AbisMiddlewareStage:: sent to abis queue ::" + abisReqTextString);
