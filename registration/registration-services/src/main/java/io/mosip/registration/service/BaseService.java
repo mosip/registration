@@ -1,6 +1,6 @@
 package io.mosip.registration.service;
 
-import static io.mosip.registration.constants.LoggerConstants.BIO_SERVICE;
+import static io.mosip.registration.constants.LoggerConstants.*;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
@@ -10,17 +10,12 @@ import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import io.mosip.kernel.core.util.HMACUtils2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,6 +76,10 @@ public class BaseService {
 	 * Instance of LOGGER
 	 */
 	private static final Logger LOGGER = AppConfig.getLogger(NotificationServiceImpl.class);
+
+	private static final String TIMESTAMP_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+
+	private SimpleDateFormat simpleDateFormat = new SimpleDateFormat(TIMESTAMP_FORMAT);
 
 	/**
 	 * serviceDelegateUtil which processes the HTTPRequestDTO requests
@@ -617,6 +616,41 @@ public class BaseService {
 			break;
 		}
 		return subtypes;
-	}	
+	}
+
+	/**
+	 * Converts string to java.sql.Timestamp
+	 *
+	 * @param time
+	 * @return
+	 * @throws RegBaseCheckedException
+	 */
+	public Timestamp getTimestamp(String time) throws RegBaseCheckedException {
+		try {
+			Date date = simpleDateFormat.parse(time);
+			Timestamp timestamp = new Timestamp(date.getTime());
+			return timestamp;
+		} catch (ParseException e) {
+			LOGGER.error("", APPLICATION_NAME, APPLICATION_ID, e.getMessage());
+		}
+		throw new RegBaseCheckedException(RegistrationConstants.SYNC_TRANSACTION_RUNTIME_EXCEPTION,
+				"Failed to parse lastSyncTime from server : " + time);
+	}
+
+	public ResponseDTO getHttpResponseErrors(ResponseDTO responseDTO, LinkedHashMap<String, Object> httpResponse) {
+		List<ErrorResponseDTO> erResponseDTOs = new ArrayList<>();
+		ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO();
+		errorResponseDTO.setCode(RegistrationConstants.ERRORS);
+		String errorMessage = RegistrationConstants.API_CALL_FAILED;
+		if(httpResponse != null && httpResponse.get(RegistrationConstants.ERRORS) != null) {
+			List<HashMap<String, String>> errors = (List<HashMap<String, String>>) httpResponse.get(RegistrationConstants.ERRORS);
+			LOGGER.error("Response Errors >>>> {}", errors);
+			errorMessage = errors.isEmpty() ? RegistrationConstants.API_CALL_FAILED : errors.get(0).get(RegistrationConstants.ERROR_MSG);
+		}
+		errorResponseDTO.setMessage(errorMessage);
+		erResponseDTOs.add(errorResponseDTO);
+		responseDTO.setErrorResponseDTOs(erResponseDTOs);
+		return responseDTO;
+	}
 
 }
