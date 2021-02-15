@@ -166,17 +166,21 @@ public class GlobalParamServiceImpl extends BaseService implements GlobalParamSe
 
 						HashMap<String, String> globalParamMap = new HashMap<>();
 
-						if(responseMap.containsKey("configDetail") && responseMap.get("configDetail") != null) {
+						if (responseMap.get("configDetail") != null) {
 							HashMap<String, Object> configDetailJsonMap = (HashMap<String, Object>) responseMap
 									.get("configDetail");
 
-							if(configDetailJsonMap.get("globalConfiguration") != null) {
-								parseToMap((HashMap<String, Object>) getParams((String) configDetailJsonMap.get("globalConfiguration")),
+							if (configDetailJsonMap.get("globalConfiguration") != null) {
+								parseToMap(
+										(HashMap<String, Object>) getParams(
+												(String) configDetailJsonMap.get("globalConfiguration")),
 										globalParamMap);
 							}
 
-							if(configDetailJsonMap.get("registrationConfiguration") != null) {
-								parseToMap((HashMap<String, Object>) getParams((String) configDetailJsonMap.get("registrationConfiguration")),
+							if (configDetailJsonMap.get("registrationConfiguration") != null) {
+								parseToMap(
+										(HashMap<String, Object>) getParams(
+												(String) configDetailJsonMap.get("registrationConfiguration")),
 										globalParamMap);
 							}
 						}
@@ -352,6 +356,7 @@ public class GlobalParamServiceImpl extends BaseService implements GlobalParamSe
 				globalParam.setGlobalParamId(globalParamId);
 				globalParam.setCrBy(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
 				globalParam.setCrDtime(time);
+				globalParam.setTyp(RegistrationConstants.CONFIGURATION);
 
 			}
 			globalParam.setVal(val);
