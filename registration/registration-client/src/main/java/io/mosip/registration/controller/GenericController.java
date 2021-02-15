@@ -30,6 +30,7 @@ import io.mosip.registration.util.control.impl.TextFieldFxControl;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -66,6 +67,11 @@ public class GenericController extends BaseController {
 
 	@FXML
 	private GridPane footerGridPane;
+
+	@FXML
+	private Button next;
+	@FXML
+	private Button previous;
 
 	@Autowired
 	private Validations validation;
@@ -114,6 +120,7 @@ public class GenericController extends BaseController {
 		flowPane.setVgap(10);
 		flowPane.setHgap(10);
 
+		screenMap.clear();
 		ObservableList<Node> flowPaneNodes = flowPane.getChildren();
 		int count = 0;
 		if (screens != null && !screens.isEmpty()) {
@@ -125,6 +132,9 @@ public class GenericController extends BaseController {
 				screenDTO.setScreenName(screenEntry.getKey());
 				screenDTO.setScreenNode(screenGridPane);
 				screenMap.put(screenMap.size() + 1, screenDTO);
+
+				screenGridPane.setVisible(false);
+				screenGridPane.setManaged(false);
 
 				screenGridPane.setHgap(15);
 				screenGridPane.setVgap(15);
@@ -146,7 +156,10 @@ public class GenericController extends BaseController {
 
 							UiSchemaDTO uiSchemaDTO = getValidationMap().get(field);
 
-							FxControl fieldNode = (FxControl) buildFxElement(uiSchemaDTO);
+							FxControl fieldNode = null;
+							if (uiSchemaDTO != null) {
+								fieldNode = (FxControl) buildFxElement(uiSchemaDTO);
+							}
 
 							if (fieldNode != null && fieldNode.getNode() != null) {
 								Node node = fieldNode.getNode();
@@ -169,29 +182,34 @@ public class GenericController extends BaseController {
 					}
 				}
 
-				for (Entry<String, TreeMap<Integer, FxControl>> locatioEntrySet : locationMap.entrySet()) {
-
-					TreeMap<Integer, FxControl> treeMap = locatioEntrySet.getValue();
-
-					Entry<Integer, FxControl> val = treeMap.firstEntry();
-					try {
-
-						Map<String, Object> data = new LinkedHashMap<>();
-
-						data.put(RegistrationConstants.PRIMARY, masterSyncService
-								.findLocationByHierarchyCode(val.getKey(), ApplicationContext.applicationLanguage()));
-						data.put(RegistrationConstants.SECONDARY, masterSyncService
-								.findLocationByHierarchyCode(val.getKey(), ApplicationContext.localLanguage()));
-
-						val.getValue().fillData(data);
-					} catch (RegBaseCheckedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-
-				}
 			}
 
+			currentPage = 1;
+			Node node = screenMap.get(currentPage).getScreenNode();
+			node.setVisible(true);
+			node.setManaged(true);
+
+			for (Entry<String, TreeMap<Integer, FxControl>> locatioEntrySet : locationMap.entrySet()) {
+
+				TreeMap<Integer, FxControl> treeMap = locatioEntrySet.getValue();
+
+				Entry<Integer, FxControl> val = treeMap.firstEntry();
+				try {
+
+					Map<String, Object> data = new LinkedHashMap<>();
+
+					data.put(RegistrationConstants.PRIMARY, masterSyncService.findLocationByHierarchyCode(val.getKey(),
+							ApplicationContext.applicationLanguage()));
+					data.put(RegistrationConstants.SECONDARY, masterSyncService
+							.findLocationByHierarchyCode(val.getKey(), ApplicationContext.localLanguage()));
+
+					val.getValue().fillData(data);
+				} catch (RegBaseCheckedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
 		}
 	}
 
@@ -264,13 +282,21 @@ public class GenericController extends BaseController {
 		return null;
 	}
 
+	@FXML
 	public void next() {
 
+//		currentPage = currentPage == 0 ? ++currentPage : currentPage;
 		Node currentNode = screenMap.get(currentPage).getScreenNode();
 
 		Entry<Integer, ScreenDTO> nextScreen = screenMap.higherEntry(currentPage);
 
-		show(currentNode, nextScreen != null ? nextScreen.getValue().getScreenNode() : null, 1);
+		if (nextScreen == null) {
+
+			registrationController.showCurrentPage(RegistrationConstants.GENERIC_DETAIL,
+					getPageByAction(RegistrationConstants.GENERIC_DETAIL, RegistrationConstants.NEXT));
+		} else {
+			show(currentNode, nextScreen != null ? nextScreen.getValue().getScreenNode() : null, 1);
+		}
 
 	}
 
@@ -282,9 +308,14 @@ public class GenericController extends BaseController {
 			nextNode.setVisible(true);
 			nextNode.setManaged(true);
 			currentPage += updateScreen;
+
+			boolean isVisible = currentPage > 1 ? true : false;
+			previous.setVisible(isVisible);
+
 		}
 	}
 
+	@FXML
 	public void previous() {
 
 		Node currentNode = screenMap.get(currentPage).getScreenNode();
