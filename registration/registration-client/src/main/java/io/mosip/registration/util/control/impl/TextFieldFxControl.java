@@ -6,6 +6,7 @@ package io.mosip.registration.util.control.impl;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.context.ApplicationContext;
 
@@ -70,15 +71,15 @@ public class TextFieldFxControl extends FxControl {
 		HBox hBox = new HBox();
 		hBox.getChildren().add(primaryLangVBox);
 		HBox.setHgrow(primaryLangVBox, Priority.ALWAYS);
-        
+
 		if (demographicDetailController.isLocalLanguageAvailable()
 				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
 			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
 
 			Region region = new Region();
-	        HBox.setHgrow(region, Priority.ALWAYS);
-	        
-	        HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
+			HBox.setHgrow(region, Priority.ALWAYS);
+
+			HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
 			hBox.getChildren().addAll(region, secondaryLangVBox);
 		}
 
@@ -111,14 +112,14 @@ public class TextFieldFxControl extends FxControl {
 
 		if (this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE)) {
 
-			String primaryLang = null;
-			String primaryVal = null;
-			String localLanguage = null;
-			String localVal = null;
-			if (demographicDetailController.isLocalLanguageAvailable()
-					&& !demographicDetailController.isAppLangAndLocalLangSame()) {
+			TextField appLangTextField = (TextField) getField(uiSchemaDTO.getId());
+			TextField localLangTextField = (TextField) getField(
+					uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE);
+			String primaryLang = getAppLanguage();
+			String primaryVal = appLangTextField != null ? appLangTextField.getText() : null;
+			String localLanguage = getLocalLanguage();
+			String localVal = localLangTextField != null ? localLangTextField.getText() : null;
 
-			}
 			registrationDTO.addDemographicField(uiSchemaDTO.getId(), primaryLang, primaryVal, localLanguage, localVal);
 
 		} else {
@@ -196,9 +197,11 @@ public class TextFieldFxControl extends FxControl {
 
 		}
 		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
-			Validations.putIntoLabelMap(fieldName + languageType, uiSchemaDTO.getLabel().get(RegistrationConstants.SECONDARY));
+			Validations.putIntoLabelMap(fieldName + languageType,
+					uiSchemaDTO.getLabel().get(RegistrationConstants.SECONDARY));
 		} else {
-			Validations.putIntoLabelMap(fieldName + languageType, uiSchemaDTO.getLabel().get(RegistrationConstants.PRIMARY));
+			Validations.putIntoLabelMap(fieldName + languageType,
+					uiSchemaDTO.getLabel().get(RegistrationConstants.PRIMARY));
 		}
 
 		return simpleTypeVBox;
@@ -302,12 +305,18 @@ public class TextFieldFxControl extends FxControl {
 
 	@Override
 	public void fillData(Object data) {
-		
-		TextField appLangTextField = null;
-		TextField localLangTextField = null;
-		
-		
-		
+
+		TextField appLangTextField = (TextField) getField(uiSchemaDTO.getId());
+		TextField localLangTextField = (TextField) getField(uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE);
+
+		Map<String, String> dataMap = (Map<String, String>) data;
+		if (appLangTextField != null) {
+			appLangTextField.setText(dataMap.get(RegistrationConstants.PRIMARY));
+		}
+		if (localLangTextField != null) {
+			localLangTextField.setText(dataMap.get(RegistrationConstants.SECONDARY));
+		}
+
 	}
 
 }

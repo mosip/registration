@@ -52,10 +52,10 @@ public class RegistrationConstants {
 	public static final String PACKET_UPLOAD_STATUS_UI = "/fxml/PacketUploadStatus.fxml";
 	public static final String ALERT_GENERATION = "/fxml/Alert.fxml";
 	public static final String GENERIC_LAYOUT = "/fxml/GenericRegistrationLayout.fxml";
-	public static final String BIOMETRIC_FXML = "/fxml/Biometrics.fxml";
+	public static final String BIOMETRIC_FXML = "/fxml/GenericBiometricFXML.fxml";
 	// FXML Id
 	public static final String DEMOGRAPHIC_DETAIL = "demographicDetail";
-	public static final String GENERIC_DETAIL = "genericDetail";
+	public static final String GENERIC_DETAIL = "genericScreen";
 	public static final String DOCUMENT_SCAN = "documentScan";
 	public static final String DOCUMENT_PANE = "documentPane";
 	public static final String EXCEPTION_PANE = "exceptionPane";

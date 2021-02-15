@@ -17,6 +17,7 @@ import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.controller.Initialization;
 import io.mosip.registration.controller.device.BiometricsController;
+import io.mosip.registration.controller.device.GenericBiometricsController;
 import io.mosip.registration.controller.reg.DemographicDetailController;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
@@ -24,7 +25,6 @@ import io.mosip.registration.dto.packetmanager.DocumentDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.util.control.FxControl;
 import io.mosip.registration.validator.RequiredFieldValidator;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Tooltip;
@@ -36,8 +36,7 @@ import javafx.scene.layout.VBox;
 
 public class BiometricFxControl extends FxControl {
 
-	private BiometricsController biometricsController;
-	private RequiredFieldValidator requiredFieldValidator;
+	private GenericBiometricsController biometricsController;
 	private static ResourceBundle applicationBundle = ApplicationContext.getInstance().getApplicationLanguageBundle();
 
 	private String TICK_MARK = "tickMark";
@@ -57,8 +56,8 @@ public class BiometricFxControl extends FxControl {
 	public BiometricFxControl() {
 
 		org.springframework.context.ApplicationContext applicationContext = Initialization.getApplicationContext();
-		biometricsController = applicationContext.getBean(BiometricsController.class);
-		requiredFieldValidator = applicationContext.getBean(RequiredFieldValidator.class);
+		biometricsController = applicationContext.getBean(GenericBiometricsController.class);
+		this.requiredFieldValidator = applicationContext.getBean(RequiredFieldValidator.class);
 		demographicDetailController = applicationContext.getBean(DemographicDetailController.class);
 	}
 
@@ -68,26 +67,29 @@ public class BiometricFxControl extends FxControl {
 		this.uiSchemaDTO = uiSchemaDTO;
 		this.control = this;
 
-		VBox biometricVBox = new VBox();
+		this.node = create(null, uiSchemaDTO);
+
+		return this.control;
+	}
+
+	private VBox create(VBox biometricVBox, UiSchemaDTO uiSchemaDTO) {
+		biometricVBox = biometricVBox == null ? new VBox() : biometricVBox;
+		biometricVBox.getChildren().clear();
 		biometricVBox.setSpacing(5);
 
 		biometricVBox.getChildren().add(getLabel(null, uiSchemaDTO.getLabel().get(RegistrationConstants.PRIMARY),
 				RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, biometricVBox.getPrefWidth()));
 
-		biometricVBox.getChildren().add(create(uiSchemaDTO));
-
-		biometricVBox.getStyleClass().add(RegistrationConstants.BIOMETRICS_DISPLAY);
-		this.node = biometricVBox;
-
-		return this.control;
-	}
-
-	private HBox create(UiSchemaDTO uiSchemaDTO) {
-
 		modalityAttributeMap = getconfigureAndNonConfiguredBioAttributes(getModalityBasedBioAttributes(),
 				uiSchemaDTO.getSubType());
+		biometricVBox.getChildren().add(loadModalitesToUi(modalityAttributeMap, uiSchemaDTO.getSubType()));
 
-		return loadModalitesToUi(modalityAttributeMap, uiSchemaDTO.getSubType());
+		biometricVBox.getStyleClass().add(RegistrationConstants.BIOMETRICS_DISPLAY);
+
+		biometricVBox.setVisible(isRequired());
+		biometricVBox.setManaged(true);
+
+		return biometricVBox;
 
 	}
 
@@ -243,7 +245,7 @@ public class BiometricFxControl extends FxControl {
 
 			image = biometricsController.getBioStreamImage(subtype, modality, biometricsDtos.get(0).getNumOfRetries());
 		}
-		
+
 		VBox imgVBox = new VBox();
 
 		ImageView imageView = new ImageView(image != null ? image
@@ -252,7 +254,7 @@ public class BiometricFxControl extends FxControl {
 		imageView.setId(uiSchemaDTO.getId() + RegistrationConstants.IMAGE_VIEW + modality);
 		imageView.setFitHeight(80);
 		imageView.setFitWidth(85);
-		
+
 		imgVBox.getStyleClass().add(RegistrationConstants.BIOMETRICS_DISPLAY);
 		imgVBox.getChildren().add(imageView);
 
@@ -506,5 +508,25 @@ public class BiometricFxControl extends FxControl {
 		vBox.getStyleClass().add(RegistrationConstants.BIOMETRICS_DISPLAY);
 
 		return vBox;
+	}
+
+	private boolean isRequired() {
+		try {
+			List<String> configBioAttributes = requiredFieldValidator.isRequiredBiometricField(uiSchemaDTO.getSubType(),
+					getRegistrationDTo());
+
+			return configBioAttributes != null && !configBioAttributes.isEmpty();
+		} catch (RegBaseCheckedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return false;
+	}
+
+	public void refresh() {
+
+		create((VBox) this.node, this.uiSchemaDTO);
+
 	}
 }

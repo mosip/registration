@@ -77,9 +77,9 @@ public class DropDownFxControl extends FxControl {
 			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
 
 			Region region = new Region();
-	        HBox.setHgrow(region, Priority.ALWAYS);
-	        
-	        //HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
+			HBox.setHgrow(region, Priority.ALWAYS);
+
+			// HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
 			hBox.getChildren().addAll(region, secondaryLangVBox);
 
 		}
@@ -149,14 +149,22 @@ public class DropDownFxControl extends FxControl {
 
 	@Override
 	public void setData(Object data) {
-		// TODO Auto-generated method stub
+		ComboBox<GenericDto> appComboBox = (ComboBox<GenericDto>) getField(uiSchemaDTO.getId());
+		ComboBox<GenericDto> localComboBox = (ComboBox<GenericDto>) getField(
+				uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE);
 
+		String primaryVal = appComboBox != null && appComboBox.getValue() != null ? appComboBox.getValue().getName()
+				: null;
+		String localVal = localComboBox != null && localComboBox.getValue() != null ? localComboBox.getValue().getName()
+				: null;
+
+		getRegistrationDTo().addDemographicField(uiSchemaDTO.getId(), getAppLanguage(), primaryVal, getLocalLanguage(),
+				localVal);
 	}
 
 	@Override
 	public Object getData() {
-		// TODO Auto-generated method stub
-		return null;
+		return getRegistrationDTo().getDemographics().get(uiSchemaDTO.getId());
 	}
 
 	@Override
@@ -178,6 +186,7 @@ public class DropDownFxControl extends FxControl {
 
 						// TODO Set Local vals
 
+						setData(null);
 						Map<Integer, FxControl> hirearchyMap = GenericController.locationMap
 								.get(uiSchemaDTO.getGroup());
 

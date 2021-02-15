@@ -56,4 +56,5 @@ public class CheckBoxFxControl extends FxControl {
 		
 	}
 
+	
 }
