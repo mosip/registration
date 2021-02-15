@@ -67,28 +67,18 @@ public class PageFlow {
 		onboardUserParent.put(RegistrationConstants.VISIBILITY, true);
 		onboardMap.put(RegistrationConstants.ONBOARD_USER_PARENT, onboardUserParent);
 
-		Map<String, Boolean> demographicMap = new LinkedHashMap<>();
-		demographicMap.put(RegistrationConstants.VISIBILITY, true);
-		registrationMap.put(RegistrationConstants.DEMOGRAPHIC_DETAIL, demographicMap);
-
 		String docType = "documentType";
 		List<UiSchemaDTO> docList = null;
-		if(validations != null && validations.getValidationMap() != null && !validations.getValidationMap().isEmpty()) {
+		if (validations != null && validations.getValidationMap() != null
+				&& !validations.getValidationMap().isEmpty()) {
 			docList = validations.getValidationMap().values().stream()
 					.filter(schemaDto -> schemaDto.getType() != null && schemaDto.getType().equalsIgnoreCase(docType))
 					.collect(Collectors.toList());
 		}
 
-		Map<String, Boolean> docMap = new LinkedHashMap<>();
-		docMap.put(RegistrationConstants.VISIBILITY, docList != null && !docList.isEmpty());
-		docMap.put(RegistrationConstants.DOCUMENT_PANE, true);
-		docMap.put(RegistrationConstants.EXCEPTION_PANE, true);
-		registrationMap.put(RegistrationConstants.DOCUMENT_SCAN, docMap);
-
 		Map<String, Boolean> guardianBioMap = new LinkedHashMap<>();
 		guardianBioMap.put(RegistrationConstants.VISIBILITY, true);
-		registrationMap.put(RegistrationConstants.GUARDIAN_BIOMETRIC, guardianBioMap);
-		onboardMap.put(RegistrationConstants.GUARDIAN_BIOMETRIC, guardianBioMap);
+		registrationMap.put(RegistrationConstants.GENERIC_DETAIL, guardianBioMap);
 
 		Map<String, Boolean> onBoardSuccessMap = new LinkedHashMap<>();
 		onBoardSuccessMap.put(RegistrationConstants.VISIBILITY, true);
@@ -198,8 +188,7 @@ public class PageFlow {
 	}
 
 	/**
-	 * @param currentPage
-	 *            registration page name
+	 * @param currentPage registration page name
 	 * @return returns registration next page name if current page and next page
 	 *         found, else null
 	 */
@@ -213,8 +202,7 @@ public class PageFlow {
 	}
 
 	/**
-	 * @param currentPage
-	 *            registration page name
+	 * @param currentPage registration page name
 	 * @return returns registration previous page name if current page and previous
 	 *         page found, else null
 	 */
@@ -277,12 +265,9 @@ public class PageFlow {
 	}
 
 	/**
-	 * @param page
-	 *            page name
-	 * @param key
-	 *            to find attributes such as visibility
-	 * @param val
-	 *            boolean value to say true or false
+	 * @param page page name
+	 * @param key  to find attributes such as visibility
+	 * @param val  boolean value to say true or false
 	 */
 	public void updateOnBoardingMap(String page, String key, boolean val) {
 
@@ -295,12 +280,9 @@ public class PageFlow {
 	}
 
 	/**
-	 * @param page
-	 *            page name
-	 * @param key
-	 *            to find attributes such as visibility
-	 * @param val
-	 *            boolean value to say true or false
+	 * @param page page name
+	 * @param key  to find attributes such as visibility
+	 * @param val  boolean value to say true or false
 	 */
 	public void updateRegMap(String page, String key, boolean val) {
 
@@ -313,10 +295,8 @@ public class PageFlow {
 	}
 
 	/**
-	 * @param page
-	 *            Registration page Name
-	 * @param attribute
-	 *            attribute in the Registration page
+	 * @param page      Registration page Name
+	 * @param attribute attribute in the Registration page
 	 * @return returns whether visible or not
 	 */
 	public boolean isVisibleInRegFlowMap(String page, String attribute) {
@@ -332,10 +312,8 @@ public class PageFlow {
 	}
 
 	/**
-	 * @param page
-	 *            registration page Name
-	 * @param attribute
-	 *            attribute in the onBoard page
+	 * @param page      registration page Name
+	 * @param attribute attribute in the onBoard page
 	 * @return returns whether visible or not
 	 */
 	public boolean isVisibleInOnBoardFlowMap(String page, String attribute) {

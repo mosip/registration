@@ -23,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.templatemanager.spi.TemplateManagerBuilder;
@@ -123,6 +125,9 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 	@Autowired
 	private JobConfigurationService jobConfigurationService;
+
+	@Value("${mosip.registration.dynamic.json}")
+	private String dynamicFieldsJsonString;
 
 	@SuppressWarnings("unchecked")
 	public void setLastUpdateTime() {
@@ -516,23 +521,11 @@ public class PacketHandlerController extends BaseController implements Initializ
 						} else {
 							getScene(createRoot).setRoot(createRoot);
 
-							Map<String, List<String>> var = new LinkedHashMap<>();
-							List<String> list = new LinkedList<String>();
-							list.add("fullName");
-							list.add("gender");
-							list.add("addressLine1");
+							ObjectMapper mapper = new ObjectMapper();
 
-							list.add("addressLine2");
-							list.add("addressLine3");
-							list.add("proofOfIdentity");
-
-							list.add("region");
-							list.add("province");
-							list.add("city");
-							list.add("zone");
-
-							list.add("individualBiometrics");
-							var.put("screen1", list);
+							// convert JSON string to Map
+							Map<String, List<String>> var = mapper.readValue(dynamicFieldsJsonString,
+									LinkedHashMap.class);
 
 							genericController.populateScreens(var);
 						}

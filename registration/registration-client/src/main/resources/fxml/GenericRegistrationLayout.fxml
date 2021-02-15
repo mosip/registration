@@ -54,7 +54,8 @@
                   <RowConstraints minHeight="10.0" percentHeight="25.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                  <Button alignment="BOTTOM_RIGHT" mnemonicParsing="false" styleClass="contiuneButton" text="CONTINUE" GridPane.rowIndex="1" />
+                  <Button fx:id="next" alignment="BOTTOM_RIGHT" mnemonicParsing="false" onAction="#next" styleClass="contiuneButton" text="CONTINUE" GridPane.rowIndex="1" />
+                  <Button fx:id="previous" alignment="BOTTOM_RIGHT" mnemonicParsing="false" onAction="#previous" styleClass="contiuneButton" text="BACK" visible="false" GridPane.halignment="LEFT" GridPane.rowIndex="1" />
                </children>
             </GridPane>
          </children>
