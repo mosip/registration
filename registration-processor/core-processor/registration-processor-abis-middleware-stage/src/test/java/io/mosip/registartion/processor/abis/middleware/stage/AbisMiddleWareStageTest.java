@@ -398,6 +398,7 @@ public class AbisMiddleWareStageTest {
 		MosipQueue queue = Mockito.mock(MosipQueue.class);
 		AbisRequestDto abisCommonRequestDto = new AbisRequestDto();
 		abisCommonRequestDto.setRequestType("INSERT");
+		abisCommonRequestDto.setStatusCode("SENT");
 		Mockito.when(packetInfoManager.getAbisRequestByRequestId(Mockito.any())).thenReturn(abisCommonRequestDto);
 		stage.consumerListener(amq, "abis1_inboundAddress", queue, evenBus, messageTTL);
 
@@ -411,6 +412,9 @@ public class AbisMiddleWareStageTest {
 		abisCommonRequestDto1.setAbisAppCode("Abis1");
 		abisCommonRequestDto1.setStatusCode("SENT");
 		Mockito.when(packetInfoManager.getAbisRequestByRequestId(Mockito.any())).thenReturn(abisCommonRequestDto1);
+		stage.consumerListener(amq, "abis1_inboundAddress", queue, evenBus, messageTTL);
+		// test for multiple response for same request id
+		abisCommonRequestDto1.setStatusCode("PROCESSED");
 		stage.consumerListener(amq, "abis1_inboundAddress", queue, evenBus, messageTTL);
 
 	}
@@ -479,11 +483,15 @@ public class AbisMiddleWareStageTest {
 		abisCommonRequestDto1.setStatusCode("SENT");
 		Mockito.when(packetInfoManager.getAbisRequestByRequestId(Mockito.any())).thenReturn(abisCommonRequestDto1);
 		stage.consumerListener(amq1, "abis1_inboundAddress", queue1, evenBus1, messageTTL);
+		// test for multiple response for same request id
+		abisCommonRequestDto1.setStatusCode("PROCESSED");
+		stage.consumerListener(amq1, "abis1_inboundAddress", queue1, evenBus1, messageTTL);
 		// test for identify failed response
 		String identifyFailedResponse = "{\"id\":\"mosip.abis.identify\",\"requestId\":\"8a3effd4-5fba-44e0-8cbb-3083ba098209\",\"responsetime\":"
 				+ null + ",\"returnValue\":2,\"failureReason\":3,\"candidateList\":null}";
 		byteSeq1.setData(identifyFailedResponse.getBytes());
 		amq1.setContent(byteSeq1);
+		abisCommonRequestDto1.setStatusCode("SENT");
 		stage.consumerListener(amq1, "abis1_inboundAddress", queue1, evenBus1, messageTTL);
 		// test for identify response - with duplicates
 		String duplicateIdentifySuccessResponse = "{\"id\":\"mosip.abis.identify\",\"requestId\":\"f4b1f6fd-466c-462f-aa8b-c218596542ec\",\"responsetime\":"
@@ -491,6 +499,7 @@ public class AbisMiddleWareStageTest {
 				+ ",\"returnValue\":1,\"failureReason\":null,\"candidateList\":{\"count\":\"1\",\"candidates\":[{\"referenceId\":\"d1070375-0960-4e90-b12c-72ab6186444d\",\"analytics\":null,\"modalities\":null}]}}";
 		byteSeq1.setData(duplicateIdentifySuccessResponse.getBytes());
 		amq1.setContent(byteSeq1);
+		abisCommonRequestDto1.setStatusCode("SENT");
 		stage.consumerListener(amq1, "abis1_inboundAddress", queue1, evenBus1, messageTTL);
 
 	}
