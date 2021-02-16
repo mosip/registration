@@ -283,6 +283,9 @@ public class PacketHandlerController extends BaseController implements Initializ
 	@Autowired
 	private GenericController genericController;
 
+	@Autowired
+	private Validations validation;
+
 	@FXML
 	private ImageView uploadPacketImageView;
 
@@ -527,6 +530,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 							Map<String, List<String>> var = mapper.readValue(dynamicFieldsJsonString,
 									LinkedHashMap.class);
 
+							validation.updateAsLostUIN(false);
+							registrationController.createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_NEW);
 							genericController.populateScreens(var);
 						}
 					}
