@@ -76,9 +76,6 @@ public class GenericController extends BaseController {
 	private Button previous;
 
 	@Autowired
-	private Validations validation;
-
-	@Autowired
 	private RegistrationController registrationController;
 
 	@Autowired
@@ -122,11 +119,6 @@ public class GenericController extends BaseController {
 	 * @param screens screenName, and list of fields has to be in the screen
 	 */
 	public void populateScreens(Map<String, List<String>> screens) {
-
-		if (getRegistrationDTOFromSession() == null) {
-			validation.updateAsLostUIN(false);
-			registrationController.createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_NEW);
-		}
 
 		flowPane.setVgap(10);
 		flowPane.setHgap(10);
