@@ -2,13 +2,18 @@ package io.mosip.registration.controller;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
@@ -31,7 +36,6 @@ import io.mosip.registration.util.control.impl.DropDownFxControl;
 import io.mosip.registration.util.control.impl.TextFieldFxControl;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.layout.ColumnConstraints;
@@ -82,11 +86,16 @@ public class GenericController extends BaseController {
 	@Autowired
 	private MasterSyncDao masterSyncDao;
 
+	@Value("${mosip.registration.dynamic.json}")
+	private String dynamicFieldsJsonString;
+
 	@Autowired
 	private MasterSyncService masterSyncService;
 	public static Map<String, TreeMap<Integer, FxControl>> locationMap = new LinkedHashMap<String, TreeMap<Integer, FxControl>>();
-	
+
 	private static Map<String, FxControl> fxControlMap = new HashMap<String, FxControl>();
+
+	private static Map<Integer, List<String>> fieldMap = new HashMap<Integer, List<String>>();
 
 	@Autowired
 	private RegistrationPreviewController registrationPreviewController;
@@ -119,109 +128,131 @@ public class GenericController extends BaseController {
 	 * 
 	 * @param screens screenName, and list of fields has to be in the screen
 	 */
-	public void populateScreens(Map<String, List<String>> screens) {
+	public void populateScreens() {
 
+		flowPane.getChildren().clear();
 		flowPane.setVgap(10);
 		flowPane.setHgap(10);
 
-		screenMap.clear();
 		flowPane.prefWidthProperty().bind(layOutGridPane.widthProperty());
-		
-		ObservableList<Node> flowPaneNodes = flowPane.getChildren();
-		if (screens != null && !screens.isEmpty()) {
-			for (Entry<String, List<String>> screenEntry : screens.entrySet()) {
-				int count = 0;
-				GridPane screenGridPane = new GridPane();
+		// convert JSON string to Map
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			Map<String, List<String>> screens = mapper.readValue(dynamicFieldsJsonString, LinkedHashMap.class);
 
-				ScreenDTO screenDTO = new ScreenDTO();
-				screenDTO.setScreenName(screenEntry.getKey());
-				screenDTO.setScreenNode(screenGridPane);
-				screenMap.put(screenMap.size() + 1, screenDTO);
+			screenMap.clear();
+			ObservableList<Node> flowPaneNodes = flowPane.getChildren();
 
-				screenGridPane.setVisible(false);
-				screenGridPane.setManaged(false);
+			boolean isUpdateUIN = getRegistrationDTOFromSession().getRegistrationCategory()
+					.equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_UPDATE);
 
-				screenGridPane.setHgap(15);
-				screenGridPane.setVgap(15);
+			if (screens != null && !screens.isEmpty()) {
+				for (Entry<String, List<String>> screenEntry : screens.entrySet()) {
 
-				screenGridPane.getStyleClass().add("-fx-background-color: blue; -fx-grid-lines-visible: true");
+					int count = 0;
+					GridPane screenGridPane = new GridPane();
 
-				flowPaneNodes.add(screenGridPane);
-				String screenName = screenEntry.getKey();
+					ScreenDTO screenDTO = new ScreenDTO();
+					screenDTO.setScreenName(screenEntry.getKey());
+					screenDTO.setScreenNode(screenGridPane);
 
-				List<String> fields = screenEntry.getValue();
+					screenMap.put(screenMap.size() + 1, screenDTO);
 
-				if (fields != null && !fields.isEmpty()) {
+					screenGridPane.setVisible(false);
+					screenGridPane.setManaged(false);
 
-					for (String field : fields) {
+					screenGridPane.setHgap(15);
+					screenGridPane.setVgap(15);
 
-						if (!field.isEmpty()) {
+					screenGridPane.getStyleClass().add("-fx-background-color: blue; -fx-grid-lines-visible: true");
 
-							UiSchemaDTO uiSchemaDTO = getValidationMap().get(field);
+					flowPaneNodes.add(screenGridPane);
+					String screenName = screenEntry.getKey();
 
-							FxControl fxConrol = null;
-							if (uiSchemaDTO != null) {
-								fxConrol = (FxControl) buildFxElement(uiSchemaDTO);
-							}
+					List<String> fields = screenEntry.getValue();
 
-							if (fxConrol != null && fxConrol.getNode() != null) {
-								Node node = fxConrol.getNode();
+					List<String> screenFields = new LinkedList<>();
 
-//								GridPane groupGridPane = (GridPane) screenGridPane.lookup(RegistrationConstants.HASH+uiSchemaDTO.getGroup());
-//								
-//								if(groupGridPane!=null) {
+					if (fields != null && !fields.isEmpty()) {
+
+						for (String field : fields) {
+
+							if (!field.isEmpty() && (isUpdateUIN
+									? getRegistrationDTOFromSession().getUpdatableFields().contains(field)
+									: true)) {
+
+								screenFields.add(field);
+								UiSchemaDTO uiSchemaDTO = getValidationMap().get(field);
+
+								FxControl fxConrol = null;
+								if (uiSchemaDTO != null) {
+									fxConrol = (FxControl) buildFxElement(uiSchemaDTO);
+								}
+
+								if (fxConrol != null && fxConrol.getNode() != null) {
+									Node node = fxConrol.getNode();
+
+//									GridPane groupGridPane = (GridPane) screenGridPane.lookup(RegistrationConstants.HASH+uiSchemaDTO.getGroup());
 //									
-//								}
+//									if(groupGridPane!=null) {
+//										
+//									}
 
-								fxControlMap.put(field, fxConrol);
-								GridPane gridPane = new GridPane();
+									fxControlMap.put(field, fxConrol);
+									GridPane gridPane = new GridPane();
 
-								ColumnConstraints columnConstraint1 = new ColumnConstraints();
-								columnConstraint1.setPercentWidth(15);
-								ColumnConstraints columnConstraint2 = new ColumnConstraints();
-								columnConstraint2.setPercentWidth(70);
-								ColumnConstraints columnConstraint3 = new ColumnConstraints();
-								columnConstraint3.setPercentWidth(15);
-								gridPane.getColumnConstraints().addAll(columnConstraint1, columnConstraint2,
-										columnConstraint3);
-								gridPane.add(node, 1, 2);
-								gridPane.setAlignment(Pos.CENTER);
+									ColumnConstraints columnConstraint1 = new ColumnConstraints();
+									columnConstraint1.setPercentWidth(15);
+									ColumnConstraints columnConstraint2 = new ColumnConstraints();
+									columnConstraint2.setPercentWidth(70);
+									ColumnConstraints columnConstraint3 = new ColumnConstraints();
+									columnConstraint3.setPercentWidth(15);
+									gridPane.getColumnConstraints().addAll(columnConstraint1, columnConstraint2,
+											columnConstraint3);
+									gridPane.add(node, 1, 2);
 
-								screenGridPane.add(gridPane, 0, count++);
+									screenGridPane.add(gridPane, 0, count++);
+								}
 							}
 						}
 					}
+					fieldMap.put(screenMap.size(), screenFields);
+
 				}
 
+				for (Entry<String, TreeMap<Integer, FxControl>> locatioEntrySet : locationMap.entrySet()) {
+
+					TreeMap<Integer, FxControl> treeMap = locatioEntrySet.getValue();
+
+					Entry<Integer, FxControl> val = treeMap.firstEntry();
+					try {
+
+						Map<String, Object> data = new LinkedHashMap<>();
+
+						data.put(RegistrationConstants.PRIMARY, masterSyncService
+								.findLocationByHierarchyCode(val.getKey(), ApplicationContext.applicationLanguage()));
+						data.put(RegistrationConstants.SECONDARY, masterSyncService
+								.findLocationByHierarchyCode(val.getKey(), ApplicationContext.localLanguage()));
+
+						val.getValue().fillData(data);
+					} catch (RegBaseCheckedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+				}
 			}
 
 			currentPage = 1;
 			Node node = screenMap.get(currentPage).getScreenNode();
 			node.setVisible(true);
 			node.setManaged(true);
-
-			for (Entry<String, TreeMap<Integer, FxControl>> locatioEntrySet : locationMap.entrySet()) {
-
-				TreeMap<Integer, FxControl> treeMap = locatioEntrySet.getValue();
-
-				Entry<Integer, FxControl> val = treeMap.firstEntry();
-				try {
-
-					Map<String, Object> data = new LinkedHashMap<>();
-
-					data.put(RegistrationConstants.PRIMARY, masterSyncService.findLocationByHierarchyCode(val.getKey(),
-							ApplicationContext.applicationLanguage()));
-					data.put(RegistrationConstants.SECONDARY, masterSyncService
-							.findLocationByHierarchyCode(val.getKey(), ApplicationContext.localLanguage()));
-
-					val.getValue().fillData(data);
-				} catch (RegBaseCheckedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-
-			}
+			refreshFields();
+		} catch (JsonProcessingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
+
 	}
 
 	private Node buildFxElement(UiSchemaDTO uiSchemaDTO) {
@@ -324,6 +355,8 @@ public class GenericController extends BaseController {
 			boolean isVisible = currentPage > 1 ? true : false;
 			previous.setVisible(isVisible);
 
+			refreshContinueButton();
+
 		}
 	}
 
@@ -336,6 +369,50 @@ public class GenericController extends BaseController {
 
 		show(currentNode, nextScreen != null ? nextScreen.getValue().getScreenNode() : null, -1);
 
+	}
+
+	private FxControl getFxControl(String fieldId) {
+
+		return GenericController.getFxControlMap().get(fieldId);
+	}
+
+	public void refreshFields() {
+		for (UiSchemaDTO uiSchemaDto : getValidationMap().values()) {
+
+			FxControl control = getFxControl(uiSchemaDto.getId());
+
+			if (control != null) {
+				control.refresh();
+			}
+		}
+
+		refreshContinueButton();
+
+		// TODO hide not required biometrics
+
+		// TODO hide not required fields
+	}
+
+	public void refreshContinueButton() {
+		boolean canContinue = true;
+		List<String> currentScreenFields = fieldMap.get(currentPage);
+
+		if (currentScreenFields != null && !currentScreenFields.isEmpty()) {
+
+			for (String field : currentScreenFields) {
+				FxControl control = getFxControl(field);
+
+				if (control != null) {
+					canContinue = control.canContinue();
+				}
+
+				if (!canContinue) {
+					break;
+				}
+			}
+		}
+
+		next.setDisable(!canContinue);
 	}
 
 }

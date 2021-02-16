@@ -148,9 +148,10 @@ public class TextFieldFxControl extends FxControl {
 							"Invoking external action handler for .... " + uiSchemaDTO.getId());
 					demographicChangeActionHandler.actionHandle(getNode(), node.getId(), uiSchemaDTO.getChangeAction());
 				}
-				// Group level visibility listeners
-				refreshFields();
+
 			}
+			// Group level visibility listeners
+			refreshFields();
 		});
 
 	}

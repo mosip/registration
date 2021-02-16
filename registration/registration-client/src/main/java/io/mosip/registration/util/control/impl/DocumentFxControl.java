@@ -23,6 +23,7 @@ import io.mosip.registration.dto.packetmanager.DocumentDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.util.control.FxControl;
+import io.mosip.registration.validator.RequiredFieldValidator;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.NodeOrientation;
@@ -102,7 +103,7 @@ public class DocumentFxControl extends FxControl {
 	private Node getTickMarkImgVBox() {
 		VBox tickImgVBox = new VBox();
 		tickImgVBox.setId(uiSchemaDTO.getId() + TICK_MARK_ID);
-		//tickImgVBox.setSpacing(50);
+		// tickImgVBox.setSpacing(50);
 		ImageView imageView = new ImageView((new Image(
 				this.getClass().getResourceAsStream(RegistrationConstants.DONE_IMAGE_PATH), 25, 25, true, true)));
 
@@ -111,14 +112,14 @@ public class DocumentFxControl extends FxControl {
 		tickImgVBox.setVisible(isVisible);
 
 		tickImgVBox.getChildren().add(imageView);
-		
+
 		GridPane tickMarkGridPane = new GridPane();
 		RowConstraints rowConstraint1 = new RowConstraints();
 		RowConstraints rowConstraint2 = new RowConstraints();
 		rowConstraint1.setPercentHeight(45);
 		rowConstraint2.setPercentHeight(55);
 		tickMarkGridPane.getRowConstraints().addAll(rowConstraint1, rowConstraint2);
-		//tickMarkGridPane.setPrefWidth(80);
+		// tickMarkGridPane.setPrefWidth(80);
 		tickMarkGridPane.add(tickImgVBox, 0, 1);
 
 		return tickMarkGridPane;
@@ -132,7 +133,7 @@ public class DocumentFxControl extends FxControl {
 		scanButton.getStyleClass().add(RegistrationConstants.DOCUMENT_CONTENT_BUTTON);
 		scanButton.setGraphic(new ImageView(
 				new Image(this.getClass().getResourceAsStream(RegistrationConstants.SCAN), 12, 12, true, true)));
-		
+
 		GridPane scanButtonGridPane = new GridPane();
 		RowConstraints rowConstraint1 = new RowConstraints();
 		RowConstraints rowConstraint2 = new RowConstraints();
@@ -310,6 +311,7 @@ public class DocumentFxControl extends FxControl {
 //			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
 		}
 
+		refreshFields();
 	}
 
 	@Override
@@ -428,6 +430,32 @@ public class DocumentFxControl extends FxControl {
 		}
 
 	}
-	
-	
+
+	public boolean canContinue() {
+
+		boolean canContinue;
+
+		if (getRegistrationDTo().getDocuments().get(this.uiSchemaDTO.getId()) != null || getRegistrationDTo()
+				.getRegistrationCategory().equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_LOST)) {
+			return true;
+		} else {
+
+			if (requiredFieldValidator == null) {
+				requiredFieldValidator = Initialization.getApplicationContext().getBean(RequiredFieldValidator.class);
+			}
+
+			try {
+				boolean isRequired = requiredFieldValidator.isRequiredField(this.uiSchemaDTO, getRegistrationDTo());
+				canContinue = !isRequired;
+			} catch (RegBaseCheckedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+
+				canContinue = false;
+			}
+		}
+
+		return canContinue;
+	}
+
 }

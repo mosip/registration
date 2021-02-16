@@ -50,10 +50,10 @@ import io.mosip.registration.constants.AuditReferenceIdTypes;
 import io.mosip.registration.constants.Components;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
-import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.FXUtils;
+import io.mosip.registration.controller.GenericController;
 import io.mosip.registration.controller.reg.DocumentScanController;
 import io.mosip.registration.controller.reg.RegistrationController;
 import io.mosip.registration.controller.reg.UserOnboardParentController;
@@ -69,7 +69,6 @@ import io.mosip.registration.mdm.dto.MdmBioDevice;
 import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
 import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.operator.UserOnboardService;
-import io.mosip.registration.util.control.FxControl;
 import io.mosip.registration.util.control.impl.BiometricFxControl;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
@@ -313,6 +312,9 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 	@Autowired
 	private DocumentScanController documentScanController;
+
+	@Autowired
+	private GenericController genericController;
 
 	private Service<List<BiometricsDto>> rCaptureTaskService;
 
@@ -2454,9 +2456,10 @@ public class GenericBiometricsController extends BaseController /* implements In
 			clickedImageView.setOpacity(0);
 			if (isUserOnboardFlag)
 				userOnboardService.removeOperatorBiometricException(currentSubType, clickedImageView.getId());
-			else
+			else {
 				getRegistrationDTOFromSession().removeBiometricException(currentSubType, clickedImageView.getId());
-
+				genericController.refreshContinueButton();
+			}
 		}
 
 		if (hasApplicantBiometricException()) {
@@ -2534,9 +2537,11 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 						if (isUserOnboardFlag)
 							userOnboardService.addOperatorBiometricException(currentSubType, node.getId());
-						else
+						else {
 							getRegistrationDTOFromSession().addBiometricException(currentSubType, node.getId(),
 									node.getId(), "Temporary", "Temporary");
+							genericController.refreshContinueButton();
+						}
 					}
 				}
 			}
@@ -3009,6 +3014,76 @@ public class GenericBiometricsController extends BaseController /* implements In
 		biometricPopUpStage.close();
 
 		LOGGER.info(LOG_REG_SCAN_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "Popup is closed");
+
+	}
+
+	public boolean canContinue(String subType, List<String> bioAttributes) {
+
+		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
+				RegistrationConstants.APPLICATION_NAME, "refreshContinueButton invoked");
+
+		this.currentSubType = subType;
+		if (bioAttributes == null || bioAttributes.isEmpty()) {
+
+			LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
+					RegistrationConstants.APPLICATION_NAME,
+					"refreshContinueButton NON of the BIOMETRIC FIELD IS ENABLED");
+			return true;
+		}
+
+		List<String> leftHandBioAttributes = getContainsAllElements(RegistrationConstants.leftHandUiAttributes,
+				bioAttributes);
+		List<String> rightHandBioAttributes = getContainsAllElements(RegistrationConstants.rightHandUiAttributes,
+				bioAttributes);
+		List<String> twoThumbsBioAttributes = getContainsAllElements(RegistrationConstants.twoThumbsUiAttributes,
+				bioAttributes);
+		List<String> faceBioAttributes = getContainsAllElements(RegistrationConstants.faceUiAttributes, bioAttributes);
+		List<String> irisBioAttributes = getContainsAllElements(RegistrationConstants.eyesUiAttributes, bioAttributes);
+
+		String operator = getBooleanOperator();
+		boolean considerExceptionAsCaptured = OR_OPERATOR.equals(operator) ? false : true;
+
+		Map<String, Boolean> capturedDetails = new HashMap<String, Boolean>();
+		capturedDetails = setCapturedDetailsMap(capturedDetails, leftHandBioAttributes,
+				isBiometricsCaptured(currentSubType, leftHandBioAttributes,
+						getThresholdScoreInInt(RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD),
+						considerExceptionAsCaptured));
+		capturedDetails = setCapturedDetailsMap(capturedDetails, rightHandBioAttributes,
+				isBiometricsCaptured(currentSubType, rightHandBioAttributes,
+						getThresholdScoreInInt(RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD),
+						considerExceptionAsCaptured));
+		capturedDetails = setCapturedDetailsMap(capturedDetails, twoThumbsBioAttributes,
+				isBiometricsCaptured(currentSubType, twoThumbsBioAttributes,
+						getThresholdScoreInInt(RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD),
+						considerExceptionAsCaptured));
+		capturedDetails = setCapturedDetailsMap(capturedDetails, irisBioAttributes,
+				isBiometricsCaptured(currentSubType, irisBioAttributes,
+						getThresholdScoreInInt(RegistrationConstants.IRIS_THRESHOLD), considerExceptionAsCaptured));
+		capturedDetails = setCapturedDetailsMap(capturedDetails, faceBioAttributes, isBiometricsCaptured(currentSubType,
+				faceBioAttributes, getThresholdScoreInInt(RegistrationConstants.FACE), considerExceptionAsCaptured));
+
+		String expression = String.join(operator, bioAttributes);
+		boolean result = MVEL.evalToBoolean(expression, capturedDetails);
+
+		if (result && considerExceptionAsCaptured) {
+
+			if (hasApplicantBiometricException()) {
+
+				result = getRegistrationDTOFromSession().getDocuments().containsKey("proofOfException");
+
+			}
+
+		}
+		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
+				RegistrationConstants.APPLICATION_NAME, "capturedDetails >> " + capturedDetails);
+		LOGGER.debug("REGISTRATION - BIOMETRICS - refreshContinueButton", RegistrationConstants.APPLICATION_ID,
+
+				RegistrationConstants.APPLICATION_NAME, "Expression >> " + expression + " :: result >> " + result);
+		if (result) {
+			auditFactory.audit(AuditEvent.REG_BIO_CAPTURE_NEXT, Components.REG_BIOMETRICS, SessionContext.userId(),
+					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+		}
+		return result;
 
 	}
 

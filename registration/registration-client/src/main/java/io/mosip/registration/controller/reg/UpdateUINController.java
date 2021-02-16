@@ -27,6 +27,7 @@ import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.FXUtils;
+import io.mosip.registration.controller.GenericController;
 import io.mosip.registration.dto.UiSchemaDTO;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -70,6 +71,9 @@ public class UpdateUINController extends BaseController implements Initializable
 
 	@Autowired
 	private UinValidator<String> uinValidatorImpl;
+
+	@Autowired
+	private GenericController genericController;
 
 	@Autowired
 	Validations validation;
@@ -183,7 +187,6 @@ public class UpdateUINController extends BaseController implements Initializable
 					}
 				}
 
-
 				LOGGER.debug(LOG_REG_UIN_UPDATE, APPLICATION_NAME, APPLICATION_ID,
 						"selectedFieldGroups size : " + selectedFieldGroups.size());
 				LOGGER.debug(LOG_REG_UIN_UPDATE, APPLICATION_NAME, APPLICATION_ID,
@@ -196,6 +199,7 @@ public class UpdateUINController extends BaseController implements Initializable
 							applicationContext.getApplicationLanguageBundle());
 
 					getScene(createRoot).setRoot(createRoot);
+					genericController.populateScreens();
 				} else {
 					generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UPDATE_UIN_SELECTION_ALERT);
 				}
