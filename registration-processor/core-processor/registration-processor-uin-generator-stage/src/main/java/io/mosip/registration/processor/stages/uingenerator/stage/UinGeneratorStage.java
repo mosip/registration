@@ -8,16 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.mosip.kernel.biometrics.entities.BiometricRecord;
-import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
-import io.mosip.kernel.core.http.RequestWrapper;
-import io.mosip.kernel.core.util.StringUtils;
-import io.mosip.registration.processor.packet.storage.dto.ConfigEnum;
-import io.mosip.registration.processor.packet.storage.dto.ContainerInfoDto;
-import io.mosip.registration.processor.packet.storage.dto.Document;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.packet.storage.dto.ProviderStageName;
-import io.mosip.registration.processor.packet.storage.utils.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -37,9 +27,13 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 
+import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
+import io.mosip.kernel.core.http.RequestWrapper;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -57,6 +51,7 @@ import io.mosip.registration.processor.core.constant.EventType;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
@@ -70,8 +65,17 @@ import io.mosip.registration.processor.core.status.util.TrimExceptionMessage;
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
+import io.mosip.registration.processor.packet.storage.dto.ContainerInfoDto;
+import io.mosip.registration.processor.packet.storage.dto.Document;
+import io.mosip.registration.processor.packet.storage.dto.ProviderStageName;
 import io.mosip.registration.processor.packet.storage.entity.RegLostUinDetEntity;
 import io.mosip.registration.processor.packet.storage.repository.BasePacketRepository;
+import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
+import io.mosip.registration.processor.packet.storage.utils.BIRConverter;
+import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.SourceProcessFilter;
+import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.stages.uingenerator.constants.UINConstants;
 import io.mosip.registration.processor.stages.uingenerator.dto.UinDto;
@@ -1018,8 +1022,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	private void generateVid(String registrationId, String UIN, boolean isUinAlreadyPresent)
 			throws ApisResourceAccessException, IOException, VidCreationException {
 		VidRequestDto vidRequestDto = new VidRequestDto();
-		io.mosip.kernel.core.http.RequestWrapper<VidRequestDto> request = new RequestWrapper<>();
-		io.mosip.kernel.core.http.ResponseWrapper<VidResponseDto> response;
+		RequestWrapper<VidRequestDto> request = new RequestWrapper<>();
+		ResponseWrapper<VidResponseDto> response;
 
 		try {
 			if (isUinAlreadyPresent) {
@@ -1042,7 +1046,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 					"UinGeneratorStage::generateVid():: post CREATEVID service call started with request data : "
 							+ JsonUtil.objectMapperObjectToJson(request));
 
-			response = (io.mosip.kernel.core.http.ResponseWrapper<VidResponseDto>) registrationProcessorRestClientService
+			response = (ResponseWrapper<VidResponseDto>) registrationProcessorRestClientService
 					.postApi(ApiName.CREATEVID, "", "", request, ResponseWrapper.class);
 
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
