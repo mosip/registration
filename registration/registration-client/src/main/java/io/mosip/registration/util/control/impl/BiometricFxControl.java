@@ -113,6 +113,8 @@ public class BiometricFxControl extends FxControl {
 
 			removeTickMark(modality);
 		}
+
+		refreshFields();
 	}
 
 	@Override
@@ -524,9 +526,31 @@ public class BiometricFxControl extends FxControl {
 		return false;
 	}
 
+	@Override
 	public void refresh() {
 
 		create((VBox) this.node, this.uiSchemaDTO);
 
+	}
+
+	@Override
+	public boolean canContinue() {
+
+		try {
+
+			List<String> bioAttributes = requiredFieldValidator.isRequiredBiometricField(uiSchemaDTO.getSubType(),
+					getRegistrationDTo());
+			if (getRegistrationDTo().getRegistrationCategory().equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_LOST)
+					&& !getRegistrationDTo().getBiometric(this.uiSchemaDTO.getSubType(), bioAttributes).isEmpty()) {
+				return true;
+			}
+
+			return biometricsController.canContinue(uiSchemaDTO.getSubType(), bioAttributes);
+		} catch (RegBaseCheckedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+
+			return true;
+		}
 	}
 }

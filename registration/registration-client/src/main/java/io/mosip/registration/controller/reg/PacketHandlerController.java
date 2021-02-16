@@ -126,9 +126,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 	@Autowired
 	private JobConfigurationService jobConfigurationService;
 
-	@Value("${mosip.registration.dynamic.json}")
-	private String dynamicFieldsJsonString;
-
 	@SuppressWarnings("unchecked")
 	public void setLastUpdateTime() {
 		try {
@@ -524,15 +521,10 @@ public class PacketHandlerController extends BaseController implements Initializ
 						} else {
 							getScene(createRoot).setRoot(createRoot);
 
-							ObjectMapper mapper = new ObjectMapper();
-
-							// convert JSON string to Map
-							Map<String, List<String>> var = mapper.readValue(dynamicFieldsJsonString,
-									LinkedHashMap.class);
-
 							validation.updateAsLostUIN(false);
 							registrationController.createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_NEW);
-							genericController.populateScreens(var);
+
+							genericController.populateScreens();
 						}
 					}
 
@@ -618,6 +610,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 								generateAlert(RegistrationConstants.ERROR, errorMessage.toString().trim());
 							} else {
 								getScene(createRoot).setRoot(createRoot);
+								genericController.populateScreens();
 								// demographicDetailController.lostUIN();
 							}
 						}

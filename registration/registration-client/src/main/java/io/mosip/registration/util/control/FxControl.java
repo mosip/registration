@@ -49,20 +49,8 @@ public abstract class FxControl extends Node {
 
 	public void refreshFields() {
 
-		for (UiSchemaDTO uiSchemaDto : demographicDetailController.getValidationMap().values()) {
-
-			FxControl control = getFxControl(uiSchemaDto.getId());
-
-			if (control != null) {
-				control.refresh();
-			}
-		}
-
-		// TODO is All fields valid
-
-		// TODO hide not required biometrics
-
-		// TODO hide not required fields
+		GenericController genericController = Initialization.getApplicationContext().getBean(GenericController.class);
+		genericController.refreshFields();
 
 	}
 
@@ -121,13 +109,16 @@ public abstract class FxControl extends Node {
 
 	}
 
+	/**
+	 * Refresh the field
+	 */
 	public void refresh() {
 
 		if (isFieldVisible(uiSchemaDTO)) {
-			this.node.setVisible(true);
+			visible(this.node, true);
 			this.node.setManaged(true);
 		} else {
-			this.node.setVisible(false);
+			visible(this.node, false);
 			this.node.setManaged(false);
 		}
 	}
@@ -149,6 +140,33 @@ public abstract class FxControl extends Node {
 
 	public Node getNode() {
 		return this.node;
+	}
+
+	public boolean canContinue() {
+
+		boolean canContinue;
+
+		if (getRegistrationDTo().getDemographics().get(this.uiSchemaDTO.getId()) != null || getRegistrationDTo()
+				.getRegistrationCategory().equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_LOST)) {
+			return true;
+		} else {
+
+			if (requiredFieldValidator == null) {
+				requiredFieldValidator = Initialization.getApplicationContext().getBean(RequiredFieldValidator.class);
+			}
+
+			try {
+				boolean isRequired = requiredFieldValidator.isRequiredField(this.uiSchemaDTO, getRegistrationDTo());
+				canContinue = !isRequired;
+			} catch (RegBaseCheckedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+
+				canContinue = false;
+			}
+		}
+
+		return canContinue;
 	}
 
 	protected String getMandatorySuffix(UiSchemaDTO schema) {
@@ -206,11 +224,6 @@ public abstract class FxControl extends Node {
 		return true;
 	}
 
-	protected FxControl getFxControl(String fieldId) {
-
-		return GenericController.getFxControlMap().get(fieldId);
-	}
-
 	public String getLocalLanguage() {
 		return io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage();
 	}
@@ -218,4 +231,10 @@ public abstract class FxControl extends Node {
 	public String getAppLanguage() {
 		return io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage();
 	}
+
+	protected FxControl getFxControl(String fieldId) {
+
+		return GenericController.getFxControlMap().get(fieldId);
+	}
+
 }

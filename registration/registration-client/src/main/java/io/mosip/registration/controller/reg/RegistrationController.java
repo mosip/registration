@@ -101,7 +101,7 @@ public class RegistrationController extends BaseController {
 			if (isEditPage() && getRegistrationDTOFromSession() != null) {
 				prepareEditPageContent();
 			}
-			uinUpdate();
+//			uinUpdate();
 
 		} catch (RuntimeException runtimeException) {
 			LOGGER.error("REGISTRATION - CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
