@@ -206,7 +206,7 @@ public abstract class FxControl extends Node {
 		return true;
 	}
 
-	private FxControl getFxControl(String fieldId) {
+	protected FxControl getFxControl(String fieldId) {
 
 		return GenericController.getFxControlMap().get(fieldId);
 	}

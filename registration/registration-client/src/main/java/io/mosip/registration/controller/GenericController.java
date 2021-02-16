@@ -14,7 +14,6 @@ import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.controller.reg.RegistrationController;
 import io.mosip.registration.controller.reg.RegistrationPreviewController;
-import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dto.ScreenDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
@@ -24,6 +23,7 @@ import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.util.control.FxControl;
 import io.mosip.registration.util.control.impl.BiometricFxControl;
 import io.mosip.registration.util.control.impl.ButtonFxControl;
+import io.mosip.registration.util.control.impl.CheckBoxFxControl;
 import io.mosip.registration.util.control.impl.DOBAgeFxControl;
 import io.mosip.registration.util.control.impl.DOBFxControl;
 import io.mosip.registration.util.control.impl.DocumentFxControl;
@@ -31,6 +31,7 @@ import io.mosip.registration.util.control.impl.DropDownFxControl;
 import io.mosip.registration.util.control.impl.TextFieldFxControl;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.layout.ColumnConstraints;
@@ -84,7 +85,7 @@ public class GenericController extends BaseController {
 	@Autowired
 	private MasterSyncService masterSyncService;
 	public static Map<String, TreeMap<Integer, FxControl>> locationMap = new LinkedHashMap<String, TreeMap<Integer, FxControl>>();
-
+	
 	private static Map<String, FxControl> fxControlMap = new HashMap<String, FxControl>();
 
 	@Autowired
@@ -124,11 +125,12 @@ public class GenericController extends BaseController {
 		flowPane.setHgap(10);
 
 		screenMap.clear();
+		flowPane.prefWidthProperty().bind(layOutGridPane.widthProperty());
+		
 		ObservableList<Node> flowPaneNodes = flowPane.getChildren();
-		int count = 0;
 		if (screens != null && !screens.isEmpty()) {
 			for (Entry<String, List<String>> screenEntry : screens.entrySet()) {
-
+				int count = 0;
 				GridPane screenGridPane = new GridPane();
 
 				ScreenDTO screenDTO = new ScreenDTO();
@@ -143,8 +145,6 @@ public class GenericController extends BaseController {
 				screenGridPane.setVgap(15);
 
 				screenGridPane.getStyleClass().add("-fx-background-color: blue; -fx-grid-lines-visible: true");
-
-				flowPane.prefWidthProperty().bind(layOutGridPane.widthProperty());
 
 				flowPaneNodes.add(screenGridPane);
 				String screenName = screenEntry.getKey();
@@ -177,14 +177,15 @@ public class GenericController extends BaseController {
 								GridPane gridPane = new GridPane();
 
 								ColumnConstraints columnConstraint1 = new ColumnConstraints();
-								columnConstraint1.setPercentWidth(20);
+								columnConstraint1.setPercentWidth(15);
 								ColumnConstraints columnConstraint2 = new ColumnConstraints();
-								columnConstraint2.setPercentWidth(60);
+								columnConstraint2.setPercentWidth(70);
 								ColumnConstraints columnConstraint3 = new ColumnConstraints();
-								columnConstraint3.setPercentWidth(20);
+								columnConstraint3.setPercentWidth(15);
 								gridPane.getColumnConstraints().addAll(columnConstraint1, columnConstraint2,
 										columnConstraint3);
 								gridPane.add(node, 1, 2);
+								gridPane.setAlignment(Pos.CENTER);
 
 								screenGridPane.add(gridPane, 0, count++);
 							}
@@ -249,7 +250,7 @@ public class GenericController extends BaseController {
 			}
 			return buttonFxControl;
 		case CONTROLTYPE_CHECKBOX:
-			break;
+			return new CheckBoxFxControl().build(uiSchemaDTO);
 		case CONTROLTYPE_DOB:
 			return new DOBFxControl().build(uiSchemaDTO);
 		case CONTROLTYPE_DOB_AGE:
