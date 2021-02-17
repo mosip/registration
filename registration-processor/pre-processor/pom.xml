@@ -23,5 +23,6 @@
 		<module>registration-processor-external-integration-service</module>
 		<module>registration-processor-quality-checker-stage</module>
         <module>registration-processor-securezone-notification-stage</module>
+		<module>registration-processor-packet-classifier-stage</module>
     </modules>
 </project>
