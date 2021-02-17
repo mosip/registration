@@ -51,11 +51,9 @@ public class RegistrationConstants {
 	public static final String SEND_NOTIFICATION_PAGE = "/fxml/SendNotification.fxml";
 	public static final String PACKET_UPLOAD_STATUS_UI = "/fxml/PacketUploadStatus.fxml";
 	public static final String ALERT_GENERATION = "/fxml/Alert.fxml";
-	public static final String GENERIC_LAYOUT = "/fxml/GenericRegistrationLayout.fxml";
-	public static final String BIOMETRIC_FXML = "/fxml/GenericBiometricFXML.fxml";
+
 	// FXML Id
 	public static final String DEMOGRAPHIC_DETAIL = "demographicDetail";
-	public static final String GENERIC_DETAIL = "genericScreen";
 	public static final String DOCUMENT_SCAN = "documentScan";
 	public static final String DOCUMENT_PANE = "documentPane";
 	public static final String EXCEPTION_PANE = "exceptionPane";
@@ -1831,16 +1829,19 @@ public class RegistrationConstants {
 	public static String OPERATOR_ONBOARDING_BIO_ATTRIBUTES = "mosip.registration.operator.onboarding.bioattributes";
 	public static String RIGHT_TO_LEFT_ORIENTATION_LANGUAGES = "mosip.language.righttoleft.orientation";
 
-	public static String VBOX = "VBOX";
-	public static String HBOX = "HBOX";
-
+	public static String CONFIGURATION = "CONFIGURATION";
 	public static String ONBOARD_CERT_THUMBPRINT = "thumbprint";
+
+	public static final String OPT_TO_REG_CCS_J00017 = "CCS_J00017";
+	public static final String API_CALL_FAILED = "API call failed with unknown error";
 
 	public static String LOCATION = "Location";
 	public static String IMAGE_VIEW = "imageView";
 	public static final String DEMOGRAPHIC_COMBOBOX = "demographicCombobox";
 	public static String TEXT_FIELD = "TextField";
-
-	public static final String OPT_TO_REG_CCS_J00017 = "CCS_J00017";
-	public static final String API_CALL_FAILED = "API call failed with unknown error";
+	public static String VBOX = "VBOX";
+	public static String HBOX = "HBOX";
+	public static final String GENERIC_DETAIL = "genericScreen";
+	public static final String GENERIC_LAYOUT = "/fxml/GenericRegistrationLayout.fxml";
+	public static final String BIOMETRIC_FXML = "/fxml/GenericBiometricFXML.fxml";
 }

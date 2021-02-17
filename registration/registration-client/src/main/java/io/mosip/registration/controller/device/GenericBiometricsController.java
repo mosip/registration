@@ -1282,6 +1282,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 								generateAlert(RegistrationConstants.ALERT_INFORMATION,
 										RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
 
+								genericController.refreshContinueButton();
 								scanPopUpViewController.getPopupStage().close();
 								return;
 							}
@@ -2443,9 +2444,10 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 			if (isUserOnboardFlag)
 				userOnboardService.addOperatorBiometricException(currentSubType, clickedImageView.getId());
-			else
+			else {
 				getRegistrationDTOFromSession().addBiometricException(currentSubType, clickedImageView.getId(),
 						clickedImageView.getId(), "Temporary", "Temporary");
+			}
 		} else {
 			LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					"Removing exceptions for biometrics");
@@ -2458,7 +2460,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 				userOnboardService.removeOperatorBiometricException(currentSubType, clickedImageView.getId());
 			else {
 				getRegistrationDTOFromSession().removeBiometricException(currentSubType, clickedImageView.getId());
-				genericController.refreshContinueButton();
+
 			}
 		}
 
@@ -2491,6 +2493,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 			}
 
 		}
+		genericController.refreshContinueButton();
 
 		displayBiometric(currentModality);
 		setScanButtonVisibility(isAllMarked, scanBtn);
