@@ -1847,7 +1847,7 @@ public class RegistrationConstants {
 
 	// Dashboard Constants
 	public static final String DASHBOARD_TITLE = "dashBoard";
-	public static final String DASHBOARD_FORMAT = "dd MMM hh:mm a";
+	public static final String DASHBOARD_FORMAT = "mosip.registration.dashboard_date_format";
 	public static final String TOTAL_PACKETS_LABEL = "totalPacketsLabel";
 	public static final String PENDING_EOD_LABEL = "pendingEODLabel";
 	public static final String PENDING_UPLOAD_LABEL = "pendingUploadLabel";

@@ -115,10 +115,8 @@ public class BioServiceImpl extends BaseService implements BioService {
 			for (BiometricsDto biometricsDto : biometricsDtos) {
 				if (biometricsDto != null
 						&& isQualityScoreMaxInclusive(String.valueOf(biometricsDto.getQualityScore()))) {
-					if (ApplicationContext.map().containsKey(RegistrationConstants.QUALITY_CHECK_WITH_SDK)
-							&& ApplicationContext
-									.getStringValueFromApplicationMap(RegistrationConstants.QUALITY_CHECK_WITH_SDK)
-									.equalsIgnoreCase(RegistrationConstants.ENABLE)) {
+					String checkSDKQualityScore = (String) ApplicationContext.map().getOrDefault(RegistrationConstants.QUALITY_CHECK_WITH_SDK, RegistrationConstants.DISABLE);
+					if (checkSDKQualityScore.equalsIgnoreCase(RegistrationConstants.ENABLE)) {
 						LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 								"Quality check with Biometric SDK flag is enabled..");
 
@@ -130,10 +128,8 @@ public class BioServiceImpl extends BaseService implements BioService {
 								.getBioProvider(biometricType, BiometricFunction.QUALITY_CHECK)
 								.getModalityQuality(birList, null);
 
-						if (ApplicationContext.map().containsKey(RegistrationConstants.UPDATE_SDK_QUALITY_SCORE)
-								&& ApplicationContext
-										.getStringValueFromApplicationMap(RegistrationConstants.UPDATE_SDK_QUALITY_SCORE)
-										.equalsIgnoreCase(RegistrationConstants.ENABLE)) {
+						String updateQualityScore = (String) ApplicationContext.map().getOrDefault(RegistrationConstants.UPDATE_SDK_QUALITY_SCORE, RegistrationConstants.DISABLE);
+						if (updateQualityScore.equalsIgnoreCase(RegistrationConstants.ENABLE)) {
 							LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 									"Flag to update quality score evaluated from Biometric SDK is enabled");
 

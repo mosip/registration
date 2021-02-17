@@ -865,20 +865,16 @@ public class LoginController extends BaseController implements Initializable {
 	 */
 	public void forgotUsrname(ActionEvent event) {
 		forgotUsrnme.setOnAction(e -> {
-			if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
-				if (Desktop.isDesktopSupported()) {
-					try {
-						Desktop.getDesktop().browse(new URI(ApplicationContext.getStringValueFromApplicationMap(RegistrationConstants.FORGOT_USERNAME_URL)));
-					} catch (IOException ioException) {
-						LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-								ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
-					} catch (URISyntaxException uriSyntaxException) {
-						LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-								uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
-					}
+			if (Desktop.isDesktopSupported()) {
+				try {
+					Desktop.getDesktop().browse(new URI(ApplicationContext.getStringValueFromApplicationMap(RegistrationConstants.FORGOT_USERNAME_URL)));
+				} catch (IOException ioException) {
+					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+							ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
+				} catch (URISyntaxException uriSyntaxException) {
+					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+							uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
 				}
-			} else {
-				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_INTERNET_CONNECTION);
 			}			
 		});
 	}
@@ -890,25 +886,21 @@ public class LoginController extends BaseController implements Initializable {
 	 */
 	public void forgotPword(ActionEvent event) {
 		forgotPword.setOnAction(e -> {
-			if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
-				if (Desktop.isDesktopSupported()) {
-					try {
-						String url = ApplicationContext.getStringValueFromApplicationMap(RegistrationConstants.FORGOT_PWORD_URL);
-						if (url.toUpperCase().contains(RegistrationConstants.EMAIL_PLACEHOLDER)) {
-							UserDTO userDTO = loginService.getUserDetail(userId.getText());
-							url = url.replace(RegistrationConstants.EMAIL_PLACEHOLDER, userDTO.getEmail());
-						}
-						Desktop.getDesktop().browse(new URI(url));
-					} catch (IOException ioException) {
-						LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-								ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
-					} catch (URISyntaxException uriSyntaxException) {
-						LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-								uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
+			if (Desktop.isDesktopSupported()) {
+				try {
+					String url = ApplicationContext.getStringValueFromApplicationMap(RegistrationConstants.FORGOT_PWORD_URL);
+					if (url.toUpperCase().contains(RegistrationConstants.EMAIL_PLACEHOLDER)) {
+						UserDTO userDTO = loginService.getUserDetail(userId.getText());
+						url = url.replace(RegistrationConstants.EMAIL_PLACEHOLDER, userDTO.getEmail());
 					}
+					Desktop.getDesktop().browse(new URI(url));
+				} catch (IOException ioException) {
+					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+							ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
+				} catch (URISyntaxException uriSyntaxException) {
+					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+							uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
 				}
-			} else {
-				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_INTERNET_CONNECTION);
 			}
 		});
 	}
