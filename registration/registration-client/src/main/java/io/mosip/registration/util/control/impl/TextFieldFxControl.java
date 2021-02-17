@@ -149,6 +149,8 @@ public class TextFieldFxControl extends FxControl {
 					demographicChangeActionHandler.actionHandle(getNode(), node.getId(), uiSchemaDTO.getChangeAction());
 				}
 
+			} else {
+				getRegistrationDTo().getDemographics().remove(this.uiSchemaDTO.getId());
 			}
 			// Group level visibility listeners
 			refreshFields();

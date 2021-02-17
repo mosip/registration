@@ -274,9 +274,8 @@ public class GenericController extends BaseController {
 			}
 
 			currentPage = 1;
-			Node node = screenMap.get(currentPage).getScreenNode();
-			node.setVisible(true);
-			node.setManaged(true);
+			showCurrent();
+
 			refreshFields();
 		} catch (JsonProcessingException | RegBaseCheckedException e1) {
 			// TODO Auto-generated catch block
@@ -368,9 +367,52 @@ public class GenericController extends BaseController {
 			registrationController.showCurrentPage(RegistrationConstants.GENERIC_DETAIL,
 					getPageByAction(RegistrationConstants.GENERIC_DETAIL, RegistrationConstants.NEXT));
 		} else {
-			show(currentNode, nextScreen != null ? nextScreen.getValue().getScreenNode() : null, 1);
+
+			boolean hasElementsinNext = isScreenVisible(fieldMap.get(nextScreen.getKey()));
+
+			if (hasElementsinNext) {
+				show(currentNode, nextScreen != null ? nextScreen.getValue().getScreenNode() : null, 1);
+			} else {
+				++currentPage;
+				next();
+			}
+
 		}
 
+	}
+
+	private void showCurrent() {
+
+		if (isScreenVisible(fieldMap.get(currentPage))) {
+
+			Node node = screenMap.get(currentPage).getScreenNode();
+			node.setVisible(true);
+			node.setManaged(true);
+		} else {
+			++currentPage;
+			showCurrent();
+		}
+
+	}
+
+	private boolean isScreenVisible(List<String> currentScreenFields) {
+
+		boolean hasElement = false;
+		if (currentScreenFields != null && !currentScreenFields.isEmpty()) {
+
+			for (String field : currentScreenFields) {
+				FxControl control = getFxControl(field);
+
+				if (control != null && control.getNode().isVisible()) {
+					hasElement = true;
+				}
+
+				if (hasElement) {
+					break;
+				}
+			}
+		}
+		return hasElement;
 	}
 
 	private void show(Node currentNode, Node nextNode, int updateScreen) {
@@ -387,7 +429,17 @@ public class GenericController extends BaseController {
 
 			refreshContinueButton();
 
+			for (Entry<Integer, ScreenDTO> entry : screenMap.entrySet()) {
+
+				if (entry.getKey() != currentPage) {
+
+					Node node = entry.getValue().getScreenNode();
+					node.setVisible(false);
+					node.setManaged(false);
+				}
+			}
 		}
+
 	}
 
 	@FXML
@@ -396,8 +448,15 @@ public class GenericController extends BaseController {
 		Node currentNode = screenMap.get(currentPage).getScreenNode();
 
 		Entry<Integer, ScreenDTO> nextScreen = screenMap.lowerEntry(currentPage);
+		boolean hasElementsinNext = isScreenVisible(fieldMap.get(nextScreen.getKey()));
 
-		show(currentNode, nextScreen != null ? nextScreen.getValue().getScreenNode() : null, -1);
+		if (hasElementsinNext) {
+			show(currentNode, nextScreen != null ? nextScreen.getValue().getScreenNode() : null, -1);
+		} else {
+
+			--currentPage;
+			previous();
+		}
 
 	}
 

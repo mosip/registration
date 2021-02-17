@@ -155,6 +155,7 @@ public abstract class FxControl extends Node {
 				requiredFieldValidator = Initialization.getApplicationContext().getBean(RequiredFieldValidator.class);
 			}
 
+			
 			try {
 				boolean isRequired = requiredFieldValidator.isRequiredField(this.uiSchemaDTO, getRegistrationDTo());
 				canContinue = !isRequired;
