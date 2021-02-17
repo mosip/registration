@@ -1,5 +1,5 @@
 -- -------------------------------------------------------------------------------------------------
--- Database Name: mosip_regprc
+-- Database Name: mosip_reg
 -- Release Version 	: 1.1.5
 -- Purpose    		: Database Alter scripts for the release for Registration Processor DB.       
 -- Create By   		: Ram Bhatt
@@ -8,7 +8,7 @@
 -- Modified Date        Modified By         Comments / Remarks
 -- -------------------------------------------------------------------------------------------------
 
-\c mosip_regprc sysadmin
+\c mosip_reg sysadmin
 
 ALTER TABLE reg.app_authentication_method ALTER COLUMN is_deleted SET NOT NULL;
 ALTER TABLE reg.app_detail ALTER COLUMN is_deleted SET NOT NULL;
@@ -138,4 +138,9 @@ ALTER TABLE reg.user_pwd ALTER COLUMN is_deleted SET DEFAULT FALSE;
 ALTER TABLE reg.user_role ALTER COLUMN is_deleted SET DEFAULT FALSE;
 ALTER TABLE reg.valid_document ALTER COLUMN is_deleted SET DEFAULT FALSE;
 
+------------------------------------ALTER TABLE ADD COLUMN----------------------------------------
+
+ALTER TABLE reg.sync_job_def ADD COLUMN job_type character varying(128);
+
 ----------------------------------------------------------------------------------------------------
+

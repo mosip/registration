@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.3" use-changelog="false" last-position="0,0" last-zoom="0.55" max-obj-count="136"
+<dbmodel pgmodeler-ver="0.9.3" use-changelog="false" last-position="1458,443" last-zoom="0.6" max-obj-count="136"
 	 default-schema="public" default-owner="postgres">
 <role name="sysadmin"
       superuser="true"
@@ -2130,7 +2130,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 </table>
 
-<table name="sync_job_def" layer="0" collapse-mode="2" max-obj-count="16" z-value="0">
+<table name="sync_job_def" layer="0" collapse-mode="2" max-obj-count="18" z-value="0">
 	<schema name="reg"/>
 	<role name="sysadmin"/>
 	<position x="3480" y="1020"/>
@@ -2175,6 +2175,10 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</column>
 	<column name="del_dtimes">
 		<type name="timestamp" length="0"/>
+	</column>
+	<column name="job_type">
+		<type name="character varying" length="128"/>
+		<comment><![CDATA[Job Type : specifies the job type for all sync jobs. ]]></comment>
 	</column>
 	<constraint name="pk_syncjob_id" type="pk-constr" table="reg.sync_job_def">
 		<columns names="id" ref-type="src-columns"/>

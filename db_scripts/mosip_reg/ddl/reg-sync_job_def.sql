@@ -38,6 +38,7 @@ CREATE TABLE reg.sync_job_def(
 	upd_dtimes timestamp,
 	is_deleted boolean NOT NULL DEFAULT FALSE,
 	del_dtimes timestamp,
+	job_type character varying(128),
 	CONSTRAINT pk_syncjob_id PRIMARY KEY (id)
 
 );
