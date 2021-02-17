@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.commons.packet.constants.PacketManagerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.controller.reg.RegistrationController;
@@ -34,6 +36,7 @@ import io.mosip.registration.util.control.impl.DOBFxControl;
 import io.mosip.registration.util.control.impl.DocumentFxControl;
 import io.mosip.registration.util.control.impl.DropDownFxControl;
 import io.mosip.registration.util.control.impl.TextFieldFxControl;
+import io.mosip.registration.validator.RequiredFieldValidator;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -100,6 +103,9 @@ public class GenericController extends BaseController {
 	@Autowired
 	private RegistrationPreviewController registrationPreviewController;
 
+	@Autowired
+	private RequiredFieldValidator requiredFieldValidator;
+
 	public static Map<String, FxControl> getFxControlMap() {
 		return fxControlMap;
 	}
@@ -135,6 +141,7 @@ public class GenericController extends BaseController {
 		flowPane.setHgap(10);
 
 		flowPane.prefWidthProperty().bind(layOutGridPane.widthProperty());
+
 		// convert JSON string to Map
 		try {
 			ObjectMapper mapper = new ObjectMapper();
@@ -146,7 +153,28 @@ public class GenericController extends BaseController {
 			boolean isUpdateUIN = getRegistrationDTOFromSession().getRegistrationCategory()
 					.equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_UPDATE);
 
+			List<String> defaultFields = new LinkedList<String>();
 			if (screens != null && !screens.isEmpty()) {
+
+				if (isUpdateUIN && !getRegistrationDTOFromSession().isBiometricMarkedForUpdate()) {
+					List<UiSchemaDTO> schemaDTOs = getValidationMap().values().stream()
+							.filter(schemaDto -> schemaDto.getType()
+									.equalsIgnoreCase(PacketManagerConstants.BIOMETRICS_DATATYPE))
+							.collect(Collectors.toList());
+
+					for (UiSchemaDTO uiSchemaDTO : schemaDTOs) {
+
+						List<String> configBioAttributes = requiredFieldValidator
+								.isRequiredBiometricField(uiSchemaDTO.getSubType(), getRegistrationDTOFromSession());
+
+						if (configBioAttributes != null && !configBioAttributes.isEmpty()) {
+							defaultFields.add(uiSchemaDTO.getId());
+						}
+					}
+
+//					screens.get(screens.size() - 1).addAll(list);
+
+				}
 				for (Entry<String, List<String>> screenEntry : screens.entrySet()) {
 
 					int count = 0;
@@ -177,9 +205,11 @@ public class GenericController extends BaseController {
 
 						for (String field : fields) {
 
-							if (!field.isEmpty() && (isUpdateUIN
-									? getRegistrationDTOFromSession().getUpdatableFields().contains(field)
-									: true)) {
+							if (!field.isEmpty()
+									&& (isUpdateUIN
+											? (getRegistrationDTOFromSession().getUpdatableFields().contains(field)
+													|| defaultFields.contains(field))
+											: true)) {
 
 								screenFields.add(field);
 								UiSchemaDTO uiSchemaDTO = getValidationMap().get(field);
@@ -248,7 +278,7 @@ public class GenericController extends BaseController {
 			node.setVisible(true);
 			node.setManaged(true);
 			refreshFields();
-		} catch (JsonProcessingException e1) {
+		} catch (JsonProcessingException | RegBaseCheckedException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}

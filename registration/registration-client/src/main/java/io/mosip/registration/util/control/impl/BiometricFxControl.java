@@ -208,6 +208,13 @@ public class BiometricFxControl extends FxControl {
 
 		for (Entry<String, List<List<String>>> modalityEntry : modalityMap.entrySet()) {
 
+			if (modalityEntry.getValue().size() > 1) {
+				for (String nonConfig : modalityEntry.getValue().get(1)) {
+
+					getRegistrationDTo().removeBiometric(uiSchemaDTO.getSubType(), nonConfig);
+				}
+			}
+
 			if (!modalityEntry.getValue().get(0).isEmpty()) {
 
 				hBox.getChildren().add(getImageVBox(modalityEntry.getKey(), subType, modalityEntry.getValue().get(0),
@@ -385,7 +392,11 @@ public class BiometricFxControl extends FxControl {
 
 		boolean exceptionPhotoReq = isBiometricExceptionAvailable();
 
-		getField(uiSchemaDTO.getId() + RegistrationConstants.EXCEPTION_PHOTO).setVisible(exceptionPhotoReq);
+		Node exceptionModality = getField(uiSchemaDTO.getId() + RegistrationConstants.EXCEPTION_PHOTO);
+
+		if (exceptionModality != null) {
+			exceptionModality.setVisible(exceptionPhotoReq);
+		}
 
 		fillImgView();
 
@@ -540,10 +551,10 @@ public class BiometricFxControl extends FxControl {
 
 			List<String> bioAttributes = requiredFieldValidator.isRequiredBiometricField(uiSchemaDTO.getSubType(),
 					getRegistrationDTo());
-			if (getRegistrationDTo().getRegistrationCategory().equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_LOST)
-					&& !getRegistrationDTo().getBiometric(this.uiSchemaDTO.getSubType(), bioAttributes).isEmpty()) {
-				return true;
-			}
+//			if (getRegistrationDTo().getRegistrationCategory().equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_LOST)
+//					&& !getRegistrationDTo().getBiometric(this.uiSchemaDTO.getSubType(), bioAttributes).isEmpty()) {
+//				return true;
+//			}
 
 			return biometricsController.canContinue(uiSchemaDTO.getSubType(), bioAttributes);
 		} catch (RegBaseCheckedException e) {

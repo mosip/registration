@@ -158,7 +158,7 @@ public abstract class FxControl extends Node {
 			try {
 				boolean isRequired = requiredFieldValidator.isRequiredField(this.uiSchemaDTO, getRegistrationDTo());
 				canContinue = !isRequired;
-			} catch (RegBaseCheckedException e) {
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 
