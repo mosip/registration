@@ -39,7 +39,7 @@ public class IDObjectFieldsTagGenerator implements TagGenerator {
     private String tagNamePrefix;
 
     /** The language that should be used when dealing with field type that has values in multiple languages */
-    @Value("${mosip.regproc.packet.classifier.tagging.idobjectfields.tag-language}")
+    @Value("${mosip.primary-language}")
     private String tagLanguage;
 
     /** The constant for value label in JSON parsing */

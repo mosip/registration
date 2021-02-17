@@ -23,7 +23,8 @@ mosip.regproc.packet.classifier.tagging.idobjectfields.mapping-field-names=gende
 # The tag name that will be prefixed with every idobjectfield tags
 mosip.regproc.packet.classifier.tagging.idobjectfields.tag-name-prefix=ID_OBJECT-
 # The language that should be used when dealing with field type that has values in multiple languages
-mosip.regproc.packet.classifier.tagging.idobjectfields.tag-language=eng
+# This is an existing configuration that is reused
+mosip.primary-language=eng
 # The tag name that will be prefixed with every metainfo operationsData tags
 mosip.regproc.packet.classifier.tagging.metainfo.operationsdata.tag-name-prefix=META_INFO-OPERATIONS_DATA-
 # The tag name that will be prefixed with every metainfo metaData tags
