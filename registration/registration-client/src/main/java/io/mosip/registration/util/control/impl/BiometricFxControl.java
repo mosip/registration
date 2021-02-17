@@ -13,10 +13,11 @@ import java.util.Map.Entry;
 import java.util.ResourceBundle;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.controller.Initialization;
-import io.mosip.registration.controller.device.BiometricsController;
 import io.mosip.registration.controller.device.GenericBiometricsController;
 import io.mosip.registration.controller.reg.DemographicDetailController;
 import io.mosip.registration.dto.UiSchemaDTO;
@@ -36,6 +37,8 @@ import javafx.scene.layout.VBox;
 
 public class BiometricFxControl extends FxControl {
 
+	protected static final Logger LOGGER = AppConfig.getLogger(BiometricFxControl.class);
+	private static final String loggerClassName = "BiometricFxControl";
 	private GenericBiometricsController biometricsController;
 	private static ResourceBundle applicationBundle = ApplicationContext.getInstance().getApplicationLanguageBundle();
 
@@ -50,8 +53,6 @@ public class BiometricFxControl extends FxControl {
 	public void setModalityAttributeMap(Map<String, List<List<String>>> modalityAttributeMap) {
 		this.modalityAttributeMap = modalityAttributeMap;
 	}
-
-	private ApplicationContext registrationApplicationContext;
 
 	public BiometricFxControl() {
 
@@ -76,7 +77,7 @@ public class BiometricFxControl extends FxControl {
 		biometricVBox = biometricVBox == null ? new VBox() : biometricVBox;
 		biometricVBox.getChildren().clear();
 		biometricVBox.setSpacing(5);
-
+		this.node = biometricVBox;
 		biometricVBox.getChildren().add(getLabel(null, uiSchemaDTO.getLabel().get(RegistrationConstants.PRIMARY),
 				RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, biometricVBox.getPrefWidth()));
 
@@ -84,12 +85,29 @@ public class BiometricFxControl extends FxControl {
 				uiSchemaDTO.getSubType());
 		biometricVBox.getChildren().add(loadModalitesToUi(modalityAttributeMap, uiSchemaDTO.getSubType()));
 
-		biometricVBox.getStyleClass().add(RegistrationConstants.BIOMETRICS_DISPLAY);
+//		biometricVBox.getStyleClass().add(RegistrationConstants.BIOMETRICS_DISPLAY);
+		if (!isRequired()) {
+
+			remove(RegistrationConstants.leftHandUiAttributes);
+			remove(RegistrationConstants.rightHandUiAttributes);
+			remove(RegistrationConstants.twoThumbsUiAttributes);
+			remove(RegistrationConstants.faceUiAttributes);
+			remove(RegistrationConstants.eyesUiAttributes);
+		}
 
 		biometricVBox.setVisible(isRequired());
 		biometricVBox.setManaged(true);
 
 		return biometricVBox;
+
+	}
+
+	private void remove(List<String> attributes) {
+		for (String attribute : attributes) {
+			getRegistrationDTo().removeBiometric(this.uiSchemaDTO.getSubType(), attribute);
+			getRegistrationDTo().removeBiometricException(this.uiSchemaDTO.getSubType(), attribute);
+
+		}
 
 	}
 
@@ -221,16 +239,27 @@ public class BiometricFxControl extends FxControl {
 						modalityEntry.getValue().get(1)));
 
 				rowIndex++;
+			} else {
+				remove(modalityEntry.getValue().get(1));
 			}
 
 		}
+
+		if (hBox.getChildren().size() == 0) {
+			visible(this.node, false);
+		}
+
 		if (biometricsController.isApplicant(subType) && rowIndex > 1) {
 
 			GridPane exceptionGridPane = new GridPane();
 
 			hBox.getChildren().add(exceptionGridPane);
 			exceptionGridPane.setId(uiSchemaDTO.getId() + RegistrationConstants.EXCEPTION_PHOTO);
-			exceptionGridPane.add(getExceptionImageVBox(RegistrationConstants.EXCEPTION_PHOTO), 1, rowIndex);
+			exceptionGridPane.add(
+					getImageVBox(RegistrationConstants.EXCEPTION_PHOTO, uiSchemaDTO.getSubType(), null, null), 1,
+					rowIndex);
+
+			visible(exceptionGridPane, isBiometricExceptionAvailable());
 
 		}
 
@@ -247,12 +276,25 @@ public class BiometricFxControl extends FxControl {
 
 		HBox hBox = new HBox();
 		hBox.setId(uiSchemaDTO.getId() + modality + RegistrationConstants.HBOX);
-		List<BiometricsDto> biometricsDtos = biometricsController.getBiometrics(subtype, configBioAttributes);
 
 		Image image = null;
-		if (biometricsDtos != null && !biometricsDtos.isEmpty()) {
+		if (biometricsController.isExceptionPhoto(modality)) {
+			if (isBiometricExceptionAvailable()) {
 
-			image = biometricsController.getBioStreamImage(subtype, modality, biometricsDtos.get(0).getNumOfRetries());
+				if (getRegistrationDTo().getDocuments().containsKey("proofOfException")) {
+					byte[] documentBytes = getRegistrationDTo().getDocuments().get("proofOfException").getDocument();
+					image = biometricsController.convertBytesToImage(documentBytes);
+
+				}
+			}
+		} else {
+			List<BiometricsDto> biometricsDtos = biometricsController.getBiometrics(subtype, configBioAttributes);
+
+			if (biometricsDtos != null && !biometricsDtos.isEmpty()) {
+
+				image = biometricsController.getBioStreamImage(subtype, modality,
+						biometricsDtos.get(0).getNumOfRetries());
+			}
 		}
 
 		VBox imgVBox = new VBox();
@@ -274,7 +316,7 @@ public class BiometricFxControl extends FxControl {
 		hBox.setOnMouseExited(event -> tooltip.hide());
 		hBox.getChildren().add(imgVBox);
 
-		boolean isAllExceptions = isAllExceptions(modality);
+		boolean isAllExceptions = biometricsController.isExceptionPhoto(modality) ? false : isAllExceptions(modality);
 
 		if (image != null || isAllExceptions) {
 			if (hBox.getChildren().size() == 1) {
@@ -455,83 +497,15 @@ public class BiometricFxControl extends FxControl {
 
 	}
 
-	public VBox getExceptionImageVBox(String modality) {
-
-		VBox vBox = new VBox();
-
-		vBox.setAlignment(Pos.BASELINE_LEFT);
-		vBox.setId(modality);
-
-		HBox hBox = new HBox();
-		hBox.setId(uiSchemaDTO.getId() + modality + RegistrationConstants.HBOX);
-		// hBox.setAlignment(Pos.BOTTOM_RIGHT);
-		Image image = null;
-
-		if (isBiometricExceptionAvailable()) {
-
-			if (getRegistrationDTo().getDocuments().containsKey("proofOfException")) {
-				byte[] documentBytes = getRegistrationDTo().getDocuments().get("proofOfException").getDocument();
-				image = biometricsController.convertBytesToImage(documentBytes);
-
-			}
-		}
-
-		ImageView imageView = new ImageView(image != null ? image
-				: new Image(this.getClass().getResourceAsStream(biometricsController.getImageIconPath(modality))));
-		imageView.setId(uiSchemaDTO.getId() + RegistrationConstants.IMAGE_VIEW + modality);
-		imageView.setFitHeight(80);
-		imageView.setFitWidth(85);
-
-		registrationApplicationContext = registrationApplicationContext.getInstance();
-		ResourceBundle applicationLabelBundle = registrationApplicationContext.getApplicationLanguageBundle();
-		Tooltip tooltip = new Tooltip(applicationLabelBundle.getString(modality));
-		tooltip.getStyleClass().add(RegistrationConstants.TOOLTIP_STYLE);
-		// Tooltip.install(hBox, tooltip);
-		hBox.setOnMouseEntered(event -> tooltip.show(hBox, event.getScreenX(), event.getScreenY() + 15));
-		hBox.setOnMouseExited(event -> tooltip.hide());
-		hBox.getChildren().add(imageView);
-
-		if (image != null) {
-			if (hBox.getChildren().size() == 1) {
-				ImageView tickImageView = new ImageView(
-						new Image(this.getClass().getResourceAsStream(RegistrationConstants.TICK_CIRICLE_IMG_PATH)));
-
-				tickImageView.setFitWidth(40);
-				tickImageView.setFitHeight(40);
-				hBox.getChildren().add(tickImageView);
-			}
-		}
-
-		vBox.getChildren().add(hBox);
-
-		vBox.setOnMouseClicked((event) -> {
-			try {
-				setModality(vBox.getId());
-				biometricsController.init(this, uiSchemaDTO.getSubType(), vBox.getId(), null, null);
-
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		});
-
-		vBox.setFillWidth(true);
-		vBox.setMinWidth(100);
-
-		vBox.getStyleClass().add(RegistrationConstants.BIOMETRICS_DISPLAY);
-
-		return vBox;
-	}
-
 	private boolean isRequired() {
 		try {
-			List<String> configBioAttributes = requiredFieldValidator.isRequiredBiometricField(uiSchemaDTO.getSubType(),
-					getRegistrationDTo());
+			List<String> configBioAttributes = getBioAttributes();
 
 			return configBioAttributes != null && !configBioAttributes.isEmpty();
-		} catch (RegBaseCheckedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (RegBaseCheckedException regBaseCheckedException) {
+			LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Error is Required  for field : "
+					+ uiSchemaDTO.getId() + " " + ExceptionUtils.getStackTrace(regBaseCheckedException));
+
 		}
 
 		return false;
@@ -540,7 +514,14 @@ public class BiometricFxControl extends FxControl {
 	@Override
 	public void refresh() {
 
+		LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refresh " + uiSchemaDTO.getId());
 		create((VBox) this.node, this.uiSchemaDTO);
+
+	}
+
+	private List<String> getBioAttributes() throws RegBaseCheckedException {
+
+		return requiredFieldValidator.isRequiredBiometricField(uiSchemaDTO.getSubType(), getRegistrationDTo());
 
 	}
 
@@ -549,17 +530,13 @@ public class BiometricFxControl extends FxControl {
 
 		try {
 
-			List<String> bioAttributes = requiredFieldValidator.isRequiredBiometricField(uiSchemaDTO.getSubType(),
-					getRegistrationDTo());
-//			if (getRegistrationDTo().getRegistrationCategory().equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_LOST)
-//					&& !getRegistrationDTo().getBiometric(this.uiSchemaDTO.getSubType(), bioAttributes).isEmpty()) {
-//				return true;
-//			}
+			List<String> bioAttributes = getBioAttributes();
 
 			return biometricsController.canContinue(uiSchemaDTO.getSubType(), bioAttributes);
-		} catch (RegBaseCheckedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (RegBaseCheckedException regBaseCheckedException) {
+			LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					"Error While checking on-continue  for field : " + uiSchemaDTO.getId() + " "
+							+ ExceptionUtils.getStackTrace(regBaseCheckedException));
 
 			return true;
 		}
