@@ -13,10 +13,11 @@ import java.util.Map.Entry;
 import java.util.ResourceBundle;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.controller.Initialization;
-import io.mosip.registration.controller.device.BiometricsController;
 import io.mosip.registration.controller.device.GenericBiometricsController;
 import io.mosip.registration.controller.reg.DemographicDetailController;
 import io.mosip.registration.dto.UiSchemaDTO;
@@ -36,6 +37,8 @@ import javafx.scene.layout.VBox;
 
 public class BiometricFxControl extends FxControl {
 
+	protected static final Logger LOGGER = AppConfig.getLogger(BiometricFxControl.class);
+	private static final String loggerClassName = "BiometricFxControl";
 	private GenericBiometricsController biometricsController;
 	private static ResourceBundle applicationBundle = ApplicationContext.getInstance().getApplicationLanguageBundle();
 
@@ -50,8 +53,6 @@ public class BiometricFxControl extends FxControl {
 	public void setModalityAttributeMap(Map<String, List<List<String>>> modalityAttributeMap) {
 		this.modalityAttributeMap = modalityAttributeMap;
 	}
-
-	private ApplicationContext registrationApplicationContext;
 
 	public BiometricFxControl() {
 
@@ -496,83 +497,15 @@ public class BiometricFxControl extends FxControl {
 
 	}
 
-//	public VBox getExceptionImageVBox(String modality) {
-//
-//		VBox vBox = new VBox();
-//
-//		vBox.setAlignment(Pos.BASELINE_LEFT);
-//		vBox.setId(modality);
-//
-//		HBox hBox = new HBox();
-//		hBox.setId(uiSchemaDTO.getId() + modality + RegistrationConstants.HBOX);
-//		// hBox.setAlignment(Pos.BOTTOM_RIGHT);
-//		Image image = null;
-//
-//		if (isBiometricExceptionAvailable()) {
-//
-//			if (getRegistrationDTo().getDocuments().containsKey("proofOfException")) {
-//				byte[] documentBytes = getRegistrationDTo().getDocuments().get("proofOfException").getDocument();
-//				image = biometricsController.convertBytesToImage(documentBytes);
-//
-//			}
-//		}
-//
-//		ImageView imageView = new ImageView(image != null ? image
-//				: new Image(this.getClass().getResourceAsStream(biometricsController.getImageIconPath(modality))));
-//		imageView.setId(uiSchemaDTO.getId() + RegistrationConstants.IMAGE_VIEW + modality);
-//		imageView.setFitHeight(80);
-//		imageView.setFitWidth(85);
-//
-//		registrationApplicationContext = registrationApplicationContext.getInstance();
-//		ResourceBundle applicationLabelBundle = registrationApplicationContext.getApplicationLanguageBundle();
-//		Tooltip tooltip = new Tooltip(applicationLabelBundle.getString(modality));
-//		tooltip.getStyleClass().add(RegistrationConstants.TOOLTIP_STYLE);
-//		// Tooltip.install(hBox, tooltip);
-//		hBox.setOnMouseEntered(event -> tooltip.show(hBox, event.getScreenX(), event.getScreenY() + 15));
-//		hBox.setOnMouseExited(event -> tooltip.hide());
-//		hBox.getChildren().add(imageView);
-//
-//		if (image != null) {
-//			if (hBox.getChildren().size() == 1) {
-//				ImageView tickImageView = new ImageView(
-//						new Image(this.getClass().getResourceAsStream(RegistrationConstants.TICK_CIRICLE_IMG_PATH)));
-//
-//				tickImageView.setFitWidth(40);
-//				tickImageView.setFitHeight(40);
-//				hBox.getChildren().add(tickImageView);
-//			}
-//		}
-//
-//		vBox.getChildren().add(hBox);
-//
-//		vBox.setOnMouseClicked((event) -> {
-//			try {
-//				setModality(vBox.getId());
-//				biometricsController.init(this, uiSchemaDTO.getSubType(), vBox.getId(), null, null);
-//
-//			} catch (IOException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//		});
-//
-//		vBox.setFillWidth(true);
-//		vBox.setMinWidth(100);
-//
-//		vBox.getStyleClass().add(RegistrationConstants.BIOMETRICS_DISPLAY);
-//
-//		return vBox;
-//	}
-
 	private boolean isRequired() {
 		try {
-			List<String> configBioAttributes = requiredFieldValidator.isRequiredBiometricField(uiSchemaDTO.getSubType(),
-					getRegistrationDTo());
+			List<String> configBioAttributes = getBioAttributes();
 
 			return configBioAttributes != null && !configBioAttributes.isEmpty();
-		} catch (RegBaseCheckedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (RegBaseCheckedException regBaseCheckedException) {
+			LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Error is Required  for field : "
+					+ uiSchemaDTO.getId() + " " + ExceptionUtils.getStackTrace(regBaseCheckedException));
+
 		}
 
 		return false;
@@ -581,7 +514,14 @@ public class BiometricFxControl extends FxControl {
 	@Override
 	public void refresh() {
 
+		LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refresh " + uiSchemaDTO.getId());
 		create((VBox) this.node, this.uiSchemaDTO);
+
+	}
+
+	private List<String> getBioAttributes() throws RegBaseCheckedException {
+
+		return requiredFieldValidator.isRequiredBiometricField(uiSchemaDTO.getSubType(), getRegistrationDTo());
 
 	}
 
@@ -590,17 +530,13 @@ public class BiometricFxControl extends FxControl {
 
 		try {
 
-			List<String> bioAttributes = requiredFieldValidator.isRequiredBiometricField(uiSchemaDTO.getSubType(),
-					getRegistrationDTo());
-//			if (getRegistrationDTo().getRegistrationCategory().equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_LOST)
-//					&& !getRegistrationDTo().getBiometric(this.uiSchemaDTO.getSubType(), bioAttributes).isEmpty()) {
-//				return true;
-//			}
+			List<String> bioAttributes = getBioAttributes();
 
 			return biometricsController.canContinue(uiSchemaDTO.getSubType(), bioAttributes);
-		} catch (RegBaseCheckedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (RegBaseCheckedException regBaseCheckedException) {
+			LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					"Error While checking on-continue  for field : " + uiSchemaDTO.getId() + " "
+							+ ExceptionUtils.getStackTrace(regBaseCheckedException));
 
 			return true;
 		}

@@ -1,5 +1,8 @@
 package io.mosip.registration.controller;
 
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
+
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -17,6 +20,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.commons.packet.constants.PacketManagerConstants;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.controller.reg.RegistrationController;
@@ -57,6 +62,8 @@ import javafx.scene.layout.GridPane;
 @Controller
 public class GenericController extends BaseController {
 
+	protected static final Logger LOGGER = AppConfig.getLogger(GenericController.class);
+	private static final String loggerClassName = "GenericController";
 	/**
 	 * Top most Grid pane in FXML
 	 */
@@ -136,6 +143,7 @@ public class GenericController extends BaseController {
 	 */
 	public void populateScreens() {
 
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Populating Dynamic screens");
 		flowPane.getChildren().clear();
 		flowPane.setVgap(10);
 		flowPane.setHgap(10);
@@ -250,6 +258,7 @@ public class GenericController extends BaseController {
 
 				}
 
+				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Loading Locations");
 				for (Entry<String, TreeMap<Integer, FxControl>> locatioEntrySet : locationMap.entrySet()) {
 
 					TreeMap<Integer, FxControl> treeMap = locatioEntrySet.getValue();
@@ -274,7 +283,7 @@ public class GenericController extends BaseController {
 			}
 
 			currentPage = 1;
-			showCurrent();
+			showCurrentPage();
 
 			refreshFields();
 		} catch (JsonProcessingException | RegBaseCheckedException e1) {
@@ -381,7 +390,9 @@ public class GenericController extends BaseController {
 
 	}
 
-	private void showCurrent() {
+	private void showCurrentPage() {
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+				"Showing current page : screen No: " + currentPage);
 
 		if (isScreenVisible(fieldMap.get(currentPage))) {
 
@@ -390,13 +401,14 @@ public class GenericController extends BaseController {
 			node.setManaged(true);
 		} else {
 			++currentPage;
-			showCurrent();
+			showCurrentPage();
 		}
 
 	}
 
 	private boolean isScreenVisible(List<String> currentScreenFields) {
 
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Checking screen visiblity" + currentPage);
 		boolean hasElement = false;
 		if (currentScreenFields != null && !currentScreenFields.isEmpty()) {
 
@@ -445,6 +457,8 @@ public class GenericController extends BaseController {
 	@FXML
 	public void previous() {
 
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+				"Showing previous page : screen No: " + currentPage);
 		Node currentNode = screenMap.get(currentPage).getScreenNode();
 
 		Entry<Integer, ScreenDTO> nextScreen = screenMap.lowerEntry(currentPage);
@@ -466,6 +480,7 @@ public class GenericController extends BaseController {
 	}
 
 	public void refreshFields() {
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refreshing fields");
 		for (UiSchemaDTO uiSchemaDto : getValidationMap().values()) {
 
 			FxControl control = getFxControl(uiSchemaDto.getId());
@@ -501,6 +516,7 @@ public class GenericController extends BaseController {
 			}
 		}
 
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refreshing continue button");
 		next.setDisable(!canContinue);
 	}
 

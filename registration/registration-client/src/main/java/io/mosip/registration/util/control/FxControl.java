@@ -3,8 +3,13 @@
  */
 package io.mosip.registration.util.control;
 
+import static io.mosip.registration.constants.LoggerConstants.LOG_REG_BIOMETRIC_CONTROLLER;
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
+
 import java.util.List;
 
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
@@ -34,7 +39,7 @@ import javafx.scene.control.Label;
 public abstract class FxControl extends Node {
 
 	protected static final Logger LOGGER = AppConfig.getLogger(DemographicDetailController.class);
-	private static final String loggerClassName = "AbstractControlType";
+	private static final String loggerClassName = "FxControl";
 
 	protected UiSchemaDTO uiSchemaDTO;
 
@@ -49,6 +54,7 @@ public abstract class FxControl extends Node {
 
 	public void refreshFields() {
 
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refreshing fields from fx control");
 		GenericController genericController = Initialization.getApplicationContext().getBean(GenericController.class);
 		genericController.refreshFields();
 
@@ -114,6 +120,7 @@ public abstract class FxControl extends Node {
 	 */
 	public void refresh() {
 
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refreshing field : " + uiSchemaDTO.getId());
 		if (isFieldVisible(uiSchemaDTO)) {
 			visible(this.node, true);
 			this.node.setManaged(true);
@@ -155,13 +162,13 @@ public abstract class FxControl extends Node {
 				requiredFieldValidator = Initialization.getApplicationContext().getBean(RequiredFieldValidator.class);
 			}
 
-			
 			try {
 				boolean isRequired = requiredFieldValidator.isRequiredField(this.uiSchemaDTO, getRegistrationDTo());
 				canContinue = !isRequired;
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (Exception exception) {
+				LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+						"Error While checking on-Reuired  for field : " + uiSchemaDTO.getId() + " "
+								+ ExceptionUtils.getStackTrace(exception));
 
 				canContinue = false;
 			}
