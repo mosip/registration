@@ -4,8 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Before;
@@ -31,8 +30,6 @@ import io.mosip.registration.processor.packet.storage.utils.Utilities;
 	"javax.xml.*", "org.xml.*" })
 public class AgeGroupTagGeneratorTest {
 
-	private static String IDSchemaVersionLabel = "IDSchemaVersion";
-
 	@InjectMocks
 	private AgeGroupTagGenerator ageGroupTagGenerator;
 
@@ -40,25 +37,20 @@ public class AgeGroupTagGeneratorTest {
 	private Utilities utility;
 
 	private static String tagName = "AGE_GROUP";
-	private static List<String> ageGroupNames;
-	private static List<Integer> ageBelowRanges;
+	Map<String,String> ageGroupRangeMap;
 
 	@Before
 	public void setup() throws Exception {
 
-		ageGroupNames = new ArrayList<String>();
-		ageGroupNames.add("CHILD");
-		ageGroupNames.add("ADULD");
-		ageGroupNames.add("SENIOR_CITIZEN");
-
-		ageBelowRanges = new ArrayList<Integer>();
-		ageBelowRanges.add(18);
-		ageBelowRanges.add(60);
-		ageBelowRanges.add(200);
+		ageGroupRangeMap = new HashMap<>();
+		ageGroupRangeMap.put("CHILD", "0-17");
+		ageGroupRangeMap.put("ADULT", "18-59");
+		ageGroupRangeMap.put("SENIOR_CITIZEN", "60-200");
 
 		Whitebox.setInternalState(ageGroupTagGenerator, "tagName", tagName);
-		Whitebox.setInternalState(ageGroupTagGenerator, "ageGroupNames", ageGroupNames);
-		Whitebox.setInternalState(ageGroupTagGenerator, "ageBelowRanges", ageBelowRanges);
+		Whitebox.setInternalState(ageGroupTagGenerator, "ageGroupRangeMap", ageGroupRangeMap);
+
+		Whitebox.invokeMethod(ageGroupTagGenerator, "generateParsedAgeGroupRangeMap");
 
 	}
 
@@ -66,27 +58,27 @@ public class AgeGroupTagGeneratorTest {
 	public void testGenerateTagsForChildGroup() throws Exception {
 		Mockito.when(utility.getApplicantAge(anyString(), anyString())).thenReturn(17);
 		Map<String, String> tags = ageGroupTagGenerator.generateTags("123", "NEW", null, null);
-		assertEquals(tags.get(tagName), ageGroupNames.get(0));
+		assertEquals(tags.get(tagName), "CHILD");
 	}
 
 	@Test
 	public void testGenerateTagsForAdultGroup() throws Exception {
 		Mockito.when(utility.getApplicantAge(anyString(), anyString())).thenReturn(30);
 		Map<String, String> tags = ageGroupTagGenerator.generateTags("123", "NEW", null, null);
-		assertEquals(tags.get(tagName), ageGroupNames.get(1));
+		assertEquals(tags.get(tagName), "ADULT");
 	}
 
 	@Test
 	public void testGenerateTagsForSeniorCitizenGroup() throws Exception {
 		Mockito.when(utility.getApplicantAge(anyString(), anyString())).thenReturn(65);
 		Map<String, String> tags = ageGroupTagGenerator.generateTags("123", "NEW", null, null);
-		assertEquals(tags.get(tagName), ageGroupNames.get(2));
+		assertEquals(tags.get(tagName), "SENIOR_CITIZEN");
 	}
 
 	@Test(expected = BaseCheckedException.class)
 	public void testGenerateTagsForUtilityThrowningIOException() throws Exception {
 		Mockito.when(utility.getApplicantAge(anyString(), anyString())).thenThrow(new IOException());
-		Map<String, String> tags = ageGroupTagGenerator.generateTags("123", "NEW", null, null);
+		ageGroupTagGenerator.generateTags("123", "NEW", null, null);
 	}
 	
 }

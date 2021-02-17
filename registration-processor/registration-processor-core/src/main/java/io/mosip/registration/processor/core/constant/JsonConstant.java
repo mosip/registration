@@ -239,5 +239,9 @@ public class JsonConstant {
 
 	public static final String DIGITALIDTYPE = "type";
 
+	public static final String DIGITALIDMAKE = "make";
+
+	public static final String DIGITALIDMODEL = "model";
+
 	public static final String DIGITALIDSERIALNO = "serialNo";
 }

@@ -440,6 +440,10 @@ public enum PlatformErrorMessages {
 	RPR_PCM_META_DATA_ENTRY_NOT_AVAILABLE(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "015",
 			"Meta data entry not avaiable in metainfo map"),
 
+	/** The rpr pcm ageGroupRangeMap does not contain group for given age. */
+	RPR_PCM_AGE_GROUP_NOT_FOUND(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "016",
+			"Age Group Range Map configuration does not contain age group for given age"),
+
 	/** The rpr pcm Captured Registered Devices entry not avaiable in metainfo map. */
 	RPR_PCM_CAPTURED_REGISTERED_DEVICES_ENTRY_NOT_AVAILABLE(PlatformConstants.RPR_PACKET_CLASSIFIER_MODULE + "016",
 			"Captured registered devices entry not avaiable in metainfo map"),

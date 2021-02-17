@@ -37,7 +37,7 @@ public class MetaInfoTagGeneratorTest {
     private static String operationsDataTagNamePrefix = "META_INFO-OPERATIONS_DATA-";
     private static String metaDataTagNamePrefix = "META_INFO-META_DATA-";
 	private static String capturedRegisteredDevicesTagNamePrefix = 
-						"META_INFO-CAPTURED_REGISTERED_DEVICES-SERIAL_NO-";
+						"META_INFO-CAPTURED_REGISTERED_DEVICES-";
 
 	private static List<String> operationsDataTagLabels;
 	private static List<String> metaDataTagLabels;
@@ -107,7 +107,7 @@ public class MetaInfoTagGeneratorTest {
 		metaInfoMap.put(JsonConstant.CAPTUREDREGISTEREDDEVICES, "[ {\n  \"deviceServiceVersion\" : \"0.9.5\",\n  \"digitalId\" : {\n    \"dateTime\" : \"2020-11-23T11:29:21.468+05:30\",\n    \"deviceSubType\" : \"Slap\",\n    \"model\" : \"SLAP01\",\n    \"type\" : \"Finger\",\n    \"make\" : \"MOSIP\",\n    \"serialNo\" : \"1234567890\",\n    \"deviceProviderId\" : \"MOSIP.PROXY.SBI\",\n    \"deviceProvider\" : \"MOSIP\"\n  },\n  \"deviceCode\" : \"b692b595-3523-slap-99fc-bd76e35f190f\"\n}]");
 		Map<String, String> tags = metaInfoTagGenerator.generateTags("1234", "NEW", 
 			null, metaInfoMap);
-		assertEquals("1234567890", tags.get(capturedRegisteredDevicesTagNamePrefix + "Finger"));
+		assertEquals("MOSIP-SLAP01-1234567890", tags.get(capturedRegisteredDevicesTagNamePrefix + "Finger"));
 	}
 
 	@Test(expected = BaseCheckedException.class)

@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -24,18 +26,30 @@ public class AgeGroupTagGenerator implements TagGenerator {
     @Value("${mosip.regproc.packet.classifier.tagging.agegroup.tag-name:AGE_GROUP}")
     private String tagName;
 
-    /** Different age group that should be used for age group tagging */
-    @Value("#{'${mosip.regproc.packet.classifier.tagging.agegroup.group-names:CHILD,ADULT,SENIOR_CITIZEN}'.split(',')}")
-    private List<String> ageGroupNames;
-
-    /** Below age ranges that corresponding to the group names, if first value is CHILD in group-names 
-     * and if first value is 18 in below-ranges, then age below 18 will be tagged as CHILD */
-    @Value("#{'${mosip.regproc.packet.classifier.tagging.agegroup.below-ranges:18,60,200}'.split(',')}")
-    private List<Integer> ageBelowRanges;
+    /** Below age ranges map should contain proper age group name and age range, any overlap of the age 
+     * range will result in a random behaviour of tagging. In range, upper and lower values are inclusive. */
+    @Value("#{${mosip.regproc.packet.classifier.tagging.agegroup.ranges:{'CHILD':'0-17','ADULT':'18-59','SENIOR_CITIZEN':'60-200'}}}")
+    private Map<String,String> ageGroupRangeMap;
     
     /** Frequently used util methods are available in this bean */
     @Autowired
     private Utilities utility;
+
+    private static String RANGE_DELIMITER = "-";
+
+    private Map<String, int[]> parsedAgeGroupRangemap;
+
+    @PostConstruct
+    private void generateParsedAgeGroupRangeMap() {
+        parsedAgeGroupRangemap = new HashMap<>();
+        for (Map.Entry<String,String> entry : ageGroupRangeMap.entrySet()) {
+            String[] range = entry.getValue().split(RANGE_DELIMITER);
+            int[] rangeArray = new int[2];
+            rangeArray[0] = Integer.parseInt(range[0]);
+            rangeArray[1] = Integer.parseInt(range[1]);
+            parsedAgeGroupRangemap.put(entry.getKey(), rangeArray);
+        }
+    }
 
     /**
      * {@inheritDoc}
@@ -55,12 +69,18 @@ public class AgeGroupTagGenerator implements TagGenerator {
         try {
             String ageGroup = "";
             int age = utility.getApplicantAge(registrationId, process);
-            for(int i=0; i < ageBelowRanges.size(); i++) {
-                if(age < ageBelowRanges.get(i))  {
-                    ageGroup = ageGroupNames.get(i);
+            for (Map.Entry<String,int[]> entry : parsedAgeGroupRangemap.entrySet()) {
+                if (age >= entry.getValue()[0] && age <= entry.getValue()[1]) {
+                    ageGroup = entry.getKey();
                     break;
-                }
+                } 
             }
+
+            if(ageGroup == "")
+                throw new BaseCheckedException(
+                    PlatformErrorMessages.RPR_PCM_AGE_GROUP_NOT_FOUND.getCode(), 
+                    PlatformErrorMessages.RPR_PCM_AGE_GROUP_NOT_FOUND.getMessage() + " Age: " + age); 
+
             Map<String, String> tags = new HashMap<String, String>();
             tags.put(tagName, ageGroup);
             return tags;
@@ -70,5 +90,4 @@ public class AgeGroupTagGenerator implements TagGenerator {
                 PlatformErrorMessages.RPR_PCM_ACCESSING_IDOBJECT_MAPPING_FILE_FAILED.getMessage(), e);
         }
     }
-    
 }

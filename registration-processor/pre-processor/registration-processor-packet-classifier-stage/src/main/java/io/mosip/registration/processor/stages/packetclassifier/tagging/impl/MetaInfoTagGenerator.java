@@ -38,7 +38,7 @@ public class MetaInfoTagGenerator implements TagGenerator {
     private String metaDataTagNamePrefix;
 
     /** The tag name that will be prefixed with every metainfo capturedRegisteredDevices tags */
-    @Value("${mosip.regproc.packet.classifier.tagging.metainfo.capturedregistereddevices.tag-name-prefix:META_INFO-CAPTURED_REGISTERED_DEVICES-SERIAL_NO-}")
+    @Value("${mosip.regproc.packet.classifier.tagging.metainfo.capturedregistereddevices.tag-name-prefix:META_INFO-CAPTURED_REGISTERED_DEVICES-}")
     private String capturedRegisteredDevicesTagNamePrefix;
 
     /** The labels on metainfo.operationsData array that needs to be tagged */
@@ -56,6 +56,8 @@ public class MetaInfoTagGenerator implements TagGenerator {
     /** Mapper utility used for unmarshalling JSON to Java objects  */
     @Autowired
     private ObjectMapper objectMapper;
+
+    private static String TAG_VALUE_DELIMITER = "-";
 
     /**
      * {@inheritDoc}
@@ -140,7 +142,9 @@ public class MetaInfoTagGenerator implements TagGenerator {
                 JSONObject digitalId = capturedRegisteredDevicesJsonArray.getJSONObject(i)
                     .getJSONObject(JsonConstant.DIGITALID);
                 if(digitalId.getString(JsonConstant.DIGITALIDTYPE).equals(deviceType))
-                    tags.put(capturedRegisteredDevicesTagNamePrefix + deviceType, 
+                    tags.put(capturedRegisteredDevicesTagNamePrefix + deviceType,
+                        digitalId.getString(JsonConstant.DIGITALIDMAKE) + TAG_VALUE_DELIMITER +
+                        digitalId.getString(JsonConstant.DIGITALIDMODEL) + TAG_VALUE_DELIMITER +
                         digitalId.getString(JsonConstant.DIGITALIDSERIALNO));
             }
         }

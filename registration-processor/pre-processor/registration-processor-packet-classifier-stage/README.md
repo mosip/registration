@@ -29,7 +29,7 @@ mosip.regproc.packet.classifier.tagging.metainfo.operationsdata.tag-name-prefix=
 # The tag name that will be prefixed with every metainfo metaData tags
 mosip.regproc.packet.classifier.tagging.metainfo.metadata.tag-name-prefix=META_INFO-META_DATA-
 # The tag name that will be prefixed with every metainfo capturedRegisteredDevices tags 
-mosip.regproc.packet.classifier.tagging.metainfo.capturedregistereddevices.tag-name-prefix=META_INFO-CAPTURED_REGISTERED_DEVICES-SERIAL_NO-
+mosip.regproc.packet.classifier.tagging.metainfo.capturedregistereddevices.tag-name-prefix=META_INFO-CAPTURED_REGISTERED_DEVICES-
 # The labels on metainfo.operationsData array that needs to be tagged
 mosip.regproc.packet.classifier.tagging.metainfo.operationsdata.tag-labels=officerId,supervisorId
 # The labels on metainfo.metaData array that needs to be tagged
@@ -38,11 +38,9 @@ mosip.regproc.packet.classifier.tagging.metainfo.metadata.tag-labels=centerId,ma
 mosip.regproc.packet.classifier.tagging.metainfo.capturedregistereddevices.device-types=Face,Fingerprint
 # Tag name that will used while tagging age group
 mosip.regproc.packet.classifier.tagging.agegroup.tag-name=AGE_GROUP
-# Different age group that should be used for age group tagging
-mosip.regproc.packet.classifier.tagging.agegroup.group-names=CHILD,ADULT,SENIOR_CITIZEN
-# Below age ranges that corresponding to the group names, if first value is CHILD in group-names 
-# and if first value is 18 in below-ranges, then age below 18 will be tagged as CHILD 
-mosip.regproc.packet.classifier.tagging.agegroup.below-ranges=18,60,200
+# Below age ranges map should contain proper age group name and age range, any overlap of the age 
+# range will result in a random behaviour of tagging. In range, upper and lower values are inclusive.
+mosip.regproc.packet.classifier.tagging.agegroup.ranges={'CHILD':'0-17','ADULT':'18-59','SENIOR_CITIZEN':'60-200'}
 # Tag name that will used while tagging supervisor approval status
 mosip.regproc.packet.classifier.tagging.supervisorapprovalstatus.tag-name=SUPERVISOR_APPROVAL_STATUS
 # Tag name that will used while tagging exception biometrics
