@@ -158,4 +158,11 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 				.putHeader("Access-Control-Allow-Methods", "GET, POST").setStatusCode(200)
 				.end(gson.toJson(object));
 	}
+
+	// Added this method to cast all the stages to this class and invoke the deployVerticle method 
+	// to start the stage by configuration, since we don't want to test all the stages now, not marking this as
+	// an abstract method, but later this need to be marked as abstract
+	public void deployVerticle() {
+
+	}
 }

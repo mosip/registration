@@ -33,6 +33,7 @@ import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.service.impl.PacketInfoManagerImpl;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
+import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 
 @Configuration
@@ -115,5 +116,10 @@ public class PacketStorageBeanConfig {
 	@Bean
 	public SourceProcessFilter sourceProcessFilter() {
 		return new SourceProcessFilter();
+	}
+
+	@Bean
+	public IdSchemaUtil getIdSchemaUtil() {
+		return new IdSchemaUtil();
 	}
 }
