@@ -1036,11 +1036,9 @@ public class PacketHandlerController extends BaseController implements Initializ
 			auditFactory.audit(AuditEvent.NAV_DASHBOARD, Components.NAVIGATION,
 					SessionContext.userContext().getUserId(), AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
-			// TODO - insert dashboard template to DB and get it from there
 			String dashboardTemplateText = templateService.getHtmlTemplate(
 					RegistrationConstants.DASHBOARD_TEMPLATE_CODE, ApplicationContext.applicationLanguage());
 
-			// String dashboardTemplateText = getDashBoardTemplate();
 			ResponseDTO templateResponse = templateGenerator.generateDashboardTemplate(dashboardTemplateText,
 					templateManagerBuilder, RegistrationConstants.DASHBOARD_TEMPLATE,
 					Initialization.getApplicationStartTime());
@@ -1065,11 +1063,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_DASHBOARD_PAGE);
 		}
 		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Loading dashboard screen ended.");
-	}
-
-	// TODO Remove this method
-	private String getDashBoardTemplate() {
-		return "<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'><style> * { box-sizing: border-box; } body { font-family: Arial, Helvetica, sans-serif;background-color: #f1f1f1; } header { padding: 20px; text-align: center; font-size: 15px; color: black; } .tablecss { font-size:13px; } .column { float: left; width: auto; padding: 10px; margin:10px; overflow:auto; border:1px solid #FF1493; } .buttons-column { float: left; width: auto; padding: 10px; margin:10px; overflow:auto; } .column-rect { float: left; width: 150px; padding: 2px; margin-right:5px; margin-left:5px; overflow:auto; height:115px; text-align:center; color:white; } .row:after { content: ''; display: table; clear: both; } </style></head><body><header><h2>${dashBoard}</h2></header><div class='row'><div class='column' style='background-color:#fff;'><h4>Users</h4><table class='tablecss'> #foreach( $key in $userDetails.keySet() ) <tr><td width=10%><img src=$userDetails.get($key).get('userRole') height=15 width=15></img></td><td width=30%>$userDetails.get($key).get('userId')</td><td width=50%>$userDetails.get($key).get('userName')</td><td width=10%><img src=$userDetails.get($key).get('userStatus') height=25 width=25></img></td></tr> #end </table></div><div class='buttons-column' style='margin-top: 0px;'><div class='row'><div class='column-rect' style='background-color:limegreen;'><h2>${totalPacketsCount}</h2><p>${totalPacketsLabel}</p></div><div class='column-rect' style=background-color:goldenrod;color:black'><h2>${pendingEODCount}</h2><p>${pendingEODLabel}</p></div><div class='column-rect' style='background-color:red;'><h2>${pendingUploadCount}</h2><p>${pendingUploadLabel}</p></div></div></div><div class='column' style='background-color:#fff;'><table width='100%' class='tablecss'> #foreach( $key in $activities.keySet() ) <tr><td><h3>#if( $key != 'Updates' ) $key #end</h3></td></tr><tr><td><table width='100%' class='tablecss'> #foreach( $keyList in $activities.get($key) ) <tr><td width=60%>$keyList.get('activityName')</td><td width=40%>$keyList.get('activityValue')</td></tr> #end </table></td></tr> #end </table></div></div></body></html>";
 	}
 
 	/**

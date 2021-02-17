@@ -713,7 +713,7 @@ public class TemplateGenerator extends BaseService {
 			SyncControl syncControl = jobConfigurationService.getSyncControlOfJob(syncJob.getId());
 			if (syncControl != null && syncControl.getLastSyncDtimes() != null) {
 				Map<String, Object> job = new LinkedHashMap<>();
-				job.put(RegistrationConstants.DASHBOARD_ACTIVITY_NAME, trimJobName(syncJob.getName()));
+				job.put(RegistrationConstants.DASHBOARD_ACTIVITY_NAME, syncJob.getName().substring(0, syncJob.getName().lastIndexOf(" ")));
 				job.put(RegistrationConstants.DASHBOARD_ACTIVITY_VALUE, getLocalZoneTime(syncControl.getLastSyncDtimes().toString()));
 				activities = addToJobList(activities, syncJob.getJobType(), job);
 			}
@@ -750,10 +750,6 @@ public class TemplateGenerator extends BaseService {
 		activities.put(RegistrationConstants.DASHBOARD_UPDATES, updateList);
 		return activities;
 	}
-	
-	private String trimJobName(String jobName) {		
-		return jobName.substring(0, jobName.lastIndexOf(" "));
-	}
 
 	private Map<String, List<Map<String, Object>>> addToJobList(Map<String, List<Map<String, Object>>> activities, String activityName, Map<String, Object> job) {
 		if (activities.containsKey(activityName)) {
@@ -772,7 +768,8 @@ public class TemplateGenerator extends BaseService {
 					.format(DateTimeFormatter.ofPattern(RegistrationConstants.UTC_PATTERN));
 			LocalDateTime dateTime = DateUtils.parseUTCToLocalDateTime(formattedTime);
 			return dateTime
-					.format(DateTimeFormatter.ofPattern(RegistrationConstants.DASHBOARD_FORMAT));
+					.format(DateTimeFormatter.ofPattern((String) ApplicationContext.map()
+							.getOrDefault(RegistrationConstants.DASHBOARD_FORMAT, "dd MMM hh:mm a")));
 		} catch (RuntimeException exception) {
 			LOGGER.error("REGISTRATION - ALERT - BASE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(exception));

@@ -51,7 +51,7 @@ public class RegistrationConstants {
 	public static final String SEND_NOTIFICATION_PAGE = "/fxml/SendNotification.fxml";
 	public static final String PACKET_UPLOAD_STATUS_UI = "/fxml/PacketUploadStatus.fxml";
 	public static final String ALERT_GENERATION = "/fxml/Alert.fxml";
-	public static final String DASHBOARD_PAGE = "/fxml/Dashboard.fxml";
+  public static final String DASHBOARD_PAGE = "/fxml/Dashboard.fxml";
 
 	// FXML Id
 	public static final String DEMOGRAPHIC_DETAIL = "demographicDetail";
@@ -873,7 +873,7 @@ public class RegistrationConstants {
 	public static final String ACKNOWLEDGEMENT_TEMPLATE = "Ack Template";
 	public static final String ACKNOWLEDGEMENT_TEMPLATE_CODE = "reg-ack-template-part";
 	public static final String PREVIEW_TEMPLATE_CODE = "reg-preview-template-part";
-	public static final String DASHBOARD_TEMPLATE_CODE = "reg-dashboard-template";
+  public static final String DASHBOARD_TEMPLATE_CODE = "reg-dashboard-template";
 	public static final String DASHBOARD_TEMPLATE = "Dashboard Template";
 
 	// Notification Service
@@ -937,9 +937,9 @@ public class RegistrationConstants {
 	public static final String IS_SOFTWARE_UPDATE_AVAILABLE = "mosip.registration.is_software_update_available";
 	public static final String PROVIDER_NAME = "mosip.registration.provider_name";
 	public static final String DISK_SPACE = "mosip.registration.disk_space_size";
-	public static final String LAST_SOFTWARE_UPDATE = "mosip.registration.last_software_update";
+  public static final String LAST_SOFTWARE_UPDATE = "mosip.registration.last_software_update";
 	public static final String REGCLIENT_INSTALLED_TIME = "mosip.registration.regclient_installed_time";
-	
+
 	// Spring Batch-Jobs
 	public static final String JOB_TRIGGER_STARTED = "Trigger started";
 	public static final String JOB_TRIGGER_COMPLETED = "Trigger completed";
@@ -1343,7 +1343,7 @@ public class RegistrationConstants {
 
 	// flag for quality check with SDK
 	public static final String QUALITY_CHECK_WITH_SDK = "mosip.registration.quality_check_with_sdk";
-	public static final String UPDATE_SDK_QUALITY_SCORE = "mosip.registration.replace_sdk_quality_score";
+  public static final String UPDATE_SDK_QUALITY_SCORE = "mosip.registration.replace_sdk_quality_score";
 
 	// Packet Sync
 	public static final String PACKET_SYNC = "packet_sync";
@@ -1835,20 +1835,19 @@ public class RegistrationConstants {
 	public static String RIGHT_TO_LEFT_ORIENTATION_LANGUAGES = "mosip.language.righttoleft.orientation";
 
 	public static String CONFIGURATION = "CONFIGURATION";
-
 	public static String ONBOARD_CERT_THUMBPRINT = "thumbprint";
 
 	public static final String OPT_TO_REG_CCS_J00017 = "CCS_J00017";
 	public static final String API_CALL_FAILED = "API call failed with unknown error";
-	
-	public static final String FORGOT_USERNAME_URL = "mosip.registration.forgot_username_url";
+  
+  public static final String FORGOT_USERNAME_URL = "mosip.registration.forgot_username_url";
 	public static final String FORGOT_PWORD_URL = "mosip.registration.forgot_password_url";
 	public static final String RESET_PWORD_URL = "mosip.registration.reset_password_url";
 	public static final String EMAIL_PLACEHOLDER = "{EMAIL}";
-	
+
 	// Dashboard Constants
 	public static final String DASHBOARD_TITLE = "dashBoard";
-	public static final String DASHBOARD_FORMAT = "dd MMM hh:mm a";
+	public static final String DASHBOARD_FORMAT = "mosip.registration.dashboard_date_format";
 	public static final String TOTAL_PACKETS_LABEL = "totalPacketsLabel";
 	public static final String PENDING_EOD_LABEL = "pendingEODLabel";
 	public static final String PENDING_UPLOAD_LABEL = "pendingUploadLabel";
