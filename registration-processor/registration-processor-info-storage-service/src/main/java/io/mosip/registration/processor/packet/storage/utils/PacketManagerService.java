@@ -27,6 +27,7 @@ import io.mosip.registration.processor.packet.storage.dto.FieldResponseDto;
 import io.mosip.registration.processor.packet.storage.dto.InfoDto;
 import io.mosip.registration.processor.packet.storage.dto.InfoRequestDto;
 import io.mosip.registration.processor.packet.storage.dto.InfoResponseDto;
+import io.mosip.registration.processor.packet.storage.dto.UpdateTagRequestDto;
 import io.mosip.registration.processor.packet.storage.dto.ValidatePacketResponse;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import org.apache.commons.lang.StringUtils;
@@ -285,6 +286,22 @@ public class PacketManagerService {
         InfoResponseDto infoResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(response.getResponse()), InfoResponseDto.class);
 
         return infoResponseDto;
+    }
+
+    public void addOrUpdateTags(String id, Map<String, String> tags) throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
+        UpdateTagRequestDto updateTagRequestDto = new UpdateTagRequestDto(id, tags);
+
+        RequestWrapper<UpdateTagRequestDto> request = new RequestWrapper<>();
+        request.setId(ID);
+        request.setVersion(VERSION);
+        request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+        request.setRequest(updateTagRequestDto);
+        ResponseWrapper<Void> response = (ResponseWrapper) restApi.postApi(ApiName.PACKETMANAGER_UPDATE_TAGS, "", "", request, ResponseWrapper.class);
+
+        if (response.getErrors() != null && response.getErrors().size() > 0) {
+            regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id, JsonUtils.javaObjectToJsonString(response));
+            throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), response.getErrors().get(0).getMessage());
+        }
     }
 
 }

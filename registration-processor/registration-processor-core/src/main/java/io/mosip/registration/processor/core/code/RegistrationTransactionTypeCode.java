@@ -13,6 +13,8 @@ public enum RegistrationTransactionTypeCode {
 	UPLOAD_PACKET,
 	/** The validate packet. */
 	VALIDATE_PACKET,
+	/** The packet classification. */
+	PACKET_CLASSIFICATION,
 	/** The osi validate. */
 	OSI_VALIDATE,
 	/** The external integration. */

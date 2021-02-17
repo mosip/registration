@@ -44,6 +44,9 @@ public enum StatusUtil {
 	BIOMETRICS_VALIDATION_FAILURE(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "013", "Biometric file validation failed"),
 	PACKET_MANAGER_EXCEPTION(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "014", "Exception occured in packet manager."),
 
+	// packet classifier stage
+	PACKET_CLASSIFICATION_SUCCESS(StatusConstants.PACKET_CLASSIFIER_MODULE_SUCCESS + "001","Packet Classification is Successful"),
+
 	// External stage
 	EXTERNAL_STAGE_SUCCESS(StatusConstants.EXTERNAL_SATGE_MODULE_SUCCESS + "001", "Packet processing in External stage is sucessful"),
 	EXTERNAL_STAGE_FAILED(StatusConstants.EXTERNAL_SATGE_MODULE_SUCCESS + "001", "Packet processing in External stage failed"),
