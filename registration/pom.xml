@@ -51,7 +51,7 @@
 		<apache.commons.dpce.version>2.1.1</apache.commons.dpce.version>
 
 		<!-- Jackson -->
-		<jackson.version>2.10.1</jackson.version>
+		<jackson.version>2.12.1</jackson.version>
 		<jackson.mapper.asl.version>1.7.1</jackson.mapper.asl.version>
 
 		<mosip.core.kernel.version>1.1.2</mosip.core.kernel.version>
