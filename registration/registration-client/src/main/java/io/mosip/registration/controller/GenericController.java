@@ -86,9 +86,6 @@ public class GenericController extends BaseController {
 	private GridPane layOutGridPane;
 
 	@FXML
-	private GridPane headerGridPane;
-
-	@FXML
 	private GridPane footerGridPane;
 
 	@FXML
@@ -159,8 +156,10 @@ public class GenericController extends BaseController {
 		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Populating Dynamic screens");
 		flowPane.getChildren().clear();
 
+		headerHBox = registrationController.getNavigationHBox();
+
 		headerHBox.getChildren().clear();
-		headerHBox.setSpacing(70);
+		headerHBox.setSpacing(100);
 
 		flowPane.setVgap(10);
 		flowPane.setHgap(10);
@@ -306,6 +305,8 @@ public class GenericController extends BaseController {
 
 			currentPage = 1;
 
+			addPagination(null);
+
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refreshing fields");
 			refreshFields();
 
@@ -321,43 +322,112 @@ public class GenericController extends BaseController {
 
 	private void addPagination(ScreenDTO screenDTO) {
 
-		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-				"Adding Pagination  for screen : " + screenDTO.getScreenName());
-		HBox hBox = new HBox();
-		hBox.setAlignment(Pos.CENTER_LEFT);
-		hBox.setId(String.valueOf(screenMap.size()));
-		hBox.getChildren().add(getLabel(null, screenDTO.getScreenName(), RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL,
-				true, hBox.getPrefWidth()));
-		hBox.getStyleClass().addAll(NON_CLICKABLE);
+		if (screenDTO == null) {
+			Label previewLabel = getLabel(String.valueOf(screenMap.size() + 1),
+					RegistrationConstants.REGISTRATION_PREVIEW, RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true,
+					100);
+			previewLabel.getStyleClass().addAll(NON_CLICKABLE);
 
-		hBox.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+			Label ackLabel = getLabel(String.valueOf(screenMap.size() + 2),
+					RegistrationConstants.OPERATOR_AUTHENTICATION, RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true,
+					100);
+			ackLabel.getStyleClass().addAll(NON_CLICKABLE);
+
+			addNavListener(previewLabel);
+			addNavListener(ackLabel);
+			headerHBox.getChildren().add(previewLabel);
+			headerHBox.getChildren().add(ackLabel);
+
+		} else {
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					"Adding Pagination  for screen : " + screenDTO.getScreenName());
+
+			Label label = getLabel(null, screenDTO.getScreenName(), RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true,
+					50);
+			label.getStyleClass().addAll(NON_CLICKABLE);
+
+			label.setId(String.valueOf(screenMap.size()));
+
+			addNavListener(label);
+
+			headerHBox.getChildren().add(label);
+		}
+
+	}
+
+	private void addNavListener(Label label) {
+		label.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
 
 			@Override
 			public void handle(MouseEvent event) {
 
 				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Listener called for page navigation");
-				int clickedScreenNumber = Integer.valueOf(hBox.getId());
 
-				boolean isPrevScreenCnt = false;
+				int clickedScreenNumber = Integer.valueOf(label.getId());
 
-				for (int screen = clickedScreenNumber - 1; screen >= 1; --screen) {
+				if (clickedScreenNumber == screenMap.size() + 1) {
 
-					isPrevScreenCnt = screenMap.get(screen).isCanContinue();
+					boolean isPrevScreenCnt = false;
 
-					if (!isPrevScreenCnt) {
-						break;
+					for (int screen = screenMap.size() - 1; screen > 0; --screen) {
+
+						isPrevScreenCnt = screenMap.get(screen).isCanContinue();
+
+						if (!isPrevScreenCnt) {
+							break;
+						}
+					}
+
+					if (isPrevScreenCnt) {
+						LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+								"Next screen not available showing previw...");
+						registrationPreviewController.setUpPreviewContent();
+						registrationController.showCurrentPage(RegistrationConstants.GENERIC_DETAIL,
+								getPageByAction(RegistrationConstants.GENERIC_DETAIL, RegistrationConstants.NEXT));
+						registrationController.showCurrentPage(RegistrationConstants.OPERATOR_AUTHENTICATION,
+								getPageByAction(RegistrationConstants.OPERATOR_AUTHENTICATION,
+										RegistrationConstants.PREVIOUS));
+					}
+				} else if (clickedScreenNumber == screenMap.size() + 2) {
+
+					if (!registrationPreviewController.getNextButton().isDisable()) {
+
+						registrationController.showCurrentPage(RegistrationConstants.GENERIC_DETAIL,
+								getPageByAction(RegistrationConstants.GENERIC_DETAIL, RegistrationConstants.NEXT));
+
+						registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
+								getPageByAction(RegistrationConstants.REGISTRATION_PREVIEW,
+										RegistrationConstants.NEXT));
+					}
+				} else {
+					boolean isPrevScreenCnt = false;
+
+					clickedScreenNumber = clickedScreenNumber > 1 ? clickedScreenNumber - 1 : clickedScreenNumber;
+					for (int screen = clickedScreenNumber; screen >= 1; --screen) {
+
+						isPrevScreenCnt = screenMap.get(screen).isCanContinue();
+
+						if (!isPrevScreenCnt) {
+							break;
+						}
+					}
+
+					if (label.getStyleClass().contains(CLICKABLE) || isPrevScreenCnt) {
+
+						registrationController.showCurrentPage(RegistrationConstants.OPERATOR_AUTHENTICATION,
+								getPageByAction(RegistrationConstants.OPERATOR_AUTHENTICATION,
+										RegistrationConstants.PREVIOUS));
+						registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
+								getPageByAction(RegistrationConstants.REGISTRATION_PREVIEW,
+										RegistrationConstants.PREVIOUS));
+
+						LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Navigating page");
+						show(Integer.valueOf(label.getId()));
 					}
 				}
 
-				if (hBox.getStyleClass().contains(CLICKABLE) || isPrevScreenCnt) {
-
-					LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Navigating page");
-					show(Integer.valueOf(hBox.getId()));
-				}
 			}
 		});
-
-		headerHBox.getChildren().add(hBox);
 
 	}
 
@@ -589,7 +659,7 @@ public class GenericController extends BaseController {
 
 			refreshContinue(entrySet.getKey());
 
-			HBox hBox = (HBox) headerHBox.lookup(RegistrationConstants.HASH + entrySet.getKey());
+			Label hBox = (Label) headerHBox.lookup(RegistrationConstants.HASH + entrySet.getKey());
 
 			if (hBox != null) {
 				hBox.setVisible(screenDTO.isVisible());
@@ -605,6 +675,7 @@ public class GenericController extends BaseController {
 
 	public void refreshContinueButton() {
 
+		refreshContinue(currentPage);
 		next.setDisable(!screenMap.get(currentPage).isCanContinue());
 	}
 
@@ -631,7 +702,7 @@ public class GenericController extends BaseController {
 
 		screenDTO.setCanContinue(canContinue);
 
-		HBox hBox = (HBox) headerHBox.lookup((RegistrationConstants.HASH + page));
+		Label hBox = (Label) headerHBox.lookup((RegistrationConstants.HASH + page));
 
 		if (hBox != null) {
 			hBox.getStyleClass().clear();

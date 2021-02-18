@@ -71,10 +71,11 @@ public class RegistrationPreviewController extends BaseController implements Ini
 	private BiometricsController guardianBiometricsController;
 
 	@FXML
-	private Text registrationNavlabel;
-
-	@FXML
 	private Button nextButton;
+
+	public Button getNextButton() {
+		return nextButton;
+	}
 
 	private String consentText;
 
@@ -96,19 +97,6 @@ public class RegistrationPreviewController extends BaseController implements Ini
 		String key = RegistrationConstants.REG_CONSENT + applicationContext.getApplicationLanguage();
 		consentText = getValueFromApplicationContext(key);
 
-		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getSelectionListDTO() != null) {
-
-			registrationNavlabel.setText(ApplicationContext.applicationLanguageBundle()
-					.getString(RegistrationConstants.UIN_UPDATE_UINUPDATENAVLBL));
-		}
-		if (getRegistrationDTOFromSession() != null
-				&& getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory() != null
-				&& getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory()
-						.equals(RegistrationConstants.PACKET_TYPE_LOST)) {
-
-			registrationNavlabel.setText(
-					ApplicationContext.applicationLanguageBundle().getString(RegistrationConstants.LOSTUINLBL));
-		}
 	}
 
 	@FXML
