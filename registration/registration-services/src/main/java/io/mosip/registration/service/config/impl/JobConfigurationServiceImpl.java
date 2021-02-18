@@ -190,34 +190,6 @@ public class JobConfigurationServiceImpl extends BaseService implements JobConfi
 				/* Set Job-map and active sync-job-map */
 				setSyncJobMap(jobDefs);
 
-				/* Get Scheduler frequency from global param */
-				String syncDataFreq = getGlobalConfigValueOf(RegistrationConstants.SYNC_DATA_FREQ);
-
-				if (!isNull(syncDataFreq)) {
-
-					LOGGER.info(LoggerConstants.BATCH_JOBS_CONFIG_LOGGER_TITLE, RegistrationConstants.APPLICATION_NAME,
-							RegistrationConstants.APPLICATION_ID, "Updating Sync Frequency : " + syncDataFreq);
-
-					List<SyncJobDef> jobsToBeUpdated = new LinkedList<>();
-
-					/* Store the jobs to be updated */
-					for (SyncJobDef syncJobDef : jobDefs) {
-						if (!syncDataFreq.equals(syncJobDef.getSyncFreq())) {
-							syncJobDef.setSyncFreq(syncDataFreq);
-
-							jobsToBeUpdated.add(syncJobDef);
-						}
-
-					}
-					if (!isNull(jobsToBeUpdated) && !isEmpty(jobsToBeUpdated)) {
-						/* Update Jobs */
-						updateJobs(jobsToBeUpdated);
-
-						/* Refresh The sync job map and sync active job map as we have updated jobs */
-						setSyncJobMap(jobsToBeUpdated);
-					}
-				}
-
 			}
 
 			if (!syncActiveJobMap.isEmpty()) {
