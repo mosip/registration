@@ -610,6 +610,9 @@ public class PacketHandlerController extends BaseController implements Initializ
 								generateAlert(RegistrationConstants.ERROR, errorMessage.toString().trim());
 							} else {
 								getScene(createRoot).setRoot(createRoot);
+
+								registrationController.getRegTypeText().setText(ApplicationContext.getInstance()
+										.getApplicationLanguageBundle().getString("/lostuin"));
 								genericController.populateScreens();
 								// demographicDetailController.lostUIN();
 							}
