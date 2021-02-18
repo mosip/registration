@@ -713,7 +713,7 @@ public class TemplateGenerator extends BaseService {
 			SyncControl syncControl = jobConfigurationService.getSyncControlOfJob(syncJob.getId());
 			if (syncControl != null && syncControl.getLastSyncDtimes() != null) {
 				Map<String, Object> job = new LinkedHashMap<>();
-				job.put(RegistrationConstants.DASHBOARD_ACTIVITY_NAME, syncJob.getName().substring(0, syncJob.getName().lastIndexOf(" ")));
+				job.put(RegistrationConstants.DASHBOARD_ACTIVITY_NAME, syncJob.getName());
 				job.put(RegistrationConstants.DASHBOARD_ACTIVITY_VALUE, getLocalZoneTime(syncControl.getLastSyncDtimes().toString()));
 				activities = addToJobList(activities, syncJob.getJobType(), job);
 			}
