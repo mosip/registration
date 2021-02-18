@@ -17,4 +17,8 @@ public class ScreenDTO {
 	private String screenName;
 	private String screenDesc;
 	private Node screenNode;
+
+	private boolean isVisible;
+
+	private boolean canContinue;
 }

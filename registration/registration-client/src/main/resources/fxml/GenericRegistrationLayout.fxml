@@ -43,6 +43,9 @@
               <rowConstraints>
                 <RowConstraints minHeight="10.0" percentHeight="100.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
+               <children>
+                  <HBox fx:id="headerHBox" prefHeight="100.0" prefWidth="200.0" />
+               </children>
             </GridPane>
             <GridPane fx:id="footerGridPane" alignment="TOP_CENTER" GridPane.columnIndex="1" GridPane.rowIndex="2">
               <columnConstraints>
