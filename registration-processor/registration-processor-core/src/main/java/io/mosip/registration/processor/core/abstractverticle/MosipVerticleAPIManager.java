@@ -1,5 +1,8 @@
 package io.mosip.registration.processor.core.abstractverticle;
 
+import brave.Tracing;
+import io.mosip.registration.processor.core.tracing.VertxWebTracingLocal;
+import io.vertx.core.Handler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -35,6 +38,9 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	@Autowired
 	ObjectMapper objectMapper;
 
+	@Autowired
+	private Tracing tracing;
+
 	/**
 	 * This method creates a body handler for the routes
 	 *
@@ -43,6 +49,14 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	 */
 	public Router postUrl(Vertx vertx, MessageBusAddress consumeAddress, MessageBusAddress sendAddress) {
 		Router router = Router.router(vertx);
+
+		VertxWebTracingLocal vertxWebTracing = VertxWebTracingLocal.create(tracing);
+		Handler<RoutingContext> routingContextHandler = vertxWebTracing.routingContextHandler();
+		router.route()
+				.order(-1) //applies before routes
+				.handler(routingContextHandler)
+				.failureHandler(routingContextHandler);
+
 		router.route().handler(BodyHandler.create());
 		if (consumeAddress == null && sendAddress == null)
 			configureHealthCheckEndpoint(vertx, router, environment.getProperty(HealthConstant.SERVLET_PATH), null,
