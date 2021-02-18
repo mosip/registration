@@ -3,7 +3,6 @@
  */
 package io.mosip.registration.util.control;
 
-import static io.mosip.registration.constants.LoggerConstants.LOG_REG_BIOMETRIC_CONTROLLER;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
@@ -18,7 +17,6 @@ import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.GenericController;
 import io.mosip.registration.controller.Initialization;
 import io.mosip.registration.controller.reg.DemographicDetailController;
-import io.mosip.registration.controller.reg.RegistrationPreviewController;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;

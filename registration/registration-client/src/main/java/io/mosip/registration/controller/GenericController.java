@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.commons.packet.constants.PacketManagerConstants;
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
@@ -43,12 +44,17 @@ import io.mosip.registration.util.control.impl.DropDownFxControl;
 import io.mosip.registration.util.control.impl.TextFieldFxControl;
 import io.mosip.registration.validator.RequiredFieldValidator;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 
 /**
  * {@code GenericController} is to capture the demographic/demo/Biometric
@@ -89,6 +95,9 @@ public class GenericController extends BaseController {
 	private Button next;
 	@FXML
 	private Button previous;
+
+	@FXML
+	private HBox headerHBox;
 
 	@Autowired
 	private RegistrationController registrationController;
@@ -135,6 +144,10 @@ public class GenericController extends BaseController {
 	private static final String CONTROLTYPE_DOB = "date";
 	private static final String CONTROLTYPE_DOB_AGE = "ageDate";
 
+	private static String CLICKABLE = "selectedResidence";
+
+	private static String NON_CLICKABLE = "genderButton";
+
 	/**
 	 * 
 	 * Populate the screens with fields
@@ -145,6 +158,10 @@ public class GenericController extends BaseController {
 
 		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Populating Dynamic screens");
 		flowPane.getChildren().clear();
+
+		headerHBox.getChildren().clear();
+		headerHBox.setSpacing(70);
+
 		flowPane.setVgap(10);
 		flowPane.setHgap(10);
 
@@ -191,6 +208,8 @@ public class GenericController extends BaseController {
 					ScreenDTO screenDTO = new ScreenDTO();
 					screenDTO.setScreenName(screenEntry.getKey());
 					screenDTO.setScreenNode(screenGridPane);
+					screenDTO.setCanContinue(false);
+					screenDTO.setVisible(true);
 
 					screenMap.put(screenMap.size() + 1, screenDTO);
 
@@ -203,13 +222,14 @@ public class GenericController extends BaseController {
 					screenGridPane.getStyleClass().add("-fx-background-color: blue; -fx-grid-lines-visible: true");
 
 					flowPaneNodes.add(screenGridPane);
-					String screenName = screenEntry.getKey();
 
 					List<String> fields = screenEntry.getValue();
 
 					List<String> screenFields = new LinkedList<>();
 
 					if (fields != null && !fields.isEmpty()) {
+
+						addPagination(screenDTO);
 
 						for (String field : fields) {
 
@@ -219,6 +239,8 @@ public class GenericController extends BaseController {
 													|| defaultFields.contains(field))
 											: true)) {
 
+								LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+										"Creating control for field : " + field);
 								screenFields.add(field);
 								UiSchemaDTO uiSchemaDTO = getValidationMap().get(field);
 
@@ -283,18 +305,66 @@ public class GenericController extends BaseController {
 			}
 
 			currentPage = 1;
-			showCurrentPage();
 
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refreshing fields");
 			refreshFields();
-		} catch (JsonProcessingException | RegBaseCheckedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Showing current Page");
+			showCurrentPage();
+		} catch (JsonProcessingException | RegBaseCheckedException exception) {
+
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					"Failed to load dynamic fields " + ExceptionUtils.getStackTrace(exception));
 		}
+
+	}
+
+	private void addPagination(ScreenDTO screenDTO) {
+
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+				"Adding Pagination  for screen : " + screenDTO.getScreenName());
+		HBox hBox = new HBox();
+		hBox.setAlignment(Pos.CENTER_LEFT);
+		hBox.setId(String.valueOf(screenMap.size()));
+		hBox.getChildren().add(getLabel(null, screenDTO.getScreenName(), RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL,
+				true, hBox.getPrefWidth()));
+		hBox.getStyleClass().addAll(NON_CLICKABLE);
+
+		hBox.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent event) {
+
+				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Listener called for page navigation");
+				int clickedScreenNumber = Integer.valueOf(hBox.getId());
+
+				boolean isPrevScreenCnt = false;
+
+				for (int screen = clickedScreenNumber - 1; screen >= 1; --screen) {
+
+					isPrevScreenCnt = screenMap.get(screen).isCanContinue();
+
+					if (!isPrevScreenCnt) {
+						break;
+					}
+				}
+
+				if (hBox.getStyleClass().contains(CLICKABLE) || isPrevScreenCnt) {
+
+					LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Navigating page");
+					show(Integer.valueOf(hBox.getId()));
+				}
+			}
+		});
+
+		headerHBox.getChildren().add(hBox);
 
 	}
 
 	private Node buildFxElement(UiSchemaDTO uiSchemaDTO) {
 
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+				"Build fx element called for field : " + uiSchemaDTO.getId());
 		switch (uiSchemaDTO.getControlType()) {
 
 		case CONTROLTYPE_TEXTFIELD:
@@ -311,11 +381,12 @@ public class GenericController extends BaseController {
 						ApplicationContext.applicationLanguage()));
 				buttonsData.put(RegistrationConstants.SECONDARY,
 						masterSyncService.getFieldValues(uiSchemaDTO.getId(), ApplicationContext.localLanguage()));
-			} catch (RegBaseCheckedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} finally {
+
 				buttonFxControl.fillData(buttonsData);
+			} catch (RegBaseCheckedException regBaseCheckedException) {
+				LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+						"Exception occured while fetching button values : " + uiSchemaDTO.getId() + " "
+								+ ExceptionUtils.getStackTrace(regBaseCheckedException));
 			}
 			return buttonFxControl;
 		case CONTROLTYPE_CHECKBOX:
@@ -347,9 +418,10 @@ public class GenericController extends BaseController {
 							ApplicationContext.applicationLanguage()));
 					data.put(RegistrationConstants.SECONDARY,
 							masterSyncService.getFieldValues(uiSchemaDTO.getId(), ApplicationContext.localLanguage()));
-				} catch (RegBaseCheckedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				} catch (RegBaseCheckedException regBaseCheckedException) {
+					LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+							"Exception occured while fetching dropdown values : " + uiSchemaDTO.getId() + " "
+									+ ExceptionUtils.getStackTrace(regBaseCheckedException));
 				} finally {
 					fxControl.fillData(data);
 				}
@@ -364,14 +436,15 @@ public class GenericController extends BaseController {
 
 	@FXML
 	public void next() {
-
-//		currentPage = currentPage == 0 ? ++currentPage : currentPage;
+		LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Next screen requested");
 		Node currentNode = screenMap.get(currentPage).getScreenNode();
 
 		Entry<Integer, ScreenDTO> nextScreen = screenMap.higherEntry(currentPage);
 
 		if (nextScreen == null) {
 
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					"Next screen not available showing previw...");
 			registrationPreviewController.setUpPreviewContent();
 			registrationController.showCurrentPage(RegistrationConstants.GENERIC_DETAIL,
 					getPageByAction(RegistrationConstants.GENERIC_DETAIL, RegistrationConstants.NEXT));
@@ -380,8 +453,11 @@ public class GenericController extends BaseController {
 			boolean hasElementsinNext = isScreenVisible(fieldMap.get(nextScreen.getKey()));
 
 			if (hasElementsinNext) {
-				show(currentNode, nextScreen != null ? nextScreen.getValue().getScreenNode() : null, 1);
+				show(currentNode, nextScreen != null ? nextScreen.getValue().getScreenNode() : null, ++currentPage);
 			} else {
+
+				LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+						"Next screen is not visible,, showing next after screen");
 				++currentPage;
 				next();
 			}
@@ -402,6 +478,19 @@ public class GenericController extends BaseController {
 		} else {
 			++currentPage;
 			showCurrentPage();
+		}
+
+	}
+
+	private void show(int page) {
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+				"Showing current page : screen No: " + currentPage);
+
+		if (isScreenVisible(fieldMap.get(page))) {
+
+			Node node = screenMap.get(page).getScreenNode();
+
+			show(null, node, page);
 		}
 
 	}
@@ -430,11 +519,9 @@ public class GenericController extends BaseController {
 	private void show(Node currentNode, Node nextNode, int updateScreen) {
 
 		if (nextNode != null) {
-			currentNode.setVisible(false);
-			currentNode.setManaged(false);
 			nextNode.setVisible(true);
 			nextNode.setManaged(true);
-			currentPage += updateScreen;
+			currentPage = updateScreen;
 
 			boolean isVisible = currentPage > 1 ? true : false;
 			previous.setVisible(isVisible);
@@ -465,7 +552,7 @@ public class GenericController extends BaseController {
 		boolean hasElementsinNext = isScreenVisible(fieldMap.get(nextScreen.getKey()));
 
 		if (hasElementsinNext) {
-			show(currentNode, nextScreen != null ? nextScreen.getValue().getScreenNode() : null, -1);
+			show(currentNode, nextScreen != null ? nextScreen.getValue().getScreenNode() : null, currentPage - 1);
 		} else {
 
 			--currentPage;
@@ -481,25 +568,49 @@ public class GenericController extends BaseController {
 
 	public void refreshFields() {
 		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refreshing fields");
-		for (UiSchemaDTO uiSchemaDto : getValidationMap().values()) {
 
-			FxControl control = getFxControl(uiSchemaDto.getId());
+		for (Entry<Integer, List<String>> entrySet : fieldMap.entrySet()) {
 
-			if (control != null) {
-				control.refresh();
+			for (String field : entrySet.getValue()) {
+
+				FxControl control = getFxControl(field);
+
+				if (control != null) {
+					control.refresh();
+				}
 			}
+
+			ScreenDTO screenDTO = screenMap.get(entrySet.getKey());
+			screenDTO.setVisible(isScreenVisible(entrySet.getValue()));
+
+			if (!screenDTO.isVisible()) {
+				screenDTO.setCanContinue(true);
+			}
+
+			refreshContinue(entrySet.getKey());
+
+			HBox hBox = (HBox) headerHBox.lookup(RegistrationConstants.HASH + entrySet.getKey());
+
+			if (hBox != null) {
+				hBox.setVisible(screenDTO.isVisible());
+
+				hBox.setManaged(screenDTO.isVisible());
+			}
+
 		}
 
 		refreshContinueButton();
 
-		// TODO hide not required biometrics
-
-		// TODO hide not required fields
 	}
 
 	public void refreshContinueButton() {
+
+		next.setDisable(!screenMap.get(currentPage).isCanContinue());
+	}
+
+	private void refreshContinue(int page) {
 		boolean canContinue = true;
-		List<String> currentScreenFields = fieldMap.get(currentPage);
+		List<String> currentScreenFields = fieldMap.get(page);
 
 		if (currentScreenFields != null && !currentScreenFields.isEmpty()) {
 
@@ -516,8 +627,28 @@ public class GenericController extends BaseController {
 			}
 		}
 
+		ScreenDTO screenDTO = screenMap.get(page);
+
+		screenDTO.setCanContinue(canContinue);
+
+		HBox hBox = (HBox) headerHBox.lookup((RegistrationConstants.HASH + page));
+
+		if (hBox != null) {
+			hBox.getStyleClass().clear();
+			hBox.getStyleClass().add(canContinue ? CLICKABLE : NON_CLICKABLE);
+
+		}
 		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refreshing continue button");
-		next.setDisable(!canContinue);
 	}
 
+	protected Label getLabel(String id, String titleText, String styleClass, boolean isVisible, double prefWidth) {
+		/** Field Title */
+		Label label = new Label();
+		label.setId(id);
+		label.setText(titleText);
+		label.getStyleClass().add(styleClass);
+		label.setVisible(isVisible);
+		label.setPrefWidth(prefWidth);
+		return label;
+	}
 }
