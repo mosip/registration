@@ -12,6 +12,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.kafka.client.producer.KafkaHeader;
 import io.vertx.kafka.client.producer.KafkaProducerRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -23,6 +25,8 @@ import java.util.List;
  *      <traceid>-<spanid>-<samplingflag>
  */
 public class EventTracingHandler {
+
+    private final Logger logger = LoggerFactory.getLogger(EventTracingHandler.class);
 
     private final Tracer tracer;
     private TraceContext.Extractor<Message> extractor;
@@ -107,9 +111,7 @@ public class EventTracingHandler {
         eventBus.addInboundInterceptor(deliveryContext -> {
             Span span = nextSpan(deliveryContext.message());
             JsonObject body = (JsonObject) deliveryContext.message().body();
-            ContextualData.put(TracingConstant.TRACER, span);
-            ContextualData.put(TracingConstant.TRACE_ID_KEY, span.context().traceIdString());
-            ContextualData.put(TracingConstant.RID_KEY, body.getString("rid"));
+            initializeContextWithTracing(span, body == null ? "-" : (body.getString("rid", "-")));
             MDCHelper.addHeadersToMDC();
             deliveryContext.next();
         });
@@ -119,30 +121,47 @@ public class EventTracingHandler {
         eventBus.addOutboundInterceptor(deliveryContext -> {
             Object tracer = ContextualData.getOrDefault(TracingConstant.TRACER);
             Span span = (tracer instanceof TracingHandler) ? ((TracingHandler)tracer).span : (Span)tracer;
+            if(span == null) {
+                span = nextSpan(deliveryContext.message());
+                JsonObject body = (JsonObject) deliveryContext.message().body();
+                initializeContextWithTracing(span, body == null ? "-" : (body.getString("rid", "-")));
+                MDCHelper.addHeadersToMDC();
+            }
+
             deliveryContext.message().headers().add(TracingConstant.SINGLE_LINE_B3_HEADER,
-                   String.format("%s-%s", span.context().traceIdString(), span.context().spanIdString()));
+                    String.format("%s-%s", span.context().traceIdString(), span.context().spanIdString()));
             deliveryContext.message().headers().add(TracingConstant.RID_KEY,
-                    (String) ContextualData.getOrDefault(TracingConstant.RID_KEY));
+                    (String) ContextualData.getOrDefault(TracingConstant.RID_KEY, "-"));
             deliveryContext.next();
         });
     }
 
-    public Span readHeaderOnConsume(KafkaConsumerRecord<String, String> consumerRecord) {
+    public Span readHeaderOnKafkaConsume(KafkaConsumerRecord<String, String> consumerRecord) {
         Span span = nextSpan(consumerRecord.headers());
-        ContextualData.put(TracingConstant.TRACER, span);
-        ContextualData.put(TracingConstant.TRACE_ID_KEY, span.context().traceIdString());
-        ContextualData.put(TracingConstant.RID_KEY, consumerRecord.key());
+        initializeContextWithTracing(span, consumerRecord.key());
         MDCHelper.addHeadersToMDC();
         return span;
     }
 
-    public void writeHeaderOnProduce(KafkaProducerRecord<String, String> producerRecord) {
+    public void writeHeaderOnKafkaProduce(KafkaProducerRecord<String, String> producerRecord) {
         Object tracer = ContextualData.getOrDefault(TracingConstant.TRACER);
         Span span = (tracer instanceof TracingHandler) ? ((TracingHandler)tracer).span : (Span)tracer;
+        if(span == null) {
+            span = nextSpan(producerRecord.headers());
+            initializeContextWithTracing(span, producerRecord.key());
+            MDCHelper.addHeadersToMDC();
+        }
         producerRecord.addHeader(TracingConstant.SINGLE_LINE_B3_HEADER,
                 String.format("%s-%s", span.context().traceIdString(),
                 span.context().spanIdString()));
         producerRecord.addHeader(TracingConstant.RID_KEY, producerRecord.key());
+    }
+
+    public void writeHeaderOnKafkaProduce(KafkaProducerRecord<String, String> producerRecord, Span span) {
+       producerRecord.addHeader(TracingConstant.SINGLE_LINE_B3_HEADER,
+                String.format("%s-%s", span.context().traceIdString(),
+                        span.context().spanIdString()));
+       producerRecord.addHeader(TracingConstant.RID_KEY, producerRecord.key());
     }
 
     public void closeSpan() {
@@ -155,6 +174,12 @@ public class EventTracingHandler {
     public void closeSpan(Span span) {
         span.finish(System.currentTimeMillis());
         MDCHelper.clearMDC();
+    }
+
+    private void initializeContextWithTracing(Span span, String rid) {
+        ContextualData.put(TracingConstant.TRACER, span);
+        ContextualData.put(TracingConstant.TRACE_ID_KEY, span.context().traceIdString());
+        ContextualData.put(TracingConstant.RID_KEY, rid);
     }
 
 }

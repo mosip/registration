@@ -60,4 +60,12 @@ public class MosipEventBusFactory {
                 throw new UnsupportedEventBusTypeException();
         }
     }
+
+    public Tracing getTracing() {
+        return tracing;
+    }
+
+    public void setTracing(Tracing tracing) {
+        this.tracing = tracing;
+    }
 }

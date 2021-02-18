@@ -11,6 +11,7 @@ import java.util.stream.IntStream;
 
 import brave.Span;
 import io.mosip.registration.processor.core.tracing.EventTracingHandler;
+import io.mosip.registration.processor.core.tracing.TracingConstant;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 
@@ -167,7 +168,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 		KafkaProducerRecord<String, String> producerRecord = 
 			KafkaProducerRecord.create(messageBusAddress.getAddress(), message.getRid(), 
 				jsonObject.toString());
-		this.eventTracingHandler.writeHeaderOnProduce(producerRecord);
+		this.eventTracingHandler.writeHeaderOnKafkaProduce(producerRecord);
 		Map<String, String> mdc = MDC.getCopyOfContextMap();
   		kafkaProducer.write(producerRecord, handler -> {
 			MDC.setContextMap(mdc);
@@ -304,12 +305,13 @@ public class KafkaMosipEventBus implements MosipEventBus {
 	Future<Void> processRecord(MessageBusAddress toAddress,
 			EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler,
 		KafkaConsumerRecord<String, String> record, boolean commitRecord) {
-		Span span = eventTracingHandler.readHeaderOnConsume(record);
+		Span span = this.eventTracingHandler.readHeaderOnKafkaConsume(record);
 		logger.debug("Processing key={},value={},partition={},offset={}",
 				record.key(), record.value(), record.partition(), record.offset());
 		EventDTO eventDTO = new EventDTO();
 		eventDTO.setBody((JsonObject) new JsonObject(record.value()));
 		Promise<Void> promise = Promise.promise();
+		Map<String,String> mdc = MDC.getCopyOfContextMap();
 		eventHandler.handle(eventDTO, res -> {
 			if (!res.succeeded()) {
 				logger.error("Event handling failed ", res.cause());
@@ -323,8 +325,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 					KafkaProducerRecord<String, String> producerRecord = 
 						KafkaProducerRecord.create(messageBusToAddress.getAddress(), 
 							messageDTO.getRid(), jsonObject.toString());
-					eventTracingHandler.writeHeaderOnProduce(producerRecord);
-					Map<String,String> mdc = MDC.getCopyOfContextMap();
+					this.eventTracingHandler.writeHeaderOnKafkaProduce(producerRecord, span);
 					kafkaProducer.write(producerRecord, handler -> {
 						MDC.setContextMap(mdc);
 						if(handler.failed())
@@ -340,7 +341,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 				else					
 					promise.complete();
 			}
-			eventTracingHandler.closeSpan(span);
+			this.eventTracingHandler.closeSpan(span);
 		});
 		return promise.future();
 	}

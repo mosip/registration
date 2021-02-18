@@ -71,8 +71,7 @@ public class KafkaMosipEventBusTest {
 	@Mock
 	private KafkaProducer<String, String> kafkaProducer;
 
-	@Mock
-	private Tracing tracing;
+	private Tracing tracing = Tracing.newBuilder().build();
 
 	private EventTracingHandler eventTracingHandler;
 
@@ -85,6 +84,7 @@ public class KafkaMosipEventBusTest {
 			.thenReturn(kafkaConsumer);
 		Mockito.when(KafkaProducer.<String, String>create(any(), anyMap()))
 			.thenReturn(kafkaProducer);
+
 		eventTracingHandler = new EventTracingHandler(tracing, "kafka");
 	}
 
@@ -103,7 +103,7 @@ public class KafkaMosipEventBusTest {
 		messageDTO.setReg_type(RegistrationType.NEW);
 		kafkaMosipEventBus.send(MessageBusAddress.PACKET_VALIDATOR_BUS_OUT, messageDTO);
 
-		verify(kafkaProducer, times(1)).write(any(KafkaProducerRecord.class));
+		verify(kafkaProducer, times(1)).write(any(KafkaProducerRecord.class),any(Handler.class));
 	}
 
 	@Test
@@ -480,7 +480,7 @@ public class KafkaMosipEventBusTest {
 		for(int i=0; i<recordCount; i++)
 			consumerRecordList.add(
 				new ConsumerRecord<String,String>(
-					MessageBusAddress.PACKET_VALIDATOR_BUS_IN.getAddress(), 0, i, null, 
+					MessageBusAddress.PACKET_VALIDATOR_BUS_IN.getAddress(), 0, i, "1000"+i,
 					"{\"rid\":\"1000"+i+"\", \"reg_type\": \"NEW\" }"));
 		Map<TopicPartition, List<ConsumerRecord<String,String>>> topicPartitionConsumerRecordListMap = 
 			new HashMap<TopicPartition, List<ConsumerRecord<String,String>>>();
