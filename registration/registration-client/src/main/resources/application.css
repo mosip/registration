@@ -841,6 +841,31 @@ Working on new Css by taleev
 	-fx-font-size: 1em;
 }
 
+.paginationLabel {
+	-fx-background-color: #ffffff;
+	-fx-text-fill: black;
+	-fx-font-size: 1.2em;
+	-fx-border-color: black;
+	-fx-border-width: 0 0 1 0;
+}
+
+.paginationLabelFilled {
+	-fx-background-color: #ffffff;
+	-fx-text-fill: #004887;
+	-fx-font-size: 1.2em;
+	-fx-border-color: #004887;
+	-fx-border-width: 0 0 2 0;
+	-fx-font-weight: bold
+}
+
+.paginationLabelGreyedOut {
+	-fx-background-color: #ffffff;
+	-fx-text-fill: #666666;
+	-fx-font-size: 1.2em;
+	-fx-border-color: #666666;
+	-fx-border-width: 0 0 1 0;
+}
+
 .buttonsLabel {
 	-fx-background-color: #ffffff;
 	-fx-border-width: 0.0;
