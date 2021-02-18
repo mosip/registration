@@ -5,7 +5,9 @@ import org.apache.camel.Exchange;
 import org.apache.camel.impl.MDCUnitOfWork;
 import org.slf4j.MDC;
 
-
+/**
+ * In case of kafka eventbus, we need to explicitly add message headers to MDC
+ */
 public class CustomMDCUnitOfWork extends MDCUnitOfWork {
 
     public CustomMDCUnitOfWork(Exchange exchange) {

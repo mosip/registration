@@ -332,7 +332,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 							logger.error("Failed kafkaProducer.write {} ", handler.result(), handler.cause());
 						else
 							logger.info("Success kafkaProducer.write {} ", handler.result());
-						mdc.clear();
+						MDC.clear();
 					});
 				}
 				if(commitRecord)
