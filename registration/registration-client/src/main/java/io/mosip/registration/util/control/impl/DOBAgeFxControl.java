@@ -125,7 +125,7 @@ public class DOBAgeFxControl extends FxControl {
 				RegistrationConstants.DemoGraphicFieldMessageLabel, false, ageVBox.getPrefWidth()));
 
 		dobHBox.prefWidthProperty().bind(ageVBox.widthProperty());
-		
+
 		return ageVBox;
 	}
 
@@ -146,7 +146,7 @@ public class DOBAgeFxControl extends FxControl {
 
 		/** DOB Text Field */
 		dateVBox.getChildren()
-				.add(getTextField(uiSchemaDTO.getId() + dd + RegistrationConstants.TEXT_FIELD,
+				.add(getTextField(uiSchemaDTO.getId() + dd + RegistrationConstants.TEXT_FIELD + languageType,
 						(localLanguage ? localLabelBundle.getString(dd) : applicationLabelBundle.getString(dd))
 								+ mandatorySuffix,
 						RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, prefWidth, localLanguage));
@@ -239,10 +239,32 @@ public class DOBAgeFxControl extends FxControl {
 		textField.setId(id);
 		textField.setPromptText(titleText);
 		textField.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
-		//textField.setPrefWidth(prefWidth);
+		// textField.setPrefWidth(prefWidth);
 		textField.setDisable(isDisable);
 
 		return textField;
+	}
+
+	@Override
+	public void selectAndSet(Object data) {
+
+		if (data != null && data instanceof String) {
+
+			String[] dobArray = ((String) data).split("/");
+
+			TextField yyyy = ((TextField) getField(
+					this.uiSchemaDTO.getId() + RegistrationConstants.YYYY + RegistrationConstants.TEXT_FIELD));
+
+			TextField mm = ((TextField) getField(
+					this.uiSchemaDTO.getId() + RegistrationConstants.MM + RegistrationConstants.TEXT_FIELD));
+			TextField dd = ((TextField) getField(
+					this.uiSchemaDTO.getId() + RegistrationConstants.DD + RegistrationConstants.TEXT_FIELD));
+			yyyy.setText(dobArray[0]);
+			mm.setText(dobArray[1]);
+			dd.setText(dobArray[2]);
+
+		}
+
 	}
 
 }

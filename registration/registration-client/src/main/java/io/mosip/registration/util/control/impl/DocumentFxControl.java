@@ -5,6 +5,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -19,6 +20,7 @@ import io.mosip.registration.controller.reg.DemographicDetailController;
 import io.mosip.registration.controller.reg.DocumentScanController;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
+import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.packetmanager.DocumentDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.sync.MasterSyncService;
@@ -458,4 +460,23 @@ public class DocumentFxControl extends FxControl {
 		return canContinue;
 	}
 
+	@Override
+	public void selectAndSet(Object data) {
+
+		ComboBox<DocumentCategoryDto> comboBox = (ComboBox<DocumentCategoryDto>) getField(uiSchemaDTO.getId());
+
+		if (comboBox != null) {
+			comboBox.getSelectionModel().selectFirst();
+
+			DocumentDto documentDto = (DocumentDto) data;
+
+			getRegistrationDTo().addDocument(this.uiSchemaDTO.getId(), documentDto);
+
+			TextField textField = (TextField) getField(uiSchemaDTO.getId() + RegistrationConstants.DOC_TEXT_FIELD);
+
+			textField.setText(documentDto.getRefNumber());
+
+			getField(uiSchemaDTO.getId() + TICK_MARK_ID).setVisible(true);
+		}
+	}
 }

@@ -21,18 +21,31 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.commons.packet.constants.PacketManagerConstants;
 import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.kernel.core.idvalidator.exception.InvalidIDException;
+import io.mosip.kernel.core.idvalidator.spi.PridValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.constants.AuditEvent;
+import io.mosip.registration.constants.AuditReferenceIdTypes;
+import io.mosip.registration.constants.Components;
 import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.ApplicationContext;
+import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.reg.RegistrationController;
 import io.mosip.registration.controller.reg.RegistrationPreviewController;
 import io.mosip.registration.dao.MasterSyncDao;
+import io.mosip.registration.dto.ErrorResponseDTO;
+import io.mosip.registration.dto.RegistrationDTO;
+import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.ScreenDTO;
+import io.mosip.registration.dto.SuccessResponseDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.entity.Location;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.sync.MasterSyncService;
+import io.mosip.registration.service.sync.PreRegistrationDataSyncService;
 import io.mosip.registration.util.control.FxControl;
 import io.mosip.registration.util.control.impl.BiometricFxControl;
 import io.mosip.registration.util.control.impl.ButtonFxControl;
@@ -99,11 +112,11 @@ public class GenericController extends BaseController {
 	private HBox headerHBox;
 
 	@FXML
-	private GridPane preRegIdGridPane;
-	
+	private GridPane preRegGridPane;
+
 	@FXML
 	private TextField preRegistrationId;
-	
+
 	@Autowired
 	private RegistrationController registrationController;
 
@@ -139,6 +152,12 @@ public class GenericController extends BaseController {
 	 */
 	private TreeMap<Integer, ScreenDTO> screenMap = new TreeMap<>();
 
+	@Autowired
+	private PridValidator<String> pridValidatorImpl;
+
+	@Autowired
+	private PreRegistrationDataSyncService preRegistrationDataSyncService;
+
 	private static final String CONTROLTYPE_TEXTFIELD = "textbox";
 	private static final String CONTROLTYPE_BIOMETRICS = "biometrics";
 
@@ -162,7 +181,7 @@ public class GenericController extends BaseController {
 	public void populateScreens() {
 
 		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Populating Dynamic screens");
-		flowPane.getChildren().clear();
+//		flowPane.getChildren().clear();
 
 		headerHBox = registrationController.getNavigationHBox();
 
@@ -174,6 +193,12 @@ public class GenericController extends BaseController {
 		flowPane.setHgap(10);
 
 		flowPane.prefWidthProperty().bind(layOutGridPane.widthProperty());
+
+		preRegGridPane.setVisible(
+				getRegistrationDTOFromSession().getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_NEW)
+						? true
+						: false);
+		preRegGridPane.setManaged(true);
 
 		// convert JSON string to Map
 		try {
@@ -333,13 +358,13 @@ public class GenericController extends BaseController {
 
 		if (screenDTO == null) {
 			Label previewLabel = getLabel(String.valueOf(screenMap.size() + 1),
-					ApplicationContext.getInstance().getApplicationLanguageBundle().getString("registrationpreview"), RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true,
-					100);
+					ApplicationContext.getInstance().getApplicationLanguageBundle().getString("registrationpreview"),
+					RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, 100);
 			previewLabel.getStyleClass().addAll(NON_CLICKABLE);
 
 			Label ackLabel = getLabel(String.valueOf(screenMap.size() + 2),
-					ApplicationContext.getInstance().getApplicationLanguageBundle().getString("authentication"), RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true,
-					100);
+					ApplicationContext.getInstance().getApplicationLanguageBundle().getString("authentication"),
+					RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, 100);
 			ackLabel.getStyleClass().addAll(NON_CLICKABLE);
 
 			addNavListener(previewLabel);
@@ -411,7 +436,7 @@ public class GenericController extends BaseController {
 						registrationController.goToAuthenticationPage();
 						setLabelStyles(clickedScreenNumber);
 					}
-					
+
 				} else {
 					boolean isPrevScreenCnt = false;
 
@@ -435,9 +460,9 @@ public class GenericController extends BaseController {
 										RegistrationConstants.PREVIOUS));
 
 						setLabelStyles(Integer.valueOf(label.getId()));
-						
+
 						LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Navigating page");
-						show(Integer.valueOf(label.getId()));						
+						show(Integer.valueOf(label.getId()));
 					}
 				}
 
@@ -533,7 +558,7 @@ public class GenericController extends BaseController {
 			registrationPreviewController.setUpPreviewContent();
 			registrationController.showCurrentPage(RegistrationConstants.GENERIC_DETAIL,
 					getPageByAction(RegistrationConstants.GENERIC_DETAIL, RegistrationConstants.NEXT));
-			
+
 			setLabelStyles(screenMap.size() + 1);
 		} else {
 
@@ -541,7 +566,7 @@ public class GenericController extends BaseController {
 
 			if (hasElementsinNext) {
 				show(currentNode, nextScreen != null ? nextScreen.getValue().getScreenNode() : null, ++currentPage);
-				
+
 				setLabelStyles(currentPage);
 			} else {
 
@@ -563,7 +588,7 @@ public class GenericController extends BaseController {
 			Node node = screenMap.get(currentPage).getScreenNode();
 			node.setVisible(true);
 			node.setManaged(true);
-			
+
 			setLabelStyles(currentPage);
 		} else {
 			++currentPage;
@@ -643,7 +668,7 @@ public class GenericController extends BaseController {
 
 		if (hasElementsinNext) {
 			show(currentNode, nextScreen != null ? nextScreen.getValue().getScreenNode() : null, currentPage - 1);
-			
+
 			setLabelStyles(currentPage);
 		} else {
 
@@ -729,7 +754,7 @@ public class GenericController extends BaseController {
 //		if (hBox != null && currentPage != page) {
 //			hBox.getStyleClass().add(canContinue ? "" : "paginationLabelGreyedOut");			
 //		}
-		
+
 		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refreshing continue button");
 	}
 
@@ -740,12 +765,12 @@ public class GenericController extends BaseController {
 		label.setText(titleText);
 		label.getStyleClass().add(styleClass);
 		label.setVisible(isVisible);
-		//label.setPrefWidth(prefWidth);
+		// label.setPrefWidth(prefWidth);
 		label.setMinWidth(Region.USE_PREF_SIZE);
-		//label.setWrapText(true);
+		// label.setWrapText(true);
 		return label;
 	}
-	
+
 	private void setLabelStyles(int page) {
 		for (int index = 1; index <= (screenMap.size() + 2); ++index) {
 			Label label = (Label) headerHBox.lookup((RegistrationConstants.HASH + index));
@@ -756,8 +781,66 @@ public class GenericController extends BaseController {
 			}
 		}
 	}
-	
+
 	public void fetchPreRegistration() {
-		//TODO
+
+		String preRegId = preRegistrationId.getText();
+
+		if (StringUtils.isEmpty(preRegId)) {
+			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.PRE_REG_ID_EMPTY);
+			return;
+		} else {
+			try {
+				pridValidatorImpl.validateId(preRegId);
+			} catch (InvalidIDException invalidIDException) {
+				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.PRE_REG_ID_NOT_VALID);
+				LOGGER.error("PRID VALIDATION FAILED", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						invalidIDException.getMessage() + ExceptionUtils.getStackTrace(invalidIDException));
+				return;
+			}
+		}
+
+		auditFactory.audit(AuditEvent.REG_DEMO_PRE_REG_DATA_FETCH, Components.REG_DEMO_DETAILS, SessionContext.userId(),
+				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+
+		ResponseDTO responseDTO = preRegistrationDataSyncService.getPreRegistration(preRegId);
+
+		SuccessResponseDTO successResponseDTO = responseDTO.getSuccessResponseDTO();
+		List<ErrorResponseDTO> errorResponseDTOList = responseDTO.getErrorResponseDTOs();
+
+		if (successResponseDTO != null && successResponseDTO.getOtherAttributes() != null
+				&& successResponseDTO.getOtherAttributes().containsKey(RegistrationConstants.REGISTRATION_DTO)) {
+//			SessionContext.map().put(RegistrationConstants.REGISTRATION_DATA,
+//					successResponseDTO.getOtherAttributes().get(RegistrationConstants.REGISTRATION_DTO));
+
+			getRegistrationDTOFromSession().setPreRegistrationId(preRegId);
+
+			RegistrationDTO preRegistrationDTO = (RegistrationDTO) successResponseDTO.getOtherAttributes()
+					.get(RegistrationConstants.REGISTRATION_DTO);
+
+			for (Entry<Integer, List<String>> entry : fieldMap.entrySet()) {
+
+				for (String field : entry.getValue()) {
+
+					FxControl fxControl = getFxControl(field);
+
+					if (fxControl != null) {
+
+						if (preRegistrationDTO.getDemographics().containsKey(field)) {
+
+							fxControl.selectAndSet(preRegistrationDTO.getDemographics().get(field));
+						}
+
+						else if (preRegistrationDTO.getDocuments().containsKey(field)) {
+							fxControl.selectAndSet(preRegistrationDTO.getDocuments().get(field));
+
+						}
+					}
+				}
+			}
+
+		} else if (errorResponseDTOList != null && !errorResponseDTOList.isEmpty()) {
+			generateAlertLanguageSpecific(RegistrationConstants.ERROR, errorResponseDTOList.get(0).getMessage());
+		}
 	}
 }

@@ -7,9 +7,11 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.springframework.context.ApplicationContext;
 
+import io.mosip.commons.packet.dto.packet.SimpleDto;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
@@ -318,6 +320,43 @@ public class TextFieldFxControl extends FxControl {
 		}
 		if (localLangTextField != null) {
 			localLangTextField.setText(dataMap.get(RegistrationConstants.SECONDARY));
+		}
+
+	}
+
+	@Override
+	public void selectAndSet(Object data) {
+
+		TextField appLangTextField = (TextField) getField(uiSchemaDTO.getId());
+		TextField localLangTextField = (TextField) getField(uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE);
+
+		if (data instanceof String) {
+
+			appLangTextField.setText((String) data);
+
+			if (localLangTextField != null) {
+
+				localLangTextField.setText((String) data);
+
+			}
+		}
+		if (data instanceof List) {
+
+			List<SimpleDto> list = (List<SimpleDto>) data;
+
+			for (SimpleDto simpleDto : list) {
+
+				if (simpleDto.getLanguage().equalsIgnoreCase(
+						io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage())) {
+
+					appLangTextField.setText(simpleDto.getValue());
+				} else if (localLangTextField != null && simpleDto.getLanguage().equalsIgnoreCase(
+						io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage())) {
+
+					localLangTextField.setText(simpleDto.getValue());
+				}
+			}
+
 		}
 
 	}
