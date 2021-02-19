@@ -39,6 +39,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
+import org.springframework.util.CollectionUtils;
 
 /**
  * The Reprocessor Stage to deploy the scheduler and implement re-processing
@@ -217,7 +218,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 			dtolist = registrationStatusService.getUnProcessedPackets(fetchSize, elapseTime, reprocessCount,
 					statusList);
 
-			if (!(dtolist.isEmpty())) {
+			if (!CollectionUtils.isEmpty(dtolist)) {
 				dtolist.forEach(dto -> {
 					this.registrationId = dto.getRegistrationId();
 					if (reprocessCount.equals(dto.getReProcessRetryCount())) {
