@@ -50,6 +50,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
@@ -97,6 +98,12 @@ public class GenericController extends BaseController {
 	@FXML
 	private HBox headerHBox;
 
+	@FXML
+	private GridPane preRegIdGridPane;
+	
+	@FXML
+	private TextField preRegistrationId;
+	
 	@Autowired
 	private RegistrationController registrationController;
 
@@ -748,5 +755,9 @@ public class GenericController extends BaseController {
 				label.getStyleClass().remove(CLICKABLE);
 			}
 		}
+	}
+	
+	public void fetchPreRegistration() {
+		//TODO
 	}
 }
