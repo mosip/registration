@@ -27,7 +27,9 @@ import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.util.control.FxControl;
 import io.mosip.registration.validator.RequiredFieldValidator;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.geometry.NodeOrientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -37,6 +39,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.RowConstraints;
@@ -57,6 +60,8 @@ public class DocumentFxControl extends FxControl {
 	private MasterSyncService masterSyncService;
 
 	private String TICK_MARK_ID = "tickMark";
+	
+	private String CLEAR_ID = "clear";
 
 	public DocumentFxControl() {
 
@@ -83,7 +88,18 @@ public class DocumentFxControl extends FxControl {
 		hBox.getChildren().add(createDocRef(uiSchemaDTO.getId()));
 
 		// TICK-MARK
-		hBox.getChildren().add(getTickMarkImgVBox());
+		hBox.getChildren().add(getImageGridPane(TICK_MARK_ID, RegistrationConstants.DONE_IMAGE_PATH));
+		
+		// CLEAR IMAGE
+		GridPane clearGridPane = getImageGridPane(CLEAR_ID, RegistrationConstants.CLOSE_IMAGE_PATH);
+		clearGridPane.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
+			getRegistrationDTo().getDocuments().remove(this.uiSchemaDTO.getId());
+			getField(uiSchemaDTO.getId() + TICK_MARK_ID).setVisible(false);
+			getField(uiSchemaDTO.getId() + CLEAR_ID).setVisible(false);
+			getField(uiSchemaDTO.getId() + TICK_MARK_ID).setManaged(false);
+			getField(uiSchemaDTO.getId() + CLEAR_ID).setManaged(false);
+		});
+		hBox.getChildren().add(clearGridPane);
 
 		// SCAN-BUTTON
 		hBox.getChildren().add(createScanButton(uiSchemaDTO));
@@ -102,29 +118,27 @@ public class DocumentFxControl extends FxControl {
 		return this.control;
 	}
 
-	private Node getTickMarkImgVBox() {
-		VBox tickImgVBox = new VBox();
-		tickImgVBox.setId(uiSchemaDTO.getId() + TICK_MARK_ID);
-		// tickImgVBox.setSpacing(50);
+	private GridPane getImageGridPane(String id, String imagePath) {
+		VBox imageVBox = new VBox();
+		imageVBox.setId(uiSchemaDTO.getId() + id);
 		ImageView imageView = new ImageView((new Image(
-				this.getClass().getResourceAsStream(RegistrationConstants.DONE_IMAGE_PATH), 25, 25, true, true)));
+				this.getClass().getResourceAsStream(imagePath), 25, 25, true, true)));
 
 		boolean isVisible = getData() != null ? true : false;
 
-		tickImgVBox.setVisible(isVisible);
+		imageVBox.setVisible(isVisible);
 
-		tickImgVBox.getChildren().add(imageView);
+		imageVBox.getChildren().add(imageView);
 
-		GridPane tickMarkGridPane = new GridPane();
+		GridPane gridPane = new GridPane();
 		RowConstraints rowConstraint1 = new RowConstraints();
 		RowConstraints rowConstraint2 = new RowConstraints();
 		rowConstraint1.setPercentHeight(45);
 		rowConstraint2.setPercentHeight(55);
-		tickMarkGridPane.getRowConstraints().addAll(rowConstraint1, rowConstraint2);
-		// tickMarkGridPane.setPrefWidth(80);
-		tickMarkGridPane.add(tickImgVBox, 0, 1);
+		gridPane.getRowConstraints().addAll(rowConstraint1, rowConstraint2);
+		gridPane.add(imageVBox, 0, 1);
 
-		return tickMarkGridPane;
+		return gridPane;
 	}
 
 	private GridPane createScanButton(UiSchemaDTO uiSchemaDTO) {
@@ -240,6 +254,7 @@ public class DocumentFxControl extends FxControl {
 			if (data == null) {
 
 				getField(uiSchemaDTO.getId() + TICK_MARK_ID).setVisible(false);
+				getField(uiSchemaDTO.getId() + CLEAR_ID).setVisible(false);
 			} else {
 				List<BufferedImage> bufferedImages = (List<BufferedImage>) data;
 
@@ -299,6 +314,7 @@ public class DocumentFxControl extends FxControl {
 								documentDto);
 
 						getField(uiSchemaDTO.getId() + TICK_MARK_ID).setVisible(true);
+						getField(uiSchemaDTO.getId() + CLEAR_ID).setVisible(true);
 					}
 				}
 			}
@@ -309,8 +325,8 @@ public class DocumentFxControl extends FxControl {
 					"Unable to parse the buffered images to byte array " + regBaseCheckedException.getMessage()
 							+ ExceptionUtils.getStackTrace(regBaseCheckedException));
 			getField(uiSchemaDTO.getId() + TICK_MARK_ID).setVisible(false);
-			// TODO Generate the alert
-//			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
+			getField(uiSchemaDTO.getId() + CLEAR_ID).setVisible(false);
+			documentScanController.generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
 		}
 
 		refreshFields();
@@ -477,6 +493,7 @@ public class DocumentFxControl extends FxControl {
 			textField.setText(documentDto.getRefNumber());
 
 			getField(uiSchemaDTO.getId() + TICK_MARK_ID).setVisible(true);
+			getField(uiSchemaDTO.getId() + CLEAR_ID).setVisible(true);
 		}
 	}
 }

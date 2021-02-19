@@ -62,6 +62,7 @@ import io.mosip.registration.dto.biometric.BiometricExceptionDTO;
 import io.mosip.registration.dto.biometric.BiometricInfoDTO;
 import io.mosip.registration.dto.biometric.FaceDetailsDTO;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
+import io.mosip.registration.dto.response.SchemaDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.scheduler.SchedulerUtil;
 import io.mosip.registration.service.IdentitySchemaService;
@@ -1612,6 +1613,16 @@ public class BaseController {
 			LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(e));
 		}
+	}
+	
+	public SchemaDto getLatestSchema() {
+		try {
+			return identitySchemaService.getIdentitySchema(identitySchemaService.getLatestEffectiveSchemaVersion());
+		} catch (RegBaseCheckedException exception) {
+			LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
+					ExceptionUtils.getStackTrace(exception));
+		}
+		return null;
 	}
 
 	public SimpleEntry<String, List<String>> getValue(String bio, List<String> attributes) {
