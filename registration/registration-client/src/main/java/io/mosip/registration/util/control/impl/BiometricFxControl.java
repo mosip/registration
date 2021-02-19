@@ -540,4 +540,10 @@ public class BiometricFxControl extends FxControl {
 			return true;
 		}
 	}
+
+	@Override
+	public void selectAndSet(Object data) {
+
+		/** Nothing to set */
+	}
 }

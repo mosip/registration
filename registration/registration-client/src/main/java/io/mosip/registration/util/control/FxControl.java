@@ -243,4 +243,6 @@ public abstract class FxControl extends Node {
 		return GenericController.getFxControlMap().get(fieldId);
 	}
 
+	public abstract void selectAndSet(Object data);
+
 }

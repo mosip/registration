@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 
 import org.springframework.context.ApplicationContext;
 
+import io.mosip.commons.packet.dto.packet.SimpleDto;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
@@ -26,6 +27,7 @@ import io.mosip.registration.util.control.FxControl;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -61,9 +63,9 @@ public class DropDownFxControl extends FxControl {
 		this.uiSchemaDTO = uiSchemaDTO;
 
 		this.control = this;
-		
+
 		HBox hBox = new HBox();
-		
+
 		VBox primaryLangVBox = create(uiSchemaDTO, "");
 		hBox.getChildren().add(primaryLangVBox);
 //		HBox.setHgrow(primaryLangVBox, Priority.ALWAYS);
@@ -129,7 +131,7 @@ public class DropDownFxControl extends FxControl {
 		StringConverter<T> uiRenderForComboBox = FXUtils.getInstance().getStringConverterForComboBox();
 		VBox vbox = new VBox();
 		field.setId(id);
-		//field.setPrefWidth(prefWidth);
+		// field.setPrefWidth(prefWidth);
 		field.setPromptText(titleText);
 		field.setDisable(isDisable);
 		field.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_COMBOBOX);
@@ -276,4 +278,49 @@ public class DropDownFxControl extends FxControl {
 		}
 	}
 
+	@Override
+	public void selectAndSet(Object data) {
+		if (data != null) {
+
+			if (data instanceof List) {
+
+				List<SimpleDto> list = (List<SimpleDto>) data;
+
+				for (SimpleDto simpleDto : list) {
+
+					if (simpleDto.getLanguage().equalsIgnoreCase(
+							io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage())) {
+
+						selectItem((ComboBox<GenericDto>) getField(uiSchemaDTO.getId()), simpleDto.getValue());
+
+					} else if (simpleDto.getLanguage().equalsIgnoreCase(
+							io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage())) {
+
+						selectItem(
+								(ComboBox<GenericDto>) getField(
+										uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE),
+								simpleDto.getValue());
+					}
+				}
+
+			} else if (data instanceof String) {
+
+				selectItem((ComboBox<GenericDto>) getField(uiSchemaDTO.getId()), (String) data);
+				selectItem((ComboBox<GenericDto>) getField(uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE),
+						(String) data);
+			}
+		}
+	}
+
+	private void selectItem(ComboBox<GenericDto> field, String val) {
+		if (field != null && val != null && !val.isEmpty()) {
+			for (GenericDto genericDto : field.getItems()) {
+
+				if (genericDto.getCode().equalsIgnoreCase(val)) {
+					field.getSelectionModel().select(genericDto);
+					break;
+				}
+			}
+		}
+	}
 }

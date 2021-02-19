@@ -216,4 +216,10 @@ public class CheckBoxFxControl extends FxControl {
 
 	}
 
+	@Override
+	public void selectAndSet(Object data) {
+		// TODO Auto-generated method stub
+
+	}
+
 }

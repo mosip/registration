@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.context.ApplicationContext;
 
+import io.mosip.commons.packet.dto.packet.SimpleDto;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
@@ -19,6 +20,7 @@ import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -67,17 +69,17 @@ public class ButtonFxControl extends FxControl {
 		if (demographicDetailController.isLocalLanguageAvailable()
 				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
 			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
-			
+
 			Region region = new Region();
-	        HBox.setHgrow(region, Priority.ALWAYS);
-	        
-	        HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
-	        
+			HBox.setHgrow(region, Priority.ALWAYS);
+
+			HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
+
 			hBox.getChildren().addAll(region, secondaryLangVBox);
 		}
 
 		this.node = hBox;
-		
+
 		return this.control;
 	}
 
@@ -204,7 +206,8 @@ public class ButtonFxControl extends FxControl {
 		button.addEventHandler(ActionEvent.ACTION, event -> {
 			if (button.getStyleClass().contains(residence)) {
 				resetButtons(button);
-				if (demographicDetailController.isLocalLanguageAvailable() && !demographicDetailController.isAppLangAndLocalLangSame()) {
+				if (demographicDetailController.isLocalLanguageAvailable()
+						&& !demographicDetailController.isAppLangAndLocalLangSame()) {
 					Node localButton = getField(button.getId() + RegistrationConstants.LOCAL_LANGUAGE);
 					if (localButton != null) {
 						resetButtons((Button) localButton);
@@ -213,11 +216,12 @@ public class ButtonFxControl extends FxControl {
 				setData(null);
 			}
 			fxUtils.toggleUIField((Pane) this.node, button.getParent().getId() + RegistrationConstants.MESSAGE, false);
-			if (demographicDetailController.isLocalLanguageAvailable() && !demographicDetailController.isAppLangAndLocalLangSame()) {
+			if (demographicDetailController.isLocalLanguageAvailable()
+					&& !demographicDetailController.isAppLangAndLocalLangSame()) {
 				Node localButton = getField(button.getId() + RegistrationConstants.LOCAL_LANGUAGE);
 				if (localButton != null) {
-					fxUtils.toggleUIField((Pane) this.node, localButton.getParent().getId() + RegistrationConstants.MESSAGE,
-							false);
+					fxUtils.toggleUIField((Pane) this.node,
+							localButton.getParent().getId() + RegistrationConstants.MESSAGE, false);
 				}
 			}
 		});
@@ -233,6 +237,52 @@ public class ButtonFxControl extends FxControl {
 			}
 		});
 	}
-	
+
+	@Override
+	public void selectAndSet(Object data) {
+		if (data != null) {
+
+			Object val = null;
+
+			if (val instanceof List) {
+
+				List<SimpleDto> list = (List<SimpleDto>) val;
+
+				for (SimpleDto simpleDto : list) {
+
+					if (simpleDto.getLanguage().equalsIgnoreCase(
+							io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage())) {
+
+						HBox appHBox = (HBox) getField(uiSchemaDTO.getId() + RegistrationConstants.HBOX);
+
+						for (Node node : appHBox.getChildren()) {
+
+							if (node instanceof Button
+									&& ((Button) node).getText().equalsIgnoreCase(simpleDto.getValue())) {
+
+								((Button) node).fire();
+							}
+						}
+
+					} else if (simpleDto.getLanguage().equalsIgnoreCase(
+							io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage())) {
+
+						HBox langHBox = (HBox) getField(uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE
+								+ RegistrationConstants.HBOX);
+
+						for (Node node : langHBox.getChildren()) {
+
+							if (node instanceof Button
+									&& ((Button) node).getText().equalsIgnoreCase(simpleDto.getValue())) {
+
+								((Button) node).fire();
+							}
+						}
+					}
+				}
+
+			}
+		}
+	}
 
 }

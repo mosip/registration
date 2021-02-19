@@ -1,7 +1,10 @@
 package io.mosip.registration.util.control.impl;
 
+import java.time.ZoneId;
+import java.util.Calendar;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.TimeZone;
 
 import org.springframework.context.ApplicationContext;
 
@@ -135,7 +138,7 @@ public class DOBFxControl extends FxControl {
 
 		/** DOB Text Field */
 		dateVBox.getChildren()
-				.add(getTextField(uiSchemaDTO.getId() + dd + RegistrationConstants.TEXT_FIELD,
+				.add(getTextField(uiSchemaDTO.getId() + dd + RegistrationConstants.TEXT_FIELD + languageType,
 						(localLanguage ? localLabelBundle.getString(dd) : applicationLabelBundle.getString(dd))
 								+ mandatorySuffix,
 						RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, prefWidth, localLanguage));
@@ -222,10 +225,26 @@ public class DOBFxControl extends FxControl {
 		textField.setId(id);
 		textField.setPromptText(titleText);
 		textField.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
-		//textField.setPrefWidth(prefWidth);
+		// textField.setPrefWidth(prefWidth);
 		textField.setDisable(isDisable);
 
 		return textField;
 	}
 
+	@Override
+	public void selectAndSet(Object data) {
+		String[] dobArray = ((String) data).split("/");
+
+		TextField yyyy = ((TextField) getField(
+				this.uiSchemaDTO.getId() + RegistrationConstants.YYYY + RegistrationConstants.TEXT_FIELD));
+
+		TextField mm = ((TextField) getField(
+				this.uiSchemaDTO.getId() + RegistrationConstants.MM + RegistrationConstants.TEXT_FIELD));
+		TextField dd = ((TextField) getField(
+				this.uiSchemaDTO.getId() + RegistrationConstants.DD + RegistrationConstants.TEXT_FIELD));
+		yyyy.setText(dobArray[0]);
+		mm.setText(dobArray[1]);
+		dd.setText(dobArray[2]);
+
+	}
 }
