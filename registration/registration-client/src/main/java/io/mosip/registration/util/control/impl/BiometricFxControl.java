@@ -486,13 +486,12 @@ public class BiometricFxControl extends FxControl {
 				}
 			}
 
-			if (isException) {
-				break;
-			} else {
-				getRegistrationDTo().getDocuments().remove("proofOfException");
-			}
 		}
 
+		if (!isException) {
+
+			getRegistrationDTo().getDocuments().remove("proofOfException");
+		}
 		return isException;
 
 	}
