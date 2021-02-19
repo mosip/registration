@@ -28,6 +28,7 @@ import javax.imageio.ImageIO;
 import org.apache.commons.io.IOUtils;
 import org.mvel2.MVEL;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 
 import io.mosip.commons.packet.constants.PacketManagerConstants;
@@ -220,6 +221,12 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 	private FXUtils fxUtils;
 
+	@Value("${mosip.doc.stage.width:1200}")
+	private int width;
+
+	@Value("${mosip.doc.stage.height:620}")
+	private int height;
+	
 	private static Map<String, Image> STREAM_IMAGES = new HashMap<String, Image>();
 
 	private static Map<String, Double> BIO_SCORES = new HashMap<String, Double>();
@@ -2993,7 +3000,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 		biometricPopUpStage.setResizable(false);
 		Parent scanPopup = BaseController.load(getClass().getResource(RegistrationConstants.BIOMETRIC_FXML));
 
-		Scene scene = new Scene(scanPopup);
+		Scene scene = new Scene(scanPopup, width, height);
 		scene.getStylesheets().add(ClassLoader.getSystemClassLoader().getResource(getCssName()).toExternalForm());
 		biometricPopUpStage.setScene(scene);
 		biometricPopUpStage.initModality(Modality.WINDOW_MODAL);

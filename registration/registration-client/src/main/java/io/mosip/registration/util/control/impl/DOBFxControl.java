@@ -21,7 +21,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 public class DOBFxControl extends FxControl {
@@ -70,6 +69,7 @@ public class DOBFxControl extends FxControl {
 		VBox appLangDateVBox = create(uiSchemaDTO, "");
 
 		HBox hBox = new HBox();
+		hBox.setSpacing(30);
 		hBox.getChildren().add(appLangDateVBox);
 		HBox.setHgrow(appLangDateVBox, Priority.ALWAYS);
 
@@ -77,11 +77,8 @@ public class DOBFxControl extends FxControl {
 				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
 			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
 
-			Region region = new Region();
-			HBox.setHgrow(region, Priority.ALWAYS);
-
 			HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
-			hBox.getChildren().addAll(region, secondaryLangVBox);
+			hBox.getChildren().add(secondaryLangVBox);
 		}
 
 		this.node = hBox;
@@ -110,7 +107,9 @@ public class DOBFxControl extends FxControl {
 				.add(addDateTextField(uiSchemaDTO, RegistrationConstants.YYYY, languageType, mandatorySuffix));
 
 		VBox ageVBox = new VBox();
+		ageVBox.setPrefWidth(390);
 		ageVBox.getChildren().add(dobHBox);
+		dobHBox.prefWidthProperty().bind(ageVBox.widthProperty());
 
 		/** Validation message (Invalid/wrong,,etc,.) */
 		ageVBox.getChildren().add(getLabel(uiSchemaDTO.getId() + RegistrationConstants.ERROR_MSG, null,
@@ -223,7 +222,7 @@ public class DOBFxControl extends FxControl {
 		textField.setId(id);
 		textField.setPromptText(titleText);
 		textField.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
-		textField.setPrefWidth(prefWidth);
+		//textField.setPrefWidth(prefWidth);
 		textField.setDisable(isDisable);
 
 		return textField;

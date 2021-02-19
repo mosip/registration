@@ -55,6 +55,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 
 /**
  * {@code GenericController} is to capture the demographic/demo/Biometric
@@ -141,9 +142,9 @@ public class GenericController extends BaseController {
 	private static final String CONTROLTYPE_DOB = "date";
 	private static final String CONTROLTYPE_DOB_AGE = "ageDate";
 
-	private static String CLICKABLE = "selectedResidence";
+	private static String CLICKABLE = "paginationLabelFilled";
 
-	private static String NON_CLICKABLE = "genderButton";
+	private static String NON_CLICKABLE = "paginationLabel";
 
 	/**
 	 * 
@@ -158,8 +159,9 @@ public class GenericController extends BaseController {
 
 		headerHBox = registrationController.getNavigationHBox();
 
+		headerHBox.setAlignment(Pos.BOTTOM_LEFT);
 		headerHBox.getChildren().clear();
-		headerHBox.setSpacing(100);
+		headerHBox.setSpacing(45);
 
 		flowPane.setVgap(10);
 		flowPane.setHgap(10);
@@ -324,12 +326,12 @@ public class GenericController extends BaseController {
 
 		if (screenDTO == null) {
 			Label previewLabel = getLabel(String.valueOf(screenMap.size() + 1),
-					RegistrationConstants.REGISTRATION_PREVIEW, RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true,
+					ApplicationContext.getInstance().getApplicationLanguageBundle().getString("registrationpreview"), RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true,
 					100);
 			previewLabel.getStyleClass().addAll(NON_CLICKABLE);
 
 			Label ackLabel = getLabel(String.valueOf(screenMap.size() + 2),
-					RegistrationConstants.OPERATOR_AUTHENTICATION, RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true,
+					ApplicationContext.getInstance().getApplicationLanguageBundle().getString("authentication"), RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true,
 					100);
 			ackLabel.getStyleClass().addAll(NON_CLICKABLE);
 
@@ -387,6 +389,7 @@ public class GenericController extends BaseController {
 						registrationController.showCurrentPage(RegistrationConstants.OPERATOR_AUTHENTICATION,
 								getPageByAction(RegistrationConstants.OPERATOR_AUTHENTICATION,
 										RegistrationConstants.PREVIOUS));
+						setLabelStyles(clickedScreenNumber);
 					}
 				} else if (clickedScreenNumber == screenMap.size() + 2) {
 
@@ -398,7 +401,10 @@ public class GenericController extends BaseController {
 						registrationController.showCurrentPage(RegistrationConstants.REGISTRATION_PREVIEW,
 								getPageByAction(RegistrationConstants.REGISTRATION_PREVIEW,
 										RegistrationConstants.NEXT));
+						registrationController.goToAuthenticationPage();
+						setLabelStyles(clickedScreenNumber);
 					}
+					
 				} else {
 					boolean isPrevScreenCnt = false;
 
@@ -412,7 +418,7 @@ public class GenericController extends BaseController {
 						}
 					}
 
-					if (label.getStyleClass().contains(CLICKABLE) || isPrevScreenCnt) {
+					if (isPrevScreenCnt) {
 
 						registrationController.showCurrentPage(RegistrationConstants.OPERATOR_AUTHENTICATION,
 								getPageByAction(RegistrationConstants.OPERATOR_AUTHENTICATION,
@@ -421,8 +427,10 @@ public class GenericController extends BaseController {
 								getPageByAction(RegistrationConstants.REGISTRATION_PREVIEW,
 										RegistrationConstants.PREVIOUS));
 
+						setLabelStyles(Integer.valueOf(label.getId()));
+						
 						LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Navigating page");
-						show(Integer.valueOf(label.getId()));
+						show(Integer.valueOf(label.getId()));						
 					}
 				}
 
@@ -518,12 +526,16 @@ public class GenericController extends BaseController {
 			registrationPreviewController.setUpPreviewContent();
 			registrationController.showCurrentPage(RegistrationConstants.GENERIC_DETAIL,
 					getPageByAction(RegistrationConstants.GENERIC_DETAIL, RegistrationConstants.NEXT));
+			
+			setLabelStyles(screenMap.size() + 1);
 		} else {
 
 			boolean hasElementsinNext = isScreenVisible(fieldMap.get(nextScreen.getKey()));
 
 			if (hasElementsinNext) {
 				show(currentNode, nextScreen != null ? nextScreen.getValue().getScreenNode() : null, ++currentPage);
+				
+				setLabelStyles(currentPage);
 			} else {
 
 				LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
@@ -541,10 +553,11 @@ public class GenericController extends BaseController {
 				"Showing current page : screen No: " + currentPage);
 
 		if (isScreenVisible(fieldMap.get(currentPage))) {
-
 			Node node = screenMap.get(currentPage).getScreenNode();
 			node.setVisible(true);
 			node.setManaged(true);
+			
+			setLabelStyles(currentPage);
 		} else {
 			++currentPage;
 			showCurrentPage();
@@ -623,6 +636,8 @@ public class GenericController extends BaseController {
 
 		if (hasElementsinNext) {
 			show(currentNode, nextScreen != null ? nextScreen.getValue().getScreenNode() : null, currentPage - 1);
+			
+			setLabelStyles(currentPage);
 		} else {
 
 			--currentPage;
@@ -702,13 +717,12 @@ public class GenericController extends BaseController {
 
 		screenDTO.setCanContinue(canContinue);
 
-		Label hBox = (Label) headerHBox.lookup((RegistrationConstants.HASH + page));
-
-		if (hBox != null) {
-			hBox.getStyleClass().clear();
-			hBox.getStyleClass().add(canContinue ? CLICKABLE : NON_CLICKABLE);
-
-		}
+//		Label hBox = (Label) headerHBox.lookup((RegistrationConstants.HASH + page));
+//
+//		if (hBox != null && currentPage != page) {
+//			hBox.getStyleClass().add(canContinue ? "" : "paginationLabelGreyedOut");			
+//		}
+		
 		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refreshing continue button");
 	}
 
@@ -719,7 +733,20 @@ public class GenericController extends BaseController {
 		label.setText(titleText);
 		label.getStyleClass().add(styleClass);
 		label.setVisible(isVisible);
-		label.setPrefWidth(prefWidth);
+		//label.setPrefWidth(prefWidth);
+		label.setMinWidth(Region.USE_PREF_SIZE);
+		//label.setWrapText(true);
 		return label;
+	}
+	
+	private void setLabelStyles(int page) {
+		for (int index = 1; index <= (screenMap.size() + 2); ++index) {
+			Label label = (Label) headerHBox.lookup((RegistrationConstants.HASH + index));
+			if (index == page) {
+				label.getStyleClass().add(CLICKABLE);
+			} else {
+				label.getStyleClass().remove(CLICKABLE);
+			}
+		}
 	}
 }

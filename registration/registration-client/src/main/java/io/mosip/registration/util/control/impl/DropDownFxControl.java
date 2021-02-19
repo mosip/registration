@@ -21,17 +21,13 @@ import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.sync.MasterSyncService;
-import io.mosip.registration.util.common.ComboBoxAutoComplete;
 import io.mosip.registration.util.common.DemographicChangeActionHandler;
 import io.mosip.registration.util.control.FxControl;
-import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 
@@ -65,22 +61,23 @@ public class DropDownFxControl extends FxControl {
 		this.uiSchemaDTO = uiSchemaDTO;
 
 		this.control = this;
-		VBox primaryLangVBox = create(uiSchemaDTO, "");
+		
 		HBox hBox = new HBox();
-		hBox.setSpacing(20);
+		
+		VBox primaryLangVBox = create(uiSchemaDTO, "");
 		hBox.getChildren().add(primaryLangVBox);
-		HBox.setHgrow(primaryLangVBox, Priority.ALWAYS);
+//		HBox.setHgrow(primaryLangVBox, Priority.ALWAYS);
 
 		if (demographicDetailController.isLocalLanguageAvailable()
 				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
 
 			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
 
-			Region region = new Region();
-			HBox.setHgrow(region, Priority.ALWAYS);
+//			Region region = new Region();
+//			HBox.setHgrow(region, Priority.ALWAYS);
 
-			// HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
-			hBox.getChildren().addAll(region, secondaryLangVBox);
+//			HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
+			hBox.getChildren().add(secondaryLangVBox);
 
 		}
 
@@ -104,7 +101,7 @@ public class DropDownFxControl extends FxControl {
 				? uiSchemaDTO.getLabel().get(RegistrationConstants.SECONDARY)
 				: uiSchemaDTO.getLabel().get(RegistrationConstants.PRIMARY)) + mandatorySuffix;
 
-		double prefWidth = simpleTypeVBox.getPrefWidth();
+		double prefWidth = 500;
 
 		/** Title label */
 		Label fieldTitle = getLabel(fieldName + languageType + RegistrationConstants.LABEL, titleText,
@@ -132,7 +129,7 @@ public class DropDownFxControl extends FxControl {
 		StringConverter<T> uiRenderForComboBox = FXUtils.getInstance().getStringConverterForComboBox();
 		VBox vbox = new VBox();
 		field.setId(id);
-		field.setPrefWidth(prefWidth);
+		//field.setPrefWidth(prefWidth);
 		field.setPromptText(titleText);
 		field.setDisable(isDisable);
 		field.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_COMBOBOX);
