@@ -39,6 +39,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
+import org.springframework.util.CollectionUtils;
 
 /**
  * The Reprocessor Stage to deploy the scheduler and implement re-processing
@@ -214,74 +215,67 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ReprocessorStage::process()::entry");
 		try {
-			Integer totalUnprocessesPackets = registrationStatusService.getUnProcessedPacketsCount(elapseTime,
-					reprocessCount, statusList);
+			dtolist = registrationStatusService.getUnProcessedPackets(fetchSize, elapseTime, reprocessCount,
+					statusList);
 
-			while (totalUnprocessesPackets > 0) {
-				dtolist = registrationStatusService.getUnProcessedPackets(fetchSize, elapseTime, reprocessCount,
-						statusList);
-				if (!(dtolist.isEmpty())) {
-					dtolist.forEach(dto -> {
-						this.registrationId = dto.getRegistrationId();
-						if (reprocessCount.equals(dto.getReProcessRetryCount())) {
-							dto.setLatestTransactionStatusCode(
-									RegistrationTransactionStatusCode.REPROCESS_FAILED.toString());
-							dto.setLatestTransactionTypeCode(
-									RegistrationTransactionTypeCode.PACKET_REPROCESS.toString());
-							dto.setStatusComment(StatusUtil.RE_PROCESS_FAILED.getMessage());
-							dto.setStatusCode(RegistrationStatusCode.REPROCESS_FAILED.toString());
-							dto.setSubStatusCode(StatusUtil.RE_PROCESS_FAILED.getCode());
-							object.setRid(registrationId);
-							object.setIsValid(false);
-							object.setReg_type(RegistrationType.valueOf(dto.getRegistrationType()));
-							description.setMessage(PlatformSuccessMessages.RPR_RE_PROCESS_FAILED.getMessage());
-							description.setCode(PlatformSuccessMessages.RPR_RE_PROCESS_FAILED.getCode());
+			if (!CollectionUtils.isEmpty(dtolist)) {
+				dtolist.forEach(dto -> {
+					this.registrationId = dto.getRegistrationId();
+					if (reprocessCount.equals(dto.getReProcessRetryCount())) {
+						dto.setLatestTransactionStatusCode(
+								RegistrationTransactionStatusCode.REPROCESS_FAILED.toString());
+						dto.setLatestTransactionTypeCode(
+								RegistrationTransactionTypeCode.PACKET_REPROCESS.toString());
+						dto.setStatusComment(StatusUtil.RE_PROCESS_FAILED.getMessage());
+						dto.setStatusCode(RegistrationStatusCode.REPROCESS_FAILED.toString());
+						dto.setSubStatusCode(StatusUtil.RE_PROCESS_FAILED.getCode());
+						object.setRid(registrationId);
+						object.setIsValid(false);
+						object.setReg_type(RegistrationType.valueOf(dto.getRegistrationType()));
+						description.setMessage(PlatformSuccessMessages.RPR_RE_PROCESS_FAILED.getMessage());
+						description.setCode(PlatformSuccessMessages.RPR_RE_PROCESS_FAILED.getCode());
 
+					} else {
+						object.setRid(registrationId);
+						object.setIsValid(true);
+						object.setReg_type(RegistrationType.valueOf(dto.getRegistrationType()));
+						isTransactionSuccessful = true;
+						String stageName = MessageBusUtil.getMessageBusAdress(dto.getRegistrationStageName());
+						if (RegistrationTransactionStatusCode.SUCCESS.name()
+								.equalsIgnoreCase(dto.getLatestTransactionStatusCode())) {
+							stageName = stageName.concat(ReprocessorConstants.BUS_OUT);
 						} else {
-							object.setRid(registrationId);
-							object.setIsValid(true);
-							object.setReg_type(RegistrationType.valueOf(dto.getRegistrationType()));
-							isTransactionSuccessful = true;
-							String stageName = MessageBusUtil.getMessageBusAdress(dto.getRegistrationStageName());
-							if (RegistrationTransactionStatusCode.SUCCESS.name()
-									.equalsIgnoreCase(dto.getLatestTransactionStatusCode())) {
-								stageName = stageName.concat(ReprocessorConstants.BUS_OUT);
-							} else {
-								stageName = stageName.concat(ReprocessorConstants.BUS_IN);
-							}
-							MessageBusAddress address = new MessageBusAddress(stageName);
-							sendMessage(object, address);
-							dto.setUpdatedBy(ReprocessorConstants.USER);
-							Integer reprocessRetryCount = dto.getReProcessRetryCount() != null
-									? dto.getReProcessRetryCount() + 1
-									: 1;
-							dto.setReProcessRetryCount(reprocessRetryCount);
-							dto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
-							dto.setLatestTransactionTypeCode(
-									RegistrationTransactionTypeCode.PACKET_REPROCESS.toString());
-							dto.setStatusComment(StatusUtil.RE_PROCESS_COMPLETED.getMessage());
-							dto.setSubStatusCode(StatusUtil.RE_PROCESS_COMPLETED.getCode());
-							description.setMessage(PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_SUCCESS.getMessage());
-							description.setCode(PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_SUCCESS.getCode());
+							stageName = stageName.concat(ReprocessorConstants.BUS_IN);
 						}
-						regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
-								LoggerFileConstant.REGISTRATIONID.toString(), registrationId, description.getMessage());
+						MessageBusAddress address = new MessageBusAddress(stageName);
+						sendMessage(object, address);
+						dto.setUpdatedBy(ReprocessorConstants.USER);
+						Integer reprocessRetryCount = dto.getReProcessRetryCount() != null
+								? dto.getReProcessRetryCount() + 1
+								: 1;
+						dto.setReProcessRetryCount(reprocessRetryCount);
+						dto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+						dto.setLatestTransactionTypeCode(
+								RegistrationTransactionTypeCode.PACKET_REPROCESS.toString());
+						dto.setStatusComment(StatusUtil.RE_PROCESS_COMPLETED.getMessage());
+						dto.setSubStatusCode(StatusUtil.RE_PROCESS_COMPLETED.getCode());
+						description.setMessage(PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_SUCCESS.getMessage());
+						description.setCode(PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_SUCCESS.getCode());
+					}
+					regProcLogger.info(LoggerFileConstant.SESSIONID.toString(),
+							LoggerFileConstant.REGISTRATIONID.toString(), registrationId, description.getMessage());
 
-						/** Module-Id can be Both Success/Error code */
-						String moduleId = PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_SUCCESS.getCode();
-						String moduleName = ModuleName.RE_PROCESSOR.toString();
-						registrationStatusService.updateRegistrationStatus(dto, moduleId, moduleName);
-						String eventId = EventId.RPR_402.toString();
-						String eventName = EventName.UPDATE.toString();
-						String eventType = EventType.BUSINESS.toString();
+					/** Module-Id can be Both Success/Error code */
+					String moduleId = PlatformSuccessMessages.RPR_SENT_TO_REPROCESS_SUCCESS.getCode();
+					String moduleName = ModuleName.RE_PROCESSOR.toString();
+					registrationStatusService.updateRegistrationStatus(dto, moduleId, moduleName);
+					String eventId = EventId.RPR_402.toString();
+					String eventName = EventName.UPDATE.toString();
+					String eventType = EventType.BUSINESS.toString();
 
-						auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName,
-								eventType, moduleId, moduleName, registrationId);
-					});
-
-					totalUnprocessesPackets = totalUnprocessesPackets - fetchSize;
-				}
-
+					auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName,
+							eventType, moduleId, moduleName, registrationId);
+				});
 			}
 
 		} catch (TablenotAccessibleException e) {
