@@ -48,15 +48,10 @@ import io.mosip.registration.dto.RegistrationMetaDataDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.dto.biometric.BiometricInfoDTO;
-import io.mosip.registration.dto.demographic.ApplicantDocumentDTO;
-import io.mosip.registration.dto.demographic.DemographicDTO;
-import io.mosip.registration.dto.demographic.DemographicInfoDTO;
-import io.mosip.registration.dto.demographic.IndividualIdentity;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.external.impl.PreRegZipHandlingServiceImpl;
-import io.mosip.registration.validator.RegIdObjectValidator;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
@@ -68,9 +63,6 @@ public class PreRegZipHandlingServiceTest {
 
 	@Mock
 	private KeyGenerator keyGenerator;
-
-	@Mock
-	private RegIdObjectValidator idObjectValidator;
 
 	@Mock
 	private DocumentTypeDAO documentTypeDAO;

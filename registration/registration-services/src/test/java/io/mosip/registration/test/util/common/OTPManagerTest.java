@@ -41,7 +41,6 @@ import io.mosip.registration.service.security.impl.AuthenticationServiceImpl;
 import io.mosip.registration.util.common.OTPManager;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
-import io.mosip.registration.validator.OTPValidatorImpl;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
@@ -56,9 +55,6 @@ public class OTPManagerTest {
 
 	@Mock
 	private ServiceDelegateUtil serviceDelegateUtil;
-
-	@Mock
-	private OTPValidatorImpl otpValidator;
 
 	@Mock
 	private AuthenticationServiceImpl authenticationService;
