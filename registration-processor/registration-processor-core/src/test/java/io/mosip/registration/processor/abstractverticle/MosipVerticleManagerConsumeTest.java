@@ -2,6 +2,10 @@ package io.mosip.registration.processor.abstractverticle;
 
 import static org.junit.Assert.assertTrue;
 
+import io.mosip.registration.processor.core.tracing.EventTracingHandler;
+import io.vertx.core.eventbus.DeliveryContext;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.logging.SLF4JLogDelegateFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -16,6 +20,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import org.mockito.Mockito;
 
 @RunWith(VertxUnitRunner.class)
 public class MosipVerticleManagerConsumeTest {
@@ -23,11 +28,15 @@ public class MosipVerticleManagerConsumeTest {
 	private MessageDTO messageDTO;
 	private Vertx vertx;
 
-	private ConsumerVerticle consumerVerticle;
+	//private ConsumerVerticle consumerVerticle;
+
+	static {
+		System.setProperty("org.vertx.logger-delegate-factory-class-name", SLF4JLogDelegateFactory.class.getName());
+	}
 
 	@Before
 	public void setup(TestContext testContext) throws Exception {
-		this.consumerVerticle = new ConsumerVerticle();
+		//this.consumerVerticle = new ConsumerVerticle();
 
 		this.messageDTO = new MessageDTO();
 		this.messageDTO.setRid("1001");
@@ -56,7 +65,7 @@ public class MosipVerticleManagerConsumeTest {
 	@Test
 	public void checkSend(TestContext testContext) {
 		final Async async = testContext.async();
-		vertx.eventBus().consumer("demo-dedupe-bus-in", msg -> {
+		vertx.eventBus().consumer(MessageBusAddress.DEMO_DEDUPE_BUS_IN.getAddress(), msg -> {
 			testContext.assertTrue(msg.body().toString().contains(this.messageDTO.getRid()));
 			testContext.assertTrue(msg.body().toString().contains(this.messageDTO.getInternalError().toString()));
 			testContext.assertTrue(msg.body().toString().contains(this.messageDTO.getIsValid().toString()));
@@ -66,6 +75,10 @@ public class MosipVerticleManagerConsumeTest {
 			if (!async.isCompleted())
 				async.complete();
 		});
+
+		JsonObject jsonObject = JsonObject.mapFrom(this.messageDTO);
+		vertx.eventBus().send(MessageBusAddress.DEMO_DEDUPE_BUS_IN.getAddress(), jsonObject);
+		async.awaitSuccess();
 	}
 
 	@Test
@@ -73,7 +86,7 @@ public class MosipVerticleManagerConsumeTest {
 		final Async async = testContext.async();
 		JsonObject jsonObject = JsonObject.mapFrom(this.messageDTO);
 
-		vertx.eventBus().send("packet-validator-bus-in", jsonObject);
+		vertx.eventBus().send(MessageBusAddress.PACKET_VALIDATOR_BUS_IN.getAddress(), jsonObject);
 		async.complete();
 		async.awaitSuccess();
 
@@ -83,16 +96,22 @@ public class MosipVerticleManagerConsumeTest {
 	public void checkConsumeAndSend(TestContext testContext) {
 		final Async async = testContext.async();
 		JsonObject jsonObject = JsonObject.mapFrom(this.messageDTO);
-		vertx.eventBus().send(MessageBusAddress.PACKET_VALIDATOR_BUS_OUT.getAddress(), jsonObject);
-		vertx.eventBus().consumer("retry-bus-in", msg -> {
+
+		vertx.eventBus().consumer(MessageBusAddress.RETRY_BUS.getAddress(), msg -> {
 			testContext.assertTrue(msg.body().toString().contains(this.messageDTO.getRid()));
 			testContext.assertTrue(msg.body().toString().contains(this.messageDTO.getInternalError().toString()));
 			testContext.assertTrue(msg.body().toString().contains(this.messageDTO.getIsValid().toString()));
 			testContext.assertTrue(msg.body().toString().contains(Integer.toString(this.messageDTO.getRetryCount())));
 			testContext.assertTrue(msg.body().toString().contains(this.messageDTO.getMessageBusAddress().getAddress()));
 			testContext.assertTrue(msg.body().toString().contains("NEW"));
+
+			vertx.eventBus().send(MessageBusAddress.PACKET_VALIDATOR_BUS_OUT.getAddress(), jsonObject);
+
 			if (!async.isCompleted())
 				async.complete();
 		});
+
+		vertx.eventBus().send(MessageBusAddress.RETRY_BUS.getAddress(), jsonObject);
+		async.awaitSuccess();
 	}
 }

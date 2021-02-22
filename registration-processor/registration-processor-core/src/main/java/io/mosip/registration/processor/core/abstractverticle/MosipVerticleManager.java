@@ -3,9 +3,13 @@ package io.mosip.registration.processor.core.abstractverticle;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -24,8 +28,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.eventbus.EventBusOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.spi.cluster.ClusterManager;
 import io.vertx.spi.cluster.hazelcast.HazelcastClusterManager;
 
@@ -43,7 +45,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 		implements EventBusManager<MosipEventBus, MessageBusAddress, MessageDTO> {
 
 	/** The logger. */
-	private Logger logger = LoggerFactory.getLogger(MosipVerticleManager.class);
+	private Logger logger = RegProcessorLogger.getLogger(MosipVerticleManager.class);
 
 	@Value("${mosip.regproc.eventbus.type:vertx}")
 	private String eventBusType;
@@ -124,13 +126,16 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
 			MessageBusAddress toAddress) {
 		mosipEventBus.consumeAndSend(fromAddress, toAddress, (msg, handler) -> {
-			logger.debug("received from " + fromAddress.toString() + " " + msg.getBody());
+			logger.debug("consumeAndSend received from {} {}",fromAddress.toString(), msg.getBody());
+			Map<String, String> mdc = MDC.getCopyOfContextMap();
 			vertx.executeBlocking(future -> {
+				MDC.setContextMap(mdc);
 				JsonObject jsonObject = (JsonObject) msg.getBody();
 				MessageDTO messageDTO = jsonObject.mapTo(MessageDTO.class);
 				MessageDTO result = process(messageDTO);
 				future.complete(result);
 			}, false, handler);
+			MDC.clear();
 		});
 	}
 
@@ -158,14 +163,17 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	 */
 	public void consume(MosipEventBus mosipEventBus, MessageBusAddress fromAddress) {
 		mosipEventBus.consume(fromAddress, (msg, handler) -> {
-				logger.debug("Received from " + fromAddress.toString() + " " + msg.getBody());
-				vertx.executeBlocking(future -> {
-					JsonObject jsonObject = (JsonObject) msg.getBody();
-					MessageDTO messageDTO = jsonObject.mapTo(MessageDTO.class);
-					MessageDTO result = process(messageDTO);
-					future.complete(result);
-				}, false, handler);
-			});
+			logger.debug("Received from {} {}",fromAddress.toString(), msg.getBody());
+			Map<String, String> mdc = MDC.getCopyOfContextMap();
+			vertx.executeBlocking(future -> {
+				MDC.setContextMap(mdc);
+				JsonObject jsonObject = (JsonObject) msg.getBody();
+				MessageDTO messageDTO = jsonObject.mapTo(MessageDTO.class);
+				MessageDTO result = process(messageDTO);
+				future.complete(result);
+			}, false, handler);
+			MDC.clear();
+		});
 	}
 
 	public Integer getEventBusPort() {
