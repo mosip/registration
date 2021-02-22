@@ -140,20 +140,11 @@ public class JsonConstant {
 	/** The Constant CREATIONDATE. */
 	public static final String CREATIONDATE = "creationDate";
 
-	/** The Constant OFFICERBIOMETRICFILENAME. */
-	public static final String OFFICERBIOMETRICFILENAME = "officerBiometricFileName";
-
-	/** The Constant SUPERVISORBIOMETRICFILENAME. */
-	public static final String SUPERVISORBIOMETRICFILENAME = "supervisorBiometricFileName";
-
 	/** The Constant INTRODUCERBIOMETRICSEQUENCE. */
 	public static final String INTRODUCERBIOMETRICSEQUENCE = "INTRODUCERBIOMETRICSEQUENCE";
 
 	/** The Constant APPLICANTBIOMETRICSEQUENCE. */
 	public static final String APPLICANTBIOMETRICSEQUENCE = "APPLICANTBIOMETRICSEQUENCE";
-
-	/** Supervisor Authentication. */
-	public static final String SUPERVISOROTPAUTHENTICATION = "supervisorOTPAuthentication";
 
 	/** officer Authentication. */
 	public static final String OFFICEROTPAUTHENTICATION = "officerOTPAuthentication";

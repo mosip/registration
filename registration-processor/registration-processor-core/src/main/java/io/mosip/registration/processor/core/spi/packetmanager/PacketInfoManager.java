@@ -4,6 +4,7 @@ package io.mosip.registration.processor.core.spi.packetmanager;
 import java.util.List;
 
 import io.mosip.registration.processor.core.code.DedupeSourceName;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
 import io.mosip.registration.processor.core.packet.dto.RegAbisRefDto;
 import io.mosip.registration.processor.core.packet.dto.abis.AbisApplicationDto;
@@ -317,7 +318,7 @@ public interface PacketInfoManager<T, /** D, M, */
 	 *            the demographic json string
 	 * @return the identity keys and fetch values from JSON
 	 */
-	public IndividualDemographicDedupe getIdentityKeysAndFetchValuesFromJSON(String rid, String process)
+	public IndividualDemographicDedupe getIdentityKeysAndFetchValuesFromJSON(String rid, String process, ProviderStageName stageName)
 			throws PacketDecryptionFailureException;
 
 	/**

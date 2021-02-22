@@ -1,15 +1,18 @@
-package io.mosip.registration.processor.packet.storage.dto;
+package io.mosip.registration.processor.core.constant;
 
 public enum  ProviderStageName {
 
     PACKET_RECEIVER("packetreceiver"),
     PACKET_UPLOADER("packetuploader"),
     PACKET_VALIDATOR("packetvalidator"),
+    QUALITY_CHECKER("qualitychecker"),
     OSI_VALIDATOR("osivalidator"),
     DEMO_DEDUPE("demodedupe"),
     BIO_DEDUPE("biodedupe"),
+    BIO_AUTH("bioauth"),
     MANUAL_VERIFICATION("manualverification"),
-    UIN_GENERATOR("uingenerator");
+    UIN_GENERATOR("uingenerator"),
+    MESSAGE_SENDER("messagesender");
 
     private String value;
 

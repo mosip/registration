@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -68,8 +69,7 @@ public class ABISHandlerUtil {
 	 *                                               has occurred.
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 */
-	public List<String> getUniqueRegIds(String registrationId, String registrationType)
-			throws ApisResourceAccessException, IOException, io.mosip.kernel.core.exception.IOException, JsonProcessingException, PacketManagerException {
+	public List<String> getUniqueRegIds(String registrationId, String registrationType, ProviderStageName stageName) throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationId, "ABISHandlerUtil::getUniqueRegIds()::entry");
 		
@@ -98,7 +98,7 @@ public class ABISHandlerUtil {
 								RegistrationTransactionStatusCode.REJECTED.toString(), RegistrationTransactionStatusCode.PROCESSED.toString());
 						List<String> processedRegIds = packetInfoDao.getProcessedOrProcessingRegIds(matchedRegIds,
 								RegistrationTransactionStatusCode.PROCESSED.toString());
-						uniqueRIDs = getUniqueRegIds(processedRegIds, registrationId, registrationType);
+						uniqueRIDs = getUniqueRegIds(processedRegIds, registrationId, registrationType, stageName);
 						uniqueRIDs.addAll(processingRegIds);
 					}
 				}
@@ -160,7 +160,7 @@ public class ABISHandlerUtil {
 	 * @throws                                       io.mosip.kernel.core.exception.IOException
 	 */
 	public List<String> getUniqueRegIds(List<String> matchedRegistrationIds, String registrationId,
-			String registrationType) throws ApisResourceAccessException, IOException,
+										String registrationType, ProviderStageName stageName) throws ApisResourceAccessException, IOException,
 			JsonProcessingException, PacketManagerException {
 
 		Map<String, String> filteredRegMap = new LinkedHashMap<>();
@@ -172,7 +172,7 @@ public class ABISHandlerUtil {
 					utilities.getGetRegProcessorDemographicIdentity());
 
 			if (registrationType.equalsIgnoreCase(SyncTypeDto.UPDATE.toString())) {
-				String packetUin = utilities.getUIn(registrationId, registrationType);
+				String packetUin = utilities.getUIn(registrationId, registrationType, stageName);
 				if (matchedUin != null && !packetUin.equals(matchedUin)) {
 					filteredRegMap.put(matchedUin, machedRegId);
 				}
