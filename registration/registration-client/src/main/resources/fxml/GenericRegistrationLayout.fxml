@@ -30,9 +30,9 @@
             <RowConstraints minHeight="10.0" percentHeight="10.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <ScrollPane prefViewportHeight="1377.0" prefViewportWidth="786.0" GridPane.columnIndex="1">
+            <ScrollPane fitToHeight="true" fitToWidth="true" prefViewportHeight="1377.0" prefViewportWidth="786.0" GridPane.columnIndex="1">
                <content>
-                  <AnchorPane>
+                  <AnchorPane styleClass="paneAtDisplayDemoGraphic">
                      <children>
                         <FlowPane fx:id="flowPane" styleClass="paneAtDisplayDemoGraphic" GridPane.columnIndex="1" GridPane.rowIndex="1">
                            <children>

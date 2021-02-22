@@ -13,11 +13,7 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.commons.packet.constants.PacketManagerConstants;
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -42,6 +38,8 @@ import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.ScreenDTO;
 import io.mosip.registration.dto.SuccessResponseDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
+import io.mosip.registration.dto.response.SchemaDto;
+import io.mosip.registration.dto.response.UiScreenDTO;
 import io.mosip.registration.entity.Location;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.sync.MasterSyncService;
@@ -123,8 +121,8 @@ public class GenericController extends BaseController {
 	@Autowired
 	private MasterSyncDao masterSyncDao;
 
-	@Value("${mosip.registration.dynamic.json}")
-	private String dynamicFieldsJsonString;
+//	@Value("${mosip.registration.dynamic.json}")
+//	private String dynamicFieldsJsonString;
 
 	@Autowired
 	private MasterSyncService masterSyncService;
@@ -182,6 +180,7 @@ public class GenericController extends BaseController {
 
 		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Populating Dynamic screens");
 //		flowPane.getChildren().clear();
+		fxControlMap.clear();
 
 		headerHBox = registrationController.getNavigationHBox();
 
@@ -198,21 +197,26 @@ public class GenericController extends BaseController {
 				getRegistrationDTOFromSession().getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_NEW)
 						? true
 						: false);
-		preRegGridPane.setManaged(true);
+		preRegGridPane.setManaged(preRegGridPane.isVisible());
 
 		// convert JSON string to Map
 		try {
-			ObjectMapper mapper = new ObjectMapper();
-			Map<String, List<String>> screens = mapper.readValue(dynamicFieldsJsonString, LinkedHashMap.class);
+//			ObjectMapper mapper = new ObjectMapper();
+//			Map<String, List<String>> screens = mapper.readValue(dynamicFieldsJsonString, LinkedHashMap.class);
+			Map<String, List<String>> screens = new LinkedHashMap<>();
+			SchemaDto schema = getLatestSchema();
+			if (schema != null && schema.getScreens() != null && !schema.getScreens().isEmpty()) {
+				List<UiScreenDTO> uiScreenDTO = schema.getScreens();
+				TreeMap<Integer, UiScreenDTO> orderedScreens = getScreensInOrder(uiScreenDTO);
+				orderedScreens.forEach((order, screenDTO) -> screens.put(screenDTO.getLabel(), screenDTO.getFields()));
 
-			screenMap.clear();
-			ObservableList<Node> flowPaneNodes = flowPane.getChildren();
+				screenMap.clear();
+				ObservableList<Node> flowPaneNodes = flowPane.getChildren();
 
-			boolean isUpdateUIN = getRegistrationDTOFromSession().getRegistrationCategory()
-					.equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_UPDATE);
+				boolean isUpdateUIN = getRegistrationDTOFromSession().getRegistrationCategory()
+						.equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_UPDATE);
 
-			List<String> defaultFields = new LinkedList<String>();
-			if (screens != null && !screens.isEmpty()) {
+				List<String> defaultFields = new LinkedList<String>();
 
 				if (isUpdateUIN && !getRegistrationDTOFromSession().isBiometricMarkedForUpdate()) {
 					List<UiSchemaDTO> schemaDTOs = getValidationMap().values().stream()
@@ -230,7 +234,7 @@ public class GenericController extends BaseController {
 						}
 					}
 
-//					screens.get(screens.size() - 1).addAll(list);
+//						screens.get(screens.size() - 1).addAll(list);
 
 				}
 				for (Entry<String, List<String>> screenEntry : screens.entrySet()) {
@@ -270,7 +274,7 @@ public class GenericController extends BaseController {
 									&& (isUpdateUIN
 											? (getRegistrationDTOFromSession().getUpdatableFields().contains(field)
 													|| defaultFields.contains(field))
-											: true)) {
+											: true) && getFxControl(field) == null) {
 
 								LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 										"Creating control for field : " + field);
@@ -285,11 +289,11 @@ public class GenericController extends BaseController {
 								if (fxConrol != null && fxConrol.getNode() != null) {
 									Node node = fxConrol.getNode();
 
-//									GridPane groupGridPane = (GridPane) screenGridPane.lookup(RegistrationConstants.HASH+uiSchemaDTO.getGroup());
-//									
-//									if(groupGridPane!=null) {
+//										GridPane groupGridPane = (GridPane) screenGridPane.lookup(RegistrationConstants.HASH+uiSchemaDTO.getGroup());
 //										
-//									}
+//										if(groupGridPane!=null) {
+//											
+//										}
 
 									fxControlMap.put(field, fxConrol);
 									GridPane gridPane = new GridPane();
@@ -335,23 +339,30 @@ public class GenericController extends BaseController {
 					}
 
 				}
+				currentPage = 1;
+
+				addPagination(null);
+
+				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refreshing fields");
+				refreshFields();
+
+				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Showing current Page");
+				showCurrentPage();
 			}
-
-			currentPage = 1;
-
-			addPagination(null);
-
-			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refreshing fields");
-			refreshFields();
-
-			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Showing current Page");
-			showCurrentPage();
-		} catch (JsonProcessingException | RegBaseCheckedException exception) {
+		} catch (RegBaseCheckedException exception) {
 
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 					"Failed to load dynamic fields " + ExceptionUtils.getStackTrace(exception));
 		}
 
+	}
+
+	private TreeMap<Integer, UiScreenDTO> getScreensInOrder(List<UiScreenDTO> uiScreenDTO) {
+		TreeMap<Integer, UiScreenDTO> orderedScreens = new TreeMap<>();
+		for (UiScreenDTO screen : uiScreenDTO) {
+			orderedScreens.put(Integer.valueOf(screen.getOrder()), screen);
+		}
+		return orderedScreens;
 	}
 
 	private void addPagination(ScreenDTO screenDTO) {
@@ -403,7 +414,7 @@ public class GenericController extends BaseController {
 
 					boolean isPrevScreenCnt = false;
 
-					for (int screen = screenMap.size() - 1; screen > 0; --screen) {
+					for (int screen = screenMap.size(); screen > 0; --screen) {
 
 						isPrevScreenCnt = screenMap.get(screen).isCanContinue();
 
