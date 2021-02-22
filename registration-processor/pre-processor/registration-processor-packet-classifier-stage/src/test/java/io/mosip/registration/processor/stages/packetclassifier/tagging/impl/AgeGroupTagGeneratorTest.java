@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.stages.packetclassifier.tagging.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 
 import java.io.IOException;
@@ -56,28 +57,28 @@ public class AgeGroupTagGeneratorTest {
 
 	@Test
 	public void testGenerateTagsForChildGroup() throws Exception {
-		Mockito.when(utility.getApplicantAge(anyString(), anyString())).thenReturn(17);
+		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(17);
 		Map<String, String> tags = ageGroupTagGenerator.generateTags("123", "NEW", null, null);
 		assertEquals(tags.get(tagName), "CHILD");
 	}
 
 	@Test
 	public void testGenerateTagsForAdultGroup() throws Exception {
-		Mockito.when(utility.getApplicantAge(anyString(), anyString())).thenReturn(30);
+		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(30);
 		Map<String, String> tags = ageGroupTagGenerator.generateTags("123", "NEW", null, null);
 		assertEquals(tags.get(tagName), "ADULT");
 	}
 
 	@Test
 	public void testGenerateTagsForSeniorCitizenGroup() throws Exception {
-		Mockito.when(utility.getApplicantAge(anyString(), anyString())).thenReturn(65);
+		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenReturn(65);
 		Map<String, String> tags = ageGroupTagGenerator.generateTags("123", "NEW", null, null);
 		assertEquals(tags.get(tagName), "SENIOR_CITIZEN");
 	}
 
 	@Test(expected = BaseCheckedException.class)
 	public void testGenerateTagsForUtilityThrowningIOException() throws Exception {
-		Mockito.when(utility.getApplicantAge(anyString(), anyString())).thenThrow(new IOException());
+		Mockito.when(utility.getApplicantAge(anyString(), anyString(), any())).thenThrow(new IOException());
 		ageGroupTagGenerator.generateTags("123", "NEW", null, null);
 	}
 	

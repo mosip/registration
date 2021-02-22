@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.stages.packetclassifier.tagging.impl;
 
 import io.mosip.kernel.core.exception.BaseCheckedException;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.packetclassifier.dto.FieldDTO;
@@ -68,7 +69,7 @@ public class AgeGroupTagGenerator implements TagGenerator {
                 throws BaseCheckedException {
         try {
             String ageGroup = "";
-            int age = utility.getApplicantAge(registrationId, process);
+            int age = utility.getApplicantAge(registrationId, process, ProviderStageName.CLASSIFICATION);
             for (Map.Entry<String,int[]> entry : parsedAgeGroupRangemap.entrySet()) {
                 if (age >= entry.getValue()[0] && age <= entry.getValue()[1]) {
                     ageGroup = entry.getKey();
