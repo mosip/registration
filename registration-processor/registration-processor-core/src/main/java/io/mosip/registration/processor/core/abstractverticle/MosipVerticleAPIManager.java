@@ -1,5 +1,8 @@
 package io.mosip.registration.processor.core.abstractverticle;
 
+import brave.Tracing;
+import io.mosip.registration.processor.core.tracing.VertxWebTracingLocal;
+import io.vertx.core.Handler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -35,6 +38,9 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	@Autowired
 	ObjectMapper objectMapper;
 
+	@Autowired
+	private Tracing tracing;
+
 	/**
 	 * This method creates a body handler for the routes
 	 *
@@ -43,6 +49,14 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 	 */
 	public Router postUrl(Vertx vertx, MessageBusAddress consumeAddress, MessageBusAddress sendAddress) {
 		Router router = Router.router(vertx);
+
+		VertxWebTracingLocal vertxWebTracing = VertxWebTracingLocal.create(tracing);
+		Handler<RoutingContext> routingContextHandler = vertxWebTracing.routingContextHandler();
+		router.route()
+				.order(-1) //applies before routes
+				.handler(routingContextHandler)
+				.failureHandler(routingContextHandler);
+
 		router.route().handler(BodyHandler.create());
 		if (consumeAddress == null && sendAddress == null)
 			configureHealthCheckEndpoint(vertx, router, environment.getProperty(HealthConstant.SERVLET_PATH), null,
@@ -157,5 +171,12 @@ public abstract class MosipVerticleAPIManager extends MosipVerticleManager {
 		response.putHeader("content-type", contentType).putHeader("Access-Control-Allow-Origin", "*")
 				.putHeader("Access-Control-Allow-Methods", "GET, POST").setStatusCode(200)
 				.end(gson.toJson(object));
+	}
+
+	// Added this method to cast all the stages to this class and invoke the deployVerticle method 
+	// to start the stage by configuration, since we don't want to test all the stages now, not marking this as
+	// an abstract method, but later this need to be marked as abstract
+	public void deployVerticle() {
+
 	}
 }

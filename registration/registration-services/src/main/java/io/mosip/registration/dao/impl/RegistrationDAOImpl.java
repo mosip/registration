@@ -437,4 +437,12 @@ public class RegistrationDAOImpl implements RegistrationDAO {
 				Arrays.asList(RegistrationClientStatusCode.RE_REGISTER.getCode()),
 				Arrays.asList(RegistrationConstants.PACKET_STATUS_CODE_REREGISTER));
 	}
+	
+	@Override
+	public List<Registration> getAllRegistrations() {
+		LOGGER.debug("REGISTRATION - BY_STATUS - REGISTRATION_DAO", APPLICATION_NAME, APPLICATION_ID,
+				"fetch all the registration entries");
+		
+		return registrationRepository.findAll();
+	}
 }

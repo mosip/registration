@@ -13,6 +13,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -45,8 +47,10 @@ import io.mosip.kernel.core.qrcodegenerator.exception.QrcodeGenerationException;
 import io.mosip.kernel.core.qrcodegenerator.spi.QrCodeGenerator;
 import io.mosip.kernel.core.templatemanager.spi.TemplateManager;
 import io.mosip.kernel.core.templatemanager.spi.TemplateManagerBuilder;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.qrcode.generator.zxing.constant.QrVersion;
 import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.constants.RegistrationClientStatusCode;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
@@ -54,9 +58,20 @@ import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
+import io.mosip.registration.entity.SyncControl;
+import io.mosip.registration.entity.SyncJobDef;
+import io.mosip.registration.entity.UserDetail;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.BaseService;
+import io.mosip.registration.service.config.JobConfigurationService;
 import io.mosip.registration.service.impl.IdentitySchemaServiceImpl;
+import io.mosip.registration.service.operator.UserDetailService;
+import io.mosip.registration.service.operator.UserMachineMappingService;
+import io.mosip.registration.service.packet.RegistrationApprovalService;
+import io.mosip.registration.service.packet.impl.PacketHandlerServiceImpl;
+import io.mosip.registration.service.sync.PacketSynchService;
+import io.mosip.registration.service.sync.impl.MasterSyncServiceImpl;
+import io.mosip.registration.update.SoftwareUpdateHandler;
 
 /**
  * Generates Velocity Template for the creation of acknowledgement
@@ -77,6 +92,30 @@ public class TemplateGenerator extends BaseService {
 
 	@Autowired
 	private IdentitySchemaServiceImpl identitySchemaServiceImpl;
+
+	@Autowired
+	private UserDetailService userDetailService;
+
+	@Autowired
+	private UserMachineMappingService userMachineMappingService;
+
+	@Autowired
+	private PacketHandlerServiceImpl packetHandlerServiceImpl;
+
+	@Autowired
+	private RegistrationApprovalService registrationApprovalService;
+
+	@Autowired
+	private PacketSynchService packetSynchService;
+
+	@Autowired
+	private MasterSyncServiceImpl masterSyncServiceImpl;
+
+	@Autowired
+	private JobConfigurationService jobConfigurationService;
+	
+	@Autowired
+	private SoftwareUpdateHandler softwareUpdateHandler;
 
 	private String consentText;
 
@@ -574,5 +613,167 @@ public class TemplateGenerator extends BaseService {
 	private byte[] getSegmentedImageBytes(BiometricsDto biometricsDto, RegistrationDTO registration) {
 		return registration.streamImages.get(String.format("%s_%s_%s", biometricsDto.getSubType(),
 				biometricsDto.getBioAttribute(), biometricsDto.getNumOfRetries()));
+	}
+	
+	public ResponseDTO generateDashboardTemplate(String templateText, TemplateManagerBuilder templateManagerBuilder,
+			String templateType, String applicationStartTime) throws RegBaseCheckedException {
+		ResponseDTO response = new ResponseDTO();
+
+		try {
+			LOGGER.info(LOG_TEMPLATE_GENERATOR, RegistrationConstants.APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID,
+					"generateTemplate had been called for preparing Dashboard Template.");
+
+			Map<String, Object> templateValues = new WeakHashMap<>();
+			ResourceBundle applicationLanguageProperties = ApplicationContext.applicationLanguageBundle();
+			InputStream is = new ByteArrayInputStream(templateText.getBytes(StandardCharsets.UTF_8));
+
+			templateValues.put(RegistrationConstants.DASHBOARD_TITLE, applicationLanguageProperties.getString("dashBoard"));
+			templateValues.put(RegistrationConstants.TOTAL_PACKETS_LABEL, applicationLanguageProperties.getString("totalPacketsLabel"));
+			templateValues.put(RegistrationConstants.PENDING_EOD_LABEL, applicationLanguageProperties.getString("pendingEODLabel"));
+			templateValues.put(RegistrationConstants.PENDING_UPLOAD_LABEL, applicationLanguageProperties.getString("pendingUploadLabel"));
+			templateValues.put(RegistrationConstants.TOTAL_PACKETS_COUNT, packetHandlerServiceImpl.getAllRegistrations().size());
+			templateValues.put(RegistrationConstants.PENDING_EOD_COUNT, registrationApprovalService
+					.getEnrollmentByStatus(RegistrationClientStatusCode.CREATED.getCode()).size());
+			templateValues.put(RegistrationConstants.PENDING_UPLOAD_COUNT, packetSynchService.fetchPacketsToBeSynched().size());
+
+			Map<String, Map<String, Object>> userDetails = setUserDetails();
+			Map<String, List<Map<String, Object>>> activities = setActivities(applicationStartTime);
+
+			templateValues.put(RegistrationConstants.USER_DETAILS_MAP, userDetails);
+			templateValues.put(RegistrationConstants.ACTIVITIES_MAP, activities);
+
+			LOGGER.debug(LOG_TEMPLATE_GENERATOR, APPLICATION_NAME, APPLICATION_ID,
+					"merge method of TemplateManager had been called for preparing Dashboard Template.");
+			Writer writer = new StringWriter();
+			TemplateManager templateManager = templateManagerBuilder.build();
+			InputStream inputStream = templateManager.merge(is, templateValues);
+			IOUtils.copy(inputStream, writer, StandardCharsets.UTF_8);
+			LOGGER.debug(LOG_TEMPLATE_GENERATOR, APPLICATION_NAME, APPLICATION_ID,
+					"generateTemplate method has been ended for preparing Dashboard Template.");
+
+			Map<String, Object> responseMap = new WeakHashMap<>();
+			responseMap.put(RegistrationConstants.DASHBOARD_TEMPLATE, writer);
+			setSuccessResponse(response, RegistrationConstants.SUCCESS, responseMap);
+
+		} catch (RuntimeException | IOException runtimeException) {
+			setErrorResponse(response, RegistrationConstants.TEMPLATE_GENERATOR_ACK_RECEIPT_EXCEPTION, null);
+			LOGGER.error(LOG_TEMPLATE_GENERATOR, APPLICATION_NAME, APPLICATION_ID,
+					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
+		}
+		return response;
+	}
+
+	private Map<String, Map<String, Object>> setUserDetails() throws RegBaseCheckedException {
+		Map<String, Map<String, Object>> userDetails = new LinkedHashMap<>();
+
+		List<UserDetail> allUsers = userDetailService.getAllUsers();
+
+		for (UserDetail user : allUsers) {
+			Map<String, Object> userDetail = new HashMap<>();
+			userDetail.put(RegistrationConstants.DASHBOARD_USER_ID, user.getId());
+			userDetail.put(RegistrationConstants.DASHBOARD_USER_NAME, user.getName());
+			List<String> userRoles = userDetailService.getUserRoleByUserId(user.getId());
+			if (userRoles != null && !userRoles.isEmpty()) {
+				if (userRoles.contains(RegistrationConstants.SUPERVISOR)) {
+					userDetail.put(RegistrationConstants.DASHBOARD_USER_ROLE, getEncodedImage("/images/user-green.png",
+							RegistrationConstants.TEMPLATE_PNG_IMAGE_ENCODING));
+				} else if (userRoles.contains(RegistrationConstants.OFFICER)) {
+					userDetail.put(RegistrationConstants.DASHBOARD_USER_ROLE, getEncodedImage("/images/user-yellow.png",
+							RegistrationConstants.TEMPLATE_PNG_IMAGE_ENCODING));
+				} else {
+					userDetail.put(RegistrationConstants.DASHBOARD_USER_ROLE, getEncodedImage("/images/user-grey.png",
+							RegistrationConstants.TEMPLATE_PNG_IMAGE_ENCODING));
+				}
+			}
+			boolean isUserNewToMachine = userMachineMappingService.isUserNewToMachine(user.getId())
+					.getErrorResponseDTOs() != null;
+			if (isUserNewToMachine) {
+				userDetail.put(RegistrationConstants.DASHBOARD_USER_STATUS,
+						getEncodedImage("/images/exclamation.png", RegistrationConstants.TEMPLATE_PNG_IMAGE_ENCODING));
+			} else {
+				if (user.getIsActive()) {
+					userDetail.put(RegistrationConstants.DASHBOARD_USER_STATUS, getEncodedImage("/images/tick-circle.png",
+							RegistrationConstants.TEMPLATE_PNG_IMAGE_ENCODING));
+				} else {
+					userDetail.put(RegistrationConstants.DASHBOARD_USER_STATUS,
+							getEncodedImage("/images/skip.png", RegistrationConstants.TEMPLATE_PNG_IMAGE_ENCODING));
+				}
+			}
+			userDetails.put(user.getId(), userDetail);
+		}
+
+		return userDetails;
+	}
+
+	private Map<String, List<Map<String, Object>>> setActivities(String applicationStartTime) throws RegBaseCheckedException {
+		Map<String, List<Map<String, Object>>> activities = new LinkedHashMap<>();
+		List<SyncJobDef> syncJobs = masterSyncServiceImpl.getSyncJobs();
+		for (SyncJobDef syncJob : syncJobs) {
+			SyncControl syncControl = jobConfigurationService.getSyncControlOfJob(syncJob.getId());
+			if (syncControl != null && syncControl.getLastSyncDtimes() != null) {
+				Map<String, Object> job = new LinkedHashMap<>();
+				job.put(RegistrationConstants.DASHBOARD_ACTIVITY_NAME, syncJob.getName());
+				job.put(RegistrationConstants.DASHBOARD_ACTIVITY_VALUE, getLocalZoneTime(syncControl.getLastSyncDtimes().toString()));
+				activities = addToJobList(activities, syncJob.getJobType(), job);
+			}
+		}
+		Map<String, Object> clientVersion = new LinkedHashMap<>();
+		clientVersion.put(RegistrationConstants.DASHBOARD_ACTIVITY_NAME, RegistrationConstants.DASHBOARD_REG_CLIENT);
+		clientVersion.put(RegistrationConstants.DASHBOARD_ACTIVITY_VALUE, softwareUpdateHandler.getCurrentVersion());
+		Map<String, Object> schemaVersion = new LinkedHashMap<>();
+		schemaVersion.put(RegistrationConstants.DASHBOARD_ACTIVITY_NAME, RegistrationConstants.DASHBOARD_ID_SCHEMA);
+		schemaVersion.put(RegistrationConstants.DASHBOARD_ACTIVITY_VALUE, String.valueOf(identitySchemaServiceImpl.getLatestEffectiveSchemaVersion()));
+		List<Map<String, Object>> versionsList = new ArrayList<>();
+		versionsList.add(clientVersion);
+		versionsList.add(schemaVersion);
+		activities.put(RegistrationConstants.DASHBOARD_VERSION, versionsList);
+		Map<String, Object> lastSWUpdate = new LinkedHashMap<>();
+		lastSWUpdate.put(RegistrationConstants.DASHBOARD_ACTIVITY_NAME, RegistrationConstants.DASHBOARD_LAST_SW_UPDATE);
+		if (ApplicationContext.map().containsKey(RegistrationConstants.LAST_SOFTWARE_UPDATE)) {
+			lastSWUpdate.put(RegistrationConstants.DASHBOARD_ACTIVITY_VALUE, getLocalZoneTime(ApplicationContext
+					.getStringValueFromApplicationMap(RegistrationConstants.LAST_SOFTWARE_UPDATE)));
+		} else {
+			lastSWUpdate.put(RegistrationConstants.DASHBOARD_ACTIVITY_VALUE, getLocalZoneTime(applicationStartTime));
+		}
+		Map<String, Object> appInstalledTime = new LinkedHashMap<>();
+		appInstalledTime.put(RegistrationConstants.DASHBOARD_ACTIVITY_NAME, RegistrationConstants.APP_INSTALLED_TIME);
+		if (ApplicationContext.map().containsKey(RegistrationConstants.REGCLIENT_INSTALLED_TIME)) {
+			appInstalledTime.put(RegistrationConstants.DASHBOARD_ACTIVITY_VALUE, getLocalZoneTime(ApplicationContext
+					.getStringValueFromApplicationMap(RegistrationConstants.REGCLIENT_INSTALLED_TIME)));
+		} else {
+			appInstalledTime.put(RegistrationConstants.DASHBOARD_ACTIVITY_VALUE, "-");
+		}
+		List<Map<String, Object>> updateList = new ArrayList<>();
+		updateList.add(appInstalledTime);
+		updateList.add(lastSWUpdate);
+		activities.put(RegistrationConstants.DASHBOARD_UPDATES, updateList);
+		return activities;
+	}
+
+	private Map<String, List<Map<String, Object>>> addToJobList(Map<String, List<Map<String, Object>>> activities, String activityName, Map<String, Object> job) {
+		if (activities.containsKey(activityName)) {
+			activities.get(activityName).add(job);
+		} else {
+			List<Map<String, Object>> jobsList = new ArrayList<>();
+			jobsList.add(job);
+			activities.put(activityName, jobsList);
+		}
+		return activities;
+	}
+
+	private String getLocalZoneTime(String time) {
+		try {
+			String formattedTime = Timestamp.valueOf(time).toLocalDateTime()
+					.format(DateTimeFormatter.ofPattern(RegistrationConstants.UTC_PATTERN));
+			LocalDateTime dateTime = DateUtils.parseUTCToLocalDateTime(formattedTime);
+			return dateTime
+					.format(DateTimeFormatter.ofPattern((String) ApplicationContext.map()
+							.getOrDefault(RegistrationConstants.DASHBOARD_FORMAT, "dd MMM hh:mm a")));
+		} catch (RuntimeException exception) {
+			LOGGER.error("REGISTRATION - ALERT - BASE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+					ExceptionUtils.getStackTrace(exception));
+		}
+		return time + RegistrationConstants.UTC_APPENDER;
 	}
 }

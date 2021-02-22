@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import brave.Tracing;
+import io.mosip.registration.processor.core.tracing.EventTracingHandler;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.TopicPartition;
@@ -69,6 +71,10 @@ public class KafkaMosipEventBusTest {
 	@Mock
 	private KafkaProducer<String, String> kafkaProducer;
 
+	private Tracing tracing = Tracing.newBuilder().build();
+
+	private EventTracingHandler eventTracingHandler;
+
 	@Before
 	public void setup(TestContext testContext) throws Exception {
 		vertx = Vertx.vertx();
@@ -78,7 +84,8 @@ public class KafkaMosipEventBusTest {
 			.thenReturn(kafkaConsumer);
 		Mockito.when(KafkaProducer.<String, String>create(any(), anyMap()))
 			.thenReturn(kafkaProducer);
-		
+
+		eventTracingHandler = new EventTracingHandler(tracing, "kafka");
 	}
 
 	@After
@@ -89,21 +96,21 @@ public class KafkaMosipEventBusTest {
 	@Test
 	public void testSend(TestContext testContext) {
 		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", 
-			"auto", "100", 60000);
+			"auto", "100", 60000, eventTracingHandler);
 
 		MessageDTO messageDTO = new MessageDTO();
 		messageDTO.setRid("1001");
 		messageDTO.setReg_type(RegistrationType.NEW);
 		kafkaMosipEventBus.send(MessageBusAddress.PACKET_VALIDATOR_BUS_OUT, messageDTO);
 
-		verify(kafkaProducer, times(1)).write(any(KafkaProducerRecord.class));
+		verify(kafkaProducer, times(1)).write(any(KafkaProducerRecord.class),any(Handler.class));
 	}
 
 	@Test
 	public void testComsumeAndSendWithAutoCommitType(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", 
-			"auto", "100", 60000);
+			"auto", "100", 60000, eventTracingHandler);
 		final Async async = testContext.async();
 		
 		AsyncResult<KafkaConsumerRecords<String, String>> asyncResult = 
@@ -148,7 +155,7 @@ public class KafkaMosipEventBusTest {
 	public void testComsumeAndSendWithSingleBatchType(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(Vertx.vertx(), "localhost:9091", "group_1", 
-			"batch", "100", 60000);
+			"batch", "100", 60000, eventTracingHandler);
 		final Async async = testContext.async();
 			
 		AsyncResult<KafkaConsumerRecords<String, String>> asyncResult = 
@@ -212,7 +219,7 @@ public class KafkaMosipEventBusTest {
 	public void testComsumeAndSendWithSingleCommitType(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(Vertx.vertx(), "localhost:9091", "group_1", 
-			"single", "100", 60000);
+			"single", "100", 60000, eventTracingHandler);
 		final Async async = testContext.async();
 			
 		AsyncResult<KafkaConsumerRecords<String, String>> asyncResult = 
@@ -289,7 +296,7 @@ public class KafkaMosipEventBusTest {
 	public void testComsumeWithAutoCommitType(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", 
-			"auto", "100", 60000);
+			"auto", "100", 60000, eventTracingHandler);
 		final Async async = testContext.async();
 		
 		AsyncResult<KafkaConsumerRecords<String, String>> asyncResult = 
@@ -333,7 +340,7 @@ public class KafkaMosipEventBusTest {
 	public void testComsumeWithSingleBatchType(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(Vertx.vertx(), "localhost:9091", "group_1", 
-			"batch", "100", 60000);
+			"batch", "100", 60000, eventTracingHandler);
 		final Async async = testContext.async();
 			
 		AsyncResult<KafkaConsumerRecords<String, String>> asyncResult = 
@@ -396,7 +403,7 @@ public class KafkaMosipEventBusTest {
 	public void testComsumeWithSingleCommitType(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(Vertx.vertx(), "localhost:9091", "group_1", 
-			"single", "100", 60000);
+			"single", "100", 60000, eventTracingHandler);
 		final Async async = testContext.async();
 			
 		AsyncResult<KafkaConsumerRecords<String, String>> asyncResult = 
@@ -473,7 +480,7 @@ public class KafkaMosipEventBusTest {
 		for(int i=0; i<recordCount; i++)
 			consumerRecordList.add(
 				new ConsumerRecord<String,String>(
-					MessageBusAddress.PACKET_VALIDATOR_BUS_IN.getAddress(), 0, i, null, 
+					MessageBusAddress.PACKET_VALIDATOR_BUS_IN.getAddress(), 0, i, "1000"+i,
 					"{\"rid\":\"1000"+i+"\", \"reg_type\": \"NEW\" }"));
 		Map<TopicPartition, List<ConsumerRecord<String,String>>> topicPartitionConsumerRecordListMap = 
 			new HashMap<TopicPartition, List<ConsumerRecord<String,String>>>();

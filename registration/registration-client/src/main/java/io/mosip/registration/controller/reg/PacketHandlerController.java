@@ -13,17 +13,13 @@ import java.net.URL;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.ResourceBundle;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -40,6 +36,7 @@ import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.GenericController;
+import io.mosip.registration.controller.Initialization;
 import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.PacketStatusDTO;
 import io.mosip.registration.dto.RegistrationApprovalDTO;
@@ -59,7 +56,6 @@ import io.mosip.registration.service.packet.RegistrationApprovalService;
 import io.mosip.registration.service.sync.PacketSynchService;
 import io.mosip.registration.service.sync.PolicySyncService;
 import io.mosip.registration.service.sync.PreRegistrationDataSyncService;
-import io.mosip.registration.service.template.NotificationService;
 import io.mosip.registration.service.template.TemplateService;
 import io.mosip.registration.update.SoftwareUpdateHandler;
 import io.mosip.registration.util.acktemplate.TemplateGenerator;
@@ -199,7 +195,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 	private PacketHandlerService packetHandlerService;
 
 	@Autowired
-	private NotificationService notificationService;
+	private DashBoardController dashBoardController;
 
 	@Autowired
 	private RegistrationApprovalService registrationApprovalService;
@@ -257,7 +253,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 	@FXML
 	private ImageView reRegistrationImageView;
 	@FXML
-	private GridPane viewReportsPane;
+	private GridPane dashBoardPane;
 	@FXML
 	private GridPane uploadPacketPane;
 	@FXML
@@ -277,12 +273,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 	@Autowired
 	private AuthTokenUtilService authTokenUtilService;
 
-	@Autowired
-	private GenericController genericController;
-
-	@Autowired
-	private Validations validation;
-
 	@FXML
 	private ImageView uploadPacketImageView;
 
@@ -297,6 +287,12 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 	@Value("${packet.manager.account.name}")
 	private String packetsLocation;
+
+	@Autowired
+	private GenericController genericController;
+
+	@Autowired
+	private Validations validation;
 
 	/**
 	 * @return the userOnboardMsg
@@ -434,7 +430,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 						new Image(getClass().getResourceAsStream(RegistrationConstants.RE_REGISTRATION_IMAGE)));
 			}
 		});
-		viewReportsPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
+		dashBoardPane.hoverProperty().addListener((ov, oldValue, newValue) -> {
 			if (newValue) {
 				viewReportsImageView.setImage(
 						new Image(getClass().getResourceAsStream(RegistrationConstants.VIEW_REPORTS_FOCUSED)));
@@ -614,7 +610,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 								registrationController.getRegTypeText().setText(ApplicationContext.getInstance()
 										.getApplicationLanguageBundle().getString("/lostuin"));
 								genericController.populateScreens();
-								// demographicDetailController.lostUIN();
 							}
 						}
 					} catch (IOException ioException) {
@@ -1017,25 +1012,13 @@ public class PacketHandlerController extends BaseController implements Initializ
 	 * Load re registration screen.
 	 */
 	public void loadReRegistrationScreen() {
-
 		if (isPrimaryOrSecondaryLanguageEmpty()) {
 			generateAlert(RegistrationConstants.ERROR,
 					RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
 			return;
 		}
-
-//		if (isMachineRemapProcessStarted()) {
-//
-//			LOGGER.info("REGISTRATION - LOAD_RE_REGISTRATION_SCREEN - REGISTRATION_OFFICER_PACKET_CONTROLLER",
-//					APPLICATION_NAME, APPLICATION_ID, RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
-//			/*
-//			 * check if there is no pending re register packets and blocks the user to
-//			 * proceed further
-//			 */
-//			if (!isPacketsPendingForReRegister())
-//				return;
-//		}
 		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Loading re-registration screen sarted.");
+
 		try {
 			auditFactory.audit(AuditEvent.NAV_RE_REGISTRATION, Components.NAVIGATION,
 					SessionContext.userContext().getUserId(), AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
@@ -1054,6 +1037,47 @@ public class PacketHandlerController extends BaseController implements Initializ
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_APPROVAL_PAGE);
 		}
 		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Loading re-registration screen ended.");
+	}
+
+	public void viewDashBoard() {
+		if (isPrimaryOrSecondaryLanguageEmpty()) {
+			generateAlert(RegistrationConstants.ERROR,
+					RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
+			return;
+		}
+		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Loading dashboard screen sarted.");
+
+		try {
+			auditFactory.audit(AuditEvent.NAV_DASHBOARD, Components.NAVIGATION,
+					SessionContext.userContext().getUserId(), AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+
+			String dashboardTemplateText = templateService.getHtmlTemplate(
+					RegistrationConstants.DASHBOARD_TEMPLATE_CODE, ApplicationContext.applicationLanguage());
+
+			ResponseDTO templateResponse = templateGenerator.generateDashboardTemplate(dashboardTemplateText,
+					templateManagerBuilder, RegistrationConstants.DASHBOARD_TEMPLATE,
+					Initialization.getApplicationStartTime());
+
+			if (templateResponse != null && templateResponse.getSuccessResponseDTO() != null) {
+				Writer stringWriter = (Writer) templateResponse.getSuccessResponseDTO().getOtherAttributes()
+						.get(RegistrationConstants.DASHBOARD_TEMPLATE);
+				dashBoardController.setStringWriter(stringWriter);
+				Parent root = BaseController.load(getClass().getResource(RegistrationConstants.DASHBOARD_PAGE));
+
+				LOGGER.info("REGISTRATION - LOAD_DASHBOARD_SCREEN - REGISTRATION_OFFICER_PACKET_CONTROLLER",
+						APPLICATION_NAME, APPLICATION_ID, "Loading dashboard screen");
+
+				getScene(root);
+			} else {
+				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_DASHBOARD_PAGE);
+			}
+		} catch (IOException | RegBaseCheckedException exception) {
+			LOGGER.error("REGISTRATION - LOAD_DASHBOARD_SCREEN - REGISTRATION_OFFICER_PACKET_CONTROLLER",
+					APPLICATION_NAME, APPLICATION_ID, exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+
+			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_DASHBOARD_PAGE);
+		}
+		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Loading dashboard screen ended.");
 	}
 
 	/**
