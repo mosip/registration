@@ -6,6 +6,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import brave.Tracer;
+import brave.Tracing;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -166,4 +168,12 @@ public class CoreConfigBean {
 	public MosipEventBusFactory getMosipEventBusFactory() {
 		return new MosipEventBusFactory();
 	}
+
+	@Bean
+	public Tracing tracing() {
+		return Tracing.newBuilder().build();
+	}
+
+	@Bean
+	public Tracer tracer() { return tracing().tracer(); }
 }

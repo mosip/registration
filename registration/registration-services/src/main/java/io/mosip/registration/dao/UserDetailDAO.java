@@ -3,9 +3,9 @@ package io.mosip.registration.dao;
 import java.util.List;
 
 import io.mosip.registration.dto.UserDetailDto;
-import io.mosip.registration.entity.UserDetail;
-import io.mosip.registration.dto.UserDetailResponseDto;
 import io.mosip.registration.entity.UserBiometric;
+import io.mosip.registration.entity.UserDetail;
+import io.mosip.registration.entity.UserRole;
 
 /**
  * This class is used to get respective user details by providing their id from
@@ -114,5 +114,7 @@ public interface UserDetailDAO {
 	void deleteUserRole(String userName);
 
 	void update(UserDetail userDetail);
+
+	List<UserRole> getUserRoleByUserId(String userId);
 
 }

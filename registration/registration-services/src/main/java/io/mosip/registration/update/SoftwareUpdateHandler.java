@@ -40,6 +40,7 @@ import org.xml.sax.SAXException;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.FileUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.LoggerConstants;
@@ -299,6 +300,10 @@ public class SoftwareUpdateHandler extends BaseService {
 			// Update global param of software update flag as false
 			globalParamService.update(RegistrationConstants.IS_SOFTWARE_UPDATE_AVAILABLE,
 					RegistrationConstants.DISABLE);
+			
+			Timestamp time = Timestamp.valueOf(DateUtils.getUTCCurrentDateTime());			
+			globalParamService.update(RegistrationConstants.LAST_SOFTWARE_UPDATE,
+					String.valueOf(time));
 
 		} catch (RuntimeException | IOException | ParserConfigurationException | SAXException exception) {
 			LOGGER.error(LoggerConstants.LOG_REG_UPDATE, APPLICATION_NAME, APPLICATION_ID,
