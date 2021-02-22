@@ -100,6 +100,11 @@
 			<artifactId>micrometer-registry-prometheus</artifactId>
 			<version>${io.micrometer.prometheus.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+  			<artifactId>camel-jsonpath</artifactId>
+			<version>${camel.vertx.version}</version>
+		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
