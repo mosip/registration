@@ -205,6 +205,7 @@ public class PacketClassificationProcessor {
 			registrationStatusDto.setRegistrationStageName(stageName);
 
 			generateAndAddTags(registrationId, registrationStatusDto.getRegistrationType());
+			object.setTags(null);
 
 			registrationStatusDto.setLatestTransactionStatusCode(
 				RegistrationTransactionStatusCode.SUCCESS.toString());
