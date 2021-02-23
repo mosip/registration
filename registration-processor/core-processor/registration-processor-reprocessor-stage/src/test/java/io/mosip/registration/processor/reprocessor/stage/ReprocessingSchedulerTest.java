@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -104,6 +105,7 @@ public class ReprocessingSchedulerTest {
 	 * Success Test for Chime Scheduler deployment
 	 */
 	@Test
+	@Ignore
 	public void testDeploySchedulerTest() {
 		listAppender.start();
 		fooLogger.addAppender(listAppender);
@@ -119,6 +121,7 @@ public class ReprocessingSchedulerTest {
 	 * Failure Test for Chime Scheduler deployment
 	 */
 	@Test
+	@Ignore
 	public void testDeploySchedulerFailureTest() {
 		listAppender.start();
 		fooLogger.addAppender(listAppender);

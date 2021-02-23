@@ -4,6 +4,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -11,6 +12,7 @@ import io.mosip.registration.processor.core.packet.dto.packetvalidator.PacketVal
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +37,7 @@ public class MandatoryValidation {
 	private Utilities utility;
 
 	@Autowired
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	public static final String FILE_SEPARATOR = "\\";
 
@@ -57,7 +59,7 @@ public class MandatoryValidation {
 		}
 
 		for (String keyLabel : list) {
-			if (packetManagerService.getField(regId, keyLabel, utility.getSourceFromIdField(MappingJsonConstants.IDENTITY, process, keyLabel), process) == null) {
+			if (packetManagerService.getField(regId, keyLabel, process, ProviderStageName.PACKET_VALIDATOR) == null) {
 				packetValidationDto.setPacketValidaionFailureMessage(StatusMessage.MANDATORY_FIELD_MISSING);
 				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), regId,
 						PlatformErrorMessages.RPR_PVM_MANDATORY_FIELD_MISSING.getCode(),

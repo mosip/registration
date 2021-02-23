@@ -2,16 +2,25 @@ package io.mosip.registration.processor.abis.handler.stage.test;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biometrics.constant.QualityType;
 import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.RegistryIDType;
+import io.mosip.registration.processor.abis.handler.dto.Filter;
+import io.mosip.registration.processor.abis.handler.dto.ShareableAttributes;
+import io.mosip.registration.processor.abis.handler.dto.Source;
+import io.mosip.registration.processor.core.constant.PolicyConstant;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,7 +38,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.entities.BIR;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
@@ -56,7 +64,6 @@ import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.core.spi.packetmanager.PacketInfoManager;
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.rest.client.audit.dto.AuditResponseDto;
@@ -88,7 +95,7 @@ public class AbisHandlerStageTest {
 	private Utilities utility;
 
 	@Mock
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	@Mock
 	private LogDescription description;
@@ -187,7 +194,7 @@ public class AbisHandlerStageTest {
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg-client");
 		when(cbeffutil.createXML(any())).thenReturn("abishandlerstage".getBytes());
 
-		Mockito.when(packetManagerService.getBiometrics(any(),any(),any(),any())).thenReturn(biometricRecord);
+		Mockito.when(packetManagerService.getBiometrics(any(),any(),any(), any())).thenReturn(biometricRecord);
 
 		Mockito.doNothing().when(registrationStatusDto).setLatestTransactionStatusCode(any());
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
@@ -210,6 +217,28 @@ public class AbisHandlerStageTest {
 		DataShare dataShare = new DataShare();
 		dataShare.setUrl("http://localhost");
 		dataShareResponseDto.setDataShare(dataShare);
+
+		ShareableAttributes shareableAttributes = new ShareableAttributes();
+		List<Source> source = new ArrayList<>();
+		Filter filter = new Filter();
+		filter.setType("face");
+		Source src = new Source();
+		src.setFilter(Lists.newArrayList(filter));
+		source.add(src);
+		shareableAttributes.setSource(source);
+
+		ObjectMapper mapper = new ObjectMapper();
+
+		List<ShareableAttributes> attr = Lists.newArrayList(shareableAttributes);
+
+		ResponseWrapper<LinkedHashMap<String, Object>> policy = new ResponseWrapper<>();
+		LinkedHashMap<String, Object> policies = new LinkedHashMap<>();
+		LinkedHashMap<String, Object> sharableAttributes = new LinkedHashMap<>();
+		sharableAttributes.put(PolicyConstant.SHAREABLE_ATTRIBUTES, attr);
+		policies.put(PolicyConstant.POLICIES, sharableAttributes);
+		policy.setResponse(policies);
+
+		when(registrationProcessorRestClientService.getApi(any(),any(),anyString(),anyString(),any())).thenReturn(policy);
 
 		Mockito.when(registrationProcessorRestClientService.postApi(any(ApiName.class), any(MediaType.class), any(),any(),any(), any(), any())).thenReturn(dataShareResponseDto);
 	}

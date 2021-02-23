@@ -14,10 +14,18 @@ public class MappingJsonConstants {
 	public static final String IDENTITY = "identity";
 	public static final String METAINFO = "metaInfo";
 	public static final String AUDITS = "audits";
+	public static final String VALIDATE = "validate";
 	public static final String DOCUMENT = "documents";
 	public static final String BIOMETRICS = "biometrics";
 
 	public static final String PARENT_OR_GUARDIAN_BIO = "parentOrGuardianBiometrics";
+	/** The Constant OFFICERBIOMETRICFILENAME. */
+	public static final String OFFICERBIOMETRICFILENAME = "officerBiometricFileName";
+
+	/** The Constant SUPERVISORBIOMETRICFILENAME. */
+	public static final String SUPERVISORBIOMETRICFILENAME = "supervisorBiometricFileName";
+	/** Supervisor Authentication. */
+	public static final String SUPERVISOROTPAUTHENTICATION = "supervisorOTPAuthentication";
 	public static final String EMAIL = "email";
 	public static final String PHONE = "phone";
 	public static final String NAME = "name";

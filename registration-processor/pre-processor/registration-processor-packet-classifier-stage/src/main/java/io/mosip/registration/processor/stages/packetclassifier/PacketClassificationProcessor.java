@@ -8,6 +8,9 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,7 +46,6 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.storage.exception.ParsingException;
 import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.stages.packetclassifier.dto.FieldDTO;
@@ -85,6 +87,9 @@ public class PacketClassificationProcessor {
 	/**
 	 * The packet manager service that will invoked for all the packet related activities
 	 */
+	@Autowired
+	private PriorityBasedPacketManagerService priorityBasedPacketManagerService;
+
 	@Autowired
 	private PacketManagerService packetManagerService;
 
@@ -315,12 +320,12 @@ public class PacketClassificationProcessor {
 				IOException, BaseCheckedException, NumberFormatException, JSONException {
 		regProcLogger.debug("generateAndAddTags called for registration id {} {}", registrationId, 
 			requiredIdObjectFieldNames);
-		Map<String, String> identityFieldValueMap = packetManagerService.getFields(registrationId, 
-			requiredIdObjectFieldNames, process);
+		Map<String, String> identityFieldValueMap = priorityBasedPacketManagerService.getFields(registrationId,
+			requiredIdObjectFieldNames, process, ProviderStageName.CLASSIFICATION);
 		Map<String, String> fieldTypeMap = getFieldTypeMap(identityFieldValueMap.get(idSchemaVersionLabel));
 		Map<String, FieldDTO> idObjectFieldDTOMap = 
 			getIdObjectFieldDTOMap(identityFieldValueMap, fieldTypeMap);
-		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(registrationId, process);
+		Map<String, String> metaInfoMap = priorityBasedPacketManagerService.getMetaInfo(registrationId, process, ProviderStageName.CLASSIFICATION);
 		Map<String, String> allTags = new HashMap<String, String>();
 		for(TagGenerator tagGenerator : tagGenerators) {
 			Map<String, String> tags = tagGenerator.generateTags(registrationId, process, 
