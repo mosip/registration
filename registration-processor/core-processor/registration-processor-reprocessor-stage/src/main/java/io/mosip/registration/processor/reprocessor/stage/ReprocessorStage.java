@@ -221,7 +221,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 
 			regProcLogger.info("======================>" + "Total packets count = " + dtolist.size(), "", "", "");
 			List<String> ridList = dtolist.stream().map(dto -> dto.getRegistrationId()).collect(Collectors.toList());
-			dtolist.forEach(dto -> regProcLogger.info("======================>" + "rids = " + ridList.toString(), "", "", ""));
+			regProcLogger.info("======================>" + "rids = " + ridList.toString(), "", "", "");
 
 			if (!CollectionUtils.isEmpty(dtolist)) {
 				dtolist.forEach(dto -> {
