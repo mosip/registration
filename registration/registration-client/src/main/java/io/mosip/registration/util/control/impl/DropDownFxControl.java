@@ -198,6 +198,9 @@ public class DropDownFxControl extends FxControl {
 											.get(uiSchemaDTO.getGroup()).higherEntry(entry.getKey());
 
 									if (nextEntry != null) {
+
+										clearHirearchy(nextEntry.getKey());
+
 										FxControl nextLocation = nextEntry.getValue();
 
 										Map<String, Object> data = new LinkedHashMap<>();
@@ -233,6 +236,32 @@ public class DropDownFxControl extends FxControl {
 						refreshFields();
 					}
 				});
+	}
+
+	private void clearHirearchy(Integer hirearchynumber) {
+
+		if (hirearchynumber != null) {
+			FxControl fxControl = GenericController.locationMap.get(uiSchemaDTO.getGroup()).get(hirearchynumber);
+
+			ComboBox<GenericDto> comboBox = (ComboBox<GenericDto>) getField(fxControl.getNode(),
+					fxControl.getUiSchemaDTO().getId());
+
+			comboBox.getItems().clear();
+
+			Entry<Integer, FxControl> nextEntry = GenericController.locationMap.get(uiSchemaDTO.getGroup())
+					.higherEntry(hirearchynumber);
+
+			if (nextEntry != null) {
+				clearHirearchy(nextEntry.getKey());
+			}
+		}
+
+	}
+
+	private Node getField(Node fieldParentNode, String id) {
+
+		return fieldParentNode.lookup(RegistrationConstants.HASH + id);
+
 	}
 
 	private List<GenericDto> getLocations(String hirearchCode, String langCode) {
