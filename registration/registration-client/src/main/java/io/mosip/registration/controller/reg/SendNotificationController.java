@@ -21,6 +21,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
+import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
@@ -127,10 +128,10 @@ public class SendNotificationController extends BaseController implements Initia
 	}
 
 	private boolean validateMail(String emailId) {
-		return validations.validateSingleString(emailId, email.getId());
+		return validations.validateSingleString(emailId, email.getId(), ApplicationContext.applicationLanguage());
 	}
 
 	private boolean validateMobile(String mobileNo) {
-		return validations.validateSingleString(mobileNo, mobile.getId());
+		return validations.validateSingleString(mobileNo, mobile.getId(), ApplicationContext.applicationLanguage());
 	}
 }
