@@ -1,6 +1,7 @@
 package io.mosip.registration.processor.core.abstractverticle;
 
 import java.io.Serializable;
+import java.util.Map;
 
 import io.mosip.registration.processor.core.constant.RegistrationType;
 
@@ -47,6 +48,9 @@ public class MessageDTO implements Serializable {
 
 	/** The retry count. */
 	private Integer retryCount;
+
+	/** The tags of the packets */
+	private Map<String, String> tags;
 
 	
 
@@ -146,6 +150,24 @@ public class MessageDTO implements Serializable {
 		return messageBusAddress;
 	}
 
+	/**
+	 * Gets the message tags
+	 *
+	 * @return the tags map
+	 */
+	public Map<String, String> getTags() {
+		return tags;
+	}
+
+	/**
+	 * Sets the tags map.
+	 *
+	 * @param tags the message tags
+	 */
+	public void setTags(Map<String, String> tags) {
+		this.tags = tags;
+	}
+
 	@Override
 	public String toString() {
 		String msgBusAddress=null;
@@ -157,4 +179,5 @@ public class MessageDTO implements Serializable {
 				+ ", internalError=" + internalError + ", messageBusAddress=" + msgBusAddress
 				+ ", retryCount=" + retryCount + '}';
 	}
+
 }

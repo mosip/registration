@@ -77,7 +77,7 @@ public class MosipVerticleManagerConsumeTest {
 		});
 
 		JsonObject jsonObject = JsonObject.mapFrom(this.messageDTO);
-		vertx.eventBus().send(MessageBusAddress.DEMO_DEDUPE_BUS_IN.getAddress(), jsonObject);
+		vertx.eventBus().send(MessageBusAddress.DEMO_DEDUPE_BUS_IN.getAddress(), jsonObject.toString());
 		async.awaitSuccess();
 	}
 
@@ -86,7 +86,7 @@ public class MosipVerticleManagerConsumeTest {
 		final Async async = testContext.async();
 		JsonObject jsonObject = JsonObject.mapFrom(this.messageDTO);
 
-		vertx.eventBus().send(MessageBusAddress.PACKET_VALIDATOR_BUS_IN.getAddress(), jsonObject);
+		vertx.eventBus().send(MessageBusAddress.PACKET_VALIDATOR_BUS_IN.getAddress(), jsonObject.toString());
 		async.complete();
 		async.awaitSuccess();
 
@@ -105,13 +105,13 @@ public class MosipVerticleManagerConsumeTest {
 			testContext.assertTrue(msg.body().toString().contains(this.messageDTO.getMessageBusAddress().getAddress()));
 			testContext.assertTrue(msg.body().toString().contains("NEW"));
 
-			vertx.eventBus().send(MessageBusAddress.PACKET_VALIDATOR_BUS_OUT.getAddress(), jsonObject);
+			vertx.eventBus().send(MessageBusAddress.PACKET_VALIDATOR_BUS_OUT.getAddress(), jsonObject.toString());
 
 			if (!async.isCompleted())
 				async.complete();
 		});
 
-		vertx.eventBus().send(MessageBusAddress.RETRY_BUS.getAddress(), jsonObject);
+		vertx.eventBus().send(MessageBusAddress.RETRY_BUS.getAddress(), jsonObject.toString());
 		async.awaitSuccess();
 	}
 }
