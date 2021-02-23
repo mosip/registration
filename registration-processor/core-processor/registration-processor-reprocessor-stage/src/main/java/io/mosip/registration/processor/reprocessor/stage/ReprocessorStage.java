@@ -219,11 +219,10 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 			dtolist = registrationStatusService.getUnProcessedPackets(fetchSize, elapseTime, reprocessCount,
 					statusList);
 
-			regProcLogger.info("======================>" + "Total packets count = " + dtolist.size(), "", "", "");
-			List<String> ridList = dtolist.stream().map(dto -> dto.getRegistrationId()).collect(Collectors.toList());
-			regProcLogger.info("======================>" + "rids = " + ridList.toString(), "", "", "");
-
 			if (!CollectionUtils.isEmpty(dtolist)) {
+				regProcLogger.info("======================>" + "Total packets count = " + dtolist.size(), "", "", "");
+				List<String> ridList = dtolist.stream().map(dto -> dto.getRegistrationId()).collect(Collectors.toList());
+				regProcLogger.info("======================>" + "rids = " + ridList.toString(), "", "", "");
 				dtolist.forEach(dto -> {
 					this.registrationId = dto.getRegistrationId();
 					if (reprocessCount.equals(dto.getReProcessRetryCount())) {
