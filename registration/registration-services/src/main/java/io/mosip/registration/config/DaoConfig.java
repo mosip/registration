@@ -61,6 +61,7 @@ public class DaoConfig extends HibernateDaoConfig {
 	private static final String DRIVER_CLASS_NAME = "org.apache.derby.jdbc.EmbeddedDriver";
 	private static final String URL = "jdbc:derby:%s;bootPassword=%s";
 	private static final String SHUTDOWN_URL = "jdbc:derby:;shutdown=true;deregister=false;";
+	private static final String ENCRYPTION_URL_ATTRIBUTES = "dataEncryption=true;encryptionKeyLength=256;encryptionAlgorithm=AES/CBC/NoPadding;";
 	private static final String SCHEMA_NAME = "REG";
 	private static final String SEPARATOR = "-BREAK-";
 	private static final String BOOTPWD_KEY = "bootPassword";
@@ -243,7 +244,7 @@ public class DaoConfig extends HibernateDaoConfig {
 		try {
 			if(createDb(dbPath)) {
 				Map<String, String> dbConf = getDBConf();
-				connection = DriverManager.getConnection(String.format(URL + ";create=true;dataEncryption=true;",
+				connection = DriverManager.getConnection(String.format(URL + ";create=true;" + ENCRYPTION_URL_ATTRIBUTES,
 						dbPath, dbConf.get(BOOTPWD_KEY)), dbConf.get(USERNAME_KEY), dbConf.get(PWD_KEY));
 				SQLWarning sqlWarning = connection.getWarnings();
 				if(sqlWarning != null) {
@@ -272,7 +273,7 @@ public class DaoConfig extends HibernateDaoConfig {
 			if(dbConf.get(STATE_KEY).equals(ERROR_STATE)) {
 				shutdownDatabase(); //We need to shutdown DB before encrypting
 				LOGGER.info(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "IMP : (Re)Encrypting DB started ......");
-				connection = DriverManager.getConnection("jdbc:derby:"+dbPath+";dataEncryption=true;bootPassword="+dbConf.get(BOOTPWD_KEY),
+				connection = DriverManager.getConnection("jdbc:derby:"+dbPath+";"+ENCRYPTION_URL_ATTRIBUTES+";bootPassword="+dbConf.get(BOOTPWD_KEY),
 						dbConf.get(USERNAME_KEY), dbConf.get(PWD_KEY));
 				SQLWarning sqlWarning = connection.getWarnings();
 				if(sqlWarning != null) {
