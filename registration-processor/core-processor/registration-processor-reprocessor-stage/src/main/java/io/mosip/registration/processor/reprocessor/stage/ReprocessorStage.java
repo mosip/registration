@@ -2,6 +2,7 @@ package io.mosip.registration.processor.reprocessor.stage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -217,6 +218,10 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 		try {
 			dtolist = registrationStatusService.getUnProcessedPackets(fetchSize, elapseTime, reprocessCount,
 					statusList);
+
+			regProcLogger.info("======================>" + "Total packets count = " + dtolist.size(), "", "", "");
+			List<String> ridList = dtolist.stream().map(dto -> dto.getRegistrationId()).collect(Collectors.toList());
+			dtolist.forEach(dto -> regProcLogger.info("======================>" + "rids = " + ridList.toString(), "", "", ""));
 
 			if (!CollectionUtils.isEmpty(dtolist)) {
 				dtolist.forEach(dto -> {
