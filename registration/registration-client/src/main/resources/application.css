@@ -259,6 +259,30 @@
 	-fx-pref-width: 485px;
 }
 
+.genderButton {
+	-fx-background-color: #FFFFFF;
+	-fx-border-color: #005baa;
+	-fx-text-fill: #005baa;
+	-fx-font-size: 12.0px;
+	-fx-border-width: 1.0px;
+	-fx-border-radius: 4.0 4.0 4.0 4.0;
+	-fx-background-radius: 4.0 4.0 4.0 4.0;
+	-fx-text-alignment: center;
+	-fx-pref-width: 150px;
+}
+
+.genderSelectedButton {
+	-fx-background-color: #005baa;
+	-fx-border-color: #005baa;
+	-fx-text-fill: #FFFFFF;
+	-fx-font-size: 12.0px;
+	-fx-border-width: 1.0px;
+	-fx-border-radius: 4.0 4.0 4.0 4.0;
+	-fx-background-radius: 4.0 4.0 4.0 4.0;
+	-fx-text-alignment: center;
+	-fx-pref-width: 150px;
+}
+
 .consent {
 	-fx-background-color: #ffffff;
 	-fx-font-size: 12.0px;
@@ -815,6 +839,31 @@ Working on new Css by taleev
 	-fx-border-width: 0.0;
 	-fx-text-fill: #666666;
 	-fx-font-size: 1em;
+}
+
+.paginationLabel {
+	-fx-background-color: #ffffff;
+	-fx-text-fill: black;
+	-fx-font-size: 1.2em;
+	-fx-border-color: black;
+	-fx-border-width: 0 0 1 0;
+}
+
+.paginationLabelFilled {
+	-fx-background-color: #ffffff;
+	-fx-text-fill: #004887;
+	-fx-font-size: 1.2em;
+	-fx-border-color: #004887;
+	-fx-border-width: 0 0 2 0;
+	-fx-font-weight: bold
+}
+
+.paginationLabelGreyedOut {
+	-fx-background-color: #ffffff;
+	-fx-text-fill: #666666;
+	-fx-font-size: 1.2em;
+	-fx-border-color: #666666;
+	-fx-border-width: 0 0 1 0;
 }
 
 .buttonsLabel {

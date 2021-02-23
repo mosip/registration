@@ -116,8 +116,6 @@ public class AuthenticationController extends BaseController implements Initiali
 	@FXML
 	private Button operatorAuthContinue;
 	@FXML
-	private Label registrationNavlabel;
-	@FXML
 	private Label otpLabel;
 	@FXML
 	private Label fpLabel;
@@ -453,7 +451,7 @@ public class AuthenticationController extends BaseController implements Initiali
 					generateAlert(RegistrationConstants.ALERT_INFORMATION,
 							RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
 
-					loadNextScreen();					
+					loadNextScreen();
 				} else {
 					if (operatorAuthContinue != null) {
 						operatorAuthContinue.setDisable(true);
@@ -1221,18 +1219,7 @@ public class AuthenticationController extends BaseController implements Initiali
 		seconds = seconds.length() < 2 ? "0" + seconds : seconds;
 		otpValidity.setText(RegistrationUIConstants.OTP_VALIDITY + " " + minutes + ":" + seconds);
 		stopTimer();
-		if (getRegistrationDTOFromSession() != null
-				&& getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory() != null
-				&& getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory()
-						.equals(RegistrationConstants.PACKET_TYPE_LOST)) {
-			registrationNavlabel.setText(
-					ApplicationContext.applicationLanguageBundle().getString(RegistrationConstants.LOSTUINLBL));
-		}
 
-		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getSelectionListDTO() != null) {
-			registrationNavlabel.setText(ApplicationContext.applicationLanguageBundle()
-					.getString(RegistrationConstants.UIN_UPDATE_UINUPDATENAVLBL));
-		}
 	}
 
 	private void setImageOnHover() {

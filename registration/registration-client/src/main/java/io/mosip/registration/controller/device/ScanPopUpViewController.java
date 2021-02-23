@@ -28,6 +28,8 @@ import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.reg.DocumentScanController;
 import io.mosip.registration.device.webcam.impl.WebcamSarxosServiceImpl;
 import io.mosip.registration.util.common.RubberBandSelection;
+import io.mosip.registration.util.control.FxControl;
+import io.mosip.registration.util.control.impl.DocumentFxControl;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
@@ -120,18 +122,20 @@ public class ScanPopUpViewController extends BaseController {
 	private Button streamBtn;
 	@FXML
 	private Button previewBtn;
-	
+
 	@FXML
 	private GridPane imageViewGridPane;
-	
+
 	@FXML
 	private ImageView scanImage;
-	
+
 	@FXML
 	private Group imageGroup;
-	
+
 	@Autowired
 	private BiometricsController biometricsController;
+
+	private FxControl fxControl;
 
 	private boolean isStreamPaused;
 
@@ -180,18 +184,18 @@ public class ScanPopUpViewController extends BaseController {
 		try {
 			LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 					"Opening pop-up screen to scan for user registration");
-			
+
 			streamerValue = new TextField();
 			baseController = parentControllerObj;
 			popupStage = new Stage();
 			popupStage.initStyle(StageStyle.UNDECORATED);
 
 			LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "loading scan.fxml");
-			Parent scanPopup = BaseController.load(getClass().getResource(RegistrationConstants.SCAN_PAGE));			
-			
+			Parent scanPopup = BaseController.load(getClass().getResource(RegistrationConstants.SCAN_PAGE));
+
 			scanImage.fitWidthProperty().bind(imageViewGridPane.widthProperty());
 			scanImage.fitHeightProperty().bind(imageViewGridPane.heightProperty());
-			
+
 			setDefaultImageGridPaneVisibility();
 			popupStage.setResizable(false);
 			popupTitle.setText(title);
@@ -214,8 +218,8 @@ public class ScanPopUpViewController extends BaseController {
 						"Setting doc screen width : " + width);
 
 				LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-						"Setting doc screen height : " + height);				
-				
+						"Setting doc screen height : " + height);
+
 				scene = new Scene(scanPopup, width, height);
 
 				if (documentScanController.getScannedPages() != null
@@ -358,11 +362,14 @@ public class ScanPopUpViewController extends BaseController {
 		if (baseController instanceof DocumentScanController) {
 			DocumentScanController documentScanController = (DocumentScanController) baseController;
 			try {
-				documentScanController.attachScannedDocument(popupStage);
+
+				documentScanController.getFxControl().setData(documentScanController.getScannedPages());
+
+//				documentScanController.attachScannedDocument(popupStage);
 
 				documentScanController.getScannedPages().clear();
 				popupStage.close();
-			} catch (IOException | RuntimeException ioException) {
+			} catch (RuntimeException ioException) {
 				LOGGER.error(LOG_REG_SCAN_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 						ExceptionUtils.getStackTrace(ioException));
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.SCAN_DOCUMENT_ERROR);

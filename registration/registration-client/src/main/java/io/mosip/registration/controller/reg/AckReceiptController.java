@@ -16,7 +16,6 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
-import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
 import javafx.event.ActionEvent;
@@ -24,10 +23,8 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.print.PrinterJob;
 import javafx.scene.control.Button;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
-import javafx.scene.text.Text;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
@@ -59,11 +56,8 @@ public class AckReceiptController extends BaseController implements Initializabl
 	@FXML
 	private Button print;
 
-	@FXML
-	private Text registrationNavLabel;
-
-	//@FXML
-	//private Button sendNotification;
+	// @FXML
+	// private Button sendNotification;
 
 	@FXML
 	private ImageView sendNotificationImageView;
@@ -80,27 +74,15 @@ public class AckReceiptController extends BaseController implements Initializabl
 		LOGGER.info("REGISTRATION - UI - ACK_RECEIPT_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 				"Page loading has been started");
 
-		//setImagesOnHover();
-		String notificationType = getValueFromApplicationContext(RegistrationConstants.MODE_OF_COMMUNICATION); 
-		/*if (notificationType != null && !notificationType.trim().isEmpty() && !notificationType.equals("NONE")) {
-
-			sendNotification.setVisible(false);
-		} else {
-			sendNotification.setVisible(false);
-		}*/
-
-		if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
-			registrationNavLabel.setText(ApplicationContext.applicationLanguageBundle()
-					.getString(RegistrationConstants.UIN_UPDATE_UINUPDATENAVLBL));
-		}
-
-		if (getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory() != null
-				&& getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory()
-						.equals(RegistrationConstants.PACKET_TYPE_LOST)) {
-
-			registrationNavLabel.setText(
-					ApplicationContext.applicationLanguageBundle().getString(RegistrationConstants.LOSTUINLBL));
-		}
+		// setImagesOnHover();
+		String notificationType = getValueFromApplicationContext(RegistrationConstants.MODE_OF_COMMUNICATION);
+		/*
+		 * if (notificationType != null && !notificationType.trim().isEmpty() &&
+		 * !notificationType.equals("NONE")) {
+		 * 
+		 * sendNotification.setVisible(false); } else {
+		 * sendNotification.setVisible(false); }
+		 */
 
 		WebEngine engine = webView.getEngine();
 		// loads the generated HTML template content into webview
@@ -109,26 +91,23 @@ public class AckReceiptController extends BaseController implements Initializabl
 				"Acknowledgement template has been loaded to webview");
 	}
 
-	/*private void setImagesOnHover() {
-		Image sendEmailInWhite = new Image(
-				getClass().getResourceAsStream(RegistrationConstants.SEND_EMAIL_FOCUSED_IMAGE_PATH));
-		Image sendEmailImage = new Image(getClass().getResourceAsStream(RegistrationConstants.SEND_EMAIL_IMAGE_PATH));
-
-		sendNotification.hoverProperty().addListener((ov, oldValue, newValue) -> {
-			if (newValue) {
-				sendNotificationImageView.setImage(sendEmailInWhite);
-			} else {
-				sendNotificationImageView.setImage(sendEmailImage);
-			}
-		});
-	}*/
+	/*
+	 * private void setImagesOnHover() { Image sendEmailInWhite = new Image(
+	 * getClass().getResourceAsStream(RegistrationConstants.
+	 * SEND_EMAIL_FOCUSED_IMAGE_PATH)); Image sendEmailImage = new
+	 * Image(getClass().getResourceAsStream(RegistrationConstants.
+	 * SEND_EMAIL_IMAGE_PATH));
+	 * 
+	 * sendNotification.hoverProperty().addListener((ov, oldValue, newValue) -> { if
+	 * (newValue) { sendNotificationImageView.setImage(sendEmailInWhite); } else {
+	 * sendNotificationImageView.setImage(sendEmailImage); } }); }
+	 */
 
 	/**
 	 * To print the acknowledgement receipt after packet creation when the user
 	 * clicks on print button.
 	 * 
-	 * @param event
-	 *            - the event that happens on click of print button
+	 * @param event - the event that happens on click of print button
 	 */
 	@FXML
 	public void printReceipt(ActionEvent event) {
@@ -161,7 +140,7 @@ public class AckReceiptController extends BaseController implements Initializabl
 		clearRegistrationData();
 		packetController.createPacket();
 	}
-	
+
 	/**
 	 * Go to home ack template.
 	 */

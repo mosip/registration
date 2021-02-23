@@ -35,6 +35,7 @@ import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
+import io.mosip.registration.controller.GenericController;
 import io.mosip.registration.controller.Initialization;
 import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.PacketStatusDTO;
@@ -287,6 +288,12 @@ public class PacketHandlerController extends BaseController implements Initializ
 	@Value("${packet.manager.account.name}")
 	private String packetsLocation;
 
+	@Autowired
+	private GenericController genericController;
+
+	@Autowired
+	private Validations validation;
+
 	/**
 	 * @return the userOnboardMsg
 	 */
@@ -509,6 +516,11 @@ public class PacketHandlerController extends BaseController implements Initializ
 							generateAlert(RegistrationConstants.ERROR, errorMessage.toString().trim());
 						} else {
 							getScene(createRoot).setRoot(createRoot);
+
+							validation.updateAsLostUIN(false);
+							registrationController.createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_NEW);
+
+							genericController.populateScreens();
 						}
 					}
 
@@ -594,7 +606,10 @@ public class PacketHandlerController extends BaseController implements Initializ
 								generateAlert(RegistrationConstants.ERROR, errorMessage.toString().trim());
 							} else {
 								getScene(createRoot).setRoot(createRoot);
-								// demographicDetailController.lostUIN();
+
+								registrationController.getRegTypeText().setText(ApplicationContext.getInstance()
+										.getApplicationLanguageBundle().getString("/lostuin"));
+								genericController.populateScreens();
 							}
 						}
 					} catch (IOException ioException) {
