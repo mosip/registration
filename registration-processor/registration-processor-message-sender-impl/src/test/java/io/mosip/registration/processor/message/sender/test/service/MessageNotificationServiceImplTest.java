@@ -19,6 +19,7 @@ import java.util.Map;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.simple.JSONArray;
@@ -153,7 +154,7 @@ public class MessageNotificationServiceImplTest {
 	private ResponseDTO response = new ResponseDTO();
 
 	@Mock
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	/**
 	 * Setup.
@@ -174,7 +175,7 @@ public class MessageNotificationServiceImplTest {
 		fieldMap.put("phone", "23456");
 		fieldMap.put("dob", "11/11/2011");
 
-		when(packetManagerService.getFields(anyString(),anyList(),any())).thenReturn(fieldMap);
+		when(packetManagerService.getFields(anyString(),anyList(),any(), any())).thenReturn(fieldMap);
 
 		ClassLoader classLoader = getClass().getClassLoader();
 		File mappingJsonFile = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
@@ -332,7 +333,7 @@ public class MessageNotificationServiceImplTest {
 		fieldMap.put("email", "mono@mono.com");
 		fieldMap.put("dob", "11/11/2011");
 
-		when(packetManagerService.getFields(anyString(),anyList(),any())).thenReturn(fieldMap);
+		when(packetManagerService.getFields(anyString(),anyList(),any(), any())).thenReturn(fieldMap);
 
 
 
@@ -353,7 +354,7 @@ public class MessageNotificationServiceImplTest {
 		fieldMap.put("phone", "23456");
 		fieldMap.put("dob", "11/11/2011");
 
-		when(packetManagerService.getFields(anyString(),anyList(),any())).thenReturn(fieldMap);
+		when(packetManagerService.getFields(anyString(),anyList(),any(), any())).thenReturn(fieldMap);
 
 		messageNotificationServiceImpl.sendEmailNotification("RPR_UIN_GEN_EMAIL", "12345", "NEW", IdType.RID, attributes,
 				mailCc, subject, null, RegistrationType.NEW.name());

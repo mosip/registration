@@ -66,11 +66,9 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 	@Autowired
 	private BiometricAttributeRepository biometricAttributeRepository;
 
-
 	/** Object for Sync Blacklisted Words Repository. */
 	@Autowired
 	private BlacklistedWordsRepository blacklistedWordsRepository;
-
 
 	/** Object for Sync Document Category Repository. */
 	@Autowired
@@ -87,7 +85,7 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 	/** Object for Sync Location Repository. */
 	@Autowired
 	private LocationRepository locationRepository;
-	
+
 	/** Object for Sync Reason Category Repository. */
 	@Autowired
 	private ReasonCategoryRepository reasonCategoryRepository;
@@ -111,13 +109,9 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 	/** Object for Sync screen auth Repository. */
 	@Autowired
 	private SyncJobDefRepository syncJobDefRepository;
-	
+
 	@Autowired
 	private ClientSettingSyncHelper clientSettingSyncHelper;
-
-
-
-
 
 	/**
 	 * logger for logging
@@ -154,7 +148,6 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 		return syncControlResonse;
 	}
 
-	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -256,7 +249,7 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 		return individualTypeRepository.findByIndividualTypeIdCodeAndIndividualTypeIdLangCodeAndIsActiveTrue(code,
 				langCode);
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -266,11 +259,9 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 	 */
 	@Override
 	public List<IndividualType> getIndividulType(String langCode) {
-		return individualTypeRepository.findByIndividualTypeIdLangCodeAndIsActiveTrueOrderByIndividualTypeIdCodeDesc(
-				langCode);
+		return individualTypeRepository
+				.findByIndividualTypeIdLangCodeAndIsActiveTrueOrderByIndividualTypeIdCodeDesc(langCode);
 	}
-	
-	
 
 	public List<SyncJobDef> getSyncJobs() {
 		return syncJobDefRepository.findAllByIsActiveTrue();
@@ -303,33 +294,36 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 	public List<Location> getLocationDetails() {
 		return locationRepository.findAllByIsActiveTrue();
 	}
-	
+
 	public List<Location> getLocationDetails(String langCode) {
 		return locationRepository.findByIsActiveTrueAndLangCode(langCode);
 	}
 
 	/**
-	 * All the master data such as Location, gender,Registration center, Document types,category etc., 
-	 * will be saved in the DB(These details will be getting from the MasterSync service)
+	 * All the master data such as Location, gender,Registration center, Document
+	 * types,category etc., will be saved in the DB(These details will be getting
+	 * from the MasterSync service)
 	 *
-	 * @param syncDataResponseDto
-	 *            All the master details will be available in the {@link MasterDataResponseDto}
-	 * @return the string
-	 * 			- Returns the Success or Error response
+	 * @param syncDataResponseDto All the master details will be available in the
+	 *                            {@link MasterDataResponseDto}
+	 * @return the string - Returns the Success or Error response
 	 */
-	
+
 	@Override
 	public String saveSyncData(SyncDataResponseDto syncDataResponseDto) {
 		String syncStatusMessage = null;
 		try {
 			syncStatusMessage = clientSettingSyncHelper.saveClientSettings(syncDataResponseDto);
 			return syncStatusMessage;
-		} catch (Exception runtimeException) {			
+		} catch (Exception runtimeException) {
 			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
-					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));			
+					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 			syncStatusMessage = runtimeException.getMessage();
 		}
 		throw new RegBaseUncheckedException(RegistrationConstants.MASTER_SYNC_EXCEPTION, syncStatusMessage);
 	}
 
+	public List<Location> getLocationDetails(String hierarchyName, String langCode) {
+		return locationRepository.findByIsActiveTrueAndHierarchyNameAndLangCode(hierarchyName, langCode);
+	}
 }

@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -45,7 +46,6 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 public class MasterDataValidationTest {
 
 	private static final String id = "id";
-	private static final String source = "source";
 	private static final String process = "process";
 
 	@Mock
@@ -58,7 +58,7 @@ public class MasterDataValidationTest {
 	Utilities utility;
 
 	@Mock
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	@Mock
 	InternalRegistrationStatusDto registrationStatusDto;
@@ -107,7 +107,7 @@ public class MasterDataValidationTest {
 		jsonObject1.put("language", "eng");
 		jsonObject1.put("value", "mono");
 		jsonArray.add(0, jsonObject1);
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),anyString())).thenReturn(jsonArray.toString());
+		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn(jsonArray.toString());
 		when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(new ArrayList<>()).thenReturn(jsonArray);
 		
 	}
@@ -115,7 +115,7 @@ public class MasterDataValidationTest {
 	@Test
 	public void testMasterDataValidationSuccess() throws Exception {
 
-		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
+		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, process);
 		assertTrue("Test for successful Master Data Validation", isMasterDataValidated);
 
 	}
@@ -129,10 +129,10 @@ public class MasterDataValidationTest {
 		org.json.simple.JSONObject jsonObject1 = new org.json.simple.JSONObject();
 		jsonObject1.put("language", "eng");
 		jsonObject1.put("value", "mono");
-		when(packetManagerService.getField(anyString(),anyString(),anyString(),anyString())).thenReturn(jsonObject1.toString());
+		when(packetManagerService.getField(anyString(),anyString(),anyString(),any())).thenReturn(jsonObject1.toString());
 		when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(new LinkedHashMap<>()).thenReturn(jsonObject1);
 
-		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
+		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, process);
 		assertTrue("Test for successful Master Data Validation", isMasterDataValidated);
 
 	}
@@ -144,7 +144,7 @@ public class MasterDataValidationTest {
 		when(env.getProperty(ATTRIBUTES)).thenReturn("gender");
 		when(env.getProperty(PRIMARY_LANGUAGE)).thenReturn("eng");
 		when(env.getProperty(SECONDARY_LANGUAGE)).thenReturn("ara");
-		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
+		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, process);
 		assertFalse("Test for resource not found", isMasterDataValidated);
 
 	}
@@ -152,7 +152,7 @@ public class MasterDataValidationTest {
 	@Test(expected = IOException.class)
 	public void testIOException() throws Exception {
 		when(objectMapper.readValue(anyString(), any(Class.class))).thenThrow(IOException.class);
-		masterDataValidation.validateMasterData(id, source, process);
+		masterDataValidation.validateMasterData(id, process);
 
 	}
 
@@ -167,7 +167,7 @@ public class MasterDataValidationTest {
 		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responseWrapper);
 
-		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
+		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, process);
 		assertFalse("Test for Gender name failure", isMasterDataValidated);
 	}
 
@@ -184,7 +184,7 @@ public class MasterDataValidationTest {
 		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responseWrapper);
 
-		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
+		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, process);
 		assertFalse("Test for Region name failure", isMasterDataValidated);
 	}
 
@@ -199,7 +199,7 @@ public class MasterDataValidationTest {
 		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responseWrapper);
 
-		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
+		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, process);
 		assertFalse("Test for Province name failure", isMasterDataValidated);
 	}
 
@@ -215,7 +215,7 @@ public class MasterDataValidationTest {
 		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responseWrapper);
 
-		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
+		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, process);
 		assertFalse("Test for City name failure", isMasterDataValidated);
 	}
 
@@ -231,7 +231,7 @@ public class MasterDataValidationTest {
 		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responseWrapper);
 
-		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
+		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, process);
 		assertFalse("Test for Postal code failure", isMasterDataValidated);
 	}
 
@@ -248,7 +248,7 @@ public class MasterDataValidationTest {
 
 		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any()))
 				.thenThrow(apisResourceAccessException);
-		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
+		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, process);
 		assertFalse("Test for Api resource Access Exception in Gender Name Api", isMasterDataValidated);
 	}
 
@@ -265,7 +265,7 @@ public class MasterDataValidationTest {
 
 		Mockito.when(registrationProcessorRestService.getApi(any(), any(), anyString(), any(), any()))
 				.thenThrow(apisResourceAccessException);
-		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, source, process);
+		boolean isMasterDataValidated = masterDataValidation.validateMasterData(id, process);
 		assertFalse("Test for Api resource Access Exception in Location Name Api", isMasterDataValidated);
 	}
 

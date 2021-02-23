@@ -8,8 +8,9 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.crypto.SecretKey;
 
+import io.mosip.registration.processor.packet.storage.helper.PacketManagerHelper;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
-import io.mosip.registration.processor.packet.storage.utils.SourceProcessFilter;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -33,6 +34,7 @@ import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.service.impl.PacketInfoManagerImpl;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
+import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 
 @Configuration
@@ -63,7 +65,7 @@ public class PacketStorageBeanConfig {
 	@PostConstruct
 	public void initialize() {
 		Utilities.initialize(readerConfiguration(), writerConfiguration());
-		SourceProcessFilter.initialize(providerConfiguration());
+		PriorityBasedPacketManagerService.initialize(providerConfiguration());
 	}
 
 	@Bean
@@ -113,7 +115,12 @@ public class PacketStorageBeanConfig {
 	}
 
 	@Bean
-	public SourceProcessFilter sourceProcessFilter() {
-		return new SourceProcessFilter();
+	public PacketManagerHelper packetManagerHelper() {
+		return new PacketManagerHelper();
+	}
+
+	@Bean
+	public IdSchemaUtil getIdSchemaUtil() {
+		return new IdSchemaUtil();
 	}
 }

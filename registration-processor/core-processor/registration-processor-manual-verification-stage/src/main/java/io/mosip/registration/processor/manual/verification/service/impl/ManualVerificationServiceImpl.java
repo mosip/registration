@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONObject;
@@ -143,9 +145,6 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	@Value("${registration.processor.queue.manualverification.request.messageTTL}")
 	private int mvRequestMessageTTL;
 
-	@Value("${packet.default.source}")
-	private String defaultSource;
-
 	@Value("${registration.processor.manual.adjudication.policy.id:mpolicy-default-adjudication}")
 	private String policyId;
 
@@ -168,7 +167,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 	private MosipQueueManager<MosipQueue, byte[]> mosipQueueManager;
 	
 	@Autowired
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	/** The utilities. */
 	@Autowired
@@ -354,7 +353,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		String process = registrationStatusDto.getRegistrationType();
 		if (PacketFiles.BIOMETRIC.name().equals(fileName)) {
             // get individual biometrics file name from id.json
-			BiometricRecord biometricRecord = packetManagerService.getBiometrics(regId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, null, process);
+			//BiometricRecord biometricRecord = packetManagerService.getBiometrics(regId, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, null, process);
             /*if (biometricRecord == null || biometricRecord.getSegments() == null || biometricRecord.getSegments().isEmpty())
 				throw new FileNotFoundInDestinationException("Identity json not present inside packet");
             JSONObject idJsonObject = JsonUtil.objectMapperReadValue(idJsonString, JSONObject.class);
@@ -664,7 +663,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		Map<String, String> demographicMap = policyMap.entrySet().stream().filter(e-> e.getValue() != null &&
 				(!META_INFO.equalsIgnoreCase(e.getValue()) && !AUDITS.equalsIgnoreCase(e.getValue())))
 				.collect(Collectors.toMap(e-> e.getKey(),e -> e.getValue()));
-		requestDto.setIdentity(packetManagerService.getFields(id, demographicMap.values().stream().collect(Collectors.toList()), process));
+		requestDto.setIdentity(packetManagerService.getFields(id, demographicMap.values().stream().collect(Collectors.toList()), process, ProviderStageName.MANUAL_VERIFICATION));
 
 		// set documents
 		JSONObject docJson = utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT);
@@ -673,7 +672,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 				HashMap docmap = (HashMap) docJson.get(doc.toString());
 				String docName = docmap != null && docmap.get(MappingJsonConstants.VALUE)!= null ? docmap.get(MappingJsonConstants.VALUE).toString() : null;
 				if (policyMap.containsValue(docName)) {
-					Document document = packetManagerService.getDocument(id, doc.toString(), process);
+					Document document = packetManagerService.getDocument(id, doc.toString(), process, ProviderStageName.MANUAL_VERIFICATION);
 					if (document != null) {
 						if (requestDto.getDocuments() != null)
 							requestDto.getDocuments().put(docmap.get(MappingJsonConstants.VALUE).toString(), CryptoUtil.encodeBase64String(document.getDocument()));
@@ -689,11 +688,11 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 		// set audits
 		if (policyMap.containsValue(AUDITS))
-			requestDto.setAudits(JsonUtils.javaObjectToJsonString(packetManagerService.getAudits(id, process)));
+			requestDto.setAudits(JsonUtils.javaObjectToJsonString(packetManagerService.getAudits(id, process, ProviderStageName.MANUAL_VERIFICATION)));
 
 		// set metainfo
 		if (policyMap.containsValue(META_INFO))
-			requestDto.setMetaInfo(JsonUtils.javaObjectToJsonString(packetManagerService.getMetaInfo(id, process)));
+			requestDto.setMetaInfo(JsonUtils.javaObjectToJsonString(packetManagerService.getMetaInfo(id, process, ProviderStageName.MANUAL_VERIFICATION)));
 
 
 		// set biometrics
@@ -704,7 +703,8 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 
 		if (policyMap.containsValue(individualBiometricsLabel)) {
 			List<String> modalities = getModalities(policy);
-			BiometricRecord biometricRecord = packetManagerService.getBiometrics(id, MappingJsonConstants.INDIVIDUAL_BIOMETRICS, modalities, process);
+			BiometricRecord biometricRecord = packetManagerService.getBiometrics(
+					id, individualBiometricsLabel, modalities, process, ProviderStageName.MANUAL_VERIFICATION);
 			byte[] content = cbeffutil.createXML(BIRConverter.convertSegmentsToBIRList(biometricRecord.getSegments()));
 			requestDto.setBiometrics(content != null ? CryptoUtil.encodeBase64(content) : null);
 		}
@@ -754,7 +754,7 @@ public class ManualVerificationServiceImpl implements ManualVerificationService 
 		if (policies != null && policies.size() > 0)
 			return policies;
 
-		io.mosip.kernel.core.http.ResponseWrapper<?> policyResponse = (io.mosip.kernel.core.http.ResponseWrapper<?>) registrationProcessorRestClientService.getApi(
+		ResponseWrapper<?> policyResponse = (ResponseWrapper<?>) registrationProcessorRestClientService.getApi(
 				ApiName.PMS, Lists.newArrayList(subscriberId, ManualVerificationConstants.POLICY_ID, policyId), "", "", ResponseWrapper.class);
 		if (policyResponse == null || (policyResponse.getErrors() != null && policyResponse.getErrors().size() >0)) {
 			throw new DataShareException(policyResponse == null ? "Policy Response response is null" : policyResponse.getErrors().get(0).getMessage());
