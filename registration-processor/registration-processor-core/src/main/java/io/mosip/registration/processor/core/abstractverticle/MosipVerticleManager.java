@@ -247,7 +247,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 
         InfoResponseDto infoResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(
 			response.getResponse()), InfoResponseDto.class);
-		return infoResponseDto.getInfo().getTags();
+		return infoResponseDto.getTags();
     }
 
 }
