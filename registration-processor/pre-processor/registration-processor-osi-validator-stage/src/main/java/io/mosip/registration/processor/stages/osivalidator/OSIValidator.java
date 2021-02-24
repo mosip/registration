@@ -1,5 +1,22 @@
 package io.mosip.registration.processor.stages.osivalidator;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.json.JSONException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.xml.sax.SAXException;
+
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
@@ -18,6 +35,7 @@ import io.mosip.registration.processor.core.exception.ApisResourceAccessExceptio
 import io.mosip.registration.processor.core.exception.AuthSystemException;
 import io.mosip.registration.processor.core.exception.BioTypeException;
 import io.mosip.registration.processor.core.exception.PacketDecryptionFailureException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.ParentOnHoldException;
 import io.mosip.registration.processor.core.exception.RegistrationProcessorCheckedException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -33,10 +51,8 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoService;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
-import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
 import io.mosip.registration.processor.packet.storage.utils.AuthUtil;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.stages.osivalidator.utils.OSIUtils;
@@ -46,21 +62,6 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.SyncTypeDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
-import org.json.JSONException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.xml.sax.SAXException;
-
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * The Class OSIValidator.
@@ -472,7 +473,7 @@ public class OSIValidator {
 				if (isValidIntroducer(introducerUIN, introducerRID)) {
 					registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
 							.getStatusCode(RegistrationExceptionTypeCode.PARENT_UIN_AND_RID_NOT_IN_PACKET));
-					registrationStatusDto.setStatusCode(RegistrationStatusCode.FAILED.toString());
+					registrationStatusDto.setStatusCode(RegistrationStatusCode.REJECTED.toString());
 					registrationStatusDto.setStatusComment(StatusUtil.UIN_RID_NOT_FOUND.getMessage());
 					registrationStatusDto.setSubStatusCode(StatusUtil.UIN_RID_NOT_FOUND.getCode());
 					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(),
@@ -539,7 +540,8 @@ public class OSIValidator {
 	}
 
 	private boolean isValidIntroducer(String introducerUIN, String introducerRID) {
-		return introducerUIN == null && introducerRID == null;
+		return ((introducerUIN == null && introducerRID == null) || ((introducerUIN != null && introducerUIN.isEmpty())
+				&& (introducerRID != null && introducerRID.isEmpty())));
 	}
 
 
