@@ -1318,13 +1318,13 @@ public class DemographicDetailController extends BaseController {
 			if (selectedLocationHierarchy != null) {
 				destLocationHierarchy.getItems().clear();
 
-				if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
+				if (isLocalLanguageAvailable() && destLocationHierarchyInLocal != null) {
 					destLocationHierarchyInLocal.getItems().clear();
 				}
 				if (selectedLocationHierarchy.getCode().equalsIgnoreCase(RegistrationConstants.AUDIT_DEFAULT_USER)) {
 					destLocationHierarchy.getItems().add(selectedLocationHierarchy);
 
-					if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
+					if (isLocalLanguageAvailable() && destLocationHierarchyInLocal != null) {
 						destLocationHierarchyInLocal.getItems().add(selectedLocationHierarchy);
 					}
 				} else {
@@ -1339,7 +1339,7 @@ public class DemographicDetailController extends BaseController {
 						lC.setLangCode(ApplicationContext.applicationLanguage());
 						destLocationHierarchy.getItems().add(lC);
 
-						if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
+						if (isLocalLanguageAvailable() && destLocationHierarchyInLocal != null) {
 							destLocationHierarchyInLocal.getItems().add(lC);
 						}
 					} else {
