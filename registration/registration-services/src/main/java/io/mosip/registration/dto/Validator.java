@@ -2,6 +2,8 @@ package io.mosip.registration.dto;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,6 +16,7 @@ import lombok.Setter;
  */
 @Setter
 @Getter
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Validator {
 
 	/**
@@ -28,4 +31,6 @@ public class Validator {
 	 * Arguments if required
 	 */
 	private List<String> arguments;
+	
+	private String langCode;
 }
