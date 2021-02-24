@@ -255,10 +255,10 @@ public class Validations extends BaseController {
 	public boolean validateTextField(Pane parentPane, TextField node, String id, boolean isPreviousValid) {
 		if (node.getId().contains(RegistrationConstants.LOCAL_LANGUAGE)) {
 			return languageSpecificValidation(parentPane, node, id, localMessageBundle, localLanguageblackListedWords,
-					isPreviousValid);
+					isPreviousValid, ApplicationContext.localLanguage());
 		} else {
 			return languageSpecificValidation(parentPane, node, id, applicationMessageBundle,
-					applicationLanguageblackListedWords, isPreviousValid);
+					applicationLanguageblackListedWords, isPreviousValid, ApplicationContext.applicationLanguage());
 		}
 	}
 
@@ -272,7 +272,7 @@ public class Validations extends BaseController {
 	 * @return true, if successful
 	 */
 	private boolean languageSpecificValidation(Pane parentPane, TextField node, String id, ResourceBundle messageBundle,
-			List<String> blackListedWords, boolean isPreviousValid) {
+			List<String> blackListedWords, boolean isPreviousValid, String langCode) {
 		LOGGER.debug(RegistrationConstants.VALIDATION_LOGGER, APPLICATION_NAME, APPLICATION_ID,
 				"started to validate :: " + id);
 		boolean isInputValid = true;
@@ -289,7 +289,7 @@ public class Validations extends BaseController {
 			if (isLostUIN && !id.contains(RegistrationConstants.ON_TYPE)) {
 				if(node.isVisible() && (node.getText() != null && !node.getText().isEmpty())) {
 					isInputValid = checkForValidValue(parentPane, node, label, node.getText(), messageBundle, showAlert,
-							isPreviousValid, blackListedWords, uiSchemaDTO);
+							isPreviousValid, blackListedWords, uiSchemaDTO, langCode);
 				}
 				return isInputValid;
 			}
@@ -315,7 +315,7 @@ public class Validations extends BaseController {
 
 				if(node.isVisible() && (node.getText() != null && !node.getText().isEmpty())) {
 					isInputValid = checkForValidValue(parentPane, node, label, node.getText(), messageBundle, showAlert,
-							isPreviousValid, blackListedWords, uiSchemaDTO);
+							isPreviousValid, blackListedWords, uiSchemaDTO, langCode);
 				}
 			}
 
@@ -327,7 +327,7 @@ public class Validations extends BaseController {
 	}
 
 	private boolean checkForValidValue(Pane parentPane, TextField node, String fieldId, String value, ResourceBundle messageBundle,
-									boolean showAlert, boolean isPreviousValid, List<String> blackListedWords, UiSchemaDTO uiSchemaDTO) {
+									boolean showAlert, boolean isPreviousValid, List<String> blackListedWords, UiSchemaDTO uiSchemaDTO, String langCode) {
 
 		boolean isLocalLanguageField = node.getId().contains(RegistrationConstants.LOCAL_LANGUAGE);
 
@@ -349,7 +349,7 @@ public class Validations extends BaseController {
 		if(!isNonBlacklisted)
 			return false;
 
-		String regex = getRegex(fieldId, RegistrationUIConstants.REGEX_TYPE);
+		String regex = getRegex(fieldId, RegistrationUIConstants.REGEX_TYPE, langCode);
 		if(!isLocalLanguageField && regex != null && !value.matches(regex)) {
 			generateInvalidValueAlert(parentPane, node.getId(), getFromLabelMap(fieldId).concat(RegistrationConstants.SPACE)
 					.concat(messageBundle.getString(RegistrationConstants.REG_DDC_004)), showAlert);
@@ -603,8 +603,8 @@ public class Validations extends BaseController {
 	 * @param id    the id of the UI field whose value is provided as input
 	 * @return <code>true</code>, if successful, else <code>false</code>
 	 */
-	public boolean validateSingleString(String value, String id) {
-		String regex = getRegex(id, RegistrationUIConstants.REGEX_TYPE);
+	public boolean validateSingleString(String value, String id, String langCode) {
+		String regex = getRegex(id, RegistrationUIConstants.REGEX_TYPE, langCode);
 		return regex != null ? value.matches(regex) : true;
 	}
 
@@ -643,11 +643,11 @@ public class Validations extends BaseController {
 	}
 
 
-	private String getRegex(String fieldId, String regexType) {
+	private String getRegex(String fieldId, String regexType, String langCode) {
 		UiSchemaDTO uiSchemaDTO = getValidationMap().get(fieldId);
 		if (uiSchemaDTO != null && uiSchemaDTO.getValidators() != null) {
 			Optional<Validator> validator = uiSchemaDTO.getValidators().stream()
-					.filter(v -> v.getType().equalsIgnoreCase(regexType)).findFirst();
+					.filter(v -> v.getType().equalsIgnoreCase(regexType) && (v.getLangCode() != null ? v.getLangCode().equalsIgnoreCase(langCode) : true)).findFirst();
 			if (validator.isPresent())
 				return validator.get().getValidator();
 		}
