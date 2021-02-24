@@ -26,6 +26,7 @@ import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.core.util.RegistrationExceptionMapperUtil;
 import io.mosip.registration.processor.packet.manager.decryptor.Decryptor;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.stages.utils.AuditUtility;
@@ -111,7 +112,7 @@ public class PacketValidateProcessorTest {
 	private AuditUtility auditUtility;
 
 	@Mock
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	@Mock
 	private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
@@ -248,7 +249,7 @@ public class PacketValidateProcessorTest {
 		jsonObject1.put("preRegistrationId", "12345");
 		jsonArray.put(0, jsonObject1);
 		metamap.put(JsonConstant.METADATA, jsonArray.toString());
-		Mockito.when(packetManagerService.getMetaInfo(anyString(), any())).thenReturn(metamap);
+		Mockito.when(packetManagerService.getMetaInfo(anyString(), any(), any())).thenReturn(metamap);
 
 		Mockito.when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(new FieldValue("preRegistrationId", "12345"));
 

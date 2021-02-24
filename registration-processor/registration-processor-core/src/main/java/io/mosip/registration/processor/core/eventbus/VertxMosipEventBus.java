@@ -66,7 +66,7 @@ public class VertxMosipEventBus implements MosipEventBus {
 			EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler) {
 		vertx.eventBus().consumer(fromAddress.getAddress(), msg -> {
 			EventDTO eventDTO = new EventDTO();
-			eventDTO.setBody((JsonObject) msg.body());
+			eventDTO.setBody(new JsonObject((String)msg.body()));
 			eventHandler.handle(eventDTO, res -> {
 				if (!res.succeeded()) {
 					logger.error("Event handling failed ",res.cause());
@@ -87,7 +87,7 @@ public class VertxMosipEventBus implements MosipEventBus {
 			EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler) {
 		vertx.eventBus().consumer(fromAddress.getAddress(), msg -> {
 			EventDTO eventDTO = new EventDTO();
-			eventDTO.setBody((JsonObject) msg.body());
+			eventDTO.setBody(new JsonObject((String) msg.body()));
 			eventHandler.handle(eventDTO, res -> {
 				if (!res.succeeded()) {
 					logger.error("Event handling failed ",res.cause());
@@ -95,7 +95,7 @@ public class VertxMosipEventBus implements MosipEventBus {
 					MessageDTO messageDTO = res.result();
 					MessageBusAddress messageBusToAddress = new MessageBusAddress(toAddress, messageDTO.getReg_type());
 					JsonObject jsonObject = JsonObject.mapFrom(messageDTO);
-					vertx.eventBus().send(messageBusToAddress.getAddress(), jsonObject);
+					vertx.eventBus().send(messageBusToAddress.getAddress(), jsonObject.toString());
 				}
 				MDCHelper.clearMDC();
 			});
@@ -113,7 +113,7 @@ public class VertxMosipEventBus implements MosipEventBus {
 		MessageBusAddress messageBusAddress = new MessageBusAddress(toAddress, message.getReg_type());
 		JsonObject jsonObject = JsonObject.mapFrom(message);
 		logger.debug("send called with toAddress {} for message {}",messageBusAddress.getAddress(), jsonObject.toString());
-		this.vertx.eventBus().send(messageBusAddress.getAddress(), jsonObject);
+		this.vertx.eventBus().send(messageBusAddress.getAddress(), jsonObject.toString());
 	}
 
 }

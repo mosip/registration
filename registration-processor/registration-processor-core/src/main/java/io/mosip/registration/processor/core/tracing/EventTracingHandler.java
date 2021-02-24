@@ -110,7 +110,7 @@ public class EventTracingHandler {
     public void readHeaderOnConsume(EventBus eventBus) {
         eventBus.addInboundInterceptor(deliveryContext -> {
             Span span = nextSpan(deliveryContext.message());
-            JsonObject body = (JsonObject) deliveryContext.message().body();
+            JsonObject body = new JsonObject((String) deliveryContext.message().body());
             initializeContextWithTracing(span, body == null ? "-" : (body.getString("rid", "-")));
             MDCHelper.addHeadersToMDC();
             deliveryContext.next();
@@ -123,7 +123,7 @@ public class EventTracingHandler {
             Span span = (tracer instanceof TracingHandler) ? ((TracingHandler)tracer).span : (Span)tracer;
             if(span == null) {
                 span = nextSpan(deliveryContext.message());
-                JsonObject body = (JsonObject) deliveryContext.message().body();
+                JsonObject body = new JsonObject((String) deliveryContext.message().body());
                 initializeContextWithTracing(span, body == null ? "-" : (body.getString("rid", "-")));
                 MDCHelper.addHeadersToMDC();
             }

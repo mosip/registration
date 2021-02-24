@@ -343,12 +343,12 @@ public class DemographicDetailController extends BaseController {
 		preRegParentPane.setDisable(true);
 	}
 
-	private boolean isAppLangAndLocalLangSame() {
+	public boolean isAppLangAndLocalLangSame() {
 
 		return primaryLanguage.equals(secondaryLanguage);
 	}
 
-	private boolean isLocalLanguageAvailable() {
+	public boolean isLocalLanguageAvailable() {
 
 		return secondaryLanguage != null && !secondaryLanguage.isEmpty();
 	}
@@ -458,18 +458,18 @@ public class DemographicDetailController extends BaseController {
 				: applicationLabelBundle.getString(type) + mandatorySuffix);
 		textField.setPromptText(label.getText());
 
-		textField.textProperty().addListener((ob, ov, nv) -> {
-			fxUtils.showLabel(parentFlowPane, textField);
-			if(!dateValidation.isNewValueValid(nv, type)) {
-				textField.setText(ov);
-			}
-			boolean isValid = RegistrationConstants.AGE_FIELD.equalsIgnoreCase(type) ?
-					dateValidation.validateAge(parentFlowPane, textField) :
-					dateValidation.validateDate(parentFlowPane, schema.getId());
-			if(isValid) {
-				refreshDemographicGroups();
-			}
-		});
+//		textField.textProperty().addListener((ob, ov, nv) -> {
+//			fxUtils.showLabel(parentFlowPane, textField);
+//			if(!dateValidation.isNewValueValid(nv, type)) {
+//				textField.setText(ov);
+//			}
+//			boolean isValid = RegistrationConstants.AGE_FIELD.equalsIgnoreCase(type) ?
+//					dateValidation.validateAge(parentFlowPane, textField) :
+//					dateValidation.validateDate(parentFlowPane, schema.getId());
+//			if(isValid) {
+//				refreshDemographicGroups();
+//			}
+//		});
 
 		putIntoLabelMap(schema.getId() + "__" + type + languageType,
 				schema.getLabel().get(RegistrationConstants.LOCAL_LANGUAGE.equals(languageType) ?
@@ -1232,7 +1232,7 @@ public class DemographicDetailController extends BaseController {
 	 * Setting the focus to specific fields when keyboard loads
 	 *
 	 */
-	private void setFocusonLocalField(MouseEvent event) {
+	public void setFocusonLocalField(MouseEvent event) {
 		try {
 			Node node = (Node) event.getSource();
 			if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
@@ -1318,13 +1318,13 @@ public class DemographicDetailController extends BaseController {
 			if (selectedLocationHierarchy != null) {
 				destLocationHierarchy.getItems().clear();
 
-				if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
+				if (isLocalLanguageAvailable() && destLocationHierarchyInLocal != null) {
 					destLocationHierarchyInLocal.getItems().clear();
 				}
 				if (selectedLocationHierarchy.getCode().equalsIgnoreCase(RegistrationConstants.AUDIT_DEFAULT_USER)) {
 					destLocationHierarchy.getItems().add(selectedLocationHierarchy);
 
-					if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
+					if (isLocalLanguageAvailable() && destLocationHierarchyInLocal != null) {
 						destLocationHierarchyInLocal.getItems().add(selectedLocationHierarchy);
 					}
 				} else {
@@ -1339,7 +1339,7 @@ public class DemographicDetailController extends BaseController {
 						lC.setLangCode(ApplicationContext.applicationLanguage());
 						destLocationHierarchy.getItems().add(lC);
 
-						if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
+						if (isLocalLanguageAvailable() && destLocationHierarchyInLocal != null) {
 							destLocationHierarchyInLocal.getItems().add(lC);
 						}
 					} else {

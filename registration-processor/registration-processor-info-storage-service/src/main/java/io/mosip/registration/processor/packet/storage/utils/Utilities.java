@@ -13,6 +13,7 @@ import java.util.*;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.packet.storage.dto.ConfigEnum;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -160,7 +161,7 @@ public class Utilities {
 	private PacketInfoDao packetInfoDao;
 
 	@Autowired
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	/** The registration status dao. */
 	@Autowired
@@ -205,7 +206,7 @@ public class Utilities {
 	
 	private static final String VALUE = "value";
 
-	private String mappingJsonString = null;
+	private JSONObject mappingJsonObject = null;
 
 	public static void initialize(Map<String, String> reader, Map<String, String> writer) {
 		readerConfiguration = reader;
@@ -242,13 +243,13 @@ public class Utilities {
 	 *             the packet decryption failure exception
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	public int getApplicantAge(String id, String process) throws IOException,
+	public int getApplicantAge(String id, String process, ProviderStageName stageName) throws IOException,
 			ApisResourceAccessException, JsonProcessingException, PacketManagerException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				id, "Utilities::getApplicantAge()::entry");
 
-		String applicantDob = packetManagerService.getFieldByKey(id, MappingJsonConstants.DOB, process);
-	    String applicantAge = packetManagerService.getFieldByKey(id, MappingJsonConstants.AGE, process);
+		String applicantDob = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.DOB, process, stageName);
+	    String applicantAge = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.AGE, process, stageName);
 		if (applicantDob != null) {
 			return calculateAge(applicantDob);
 		} else if (applicantAge != null) {
@@ -256,7 +257,7 @@ public class Utilities {
 					id, "Utilities::getApplicantAge()::exit when applicantAge is not null");
 			return Integer.valueOf(applicantAge);
 		} else {
-			String uin = getUIn(id, process);
+			String uin = getUIn(id, process, stageName);
 			JSONObject identityJSONOject = retrieveIdrepoJson(uin);
 			JSONObject regProcessorIdentityJson = getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 			String ageKey = JsonUtil.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.AGE), VALUE);
@@ -466,12 +467,14 @@ public class Utilities {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"Utilities::getRegistrationProcessorMappingJson()::entry");
 
-		mappingJsonString = (mappingJsonString != null && !mappingJsonString.isEmpty()) ?
-				mappingJsonString : Utilities.getJson(configServerFileStorageURL, getRegProcessorIdentityJson);
-		ObjectMapper mapIdentityJsonStringToObject = new ObjectMapper();
+		if (mappingJsonObject == null) {
+			String mappingJsonString = Utilities.getJson(configServerFileStorageURL, getRegProcessorIdentityJson);
+			mappingJsonObject = objMapper.readValue(mappingJsonString, JSONObject.class);
+
+		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"Utilities::getRegistrationProcessorMappingJson()::exit");
-		return JsonUtil.getJSONObject(mapIdentityJsonStringToObject.readValue(mappingJsonString, JSONObject.class), packetSegment);
+		return JsonUtil.getJSONObject(mappingJsonObject, packetSegment);
 
 	}
 
@@ -501,10 +504,10 @@ public class Utilities {
 	 *             the apis resource access exception
 	 * @throws RegistrationProcessorCheckedException
 	 */
-	public String getUIn(String id, String process) throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
+	public String getUIn(String id, String process, ProviderStageName stageName) throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				id, "Utilities::getUIn()::entry");
-		String UIN = packetManagerService.getFieldByKey(id, MappingJsonConstants.UIN, process);
+		String UIN = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.UIN, process, stageName);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				id, "Utilities::getUIn()::exit");
 

@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -75,6 +76,9 @@ public class PacketClassificationProcessorTest {
 	private PacketManagerService packetManagerService;
 
 	@Mock
+	private PriorityBasedPacketManagerService priorityBasedPacketManagerService;
+
+	@Mock
 	private SyncRegistrationService<SyncResponseDto, SyncRegistrationDto> syncRegistrationService;
 
 	@Mock
@@ -120,7 +124,7 @@ public class PacketClassificationProcessorTest {
 
 		Map<String, String> fieldMap = new HashMap<>();
 		fieldMap.put(IDSchemaVersionLabel, "0.1");
-		Mockito.when(packetManagerService.getFields(any(), any(), any())).thenReturn(fieldMap);
+		Mockito.when(priorityBasedPacketManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 
 		Map<String, String> fieldTypeMap = new HashMap<>();
 		fieldTypeMap.put("gender", "simpleType");

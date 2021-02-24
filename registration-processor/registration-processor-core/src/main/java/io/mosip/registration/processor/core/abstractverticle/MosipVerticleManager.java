@@ -3,24 +3,39 @@ package io.mosip.registration.processor.core.abstractverticle;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.packet.dto.packetmanager.InfoRequestDto;
+import io.mosip.registration.processor.core.packet.dto.packetmanager.InfoResponseDto;
+
 import org.slf4j.MDC;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.UrlXmlConfig;
 
+import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.eventbus.MosipEventBusFactory;
 import io.mosip.registration.processor.core.exception.DeploymentFailureException;
 import io.mosip.registration.processor.core.exception.UnsupportedEventBusTypeException;
+import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
+import io.mosip.registration.processor.core.exception.PacketManagerException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
+import io.mosip.registration.processor.core.http.RequestWrapper;
+import io.mosip.registration.processor.core.http.ResponseWrapper;
 import io.mosip.registration.processor.core.spi.eventbus.EventBusManager;
+import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Verticle;
@@ -47,11 +62,23 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	/** The logger. */
 	private Logger logger = RegProcessorLogger.getLogger(MosipVerticleManager.class);
 
+	private static final String ID = "mosip.commmons.packetmanager";
+    private static final String VERSION = "v1";
+
+    @Autowired
+    private RegistrationProcessorRestClientService<Object> restApi;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
 	@Value("${mosip.regproc.eventbus.type:vertx}")
 	private String eventBusType;
 
 	@Value("${eventbus.port}")
 	private String eventBusPort;
+
+	@Value("${mosip.regproc.message.tag.loading.disable:false}")
+	private Boolean disableTagLoading;
 
 	@Autowired
 	private MosipEventBusFactory mosipEventBusFactory;
@@ -133,6 +160,8 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 				JsonObject jsonObject = (JsonObject) msg.getBody();
 				MessageDTO messageDTO = jsonObject.mapTo(MessageDTO.class);
 				MessageDTO result = process(messageDTO);
+				if(result.getTags() == null)
+					addTagsToMessageDTO(result);
 				future.complete(result);
 			}, false, handler);
 			MDC.clear();
@@ -150,6 +179,8 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	 *            The message that needs to be sent
 	 */
 	public void send(MosipEventBus mosipEventBus, MessageBusAddress toAddress, MessageDTO message) {
+		if(message.getTags() == null)
+			addTagsToMessageDTO(message);
 		mosipEventBus.send(toAddress, message);
 	}
 
@@ -188,5 +219,43 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	protected void setMosipEventBusFactory(MosipEventBusFactory mosipEventBusFactory) {
 		this.mosipEventBusFactory = mosipEventBusFactory;
 	}
+
+	private void addTagsToMessageDTO(MessageDTO messageDTO) {
+		if(disableTagLoading) {
+			messageDTO.setTags(new HashMap<>());
+			return;
+		}
+		try {
+			messageDTO.setTags(getTagsFromPacket(messageDTO.getRid()));
+		} catch (ApisResourceAccessException | PacketManagerException | 
+				JsonProcessingException | IOException e) {
+			logger.error(PlatformErrorMessages.RPR_SYS_PACKET_TAGS_COPYING_FAILED.getCode() + 
+				" -- " + PlatformErrorMessages.RPR_SYS_PACKET_TAGS_COPYING_FAILED.getMessage() + 
+				e.getMessage() + ExceptionUtils.getStackTrace(e));
+			messageDTO.setInternalError(true);
+		}
+	}
+
+	private Map<String, String> getTagsFromPacket(String id) throws ApisResourceAccessException, 
+			PacketManagerException, JsonProcessingException, IOException {
+        InfoRequestDto infoRequestDto = new InfoRequestDto(id);
+
+        RequestWrapper<InfoRequestDto> request = new RequestWrapper<>();
+        request.setId(ID);
+        request.setVersion(VERSION);
+        request.setRequesttime(DateUtils.getUTCCurrentDateTime());
+        request.setRequest(infoRequestDto);
+        ResponseWrapper<InfoResponseDto> response = (ResponseWrapper) restApi.postApi(
+			ApiName.PACKETMANAGER_INFO, "", "", request, ResponseWrapper.class);
+
+        if (response.getErrors() != null && response.getErrors().size() > 0) {
+			throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), 
+				response.getErrors().get(0).getMessage());
+        }
+
+        InfoResponseDto infoResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(
+			response.getResponse()), InfoResponseDto.class);
+		return infoResponseDto.getTags();
+    }
 
 }

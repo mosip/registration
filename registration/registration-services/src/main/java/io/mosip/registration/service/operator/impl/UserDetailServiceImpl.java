@@ -12,32 +12,35 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
-import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.registration.dto.*;
-import io.mosip.registration.dto.packetmanager.BiometricsDto;
-import io.mosip.registration.entity.UserDetail;
+import java.util.stream.Collectors;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dao.UserDetailDAO;
+import io.mosip.registration.dto.ErrorResponseDTO;
+import io.mosip.registration.dto.ResponseDTO;
+import io.mosip.registration.dto.SuccessResponseDTO;
+import io.mosip.registration.dto.UserDetailDto;
+import io.mosip.registration.entity.UserDetail;
+import io.mosip.registration.entity.UserRole;
+import io.mosip.registration.entity.id.UserRoleId;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.operator.UserDetailService;
-import io.mosip.registration.service.operator.UserOnboardService;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 
 /**
@@ -51,9 +54,6 @@ public class UserDetailServiceImpl extends BaseService implements UserDetailServ
 
 	@Autowired
 	private UserDetailDAO userDetailDAO;
-
-	@Autowired
-	private UserOnboardService userOnboardService;
 
 	@Autowired
 	private ClientCryptoFacade clientCryptoFacade;
@@ -248,6 +248,22 @@ public class UserDetailServiceImpl extends BaseService implements UserDetailServ
 		} else {
 			return true;
 		}
-
+	}
+	
+	@Override
+	public List<UserDetail> getAllUsers() {
+		LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
+				"Get All Users from UserDetail");
+		return userDetailDAO.getAllUsers();
+	}
+	
+	@Override
+	public List<String> getUserRoleByUserId(String userId) {
+		LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
+				"Finding role for the UserID : " + userId);
+		
+		List<UserRole> userRoles = userDetailDAO.getUserRoleByUserId(userId);
+		List<UserRoleId> userRoleIdList = userRoles.stream().map(UserRole::getUserRoleId).collect(Collectors.toList());
+		return userRoleIdList.stream().map(UserRoleId::getRoleCode).collect(Collectors.toList());	
 	}
 }

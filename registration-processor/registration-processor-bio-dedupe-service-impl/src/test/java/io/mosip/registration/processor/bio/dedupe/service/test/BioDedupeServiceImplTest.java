@@ -29,6 +29,7 @@ import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessor
 import io.mosip.registration.processor.core.util.JsonUtil;
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import org.apache.commons.io.IOUtils;
@@ -109,7 +110,7 @@ public class BioDedupeServiceImplTest {
 	private ClassLoader classLoader;
 
 	@Mock
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService packetManagerService;
 
 	@Mock
 	private CbeffUtil cbeffutil;

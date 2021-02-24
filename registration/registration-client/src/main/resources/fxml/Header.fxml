@@ -190,6 +190,8 @@
                      <items>
                      	<MenuItem fx:id="userGuide" mnemonicParsing="false" onAction="#userGuide" text="%userGuide" />
                         <SeparatorMenuItem />
+                        <MenuItem fx:id="resetPword" mnemonicParsing="false" onAction="#resetPword" text="%resetPassword" />
+                        <SeparatorMenuItem />
                         <MenuItem fx:id="logout" mnemonicParsing="false" onAction="#logout" text="%logout" />
                      </items>
                   </Menu>
