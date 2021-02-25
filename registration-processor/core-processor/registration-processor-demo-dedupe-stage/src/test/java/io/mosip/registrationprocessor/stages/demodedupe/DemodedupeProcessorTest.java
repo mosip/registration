@@ -319,7 +319,7 @@ public class DemodedupeProcessorTest {
 		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
 		byte[] b = "sds".getBytes();
 		List<DemographicInfoDto> emptyDuplicateDtoSet = new ArrayList<>();
-		Mockito.when(utility.getApplicantAge(anyString(),anyString())).thenReturn(20);
+		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
@@ -344,7 +344,7 @@ public class DemodedupeProcessorTest {
 		IdentityJsonValues identityJsonValues = new IdentityJsonValues();
 		identityJsonValues.setValue("fullName");
 		when(utility.getDefaultSource(any(), any())).thenReturn(source);
-		Mockito.when(utility.getUIn(anyString(), anyString())).thenReturn("2345");
+		Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn("2345");
 
 		JSONArray arr = new JSONArray();
 		arr.add("name");
@@ -363,7 +363,7 @@ public class DemodedupeProcessorTest {
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(b);
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatus);
 		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(emptyDuplicateDtoSet);
-		Mockito.when(packetInfoManager.getIdentityKeysAndFetchValuesFromJSON(any(),any())).thenReturn(individualDemoDedupe);
+		Mockito.when(packetInfoManager.getIdentityKeysAndFetchValuesFromJSON(any(),any(),any())).thenReturn(individualDemoDedupe);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
 	}
@@ -377,7 +377,7 @@ public class DemodedupeProcessorTest {
 		IdentityJsonValues identityJsonValues = new IdentityJsonValues();
 		identityJsonValues.setValue("fullName");
 		when(utility.getDefaultSource(any(),any())).thenReturn(source);
-		Mockito.when(utility.getUIn(anyString(), anyString())).thenReturn("2345");
+		Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn("2345");
 		
 		Mockito.when(utility.retrieveIdrepoJson(any())).thenReturn(null);
 
@@ -391,7 +391,7 @@ public class DemodedupeProcessorTest {
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(b);
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatus);
 		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(emptyDuplicateDtoSet);
-		Mockito.when(packetInfoManager.getIdentityKeysAndFetchValuesFromJSON(any(),any())).thenReturn(individualDemoDedupe);
+		Mockito.when(packetInfoManager.getIdentityKeysAndFetchValuesFromJSON(any(),any(),any())).thenReturn(individualDemoDedupe);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertFalse(messageDto.getIsValid());
 	}
@@ -406,7 +406,7 @@ public class DemodedupeProcessorTest {
 		IdentityJsonValues identityJsonValues = new IdentityJsonValues();
 		identityJsonValues.setValue("fullName");
 		when(utility.getDefaultSource(any(),any())).thenReturn(source);
-		Mockito.when(utility.getUIn(anyString(), anyString())).thenReturn("2345");
+		Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn("2345");
 
 		JSONArray arr = new JSONArray();
 		arr.add("name");
@@ -439,7 +439,7 @@ public class DemodedupeProcessorTest {
 		demographicData.setGender(null);
 		demographicData.setPhone(null);
 		demographicData.setEmail(null);
-		Mockito.when(packetInfoManager.getIdentityKeysAndFetchValuesFromJSON(any(),any())).thenReturn(demographicData);
+		Mockito.when(packetInfoManager.getIdentityKeysAndFetchValuesFromJSON(any(),any(), any())).thenReturn(demographicData);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
 	}
@@ -449,7 +449,7 @@ public class DemodedupeProcessorTest {
 	public void testDemoDedupeSuccessNotDuplicateAfterAuth() throws Exception {
 
 		byte[] b = "sds".getBytes();
-		Mockito.when(utility.getApplicantAge(anyString(),anyString())).thenReturn(20);
+		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
@@ -493,7 +493,7 @@ public class DemodedupeProcessorTest {
 		registrationStatusDto.setRegistrationType(RegistrationType.NEW.toString());
 		Mockito.when(registrationStatusDao.findById(any())).thenReturn(entity);
 		Mockito.when(packetInfoManager.getAbisResponseRecords(anyString(), anyString())).thenReturn(abisResponseDtos);
-		Mockito.when(utility.getApplicantAge(anyString(),anyString())).thenReturn(20);
+		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
 		assertTrue(messageDto.getIsValid());
@@ -534,7 +534,7 @@ public class DemodedupeProcessorTest {
 		Mockito.when(packetInfoManager.getAbisResponseDetRecordsList(any())).thenReturn(abisResponseDetDtos);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), any())).thenReturn(matchedRegIds);
 		doNothing().when(packetInfoManager).saveManualAdjudicationData(anyList(), anyString(), any(), any(), any(),null,null);
-		Mockito.when(utility.getApplicantAge(anyString(),anyString())).thenReturn(20);
+		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getIsValid());
@@ -573,7 +573,7 @@ public class DemodedupeProcessorTest {
 		Mockito.when(packetInfoManager.getAbisResponseDetRecordsList(any())).thenReturn(abisResponseDetDtos);
 		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(), any(), any())).thenReturn(matchedRegIds);
 		doNothing().when(packetInfoManager).saveManualAdjudicationData(anyList(), anyString(), any(), any(), any(),null,null);
-		Mockito.when(utility.getApplicantAge(anyString(),anyString())).thenReturn(20);
+		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getIsValid());
@@ -603,7 +603,7 @@ public class DemodedupeProcessorTest {
 		registrationStatusDto.setRegistrationType(RegistrationType.NEW.toString());
 		Mockito.when(registrationStatusDao.findById(any())).thenReturn(entity);
 		Mockito.when(packetInfoManager.getAbisResponseRecords(anyString(), anyString())).thenReturn(abisResponseDtos);
-		Mockito.when(utility.getApplicantAge(anyString(),anyString())).thenReturn(20);
+		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getIsValid());
@@ -634,7 +634,7 @@ public class DemodedupeProcessorTest {
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(RegistrationType.NEW.toString());
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		registrationStatusDto.setRetryCount(3);
-		Mockito.when(utility.getApplicantAge(anyString(),anyString())).thenReturn(20);
+		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		demodedupeProcessor.process(dto, stageName);
 
 	}
@@ -661,14 +661,14 @@ public class DemodedupeProcessorTest {
 
 		List<DemographicInfoDto> emptyDuplicateDtoSet = new ArrayList<>();
 		when(utility.getDefaultSource(any(),any())).thenReturn(source);
-		Mockito.when(utility.getApplicantAge(anyString(),anyString())).thenReturn(20);
+		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
 		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(emptyDuplicateDtoSet);
 		when(utility.getDefaultSource(any(), any())).thenReturn(source);
 		ApisResourceAccessException exp = new ApisResourceAccessException("errorMessage");
-		Mockito.doThrow(exp).when(utility).getApplicantAge(anyString(),anyString());
+		Mockito.doThrow(exp).when(utility).getApplicantAge(anyString(),anyString(), any());
 
 
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
@@ -684,7 +684,7 @@ public class DemodedupeProcessorTest {
 		Mockito.doThrow(exp).when(abisHandlerUtil).getPacketStatus(any());
 		registrationStatusDto.setRegistrationType(RegistrationType.NEW.toString());
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
-		Mockito.when(utility.getApplicantAge(anyString(),anyString())).thenReturn(20);
+		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertEquals(true, messageDto.getInternalError());
 	}
@@ -696,7 +696,7 @@ public class DemodedupeProcessorTest {
 		Mockito.doThrow(exp).when(abisHandlerUtil).getPacketStatus(any());
 		registrationStatusDto.setRegistrationType(RegistrationType.NEW.toString());
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
-		Mockito.when(utility.getApplicantAge(anyString(),anyString())).thenReturn(20);
+		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertEquals(true, messageDto.getInternalError());
 	}
@@ -719,7 +719,7 @@ public class DemodedupeProcessorTest {
 		PowerMockito.when(IOUtils.class, "toByteArray", inputStream).thenReturn(b);
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
-		Mockito.when(utility.getApplicantAge(anyString(),anyString())).thenReturn(20);
+		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
 
@@ -743,7 +743,7 @@ public class DemodedupeProcessorTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(any())).thenReturn(registrationStatusDto);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.PRE_ABIS_IDENTIFICATION);
 		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(duplicateDtos);
-		Mockito.when(utility.getApplicantAge(anyString(),anyString())).thenReturn(20);
+		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertFalse(messageDto.getIsValid());
 
@@ -769,7 +769,7 @@ public class DemodedupeProcessorTest {
 		Mockito.when(demoDedupe.performDedupe(anyString())).thenReturn(duplicateDtos);
 		NullPointerException exp=new NullPointerException();
 		Mockito.doThrow(exp).when(packetInfoManager).saveDemoDedupePotentialData(any(),anyString(),anyString());
-		Mockito.when(utility.getApplicantAge(anyString(),anyString())).thenReturn(20);
+		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(20);
 		MessageDTO messageDto = demodedupeProcessor.process(dto, stageName);
 		assertFalse(messageDto.getIsValid());
 
@@ -780,7 +780,7 @@ public class DemodedupeProcessorTest {
 		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
 		byte[] b = "sds".getBytes();
 		List<DemographicInfoDto> emptyDuplicateDtoSet = new ArrayList<>();
-		Mockito.when(utility.getApplicantAge(anyString(),anyString())).thenReturn(2);
+		Mockito.when(utility.getApplicantAge(anyString(),anyString(), any())).thenReturn(2);
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
@@ -800,7 +800,7 @@ public class DemodedupeProcessorTest {
 		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("false");
 		byte[] b = "sds".getBytes();
 		List<DemographicInfoDto> emptyDuplicateDtoSet = new ArrayList<>();
-		Mockito.when(utility.getApplicantAge(any(),any())).thenReturn(20);
+		Mockito.when(utility.getApplicantAge(any(),any(), any())).thenReturn(20);
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)
@@ -820,7 +820,7 @@ public class DemodedupeProcessorTest {
 		when(env.getProperty(DEMODEDUPEENABLE)).thenReturn("true");
 		byte[] b = "sds".getBytes();
 		List<DemographicInfoDto> emptyDuplicateDtoSet = new ArrayList<>();
-		Mockito.when(utility.getApplicantAge(any(),any())).thenReturn(20);
+		Mockito.when(utility.getApplicantAge(any(), any(), any())).thenReturn(20);
 		PowerMockito.mockStatic(JsonUtil.class);
 		PowerMockito.mockStatic(IOUtils.class);
 		PowerMockito.when(JsonUtil.class, "inputStreamtoJavaObject", inputStream, PacketMetaInfo.class)

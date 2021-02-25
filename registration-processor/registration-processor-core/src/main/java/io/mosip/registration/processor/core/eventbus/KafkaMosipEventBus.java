@@ -9,6 +9,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import brave.Span;
+import io.mosip.registration.processor.core.tracing.EventTracingHandler;
+import io.mosip.registration.processor.core.tracing.TracingConstant;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 
@@ -25,8 +28,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.kafka.client.common.TopicPartition;
 import io.vertx.kafka.client.consumer.KafkaConsumer;
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
@@ -35,6 +36,9 @@ import io.vertx.kafka.client.consumer.OffsetAndMetadata;
 import io.vertx.kafka.client.consumer.impl.KafkaConsumerRecordsImpl;
 import io.vertx.kafka.client.producer.KafkaProducer;
 import io.vertx.kafka.client.producer.KafkaProducerRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 /**
  * Implementation of MosipEventBus interface for Kafka based event bus
@@ -57,6 +61,8 @@ public class KafkaMosipEventBus implements MosipEventBus {
 
 	private int pollFrequency;
 
+	private EventTracingHandler eventTracingHandler;
+
 	/**
 	 * Instantiates a new kafka mosip event bus.
 	 *
@@ -69,14 +75,16 @@ public class KafkaMosipEventBus implements MosipEventBus {
 	 *                         consumer, supported types: auto, batch and single
 	 * @param maxPollRecords   Maximum records that can be received in one poll to kafka
 	 * @param pollFrequency    Interval between each poll calls to kafka in milli sec
+	 * @param eventTracingHandler
 	 */
-	public KafkaMosipEventBus(Vertx vertx, String bootstrapServers, String groupId, 
-			String commitType, String maxPollRecords, int pollFrequency) {
+	public KafkaMosipEventBus(Vertx vertx, String bootstrapServers, String groupId,
+			String commitType, String maxPollRecords, int pollFrequency, EventTracingHandler eventTracingHandler) {
 
 		validateCommitType(commitType);
 		this.vertx = vertx;
 		this.commitType = commitType;
 		this.pollFrequency = pollFrequency;
+		this.eventTracingHandler = eventTracingHandler;
 
 		Map<String, String> consumerConfig = new HashMap<>();
 		consumerConfig.put("bootstrap.servers", bootstrapServers);
@@ -102,8 +110,8 @@ public class KafkaMosipEventBus implements MosipEventBus {
 		producerConfig.put("acks", "1");
 		this.kafkaProducer = KafkaProducer.create(vertx, producerConfig);
 
-		logger.info("KafkaMosipEventBus loaded with configuration: bootstrapServers:" + 
-			bootstrapServers + " groupId:" + groupId + " commitType:" + commitType);
+		logger.info("KafkaMosipEventBus loaded with configuration: bootstrapServers: {} groupId: {} commitType: {}",
+				bootstrapServers , groupId , commitType);
 	}
 
 	/*
@@ -126,7 +134,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 	@Override
 	public void consume(MessageBusAddress fromAddress,
 			EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler) {
-		logger.info("consume called with fromAddress " + fromAddress.getAddress());
+		logger.info("consume called with fromAddress {}", fromAddress.getAddress());
 		kafkaConsumer.subscribe(fromAddress.getAddress());
 		poll(null, eventHandler);
 	}
@@ -140,8 +148,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 	@Override
 	public void consumeAndSend(MessageBusAddress fromAddress, MessageBusAddress toAddress,
 			EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler) {
-		logger.info("consumeAndSend called with fromAddress " + fromAddress.getAddress() + 
-			" and toAddress " + toAddress.getAddress());
+		logger.info("consumeAndSend called with fromAddress {} and toAddress {}", fromAddress.getAddress(), toAddress.getAddress());
 		kafkaConsumer.subscribe(fromAddress.getAddress());
 		poll(toAddress, eventHandler);
 	}
@@ -157,30 +164,34 @@ public class KafkaMosipEventBus implements MosipEventBus {
 		MessageBusAddress messageBusAddress = 
 			new MessageBusAddress(toAddress, message.getReg_type());
 		JsonObject jsonObject = JsonObject.mapFrom(message);
-		logger.debug("send called with toAddress " + toAddress.getAddress() + 
-			" for message " + jsonObject.toString());
+		logger.info("send called with toAddress {}, for message {}", toAddress.getAddress(), jsonObject);
 		KafkaProducerRecord<String, String> producerRecord = 
 			KafkaProducerRecord.create(messageBusAddress.getAddress(), message.getRid(), 
 				jsonObject.toString());
-  		kafkaProducer.write(producerRecord);
+		this.eventTracingHandler.writeHeaderOnKafkaProduce(producerRecord);
+		Map<String, String> mdc = MDC.getCopyOfContextMap();
+  		kafkaProducer.write(producerRecord, handler -> {
+			MDC.setContextMap(mdc);
+  			if(handler.failed())
+				logger.error("Failed kafkaProducer.write {} ", handler.result(), handler.cause());
+  			else
+				logger.info("Success kafkaProducer.write {} ", handler.result());
+  			MDC.clear();
+		});
 	}
 
 	private void poll(MessageBusAddress toAddress,
 			EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler) {
 		this.kafkaConsumer.poll(100, pollResult -> {
 			KafkaConsumerRecords<String, String> kafkaConsumerRecords = pollResult.result();
-			if (kafkaConsumerRecords.size() == 0)
-				logger.debug("Records size is zero");
-			else
-				logger.debug("Records size is "+kafkaConsumerRecords.size());
+			logger.debug("Records size is {}", kafkaConsumerRecords.size());
 
 			Set<org.apache.kafka.common.TopicPartition> topicPartitions = 
 				kafkaConsumerRecords.records().partitions();
 			topicPartitions.forEach(topicPartition -> {
 				KafkaConsumerRecords<String, String> consumerRecords = 
 					getPartitionKafkaConsumerRecords(topicPartition, kafkaConsumerRecords);
-				logger.debug("Partition: " + topicPartition.partition() + 
-					" recordSize: " + consumerRecords.size());
+				logger.debug("Partition: {} recordSize: {}", topicPartition.partition(), consumerRecords.size());
 
 				Future<Void> processingFuture = null;
 				if(this.commitType.equals("single"))
@@ -194,10 +205,10 @@ public class KafkaMosipEventBus implements MosipEventBus {
 						toAddress, eventHandler);
 
 				processingFuture.onSuccess(any -> {
-					logger.debug(consumerRecords.size() + " messages processed for partition: " + 
+					logger.debug("{} messages processed for partition: {}", consumerRecords.size(),
 						topicPartition.partition());
 				}).onFailure(cause ->  {
-					logger.debug("Error persisting and committing messages: " + cause);
+					logger.error("Error persisting and committing messages: ", cause);
 				});
 			});
 
@@ -256,9 +267,8 @@ public class KafkaMosipEventBus implements MosipEventBus {
 				Promise<Void> commitPromise = Promise.promise();
 				kafkaConsumer.commit(
 					getTopicPartitionOffsetMap(vertxTopicPartition, commitOffset), result -> {
-					logger.debug("Commit status for partition:" + 
-						vertxTopicPartition.getPartition() + " offset: " + commitOffset + 
-						" status: " + result.succeeded()); 
+					logger.debug("Commit status for partition: {} offset: {} status: {}",
+						vertxTopicPartition.getPartition(), commitOffset , result.succeeded());
 					if(result.succeeded())
 						resumePartition(vertxTopicPartition, commitPromise);
 					else
@@ -295,15 +305,16 @@ public class KafkaMosipEventBus implements MosipEventBus {
 	Future<Void> processRecord(MessageBusAddress toAddress,
 			EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler,
 		KafkaConsumerRecord<String, String> record, boolean commitRecord) {
-		logger.debug("Processing key=" + record.key() + ",value=" + record.value() +
-				",partition=" + record.partition() + ",offset=" + record.offset());
-
+		Span span = this.eventTracingHandler.readHeaderOnKafkaConsume(record);
+		logger.debug("Processing key={},value={},partition={},offset={}",
+				record.key(), record.value(), record.partition(), record.offset());
 		EventDTO eventDTO = new EventDTO();
 		eventDTO.setBody((JsonObject) new JsonObject(record.value()));
 		Promise<Void> promise = Promise.promise();
+		Map<String,String> mdc = MDC.getCopyOfContextMap();
 		eventHandler.handle(eventDTO, res -> {
 			if (!res.succeeded()) {
-				logger.error("Event handling failed " + res.cause());
+				logger.error("Event handling failed ", res.cause());
 				promise.fail(res.cause());
 			} else {
 				if(toAddress != null) {
@@ -314,7 +325,15 @@ public class KafkaMosipEventBus implements MosipEventBus {
 					KafkaProducerRecord<String, String> producerRecord = 
 						KafkaProducerRecord.create(messageBusToAddress.getAddress(), 
 							messageDTO.getRid(), jsonObject.toString());
-					kafkaProducer.write(producerRecord);
+					this.eventTracingHandler.writeHeaderOnKafkaProduce(producerRecord, span);
+					kafkaProducer.write(producerRecord, handler -> {
+						MDC.setContextMap(mdc);
+						if(handler.failed())
+							logger.error("Failed kafkaProducer.write {} ", handler.result(), handler.cause());
+						else
+							logger.info("Success kafkaProducer.write {} ", handler.result());
+						MDC.clear();
+					});
 				}
 				if(commitRecord)
 					commitOffset(record.topic(), record.partition(), 
@@ -322,6 +341,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 				else					
 					promise.complete();
 			}
+			this.eventTracingHandler.closeSpan(span);
 		});
 		return promise.future();
 	}
@@ -331,8 +351,8 @@ public class KafkaMosipEventBus implements MosipEventBus {
 		
 		TopicPartition topicPartition = new TopicPartition(topic, partition);
 		kafkaConsumer.commit(getTopicPartitionOffsetMap(topicPartition, offset), result -> {
-			logger.debug("Commit status for partition:" + partition + " offset: " + 
-				offset + " status: " + result.succeeded()); 
+			logger.debug("Commit status for partition: {} offset: {} status:{}",
+					partition, offset, result.succeeded());
 			if(result.succeeded())
 				promise.complete();
 			else 
@@ -380,8 +400,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
 
 	private void pausePartition(TopicPartition topicPartition, Promise<Void> promise) {
 		kafkaConsumer.pause(topicPartition, result -> {
-			logger.debug("Partition is paused " + topicPartition.getPartition() + " " + 
-				result.succeeded());
+			logger.debug("Partition is paused {} {}", topicPartition.getPartition(), result.succeeded());
 			if (result.succeeded())
 				promise.complete();
 			else
@@ -391,13 +410,11 @@ public class KafkaMosipEventBus implements MosipEventBus {
 	}
 	private void resumePartition(TopicPartition topicPartition, Promise<Void> promise) {
 		kafkaConsumer.resume(topicPartition, resumeResult -> {
-			logger.debug("Partition is resumed " + topicPartition.getPartition() + 
-				" " +resumeResult.succeeded());
+			logger.debug("Partition is resumed {} {}", topicPartition.getPartition(), resumeResult.succeeded());
 			if (resumeResult.succeeded())
 				promise.complete();
 			else
 				promise.fail("Partition resuming failed for " + topicPartition.getPartition());
 		});
 	}
-
 }

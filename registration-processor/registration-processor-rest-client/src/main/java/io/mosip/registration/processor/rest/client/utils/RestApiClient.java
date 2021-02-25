@@ -11,6 +11,8 @@ import java.util.Iterator;
 
 import javax.net.ssl.SSLContext;
 
+import io.mosip.registration.processor.core.tracing.ContextualData;
+import io.mosip.registration.processor.core.tracing.TracingConstant;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -76,7 +78,7 @@ public class RestApiClient {
 	 * Gets the api. *
 	 * 
 	 * @param              <T> the generic type
-	 * @param getURI       the get URI
+	 * @param uri       the get URI
 	 * @param responseType the response type
 	 * @return the api
 	 * @throws Exception
@@ -247,6 +249,7 @@ public class RestApiClient {
 	private HttpEntity<Object> setRequestHeader(Object requestType, MediaType mediaType) throws IOException {
 		MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
 		headers.add("Cookie", getToken());
+		headers.add(TracingConstant.TRACE_HEADER, (String) ContextualData.getOrDefault(TracingConstant.TRACE_ID_KEY));
 		if (mediaType != null) {
 			headers.add("Content-Type", mediaType.toString());
 		}
@@ -304,6 +307,7 @@ public class RestApiClient {
 			StringEntity postingString = new StringEntity(gson.toJson(tokenRequestDTO));
 			post.setEntity(postingString);
 			post.setHeader("Content-type", "application/json");
+			post.setHeader(TracingConstant.TRACE_HEADER, (String) ContextualData.getOrDefault(TracingConstant.TRACE_ID_KEY));
 			HttpResponse response = httpClient.execute(post);
 			org.apache.http.HttpEntity entity = response.getEntity();
 			String responseBody = EntityUtils.toString(entity, "UTF-8");

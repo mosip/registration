@@ -51,6 +51,7 @@ public class RegistrationConstants {
 	public static final String SEND_NOTIFICATION_PAGE = "/fxml/SendNotification.fxml";
 	public static final String PACKET_UPLOAD_STATUS_UI = "/fxml/PacketUploadStatus.fxml";
 	public static final String ALERT_GENERATION = "/fxml/Alert.fxml";
+	public static final String DASHBOARD_PAGE = "/fxml/Dashboard.fxml";
 
 	// FXML Id
 	public static final String DEMOGRAPHIC_DETAIL = "demographicDetail";
@@ -872,6 +873,8 @@ public class RegistrationConstants {
 	public static final String ACKNOWLEDGEMENT_TEMPLATE = "Ack Template";
 	public static final String ACKNOWLEDGEMENT_TEMPLATE_CODE = "reg-ack-template-part";
 	public static final String PREVIEW_TEMPLATE_CODE = "reg-preview-template-part";
+	public static final String DASHBOARD_TEMPLATE_CODE = "reg-dashboard-template";
+	public static final String DASHBOARD_TEMPLATE = "Dashboard Template";
 
 	// Notification Service
 	public static final String EMAIL_SUBJECT = "MOSIP REGISTRATION NOTIFICATION";
@@ -934,6 +937,8 @@ public class RegistrationConstants {
 	public static final String IS_SOFTWARE_UPDATE_AVAILABLE = "mosip.registration.is_software_update_available";
 	public static final String PROVIDER_NAME = "mosip.registration.provider_name";
 	public static final String DISK_SPACE = "mosip.registration.disk_space_size";
+	public static final String LAST_SOFTWARE_UPDATE = "mosip.registration.last_software_update";
+	public static final String REGCLIENT_INSTALLED_TIME = "mosip.registration.regclient_installed_time";
 
 	// Spring Batch-Jobs
 	public static final String JOB_TRIGGER_STARTED = "Trigger started";
@@ -1204,14 +1209,15 @@ public class RegistrationConstants {
 	public static final String MASTER_SYNC = "MASTER_SYNC";
 	public static final String NO_INTERNET = "NO_INTERNET";
 	public static final String MASTER_VALIDATOR_SERVICE_NAME = "master_sync";
-	public static final String MASTER_CENTER_REMAP_SERVICE_NAME = "center_remap_sync";
+	// public static final String MASTER_CENTER_REMAP_SERVICE_NAME =
+	// "center_remap_sync";
 	public static final String MASTER_CENTER_PARAM = "regcenterId";
 	public static final String MASTER_DATA_LASTUPDTAE = "lastUpdated";
 	public static final String MASTER_SYNC_LOGGER_INFO = "Entering into Master Sync Dao Impl...";
 	// POLICY SYNC
 	public static final String REG_APP_ID = "REGISTRATION";
 	public static final String KERNEL_APP_ID = "KERNEL";
-	public static final String KERNEL_REF_ID = "SIGNATUREKEY";
+	// public static final String KERNEL_REF_ID = "SIGNATUREKEY";
 	public static final String POLICY_SYNC_SUCCESS_CODE = "REG-MDS‌-001 ";
 	public static final String POLICY_SYNC_SUCCESS_MESSAGE = "SYNC_SUCCESS";
 	public static final String POLICY_SYNC_ERROR_CODE = "REG-MDS‌-003 ";
@@ -1338,6 +1344,7 @@ public class RegistrationConstants {
 
 	// flag for quality check with SDK
 	public static final String QUALITY_CHECK_WITH_SDK = "mosip.registration.quality_check_with_sdk";
+	public static final String UPDATE_SDK_QUALITY_SCORE = "mosip.registration.replace_sdk_quality_score";
 
 	// Packet Sync
 	public static final String PACKET_SYNC = "packet_sync";
@@ -1414,7 +1421,7 @@ public class RegistrationConstants {
 
 	public static final String JOB_ID = "JOB_ID";
 
-	public static final String SYNC_DATA_FREQ = "mosip.registration.sync_data_freq";
+	public static final String SYNC_DATA_FREQ = "mosip.registration.sync_jobs_restart_freq";
 
 	public static final String LABEL = "Label";
 	public static final String LABEL_SMALL_CASE = "label";
@@ -1811,8 +1818,9 @@ public class RegistrationConstants {
 
 	// UI Schema field group name
 	public static final String UI_SCHEMA_GROUP_FULL_NAME = "FullName";
-	public static final String UI_SCHEMA_GROUP_EMAIL = "Email";
-	public static final String UI_SCHEMA_GROUP_PHONE = "Phone";
+	public static final String UI_SCHEMA_SUBTYPE_FULL_NAME = "name";
+	public static final String UI_SCHEMA_SUBTYPE_EMAIL = "Email";
+	public static final String UI_SCHEMA_SUBTYPE_PHONE = "Phone";
 	public static final String MVEL_TYPE = "MVEL";
 	public static final String MACHINE_VERIFICATION_SUCCESS = "Machine Verification Success";
 	public static final String UTC_APPENDER = " (UTC)";
@@ -1826,4 +1834,49 @@ public class RegistrationConstants {
 
 	public static String OPERATOR_ONBOARDING_BIO_ATTRIBUTES = "mosip.registration.operator.onboarding.bioattributes";
 	public static String RIGHT_TO_LEFT_ORIENTATION_LANGUAGES = "mosip.language.righttoleft.orientation";
+
+	public static String CONFIGURATION = "CONFIGURATION";
+	public static String ONBOARD_CERT_THUMBPRINT = "thumbprint";
+
+	public static final String OPT_TO_REG_CCS_J00017 = "CCS_J00017";
+	public static final String API_CALL_FAILED = "API call failed with unknown error";
+
+	public static final String FORGOT_USERNAME_URL = "mosip.registration.forgot_username_url";
+	public static final String FORGOT_PWORD_URL = "mosip.registration.forgot_password_url";
+	public static final String RESET_PWORD_URL = "mosip.registration.reset_password_url";
+	public static final String EMAIL_PLACEHOLDER = "{EMAIL}";
+
+	// Dashboard Constants
+	public static final String DASHBOARD_TITLE = "dashBoard";
+	public static final String DASHBOARD_FORMAT = "mosip.registration.dashboard_date_format";
+	public static final String TOTAL_PACKETS_LABEL = "totalPacketsLabel";
+	public static final String PENDING_EOD_LABEL = "pendingEODLabel";
+	public static final String PENDING_UPLOAD_LABEL = "pendingUploadLabel";
+	public static final String TOTAL_PACKETS_COUNT = "totalPacketsCount";
+	public static final String PENDING_EOD_COUNT = "pendingEODCount";
+	public static final String PENDING_UPLOAD_COUNT = "pendingUploadCount";
+	public static final String USER_DETAILS_MAP = "userDetails";
+	public static final String ACTIVITIES_MAP = "activities";
+	public static final String DASHBOARD_USER_ID = "userId";
+	public static final String DASHBOARD_USER_NAME = "userName";
+	public static final String DASHBOARD_USER_ROLE = "userRole";
+	public static final String DASHBOARD_USER_STATUS = "userStatus";
+	public static final String DASHBOARD_ACTIVITY_NAME = "activityName";
+	public static final String DASHBOARD_ACTIVITY_VALUE = "activityValue";
+	public static final String DASHBOARD_REG_CLIENT = "Registration Client";
+	public static final String DASHBOARD_ID_SCHEMA = "ID Schema";
+	public static final String APP_INSTALLED_TIME = "Application Installed Time";
+	public static final String DASHBOARD_LAST_SW_UPDATE = "<b>Last S/W Update</b>";
+	public static final String DASHBOARD_VERSION = "Version";
+	public static final String DASHBOARD_UPDATES = "Updates";
+
+	public static String LOCATION = "Location";
+	public static String IMAGE_VIEW = "imageView";
+	public static final String DEMOGRAPHIC_COMBOBOX = "demographicCombobox";
+	public static String TEXT_FIELD = "TextField";
+	public static String VBOX = "VBOX";
+	public static String HBOX = "HBOX";
+	public static final String GENERIC_DETAIL = "genericScreen";
+	public static final String GENERIC_LAYOUT = "/fxml/GenericRegistrationLayout.fxml";
+	public static final String BIOMETRIC_FXML = "/fxml/GenericBiometricFXML.fxml";
 }

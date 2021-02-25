@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.mosip.kernel.core.util.HMACUtils2;
+import io.mosip.registration.util.common.OTPManager;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,21 +33,14 @@ import io.mosip.registration.dto.UserDTO;
 import io.mosip.registration.dto.UserPasswordDTO;
 import io.mosip.registration.service.login.LoginService;
 import io.mosip.registration.service.security.impl.AuthenticationServiceImpl;
-import io.mosip.registration.validator.AuthenticationBaseValidator;
-import io.mosip.registration.validator.FingerprintValidatorImpl;
-import io.mosip.registration.validator.OTPValidatorImpl;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*"})
 @PrepareForTest({ HMACUtils2.class, CryptoUtil.class})
 public class AuthenticationServiceTest {
 
-	
 	@Mock
-	FingerprintValidatorImpl fingerprintValidator;
-
-	@Mock
-	OTPValidatorImpl otpValidator;
+	OTPManager otpManager;
 	
 	@Mock
 	private LoginService loginService;
@@ -65,34 +59,12 @@ public class AuthenticationServiceTest {
 	
 	@Test
 	public void getOtpValidatorTest() {
-		List<AuthenticationBaseValidator> authenticationBaseValidators=new ArrayList<>();
-		authenticationBaseValidators.add(otpValidator);
-		//authenticationServiceImpl.setAuthenticationBaseValidator(authenticationBaseValidators);
 		AuthTokenDTO authTokenDTO =new AuthTokenDTO();
-		when(otpValidator.validate(Mockito.anyString(), Mockito.anyString(), Mockito.anyBoolean()))
+		when(otpManager.validateOTP(Mockito.anyString(), Mockito.anyString(), Mockito.anyBoolean()))
 				.thenReturn(authTokenDTO);
 		assertNotNull(authenticationServiceImpl.authValidator("otp", "mosip", "12345", true));
 	}
-	
-	/*@Test
-	public void getFPValidatorTest() {
-		List<AuthenticationBaseValidator> authenticationBaseValidators=new ArrayList<>();
-		authenticationBaseValidators.add(fingerprintValidator);
-		authenticationServiceImpl.setAuthenticationBaseValidator(authenticationBaseValidators);
-		AuthenticationValidatorDTO authenticationValidatorDTO=new AuthenticationValidatorDTO();
-		when(fingerprintValidator.validate(authenticationValidatorDTO)).thenReturn(true);
-		assertTrue(authenticationServiceImpl.authValidator("Fingerprint", authenticationValidatorDTO));
-	}
-	
-	@Test
-	public void getFPValidatorNegativeTest() {
-		List<AuthenticationBaseValidator> authenticationBaseValidators=new ArrayList<>();
-		authenticationBaseValidators.add(fingerprintValidator);
-		authenticationServiceImpl.setAuthenticationBaseValidator(authenticationBaseValidators);
-		AuthenticationValidatorDTO authenticationValidatorDTO=new AuthenticationValidatorDTO();
-		when(fingerprintValidator.validate(authenticationValidatorDTO)).thenReturn(false);
-		assertFalse(authenticationServiceImpl.authValidator("otp", authenticationValidatorDTO));
-	}*/
+
 	
 	@Test
 	public void validatePasswordTest() throws NoSuchAlgorithmException {

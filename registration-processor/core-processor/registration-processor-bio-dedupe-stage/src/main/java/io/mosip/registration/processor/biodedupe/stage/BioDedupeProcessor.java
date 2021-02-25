@@ -6,6 +6,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.mosip.registration.processor.core.constant.ProviderStageName;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -56,7 +58,6 @@ import io.mosip.registration.processor.packet.manager.idreposervice.IdRepoServic
 import io.mosip.registration.processor.packet.storage.dto.ApplicantInfoDto;
 import io.mosip.registration.processor.packet.storage.exception.IdentityNotFoundException;
 import io.mosip.registration.processor.packet.storage.utils.ABISHandlerUtil;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.Utilities;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -85,7 +86,7 @@ public class BioDedupeProcessor {
 	private IdRepoService idRepoService;
 
 	@Autowired
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService priorityBasedPacketManagerService;
 
 	/** The packet info manager. */
 	@Autowired
@@ -198,7 +199,7 @@ public class BioDedupeProcessor {
 					lostPacketPreAbisIdentification(registrationStatusDto, object);
 				} else if (packetStatus.equalsIgnoreCase(AbisConstant.POST_ABIS_IDENTIFICATION)) {
 					List<String> matchedRegIds = abisHandlerUtil
-							.getUniqueRegIds(registrationStatusDto.getRegistrationId(), registrationType);
+							.getUniqueRegIds(registrationStatusDto.getRegistrationId(), registrationType, ProviderStageName.BIO_DEDUPE);
 					lostPacketPostAbisIdentification(registrationStatusDto, object, matchedRegIds);
 				}
 
@@ -347,8 +348,8 @@ public class BioDedupeProcessor {
 	private void updatePacketPreAbisIdentification(InternalRegistrationStatusDto registrationStatusDto,
 			MessageDTO object) throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 
-		String bioField = packetManagerService.getFieldByKey(registrationStatusDto.getRegistrationId(),
-				MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationStatusDto.getRegistrationType());
+		String bioField = priorityBasedPacketManagerService.getFieldByMappingJsonKey(registrationStatusDto.getRegistrationId(),
+				MappingJsonConstants.INDIVIDUAL_BIOMETRICS, registrationStatusDto.getRegistrationType(), ProviderStageName.BIO_DEDUPE);
 
 
 		if (StringUtils.isNotEmpty(bioField)) {
@@ -393,7 +394,7 @@ public class BioDedupeProcessor {
 		String moduleId = "";
 		String moduleName = ModuleName.BIO_DEDUPE.toString();
 		List<String> matchedRegIds = abisHandlerUtil.getUniqueRegIds(registrationStatusDto.getRegistrationId(),
-				registrationType);
+				registrationType, ProviderStageName.BIO_DEDUPE);
 		// TODO : temporary fix. Need to analyze more.
 		if (matchedRegIds != null && !matchedRegIds.isEmpty()
 				&& matchedRegIds.contains(registrationStatusDto.getRegistrationId())) {
@@ -421,6 +422,7 @@ public class BioDedupeProcessor {
 			msgDto.setInternalError(Boolean.FALSE);
 			msgDto.setRid(registrationStatusDto.getRegistrationId());
 			msgDto.setIsValid(Boolean.FALSE);
+			msgDto.setReg_type(RegistrationType.valueOf(registrationType));
 			msgDto.setMessageBusAddress(MessageBusAddress.BIO_DEDUPE_BUS_OUT);
 
 			biodedupestage.sendMessage(msgDto);
@@ -478,7 +480,7 @@ public class BioDedupeProcessor {
 	private boolean infantCheck(String registrationId, String registrationType) throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
 		boolean isInfant = false;
 		if (RegistrationType.NEW.name().equalsIgnoreCase(registrationType)) {
-			int age = utilities.getApplicantAge(registrationId, registrationType);
+			int age = utilities.getApplicantAge(registrationId, registrationType, ProviderStageName.BIO_DEDUPE);
 			int ageThreshold = Integer.parseInt(ageLimit);
 			isInfant = age < ageThreshold;
 		} else {
@@ -594,8 +596,7 @@ public class BioDedupeProcessor {
 		boolean isMatch = false;
 
 		for (String key : matchedAttribute.keySet()) {
-			String value = packetManagerService.getField(id, key,
-					utilities.getSourceFromIdField(MappingJsonConstants.IDENTITY, process, key), process);
+			String value = priorityBasedPacketManagerService.getField(id, key, process, ProviderStageName.BIO_DEDUPE);
 			if (value != null && value.equalsIgnoreCase(matchedAttribute.get(key))) {
 				isMatch = true;
 			} else {

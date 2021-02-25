@@ -11,7 +11,6 @@ import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -40,9 +39,6 @@ import io.mosip.kernel.auditmanager.entity.Audit;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.exception.ExceptionUtils;
-import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectIOException;
-import io.mosip.kernel.core.idobjectvalidator.exception.IdObjectValidationFailedException;
-import io.mosip.kernel.core.idobjectvalidator.exception.InvalidIdSchemaException;
 import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
@@ -69,6 +65,7 @@ import io.mosip.registration.dto.packetmanager.DocumentDto;
 import io.mosip.registration.dto.packetmanager.metadata.BiometricsMetaInfoDto;
 import io.mosip.registration.dto.packetmanager.metadata.DocumentMetaInfoDTO;
 import io.mosip.registration.dto.response.SchemaDto;
+import io.mosip.registration.entity.Registration;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
@@ -76,9 +73,7 @@ import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.service.packet.PacketHandlerService;
 import io.mosip.registration.update.SoftwareUpdateHandler;
-import io.mosip.registration.util.checksum.CheckSumUtil;
 import io.mosip.registration.util.common.BIRBuilder;
-import io.mosip.registration.validator.RegIdObjectMasterDataValidator;
 
 /**
  * The implementation class of {@link PacketHandlerService} to handle the
@@ -124,9 +119,6 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 	@Autowired
 	@Qualifier("schema")
 	private IdObjectValidator idObjectValidator;
-
-	@Autowired
-	private RegIdObjectMasterDataValidator regIdObjectMasterDataValidator;
 
 	/** The machine mapping DAO. */
 	@Autowired
@@ -421,7 +413,7 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 		// Operations Data
 
-		Map<String, String> checkSumMap = CheckSumUtil.getCheckSumMap();
+		Map<String, String> checkSumMap = softwareUpdateHandler.getJarChecksum();
 
 		metaInfoMap.put("checkSum", getJsonString(checkSumMap));
 
@@ -658,35 +650,13 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 	private String getPrintingNameFieldName(SchemaDto schema) {
 		Optional<UiSchemaDTO> result = schema.getSchema().stream()
-				.filter(field -> field.getSubType() != null && field.getSubType().equals("name")).findFirst();
+				.filter(field -> field.getSubType() != null &&
+						field.getSubType().equals(RegistrationConstants.UI_SCHEMA_SUBTYPE_FULL_NAME)).findFirst();
 
 		if (result.isPresent() && result.get() != null)
 			return result.get().getId();
 
 		return null;
-	}
-
-	private void validateIdObject(String schemaJson, Object idObject, String category) throws RegBaseCheckedException {
-		LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "validateIdObject invoked >>>>> " + category);
-		// LOGGER.debug(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, "idObject
-		// >>>>> " + idObject);
-		try {
-			switch (category) {
-			case RegistrationConstants.PACKET_TYPE_UPDATE:
-				idObjectValidator.validateIdObject(schemaJson, idObject, Arrays.asList("UIN", "IDSchemaVersion"));
-				break;
-			case RegistrationConstants.PACKET_TYPE_LOST:
-				idObjectValidator.validateIdObject(schemaJson, idObject, Arrays.asList("IDSchemaVersion"));
-				break;
-			case RegistrationConstants.PACKET_TYPE_NEW:
-				idObjectValidator.validateIdObject(schemaJson, idObject);
-				break;
-			}
-			regIdObjectMasterDataValidator.validateIdObject(idObject);
-		} catch (IdObjectValidationFailedException | IdObjectIOException | InvalidIdSchemaException e) {
-			LOGGER.error(LOG_PKT_HANLDER, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(e));
-			throw new RegBaseCheckedException(e.getErrorCode(), e.getErrorText());
-		}
 	}
 
 	private void setField(String registrationId, String fieldName, Object value, String process, String source)
@@ -734,5 +704,10 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		return birBuilder.buildBIR(bioDto.getAttributeISO(), bioDto.getQualityScore(),
 				Biometric.getSingleTypeByAttribute(bioDto.getBioAttribute()), bioDto.getBioAttribute());
 
+	}
+	
+	@Override
+	public List<Registration> getAllRegistrations() {
+		return registrationDAO.getAllRegistrations();
 	}
 }

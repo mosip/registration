@@ -140,20 +140,11 @@ public class JsonConstant {
 	/** The Constant CREATIONDATE. */
 	public static final String CREATIONDATE = "creationDate";
 
-	/** The Constant OFFICERBIOMETRICFILENAME. */
-	public static final String OFFICERBIOMETRICFILENAME = "officerBiometricFileName";
-
-	/** The Constant SUPERVISORBIOMETRICFILENAME. */
-	public static final String SUPERVISORBIOMETRICFILENAME = "supervisorBiometricFileName";
-
 	/** The Constant INTRODUCERBIOMETRICSEQUENCE. */
 	public static final String INTRODUCERBIOMETRICSEQUENCE = "INTRODUCERBIOMETRICSEQUENCE";
 
 	/** The Constant APPLICANTBIOMETRICSEQUENCE. */
 	public static final String APPLICANTBIOMETRICSEQUENCE = "APPLICANTBIOMETRICSEQUENCE";
-
-	/** Supervisor Authentication. */
-	public static final String SUPERVISOROTPAUTHENTICATION = "supervisorOTPAuthentication";
 
 	/** officer Authentication. */
 	public static final String OFFICEROTPAUTHENTICATION = "officerOTPAuthentication";
@@ -232,4 +223,16 @@ public class JsonConstant {
 	public static final String CAPTUREDREGISTEREDDEVICES = "capturedRegisteredDevices";
 
 	public static final String ID = "id";
+
+	public static final String EXCEPTIONBIOMETRICS = "exceptionBiometrics";
+
+	public static final String DIGITALID = "digitalId";
+
+	public static final String DIGITALIDTYPE = "type";
+
+	public static final String DIGITALIDMAKE = "make";
+
+	public static final String DIGITALIDMODEL = "model";
+
+	public static final String DIGITALIDSERIALNO = "serialNo";
 }

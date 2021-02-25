@@ -348,9 +348,9 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 				"AbisMiddlewareStage::consumerListener()::entry");
 		String moduleId = "";
 		String moduleName = ModuleName.ABIS_MIDDLEWARE.toString();
-
+		boolean isTransactionSuccessful = true;
 		String response = null;
-
+		LogDescription description = new LogDescription();
 		try {
 			if (messageFormat.equalsIgnoreCase(TEXT_MESSAGE)) {
 				TextMessage textMessage = (TextMessage) message;
@@ -373,6 +373,8 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 			// check for insert response,if success send corresponding identify request to
 			// queue
 			if (abisCommonRequestDto.getRequestType().equals(AbisStatusCode.INSERT.toString())) {
+				if (AbisStatusCode.SENT.toString().equals(abisCommonRequestDto.getStatusCode())) {
+
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 						"AbisMiddlewareStage::consumerListener()::Insert Response received from abis ::"
 								+ inserOrIdentifyResponse);
@@ -403,11 +405,22 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 					moduleId = PlatformErrorMessages.SYSTEM_EXCEPTION_OCCURED.getCode();
 					registrationStatusService.updateRegistrationStatus(internalRegStatusDto, moduleId, moduleName);
 				}
+
+				} else {
+					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+							"",
+							"AbisMiddlewareStage::consumerListener()::Duplicate Insert Response received from abis for same request id ::"
+									+ requestId + " response " + inserOrIdentifyResponse);
+					isTransactionSuccessful = false;
+					description.setMessage(PlatformErrorMessages.DUPLICATE_INSERT_RESPONSE.getMessage() + requestId);
+					description.setCode(PlatformErrorMessages.DUPLICATE_INSERT_RESPONSE.getCode());
+
+				}
 			}
 			// check if identify response,then if all identify requests are processed send
 			// to abis handler
 			if (abisCommonRequestDto.getRequestType().equals(AbisStatusCode.IDENTIFY.toString())) {
-
+				if (AbisStatusCode.SENT.toString().equals(abisCommonRequestDto.getStatusCode())) {
 				regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 						"AbisMiddlewareStage::consumerListener()::Identify Response received from abis ::"
 								+ inserOrIdentifyResponse);
@@ -441,8 +454,17 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 					sendToAbisHandler(eventBus, bioRefId, registrationIds.get(0),
 							internalRegStatusDto.getRegistrationType());
 
-				}
+					}
+				} else {
+					regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
+							"",
+							"AbisMiddlewareStage::consumerListener()::Duplicate Identify Response received from abis for same request id ::"
+									+ requestId + " response " + inserOrIdentifyResponse);
+					isTransactionSuccessful = false;
+					description.setMessage(PlatformErrorMessages.DUPLICATE_IDENTITY_RESPONSE.getMessage() + requestId);
+					description.setCode(PlatformErrorMessages.DUPLICATE_IDENTITY_RESPONSE.getCode());
 
+				}
 			}
 
 		} catch (IOException e) {
@@ -472,6 +494,17 @@ public class AbisMiddleWareStage extends MosipVerticleAPIManager {
 
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId, ExceptionUtils.getStackTrace(e));
+		} finally {
+			if (!isTransactionSuccessful) {
+				String eventId = EventId.RPR_405.toString();
+				String eventName = EventName.EXCEPTION.toString();
+				String eventType = EventType.SYSTEM.toString();
+				moduleId = description.getCode();
+				moduleName = ModuleName.ABIS_MIDDLEWARE.toString();
+				auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName,
+						eventType, moduleId, moduleName, registrationId);
+			}
+
 		}
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"AbisMiddlewareStage::consumerListener()::Exit()");

@@ -7,14 +7,10 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,19 +21,9 @@ import io.mosip.commons.packet.constants.PacketManagerConstants;
 import io.mosip.kernel.biometrics.constant.BiometricFunction;
 import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biosdk.provider.factory.BioAPIFactory;
-import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
-import io.mosip.kernel.core.cbeffutil.entity.BIRInfo;
-import io.mosip.kernel.core.cbeffutil.entity.BIRVersion;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.ProcessedLevelType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.PurposeType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.QualityType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleAnySubtypeType;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
@@ -45,7 +31,6 @@ import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
-import io.mosip.registration.entity.UserBiometric;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
@@ -130,10 +115,8 @@ public class BioServiceImpl extends BaseService implements BioService {
 			for (BiometricsDto biometricsDto : biometricsDtos) {
 				if (biometricsDto != null
 						&& isQualityScoreMaxInclusive(String.valueOf(biometricsDto.getQualityScore()))) {
-					if (ApplicationContext.map().containsKey(RegistrationConstants.QUALITY_CHECK_WITH_SDK)
-							&& ApplicationContext
-									.getStringValueFromApplicationMap(RegistrationConstants.QUALITY_CHECK_WITH_SDK)
-									.equalsIgnoreCase(RegistrationConstants.ENABLE)) {
+					String checkSDKQualityScore = (String) ApplicationContext.map().getOrDefault(RegistrationConstants.QUALITY_CHECK_WITH_SDK, RegistrationConstants.DISABLE);
+					if (checkSDKQualityScore.equalsIgnoreCase(RegistrationConstants.ENABLE)) {
 						LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 								"Quality check with Biometric SDK flag is enabled..");
 
@@ -145,10 +128,16 @@ public class BioServiceImpl extends BaseService implements BioService {
 								.getBioProvider(biometricType, BiometricFunction.QUALITY_CHECK)
 								.getModalityQuality(birList, null);
 
-						LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
-								"Quality score is evaluated and assigning to biometricsDto..");
+						String updateQualityScore = (String) ApplicationContext.map().getOrDefault(RegistrationConstants.UPDATE_SDK_QUALITY_SCORE, RegistrationConstants.DISABLE);
+						if (updateQualityScore.equalsIgnoreCase(RegistrationConstants.ENABLE)) {
+							LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+									"Flag to update quality score evaluated from Biometric SDK is enabled");
 
-						biometricsDto.setQualityScore(scoreMap.get(biometricType));
+							biometricsDto.setQualityScore(scoreMap.get(biometricType));
+							
+							LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+									"Quality score is evaluated and assigned to biometricsDto");
+						}
 					}
 					list.add(biometricsDto);
 				}
@@ -163,33 +152,6 @@ public class BioServiceImpl extends BaseService implements BioService {
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 				"Ended captureModality method.." + System.currentTimeMillis());
 		return list;
-	}
-
-	private List<String> getSubTypes(SingleType singleType, String bioAttribute) {
-		List<String> subtypes = new LinkedList<>();
-		switch (singleType) {
-		case FINGER:
-			subtypes.add(bioAttribute.contains("left") ? SingleAnySubtypeType.LEFT.value()
-					: SingleAnySubtypeType.RIGHT.value());
-			if (bioAttribute.toLowerCase().contains("thumb"))
-				subtypes.add(SingleAnySubtypeType.THUMB.value());
-			else {
-				String val = bioAttribute.toLowerCase().replace("left", "").replace("right", "");
-				subtypes.add(SingleAnySubtypeType.fromValue(StringUtils.capitalizeFirstLetter(val).concat("Finger"))
-						.value());
-			}
-			break;
-		case IRIS:
-			subtypes.add(bioAttribute.contains("left") ? SingleAnySubtypeType.LEFT.value()
-					: SingleAnySubtypeType.RIGHT.value());
-			break;
-		case FACE:
-			subtypes.add(SingleType.FACE.value());
-			break;
-		default:
-			break;
-		}
-		return subtypes;
 	}
 
 	private List<BiometricsDto> captureMockModality(MDMRequestDto mdmRequestDto, boolean isUserOnboarding)
@@ -313,68 +275,5 @@ public class BioServiceImpl extends BaseService implements BioService {
 			return false;
 		}
 		return Double.parseDouble(qualityScore) <= RegistrationConstants.MAX_BIO_QUALITY_SCORE;
-	}
-
-	public BIR buildBir(String bioAttribute, long qualityScore, byte[] iso) {
-
-		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
-				"Building BIR for captured biometrics to pass them for quality check with SDK");
-
-		SingleType singleType = Biometric.getSingleTypeByAttribute(bioAttribute);
-
-		RegistryIDType birFormat = new RegistryIDType();
-		birFormat.setOrganization(PacketManagerConstants.CBEFF_DEFAULT_FORMAT_ORG);
-		birFormat.setType(String.valueOf(Biometric.getFormatType(singleType)));
-
-		RegistryIDType birAlgorithm = new RegistryIDType();
-		birAlgorithm.setOrganization(PacketManagerConstants.CBEFF_DEFAULT_ALG_ORG);
-		birAlgorithm.setType(PacketManagerConstants.CBEFF_DEFAULT_ALG_TYPE);
-
-		QualityType qualityType = new QualityType();
-		qualityType.setAlgorithm(birAlgorithm);
-		qualityType.setScore(qualityScore);
-
-		return new BIR.BIRBuilder().withBdb(iso)
-				.withVersion(new BIRVersion.BIRVersionBuilder().withMajor(1).withMinor(1).build())
-				.withCbeffversion(new BIRVersion.BIRVersionBuilder().withMajor(1).withMinor(1).build())
-				.withBirInfo(new BIRInfo.BIRInfoBuilder().withIntegrity(false).build())
-				.withBdbInfo(new BDBInfo.BDBInfoBuilder().withFormat(birFormat).withQuality(qualityType)
-						.withType(Arrays.asList(singleType)).withSubtype(getSubTypes(singleType, bioAttribute))
-						.withPurpose(PurposeType.IDENTIFY).withLevel(ProcessedLevelType.RAW)
-						.withCreationDate(LocalDateTime.now(ZoneId.of("UTC"))).withIndex(UUID.randomUUID().toString())
-						.build())
-				.build();
-
-	}
-
-	public BIR buildBir(BiometricsDto biometricsDto) {
-		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
-				"Building BIR for captured biometrics to pass them for quality check with SDK");
-
-		SingleType singleType = Biometric.getSingleTypeByAttribute(biometricsDto.getBioAttribute());
-
-		RegistryIDType birFormat = new RegistryIDType();
-		birFormat.setOrganization(PacketManagerConstants.CBEFF_DEFAULT_FORMAT_ORG);
-		birFormat.setType(String.valueOf(Biometric.getFormatType(singleType)));
-
-		RegistryIDType birAlgorithm = new RegistryIDType();
-		birAlgorithm.setOrganization(PacketManagerConstants.CBEFF_DEFAULT_ALG_ORG);
-		birAlgorithm.setType(PacketManagerConstants.CBEFF_DEFAULT_ALG_TYPE);
-
-		QualityType qualityType = new QualityType();
-		qualityType.setAlgorithm(birAlgorithm);
-		qualityType.setScore((long) biometricsDto.getQualityScore());
-
-		return new BIR.BIRBuilder().withBdb(biometricsDto.getAttributeISO())
-				.withVersion(new BIRVersion.BIRVersionBuilder().withMajor(1).withMinor(1).build())
-				.withCbeffversion(new BIRVersion.BIRVersionBuilder().withMajor(1).withMinor(1).build())
-				.withBirInfo(new BIRInfo.BIRInfoBuilder().withIntegrity(false).build())
-				.withBdbInfo(new BDBInfo.BDBInfoBuilder().withFormat(birFormat).withQuality(qualityType)
-						.withType(Arrays.asList(singleType))
-						.withSubtype(getSubTypes(singleType, biometricsDto.getBioAttribute()))
-						.withPurpose(PurposeType.IDENTIFY).withLevel(ProcessedLevelType.RAW)
-						.withCreationDate(LocalDateTime.now(ZoneId.of("UTC"))).withIndex(UUID.randomUUID().toString())
-						.build())
-				.build();
 	}
 }

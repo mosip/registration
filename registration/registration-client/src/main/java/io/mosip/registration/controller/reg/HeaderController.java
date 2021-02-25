@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.Timestamp;
-import java.util.List;
 import java.util.TimerTask;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,6 +114,9 @@ public class HeaderController extends BaseController {
 
 	@FXML
 	private MenuItem userGuide;
+	
+	@FXML
+	private MenuItem resetPword;
 
 	@Autowired
 	private JobConfigurationService jobConfigurationService;
@@ -182,7 +184,8 @@ public class HeaderController extends BaseController {
 		} else {
 			homeSelectionMenu.setDisable(false);
 		}
-
+		resetPword.setVisible(ApplicationContext.map().containsKey(RegistrationConstants.RESET_PWORD_URL));
+		
 		getTimer().schedule(new TimerTask() {
 
 			@Override
@@ -888,6 +891,30 @@ public class HeaderController extends BaseController {
 				}
 			}
 		});
+	}
+	
+	/**
+	 * Redirects to mosip.io in case of user reset pword
+	 * 
+	 * @param event event for reset pword
+	 */
+	public void resetPword(ActionEvent event) {
+		if (Desktop.isDesktopSupported()) {
+			try {
+				String url = ApplicationContext.getStringValueFromApplicationMap(RegistrationConstants.RESET_PWORD_URL);
+				if (url.toUpperCase().contains(RegistrationConstants.EMAIL_PLACEHOLDER)) {
+					UserDTO userDTO = loginService.getUserDetail(SessionContext.userId());
+					url = url.replace(RegistrationConstants.EMAIL_PLACEHOLDER, userDTO.getEmail());
+				}
+				Desktop.getDesktop().browse(new URI(url));
+			} catch (IOException ioException) {
+				LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+						ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
+			} catch (URISyntaxException uriSyntaxException) {
+				LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
+						uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
+			}
+		}		
 	}
 
 	private void machineRemapCheck(boolean showAlert) {

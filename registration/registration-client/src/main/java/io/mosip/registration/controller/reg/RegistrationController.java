@@ -1,7 +1,9 @@
 package io.mosip.registration.controller.reg;
 
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,8 +36,10 @@ import javafx.scene.Scene;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -77,6 +81,27 @@ public class RegistrationController extends BaseController {
 	public ImageView biometricTracker;
 	@FXML
 	private GridPane registrationPreview;
+
+	@FXML
+	private GridPane registrationHeader;
+
+	@FXML
+	private Text regTypeText;
+
+	public Text getRegTypeText() {
+		return regTypeText;
+	}
+
+	@FXML
+	private Text homeText;
+
+	@FXML
+	private HBox navigationHBox;
+
+	public HBox getNavigationHBox() {
+		return navigationHBox;
+	}
+
 	@Autowired
 	private AuthenticationController authenticationController;
 	@Autowired
@@ -101,7 +126,7 @@ public class RegistrationController extends BaseController {
 			if (isEditPage() && getRegistrationDTOFromSession() != null) {
 				prepareEditPageContent();
 			}
-			uinUpdate();
+//			uinUpdate();
 
 		} catch (RuntimeException runtimeException) {
 			LOGGER.error("REGISTRATION - CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
@@ -114,7 +139,7 @@ public class RegistrationController extends BaseController {
 	 * This method is prepare the screen for uin update
 	 */
 	private void uinUpdate() {
-		if (getRegistrationDTOFromSession().getUpdatableFields() != null) {
+		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getUpdatableFields() != null) {
 			demographicDetailController.uinUpdate();
 		}
 	}
@@ -135,6 +160,7 @@ public class RegistrationController extends BaseController {
 
 	protected void initializeLostUIN() {
 		validation.updateAsLostUIN(true);
+
 		createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_LOST);
 	}
 
@@ -159,8 +185,7 @@ public class RegistrationController extends BaseController {
 	/**
 	 * To detect the face from the captured photograph for validation.
 	 * 
-	 * @param applicantImage
-	 *            the image that is captured as applicant photograph
+	 * @param applicantImage the image that is captured as applicant photograph
 	 * @return BufferedImage the face that is detected from the applicant photograph
 	 */
 	/*
@@ -179,8 +204,7 @@ public class RegistrationController extends BaseController {
 	 * To compress the detected face from the image of applicant and store it in DTO
 	 * to use it for QR Code generation
 	 * 
-	 * @param applicantImage
-	 *            the image that is captured as applicant photograph
+	 * @param applicantImage the image that is captured as applicant photograph
 	 */
 	/*
 	 * private void compressImageForQRCode(BufferedImage detectedFace) { try {
@@ -335,7 +359,7 @@ public class RegistrationController extends BaseController {
 	/**
 	 * This method will create registration DTO object
 	 */
-	protected void createRegistrationDTOObject(String registrationCategory) {
+	public void createRegistrationDTOObject(String registrationCategory) {
 		RegistrationDTO registrationDTO = new RegistrationDTO();
 
 		// set id-schema version to be followed for this registration
@@ -394,7 +418,7 @@ public class RegistrationController extends BaseController {
 		// Used to update printing name as default
 		registrationDTO.setDefaultUpdatableFieldGroups(defaultFieldGroups);
 		registrationDTO.setDefaultUpdatableFields(defaultFields);
-		
+
 		// Put the RegistrationDTO object to SessionContext Map
 		SessionContext.map().put(RegistrationConstants.REGISTRATION_DATA, registrationDTO);
 	}
@@ -496,4 +520,28 @@ public class RegistrationController extends BaseController {
 		}
 	}
 
+	/**
+	 * Go to home ack template.
+	 */
+	public void home() {
+		try {
+			BaseController.load(getClass().getResource(RegistrationConstants.HOME_PAGE));
+			if (!(boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
+				clearOnboardData();
+				clearRegistrationData();
+			} else {
+				SessionContext.map().put(RegistrationConstants.ISPAGE_NAVIGATION_ALERT_REQ,
+						RegistrationConstants.ENABLE);
+			}
+		} catch (IOException ioException) {
+			LOGGER.error("REGISTRATION - UI - ACK_RECEIPT_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+					ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
+			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_HOME_PAGE);
+		} catch (RuntimeException runtimException) {
+			LOGGER.error("REGISTRATION - UI - ACK_RECEIPT_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+					runtimException.getMessage() + ExceptionUtils.getStackTrace(runtimException));
+			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_HOME_PAGE);
+		}
+
+	}
 }

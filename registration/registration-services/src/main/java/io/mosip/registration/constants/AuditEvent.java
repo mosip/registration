@@ -45,6 +45,8 @@ public enum AuditEvent {
 	NAV_REDIRECT_HOME("REG-NAV-008", SYSTEM_EVENT.getCode(), "NAV_REDIRECT_HOME", "Navigation link: Redirect to Home"),
 	NAV_ON_BOARD_DEVICES("REG-NAV-009", USER_EVENT.getCode(), "NAV_ON_BOARD_DEVICES",
 			"Navigation link: On-board Devices"),
+	NAV_DASHBOARD("REG-NAV-010", SYSTEM_EVENT.getCode(), "NAV_DASHBOARD",
+			"Navigation link: Dashboard"),
 
 	// Registration : Demographics Details
 	REG_DEMO_CAPTURE("REG-EVT-007", USER_EVENT.getCode(), "REG_DEMO_NEXT", "Started capturing demographic details"),

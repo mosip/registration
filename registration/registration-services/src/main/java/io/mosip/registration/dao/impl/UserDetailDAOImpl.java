@@ -9,12 +9,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-import io.mosip.kernel.core.util.HMACUtils2;
-import io.mosip.registration.dto.UserDetailDto;
-import io.mosip.registration.entity.*;
-import io.mosip.registration.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,14 +18,25 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.DateUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.dao.UserDetailDAO;
-import io.mosip.registration.dto.UserDetailResponseDto;
+import io.mosip.registration.dto.UserDetailDto;
+import io.mosip.registration.entity.UserBiometric;
+import io.mosip.registration.entity.UserDetail;
+import io.mosip.registration.entity.UserPassword;
+import io.mosip.registration.entity.UserRole;
+import io.mosip.registration.entity.UserToken;
 import io.mosip.registration.entity.id.UserRoleId;
 import io.mosip.registration.exception.RegBaseUncheckedException;
+import io.mosip.registration.repositories.UserBiometricRepository;
+import io.mosip.registration.repositories.UserDetailRepository;
+import io.mosip.registration.repositories.UserPwdRepository;
+import io.mosip.registration.repositories.UserRoleRepository;
+import io.mosip.registration.repositories.UserTokenRepository;
 
 /**
  * The implementation class of {@link UserDetailDAO}.
@@ -347,6 +353,14 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 				"Updating User : " + userDetail.getId());
 
 		userDetailRepository.update(userDetail);
+	}
+	
+	@Override
+	public List<UserRole> getUserRoleByUserId(String userId) {
+		LOGGER.info("REGISTRATION - USER_DETAIL - REGISTRATION_USER_DETAIL_DAO_IMPL", APPLICATION_NAME, APPLICATION_ID,
+				"Finding role for the UserID : " + userId);
+		
+		return userRoleRepository.findByUserRoleIdUsrId(userId);
 	}
 
 }

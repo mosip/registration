@@ -32,12 +32,14 @@ import io.mosip.kernel.biometrics.entities.BDBInfo;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.RegistryIDType;
+import io.mosip.kernel.core.cbeffutil.spi.CbeffUtil;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.constant.MappingJsonConstants;
+import io.mosip.registration.processor.packet.storage.dto.ContainerInfoDto;
 import io.mosip.registration.processor.packet.storage.dto.Document;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.packet.storage.utils.IdSchemaUtil;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.json.JSONException;
@@ -156,6 +158,9 @@ public class UinGeneratorStageTest {
 	@Mock
 	private Object identity;
 
+	@Mock
+	private PriorityBasedPacketManagerService packetManagerService;
+
 	/** The registration status service. */
 	@Mock
 	private RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
@@ -197,6 +202,9 @@ public class UinGeneratorStageTest {
 	private IdRepoService idRepoService;
 
 	@Mock
+	private CbeffUtil cbeffutil;
+
+	@Mock
 	private BasePacketRepository<RegLostUinDetEntity, String> regLostUinDetEntity;
 
 	/** The identitydemoinfo. */
@@ -217,17 +225,12 @@ public class UinGeneratorStageTest {
 	private RegistrationExceptionMapperUtil registrationStatusMapperUtil;
 
 	@Mock
-	private PacketManagerService packetManagerService;
-
-	@Mock
 	private IdSchemaUtil idSchemaUtil;
 
 	@Before
 	public void setup() throws Exception {
 		ReflectionTestUtils.setField(uinGeneratorStage, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(uinGeneratorStage, "clusterManagerUrl", "/dummyPath");
-		ReflectionTestUtils.setField(uinGeneratorStage, "defaultSource", "id");
-
 
 		ClassLoader classLoader1 = getClass().getClassLoader();
 		File idJsonFile1 = new File(classLoader1.getResource("RegistrationProcessorIdentity.json").getFile());
@@ -237,6 +240,9 @@ public class UinGeneratorStageTest {
 		identityMappingjsonString = jsonObject.toJSONString();
 		when(utility.getRegistrationProcessorMappingJson(anyString())).thenReturn(JsonUtil.getJSONObject(new ObjectMapper().readValue(identityMappingjsonString, JSONObject.class), MappingJsonConstants.IDENTITY));
 
+		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(),
+				anyString(), any(Class.class))).thenReturn(str);
 
 		when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn("EXCEPTION");
 		Mockito.doNothing().when(description).setCode(Mockito.anyString());
@@ -320,12 +326,21 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
-		when(packetManagerService.getDocument(anyString(),anyString(),any())).thenReturn(document);
-		when(packetManagerService.getBiometrics(anyString(),anyString(),anyList(),any())).thenReturn(biometricRecord);
+		when(packetManagerService.getDocument(anyString(),anyString(),anyString(),any())).thenReturn(document);
+		when(packetManagerService.getBiometrics(anyString(),anyString(),any(),any())).thenReturn(biometricRecord);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 		when(utility.getMappingJsonValue(anyString(), any())).thenReturn("UIN");
+
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
+
+		ContainerInfoDto containerInfoDto = new ContainerInfoDto();
+		containerInfoDto.setSource("REGISTRATION_CLIENT");
+		containerInfoDto.setProcess("NEW");
+
+		when(packetManagerService.getBiometrics(anyString(),any(), any(), any())).thenReturn(biometricRecord);
+		when(cbeffutil.createXML(any())).thenReturn("String".getBytes());
 
 	}
 
@@ -533,7 +548,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -570,7 +585,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -632,7 +647,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -696,7 +711,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -785,8 +800,9 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -817,7 +833,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -878,7 +894,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -940,7 +956,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1020,8 +1036,10 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
+
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1069,7 +1087,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1110,7 +1128,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1161,7 +1179,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1231,7 +1249,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1260,7 +1278,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1512,35 +1530,6 @@ public class UinGeneratorStageTest {
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getIsValid());
 	}
-	@Test
-	public void testJsonProcessingException() throws ApisResourceAccessException {
-		MessageDTO messageDTO = new MessageDTO();
-		messageDTO.setRid("10031100110005020190313110030");
-		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
-		IdResponseDTO responsedto = new IdResponseDTO();
-		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
-		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
-
-		IdResponseDTO idResponseDTO = new IdResponseDTO();
-		ResponseDTO responseDTO = new ResponseDTO();
-		responseDTO.setEntity("https://dev.mosip.io/idrepo/v1.0/identity/203560486746");
-		idResponseDTO.setErrors(null);
-		idResponseDTO.setId("mosip.id.update");
-		responseDTO.setStatus("DEACTIVATED");
-		idResponseDTO.setResponse(responseDTO);
-		idResponseDTO.setResponsetime("2019-03-12T06:49:30.779Z");
-		idResponseDTO.setVersion("1.0");
-
-		//Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
-				//PacketFiles.ID.name(), "id"))//.thenReturn(idJsonStream1);
-		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
-				.thenReturn(responsedto);
-		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
-				.thenThrow(new ApisResourceAccessException());
-
-		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		assertFalse(result.getIsValid());
-	}
 
 	@Test
 	public void testApisResourceAccessExceptionPostApi() throws ApisResourceAccessException, FileNotFoundException {
@@ -1581,7 +1570,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1634,7 +1623,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1685,8 +1674,9 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1886,8 +1876,9 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1941,8 +1932,9 @@ public class UinGeneratorStageTest {
 		defaultFields.add("gender");
 		defaultFields.add("UIN");
 
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -1978,7 +1970,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -2029,7 +2021,7 @@ public class UinGeneratorStageTest {
 		defaultFields.add("UIN");
 
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
-		when(packetManagerService.getFieldByKey(anyString(),anyString(),any())).thenReturn("0.1");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(),anyString(),any(),any())).thenReturn("0.1");
 		when(packetManagerService.getFields(anyString(),anyList(),anyString(),any())).thenReturn(fieldMap);
 		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
 
@@ -2073,6 +2065,100 @@ public class UinGeneratorStageTest {
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
 		assertTrue(result.getIsValid());
 
+	}
+
+
+	@Test
+	public void testUinGenerationSuccessWithAllDocuments() throws Exception {
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
+		fieldMap.put("phone", "23456");
+		fieldMap.put("dob", "11/11/2011");
+		fieldMap.put("proofOfIdentity", "{\"value\":\"POA_Rental contract\",\"type\":\"Rental contract\",\"format\":\"jpg\"}");
+		fieldMap.put("proofOfRelationship", "{\"value\":\"POA_Rental contract\",\"type\":\"Rental contract\",\"format\":\"jpg\"}");
+		fieldMap.put("proofOfDateOfBirth", "{\"value\":\"POA_Rental contract\",\"type\":\"Rental contract\",\"format\":\"jpg\"}");
+		fieldMap.put("proofOfException", "{\"value\":\"POA_Rental contract\",\"type\":\"Rental contract\",\"format\":\"jpg\"}");
+		fieldMap.put("proofOfAddress", "{\"value\":\"POA_Rental contract\",\"type\":\"Rental contract\",\"format\":\"jpg\"}");
+		fieldMap.put("individualBiometrics", "{\"format\":\"cbeff\",\"version\":1,\"value\":\"applicant_bio_CBEFF\"}");
+
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		String response = "{\"uin\":\"6517036426\",\"status\":\"ASSIGNED\"}";
+		when(registrationProcessorRestClientService.putApi(any(), any(), any(), any(), any(), any(), any()))
+				.thenReturn(response);
+		messageDTO.setReg_type(RegistrationType.NEW);
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setEntity("https://dev.mosip.io/idrepo/v1.0/identity/203560486746");
+		responseDTO.setStatus("ACTIVATED");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.create");
+		idResponseDTO.setResponse(responseDTO);
+		idResponseDTO.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO.setVersion("1.0");
+
+		ResponseWrapper<VidResponseDto> responseVid = new ResponseWrapper<VidResponseDto>();
+		List<ErrorDTO> errors = new ArrayList<>();
+		responseVid.setErrors(errors);
+		responseVid.setVersion("v1");
+		responseVid.setMetadata(null);
+		DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+		LocalDateTime localdatetime = LocalDateTime
+				.parse(DateUtils.getUTCCurrentDateTimeString("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"), format);
+		responseVid.setResponsetime(localdatetime);
+		VidResponseDto vidResponseDto = new VidResponseDto();
+		vidResponseDto.setVID("123456");
+		vidResponseDto.setVidStatus("ACTIVE");
+		responseVid.setResponse(vidResponseDto);
+
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
+
+
+		when(registrationProcessorRestClientService.postApi(any(), any(), any(), any(), any(Class.class)))
+				.thenReturn(idResponseDTO).thenReturn(responseVid).thenReturn(response);
+
+		String str = "{\"id\":\"mosip.id.read\",\"version\":\"1.0\",\"responsetime\":\"2019-04-05\",\"metadata\":null,\"response\":{\"uin\":\"2812936908\"},\"errors\":[{\"errorCode\":null,\"errorMessage\":null}]}";
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(),
+				anyString(), any(Class.class))).thenReturn(str);
+
+		ClassLoader classLoader = getClass().getClassLoader();
+
+		File mappingJsonFile = new File(classLoader.getResource("RegistrationProcessorIdentity.json").getFile());
+		InputStream is = new FileInputStream(mappingJsonFile);
+		String value = IOUtils.toString(is);
+		Mockito.when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.DOCUMENT)).thenReturn(JsonUtil
+				.getJSONObject(JsonUtil.objectMapperReadValue(value, JSONObject.class), MappingJsonConstants.DOCUMENT));
+
+		Mockito.when(utility.getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY)).thenReturn(JsonUtil
+				.getJSONObject(JsonUtil.objectMapperReadValue(value, JSONObject.class), MappingJsonConstants.IDENTITY));
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertFalse(result.getInternalError());
+
+	}
+
+	@Test
+	public void testPacketFetchingException() throws Exception {
+		ApisResourceAccessException exp = new ApisResourceAccessException(
+				HibernateErrorCode.ERR_DATABASE.getErrorCode());
+
+		when(packetManagerService.getFieldByMappingJsonKey(any(), any(),any(), any())).thenThrow(new PacketManagerException("", ""));
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertTrue(result.getInternalError());
+	}
+
+	@Test
+	public void testJsonProcessingException() throws ApisResourceAccessException, IOException, PacketManagerException, JsonProcessingException {
+
+		when(packetManagerService.getFieldByMappingJsonKey(any(), any(),any(), any())).thenThrow(new io.mosip.kernel.core.util.exception.JsonProcessingException(""));
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		assertTrue(result.getInternalError());
 	}
 
 }

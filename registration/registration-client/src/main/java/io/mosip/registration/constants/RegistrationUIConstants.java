@@ -259,6 +259,7 @@ public class RegistrationUIConstants {
 	public static final String UNABLE_LOAD_NOTIFICATION_PAGE = bundle.getString("UNABLE_LOAD_NOTIFICATION_PAGE");
 	public static final String UNABLE_LOAD_PREVIEW_PAGE = bundle.getString("UNABLE_LOAD_PREVIEW_PAGE");
 	public static final String UNABLE_LOAD_ACKNOWLEDGEMENT_PAGE = bundle.getString("UNABLE_LOAD_ACKNOWLEDGEMENT_PAGE");
+	public static final String UNABLE_LOAD_DASHBOARD_PAGE = bundle.getString("UNABLE_LOAD_DASHBOARD_PAGE");
 
 	// Individual Registartion - Iris Capture
 	public static final String UNABLE_LOAD_IRIS_SCAN_POPUP = bundle.getString("UNABLE_LOAD_IRIS_SCAN_POPUP");

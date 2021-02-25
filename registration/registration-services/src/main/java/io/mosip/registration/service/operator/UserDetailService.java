@@ -1,6 +1,9 @@
 package io.mosip.registration.service.operator;
 
+import java.util.List;
+
 import io.mosip.registration.dto.ResponseDTO;
+import io.mosip.registration.entity.UserDetail;
 import io.mosip.registration.exception.RegBaseCheckedException;
 
 /**
@@ -44,5 +47,9 @@ public interface UserDetailService {
 	 * @throws RegBaseCheckedException 
 	 */
 	public ResponseDTO save(String triggerpoint) throws RegBaseCheckedException;
+	
+	public List<UserDetail> getAllUsers();
+
+	public List<String> getUserRoleByUserId(String userId);
 
 }

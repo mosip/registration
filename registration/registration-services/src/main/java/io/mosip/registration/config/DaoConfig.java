@@ -2,11 +2,9 @@ package io.mosip.registration.config;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.*;
 
 import javax.sql.DataSource;
@@ -15,6 +13,7 @@ import io.mosip.kernel.clientcrypto.constant.ClientCryptoManagerConstant;
 import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -62,7 +61,15 @@ public class DaoConfig extends HibernateDaoConfig {
 	private static final String DRIVER_CLASS_NAME = "org.apache.derby.jdbc.EmbeddedDriver";
 	private static final String URL = "jdbc:derby:%s;bootPassword=%s";
 	private static final String SHUTDOWN_URL = "jdbc:derby:;shutdown=true;deregister=false;";
+	private static final String ENCRYPTION_URL_ATTRIBUTES = "dataEncryption=true;encryptionKeyLength=256;encryptionAlgorithm=AES/CBC/NoPadding;";
 	private static final String SCHEMA_NAME = "REG";
+	private static final String SEPARATOR = "-BREAK-";
+	private static final String BOOTPWD_KEY = "bootPassword";
+	private static final String USERNAME_KEY = "username";
+	private static final String PWD_KEY = "password";
+	private static final String STATE_KEY = "state";
+	private static final String ERROR_STATE = "0";
+	private static final String SAFE_STATE = "1";
 
 	private static Properties keys;
 	private static JdbcTemplate jdbcTemplate;
@@ -79,6 +86,8 @@ public class DaoConfig extends HibernateDaoConfig {
 
 	private static boolean isPPCUpdated = false;
 	private static PropertySourcesPlaceholderConfigurer ppc = null;
+
+	private DriverManagerDataSource driverManagerDataSource = null;
 
 	static {
 
@@ -192,13 +201,21 @@ public class DaoConfig extends HibernateDaoConfig {
 	}
 
 	private DriverManagerDataSource setupDataSource() throws Exception {
+		if(this.driverManagerDataSource != null)
+			return this.driverManagerDataSource;
+
 		LOGGER.info(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "****** SETTING UP DATASOURCE *******");
-		createDatabase(dbPath);
-		DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource();
-		driverManagerDataSource.setDriverClassName(DRIVER_CLASS_NAME);
-		driverManagerDataSource.setSchema(SCHEMA_NAME);
-		driverManagerDataSource.setUrl(String.format(URL, dbPath, getDBSecret()));
-		return driverManagerDataSource;
+		createDatabase();
+		reEncryptExistingDB();
+		setupUserAndPermits();
+		Map<String, String> dbConf = getDBConf();
+		this.driverManagerDataSource = new DriverManagerDataSource();
+		this.driverManagerDataSource.setDriverClassName(DRIVER_CLASS_NAME);
+		this.driverManagerDataSource.setSchema(SCHEMA_NAME);
+		this.driverManagerDataSource.setUrl(String.format(URL, dbPath, dbConf.get(BOOTPWD_KEY)));
+		this.driverManagerDataSource.setUsername(dbConf.get(USERNAME_KEY));
+		this.driverManagerDataSource.setPassword(dbConf.get(PWD_KEY));
+		return this.driverManagerDataSource;
 	}
 
 	private static void shutdownDatabase() {
@@ -221,27 +238,138 @@ public class DaoConfig extends HibernateDaoConfig {
 	 * 	-> runs initial DB script
 	 * 	-> shutdown database
 	 */
-	private void createDatabase(String dbPath) throws Exception {
-		if(createDb(dbPath)) {
-			LOGGER.debug(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "****** DATASOURCE dbPath : " + dbPath);
-			Connection connection = null;
-			try {
-				connection = DriverManager.getConnection(String.format(URL + ";create=true;",
-						dbPath, getDBSecret()));
-
+	private void createDatabase() throws Exception {
+		LOGGER.debug(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "****** DATASOURCE dbPath : " + dbPath);
+		Connection connection = null;
+		try {
+			if(createDb(dbPath)) {
+				Map<String, String> dbConf = getDBConf();
+				connection = DriverManager.getConnection(String.format(URL + ";create=true;" + ENCRYPTION_URL_ATTRIBUTES,
+						dbPath, dbConf.get(BOOTPWD_KEY)), dbConf.get(USERNAME_KEY), dbConf.get(PWD_KEY));
+				SQLWarning sqlWarning = connection.getWarnings();
+				if(sqlWarning != null) {
+					LOGGER.error(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, sqlWarning.getCause());
+					throw new Exception(sqlWarning.getCause());//SQLWarning will not be available once connection is closed.
+				}
 				org.apache.derby.tools.ij.runScript(connection,
 						DaoConfig.class.getClassLoader().getResourceAsStream("initial.sql"),
 						"UTF-8",
 						System.out,
 						"UTF-8");
-
 				shutdownDatabase();
-
-			} finally {
-				if(connection != null)
-					connection.close();
+				dbConf.put(STATE_KEY, SAFE_STATE);
+				saveDbConf(dbConf);
 			}
+		} finally {
+			if(connection != null)
+				connection.close();
 		}
+	}
+
+	private void reEncryptExistingDB() throws Exception {
+		Connection connection = null;
+		try {
+			Map<String, String> dbConf = getDBConf();
+			if(dbConf.get(STATE_KEY).equals(ERROR_STATE)) {
+				shutdownDatabase(); //We need to shutdown DB before encrypting
+				LOGGER.info(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "IMP : (Re)Encrypting DB started ......");
+				connection = DriverManager.getConnection("jdbc:derby:"+dbPath+";"+ENCRYPTION_URL_ATTRIBUTES+";bootPassword="+dbConf.get(BOOTPWD_KEY),
+						dbConf.get(USERNAME_KEY), dbConf.get(PWD_KEY));
+				SQLWarning sqlWarning = connection.getWarnings();
+				if(sqlWarning != null) {
+					LOGGER.error(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, sqlWarning.getCause());
+					throw new Exception(sqlWarning.getCause()); //SQLWarning will not be available once connection is closed.
+				}
+				LOGGER.info(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "IMP : (Re)Encrypting DB Done ......");
+				dbConf.put(STATE_KEY, SAFE_STATE);
+				saveDbConf(dbConf);
+			}
+		} finally {
+			if(connection != null)
+				connection.close();
+		}
+	}
+
+	private void setupUserAndPermits() throws Exception {
+		LOGGER.info(LOGGER_CLASS_NAME, APPLICATION_NAME, "Checking Derby Security properties", "Started ... ");
+		Connection connection = null;
+		try {
+			Map<String, String> dbConf = getDBConf();
+			connection = DriverManager.getConnection(String.format(URL, dbPath, getDBConf().get(BOOTPWD_KEY)),
+					dbConf.get(USERNAME_KEY), dbConf.get(PWD_KEY));
+			if(!isUserSetupComplete(connection, dbConf)) {
+				try(Statement statement = connection.createStatement()) {
+					LOGGER.info(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "Started setting up DB user and access permits...");
+					//setting requireAuthentication
+					statement.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.connection.requireAuthentication', 'true')");
+					//Setting authentication scheme to derby
+					statement.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.authentication.provider', 'BUILTIN')");
+					//creating user
+					statement.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.user."+dbConf.get(USERNAME_KEY)+"', '"+dbConf.get(PWD_KEY)+"')");
+					//setting default connection mode to noaccess
+					statement.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.database.defaultConnectionMode', 'noAccess')");
+					//setting read-write access to only one user
+					statement.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.database.fullAccessUsers', '"+dbConf.get(USERNAME_KEY)+"')");
+					//property ensures that database-wide properties cannot be overridden by system-wide properties
+					statement.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.database.propertiesOnly', 'true')");
+					//shutdown derby db, for the changes to be applied
+					shutdownDatabase();
+				} catch (Throwable t) {
+					LOGGER.error(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(t));
+					cleanupUserAuthAndPermits(connection, dbConf);
+				}
+				LOGGER.info(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "Security setup check completed.");
+			}
+		} finally {
+			if(connection != null)
+				connection.close();
+		}
+	}
+
+	private boolean isUserSetupComplete(Connection connection, Map<String, String> dbConf) {
+		boolean completed = false;
+		try(Statement statement = connection.createStatement())  {
+			isKeySet(statement, "derby.connection.requireAuthentication", "true");
+			isKeySet(statement, "derby.authentication.provider", "BUILTIN");
+			isKeySet(statement, "derby.user."+dbConf.get(USERNAME_KEY), dbConf.get(PWD_KEY));
+			isKeySet(statement, "derby.database.defaultConnectionMode", "noAccess");
+			isKeySet(statement, "derby.database.fullAccessUsers", dbConf.get(USERNAME_KEY));
+			isKeySet(statement, "derby.database.propertiesOnly", "true");
+			completed = true;
+			LOGGER.info(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "Security setup check is complete & success.");
+		} catch (RegBaseCheckedException | SQLException regBaseCheckedException) {
+			LOGGER.error(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(regBaseCheckedException));
+		}
+		return completed;
+	}
+
+	private void cleanupUserAuthAndPermits(Connection connection, Map<String, String> dbConf) {
+		try(Statement statement = connection.createStatement()) {
+			//setting requireAuthentication
+			statement.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.connection.requireAuthentication', 'false')");
+			//Setting authentication scheme to derby
+			statement.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.authentication.provider', null)");
+			//creating user
+			statement.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.user."+dbConf.get(USERNAME_KEY)+"', null)");
+			//setting default connection mode to noaccess
+			statement.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.database.defaultConnectionMode', 'fullAccess')");
+			//setting read-write access to only one user
+			statement.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.database.fullAccessUsers', null)");
+			//property ensures that database-wide properties cannot be overridden by system-wide properties
+			statement.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.database.propertiesOnly', 'false')");
+		} catch (SQLException sqlException) {
+			LOGGER.error(LOGGER_CLASS_NAME, APPLICATION_NAME, "Failed to cleanup security properties",
+					ExceptionUtils.getStackTrace(sqlException));
+		} finally {
+			shutdownDatabase();//shutdown derby db, for the changes to be applied
+		}
+	}
+
+	private void isKeySet(Statement statement, String key, String value) throws SQLException, RegBaseCheckedException {
+		ResultSet rs = statement.executeQuery("VALUES SYSCS_UTIL.SYSCS_GET_DATABASE_PROPERTY('"+key+"')");
+		if(rs.next() && value.equalsIgnoreCase(rs.getString(1)))
+			return;
+		throw new RegBaseCheckedException("", key + " : is not set to preferred value!");
 	}
 
 	private boolean createDb(String dbPath) throws RegBaseCheckedException {
@@ -278,7 +406,7 @@ public class DaoConfig extends HibernateDaoConfig {
 					globalParamProps.put(globalParamResultset.getString(KEY),globalParamResultset.getString(VALUE));
 				}
 				globalParamProps.put("objectstore.adapter.name", "PosixAdapter");
-		        globalParamProps.put("mosip.sign.refid", "SIGNATUREKEY");
+				globalParamProps.put("mosip.sign.refid", keys.getProperty("mosip.sign.refid", "SIGN"));
 				return globalParamProps;
 			}
 		});
@@ -297,23 +425,65 @@ public class DaoConfig extends HibernateDaoConfig {
 		return true;
 	}
 
-	private String getDBSecret() throws IOException {
-		File dbConf = new File(ClientCryptoManagerConstant.KEY_PATH + File.separator +
-				ClientCryptoManagerConstant.KEYS_DIR + File.separator + ClientCryptoManagerConstant.DB_PWD_FILE);
-		if(!dbConf.exists()) {
+	private Map<String, String> getDBConf() throws IOException {
+		Path path = Paths.get(ClientCryptoManagerConstant.KEY_PATH, ClientCryptoManagerConstant.KEYS_DIR,
+				ClientCryptoManagerConstant.DB_PWD_FILE);
+		if(!path.toFile().exists()) {
 			LOGGER.info("REGISTRATION  - DaoConfig", APPLICATION_NAME, APPLICATION_ID,
 					"getDBSecret invoked - DB_PWD_FILE not found !");
-			String newBootPassowrd = RandomStringUtils.random(20, true, true);
-			byte[] cipher = clientCryptoFacade.getClientSecurity().asymmetricEncrypt(newBootPassowrd.getBytes());
-
-			try(FileOutputStream fos = new FileOutputStream(dbConf)) {
-				fos.write(java.util.Base64.getEncoder().encode(cipher));
-				LOGGER.debug("REGISTRATION  - DaoConfig", APPLICATION_NAME, APPLICATION_ID, "Generated new derby boot key");
-			}
+			StringBuilder dbConf = new StringBuilder();
+			dbConf.append(RandomStringUtils.randomAlphanumeric(20));
+			dbConf.append(SEPARATOR);
+			dbConf.append(RandomStringUtils.randomAlphanumeric(10));
+			dbConf.append(SEPARATOR);
+			dbConf.append(RandomStringUtils.randomAlphanumeric(20));
+			dbConf.append(SEPARATOR);
+			dbConf.append(ERROR_STATE); //states if successful db conf. 1 = SAFE_STATE, 0 = ERROR_STATE
+			saveDbConf(dbConf.toString());
 		}
+		return parseDbConf(Files.readAllBytes(path));
+	}
 
-		String key = new String(Files.readAllBytes(dbConf.toPath()));
-		return new String( clientCryptoFacade.getClientSecurity().asymmetricDecrypt(Base64.getDecoder().decode(key)));
+	private Map<String, String> parseDbConf(byte[] dbConf) {
+		String decryptedConf = new String( clientCryptoFacade.getClientSecurity().asymmetricDecrypt(Base64.getDecoder().decode(dbConf)));
+		String [] parts = decryptedConf.split(SEPARATOR);
+		Map<String, String> conf = new HashMap<>();
+		//older versions of reg-cli, re-encrypt db and set the new flags
+		if(parts.length == 1) {
+			conf.put(BOOTPWD_KEY, parts[0]);
+			conf.put(USERNAME_KEY, RandomStringUtils.randomAlphanumeric(20));
+			conf.put(PWD_KEY, RandomStringUtils.randomAlphanumeric(20));
+			conf.put(STATE_KEY, ERROR_STATE);
+		}
+		else {
+			conf.put(BOOTPWD_KEY, parts[0]);
+			conf.put(USERNAME_KEY, parts[1]);
+			conf.put(PWD_KEY, parts[2]);
+			conf.put(STATE_KEY, parts[3]);
+		}
+		return conf;
+	}
+
+	private void saveDbConf(Map<String, String> dbConf) throws IOException {
+		StringBuilder dbConfBuilder = new StringBuilder();
+		dbConfBuilder.append(dbConf.get(BOOTPWD_KEY));
+		dbConfBuilder.append(SEPARATOR);
+		dbConfBuilder.append(dbConf.get(USERNAME_KEY));
+		dbConfBuilder.append(SEPARATOR);
+		dbConfBuilder.append(dbConf.get(PWD_KEY));
+		dbConfBuilder.append(SEPARATOR);
+		dbConfBuilder.append(dbConf.get(STATE_KEY));
+		saveDbConf(dbConfBuilder.toString());
+	}
+
+	private void saveDbConf(String dbConf) throws IOException {
+		byte[] cipher = clientCryptoFacade.getClientSecurity().asymmetricEncrypt(dbConf.getBytes());
+
+		try(FileOutputStream fos = new FileOutputStream(Paths.get(ClientCryptoManagerConstant.KEY_PATH,
+				ClientCryptoManagerConstant.KEYS_DIR, ClientCryptoManagerConstant.DB_PWD_FILE).toFile())) {
+			fos.write(java.util.Base64.getEncoder().encode(cipher));
+			LOGGER.debug("REGISTRATION  - DaoConfig", APPLICATION_NAME, APPLICATION_ID, "Saved DB configuration");
+		}
 	}
 
 }

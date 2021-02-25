@@ -17,5 +17,5 @@ public interface IndividualTypeRepository extends BaseRepository<IndividualType,
 	List<IndividualType> findByIndividualTypeIdCodeAndIndividualTypeIdLangCodeAndIsActiveTrue(String code,
 			String langCode);
 	
-	List<IndividualType> findByIndividualTypeIdLangCodeAndIsActiveTrue(String langCode);
+	List<IndividualType> findByIndividualTypeIdLangCodeAndIsActiveTrueOrderByIndividualTypeIdCodeDesc(String langCode);
 }

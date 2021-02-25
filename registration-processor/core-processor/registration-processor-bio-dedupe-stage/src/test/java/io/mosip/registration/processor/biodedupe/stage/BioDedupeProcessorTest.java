@@ -17,8 +17,9 @@ import java.util.List;
 import java.util.Map;
 
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.registration.processor.core.constant.ProviderStageName;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
-import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
+import io.mosip.registration.processor.packet.storage.utils.PriorityBasedPacketManagerService;
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -163,7 +164,7 @@ public class BioDedupeProcessorTest {
 	private Environment env;
 
 	@Mock
-	private PacketManagerService packetManagerService;
+	private PriorityBasedPacketManagerService priorityBasedPacketManagerService;
 
 	private static final String ISINFANTBIOTOABIS = "registration.processor.infant.bio.to.abis";
 
@@ -175,8 +176,8 @@ public class BioDedupeProcessorTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		Mockito.when(packetManagerService.getFieldByKey(any(),any(),any())).thenReturn("field");
-		Mockito.when(packetManagerService.getField(any(),any(),any(),any())).thenReturn("field");
+		Mockito.when(priorityBasedPacketManagerService.getFieldByMappingJsonKey(any(),any(),any(),any())).thenReturn("field");
+		Mockito.when(priorityBasedPacketManagerService.getField(any(),any(),any(),any())).thenReturn("field");
 		when(utility.getDefaultSource(any(), any())).thenReturn("reg-client");
 		ReflectionTestUtils.setField(bioDedupeProcessor, "infantDedupe", "Y");
 		ReflectionTestUtils.setField(bioDedupeProcessor, "ageLimit", "4");
@@ -200,7 +201,7 @@ public class BioDedupeProcessorTest {
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn("1233445566".getBytes("UTF-16"));
 		Mockito.when(registrationStatusMapperUtil.getStatusCode(any())).thenReturn(ERROR);
-		Mockito.doNothing().when(packetInfoManager).saveManualAdjudicationData(any(), any(), any(), any(), any(),null,null);
+		Mockito.doNothing().when(packetInfoManager).saveManualAdjudicationData(any(), any(), any(), any(), any(),any(),any());
 		Mockito.doNothing().when(packetInfoManager).saveRegLostUinDet(any(), any(), any(), any());
 
 
@@ -241,7 +242,7 @@ public class BioDedupeProcessorTest {
 		Mockito.when(bioDedupeService.getFileByRegId(anyString(),anyString())).thenReturn(null);
 		ReflectionTestUtils.setField(bioDedupeProcessor, "infantDedupe", "N");
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(null);
-		Mockito.when(utility.getApplicantAge(any(),any())).thenReturn(2);
+		Mockito.when(utility.getApplicantAge(any(),any(),any())).thenReturn(2);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertTrue(messageDto.getIsValid());
@@ -258,7 +259,7 @@ public class BioDedupeProcessorTest {
 	public void testNewInsertionAdultCBEFFNotFoundException() throws Exception {
 		Mockito.when(bioDedupeService.getFileByRegId(anyString(),anyString())).thenReturn(null);
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(null);
-		Mockito.when(utility.getApplicantAge(any(),any())).thenReturn(12);
+		Mockito.when(utility.getApplicantAge(any(),any(),any())).thenReturn(12);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getInternalError());
 	}
@@ -275,7 +276,7 @@ public class BioDedupeProcessorTest {
 
 		ReflectionTestUtils.setField(bioDedupeProcessor, "ageLimit", "age");
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(null);
-		Mockito.when(utility.getApplicantAge(any(),any())).thenReturn(12);
+		Mockito.when(utility.getApplicantAge(any(),any(),any())).thenReturn(12);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getInternalError());
 	}
@@ -290,7 +291,7 @@ public class BioDedupeProcessorTest {
 	public void testNewInsertionIOException() throws Exception {
 		Mockito.when(bioDedupeService.getFileByRegId(anyString(),anyString())).thenReturn(null);
 		Mockito.when(restClientService.getApi(any(), any(), anyString(), any(), any())).thenReturn(null);
-		Mockito.when(utility.getApplicantAge(any(),any())).thenThrow(new IOException("IOException"));
+		Mockito.when(utility.getApplicantAge(any(),any(),any())).thenThrow(new IOException("IOException"));
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getInternalError());
 	}
@@ -336,7 +337,7 @@ public class BioDedupeProcessorTest {
 		list.add("1");
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any())).thenReturn(list);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any())).thenReturn(list);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getIsValid());
@@ -376,8 +377,8 @@ public class BioDedupeProcessorTest {
 
 		PowerMockito.mockStatic(Utilities.class);
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn(IDENTITY);
-		Mockito.when(packetManagerService.getField(any(),any(),any(),any())).thenReturn(null);
-		Mockito.when(packetManagerService.getFieldByKey(any(),any(),any())).thenReturn(null);
+		Mockito.when(priorityBasedPacketManagerService.getField(any(),any(),any(),any())).thenReturn(null);
+		Mockito.when(priorityBasedPacketManagerService.getFieldByMappingJsonKey(any(),any(),any(),any())).thenReturn(null);
 
 		registrationStatusDto.setRegistrationId("reg1234");
 		registrationStatusDto.setRegistrationType("Update");
@@ -409,7 +410,7 @@ public class BioDedupeProcessorTest {
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 
 		List<String> matchedRidList = new ArrayList<>();
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any())).thenReturn(matchedRidList);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any())).thenReturn(matchedRidList);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
 	}
@@ -435,7 +436,7 @@ public class BioDedupeProcessorTest {
 
 		List<String> matchedRidList = new ArrayList<>();
 		matchedRidList.add("27847657360002520190320095010");
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any())).thenReturn(matchedRidList);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any())).thenReturn(matchedRidList);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertFalse(messageDto.getIsValid());
@@ -460,7 +461,7 @@ public class BioDedupeProcessorTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 		List<String> matchedRidList = new ArrayList<>();
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any())).thenReturn(matchedRidList);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any())).thenReturn(matchedRidList);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertFalse(messageDto.getIsValid());
@@ -486,7 +487,7 @@ public class BioDedupeProcessorTest {
 		Mockito.when(abisHandlerUtil.getPacketStatus(any())).thenReturn(AbisConstant.POST_ABIS_IDENTIFICATION);
 		List<String> matchedRidList = new ArrayList<>();
 		matchedRidList.add("27847657360002520190320095010");
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any())).thenReturn(matchedRidList);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any())).thenReturn(matchedRidList);
 
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 		assertTrue(messageDto.getIsValid());
@@ -508,10 +509,10 @@ public class BioDedupeProcessorTest {
 		List<String> matchedRidList = new ArrayList<>();
 		matchedRidList.add("27847657360002520190320095010");
 		matchedRidList.add("27847657360002520190320095011");
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any())).thenReturn(matchedRidList);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any())).thenReturn(matchedRidList);
 
-		Mockito.when(packetManagerService.getField("reg1234","gender","reg-client", "LOST")).thenReturn("MALE");
-		Mockito.when(packetManagerService.getField("reg1234","dob","reg-client", "LOST")).thenReturn("2016/01/01");
+		Mockito.when(priorityBasedPacketManagerService.getField("reg1234","gender","LOST", ProviderStageName.BIO_DEDUPE)).thenReturn("MALE");
+		Mockito.when(priorityBasedPacketManagerService.getField("reg1234","dob", "LOST", ProviderStageName.BIO_DEDUPE)).thenReturn("2016/01/01");
 
 		Map<String, String> map = new LinkedHashMap<>();
 		map.put("gender", "MALE");
@@ -519,7 +520,7 @@ public class BioDedupeProcessorTest {
 		JSONObject j1 = new JSONObject(map);
 
 		Mockito.when(idRepoService.getIdJsonFromIDRepo(any(), any())).thenReturn(j1);
-		Mockito.when(utility.getApplicantAge(any(),any())).thenReturn(12);
+		Mockito.when(utility.getApplicantAge(any(),any(),any())).thenReturn(12);
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getIsValid());
@@ -542,7 +543,7 @@ public class BioDedupeProcessorTest {
 		List<String> matchedRidList = new ArrayList<>();
 		matchedRidList.add("27847657360002520190320095010");
 		matchedRidList.add("27847657360002520190320095011");
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any())).thenReturn(matchedRidList);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any())).thenReturn(matchedRidList);
 
 		JSONObject obj1 = new JSONObject();
 		obj1.put("dateOfBirth", "2016/01/01");
@@ -565,7 +566,7 @@ public class BioDedupeProcessorTest {
 		List<String> matchedRidList = new ArrayList<>();
 		matchedRidList.add("27847657360002520190320095010");
 		matchedRidList.add("27847657360002520190320095011");
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any())).thenReturn(matchedRidList);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any())).thenReturn(matchedRidList);
 
 		JSONObject obj1 = new JSONObject();
 		obj1.put("dateOfBirth", "2016/01/01");
@@ -575,7 +576,7 @@ public class BioDedupeProcessorTest {
 		Mockito.when(utility.getGetRegProcessorDemographicIdentity()).thenReturn(IDENTITY);
 		Mockito.when(idRepoService.getIdJsonFromIDRepo("27847657360002520190320095010", IDENTITY)).thenReturn(obj1);
 		Mockito.when(idRepoService.getIdJsonFromIDRepo("27847657360002520190320095011", IDENTITY)).thenReturn(obj2);
-		Mockito.when(packetManagerService.getFieldByKey("reg1234","dob","LOST")).thenReturn("2016/01/01");
+		Mockito.when(priorityBasedPacketManagerService.getFieldByMappingJsonKey("reg1234","dob","LOST", ProviderStageName.BIO_DEDUPE)).thenReturn("2016/01/01");
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getInternalError());
@@ -593,7 +594,7 @@ public class BioDedupeProcessorTest {
 		matchedRidList.add("27847657360002520190320095010");
 		matchedRidList.add("27847657360002520190320095011");
 		matchedRidList.add("27847657360002520190320095012");
-		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any())).thenReturn(matchedRidList);
+		Mockito.when(abisHandlerUtil.getUniqueRegIds(any(),any(),any())).thenReturn(matchedRidList);
 
 		JSONObject obj1 = new JSONObject();
 		obj1.put("dateOfBirth", "2016/01/01");
@@ -639,7 +640,7 @@ public class BioDedupeProcessorTest {
 		ApisResourceAccessException e=new ApisResourceAccessException();
 	
 		
-		Mockito.doThrow(e).when(utility).getApplicantAge(any(),any());
+		Mockito.doThrow(e).when(utility).getApplicantAge(any(),any(),any());
 		MessageDTO messageDto = bioDedupeProcessor.process(dto, stageName);
 
 		assertFalse(messageDto.getIsValid());
