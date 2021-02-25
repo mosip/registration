@@ -114,7 +114,7 @@ public class DateValidation extends BaseController {
 					LocalDate date = LocalDate.of(defaultDate.get(Calendar.YEAR), defaultDate.get(Calendar.MONTH + 1),
 							defaultDate.get(Calendar.DATE));
 					isValid = validation.validateSingleString(
-							date.format(DateTimeFormatter.ofPattern(ApplicationContext.getDateFormat())), fieldId);
+							date.format(DateTimeFormatter.ofPattern(ApplicationContext.getDateFormat())), fieldId, ApplicationContext.applicationLanguage());
 
 					if (isValid) {
 
@@ -225,7 +225,7 @@ public class DateValidation extends BaseController {
 
 				if (LocalDate.now().compareTo(date) >= 0) {
 					String dob = date.format(DateTimeFormatter.ofPattern(ApplicationContext.getDateFormat()));
-					return validation.validateSingleString(dob, fieldId);
+					return validation.validateSingleString(dob, fieldId, ApplicationContext.applicationLanguage());
 				}
 			} catch (Exception ex) {
 				LOGGER.error(LoggerConstants.DATE_VALIDATION, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
