@@ -125,6 +125,8 @@ public class ButtonFxControl extends FxControl {
 					uiSchemaDTO.getLabel().get(RegistrationConstants.PRIMARY));
 		}
 
+		changeNodeOrientation(simpleTypeVBox, languageType);
+		
 		return simpleTypeVBox;
 	}
 
