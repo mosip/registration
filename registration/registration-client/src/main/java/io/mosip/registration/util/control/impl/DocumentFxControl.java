@@ -5,7 +5,6 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -20,16 +19,13 @@ import io.mosip.registration.controller.reg.DemographicDetailController;
 import io.mosip.registration.controller.reg.DocumentScanController;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
-import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.packetmanager.DocumentDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.util.control.FxControl;
 import io.mosip.registration.validator.RequiredFieldValidator;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.geometry.NodeOrientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -298,7 +294,7 @@ public class DocumentFxControl extends FxControl {
 							documentDto.setFormat(docType);
 							documentDto.setCategory(uiSchemaDTO.getFieldCategory());
 							documentDto.setOwner("Applicant");
-							documentDto.setValue(uiSchemaDTO.getFieldCategory()
+							documentDto.setValue(uiSchemaDTO.getSubType()
 									.concat(RegistrationConstants.UNDER_SCORE).concat(comboBox.getValue().getCode()));
 						} else {
 
