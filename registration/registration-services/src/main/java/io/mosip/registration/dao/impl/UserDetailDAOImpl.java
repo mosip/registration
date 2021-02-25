@@ -84,12 +84,12 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 		LOGGER.info("REGISTRATION - USER_DETAIL - REGISTRATION_USER_DETAIL_DAO_IMPL", APPLICATION_NAME, APPLICATION_ID,
 				"Fetching User details");
 
-		List<UserDetail> userDetail = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
+		UserDetail userDetail = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
 
 		LOGGER.info("REGISTRATION - USER_DETAIL - REGISTRATION_USER_DETAIL_DAO_IMPL", APPLICATION_NAME, APPLICATION_ID,
 				"User details fetched successfully");
 
-		return !userDetail.isEmpty() ? userDetail.get(0) : null;
+		return userDetail;
 	}
 
 	/*
@@ -158,27 +158,14 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 			// deleting Role if Exist
 			LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "Deleting User role if exist....");
 			userDetails.forEach(userDetail -> {
-				userDetail.getRoles().forEach(userRoleId -> {
-					UserRoleId roleId = new UserRoleId();
-					roleId.setRoleCode(userRoleId);
-					roleId.setUsrId(userDetail.getUserName());
-
-					deleteUserRole(userDetail.getUserName());
-
-				});
-
+				deleteUserRole(userDetail.getUserName());
 			});
 
 			// Saving User Details user name and password
 			userDetails.forEach(userDtals -> {
 
-				List<UserDetail> users = userDetailRepository
+				UserDetail userDetail = userDetailRepository
 						.findByIdIgnoreCaseAndIsActiveTrue(userDtals.getUserName());
-
-				UserDetail userDetail = null;
-				if (users != null && !users.isEmpty()) {
-					userDetail = users.get(0);
-				}
 
 				UserDetail userDtls = new UserDetail();
 				UserPassword usrPwd = new UserPassword();
@@ -224,35 +211,34 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 			userPwdRepository.saveAll(userPassword);
 
 			// Saving User Roles
-			userDetails.forEach(role -> {
+			userDetails.forEach(userDetail -> {
 
-				UserRole roles = new UserRole();
-				roles.setIsActive(role.getIsActive() != null ? role.getIsActive().booleanValue() : true);
-				roles.setLangCode(ApplicationContext.applicationLanguage());
+				UserRole role = new UserRole();
+				role.setIsActive(userDetail.getIsActive() != null ? userDetail.getIsActive().booleanValue() : true);
+				role.setLangCode(ApplicationContext.applicationLanguage());
 				if (SessionContext.isSessionContextAvailable()) {
-					roles.setCrBy(SessionContext.userContext().getUserId());
+					role.setCrBy(SessionContext.userContext().getUserId());
 				} else {
-					roles.setCrBy(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
+					role.setCrBy(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
 				}
-				roles.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
-				role.getRoles().forEach(rol -> {
+				role.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
+				userDetail.getRoles().forEach(rol -> {
 					UserRoleId roleId = new UserRoleId();
 					roleId.setRoleCode(rol);
-					roleId.setUsrId(role.getUserName());
-					roles.setUserRoleId(roleId);
+					roleId.setUsrId(userDetail.getUserName());
+					role.setUserRoleId(roleId);
 
 					try {
-
-						userRoleRepository.save(roles);
-
+						userRoleRepository.save(role);
 					} catch (Exception exception) {
-						exception.printStackTrace();
+						LOGGER.error(LOG_REG_USER_DETAIL_DAO, APPLICATION_NAME, APPLICATION_ID,
+								exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 					}
 				});
 
 			});
+			
 			LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "Leaving user detail save method...");
-
 		} catch (RuntimeException exRuntimeException) {
 			LOGGER.error(LOG_REG_USER_DETAIL_DAO, APPLICATION_NAME, APPLICATION_ID,
 					exRuntimeException.getMessage() + ExceptionUtils.getStackTrace(exRuntimeException));
@@ -280,17 +266,17 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 	@Override
 	public void updateAuthTokens(String userId, String authToken, String refreshToken, long tokenExpiry,
 			long refreshTokenExpiry) {
-		List<UserDetail> userDetail = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
+		UserDetail userDetail = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
 		UserToken userToken = null;
-		if (userDetail != null && !userDetail.isEmpty()) {
-			if (userDetail.get(0).getUserToken() == null) {
+		if (userDetail != null) {
+			if (userDetail.getUserToken() == null) {
 				userToken = new UserToken();
 				userToken.setUsrId(userId);
 				userToken.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
 				userToken.setCrBy("System");
 				userToken.setIsActive(true);
 			} else
-				userToken = userDetail.get(0).getUserToken();
+				userToken = userDetail.getUserToken();
 
 			userToken.setToken(authToken);
 			userToken.setRefreshToken(refreshToken);
@@ -300,26 +286,25 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 
 			userTokenRepository.save(userToken);
 
-			userDetail.get(0).setUserToken(userToken);
-			userDetailRepository.save(userDetail.get(0));
-
+			userDetail.setUserToken(userToken);
+			userDetailRepository.save(userDetail);
 		}
 	}
 
 	@Override
 	public void updateUserPwd(String userId, String password) throws Exception {
-		List<UserDetail> userDetail = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
-		if (userDetail != null && !userDetail.isEmpty()) {
-			if (userDetail.get(0).getSalt() == null)
-				userDetail.get(0)
+		UserDetail userDetail = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
+		if (userDetail != null) {
+			if (userDetail.getSalt() == null)
+				userDetail
 						.setSalt(CryptoUtil.encodeBase64(DateUtils.formatToISOString(LocalDateTime.now()).getBytes()));
 
-			userDetail.get(0).getUserPassword().setPwd(HMACUtils2.digestAsPlainTextWithSalt(password.getBytes(),
-					CryptoUtil.decodeBase64(userDetail.get(0).getSalt())));
-			userDetail.get(0).getUserPassword().setUpdDtimes(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
+			userDetail.getUserPassword().setPwd(HMACUtils2.digestAsPlainTextWithSalt(password.getBytes(),
+					CryptoUtil.decodeBase64(userDetail.getSalt())));
+			userDetail.getUserPassword().setUpdDtimes(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
 
-			userPwdRepository.save(userDetail.get(0).getUserPassword());
-			userDetailRepository.save(userDetail.get(0));
+			userPwdRepository.save(userDetail.getUserPassword());
+			userDetailRepository.save(userDetail);
 		}
 	}
 
@@ -341,9 +326,8 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 	public void deleteUserRole(String userName) {
 		LOGGER.info("REGISTRATION - USER_DETAIL - REGISTRATION_USER_DETAIL_DAO_IMPL", APPLICATION_NAME, APPLICATION_ID,
 				"Deleting Roles for user : " + userName);
-
-		userRoleRepository.deleteByUserRoleIdUsrId(userName);
-
+		
+		userRoleRepository.delete(userName);
 	}
 
 	@Override
