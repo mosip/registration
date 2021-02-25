@@ -1068,6 +1068,8 @@ public enum PlatformErrorMessages {
 	/** The uin deactivation failed. */
 	UIN_DEACTIVATION_FAILED(PlatformConstants.RPR_UIN_GENERATOR_STAGE + "011", "UIN Deactivation  failed"),
 
+	VID_CREATION_FAILED(PlatformConstants.RPR_UIN_GENERATOR_STAGE + "012", "VID Creation  failed"),
+
 	/** The link rid for lost packet failed. */
 	LINK_RID_FOR_LOST_PACKET_FAILED(PlatformConstants.RPR_UIN_GENERATOR_STAGE + "012",
 			"UIn not found the the matched RID"),

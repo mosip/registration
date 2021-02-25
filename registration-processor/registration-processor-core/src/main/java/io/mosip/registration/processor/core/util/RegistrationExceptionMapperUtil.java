@@ -115,7 +115,7 @@ public class RegistrationExceptionMapperUtil {
                 RegistrationTransactionStatusCode.FAILED);
         statusMap.put(RegistrationExceptionTypeCode.PACKET_UPLOADER_FAILED, RegistrationTransactionStatusCode.FAILED);
         statusMap.put(RegistrationExceptionTypeCode.PACKET_UIN_GENERATION_FAILED,
-                RegistrationTransactionStatusCode.FAILED);
+				RegistrationTransactionStatusCode.REPROCESS);
         statusMap.put(RegistrationExceptionTypeCode.BASE_UNCHECKED_EXCEPTION, RegistrationTransactionStatusCode.ERROR);
         statusMap.put(RegistrationExceptionTypeCode.BASE_CHECKED_EXCEPTION, RegistrationTransactionStatusCode.ERROR);
         statusMap.put(RegistrationExceptionTypeCode.EXTERNAL_INTEGRATION_FAILED,
@@ -158,6 +158,9 @@ public class RegistrationExceptionMapperUtil {
                 RegistrationTransactionStatusCode.REPROCESS);
 
         statusMap.put(RegistrationExceptionTypeCode.PACKET_REJECTED, RegistrationTransactionStatusCode.REJECTED);
+
+		statusMap.put(RegistrationExceptionTypeCode.VID_CREATION_EXCEPTION,
+				RegistrationTransactionStatusCode.REPROCESS);
 
         return unmodifiableMap;
 
