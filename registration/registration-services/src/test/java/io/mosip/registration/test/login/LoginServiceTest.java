@@ -173,10 +173,8 @@ public class LoginServiceTest {
 
 		UserDetail userDetail = new UserDetail();
 		userDetail.setId("mosip");
-		List<UserDetail> userDetailList = new ArrayList<UserDetail>();
-		userDetailList.add(userDetail);
 		Mockito.when(userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(Mockito.anyString()))
-				.thenReturn(userDetailList);
+				.thenReturn(userDetail);
 
 		Mockito.when(userDetailDAO.getUserDetail(Mockito.anyString())).thenReturn(userDetail);
 

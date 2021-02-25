@@ -410,10 +410,10 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 			}
 			userBiometricRepository.saveAll(existingBiometrics);
 		}
-		List<UserDetail> userDetails = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
-		if(userDetails != null && !userDetails.isEmpty()) {
-			userDetails.get(0).getUserBiometric().clear();
-			userDetailRepository.save(userDetails.get(0));
+		UserDetail userDetails = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
+		if(userDetails != null) {
+			userDetails.getUserBiometric().clear();
+			userDetailRepository.save(userDetails);
 		}
 		userBiometricRepository.deleteByUserBiometricIdUsrId(userId);
 	}
