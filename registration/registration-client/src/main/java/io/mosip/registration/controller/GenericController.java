@@ -303,7 +303,7 @@ public class GenericController extends BaseController {
 								}
 
 								if (fxConrol != null && fxConrol.getNode() != null) {
-									Node node = fxConrol.getNode();
+//									Node node = fxConrol.getNode();
 
 //										GridPane groupGridPane = (GridPane) screenGridPane.lookup(RegistrationConstants.HASH+uiSchemaDTO.getGroup());
 //										
@@ -312,19 +312,49 @@ public class GenericController extends BaseController {
 //										}
 
 									fxControlMap.put(field, fxConrol);
-									GridPane gridPane = new GridPane();
+									GridPane rowGridPane = new GridPane();
 
+									rowGridPane.setPrefWidth(100);
 									ColumnConstraints columnConstraint1 = new ColumnConstraints();
 									columnConstraint1.setPercentWidth(15);
 									ColumnConstraints columnConstraint2 = new ColumnConstraints();
 									columnConstraint2.setPercentWidth(70);
 									ColumnConstraints columnConstraint3 = new ColumnConstraints();
 									columnConstraint3.setPercentWidth(15);
-									gridPane.getColumnConstraints().addAll(columnConstraint1, columnConstraint2,
-											columnConstraint3);
-									gridPane.add(node, 1, 2);
 
-									screenGridPane.add(gridPane, 0, count++);
+									rowGridPane.getColumnConstraints().addAll(columnConstraint1, columnConstraint2,
+											columnConstraint3);
+
+									GridPane middleGridpane = new GridPane();
+
+									Map<String, Object> nodeMap = fxConrol.getNodeMap();
+
+									if (nodeMap.size() > 1) {
+
+										ColumnConstraints middleGridpaneColumnConstraint1 = new ColumnConstraints();
+										middleGridpaneColumnConstraint1.setPercentWidth(45);
+										ColumnConstraints middleGridpaneColumnConstraint2 = new ColumnConstraints();
+										middleGridpaneColumnConstraint2.setPercentWidth(10);
+										ColumnConstraints middleGridpaneColumnConstraint3 = new ColumnConstraints();
+										middleGridpaneColumnConstraint3.setPercentWidth(45);
+
+										middleGridpane.getColumnConstraints().addAll(middleGridpaneColumnConstraint1,
+												middleGridpaneColumnConstraint2, middleGridpaneColumnConstraint3);
+
+										middleGridpane.add(
+												(Node) nodeMap.get(ApplicationContext.getInstance().getLocalLanguage()),
+												2, 0);
+									}
+
+									middleGridpane.add(
+											(Node) nodeMap
+													.get(ApplicationContext.getInstance().getApplicationLanguage()),
+											0, 0);
+									rowGridPane.add(middleGridpane, 1, 0);
+
+									screenGridPane.add(rowGridPane, 0, count++);
+
+									fxConrol.setNode(middleGridpane);
 								}
 							}
 						}

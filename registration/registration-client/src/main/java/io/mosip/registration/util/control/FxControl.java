@@ -7,6 +7,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.util.List;
+import java.util.Map;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -45,10 +46,24 @@ public abstract class FxControl extends Node {
 
 	public Node node;
 
+	public void setNode(Node node) {
+		this.node = node;
+	}
+
 	protected DemographicDetailController demographicDetailController;
 	protected AuditManagerService auditFactory;
 
 	protected RequiredFieldValidator requiredFieldValidator;
+
+	protected Map<String, Object> nodeMap;
+
+	public Map<String, Object> getNodeMap() {
+		return nodeMap;
+	}
+
+	public void setNodeMap(Map<String, Object> nodeMap) {
+		this.nodeMap = nodeMap;
+	}
 
 	public void refreshFields() {
 

@@ -2,7 +2,9 @@ package io.mosip.registration.util.control.impl;
 
 import java.time.ZoneId;
 import java.util.Calendar;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.TimeZone;
 
@@ -76,13 +78,22 @@ public class DOBFxControl extends FxControl {
 		hBox.getChildren().add(appLangDateVBox);
 		HBox.setHgrow(appLangDateVBox, Priority.ALWAYS);
 
+		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
+		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(),
+				appLangDateVBox);
+
 		if (demographicDetailController.isLocalLanguageAvailable()
 				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
 			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
 
 			HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
 			hBox.getChildren().add(secondaryLangVBox);
+
+			nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage(),
+					appLangDateVBox);
 		}
+
+		setNodeMap(nodeMap);
 
 		this.node = hBox;
 

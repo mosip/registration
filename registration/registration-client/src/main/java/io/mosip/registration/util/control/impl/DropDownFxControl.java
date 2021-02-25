@@ -70,6 +70,9 @@ public class DropDownFxControl extends FxControl {
 		hBox.getChildren().add(primaryLangVBox);
 //		HBox.setHgrow(primaryLangVBox, Priority.ALWAYS);
 
+		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
+		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(),
+				primaryLangVBox);
 		if (demographicDetailController.isLocalLanguageAvailable()
 				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
 
@@ -80,9 +83,12 @@ public class DropDownFxControl extends FxControl {
 
 //			HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
 			hBox.getChildren().add(secondaryLangVBox);
+			nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage(),
+					secondaryLangVBox);
 
 		}
 
+		setNodeMap(nodeMap);
 		this.node = hBox;
 		setListener(node);
 		return this.control;

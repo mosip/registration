@@ -2,10 +2,12 @@ package io.mosip.registration.util.control.impl;
 
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
+import static org.hamcrest.CoreMatchers.instanceOf;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +71,11 @@ public class BiometricFxControl extends FxControl {
 		this.control = this;
 
 		this.node = create(null, uiSchemaDTO);
+
+		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
+		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(), this.node);
+
+		setNodeMap(nodeMap);
 
 		return this.control;
 	}
@@ -514,7 +521,14 @@ public class BiometricFxControl extends FxControl {
 	public void refresh() {
 
 		LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refresh " + uiSchemaDTO.getId());
-		create((VBox) this.node, this.uiSchemaDTO);
+
+		VBox vBox = null;
+		if (node instanceof VBox) {
+			vBox = (VBox) node;
+		} else {
+			vBox = (VBox) ((GridPane) this.node).getChildren().get(0);
+		}
+		create(vBox, this.uiSchemaDTO);
 
 	}
 
