@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import brave.Tracer;
 import brave.Tracing;
@@ -181,6 +182,6 @@ public class CoreConfigBean {
 
 	@Bean
 	public ObjectMapper getObjectMapper() {
-		return new ObjectMapper();
+		return new ObjectMapper().registerModule(new JavaTimeModule());
 	}
 }
