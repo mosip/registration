@@ -126,6 +126,7 @@ public class DOBAgeFxControl extends FxControl {
 
 		dobHBox.prefWidthProperty().bind(ageVBox.widthProperty());
 
+		changeNodeOrientation(ageVBox, languageType);
 		return ageVBox;
 	}
 
