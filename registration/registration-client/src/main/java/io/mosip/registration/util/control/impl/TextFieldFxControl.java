@@ -7,7 +7,6 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.springframework.context.ApplicationContext;
 
@@ -24,7 +23,6 @@ import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.util.common.DemographicChangeActionHandler;
 import io.mosip.registration.util.control.FxControl;
-import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -211,6 +209,8 @@ public class TextFieldFxControl extends FxControl {
 					uiSchemaDTO.getLabel().get(RegistrationConstants.PRIMARY));
 		}
 
+		changeNodeOrientation(simpleTypeVBox, languageType);
+		
 		return simpleTypeVBox;
 	}
 

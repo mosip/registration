@@ -36,7 +36,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
@@ -96,10 +95,10 @@ public class RegistrationController extends BaseController {
 	private Text homeText;
 
 	@FXML
-	private HBox navigationHBox;
+	private GridPane navigationGridPane;
 
-	public HBox getNavigationHBox() {
-		return navigationHBox;
+	public GridPane getNavigationGridPane() {
+		return navigationGridPane;
 	}
 
 	@Autowired
