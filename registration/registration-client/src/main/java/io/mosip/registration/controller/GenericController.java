@@ -3,6 +3,8 @@ package io.mosip.registration.controller;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -57,16 +59,17 @@ import io.mosip.registration.validator.RequiredFieldValidator;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.geometry.Pos;
+import javafx.geometry.HPos;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 
 /**
@@ -107,7 +110,7 @@ public class GenericController extends BaseController {
 	private Button previous;
 
 	@FXML
-	private HBox headerHBox;
+	private GridPane headerGridPane;
 
 	@FXML
 	private GridPane preRegGridPane;
@@ -150,6 +153,8 @@ public class GenericController extends BaseController {
 	 */
 	private TreeMap<Integer, ScreenDTO> screenMap = new TreeMap<>();
 
+	private List<UiScreenDTO> uiScreens = new ArrayList<>();
+
 	@Autowired
 	private PridValidator<String> pridValidatorImpl;
 
@@ -181,12 +186,11 @@ public class GenericController extends BaseController {
 		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Populating Dynamic screens");
 //		flowPane.getChildren().clear();
 		fxControlMap.clear();
+		fieldMap.clear();
 
-		headerHBox = registrationController.getNavigationHBox();
-
-		headerHBox.setAlignment(Pos.BOTTOM_LEFT);
-		headerHBox.getChildren().clear();
-		headerHBox.setSpacing(45);
+		headerGridPane = registrationController.getNavigationGridPane();
+		headerGridPane.getChildren().clear();
+		headerGridPane.setHgap(30);
 
 		flowPane.setVgap(10);
 		flowPane.setHgap(10);
@@ -205,10 +209,42 @@ public class GenericController extends BaseController {
 //			Map<String, List<String>> screens = mapper.readValue(dynamicFieldsJsonString, LinkedHashMap.class);
 			Map<String, List<String>> screens = new LinkedHashMap<>();
 			SchemaDto schema = getLatestSchema();
-			if (schema != null && schema.getScreens() != null && !schema.getScreens().isEmpty()) {
-				List<UiScreenDTO> uiScreenDTO = schema.getScreens();
-				TreeMap<Integer, UiScreenDTO> orderedScreens = getScreensInOrder(uiScreenDTO);
-				orderedScreens.forEach((order, screenDTO) -> screens.put(screenDTO.getLabel(), screenDTO.getFields()));
+
+			uiScreens = schema.getScreens();
+
+			if (uiScreens == null || uiScreens.isEmpty()) {
+
+				uiScreens = new LinkedList<UiScreenDTO>();
+				UiScreenDTO screenDTO = new UiScreenDTO();
+				screenDTO.setFields(getValidationMap().keySet().stream().collect(Collectors.toList()));
+				screenDTO.getFields().remove("UIN");
+				screenDTO.setName("Resident Information");
+				HashMap<String, String> label = new HashMap<>();
+				label.put(ApplicationContext.applicationLanguage(),
+						ApplicationContext.applicationLanguageBundle().getString("defaultHeader"));
+				label.put(ApplicationContext.localLanguage(),
+						ApplicationContext.localLanguageBundle().getString("defaultHeader"));
+				screenDTO.setLabel(label);
+				screenDTO.setOrder("1");
+
+				uiScreens.addAll(Arrays.asList(screenDTO));
+			}
+
+			headerGridPane.getColumnConstraints().clear();
+
+			for (int index = 0; index < uiScreens.size() + 2; index++) {
+				ColumnConstraints columnConstraints = new ColumnConstraints();
+				columnConstraints.setPercentWidth(90 / (uiScreens.size() + 2));
+				headerGridPane.getColumnConstraints().add(columnConstraints);
+			}
+			
+			ColumnConstraints columnConstraints = new ColumnConstraints();
+			columnConstraints.setPercentWidth(10);
+			headerGridPane.getColumnConstraints().add(columnConstraints);
+
+			if (schema != null && uiScreens != null && !uiScreens.isEmpty()) {
+				TreeMap<Integer, UiScreenDTO> orderedScreens = getScreensInOrder(uiScreens);
+				orderedScreens.forEach((order, screenDTO) -> screens.put(screenDTO.getName(), screenDTO.getFields()));
 
 				screenMap.clear();
 				ObservableList<Node> flowPaneNodes = flowPane.getChildren();
@@ -237,13 +273,15 @@ public class GenericController extends BaseController {
 //						screens.get(screens.size() - 1).addAll(list);
 
 				}
+
+				int columnCount = 0;
 				for (Entry<String, List<String>> screenEntry : screens.entrySet()) {
 
 					int count = 0;
 					GridPane screenGridPane = new GridPane();
 
 					ScreenDTO screenDTO = new ScreenDTO();
-					screenDTO.setScreenName(screenEntry.getKey());
+					screenDTO.setScreenNames(getScreenLabels(screenEntry.getKey()));
 					screenDTO.setScreenNode(screenGridPane);
 					screenDTO.setCanContinue(false);
 					screenDTO.setVisible(true);
@@ -266,7 +304,7 @@ public class GenericController extends BaseController {
 
 					if (fields != null && !fields.isEmpty()) {
 
-						addPagination(screenDTO);
+						addPagination(screenDTO, columnCount++);
 
 						for (String field : fields) {
 
@@ -274,7 +312,8 @@ public class GenericController extends BaseController {
 									&& (isUpdateUIN
 											? (getRegistrationDTOFromSession().getUpdatableFields().contains(field)
 													|| defaultFields.contains(field))
-											: true) && getFxControl(field) == null) {
+											: true)
+									&& getFxControl(field) == null) {
 
 								LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 										"Creating control for field : " + field);
@@ -341,7 +380,7 @@ public class GenericController extends BaseController {
 				}
 				currentPage = 1;
 
-				addPagination(null);
+				addPagination(null, 0);
 
 				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refreshing fields");
 				refreshFields();
@@ -349,12 +388,23 @@ public class GenericController extends BaseController {
 				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Showing current Page");
 				showCurrentPage();
 			}
-		} catch (RegBaseCheckedException exception) {
+		} catch (
+
+		RegBaseCheckedException exception) {
 
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 					"Failed to load dynamic fields " + ExceptionUtils.getStackTrace(exception));
 		}
 
+	}
+
+	private Map<String, String> getScreenLabels(String key) {
+		for (UiScreenDTO screen : uiScreens) {
+			if (screen.getName().equalsIgnoreCase(key)) {
+				return screen.getLabel();
+			}
+		}
+		return null;
 	}
 
 	private TreeMap<Integer, UiScreenDTO> getScreensInOrder(List<UiScreenDTO> uiScreenDTO) {
@@ -365,39 +415,44 @@ public class GenericController extends BaseController {
 		return orderedScreens;
 	}
 
-	private void addPagination(ScreenDTO screenDTO) {
-
+	private void addPagination(ScreenDTO screenDTO, int columnCount) {
 		if (screenDTO == null) {
 			Label previewLabel = getLabel(String.valueOf(screenMap.size() + 1),
-					ApplicationContext.getInstance().getApplicationLanguageBundle().getString("registrationpreview"),
+					ApplicationContext.applicationLanguageBundle().getString("previewHeader") + " / "
+							+ ApplicationContext.localLanguageBundle().getString("previewHeader"),
 					RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, 100);
 			previewLabel.getStyleClass().addAll(NON_CLICKABLE);
 
 			Label ackLabel = getLabel(String.valueOf(screenMap.size() + 2),
-					ApplicationContext.getInstance().getApplicationLanguageBundle().getString("authentication"),
-					RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, 100);
+					ApplicationContext.applicationLanguageBundle().getString("authentication") + " / "
+							+ ApplicationContext.localLanguageBundle().getString("authentication"),
+					RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, 150);
 			ackLabel.getStyleClass().addAll(NON_CLICKABLE);
 
 			addNavListener(previewLabel);
 			addNavListener(ackLabel);
-			headerHBox.getChildren().add(previewLabel);
-			headerHBox.getChildren().add(ackLabel);
+			headerGridPane.add(previewLabel, uiScreens.size(), 0);
+			headerGridPane.add(ackLabel, uiScreens.size() + 1, 0);
 
 		} else {
-			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-					"Adding Pagination  for screen : " + screenDTO.getScreenName());
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Adding Pagination  for screen : "
+					+ screenDTO.getScreenNames().get(ApplicationContext.applicationLanguage()));
 
-			Label label = getLabel(null, screenDTO.getScreenName(), RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true,
-					50);
+			Label label = getLabel(null, getScreenLabel(screenDTO.getScreenNames()),
+					RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, 150);
 			label.getStyleClass().addAll(NON_CLICKABLE);
 
 			label.setId(String.valueOf(screenMap.size()));
 
 			addNavListener(label);
 
-			headerHBox.getChildren().add(label);
+			headerGridPane.add(label, columnCount, 0);
 		}
+	}
 
+	private String getScreenLabel(Map<String, String> screenNames) {
+		return screenNames.get(ApplicationContext.applicationLanguage()) + " / "
+				+ screenNames.get(ApplicationContext.localLanguage());
 	}
 
 	private void addNavListener(Label label) {
@@ -486,70 +541,72 @@ public class GenericController extends BaseController {
 
 		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 				"Build fx element called for field : " + uiSchemaDTO.getId());
-		switch (uiSchemaDTO.getControlType()) {
+		if (uiSchemaDTO != null && uiSchemaDTO.getControlType() != null) {
+			switch (uiSchemaDTO.getControlType()) {
 
-		case CONTROLTYPE_TEXTFIELD:
-			return new TextFieldFxControl().build(uiSchemaDTO);
-		case CONTROLTYPE_BIOMETRICS:
+			case CONTROLTYPE_TEXTFIELD:
+				return new TextFieldFxControl().build(uiSchemaDTO);
+			case CONTROLTYPE_BIOMETRICS:
 
-			return new BiometricFxControl().build(uiSchemaDTO);
-		case CONTROLTYPE_BUTTON:
-			FxControl buttonFxControl = new ButtonFxControl().build(uiSchemaDTO);
-			Map<String, Object> buttonsData = new LinkedHashMap<>();
+				return new BiometricFxControl().build(uiSchemaDTO);
+			case CONTROLTYPE_BUTTON:
+				FxControl buttonFxControl = new ButtonFxControl().build(uiSchemaDTO);
+				Map<String, Object> buttonsData = new LinkedHashMap<>();
 
-			try {
-				buttonsData.put(RegistrationConstants.PRIMARY, masterSyncService.getFieldValues(uiSchemaDTO.getId(),
-						ApplicationContext.applicationLanguage()));
-				buttonsData.put(RegistrationConstants.SECONDARY,
-						masterSyncService.getFieldValues(uiSchemaDTO.getId(), ApplicationContext.localLanguage()));
-
-				buttonFxControl.fillData(buttonsData);
-			} catch (RegBaseCheckedException regBaseCheckedException) {
-				LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-						"Exception occured while fetching button values : " + uiSchemaDTO.getId() + " "
-								+ ExceptionUtils.getStackTrace(regBaseCheckedException));
-			}
-			return buttonFxControl;
-		case CONTROLTYPE_CHECKBOX:
-			return new CheckBoxFxControl().build(uiSchemaDTO);
-		case CONTROLTYPE_DOB:
-			return new DOBFxControl().build(uiSchemaDTO);
-		case CONTROLTYPE_DOB_AGE:
-			return new DOBAgeFxControl().build(uiSchemaDTO);
-		case CONTROLTYPE_DOCUMENTS:
-			return new DocumentFxControl().build(uiSchemaDTO);
-		case CONTROLTYPE_DROPDOWN:
-			FxControl fxControl = new DropDownFxControl().build(uiSchemaDTO);
-			if (uiSchemaDTO.getGroup().contains(RegistrationConstants.LOCATION)) {
-				List<Location> value = masterSyncDao.getLocationDetails(uiSchemaDTO.getSubType(),
-						applicationContext.getApplicationLanguage());
-
-				TreeMap<Integer, FxControl> hirearcyMap = locationMap.get(uiSchemaDTO.getGroup()) != null
-						? locationMap.get(uiSchemaDTO.getGroup())
-						: new TreeMap<Integer, FxControl>();
-
-				hirearcyMap.put(value.get(0).getHierarchyLevel(), fxControl);
-
-				locationMap.put(uiSchemaDTO.getGroup(), hirearcyMap);
-
-			} else {
-				Map<String, Object> data = new LinkedHashMap<>();
 				try {
-					data.put(RegistrationConstants.PRIMARY, masterSyncService.getFieldValues(uiSchemaDTO.getId(),
+					buttonsData.put(RegistrationConstants.PRIMARY, masterSyncService.getFieldValues(uiSchemaDTO.getId(),
 							ApplicationContext.applicationLanguage()));
-					data.put(RegistrationConstants.SECONDARY,
+					buttonsData.put(RegistrationConstants.SECONDARY,
 							masterSyncService.getFieldValues(uiSchemaDTO.getId(), ApplicationContext.localLanguage()));
+
+					buttonFxControl.fillData(buttonsData);
 				} catch (RegBaseCheckedException regBaseCheckedException) {
 					LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-							"Exception occured while fetching dropdown values : " + uiSchemaDTO.getId() + " "
+							"Exception occured while fetching button values : " + uiSchemaDTO.getId() + " "
 									+ ExceptionUtils.getStackTrace(regBaseCheckedException));
-				} finally {
-					fxControl.fillData(data);
 				}
+				return buttonFxControl;
+			case CONTROLTYPE_CHECKBOX:
+				return new CheckBoxFxControl().build(uiSchemaDTO);
+			case CONTROLTYPE_DOB:
+				return new DOBFxControl().build(uiSchemaDTO);
+			case CONTROLTYPE_DOB_AGE:
+				return new DOBAgeFxControl().build(uiSchemaDTO);
+			case CONTROLTYPE_DOCUMENTS:
+				return new DocumentFxControl().build(uiSchemaDTO);
+			case CONTROLTYPE_DROPDOWN:
+				FxControl fxControl = new DropDownFxControl().build(uiSchemaDTO);
+				if (uiSchemaDTO.getGroup().contains(RegistrationConstants.LOCATION)) {
+					List<Location> value = masterSyncDao.getLocationDetails(uiSchemaDTO.getSubType(),
+							applicationContext.getApplicationLanguage());
+
+					TreeMap<Integer, FxControl> hirearcyMap = locationMap.get(uiSchemaDTO.getGroup()) != null
+							? locationMap.get(uiSchemaDTO.getGroup())
+							: new TreeMap<Integer, FxControl>();
+
+					hirearcyMap.put(value.get(0).getHierarchyLevel(), fxControl);
+
+					locationMap.put(uiSchemaDTO.getGroup(), hirearcyMap);
+
+				} else {
+					Map<String, Object> data = new LinkedHashMap<>();
+					try {
+						data.put(RegistrationConstants.PRIMARY, masterSyncService.getFieldValues(uiSchemaDTO.getId(),
+								ApplicationContext.applicationLanguage()));
+						data.put(RegistrationConstants.SECONDARY, masterSyncService.getFieldValues(uiSchemaDTO.getId(),
+								ApplicationContext.localLanguage()));
+					} catch (RegBaseCheckedException regBaseCheckedException) {
+						LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+								"Exception occured while fetching dropdown values : " + uiSchemaDTO.getId() + " "
+										+ ExceptionUtils.getStackTrace(regBaseCheckedException));
+					} finally {
+						fxControl.fillData(data);
+					}
+				}
+
+				return fxControl;
+
 			}
-
-			return fxControl;
-
 		}
 
 		return null;
@@ -717,12 +774,11 @@ public class GenericController extends BaseController {
 
 			refreshContinue(entrySet.getKey());
 
-			Label hBox = (Label) headerHBox.lookup(RegistrationConstants.HASH + entrySet.getKey());
+			Label label = (Label) headerGridPane.lookup(RegistrationConstants.HASH + entrySet.getKey());
 
-			if (hBox != null) {
-				hBox.setVisible(screenDTO.isVisible());
-
-				hBox.setManaged(screenDTO.isVisible());
+			if (label != null) {
+				label.setVisible(screenDTO.isVisible());
+				label.setManaged(screenDTO.isVisible());
 			}
 
 		}
@@ -776,15 +832,16 @@ public class GenericController extends BaseController {
 		label.setText(titleText);
 		label.getStyleClass().add(styleClass);
 		label.setVisible(isVisible);
-		// label.setPrefWidth(prefWidth);
-		label.setMinWidth(Region.USE_PREF_SIZE);
-		// label.setWrapText(true);
+		label.setMinWidth(Region.USE_COMPUTED_SIZE);
+		GridPane.setHalignment(label, HPos.CENTER);
+		GridPane.setValignment(label, VPos.BOTTOM);
+		label.setTooltip(new Tooltip(titleText));
 		return label;
 	}
 
 	private void setLabelStyles(int page) {
 		for (int index = 1; index <= (screenMap.size() + 2); ++index) {
-			Label label = (Label) headerHBox.lookup((RegistrationConstants.HASH + index));
+			Label label = (Label) headerGridPane.lookup((RegistrationConstants.HASH + index));
 			if (index == page) {
 				label.getStyleClass().add(CLICKABLE);
 			} else {

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import io.mosip.registration.util.common.OTPManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,12 +24,10 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
 import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.registration.config.AppConfig;
-import io.mosip.registration.constants.LoginMode;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dao.UserDetailDAO;
 import io.mosip.registration.dto.AuthTokenDTO;
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
-import io.mosip.registration.dto.LoginUserDTO;
 import io.mosip.registration.dto.UserDTO;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.entity.UserBiometric;
@@ -38,7 +37,6 @@ import io.mosip.registration.service.login.LoginService;
 import io.mosip.registration.service.security.AuthenticationService;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import io.mosip.registration.util.restclient.AuthTokenUtilService;
-import io.mosip.registration.validator.OTPValidatorImpl;
 
 /**
  * Service class for Authentication
@@ -57,7 +55,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	private LoginService loginService;
 
 	@Autowired
-	private OTPValidatorImpl otpValidatorImpl;
+	private OTPManager otpManager;
 
 	@Autowired
 	private BioAPIFactory bioAPIFactory;
@@ -122,7 +120,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	 * authValidator(java.lang.String, java.lang.String, java.lang.String)
 	 */
 	public AuthTokenDTO authValidator(String validatorType, String userId, String otp, boolean haveToSaveAuthToken) {
-		return otpValidatorImpl.validate(userId, otp, haveToSaveAuthToken);
+		return otpManager.validateOTP(userId, otp, haveToSaveAuthToken);
 	}
 
 	/*

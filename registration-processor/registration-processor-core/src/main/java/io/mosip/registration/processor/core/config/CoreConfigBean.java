@@ -6,6 +6,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 import brave.Tracer;
 import brave.Tracing;
 import org.springframework.context.annotation.Bean;
@@ -176,4 +179,9 @@ public class CoreConfigBean {
 
 	@Bean
 	public Tracer tracer() { return tracing().tracer(); }
+
+	@Bean
+	public ObjectMapper getObjectMapper() {
+		return new ObjectMapper().registerModule(new JavaTimeModule());
+	}
 }

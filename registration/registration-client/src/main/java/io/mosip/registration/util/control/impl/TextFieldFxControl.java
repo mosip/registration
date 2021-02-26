@@ -7,7 +7,6 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.springframework.context.ApplicationContext;
 
@@ -24,7 +23,6 @@ import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.util.common.DemographicChangeActionHandler;
 import io.mosip.registration.util.control.FxControl;
-import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -74,6 +72,7 @@ public class TextFieldFxControl extends FxControl {
 		hBox.getChildren().add(primaryLangVBox);
 		HBox.setHgrow(primaryLangVBox, Priority.ALWAYS);
 
+		this.node = hBox;
 		if (demographicDetailController.isLocalLanguageAvailable()
 				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
 			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
@@ -83,9 +82,9 @@ public class TextFieldFxControl extends FxControl {
 
 			HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
 			hBox.getChildren().addAll(region, secondaryLangVBox);
-		}
 
-		this.node = hBox;
+			setListener((TextField) getField(uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE));
+		}
 
 		setListener((TextField) getField(uiSchemaDTO.getId()));
 
@@ -136,7 +135,8 @@ public class TextFieldFxControl extends FxControl {
 		FXUtils.getInstance().onTypeFocusUnfocusListener(getNode(), (TextField) node);
 
 		TextField textField = (TextField) node;
-		textField.addEventHandler(Event.ANY, event -> {
+
+		textField.textProperty().addListener((observable, oldValue, newValue) -> {
 			if (isValid(textField)) {
 
 				setData(null);
@@ -209,6 +209,8 @@ public class TextFieldFxControl extends FxControl {
 					uiSchemaDTO.getLabel().get(RegistrationConstants.PRIMARY));
 		}
 
+		changeNodeOrientation(simpleTypeVBox, languageType);
+		
 		return simpleTypeVBox;
 	}
 
@@ -274,7 +276,7 @@ public class TextFieldFxControl extends FxControl {
 			return false;
 		}
 
-		TextField field = (TextField) node;
+		TextField field = (TextField) getField(uiSchemaDTO.getId());
 		if (validation.validateTextField(getNode(), field, field.getId(), true)) {
 
 			FXUtils.getInstance().setTextValidLabel(getNode(), field);
@@ -289,7 +291,7 @@ public class TextFieldFxControl extends FxControl {
 
 		TextField localField = (TextField) getField(uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE);
 		if (localField != null) {
-			if (validation.validateTextField(getNode(), field, field.getId(), true)) {
+			if (validation.validateTextField(getNode(), localField, field.getId(), true)) {
 
 				FXUtils.getInstance().setTextValidLabel(getNode(), localField);
 				isValid = true;

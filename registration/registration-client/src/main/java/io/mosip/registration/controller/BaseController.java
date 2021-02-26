@@ -527,7 +527,7 @@ public class BaseController {
 			Tooltip tool = new Tooltip(context.contains(type) ? context.split(type)[0] : context);
 			tool.getStyleClass().add(RegistrationConstants.TOOLTIP);
 			label.setTooltip(tool);
-			label.setVisible(true);
+			//label.setVisible(true);
 		}
 	}
 
