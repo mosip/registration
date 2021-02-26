@@ -421,7 +421,6 @@ public class LoginServiceTest {
 		Map<String, String> map = new HashMap<>();
 		map.put(RegistrationConstants.USER_CENTER_ID, "10011");
 		map.put(RegistrationConstants.USER_STATION_ID,"10011");
-		Mockito.when(userOnboardService.getMachineCenterId()).thenReturn(map);
 		
 		HashMap<String, Object> sessionMap = new HashMap<>();
 		sessionMap.put(RegistrationConstants.USER_CENTER_ID, "11011");
@@ -472,7 +471,6 @@ public class LoginServiceTest {
 		
 		Map<String, String> map = new HashMap<>();
 		map.put(RegistrationConstants.USER_CENTER_ID, "10011");
-		Mockito.when(userOnboardService.getMachineCenterId()).thenReturn(map);
 		
 		HashMap<String, Object> sessionMap = new HashMap<>();
 		sessionMap.put(RegistrationConstants.USER_CENTER_ID, "11011");
@@ -503,7 +501,6 @@ public class LoginServiceTest {
 		
 		Map<String, String> map = new HashMap<>();
 		map.put(RegistrationConstants.USER_CENTER_ID, "10011");
-		Mockito.when(userOnboardService.getMachineCenterId()).thenReturn(map);
 		
 		List<ErrorResponseDTO> errorResponseDTOs = new ArrayList<>();
 		ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO();
@@ -549,7 +546,6 @@ public class LoginServiceTest {
 		Map<String, String> map = new HashMap<>();
 		map.put(RegistrationConstants.USER_CENTER_ID, "10011");
 		map.put(RegistrationConstants.USER_STATION_ID,"10011");
-		Mockito.when(userOnboardService.getMachineCenterId()).thenReturn(map);
 		
 		HashMap<String, Object> sessionMap = new HashMap<>();
 		sessionMap.put(RegistrationConstants.USER_CENTER_ID, "11011");
@@ -601,7 +597,6 @@ public class LoginServiceTest {
 		Map<String, String> map = new HashMap<>();
 		map.put(RegistrationConstants.USER_CENTER_ID, "10011");
 		map.put(RegistrationConstants.USER_STATION_ID,"10011");
-		Mockito.when(userOnboardService.getMachineCenterId()).thenReturn(map);
 		
 		HashMap<String, Object> sessionMap = new HashMap<>();
 		sessionMap.put(RegistrationConstants.USER_CENTER_ID, "11011");
