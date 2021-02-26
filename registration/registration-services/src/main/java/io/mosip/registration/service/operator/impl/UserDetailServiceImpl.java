@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.context.SessionContext;
+import lombok.NonNull;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -70,78 +72,64 @@ public class UserDetailServiceImpl extends BaseService implements UserDetailServ
 	 */
 	public synchronized ResponseDTO save(String triggerPoint) throws RegBaseCheckedException {
 		ResponseDTO responseDTO = new ResponseDTO();
-		if (triggerPointNullCheck(triggerPoint)) {
-			LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID,
-					"Entering into user detail save method...");
 
-			if (!RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
-				LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
-						" Unable to sync user detail data as there is no internet connection");
+		if (!RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
+			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
+					" Unable to sync user detail data as there is no internet connection");
+			setErrorResponse(responseDTO, RegistrationConstants.ERROR, null);
+			return responseDTO;
+		}
+
+		LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID,
+				"Entering into user detail save method...");
+
+		try {
+			LinkedHashMap<String, Object> userDetailSyncResponse = getUsrDetails(triggerPoint);
+			if (null == userDetailSyncResponse.get(RegistrationConstants.RESPONSE)) {
 				setErrorResponse(responseDTO, RegistrationConstants.ERROR, null);
 				return responseDTO;
 			}
 
-			try {
-				LinkedHashMap<String, Object> userDetailSyncResponse = getUsrDetails(triggerPoint);
-				;
+			String jsonString = new ObjectMapper()
+					.writeValueAsString(userDetailSyncResponse.get(RegistrationConstants.RESPONSE));
+			JSONObject jsonObject = new JSONObject(jsonString);
 
-				if (null != userDetailSyncResponse && userDetailSyncResponse.size() > 0
-						&& null != userDetailSyncResponse.get(RegistrationConstants.RESPONSE)) {
-
-					String jsonString = new ObjectMapper()
-							.writeValueAsString(userDetailSyncResponse.get(RegistrationConstants.RESPONSE));
-					JSONObject jsonObject = new JSONObject(jsonString);
-
-					if (jsonObject.has("userDetails")) {
-						byte[] data = clientCryptoFacade
-								.decrypt(CryptoUtil.decodeBase64((String) jsonObject.get("userDetails")));
-						jsonString = new String(data);
-					}
-
-					List<UserDetailDto> userDtls = objectMapper.readValue(jsonString,
-							new TypeReference<List<UserDetailDto>>() {
-							});
-
-					List<UserDetail> existingUserDetails = userDetailDAO.getAllUsers();
-
-					for (UserDetail existingUserDetail : existingUserDetails) {
-
-						Optional<UserDetailDto> result = userDtls.stream().filter(userDetailDto -> userDetailDto
-								.getUserName().equalsIgnoreCase(existingUserDetail.getId())).findFirst();
-
-						if (result == null || !result.isPresent()) {
-
-							LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID,
-									"Deleting User : " + existingUserDetail.getId());
-
-							userDetailDAO.deleteUser(existingUserDetail);
-
-						}
-					}
-
-					if (userDtls != null && !userDtls.isEmpty()) {
-						userDetailDAO.save(userDtls);
-						responseDTO = setSuccessResponse(responseDTO, RegistrationConstants.SUCCESS, null);
-						LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID,
-								"User Detail Sync Success......");
-						return responseDTO;
-					}
-				}
-			} catch (RegBaseCheckedException | IOException exRegBaseCheckedException) {
-				LOGGER.error(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID,
-						ExceptionUtils.getStackTrace(exRegBaseCheckedException));
+			if (jsonObject.has("userDetails")) {
+				byte[] data = clientCryptoFacade
+						.decrypt(CryptoUtil.decodeBase64((String) jsonObject.get("userDetails")));
+				jsonString = new String(data);
 			}
-			setErrorResponse(responseDTO, RegistrationConstants.ERROR, null);
 
-		} else {
-			LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, RegistrationConstants.TRIGGER_POINT_MSG);
-			throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_TRIGGER_POINT_MISSING.getErrorCode(),
-					RegistrationExceptionConstants.REG_TRIGGER_POINT_MISSING.getErrorMessage());
+			List<UserDetailDto> userDtls = objectMapper.readValue(jsonString,
+					new TypeReference<List<UserDetailDto>>() {});
+
+			//Remove users who are not part of current sync
+			List<UserDetail> existingUserDetails = userDetailDAO.getAllUsers();
+			for (UserDetail existingUserDetail : existingUserDetails) {
+				Optional<UserDetailDto> result = userDtls.stream().filter(userDetailDto -> userDetailDto
+						.getUserName().equalsIgnoreCase(existingUserDetail.getId())).findFirst();
+				if (!result.isPresent()) {
+					LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID,
+							"Deleting User : " + existingUserDetail.getId());
+					userDetailDAO.deleteUser(existingUserDetail);
+				}
+			}
+
+			userDtls.forEach(user -> userDetailDAO.save(user));
+
+			responseDTO = setSuccessResponse(responseDTO, RegistrationConstants.SUCCESS, null);
+			LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID,
+					"User Detail Sync Success......");
+
+		} catch (RegBaseCheckedException | IOException exception) {
+			LOGGER.error(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID,
+					ExceptionUtils.getStackTrace(exception));
+			setErrorResponse(responseDTO, exception.getMessage(), null);
 		}
 		return responseDTO;
 	}
 
-	@SuppressWarnings("unchecked")
+
 	private LinkedHashMap<String, Object> getUsrDetails(String triggerPoint) throws RegBaseCheckedException {
 
 		LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID,
@@ -152,7 +140,6 @@ public class UserDetailServiceImpl extends BaseService implements UserDetailServ
 		LinkedHashMap<String, Object> userDetailResponse = null;
 
 		// Setting uri Variables
-
 		Map<String, String> requestParamMap = new LinkedHashMap<>();
 		String keyIndex = CryptoUtil
 				.computeFingerPrint(clientCryptoFacade.getClientSecurity().getEncryptionPublicPart(), null);
@@ -181,18 +168,10 @@ public class UserDetailServiceImpl extends BaseService implements UserDetailServ
 				responseDTO.setErrorResponseDTOs(erResponseDTOs);
 			}
 
-		} catch (HttpClientErrorException httpClientErrorException) {
-			LOGGER.error(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID,
-					httpClientErrorException.getRawStatusCode() + "Http error while pulling json from server"
-							+ ExceptionUtils.getStackTrace(httpClientErrorException));
-			throw new RegBaseCheckedException(Integer.toString(httpClientErrorException.getRawStatusCode()),
-					httpClientErrorException.getStatusText());
-		} catch (SocketTimeoutException socketTimeoutException) {
-			LOGGER.error(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID,
-					socketTimeoutException.getMessage() + "Http error while pulling json from server"
-							+ ExceptionUtils.getStackTrace(socketTimeoutException));
-			throw new RegBaseCheckedException(socketTimeoutException.getMessage(),
-					socketTimeoutException.getLocalizedMessage());
+		} catch (Exception exception) {
+			LOGGER.error(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(exception));
+			throw new RegBaseCheckedException(exception.getMessage(),
+					exception.getLocalizedMessage());
 		}
 
 		LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID,
@@ -201,55 +180,7 @@ public class UserDetailServiceImpl extends BaseService implements UserDetailServ
 		return userDetailResponse;
 	}
 
-	/**
-	 * Center id null check.
-	 *
-	 * @param triggerPoint the trigger point
-	 * @return the linked hash map
-	 * @throws RegBaseCheckedException the reg base checked exception
-	 */
-	/*
-	 * private LinkedHashMap<String, Object> centerIdNullCheck(String triggerPoint)
-	 * throws RegBaseCheckedException { LinkedHashMap<String, Object>
-	 * userDetailSyncResponse = null; Map<String, String> mapOfcenterId =
-	 * userOnboardService.getMachineCenterId();
-	 * 
-	 * LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID,
-	 * "Fetching registration center details......");
-	 * 
-	 * if (null != mapOfcenterId && mapOfcenterId.size() > 0 && null !=
-	 * mapOfcenterId.get(RegistrationConstants.USER_CENTER_ID)) {
-	 * 
-	 * LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID,
-	 * "Registration center id found....!" +
-	 * mapOfcenterId.get(RegistrationConstants.USER_CENTER_ID));
-	 * 
-	 * userDetailSyncResponse = getUsrDetails((String)
-	 * mapOfcenterId.get(RegistrationConstants.USER_CENTER_ID), triggerPoint); }
-	 * else { LOGGER.error(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID,
-	 * "Registration center id not found....!"); }
-	 * 
-	 * return userDetailSyncResponse;
-	 * 
-	 * }
-	 */
 
-	/**
-	 * trigger point null check.
-	 *
-	 * @param triggerPoint the language code
-	 * @return true, if successful
-	 */
-	private boolean triggerPointNullCheck(String triggerPoint) {
-		if (StringUtils.isEmpty(triggerPoint)) {
-			LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
-					"triggerPoint is missing it is a mandatory field.");
-			return false;
-		} else {
-			return true;
-		}
-	}
-	
 	@Override
 	public List<UserDetail> getAllUsers() {
 		LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
@@ -265,5 +196,10 @@ public class UserDetailServiceImpl extends BaseService implements UserDetailServ
 		List<UserRole> userRoles = userDetailDAO.getUserRoleByUserId(userId);
 		List<UserRoleId> userRoleIdList = userRoles.stream().map(UserRole::getUserRoleId).collect(Collectors.toList());
 		return userRoleIdList.stream().map(UserRoleId::getRoleCode).collect(Collectors.toList());	
+	}
+
+	@Override
+	public boolean isValidUser(@NonNull String userId) {
+		return (null == userDetailDAO.getUserDetail(userId)) ? false : true;
 	}
 }

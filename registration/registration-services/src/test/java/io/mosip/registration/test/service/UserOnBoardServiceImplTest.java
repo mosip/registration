@@ -15,6 +15,7 @@ import java.util.Map;
 
 import javax.crypto.SecretKey;
 
+import io.mosip.registration.service.BaseService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -73,6 +74,9 @@ public class UserOnBoardServiceImplTest {
 	
 	@InjectMocks
 	private UserOnboardServiceImpl userOnboardServiceImpl;
+
+	@InjectMocks
+	private BaseService baseService;
 	
 	@Mock
 	private UserOnboardDAO userOnBoardDao;
@@ -854,8 +858,8 @@ public class UserOnBoardServiceImplTest {
 		PowerMockito.mockStatic(RegistrationSystemPropertiesChecker.class);
 		
 		Mockito.when(registrationSystemPropertiesChecker.getMachineId()).thenReturn("localhost");
-		Mockito.when(userOnBoardDao.getStationID(Mockito.anyString())).thenReturn("1947");
-		Mockito.when(userOnBoardDao.getCenterID(Mockito.anyString())).thenReturn("abc123");
+		Mockito.when(baseService.getStationId()).thenReturn("1947");
+		Mockito.when(baseService.getCenterId(Mockito.anyString())).thenReturn("abc123");
 		
 		userOnboardServiceImpl.getMachineCenterId();
 		
@@ -870,8 +874,8 @@ public class UserOnBoardServiceImplTest {
 		PowerMockito.mockStatic(RegistrationSystemPropertiesChecker.class);
 		
 		Mockito.when(registrationSystemPropertiesChecker.getMachineId()).thenReturn("localhost");
-		Mockito.when(userOnBoardDao.getStationID(Mockito.anyString())).thenReturn("1947");
-		Mockito.when(userOnBoardDao.getCenterID(Mockito.anyString())).thenThrow(RegBaseCheckedException.class);
+		Mockito.when(baseService.getStationId()).thenReturn("1947");
+		Mockito.when(baseService.getCenterId(Mockito.anyString())).thenThrow(RegBaseCheckedException.class);
 		
 		userOnboardServiceImpl.getMachineCenterId();	
 	}
