@@ -217,7 +217,6 @@ public class MasterSyncServiceTest {
 		masterSyncMap.put("lastSyncTime", "2019-03-27T11:07:34.408Z");
 		responseMap.put("response", masterSyncMap);
 		map.put(RegistrationConstants.USER_CENTER_ID, "10011");
-		Mockito.when(userOnboardService.getMachineCenterId()).thenReturn(map);
 		Mockito.when(globalParamService.getGlobalParams()).thenReturn(myMap);
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.any(), Mockito.anyBoolean(),Mockito.anyString()))
 		.thenReturn(responseMap);
@@ -1023,7 +1022,6 @@ public class MasterSyncServiceTest {
 		masterSyncMap.put("lastSyncTime", "2019-03-27T11:07:34.408Z");
 		responseMap.put("response", masterSyncMap);
 		map.put(RegistrationConstants.USER_CENTER_ID, "10011");
-		Mockito.when(userOnboardService.getMachineCenterId()).thenReturn(map);
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.any(), Mockito.anyBoolean(),Mockito.anyString()))
 		.thenReturn(responseMap);
 		Mockito.when(masterSyncDao.syncJobDetails(Mockito.anyString())).thenReturn(masterSyncDetails);

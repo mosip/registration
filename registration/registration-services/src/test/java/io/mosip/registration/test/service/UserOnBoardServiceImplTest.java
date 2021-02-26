@@ -851,34 +851,8 @@ public class UserOnBoardServiceImplTest {
 		
 	}*/
 	
-	@SuppressWarnings("static-access")
-	@Test
-	public void getCenter() throws RegBaseCheckedException {
-		
-		PowerMockito.mockStatic(RegistrationSystemPropertiesChecker.class);
-		
-		Mockito.when(registrationSystemPropertiesChecker.getMachineId()).thenReturn("localhost");
-		Mockito.when(baseService.getStationId()).thenReturn("1947");
-		Mockito.when(baseService.getCenterId(Mockito.anyString())).thenReturn("abc123");
-		
-		userOnboardServiceImpl.getMachineCenterId();
-		
-		
-		
-	}
-	
-	@SuppressWarnings("static-access")
-	@Test
-	public void getCenterException() throws RegBaseCheckedException {
-		
-		PowerMockito.mockStatic(RegistrationSystemPropertiesChecker.class);
-		
-		Mockito.when(registrationSystemPropertiesChecker.getMachineId()).thenReturn("localhost");
-		Mockito.when(baseService.getStationId()).thenReturn("1947");
-		Mockito.when(baseService.getCenterId(Mockito.anyString())).thenThrow(RegBaseCheckedException.class);
-		
-		userOnboardServiceImpl.getMachineCenterId();	
-	}
+
+
 	
 	@Test
 	public void getLastUpdatedTime() {
