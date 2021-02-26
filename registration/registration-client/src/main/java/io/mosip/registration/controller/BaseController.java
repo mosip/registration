@@ -25,6 +25,9 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.service.BaseService;
+import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -123,7 +126,11 @@ import javafx.util.Duration;
 @Component
 public class BaseController {
 
+	private static final Logger LOGGER = AppConfig.getLogger(BaseController.class);
 	private static final String ALERT_STAGE = "alertStage";
+
+	@FXML
+	public Text scanningMsg;
 
 	@Autowired
 	private SyncStatusValidatorService syncStatusValidatorService;
@@ -182,9 +189,6 @@ public class BaseController {
 	@Autowired
 	private RegistrationApprovalController registrationApprovalController;
 
-	@FXML
-	public Text scanningMsg;
-
 	@Autowired
 	private Validations validations;
 
@@ -196,6 +200,27 @@ public class BaseController {
 
 	@Value("${mosip.registration.css_file_path:}")
 	private String cssName;
+
+	@Autowired
+	private BioService bioService;
+
+	@Autowired
+	private RestartController restartController;
+
+	@Autowired
+	private IdentitySchemaService identitySchemaService;
+
+	@Autowired
+	private RequiredFieldValidator requiredFieldValidator;
+
+	@Autowired
+	private Validations validation;
+
+	@Autowired
+	private BaseService baseService;
+
+	@Autowired
+	private AuthTokenUtilService authTokenUtilService;
 
 	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
 
@@ -213,20 +238,6 @@ public class BaseController {
 
 	private Stage alertStage;
 
-	@Autowired
-	private BioService bioService;
-
-	private static final Logger LOGGER = AppConfig.getLogger(BaseController.class);
-
-	@Autowired
-	private RestartController restartController;
-
-	@Autowired
-	private IdentitySchemaService identitySchemaService;
-
-	@Autowired
-	private RequiredFieldValidator requiredFieldValidator;
-
 	private static boolean isAckOpened = false;
 
 	private List<UiSchemaDTO> uiSchemaDTOs;
@@ -235,21 +246,11 @@ public class BaseController {
 
 	private static TreeMap<String, String> mapOfbiometricSubtypes = new TreeMap<>();
 
-	// private static List<String> listOfBiometricSubTypes = new ArrayList<>();
-
-	/*
-	 * public static List<String> getListOfBiometricSubTypess() { return
-	 * listOfBiometricSubTypes; }
-	 */
-
 	public static TreeMap<String, String> getMapOfbiometricSubtypes() {
 		return mapOfbiometricSubtypes;
 	}
 
 	private static HashMap<String, String> labelMap = new HashMap<>();
-
-	@Autowired
-	private Validations validation;
 
 	public static String getFromLabelMap(String key) {
 		return labelMap.get(key);
@@ -932,24 +933,6 @@ public class BaseController {
 
 	}
 
-	/**
-	 * Gets the Face DTO from session.
-	 *
-	 * @return the faceDetailsDTO DTO from session
-	 */
-	protected BiometricInfoDTO getFaceDetailsDTO() {
-		return getRegistrationDTOFromSession().getBiometricDTO().getApplicantBiometricDTO();
-	}
-
-	/**
-	 * Gets the biometric DTO from session.
-	 *
-	 * @return the biometric DTO from session
-	 */
-	/*
-	 * protected BiometricDTO getBiometricDTOFromSession() { return (BiometricDTO)
-	 * SessionContext.map().get(RegistrationConstants.USER_ONBOARD_DATA); }
-	 */
 
 	/**
 	 * to return to the next page based on the current page and action for User
@@ -1172,23 +1155,7 @@ public class BaseController {
 				"Navigated to next page >> " + show);
 	}
 
-	/**
-	 * Checks if the machine is remapped to another center and starts the subsequent
-	 * processing accordingly.
-	 *
-	 * @return true, if is machine remap process started
-	 * @throws IOException
-	 */
-	public boolean isMachineRemapProcessStarted() {
 
-		Boolean isRemapped = centerMachineReMapService.isMachineRemapped()
-				|| centerMachineReMapService.isMachineInActive();
-		if (isRemapped) {
-
-			remapMachine();
-		}
-		return isRemapped;
-	}
 
 	public void remapMachine() {
 
@@ -1231,30 +1198,31 @@ public class BaseController {
 		service.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
 			public void handle(WorkerStateEvent t) {
-				handleRemapResponse(service);
+				handleRemapResponse(service, true);
 			}
 		});
 		service.setOnFailed(new EventHandler<WorkerStateEvent>() {
 			@Override
 			public void handle(WorkerStateEvent t) {
-				handleRemapResponse(service);
+				handleRemapResponse(service, false);
 			}
 		});
 
 	}
 
-	private void handleRemapResponse(Service<String> service) {
+	private void handleRemapResponse(Service<String> service, boolean isSuccess) {
 		service.reset();
 		disableHomePage(false);
 		packetHandlerController.getProgressIndicator().setVisible(false);
 
-		if (RegistrationConstants.ENABLE.equals(SessionContext.map().get(RegistrationConstants.RE_MAP_SUCCESS))) {
+		if (isSuccess) {
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.REMAP_PROCESS_SUCCESS);
 			headerController.logoutCleanUp();
 		} else {
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.REMAP_PROCESS_STILL_PENDING);
 		}
 	}
+
 
 	private void disableHomePage(boolean isDisabled) {
 
@@ -1938,4 +1906,67 @@ public class BaseController {
 
 	}
 
+
+	public boolean isAppLangAndLocalLangSame() {
+
+		return applicationContext.getApplicationLanguage().equals(applicationContext.getLocalLanguage());
+	}
+
+	public boolean isLocalLanguageAvailable() {
+
+		return applicationContext.getLocalLanguage() != null && !applicationContext.getLocalLanguage().isEmpty();
+	}
+
+	public boolean proceedOnAction(String job) {
+		if (isPrimaryOrSecondaryLanguageEmpty()) {
+			generateAlert(RegistrationConstants.ERROR,
+					RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
+			return false;
+		}
+
+		if (!RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
+			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_INTERNET_CONNECTION);
+			return false;
+		}
+
+		if (!authTokenUtilService.hasAnyValidToken()) {
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
+			return false;
+		}
+
+		boolean status = true;
+		switch (job) {
+			case "MS" :
+				status = baseService.proceedWithMasterAndKeySync(null);
+				break;
+			case "PS":
+				status = baseService.proceedWithPacketSync();
+				break;
+			case "RM":
+				status = baseService.proceedWithMachineCenterRemap();
+				break;
+			case "OU" :
+				status = baseService.proceedWithOperatorOnboard();
+				break;
+			default:
+				status = baseService.proceedWithMasterAndKeySync(job);
+				break;
+		}
+		if(!status) { generateAlert(RegistrationConstants.ERROR, "Operation not allowed currently!"); }
+		return status;
+	}
+
+	public boolean proceedOnRegistrationAction() {
+		if (isPrimaryOrSecondaryLanguageEmpty()) {
+			generateAlert(RegistrationConstants.ERROR,
+					RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
+			return false;
+		}
+
+		if(baseService.proceedWithRegistration())
+			return true;
+
+		generateAlert(RegistrationConstants.ERROR, "Operation not allowed currently!");
+		return false;
+	}
 }

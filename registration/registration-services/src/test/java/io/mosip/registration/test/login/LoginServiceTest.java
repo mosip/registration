@@ -283,7 +283,7 @@ public class LoginServiceTest {
 		Mockito.when(globalParamService.synchConfigData(false)).thenReturn(responseDTO);
 
 		Mockito.when(masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
-				RegistrationConstants.JOB_TRIGGER_POINT_USER, "MyIndex")).thenReturn(responseDTO);
+				RegistrationConstants.JOB_TRIGGER_POINT_USER)).thenReturn(responseDTO);
 
 		Mockito.when(userDetailService.save(RegistrationConstants.JOB_TRIGGER_POINT_USER)).thenReturn(responseDTO);
 		
@@ -317,7 +317,7 @@ public class LoginServiceTest {
 		Mockito.when(globalParamService.synchConfigData(false)).thenReturn(responseDTO);
 
 		Mockito.when(masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
-				RegistrationConstants.JOB_TRIGGER_POINT_USER, "MyIndex")).thenReturn(responseDTO);
+				RegistrationConstants.JOB_TRIGGER_POINT_USER)).thenReturn(responseDTO);
 
 		Mockito.when(userDetailService.save(RegistrationConstants.JOB_TRIGGER_POINT_USER)).thenReturn(responseDTO);
 		

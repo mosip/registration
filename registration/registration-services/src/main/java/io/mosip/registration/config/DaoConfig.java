@@ -117,7 +117,7 @@ public class DaoConfig extends HibernateDaoConfig {
 	@Override
 	@Bean(name = "dataSource")
 	public DataSource dataSource() {
-		if (this.driverManagerDataSource == null) {
+		if(this.driverManagerDataSource == null) {
 			setupDataSource();
 			jdbcTemplate();
 		}
@@ -132,7 +132,7 @@ public class DaoConfig extends HibernateDaoConfig {
 	@Bean
 	@DependsOn("dataSource")
 	public JdbcTemplate jdbcTemplate() {
-		if (jdbcTemplate == null)
+		if(jdbcTemplate == null)
 			jdbcTemplate = new JdbcTemplate(this.driverManagerDataSource);
 		updateGlobalParamsInProperties(jdbcTemplate);
 		return jdbcTemplate;
@@ -205,10 +205,7 @@ public class DaoConfig extends HibernateDaoConfig {
 		return jpaProperties;
 	}
 
-	private DriverManagerDataSource setupDataSource() throws Exception {
-		if(this.driverManagerDataSource != null)
-			return this.driverManagerDataSource;
-
+	private void setupDataSource() throws Exception {
 		LOGGER.info(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "****** SETTING UP DATASOURCE *******");
 		createDatabase();
 		reEncryptExistingDB();
@@ -220,7 +217,6 @@ public class DaoConfig extends HibernateDaoConfig {
 		this.driverManagerDataSource.setUrl(String.format(URL, dbPath, dbConf.get(BOOTPWD_KEY)));
 		this.driverManagerDataSource.setUsername(dbConf.get(USERNAME_KEY));
 		this.driverManagerDataSource.setPassword(dbConf.get(PWD_KEY));
-		return this.driverManagerDataSource;
 	}
 
 	private static void shutdownDatabase() {

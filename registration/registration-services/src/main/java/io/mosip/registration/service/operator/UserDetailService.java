@@ -52,4 +52,6 @@ public interface UserDetailService {
 
 	public List<String> getUserRoleByUserId(String userId);
 
+	public boolean isValidUser(String userId);
+
 }

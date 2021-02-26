@@ -30,6 +30,8 @@ public interface UserDetailRepository extends BaseRepository<UserDetail, String>
 	 * @return the list of {@link UserDetail}
 	 */
 	List<UserDetail> findByIsActiveTrue();
+
+	UserDetail findByIdIgnoreCase(String userId);
 	
 	void deleteById(String id);
 }
