@@ -250,7 +250,7 @@ public class TextFieldFxControl extends FxControl {
 		textField.setId(id);
 		textField.setPromptText(titleText);
 		textField.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
-		textField.setPrefWidth(prefWidth);
+		//textField.setPrefWidth(prefWidth);
 		textField.setDisable(isDisable);
 
 		return textField;
@@ -260,7 +260,7 @@ public class TextFieldFxControl extends FxControl {
 		ImageView imageView = null;
 
 		imageView = new ImageView(new Image(getClass().getResourceAsStream("/images/keyboard.png")));
-		imageView.setId(uiSchemaDTO.getId());
+		imageView.setId(uiSchemaDTO.getId() + "KeyBoard");
 		imageView.setFitHeight(20.00);
 		imageView.setFitWidth(22.00);
 
@@ -298,6 +298,9 @@ public class TextFieldFxControl extends FxControl {
 
 		TextField localField = (TextField) getField(uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE);
 		if (localField != null) {
+			if (uiSchemaDTO.getType().equalsIgnoreCase("string")) {
+				localField.setText(field.getText());
+			}
 			if (validation.validateTextField((Pane) getNode(), localField, field.getId(), true)) {
 
 				FXUtils.getInstance().setTextValidLabel((Pane) getNode(), localField);
