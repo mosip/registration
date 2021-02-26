@@ -129,6 +129,7 @@ public class DOBFxControl extends FxControl {
 		ageVBox.getChildren().add(getLabel(uiSchemaDTO.getId() + RegistrationConstants.ERROR_MSG, null,
 				RegistrationConstants.DemoGraphicFieldMessageLabel, false, ageVBox.getPrefWidth()));
 
+		changeNodeOrientation(ageVBox, languageType);
 		return ageVBox;
 	}
 

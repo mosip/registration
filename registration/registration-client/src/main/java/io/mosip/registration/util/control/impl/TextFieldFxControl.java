@@ -216,6 +216,8 @@ public class TextFieldFxControl extends FxControl {
 					uiSchemaDTO.getLabel().get(RegistrationConstants.PRIMARY));
 		}
 
+		changeNodeOrientation(simpleTypeVBox, languageType);
+		
 		return simpleTypeVBox;
 	}
 

@@ -59,7 +59,6 @@
           <RowConstraints minHeight="10.0" percentHeight="100.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <HBox fx:id="navigationHBox" GridPane.columnIndex="2" />
             <HBox fx:id="homeHBox" alignment="BOTTOM_LEFT" GridPane.columnIndex="1">
                <children>
                   <Text fx:id="homeText" onMouseClicked="#home" text="%home">
@@ -72,6 +71,14 @@
                      </font></Text>
                </children>
             </HBox>
+            <GridPane fx:id="navigationGridPane" GridPane.columnIndex="2">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="100.0" prefWidth="100.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" percentHeight="100.0" prefHeight="30.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+            </GridPane>
          </children>
       </GridPane>
    </children>

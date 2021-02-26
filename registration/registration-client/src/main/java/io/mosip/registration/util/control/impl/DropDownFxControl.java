@@ -128,6 +128,7 @@ public class DropDownFxControl extends FxControl {
 				RegistrationConstants.DemoGraphicFieldMessageLabel, false, prefWidth);
 		simpleTypeVBox.getChildren().add(validationMessage);
 
+		changeNodeOrientation(simpleTypeVBox, languageType);
 		return simpleTypeVBox;
 	}
 

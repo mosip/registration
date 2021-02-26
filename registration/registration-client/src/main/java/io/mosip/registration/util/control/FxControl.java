@@ -14,6 +14,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.GenericController;
 import io.mosip.registration.controller.Initialization;
@@ -22,6 +23,7 @@ import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.validator.RequiredFieldValidator;
+import javafx.geometry.NodeOrientation;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 
@@ -245,12 +247,23 @@ public abstract class FxControl extends Node {
 		return true;
 	}
 
+	protected void changeNodeOrientation(Node node, String langType) {
+		String langCode = langType.equalsIgnoreCase(RegistrationConstants.LOCAL_LANGUAGE)
+				? ApplicationContext.secondaryLanguageLocal()
+				: ApplicationContext.primaryLanguageLocal();
+		String langauages = (String) ApplicationContext.map()
+				.getOrDefault(RegistrationConstants.RIGHT_TO_LEFT_ORIENTATION_LANGUAGES, "ar");
+		if (langauages.contains(langCode)) {
+			node.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
+		}
+	}
+
 	public String getLocalLanguage() {
-		return io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage();
+		return ApplicationContext.getInstance().getLocalLanguage();
 	}
 
 	public String getAppLanguage() {
-		return io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage();
+		return ApplicationContext.getInstance().getApplicationLanguage();
 	}
 
 	protected FxControl getFxControl(String fieldId) {
