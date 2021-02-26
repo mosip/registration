@@ -3,6 +3,7 @@ package io.mosip.registration.controller;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -205,8 +206,22 @@ public class GenericController extends BaseController {
 //			Map<String, List<String>> screens = mapper.readValue(dynamicFieldsJsonString, LinkedHashMap.class);
 			Map<String, List<String>> screens = new LinkedHashMap<>();
 			SchemaDto schema = getLatestSchema();
-			if (schema != null && schema.getScreens() != null && !schema.getScreens().isEmpty()) {
-				List<UiScreenDTO> uiScreenDTO = schema.getScreens();
+
+			List<UiScreenDTO> uiScreenDTO = schema.getScreens();
+
+			if (screens == null || screens.isEmpty()) {
+
+				uiScreenDTO = new LinkedList<UiScreenDTO>();
+				UiScreenDTO screenDTO = new UiScreenDTO();
+				screenDTO.setFields(getValidationMap().keySet().stream().collect(Collectors.toList()));
+				screenDTO.getFields().remove("UIN");
+				screenDTO.setLabel("Resident Information");
+				screenDTO.setOrder("1");
+
+				uiScreenDTO.addAll(Arrays.asList(screenDTO));
+			}
+
+			if (schema != null && uiScreenDTO != null && !uiScreenDTO.isEmpty()) {
 				TreeMap<Integer, UiScreenDTO> orderedScreens = getScreensInOrder(uiScreenDTO);
 				orderedScreens.forEach((order, screenDTO) -> screens.put(screenDTO.getLabel(), screenDTO.getFields()));
 
@@ -274,7 +289,8 @@ public class GenericController extends BaseController {
 									&& (isUpdateUIN
 											? (getRegistrationDTOFromSession().getUpdatableFields().contains(field)
 													|| defaultFields.contains(field))
-											: true) && getFxControl(field) == null) {
+											: true)
+									&& getFxControl(field) == null) {
 
 								LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 										"Creating control for field : " + field);
@@ -349,7 +365,9 @@ public class GenericController extends BaseController {
 				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Showing current Page");
 				showCurrentPage();
 			}
-		} catch (RegBaseCheckedException exception) {
+		} catch (
+
+		RegBaseCheckedException exception) {
 
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 					"Failed to load dynamic fields " + ExceptionUtils.getStackTrace(exception));
@@ -486,70 +504,72 @@ public class GenericController extends BaseController {
 
 		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 				"Build fx element called for field : " + uiSchemaDTO.getId());
-		switch (uiSchemaDTO.getControlType()) {
+		if (uiSchemaDTO != null && uiSchemaDTO.getControlType() != null) {
+			switch (uiSchemaDTO.getControlType()) {
 
-		case CONTROLTYPE_TEXTFIELD:
-			return new TextFieldFxControl().build(uiSchemaDTO);
-		case CONTROLTYPE_BIOMETRICS:
+			case CONTROLTYPE_TEXTFIELD:
+				return new TextFieldFxControl().build(uiSchemaDTO);
+			case CONTROLTYPE_BIOMETRICS:
 
-			return new BiometricFxControl().build(uiSchemaDTO);
-		case CONTROLTYPE_BUTTON:
-			FxControl buttonFxControl = new ButtonFxControl().build(uiSchemaDTO);
-			Map<String, Object> buttonsData = new LinkedHashMap<>();
+				return new BiometricFxControl().build(uiSchemaDTO);
+			case CONTROLTYPE_BUTTON:
+				FxControl buttonFxControl = new ButtonFxControl().build(uiSchemaDTO);
+				Map<String, Object> buttonsData = new LinkedHashMap<>();
 
-			try {
-				buttonsData.put(RegistrationConstants.PRIMARY, masterSyncService.getFieldValues(uiSchemaDTO.getId(),
-						ApplicationContext.applicationLanguage()));
-				buttonsData.put(RegistrationConstants.SECONDARY,
-						masterSyncService.getFieldValues(uiSchemaDTO.getId(), ApplicationContext.localLanguage()));
-
-				buttonFxControl.fillData(buttonsData);
-			} catch (RegBaseCheckedException regBaseCheckedException) {
-				LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-						"Exception occured while fetching button values : " + uiSchemaDTO.getId() + " "
-								+ ExceptionUtils.getStackTrace(regBaseCheckedException));
-			}
-			return buttonFxControl;
-		case CONTROLTYPE_CHECKBOX:
-			return new CheckBoxFxControl().build(uiSchemaDTO);
-		case CONTROLTYPE_DOB:
-			return new DOBFxControl().build(uiSchemaDTO);
-		case CONTROLTYPE_DOB_AGE:
-			return new DOBAgeFxControl().build(uiSchemaDTO);
-		case CONTROLTYPE_DOCUMENTS:
-			return new DocumentFxControl().build(uiSchemaDTO);
-		case CONTROLTYPE_DROPDOWN:
-			FxControl fxControl = new DropDownFxControl().build(uiSchemaDTO);
-			if (uiSchemaDTO.getGroup().contains(RegistrationConstants.LOCATION)) {
-				List<Location> value = masterSyncDao.getLocationDetails(uiSchemaDTO.getSubType(),
-						applicationContext.getApplicationLanguage());
-
-				TreeMap<Integer, FxControl> hirearcyMap = locationMap.get(uiSchemaDTO.getGroup()) != null
-						? locationMap.get(uiSchemaDTO.getGroup())
-						: new TreeMap<Integer, FxControl>();
-
-				hirearcyMap.put(value.get(0).getHierarchyLevel(), fxControl);
-
-				locationMap.put(uiSchemaDTO.getGroup(), hirearcyMap);
-
-			} else {
-				Map<String, Object> data = new LinkedHashMap<>();
 				try {
-					data.put(RegistrationConstants.PRIMARY, masterSyncService.getFieldValues(uiSchemaDTO.getId(),
+					buttonsData.put(RegistrationConstants.PRIMARY, masterSyncService.getFieldValues(uiSchemaDTO.getId(),
 							ApplicationContext.applicationLanguage()));
-					data.put(RegistrationConstants.SECONDARY,
+					buttonsData.put(RegistrationConstants.SECONDARY,
 							masterSyncService.getFieldValues(uiSchemaDTO.getId(), ApplicationContext.localLanguage()));
+
+					buttonFxControl.fillData(buttonsData);
 				} catch (RegBaseCheckedException regBaseCheckedException) {
 					LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-							"Exception occured while fetching dropdown values : " + uiSchemaDTO.getId() + " "
+							"Exception occured while fetching button values : " + uiSchemaDTO.getId() + " "
 									+ ExceptionUtils.getStackTrace(regBaseCheckedException));
-				} finally {
-					fxControl.fillData(data);
 				}
+				return buttonFxControl;
+			case CONTROLTYPE_CHECKBOX:
+				return new CheckBoxFxControl().build(uiSchemaDTO);
+			case CONTROLTYPE_DOB:
+				return new DOBFxControl().build(uiSchemaDTO);
+			case CONTROLTYPE_DOB_AGE:
+				return new DOBAgeFxControl().build(uiSchemaDTO);
+			case CONTROLTYPE_DOCUMENTS:
+				return new DocumentFxControl().build(uiSchemaDTO);
+			case CONTROLTYPE_DROPDOWN:
+				FxControl fxControl = new DropDownFxControl().build(uiSchemaDTO);
+				if (uiSchemaDTO.getGroup().contains(RegistrationConstants.LOCATION)) {
+					List<Location> value = masterSyncDao.getLocationDetails(uiSchemaDTO.getSubType(),
+							applicationContext.getApplicationLanguage());
+
+					TreeMap<Integer, FxControl> hirearcyMap = locationMap.get(uiSchemaDTO.getGroup()) != null
+							? locationMap.get(uiSchemaDTO.getGroup())
+							: new TreeMap<Integer, FxControl>();
+
+					hirearcyMap.put(value.get(0).getHierarchyLevel(), fxControl);
+
+					locationMap.put(uiSchemaDTO.getGroup(), hirearcyMap);
+
+				} else {
+					Map<String, Object> data = new LinkedHashMap<>();
+					try {
+						data.put(RegistrationConstants.PRIMARY, masterSyncService.getFieldValues(uiSchemaDTO.getId(),
+								ApplicationContext.applicationLanguage()));
+						data.put(RegistrationConstants.SECONDARY, masterSyncService.getFieldValues(uiSchemaDTO.getId(),
+								ApplicationContext.localLanguage()));
+					} catch (RegBaseCheckedException regBaseCheckedException) {
+						LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+								"Exception occured while fetching dropdown values : " + uiSchemaDTO.getId() + " "
+										+ ExceptionUtils.getStackTrace(regBaseCheckedException));
+					} finally {
+						fxControl.fillData(data);
+					}
+				}
+
+				return fxControl;
+
 			}
-
-			return fxControl;
-
 		}
 
 		return null;

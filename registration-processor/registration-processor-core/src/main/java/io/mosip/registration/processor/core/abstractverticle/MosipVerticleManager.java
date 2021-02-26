@@ -3,6 +3,7 @@ package io.mosip.registration.processor.core.abstractverticle;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -75,6 +76,9 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 
 	@Value("${eventbus.port}")
 	private String eventBusPort;
+
+	@Value("${mosip.regproc.message.tag.loading.disable:false}")
+	private Boolean disableTagLoading;
 
 	@Autowired
 	private MosipEventBusFactory mosipEventBusFactory;
@@ -217,6 +221,10 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	}
 
 	private void addTagsToMessageDTO(MessageDTO messageDTO) {
+		if(disableTagLoading) {
+			messageDTO.setTags(new HashMap<>());
+			return;
+		}
 		try {
 			messageDTO.setTags(getTagsFromPacket(messageDTO.getRid()));
 		} catch (ApisResourceAccessException | PacketManagerException | 
