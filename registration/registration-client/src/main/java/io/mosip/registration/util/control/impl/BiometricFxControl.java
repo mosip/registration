@@ -2,7 +2,6 @@ package io.mosip.registration.util.control.impl;
 
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
-import static org.hamcrest.CoreMatchers.instanceOf;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -33,6 +32,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -526,7 +526,7 @@ public class BiometricFxControl extends FxControl {
 		if (node instanceof VBox) {
 			vBox = (VBox) node;
 		} else {
-			vBox = (VBox) ((GridPane) this.node).getChildren().get(0);
+			vBox = (VBox) ((FlowPane) ((GridPane) this.node).getChildren().get(0)).getChildren().get(0);
 		}
 		create(vBox, this.uiSchemaDTO);
 

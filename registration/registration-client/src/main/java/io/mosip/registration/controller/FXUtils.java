@@ -607,7 +607,7 @@ public class FXUtils {
 		}
 	}
 
-	private void selectComboBoxValueByCode(ComboBox<?> localComboBox, Object selectedOption, ComboBox<?> ComboBox) {
+	public void selectComboBoxValueByCode(ComboBox<?> localComboBox, Object selectedOption, ComboBox<?> ComboBox) {
 		ObservableList<?> localComboBoxValues = localComboBox.getItems();
 		ObservableList<?> comboBoxValues = ComboBox.getItems();
 
