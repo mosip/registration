@@ -1,5 +1,6 @@
 package io.mosip.registration.util.control.impl;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -66,6 +67,11 @@ public class ButtonFxControl extends FxControl {
 		hBox.getChildren().add(primaryLangVBox);
 		HBox.setHgrow(primaryLangVBox, Priority.ALWAYS);
 
+		
+		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
+		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(),
+				primaryLangVBox);
+
 		if (demographicDetailController.isLocalLanguageAvailable()
 				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
 			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
@@ -76,8 +82,13 @@ public class ButtonFxControl extends FxControl {
 			HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
 
 			hBox.getChildren().addAll(region, secondaryLangVBox);
+			
+			nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage(),
+					secondaryLangVBox);
 		}
 
+		
+		setNodeMap(nodeMap);
 		this.node = hBox;
 
 		return this.control;
