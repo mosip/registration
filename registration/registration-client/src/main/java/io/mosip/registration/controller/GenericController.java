@@ -64,9 +64,11 @@ import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -117,6 +119,12 @@ public class GenericController extends BaseController {
 
 	@FXML
 	private TextField preRegistrationId;
+
+	@FXML
+	private AnchorPane anchorPane;
+
+	@FXML
+	private ScrollPane scrollPane;
 
 	@Autowired
 	private RegistrationController registrationController;
@@ -188,14 +196,15 @@ public class GenericController extends BaseController {
 		fxControlMap.clear();
 		fieldMap.clear();
 
+		anchorPane.prefWidthProperty().bind(scrollPane.widthProperty());
+		flowPane.prefWidthProperty().bind(anchorPane.widthProperty());
+
 		headerGridPane = registrationController.getNavigationGridPane();
 		headerGridPane.getChildren().clear();
 		headerGridPane.setHgap(30);
 
 		flowPane.setVgap(10);
 		flowPane.setHgap(10);
-
-		flowPane.prefWidthProperty().bind(layOutGridPane.widthProperty());
 
 		preRegGridPane.setVisible(
 				getRegistrationDTOFromSession().getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_NEW)
@@ -237,7 +246,7 @@ public class GenericController extends BaseController {
 				columnConstraints.setPercentWidth(90 / (uiScreens.size() + 2));
 				headerGridPane.getColumnConstraints().add(columnConstraints);
 			}
-			
+
 			ColumnConstraints columnConstraints = new ColumnConstraints();
 			columnConstraints.setPercentWidth(10);
 			headerGridPane.getColumnConstraints().add(columnConstraints);
@@ -279,6 +288,7 @@ public class GenericController extends BaseController {
 
 					int count = 0;
 					GridPane screenGridPane = new GridPane();
+					screenGridPane.prefWidthProperty().bind(flowPane.widthProperty());
 
 					ScreenDTO screenDTO = new ScreenDTO();
 					screenDTO.setScreenNames(getScreenLabels(screenEntry.getKey()));
@@ -303,57 +313,87 @@ public class GenericController extends BaseController {
 					List<String> screenFields = new LinkedList<>();
 
 					if (fields != null && !fields.isEmpty()) {
+						Map<String, List<UiSchemaDTO>> templateGroup = getTemplateGroupMap(fields, isUpdateUIN,
+								defaultFields);
 
 						addPagination(screenDTO, columnCount++);
 
-						for (String field : fields) {
-
-							if (!field.isEmpty()
-									&& (isUpdateUIN
-											? (getRegistrationDTOFromSession().getUpdatableFields().contains(field)
-													|| defaultFields.contains(field))
-											: true)
-									&& getFxControl(field) == null) {
-
+						for (Entry<String, List<UiSchemaDTO>> templateGroupEntry : templateGroup.entrySet()) {
+							List<UiSchemaDTO> group = templateGroupEntry.getValue();
+							List<FxControl> fxControlGroup = new ArrayList<>();
+							for (UiSchemaDTO uiSchemaDTO : group) {
 								LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-										"Creating control for field : " + field);
-								screenFields.add(field);
-								UiSchemaDTO uiSchemaDTO = getValidationMap().get(field);
+										"Creating control for field : " + uiSchemaDTO.getId());
+
+								screenFields.add(uiSchemaDTO.getId());
 
 								FxControl fxConrol = null;
 								if (uiSchemaDTO != null) {
 									fxConrol = (FxControl) buildFxElement(uiSchemaDTO);
+									if (fxConrol != null && fxConrol.getNode() != null) {
+										fxControlMap.put(uiSchemaDTO.getId(), fxConrol);
+									}
 								}
-
-								if (fxConrol != null && fxConrol.getNode() != null) {
-									Node node = fxConrol.getNode();
-
-//										GridPane groupGridPane = (GridPane) screenGridPane.lookup(RegistrationConstants.HASH+uiSchemaDTO.getGroup());
-//										
-//										if(groupGridPane!=null) {
-//											
-//										}
-
-									fxControlMap.put(field, fxConrol);
-									GridPane gridPane = new GridPane();
-
-									ColumnConstraints columnConstraint1 = new ColumnConstraints();
-									columnConstraint1.setPercentWidth(15);
-									ColumnConstraints columnConstraint2 = new ColumnConstraints();
-									columnConstraint2.setPercentWidth(70);
-									ColumnConstraints columnConstraint3 = new ColumnConstraints();
-									columnConstraint3.setPercentWidth(15);
-									gridPane.getColumnConstraints().addAll(columnConstraint1, columnConstraint2,
-											columnConstraint3);
-									gridPane.add(node, 1, 2);
-
-									screenGridPane.add(gridPane, 0, count++);
-								}
+								fxControlGroup.add(fxConrol);
 							}
+
+							GridPane rowGridPane = new GridPane();
+
+							ColumnConstraints columnConstraint1 = new ColumnConstraints();
+							columnConstraint1.setPercentWidth(10);
+							ColumnConstraints columnConstraint2 = new ColumnConstraints();
+							columnConstraint2.setPercentWidth(80);
+							ColumnConstraints columnConstraint3 = new ColumnConstraints();
+							columnConstraint3.setPercentWidth(10);
+
+							rowGridPane.getColumnConstraints().addAll(columnConstraint1, columnConstraint2,
+									columnConstraint3);
+
+							GridPane middleGridpane = new GridPane();
+							middleGridpane.prefWidthProperty().bind(screenGridPane.widthProperty());
+
+							FlowPane primaryLangFlowPane = new FlowPane();
+							primaryLangFlowPane.setHgap(15);
+							FlowPane secondaryLangFlowPane = new FlowPane();
+							secondaryLangFlowPane.setHgap(15);
+							
+							for (FxControl fxControl : fxControlGroup) {
+								if (fxControl != null && fxControl.getNode() != null) {
+									Map<String, Object> nodeMap = fxControl.getNodeMap();
+									if (nodeMap.size() > 1) {
+										secondaryLangFlowPane.getChildren().add((Node) nodeMap.get(ApplicationContext.getInstance().getLocalLanguage()));
+									}
+									primaryLangFlowPane.getChildren().add((Node) nodeMap.get(ApplicationContext.getInstance().getApplicationLanguage()));
+									fxControl.setNode(middleGridpane);
+								}
+							}							
+
+							if (!secondaryLangFlowPane.getChildren().isEmpty()) {
+								middleGridpane.getColumnConstraints().clear();
+								ColumnConstraints middleGridpaneColumnConstraint1 = new ColumnConstraints();
+								middleGridpaneColumnConstraint1.setPercentWidth(45);
+								ColumnConstraints middleGridpaneColumnConstraint2 = new ColumnConstraints();
+								middleGridpaneColumnConstraint2.setPercentWidth(10);
+								ColumnConstraints middleGridpaneColumnConstraint3 = new ColumnConstraints();
+								middleGridpaneColumnConstraint3.setPercentWidth(45);
+
+								middleGridpane.getColumnConstraints().addAll(middleGridpaneColumnConstraint1,
+										middleGridpaneColumnConstraint2, middleGridpaneColumnConstraint3);
+								middleGridpane.add(secondaryLangFlowPane, 2, 0);
+								middleGridpane.add(primaryLangFlowPane, 0, 0);
+							} else {
+								middleGridpane.getColumnConstraints().clear();								
+								ColumnConstraints middleGridpaneColumnConstraint1 = new ColumnConstraints();
+								middleGridpaneColumnConstraint1.setPercentWidth(100);
+								middleGridpane.getColumnConstraints().add(middleGridpaneColumnConstraint1);
+								middleGridpane.add(primaryLangFlowPane, 0, 0);
+							}
+							rowGridPane.add(middleGridpane, 1, 0);
+
+							screenGridPane.add(rowGridPane, 0, count++);
 						}
 					}
 					fieldMap.put(screenMap.size(), screenFields);
-
 				}
 
 				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Loading Locations");
@@ -910,5 +950,30 @@ public class GenericController extends BaseController {
 		} else if (errorResponseDTOList != null && !errorResponseDTOList.isEmpty()) {
 			generateAlertLanguageSpecific(RegistrationConstants.ERROR, errorResponseDTOList.get(0).getMessage());
 		}
+	}
+
+	private Map<String, List<UiSchemaDTO>> getTemplateGroupMap(List<String> fields, boolean isUpdateUIN,
+			List<String> defaultFields) {
+		Map<String, List<UiSchemaDTO>> templateGroupMap = new LinkedHashMap<>();
+		for (String field : fields) {
+			if (!field.isEmpty()
+					&& (isUpdateUIN
+							? (getRegistrationDTOFromSession().getUpdatableFields().contains(field)
+									|| defaultFields.contains(field))
+							: true)
+					&& getFxControl(field) == null) {
+				UiSchemaDTO schemaDto = getValidationMap().get(field);
+				if (schemaDto != null) {
+					List<UiSchemaDTO> list = templateGroupMap.get(schemaDto.getAlignmentGroup());
+					if (list == null) {
+						list = new LinkedList<UiSchemaDTO>();
+					}
+					list.add(schemaDto);
+					templateGroupMap.put(schemaDto.getAlignmentGroup() == null ? field + "TemplateGroup"
+							: schemaDto.getAlignmentGroup(), list);
+				}
+			}
+		}
+		return templateGroupMap;
 	}
 }

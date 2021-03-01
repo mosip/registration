@@ -96,6 +96,30 @@ public class DateValidation extends BaseController {
 
 		TextField ageField = ((TextField) getFxElement(parentPane,
 				fieldId + RegistrationConstants.AGE_FIELD + RegistrationConstants.TEXT_FIELD));
+		if (ageField.getText().isBlank()) {
+			TextField dd = (TextField) getFxElement(parentPane,
+					fieldId + RegistrationConstants.DD + RegistrationConstants.TEXT_FIELD);
+			TextField mm = (TextField) getFxElement(parentPane,
+					fieldId + RegistrationConstants.MM + RegistrationConstants.TEXT_FIELD);
+			TextField yyyy = (TextField) getFxElement(parentPane,
+					fieldId + RegistrationConstants.YYYY + RegistrationConstants.TEXT_FIELD);
+			dd.setText(RegistrationConstants.EMPTY);
+			mm.setText(RegistrationConstants.EMPTY);
+			yyyy.setText(RegistrationConstants.EMPTY);
+			
+			TextField ddLocal = (TextField) getFxElement(parentPane,
+					fieldId + RegistrationConstants.DD + RegistrationConstants.TEXT_FIELD + RegistrationConstants.LOCAL_LANGUAGE);
+			TextField mmLocal = (TextField) getFxElement(parentPane,
+					fieldId + RegistrationConstants.MM + RegistrationConstants.TEXT_FIELD + RegistrationConstants.LOCAL_LANGUAGE);
+			TextField yyyyLocal = (TextField) getFxElement(parentPane,
+					fieldId + RegistrationConstants.YYYY + RegistrationConstants.TEXT_FIELD + RegistrationConstants.LOCAL_LANGUAGE);
+			TextField ageFieldLocal = ((TextField) getFxElement(parentPane,
+					fieldId + RegistrationConstants.AGE_FIELD + RegistrationConstants.TEXT_FIELD + RegistrationConstants.LOCAL_LANGUAGE));
+			ddLocal.setText(RegistrationConstants.EMPTY);
+			mmLocal.setText(RegistrationConstants.EMPTY);
+			yyyyLocal.setText(RegistrationConstants.EMPTY);
+			ageFieldLocal.setText(RegistrationConstants.EMPTY);
+		}
 		boolean isValid = ageField.getText().matches(RegistrationConstants.NUMBER_REGEX);
 
 		if (isValid) {
