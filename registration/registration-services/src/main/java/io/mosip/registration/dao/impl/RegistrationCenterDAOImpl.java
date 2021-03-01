@@ -3,8 +3,15 @@ package io.mosip.registration.dao.impl;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import java.util.Objects;
 import java.util.Optional;
 
+import io.mosip.registration.context.ApplicationContext;
+import io.mosip.registration.entity.CenterMachine;
+import io.mosip.registration.entity.MachineMaster;
+import io.mosip.registration.repositories.CenterMachineRepository;
+import io.mosip.registration.repositories.MachineMasterRepository;
+import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -32,6 +39,12 @@ public class RegistrationCenterDAOImpl implements RegistrationCenterDAO {
 	/** The registrationCenter repository. */
 	@Autowired
 	private RegistrationCenterRepository registrationCenterRepository;
+
+	@Autowired
+	private MachineMasterRepository machineMasterRepository;
+
+	@Autowired
+	private CenterMachineRepository centerMachineRepository;
 
 	/*
 	 * (non-Javadoc)
@@ -70,6 +83,31 @@ public class RegistrationCenterDAOImpl implements RegistrationCenterDAO {
 				APPLICATION_ID, "Registration Center details fetched successfully");
 
 		return registrationCenterDetailDTO;
+	}
+
+	@Override
+	public boolean isMachineCenterActive(String machineId) {
+		LOGGER.info("REGISTRATION - CENTER_NAME - REGISTRATION_CENTER_DAO_IMPL", APPLICATION_NAME,
+				APPLICATION_ID, "checking Registration Center details");
+
+		if(machineId == null) {
+			String machineName = RegistrationSystemPropertiesChecker.getMachineId();
+			MachineMaster machineMaster = machineMasterRepository.findByNameIgnoreCaseAndRegMachineSpecIdLangCode(machineName.toLowerCase(),
+					ApplicationContext.applicationLanguage());
+
+			if (machineMaster != null && machineMaster.getRegMachineSpecId().getId() != null) {
+				machineId = machineMaster.getRegMachineSpecId().getId();
+			}
+		}
+
+		CenterMachine centerMachine = centerMachineRepository.findByCenterMachineIdMachineId(machineId);
+		if(centerMachine != null &&
+				registrationCenterRepository.findByIsActiveTrueAndRegistartionCenterIdIdAndRegistartionCenterIdLangCode(
+						centerMachine.getCenterMachineId().getRegCenterId(),
+						ApplicationContext.applicationLanguage()).isPresent()) {
+			return true;
+		}
+		return false;
 	}
 
 }

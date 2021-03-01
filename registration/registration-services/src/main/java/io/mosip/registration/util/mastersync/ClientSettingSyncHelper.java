@@ -362,7 +362,7 @@ public class ClientSettingSyncHelper {
 	
 	private SyncDataBaseDto getSyncDataBaseDto(SyncDataResponseDto syncDataResponseDto, String entityName) throws Exception {
 		SyncDataBaseDto syncDataBaseDto = syncDataResponseDto.getDataToSync().stream()
-				.filter(obj -> entityName.equalsIgnoreCase(obj.getEntityName() ))
+				.filter(obj -> entityName.equals(obj.getEntityName() ))
 				.findAny()
 				.orElse(null);
 		 

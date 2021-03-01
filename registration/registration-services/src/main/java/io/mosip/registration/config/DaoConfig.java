@@ -61,7 +61,7 @@ public class DaoConfig extends HibernateDaoConfig {
 	private static final String DRIVER_CLASS_NAME = "org.apache.derby.jdbc.EmbeddedDriver";
 	private static final String URL = "jdbc:derby:%s;bootPassword=%s";
 	private static final String SHUTDOWN_URL = "jdbc:derby:;shutdown=true;deregister=false;";
-	private static final String ENCRYPTION_URL_ATTRIBUTES = "dataEncryption=true;encryptionKeyLength=256;encryptionAlgorithm=AES/CBC/NoPadding;";
+	private static final String ENCRYPTION_URL_ATTRIBUTES = "dataEncryption=true;encryptionKeyLength=256;encryptionAlgorithm=AES/CFB/NoPadding;";
 	private static final String SCHEMA_NAME = "REG";
 	private static final String SEPARATOR = "-BREAK-";
 	private static final String BOOTPWD_KEY = "bootPassword";
@@ -117,7 +117,11 @@ public class DaoConfig extends HibernateDaoConfig {
 	@Override
 	@Bean(name = "dataSource")
 	public DataSource dataSource() {
-		return setupDataSource();
+		if(this.driverManagerDataSource == null) {
+			setupDataSource();
+			jdbcTemplate();
+		}
+		return this.driverManagerDataSource;
 	}
 
 	/**
@@ -128,7 +132,8 @@ public class DaoConfig extends HibernateDaoConfig {
 	@Bean
 	@DependsOn("dataSource")
 	public JdbcTemplate jdbcTemplate() {
-		jdbcTemplate = new JdbcTemplate(dataSource());
+		if(jdbcTemplate == null)
+			jdbcTemplate = new JdbcTemplate(this.driverManagerDataSource);
 		updateGlobalParamsInProperties(jdbcTemplate);
 		return jdbcTemplate;
 	}
@@ -200,10 +205,7 @@ public class DaoConfig extends HibernateDaoConfig {
 		return jpaProperties;
 	}
 
-	private DriverManagerDataSource setupDataSource() throws Exception {
-		if(this.driverManagerDataSource != null)
-			return this.driverManagerDataSource;
-
+	private void setupDataSource() throws Exception {
 		LOGGER.info(LOGGER_CLASS_NAME, APPLICATION_NAME, APPLICATION_ID, "****** SETTING UP DATASOURCE *******");
 		createDatabase();
 		reEncryptExistingDB();
@@ -215,7 +217,6 @@ public class DaoConfig extends HibernateDaoConfig {
 		this.driverManagerDataSource.setUrl(String.format(URL, dbPath, dbConf.get(BOOTPWD_KEY)));
 		this.driverManagerDataSource.setUsername(dbConf.get(USERNAME_KEY));
 		this.driverManagerDataSource.setPassword(dbConf.get(PWD_KEY));
-		return this.driverManagerDataSource;
 	}
 
 	private static void shutdownDatabase() {

@@ -4,12 +4,7 @@ import static io.mosip.registration.constants.LoggerConstants.REGISTRATION_PUBLI
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -62,9 +57,10 @@ public class PolicySyncServiceImpl extends BaseService implements PolicySyncServ
 				"sync the certificate is started");
 
 		ResponseDTO responseDTO = new ResponseDTO();
-		// if(null!getCenterId(getStationId(getMacAddress()));
-		String stationId = getStationId(RegistrationSystemPropertiesChecker.getMachineId());
-		String centerMachineId = getCenterId(stationId) + "_" + stationId;
+		String stationId = getStationId();
+		String centerId = stationId != null ? getCenterId(stationId) : null;
+		validate(centerId, stationId);
+		String centerMachineId = centerId + "_" + stationId;
 
 		try {
 			KeyPairGenerateResponseDto certificateDto = keymanagerService
@@ -114,9 +110,8 @@ public class PolicySyncServiceImpl extends BaseService implements PolicySyncServ
 	@SuppressWarnings("unchecked")
 	private synchronized ResponseDTO getCertificate(ResponseDTO responseDTO, String centerMachineId, String validDate)
 			throws RegBaseCheckedException {
-		String stationId = getStationId(RegistrationSystemPropertiesChecker.getMachineId());
-		LOGGER.debug("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID, getCenterId(stationId));
-		if (validate(responseDTO, centerMachineId, getCenterId(stationId))) {
+		LOGGER.debug("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID, "getCertificate invoked");
+		if (validate(responseDTO, centerMachineId)) {
 			List<ErrorResponseDTO> erResponseDTOs = new ArrayList<>();
 			Map<String, String> requestParams = new HashMap<>();
 			requestParams.put(RegistrationConstants.GET_CERT_APP_ID, RegistrationConstants.REG_APP_ID);
@@ -179,9 +174,12 @@ public class PolicySyncServiceImpl extends BaseService implements PolicySyncServ
 		LOGGER.info("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID, "Key validation started");
 
 		ResponseDTO responseDTO = new ResponseDTO();
-		String stationId = getStationId(RegistrationSystemPropertiesChecker.getMachineId());
-		String refId = getCenterId(stationId) + "_" + stationId;
 		try {
+			String stationId = getStationId();
+			String centerId = stationId != null ? getCenterId(stationId) : null;
+			validate(centerId, stationId);
+			String refId = getCenterId(stationId) + "_" + stationId;
+
 			KeyPairGenerateResponseDto certificateDto = keymanagerService
 					.getCertificate(RegistrationConstants.REG_APP_ID, Optional.of(refId));
 			if (certificateDto == null || (certificateDto != null && certificateDto.getCertificate() == null)) {
@@ -199,20 +197,28 @@ public class PolicySyncServiceImpl extends BaseService implements PolicySyncServ
 		return responseDTO;
 	}
 
-	private boolean validate(ResponseDTO responseDTO, String centerMachineId, String centerId)
+	private boolean validate(ResponseDTO responseDTO, String centerMachineId)
 			throws RegBaseCheckedException {
-		if (responseDTO != null) {
-			if (centerMachineId != null && centerId != null) {
-				return true;
-			} else {
-				throw new RegBaseCheckedException(
-						RegistrationExceptionConstants.REG_POLICY_SYNC_SERVICE_IMPL_CENTERMACHINEID.getErrorCode(),
-						RegistrationExceptionConstants.REG_POLICY_SYNC_SERVICE_IMPL_CENTERMACHINEID.getErrorMessage());
-			}
-		} else {
+		if (responseDTO == null)
 			throw new RegBaseCheckedException(
 					RegistrationExceptionConstants.REG_POLICY_SYNC_SERVICE_IMPL.getErrorCode(),
 					RegistrationExceptionConstants.REG_POLICY_SYNC_SERVICE_IMPL.getErrorMessage());
-		}
+
+		if (centerMachineId == null)
+			throw new RegBaseCheckedException(
+					RegistrationExceptionConstants.REG_POLICY_SYNC_SERVICE_IMPL_CENTERMACHINEID.getErrorCode(),
+					RegistrationExceptionConstants.REG_POLICY_SYNC_SERVICE_IMPL_CENTERMACHINEID.getErrorMessage());
+
+		return true;
+	}
+
+	private boolean validate(String centerId, String machineId)
+			throws RegBaseCheckedException {
+		if (centerId == null || machineId == null)
+			throw new RegBaseCheckedException(
+					RegistrationExceptionConstants.REG_POLICY_SYNC_SERVICE_IMPL_CENTERMACHINEID.getErrorCode(),
+					RegistrationExceptionConstants.REG_POLICY_SYNC_SERVICE_IMPL_CENTERMACHINEID.getErrorMessage());
+
+		return true;
 	}
 }

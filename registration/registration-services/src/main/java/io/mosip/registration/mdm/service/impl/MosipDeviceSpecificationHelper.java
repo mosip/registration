@@ -17,6 +17,7 @@ import io.mosip.registration.mdm.dto.Biometric;
 import io.mosip.registration.mdm.dto.MDMError;
 import io.mosip.registration.mdm.dto.MdmDeviceInfo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -40,6 +41,9 @@ public class MosipDeviceSpecificationHelper {
 
     @Autowired
     private SignatureService signatureService;
+
+    @Value("${mosip.registration.mdm.validate.trust:true}")
+    private boolean validateTrust;
 
 
     public String getPayLoad(String data) throws RegBaseCheckedException {
@@ -70,7 +74,7 @@ public class MosipDeviceSpecificationHelper {
 
     public void validateJWTResponse(final String signedData) throws DeviceException {
         JWTSignatureVerifyRequestDto jwtSignatureVerifyRequestDto = new JWTSignatureVerifyRequestDto();
-        jwtSignatureVerifyRequestDto.setValidateTrust(false);
+        jwtSignatureVerifyRequestDto.setValidateTrust(validateTrust);
         jwtSignatureVerifyRequestDto.setJwtSignatureData(signedData);
         JWTSignatureVerifyResponseDto jwtSignatureVerifyResponseDto = signatureService.jwtVerify(jwtSignatureVerifyRequestDto);
         if(!jwtSignatureVerifyResponseDto.isSignatureValid())

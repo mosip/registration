@@ -141,110 +141,65 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 				.findByUserBiometricIdUsrIdAndIsActiveTrueAndUserBiometricIdBioTypeCodeIgnoreCase(userId, bioType);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see io.mosip.registration.dao.UserDetailDAO#save(io.mosip.registration.dto.
-	 * UserDetailResponseDto)
-	 */
-	public void save(List<UserDetailDto> userDetails) throws RegBaseUncheckedException {
-
+	public void save(UserDetailDto userDetailDto) {
 		LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "Entering user detail save method...");
+		UserDetail existingUserDetail = userDetailRepository.findByIdIgnoreCase(userDetailDto.getUserName());
 
-		List<UserDetail> userList = new ArrayList<>();
-		List<UserPassword> userPassword = new ArrayList<>();
-		try {
+		UserDetail userDetail = new UserDetail();
+		UserPassword usrPwd = new UserPassword();
 
-			// deleting Role if Exist
-			LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "Deleting User role if exist....");
-			userDetails.forEach(userDetail -> {
-				deleteUserRole(userDetail.getUserName());
-			});
+		boolean userNewStatus = userDetailDto.getIsActive() != null ? userDetailDto.getIsActive().booleanValue() : true;
+		if(existingUserDetail != null) {
+			deleteUserRole(existingUserDetail.getName());//cleanup existing roles
+			usrPwd.setPwd(existingUserDetail.getUserPassword().getPwd());
+			userDetail.setSalt(existingUserDetail.getSalt());
 
-			// Saving User Details user name and password
-			userDetails.forEach(userDtals -> {
-
-				UserDetail userDetail = userDetailRepository
-						.findByIdIgnoreCaseAndIsActiveTrue(userDtals.getUserName());
-
-				UserDetail userDtls = new UserDetail();
-				UserPassword usrPwd = new UserPassword();
-				// password details
-				usrPwd.setUsrId(userDtals.getUserName());
-				usrPwd.setStatusCode("00");
-				usrPwd.setIsActive(userDtls.getIsActive() != null ? userDtls.getIsActive().booleanValue() : true);
-				usrPwd.setLangCode(ApplicationContext.applicationLanguage());
-
-				if (userDetail != null) {
-					usrPwd.setPwd(userDetail.getUserPassword().getPwd());
-				}
-				if (SessionContext.isSessionContextAvailable()) {
-					usrPwd.setCrBy(SessionContext.userContext().getUserId());
-				} else {
-					usrPwd.setCrBy(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
-				}
-				usrPwd.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
-				userPassword.add(usrPwd);
-
-				userDtls.setId(userDtals.getUserName());
-				userDtls.setUserPassword(usrPwd);
-				userDtls.setEmail(userDtals.getMail());
-				userDtls.setMobile(userDtals.getMobile());
-				userDtls.setName(userDtals.getName());
-				userDtls.setLangCode(ApplicationContext.applicationLanguage());
-
-				if (userDetail != null) {
-					userDtls.setSalt(userDetail.getSalt());
-				}
-				if (SessionContext.isSessionContextAvailable()) {
-					userDtls.setCrBy(SessionContext.userContext().getUserId());
-				} else {
-					userDtls.setCrBy(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
-				}
-				userDtls.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
-				userDtls.setIsActive(userDtls.getIsActive() != null ? userDtls.getIsActive().booleanValue() : true);
-				userDtls.setStatusCode("00");
-				userList.add(userDtls);
-			});
-
-			userDetailRepository.saveAll(userList);
-			userPwdRepository.saveAll(userPassword);
-
-			// Saving User Roles
-			userDetails.forEach(userDetail -> {
-
-				UserRole role = new UserRole();
-				role.setIsActive(userDetail.getIsActive() != null ? userDetail.getIsActive().booleanValue() : true);
-				role.setLangCode(ApplicationContext.applicationLanguage());
-				if (SessionContext.isSessionContextAvailable()) {
-					role.setCrBy(SessionContext.userContext().getUserId());
-				} else {
-					role.setCrBy(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
-				}
-				role.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
-				userDetail.getRoles().forEach(rol -> {
-					UserRoleId roleId = new UserRoleId();
-					roleId.setRoleCode(rol);
-					roleId.setUsrId(userDetail.getUserName());
-					role.setUserRoleId(roleId);
-
-					try {
-						userRoleRepository.save(role);
-					} catch (Exception exception) {
-						LOGGER.error(LOG_REG_USER_DETAIL_DAO, APPLICATION_NAME, APPLICATION_ID,
-								exception.getMessage() + ExceptionUtils.getStackTrace(exception));
-					}
-				});
-
-			});
-			
-			LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "Leaving user detail save method...");
-		} catch (RuntimeException exRuntimeException) {
-			LOGGER.error(LOG_REG_USER_DETAIL_DAO, APPLICATION_NAME, APPLICATION_ID,
-					exRuntimeException.getMessage() + ExceptionUtils.getStackTrace(exRuntimeException));
-			throw new RegBaseUncheckedException(LOG_REG_USER_DETAIL_DAO, exRuntimeException.getMessage());
+			if(!userNewStatus) {//clean all auth token belonging to inactive user
+				LOGGER.debug(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "Removed auth token of user : " +
+						existingUserDetail.getName());
+				userTokenRepository.deleteByUsrId(existingUserDetail.getName());
+			}
 		}
+
+		usrPwd.setUsrId(userDetailDto.getUserName());
+		usrPwd.setStatusCode("00");
+		usrPwd.setIsActive(userNewStatus);
+		usrPwd.setLangCode(ApplicationContext.applicationLanguage());
+		usrPwd.setCrBy(SessionContext.isSessionContextAvailable() ? SessionContext.userContext().getUserId() :
+				RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
+		usrPwd.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
+
+		userDetail.setId(userDetailDto.getUserName());
+		userDetail.setUserPassword(usrPwd);
+		userDetail.setEmail(userDetailDto.getMail());
+		userDetail.setMobile(userDetailDto.getMobile());
+		userDetail.setName(userDetailDto.getName());
+		userDetail.setLangCode(ApplicationContext.applicationLanguage());
+		userDetail.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
+		userDetail.setIsActive(userNewStatus);
+		userDetail.setCrBy(SessionContext.isSessionContextAvailable() ? SessionContext.userContext().getUserId() :
+				RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
+		userDetail.setStatusCode("00");
+
+		userDetailRepository.save(userDetail);
+		userPwdRepository.save(usrPwd);
+
+		userDetailDto.getRoles().forEach(role -> {
+			UserRole userRole = new UserRole();
+			userRole.setIsActive(userNewStatus);
+			userRole.setLangCode(ApplicationContext.applicationLanguage());
+			userRole.setCrBy(SessionContext.isSessionContextAvailable() ? SessionContext.userContext().getUserId() :
+					RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
+			userRole.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
+			UserRoleId roleId = new UserRoleId();
+			roleId.setRoleCode(role);
+			roleId.setUsrId(userDetailDto.getUserName());
+			userRole.setUserRoleId(roleId);
+			userRoleRepository.save(userRole);
+		});
+		LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "leaving user detail save method...");
 	}
+
 
 	@Override
 	public UserBiometric getUserSpecificBioDetail(String userId, String bioType, String subType) {
