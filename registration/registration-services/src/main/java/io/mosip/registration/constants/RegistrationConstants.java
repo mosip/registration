@@ -1858,4 +1858,6 @@ public class RegistrationConstants {
 	public static final String DASHBOARD_LAST_SW_UPDATE = "<b>Last S/W Update</b>";
 	public static final String DASHBOARD_VERSION = "Version";
 	public static final String DASHBOARD_UPDATES = "Updates";
+
+	public static final String DEVICE_STATUS_READY = "Ready";
 }
