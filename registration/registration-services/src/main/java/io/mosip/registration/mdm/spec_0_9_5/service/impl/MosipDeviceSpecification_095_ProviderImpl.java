@@ -144,10 +144,28 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 				urlStream = response.getEntity().getContent();
 			}
 
-			System.out.println(urlStream.available());
-			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-					"Stream Request Completed" + System.currentTimeMillis());
-			return urlStream;
+			String end = "";
+
+			try {
+				byte[] byteArray = mosipDeviceSpecificationHelper.getJPEGByteArray(urlStream,
+						System.currentTimeMillis() + Long.parseLong(end));
+
+				if (byteArray != null) {
+					LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+							"Stream Request Completed" + System.currentTimeMillis());
+					return urlStream;
+				} else {
+
+					throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_STREAM_TIMEOUT.getErrorCode(),
+							RegistrationExceptionConstants.MDS_STREAM_TIMEOUT.getErrorMessage());
+				}
+			} catch (RegBaseCheckedException regBaseCheckedException) {
+
+				throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_STREAM_ERROR.getErrorCode(),
+						RegistrationExceptionConstants.MDS_STREAM_ERROR.getErrorMessage(), regBaseCheckedException);
+
+			}
+
 		} catch (Exception exception) {
 			throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_STREAM_ERROR.getErrorCode(),
 					RegistrationExceptionConstants.MDS_STREAM_ERROR.getErrorMessage(), exception);
