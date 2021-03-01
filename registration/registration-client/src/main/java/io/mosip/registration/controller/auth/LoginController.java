@@ -11,12 +11,13 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
 
-import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -55,6 +56,7 @@ import io.mosip.registration.update.SoftwareUpdateHandler;
 import io.mosip.registration.util.common.OTPManager;
 import io.mosip.registration.util.common.PageFlow;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
@@ -64,6 +66,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
@@ -200,6 +203,15 @@ public class LoginController extends BaseController implements Initializable {
 
 	@FXML
 	private Label versionValueLabel;
+	
+	@FXML
+	private ComboBox<String> appLanguage;
+	
+	@Value("${mosip.mandatory-languages}")
+	private String mandatoryLanguages;
+	
+	@Value("${mosip.optional-languages}")
+	private String optionalLanguages;
 
 	@Autowired
 	private MosipDeviceSpecificationFactory deviceSpecificationFactory;
@@ -228,6 +240,11 @@ public class LoginController extends BaseController implements Initializable {
 		}).start();
 
 		try {
+			appLanguage.getItems().addAll(Arrays.asList((mandatoryLanguages.concat(",").concat(optionalLanguages)).split(",")));
+			appLanguage.getSelectionModel().selectFirst();
+			appLanguage.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
+				System.out.println("Selected Language ---- " + newValue);
+			});
 			isInitialSetUp = RegistrationConstants.ENABLE
 					.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.INITIAL_SETUP));
 
@@ -333,7 +350,7 @@ public class LoginController extends BaseController implements Initializable {
 		loadUIElementsFromSchema();
 		pageFlow.loadPageFlow();
 		
-		forgotUsrnme.setVisible(ApplicationContext.map().containsKey(RegistrationConstants.FORGOT_USERNAME_URL));
+		forgotUsrnme.setVisible(!ApplicationContext.map().containsKey(RegistrationConstants.FORGOT_USERNAME_URL));
 		
 		Screen screen = Screen.getPrimary();
 		Rectangle2D bounds = screen.getVisualBounds();
