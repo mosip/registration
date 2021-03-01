@@ -122,4 +122,6 @@ public interface RegistrationStatusService<T, U, D> {
 	 * @return the by ids and timestamp
 	 */
 	public List<U> getByIdsAndTimestamp(List<String> ids);
+
+	public void updateRegistrationStatusForWorkFlow(U registrationStatusDto, String moduleId, String moduleName);
 }
