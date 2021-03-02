@@ -377,18 +377,15 @@ public class MosipDeviceSpecificationFactory {
 
 				if (provider.getSpecVersion().equalsIgnoreCase(bioDevice.getSpecVersion())) {
 
-					if (provider.isDeviceAvailable(bioDevice)) {
+					return provider.isDeviceAvailable(bioDevice);
 
-						return true;
-					} else {
-						return false;
-					}
 				}
 
 			}
 		}
 
-		return false;
+		throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_PROVIDER_NOT_FOUND.getErrorCode(),
+				RegistrationExceptionConstants.MDS_PROVIDER_NOT_FOUND.getErrorMessage());
 
 	}
 
