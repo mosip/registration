@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.repositories.MachineMasterRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -100,8 +101,7 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 	@Override
 	public void handleReMapProcess(int step) {
 
-		Boolean isMachineReMapped = isMachineRemapped() || isMachineInActive();
-		if (isMachineReMapped) {
+		if (isMachineRemapped()) {
 			LOGGER.info("REGISTRATION CENTER MACHINE REMAP : ", APPLICATION_NAME, APPLICATION_ID,
 					"handleReMapProcess called and machine has been remapped");
 
@@ -221,24 +221,14 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 					"Step 1  Remap table clean up Completed");
 			auditFactory.audit(AuditEvent.MACHINE_REMAPPED, Components.CLEAN_UP, "REGISTRATION",
 					AuditReferenceIdTypes.APPLICATION_ID.getReferenceTypeId());
-			/*
-			 * enabling all the jobs after all the clean up activities for the previous
-			 * center
-			 */
+
 			/* enable intial set up flag */
 			globalParamService.update(RegistrationConstants.INITIAL_SETUP, RegistrationConstants.ENABLE);
 			/* disable the remap flag after completing the remap process */
-			GlobalParam globalParam = getGlobalParam(RegistrationConstants.MACHINE_CENTER_REMAP_FLAG);
-			if (null != globalParam) {
-				globalParam.setVal(RegistrationConstants.TRUE);
-				globalParamDAO.saveAll(Arrays.asList(globalParam));
-			}
-
-			SessionContext.map().put(RegistrationConstants.RE_MAP_SUCCESS, RegistrationConstants.ENABLE);
+			globalParamService.update(RegistrationConstants.MACHINE_CENTER_REMAP_FLAG, RegistrationConstants.FALSE);
 
 			LOGGER.info("REGISTRATION CENTER MACHINE REMAP : ", APPLICATION_NAME, APPLICATION_ID,
 					"cleanUpCenterSpecificData remap successfully completed");
-
 		}
 	}
 
@@ -352,12 +342,6 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 
 		}
 
-	}
-
-	@Override
-	public Boolean isMachineInActive() {
-		GlobalParam globalParam = getGlobalParam(RegistrationConstants.MACHINE_INACTIVE_FLAG);
-		return globalParam != null ? Boolean.valueOf(globalParam.getVal()) : false;
 	}
 
 }

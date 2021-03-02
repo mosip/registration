@@ -1668,14 +1668,6 @@ public class RegistrationConstants {
 
 	public static String DEDUPLICATION_ENABLE_FLAG = "mosip.registration.mds.deduplication.enable.flag";
 
-	public static String DEDUPLICATION_FINGERPRINT_ENABLE_FLAG = "mosip.registration.mds.fingerprint.dedup.enable.flag";
-	public static String DEDUPLICATION_IRIS_ENABLE_FLAG = "mosip.registration.mds.iris.dedup.enable.flag";
-	public static String DEDUPLICATION_FACE_ENABLE_FLAG = "mosip.registration.mds.face.dedup.enable.flag";
-	public static String RE_MAP_SUCCESS = "rempaSucess";
-
-	public static final String SERVER_PROFILE = "profile";
-	public static final String SERVER_PROD_PROFILE = "PROD";
-	public static final String SERVER_NO_PROFILE = "NO_PROFILE";
 	public static final String SERVER_ACTIVE_PROFILE = "mosip.registration.server_profile";
 
 	public static final String applicantBiometricDTO = "applicantBiometricDTO";
@@ -1828,9 +1820,7 @@ public class RegistrationConstants {
 	// Mandatory Astrik
 	public static final String ASTRIK = " * ";
 
-	public static final String MACHINE_INACTIVE_FLAG = "mosip.registration.machine.inactive";
 	public static String MACHINE_REMAP_CODE = "KER-SNC-149";
-	public static String MACHINE_INACTIVE_CODE = "KER-SNC-155";
 
 	public static String OPERATOR_ONBOARDING_BIO_ATTRIBUTES = "mosip.registration.operator.onboarding.bioattributes";
 	public static String RIGHT_TO_LEFT_ORIENTATION_LANGUAGES = "mosip.language.righttoleft.orientation";

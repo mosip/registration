@@ -7,3 +7,5 @@ ALTER TABLE "REG"."SYNC_JOB_DEF" ADD COLUMN "JOB_TYPE" VARCHAR(128);
 INSERT INTO "REG"."GLOBAL_PARAM" VALUES ('mosip.registration.last_software_update','mosip.registration.last_software_update','-','CONFIGURATION','eng',true,'SYSTEM',current timestamp, 'SYSTEM',current timestamp, false, current timestamp);
 
 INSERT INTO "REG"."GLOBAL_PARAM" VALUES ('mosip.registration.regclient_installed_time','mosip.registration.regclient_installed_time',current timestamp,'CONFIGURATION','eng',true,'SYSTEM',current timestamp, 'SYSTEM',current timestamp, false, current timestamp);
+
+UPDATE "REG"."GLOBAL_PARAM" SET val='false' WHERE name='mosip.registration.machinecenterchanged';

@@ -126,8 +126,6 @@ public class SyncManagerTest {
 		});
 		// JobConfigurationServiceImpl.SYNC_JOB_MAP = jobMap;
 
-		Mockito.when(onboardDAO.getCenterID(Mockito.anyString())).thenReturn("CNTR123");
-		Mockito.when(onboardDAO.getStationID(Mockito.anyString())).thenReturn("MCHN123");
 		//PowerMockito.mockStatic(io.mosip.registration.config.AppConfig.class);
 		//when(io.mosip.registration.config.AppConfig.getApplicationProperty(Mockito.anyString())).thenReturn("Appli_Lang");
 
