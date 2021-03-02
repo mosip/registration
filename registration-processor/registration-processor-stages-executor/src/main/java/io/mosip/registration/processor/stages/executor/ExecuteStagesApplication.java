@@ -4,12 +4,12 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
-import io.mosip.registration.processor.core.spi.stage.StageInfo;
 import io.mosip.registration.processor.stages.executor.config.StagesConfig;
 
 /**
@@ -24,28 +24,23 @@ public class ExecuteStagesApplication {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		try (AnnotationConfigApplicationContext stageInfoApplicationContext = new AnnotationConfigApplicationContext();) {
-			stageInfoApplicationContext.scan(
-					"io.mosip.registration.processor.stages.executor.config"
-					);
-			stageInfoApplicationContext.refresh();
-
+		try (AnnotationConfigApplicationContext stageInfoApplicationContext = new AnnotationConfigApplicationContext(StagesConfig.class);) {
 			StagesConfig stagesConfig = stageInfoApplicationContext.getBean(StagesConfig.class);
-			List<StageInfo> stageInfos = stagesConfig.getStages();
+			List<String> stageClasses = stagesConfig.getStageClasses();
 			try (AnnotationConfigApplicationContext mainApplicationContext = new AnnotationConfigApplicationContext();) {
-				// Scan packages
-				stageInfos.stream().forEach(stageInfo -> {
-					mainApplicationContext.scan(stageInfo.getBasePackages());
-				});
+				List<String> basePackages = stageClasses.stream()
+												.map(classStr -> classStr.substring(0, classStr.lastIndexOf('.')))
+												.collect(Collectors.toList());
+				mainApplicationContext.scan(basePackages.toArray(size -> new String[size]));
 
 				// Refresh the context
 				mainApplicationContext.refresh();
 
-				if (!stageInfos.isEmpty()) {
-					ExecutorService executorService = Executors.newFixedThreadPool(stageInfos.size());
-					stageInfos.forEach(stageInfo -> executorService.execute(() -> {
+				if (!stageClasses.isEmpty()) {
+					ExecutorService executorService = Executors.newFixedThreadPool(stageClasses.size());
+					stageClasses.forEach(stageClass -> executorService.execute(() -> {
 						try {
-							MosipVerticleAPIManager stageBean = getStageBean(mainApplicationContext, stageInfo);
+							MosipVerticleAPIManager stageBean = getStageBean(mainApplicationContext, stageClass);
 							stageBean.deployVerticle();
 						} catch (Exception e) {
 							// TODO Auto-generated catch block
@@ -66,9 +61,9 @@ public class ExecuteStagesApplication {
 	}
 
 	private static MosipVerticleAPIManager getStageBean(AnnotationConfigApplicationContext mainApplicationContext,
-			StageInfo stageInfo) throws Exception {
+			String stageClass) throws Exception {
 		try {
-			Class<?> stageBeanClass = Class.forName(stageInfo.getStageClass());
+			Class<?> stageBeanClass = Class.forName(stageClass);
 			if (MosipVerticleAPIManager.class.isAssignableFrom(stageBeanClass)) {
 				Object bean = mainApplicationContext.getBean(stageBeanClass);
 				MosipVerticleAPIManager stageBean = (MosipVerticleAPIManager) bean;
