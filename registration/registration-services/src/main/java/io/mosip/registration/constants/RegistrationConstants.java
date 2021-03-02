@@ -1869,5 +1869,5 @@ public class RegistrationConstants {
 	public static final String GENERIC_DETAIL = "genericScreen";
 	public static final String GENERIC_LAYOUT = "/fxml/GenericRegistrationLayout.fxml";
 	public static final String BIOMETRIC_FXML = "/fxml/GenericBiometricFXML.fxml";
-
+	public static final String DEVICE_STATUS_READY = "Ready";
 }
