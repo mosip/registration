@@ -13,7 +13,7 @@ public class DeviceException extends BaseCheckedException  {
     /**
      * Instance of {@link Logger}
      */
-    private static final Logger LOGGER = AppConfig.getLogger(RegBaseCheckedException.class);
+    private static final Logger LOGGER = AppConfig.getLogger(DeviceException.class);
 
     /**
      * Constructs a new checked exception

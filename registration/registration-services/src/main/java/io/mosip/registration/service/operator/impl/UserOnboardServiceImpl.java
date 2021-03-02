@@ -32,6 +32,7 @@ import io.mosip.registration.dao.UserOnboardDAO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.biometric.BiometricDTO;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
+import io.mosip.registration.exception.PreConditionCheckException;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
@@ -118,13 +119,10 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 	}
 
 	@SuppressWarnings("unchecked")
-	public boolean validateWithIDA(List<BiometricsDto> biometrics, ResponseDTO responseDTO) {
+	public boolean validateWithIDA(List<BiometricsDto> biometrics, ResponseDTO responseDTO) throws PreConditionCheckException {
 
-		if (!RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
-			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, RegistrationConstants.NO_INTERNET);
-			setErrorResponse(responseDTO, RegistrationConstants.NO_INTERNET, null);
-			return false;
-		}
+		//Precondition check, proceed only if met, otherwise throws exception
+		proceedWithOperatorOnboard();
 
 		Map<String, Object> idaRequestMap = new LinkedHashMap<>();
 		idaRequestMap.put(RegistrationConstants.ID, RegistrationConstants.IDENTITY);
