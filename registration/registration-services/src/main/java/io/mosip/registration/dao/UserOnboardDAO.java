@@ -30,29 +30,8 @@ public interface UserOnboardDAO {
 	String insert(BiometricDTO biometricDTO);
 	
 	String insert(List<BiometricsDto> biometrics);
-	
-	/**
-	 * This method is used to get Station ID by giving machine name.
-	 *
-	 * @param machineName
-	 * 				machine name
-	 * @return station ID
-	 * @throws RegBaseCheckedException 
-	 * 				the reg base checked exception
-	 */
-	String getStationID(String machineName) throws RegBaseCheckedException;
-	
-	/**
-	 * This method is used to get center ID using stationID.
-	 *
-	 * @param stationID 
-	 * 				the station ID
-	 * @return center ID
-	 * @throws RegBaseCheckedException 
-	 * 				the reg base checked exception
-	 */
-	String getCenterID(String stationID) throws RegBaseCheckedException;
-	
+
+
 	
 	/**
 	 * This method is used to save user to {@link UserMachineMapping} table.
@@ -65,7 +44,7 @@ public interface UserOnboardDAO {
 	/**
 	 * Gets the last updated operator bio-metric date time.
 	 *
-	 * @param usrID the usr ID
+	 * @param usrId the usr ID
 	 * @return the last updated operator bio-metric date time
 	 */
 	Timestamp getLastUpdatedTime(String usrId);

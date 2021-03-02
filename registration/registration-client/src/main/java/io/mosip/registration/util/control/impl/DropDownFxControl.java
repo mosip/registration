@@ -27,7 +27,6 @@ import io.mosip.registration.util.control.FxControl;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -70,9 +69,13 @@ public class DropDownFxControl extends FxControl {
 		hBox.getChildren().add(primaryLangVBox);
 //		HBox.setHgrow(primaryLangVBox, Priority.ALWAYS);
 
+		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
+		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(),
+				primaryLangVBox);
 		if (demographicDetailController.isLocalLanguageAvailable()
 				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
 
+			languageType = RegistrationConstants.LOCAL_LANGUAGE;
 			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
 
 //			Region region = new Region();
@@ -80,9 +83,12 @@ public class DropDownFxControl extends FxControl {
 
 //			HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
 			hBox.getChildren().add(secondaryLangVBox);
+			nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage(),
+					secondaryLangVBox);
 
 		}
 
+		setNodeMap(nodeMap);
 		this.node = hBox;
 		setListener(node);
 		return this.control;
@@ -113,8 +119,7 @@ public class DropDownFxControl extends FxControl {
 		/** comboBox Field */
 		ComboBox<GenericDto> comboBox = getComboBox(fieldName + languageType, titleText,
 				RegistrationConstants.DOC_COMBO_BOX, prefWidth,
-				languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)
-						&& !uiSchemaDTO.getType().equals(RegistrationConstants.SIMPLE_TYPE) ? true : false);
+				languageType.equals(RegistrationConstants.LOCAL_LANGUAGE) ? true : false);
 		simpleTypeVBox.getChildren().add(comboBox);
 
 		/** Validation message (Invalid/wrong,,etc,.) */
@@ -122,6 +127,7 @@ public class DropDownFxControl extends FxControl {
 				RegistrationConstants.DemoGraphicFieldMessageLabel, false, prefWidth);
 		simpleTypeVBox.getChildren().add(validationMessage);
 
+		changeNodeOrientation(simpleTypeVBox, languageType);
 		return simpleTypeVBox;
 	}
 
@@ -174,16 +180,27 @@ public class DropDownFxControl extends FxControl {
 	@Override
 	public void setListener(Node node) {
 
-		if (RegistrationConstants.LOCAL_LANGUAGE.equalsIgnoreCase(languageType)) {
-			FXUtils.getInstance().populateLocalComboBox((Pane) getNode(), (ComboBox<?>) getField(uiSchemaDTO.getId()),
-					(ComboBox<?>) getField(uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE));
-		}
+//		if (RegistrationConstants.LOCAL_LANGUAGE.equalsIgnoreCase(languageType)) {
+//			FXUtils.getInstance().populateLocalComboBox((Pane) getNode(), (ComboBox<?>) getField(uiSchemaDTO.getId()),
+//					(ComboBox<?>) getField(uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE));
+//		}
 
 		((ComboBox<GenericDto>) getField(uiSchemaDTO.getId())).getSelectionModel().selectedItemProperty()
 				.addListener((options, oldValue, newValue) -> {
 					if (isValid(getField(uiSchemaDTO.getId()))) {
 
-						// TODO Set Local vals
+						FXUtils.getInstance().toggleUIField((Pane) getNode(), uiSchemaDTO.getId() + RegistrationConstants.LABEL, true);
+
+						FXUtils.getInstance().toggleUIField((Pane) getNode(), uiSchemaDTO.getId() + RegistrationConstants.MESSAGE, false);
+						if (!demographicDetailController.isAppLangAndLocalLangSame()) {
+							ComboBox<GenericDto> appComboBox = (ComboBox<GenericDto>) getField(uiSchemaDTO.getId());
+							ComboBox<GenericDto> localComboBox = (ComboBox<GenericDto>) getField(
+									uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE);
+							
+							FXUtils.getInstance().selectComboBoxValueByCode(localComboBox, appComboBox.getValue(), appComboBox);
+							FXUtils.getInstance().toggleUIField((Pane) getNode(), uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE + RegistrationConstants.LABEL, true);
+							FXUtils.getInstance().toggleUIField((Pane) getNode(), uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE + RegistrationConstants.MESSAGE, false);
+						}
 
 						setData(null);
 						Map<Integer, FxControl> hirearchyMap = GenericController.locationMap

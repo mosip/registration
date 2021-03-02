@@ -10,4 +10,6 @@ public interface UserTokenRepository extends BaseRepository<UserToken, String> {
     UserToken findTopByTokenExpiryGreaterThanOrderByTokenExpiryDesc(long currentTimeInSeconds);
 
     UserToken findTopByRtokenExpiryGreaterThanOrderByRtokenExpiryDesc(long currentTimeInSeconds);
+
+    void deleteByUsrId(String usrId);
 }

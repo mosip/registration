@@ -7,12 +7,14 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.util.List;
+import java.util.Map;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.GenericController;
 import io.mosip.registration.controller.Initialization;
@@ -21,6 +23,7 @@ import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.validator.RequiredFieldValidator;
+import javafx.geometry.NodeOrientation;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 
@@ -45,10 +48,24 @@ public abstract class FxControl extends Node {
 
 	public Node node;
 
+	public void setNode(Node node) {
+		this.node = node;
+	}
+
 	protected DemographicDetailController demographicDetailController;
 	protected AuditManagerService auditFactory;
 
 	protected RequiredFieldValidator requiredFieldValidator;
+
+	protected Map<String, Object> nodeMap;
+
+	public Map<String, Object> getNodeMap() {
+		return nodeMap;
+	}
+
+	public void setNodeMap(Map<String, Object> nodeMap) {
+		this.nodeMap = nodeMap;
+	}
 
 	public void refreshFields() {
 
@@ -200,7 +217,7 @@ public abstract class FxControl extends Node {
 		label.setText(titleText);
 		label.getStyleClass().add(styleClass);
 		label.setVisible(isVisible);
-		label.setPrefWidth(prefWidth);
+		//label.setPrefWidth(prefWidth);
 		return label;
 	}
 
@@ -230,12 +247,23 @@ public abstract class FxControl extends Node {
 		return true;
 	}
 
+	protected void changeNodeOrientation(Node node, String langType) {
+		String langCode = langType.equalsIgnoreCase(RegistrationConstants.LOCAL_LANGUAGE)
+				? ApplicationContext.secondaryLanguageLocal()
+				: ApplicationContext.primaryLanguageLocal();
+		String langauages = (String) ApplicationContext.map()
+				.getOrDefault(RegistrationConstants.RIGHT_TO_LEFT_ORIENTATION_LANGUAGES, "ar");
+		if (langauages.contains(langCode)) {
+			node.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
+		}
+	}
+
 	public String getLocalLanguage() {
-		return io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage();
+		return ApplicationContext.getInstance().getLocalLanguage();
 	}
 
 	public String getAppLanguage() {
-		return io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage();
+		return ApplicationContext.getInstance().getApplicationLanguage();
 	}
 
 	protected FxControl getFxControl(String fieldId) {

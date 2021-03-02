@@ -48,7 +48,6 @@ import io.mosip.registration.entity.Registration;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.config.GlobalParamService;
 import io.mosip.registration.service.packet.impl.RegPacketStatusServiceImpl;
-import io.mosip.registration.service.security.AESEncryptionService;
 import io.mosip.registration.service.sync.PacketSynchService;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 
@@ -66,8 +65,7 @@ public class RegPacketStatusServiceTest {
 	private RegPacketStatusDAO packetStatusDao;
 	@Mock
 	private PacketSynchService packetSynchService;
-	@Mock
-	private AESEncryptionService aesEncryptionService;
+
 	@InjectMocks
 	private RegPacketStatusServiceImpl packetStatusService;
 
@@ -286,8 +284,7 @@ public class RegPacketStatusServiceTest {
 		Mockito.when(packetSynchService.updateSyncStatus(Mockito.anyList())).thenReturn(true);
 		RegistrationPacketSyncDTO registrationPacketSyncDTO = new RegistrationPacketSyncDTO();
 		ApplicationContext.map().get(RegistrationConstants.PRIMARY_LANGUAGE);
-		Mockito.when(aesEncryptionService.encrypt(javaObjectToJsonString(registrationPacketSyncDTO).getBytes()))
-				.thenReturn("aes".getBytes());
+
 		Mockito.when(HMACUtils2.generateHash(Mockito.anyString().getBytes())).thenReturn("asa".getBytes());
 
 		Mockito.when(globalParamService.getGlobalParams()).thenReturn(new HashMap());
