@@ -1,11 +1,12 @@
 package io.mosip.registration.processor.core.spi.stage;
 
-import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
+import lombok.Data;
 
-public interface StageInfo {
+@Data
+public class StageInfo {
 	
-	String[] getBasePackages();
+	private String[] basePackages;
 	
-	Class<? extends MosipVerticleAPIManager> getStageBeanClass();
+	private String stageClass;
 
 }
