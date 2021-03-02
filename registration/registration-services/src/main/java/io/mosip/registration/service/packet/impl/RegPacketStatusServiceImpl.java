@@ -239,6 +239,9 @@ public class RegPacketStatusServiceImpl extends BaseService implements RegPacket
 
 		LOGGER.info(LoggerConstants.LOG_PKT_SYNC, APPLICATION_NAME, APPLICATION_ID, "packet status sync called");
 
+		//Precondition check, proceed only if met, otherwise throws exception
+		proceedWithPacketSync();
+
 		/* Create Response to Return to UI layer */
 		ResponseDTO response = new ResponseDTO();
 
@@ -432,6 +435,9 @@ public class RegPacketStatusServiceImpl extends BaseService implements RegPacket
 		SuccessResponseDTO successResponseDTO = new SuccessResponseDTO();
 		List<ErrorResponseDTO> errorList = new ArrayList<>();
 		try {
+
+			//Precondition check, proceed only if met, otherwise throws exception
+			proceedWithPacketSync();
 
 			List<Registration> packetsToBeSynched = registrationDAO
 					.getPacketsToBeSynched(RegistrationConstants.PACKET_STATUS);

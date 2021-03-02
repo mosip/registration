@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import io.mosip.registration.constants.LoginMode;
 import io.mosip.registration.util.common.OTPManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -136,9 +137,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		LOGGER.debug("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
 				"Validating credentials using database >>>> " + authenticationValidatorDTO.getUserId());
 		try {
+			//Always mandate user to reach server to validate pwd when machine is online
+			//As in case of new user, any valid authtoken will be simply allowed
+			//to avoid any such scenario, mandate to fetch new token when login
 			if(RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
-				authTokenUtilService.fetchAuthToken("System");
+				authTokenUtilService.getAuthTokenAndRefreshToken(LoginMode.PASSWORD);
 			}
+
 			UserDTO userDTO = loginService.getUserDetail(authenticationValidatorDTO.getUserId());
 
 			if (null != userDTO && null != userDTO.getSalt() && HMACUtils2

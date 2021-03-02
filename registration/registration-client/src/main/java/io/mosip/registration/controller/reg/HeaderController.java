@@ -10,6 +10,7 @@ import java.net.URISyntaxException;
 import java.sql.Timestamp;
 import java.util.TimerTask;
 
+import io.mosip.registration.exception.PreConditionCheckException;
 import io.mosip.registration.service.BaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -446,13 +447,12 @@ public class HeaderController extends BaseController {
 	@FXML
 	public void hasUpdate(ActionEvent event) {
 		if (pageNavigantionAlert()) {
-			if (!RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
-				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_INTERNET_CONNECTION);
-				return;
-			}
 
-			if(!baseService.proceedWithSoftwareUpdate()) {
-				generateAlert(RegistrationConstants.ERROR, "Operation not allowed currently!");
+			try {
+				baseService.proceedWithSoftwareUpdate();
+			} catch (PreConditionCheckException e) {
+				generateAlert(RegistrationConstants.ERROR,
+						ApplicationContext.applicationMessagesBundle().getString(e.getErrorCode()));
 				return;
 			}
 
@@ -467,20 +467,10 @@ public class HeaderController extends BaseController {
 	}
 
 	public boolean hasUpdate() {
-
-		boolean hasUpdate = false;
-		if (softwareUpdateHandler.hasUpdate()) {
-			hasUpdate = true;
-
-		} else {
-			hasUpdate = false;
-		}
-
+		boolean hasUpdate = softwareUpdateHandler.hasUpdate();
 		Timestamp timestamp = hasUpdate ? softwareUpdateHandler.getLatestVersionReleaseTimestamp()
 				: Timestamp.valueOf(DateUtils.getUTCCurrentDateTime());
-
 		globalParamService.updateSoftwareUpdateStatus(hasUpdate, timestamp);
-
 		return hasUpdate;
 	}
 
