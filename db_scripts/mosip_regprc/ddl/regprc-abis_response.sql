@@ -8,7 +8,7 @@
 -- 
 -- Modified Date        Modified By         Comments / Remarks
 -- ------------------------------------------------------------------------------------------
--- 
+-- Jan-2021		Ram Bhatt	    Set is_deleted flag to not null and default false
 -- ------------------------------------------------------------------------------------------
 
 -- object: regprc.abis_response | type: TABLE --
@@ -25,7 +25,7 @@ CREATE TABLE regprc.abis_response(
 	cr_dtimes timestamp NOT NULL,
 	upd_by character varying(256),
 	upd_dtimes timestamp,
-	is_deleted boolean,
+	is_deleted boolean NOT NULL DEFAULT FALSE,
 	del_dtimes timestamp,
 	CONSTRAINT pk_abisresp PRIMARY KEY (id),
 	CONSTRAINT uk_abisresp UNIQUE (abis_req_id,resp_dtimes)
