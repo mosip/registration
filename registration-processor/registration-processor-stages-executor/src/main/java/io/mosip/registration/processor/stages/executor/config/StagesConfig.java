@@ -12,7 +12,7 @@ import io.mosip.registration.processor.core.spi.stage.StageInfo;
 
 @Configuration
 @EnableConfigurationProperties
-@PropertySource(value = "classpath:application.properties")
+@PropertySource("classpath:bootstrap.properties")
 @ConfigurationProperties(prefix = "mosip.regproc.stageinfo")
 public class StagesConfig {
 	
