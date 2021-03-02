@@ -17,14 +17,19 @@ import io.mosip.registration.processor.stages.executor.config.StagesConfig;
  *
  */
 public class ExecuteStagesApplication {
-	
+
 	/**
 	 * main method to launch external stage application
 	 * 
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		try (AnnotationConfigApplicationContext stageInfoApplicationContext = new AnnotationConfigApplicationContext(StagesConfig.class);) {
+		try (AnnotationConfigApplicationContext stageInfoApplicationContext = new AnnotationConfigApplicationContext();) {
+			stageInfoApplicationContext.scan(
+					"io.mosip.registration.processor.stages.executor.config"
+					);
+			stageInfoApplicationContext.refresh();
+
 			StagesConfig stagesConfig = stageInfoApplicationContext.getBean(StagesConfig.class);
 			List<StageInfo> stageInfos = stagesConfig.getStages();
 			try (AnnotationConfigApplicationContext mainApplicationContext = new AnnotationConfigApplicationContext();) {
@@ -36,23 +41,25 @@ public class ExecuteStagesApplication {
 				// Refresh the context
 				mainApplicationContext.refresh();
 
-				ExecutorService executorService = Executors.newFixedThreadPool(stageInfos.size());
-				stageInfos.forEach(stageInfo -> executorService.execute(() -> {
+				if (!stageInfos.isEmpty()) {
+					ExecutorService executorService = Executors.newFixedThreadPool(stageInfos.size());
+					stageInfos.forEach(stageInfo -> executorService.execute(() -> {
+						try {
+							MosipVerticleAPIManager stageBean = getStageBean(mainApplicationContext, stageInfo);
+							stageBean.deployVerticle();
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}));
 					try {
-						MosipVerticleAPIManager stageBean = getStageBean(mainApplicationContext, stageInfo);
-						stageBean.deployVerticle();
-					} catch (Exception e) {
+						executorService.awaitTermination(10000, TimeUnit.DAYS);
+					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-				}));
-				try {
-					executorService.awaitTermination(10000, TimeUnit.DAYS);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					executorService.shutdown();
 				}
-				executorService.shutdown();
 			}
 		}
 
@@ -62,12 +69,12 @@ public class ExecuteStagesApplication {
 			StageInfo stageInfo) throws Exception {
 		try {
 			Class<?> stageBeanClass = Class.forName(stageInfo.getStageClass());
-			if(MosipVerticleAPIManager.class.isAssignableFrom(stageBeanClass)) {
+			if (MosipVerticleAPIManager.class.isAssignableFrom(stageBeanClass)) {
 				Object bean = mainApplicationContext.getBean(stageBeanClass);
 				MosipVerticleAPIManager stageBean = (MosipVerticleAPIManager) bean;
 				return stageBean;
 			} else {
-				//TODO throw invalid config exception
+				// TODO throw invalid config exception
 				throw new Exception("Invalid config");
 			}
 		} catch (BeansException | ClassNotFoundException e) {
