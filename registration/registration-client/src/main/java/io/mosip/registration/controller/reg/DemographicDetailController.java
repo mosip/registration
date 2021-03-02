@@ -345,7 +345,7 @@ public class DemographicDetailController extends BaseController {
 
 	public boolean isAppLangAndLocalLangSame() {
 
-		return primaryLanguage.equals(secondaryLanguage);
+		return secondaryLanguage != null && primaryLanguage.equals(secondaryLanguage);
 	}
 
 	public boolean isLocalLanguageAvailable() {

@@ -332,7 +332,7 @@ public class TemplateGenerator extends BaseService {
 			data.put("format", registration.getDocuments().get(field.getId()).getFormat());
 			data.put("refNumber", registration.getDocuments().get(field.getId()).getRefNumber());
 
-			if("POE".equalsIgnoreCase(field.getSubType())) {
+			if("POE".equalsIgnoreCase(field.getSubType()) && !registration.getDocuments().get(field.getId()).getType().equalsIgnoreCase("COE")) {
 				templateValues.put(RegistrationConstants.TEMPLATE_EXCEPTION_IMAGE_SOURCE, RegistrationConstants.TEMPLATE_JPG_IMAGE_ENCODING +
 						StringUtils.newStringUtf8(Base64.encodeBase64(registration.getDocuments().get(field.getId()).getDocument(), false)));
 			}

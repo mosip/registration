@@ -4,6 +4,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,16 +21,13 @@ import io.mosip.registration.controller.reg.DemographicDetailController;
 import io.mosip.registration.controller.reg.DocumentScanController;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
-import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.packetmanager.DocumentDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.util.control.FxControl;
 import io.mosip.registration.validator.RequiredFieldValidator;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.geometry.NodeOrientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -60,7 +58,7 @@ public class DocumentFxControl extends FxControl {
 	private MasterSyncService masterSyncService;
 
 	private String TICK_MARK_ID = "tickMark";
-	
+
 	private String CLEAR_ID = "clear";
 
 	public DocumentFxControl() {
@@ -89,7 +87,7 @@ public class DocumentFxControl extends FxControl {
 
 		// TICK-MARK
 		hBox.getChildren().add(getImageGridPane(TICK_MARK_ID, RegistrationConstants.DONE_IMAGE_PATH));
-		
+
 		// CLEAR IMAGE
 		GridPane clearGridPane = getImageGridPane(CLEAR_ID, RegistrationConstants.CLOSE_IMAGE_PATH);
 		clearGridPane.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
@@ -103,6 +101,11 @@ public class DocumentFxControl extends FxControl {
 
 		// SCAN-BUTTON
 		hBox.getChildren().add(createScanButton(uiSchemaDTO));
+
+		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
+		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(), hBox);
+
+		setNodeMap(nodeMap);
 
 		this.node = hBox;
 		setListener(getField(uiSchemaDTO.getId() + RegistrationConstants.BUTTON));
@@ -121,8 +124,8 @@ public class DocumentFxControl extends FxControl {
 	private GridPane getImageGridPane(String id, String imagePath) {
 		VBox imageVBox = new VBox();
 		imageVBox.setId(uiSchemaDTO.getId() + id);
-		ImageView imageView = new ImageView((new Image(
-				this.getClass().getResourceAsStream(imagePath), 25, 25, true, true)));
+		ImageView imageView = new ImageView(
+				(new Image(this.getClass().getResourceAsStream(imagePath), 25, 25, true, true)));
 
 		boolean isVisible = getData() != null ? true : false;
 
@@ -298,7 +301,7 @@ public class DocumentFxControl extends FxControl {
 							documentDto.setFormat(docType);
 							documentDto.setCategory(uiSchemaDTO.getFieldCategory());
 							documentDto.setOwner("Applicant");
-							documentDto.setValue(uiSchemaDTO.getFieldCategory()
+							documentDto.setValue(uiSchemaDTO.getSubType()
 									.concat(RegistrationConstants.UNDER_SCORE).concat(comboBox.getValue().getCode()));
 						} else {
 
@@ -326,7 +329,8 @@ public class DocumentFxControl extends FxControl {
 							+ ExceptionUtils.getStackTrace(regBaseCheckedException));
 			getField(uiSchemaDTO.getId() + TICK_MARK_ID).setVisible(false);
 			getField(uiSchemaDTO.getId() + CLEAR_ID).setVisible(false);
-			documentScanController.generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
+			documentScanController.generateAlert(RegistrationConstants.ERROR,
+					RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
 		}
 
 		refreshFields();

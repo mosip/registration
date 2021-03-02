@@ -76,9 +76,9 @@ public interface UserDetailDAO {
 	 * This method is used to save the user details response to the
 	 * {@link UserDetail} table.
 	 *
-	 * @param userDetails the user details response
+	 * @param userDetail the user details response
 	 */
-	void save(List<UserDetailDto> userDetails);
+	void save(UserDetailDto userDetail);
 
 	/**
 	 * 
@@ -102,14 +102,14 @@ public interface UserDetailDAO {
 	/**
 	 * Delete by user
 	 * 
-	 * @param id user Detail
+	 * @param userDetail user Detail
 	 */
 	void deleteUser(UserDetail userDetail);
 
 	/**
 	 * Delete by userName
 	 * 
-	 * @param id user name
+	 * @param userName user name
 	 */
 	void deleteUserRole(String userName);
 

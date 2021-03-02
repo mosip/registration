@@ -18,6 +18,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import io.mosip.kernel.core.util.HMACUtils2;
+import io.mosip.registration.dao.RegistrationCenterDAO;
+import io.mosip.registration.entity.CenterMachine;
+import io.mosip.registration.entity.MachineMaster;
+import io.mosip.registration.repositories.CenterMachineRepository;
+import io.mosip.registration.repositories.MachineMasterRepository;
+import io.mosip.registration.service.operator.UserDetailService;
+import io.mosip.registration.service.remap.CenterMachineReMapService;
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -96,6 +104,21 @@ public class BaseService {
 	@Autowired
 	private GlobalParamService globalParamService;
 
+	@Autowired
+	private UserDetailService userDetailService;
+
+	@Autowired
+	private CenterMachineReMapService centerMachineReMapService;
+
+	@Autowired
+	private RegistrationCenterDAO registrationCenterDAO;
+
+	@Autowired
+	private MachineMasterRepository machineMasterRepository;
+
+	@Autowired
+	private CenterMachineRepository centerMachineRepository;
+
 	/**
 	 * create success response.
 	 *
@@ -171,19 +194,6 @@ public class BaseService {
 		return userId;
 	}
 
-	/**
-	 * To check the device is valid or not.
-	 *
-	 * @param deviceType the device type
-	 * @param serialNo   the serial no
-	 * @return true, if is valid device
-	 */
-	public boolean isValidDevice(DeviceTypes deviceType, String serialNo) {
-
-		LOGGER.info("REGISTRATION - BASE SERVICE", APPLICATION_NAME, APPLICATION_ID, " isValidDevice Method called");
-
-		return machineMappingDAO.isValidDevice(deviceType, serialNo);
-	}
 
 	/**
 	 * Checks if is null.
@@ -211,24 +221,16 @@ public class BaseService {
 	/**
 	 * Gets the station id.
 	 *
-	 * @param machineName the machine Name
 	 * @return the station id
 	 */
-	public String getStationId(String machineName) {
-		String stationId = null;
-		if (machineName != null) {
-			try {
+	public String getStationId() {
+		String machineName = RegistrationSystemPropertiesChecker.getMachineId();
+		MachineMaster machineMaster = machineMasterRepository.findByNameIgnoreCaseAndRegMachineSpecIdLangCode(machineName.toLowerCase(),
+				ApplicationContext.applicationLanguage());
 
-				/* Get Station ID */
-				stationId = userOnboardDAO.getStationID(machineName);
-
-			} catch (RegBaseCheckedException baseCheckedException) {
-				LOGGER.error("REGISTRATION_BASE_SERVICE", APPLICATION_NAME, APPLICATION_ID,
-						baseCheckedException.getMessage() + ExceptionUtils.getStackTrace(baseCheckedException));
-
-			}
-		}
-		return stationId;
+		if(machineMaster != null && machineMaster.getRegMachineSpecId().getId() != null && machineMaster.getIsActive())
+			return machineMaster.getRegMachineSpecId().getId();
+		return null;
 	}
 
 	/**
@@ -237,18 +239,13 @@ public class BaseService {
 	 * @return the center id
 	 */
 	public String getCenterId() {
-		/* Initialize Center Id */
-		String centerId = null;
-
-		/* Get Station ID */
-		String stationId = getStationId(RegistrationSystemPropertiesChecker.getMachineId());
-
+		String stationId = getStationId();
 		if (stationId != null) {
-			/* Get Center Id */
-			centerId = getCenterId(stationId);
+			CenterMachine centerMachine = centerMachineRepository.findByCenterMachineIdMachineId(stationId);
+			return centerMachine != null && centerMachine.getIsActive() ?
+					centerMachine.getCenterMachineId().getRegCenterId() : null;
 		}
-
-		return centerId;
+		return null;
 	}
 
 	/**
@@ -257,19 +254,10 @@ public class BaseService {
 	 * @param stationId the station id
 	 * @return the center id
 	 */
-	public String getCenterId(String stationId) {
-		String centerId = null;
-		if (stationId != null) {
-			try {
-				/* Get Center ID */
-				centerId = userOnboardDAO.getCenterID(stationId);
-			} catch (RegBaseCheckedException baseCheckedException) {
-				LOGGER.error("REGISTRATION_BASE_SERVICE", APPLICATION_NAME, APPLICATION_ID,
-						baseCheckedException.getMessage() + ExceptionUtils.getStackTrace(baseCheckedException));
-
-			}
-		}
-		return centerId;
+	public String getCenterId(@NonNull String stationId) {
+		CenterMachine centerMachine = centerMachineRepository.findByCenterMachineIdMachineId(stationId);
+		return centerMachine != null && registrationCenterDAO.isMachineCenterActive(stationId) ?
+				centerMachine.getCenterMachineId().getRegCenterId() : null;
 	}
 
 	/**
@@ -480,10 +468,10 @@ public class BaseService {
 		return isAuthTokenEmptyError;
 	}
 
-	public static boolean isChild() {
+	/*public static boolean isChild() {
 
 		return (boolean) SessionContext.map().get(RegistrationConstants.IS_Child);
-	}
+	}*/
 
 	/**
 	 * Gets the registration DTO from session.
@@ -499,9 +487,9 @@ public class BaseService {
 	 *
 	 * @return true or false of biometric update
 	 */
-	protected boolean isUpdateUinNonBioMetric() {
+	/*protected boolean isUpdateUinNonBioMetric() {
 		return getRegistrationDTOFromSession().isUpdateUINNonBiometric();
-	}
+	}*/
 
 	public BIR buildBir(String bioAttribute, long qualityScore, byte[] iso, ProcessedLevelType processedLevelType) {
 
@@ -630,6 +618,97 @@ public class BaseService {
 		erResponseDTOs.add(errorResponseDTO);
 		responseDTO.setErrorResponseDTOs(erResponseDTOs);
 		return responseDTO;
+	}
+
+	public boolean proceedWithMasterAndKeySync(String jobId) {
+		//check if user is active
+		if(SessionContext.isSessionContextAvailable() &&
+				!userDetailService.isValidUser(SessionContext.userId())) {
+			return false;
+		}
+		//check if remap is in progress
+		if(centerMachineReMapService.isMachineRemapped())
+			return false; //RegistrationConstants.MACHINE_CENTER_REMAP_MSG
+
+		String machineId = getStationId();
+		if(RegistrationConstants.OPT_TO_REG_PDS_J00003.equals(jobId) && machineId == null)
+			return false;
+
+		//check regcenter table for center status
+		//if center is inactive, sync is not allowed
+		if(!registrationCenterDAO.isMachineCenterActive(machineId))
+			return false;
+
+		return true;
+	}
+
+	public boolean proceedWithPacketSync() {
+		//check if user is active
+		if(SessionContext.isSessionContextAvailable() &&
+				!userDetailService.isValidUser(SessionContext.userId())) {
+			return false;
+		}
+		return true;
+	}
+
+	public boolean proceedWithMachineCenterRemap() {
+		//check if user is active
+		if(SessionContext.isSessionContextAvailable() &&
+				!userDetailService.isValidUser(SessionContext.userId())) {
+			return false;
+		}
+		return true;
+	}
+
+	public boolean proceedWithSoftwareUpdate() {
+		if(SessionContext.isSessionContextAvailable() &&
+				!userDetailService.isValidUser(SessionContext.userId())) {
+			return false;
+		}
+
+		if(centerMachineReMapService.isMachineRemapped())
+			return false;
+
+		//TODO - check if this shld be allowed when machine / center is inactive
+		return true;
+	}
+
+	public boolean proceedWithOperatorOnboard() {
+		if(SessionContext.isSessionContextAvailable() &&
+				!userDetailService.isValidUser(SessionContext.userId())) {
+			return false;
+		}
+		if(centerMachineReMapService.isMachineRemapped())
+			return false;
+		//RegistrationUIConstants.CENTER_MACHINE_INACTIVE
+		String machineId = getStationId();
+		if(machineId == null)
+			return false;//if machine is inactive, registration is not allowed
+
+		if(!registrationCenterDAO.isMachineCenterActive(machineId))
+			return false;//if center is inactive, registration is not allowed
+
+		return true;
+	}
+
+	public boolean proceedWithRegistration() {
+		if(SessionContext.isSessionContextAvailable() &&
+				!userDetailService.isValidUser(SessionContext.userId())) {
+			return false;
+		}
+
+		if(centerMachineReMapService.isMachineRemapped())
+			return false;
+
+		//RegistrationUIConstants.CENTER_MACHINE_INACTIVE
+		String machineId = getStationId();
+		if(machineId == null)
+			return false;//if machine is inactive, registration is not allowed
+
+		if(!registrationCenterDAO.isMachineCenterActive(machineId))
+			return false;//if center is inactive, registration is not allowed
+
+		return true;
 	}
 
 }
