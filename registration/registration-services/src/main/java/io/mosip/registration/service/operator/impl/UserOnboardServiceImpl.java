@@ -421,44 +421,6 @@ public class UserOnboardServiceImpl extends BaseService implements UserOnboardSe
 				.collect(Collectors.toList());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see io.mosip.registration.service.UserOnboardService#getStationID(java.lang.
-	 * String)
-	 */
-	@Override
-	public Map<String, String> getMachineCenterId() {
-
-		Map<String, String> mapOfCenterId = new WeakHashMap<>();
-
-		String stationId = RegistrationConstants.EMPTY;
-		String centerId = RegistrationConstants.EMPTY;
-
-		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "fetching getMachineCenterId ....");
-
-		try {
-
-			// get stationID
-			stationId = userOnBoardDao.getStationID(RegistrationSystemPropertiesChecker.getMachineId());
-
-			// get CenterID
-			centerId = userOnBoardDao.getCenterID(stationId);
-
-			// setting data into map
-			mapOfCenterId.put(RegistrationConstants.USER_STATION_ID, stationId);
-			mapOfCenterId.put(RegistrationConstants.USER_CENTER_ID, centerId);
-
-			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
-					"station Id = " + stationId + "---->" + "center Id = " + centerId);
-
-		} catch (RegBaseCheckedException regBaseCheckedException) {
-			LOGGER.error(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
-					regBaseCheckedException.getMessage() + ExceptionUtils.getStackTrace(regBaseCheckedException));
-		}
-
-		return mapOfCenterId;
-	}
 
 	/**
 	 * User on board status flag.

@@ -7,9 +7,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import io.mosip.commons.packet.constants.CryptomanagerConstant;
 import io.mosip.kernel.core.exception.BaseCheckedException;
@@ -62,6 +60,12 @@ public class ResponseSignatureAdvice {
 	private static final Logger LOGGER = AppConfig.getLogger(ResponseSignatureAdvice.class);
 
 	private static final String CERTIFICATE_API_PATH = "/v1/syncdata/getCertificate";
+	private static final List<String> IGNORE_ERROR_CODES = new ArrayList<String>();
+
+	static {
+		IGNORE_ERROR_CODES.add("KER-KMS-012");
+		IGNORE_ERROR_CODES.add("KER-KMS-002");
+	}
 
 	@Value("${mosip.utc-datetime-pattern:yyyy-MM-dd'T'HH:mm:ss.SSS'Z'}")
 	private String DATETIME_PATTERN;
@@ -183,7 +187,8 @@ public class ResponseSignatureAdvice {
 						Optional.of(signRefId));
 			} catch (BaseUncheckedException exception) {
 				//TODO - Need to get exact exception on expire and revocation
-				if(!exception.getErrorCode().equals("KER-KMS-012")) //Key Generation Process is not completed.
+				//Key Generation Process is not completed, ApplicationId not found in key_policy
+				if(!IGNORE_ERROR_CODES.contains(exception.getErrorCode()))
 				{
 					LOGGER.error(LoggerConstants.RESPONSE_SIGNATURE_VALIDATION, APPLICATION_ID, APPLICATION_NAME,
 							ExceptionUtils.getStackTrace(exception));

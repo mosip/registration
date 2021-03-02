@@ -123,20 +123,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		return otpManager.validateOTP(userId, otp, haveToSaveAuthToken);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see io.mosip.registration.service.security.AuthenticationServiceImpl#
-	 * setAuthenticationBaseValidator(java.util.List)
-	 */
-	/*
-	 * @Override
-	 * 
-	 * @Autowired public void
-	 * setAuthenticationBaseValidator(List<AuthenticationBaseValidator>
-	 * authBaseValidators) { this.authenticationBaseValidators = authBaseValidators;
-	 * }
-	 */
+
 
 	/**
 	 * to validate the password and send appropriate message to display.
@@ -152,7 +139,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 			if(RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
 				authTokenUtilService.fetchAuthToken("System");
 			}
-
 			UserDTO userDTO = loginService.getUserDetail(authenticationValidatorDTO.getUserId());
 
 			if (null != userDTO && null != userDTO.getSalt() && HMACUtils2
@@ -165,20 +151,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 			}
 
 		} catch (RuntimeException | RegBaseCheckedException | NoSuchAlgorithmException runtimeException) {
-			LOGGER.info("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
+			LOGGER.error("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(runtimeException));
 			return RegistrationConstants.PWD_MISMATCH;
 		}
 	}
-
-	/*
-	 * @Override public Boolean validateBiometrics(String validatorType,
-	 * List<BiometricsDto> listOfBiometrics) { for (AuthenticationBaseValidator
-	 * validator : authenticationBaseValidators) { if
-	 * (validator.getClass().getName().toLowerCase().contains(validatorType.
-	 * toLowerCase())) { return validator.bioMerticsValidator(listOfBiometrics); } }
-	 * 
-	 * return false; }
-	 */
 
 }
