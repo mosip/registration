@@ -24,6 +24,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.constants.ApplicationLanguages;
 import io.mosip.registration.constants.AuditEvent;
 import io.mosip.registration.constants.AuditReferenceIdTypes;
 import io.mosip.registration.constants.Components;
@@ -240,7 +241,7 @@ public class LoginController extends BaseController implements Initializable {
 		}).start();
 
 		try {
-			appLanguage.getItems().addAll(Arrays.asList((mandatoryLanguages.concat(",").concat(optionalLanguages)).split(",")));
+			appLanguage.getItems().addAll(getLanguagesList());
 			appLanguage.getSelectionModel().selectFirst();
 			appLanguage.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
 				System.out.println("Selected Language ---- " + newValue);
@@ -275,6 +276,21 @@ public class LoginController extends BaseController implements Initializable {
 			LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 		}
+	}
+
+	private List<String> getLanguagesList() {
+		List<String> languages = new ArrayList<>();
+		List<String> langCodes = Arrays
+				.asList(((mandatoryLanguages != null ? mandatoryLanguages : RegistrationConstants.EMPTY)
+						.concat(RegistrationConstants.COMMA)
+						.concat((optionalLanguages != null ? optionalLanguages : RegistrationConstants.EMPTY)))
+								.split(RegistrationConstants.COMMA));
+		for (String langCode : langCodes) {
+			if (!langCode.isBlank()) {
+				languages.add(ApplicationLanguages.getLanguageByLangCode(langCode));
+			}
+		}
+		return languages;
 	}
 
 	/**
@@ -350,7 +366,7 @@ public class LoginController extends BaseController implements Initializable {
 		loadUIElementsFromSchema();
 		pageFlow.loadPageFlow();
 		
-		forgotUsrnme.setVisible(!ApplicationContext.map().containsKey(RegistrationConstants.FORGOT_USERNAME_URL));
+		forgotUsrnme.setVisible(ApplicationContext.map().containsKey(RegistrationConstants.FORGOT_USERNAME_URL));
 		
 		Screen screen = Screen.getPrimary();
 		Rectangle2D bounds = screen.getVisualBounds();
