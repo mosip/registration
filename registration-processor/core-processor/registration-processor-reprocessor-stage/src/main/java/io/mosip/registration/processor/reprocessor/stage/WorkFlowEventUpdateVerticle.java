@@ -2,8 +2,10 @@ package io.mosip.registration.processor.reprocessor.stage;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.Map;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -29,6 +31,7 @@ import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.vertx.core.json.JsonObject;
 
 public class WorkFlowEventUpdateVerticle extends MosipVerticleAPIManager {
 
@@ -49,12 +52,15 @@ public class WorkFlowEventUpdateVerticle extends MosipVerticleAPIManager {
 	private String clusterManagerUrl;
 
 	/** server port number. */
-	@Value("${server.port}")
+	@Value("${mosip.regproc.workflow.eventupdate.server.port}")
 	private String port;
 
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
+
+	@Value("${mosip.regproc.workflow.eventupdate.eventbus.port}")
+	private String eventBusPort;
 
 	@Autowired
 	MosipRouter router;
@@ -76,7 +82,25 @@ public class WorkFlowEventUpdateVerticle extends MosipVerticleAPIManager {
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}
 
-	
+	@Override
+	public Integer getEventBusPort() {
+		return Integer.parseInt(eventBusPort);
+	}
+	@Override
+	public void consume(MosipEventBus mosipEventBus, MessageBusAddress fromAddress) {
+		mosipEventBus.consume(fromAddress, (msg, handler) -> {
+
+			Map<String, String> mdc = MDC.getCopyOfContextMap();
+			vertx.executeBlocking(future -> {
+				MDC.setContextMap(mdc);
+				JsonObject jsonObject = (JsonObject) msg.getBody();
+				WorkFlowEventDTO workFlowEventDTO = jsonObject.mapTo(WorkFlowEventDTO.class);
+				MessageDTO result = process(workFlowEventDTO);
+				future.complete(result);
+			}, false, handler);
+			MDC.clear();
+		});
+	}
 
 	@Override
 	public MessageDTO process(MessageDTO object) {

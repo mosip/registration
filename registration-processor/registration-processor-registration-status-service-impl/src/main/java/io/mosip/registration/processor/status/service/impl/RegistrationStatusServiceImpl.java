@@ -576,6 +576,8 @@ public class RegistrationStatusServiceImpl
 		registrationStatusEntity.setLatestTransactionTypeCode(dto.getLatestTransactionTypeCode());
 		registrationStatusEntity.setRegistrationStageName(dto.getRegistrationStageName());
 		registrationStatusEntity.setLatestTransactionTimes(dto.getLatestTransactionTimes());
+		registrationStatusEntity.setResumeTimeStamp(dto.getResumeTimeStamp());
+		registrationStatusEntity.setDefaultResumeAction(dto.getDefaultResumeAction());
 		return registrationStatusEntity;
 	}
 
