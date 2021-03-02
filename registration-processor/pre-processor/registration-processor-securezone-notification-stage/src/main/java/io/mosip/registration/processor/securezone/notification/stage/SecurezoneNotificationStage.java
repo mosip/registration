@@ -1,5 +1,11 @@
 package io.mosip.registration.processor.securezone.notification.stage;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
@@ -30,12 +36,13 @@ import io.mosip.registration.processor.status.exception.TablenotAccessibleExcept
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
-@Component
+@Configuration
+@ComponentScan(basePackages = {"io.mosip.registration.processor.core.config",
+        "io.mosip.registration.processor.securezone.notification.config",
+        "io.mosip.registration.processor.packet.manager.config",
+        "io.mosip.registration.processor.status.config", "io.mosip.registration.processor.rest.client.config",
+        "io.mosip.registration.processor.core.kernel.beans"})
 public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
 
     /**
