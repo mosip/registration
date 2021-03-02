@@ -10,17 +10,13 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
+import io.mosip.kernel.core.idgenerator.spi.RidGenerator;
+import io.mosip.registration.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -39,7 +35,6 @@ import io.mosip.kernel.auditmanager.entity.Audit;
 import io.mosip.kernel.biometrics.entities.BIR;
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.core.exception.ExceptionUtils;
-import io.mosip.kernel.core.idobjectvalidator.spi.IdObjectValidator;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.audit.AuditManagerService;
@@ -54,12 +49,6 @@ import io.mosip.registration.dao.AuditDAO;
 import io.mosip.registration.dao.AuditLogControlDAO;
 import io.mosip.registration.dao.MachineMappingDAO;
 import io.mosip.registration.dao.RegistrationDAO;
-import io.mosip.registration.dto.ErrorResponseDTO;
-import io.mosip.registration.dto.RegistrationCenterDetailDTO;
-import io.mosip.registration.dto.RegistrationDTO;
-import io.mosip.registration.dto.ResponseDTO;
-import io.mosip.registration.dto.SuccessResponseDTO;
-import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.dto.packetmanager.DocumentDto;
 import io.mosip.registration.dto.packetmanager.metadata.BiometricsMetaInfoDto;
@@ -116,13 +105,12 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 	@Autowired
 	private SoftwareUpdateHandler softwareUpdateHandler;
 
-	@Autowired
-	@Qualifier("schema")
-	private IdObjectValidator idObjectValidator;
-
 	/** The machine mapping DAO. */
 	@Autowired
 	private MachineMappingDAO machineMappingDAO;
+
+	@Autowired
+	private RidGenerator<String> ridGeneratorImpl;
 
 	@Value("${objectstore.packet.source:REGISTRATION_CLIENT}")
 	private String source;
@@ -507,18 +495,12 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 		Map<String, BiometricsDto> biometrics = registrationDTO.getBiometrics();
 		Map<String, BiometricsException> exceptions = registrationDTO.getBiometricExceptions();
 
-		// Map<String, Map<String, Map<String, Object>>> biometricsMap = new
-		// LinkedHashMap<>();
-		// Map<String, Map<String, Map<String, Object>>> exceptionBiometricsMap = new
-		// LinkedHashMap<>();
 
 		Map<String, Map<String, Object>> subTypeMap = new LinkedHashMap<>();
 
 		Map<String, Map<String, Object>> exceptionSubTypeMap = new LinkedHashMap<>();
 
 		for (UiSchemaDTO biometricField : biometricFields) {
-			// List<BiometricsDto> list = new ArrayList<>();
-			// List<BiometricsException> exceptionList = new ArrayList<>();
 
 			List<BIR> list = new ArrayList<>();
 
@@ -527,8 +509,6 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 			for (String attribute : biometricField.getBioAttributes()) {
 				String key = String.format("%s_%s", biometricField.getSubType(), attribute);
-
-				// biometricsMap.put(biometricField.getSubType(),)
 
 				if (biometrics.containsKey(key)) {
 
@@ -554,9 +534,6 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 			subTypeMap.put(biometricField.getSubType(), attributesMap);
 			exceptionSubTypeMap.put(biometricField.getSubType(), exceptionAttributesMap);
 
-			// packetCreator.setBiometric(biometricField.getId(), list);
-			// packetCreator.setBiometricException(biometricField.getId(), exceptionList);
-
 			BiometricRecord biometricRecord = new BiometricRecord();
 			// TODO set version type,bir info
 			biometricRecord.setSegments(list);
@@ -568,24 +545,10 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 		}
 
-		// biometricsMap.put("biometrics", subTypeMap);
-		// exceptionBiometricsMap.put("exceptionBiometrics", exceptionSubTypeMap);
-
 		metaInfoMap.put("biometrics", getJsonString(subTypeMap));
 		metaInfoMap.put("exceptionBiometrics", getJsonString(exceptionSubTypeMap));
 
 	}
-
-//	private byte[] getPublicKeyToEncrypt() throws RegBaseCheckedException {
-//		String stationId = getStationId(RegistrationSystemPropertiesChecker.getMachineId());
-//		String centerMachineId = getCenterId(stationId) + "_" + stationId;
-//		KeyStore keyStore = policySyncDAO.getPublicKey(centerMachineId);
-//		if (keyStore != null && keyStore.getPublicKey() != null)
-//			return keyStore.getPublicKey();
-//
-//		throw new RegBaseCheckedException(RegistrationExceptionConstants.REG_RSA_PUBLIC_KEY_NOT_FOUND.getErrorCode(),
-//				RegistrationExceptionConstants.REG_RSA_PUBLIC_KEY_NOT_FOUND.getErrorMessage());
-//	}
 
 	private void setAudits(RegistrationDTO registrationDTO) {
 		List<Audit> audits = auditDAO.getAudits(auditLogControlDAO.getLatestRegistrationAuditDates(),
@@ -709,5 +672,48 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 	@Override
 	public List<Registration> getAllRegistrations() {
 		return registrationDAO.getAllRegistrations();
+	}
+
+	@Override
+	public RegistrationDTO startRegistration(String id, String registrationCategory) throws RegBaseCheckedException {
+		//Pre-check conditions, throws exception if preconditions are not met
+		proceedWithRegistration();
+
+		RegistrationDTO registrationDTO = new RegistrationDTO();
+
+		// set id-schema version to be followed for this registration
+		registrationDTO.setIdSchemaVersion(identitySchemaService.getLatestEffectiveSchemaVersion());
+
+		// Create object for OSIData DTO
+		registrationDTO.setOsiDataDTO(new OSIDataDTO());
+		registrationDTO.setRegistrationCategory(registrationCategory);
+
+		// Create RegistrationMetaData DTO & set default values in it
+		RegistrationMetaDataDTO registrationMetaDataDTO = new RegistrationMetaDataDTO();
+		registrationMetaDataDTO.setRegistrationCategory(registrationCategory); // TODO - remove its usage
+		registrationDTO.setRegistrationMetaDataDTO(registrationMetaDataDTO);
+
+		// Set RID
+		String registrationID = ridGeneratorImpl.generateId(
+				(String) ApplicationContext.map().get(RegistrationConstants.USER_CENTER_ID),
+				(String) ApplicationContext.map().get(RegistrationConstants.USER_STATION_ID));
+		registrationDTO.setRegistrationId(registrationID);
+
+		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
+				RegistrationConstants.APPLICATION_ID,
+				"Registration Started for RID  : [ " + registrationDTO.getRegistrationId() + " ] ");
+
+		List<String> defaultFieldGroups = new ArrayList<String>() {};
+		defaultFieldGroups.add(RegistrationConstants.UI_SCHEMA_GROUP_FULL_NAME);
+		List<String> defaultFields = identitySchemaService.getUISchema(registrationDTO.getIdSchemaVersion()).stream()
+				.filter(schemaDto -> schemaDto.getGroup() != null && schemaDto.getGroup().equalsIgnoreCase(
+						RegistrationConstants.UI_SCHEMA_GROUP_FULL_NAME
+				)).map(UiSchemaDTO::getId).collect(Collectors.toList());
+
+		// Used to update printing name as default
+		registrationDTO.setDefaultUpdatableFieldGroups(defaultFieldGroups);
+		registrationDTO.setDefaultUpdatableFields(defaultFields);
+
+		return registrationDTO;
 	}
 }

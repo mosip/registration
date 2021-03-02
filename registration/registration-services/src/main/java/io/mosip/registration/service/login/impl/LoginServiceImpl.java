@@ -37,7 +37,6 @@ import io.mosip.registration.service.config.GlobalParamService;
 import io.mosip.registration.service.login.LoginService;
 import io.mosip.registration.service.operator.UserDetailService;
 import io.mosip.registration.service.operator.UserOnboardService;
-import io.mosip.registration.service.operator.UserSaltDetailsService;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.service.sync.PublicKeySync;
 import io.mosip.registration.service.sync.TPMPublicKeySyncService;
@@ -110,9 +109,6 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 	@Autowired
 	private UserOnboardService userOnboardService;
 
-	@Autowired
-	private UserSaltDetailsService userSaltDetailsService;
-	
 	@Autowired
 	private TPMPublicKeySyncService tpmPublicKeySyncService;
 
@@ -334,8 +330,7 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 	public List<String> initialSync(String triggerPoint) {
 		long start = System.currentTimeMillis();
 		LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "Started Initial sync");
-		List<String> results = new LinkedList<>();		
-		final boolean isInitialSetUp = RegistrationConstants.ENABLE.equalsIgnoreCase(getGlobalConfigValueOf(RegistrationConstants.INITIAL_SETUP));		
+		List<String> results = new LinkedList<>();
 		ResponseDTO responseDTO = null;
 		
 		try {
@@ -382,7 +377,7 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, CACERT_SYNC_STEP+ " task completed in (ms) : " +
 					(System.currentTimeMillis() - taskStart));
 
-			if(isInitialSetUp) {
+			if(isInitialSync()) {
 				LoginUserDTO loginUserDTO = (LoginUserDTO) ApplicationContext.map().get(RegistrationConstants.USER_DTO);
 				userDetailDAO.updateUserPwd(loginUserDTO.getUserId(), loginUserDTO.getPassword());
 			}

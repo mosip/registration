@@ -73,17 +73,13 @@ public class UserDetailServiceImpl extends BaseService implements UserDetailServ
 	public synchronized ResponseDTO save(String triggerPoint) throws RegBaseCheckedException {
 		ResponseDTO responseDTO = new ResponseDTO();
 
-		if (!RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
-			LOGGER.error(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
-					" Unable to sync user detail data as there is no internet connection");
-			setErrorResponse(responseDTO, RegistrationConstants.ERROR, null);
-			return responseDTO;
-		}
-
 		LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID,
 				"Entering into user detail save method...");
-
 		try {
+
+			//Precondition check, proceed only if met, otherwise throws exception
+			proceedWithMasterAndKeySync(null);
+
 			LinkedHashMap<String, Object> userDetailSyncResponse = getUsrDetails(triggerPoint);
 			if (null == userDetailSyncResponse.get(RegistrationConstants.RESPONSE)) {
 				setErrorResponse(responseDTO, RegistrationConstants.ERROR, null);

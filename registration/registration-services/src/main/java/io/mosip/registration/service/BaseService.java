@@ -18,13 +18,16 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import io.mosip.kernel.core.util.HMACUtils2;
+import io.mosip.registration.constants.PreConditionChecks;
 import io.mosip.registration.dao.RegistrationCenterDAO;
 import io.mosip.registration.entity.CenterMachine;
 import io.mosip.registration.entity.MachineMaster;
+import io.mosip.registration.exception.PreConditionCheckException;
 import io.mosip.registration.repositories.CenterMachineRepository;
 import io.mosip.registration.repositories.MachineMasterRepository;
 import io.mosip.registration.service.operator.UserDetailService;
 import io.mosip.registration.service.remap.CenterMachineReMapService;
+import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -620,95 +623,104 @@ public class BaseService {
 		return responseDTO;
 	}
 
-	public boolean proceedWithMasterAndKeySync(String jobId) {
-		//check if user is active
+	public void commonPreConditionChecks(String action) throws PreConditionCheckException {
+		if(!RegistrationAppHealthCheckUtil.isNetworkAvailable())
+			throw new PreConditionCheckException(PreConditionChecks.NO_CONNECTION.name(),
+					action + " forbidden as User is inactive");
+
 		if(SessionContext.isSessionContextAvailable() &&
-				!userDetailService.isValidUser(SessionContext.userId())) {
-			return false;
+				!userDetailService.isValidUser(SessionContext.userId()) && !isInitialSync())
+			throw new PreConditionCheckException(PreConditionChecks.USER_INACTIVE.name(),
+					action + " forbidden as User is inactive");
+	}
+
+	public void proceedWithMasterAndKeySync(String jobId) throws PreConditionCheckException {
+		commonPreConditionChecks("Sync");
+
+		//Donot validate pre-conditions as its initial sync
+		if(isInitialSync()) {
+			LOGGER.warn("", APPLICATION_NAME, APPLICATION_ID, "Ignoring pre-checks as its Initial sync");
+			return;
 		}
+
 		//check if remap is in progress
 		if(centerMachineReMapService.isMachineRemapped())
-			return false; //RegistrationConstants.MACHINE_CENTER_REMAP_MSG
+			throw new PreConditionCheckException(PreConditionChecks.MARKED_FOR_REMAP.name(),
+					"Sync forbidden as machine is marked for center remap");
 
 		String machineId = getStationId();
 		if(RegistrationConstants.OPT_TO_REG_PDS_J00003.equals(jobId) && machineId == null)
-			return false;
+			throw new PreConditionCheckException(PreConditionChecks.MACHINE_INACTIVE.name(),
+					"Pre-reg data sync action forbidden as machine is inactive");
 
 		//check regcenter table for center status
 		//if center is inactive, sync is not allowed
 		if(!registrationCenterDAO.isMachineCenterActive(machineId))
-			return false;
-
-		return true;
+			throw new PreConditionCheckException(PreConditionChecks.CENTER_INACTIVE.name(),
+					"Pre-reg data sync action forbidden as center is inactive");
 	}
 
-	public boolean proceedWithPacketSync() {
-		//check if user is active
-		if(SessionContext.isSessionContextAvailable() &&
-				!userDetailService.isValidUser(SessionContext.userId())) {
-			return false;
-		}
-		return true;
+	public void proceedWithPacketSync() throws PreConditionCheckException {
+		commonPreConditionChecks("Packet Sync");
 	}
 
-	public boolean proceedWithMachineCenterRemap() {
-		//check if user is active
-		if(SessionContext.isSessionContextAvailable() &&
-				!userDetailService.isValidUser(SessionContext.userId())) {
-			return false;
-		}
-		return true;
+	public void proceedWithMachineCenterRemap() throws PreConditionCheckException {
+		commonPreConditionChecks("Center Remap");
 	}
 
-	public boolean proceedWithSoftwareUpdate() {
-		if(SessionContext.isSessionContextAvailable() &&
-				!userDetailService.isValidUser(SessionContext.userId())) {
-			return false;
-		}
+	public void proceedWithSoftwareUpdate() throws PreConditionCheckException {
+		commonPreConditionChecks("Software update");
 
 		if(centerMachineReMapService.isMachineRemapped())
-			return false;
+			throw new PreConditionCheckException(PreConditionChecks.MARKED_FOR_REMAP.name(),
+					"Software update forbidden as machine is marked for center remap");
 
 		//TODO - check if this shld be allowed when machine / center is inactive
-		return true;
 	}
 
-	public boolean proceedWithOperatorOnboard() {
-		if(SessionContext.isSessionContextAvailable() &&
-				!userDetailService.isValidUser(SessionContext.userId())) {
-			return false;
-		}
-		if(centerMachineReMapService.isMachineRemapped())
-			return false;
-		//RegistrationUIConstants.CENTER_MACHINE_INACTIVE
-		String machineId = getStationId();
-		if(machineId == null)
-			return false;//if machine is inactive, registration is not allowed
-
-		if(!registrationCenterDAO.isMachineCenterActive(machineId))
-			return false;//if center is inactive, registration is not allowed
-
-		return true;
-	}
-
-	public boolean proceedWithRegistration() {
-		if(SessionContext.isSessionContextAvailable() &&
-				!userDetailService.isValidUser(SessionContext.userId())) {
-			return false;
-		}
+	public void proceedWithOperatorOnboard() throws PreConditionCheckException {
+		commonPreConditionChecks("Onboarding");
 
 		if(centerMachineReMapService.isMachineRemapped())
-			return false;
+			throw new PreConditionCheckException(PreConditionChecks.MARKED_FOR_REMAP.name(),
+					"Onboarding forbidden as machine is marked for center remap");
 
 		//RegistrationUIConstants.CENTER_MACHINE_INACTIVE
 		String machineId = getStationId();
 		if(machineId == null)
-			return false;//if machine is inactive, registration is not allowed
+			throw new PreConditionCheckException(PreConditionChecks.MACHINE_INACTIVE.name(),
+					"Onboarding action forbidden as machine is inactive");
+
 
 		if(!registrationCenterDAO.isMachineCenterActive(machineId))
-			return false;//if center is inactive, registration is not allowed
+			throw new PreConditionCheckException(PreConditionChecks.CENTER_INACTIVE.name(),
+					"Onboarding action forbidden as center is inactive");
+	}
 
-		return true;
+	public void proceedWithRegistration() throws PreConditionCheckException {
+		commonPreConditionChecks("Registration");
+
+		if(centerMachineReMapService.isMachineRemapped())
+			throw new PreConditionCheckException(PreConditionChecks.MARKED_FOR_REMAP.name(),
+					"Registration forbidden as machine is marked for center remap");
+
+		//RegistrationUIConstants.CENTER_MACHINE_INACTIVE
+		String machineId = getStationId();
+		if(machineId == null)
+			throw new PreConditionCheckException(PreConditionChecks.MACHINE_INACTIVE.name(),
+					"Registration forbidden as machine is inactive");
+
+		if(!registrationCenterDAO.isMachineCenterActive(machineId))
+			throw new PreConditionCheckException(PreConditionChecks.CENTER_INACTIVE.name(),
+					"Registration forbidden as center is inactive");
+	}
+
+	/**
+	 * Checks if this is initial launch
+	 * @return
+	 */
+	public boolean isInitialSync() {
+		return RegistrationConstants.ENABLE.equalsIgnoreCase(getGlobalConfigValueOf(RegistrationConstants.INITIAL_SETUP));
 	}
 
 }
