@@ -324,6 +324,7 @@
 		<module>pre-processor</module>
 		<module>core-processor</module>
 		<module>post-processor</module>
+		<module>registration-processor-stages-executor</module>
 	</modules>
 
 <!--	<profiles>
