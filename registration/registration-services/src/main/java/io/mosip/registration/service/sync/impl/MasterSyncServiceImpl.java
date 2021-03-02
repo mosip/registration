@@ -125,6 +125,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	@Override
 	public ResponseDTO getMasterSync(String masterSyncDtls, String triggerPoint) throws RegBaseCheckedException {
 		LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, "Initiating the Master Sync");
+
 		if (masterSyncFieldsValidate(masterSyncDtls, triggerPoint)) {
 			ResponseDTO responseDto = syncClientSettings(masterSyncDtls, triggerPoint,
 					getRequestParamsForClientSettingsSync(masterSyncDtls));
@@ -564,8 +565,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 		requestParamMap.put(RegistrationConstants.KEY_INDEX.toLowerCase(), CryptoUtil
 				.computeFingerPrint(clientCryptoFacade.getClientSecurity().getEncryptionPublicPart(), null));
 
-		if(ApplicationContext.map().getOrDefault(RegistrationConstants.INITIAL_SETUP,
-				RegistrationConstants.ENABLE).equals(RegistrationConstants.DISABLE)) {
+		if(!isInitialSync()) {
 			// getting Last Sync date from Data from sync table
 			SyncControl masterSyncDetails = masterSyncDao.syncJobDetails(masterSyncDtls);
 			if (masterSyncDetails != null) {
@@ -593,16 +593,13 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	private ResponseDTO syncClientSettings(String masterSyncDtls, String triggerPoint,
 			Map<String, String> requestParam) {
 		LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, "Client settings sync started.....");
-
 		ResponseDTO responseDTO = new ResponseDTO();
 		LinkedHashMap<String, Object> masterSyncResponse = null;
 
-		if (!RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
-			setErrorResponse(responseDTO, RegistrationConstants.NO_INTERNET, null);
-			return responseDTO;
-		}
-
 		try {
+			//Precondition check, proceed only if met, otherwise throws exception
+			proceedWithMasterAndKeySync(masterSyncDtls);
+
 			LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, new JSONObject(requestParam).toString());
 
 			masterSyncResponse = (LinkedHashMap<String, Object>) serviceDelegateUtil

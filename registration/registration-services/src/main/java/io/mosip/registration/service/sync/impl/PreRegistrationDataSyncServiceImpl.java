@@ -4,17 +4,8 @@ import java.io.File;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.TimeZone;
-import java.util.UUID;
-import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -100,77 +91,56 @@ public class PreRegistrationDataSyncServiceImpl extends BaseService implements P
 	@SuppressWarnings("unchecked")
 	@Override
 	synchronized public ResponseDTO getPreRegistrationIds(String syncJobId) {
-
 		LOGGER.info("REGISTRATION - PRE_REGISTRATION_DATA_SYNC - PRE_REGISTRATION_DATA_SYNC_SERVICE_IMPL",
 				RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 				"Fetching Pre-Registration Id's started");
-
 		ResponseDTO responseDTO = new ResponseDTO();
-
-		if (!StringUtils.isEmpty(syncJobId)) {
-			/* Check Network Connectivity */
-			boolean isOnline = RegistrationAppHealthCheckUtil.isNetworkAvailable();
-
-
-			/* prepare request DTO to pass on through REST call */
-			PreRegistrationDataSyncDTO preRegistrationDataSyncDTO = prepareDataSyncRequestDTO();
-
-			try {
-
-				/* REST call to get Pre Registartion Id's */
-				if(isOnline) {
-				LinkedHashMap<String, Object> response = (LinkedHashMap<String, Object>) serviceDelegateUtil
-						.post(RegistrationConstants.GET_PRE_REGISTRATION_IDS, preRegistrationDataSyncDTO, syncJobId);
-				TypeReference<MainResponseDTO<LinkedHashMap<String, Object>>> ref = new TypeReference<MainResponseDTO<LinkedHashMap<String, Object>>>() {
-				};
-				MainResponseDTO<LinkedHashMap<String, Object>> mainResponseDTO = new ObjectMapper()
-						.readValue(new JSONObject(response).toString(), ref);
-				if (isResponseNotEmpty(mainResponseDTO)) {
-
-					PreRegistrationIdsDTO preRegistrationIdsDTO = new ObjectMapper().readValue(
-							new JSONObject(mainResponseDTO.getResponse()).toString(), PreRegistrationIdsDTO.class);
-
-					Map<String, String> preRegIds = (Map<String, String>) preRegistrationIdsDTO.getPreRegistrationIds();
-
-					getPreRegistrationPackets(syncJobId, responseDTO, preRegIds);
-
-				} else {
-					String errMsg = RegistrationConstants.PRE_REG_TO_GET_ID_ERROR;
-					boolean isNoRecordMsg = false;
-					if (mainResponseDTO != null && mainResponseDTO.getErrors() != null
-							&& !mainResponseDTO.getErrors().isEmpty()
-							&& mainResponseDTO.getErrors().get(0).getMessage() != null) {
-						if ("Record not found for date range and reg center id"
-								.equalsIgnoreCase(mainResponseDTO.getErrors().get(0).getMessage())) {
-							setSuccessResponse(responseDTO, RegistrationConstants.PRE_REG_SUCCESS_MESSAGE, null);
-							isNoRecordMsg = true;
-						}
-					}
-					LOGGER.error("PRE_REGISTRATION_DATA_SYNC_SERVICE_IMPL", RegistrationConstants.APPLICATION_NAME,
-							RegistrationConstants.APPLICATION_ID, errMsg);
-					if (!isNoRecordMsg)
-						setErrorResponse(responseDTO, errMsg, null);
-				}
-				}else {
-					setErrorResponse(responseDTO, RegistrationConstants.PRE_REG_PACKET_NETWORK_ERROR, null);
-				}
-
-			} catch (HttpClientErrorException | ResourceAccessException | HttpServerErrorException
-					| RegBaseCheckedException | java.io.IOException exception) {
-
-				LOGGER.error("REGISTRATION - PRE_REGISTRATION_DATA_SYNC - PRE_REGISTRATION_DATA_SYNC_SERVICE_IMPL",
-						RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-						exception.getMessage() + ExceptionUtils.getStackTrace(exception));
-
-				setErrorResponse(responseDTO, RegistrationConstants.PRE_REG_TO_GET_ID_ERROR, null);
-			}
+		if(StringUtils.isEmpty(syncJobId)) {
+			setErrorResponse(responseDTO, RegistrationConstants.PRE_REG_TO_GET_ID_ERROR, null);
+			return responseDTO;
 		}
-		else {
-			LOGGER.error("REGISTRATION - PRE_REGISTRATION_DATA_SYNC - PRE_REGISTRATION_DATA_SYNC_SERVICE_IMPL",
-					RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID, "The syncJobId is empty");
 
+		/* prepare request DTO to pass on through REST call */
+		PreRegistrationDataSyncDTO preRegistrationDataSyncDTO = prepareDataSyncRequestDTO();
+
+		try {
+
+			//Precondition check, proceed only if met, otherwise throws exception
+			proceedWithMasterAndKeySync(syncJobId);
+
+			/* REST call to get Pre Registartion Id's */
+			LinkedHashMap<String, Object> response = (LinkedHashMap<String, Object>) serviceDelegateUtil
+					.post(RegistrationConstants.GET_PRE_REGISTRATION_IDS, preRegistrationDataSyncDTO, syncJobId);
+			TypeReference<MainResponseDTO<LinkedHashMap<String, Object>>> ref = new TypeReference<MainResponseDTO<LinkedHashMap<String, Object>>>() {
+			};
+			MainResponseDTO<LinkedHashMap<String, Object>> mainResponseDTO = new ObjectMapper()
+					.readValue(new JSONObject(response).toString(), ref);
+
+			if (isResponseNotEmpty(mainResponseDTO)) {
+				PreRegistrationIdsDTO preRegistrationIdsDTO = new ObjectMapper().readValue(
+						new JSONObject(mainResponseDTO.getResponse()).toString(), PreRegistrationIdsDTO.class);
+				Map<String, String> preRegIds = (Map<String, String>) preRegistrationIdsDTO.getPreRegistrationIds();
+				getPreRegistrationPackets(syncJobId, responseDTO, preRegIds);
+				return responseDTO;
+			}
+
+			if(mainResponseDTO != null && mainResponseDTO.getErrors() != null) {
+				//TODO - based on error code instead of error message
+				boolean noRecords = mainResponseDTO.getErrors()
+						.stream().anyMatch(e -> e.getMessage() != null &&
+						e.getMessage().equalsIgnoreCase("Record not found for date range and reg center id"));
+
+				return noRecords ? setSuccessResponse(responseDTO, RegistrationConstants.PRE_REG_SUCCESS_MESSAGE, null) :
+						setErrorResponse(responseDTO, RegistrationConstants.PRE_REG_TO_GET_ID_ERROR, null);
+			}
+
+		} catch (HttpClientErrorException | ResourceAccessException | HttpServerErrorException
+				| RegBaseCheckedException | java.io.IOException exception) {
+			LOGGER.error(RegistrationConstants.APPLICATION_NAME,RegistrationConstants.APPLICATION_ID,
+					"PRE_REGISTRATION_DATA_SYNC", ExceptionUtils.getStackTrace(exception));
 			setErrorResponse(responseDTO, RegistrationConstants.PRE_REG_TO_GET_ID_ERROR, null);
 		}
+
 
 		LOGGER.info("REGISTRATION - PRE_REGISTRATION_DATA_SYNC - PRE_REGISTRATION_DATA_SYNC_SERVICE_IMPL",
 				RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
