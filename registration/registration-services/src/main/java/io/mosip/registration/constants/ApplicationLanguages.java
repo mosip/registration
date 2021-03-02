@@ -40,5 +40,15 @@ public enum ApplicationLanguages {
 		return langCode;
 	}
 	
+	public static String getLangCodeByLanguage(String language) {
+		for (ApplicationLanguages applicationLanguages : ApplicationLanguages.values()) {
+			if (applicationLanguages.getLanguage().equalsIgnoreCase(language)) {
+				return applicationLanguages.getLangCode();
+			}
+		}
+		/** If langCode is not available, return the substring of given language */
+		return language.substring(0, 3).toLowerCase();
+	}
+	
 	
 }

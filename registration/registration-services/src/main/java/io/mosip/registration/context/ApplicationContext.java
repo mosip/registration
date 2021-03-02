@@ -1,9 +1,13 @@
 package io.mosip.registration.context;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
+
+import org.springframework.beans.factory.annotation.Value;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.StringUtils;
@@ -32,29 +36,24 @@ public class ApplicationContext {
 	/** The application language bundle. */
 	private ResourceBundle applicationLanguageBundle;
 
-	/** The local language bundle. */
-	private ResourceBundle localLanguageBundle;
-
 	/** The application messages bundle. */
 	private ResourceBundle applicationMessagesBundle;
-
-	/** The local messages bundle. */
-	private ResourceBundle localMessagesBundle;
 
 	/** The application map. */
 	private static Map<String, Object> applicationMap = new HashMap<>();
 
-	/** The local language. */
-	private String localLanguage;
-
 	/** The application languge. */
 	private String applicationLanguge;
-
-	/** The primary language right to left. */
-	private boolean primaryLanguageRightToLeft;
-
-	/** The secondary language right to left. */
-	private boolean secondaryLanguageRightToLeft;
+	
+	@Value("${mosip.mandatory-languages}")
+	private String mandatoryLanguages;
+	
+	@Value("${mosip.optional-languages}")
+	private String optionalLanguages;
+	
+	private String LABELS = "labels";
+	private String MESSAGES = "messages";
+	private static Map<String, ResourceBundle> resourceBundleMap = new HashMap<>();
 
 	/**
 	 * Checks if is primary language right to left.
@@ -62,16 +61,24 @@ public class ApplicationContext {
 	 * @return true, if is primary language right to left
 	 */
 	public boolean isPrimaryLanguageRightToLeft() {
-		return primaryLanguageRightToLeft;
+		String rightToLeft = (String) applicationContext.getApplicationMap().get("mosip.right_to_left_orientation");
+		if (null != rightToLeft && rightToLeft.contains(applicationLanguge)) {
+			return true;
+		}
+		return false;
 	}
 
 	/**
-	 * Checks if is secondary language right to left.
+	 * Checks if given language is right to left.
 	 *
-	 * @return true, if is secondary language right to left
+	 * @return true, if is language right to left
 	 */
-	public boolean isSecondaryLanguageRightToLeft() {
-		return secondaryLanguageRightToLeft;
+	public boolean isLanguageRightToLeft(String langCode) {
+		String rightToLeft = (String) applicationContext.getApplicationMap().get("mosip.right_to_left_orientation");
+		if (null != rightToLeft && rightToLeft.contains(langCode)) {
+			return true;
+		}
+		return false;
 	}
 
 	/** The auth token DTO. */
@@ -104,69 +111,58 @@ public class ApplicationContext {
 	 * 
 	 * 
 	 */
-	public boolean loadResourceBundle() {
-
-		boolean isPrimaryOrSecondaryLanguageEmpty = false;
+	public void loadResourceBundle() {
 		try {
-
-			if (null != applicationMap.get(RegistrationConstants.PRIMARY_LANGUAGE)
-					&& !applicationMap.get(RegistrationConstants.PRIMARY_LANGUAGE).equals("")) {
-				applicationLanguge = (String) applicationMap.get(RegistrationConstants.PRIMARY_LANGUAGE);
-			} else {
-				isPrimaryOrSecondaryLanguageEmpty = true;
-				applicationLanguge = Locale.getDefault().getDisplayLanguage() != null
-						? Locale.getDefault().getDisplayLanguage().toLowerCase().substring(0, 3)
-						: "eng";
-			}
-
-			if (null != applicationMap.get(RegistrationConstants.SECONDARY_LANGUAGE)
-					&& !applicationMap.get(RegistrationConstants.SECONDARY_LANGUAGE).equals("")) {
-				localLanguage = (String) applicationMap.get(RegistrationConstants.SECONDARY_LANGUAGE);
-			} else {
-				isPrimaryOrSecondaryLanguageEmpty = true;
-				localLanguage = Locale.getDefault().getDisplayLanguage() != null
-						? Locale.getDefault().getDisplayLanguage().toLowerCase().substring(0, 3)
-						: "eng";
-			}
-
-			String rightToLeft = (String) applicationContext.getApplicationMap().get("mosip.right_to_left_orientation");
-
-			if (null != rightToLeft) {
-				if (rightToLeft.contains(applicationLanguge)) {
-					primaryLanguageRightToLeft = true;
+			if (applicationLanguge == null) {
+				List<String> langList = Arrays
+						.asList(((mandatoryLanguages != null ? mandatoryLanguages : RegistrationConstants.EMPTY)
+								.concat(RegistrationConstants.COMMA)
+								.concat((optionalLanguages != null ? optionalLanguages : RegistrationConstants.EMPTY)))
+										.split(RegistrationConstants.COMMA));
+				for (String langCode : langList) {
+					if (!langCode.isBlank()) {
+						String labelLangCodeKey = String.format("%s_%s", langCode, LABELS);
+						Locale locale = new Locale(langCode != null ? langCode.substring(0, 2) : "");
+						resourceBundleMap.put(labelLangCodeKey, ResourceBundle.getBundle(LABELS, locale));
+						String messageLangCodeKey = String.format("%s_%s", langCode, MESSAGES);
+						resourceBundleMap.put(messageLangCodeKey, ResourceBundle.getBundle(MESSAGES, locale));
+					}
 				}
-				if (null != localLanguage && !localLanguage.isEmpty() && rightToLeft.contains(localLanguage)) {
-					secondaryLanguageRightToLeft = true;
-				}
-			}
 
+				if (null != langList && !langList.isEmpty()) {
+					applicationLanguge = langList.stream().filter(langCode -> !langCode.isBlank()).findFirst().get();
+				} else {
+					applicationLanguge = Locale.getDefault().getDisplayLanguage() != null
+							? Locale.getDefault().getDisplayLanguage().toLowerCase().substring(0, 3)
+							: "eng";
+				}
+				
+				String languageSupport = (String) applicationMap.get(RegistrationConstants.LANGUAGE_SUPPORT);
+				if (StringUtils.isNotBlank(languageSupport)) {
+					languageSupport = languageSupport.toLowerCase();
+					applicationLanguge = applicationLanguge.toLowerCase();
+					applicationLanguge = languageSupport.contains(applicationLanguge) ? applicationLanguge : "eng";
+				}
+
+				Locale applicationLanguageLocale = new Locale(
+						applicationLanguge != null ? applicationLanguge.substring(0, 2) : "");
+
+				applicationLanguageBundle = ResourceBundle.getBundle("labels", applicationLanguageLocale);
+				applicationMessagesBundle = ResourceBundle.getBundle("messages", applicationLanguageLocale);
+			}
 		} catch (RuntimeException exception) {
 			LOGGER.error("Application Context", RegistrationConstants.APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, exception.getMessage());
 		}
-
-		String languageSupport = (String) applicationMap.get(RegistrationConstants.LANGUAGE_SUPPORT);
-		if (StringUtils.isNotBlank(languageSupport)) {
-			languageSupport = languageSupport.toLowerCase();
-			applicationLanguge = applicationLanguge.toLowerCase();
-			if (localLanguage != null && !localLanguage.isEmpty()) {
-				localLanguage = localLanguage.toLowerCase();
-			}
-			applicationLanguge = languageSupport.contains(applicationLanguge) ? applicationLanguge : "eng";
-			localLanguage = languageSupport.contains(localLanguage) ? localLanguage : "eng";
-		}
-
+	}
+	
+	public void setApplicationLanguage(String applicationLanguage) {
+		this.applicationLanguge = applicationLanguage;
 		Locale applicationLanguageLocale = new Locale(
 				applicationLanguge != null ? applicationLanguge.substring(0, 2) : "");
-		Locale secondaryLanguageLocale = new Locale(
-				localLanguage != null && !localLanguage.isEmpty() ? localLanguage.substring(0, 2) : "");
 
 		applicationLanguageBundle = ResourceBundle.getBundle("labels", applicationLanguageLocale);
-		localLanguageBundle = ResourceBundle.getBundle("labels", secondaryLanguageLocale);
 		applicationMessagesBundle = ResourceBundle.getBundle("messages", applicationLanguageLocale);
-		localMessagesBundle = ResourceBundle.getBundle("messages", secondaryLanguageLocale);
-
-		return isPrimaryOrSecondaryLanguageEmpty;
 	}
 
 	/**
@@ -229,25 +225,7 @@ public class ApplicationContext {
 	public static String primaryLanguageLocal() {
 		return applicationContext.getApplicationLanguage().substring(0, 2);
 	}
-
-	/**
-	 * Local language.
-	 *
-	 * @return the string
-	 */
-	public static String localLanguage() {
-		return applicationContext.getLocalLanguage();
-	}
-
-	/**
-	 * Local language property.
-	 *
-	 * @return the resource bundle
-	 */
-	public static ResourceBundle localLanguageProperty() {
-		return applicationContext.getLocalLanguageProperty();
-	}
-
+	
 	/**
 	 * Application language bundle.
 	 *
@@ -256,25 +234,7 @@ public class ApplicationContext {
 	public static ResourceBundle applicationLanguageBundle() {
 		return applicationContext.getApplicationLanguageBundle();
 	}
-
-	/**
-	 * Local language bundle.
-	 *
-	 * @return the resource bundle
-	 */
-	public static ResourceBundle localLanguageBundle() {
-		return applicationContext.getLocalLanguageProperty();
-	}
-
-	/**
-	 * Local language validation bundle.
-	 *
-	 * @return the resource bundle
-	 */
-	public static ResourceBundle localLanguageValidationBundle() {
-		return applicationContext.getLocalMessagesBundle();
-	}
-
+	
 	/**
 	 * Application messages bundle.
 	 *
@@ -283,21 +243,45 @@ public class ApplicationContext {
 	public static ResourceBundle applicationMessagesBundle() {
 		return applicationContext.getApplicationMessagesBundle();
 	}
+	
+	//TODO - remove all local language related methods
+	public static ResourceBundle localLanguageProperty() {
+		return applicationContext.getLocalLanguageProperty();
+	}
+	
+	public ResourceBundle getLocalLanguageProperty() {
+		return localLanguageBundle();
+	}
 
-	/**
-	 * Local messages bundle.
-	 *
-	 * @return the resource bundle
-	 */
+	public static String localLanguage() {
+		return applicationContext.getLocalLanguage();
+	}
+
+	public static ResourceBundle localLanguageBundle() {
+		return resourceBundleMap.get("ara_labels");
+	}
+
+	public static ResourceBundle localLanguageValidationBundle() {
+		return applicationContext.getLocalMessagesBundle();
+	}
+
 	public static ResourceBundle localMessagesBundle() {
 		return applicationContext.getLocalMessagesBundle();
+	}
+	
+	public String getLocalLanguage() {
+		return "ara";
+	}
+	
+	public ResourceBundle getLocalMessagesBundle() {
+		return resourceBundleMap.get("ara_messages");
 	}
 
 	/**
 	 * Load resources.
 	 */
-	public static boolean loadResources() {
-		return applicationContext.loadResourceBundle();
+	public static void loadResources() {
+		applicationContext.loadResourceBundle();
 	}
 
 	/**
@@ -355,46 +339,12 @@ public class ApplicationContext {
 	}
 
 	/**
-	 * Get local language.
-	 *
-	 * @return the local language
-	 */
-	public String getLocalLanguage() {
-		return localLanguage;
-	}
-
-	/**
-	 * Gets the local language property.
-	 *
-	 * @return the local language property
-	 */
-	public ResourceBundle getLocalLanguageProperty() {
-		return localLanguageBundle;
-	}
-
-	/**
-	 * Sets the local language property.
-	 *//*
-		 * public void setLocalLanguageProperty() { localLanguageBundle =
-		 * ResourceBundle.getBundle("labels", new Locale("ara")); }
-		 */
-
-	/**
 	 * Gets the application messages bundle.
 	 *
 	 * @return the applicationMessagesBundle
 	 */
 	public ResourceBundle getApplicationMessagesBundle() {
 		return applicationMessagesBundle;
-	}
-
-	/**
-	 * Gets the local messages bundle.
-	 *
-	 * @return the localMessagesBundle
-	 */
-	public ResourceBundle getLocalMessagesBundle() {
-		return localMessagesBundle;
 	}
 
 	/**

@@ -219,6 +219,8 @@ public class LoginController extends BaseController implements Initializable {
 
 	@Autowired
 	private AuthTokenUtilService authTokenUtilService;
+	
+	private String userName;
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
@@ -242,9 +244,13 @@ public class LoginController extends BaseController implements Initializable {
 
 		try {
 			appLanguage.getItems().addAll(getLanguagesList());
-			appLanguage.getSelectionModel().selectFirst();
+			appLanguage.getSelectionModel().select(ApplicationLanguages.getLanguageByLangCode(ApplicationContext.applicationLanguage()));
 			appLanguage.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
-				System.out.println("Selected Language ---- " + newValue);
+				if (!oldValue.equalsIgnoreCase(newValue)) {
+					userName = userId.getText();
+					ApplicationContext.getInstance().setApplicationLanguage(ApplicationLanguages.getLangCodeByLanguage(newValue));
+					loadInitialScreen(getStage());
+				}
 			});
 			isInitialSetUp = RegistrationConstants.ENABLE
 					.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.INITIAL_SETUP));
@@ -366,6 +372,10 @@ public class LoginController extends BaseController implements Initializable {
 		loadUIElementsFromSchema();
 		pageFlow.loadPageFlow();
 		
+		if (userName != null) {
+			userId.setText(userName);
+			userName = null;
+		}
 		forgotUsrnme.setVisible(ApplicationContext.map().containsKey(RegistrationConstants.FORGOT_USERNAME_URL));
 		
 		Screen screen = Screen.getPrimary();
