@@ -36,6 +36,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.exception.DeviceException;
 import io.mosip.registration.exception.RegBaseCheckedException;
@@ -122,7 +123,10 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 
 			String url = bioDevice.getCallbackId() + MosipBioDeviceConstants.STREAM_ENDPOINT;
 
-			StreamRequestDTO streamRequestDTO = new StreamRequestDTO(bioDevice.getDeviceId(), getDeviceSubId(modality));
+			String timeout = (String) ApplicationContext.getInstance().getApplicationMap()
+					.get(RegistrationConstants.CAPTURE_TIME_OUT);
+			StreamRequestDTO streamRequestDTO = new StreamRequestDTO(bioDevice.getDeviceId(), getDeviceSubId(modality),
+					timeout);
 
 			String request = new ObjectMapper().writeValueAsString(streamRequestDTO);
 
@@ -144,11 +148,9 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 				urlStream = response.getEntity().getContent();
 			}
 
-			String end = "";
-
 			try {
-				byte[] byteArray = mosipDeviceSpecificationHelper.getJPEGByteArray(urlStream,
-						System.currentTimeMillis() + Long.parseLong(end));
+				byte[] byteArray = mosipDeviceSpecificationHelper.getJPEGByteArray(urlStream, System.currentTimeMillis()
+						+ (timeout != null && !timeout.isEmpty() ? Long.parseLong(timeout) : 60000));
 
 				if (byteArray != null) {
 					LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
@@ -156,11 +158,13 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 					return urlStream;
 				} else {
 
+					urlStream.close();
 					throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_STREAM_TIMEOUT.getErrorCode(),
 							RegistrationExceptionConstants.MDS_STREAM_TIMEOUT.getErrorMessage());
 				}
 			} catch (RegBaseCheckedException regBaseCheckedException) {
 
+				urlStream.close();
 				throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_STREAM_ERROR.getErrorCode(),
 						RegistrationExceptionConstants.MDS_STREAM_ERROR.getErrorMessage(), regBaseCheckedException);
 

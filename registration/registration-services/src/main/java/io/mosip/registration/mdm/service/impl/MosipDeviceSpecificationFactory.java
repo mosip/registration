@@ -342,12 +342,12 @@ public class MosipDeviceSpecificationFactory {
 				getDeviceSubType(modality).toLowerCase());
 
 		if (deviceInfoMap.containsKey(key)) {
-			return getDevice(key);
+			return deviceInfoMap.get(key);
 		} else {
 			try {
 				initByPort(null);
 				if (deviceInfoMap.containsKey(key)) {
-					return getDevice(key);
+					return deviceInfoMap.get(key);
 				}
 
 				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Bio Device not found for modality : "
@@ -366,25 +366,29 @@ public class MosipDeviceSpecificationFactory {
 
 	}
 
-	private MdmBioDevice getDevice(String key) throws RegBaseCheckedException {
+	public boolean isDeviceAvailable(String modality) throws RegBaseCheckedException {
 
+		String key = String.format("%s_%s", getDeviceType(modality).toLowerCase(),
+				getDeviceSubType(modality).toLowerCase());
 		MdmBioDevice bioDevice = deviceInfoMap.get(key);
 
-		for (MosipDeviceSpecificationProvider provider : deviceSpecificationProviders) {
+		if (bioDevice != null) {
+			for (MosipDeviceSpecificationProvider provider : deviceSpecificationProviders) {
 
-			if (provider.getSpecVersion().equalsIgnoreCase(bioDevice.getSpecVersion())) {
+				if (provider.getSpecVersion().equalsIgnoreCase(bioDevice.getSpecVersion())) {
 
-				if (provider.isDeviceAvailable(bioDevice)) {
+					if (provider.isDeviceAvailable(bioDevice)) {
 
-					return bioDevice;
+						return true;
+					} else {
+						return false;
+					}
 				}
-				break;
-			}
 
+			}
 		}
 
-		throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
-				RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage());
+		return false;
 
 	}
 
