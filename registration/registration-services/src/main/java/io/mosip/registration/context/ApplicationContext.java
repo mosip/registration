@@ -289,4 +289,13 @@ public class ApplicationContext {
 		return applicationMap.get("mosip.default.date.format") == null ? "yyyy/MM/dd"
 				: String.valueOf(applicationMap.get("mosip.default.date.format"));
 	}
+
+	public ResourceBundle getApplicationLanguageLabelBundle() {
+		return getBundle(getApplicationLanguage(), RegistrationConstants.LABELS);
+	}
+
+	public ResourceBundle getApplicationLanguageMessagesBundle() {
+		return getBundle(getApplicationLanguage(), RegistrationConstants.MESSAGES);
+	}
+
 }

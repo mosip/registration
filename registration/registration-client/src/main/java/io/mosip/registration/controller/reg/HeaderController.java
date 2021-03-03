@@ -115,7 +115,7 @@ public class HeaderController extends BaseController {
 
 	@FXML
 	private MenuItem userGuide;
-	
+
 	@FXML
 	private MenuItem resetPword;
 
@@ -160,8 +160,6 @@ public class HeaderController extends BaseController {
 	@Autowired
 	private BaseService baseService;
 
-
-
 	/**
 	 * Mapping Registration Officer details
 	 */
@@ -185,7 +183,7 @@ public class HeaderController extends BaseController {
 			homeSelectionMenu.setDisable(false);
 		}
 		resetPword.setVisible(ApplicationContext.map().containsKey(RegistrationConstants.RESET_PWORD_URL));
-		
+
 		getTimer().schedule(new TimerTask() {
 
 			@Override
@@ -274,13 +272,12 @@ public class HeaderController extends BaseController {
 			// Clear all registration data
 			clearRegistrationData();
 
-			if(!proceedOnAction("MS"))
+			if (!proceedOnAction("MS"))
 				return;
 
 			try {
 				auditFactory.audit(AuditEvent.NAV_SYNC_DATA, Components.NAVIGATION,
-						SessionContext.userContext().getUserId(),
-						AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+						SessionContext.userContext().getUserId(), AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 				executeSyncDataTask();
 				while (restartController.isToBeRestarted()) {
 					/* Clear the completed job map */
@@ -308,7 +305,7 @@ public class HeaderController extends BaseController {
 	 * @param event event for sync packet status
 	 */
 	public void syncPacketStatus(ActionEvent event) {
-		if(!proceedOnAction("PS"))
+		if (!proceedOnAction("PS"))
 			return;
 
 		try {
@@ -354,7 +351,7 @@ public class HeaderController extends BaseController {
 			// Clear all registration data
 			clearRegistrationData();
 
-			if(!proceedOnAction(RegistrationConstants.OPT_TO_REG_PDS_J00003))
+			if (!proceedOnAction(RegistrationConstants.OPT_TO_REG_PDS_J00003))
 				return;
 
 			auditFactory.audit(AuditEvent.SYNC_PRE_REGISTRATION_PACKET, Components.SYNC_SERVER_TO_CLIENT,
@@ -373,7 +370,7 @@ public class HeaderController extends BaseController {
 	public void uploadPacketToServer() {
 		if (pageNavigantionAlert()) {
 
-			if(!proceedOnAction("PS"))
+			if (!proceedOnAction("PS"))
 				return;
 
 			auditFactory.audit(AuditEvent.SYNC_PRE_REGISTRATION_PACKET, Components.SYNC_SERVER_TO_CLIENT,
@@ -433,7 +430,7 @@ public class HeaderController extends BaseController {
 
 			})));
 
-			if(!proceedOnAction("RM"))
+			if (!proceedOnAction("RM"))
 				return;
 
 			progressIndicator = packetHandlerController.getProgressIndicator();
@@ -451,8 +448,8 @@ public class HeaderController extends BaseController {
 			try {
 				baseService.proceedWithSoftwareUpdate();
 			} catch (PreConditionCheckException e) {
-				generateAlert(RegistrationConstants.ERROR,
-						ApplicationContext.applicationMessagesBundle().getString(e.getErrorCode()));
+				generateAlert(RegistrationConstants.ERROR, ApplicationContext.getInstance()
+						.getApplicationLanguageMessagesBundle().getString(e.getErrorCode()));
 				return;
 			}
 
@@ -544,7 +541,7 @@ public class HeaderController extends BaseController {
 				}
 
 				boolean showAlert = false;
-				if(validUser(showAlert))
+				if (validUser(showAlert))
 					machineRemapCheck(showAlert);
 				progressIndicator.setVisible(false);
 			}
@@ -805,7 +802,7 @@ public class HeaderController extends BaseController {
 			}
 		});
 	}
-	
+
 	/**
 	 * Redirects to mosip.io in case of user reset pword
 	 * 
@@ -827,7 +824,7 @@ public class HeaderController extends BaseController {
 				LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 						uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
 			}
-		}		
+		}
 	}
 
 	private void machineRemapCheck(boolean showAlert) {
@@ -839,7 +836,7 @@ public class HeaderController extends BaseController {
 	}
 
 	private boolean validUser(boolean showAlert) {
-		if(!userDetailService.isValidUser(SessionContext.getInstance().getUserContext().getUserId())) {
+		if (!userDetailService.isValidUser(SessionContext.getInstance().getUserContext().getUserId())) {
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_IN_ACTIVE);
 			logout(null);
 			return false;

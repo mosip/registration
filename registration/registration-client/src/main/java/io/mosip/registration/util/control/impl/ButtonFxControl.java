@@ -50,7 +50,6 @@ public class ButtonFxControl extends FxControl {
 
 	public ButtonFxControl() {
 		ApplicationContext applicationContext = Initialization.getApplicationContext();
-		this.demographicDetailController = applicationContext.getBean(DemographicDetailController.class);
 		fxUtils = FXUtils.getInstance();
 		regApplicationContext = io.mosip.registration.context.ApplicationContext.getInstance();
 	}
@@ -67,28 +66,26 @@ public class ButtonFxControl extends FxControl {
 		hBox.getChildren().add(primaryLangVBox);
 		HBox.setHgrow(primaryLangVBox, Priority.ALWAYS);
 
-		
 		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
 		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(),
 				primaryLangVBox);
 
-		if (demographicDetailController.isLocalLanguageAvailable()
-				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
-			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
-
-			Region region = new Region();
-			HBox.setHgrow(region, Priority.ALWAYS);
-
-			HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
-
-			hBox.getChildren().addAll(region, secondaryLangVBox);
-			
-			nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage(),
-					secondaryLangVBox);
-		}
-
-		
-		setNodeMap(nodeMap);
+//		if (demographicDetailController.isLocalLanguageAvailable()
+//				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
+//			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
+//
+//			Region region = new Region();
+//			HBox.setHgrow(region, Priority.ALWAYS);
+//
+//			HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
+//
+//			hBox.getChildren().addAll(region, secondaryLangVBox);
+//
+//			nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage(),
+//					secondaryLangVBox);
+//		}
+//
+//		setNodeMap(nodeMap);
 		this.node = hBox;
 
 		return this.control;
@@ -137,7 +134,7 @@ public class ButtonFxControl extends FxControl {
 		}
 
 		changeNodeOrientation(simpleTypeVBox, languageType);
-		
+
 		return simpleTypeVBox;
 	}
 
@@ -149,12 +146,12 @@ public class ButtonFxControl extends FxControl {
 
 	@Override
 	public void setData(Object data) {
-		HBox primaryHbox = (HBox) getField(uiSchemaDTO.getId() + RegistrationConstants.HBOX);
-		HBox secondaryHBox = (HBox) getField(
-				uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE + RegistrationConstants.HBOX);
-		getRegistrationDTo().addDemographicField(uiSchemaDTO.getId(), regApplicationContext.getApplicationLanguage(),
-				getSelectedValue(primaryHbox), regApplicationContext.getLocalLanguage(),
-				getSelectedValue(secondaryHBox));
+//		HBox primaryHbox = (HBox) getField(uiSchemaDTO.getId() + RegistrationConstants.HBOX);
+//		HBox secondaryHBox = (HBox) getField(
+//				uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE + RegistrationConstants.HBOX);
+//		getRegistrationDTo().addDemographicField(uiSchemaDTO.getId(), regApplicationContext.getApplicationLanguage(),
+//				getSelectedValue(primaryHbox), regApplicationContext.getLocalLanguage(),
+//				getSelectedValue(secondaryHBox));
 	}
 
 	private String getSelectedValue(HBox hBox) {
@@ -219,24 +216,24 @@ public class ButtonFxControl extends FxControl {
 		button.addEventHandler(ActionEvent.ACTION, event -> {
 			if (button.getStyleClass().contains(residence)) {
 				resetButtons(button);
-				if (demographicDetailController.isLocalLanguageAvailable()
-						&& !demographicDetailController.isAppLangAndLocalLangSame()) {
-					Node localButton = getField(button.getId() + RegistrationConstants.LOCAL_LANGUAGE);
-					if (localButton != null) {
-						resetButtons((Button) localButton);
-					}
-				}
+//				if (demographicDetailController.isLocalLanguageAvailable()
+//						&& !demographicDetailController.isAppLangAndLocalLangSame()) {
+//					Node localButton = getField(button.getId() + RegistrationConstants.LOCAL_LANGUAGE);
+//					if (localButton != null) {
+//						resetButtons((Button) localButton);
+//					}
+//				}
 				setData(null);
 			}
 			fxUtils.toggleUIField((Pane) this.node, button.getParent().getId() + RegistrationConstants.MESSAGE, false);
-			if (demographicDetailController.isLocalLanguageAvailable()
-					&& !demographicDetailController.isAppLangAndLocalLangSame()) {
-				Node localButton = getField(button.getId() + RegistrationConstants.LOCAL_LANGUAGE);
-				if (localButton != null) {
-					fxUtils.toggleUIField((Pane) this.node,
-							localButton.getParent().getId() + RegistrationConstants.MESSAGE, false);
-				}
-			}
+//			if (demographicDetailController.isLocalLanguageAvailable()
+//					&& !demographicDetailController.isAppLangAndLocalLangSame()) {
+//				Node localButton = getField(button.getId() + RegistrationConstants.LOCAL_LANGUAGE);
+//				if (localButton != null) {
+//					fxUtils.toggleUIField((Pane) this.node,
+//							localButton.getParent().getId() + RegistrationConstants.MESSAGE, false);
+//				}
+//			}
 		});
 	}
 
@@ -277,21 +274,21 @@ public class ButtonFxControl extends FxControl {
 							}
 						}
 
-					} else if (simpleDto.getLanguage().equalsIgnoreCase(
-							io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage())) {
-
-						HBox langHBox = (HBox) getField(uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE
-								+ RegistrationConstants.HBOX);
-
-						for (Node node : langHBox.getChildren()) {
-
-							if (node instanceof Button
-									&& ((Button) node).getText().equalsIgnoreCase(simpleDto.getValue())) {
-
-								((Button) node).fire();
-							}
-						}
-					}
+					} /*
+						 * else if (simpleDto.getLanguage().equalsIgnoreCase(
+						 * io.mosip.registration.context.ApplicationContext.getInstance().
+						 * getLocalLanguage())) {
+						 * 
+						 * HBox langHBox = (HBox) getField(uiSchemaDTO.getId() +
+						 * RegistrationConstants.LOCAL_LANGUAGE + RegistrationConstants.HBOX);
+						 * 
+						 * for (Node node : langHBox.getChildren()) {
+						 * 
+						 * if (node instanceof Button && ((Button)
+						 * node).getText().equalsIgnoreCase(simpleDto.getValue())) {
+						 * 
+						 * ((Button) node).fire(); } } }
+						 */
 				}
 
 			}
