@@ -52,20 +52,19 @@ public abstract class FxControl extends Node {
 		this.node = node;
 	}
 
-	protected DemographicDetailController demographicDetailController;
 	protected AuditManagerService auditFactory;
 
 	protected RequiredFieldValidator requiredFieldValidator;
 
-	protected Map<String, Object> nodeMap;
-
-	public Map<String, Object> getNodeMap() {
-		return nodeMap;
-	}
-
-	public void setNodeMap(Map<String, Object> nodeMap) {
-		this.nodeMap = nodeMap;
-	}
+//	protected Map<String, Object> nodeMap;
+//
+//	public Map<String, Object> getNodeMap() {
+//		return nodeMap;
+//	}
+//
+//	public void setNodeMap(Map<String, Object> nodeMap) {
+//		this.nodeMap = nodeMap;
+//	}
 
 	public void refreshFields() {
 
