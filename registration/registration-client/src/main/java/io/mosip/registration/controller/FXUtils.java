@@ -21,15 +21,12 @@ import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
 import io.mosip.registration.dto.mastersync.GenericDto;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
 
@@ -181,12 +178,10 @@ public class FXUtils {
 			toggleUIField(parentPane, applicationField.getId() + RegistrationConstants.LABEL, true);
 
 			toggleUIField(parentPane, applicationField.getId() + RegistrationConstants.MESSAGE, false);
-			if (!isAppLangAndLocalLangSame()) {
 
-				toggleUIField(parentPane, localField.getId() + RegistrationConstants.LABEL, true);
+			toggleUIField(parentPane, localField.getId() + RegistrationConstants.LABEL, true);
 
-				toggleUIField(parentPane, localField.getId() + RegistrationConstants.MESSAGE, false);
-			}
+			toggleUIField(parentPane, localField.getId() + RegistrationConstants.MESSAGE, false);
 		});
 	}
 
@@ -284,6 +279,8 @@ public class FXUtils {
 	public void populateLocalFieldWithFocus(Pane parentPane, TextField field, TextField localField,
 			boolean haveToTransliterate, Validations validation) {
 
+		//TODO - get tobe transliterated langcode
+		String toLanguage = "";
 		field.focusedProperty().addListener((obsValue, oldValue, newValue) -> {
 			if (!field.isFocused()) {
 
@@ -294,7 +291,7 @@ public class FXUtils {
 							try {
 								localField
 										.setText(transliteration.transliterate(ApplicationContext.applicationLanguage(),
-												ApplicationContext.localLanguage(), field.getText()));
+												toLanguage, field.getText()));
 							} catch (RuntimeException runtimeException) {
 								LOGGER.error("REGISTRATION - TRANSLITERATION ERROR ", APPLICATION_NAME,
 										RegistrationConstants.APPLICATION_ID, runtimeException.getMessage());
@@ -443,10 +440,7 @@ public class FXUtils {
 	 */
 	public void focusUnfocusListener(Pane parentPane, TextField field, TextField localField) {
 		focusAction(parentPane, field);
-
-		if (!isAppLangAndLocalLangSame()) {
-			focusAction(parentPane, localField);
-		}
+		focusAction(parentPane, localField);
 	}
 
 	public void focusAction(Pane parentPane, TextField field) {
@@ -528,16 +522,10 @@ public class FXUtils {
 				int age = LocalDate.now().getYear() - year;
 				if (age > 0) {
 					fieldToPopulate.setText(RegistrationConstants.EMPTY + age);
-					if (!isAppLangAndLocalLangSame()) {
-
-						localFieldToPopulate.setText(RegistrationConstants.EMPTY + age);
-					}
+					localFieldToPopulate.setText(RegistrationConstants.EMPTY + age);
 				} else {
 					fieldToPopulate.setText("1");
-					if (!isAppLangAndLocalLangSame()) {
-
-						localFieldToPopulate.setText("1");
-					}
+					localFieldToPopulate.setText("1");
 				}
 			}
 		});
@@ -683,6 +671,7 @@ public class FXUtils {
 	 */
 	public <T> StringConverter<T> getStringConverterForComboBox() {
 		return new StringConverter<T>() {
+			@SuppressWarnings("unchecked")
 			@Override
 			public String toString(T object) {
 				String value = null;
@@ -702,12 +691,6 @@ public class FXUtils {
 				return null;
 			}
 		};
-	}
-
-	private boolean isAppLangAndLocalLangSame() {
-
-		return ApplicationContext.getInstance().getApplicationLanguage()
-				.equals(ApplicationContext.getInstance().getLocalLanguage());
 	}
 
 }

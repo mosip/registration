@@ -25,9 +25,6 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import io.mosip.registration.service.BaseService;
-import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
-import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,7 +33,6 @@ import org.springframework.stereotype.Component;
 import io.mosip.commons.packet.constants.PacketManagerConstants;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.templatemanager.spi.TemplateManagerBuilder;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.audit.AuditManagerService;
@@ -68,16 +64,16 @@ import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.dto.response.SchemaDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.scheduler.SchedulerUtil;
+import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.IdentitySchemaService;
-import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.config.GlobalParamService;
 import io.mosip.registration.service.operator.UserOnboardService;
 import io.mosip.registration.service.remap.CenterMachineReMapService;
 import io.mosip.registration.service.security.AuthenticationService;
 import io.mosip.registration.service.sync.SyncStatusValidatorService;
-import io.mosip.registration.service.template.TemplateService;
-import io.mosip.registration.util.acktemplate.TemplateGenerator;
 import io.mosip.registration.util.common.PageFlow;
+import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 import io.mosip.registration.validator.RequiredFieldValidator;
 import javafx.animation.PauseTransition;
@@ -155,16 +151,7 @@ public class BaseController {
 	private BiometricsController guardianBiometricsController;
 
 	@Autowired
-	private TemplateService templateService;
-
-	@Autowired
 	private AuthenticationService authenticationService;
-
-	@Autowired
-	private TemplateManagerBuilder templateManagerBuilder;
-
-	@Autowired
-	private TemplateGenerator templateGenerator;
 
 	@Autowired
 	private UserOnboardService userOnboardService;
@@ -203,9 +190,6 @@ public class BaseController {
 	private String cssName;
 
 	@Autowired
-	private BioService bioService;
-
-	@Autowired
 	private RestartController restartController;
 
 	@Autowired
@@ -240,8 +224,6 @@ public class BaseController {
 	private Stage alertStage;
 
 	private static boolean isAckOpened = false;
-
-	private List<UiSchemaDTO> uiSchemaDTOs;
 
 	private static Map<String, UiSchemaDTO> validationMap;
 
@@ -316,7 +298,7 @@ public class BaseController {
 	 */
 	protected void loadScreen(String screen) throws IOException {
 		Parent createRoot = BaseController.load(getClass().getResource(screen),
-				applicationContext.getApplicationLanguageBundle());
+				applicationContext.getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS));
 		getScene(createRoot);
 	}
 
@@ -347,7 +329,7 @@ public class BaseController {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public static <T> T load(URL url) throws IOException {
-		FXMLLoader loader = new FXMLLoader(url, ApplicationContext.applicationLanguageBundle());
+		FXMLLoader loader = new FXMLLoader(url, ApplicationContext.getInstance().getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS));
 		loader.setControllerFactory(Initialization.getApplicationContext()::getBean);
 		return loader.load();
 	}
@@ -725,7 +707,7 @@ public class BaseController {
 	 * @return the FXML loader
 	 */
 	public static FXMLLoader loadChild(URL url) {
-		FXMLLoader loader = new FXMLLoader(url, ApplicationContext.applicationLanguageBundle());
+		FXMLLoader loader = new FXMLLoader(url, ApplicationContext.getInstance().getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS));
 		loader.setControllerFactory(Initialization.getApplicationContext()::getBean);
 		return loader;
 	}
@@ -943,8 +925,6 @@ public class BaseController {
 	 * @param action      - action to be performed previous/next
 	 * @return id of next Anchorpane
 	 */
-
-	@SuppressWarnings("unchecked")
 	protected String getOnboardPageDetails(String currentPage, String action) {
 
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
@@ -977,7 +957,6 @@ public class BaseController {
 	 * @param action      - action to be performed previous/next
 	 * @return id of next Anchorpane
 	 */
-	@SuppressWarnings("unchecked")
 	protected String getPageByAction(String currentPage, String action) {
 
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
@@ -1415,7 +1394,6 @@ public class BaseController {
 	 * @param pageId id of the page
 	 * @param val    value to be set
 	 */
-	@SuppressWarnings("unchecked")
 	protected void updatePageFlow(String pageId, boolean val) {
 
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, RegistrationConstants.APPLICATION_NAME,
@@ -1481,7 +1459,6 @@ public class BaseController {
 	 * @param table the instance of {@link TableView} for which re-ordering of
 	 *              columns had to be restricted
 	 */
-	@SuppressWarnings("restriction")
 	protected void disableColumnsReorder(TableView<?> table) {
 		if (table != null) {
 			table.widthProperty().addListener((source, oldWidth, newWidth) -> {
@@ -1551,7 +1528,7 @@ public class BaseController {
 	 * Set the operator was in acknowledgement page
 	 */
 	protected void setIsAckOpened(boolean isAckOpened) {
-		this.isAckOpened = isAckOpened;
+		BaseController.isAckOpened = isAckOpened;
 	}
 
 	public void loadUIElementsFromSchema() {
@@ -1916,16 +1893,6 @@ public class BaseController {
 			return time + RegistrationConstants.UTC_APPENDER;
 		}
 
-	}
-
-	public boolean isAppLangAndLocalLangSame() {
-
-		return applicationContext.getApplicationLanguage().equals(applicationContext.getLocalLanguage());
-	}
-
-	public boolean isLocalLanguageAvailable() {
-
-		return applicationContext.getLocalLanguage() != null && !applicationContext.getLocalLanguage().isEmpty();
 	}
 
 	public boolean proceedOnAction(String job) {
