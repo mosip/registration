@@ -12,6 +12,7 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import io.mosip.registration.exception.PreConditionCheckException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
@@ -210,90 +211,59 @@ public class PacketUploadServiceImpl extends BaseService implements PacketUpload
 	 *
 	 * @param syncedPackets
 	 *            the synced packets
-	 * @param responseDTO
 	 */
 	private ResponseDTO uploadSyncedPacket(List<PacketStatusDTO> syncedPackets) {
-
 		LOGGER.info("REGISTRATION - PUSH_PACKET - PACKET_UPLOAD_SERVICE", APPLICATION_NAME, APPLICATION_ID,
-				"Syncing Packets:");
+				"uploadSyncedPacket invoked");
 		ResponseDTO responseDTO = new ResponseDTO();
-
 		List<PacketStatusDTO> packetUploadList = new ArrayList<>();
 
-		if (!syncedPackets.isEmpty()) {
-			for (PacketStatusDTO syncedPacket : syncedPackets) {
+		for (PacketStatusDTO syncedPacket : syncedPackets) {
 
-				if (syncedPacket != null) {
-					String ackFileName = syncedPacket.getPacketPath();
-					int lastIndex = ackFileName.indexOf(RegistrationConstants.ACKNOWLEDGEMENT_FILE);
-					String packetPath = ackFileName.substring(0, lastIndex);
-					File packet = FileUtils.getFile(packetPath + RegistrationConstants.ZIP_FILE_EXTENSION);
-					try {
-						if (packet.exists()) {
+			if (syncedPacket != null) {
+				String ackFileName = syncedPacket.getPacketPath();
+				int lastIndex = ackFileName.indexOf(RegistrationConstants.ACKNOWLEDGEMENT_FILE);
+				String packetPath = ackFileName.substring(0, lastIndex);
+				File packet = FileUtils.getFile(packetPath + RegistrationConstants.ZIP_FILE_EXTENSION);
+				try {
+					if (packet.exists()) {
+						LOGGER.info("REGISTRATION - PUSH_PACKET - PACKET_UPLOAD_SERVICE", APPLICATION_NAME,
+								APPLICATION_ID, "Uploading Packet : " + packet.getName());
+
+						ResponseDTO response = pushPacket(packet);
+
+						if (response.getSuccessResponseDTO() != null) {
 							LOGGER.info("REGISTRATION - PUSH_PACKET - PACKET_UPLOAD_SERVICE", APPLICATION_NAME,
-									APPLICATION_ID, "Uploading Packet : " + packet.getName());
-
-							ResponseDTO response = pushPacket(packet);
-
-							if (response.getSuccessResponseDTO() != null) {
-								LOGGER.info("REGISTRATION - PUSH_PACKET - PACKET_UPLOAD_SERVICE", APPLICATION_NAME,
-										APPLICATION_ID, "Uploaded Success : " + packet.getName());
-								syncedPacket.setPacketClientStatus(
-										RegistrationClientStatusCode.UPLOADED_SUCCESSFULLY.getCode());
-								syncedPacket
-										.setUploadStatus(RegistrationClientStatusCode.UPLOAD_SUCCESS_STATUS.getCode());
-								syncedPacket.setPacketServerStatus(response.getSuccessResponseDTO().getMessage());
-								packetUploadList.add(syncedPacket);
-
-								setSuccessResponse(responseDTO, RegistrationConstants.SUCCESS, null);
-							} else if (response.getErrorResponseDTOs() != null) {
-
-								LOGGER.error("REGISTRATION - PUSH_PACKET - PACKET_UPLOAD_SERVICE", APPLICATION_NAME,
-										APPLICATION_ID, "Uploaded Failure : " + packet.getName());
-								setErrorResponse(responseDTO, RegistrationConstants.FAILURE, null);
-								responseDTO.setSuccessResponseDTO(null);
-								String errMessage = response.getErrorResponseDTOs().get(0).getMessage();
-								if (errMessage.contains(RegistrationConstants.PACKET_DUPLICATE)) {
-
-									syncedPacket.setPacketClientStatus(
-											RegistrationClientStatusCode.UPLOADED_SUCCESSFULLY.getCode());
-									syncedPacket.setUploadStatus(
-											RegistrationClientStatusCode.UPLOAD_SUCCESS_STATUS.getCode());
-									packetUploadList.add(syncedPacket);
-
-								}
-							} else {
-								LOGGER.error("REGISTRATION - PUSH_PACKET - PACKET_UPLOAD_SERVICE", APPLICATION_NAME,
-										APPLICATION_ID, "Uploaded Failure : " + packet.getName());
-								syncedPacket
-										.setUploadStatus(RegistrationClientStatusCode.UPLOAD_ERROR_STATUS.getCode());
-								packetUploadList.add(syncedPacket);
-								setErrorResponse(responseDTO, RegistrationConstants.FAILURE, null);
-								responseDTO.setSuccessResponseDTO(null);
-							}
+									APPLICATION_ID, "Uploaded Success : " + packet.getName());
+							syncedPacket.setPacketClientStatus(RegistrationClientStatusCode.UPLOADED_SUCCESSFULLY.getCode());
+							syncedPacket.setUploadStatus(RegistrationClientStatusCode.UPLOAD_SUCCESS_STATUS.getCode());
+							syncedPacket.setPacketServerStatus(response.getSuccessResponseDTO().getMessage());
+							packetUploadList.add(syncedPacket);
+							setSuccessResponse(responseDTO, RegistrationConstants.SUCCESS, null);
 						}
-					} catch (RegBaseCheckedException | URISyntaxException exception) {
-						LOGGER.error("REGISTRATION - HANDLE_PACKET_UPLOAD_ERROR - PACKET_UPLOAD_SERVICE",
-								APPLICATION_NAME, APPLICATION_ID, "Error while pushing packets to the server"
-										+ exception.getMessage() + ExceptionUtils.getStackTrace(exception));
-						syncedPacket.setUploadStatus(RegistrationClientStatusCode.UPLOAD_ERROR_STATUS.getCode());
-						packetUploadList.add(syncedPacket);
-						setErrorResponse(responseDTO, RegistrationConstants.FAILURE, null);
-						responseDTO.setSuccessResponseDTO(null);
-					} catch (RuntimeException runtimeException) {
-						LOGGER.error("REGISTRATION - HANDLE_PACKET_UPLOAD_RUNTIME_ERROR - PACKET_UPLOAD_SERVICE",
-								APPLICATION_NAME, APPLICATION_ID,
-								"Run time error while connecting to the server" + runtimeException.getMessage()
-										+ ExceptionUtils.getStackTrace(runtimeException));
 
-						syncedPacket.setUploadStatus(RegistrationClientStatusCode.UPLOAD_ERROR_STATUS.getCode());
-						packetUploadList.add(syncedPacket);
-						setErrorResponse(responseDTO, RegistrationConstants.FAILURE, null);
-						responseDTO.setSuccessResponseDTO(null);
+						if (response.getErrorResponseDTOs() != null && !response.getErrorResponseDTOs().stream().anyMatch(e ->
+								e.getMessage().contains(RegistrationConstants.PACKET_DUPLICATE))) {
+							LOGGER.error("REGISTRATION - PUSH_PACKET - PACKET_UPLOAD_SERVICE", APPLICATION_NAME,
+									APPLICATION_ID, "Uploaded Failure : " + packet.getName());
+							syncedPacket.setUploadStatus(RegistrationClientStatusCode.UPLOAD_ERROR_STATUS.getCode());
+							packetUploadList.add(syncedPacket);
+							setErrorResponse(responseDTO, RegistrationConstants.FAILURE, null);
+							responseDTO.setSuccessResponseDTO(null);
+						}
 					}
+				} catch (RegBaseCheckedException | URISyntaxException | RuntimeException exception) {
+					LOGGER.error("REGISTRATION - HANDLE_PACKET_UPLOAD_ERROR - PACKET_UPLOAD_SERVICE",
+							APPLICATION_NAME, APPLICATION_ID, "Error while pushing packets to the server"
+									+ exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+					syncedPacket.setUploadStatus(RegistrationClientStatusCode.UPLOAD_ERROR_STATUS.getCode());
+					packetUploadList.add(syncedPacket);
+					setErrorResponse(responseDTO, RegistrationConstants.FAILURE, null);
+					responseDTO.setSuccessResponseDTO(null);
 				}
 			}
 		}
+
 		updateStatus(packetUploadList);
 		return responseDTO;
 	}
@@ -335,31 +305,30 @@ public class PacketUploadServiceImpl extends BaseService implements PacketUpload
 	 */
 	@Override
 	public ResponseDTO uploadAllSyncedPackets() {
-
 		LOGGER.info("REGISTRATION - PUSH_PACKET - PACKET_UPLOAD_SERVICE", APPLICATION_NAME, APPLICATION_ID,
 				"Started Uploading All Packets Invocation");
 		ResponseDTO responseDTO = new ResponseDTO();
+
+		//Precondition check, proceed only if met, otherwise throws exception
+		try {
+			proceedWithPacketSync();
+		} catch (PreConditionCheckException e) {
+			setErrorResponse(responseDTO, e.getErrorCode(), null);
+			return responseDTO;
+		}
+
 		List<Registration> synchedPackets = getSynchedPackets();
 		List<PacketStatusDTO> packetsToBeSynced = new ArrayList<>();
-		if (synchedPackets != null && !synchedPackets.isEmpty()) {
+		if(synchedPackets != null) {
 			synchedPackets.forEach(reg -> {
 				packetsToBeSynced.add(packetStatusDtoPreperation(reg));
 			});
-
-			LOGGER.info("REGISTRATION - PUSH_PACKET - PACKET_UPLOAD_SERVICE", APPLICATION_NAME, APPLICATION_ID,
-					"Syncing Packets:");
-			responseDTO = uploadSyncedPacket(packetsToBeSynced);
-		} else {
-
-			LOGGER.info("REGISTRATION - PUSH_PACKET - PACKET_UPLOAD_SERVICE", APPLICATION_NAME, APPLICATION_ID,
-					"No Synced Packets found to Upload");
-			setSuccessResponse(responseDTO, RegistrationConstants.SUCCESS, null);
 		}
 
 		LOGGER.info("REGISTRATION - PUSH_PACKET - PACKET_UPLOAD_SERVICE", APPLICATION_NAME, APPLICATION_ID,
-				"Completed Uploading All Packets Invocation");
-		return responseDTO;
+				"Syncing Packets: " + packetsToBeSynced.size());
 
+		return uploadSyncedPacket(packetsToBeSynced);
 	}
 
 	private Boolean checkPacketDto(PacketStatusDTO packetStatusDTO) throws RegBaseCheckedException {

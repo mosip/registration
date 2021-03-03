@@ -6,6 +6,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -69,6 +71,11 @@ public class BiometricFxControl extends FxControl {
 		this.control = this;
 
 		this.node = create(null, uiSchemaDTO);
+
+		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
+		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(), this.node);
+
+		setNodeMap(nodeMap);
 
 		return this.control;
 	}
@@ -514,7 +521,14 @@ public class BiometricFxControl extends FxControl {
 	public void refresh() {
 
 		LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refresh " + uiSchemaDTO.getId());
-		create((VBox) this.node, this.uiSchemaDTO);
+
+		VBox vBox = null;
+		if (node instanceof VBox) {
+			vBox = (VBox) node;
+		} else {
+			vBox = (VBox) ((FlowPane) ((GridPane) this.node).getChildren().get(0)).getChildren().get(0);
+		}
+		create(vBox, this.uiSchemaDTO);
 
 	}
 

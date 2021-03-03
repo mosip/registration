@@ -1,14 +1,11 @@
 package io.mosip.registration.mdm.spec_0_9_2.service.impl;
 
-import static io.mosip.registration.constants.LoggerConstants.MOSIP_BIO_DEVICE_MANAGER;
+import static io.mosip.registration.constants.LoggerConstants.MOSIP_BIO_DEVICE_INTEGERATOR;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -16,8 +13,6 @@ import java.util.Base64;
 import java.util.LinkedList;
 import java.util.List;
 
-import io.mosip.registration.exception.DeviceException;
-import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationHelper;
 import org.apache.http.Consts;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -27,6 +22,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.assertj.core.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -38,9 +34,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
-import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
+import io.mosip.registration.exception.DeviceException;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.mdm.constants.MosipBioDeviceConstants;
@@ -50,9 +46,12 @@ import io.mosip.registration.mdm.dto.MdmBioDevice;
 import io.mosip.registration.mdm.dto.MdmDeviceInfo;
 import io.mosip.registration.mdm.integrator.MosipDeviceSpecificationProvider;
 import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
+import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationHelper;
+import io.mosip.registration.mdm.spec_0_9_2.dto.request.DeviceDiscoveryRequest;
 import io.mosip.registration.mdm.spec_0_9_2.dto.request.RCaptureRequestBioDTO;
 import io.mosip.registration.mdm.spec_0_9_2.dto.request.RCaptureRequestDTO;
 import io.mosip.registration.mdm.spec_0_9_2.dto.request.StreamRequestDTO;
+import io.mosip.registration.mdm.spec_0_9_2.dto.response.DeviceDiscoveryMDSResponse;
 import io.mosip.registration.mdm.spec_0_9_2.dto.response.DigitalId;
 import io.mosip.registration.mdm.spec_0_9_2.dto.response.MdmDeviceInfoResponse;
 import io.mosip.registration.mdm.spec_0_9_2.dto.response.RCaptureResponseBiometricsDTO;
@@ -71,7 +70,7 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 	@Autowired
 	private MosipDeviceSpecificationHelper mosipDeviceSpecificationHelper;
 
-	//TODO - remove, and use helper. as this leads to circular dependency
+	// TODO - remove, and use helper. as this leads to circular dependency
 	@Autowired
 	private MosipDeviceSpecificationFactory deviceSpecificationFactory;
 
@@ -95,9 +94,10 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 
 			for (MdmDeviceInfoResponse mdmDeviceInfoResponse : deviceInfoResponses) {
 				if (mdmDeviceInfoResponse.getDeviceInfo() != null && !mdmDeviceInfoResponse.getDeviceInfo().isEmpty()) {
-					MdmDeviceInfo mdmDeviceInfo = mosipDeviceSpecificationHelper.getDeviceInfoDecoded(mdmDeviceInfoResponse.getDeviceInfo());
+					MdmDeviceInfo mdmDeviceInfo = mosipDeviceSpecificationHelper
+							.getDeviceInfoDecoded(mdmDeviceInfoResponse.getDeviceInfo());
 					MdmBioDevice bioDevice = getBioDevice(mdmDeviceInfo);
-					if(bioDevice != null) {
+					if (bioDevice != null) {
 						bioDevice.setPort(port);
 						mdmBioDevices.add(bioDevice);
 					}
@@ -114,6 +114,12 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 	public InputStream stream(MdmBioDevice bioDevice, String modality) throws RegBaseCheckedException {
 
 		try {
+
+			if (!isDeviceAvailable(bioDevice)) {
+				throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
+						RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage());
+			}
+
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Started Strema for modality : " + modality);
 			String url = mosipDeviceSpecificationHelper.buildUrl(bioDevice.getPort(),
 					MosipBioDeviceConstants.STREAM_ENDPOINT);
@@ -335,5 +341,74 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 
 		return deviceType;
 
+	}
+
+	@Override
+	public boolean isDeviceAvailable(MdmBioDevice mdmBioDevice) {
+
+		boolean isDeviceAvailable = false;
+
+		try {
+			DeviceDiscoveryRequest deviceDiscoveryRequest = new DeviceDiscoveryRequest();
+			deviceDiscoveryRequest.setType(mdmBioDevice.getDeviceType());
+
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					"Entering into Device availbale check....." + System.currentTimeMillis());
+
+			String requestBody = null;
+			ObjectMapper mapper = new ObjectMapper();
+			requestBody = mapper.writeValueAsString(deviceDiscoveryRequest);
+
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Request for RCapture...." + requestBody);
+
+			CloseableHttpClient client = HttpClients.createDefault();
+			StringEntity requestEntity = new StringEntity(requestBody,
+					ContentType.create("Content-Type", Consts.UTF_8));
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					"Bulding Device availbale check url...." + System.currentTimeMillis());
+
+			HttpUriRequest request = RequestBuilder.create("MOSIPDISC")
+					.setUri(mosipDeviceSpecificationHelper.buildUrl(mdmBioDevice.getPort(), "device"))
+					.setEntity(requestEntity).build();
+
+			CloseableHttpResponse response = client.execute(request);
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					"Request completed.... " + System.currentTimeMillis());
+
+			String val = EntityUtils.toString(response.getEntity());
+
+			if (val != null && !val.isEmpty()) {
+
+				List<DeviceDiscoveryMDSResponse> deviceList;
+
+				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+						"parsing device discovery response to 095 dto");
+				deviceList = (mosipDeviceSpecificationHelper.getMapper().readValue(val,
+						new TypeReference<List<DeviceDiscoveryMDSResponse>>() {
+						}));
+
+				if (deviceList != null && !deviceList.isEmpty()) {
+
+					for (DeviceDiscoveryMDSResponse device : deviceList) {
+
+						if (Arrays.asList(device.getSpecVersion()).contains(SPEC_VERSION)
+								&& RegistrationConstants.DEVICE_STATUS_READY.equalsIgnoreCase(device.getDeviceStatus())
+								&& device.getCertification().equals(mdmBioDevice.getCertification())
+								&& device.getDeviceCode().equals(mdmBioDevice.getDeviceCode())
+								&& device.getDeviceId().equals(mdmBioDevice.getDeviceId())) {
+
+							isDeviceAvailable = true;
+							break;
+
+						}
+					}
+				}
+			}
+
+		} catch (IOException exception) {
+			LOGGER.error(MOSIP_BIO_DEVICE_INTEGERATOR, APPLICATION_NAME, APPLICATION_ID,
+					ExceptionUtils.getStackTrace(exception));
+		}
+		return isDeviceAvailable;
 	}
 }

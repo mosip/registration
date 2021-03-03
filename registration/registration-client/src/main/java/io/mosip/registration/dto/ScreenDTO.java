@@ -1,12 +1,6 @@
 package io.mosip.registration.dto;
 
-import lombok.Data;
-
-import javafx.scene.Node;
-import lombok.Data;
-
-import javafx.scene.Node;
-import lombok.Data;
+import java.util.Map;
 
 import javafx.scene.Node;
 import lombok.Data;
@@ -14,7 +8,7 @@ import lombok.Data;
 @Data
 public class ScreenDTO {
 
-	private String screenName;
+	private Map<String, String> screenNames;
 	private String screenDesc;
 	private Node screenNode;
 

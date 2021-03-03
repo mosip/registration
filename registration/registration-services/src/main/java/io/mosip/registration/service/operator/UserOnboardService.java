@@ -42,32 +42,21 @@ public interface UserOnboardService {
 	 * method.
 	 * 
 	 *
-	 * @param biometricDTO {@code BiometricDTO} which holds the bio-metric
+	 * @param biometrics {@code BiometricDTO} which holds the bio-metric
 	 *                     information of the user.
 	 * 
 	 * @return {@code ResponseDTO} based on the result the response DTO will be
 	 *         formed and return to the caller.
 	 * @throws RegBaseCheckedException 
 	 */
-	//ResponseDTO validate(BiometricDTO biometricDTO) throws RegBaseCheckedException;
-	
+
 	ResponseDTO validateWithIDAuthAndSave(List<BiometricsDto> biometrics) throws RegBaseCheckedException;
 	
-	/**
-	 * This method performs to get center-id and machine-id from db.
-	 * 
-	 * First the machine mac-id will be picked up , The center-id will be picked up
-	 * based on the mac-id of the machine.
-	 * 
-	 * @return {@code Map} Result will be a map contains machine-id,center-id and
-	 *         return to the caller.
-	 */
-	Map<String,String> getMachineCenterId();
-		
+
 	/**
 	 * Gets the last updated operator bio-metric date time.
 	 *
-	 * @param usrID the usr ID
+	 * @param usrId the usr ID
 	 * @return the last updated operator bio-metric date time
 	 */
 	Timestamp getLastUpdatedTime(String usrId);
