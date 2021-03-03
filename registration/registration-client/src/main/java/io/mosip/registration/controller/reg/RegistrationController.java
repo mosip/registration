@@ -6,6 +6,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -111,6 +112,8 @@ public class RegistrationController extends BaseController {
 
 	@Autowired
 	private IdentitySchemaService identitySchemaService;
+
+	private List<String> selectedLangList = new LinkedList<>();
 
 	/*
 	 * (non-Javadoc)
@@ -542,5 +545,13 @@ public class RegistrationController extends BaseController {
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_HOME_PAGE);
 		}
 
+	}
+
+	public List<String> getSelectedLangList() {
+		return selectedLangList;
+	}
+
+	public void setSelectedLangList(List<String> selectedLangList) {
+		this.selectedLangList = selectedLangList;
 	}
 }
