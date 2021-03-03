@@ -1900,7 +1900,7 @@ public class BaseController {
 
 	}
 
-		public boolean proceedOnAction(String job) {
+	public boolean proceedOnAction(String job) {
 		if (isPrimaryOrSecondaryLanguageEmpty()) {
 			generateAlert(RegistrationConstants.ERROR,
 					RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
@@ -1919,27 +1919,29 @@ public class BaseController {
 
 		try {
 			switch (job) {
-				case "MS" :
-					baseService.proceedWithMasterAndKeySync(null);
-					break;
-				case "PS":
-					baseService.proceedWithPacketSync();
-					break;
-				case "RM":
-					baseService.proceedWithMachineCenterRemap();
-					break;
-				case "OU" :
-					baseService.proceedWithOperatorOnboard();
-					break;
-				default:
-					baseService.proceedWithMasterAndKeySync(job);
-					break;
+			case "MS":
+				baseService.proceedWithMasterAndKeySync(null);
+				break;
+			case "PS":
+				baseService.proceedWithPacketSync();
+				break;
+			case "RM":
+				baseService.proceedWithMachineCenterRemap();
+				break;
+			case "OU":
+				baseService.proceedWithOperatorOnboard();
+				break;
+			default:
+				baseService.proceedWithMasterAndKeySync(job);
+				break;
 			}
-		} catch (PreConditionCheckException ex){
+		} catch (PreConditionCheckException ex) {
+			ResourceBundle resourceBundle = applicationContext.getBundle(applicationContext.getApplicationLanguage(),
+					RegistrationConstants.MESSAGES);
+
 			generateAlert(RegistrationConstants.ERROR,
-					ApplicationContext.applicationMessagesBundle().containsKey(ex.getErrorCode()) ?
-							ApplicationContext.applicationMessagesBundle().getString(ex.getErrorCode()) :
-							ex.getErrorCode());
+					resourceBundle.containsKey(ex.getErrorCode()) ? resourceBundle.getString(ex.getErrorCode())
+							: ex.getErrorCode());
 			return false;
 		}
 		return true;
@@ -1954,11 +1956,14 @@ public class BaseController {
 
 		try {
 			baseService.proceedWithRegistration();
-		} catch (PreConditionCheckException ex){
+		} catch (PreConditionCheckException ex) {
+
+			ResourceBundle resourceBundle = applicationContext.getBundle(applicationContext.getApplicationLanguage(),
+					RegistrationConstants.MESSAGES);
+
 			generateAlert(RegistrationConstants.ERROR,
-					ApplicationContext.applicationMessagesBundle().containsKey(ex.getErrorCode()) ?
-							ApplicationContext.applicationMessagesBundle().getString(ex.getErrorCode()) :
-							ex.getErrorCode());
+					resourceBundle.containsKey(ex.getErrorCode()) ? resourceBundle.getString(ex.getErrorCode())
+							: ex.getErrorCode());
 			return false;
 		}
 		return true;
