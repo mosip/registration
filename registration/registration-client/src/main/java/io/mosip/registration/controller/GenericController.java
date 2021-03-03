@@ -183,6 +183,8 @@ public class GenericController extends BaseController {
 
 	private static String NON_CLICKABLE = "paginationLabel";
 
+	private ApplicationContext applicationContext = ApplicationContext.getInstance();
+
 	/**
 	 * 
 	 * Populate the screens with fields
@@ -227,12 +229,13 @@ public class GenericController extends BaseController {
 				UiScreenDTO screenDTO = new UiScreenDTO();
 				screenDTO.setFields(getValidationMap().keySet().stream().collect(Collectors.toList()));
 				screenDTO.getFields().remove("UIN");
-				screenDTO.setName("Resident Information");
+				screenDTO.setName(RegistrationConstants.Resident_Information);
 				HashMap<String, String> label = new HashMap<>();
 				label.put(ApplicationContext.applicationLanguage(),
-						ApplicationContext.applicationLanguageBundle().getString("defaultHeader"));
-				label.put(ApplicationContext.localLanguage(),
-						ApplicationContext.localLanguageBundle().getString("defaultHeader"));
+						applicationContext
+								.getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS)
+								.getString("defaultHeader"));
+
 				screenDTO.setLabel(label);
 				screenDTO.setOrder("1");
 
@@ -354,83 +357,69 @@ public class GenericController extends BaseController {
 
 							FlowPane primaryLangFlowPane = new FlowPane();
 							primaryLangFlowPane.setHgap(15);
-							FlowPane secondaryLangFlowPane = new FlowPane();
-							secondaryLangFlowPane.setHgap(15);
-							
+//							FlowPane secondaryLangFlowPane = new FlowPane();
+//							secondaryLangFlowPane.setHgap(15);
+
 							for (FxControl fxControl : fxControlGroup) {
 								if (fxControl != null && fxControl.getNode() != null) {
-									Map<String, Object> nodeMap = fxControl.getNodeMap();
-									if (nodeMap.size() > 1) {
-										secondaryLangFlowPane.getChildren().add((Node) nodeMap.get(ApplicationContext.getInstance().getLocalLanguage()));
-									}
-									primaryLangFlowPane.getChildren().add((Node) nodeMap.get(ApplicationContext.getInstance().getApplicationLanguage()));
-									fxControl.setNode(middleGridpane);
+//									Map<String, Object> nodeMap = fxControl.getNodeMap();
+//									if (nodeMap.size() > 1) {
+//										secondaryLangFlowPane.getChildren().add((Node) nodeMap
+//												.get(ApplicationContext.getInstance().getLocalLanguage()));
+//									}
+									primaryLangFlowPane.getChildren().add(fxControl.getNode());
+//									fxControl.setNode(middleGridpane);
 								}
-							}							
-
-							if (!secondaryLangFlowPane.getChildren().isEmpty()) {
-								middleGridpane.getColumnConstraints().clear();
-								ColumnConstraints middleGridpaneColumnConstraint1 = new ColumnConstraints();
-								middleGridpaneColumnConstraint1.setPercentWidth(45);
-								ColumnConstraints middleGridpaneColumnConstraint2 = new ColumnConstraints();
-								middleGridpaneColumnConstraint2.setPercentWidth(10);
-								ColumnConstraints middleGridpaneColumnConstraint3 = new ColumnConstraints();
-								middleGridpaneColumnConstraint3.setPercentWidth(45);
-
-								middleGridpane.getColumnConstraints().addAll(middleGridpaneColumnConstraint1,
-										middleGridpaneColumnConstraint2, middleGridpaneColumnConstraint3);
-								middleGridpane.add(secondaryLangFlowPane, 2, 0);
-								middleGridpane.add(primaryLangFlowPane, 0, 0);
-							} else {
-								middleGridpane.getColumnConstraints().clear();								
-								ColumnConstraints middleGridpaneColumnConstraint1 = new ColumnConstraints();
-								middleGridpaneColumnConstraint1.setPercentWidth(100);
-								middleGridpane.getColumnConstraints().add(middleGridpaneColumnConstraint1);
-								middleGridpane.add(primaryLangFlowPane, 0, 0);
 							}
+
+							middleGridpane.getColumnConstraints().clear();
+							ColumnConstraints middleGridpaneColumnConstraint1 = new ColumnConstraints();
+							middleGridpaneColumnConstraint1.setPercentWidth(100);
+							middleGridpane.getColumnConstraints().add(middleGridpaneColumnConstraint1);
+							middleGridpane.add(primaryLangFlowPane, 0, 0);
+
 							rowGridPane.add(middleGridpane, 1, 0);
 
 							screenGridPane.add(rowGridPane, 0, count++);
 						}
+
+						fieldMap.put(screenMap.size(), screenFields);
 					}
-					fieldMap.put(screenMap.size(), screenFields);
 				}
-
-				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Loading Locations");
-				for (Entry<String, TreeMap<Integer, FxControl>> locatioEntrySet : locationMap.entrySet()) {
-
-					TreeMap<Integer, FxControl> treeMap = locatioEntrySet.getValue();
-
-					Entry<Integer, FxControl> val = treeMap.firstEntry();
-					try {
-
-						Map<String, Object> data = new LinkedHashMap<>();
-
-						data.put(RegistrationConstants.PRIMARY, masterSyncService
-								.findLocationByHierarchyCode(val.getKey(), ApplicationContext.applicationLanguage()));
-						data.put(RegistrationConstants.SECONDARY, masterSyncService
-								.findLocationByHierarchyCode(val.getKey(), ApplicationContext.localLanguage()));
-
-						val.getValue().fillData(data);
-					} catch (RegBaseCheckedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-
-				}
-				currentPage = 1;
-
-				addPagination(null, 0);
-
-				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refreshing fields");
-				refreshFields();
-
-				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Showing current Page");
-				showCurrentPage();
 			}
-		} catch (
 
-		RegBaseCheckedException exception) {
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Loading Locations");
+			for (Entry<String, TreeMap<Integer, FxControl>> locatioEntrySet : locationMap.entrySet()) {
+
+				TreeMap<Integer, FxControl> treeMap = locatioEntrySet.getValue();
+
+				Entry<Integer, FxControl> val = treeMap.firstEntry();
+				try {
+
+					Map<String, Object> data = new LinkedHashMap<>();
+
+					String lang = registrationController.getSelectedLangList().get(0);
+
+					data.put(lang, masterSyncService.findLocationByHierarchyCode(val.getKey(), lang));
+
+					val.getValue().fillData(data);
+				} catch (RegBaseCheckedException regBaseCheckedException) {
+
+					LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+							ExceptionUtils.getStackTrace(regBaseCheckedException));
+				}
+
+			}
+			currentPage = 1;
+
+			addPagination(null, 0);
+
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refreshing fields");
+			refreshFields();
+
+			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Showing current Page");
+			showCurrentPage();
+		} catch (RegBaseCheckedException exception) {
 
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 					"Failed to load dynamic fields " + ExceptionUtils.getStackTrace(exception));
@@ -457,15 +446,25 @@ public class GenericController extends BaseController {
 
 	private void addPagination(ScreenDTO screenDTO, int columnCount) {
 		if (screenDTO == null) {
-			Label previewLabel = getLabel(String.valueOf(screenMap.size() + 1),
-					ApplicationContext.applicationLanguageBundle().getString("previewHeader") + " / "
-							+ ApplicationContext.localLanguageBundle().getString("previewHeader"),
+
+			String previewText = "";
+			String authText = "";
+			for (String langCode : registrationController.getSelectedLangList()) {
+				previewText = previewText.isEmpty() ? previewText : previewText + RegistrationConstants.SLASH;
+				previewText += applicationContext.getBundle(langCode, RegistrationConstants.LABELS)
+						.getString(RegistrationConstants.previewHeader);
+
+				authText = authText.isEmpty() ? authText : authText + RegistrationConstants.SLASH;
+				authText += applicationContext.getBundle(langCode, RegistrationConstants.LABELS)
+						.getString(RegistrationConstants.authentication);
+
+			}
+
+			Label previewLabel = getLabel(String.valueOf(screenMap.size() + 1), previewText,
 					RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, 100);
 			previewLabel.getStyleClass().addAll(NON_CLICKABLE);
 
-			Label ackLabel = getLabel(String.valueOf(screenMap.size() + 2),
-					ApplicationContext.applicationLanguageBundle().getString("authentication") + " / "
-							+ ApplicationContext.localLanguageBundle().getString("authentication"),
+			Label ackLabel = getLabel(String.valueOf(screenMap.size() + 2), authText,
 					RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, 150);
 			ackLabel.getStyleClass().addAll(NON_CLICKABLE);
 
@@ -491,8 +490,17 @@ public class GenericController extends BaseController {
 	}
 
 	private String getScreenLabel(Map<String, String> screenNames) {
-		return screenNames.get(ApplicationContext.applicationLanguage()) + " / "
-				+ screenNames.get(ApplicationContext.localLanguage());
+
+		String labelText = "";
+
+		for (String langCode : registrationController.getSelectedLangList()) {
+
+			if (screenNames.containsKey(langCode)) {
+
+				labelText = labelText.isEmpty() ? labelText : screenNames.get(langCode) + RegistrationConstants.SLASH;
+			}
+		}
+		return labelText;
 	}
 
 	private void addNavListener(Label label) {
@@ -591,15 +599,16 @@ public class GenericController extends BaseController {
 				return new BiometricFxControl().build(uiSchemaDTO);
 			case CONTROLTYPE_BUTTON:
 				FxControl buttonFxControl = new ButtonFxControl().build(uiSchemaDTO);
-				Map<String, Object> buttonsData = new LinkedHashMap<>();
 
 				try {
-					buttonsData.put(RegistrationConstants.PRIMARY, masterSyncService.getFieldValues(uiSchemaDTO.getId(),
-							ApplicationContext.applicationLanguage()));
-					buttonsData.put(RegistrationConstants.SECONDARY,
-							masterSyncService.getFieldValues(uiSchemaDTO.getId(), ApplicationContext.localLanguage()));
 
-					buttonFxControl.fillData(buttonsData);
+					Map<String, Object> data = new LinkedHashMap<>();
+
+					String lang = registrationController.getSelectedLangList().get(0);
+
+					data.put(lang, masterSyncService.getFieldValues(uiSchemaDTO.getId(), lang));
+
+					buttonFxControl.fillData(data);
 				} catch (RegBaseCheckedException regBaseCheckedException) {
 					LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 							"Exception occured while fetching button values : " + uiSchemaDTO.getId() + " "
@@ -631,10 +640,11 @@ public class GenericController extends BaseController {
 				} else {
 					Map<String, Object> data = new LinkedHashMap<>();
 					try {
-						data.put(RegistrationConstants.PRIMARY, masterSyncService.getFieldValues(uiSchemaDTO.getId(),
-								ApplicationContext.applicationLanguage()));
-						data.put(RegistrationConstants.SECONDARY, masterSyncService.getFieldValues(uiSchemaDTO.getId(),
-								ApplicationContext.localLanguage()));
+
+						String lang = registrationController.getSelectedLangList().get(0);
+
+						data.put(lang, masterSyncService.getFieldValues(uiSchemaDTO.getId(), lang));
+
 					} catch (RegBaseCheckedException regBaseCheckedException) {
 						LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 								"Exception occured while fetching dropdown values : " + uiSchemaDTO.getId() + " "

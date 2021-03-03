@@ -52,20 +52,19 @@ public abstract class FxControl extends Node {
 		this.node = node;
 	}
 
-	protected DemographicDetailController demographicDetailController;
 	protected AuditManagerService auditFactory;
 
 	protected RequiredFieldValidator requiredFieldValidator;
 
-	protected Map<String, Object> nodeMap;
-
-	public Map<String, Object> getNodeMap() {
-		return nodeMap;
-	}
-
-	public void setNodeMap(Map<String, Object> nodeMap) {
-		this.nodeMap = nodeMap;
-	}
+//	protected Map<String, Object> nodeMap;
+//
+//	public Map<String, Object> getNodeMap() {
+//		return nodeMap;
+//	}
+//
+//	public void setNodeMap(Map<String, Object> nodeMap) {
+//		this.nodeMap = nodeMap;
+//	}
 
 	public void refreshFields() {
 
@@ -217,7 +216,7 @@ public abstract class FxControl extends Node {
 		label.setText(titleText);
 		label.getStyleClass().add(styleClass);
 		label.setVisible(isVisible);
-		//label.setPrefWidth(prefWidth);
+		// label.setPrefWidth(prefWidth);
 		return label;
 	}
 
@@ -239,31 +238,19 @@ public abstract class FxControl extends Node {
 		}
 		try {
 			return requiredFieldValidator.isFieldVisible(schemaDTO, getRegistrationDTo());
-		} catch (RegBaseCheckedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (RegBaseCheckedException regBaseCheckedException) {
+			LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					ExceptionUtils.getStackTrace(regBaseCheckedException));
 		}
 
 		return true;
 	}
 
-	protected void changeNodeOrientation(Node node, String langType) {
-		String langCode = langType.equalsIgnoreCase(RegistrationConstants.LOCAL_LANGUAGE)
-				? ApplicationContext.secondaryLanguageLocal()
-				: ApplicationContext.primaryLanguageLocal();
-		String langauages = (String) ApplicationContext.map()
-				.getOrDefault(RegistrationConstants.RIGHT_TO_LEFT_ORIENTATION_LANGUAGES, "ar");
-		if (langauages.contains(langCode)) {
+	protected void changeNodeOrientation(Node node, String langCode) {
+
+		if (ApplicationContext.getInstance().isLanguageRightToLeft(langCode)) {
 			node.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
 		}
-	}
-
-	public String getLocalLanguage() {
-		return ApplicationContext.getInstance().getLocalLanguage();
-	}
-
-	public String getAppLanguage() {
-		return ApplicationContext.getInstance().getApplicationLanguage();
 	}
 
 	protected FxControl getFxControl(String fieldId) {

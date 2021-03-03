@@ -5,7 +5,6 @@ package io.mosip.registration.util.control.impl;
 
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +17,6 @@ import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.controller.FXUtils;
 import io.mosip.registration.controller.Initialization;
 import io.mosip.registration.controller.VirtualKeyboard;
-import io.mosip.registration.controller.reg.DemographicDetailController;
 import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
@@ -29,6 +27,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -52,7 +51,6 @@ public class TextFieldFxControl extends FxControl {
 	public TextFieldFxControl() {
 
 		ApplicationContext applicationContext = Initialization.getApplicationContext();
-		this.demographicDetailController = applicationContext.getBean(DemographicDetailController.class);
 
 //		resourceLoader = applicationContext.getBean(ResourceLoader.class);
 		validation = applicationContext.getBean(Validations.class);
@@ -72,24 +70,29 @@ public class TextFieldFxControl extends FxControl {
 		HBox hBox = new HBox();
 		hBox.getChildren().add(primaryLangVBox);
 //		HBox.setHgrow(primaryLangVBox, Priority.ALWAYS);
-		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
-		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(),
-				primaryLangVBox);
+//		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
+//		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(),
+//				primaryLangVBox);
 
-		this.node = hBox;
-		if (demographicDetailController.isLocalLanguageAvailable()
-				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
-			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
+		// TODO
+//		1. Label with slash appended with languages
+//		2. create textbox with validation message for all languages
+//		3. If type is not a simple type then create only one textbox with validation message
 
-//			HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
-			hBox.getChildren().addAll(secondaryLangVBox);
+//		this.node = hBox;
+//		if (demographicDetailController.isLocalLanguageAvailable()
+//				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
+//			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
+//
+////			HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
+//			hBox.getChildren().addAll(secondaryLangVBox);
+//
+//			nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage(),
+//					secondaryLangVBox);
+//			setListener((TextField) getField(uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE));
+//		}
 
-			nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage(),
-					secondaryLangVBox);
-			setListener((TextField) getField(uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE));
-		}
-
-		setNodeMap(nodeMap);
+//		setNodeMap(nodeMap);
 		setListener((TextField) getField(uiSchemaDTO.getId()));
 
 //		controlMap.put(RegistrationConstants.FX_CONTROL, this.control);
@@ -118,15 +121,26 @@ public class TextFieldFxControl extends FxControl {
 
 		if (this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE)) {
 
-			TextField appLangTextField = (TextField) getField(uiSchemaDTO.getId());
-			TextField localLangTextField = (TextField) getField(
-					uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE);
-			String primaryLang = getAppLanguage();
-			String primaryVal = appLangTextField != null ? appLangTextField.getText() : null;
-			String localLanguage = getLocalLanguage();
-			String localVal = localLangTextField != null ? localLangTextField.getText() : null;
+			// 1.Iterate over the selected languages and get textfield
+			// 2. prepare simpleDto
+			// 3. add to list
+			// 4. add to session
 
-			registrationDTO.addDemographicField(uiSchemaDTO.getId(), primaryLang, primaryVal, localLanguage, localVal);
+			/*
+			 * Example List<SimpleDto> values = new ArrayList<SimpleDto>(); if (value !=
+			 * null && !value.isEmpty()) values.add(new SimpleDto(applicationLanguage,
+			 * value));
+			 */
+
+//			TextField appLangTextField = (TextField) getField(uiSchemaDTO.getId());
+//			TextField localLangTextField = (TextField) getField(
+//					uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE);
+//			String primaryLang = getAppLanguage();
+//			String primaryVal = appLangTextField != null ? appLangTextField.getText() : null;
+//			String localLanguage = getLocalLanguage();
+//			String localVal = localLangTextField != null ? localLangTextField.getText() : null;
+//
+//			registrationDTO.addDemographicField(uiSchemaDTO.getId(), primaryLang, primaryVal, localLanguage, localVal);
 
 		} else {
 			registrationDTO.addDemographicField(uiSchemaDTO.getId(),
@@ -153,8 +167,7 @@ public class TextFieldFxControl extends FxControl {
 				if (uiSchemaDTO != null) {
 					LOGGER.info(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 							"Invoking external action handler for .... " + uiSchemaDTO.getId());
-					demographicChangeActionHandler
-							.actionHandle((Pane) getNode(), node.getId(),
+					demographicChangeActionHandler.actionHandle((Pane) getNode(), node.getId(),
 							uiSchemaDTO.getChangeAction());
 				}
 
@@ -217,7 +230,7 @@ public class TextFieldFxControl extends FxControl {
 		}
 
 		changeNodeOrientation(simpleTypeVBox, languageType);
-		
+
 		return simpleTypeVBox;
 	}
 
@@ -226,10 +239,11 @@ public class TextFieldFxControl extends FxControl {
 
 		if (keyBoardImgView != null) {
 			keyBoardImgView.setOnMouseClicked((event) -> {
-				demographicDetailController.setFocusonLocalField(event);
+				setFocusonLocalField(event);
 			});
 
-			VirtualKeyboard keyBoard = VirtualKeyboard.getInstance();
+			// TODO Check lang value
+			VirtualKeyboard keyBoard = new VirtualKeyboard(null);
 			keyBoard.view();
 			keyBoard.changeControlOfKeyboard(textField);
 
@@ -250,7 +264,7 @@ public class TextFieldFxControl extends FxControl {
 		textField.setId(id);
 		textField.setPromptText(titleText);
 		textField.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
-		//textField.setPrefWidth(prefWidth);
+		// textField.setPrefWidth(prefWidth);
 		textField.setDisable(isDisable);
 
 		return textField;
@@ -358,19 +372,59 @@ public class TextFieldFxControl extends FxControl {
 
 			for (SimpleDto simpleDto : list) {
 
-				if (simpleDto.getLanguage().equalsIgnoreCase(
-						io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage())) {
+				// TODO iterate through selected language list,, and set values for what has
+				// been fetched from map
 
-					appLangTextField.setText(simpleDto.getValue());
-				} else if (localLangTextField != null && simpleDto.getLanguage().equalsIgnoreCase(
-						io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage())) {
-
-					localLangTextField.setText(simpleDto.getValue());
-				}
+//				if (simpleDto.getLanguage().equalsIgnoreCase(
+//						io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage())) {
+//
+//					appLangTextField.setText(simpleDto.getValue());
+//				} else if (localLangTextField != null && simpleDto.getLanguage().equalsIgnoreCase(
+//						io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage())) {
+//
+//					localLangTextField.setText(simpleDto.getValue());
+//				}
 			}
 
 		}
 
 	}
 
+	/**
+	 *
+	 * Setting the focus to specific fields when keyboard loads
+	 *
+	 */
+	public void setFocusonLocalField(MouseEvent event) {
+
+		// Set foucus field
+//		try {
+//			Node node = (Node) event.getSource();
+//			if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
+//				node.requestFocus();
+//				keyboardNode.setVisible(true);
+//				keyboardNode.setManaged(true);
+//				//addKeyboard(positionTracker.get((node.getId() + "ParentGridPane")) + 1);
+//				Node parentNode = node.getParent().getParent();
+//				if (keyboardVisible) {
+//					if(previousNode != null) {
+//						((VBox)previousNode).getChildren().remove(lastPosition - 1);
+//					}
+//					keyboardVisible = false;
+//				} else {
+//					listOfTextField.get(node.getId() + "LocalLanguage").requestFocus();
+//					GridPane gridPane = prepareMainGridPaneForKeyboard();
+//					gridPane.addColumn(1, keyboardNode);
+//					((VBox)parentNode).getChildren().add(gridPane);
+//					previousNode = parentNode;
+//					keyboardVisible = true;
+//					lastPosition = ((VBox)parentNode).getChildren().size();
+//				}
+//			}
+//		} catch (RuntimeException runtimeException) {
+//			LOGGER.error("REGISTRATION - SETTING FOCUS ON LOCAL FIELD FAILED", APPLICATION_NAME,
+//					RegistrationConstants.APPLICATION_ID,
+//					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
+//		}
+	}
 }

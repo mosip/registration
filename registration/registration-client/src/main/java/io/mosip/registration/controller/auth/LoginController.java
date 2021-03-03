@@ -11,18 +11,20 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
 
-import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.constants.ApplicationLanguages;
 import io.mosip.registration.constants.AuditEvent;
 import io.mosip.registration.constants.AuditReferenceIdTypes;
 import io.mosip.registration.constants.Components;
@@ -55,6 +57,7 @@ import io.mosip.registration.update.SoftwareUpdateHandler;
 import io.mosip.registration.util.common.OTPManager;
 import io.mosip.registration.util.common.PageFlow;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
@@ -64,6 +67,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
@@ -140,7 +144,7 @@ public class LoginController extends BaseController implements Initializable {
 
 	@FXML
 	private Hyperlink forgotUsrnme;
-	
+
 	@FXML
 	private Hyperlink forgotPword;
 
@@ -201,11 +205,22 @@ public class LoginController extends BaseController implements Initializable {
 	@FXML
 	private Label versionValueLabel;
 
+	@FXML
+	private ComboBox<String> appLanguage;
+
+	@Value("${mosip.mandatory-languages}")
+	private String mandatoryLanguages;
+
+	@Value("${mosip.optional-languages}")
+	private String optionalLanguages;
+
 	@Autowired
 	private MosipDeviceSpecificationFactory deviceSpecificationFactory;
 
 	@Autowired
 	private AuthTokenUtilService authTokenUtilService;
+
+	private String userName;
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
@@ -228,6 +243,19 @@ public class LoginController extends BaseController implements Initializable {
 		}).start();
 
 		try {
+			appLanguage.getItems().addAll(getLanguagesList());
+			appLanguage.getSelectionModel()
+					.select(ApplicationLanguages.getLanguageByLangCode(ApplicationContext.applicationLanguage()));
+
+			RegistrationUIConstants.setBundle();
+			appLanguage.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
+				if (!oldValue.equalsIgnoreCase(newValue)) {
+					userName = userId.getText();
+					ApplicationContext.getInstance()
+							.setApplicationLanguage(ApplicationLanguages.getLangCodeByLanguage(newValue));
+					loadInitialScreen(getStage());
+				}
+			});
 			isInitialSetUp = RegistrationConstants.ENABLE
 					.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.INITIAL_SETUP));
 
@@ -260,6 +288,21 @@ public class LoginController extends BaseController implements Initializable {
 		}
 	}
 
+	private List<String> getLanguagesList() {
+		List<String> languages = new ArrayList<>();
+		List<String> langCodes = Arrays
+				.asList(((mandatoryLanguages != null ? mandatoryLanguages : RegistrationConstants.EMPTY)
+						.concat(RegistrationConstants.COMMA)
+						.concat((optionalLanguages != null ? optionalLanguages : RegistrationConstants.EMPTY)))
+								.split(RegistrationConstants.COMMA));
+		for (String langCode : langCodes) {
+			if (!langCode.isBlank()) {
+				languages.add(ApplicationLanguages.getLanguageByLangCode(langCode));
+			}
+		}
+		return languages;
+	}
+
 	/**
 	 * To get the Sequence of which Login screen to be displayed
 	 * 
@@ -276,6 +319,8 @@ public class LoginController extends BaseController implements Initializable {
 		 */
 		ApplicationContext.loadResources();
 
+		RegistrationUIConstants.setBundle();
+
 		try {
 
 			LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, "Retrieve Login mode");
@@ -290,23 +335,18 @@ public class LoginController extends BaseController implements Initializable {
 
 			hasUpdate = RegistrationConstants.ENABLE.equalsIgnoreCase(
 					getValueFromApplicationContext(RegistrationConstants.IS_SOFTWARE_UPDATE_AVAILABLE));
-//			if (hasUpdate) {
-//
-//				// Update Application
-//				headerController.softwareUpdate(loginRoot, progressIndicator, RegistrationUIConstants.UPDATE_LATER,
-//						isInitialSetUp);
-//
-//			} else if (!isInitialSetUp) {
-//				executePreLaunchTask(loginRoot, progressIndicator);
-//				boolean isPrimaryOrSecondaryLanguageEmpty = ApplicationContext.loadResources();
-//				if (isPrimaryOrSecondaryLanguageEmpty) {
-//					generateAlert(RegistrationConstants.ERROR,
-//							RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
-//					return;
-//				}
-//				jobConfigurationService.startScheduler();
-//
-//			}
+			if (hasUpdate) {
+
+				// Update Application
+				headerController.softwareUpdate(loginRoot, progressIndicator, RegistrationUIConstants.UPDATE_LATER,
+						isInitialSetUp);
+
+			} else if (!isInitialSetUp) {
+				executePreLaunchTask(loginRoot, progressIndicator);
+
+				jobConfigurationService.startScheduler();
+
+			}
 
 		} catch (IOException ioException) {
 
@@ -332,9 +372,13 @@ public class LoginController extends BaseController implements Initializable {
 		scene = getScene(loginRoot);
 		loadUIElementsFromSchema();
 		pageFlow.loadPageFlow();
-		
+
+		if (userName != null) {
+			userId.setText(userName);
+			userName = null;
+		}
 		forgotUsrnme.setVisible(ApplicationContext.map().containsKey(RegistrationConstants.FORGOT_USERNAME_URL));
-		
+
 		Screen screen = Screen.getPrimary();
 		Rectangle2D bounds = screen.getVisualBounds();
 		primaryStage.setX(bounds.getMinX());
@@ -867,7 +911,8 @@ public class LoginController extends BaseController implements Initializable {
 		forgotUsrnme.setOnAction(e -> {
 			if (Desktop.isDesktopSupported()) {
 				try {
-					Desktop.getDesktop().browse(new URI(ApplicationContext.getStringValueFromApplicationMap(RegistrationConstants.FORGOT_USERNAME_URL)));
+					Desktop.getDesktop().browse(new URI(ApplicationContext
+							.getStringValueFromApplicationMap(RegistrationConstants.FORGOT_USERNAME_URL)));
 				} catch (IOException ioException) {
 					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 							ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
@@ -875,10 +920,10 @@ public class LoginController extends BaseController implements Initializable {
 					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 							uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
 				}
-			}			
+			}
 		});
 	}
-	
+
 	/**
 	 * Redirects to mosip.io in case of user forgot pword
 	 * 
@@ -888,7 +933,8 @@ public class LoginController extends BaseController implements Initializable {
 		forgotPword.setOnAction(e -> {
 			if (Desktop.isDesktopSupported()) {
 				try {
-					String url = ApplicationContext.getStringValueFromApplicationMap(RegistrationConstants.FORGOT_PWORD_URL);
+					String url = ApplicationContext
+							.getStringValueFromApplicationMap(RegistrationConstants.FORGOT_PWORD_URL);
 					if (url.toUpperCase().contains(RegistrationConstants.EMAIL_PLACEHOLDER)) {
 						UserDTO userDTO = loginService.getUserDetail(userId.getText());
 						url = url.replace(RegistrationConstants.EMAIL_PLACEHOLDER, userDTO.getEmail());
@@ -908,8 +954,8 @@ public class LoginController extends BaseController implements Initializable {
 	/**
 	 * Loading next login screen in case of multifactor authentication
 	 * 
-	 * @param userDTO the userDetail
-	 * @param loginMode  the loginMode
+	 * @param userDTO   the userDetail
+	 * @param loginMode the loginMode
 	 */
 	private void loadNextScreen(UserDTO userDTO, String loginMode) {
 
@@ -996,7 +1042,8 @@ public class LoginController extends BaseController implements Initializable {
 
 						LOGGER.info("REGISTRATION - INITIAL_SYNC - LOGIN_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 								"Handling all the sync activities before login");
-						if(RegistrationAppHealthCheckUtil.isNetworkAvailable() && ( isInitialSetUp || authTokenUtilService.hasAnyValidToken() ))
+						if (RegistrationAppHealthCheckUtil.isNetworkAvailable()
+								&& (isInitialSetUp || authTokenUtilService.hasAnyValidToken()))
 							return loginService.initialSync(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
 						else {
 							List<String> list = new ArrayList<>();
@@ -1048,7 +1095,7 @@ public class LoginController extends BaseController implements Initializable {
 	/**
 	 * Validating invalid number of login attempts
 	 * 
-	 * @param userDTO user details
+	 * @param userDTO      user details
 	 * @param errorMessage
 	 * @return boolean
 	 */
@@ -1090,7 +1137,6 @@ public class LoginController extends BaseController implements Initializable {
 		return validate;
 
 	}
-
 
 	/**
 	 * Redirects to mosip username page
