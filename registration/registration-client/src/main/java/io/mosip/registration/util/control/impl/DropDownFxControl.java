@@ -47,7 +47,6 @@ public class DropDownFxControl extends FxControl {
 	public DropDownFxControl() {
 
 		ApplicationContext applicationContext = Initialization.getApplicationContext();
-		this.demographicDetailController = applicationContext.getBean(DemographicDetailController.class);
 
 		validation = applicationContext.getBean(Validations.class);
 		demographicChangeActionHandler = applicationContext.getBean(DemographicChangeActionHandler.class);
@@ -72,23 +71,23 @@ public class DropDownFxControl extends FxControl {
 		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
 		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(),
 				primaryLangVBox);
-		if (demographicDetailController.isLocalLanguageAvailable()
-				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
+//		if (demographicDetailController.isLocalLanguageAvailable()
+//				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
 
-			languageType = RegistrationConstants.LOCAL_LANGUAGE;
-			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
+		languageType = RegistrationConstants.LOCAL_LANGUAGE;
+		VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
 
 //			Region region = new Region();
 //			HBox.setHgrow(region, Priority.ALWAYS);
 
 //			HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
-			hBox.getChildren().add(secondaryLangVBox);
-			nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage(),
-					secondaryLangVBox);
+		hBox.getChildren().add(secondaryLangVBox);
+//		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage(),
+//				secondaryLangVBox);
 
-		}
-
-		setNodeMap(nodeMap);
+//		}
+//
+//		setNodeMap(nodeMap);
 		this.node = hBox;
 		setListener(node);
 		return this.control;
@@ -158,13 +157,13 @@ public class DropDownFxControl extends FxControl {
 		ComboBox<GenericDto> localComboBox = (ComboBox<GenericDto>) getField(
 				uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE);
 
-		String primaryVal = appComboBox != null && appComboBox.getValue() != null ? appComboBox.getValue().getName()
-				: null;
-		String localVal = localComboBox != null && localComboBox.getValue() != null ? localComboBox.getValue().getName()
-				: null;
-
-		getRegistrationDTo().addDemographicField(uiSchemaDTO.getId(), getAppLanguage(), primaryVal, getLocalLanguage(),
-				localVal);
+//		String primaryVal = appComboBox != null && appComboBox.getValue() != null ? appComboBox.getValue().getName()
+//				: null;
+//		String localVal = localComboBox != null && localComboBox.getValue() != null ? localComboBox.getValue().getName()
+//				: null;
+//
+//		getRegistrationDTo().addDemographicField(uiSchemaDTO.getId(), getAppLanguage(), primaryVal, getLocalLanguage(),
+//				localVal);
 	}
 
 	@Override
@@ -189,18 +188,23 @@ public class DropDownFxControl extends FxControl {
 				.addListener((options, oldValue, newValue) -> {
 					if (isValid(getField(uiSchemaDTO.getId()))) {
 
-						FXUtils.getInstance().toggleUIField((Pane) getNode(), uiSchemaDTO.getId() + RegistrationConstants.LABEL, true);
+						FXUtils.getInstance().toggleUIField((Pane) getNode(),
+								uiSchemaDTO.getId() + RegistrationConstants.LABEL, true);
 
-						FXUtils.getInstance().toggleUIField((Pane) getNode(), uiSchemaDTO.getId() + RegistrationConstants.MESSAGE, false);
-						if (!demographicDetailController.isAppLangAndLocalLangSame()) {
-							ComboBox<GenericDto> appComboBox = (ComboBox<GenericDto>) getField(uiSchemaDTO.getId());
-							ComboBox<GenericDto> localComboBox = (ComboBox<GenericDto>) getField(
-									uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE);
-							
-							FXUtils.getInstance().selectComboBoxValueByCode(localComboBox, appComboBox.getValue(), appComboBox);
-							FXUtils.getInstance().toggleUIField((Pane) getNode(), uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE + RegistrationConstants.LABEL, true);
-							FXUtils.getInstance().toggleUIField((Pane) getNode(), uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE + RegistrationConstants.MESSAGE, false);
-						}
+						FXUtils.getInstance().toggleUIField((Pane) getNode(),
+								uiSchemaDTO.getId() + RegistrationConstants.MESSAGE, false);
+//						if (!demographicDetailController.isAppLangAndLocalLangSame()) {
+						ComboBox<GenericDto> appComboBox = (ComboBox<GenericDto>) getField(uiSchemaDTO.getId());
+						ComboBox<GenericDto> localComboBox = (ComboBox<GenericDto>) getField(
+								uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE);
+
+						FXUtils.getInstance().selectComboBoxValueByCode(localComboBox, appComboBox.getValue(),
+								appComboBox);
+						FXUtils.getInstance().toggleUIField((Pane) getNode(), uiSchemaDTO.getId()
+								+ RegistrationConstants.LOCAL_LANGUAGE + RegistrationConstants.LABEL, true);
+						FXUtils.getInstance().toggleUIField((Pane) getNode(), uiSchemaDTO.getId()
+								+ RegistrationConstants.LOCAL_LANGUAGE + RegistrationConstants.MESSAGE, false);
+//						}
 
 						setData(null);
 						Map<Integer, FxControl> hirearchyMap = GenericController.locationMap
@@ -230,8 +234,8 @@ public class DropDownFxControl extends FxControl {
 
 											data.put(RegistrationConstants.PRIMARY,
 													getLocations(genericDto.getCode(), genericDto.getLangCode()));
-											data.put(RegistrationConstants.SECONDARY, getLocations(genericDto.getCode(),
-													io.mosip.registration.context.ApplicationContext.localLanguage()));
+//											data.put(RegistrationConstants.SECONDARY, getLocations(genericDto.getCode(),
+//													io.mosip.registration.context.ApplicationContext.localLanguage()));
 										}
 
 										nextLocation.fillData(data);
@@ -339,14 +343,15 @@ public class DropDownFxControl extends FxControl {
 
 						selectItem((ComboBox<GenericDto>) getField(uiSchemaDTO.getId()), simpleDto.getValue());
 
-					} else if (simpleDto.getLanguage().equalsIgnoreCase(
-							io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage())) {
-
-						selectItem(
-								(ComboBox<GenericDto>) getField(
-										uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE),
-								simpleDto.getValue());
 					}
+//						else if (simpleDto.getLanguage().equalsIgnoreCase(
+//							io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage())) {
+//
+//						selectItem(
+//								(ComboBox<GenericDto>) getField(
+//										uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE),
+//								simpleDto.getValue());
+//					}
 				}
 
 			} else if (data instanceof String) {
