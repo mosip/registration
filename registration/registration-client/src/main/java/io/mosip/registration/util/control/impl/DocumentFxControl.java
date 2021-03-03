@@ -61,6 +61,8 @@ public class DocumentFxControl extends FxControl {
 
 	private String CLEAR_ID = "clear";
 
+	private DemographicDetailController demographicDetailController;
+
 	public DocumentFxControl() {
 
 		org.springframework.context.ApplicationContext applicationContext = Initialization.getApplicationContext();
@@ -105,7 +107,7 @@ public class DocumentFxControl extends FxControl {
 		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
 		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(), hBox);
 
-		setNodeMap(nodeMap);
+//		setNodeMap(nodeMap);
 
 		this.node = hBox;
 		setListener(getField(uiSchemaDTO.getId() + RegistrationConstants.BUTTON));
