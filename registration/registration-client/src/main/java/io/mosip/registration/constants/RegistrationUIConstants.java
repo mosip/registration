@@ -19,7 +19,17 @@ public class RegistrationUIConstants {
 
 	// Key values to read value from messages.properties file
 
-	public static final ResourceBundle bundle = ApplicationContext.applicationMessagesBundle();
+	public static ResourceBundle bundle;
+
+	public static void setBundle() {
+
+		ApplicationContext applicationContext = ApplicationContext.getInstance();
+		bundle = bundle != null ? bundle
+				: applicationContext.getBundle(applicationContext.getApplicationLanguage(),
+						RegistrationConstants.MESSAGES);
+
+	}
+
 	public static final String OTP_VALIDITY = bundle.getString("OTP_VALIDITY");
 	public static final String MINUTES = bundle.getString("MINUTES");
 
@@ -427,7 +437,7 @@ public class RegistrationUIConstants {
 	public static final String DOC_CAPTURE_SUCCESS = bundle.getString("DOC_CAPTURE_SUCCESS");
 
 	public static final String DOC_DELETE_SUCCESS = bundle.getString("DOC_DELETE_SUCCESS");
-	
+
 	public static final String USER_IN_ACTIVE = bundle.getString("USER_IN_ACTIVE");
 
 	public static final String ONBOARD_USER_TITLE = bundle.getString("officerbiometrics");

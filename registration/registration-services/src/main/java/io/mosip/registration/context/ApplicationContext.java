@@ -13,6 +13,7 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dto.AuthTokenDTO;
+import io.mosip.registration.entity.id.RegCenterUserId;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 
 /**
@@ -44,8 +45,6 @@ public class ApplicationContext {
 	@Value("${mosip.optional-languages}")
 	private String optionalLanguages;
 
-	private String LABELS = "labels";
-	private String MESSAGES = "messages";
 	private static Map<String, ResourceBundle> resourceBundleMap = new HashMap<>();
 
 	/**
@@ -103,14 +102,18 @@ public class ApplicationContext {
 										.split(RegistrationConstants.COMMA));
 
 				if (null != langList && !langList.isEmpty()) {
-					applicationLanguge = langList.stream().filter(langCode -> !langCode.isBlank()).findFirst().get();
+
+					setApplicationLanguage(langList.stream().filter(langCode -> !langCode.isBlank()).findFirst().get());
 					for (String langCode : langList) {
 						if (!langCode.isBlank()) {
-							String labelLangCodeKey = String.format("%s_%s", langCode, LABELS);
+							String labelLangCodeKey = String.format("%s_%s", langCode, RegistrationConstants.LABELS);
 							Locale locale = new Locale(langCode != null ? langCode.substring(0, 2) : "");
-							resourceBundleMap.put(labelLangCodeKey, ResourceBundle.getBundle(LABELS, locale));
-							String messageLangCodeKey = String.format("%s_%s", langCode, MESSAGES);
-							resourceBundleMap.put(messageLangCodeKey, ResourceBundle.getBundle(MESSAGES, locale));
+							resourceBundleMap.put(labelLangCodeKey,
+									ResourceBundle.getBundle(RegistrationConstants.LABELS, locale));
+							String messageLangCodeKey = String.format("%s_%s", langCode,
+									RegistrationConstants.MESSAGES);
+							resourceBundleMap.put(messageLangCodeKey,
+									ResourceBundle.getBundle(RegistrationConstants.MESSAGES, locale));
 						}
 					}
 				}
