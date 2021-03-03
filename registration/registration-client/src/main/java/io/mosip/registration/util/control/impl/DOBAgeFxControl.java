@@ -56,10 +56,9 @@ public class DOBAgeFxControl extends FxControl {
 
 		fxUtils = FXUtils.getInstance();
 		regApplicationContext = io.mosip.registration.context.ApplicationContext.getInstance();
-		localLabelBundle = regApplicationContext.localLanguageBundle();
-		applicationLabelBundle = regApplicationContext.applicationLanguageBundle();
+//		localLabelBundle = regApplicationContext.localLanguageBundle();
+		applicationLabelBundle = regApplicationContext.getApplicationLanguageLabelBundle();
 		ApplicationContext applicationContext = Initialization.getApplicationContext();
-		this.demographicDetailController = applicationContext.getBean(DemographicDetailController.class);
 
 //		resourceLoader = applicationContext.getBean(ResourceLoader.class);
 		this.validation = applicationContext.getBean(Validations.class);
@@ -86,19 +85,19 @@ public class DOBAgeFxControl extends FxControl {
 		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(),
 				appLangDateVBox);
 
-		if (demographicDetailController.isLocalLanguageAvailable()
-				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
-			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
-
-			HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
-			hBox.getChildren().add(secondaryLangVBox);
-
-			nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage(),
-					secondaryLangVBox);
-
-		}
-
-		setNodeMap(nodeMap);
+//		if (demographicDetailController.isLocalLanguageAvailable()
+//				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
+//			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
+//
+//			HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
+//			hBox.getChildren().add(secondaryLangVBox);
+//
+//			nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage(),
+//					secondaryLangVBox);
+//
+//		}
+//
+//		setNodeMap(nodeMap);
 		this.node = hBox;
 
 		setListener(hBox);

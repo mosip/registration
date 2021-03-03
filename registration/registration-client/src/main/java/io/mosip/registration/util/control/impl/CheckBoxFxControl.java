@@ -36,7 +36,6 @@ public class CheckBoxFxControl extends FxControl {
 
 	public CheckBoxFxControl() {
 		ApplicationContext applicationContext = Initialization.getApplicationContext();
-		this.demographicDetailController = applicationContext.getBean(DemographicDetailController.class);
 	}
 
 	@Override
@@ -54,13 +53,13 @@ public class CheckBoxFxControl extends FxControl {
 		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(),
 				primaryLangVBox);
 
-		setNodeMap(nodeMap);
-		if (demographicDetailController.isLocalLanguageAvailable()
-				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
-			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
-
-			hBox.getChildren().addAll(secondaryLangVBox);
-		}
+//		setNodeMap(nodeMap);
+//		if (demographicDetailController.isLocalLanguageAvailable()
+//				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
+//			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
+//
+//			hBox.getChildren().addAll(secondaryLangVBox);
+//		}
 
 		this.node = hBox;
 
