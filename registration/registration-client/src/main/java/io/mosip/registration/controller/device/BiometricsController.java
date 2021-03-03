@@ -62,6 +62,7 @@ import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.dto.packetmanager.DocumentDto;
 import io.mosip.registration.entity.UserBiometric;
 import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.mdm.dto.Biometric;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.mdm.dto.MdmBioDevice;
@@ -1028,12 +1029,19 @@ public class BiometricsController extends BaseController /* implements Initializ
 					protected MdmBioDevice call() throws RegBaseCheckedException {
 
 						LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-								"Capture request started" + System.currentTimeMillis());
+								"device search request started" + System.currentTimeMillis());
 
-						return deviceSpecificationFactory
-								.getDeviceInfoByModality(isFace(currentModality) || isExceptionPhoto(currentModality)
-										? RegistrationConstants.FACE_FULLFACE
-										: currentModality);
+						if (deviceSpecificationFactory.isDeviceAvailable(currentModality)) {
+
+							return deviceSpecificationFactory.getDeviceInfoByModality(
+									isFace(currentModality) || isExceptionPhoto(currentModality)
+											? RegistrationConstants.FACE_FULLFACE
+											: currentModality);
+						} else {
+							throw new RegBaseCheckedException(
+									RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
+									RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage());
+						}
 
 					}
 				};

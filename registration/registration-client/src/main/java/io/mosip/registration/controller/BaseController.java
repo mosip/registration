@@ -25,6 +25,11 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import io.mosip.registration.exception.PreConditionCheckException;
+import io.mosip.registration.service.BaseService;
+import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
+
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -1895,7 +1900,7 @@ public class BaseController {
 
 	}
 
-	public boolean proceedOnAction(String job) {
+		public boolean proceedOnAction(String job) {
 		if (isPrimaryOrSecondaryLanguageEmpty()) {
 			generateAlert(RegistrationConstants.ERROR,
 					RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
@@ -1912,28 +1917,32 @@ public class BaseController {
 			return false;
 		}
 
-		boolean status = true;
-		switch (job) {
-		case "MS":
-			status = baseService.proceedWithMasterAndKeySync(null);
-			break;
-		case "PS":
-			status = baseService.proceedWithPacketSync();
-			break;
-		case "RM":
-			status = baseService.proceedWithMachineCenterRemap();
-			break;
-		case "OU":
-			status = baseService.proceedWithOperatorOnboard();
-			break;
-		default:
-			status = baseService.proceedWithMasterAndKeySync(job);
-			break;
+		try {
+			switch (job) {
+				case "MS" :
+					baseService.proceedWithMasterAndKeySync(null);
+					break;
+				case "PS":
+					baseService.proceedWithPacketSync();
+					break;
+				case "RM":
+					baseService.proceedWithMachineCenterRemap();
+					break;
+				case "OU" :
+					baseService.proceedWithOperatorOnboard();
+					break;
+				default:
+					baseService.proceedWithMasterAndKeySync(job);
+					break;
+			}
+		} catch (PreConditionCheckException ex){
+			generateAlert(RegistrationConstants.ERROR,
+					ApplicationContext.applicationMessagesBundle().containsKey(ex.getErrorCode()) ?
+							ApplicationContext.applicationMessagesBundle().getString(ex.getErrorCode()) :
+							ex.getErrorCode());
+			return false;
 		}
-		if (!status) {
-			generateAlert(RegistrationConstants.ERROR, "Operation not allowed currently!");
-		}
-		return status;
+		return true;
 	}
 
 	public boolean proceedOnRegistrationAction() {
@@ -1943,10 +1952,15 @@ public class BaseController {
 			return false;
 		}
 
-		if (baseService.proceedWithRegistration())
-			return true;
-
-		generateAlert(RegistrationConstants.ERROR, "Operation not allowed currently!");
-		return false;
+		try {
+			baseService.proceedWithRegistration();
+		} catch (PreConditionCheckException ex){
+			generateAlert(RegistrationConstants.ERROR,
+					ApplicationContext.applicationMessagesBundle().containsKey(ex.getErrorCode()) ?
+							ApplicationContext.applicationMessagesBundle().getString(ex.getErrorCode()) :
+							ex.getErrorCode());
+			return false;
+		}
+		return true;
 	}
 }

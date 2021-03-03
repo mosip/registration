@@ -79,10 +79,8 @@ public class MosipDeviceSpecificationFactory {
 	private int portFrom;
 	private int portTo;
 
-
 	/** Key is modality value is (specVersion, MdmBioDevice) */
 	private static Map<String, MdmBioDevice> deviceInfoMap = new LinkedHashMap<>();
-
 
 	/**
 	 * This method will prepare the device registry, device registry contains all
@@ -138,7 +136,8 @@ public class MosipDeviceSpecificationFactory {
 						.parseInt((String) ApplicationContext.map().get(RegistrationConstants.MDM_END_PORT_RANGE));
 			} catch (RuntimeException runtimeException) {
 				LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-						"Exception while parsing  MDM_END_PORT_RANGE : " + ExceptionUtils.getStackTrace(runtimeException));
+						"Exception while parsing  MDM_END_PORT_RANGE : "
+								+ ExceptionUtils.getStackTrace(runtimeException));
 				return defaultMDSPortTo;
 			}
 		} else {
@@ -158,7 +157,8 @@ public class MosipDeviceSpecificationFactory {
 						.parseInt((String) ApplicationContext.map().get(RegistrationConstants.MDM_START_PORT_RANGE));
 			} catch (RuntimeException runtimeException) {
 				LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-						"Exception while parsing  MDM_START_PORT_RANGE : " + ExceptionUtils.getStackTrace(runtimeException));
+						"Exception while parsing  MDM_START_PORT_RANGE : "
+								+ ExceptionUtils.getStackTrace(runtimeException));
 				return defaultMDSPortFrom;
 			}
 		} else {
@@ -187,10 +187,12 @@ public class MosipDeviceSpecificationFactory {
 
 	public void initByPort(Integer availablePort) {
 		if (availablePort != null && availablePort != 0) {
-			LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Checking device on port : " + availablePort);
-			String url = mosipDeviceSpecificationHelper.buildUrl(availablePort, MosipBioDeviceConstants.DEVICE_INFO_ENDPOINT);
+			LOGGER.debug(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+					"Checking device on port : " + availablePort);
+			String url = mosipDeviceSpecificationHelper.buildUrl(availablePort,
+					MosipBioDeviceConstants.DEVICE_INFO_ENDPOINT);
 
-			if(!checkServiceAvailability(url, "MOSIPDINFO")) {
+			if (!checkServiceAvailability(url, "MOSIPDINFO")) {
 				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 						"No device is running at port number " + availablePort);
 				return;
@@ -213,9 +215,9 @@ public class MosipDeviceSpecificationFactory {
 					}
 				}
 			} catch (RuntimeException runtimeException) {
-				LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(runtimeException));
+				LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+						ExceptionUtils.getStackTrace(runtimeException));
 			}
-
 
 		} else {
 			portFrom = getPortFrom();
@@ -303,7 +305,8 @@ public class MosipDeviceSpecificationFactory {
 			clientResponse = client.execute(request);
 			response = EntityUtils.toString(clientResponse.getEntity());
 		} catch (IOException exception) {
-			LOGGER.error(MOSIP_BIO_DEVICE_INTEGERATOR, APPLICATION_NAME, APPLICATION_ID, ExceptionUtils.getStackTrace(exception));
+			LOGGER.error(MOSIP_BIO_DEVICE_INTEGERATOR, APPLICATION_NAME, APPLICATION_ID,
+					ExceptionUtils.getStackTrace(exception));
 		}
 		return response;
 	}
@@ -360,6 +363,29 @@ public class MosipDeviceSpecificationFactory {
 			}
 
 		}
+
+	}
+
+	public boolean isDeviceAvailable(String modality) throws RegBaseCheckedException {
+
+		String key = String.format("%s_%s", getDeviceType(modality).toLowerCase(),
+				getDeviceSubType(modality).toLowerCase());
+		MdmBioDevice bioDevice = deviceInfoMap.get(key);
+
+		if (bioDevice != null) {
+			for (MosipDeviceSpecificationProvider provider : deviceSpecificationProviders) {
+
+				if (provider.getSpecVersion().equalsIgnoreCase(bioDevice.getSpecVersion())) {
+
+					return provider.isDeviceAvailable(bioDevice);
+
+				}
+
+			}
+		}
+
+		throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_PROVIDER_NOT_FOUND.getErrorCode(),
+				RegistrationExceptionConstants.MDS_PROVIDER_NOT_FOUND.getErrorMessage());
 
 	}
 

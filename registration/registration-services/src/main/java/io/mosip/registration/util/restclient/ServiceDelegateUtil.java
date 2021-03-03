@@ -69,11 +69,11 @@ public class ServiceDelegateUtil {
 	// @Value("${mosip.registration.HTTP_API_WRITE_TIMEOUT}")
 	// private int connectTimeout;
 
-	@Value("${validate_auth_token.service.url:}")
+	/*@Value("${validate_auth_token.service.url:}")
 	private String urlPath;
 
 	@Value("${invalidate_auth_token.service.url:}")
-	private String invalidateUrlPath;
+	private String invalidateUrlPath;*/
 
 	private String mosipHostNamePlaceHolder = "${mosip.hostname}";
 	private static final Logger LOGGER = AppConfig.getLogger(ServiceDelegateUtil.class);

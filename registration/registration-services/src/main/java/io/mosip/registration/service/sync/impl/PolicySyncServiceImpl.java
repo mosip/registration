@@ -56,6 +56,9 @@ public class PolicySyncServiceImpl extends BaseService implements PolicySyncServ
 		LOGGER.debug("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID,
 				"sync the certificate is started");
 
+		//Precondition check, proceed only if met, otherwise throws exception
+		proceedWithMasterAndKeySync(null);
+
 		ResponseDTO responseDTO = new ResponseDTO();
 		String stationId = getStationId();
 		String centerId = stationId != null ? getCenterId(stationId) : null;
