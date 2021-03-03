@@ -2161,4 +2161,313 @@ public class UinGeneratorStageTest {
 		assertTrue(result.getInternalError());
 	}
 
+	@Test
+	public void testUinReActivationWithoutIDResponseDTO() throws Exception {
+
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("UIN", "123456");
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
+
+		List<String> defaultFields = new ArrayList<>();
+		defaultFields.add("name");
+		defaultFields.add("dob");
+		defaultFields.add("gender");
+		defaultFields.add("UIN");
+
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("27847657360002520181210094052");
+		messageDTO.setReg_type(RegistrationType.valueOf("ACTIVATED"));
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		idResponseDTO.setResponse(null);
+
+		IdResponseDTO idResponseDTO1 = new IdResponseDTO();
+		ResponseDTO responseDTO1 = new ResponseDTO();
+		responseDTO1.setEntity("https://dev.mosip.io/idrepo/v1.0/identity/203560486746");
+		idResponseDTO1.setErrors(null);
+		idResponseDTO1.setId("mosip.id.update");
+		responseDTO1.setStatus("ACTIVATED");
+		idResponseDTO1.setResponse(null);
+
+		idResponseDTO1.setResponsetime("2019-01-17T06:29:01.940Z");
+		idResponseDTO1.setVersion("1.0");
+
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
+				.thenReturn(idResponseDTO);
+
+		String idJsonData = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
+		InputStream idJsonStream = new ByteArrayInputStream(idJsonData.getBytes(StandardCharsets.UTF_8));
+
+
+
+		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
+				.thenReturn(idResponseDTO1);
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		// assertTrue(result.getIsValid());
+
+	}
+	
+	
+	
+	@Test
+	public void deactivateTestWithNullResponseDTOBeforeDeactivate() throws ApisResourceAccessException,
+			PacketManagerException,
+			IOException, JsonProcessingException, JSONException {
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("UIN", "123456");
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
+
+		List<String> defaultFields = new ArrayList<>();
+		defaultFields.add("name");
+		defaultFields.add("dob");
+		defaultFields.add("gender");
+		defaultFields.add("UIN");
+
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10031100110005020190313110030");
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		IdResponseDTO responsedto = new IdResponseDTO();
+		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
+		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setEntity("https://dev.mosip.io/idrepo/v1.0/identity/203560486746");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		responseDTO.setStatus("DEACTIVATED");
+		idResponseDTO.setResponse(null);
+		idResponseDTO.setResponsetime("2019-03-12T06:49:30.779Z");
+		idResponseDTO.setVersion("1.0");
+
+		// Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
+		//// PacketFiles.ID.name(), "id"))//.thenReturn(idJsonStream1);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
+				.thenReturn(responsedto);
+		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
+				.thenReturn(idResponseDTO);
+
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		// assertTrue(result.getIsValid());
+	}
+	
+	@Test
+	public void deactivateTesApiResourceClientException() throws ApisResourceAccessException,
+			PacketManagerException,
+			IOException, JsonProcessingException, JSONException {
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("UIN", "123456");
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
+
+		List<String> defaultFields = new ArrayList<>();
+		defaultFields.add("name");
+		defaultFields.add("dob");
+		defaultFields.add("gender");
+		defaultFields.add("UIN");
+
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10031100110005020190313110030");
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		IdResponseDTO responsedto = new IdResponseDTO();
+		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
+		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setEntity("https://dev.mosip.io/idrepo/v1.0/identity/203560486746");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		responseDTO.setStatus("DEACTIVATED");
+		idResponseDTO.setResponse(null);
+		idResponseDTO.setResponsetime("2019-03-12T06:49:30.779Z");
+		idResponseDTO.setVersion("1.0");
+
+		// Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
+		//// PacketFiles.ID.name(), "id"))//.thenReturn(idJsonStream1);
+		ApisResourceAccessException ex=new ApisResourceAccessException("", new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
+				.thenThrow(ex);
+		
+
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		// assertTrue(result.getIsValid());
+	}
+	
+	@Test
+	public void deactivateTesApiResourceServerException() throws ApisResourceAccessException,
+			PacketManagerException,
+			IOException, JsonProcessingException, JSONException {
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("UIN", "123456");
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
+
+		List<String> defaultFields = new ArrayList<>();
+		defaultFields.add("name");
+		defaultFields.add("dob");
+		defaultFields.add("gender");
+		defaultFields.add("UIN");
+
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10031100110005020190313110030");
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		IdResponseDTO responsedto = new IdResponseDTO();
+		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
+		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setEntity("https://dev.mosip.io/idrepo/v1.0/identity/203560486746");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		responseDTO.setStatus("DEACTIVATED");
+		idResponseDTO.setResponse(null);
+		idResponseDTO.setResponsetime("2019-03-12T06:49:30.779Z");
+		idResponseDTO.setVersion("1.0");
+
+		// Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
+		//// PacketFiles.ID.name(), "id"))//.thenReturn(idJsonStream1);
+		ApisResourceAccessException ex=new ApisResourceAccessException("", new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
+				.thenThrow(ex);
+		
+
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		// assertTrue(result.getIsValid());
+	}
+	
+	@Test
+	public void deactivateTesApiResourceException() throws ApisResourceAccessException,
+			PacketManagerException,
+			IOException, JsonProcessingException, JSONException {
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("UIN", "123456");
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
+
+		List<String> defaultFields = new ArrayList<>();
+		defaultFields.add("name");
+		defaultFields.add("dob");
+		defaultFields.add("gender");
+		defaultFields.add("UIN");
+
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10031100110005020190313110030");
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		IdResponseDTO responsedto = new IdResponseDTO();
+		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
+		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setEntity("https://dev.mosip.io/idrepo/v1.0/identity/203560486746");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		responseDTO.setStatus("DEACTIVATED");
+		idResponseDTO.setResponse(null);
+		idResponseDTO.setResponsetime("2019-03-12T06:49:30.779Z");
+		idResponseDTO.setVersion("1.0");
+
+		// Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
+		//// PacketFiles.ID.name(), "id"))//.thenReturn(idJsonStream1);
+		ApisResourceAccessException ex=new ApisResourceAccessException("");
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
+				.thenThrow(ex);
+		
+
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		// assertTrue(result.getIsValid());
+	}
+	
+	@Test
+	public void deactivateTestAlreadyDeactivated() throws ApisResourceAccessException,
+			PacketManagerException,
+			IOException, JsonProcessingException, JSONException {
+		Map<String, String> fieldMap = new HashMap<>();
+		fieldMap.put("UIN", "123456");
+		fieldMap.put("name", "mono");
+		fieldMap.put("email", "mono@mono.com");
+
+		List<String> defaultFields = new ArrayList<>();
+		defaultFields.add("name");
+		defaultFields.add("dob");
+		defaultFields.add("gender");
+		defaultFields.add("UIN");
+
+		when(utility.getDefaultSource(any(), any())).thenReturn("reg_client");
+		when(packetManagerService.getFieldByMappingJsonKey(anyString(), anyString(), any(), any())).thenReturn("0.1");
+		when(packetManagerService.getFields(any(), any(), any(), any())).thenReturn(fieldMap);
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+
+		when(idSchemaUtil.getDefaultFields(anyDouble())).thenReturn(defaultFields);
+		MessageDTO messageDTO = new MessageDTO();
+		messageDTO.setRid("10031100110005020190313110030");
+		messageDTO.setReg_type(RegistrationType.valueOf("DEACTIVATED"));
+		IdResponseDTO responsedto = new IdResponseDTO();
+		ResponseDTO dto=new ResponseDTO();
+		dto.setStatus("DEACTIVATED");
+		responsedto.setResponse(dto);
+		String idJson = "{\"identity\":{\"IDSchemaVersion\":1.0,\"UIN\":\"4215839851\"}}";
+		InputStream idJsonStream1 = new ByteArrayInputStream(idJson.getBytes(StandardCharsets.UTF_8));
+
+		IdResponseDTO idResponseDTO = new IdResponseDTO();
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setEntity("https://dev.mosip.io/idrepo/v1.0/identity/203560486746");
+		idResponseDTO.setErrors(null);
+		idResponseDTO.setId("mosip.id.update");
+		responseDTO.setStatus("DEACTIVATED");
+		idResponseDTO.setResponse(null);
+		idResponseDTO.setResponsetime("2019-03-12T06:49:30.779Z");
+		idResponseDTO.setVersion("1.0");
+
+		// Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
+		//// PacketFiles.ID.name(), "id"))//.thenReturn(idJsonStream1);
+		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
+				.thenReturn(responsedto);
+		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
+				.thenReturn(idResponseDTO);
+
+
+		MessageDTO result = uinGeneratorStage.process(messageDTO);
+		// assertTrue(result.getIsValid());
+	}
 }

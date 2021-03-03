@@ -253,6 +253,7 @@ public enum RegistrationExceptionTypeCode {
 	
 	AUTH_SYSTEM_EXCEPTION,
 
-	PACKET_REJECTED
+	PACKET_REJECTED,
+	VID_CREATION_EXCEPTION;
 
 }
