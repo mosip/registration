@@ -364,154 +364,10 @@ public class GenericBiometricsController extends BaseController /* implements In
 	public void initialize() {
 		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 				"Loading of Guardian Biometric screen started");
-		currentMap = new LinkedHashMap<>();
-		fxUtils = FXUtils.getInstance();
-		leftHandImageBoxMap = new HashMap<>();
-		exceptionMap = new HashMap<>();
 
-		applicationLabelBundle = applicationContext.getInstance().getApplicationLanguageBundle();
-		Image backInWhite = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK_FOCUSED));
-		Image backImage = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK));
-//		backButton.hoverProperty().addListener((ov, oldValue, newValue) -> {
-//			if (newValue) {
-//				backImageView.setImage(backInWhite);
-//			} else {
-//				backImageView.setImage(backImage);
-//			}
-//		});
+		applicationLabelBundle = applicationContext.getBundle(applicationContext.getApplicationLanguage(),
+				RegistrationConstants.LABELS);
 
-		applicationLabelBundle = applicationContext.getApplicationLanguageBundle();
-
-//		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getSelectionListDTO() != null) {
-//
-//			registrationNavlabel.setText(ApplicationContext.applicationLanguageBundle()
-//					.getString(RegistrationConstants.UIN_UPDATE_UINUPDATENAVLBL));
-//
-//		} else if (getRegistrationDTOFromSession() != null
-//				&& getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory() != null
-//				&& getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory()
-//						.equals(RegistrationConstants.PACKET_TYPE_LOST)) {
-//
-//			registrationNavlabel.setText(
-//					ApplicationContext.applicationLanguageBundle().getString(RegistrationConstants.LOSTUINLBL));
-//
-//		}
-	}
-
-	public void populateBiometricPage(boolean isUserOnboard, boolean isGoingBack) {
-		LOGGER.debug(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-				"populateBiometricPage invoked, isUserOnboard : " + isUserOnboard);
-
-		isUserOnboardFlag = isUserOnboard;
-		Map<Entry<String, String>, Map<String, List<List<String>>>> mapToProcess = isUserOnboardFlag
-				? getOnboardUserMap()
-				: getconfigureAndNonConfiguredBioAttributes(Arrays.asList(
-						getValue(RegistrationConstants.FINGERPRINT_SLAB_LEFT,
-								RegistrationConstants.leftHandUiAttributes),
-						getValue(RegistrationConstants.FINGERPRINT_SLAB_RIGHT,
-								RegistrationConstants.rightHandUiAttributes),
-						getValue(RegistrationConstants.FINGERPRINT_SLAB_THUMBS,
-								RegistrationConstants.twoThumbsUiAttributes),
-						getValue(RegistrationConstants.IRIS_DOUBLE, RegistrationConstants.eyesUiAttributes),
-						getValue(RegistrationConstants.FACE, RegistrationConstants.faceUiAttributes)));
-
-		if (mapToProcess.isEmpty()) {
-			LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-					"populateBiometricPage mapToProcess is EMTPY");
-			updatePageFlow(RegistrationConstants.GUARDIAN_BIOMETRIC, false);
-			return;
-		}
-
-		removeInapplicableCapturedData(mapToProcess);
-
-		if (isUserOnboard) {
-			registrationNavlabel.setVisible(false);
-			backButton.setVisible(false);
-			gheaderfooter.setVisible(false);
-			continueBtn.setText("SAVE");
-		} else {
-			registrationNavlabel.setVisible(true);
-			backButton.setVisible(true);
-			gheaderfooter.setVisible(true);
-			continueBtn.setText("CONTINUE");
-		}
-
-		checkBoxPane.getChildren().clear();
-		leftPanelImageGridPane.getChildren().clear();
-
-		// comboBoxMap.clear();
-		// checkBoxMap.clear();
-		currentMap.clear();
-		leftHandImageBoxMap.clear();
-		exceptionMap.clear();
-
-		leftPanelImageGridPane.setAlignment(Pos.TOP_LEFT);
-		leftPanelImageGridPane.setPadding(new Insets(70, 100, 100, 70)); // margins around the whole grid
-		// (top/right/bottom/left)
-		for (Entry<Entry<String, String>, Map<String, List<List<String>>>> subType : mapToProcess.entrySet()) {
-
-			int rowIndex = 0;
-			// leftPanelImageGridPane.getChildren().add(new Label("Biometrics"));
-			GridPane gridPane = getGridPane(subType.getKey());
-
-			// ComboBox<Entry<String, String>> comboBox = buildComboBox(subType.getKey());
-			HashMap<String, VBox> subMap = new HashMap<>();
-			currentMap.put(subType.getKey().getKey(), new ArrayList<String>());
-			for (Entry<String, List<List<String>>> biometric : subType.getValue().entrySet()) {
-				List<List<String>> listOfCheckBoxes = biometric.getValue();
-				currentMap.get(subType.getKey().getKey()).addAll(listOfCheckBoxes.get(0));
-				if (!listOfCheckBoxes.get(0).isEmpty()) {
-
-					// comboBox.getItems().add(new SimpleEntry<String, String>(biometric.getKey(),
-					// applicationLabelBundle.getString(biometric.getKey())));
-
-					gridPane.add(getImageVBox(biometric.getKey(), subType.getKey().getKey(), listOfCheckBoxes.get(0)),
-							1, rowIndex);
-
-					rowIndex++;
-
-					// gridPane.getChildren().add(getImageVBox(biometric.getKey()));
-					if (!listOfCheckBoxes.get(0).get(0).equals("face")) {
-
-						VBox vboxForCheckBox = new VBox();
-						vboxForCheckBox.setSpacing(5);
-						Label checkBoxTitle = new Label();
-						checkBoxTitle.setText(applicationLabelBundle.getString("exceptionCheckBoxPaneLabel"));
-						vboxForCheckBox.getChildren().addAll(checkBoxTitle);
-						checkBoxTitle.getStyleClass().add("demoGraphicFieldLabel");
-
-						vboxForCheckBox.getChildren().add(getExceptionImagePane(biometric.getKey(),
-								listOfCheckBoxes.get(0), listOfCheckBoxes.get(1), subType.getKey().getKey()));
-
-						vboxForCheckBox.setVisible(false);
-						vboxForCheckBox.setManaged(false);
-
-						checkBoxPane.add(vboxForCheckBox, 0, 0);
-
-						// checkBoxPane.setVisible(true);
-
-						// checkBoxMap.put(subType.getKey().getKey(), subMap);
-						subMap.put(biometric.getKey(), vboxForCheckBox);
-
-						exceptionMap.put(subType.getKey().getKey(), subMap);
-
-					}
-				}
-			}
-
-//			if (isApplicant(subType.getKey().getKey()) && rowIndex > 1) {
-//
-//				gridPane.add(getExceptionImageVBox(RegistrationConstants.EXCEPTION_PHOTO), 1, rowIndex);
-//
-//				if (rowIndex >= 5) {
-//
-//					gridPane.setPadding(new Insets(100, 10, 10, 10));
-//				}
-//
-//			}
-		}
-
-		initializeState(isGoingBack);
 	}
 
 	private void displayExceptionBiometric(String modality) {
@@ -556,163 +412,9 @@ public class GenericBiometricsController extends BaseController /* implements In
 		}
 	}
 
-	private void initializeState(boolean isGoingBack) {
-
-		sizeOfLeftGridPaneImageList = leftHandImageBoxMap.size();
-
-		if (sizeOfLeftGridPaneImageList > 0) {
-			if (isGoingBack) {
-				currentPosition = leftHandImageBoxMap.size() - 1;
-				currentSubType = getListOfBiometricSubTypes().get(currentPosition);
-				previousPosition = currentPosition - 1;
-			} else {
-				currentPosition = 0;
-				currentSubType = getListOfBiometricSubTypes().get(currentPosition);
-				previousPosition = 0;
-			}
-		}
-
-		currentSubType = getListOfBiometricSubTypes().get(currentPosition);
-		enableGridPane(findImageListGridPane());
-		biometricBox.setVisible(false);
-		retryBox.setVisible(false);
-		refreshContinueButton();
-		displaycurrentUiElements();
-	}
-
-	private GridPane findImageListGridPane() {
-
-		return leftHandImageBoxMap.get(getListOfBiometricSubTypes().get(currentPosition));
-	}
-
-	private void enableGridPane(GridPane gridPane) {
-		if (gridPane != null) {
-			gridPane.setVisible(true);
-			gridPane.setManaged(true);
-
-			if (!isUserOnboardFlag) {
-				subTypeLabel.setText(getMapOfbiometricSubtypes().get(currentSubType));
-			} else {
-
-				subTypeLabel.setText("Operator/Supervisor Biometrics");
-			}
-
-		}
-	}
-
-	private void disableGridPane(GridPane gridPane) {
-		if (gridPane != null) {
-			gridPane.setVisible(false);
-			gridPane.setManaged(false);
-			subTypeLabel.setText(RegistrationConstants.EMPTY);
-
-		}
-	}
-
-	private void removeInapplicableCapturedData(
-			Map<Entry<String, String>, Map<String, List<List<String>>>> mapToProcess) {
-
-		// Nothing to remove on user-onboard
-		if (isUserOnboardFlag)
-			return;
-
-		if (!getRegistrationDTOFromSession().getBiometrics().isEmpty()
-				|| !getRegistrationDTOFromSession().getBiometricExceptions().isEmpty()) {
-
-			List<String> applicableSubTypes = new ArrayList<String>();
-			for (Entry<String, String> subType : mapToProcess.keySet()) {
-				applicableSubTypes.add(String.format("%s_.*", subType.getKey()));
-			}
-			String pattern = String.join("|", applicableSubTypes);
-
-			List<String> keys = new ArrayList<String>();
-			keys.addAll(getRegistrationDTOFromSession().getBiometrics().keySet());
-			keys.addAll(getRegistrationDTOFromSession().getBiometricExceptions().keySet());
-
-			for (String key : keys) {
-				if (!key.matches(pattern)) {
-					getRegistrationDTOFromSession().getBiometrics().remove(key);
-					getRegistrationDTOFromSession().getBiometricExceptions().remove(key);
-				}
-			}
-		}
-	}
-
 	private void setScanButtonVisibility(boolean isAllExceptions, Button scanBtn2) {
 		scanBtn.setDisable(isAllExceptions);
 
-	}
-
-	private boolean isAllExceptions(List<Node> exceptionImageViews) {
-		boolean isAllExceptions = true;
-		if (exceptionImageViews != null && !exceptionImageViews.isEmpty()) {
-
-			for (Node exceptionImageView : ((Pane) exceptionImageViews.get(1)).getChildren()) {
-				if (exceptionImageView instanceof ImageView && exceptionImageView.getId() != null
-						&& !exceptionImageView.getId().isEmpty()) {
-					isAllExceptions = ((ImageView) exceptionImageView).getOpacity() == 1 ? isAllExceptions
-							? isBiometricExceptionAvailable(currentSubType, exceptionImageView.getId())
-							: isAllExceptions : false;
-				}
-			}
-		}
-
-		return isAllExceptions;
-	}
-
-	private void goToNext() {
-		if (currentPosition + 1 < sizeOfLeftGridPaneImageList) {
-
-			disableGridPane(findImageListGridPane());
-
-			previousPosition = currentPosition;
-			++currentPosition;
-
-			currentSubType = getListOfBiometricSubTypes().get(currentPosition);
-			enableGridPane(findImageListGridPane());
-
-			refreshContinueButton();
-
-			displaycurrentUiElements();
-
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	private void displaycurrentUiElements() {
-		try {
-
-			GridPane gridPane = findImageListGridPane();
-
-			if (gridPane.getChildren() != null) {
-
-				displayBiometric(gridPane.getChildren().get(0).getId());
-			}
-			// ComboBox<Object> comboBox = (ComboBox<Object>)
-			// findComboBox().getChildren().get(1);
-			//
-			// comboBox.setValue((SimpleEntry<String, String>) comboBox.getItems().get(0));
-		} catch (NullPointerException | ClassCastException exception) {
-			LOGGER.error(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-					ExceptionUtils.getStackTrace(exception));
-
-		}
-
-	}
-
-	private void goToPrevious() {
-		if (currentPosition > 0) {
-			disableGridPane(findImageListGridPane());
-			previousPosition = currentPosition;
-			currentPosition--;
-
-			currentSubType = getListOfBiometricSubTypes().get(currentPosition);
-			enableGridPane(findImageListGridPane());
-
-			refreshContinueButton();
-
-			displaycurrentUiElements();
-		}
 	}
 
 	/**
@@ -724,7 +426,9 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "Displaying biometrics to capture");
 
-		applicationLabelBundle = applicationContext.getApplicationLanguageBundle();
+		applicationLabelBundle = applicationLabelBundle = applicationContext
+				.getBundle(applicationContext.getApplicationLanguage(), RegistrationConstants.LABELS);
+		;
 		retryBox.setVisible(true);
 		biometricBox.setVisible(true);
 		biometricType.setText(applicationLabelBundle.getString(modality));
@@ -895,21 +599,6 @@ public class GenericBiometricsController extends BaseController /* implements In
 		}
 
 		return imageIconPath;
-	}
-
-	private void enableCurrentCheckBoxSection() {
-
-		if (exceptionMap.get(getListOfBiometricSubTypes().get(currentPosition)) != null && exceptionMap
-				.get(getListOfBiometricSubTypes().get(currentPosition)).get(this.currentModality) != null) {
-			exceptionMap.get(getListOfBiometricSubTypes().get(currentPosition)).get(this.currentModality)
-					.setVisible(true);
-			exceptionMap.get(getListOfBiometricSubTypes().get(currentPosition)).get(this.currentModality)
-					.setManaged(true);
-			checkBoxPane.setVisible(true);
-			checkBoxPane.setManaged(true);
-
-		}
-
 	}
 
 	private void disableLastCheckBoxSection() {
@@ -1587,55 +1276,6 @@ public class GenericBiometricsController extends BaseController /* implements In
 	}
 
 	/**
-	 * Navigating to previous section
-	 *
-	 * @param event the event for navigating to previous section
-	 */
-	@FXML
-	private void previous(ActionEvent event) {
-
-		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "Navigates to previous section");
-
-		if (currentPosition != 0) {
-			disableLastCheckBoxSection();
-			goToPrevious();
-			return;
-		}
-
-		registrationController.showCurrentPage(RegistrationConstants.GUARDIAN_BIOMETRIC,
-				getPageByAction(RegistrationConstants.GUARDIAN_BIOMETRIC, RegistrationConstants.PREVIOUS));
-
-	}
-
-	/**
-	 * Navigating to next section
-	 *
-	 * @param event the event for navigating to next section
-	 */
-	@FXML
-	private void next(ActionEvent event) {
-
-		LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "Navigates to next section");
-
-		if (currentPosition != sizeOfLeftGridPaneImageList - 1) {
-			disableLastCheckBoxSection();
-			goToNext();
-			return;
-		}
-
-		if (isUserOnboardFlag) {
-			userOnboardParentController.showCurrentPage(RegistrationConstants.GUARDIAN_BIOMETRIC,
-					getOnboardPageDetails(RegistrationConstants.GUARDIAN_BIOMETRIC, RegistrationConstants.NEXT));
-		} else {
-			registrationController.showCurrentPage(RegistrationConstants.GUARDIAN_BIOMETRIC,
-					getPageByAction(RegistrationConstants.GUARDIAN_BIOMETRIC, RegistrationConstants.NEXT));
-		}
-
-		initializeState(false);
-
-	}
-
-	/**
 	 * Updating biometrics
 	 *
 	 * @param bioType            biometric type
@@ -2279,88 +1919,6 @@ public class GenericBiometricsController extends BaseController /* implements In
 				.build();
 	}
 
-	private VBox getImageVBox(String modality, String subtype, List<String> configBioAttributes) {
-
-		VBox vBox = new VBox();
-
-		vBox.setAlignment(Pos.BASELINE_LEFT);
-		vBox.setId(modality);
-
-		// Create Label with modality
-		// Label label = new Label();
-		// label.setText(applicationLabelBundle.getString(modality));
-		// vBox.getChildren().add(label);
-
-		HBox hBox = new HBox();
-		// hBox.setAlignment(Pos.BOTTOM_RIGHT);
-
-		// Image modalityImage = getImage(modality);
-		List<BiometricsDto> biometricsDtos = getBiometrics(currentSubType, configBioAttributes);
-
-		Image image = null;
-		if (biometricsDtos != null && !biometricsDtos.isEmpty()) {
-
-			image = getBioStreamImage(subtype, modality, biometricsDtos.get(0).getNumOfRetries());
-		}
-
-		ImageView imageView = new ImageView(
-				image != null ? image : new Image(this.getClass().getResourceAsStream(getImageIconPath(modality))));
-		imageView.setFitHeight(80);
-		imageView.setFitWidth(85);
-
-		Tooltip tooltip = new Tooltip(applicationLabelBundle.getString(modality));
-		tooltip.getStyleClass().add(RegistrationConstants.TOOLTIP_STYLE);
-		// Tooltip.install(hBox, tooltip);
-		hBox.setOnMouseEntered(event -> tooltip.show(hBox, event.getScreenX(), event.getScreenY() + 15));
-		hBox.setOnMouseExited(event -> tooltip.hide());
-		hBox.getChildren().add(imageView);
-
-		boolean isAllExceptions = true;
-		for (String configBioAttribute : configBioAttributes) {
-
-			isAllExceptions = isBiometricExceptionAvailable(currentSubType, configBioAttribute) ? isAllExceptions
-					: false;
-
-			if (!isAllExceptions) {
-				break;
-			}
-		}
-		if (image != null || isAllExceptions) {
-			if (hBox.getChildren().size() == 1) {
-				ImageView tickImageView;
-				if (isAllExceptions) {
-					tickImageView = new ImageView(
-							new Image(this.getClass().getResourceAsStream(RegistrationConstants.EXCLAMATION_IMG_PATH)));
-				} else {
-					tickImageView = new ImageView(new Image(
-							this.getClass().getResourceAsStream(RegistrationConstants.TICK_CIRICLE_IMG_PATH)));
-				}
-				tickImageView.setFitWidth(40);
-				tickImageView.setFitHeight(40);
-				hBox.getChildren().add(tickImageView);
-			}
-		}
-
-		vBox.getChildren().add(hBox);
-
-		// vBox.getChildren().add(imageView);
-
-		vBox.setOnMouseClicked((event) -> {
-			displayBiometric(vBox.getId());
-		});
-
-		vBox.setFillWidth(true);
-		vBox.setMinWidth(100);
-
-		// vBox.setMinHeight(100);
-		vBox.getStyleClass().add(RegistrationConstants.BIOMETRICS_DISPLAY);
-		// vBox.setBorder(new Border(
-		// new BorderStroke(Color.PINK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
-		// BorderWidths.FULL)));
-
-		return vBox;
-	}
-
 	private void addImageInUIPane(String subType, String modality, Image uiImage, boolean isCaptured) {
 		for (GridPane gridPane : leftHandImageBoxMap.values()) {
 			if (gridPane.getId().equals(subType)) {
@@ -2401,24 +1959,6 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 			}
 		}
-
-	}
-
-	private GridPane getGridPane(Entry<String, String> subMapKey) {
-
-		GridPane gridPane = new GridPane();
-
-		gridPane.setId(subMapKey.getKey());
-		Label label = new Label(subMapKey.getValue());
-		label.getStyleClass().add("paneHeader");
-
-		leftPanelImageGridPane.add(gridPane, 1, 1);
-
-		leftHandImageBoxMap.put(subMapKey.getKey(), gridPane);
-
-		disableGridPane(gridPane);
-
-		return gridPane;
 
 	}
 

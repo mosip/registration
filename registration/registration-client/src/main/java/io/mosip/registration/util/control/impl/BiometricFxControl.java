@@ -42,7 +42,6 @@ public class BiometricFxControl extends FxControl {
 	protected static final Logger LOGGER = AppConfig.getLogger(BiometricFxControl.class);
 	private static final String loggerClassName = "BiometricFxControl";
 	private GenericBiometricsController biometricsController;
-	private static ResourceBundle applicationBundle = ApplicationContext.getInstance().getApplicationLanguageBundle();
 
 	private String TICK_MARK = "tickMark";
 	private String modality = null;
@@ -61,7 +60,6 @@ public class BiometricFxControl extends FxControl {
 		org.springframework.context.ApplicationContext applicationContext = Initialization.getApplicationContext();
 		biometricsController = applicationContext.getBean(GenericBiometricsController.class);
 		this.requiredFieldValidator = applicationContext.getBean(RequiredFieldValidator.class);
-		demographicDetailController = applicationContext.getBean(DemographicDetailController.class);
 	}
 
 	@Override
@@ -75,7 +73,7 @@ public class BiometricFxControl extends FxControl {
 		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
 		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(), this.node);
 
-		setNodeMap(nodeMap);
+//		setNodeMap(nodeMap);
 
 		return this.control;
 	}
@@ -316,6 +314,9 @@ public class BiometricFxControl extends FxControl {
 		imgVBox.getStyleClass().add(RegistrationConstants.BIOMETRICS_DISPLAY);
 		imgVBox.getChildren().add(imageView);
 
+		ApplicationContext applicationContext = ApplicationContext.getInstance();
+		ResourceBundle applicationBundle = applicationContext.getBundle(applicationContext.getApplicationLanguage(),
+				RegistrationConstants.LABELS);
 		Tooltip tooltip = new Tooltip(applicationBundle.getString(modality));
 		tooltip.getStyleClass().add(RegistrationConstants.TOOLTIP_STYLE);
 		// Tooltip.install(hBox, tooltip);
