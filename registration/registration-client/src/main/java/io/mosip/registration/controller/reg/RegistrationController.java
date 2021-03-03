@@ -115,37 +115,6 @@ public class RegistrationController extends BaseController {
 
 	private List<String> selectedLangList = new LinkedList<>();
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see javafx.fxml.Initializable#initialize()
-	 */
-	@FXML
-	private void initialize() {
-		LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
-				RegistrationConstants.APPLICATION_ID, "Entering the Registration Controller");
-		try {
-			if (isEditPage() && getRegistrationDTOFromSession() != null) {
-				prepareEditPageContent();
-			}
-//			uinUpdate();
-
-		} catch (RuntimeException runtimeException) {
-			LOGGER.error("REGISTRATION - CONTROLLER", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
-			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
-		}
-	}
-
-	/**
-	 * This method is prepare the screen for uin update
-	 */
-	private void uinUpdate() {
-		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getUpdatableFields() != null) {
-			demographicDetailController.uinUpdate();
-		}
-	}
-
 	public void init(String UIN, HashMap<String, Object> selectionListDTO, Map<String, UiSchemaDTO> selectedFields,
 			List<String> selectedFieldGroups) {
 		validation.updateAsLostUIN(false);
@@ -165,26 +134,6 @@ public class RegistrationController extends BaseController {
 
 		createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_LOST);
 	}
-
-	/**
-	 * This method is to prepopulate all the values for edit operation
-	 */
-	private void prepareEditPageContent() {
-		try {
-			LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
-					RegistrationConstants.APPLICATION_ID, "Preparing the Edit page content");
-			// demographicDetailController.prepareEditPageContent();
-			documentScanController.prepareEditPageContent();
-			SessionContext.map().put(RegistrationConstants.REGISTRATION_ISEDIT, false);
-		} catch (RuntimeException runtimeException) {
-			LOGGER.error(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
-					RegistrationConstants.APPLICATION_ID,
-					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
-		}
-
-	}
-
-
 
 	/**
 	 * This method is to go to the operator authentication page

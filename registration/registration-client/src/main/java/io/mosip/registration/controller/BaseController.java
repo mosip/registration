@@ -187,7 +187,7 @@ public class BaseController {
 
 	@Autowired
 	protected PageFlow pageFlow;
-	
+
 	@Autowired
 	private UserOnboardParentController userOnboardParentController;
 
@@ -302,9 +302,12 @@ public class BaseController {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	protected void loadScreen(String screen) throws IOException {
-		Parent createRoot = BaseController.load(getClass().getResource(screen),
+		getScene(getRoot(screen));
+	}
+
+	protected Parent getRoot(String screen) throws IOException {
+		return BaseController.load(getClass().getResource(screen),
 				applicationContext.getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS));
-		getScene(createRoot);
 	}
 
 	/**
@@ -334,7 +337,8 @@ public class BaseController {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public static <T> T load(URL url) throws IOException {
-		FXMLLoader loader = new FXMLLoader(url, ApplicationContext.getInstance().getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS));
+		FXMLLoader loader = new FXMLLoader(url, ApplicationContext.getInstance()
+				.getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS));
 		loader.setControllerFactory(Initialization.getApplicationContext()::getBean);
 		return loader.load();
 	}
@@ -515,7 +519,7 @@ public class BaseController {
 			Tooltip tool = new Tooltip(context.contains(type) ? context.split(type)[0] : context);
 			tool.getStyleClass().add(RegistrationConstants.TOOLTIP);
 			label.setTooltip(tool);
-			//label.setVisible(true);
+			// label.setVisible(true);
 		}
 	}
 
@@ -712,7 +716,8 @@ public class BaseController {
 	 * @return the FXML loader
 	 */
 	public static FXMLLoader loadChild(URL url) {
-		FXMLLoader loader = new FXMLLoader(url, ApplicationContext.getInstance().getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS));
+		FXMLLoader loader = new FXMLLoader(url, ApplicationContext.getInstance()
+				.getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS));
 		loader.setControllerFactory(Initialization.getApplicationContext()::getBean);
 		return loader;
 	}
@@ -921,7 +926,6 @@ public class BaseController {
 
 	}
 
-
 	/**
 	 * to return to the next page based on the current page and action for User
 	 * Onboarding.
@@ -1027,7 +1031,6 @@ public class BaseController {
 			LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
 					"Invoking Save Detail before redirecting to Preview");
 
-			demographicDetailController.saveDetail();
 			registrationPreviewController.setUpPreviewContent();
 
 			LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
@@ -1074,7 +1077,7 @@ public class BaseController {
 				};
 			}
 		};
-		
+
 		userOnboardParentController.getProgressIndicator().progressProperty().bind(taskService.progressProperty());
 		taskService.start();
 		taskService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
@@ -1139,8 +1142,6 @@ public class BaseController {
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
 				"Navigated to next page >> " + show);
 	}
-
-
 
 	public void remapMachine() {
 
@@ -1207,7 +1208,6 @@ public class BaseController {
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.REMAP_PROCESS_STILL_PENDING);
 		}
 	}
-
 
 	private void disableHomePage(boolean isDisabled) {
 
@@ -1564,7 +1564,7 @@ public class BaseController {
 					ExceptionUtils.getStackTrace(e));
 		}
 	}
-	
+
 	public SchemaDto getLatestSchema() {
 		try {
 			return identitySchemaService.getIdentitySchema(identitySchemaService.getLatestEffectiveSchemaVersion());
@@ -1778,41 +1778,41 @@ public class BaseController {
 		return new ArrayList<String>();
 	}
 
-	protected void helperMethodForComboBox(ComboBox<?> field, String fieldName, UiSchemaDTO schema, Label label,
-			Label validationMessage, VBox vbox, String languageType) {
-
-		String mandatoryAstrik = demographicDetailController.getMandatorySuffix(schema);
-		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
-			label.setText(schema.getLabel().get(RegistrationConstants.SECONDARY) + mandatoryAstrik);
-			field.setPromptText(label.getText());
-			field.setDisable(true);
-			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.SECONDARY));
-		} else {
-			label.setText(schema.getLabel().get(RegistrationConstants.PRIMARY) + mandatoryAstrik);
-			field.setPromptText(label.getText());
-			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.PRIMARY));
-		}
-		// vbox.setStyle("-fx-background-color:BLUE");
-		vbox.setPrefWidth(500);
-		vbox.setId(fieldName + RegistrationConstants.Parent);
-		label.setId(fieldName + languageType + RegistrationConstants.LABEL);
-		label.setVisible(false);
-		label.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
-		field.getStyleClass().add("demographicCombobox");
-		validationMessage.setId(fieldName + languageType + RegistrationConstants.MESSAGE);
-		validationMessage.getStyleClass().add(RegistrationConstants.DemoGraphicFieldMessageLabel);
-		label.setPrefWidth(vbox.getPrefWidth());
-		validationMessage.setPrefWidth(vbox.getPrefWidth());
-		validationMessage.setVisible(false);
-		vbox.setSpacing(5);
-
-		vbox.getChildren().addAll(label, field, validationMessage);
-
-//		if (applicationContext.getApplicationLanguage().equals(applicationContext.getLocalLanguage())
-//				&& languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
-//			vbox.setDisable(true);
+//	protected void helperMethodForComboBox(ComboBox<?> field, String fieldName, UiSchemaDTO schema, Label label,
+//			Label validationMessage, VBox vbox, String languageType) {
+//
+//		String mandatoryAstrik = demographicDetailController.getMandatorySuffix(schema);
+//		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
+//			label.setText(schema.getLabel().get(RegistrationConstants.SECONDARY) + mandatoryAstrik);
+//			field.setPromptText(label.getText());
+//			field.setDisable(true);
+//			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.SECONDARY));
+//		} else {
+//			label.setText(schema.getLabel().get(RegistrationConstants.PRIMARY) + mandatoryAstrik);
+//			field.setPromptText(label.getText());
+//			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.PRIMARY));
 //		}
-	}
+//		// vbox.setStyle("-fx-background-color:BLUE");
+//		vbox.setPrefWidth(500);
+//		vbox.setId(fieldName + RegistrationConstants.Parent);
+//		label.setId(fieldName + languageType + RegistrationConstants.LABEL);
+//		label.setVisible(false);
+//		label.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
+//		field.getStyleClass().add("demographicCombobox");
+//		validationMessage.setId(fieldName + languageType + RegistrationConstants.MESSAGE);
+//		validationMessage.getStyleClass().add(RegistrationConstants.DemoGraphicFieldMessageLabel);
+//		label.setPrefWidth(vbox.getPrefWidth());
+//		validationMessage.setPrefWidth(vbox.getPrefWidth());
+//		validationMessage.setVisible(false);
+//		vbox.setSpacing(5);
+//
+//		vbox.getChildren().addAll(label, field, validationMessage);
+//
+////		if (applicationContext.getApplicationLanguage().equals(applicationContext.getLocalLanguage())
+////				&& languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
+////			vbox.setDisable(true);
+////		}
+//	}
 
 	protected void updateByAttempt(double qualityScore, Image streamImage, double thresholdScore,
 			ImageView streamImagePane, Label qualityText, ProgressBar progressBar, Label progressQualityScore) {
@@ -1900,7 +1900,7 @@ public class BaseController {
 
 	}
 
-	public boolean proceedOnAction(String job) {
+		public boolean proceedOnAction(String job) {
 		if (isPrimaryOrSecondaryLanguageEmpty()) {
 			generateAlert(RegistrationConstants.ERROR,
 					RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);

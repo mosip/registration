@@ -473,7 +473,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 	 * acknowledgement form
 	 */
 	public void createPacket() {
-		if(!proceedOnRegistrationAction())
+		if (!proceedOnRegistrationAction())
 			return;
 
 		ResponseDTO keyResponse = isKeyValid();
@@ -483,15 +483,12 @@ public class PacketHandlerController extends BaseController implements Initializ
 		}
 		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Creation of Registration Starting.");
 		try {
-			auditFactory.audit(AuditEvent.NAV_NEW_REG, Components.NAVIGATION,
-					SessionContext.userContext().getUserId(),
+			auditFactory.audit(AuditEvent.NAV_NEW_REG, Components.NAVIGATION, SessionContext.userContext().getUserId(),
 					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
-			Parent createRoot = BaseController.load(
-					getClass().getResource(RegistrationConstants.CREATE_PACKET_PAGE),
-					applicationContext.getApplicationLanguageBundle());
-			LOGGER.info("REGISTRATION - CREATE_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER",
-					APPLICATION_NAME, APPLICATION_ID, "Validating Create Packet screen for specific role");
+			Parent createRoot = getRoot(RegistrationConstants.CREATE_PACKET_PAGE);
+			LOGGER.info("REGISTRATION - CREATE_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
+					APPLICATION_ID, "Validating Create Packet screen for specific role");
 
 			if (!validateScreenAuthorization(createRoot.getId())) {
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.AUTHORIZATION_ERROR);
@@ -502,8 +499,9 @@ public class PacketHandlerController extends BaseController implements Initializ
 				List<ErrorResponseDTO> errorResponseDTOs = responseDTO.getErrorResponseDTOs();
 				if (errorResponseDTOs != null && !errorResponseDTOs.isEmpty()) {
 					for (ErrorResponseDTO errorResponseDTO : errorResponseDTOs) {
-						errorMessage.append(RegistrationUIConstants
-								.getMessageLanguageSpecific(errorResponseDTO.getMessage()) + "\n\n");
+						errorMessage.append(
+								RegistrationUIConstants.getMessageLanguageSpecific(errorResponseDTO.getMessage())
+										+ "\n\n");
 					}
 					generateAlert(RegistrationConstants.ERROR, errorMessage.toString().trim());
 				} else {
@@ -524,7 +522,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 	 * Validating screen authorization and Creating Packet in case of Lost UIN
 	 */
 	public void lostUIN() {
-		if(!proceedOnRegistrationAction())
+		if (!proceedOnRegistrationAction())
 			return;
 
 		ResponseDTO keyResponse = isKeyValid();
@@ -535,17 +533,15 @@ public class PacketHandlerController extends BaseController implements Initializ
 		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID,
 				"Creating of Registration for lost UIN Starting.");
 		try {
-			auditFactory.audit(AuditEvent.NAV_LOST_UIN, Components.NAVIGATION,
-					SessionContext.userContext().getUserId(), AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+			auditFactory.audit(AuditEvent.NAV_LOST_UIN, Components.NAVIGATION, SessionContext.userContext().getUserId(),
+					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
 			/* Mark Registration Category as Lost UIN */
 			registrationController.initializeLostUIN();
 
-			Parent createRoot = BaseController.load(
-					getClass().getResource(RegistrationConstants.CREATE_PACKET_PAGE),
-					applicationContext.getApplicationLanguageBundle());
-			LOGGER.info("REGISTRATION - CREATE_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER",
-					APPLICATION_NAME, APPLICATION_ID, "Validating Create Packet screen for specific role");
+			Parent createRoot = getRoot(RegistrationConstants.CREATE_PACKET_PAGE);
+			LOGGER.info("REGISTRATION - CREATE_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
+					APPLICATION_ID, "Validating Create Packet screen for specific role");
 
 			if (!validateScreenAuthorization(createRoot.getId())) {
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.AUTHORIZATION_ERROR);
@@ -556,24 +552,26 @@ public class PacketHandlerController extends BaseController implements Initializ
 				List<ErrorResponseDTO> errorResponseDTOs = responseDTO.getErrorResponseDTOs();
 				if (errorResponseDTOs != null && !errorResponseDTOs.isEmpty()) {
 					for (ErrorResponseDTO errorResponseDTO : errorResponseDTOs) {
-						errorMessage.append(RegistrationUIConstants
-								.getMessageLanguageSpecific(errorResponseDTO.getMessage()) + "\n\n");
+						errorMessage.append(
+								RegistrationUIConstants.getMessageLanguageSpecific(errorResponseDTO.getMessage())
+										+ "\n\n");
 					}
 					generateAlert(RegistrationConstants.ERROR, errorMessage.toString().trim());
 				} else {
 					getScene(createRoot).setRoot(createRoot);
 
-					registrationController.getRegTypeText().setText(ApplicationContext.getInstance()
-							.getApplicationLanguageBundle().getString("/lostuin"));
+					registrationController.getRegTypeText().setText(applicationContext
+							.getBundle(applicationContext.getApplicationLanguage(), RegistrationConstants.LABELS)
+							.getString("/lostuin"));
 					genericController.populateScreens();
 				}
 			}
 		} catch (IOException ioException) {
-			LOGGER.error("REGISTRATION - UI- Officer Packet Create for Lost UIN", APPLICATION_NAME,
-					APPLICATION_ID,  ExceptionUtils.getStackTrace(ioException));
+			LOGGER.error("REGISTRATION - UI- Officer Packet Create for Lost UIN", APPLICATION_NAME, APPLICATION_ID,
+					ExceptionUtils.getStackTrace(ioException));
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
 		}
-		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID,"Creating of Registration for lost UIN ended.");
+		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Creating of Registration for lost UIN ended.");
 	}
 
 	public void showReciept() {
@@ -585,9 +583,10 @@ public class PacketHandlerController extends BaseController implements Initializ
 			String ackTemplateText = templateService.getHtmlTemplate(ACKNOWLEDGEMENT_TEMPLATE_CODE,
 					platformLanguageCode);
 
-			if (ApplicationContext.applicationLanguage().equalsIgnoreCase(ApplicationContext.localLanguage())) {
-				ackTemplateText = ackTemplateText.replace("} / ${", "}  ${");
-			}
+			// TODO check for template use cases
+//			if (ApplicationContext.applicationLanguage().equalsIgnoreCase(ApplicationContext.localLanguage())) {
+//				ackTemplateText = ackTemplateText.replace("} / ${", "}  ${");
+//			}
 
 			if (ackTemplateText != null && !ackTemplateText.isEmpty()) {
 				String key = "mosip.registration.important_guidelines_" + applicationContext.getApplicationLanguage();
@@ -601,9 +600,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 					ackReceiptController.setStringWriter(stringWriter);
 					ResponseDTO packetCreationResponse = savePacket(stringWriter, registrationDTO);
 					if (packetCreationResponse.getSuccessResponseDTO() != null) {
-						Parent createRoot = BaseController.load(
-								getClass().getResource(RegistrationConstants.ACK_RECEIPT_PATH),
-								applicationContext.getApplicationLanguageBundle());
+						Parent createRoot = getRoot(RegistrationConstants.ACK_RECEIPT_PATH);
 						getScene(createRoot).setRoot(createRoot);
 						setIsAckOpened(true);
 						return;
@@ -705,7 +702,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 	}
 
 	public void updateUIN() {
-		if(!proceedOnRegistrationAction())
+		if (!proceedOnRegistrationAction())
 			return;
 
 		ResponseDTO keyResponse = isKeyValid();
@@ -717,11 +714,10 @@ public class PacketHandlerController extends BaseController implements Initializ
 		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Loading Update UIN screen started.");
 		try {
 			auditFactory.audit(AuditEvent.NAV_UIN_UPDATE, Components.NAVIGATION,
-					SessionContext.userContext().getUserId(),
-					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+					SessionContext.userContext().getUserId(), AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
-			if (RegistrationConstants.DISABLE.equalsIgnoreCase(
-					getValueFromApplicationContext(RegistrationConstants.FINGERPRINT_DISABLE_FLAG))
+			if (RegistrationConstants.DISABLE
+					.equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.FINGERPRINT_DISABLE_FLAG))
 					&& RegistrationConstants.DISABLE.equalsIgnoreCase(
 							getValueFromApplicationContext(RegistrationConstants.IRIS_DISABLE_FLAG))) {
 
@@ -730,8 +726,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 			} else {
 				Parent root = BaseController.load(getClass().getResource(RegistrationConstants.UIN_UPDATE));
 
-				LOGGER.info("REGISTRATION - update UIN - REGISTRATION_OFFICER_PACKET_CONTROLLER",
-						APPLICATION_NAME, APPLICATION_ID, "updating UIN");
+				LOGGER.info("REGISTRATION - update UIN - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
+						APPLICATION_ID, "updating UIN");
 
 				if (!validateScreenAuthorization(root.getId())) {
 					generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.AUTHORIZATION_ERROR);
@@ -743,8 +739,9 @@ public class PacketHandlerController extends BaseController implements Initializ
 					List<ErrorResponseDTO> errorResponseDTOs = responseDTO.getErrorResponseDTOs();
 					if (errorResponseDTOs != null && !errorResponseDTOs.isEmpty()) {
 						for (ErrorResponseDTO errorResponseDTO : errorResponseDTOs) {
-							errorMessage.append(RegistrationUIConstants
-									.getMessageLanguageSpecific(errorResponseDTO.getMessage()) + "\n\n");
+							errorMessage.append(
+									RegistrationUIConstants.getMessageLanguageSpecific(errorResponseDTO.getMessage())
+											+ "\n\n");
 						}
 						generateAlert(RegistrationConstants.ERROR, errorMessage.toString().trim());
 
@@ -780,7 +777,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 	 * change On-Board user Perspective
 	 */
 	public void onBoardUser() {
-		if(!proceedOnAction("OU"))
+		if (!proceedOnAction("OU"))
 			return;
 
 		auditFactory.audit(AuditEvent.NAV_ON_BOARD_USER, Components.NAVIGATION, APPLICATION_NAME,
@@ -1035,7 +1032,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 			}
 		}
 	}
-
 
 	@FXML
 	public void uploadPacketToServer() {

@@ -353,20 +353,20 @@ public class BiometricsController extends BaseController /* implements Initializ
 			}
 		});
 
-		applicationLabelBundle = applicationContext.getApplicationLanguageBundle();
+		applicationLabelBundle = applicationContext.getBundle(applicationContext.getApplicationLanguage(),
+				RegistrationConstants.LABELS);
 
 		if (getRegistrationDTOFromSession() != null && getRegistrationDTOFromSession().getSelectionListDTO() != null) {
 
-			registrationNavlabel.setText(ApplicationContext.applicationLanguageBundle()
-					.getString(RegistrationConstants.UIN_UPDATE_UINUPDATENAVLBL));
+			registrationNavlabel
+					.setText(applicationLabelBundle.getString(RegistrationConstants.UIN_UPDATE_UINUPDATENAVLBL));
 
 		} else if (getRegistrationDTOFromSession() != null
 				&& getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory() != null
 				&& getRegistrationDTOFromSession().getRegistrationMetaDataDTO().getRegistrationCategory()
 						.equals(RegistrationConstants.PACKET_TYPE_LOST)) {
 
-			registrationNavlabel.setText(
-					ApplicationContext.applicationLanguageBundle().getString(RegistrationConstants.LOSTUINLBL));
+			registrationNavlabel.setText(applicationLabelBundle.getString(RegistrationConstants.LOSTUINLBL));
 
 		}
 	}
@@ -1624,9 +1624,6 @@ public class BiometricsController extends BaseController /* implements Initializ
 			return;
 		}
 
-		registrationController.showCurrentPage(RegistrationConstants.GUARDIAN_BIOMETRIC,
-				getPageByAction(RegistrationConstants.GUARDIAN_BIOMETRIC, RegistrationConstants.PREVIOUS));
-
 	}
 
 	/**
@@ -1648,9 +1645,6 @@ public class BiometricsController extends BaseController /* implements Initializ
 		if (isUserOnboardFlag) {
 			userOnboardParentController.showCurrentPage(RegistrationConstants.GUARDIAN_BIOMETRIC,
 					getOnboardPageDetails(RegistrationConstants.GUARDIAN_BIOMETRIC, RegistrationConstants.NEXT));
-		} else {
-			registrationController.showCurrentPage(RegistrationConstants.GUARDIAN_BIOMETRIC,
-					getPageByAction(RegistrationConstants.GUARDIAN_BIOMETRIC, RegistrationConstants.NEXT));
 		}
 
 		initializeState(false);
