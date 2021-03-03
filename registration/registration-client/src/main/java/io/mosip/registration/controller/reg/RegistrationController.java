@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 import io.mosip.registration.service.packet.PacketHandlerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,7 +113,6 @@ public class RegistrationController extends BaseController {
 	@Autowired
 	private PacketHandlerService packetHandlerService;
 
-
 	private List<String> selectedLangList = new LinkedList<>();
 
 	public void init(String UIN, HashMap<String, Object> selectionListDTO, Map<String, UiSchemaDTO> selectedFields,
@@ -163,15 +163,16 @@ public class RegistrationController extends BaseController {
 	public void createRegistrationDTOObject(String registrationCategory) {
 		try {
 			// Put the RegistrationDTO object to SessionContext Map
-			SessionContext.map().put(RegistrationConstants.REGISTRATION_DATA, packetHandlerService.startRegistration(null,
-					registrationCategory));
+			SessionContext.map().put(RegistrationConstants.REGISTRATION_DATA,
+					packetHandlerService.startRegistration(null, registrationCategory));
 		} catch (RegBaseCheckedException ex) {
 			LOGGER.error(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, ExceptionUtils.getStackTrace(ex));
+			ResourceBundle resourceBundle = applicationContext.getBundle(applicationContext.getApplicationLanguage(),
+					RegistrationConstants.MESSAGES);
 			generateAlert(RegistrationConstants.ERROR,
-					ApplicationContext.applicationMessagesBundle().containsKey(ex.getErrorCode()) ?
-							ApplicationContext.applicationMessagesBundle().getString(ex.getErrorCode()) :
-							ex.getErrorCode());
+					resourceBundle.containsKey(ex.getErrorCode()) ? resourceBundle.getString(ex.getErrorCode())
+							: ex.getErrorCode());
 		}
 	}
 
