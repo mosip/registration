@@ -60,9 +60,12 @@ public class VirtualKeyboard {
 
 	private StringBuilder vkType = new StringBuilder();
 
-	private final ResourceBundle keyboard = ApplicationContext.secondaryLanguageLocal() != null
-			? ResourceBundle.getBundle("keyboards.keyboard", new Locale(ApplicationContext.secondaryLanguageLocal()))
-			: null;
+	private ResourceBundle keyboard = null;
+
+	public VirtualKeyboard(String langCode) {
+
+		this.keyboard = ResourceBundle.getBundle("keyboards.keyboard", new Locale(langCode));
+	}
 
 	private String getKey(String keyCode) {
 
@@ -76,16 +79,6 @@ public class VirtualKeyboard {
 	 *               target is null, KeyEvents will be dynamically forwarded to the
 	 *               focus owner in the Scene containing this keyboard.
 	 */
-
-	private static VirtualKeyboard instance = null;
-
-	public static VirtualKeyboard getInstance() {
-		if (instance == null) {
-			instance = new VirtualKeyboard();
-		}
-
-		return instance;
-	}
 
 	private VirtualKeyboard(ReadOnlyObjectProperty<Node> target) {
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
@@ -226,14 +219,6 @@ public class VirtualKeyboard {
 		bottomRow.getChildren().addAll(modifiers.ctrlKey(), modifiers.altKey(), modifiers.metaKey(), spaceBar,
 				cursorLeft, cursorUpDown, cursorRight);
 		root.getChildren().add(bottomRow);
-	}
-
-	/**
-	 * Creates a VirtualKeyboard which uses the focusProperty of the scene to which
-	 * it is attached as its target
-	 */
-	private VirtualKeyboard() {
-		this(null);
 	}
 
 	/**
