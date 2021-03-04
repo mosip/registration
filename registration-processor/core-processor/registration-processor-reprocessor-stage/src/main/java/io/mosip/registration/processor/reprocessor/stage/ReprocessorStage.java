@@ -254,7 +254,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 								? dto.getReProcessRetryCount() + 1
 								: 1;
 						dto.setReProcessRetryCount(reprocessRetryCount);
-						dto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.SUCCESS.toString());
+						dto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
 						dto.setLatestTransactionTypeCode(
 								RegistrationTransactionTypeCode.PACKET_REPROCESS.toString());
 						dto.setStatusComment(StatusUtil.RE_PROCESS_COMPLETED.getMessage());
