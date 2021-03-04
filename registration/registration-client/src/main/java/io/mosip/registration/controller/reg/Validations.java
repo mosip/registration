@@ -3,12 +3,7 @@ package io.mosip.registration.controller.reg;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.ResourceBundle;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -349,7 +344,7 @@ public class Validations extends BaseController {
 		if(!isNonBlacklisted)
 			return false;
 
-		String regex = getRegex(fieldId, RegistrationUIConstants.REGEX_TYPE);
+		String regex = getRegex(fieldId, RegistrationUIConstants.REGEX_TYPE, messageBundle.getLocale());
 		if(!isLocalLanguageField && regex != null && !value.matches(regex)) {
 			generateInvalidValueAlert(parentPane, node.getId(), getFromLabelMap(fieldId).concat(RegistrationConstants.SPACE)
 					.concat(messageBundle.getString(RegistrationConstants.REG_DDC_004)), showAlert);
@@ -604,7 +599,7 @@ public class Validations extends BaseController {
 	 * @return <code>true</code>, if successful, else <code>false</code>
 	 */
 	public boolean validateSingleString(String value, String id) {
-		String regex = getRegex(id, RegistrationUIConstants.REGEX_TYPE);
+		String regex = getRegex(id, RegistrationUIConstants.REGEX_TYPE, null);
 		return regex != null ? value.matches(regex) : true;
 	}
 
@@ -642,8 +637,9 @@ public class Validations extends BaseController {
 		validationMessage.delete(0, validationMessage.length());
 	}
 
-
-	private String getRegex(String fieldId, String regexType) {
+	//TODO
+	private String getRegex(String fieldId, String regexType, Locale locale) {
+		LOGGER.debug("Fetching regex for fieldid {} with locale {}", fieldId, locale);
 		UiSchemaDTO uiSchemaDTO = getValidationMap().get(fieldId);
 		if (uiSchemaDTO != null && uiSchemaDTO.getValidators() != null) {
 			Optional<Validator> validator = uiSchemaDTO.getValidators().stream()
