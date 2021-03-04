@@ -56,6 +56,13 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
     private String port;
 
     /**
+     * server port number.
+     */
+    @Value("${securezone.routing.enabled:true}")
+    private boolean routingEnabled;
+
+
+    /**
      * worker pool size.
      */
     @Value("${worker.pool.size}")
@@ -259,7 +266,8 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
      * @param messageDTO the message DTO
      */
     public void sendMessage(MessageDTO messageDTO) {
-        this.send(this.mosipEventBus, MessageBusAddress.SECUREZONE_NOTIFICATION_OUT, messageDTO);
+        if (routingEnabled)
+            this.send(this.mosipEventBus, MessageBusAddress.SECUREZONE_NOTIFICATION_OUT, messageDTO);
     }
 
     @Override
