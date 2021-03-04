@@ -46,8 +46,7 @@ import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecke
 @Service
 public class UserMachineMappingServiceImpl extends BaseService implements UserMachineMappingService {
 
-	@Autowired
-	private BaseService baseService;
+
 	@Autowired
 	private MachineMappingDAO machineMappingDAO;
 
@@ -76,8 +75,8 @@ public class UserMachineMappingServiceImpl extends BaseService implements UserMa
 		} else {
 
 			try {				
-				stationId = baseService.getStationId(RegistrationSystemPropertiesChecker.getMachineId());
-				centerId = baseService.getCenterId(stationId);
+				stationId = getStationId();
+				centerId = getCenterId(stationId);
 				userMachineMappingList = machineMappingDAO.getUserMappingDetails(stationId);
 				Map<String, Object> requestMap = new LinkedHashMap<>();
 				requestMap.put(RegistrationConstants.ID, RegistrationConstants.APPLICATION_NAME);

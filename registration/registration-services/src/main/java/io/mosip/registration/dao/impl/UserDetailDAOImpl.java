@@ -84,12 +84,12 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 		LOGGER.info("REGISTRATION - USER_DETAIL - REGISTRATION_USER_DETAIL_DAO_IMPL", APPLICATION_NAME, APPLICATION_ID,
 				"Fetching User details");
 
-		List<UserDetail> userDetail = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
+		UserDetail userDetail = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
 
 		LOGGER.info("REGISTRATION - USER_DETAIL - REGISTRATION_USER_DETAIL_DAO_IMPL", APPLICATION_NAME, APPLICATION_ID,
 				"User details fetched successfully");
 
-		return !userDetail.isEmpty() ? userDetail.get(0) : null;
+		return userDetail;
 	}
 
 	/*
@@ -141,124 +141,65 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 				.findByUserBiometricIdUsrIdAndIsActiveTrueAndUserBiometricIdBioTypeCodeIgnoreCase(userId, bioType);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see io.mosip.registration.dao.UserDetailDAO#save(io.mosip.registration.dto.
-	 * UserDetailResponseDto)
-	 */
-	public void save(List<UserDetailDto> userDetails) throws RegBaseUncheckedException {
-
+	public void save(UserDetailDto userDetailDto) {
 		LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "Entering user detail save method...");
+		UserDetail existingUserDetail = userDetailRepository.findByIdIgnoreCase(userDetailDto.getUserName());
 
-		List<UserDetail> userList = new ArrayList<>();
-		List<UserPassword> userPassword = new ArrayList<>();
-		try {
+		UserDetail userDetail = new UserDetail();
+		UserPassword usrPwd = new UserPassword();
 
-			// deleting Role if Exist
-			LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "Deleting User role if exist....");
-			userDetails.forEach(userDetail -> {
-				userDetail.getRoles().forEach(userRoleId -> {
-					UserRoleId roleId = new UserRoleId();
-					roleId.setRoleCode(userRoleId);
-					roleId.setUsrId(userDetail.getUserName());
+		boolean userNewStatus = userDetailDto.getIsActive() != null ? userDetailDto.getIsActive().booleanValue() : true;
+		if(existingUserDetail != null) {
+			deleteUserRole(existingUserDetail.getName());//cleanup existing roles
+			usrPwd.setPwd(existingUserDetail.getUserPassword().getPwd());
+			userDetail.setSalt(existingUserDetail.getSalt());
 
-					deleteUserRole(userDetail.getUserName());
-
-				});
-
-			});
-
-			// Saving User Details user name and password
-			userDetails.forEach(userDtals -> {
-
-				List<UserDetail> users = userDetailRepository
-						.findByIdIgnoreCaseAndIsActiveTrue(userDtals.getUserName());
-
-				UserDetail userDetail = null;
-				if (users != null && !users.isEmpty()) {
-					userDetail = users.get(0);
-				}
-
-				UserDetail userDtls = new UserDetail();
-				UserPassword usrPwd = new UserPassword();
-				// password details
-				usrPwd.setUsrId(userDtals.getUserName());
-				usrPwd.setStatusCode("00");
-				usrPwd.setIsActive(userDtls.getIsActive() != null ? userDtls.getIsActive().booleanValue() : true);
-				usrPwd.setLangCode(ApplicationContext.applicationLanguage());
-
-				if (userDetail != null) {
-					usrPwd.setPwd(userDetail.getUserPassword().getPwd());
-				}
-				if (SessionContext.isSessionContextAvailable()) {
-					usrPwd.setCrBy(SessionContext.userContext().getUserId());
-				} else {
-					usrPwd.setCrBy(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
-				}
-				usrPwd.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
-				userPassword.add(usrPwd);
-
-				userDtls.setId(userDtals.getUserName());
-				userDtls.setUserPassword(usrPwd);
-				userDtls.setEmail(userDtals.getMail());
-				userDtls.setMobile(userDtals.getMobile());
-				userDtls.setName(userDtals.getName());
-				userDtls.setLangCode(ApplicationContext.applicationLanguage());
-
-				if (userDetail != null) {
-					userDtls.setSalt(userDetail.getSalt());
-				}
-				if (SessionContext.isSessionContextAvailable()) {
-					userDtls.setCrBy(SessionContext.userContext().getUserId());
-				} else {
-					userDtls.setCrBy(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
-				}
-				userDtls.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
-				userDtls.setIsActive(userDtls.getIsActive() != null ? userDtls.getIsActive().booleanValue() : true);
-				userDtls.setStatusCode("00");
-				userList.add(userDtls);
-			});
-
-			userDetailRepository.saveAll(userList);
-			userPwdRepository.saveAll(userPassword);
-
-			// Saving User Roles
-			userDetails.forEach(role -> {
-
-				UserRole roles = new UserRole();
-				roles.setIsActive(role.getIsActive() != null ? role.getIsActive().booleanValue() : true);
-				roles.setLangCode(ApplicationContext.applicationLanguage());
-				if (SessionContext.isSessionContextAvailable()) {
-					roles.setCrBy(SessionContext.userContext().getUserId());
-				} else {
-					roles.setCrBy(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
-				}
-				roles.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
-				role.getRoles().forEach(rol -> {
-					UserRoleId roleId = new UserRoleId();
-					roleId.setRoleCode(rol);
-					roleId.setUsrId(role.getUserName());
-					roles.setUserRoleId(roleId);
-
-					try {
-
-						userRoleRepository.save(roles);
-
-					} catch (Exception exception) {
-						exception.printStackTrace();
-					}
-				});
-
-			});
-			LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "Leaving user detail save method...");
-
-		} catch (RuntimeException exRuntimeException) {
-			LOGGER.error(LOG_REG_USER_DETAIL_DAO, APPLICATION_NAME, APPLICATION_ID,
-					exRuntimeException.getMessage() + ExceptionUtils.getStackTrace(exRuntimeException));
-			throw new RegBaseUncheckedException(LOG_REG_USER_DETAIL_DAO, exRuntimeException.getMessage());
+			if(!userNewStatus) {//clean all auth token belonging to inactive user
+				LOGGER.debug(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "Removed auth token of user : " +
+						existingUserDetail.getName());
+				userTokenRepository.deleteByUsrId(existingUserDetail.getName());
+			}
 		}
+
+		usrPwd.setUsrId(userDetailDto.getUserName());
+		usrPwd.setStatusCode("00");
+		usrPwd.setIsActive(userNewStatus);
+		usrPwd.setLangCode(ApplicationContext.applicationLanguage());
+		usrPwd.setCrBy(SessionContext.isSessionContextAvailable() ? SessionContext.userContext().getUserId() :
+				RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
+		usrPwd.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
+
+		userDetail.setId(userDetailDto.getUserName());
+		userDetail.setUserPassword(usrPwd);
+		userDetail.setEmail(userDetailDto.getMail());
+		userDetail.setMobile(userDetailDto.getMobile());
+		userDetail.setName(userDetailDto.getName());
+		userDetail.setLangCode(ApplicationContext.applicationLanguage());
+		userDetail.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
+		userDetail.setIsActive(userNewStatus);
+		userDetail.setCrBy(SessionContext.isSessionContextAvailable() ? SessionContext.userContext().getUserId() :
+				RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
+		userDetail.setStatusCode("00");
+
+		userDetailRepository.save(userDetail);
+		userPwdRepository.save(usrPwd);
+
+		userDetailDto.getRoles().forEach(role -> {
+			UserRole userRole = new UserRole();
+			userRole.setIsActive(userNewStatus);
+			userRole.setLangCode(ApplicationContext.applicationLanguage());
+			userRole.setCrBy(SessionContext.isSessionContextAvailable() ? SessionContext.userContext().getUserId() :
+					RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
+			userRole.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
+			UserRoleId roleId = new UserRoleId();
+			roleId.setRoleCode(role);
+			roleId.setUsrId(userDetailDto.getUserName());
+			userRole.setUserRoleId(roleId);
+			userRoleRepository.save(userRole);
+		});
+		LOGGER.info(LOG_REG_USER_DETAIL, APPLICATION_NAME, APPLICATION_ID, "leaving user detail save method...");
 	}
+
 
 	@Override
 	public UserBiometric getUserSpecificBioDetail(String userId, String bioType, String subType) {
@@ -280,17 +221,17 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 	@Override
 	public void updateAuthTokens(String userId, String authToken, String refreshToken, long tokenExpiry,
 			long refreshTokenExpiry) {
-		List<UserDetail> userDetail = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
+		UserDetail userDetail = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
 		UserToken userToken = null;
-		if (userDetail != null && !userDetail.isEmpty()) {
-			if (userDetail.get(0).getUserToken() == null) {
+		if (userDetail != null) {
+			if (userDetail.getUserToken() == null) {
 				userToken = new UserToken();
 				userToken.setUsrId(userId);
 				userToken.setCrDtime(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
 				userToken.setCrBy("System");
 				userToken.setIsActive(true);
 			} else
-				userToken = userDetail.get(0).getUserToken();
+				userToken = userDetail.getUserToken();
 
 			userToken.setToken(authToken);
 			userToken.setRefreshToken(refreshToken);
@@ -300,26 +241,25 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 
 			userTokenRepository.save(userToken);
 
-			userDetail.get(0).setUserToken(userToken);
-			userDetailRepository.save(userDetail.get(0));
-
+			userDetail.setUserToken(userToken);
+			userDetailRepository.save(userDetail);
 		}
 	}
 
 	@Override
 	public void updateUserPwd(String userId, String password) throws Exception {
-		List<UserDetail> userDetail = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
-		if (userDetail != null && !userDetail.isEmpty()) {
-			if (userDetail.get(0).getSalt() == null)
-				userDetail.get(0)
+		UserDetail userDetail = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
+		if (userDetail != null) {
+			if (userDetail.getSalt() == null)
+				userDetail
 						.setSalt(CryptoUtil.encodeBase64(DateUtils.formatToISOString(LocalDateTime.now()).getBytes()));
 
-			userDetail.get(0).getUserPassword().setPwd(HMACUtils2.digestAsPlainTextWithSalt(password.getBytes(),
-					CryptoUtil.decodeBase64(userDetail.get(0).getSalt())));
-			userDetail.get(0).getUserPassword().setUpdDtimes(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
+			userDetail.getUserPassword().setPwd(HMACUtils2.digestAsPlainTextWithSalt(password.getBytes(),
+					CryptoUtil.decodeBase64(userDetail.getSalt())));
+			userDetail.getUserPassword().setUpdDtimes(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));
 
-			userPwdRepository.save(userDetail.get(0).getUserPassword());
-			userDetailRepository.save(userDetail.get(0));
+			userPwdRepository.save(userDetail.getUserPassword());
+			userDetailRepository.save(userDetail);
 		}
 	}
 
@@ -341,9 +281,8 @@ public class UserDetailDAOImpl implements UserDetailDAO {
 	public void deleteUserRole(String userName) {
 		LOGGER.info("REGISTRATION - USER_DETAIL - REGISTRATION_USER_DETAIL_DAO_IMPL", APPLICATION_NAME, APPLICATION_ID,
 				"Deleting Roles for user : " + userName);
-
-		userRoleRepository.deleteByUserRoleIdUsrId(userName);
-
+		
+		userRoleRepository.delete(userName);
 	}
 
 	@Override

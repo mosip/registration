@@ -37,7 +37,6 @@ import io.mosip.registration.service.config.GlobalParamService;
 import io.mosip.registration.service.login.LoginService;
 import io.mosip.registration.service.operator.UserDetailService;
 import io.mosip.registration.service.operator.UserOnboardService;
-import io.mosip.registration.service.operator.UserSaltDetailsService;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.service.sync.PublicKeySync;
 import io.mosip.registration.service.sync.TPMPublicKeySyncService;
@@ -110,9 +109,6 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 	@Autowired
 	private UserOnboardService userOnboardService;
 
-	@Autowired
-	private UserSaltDetailsService userSaltDetailsService;
-	
 	@Autowired
 	private TPMPublicKeySyncService tpmPublicKeySyncService;
 
@@ -212,7 +208,8 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 
 			userDTO = MAPPER_FACADE.map(userDetailDAO.getUserDetail(userId), UserDTO.class);
 			
-			LOGGER.info(LOG_REG_LOGIN_SERVICE, APPLICATION_NAME, APPLICATION_ID, "Completed fetching User details");
+			LOGGER.info(LOG_REG_LOGIN_SERVICE, APPLICATION_NAME, APPLICATION_ID,
+					"Completed fetching User details, user found : " + (userDTO == null ? false : true));
 			
 		} catch (RegBaseCheckedException regBaseCheckedException) {
 			LOGGER.error(LOG_REG_LOGIN_SERVICE, APPLICATION_NAME, APPLICATION_ID,
@@ -333,8 +330,7 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 	public List<String> initialSync(String triggerPoint) {
 		long start = System.currentTimeMillis();
 		LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "Started Initial sync");
-		List<String> results = new LinkedList<>();		
-		final boolean isInitialSetUp = RegistrationConstants.ENABLE.equalsIgnoreCase(getGlobalConfigValueOf(RegistrationConstants.INITIAL_SETUP));		
+		List<String> results = new LinkedList<>();
 		ResponseDTO responseDTO = null;
 		
 		try {
@@ -364,7 +360,7 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 					(System.currentTimeMillis() - taskStart));
 
 			taskStart = System.currentTimeMillis();
-			responseDTO = masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001, triggerPoint, keyIndex) ;
+			responseDTO = masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001, triggerPoint) ;
 			validateResponse(responseDTO, CLIENTSETTINGS_SYNC_STEP);
 			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, CLIENTSETTINGS_SYNC_STEP+ " task completed in (ms) : " +
 					(System.currentTimeMillis() - taskStart));
@@ -381,12 +377,13 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, CACERT_SYNC_STEP+ " task completed in (ms) : " +
 					(System.currentTimeMillis() - taskStart));
 
-			if(isInitialSetUp) {
+			if(isInitialSync()) {
 				LoginUserDTO loginUserDTO = (LoginUserDTO) ApplicationContext.map().get(RegistrationConstants.USER_DTO);
 				userDetailDAO.updateUserPwd(loginUserDTO.getUserId(), loginUserDTO.getPassword());
 			}
 
 			results.add(RegistrationConstants.SUCCESS);
+			globalParamService.update(RegistrationConstants.INITIAL_SETUP, RegistrationConstants.DISABLE);
 			
 			LOGGER.info("REGISTRATION  - LOGINSERVICE", APPLICATION_NAME, APPLICATION_ID, "completed Initial sync in (ms) : " +
 					(System.currentTimeMillis() - start));
@@ -531,48 +528,47 @@ public class LoginServiceImpl extends BaseService implements LoginService {
 			if (userDTO == null) {
 				setErrorResponse(responseDTO, RegistrationConstants.USER_NAME_VALIDATION, null);
 			} else {
-				Map<String, String> centerAndMachineId = userOnboardService.getMachineCenterId();
+				String stationId = getStationId();
+				String centerId = getCenterId(stationId);
 
-				String centerId = centerAndMachineId.get(RegistrationConstants.USER_CENTER_ID);
-
-				if (userDTO.getRegCenterUser().getRegcntrId().equals(centerId)) {
-					ApplicationContext.map().put(RegistrationConstants.USER_CENTER_ID, centerId);
-					if (userDTO.getStatusCode().equalsIgnoreCase(RegistrationConstants.BLOCKED)) {
-						setErrorResponse(responseDTO, RegistrationConstants.BLOCKED_USER_ERROR, null);
-					} else {
-						for (UserMachineMappingDTO userMachineMapping : userDTO.getUserMachineMapping()) {
-							ApplicationContext.map().put(RegistrationConstants.DONGLE_SERIAL_NUMBER,
-									userMachineMapping.getMachineMaster().getSerialNum());
-						}
-
-						Set<String> roleList = new LinkedHashSet<>();
-
-						userDTO.getUserRole().forEach(roleCode -> {
-							if (roleCode.isActive()) {
-								roleList.add(String.valueOf(roleCode.getRoleCode()));
-							}
-						});
-
-						LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, "Validating roles");
-						// Checking roles
-						if (roleList.isEmpty() || !(roleList.contains(RegistrationConstants.OFFICER)
-								|| roleList.contains(RegistrationConstants.SUPERVISOR)
-								|| roleList.contains(RegistrationConstants.ADMIN_ROLE)
-								|| roleList.contains(RegistrationConstants.ROLE_DEFAULT))) {
-							setErrorResponse(responseDTO, RegistrationConstants.ROLES_EMPTY_ERROR, null);
-						} else {
-							ApplicationContext.map().put(RegistrationConstants.USER_STATION_ID,
-									centerAndMachineId.get(RegistrationConstants.USER_STATION_ID));
-
-							Map<String, Object> params = new LinkedHashMap<>();
-
-							params.put(RegistrationConstants.ROLES_LIST, roleList);
-							params.put(RegistrationConstants.USER_DTO, userDTO);
-							setSuccessResponse(responseDTO, RegistrationConstants.SUCCESS, params);
-						}
-					}
-				} else {
+				//excluding the case where center is inactive, in which case centerId is null
+				//We will need user to login when center is inactive to finish pending tasks
+				if(centerId != null && !userDTO.getRegCenterUser().getRegcntrId().equals(centerId)) {
 					setErrorResponse(responseDTO, RegistrationConstants.USER_MACHINE_VALIDATION_MSG, null);
+					return responseDTO;
+				}
+
+				ApplicationContext.map().put(RegistrationConstants.USER_CENTER_ID, centerId);
+				if (userDTO.getStatusCode().equalsIgnoreCase(RegistrationConstants.BLOCKED)) {
+					setErrorResponse(responseDTO, RegistrationConstants.BLOCKED_USER_ERROR, null);
+				} else {
+					for (UserMachineMappingDTO userMachineMapping : userDTO.getUserMachineMapping()) {
+						ApplicationContext.map().put(RegistrationConstants.DONGLE_SERIAL_NUMBER,
+								userMachineMapping.getMachineMaster().getSerialNum());
+					}
+
+					Set<String> roleList = new LinkedHashSet<>();
+					userDTO.getUserRole().forEach(roleCode -> {
+						if (roleCode.isActive()) {
+							roleList.add(String.valueOf(roleCode.getRoleCode()));
+						}
+					});
+
+					LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, "Validating roles");
+					// Checking roles
+					if (roleList.isEmpty() || !(roleList.contains(RegistrationConstants.OFFICER)
+							|| roleList.contains(RegistrationConstants.SUPERVISOR)
+							|| roleList.contains(RegistrationConstants.ADMIN_ROLE)
+							|| roleList.contains(RegistrationConstants.ROLE_DEFAULT))) {
+						setErrorResponse(responseDTO, RegistrationConstants.ROLES_EMPTY_ERROR, null);
+					} else {
+						ApplicationContext.map().put(RegistrationConstants.USER_STATION_ID, stationId);
+
+						Map<String, Object> params = new LinkedHashMap<>();
+						params.put(RegistrationConstants.ROLES_LIST, roleList);
+						params.put(RegistrationConstants.USER_DTO, userDTO);
+						setSuccessResponse(responseDTO, RegistrationConstants.SUCCESS, params);
+					}
 				}
 			}
 

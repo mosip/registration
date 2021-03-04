@@ -36,6 +36,7 @@ public class Streamer {
 						exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 			}
 			urlStream = null;
+			imageBytes = null;
 		}
 
 		if (inputStream != null) {

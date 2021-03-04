@@ -221,71 +221,6 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 		return response;
 	}
 
-	/*
-	 * (non-Javadoc) Getting station id based on machine name
-	 * 
-	 * @see
-	 * io.mosip.registration.dao.MachineMappingDAO#getStationID(java.lang.String)
-	 */
-	@Override
-	public String getStationID(String machineName) throws RegBaseCheckedException {
-
-		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
-				"getStationID() machineName --> " + machineName);
-
-		try {
-
-			MachineMaster machineMaster = machineMasterRepository
-					.findByIsActiveTrueAndNameIgnoreCaseAndRegMachineSpecIdLangCode(machineName.toLowerCase(), ApplicationContext.applicationLanguage());
-
-			if (machineMaster != null && machineMaster.getRegMachineSpecId().getId() != null) {
-
-				return machineMaster.getRegMachineSpecId().getId();
-
-			} else {
-
-				return null;
-			}
-
-		} catch (RuntimeException runtimeException) {
-			throw new RegBaseUncheckedException(RegistrationConstants.USER_ON_BOARDING_EXCEPTION,
-					runtimeException.getMessage());
-		}
-	}
-
-	/*
-	 * (non-Javadoc) Getting center id based on station id
-	 * 
-	 * @see
-	 * io.mosip.registration.dao.MachineMappingDAO#getCenterID(java.lang.String)
-	 */
-	@Override
-	public String getCenterID(String stationId) throws RegBaseCheckedException {
-
-		LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID, "getCenterID() stationID --> " + stationId);
-
-		try {
-
-			LOGGER.info(LOG_REG_USER_ONBOARD, APPLICATION_NAME, APPLICATION_ID,
-					"fetching center details from repository....");
-
-			CenterMachine regCenterMachineDtls = centerMachineRepository
-					.findByIsActiveTrueAndCenterMachineIdMachineId(stationId);
-
-			if (regCenterMachineDtls != null && regCenterMachineDtls.getCenterMachineId().getRegCenterId() != null) {
-
-				return regCenterMachineDtls.getCenterMachineId().getRegCenterId();
-
-			} else {
-				return null;
-			}
-
-		} catch (RuntimeException runtimeException) {
-
-			throw new RegBaseUncheckedException(RegistrationConstants.USER_ON_BOARDING_EXCEPTION,
-					runtimeException.getMessage());
-		}
-	}
 
 	@Override
 	public Timestamp getLastUpdatedTime(String usrId) {
@@ -410,10 +345,10 @@ public class UserOnboardDAOImpl implements UserOnboardDAO {
 			}
 			userBiometricRepository.saveAll(existingBiometrics);
 		}
-		List<UserDetail> userDetails = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
-		if(userDetails != null && !userDetails.isEmpty()) {
-			userDetails.get(0).getUserBiometric().clear();
-			userDetailRepository.save(userDetails.get(0));
+		UserDetail userDetails = userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(userId);
+		if(userDetails != null) {
+			userDetails.getUserBiometric().clear();
+			userDetailRepository.save(userDetails);
 		}
 		userBiometricRepository.deleteByUserBiometricIdUsrId(userId);
 	}

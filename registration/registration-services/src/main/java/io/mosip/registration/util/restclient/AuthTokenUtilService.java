@@ -63,11 +63,11 @@ public class AuthTokenUtilService {
     private UserTokenRepository userTokenRepository;
 
     public boolean hasAnyValidToken() {
-        UserToken userToken = userTokenRepository.findTopByTokenExpiryGreaterThanOrderByTokenExpiryDesc(System.currentTimeMillis()/1000);
+        UserToken userToken = userTokenRepository.findTopByTokenExpiryGreaterThanAndUserDetailIsActiveTrueOrderByTokenExpiryDesc(System.currentTimeMillis()/1000);
         if(userToken != null) {
             return true;
         }
-        userToken = userTokenRepository.findTopByRtokenExpiryGreaterThanOrderByRtokenExpiryDesc(System.currentTimeMillis()/1000);
+        userToken = userTokenRepository.findTopByRtokenExpiryGreaterThanAndUserDetailIsActiveTrueOrderByRtokenExpiryDesc(System.currentTimeMillis()/1000);
         if(userToken != null) {
             return true;
         }
@@ -81,7 +81,7 @@ public class AuthTokenUtilService {
                 "fetchAuthToken invoked for triggerPoint >>>>> " + triggerPoint);
 
         if(SessionContext.isSessionContextAvailable()) {
-            UserToken userToken = userTokenRepository.findByUsrId(SessionContext.userId());
+            UserToken userToken = userTokenRepository.findByUsrIdAndUserDetailIsActiveTrue(SessionContext.userId());
             if(userToken != null && userToken.getTokenExpiry() > (System.currentTimeMillis()/1000)) {
                 AuthTokenDTO authTokenDTO = new AuthTokenDTO();
                 authTokenDTO.setCookie(String.format("Authorization=%s", userToken.getToken()));
@@ -96,14 +96,14 @@ public class AuthTokenUtilService {
             }
         }
         else {
-            UserToken userToken = userTokenRepository.findTopByTokenExpiryGreaterThanOrderByTokenExpiryDesc(System.currentTimeMillis()/1000);
+            UserToken userToken = userTokenRepository.findTopByTokenExpiryGreaterThanAndUserDetailIsActiveTrueOrderByTokenExpiryDesc(System.currentTimeMillis()/1000);
             if(userToken != null) {
                 AuthTokenDTO authTokenDTO = new AuthTokenDTO();
                 authTokenDTO.setCookie(String.format("Authorization=%s", userToken.getToken()));
                 return authTokenDTO;
             }
 
-            userToken = userTokenRepository.findTopByRtokenExpiryGreaterThanOrderByRtokenExpiryDesc(System.currentTimeMillis()/1000);
+            userToken = userTokenRepository.findTopByRtokenExpiryGreaterThanAndUserDetailIsActiveTrueOrderByRtokenExpiryDesc(System.currentTimeMillis()/1000);
             if(userToken != null) {
                 AuthTokenDTO authTokenDTO = new AuthTokenDTO();
                 authTokenDTO.setCookie(String.format("Authorization=%s",

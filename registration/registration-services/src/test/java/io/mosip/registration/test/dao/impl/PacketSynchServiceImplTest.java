@@ -40,7 +40,6 @@ import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.constants.AuditEvent;
 import io.mosip.registration.constants.Components;
-import io.mosip.registration.constants.RegistrationClientStatusCode;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.context.SessionContext.UserContext;
@@ -52,7 +51,6 @@ import io.mosip.registration.entity.Registration;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegBaseUncheckedException;
 import io.mosip.registration.service.packet.impl.PacketSynchServiceImpl;
-import io.mosip.registration.service.security.AESEncryptionService;
 import io.mosip.registration.util.restclient.RequestHTTPDTO;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 
@@ -68,9 +66,6 @@ public class PacketSynchServiceImplTest {
 
 	@Mock
 	private ServiceDelegateUtil serviceDelegateUtil;
-	
-	@Mock
-	private AESEncryptionService aesEncryptionService;
 
 	@Mock
 	private RequestHTTPDTO requestHTTPDTO;
@@ -129,7 +124,7 @@ public class PacketSynchServiceImplTest {
 		syncDtoList.add(new SyncRegistrationDTO());
 		Mockito.when(serviceDelegateUtil.post(Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(respObj);
-		Mockito.when(aesEncryptionService.encrypt(javaObjectToJsonString(registrationPacketSyncDTO).getBytes())).thenReturn("aes".getBytes());
+
 		assertEquals("Success", packetSynchServiceImpl.syncPacketsToServer("123456789", "System")
 				.getSuccessResponseDTO().getOtherAttributes().get("123456789"));
 	}
@@ -152,7 +147,6 @@ public class PacketSynchServiceImplTest {
 		Object respObj = new Object();
 		Mockito.when(serviceDelegateUtil.post(Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
 				.thenThrow(new HttpClientErrorException(HttpStatus.ACCEPTED));
-		Mockito.when(aesEncryptionService.encrypt(javaObjectToJsonString(registrationPacketSyncDTO).getBytes())).thenReturn("aes".getBytes());
 		assertEquals(respObj, packetSynchServiceImpl.syncPacketsToServer("123456789", "System"));
 	}
 
@@ -165,7 +159,7 @@ public class PacketSynchServiceImplTest {
 		RegistrationPacketSyncDTO registrationPacketSyncDTO = new RegistrationPacketSyncDTO();
 		Mockito.when(serviceDelegateUtil.post(Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
 				.thenThrow(new RuntimeException());
-		Mockito.when(aesEncryptionService.encrypt(javaObjectToJsonString(registrationPacketSyncDTO).getBytes())).thenReturn("aes".getBytes());
+
 		assertEquals(respObj, packetSynchServiceImpl.syncPacketsToServer("123456789", "System"));
 	}
 	
@@ -178,7 +172,7 @@ public class PacketSynchServiceImplTest {
 		Object respObj = new Object();
 		Mockito.when(serviceDelegateUtil.post(Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
 				.thenThrow(new SocketTimeoutException());
-		Mockito.when(aesEncryptionService.encrypt(javaObjectToJsonString(registrationPacketSyncDTO).getBytes())).thenReturn("aes".getBytes());
+
 		assertEquals(respObj, packetSynchServiceImpl.syncPacketsToServer("123456789", "System"));
 	}
 
@@ -248,7 +242,7 @@ public class PacketSynchServiceImplTest {
 		RegistrationPacketSyncDTO registrationPacketSyncDTO = new RegistrationPacketSyncDTO();
 		Mockito.when(HMACUtils2.generateHash(Mockito.anyString().getBytes())).thenReturn("asa".getBytes());
 		packetSynchServiceImpl.packetSync("123456789");
-		Mockito.when(aesEncryptionService.encrypt(javaObjectToJsonString(registrationPacketSyncDTO).getBytes())).thenReturn("aes".getBytes());
+
 		assertEquals(respObj, packetSynchServiceImpl.syncPacketsToServer("123456789", "System"));
 	}
 
@@ -290,7 +284,7 @@ public class PacketSynchServiceImplTest {
 		syncDtoList.add(new SyncRegistrationDTO());
 		Mockito.when(serviceDelegateUtil.post(Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(respObj);
-		Mockito.when(aesEncryptionService.encrypt(javaObjectToJsonString(registrationPacketSyncDTO).getBytes())).thenReturn("aes".getBytes());
+
 		assertTrue(packetSynchServiceImpl.syncPacketsToServer("123456789", "System").getErrorResponseDTOs()!=null);
 	}
 	
