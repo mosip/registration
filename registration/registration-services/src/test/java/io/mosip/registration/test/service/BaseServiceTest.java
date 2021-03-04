@@ -39,6 +39,12 @@ public class BaseServiceTest {
 	@Mock
 	private UserOnboardDAO onboardDAO;
 
+	@Test
+	public void isValidDeviceTest() {
+		Mockito.when(machineMappingDAO.isValidDevice(DeviceTypes.FINGERPRINT, "SF0001")).thenReturn(false);
+		Boolean test = baseService.isValidDevice(DeviceTypes.FINGERPRINT, "SF001");
+		Assert.assertSame(false, test);
+	}
 
 	@Test
 	public void getCeneterIdTest() {
@@ -65,9 +71,10 @@ public class BaseServiceTest {
 
 	@Test
 	public void getStationIdTest() throws RegBaseCheckedException {
-
-		Assert.assertSame(baseService.getStationId(), null);
-
+		
+		Mockito.when(onboardDAO.getStationID(Mockito.anyString())).thenThrow(RegBaseCheckedException.class);
+		Assert.assertSame(baseService.getStationId("MAC"), null);
+		Mockito.when(onboardDAO.getCenterID(Mockito.anyString())).thenThrow(RegBaseCheckedException.class);
 		Assert.assertSame(baseService.getCenterId("MAC"), null);
 
 

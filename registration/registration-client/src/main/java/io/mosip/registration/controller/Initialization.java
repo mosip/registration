@@ -3,7 +3,6 @@ package io.mosip.registration.controller;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 
 import org.springframework.context.ApplicationContext;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Component;
 import io.mosip.kernel.clientcrypto.service.impl.ClientCryptoFacade;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.SessionContext;
@@ -40,7 +38,6 @@ public class Initialization extends Application {
 	private static Stage applicationPrimaryStage;
 	private static String upgradeServer = null;
 	private static String tpmRequired = "Y";
-	private static String applicationStartTime;
 
 	@Override
 	public void start(Stage primaryStage) {
@@ -80,8 +77,6 @@ public class Initialization extends Application {
 				tpmRequired = args[1];
 				io.mosip.registration.context.ApplicationContext.setTPMUsageFlag(args[1]);
 			}
-			Timestamp time = Timestamp.valueOf(DateUtils.getUTCCurrentDateTime());
-			applicationStartTime = String.valueOf(time);
 
 			applicationContext = new AnnotationConfigApplicationContext(AppConfig.class);
 			launch(args);
@@ -134,9 +129,5 @@ public class Initialization extends Application {
 
 	public static void setPrimaryStage(Stage primaryStage) {
 		applicationPrimaryStage = primaryStage;
-	}
-	
-	public static String getApplicationStartTime() {
-		return applicationStartTime;
 	}
 }

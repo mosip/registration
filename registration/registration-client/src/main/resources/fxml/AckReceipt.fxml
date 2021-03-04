@@ -43,15 +43,28 @@
             </GridPane>
             <GridPane id="ackScreen-anchor-pane" styleClass="ackMenu" GridPane.rowIndex="1">
               <columnConstraints>
-                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="378.0" minWidth="10.0" percentWidth="100.0" prefWidth="378.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="40.0" prefWidth="100.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="328.0" minWidth="10.0" percentWidth="20.0" prefWidth="288.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="378.0" minWidth="10.0" percentWidth="40.0" prefWidth="378.0" />
               </columnConstraints>
               <rowConstraints>
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                  <HBox alignment="CENTER_RIGHT" spacing="10.0">
+                  <HBox alignment="CENTER_LEFT" spacing="3.0" GridPane.valignment="CENTER">
                      <children>
-                        <Button graphicTextGap="10.0" managed="false" mnemonicParsing="false" styleClass="ackBackButton" text="%downloadPDF" visible="false">
+                        <Text onMouseClicked="#goToHomeAckTemplate" text="%home" />
+                        <Text fx:id="registrationNavLabel" text="%/newregistration" />
+                        <Text text="%/acknowledgement" />
+                     </children>
+                     <GridPane.margin>
+                        <Insets left="20.0" />
+                     </GridPane.margin>
+                  </HBox>
+                  <Label styleClass="templateHeading" text="%registration" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
+                  <HBox alignment="CENTER_RIGHT" spacing="10.0" GridPane.columnIndex="2">
+                     <children>
+                        <Button graphicTextGap="10.0" mnemonicParsing="false" styleClass="ackBackButton" text="%downloadPDF" visible="false" managed="false">
                            <graphic>
                               <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
                                  <image>

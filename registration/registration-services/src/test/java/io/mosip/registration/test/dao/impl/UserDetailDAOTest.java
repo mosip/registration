@@ -1,7 +1,9 @@
 package io.mosip.registration.test.dao.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doNothing;
 
 import java.sql.Timestamp;
@@ -74,10 +76,12 @@ public class UserDetailDAOTest {
 
 		UserDetail userDetail = new UserDetail();
 		userDetail.setName("Sravya");
+		List<UserDetail> registrationUserDetailList = new ArrayList<UserDetail>();
+		registrationUserDetailList.add(userDetail);
 
 		Mockito.when(userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue("mosip"))
-				.thenReturn(userDetail);
-		assertNotNull(userDetail);
+				.thenReturn(registrationUserDetailList);
+		assertTrue(!registrationUserDetailList.isEmpty());
 		assertNotNull(userDetailDAOImpl.getUserDetail("mosip"));
 	}
 
@@ -85,10 +89,12 @@ public class UserDetailDAOTest {
 	public void getUserDetailFailureTest() {
 
 		UserDetail userDetail = new UserDetail();
+		List<UserDetail> registrationUserDetailList = new ArrayList<UserDetail>();
+		registrationUserDetailList.add(userDetail);
 
 		Mockito.when(userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue("mosip"))
-				.thenReturn(userDetail);
-		assertNotNull(userDetail);
+				.thenReturn(registrationUserDetailList);
+		assertFalse(registrationUserDetailList.isEmpty());
 		assertNotNull(userDetailDAOImpl.getUserDetail("mosip"));
 	}
 
@@ -143,12 +149,11 @@ public class UserDetailDAOTest {
 		userDetails.add(user);
 		userDetails.add(user1);
 		userDetailsResponse.setUserDetails(userDetails);
-		Mockito.when(userDetailRepository.save(Mockito.any())).thenReturn(new ArrayList<>());
-		Mockito.when(userPwdRepository.save(Mockito.any())).thenReturn(new ArrayList<>());
+		Mockito.when(userDetailRepository.saveAll(Mockito.anyCollection())).thenReturn(new ArrayList<>());
+		Mockito.when(userPwdRepository.saveAll(Mockito.anyCollection())).thenReturn(new ArrayList<>());
 		Mockito.when(userRoleRepository.saveAll(Mockito.anyCollection())).thenReturn(new ArrayList<>());
-		doNothing().when(userRoleRepository).delete(Mockito.anyString());
-		userDetailDAOImpl.save(user);
-		userDetailDAOImpl.save(user1);
+		doNothing().when(userRoleRepository).deleteByUserRoleIdUsrId(Mockito.any());
+		userDetailDAOImpl.save(userDetails);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -172,9 +177,8 @@ public class UserDetailDAOTest {
 		userDetails.add(user);
 		userDetails.add(user1);
 		userDetailsResponse.setUserDetails(userDetails);
-		Mockito.when(userDetailRepository.save(Mockito.any())).thenThrow(RegBaseUncheckedException.class);
-		userDetailDAOImpl.save(user);
-		userDetailDAOImpl.save(user1);
+		Mockito.when(userDetailRepository.saveAll(Mockito.anyCollection())).thenThrow(RegBaseUncheckedException.class);
+		userDetailDAOImpl.save(userDetails);
 	}
 	
 	@Test

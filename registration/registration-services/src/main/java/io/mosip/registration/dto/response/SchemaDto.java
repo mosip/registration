@@ -16,9 +16,7 @@ public class SchemaDto {
 
 	private String id;
 	private double idVersion;
-	private List<UiScreenDTO> screens;
 	private List<UiSchemaDTO> schema;
 	private String schemaJson;
 	private LocalDateTime effectiveFrom;
-	
 }

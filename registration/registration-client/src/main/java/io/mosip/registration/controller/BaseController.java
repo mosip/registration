@@ -22,13 +22,8 @@ import java.util.Map.Entry;
 import java.util.ResourceBundle;
 import java.util.Timer;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import io.mosip.registration.exception.PreConditionCheckException;
-import io.mosip.registration.service.BaseService;
-import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
-import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,7 +51,6 @@ import io.mosip.registration.controller.reg.HeaderController;
 import io.mosip.registration.controller.reg.HomeController;
 import io.mosip.registration.controller.reg.PacketHandlerController;
 import io.mosip.registration.controller.reg.RegistrationPreviewController;
-import io.mosip.registration.controller.reg.UserOnboardParentController;
 import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dto.AuthenticationValidatorDTO;
 import io.mosip.registration.dto.RegistrationDTO;
@@ -65,8 +59,6 @@ import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.biometric.BiometricExceptionDTO;
 import io.mosip.registration.dto.biometric.BiometricInfoDTO;
 import io.mosip.registration.dto.biometric.FaceDetailsDTO;
-import io.mosip.registration.dto.packetmanager.BiometricsDto;
-import io.mosip.registration.dto.response.SchemaDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.scheduler.SchedulerUtil;
 import io.mosip.registration.service.IdentitySchemaService;
@@ -128,11 +120,7 @@ import javafx.util.Duration;
 @Component
 public class BaseController {
 
-	private static final Logger LOGGER = AppConfig.getLogger(BaseController.class);
 	private static final String ALERT_STAGE = "alertStage";
-
-	@FXML
-	public Text scanningMsg;
 
 	@Autowired
 	private SyncStatusValidatorService syncStatusValidatorService;
@@ -191,38 +179,17 @@ public class BaseController {
 	@Autowired
 	private RegistrationApprovalController registrationApprovalController;
 
+	@FXML
+	public Text scanningMsg;
+
 	@Autowired
 	private Validations validations;
 
 	@Autowired
 	protected PageFlow pageFlow;
-	
-	@Autowired
-	private UserOnboardParentController userOnboardParentController;
 
 	@Value("${mosip.registration.css_file_path:}")
 	private String cssName;
-
-	@Autowired
-	private BioService bioService;
-
-	@Autowired
-	private RestartController restartController;
-
-	@Autowired
-	private IdentitySchemaService identitySchemaService;
-
-	@Autowired
-	private RequiredFieldValidator requiredFieldValidator;
-
-	@Autowired
-	private Validations validation;
-
-	@Autowired
-	private BaseService baseService;
-
-	@Autowired
-	private AuthTokenUtilService authTokenUtilService;
 
 	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
 
@@ -240,6 +207,20 @@ public class BaseController {
 
 	private Stage alertStage;
 
+	@Autowired
+	private BioService bioService;
+
+	private static final Logger LOGGER = AppConfig.getLogger(BaseController.class);
+
+	@Autowired
+	private RestartController restartController;
+
+	@Autowired
+	private IdentitySchemaService identitySchemaService;
+
+	@Autowired
+	private RequiredFieldValidator requiredFieldValidator;
+
 	private static boolean isAckOpened = false;
 
 	private List<UiSchemaDTO> uiSchemaDTOs;
@@ -248,11 +229,21 @@ public class BaseController {
 
 	private static TreeMap<String, String> mapOfbiometricSubtypes = new TreeMap<>();
 
+	// private static List<String> listOfBiometricSubTypes = new ArrayList<>();
+
+	/*
+	 * public static List<String> getListOfBiometricSubTypess() { return
+	 * listOfBiometricSubTypes; }
+	 */
+
 	public static TreeMap<String, String> getMapOfbiometricSubtypes() {
 		return mapOfbiometricSubtypes;
 	}
 
 	private static HashMap<String, String> labelMap = new HashMap<>();
+
+	@Autowired
+	private Validations validation;
 
 	public static String getFromLabelMap(String key) {
 		return labelMap.get(key);
@@ -374,7 +365,7 @@ public class BaseController {
 	 * @param title   alert title
 	 * @param context alert context
 	 */
-	public void generateAlert(String title, String context) {
+	protected void generateAlert(String title, String context) {
 		try {
 			closeAlreadyExistedAlert();
 			alertStage = new Stage();
@@ -529,7 +520,7 @@ public class BaseController {
 			Tooltip tool = new Tooltip(context.contains(type) ? context.split(type)[0] : context);
 			tool.getStyleClass().add(RegistrationConstants.TOOLTIP);
 			label.setTooltip(tool);
-			//label.setVisible(true);
+			label.setVisible(true);
 		}
 	}
 
@@ -789,7 +780,7 @@ public class BaseController {
 	 * @param imageBytes the image bytes
 	 * @return the image
 	 */
-	public Image convertBytesToImage(byte[] imageBytes) {
+	protected Image convertBytesToImage(byte[] imageBytes) {
 		Image image = null;
 		if (imageBytes != null) {
 			image = new Image(new ByteArrayInputStream(imageBytes));
@@ -926,7 +917,7 @@ public class BaseController {
 	 *
 	 * @return the registration DTO from session
 	 */
-	public RegistrationDTO getRegistrationDTOFromSession() {
+	protected RegistrationDTO getRegistrationDTOFromSession() {
 		RegistrationDTO registrationDTO = null;
 		if (SessionContext.map() != null || !SessionContext.map().isEmpty()) {
 			registrationDTO = (RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA);
@@ -935,6 +926,24 @@ public class BaseController {
 
 	}
 
+	/**
+	 * Gets the Face DTO from session.
+	 *
+	 * @return the faceDetailsDTO DTO from session
+	 */
+	protected BiometricInfoDTO getFaceDetailsDTO() {
+		return getRegistrationDTOFromSession().getBiometricDTO().getApplicantBiometricDTO();
+	}
+
+	/**
+	 * Gets the biometric DTO from session.
+	 *
+	 * @return the biometric DTO from session
+	 */
+	/*
+	 * protected BiometricDTO getBiometricDTOFromSession() { return (BiometricDTO)
+	 * SessionContext.map().get(RegistrationConstants.USER_ONBOARD_DATA); }
+	 */
 
 	/**
 	 * to return to the next page based on the current page and action for User
@@ -1053,83 +1062,41 @@ public class BaseController {
 
 			LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID, "Validating User Onboard data");
 
-			if (executeUserOnboardTask(userOnboardService.getAllBiometrics())) {
-				returnPage = RegistrationConstants.EMPTY;
-			} else {
+			ResponseDTO response = null;
+			try {
+				response = userOnboardService.validateWithIDAuthAndSave(userOnboardService.getAllBiometrics());
+
+			} catch (RegBaseCheckedException checkedException) {
+				LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
+						ExceptionUtils.getStackTrace(checkedException));
+			}
+			if (response != null && response.getErrorResponseDTOs() != null
+					&& response.getErrorResponseDTOs().get(0) != null) {
+
+				LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
+						"Displaying Alert if validation is not success");
+
+				generateAlertLanguageSpecific(RegistrationConstants.ERROR,
+						response.getErrorResponseDTOs().get(0).getMessage());
 				returnPage = currentPage;
+			} else if (response != null && response.getSuccessResponseDTO() != null) {
+
+				LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
+						"User Onboard is success and clearing Onboard data");
+
+				clearOnboardData();
+				SessionContext.map().put(RegistrationConstants.ISPAGE_NAVIGATION_ALERT_REQ,
+						RegistrationConstants.ENABLE);
+				goToHomePage();
+				onboardAlertMsg();
+
+				LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
+						"Redirecting to Home page after success onboarding");
+				returnPage = RegistrationConstants.EMPTY;
 			}
 		}
 
 		return returnPage;
-	}
-
-	private boolean executeUserOnboardTask(List<BiometricsDto> allBiometrics) {
-		AtomicBoolean returnPage = new AtomicBoolean(false);
-		userOnboardParentController.getParentPane().setDisable(true);
-		userOnboardParentController.getProgressIndicatorParentPane().setVisible(true);
-		userOnboardParentController.getProgressIndicator().setVisible(true);
-
-		Service<ResponseDTO> taskService = new Service<ResponseDTO>() {
-			@Override
-			protected Task<ResponseDTO> createTask() {
-				return new Task<ResponseDTO>() {
-					/*
-					 * (non-Javadoc)
-					 * 
-					 * @see javafx.concurrent.Task#call()
-					 */
-					@Override
-					protected ResponseDTO call() {
-						try {
-							return userOnboardService.validateWithIDAuthAndSave(allBiometrics);
-						} catch (RegBaseCheckedException checkedException) {
-							LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
-									ExceptionUtils.getStackTrace(checkedException));
-						}
-						return null;
-					}
-				};
-			}
-		};
-		
-		userOnboardParentController.getProgressIndicator().progressProperty().bind(taskService.progressProperty());
-		taskService.start();
-		taskService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-			@Override
-			public void handle(WorkerStateEvent workerStateEvent) {
-				ResponseDTO response = taskService.getValue();
-				if (response != null && response.getErrorResponseDTOs() != null
-						&& response.getErrorResponseDTOs().get(0) != null) {
-					LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
-							"Displaying Alert if validation is not success");
-
-					generateAlertLanguageSpecific(RegistrationConstants.ERROR,
-							response.getErrorResponseDTOs().get(0).getMessage());
-					returnPage.set(false);
-				} else if (response != null && response.getSuccessResponseDTO() != null) {
-
-					LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
-							"User Onboard is success and clearing Onboard data");
-
-					clearOnboardData();
-					SessionContext.map().put(RegistrationConstants.ISPAGE_NAVIGATION_ALERT_REQ,
-							RegistrationConstants.ENABLE);
-					goToHomePage();
-					onboardAlertMsg();
-
-					LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
-							"Redirecting to Home page after success onboarding");
-					returnPage.set(true);
-				}
-				userOnboardParentController.getParentPane().setDisable(false);
-				userOnboardParentController.getProgressIndicatorParentPane().setVisible(false);
-				userOnboardParentController.getProgressIndicator().setVisible(false);
-
-				LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-						"Onboarded User biometrics validation and insertion done");
-			}
-		});
-		return returnPage.get();
 	}
 
 	/**
@@ -1157,7 +1124,23 @@ public class BaseController {
 				"Navigated to next page >> " + show);
 	}
 
+	/**
+	 * Checks if the machine is remapped to another center and starts the subsequent
+	 * processing accordingly.
+	 *
+	 * @return true, if is machine remap process started
+	 * @throws IOException
+	 */
+	public boolean isMachineRemapProcessStarted() {
 
+		Boolean isRemapped = centerMachineReMapService.isMachineRemapped()
+				|| centerMachineReMapService.isMachineInActive();
+		if (isRemapped) {
+
+			remapMachine();
+		}
+		return isRemapped;
+	}
 
 	public void remapMachine() {
 
@@ -1200,31 +1183,30 @@ public class BaseController {
 		service.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
 			public void handle(WorkerStateEvent t) {
-				handleRemapResponse(service, true);
+				handleRemapResponse(service);
 			}
 		});
 		service.setOnFailed(new EventHandler<WorkerStateEvent>() {
 			@Override
 			public void handle(WorkerStateEvent t) {
-				handleRemapResponse(service, false);
+				handleRemapResponse(service);
 			}
 		});
 
 	}
 
-	private void handleRemapResponse(Service<String> service, boolean isSuccess) {
+	private void handleRemapResponse(Service<String> service) {
 		service.reset();
 		disableHomePage(false);
 		packetHandlerController.getProgressIndicator().setVisible(false);
 
-		if (isSuccess) {
+		if (RegistrationConstants.ENABLE.equals(SessionContext.map().get(RegistrationConstants.RE_MAP_SUCCESS))) {
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.REMAP_PROCESS_SUCCESS);
 			headerController.logoutCleanUp();
 		} else {
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.REMAP_PROCESS_STILL_PENDING);
 		}
 	}
-
 
 	private void disableHomePage(boolean isDisabled) {
 
@@ -1386,7 +1368,7 @@ public class BaseController {
 	 * @param key the key
 	 * @return the value from application context
 	 */
-	public String getValueFromApplicationContext(String key) {
+	protected String getValueFromApplicationContext(String key) {
 
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Fetching value from application Context");
@@ -1521,7 +1503,7 @@ public class BaseController {
 		return false;
 	}
 
-	public String getThresholdKeyByBioType(String bioType) {
+	protected String getThresholdKeyByBioType(String bioType) {
 		return bioType.equals(RegistrationConstants.FINGERPRINT_SLAB_LEFT)
 				? RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD
 				: bioType.equals(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)
@@ -1582,16 +1564,6 @@ public class BaseController {
 			LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(e));
 		}
-	}
-	
-	public SchemaDto getLatestSchema() {
-		try {
-			return identitySchemaService.getIdentitySchema(identitySchemaService.getLatestEffectiveSchemaVersion());
-		} catch (RegBaseCheckedException exception) {
-			LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
-					ExceptionUtils.getStackTrace(exception));
-		}
-		return null;
 	}
 
 	public SimpleEntry<String, List<String>> getValue(String bio, List<String> attributes) {
@@ -1802,13 +1774,13 @@ public class BaseController {
 
 		String mandatoryAstrik = demographicDetailController.getMandatorySuffix(schema);
 		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
+			field.setPromptText(schema.getLabel().get(RegistrationConstants.SECONDARY) + mandatoryAstrik);
 			label.setText(schema.getLabel().get(RegistrationConstants.SECONDARY) + mandatoryAstrik);
-			field.setPromptText(label.getText());
 			field.setDisable(true);
 			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.SECONDARY));
 		} else {
+			field.setPromptText(schema.getLabel().get(RegistrationConstants.PRIMARY) + mandatoryAstrik);
 			label.setText(schema.getLabel().get(RegistrationConstants.PRIMARY) + mandatoryAstrik);
-			field.setPromptText(label.getText());
 			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.PRIMARY));
 		}
 		// vbox.setStyle("-fx-background-color:BLUE");
@@ -1868,24 +1840,23 @@ public class BaseController {
 		labels.put("OPERATOR", RegistrationUIConstants.ONBOARD_USER_TITLE);
 
 		Object value = ApplicationContext.map().get(RegistrationConstants.OPERATOR_ONBOARDING_BIO_ATTRIBUTES);
-		List<String> attributes = (value != null) ? Arrays.asList(((String) value).split(","))
-				: new ArrayList<String>();
-		// subMap.put(slabType, Arrays.asList(configBiometrics, nonConfigBiometrics));
+		List<String> attributes = (value != null) ? Arrays.asList(((String)value).split(",")) :
+				new ArrayList<String>();
+		//subMap.put(slabType, Arrays.asList(configBiometrics, nonConfigBiometrics));
 		HashMap<String, List<List<String>>> subMap = new HashMap<String, List<List<String>>>();
 		subMap.put(RegistrationConstants.FINGERPRINT_SLAB_LEFT,
 				Arrays.asList(ListUtils.intersection(RegistrationConstants.leftHandUiAttributes, attributes),
-						ListUtils.subtract(RegistrationConstants.leftHandUiAttributes, attributes)));
+			ListUtils.subtract(RegistrationConstants.leftHandUiAttributes, attributes)));
 		subMap.put(RegistrationConstants.FINGERPRINT_SLAB_RIGHT,
 				Arrays.asList(ListUtils.intersection(RegistrationConstants.rightHandUiAttributes, attributes),
 						ListUtils.subtract(RegistrationConstants.rightHandUiAttributes, attributes)));
 		subMap.put(RegistrationConstants.FINGERPRINT_SLAB_THUMBS,
 				Arrays.asList(ListUtils.intersection(RegistrationConstants.twoThumbsUiAttributes, attributes),
-						ListUtils.subtract(RegistrationConstants.twoThumbsUiAttributes, attributes)));
+				ListUtils.subtract(RegistrationConstants.twoThumbsUiAttributes, attributes)));
 		subMap.put(RegistrationConstants.IRIS_DOUBLE,
 				Arrays.asList(ListUtils.intersection(RegistrationConstants.eyesUiAttributes, attributes),
-						ListUtils.subtract(RegistrationConstants.eyesUiAttributes, attributes)));
-		subMap.put(RegistrationConstants.FACE,
-				Arrays.asList(ListUtils.intersection(RegistrationConstants.faceUiAttributes, attributes),
+				ListUtils.subtract(RegistrationConstants.eyesUiAttributes, attributes)));
+		subMap.put(RegistrationConstants.FACE, Arrays.asList(ListUtils.intersection(RegistrationConstants.faceUiAttributes, attributes),
 						ListUtils.subtract(RegistrationConstants.faceUiAttributes, attributes)));
 
 		for (Entry<String, String> entry : labels.entrySet()) {
@@ -1919,77 +1890,4 @@ public class BaseController {
 
 	}
 
-	public boolean isAppLangAndLocalLangSame() {
-
-		return applicationContext.getApplicationLanguage().equals(applicationContext.getLocalLanguage());
-	}
-
-	public boolean isLocalLanguageAvailable() {
-
-		return applicationContext.getLocalLanguage() != null && !applicationContext.getLocalLanguage().isEmpty();
-	}
-
-	public boolean proceedOnAction(String job) {
-		if (isPrimaryOrSecondaryLanguageEmpty()) {
-			generateAlert(RegistrationConstants.ERROR,
-					RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
-			return false;
-		}
-
-		if (!RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
-			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_INTERNET_CONNECTION);
-			return false;
-		}
-
-		if (!authTokenUtilService.hasAnyValidToken()) {
-			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
-			return false;
-		}
-
-		try {
-			switch (job) {
-				case "MS" :
-					baseService.proceedWithMasterAndKeySync(null);
-					break;
-				case "PS":
-					baseService.proceedWithPacketSync();
-					break;
-				case "RM":
-					baseService.proceedWithMachineCenterRemap();
-					break;
-				case "OU" :
-					baseService.proceedWithOperatorOnboard();
-					break;
-				default:
-					baseService.proceedWithMasterAndKeySync(job);
-					break;
-			}
-		} catch (PreConditionCheckException ex){
-			generateAlert(RegistrationConstants.ERROR,
-					ApplicationContext.applicationMessagesBundle().containsKey(ex.getErrorCode()) ?
-							ApplicationContext.applicationMessagesBundle().getString(ex.getErrorCode()) :
-							ex.getErrorCode());
-			return false;
-		}
-		return true;
-	}
-
-	public boolean proceedOnRegistrationAction() {
-		if (isPrimaryOrSecondaryLanguageEmpty()) {
-			generateAlert(RegistrationConstants.ERROR,
-					RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
-			return false;
-		}
-
-		try {
-			baseService.proceedWithRegistration();
-		} catch (PreConditionCheckException ex){
-			generateAlert(RegistrationConstants.ERROR,
-					ApplicationContext.applicationMessagesBundle().containsKey(ex.getErrorCode()) ?
-							ApplicationContext.applicationMessagesBundle().getString(ex.getErrorCode()) :
-							ex.getErrorCode());
-			return false;
-		}
-		return true;
-	}
 }

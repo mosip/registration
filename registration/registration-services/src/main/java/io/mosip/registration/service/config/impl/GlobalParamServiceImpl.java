@@ -58,8 +58,7 @@ public class GlobalParamServiceImpl extends BaseService implements GlobalParamSe
 			Arrays.asList("mosip.registration.machinecenterchanged", "mosip.registration.initial_setup",
 					"mosip.reg.db.current.version", "mosip.reg.services.version",
 					RegistrationConstants.IS_SOFTWARE_UPDATE_AVAILABLE, RegistrationConstants.SERVICES_VERSION_KEY,
-					RegistrationConstants.HTTP_API_READ_TIMEOUT, RegistrationConstants.HTTP_API_WRITE_TIMEOUT,
-					RegistrationConstants.LAST_SOFTWARE_UPDATE, RegistrationConstants.REGCLIENT_INSTALLED_TIME));
+					RegistrationConstants.HTTP_API_READ_TIMEOUT, RegistrationConstants.HTTP_API_WRITE_TIMEOUT));
 	/**
 	 * Instance of LOGGER
 	 */
@@ -166,21 +165,17 @@ public class GlobalParamServiceImpl extends BaseService implements GlobalParamSe
 
 						HashMap<String, String> globalParamMap = new HashMap<>();
 
-						if (responseMap.get("configDetail") != null) {
+						if(responseMap.containsKey("configDetail") && responseMap.get("configDetail") != null) {
 							HashMap<String, Object> configDetailJsonMap = (HashMap<String, Object>) responseMap
 									.get("configDetail");
 
-							if (configDetailJsonMap.get("globalConfiguration") != null) {
-								parseToMap(
-										(HashMap<String, Object>) getParams(
-												(String) configDetailJsonMap.get("globalConfiguration")),
+							if(configDetailJsonMap.get("globalConfiguration") != null) {
+								parseToMap((HashMap<String, Object>) getParams((String) configDetailJsonMap.get("globalConfiguration")),
 										globalParamMap);
 							}
 
-							if (configDetailJsonMap.get("registrationConfiguration") != null) {
-								parseToMap(
-										(HashMap<String, Object>) getParams(
-												(String) configDetailJsonMap.get("registrationConfiguration")),
+							if(configDetailJsonMap.get("registrationConfiguration") != null) {
+								parseToMap((HashMap<String, Object>) getParams((String) configDetailJsonMap.get("registrationConfiguration")),
 										globalParamMap);
 							}
 						}
@@ -356,7 +351,6 @@ public class GlobalParamServiceImpl extends BaseService implements GlobalParamSe
 				globalParam.setGlobalParamId(globalParamId);
 				globalParam.setCrBy(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
 				globalParam.setCrDtime(time);
-				globalParam.setTyp(RegistrationConstants.CONFIGURATION);
 
 			}
 			globalParam.setVal(val);

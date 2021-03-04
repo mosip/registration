@@ -81,7 +81,8 @@ public class UserDetailServcieTest {
 		Map<String, Object> usrDetailMap = new HashMap<>();
 		usrDetailMap.put("userDetails", userDetailsList);
 		responseMap.put("response", usrDetailMap);
-		doNothing().when(userDetailDAO).save(Mockito.any());
+		doNothing().when(userDetailDAO).save(Mockito.any(List.class));
+		Mockito.when(userOnboardService.getMachineCenterId()).thenReturn(map);
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.any(), Mockito.anyBoolean(),Mockito.anyString()))
 				.thenReturn(responseMap);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
@@ -101,7 +102,8 @@ public class UserDetailServcieTest {
 		userDetail.setUserDetails(list);
 		Map<String, String> map = new HashMap<>();
 		map.put(RegistrationConstants.USER_CENTER_ID, "10011");
-		doNothing().when(userDetailDAO).save(Mockito.any());
+		doNothing().when(userDetailDAO).save(Mockito.any(List.class));
+		Mockito.when(userOnboardService.getMachineCenterId()).thenReturn(map);
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.any(), Mockito.anyBoolean(),Mockito.anyString()))
 				.thenThrow(HttpClientErrorException.class);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
@@ -121,7 +123,8 @@ public class UserDetailServcieTest {
 		userDetail.setUserDetails(list);
 		Map<String, String> map = new HashMap<>();
 		map.put(RegistrationConstants.USER_CENTER_ID, "10011");
-		doNothing().when(userDetailDAO).save(Mockito.any());
+		doNothing().when(userDetailDAO).save(Mockito.any(List.class));
+		Mockito.when(userOnboardService.getMachineCenterId()).thenReturn(map);
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.any(), Mockito.anyBoolean(),Mockito.anyString()))
 				.thenThrow(SocketTimeoutException.class);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
@@ -156,7 +159,8 @@ public class UserDetailServcieTest {
 		Map<String, Object> usrDetailMap = new HashMap<>();
 		usrDetailMap.put("userDetails", userDetailsList);
 		responseMap.put("response", usrDetailMap);
-		doNothing().when(userDetailDAO).save(Mockito.any());
+		doNothing().when(userDetailDAO).save(Mockito.any(List.class));
+		Mockito.when(userOnboardService.getMachineCenterId()).thenReturn(userDetailErrorMap);
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.any(), Mockito.anyBoolean(),Mockito.anyString()))
 				.thenReturn(responseMap);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
@@ -182,7 +186,8 @@ public class UserDetailServcieTest {
 		List<Map<String, Object>> userFailureList=new ArrayList<>();
 		userFailureList.add(userDetailsMap);
 		responseMap.put("errors", userFailureList);
-		doNothing().when(userDetailDAO).save(Mockito.any());
+		doNothing().when(userDetailDAO).save(Mockito.any(List.class));
+		Mockito.when(userOnboardService.getMachineCenterId()).thenReturn(map);
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.any(), Mockito.anyBoolean(),Mockito.anyString()))
 				.thenReturn(responseMap);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
@@ -217,7 +222,8 @@ public class UserDetailServcieTest {
 		Map<String, Object> usrDetailMap = new HashMap<>();
 		usrDetailMap.put("userDetails", userDetailsList);
 		responseMap.put("response", usrDetailMap);
-		doNothing().when(userDetailDAO).save(Mockito.any());
+		doNothing().when(userDetailDAO).save(Mockito.any(List.class));
+		Mockito.when(userOnboardService.getMachineCenterId()).thenReturn(userDetailErrorMap);
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.any(), Mockito.anyBoolean(),Mockito.anyString()))
 				.thenReturn(responseMap);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(false);

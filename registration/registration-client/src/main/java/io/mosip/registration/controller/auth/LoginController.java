@@ -140,9 +140,9 @@ public class LoginController extends BaseController implements Initializable {
 
 	@FXML
 	private Hyperlink forgotUsrnme;
-	
+
 	@FXML
-	private Hyperlink forgotPword;
+	private Hyperlink resetPword;
 
 	@Autowired
 	private LoginService loginService;
@@ -290,23 +290,23 @@ public class LoginController extends BaseController implements Initializable {
 
 			hasUpdate = RegistrationConstants.ENABLE.equalsIgnoreCase(
 					getValueFromApplicationContext(RegistrationConstants.IS_SOFTWARE_UPDATE_AVAILABLE));
-//			if (hasUpdate) {
-//
-//				// Update Application
-//				headerController.softwareUpdate(loginRoot, progressIndicator, RegistrationUIConstants.UPDATE_LATER,
-//						isInitialSetUp);
-//
-//			} else if (!isInitialSetUp) {
-//				executePreLaunchTask(loginRoot, progressIndicator);
-//				boolean isPrimaryOrSecondaryLanguageEmpty = ApplicationContext.loadResources();
-//				if (isPrimaryOrSecondaryLanguageEmpty) {
-//					generateAlert(RegistrationConstants.ERROR,
-//							RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
-//					return;
-//				}
-//				jobConfigurationService.startScheduler();
-//
-//			}
+			if (hasUpdate) {
+
+				// Update Application
+				headerController.softwareUpdate(loginRoot, progressIndicator, RegistrationUIConstants.UPDATE_LATER,
+						isInitialSetUp);
+
+			} else if (!isInitialSetUp) {
+				executePreLaunchTask(loginRoot, progressIndicator);
+				boolean isPrimaryOrSecondaryLanguageEmpty = ApplicationContext.loadResources();
+				if (isPrimaryOrSecondaryLanguageEmpty) {
+					generateAlert(RegistrationConstants.ERROR,
+							RegistrationUIConstants.UNABLE_LOAD_LOGIN_SCREEN_LANGUAGE_NOT_SET);
+					return;
+				}
+				jobConfigurationService.startScheduler();
+
+			}
 
 		} catch (IOException ioException) {
 
@@ -332,9 +332,6 @@ public class LoginController extends BaseController implements Initializable {
 		scene = getScene(loginRoot);
 		loadUIElementsFromSchema();
 		pageFlow.loadPageFlow();
-		
-		forgotUsrnme.setVisible(ApplicationContext.map().containsKey(RegistrationConstants.FORGOT_USERNAME_URL));
-		
 		Screen screen = Screen.getPrimary();
 		Rectangle2D bounds = screen.getVisualBounds();
 		primaryStage.setX(bounds.getMinX());
@@ -833,7 +830,6 @@ public class LoginController extends BaseController implements Initializable {
 			break;
 		case RegistrationConstants.PWORD:
 			credentialsPane.setVisible(true);
-			setPwordLabelVisibility();
 			break;
 		case RegistrationConstants.FINGERPRINT_UPPERCASE:
 			fingerprintPane.setVisible(true);
@@ -846,16 +842,11 @@ public class LoginController extends BaseController implements Initializable {
 			break;
 		default:
 			credentialsPane.setVisible(true);
-			setPwordLabelVisibility();
 		}
 
 		if (!loginList.isEmpty()) {
 			loginList.remove(RegistrationConstants.PARAM_ZERO);
 		}
-	}
-
-	private void setPwordLabelVisibility() {
-		forgotPword.setVisible(ApplicationContext.map().containsKey(RegistrationConstants.FORGOT_PWORD_URL));
 	}
 
 	/**
@@ -867,7 +858,7 @@ public class LoginController extends BaseController implements Initializable {
 		forgotUsrnme.setOnAction(e -> {
 			if (Desktop.isDesktopSupported()) {
 				try {
-					Desktop.getDesktop().browse(new URI(ApplicationContext.getStringValueFromApplicationMap(RegistrationConstants.FORGOT_USERNAME_URL)));
+					Desktop.getDesktop().browse(new URI(RegistrationConstants.MOSIP_URL));
 				} catch (IOException ioException) {
 					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 							ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
@@ -875,25 +866,20 @@ public class LoginController extends BaseController implements Initializable {
 					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 							uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
 				}
-			}			
+			}
 		});
 	}
-	
+
 	/**
-	 * Redirects to mosip.io in case of user forgot pword
+	 * Redirects to mosip.io in case of user reset pword
 	 * 
-	 * @param event event for forgot pword
+	 * @param event event for reset pword
 	 */
-	public void forgotPword(ActionEvent event) {
-		forgotPword.setOnAction(e -> {
+	public void resetPwd(ActionEvent event) {
+		resetPword.setOnAction(e -> {
 			if (Desktop.isDesktopSupported()) {
 				try {
-					String url = ApplicationContext.getStringValueFromApplicationMap(RegistrationConstants.FORGOT_PWORD_URL);
-					if (url.toUpperCase().contains(RegistrationConstants.EMAIL_PLACEHOLDER)) {
-						UserDTO userDTO = loginService.getUserDetail(userId.getText());
-						url = url.replace(RegistrationConstants.EMAIL_PLACEHOLDER, userDTO.getEmail());
-					}
-					Desktop.getDesktop().browse(new URI(url));
+					Desktop.getDesktop().browse(new URI(RegistrationConstants.MOSIP_URL));
 				} catch (IOException ioException) {
 					LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
 							ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));

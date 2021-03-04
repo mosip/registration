@@ -42,7 +42,6 @@
       			 <TextField fx:id="userId" layoutX="57.0" layoutY="116.0" onAction="#validateUserId" promptText="%withusername" styleClass="loginTextStyle" AnchorPane.leftAnchor="53.0" />
                   <Button layoutX="52.0" layoutY="171.0" mnemonicParsing="false" onAction="#validateUserId" styleClass="loginSubmitStyle" text="%submit" />
                   <ProgressIndicator fx:id="progressIndicator" layoutX="130.0" layoutY="50.0" progress="0.0" visible="false" />
-                  <Hyperlink fx:id="forgotUsrnme" layoutX="167.0" layoutY="221.0" mnemonicParsing="false" onAction="#forgotUsrname" styleClass="hyperLinkStyle" text="%forgotUsername" />
                </children>
             </AnchorPane>
             <AnchorPane fx:id="credentialsPane" layoutX="37.0" layoutY="188.0" styleClass="loginAnchorPaneExtendedStyle" visible="false">
@@ -51,8 +50,10 @@
       				<PasswordField fx:id="password" layoutX="57.0" layoutY="116.0" onAction="#validateCredentials" promptText="%withpword" styleClass="loginTextStyle" AnchorPane.leftAnchor="53.0" />
       				<Button layoutX="52.0" layoutY="171.0" mnemonicParsing="false" onAction="#validateCredentials" styleClass="loginSubmitStyle" text="%submit" />
 <!--                   <Button layoutX="52.0" layoutY="222.0" mnemonicParsing="false" styleClass="loginSubmitStyle" text="%resetPassword" /> -->
-                  <Hyperlink fx:id="forgotPword" layoutX="270.0" layoutY="222.0" mnemonicParsing="false" onAction="#forgotPword" styleClass="hyperLinkStyle" text="%forgotPword" />
-                 <Hyperlink fx:id="back" layoutX="52.0" layoutY="222.0" mnemonicParsing="false" onAction="#back" styleClass="hyperLinkStyle" text="%back" />
+                  <Hyperlink fx:id="resetPword" layoutX="270.0" layoutY="222.0" mnemonicParsing="false" onAction="#resetPwd" styleClass="hyperLinkStyle" text="%resetPassword" />
+                 <Hyperlink fx:id="back"  layoutX="52.0" layoutY="222.0" mnemonicParsing="false" onAction="#back" styleClass="hyperLinkStyle" text="%back" />
+
+                  <Hyperlink fx:id="forgotUsrnme" layoutX="150.0" layoutY="222.0" mnemonicParsing="false" onAction="#forgotUsrname" styleClass="hyperLinkStyle" text="%forgotUsername" />
                   <ProgressIndicator fx:id="passwordProgressIndicator" layoutX="130.0" layoutY="50.0" progress="0.0" visible="false" />
               
                </children>

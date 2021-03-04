@@ -83,7 +83,8 @@ public class PolicySyncServiceTest {
 		responseMap.put(RegistrationConstants.RESPONSE, valuesMap);
 		String machineId = "machineId";
 		String centerId = "centerId";
-
+		Mockito.when(userOnboardDAO.getStationID(Mockito.anyString())).thenReturn(machineId);
+		Mockito.when(userOnboardDAO.getCenterID(Mockito.anyString())).thenReturn(centerId);
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.anyMap(), Mockito.anyBoolean(),
 				Mockito.anyString())).thenReturn(responseMap);
 
@@ -123,7 +124,8 @@ public class PolicySyncServiceTest {
 		String centerId = "centerId";
 		String refId = centerId + "_" + machineId;
 
-
+		Mockito.when(userOnboardDAO.getStationID(Mockito.anyString())).thenReturn(machineId);
+		Mockito.when(userOnboardDAO.getCenterID(machineId)).thenReturn(centerId);
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.anyMap(), Mockito.anyBoolean(),
 				Mockito.anyString())).thenReturn(responseMap);
 
@@ -155,6 +157,8 @@ public class PolicySyncServiceTest {
 		String centerId = "centerId";
 		String refId = centerId + "_" + machineId;
 
+		Mockito.when(userOnboardDAO.getStationID(Mockito.anyString())).thenReturn(machineId);
+		Mockito.when(userOnboardDAO.getCenterID(machineId)).thenReturn(centerId);
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.anyMap(), Mockito.anyBoolean(),
 				Mockito.anyString())).thenReturn(responseMap);
 
@@ -210,6 +214,8 @@ public class PolicySyncServiceTest {
 		String centerId = "centerId";
 		String refId = centerId + "_" + machineId;
 
+		Mockito.when(userOnboardDAO.getStationID(Mockito.anyString())).thenReturn(machineId);
+		Mockito.when(userOnboardDAO.getCenterID(machineId)).thenReturn(centerId);
 		policySyncServiceImpl.checkKeyValidation();
 	}
 	
@@ -225,7 +231,8 @@ public class PolicySyncServiceTest {
 		String machineId = "machineId";
 		String centerId = "centerId";
 		String refId = centerId + "_" + machineId;
-
+		Mockito.when(userOnboardDAO.getStationID(Mockito.anyString())).thenReturn(machineId);
+		Mockito.when(userOnboardDAO.getCenterID(machineId)).thenReturn(centerId);
 		policySyncServiceImpl.checkKeyValidation();
 	}
 

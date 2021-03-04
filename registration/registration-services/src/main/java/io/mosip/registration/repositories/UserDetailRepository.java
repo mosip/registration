@@ -22,7 +22,7 @@ public interface UserDetailRepository extends BaseRepository<UserDetail, String>
 	 *            the registration user id
 	 * @return the list of {@link UserDetail}
 	 */
-	UserDetail findByIdIgnoreCaseAndIsActiveTrue(String userId);
+	List<UserDetail> findByIdIgnoreCaseAndIsActiveTrue(String userId);
 
 	/**
 	 * To get the list of {@link UserDetail} based on the isActive statuc
@@ -30,8 +30,6 @@ public interface UserDetailRepository extends BaseRepository<UserDetail, String>
 	 * @return the list of {@link UserDetail}
 	 */
 	List<UserDetail> findByIsActiveTrue();
-
-	UserDetail findByIdIgnoreCase(String userId);
 	
 	void deleteById(String id);
 }

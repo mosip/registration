@@ -9,12 +9,15 @@ import io.mosip.registration.dto.packetmanager.BiometricsDto;
 public interface AuthenticationService {
 
 	/**
-	 * Validator for Biometric authentication
-	 * @param userId
-	 * @param modality
-	 * @param biometrics
-	 * @return
+	 * Common Validator for all the Authentications
+	 * 
+	 * @param validatorType
+	 *            The type of validator
+	 * @param authenticationValidatorDTO
+	 *            The authentication validation inputs
+	 * @return Boolean returning whether it is matched or not
 	 */
+	//Boolean authValidator(String validatorType, AuthenticationValidatorDTO authenticationValidatorDTO);
 	Boolean authValidator(String userId, String modality, List<BiometricsDto> biometrics);
 	
 	/**
@@ -33,7 +36,14 @@ public interface AuthenticationService {
 	 */
 	AuthTokenDTO authValidator(String validatorType, String userId, String otp, boolean haveToSaveAuthToken);
 
-
+	/**
+	 * This method is used to set the Authentication validators
+	 * 
+	 * @param authBaseValidators
+	 *            List of validators
+	 */
+//	void setAuthenticationBaseValidator(List<AuthenticationBaseValidator> authBaseValidators);
+	
 	/**
 	 * This method is used to validate pwd authentication
 	 * 
@@ -42,5 +52,14 @@ public interface AuthenticationService {
 	 * @return String
 	 */
 	String validatePassword(AuthenticationValidatorDTO authenticationValidatorDTO);
-
+	/**
+	 * Common Validator for all the Authentications same method is reused in deduplication check
+	 * 
+	 * @param validatorType
+	 *            The type of validator
+	 * @param authenticationValidatorDTO
+	 *            The authentication validation inputs
+	 * @return Boolean returning whether it is matched or not
+	 */
+	//Boolean validateBiometrics(String validatorType,List<BiometricsDto> listOfBiometrics);
 }

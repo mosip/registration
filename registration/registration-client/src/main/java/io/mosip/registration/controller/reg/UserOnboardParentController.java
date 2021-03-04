@@ -8,7 +8,6 @@ import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.controller.BaseController;
 import javafx.fxml.FXML;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.GridPane;
 
 
@@ -30,27 +29,6 @@ public class UserOnboardParentController extends BaseController{
 	
 	@FXML
 	protected GridPane userOnboardId;
-	
-	@FXML
-	private GridPane onBoardRoot;
-	
-	@FXML
-	private ProgressIndicator progressIndicator;
-	
-	@FXML
-	private GridPane progressIndicatorGridPane;
-	
-	public ProgressIndicator getProgressIndicator() {
-		return progressIndicator;
-	}
-	
-	public GridPane getParentPane() {
-		return onBoardRoot;
-	}
-	
-	public GridPane getProgressIndicatorParentPane() {
-		return progressIndicatorGridPane;
-	}
 	
 	
 	public void showCurrentPage(String notTosShow, String show) {

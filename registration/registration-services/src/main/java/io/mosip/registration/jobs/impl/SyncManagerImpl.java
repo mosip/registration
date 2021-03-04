@@ -125,10 +125,9 @@ public class SyncManagerImpl extends BaseService implements SyncManager {
 
 			syncTransaction.setSyncTo(RegistrationConstants.JOB_SYNC_TO_SERVER);
 
-			String machineId = getStationId();
-			syncTransaction.setMachmId(machineId);
+			syncTransaction.setMachmId(getStationId(RegistrationSystemPropertiesChecker.getMachineId()));
 
-			syncTransaction.setCntrId(getCenterId(machineId));
+			syncTransaction.setCntrId(getCenterId());
 
 			syncTransaction.setLangCode(RegistrationConstants.APPLICATION_LANUAGE);
 

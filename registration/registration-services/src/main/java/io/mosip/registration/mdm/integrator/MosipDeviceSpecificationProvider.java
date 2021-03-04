@@ -23,8 +23,8 @@ import io.mosip.registration.mdm.dto.MdmBioDevice;
  * on url
  * </p>
  * <p>
- * Upon finding the devices , these devices will be registered in the device
- * registry and from there we can find any particular device
+ * Upon findin the devices , these devices will be regiestered in the device
+ * registery and from there we can find any particular device
  * </p>
  * <p>
  * This class will be used to capture the biometric details
@@ -43,9 +43,11 @@ public interface MosipDeviceSpecificationProvider {
 	public String getSpecVersion();
 
 	/**
-	 * @param bioDevice Device Information
+	 * @param bioDevice
+	 *            Device Information
 	 * 
-	 * @param modality  Stream request information to be sent
+	 * @param registrationStreamRequestDto
+	 *            Stream request information to be sent
 	 * @return Input Stream from the MDS
 	 * @throws IOException
 	 * @throws MalformedURLException
@@ -53,8 +55,10 @@ public interface MosipDeviceSpecificationProvider {
 	public InputStream stream(MdmBioDevice bioDevice, String modality) throws RegBaseCheckedException;
 
 	/**
-	 * @param bioDevice     Device Information
-	 * @param mdmRequestDto capture request information to be sent
+	 * @param BioDevice
+	 *            Device Information
+	 * @param registrationCaptureRequestDto
+	 *            capture request information to be sent
 	 * @return Capture response from the MDS
 	 * @throws IOException
 	 * @throws ParseException
@@ -65,15 +69,10 @@ public interface MosipDeviceSpecificationProvider {
 			throws RegBaseCheckedException;
 
 	/**
-	 * @param deviceInfoResponse received from mds
+	 * @param deviceInfoResponse
+	 *            received from mds
 	 * @return list of mdmBio Devices
 	 */
 	public List<MdmBioDevice> getMdmDevices(String deviceInfoResponse, int port);
-
-	/**
-	 * @param mdmBioDevice bio device cached from device info
-	 * @return device was is Ready status or not
-	 */
-	public boolean isDeviceAvailable(MdmBioDevice mdmBioDevice);
 
 }

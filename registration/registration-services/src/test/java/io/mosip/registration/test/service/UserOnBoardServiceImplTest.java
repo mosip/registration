@@ -15,7 +15,6 @@ import java.util.Map;
 
 import javax.crypto.SecretKey;
 
-import io.mosip.registration.service.BaseService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -74,9 +73,6 @@ public class UserOnBoardServiceImplTest {
 	
 	@InjectMocks
 	private UserOnboardServiceImpl userOnboardServiceImpl;
-
-	@InjectMocks
-	private BaseService baseService;
 	
 	@Mock
 	private UserOnboardDAO userOnBoardDao;
@@ -851,8 +847,34 @@ public class UserOnBoardServiceImplTest {
 		
 	}*/
 	
-
-
+	@SuppressWarnings("static-access")
+	@Test
+	public void getCenter() throws RegBaseCheckedException {
+		
+		PowerMockito.mockStatic(RegistrationSystemPropertiesChecker.class);
+		
+		Mockito.when(registrationSystemPropertiesChecker.getMachineId()).thenReturn("localhost");
+		Mockito.when(userOnBoardDao.getStationID(Mockito.anyString())).thenReturn("1947");
+		Mockito.when(userOnBoardDao.getCenterID(Mockito.anyString())).thenReturn("abc123");
+		
+		userOnboardServiceImpl.getMachineCenterId();
+		
+		
+		
+	}
+	
+	@SuppressWarnings("static-access")
+	@Test
+	public void getCenterException() throws RegBaseCheckedException {
+		
+		PowerMockito.mockStatic(RegistrationSystemPropertiesChecker.class);
+		
+		Mockito.when(registrationSystemPropertiesChecker.getMachineId()).thenReturn("localhost");
+		Mockito.when(userOnBoardDao.getStationID(Mockito.anyString())).thenReturn("1947");
+		Mockito.when(userOnBoardDao.getCenterID(Mockito.anyString())).thenThrow(RegBaseCheckedException.class);
+		
+		userOnboardServiceImpl.getMachineCenterId();	
+	}
 	
 	@Test
 	public void getLastUpdatedTime() {

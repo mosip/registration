@@ -177,7 +177,6 @@ public class FXUtils {
 	public void populateLocalComboBox(Pane parentPane, ComboBox<?> applicationField, ComboBox<?> localField) {
 		applicationField.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
 			selectComboBoxValueByCode(localField, applicationField.getValue(), applicationField);
-
 			toggleUIField(parentPane, applicationField.getId() + RegistrationConstants.LABEL, true);
 
 			toggleUIField(parentPane, applicationField.getId() + RegistrationConstants.MESSAGE, false);
@@ -608,10 +607,7 @@ public class FXUtils {
 		}
 	}
 
-	public void selectComboBoxValueByCode(ComboBox<?> localComboBox, Object selectedOption, ComboBox<?> ComboBox) {
-		if(localComboBox == null)
-			return;
-
+	private void selectComboBoxValueByCode(ComboBox<?> localComboBox, Object selectedOption, ComboBox<?> ComboBox) {
 		ObservableList<?> localComboBoxValues = localComboBox.getItems();
 		ObservableList<?> comboBoxValues = ComboBox.getItems();
 

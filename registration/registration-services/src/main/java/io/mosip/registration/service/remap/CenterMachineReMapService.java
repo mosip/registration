@@ -41,6 +41,13 @@ public interface CenterMachineReMapService {
 	Boolean isMachineRemapped();
 
 	/**
+	 * checks if the Machine was in-active
+	 * 
+	 * @return Boolean - true if machine is in-active
+	 */
+	Boolean isMachineInActive();
+
+	/**
 	 * starts the remap process if the remap flag is enabled
 	 */
 	void startRemapProcess();

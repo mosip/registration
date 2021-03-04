@@ -8,10 +8,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.TimerTask;
 
-import io.mosip.registration.exception.PreConditionCheckException;
-import io.mosip.registration.service.BaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
@@ -31,6 +30,7 @@ import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.RestartController;
 import io.mosip.registration.controller.auth.LoginController;
 import io.mosip.registration.controller.device.Streamer;
+import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.SuccessResponseDTO;
@@ -115,15 +115,15 @@ public class HeaderController extends BaseController {
 
 	@FXML
 	private MenuItem userGuide;
-	
-	@FXML
-	private MenuItem resetPword;
 
 	@Autowired
 	private JobConfigurationService jobConfigurationService;
 
 	@Autowired
 	private MasterSyncService masterSyncService;
+
+	@Autowired
+	MasterSyncDao masterSyncDao;
 
 	@Autowired
 	PacketHandlerController packetHandlerController;
@@ -149,6 +149,9 @@ public class HeaderController extends BaseController {
 	private Streamer streamer;
 
 	@Autowired
+	private AuthTokenUtilService authTokenUtilService;
+
+	@Autowired
 	private CenterMachineReMapService centerMachineReMapService;
 
 	@Autowired
@@ -156,11 +159,6 @@ public class HeaderController extends BaseController {
 
 	@Autowired
 	private UserDetailService userDetailService;
-
-	@Autowired
-	private BaseService baseService;
-
-
 
 	/**
 	 * Mapping Registration Officer details
@@ -184,8 +182,7 @@ public class HeaderController extends BaseController {
 		} else {
 			homeSelectionMenu.setDisable(false);
 		}
-		resetPword.setVisible(ApplicationContext.map().containsKey(RegistrationConstants.RESET_PWORD_URL));
-		
+
 		getTimer().schedule(new TimerTask() {
 
 			@Override
@@ -270,30 +267,39 @@ public class HeaderController extends BaseController {
 	public void syncData(ActionEvent event) {
 
 		try {
+
 			redirectHome(null);
+
 			// Clear all registration data
 			clearRegistrationData();
 
-			if(!proceedOnAction("MS"))
-				return;
+			if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
+				if (isMachineRemapProcessStarted()) {
 
-			try {
-				auditFactory.audit(AuditEvent.NAV_SYNC_DATA, Components.NAVIGATION,
-						SessionContext.userContext().getUserId(),
-						AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
-				executeSyncDataTask();
-				while (restartController.isToBeRestarted()) {
-					/* Clear the completed job map */
-					BaseJob.clearCompletedJobMap();
-					/* Restart the application */
-					restartController.restart();
+					LOGGER.info(LoggerConstants.LOG_REG_HEADER, APPLICATION_NAME, APPLICATION_ID,
+							RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
+					return;
 				}
+				try {
+					auditFactory.audit(AuditEvent.NAV_SYNC_DATA, Components.NAVIGATION,
+							SessionContext.userContext().getUserId(),
+							AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
+					executeSyncDataTask();
+					while (restartController.isToBeRestarted()) {
+						/* Clear the completed job map */
+						BaseJob.clearCompletedJobMap();
 
-			} catch (RuntimeException runtimeException) {
-				LOGGER.error(LoggerConstants.LOG_REG_HEADER, APPLICATION_NAME, APPLICATION_ID,
-						runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
+						/* Restart the application */
+						restartController.restart();
+					}
+
+				} catch (RuntimeException runtimeException) {
+					LOGGER.error(LoggerConstants.LOG_REG_HEADER, APPLICATION_NAME, APPLICATION_ID,
+							runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
+				}
+			} else {
+				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_INTERNET_CONNECTION);
 			}
-
 		} catch (RuntimeException exception) {
 			LOGGER.error("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
@@ -308,9 +314,12 @@ public class HeaderController extends BaseController {
 	 * @param event event for sync packet status
 	 */
 	public void syncPacketStatus(ActionEvent event) {
-		if(!proceedOnAction("PS"))
-			return;
+		if (isMachineRemapProcessStarted()) {
 
+			LOGGER.info(LoggerConstants.LOG_REG_HEADER, APPLICATION_NAME, APPLICATION_ID,
+					RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
+			return;
+		}
 		try {
 			auditFactory.audit(AuditEvent.SYNC_REGISTRATION_PACKET_STATUS, Components.SYNC_SERVER_TO_CLIENT,
 					SessionContext.userContext().getUserId(), AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
@@ -354,9 +363,12 @@ public class HeaderController extends BaseController {
 			// Clear all registration data
 			clearRegistrationData();
 
-			if(!proceedOnAction(RegistrationConstants.OPT_TO_REG_PDS_J00003))
-				return;
+			if (isMachineRemapProcessStarted()) {
 
+				LOGGER.info(LoggerConstants.LOG_REG_HEADER, APPLICATION_NAME, APPLICATION_ID,
+						RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
+				return;
+			}
 			auditFactory.audit(AuditEvent.SYNC_PRE_REGISTRATION_PACKET, Components.SYNC_SERVER_TO_CLIENT,
 					SessionContext.userContext().getUserId(), AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
@@ -372,10 +384,12 @@ public class HeaderController extends BaseController {
 
 	public void uploadPacketToServer() {
 		if (pageNavigantionAlert()) {
-
-			if(!proceedOnAction("PS"))
-				return;
-
+//			if (isMachineRemapProcessStarted()) {
+//
+//				LOGGER.info(LoggerConstants.LOG_REG_HEADER, APPLICATION_NAME, APPLICATION_ID,
+//						RegistrationConstants.MACHINE_CENTER_REMAP_MSG);
+//				return;
+//			}
 			auditFactory.audit(AuditEvent.SYNC_PRE_REGISTRATION_PACKET, Components.SYNC_SERVER_TO_CLIENT,
 					SessionContext.userContext().getUserId(), AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
@@ -384,28 +398,47 @@ public class HeaderController extends BaseController {
 	}
 
 	public void intiateRemapProcess() {
+		LOGGER.debug("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+				"Cliked on remap process");
+		LOGGER.debug("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+				"Show navigation alert for remap process");
+
 		if (pageNavigantionAlert()) {
 			progressIndicator = packetHandlerController.getProgressIndicator();
-			Service<Boolean> remapTaskService = new Service<Boolean>() {
+			LOGGER.debug("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+					"Navigation success for center remap process");
+
+			Service<ResponseDTO> remapTaskService = new Service<ResponseDTO>() {
 				@Override
-				protected Task<Boolean> createTask() {
+				protected Task<ResponseDTO> createTask() {
 					return /**
 							 * @author SaravanaKumar
 							 *
 							 */
-					new Task<Boolean>() {
+					new Task<ResponseDTO>() {
 						/*
 						 * (non-Javadoc)
 						 * 
 						 * @see javafx.concurrent.Task#call()
 						 */
 						@Override
-						protected Boolean call() throws RegBaseCheckedException {
+						protected ResponseDTO call() throws RegBaseCheckedException {
 							LOGGER.info("REGISTRATION - SYNC - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 									"Executing client settings to check remap process");
-							masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
-									RegistrationConstants.JOB_TRIGGER_POINT_USER);
-							return true;
+
+							ResponseDTO responseDTO = null;
+
+							try {
+
+								responseDTO = userDetailService.save(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
+								responseDTO = masterSyncService.getMasterSync(
+										RegistrationConstants.OPT_TO_REG_MDS_J00001,
+										RegistrationConstants.JOB_TRIGGER_POINT_USER);
+							} catch (Exception exception) {
+								LOGGER.error("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME,
+										APPLICATION_ID, ExceptionUtils.getStackTrace(exception));
+							}
+							return responseDTO;
 						}
 					};
 				}
@@ -415,9 +448,13 @@ public class HeaderController extends BaseController {
 				@Override
 				public void handle(WorkerStateEvent t) {
 					LOGGER.debug("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
-							"check for Center remap process failed");
+							"Center remap process failed");
+
 					generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.SYNC_FAILURE);
-					machineRemapCheck(true);
+					if (!isMachineRemapProcessStarted()) {
+						generateAlert(RegistrationConstants.ALERT_INFORMATION,
+								RegistrationUIConstants.REMAP_NOT_APPLICABLE);
+					}
 					progressIndicator.setVisible(false);
 				}
 			}));
@@ -426,51 +463,84 @@ public class HeaderController extends BaseController {
 				@Override
 				public void handle(WorkerStateEvent t) {
 					LOGGER.debug("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
-							"check for Center remap process success");
-					machineRemapCheck(true);
+							"Center remap process success");
+
+					boolean showAlert = true;
+					boolean userRemapFound = userRemapCheck(showAlert);
+
+					if (!userRemapFound) {
+						machineRemapCheck(showAlert);
+					}
+
 					progressIndicator.setVisible(false);
 				}
 
 			})));
 
-			if(!proceedOnAction("RM"))
-				return;
+			if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
+				if (!authTokenUtilService.hasAnyValidToken()) {
+					generateAlert(RegistrationConstants.ALERT_INFORMATION,
+							RegistrationUIConstants.USER_RELOGIN_REQUIRED);
+					return;
+				} else {
+					progressIndicator = packetHandlerController.getProgressIndicator();
+					GridPane gridPane = homeController.getMainBox();
+					gridPane.setDisable(true);
+					progressIndicator.setVisible(true);
+					remapTaskService.start();
+				}
+			} else {
+				LOGGER.debug("REGISTRATION - REDIRECTHOME - HEADER_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+						"Internet not available to check center remap process");
 
-			progressIndicator = packetHandlerController.getProgressIndicator();
-			GridPane gridPane = homeController.getMainBox();
-			gridPane.setDisable(true);
-			progressIndicator.setVisible(true);
-			remapTaskService.start();
+				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_INTERNET_CONNECTION);
+
+				if (centerMachineReMapService.isMachineRemapped()) {
+					if (!isMachineRemapProcessStarted()) {
+						generateAlert(RegistrationConstants.ALERT_INFORMATION,
+								RegistrationUIConstants.REMAP_NOT_APPLICABLE);
+					}
+				}
+			}
 		}
 	}
 
 	@FXML
 	public void hasUpdate(ActionEvent event) {
 		if (pageNavigantionAlert()) {
+			if (RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
+				boolean hasUpdate = hasUpdate();
+				if (hasUpdate) {
 
-			try {
-				baseService.proceedWithSoftwareUpdate();
-			} catch (PreConditionCheckException e) {
-				generateAlert(RegistrationConstants.ERROR,
-						ApplicationContext.applicationMessagesBundle().getString(e.getErrorCode()));
-				return;
-			}
+					softwareUpdate(homeController.getMainBox(), packetHandlerController.getProgressIndicator(),
+							RegistrationUIConstants.UPDATE_LATER, true);
 
-			boolean hasUpdate = hasUpdate();
-			if (hasUpdate) {
-				softwareUpdate(homeController.getMainBox(), packetHandlerController.getProgressIndicator(),
-						RegistrationUIConstants.UPDATE_LATER, true);
+				} else {
+					generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.NO_UPDATES_FOUND);
+
+				}
+
 			} else {
-				generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.NO_UPDATES_FOUND);
+				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.NO_INTERNET_CONNECTION);
 			}
 		}
 	}
 
 	public boolean hasUpdate() {
-		boolean hasUpdate = softwareUpdateHandler.hasUpdate();
+
+		boolean hasUpdate = false;
+		if (softwareUpdateHandler.hasUpdate()) {
+			hasUpdate = true;
+
+		} else {
+			hasUpdate = false;
+		}
+
 		Timestamp timestamp = hasUpdate ? softwareUpdateHandler.getLatestVersionReleaseTimestamp()
 				: Timestamp.valueOf(DateUtils.getUTCCurrentDateTime());
+
 		globalParamService.updateSoftwareUpdateStatus(hasUpdate, timestamp);
+
 		return hasUpdate;
 	}
 
@@ -521,7 +591,14 @@ public class HeaderController extends BaseController {
 		};
 
 		progressIndicator.progressProperty().bind(taskService.progressProperty());
-		taskService.start();
+
+		if (authTokenUtilService.hasAnyValidToken())
+			taskService.start();
+		else {
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
+			gridPane.setDisable(false);
+			progressIndicator.setVisible(false);
+		}
 
 		taskService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
@@ -544,8 +621,8 @@ public class HeaderController extends BaseController {
 				}
 
 				boolean showAlert = false;
-				if(validUser(showAlert))
-					machineRemapCheck(showAlert);
+				machineRemapCheck(showAlert);
+				userRemapCheck(showAlert);
 				progressIndicator.setVisible(false);
 			}
 		});
@@ -753,7 +830,14 @@ public class HeaderController extends BaseController {
 		};
 
 		progressIndicator.progressProperty().bind(taskService.progressProperty());
-		taskService.start();
+
+		if (authTokenUtilService.hasAnyValidToken())
+			taskService.start();
+		else {
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_RELOGIN_REQUIRED);
+			pane.setDisable(false);
+			progressIndicator.setVisible(false);
+		}
 
 		taskService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
@@ -805,45 +889,42 @@ public class HeaderController extends BaseController {
 			}
 		});
 	}
-	
-	/**
-	 * Redirects to mosip.io in case of user reset pword
-	 * 
-	 * @param event event for reset pword
-	 */
-	public void resetPword(ActionEvent event) {
-		if (Desktop.isDesktopSupported()) {
-			try {
-				String url = ApplicationContext.getStringValueFromApplicationMap(RegistrationConstants.RESET_PWORD_URL);
-				if (url.toUpperCase().contains(RegistrationConstants.EMAIL_PLACEHOLDER)) {
-					UserDTO userDTO = loginService.getUserDetail(SessionContext.userId());
-					url = url.replace(RegistrationConstants.EMAIL_PLACEHOLDER, userDTO.getEmail());
-				}
-				Desktop.getDesktop().browse(new URI(url));
-			} catch (IOException ioException) {
-				LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-						ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
-			} catch (URISyntaxException uriSyntaxException) {
-				LOGGER.error(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID,
-						uriSyntaxException.getMessage() + ExceptionUtils.getStackTrace(uriSyntaxException));
-			}
-		}		
-	}
 
 	private void machineRemapCheck(boolean showAlert) {
-		if (centerMachineReMapService.isMachineRemapped()) {
+		if (centerMachineReMapService.isMachineRemapped() || centerMachineReMapService.isMachineInActive()) {
+
 			remapMachine();
+
 		} else if (showAlert) {
+
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.REMAP_NOT_APPLICABLE);
 		}
+
 	}
 
-	private boolean validUser(boolean showAlert) {
-		if(!userDetailService.isValidUser(SessionContext.getInstance().getUserContext().getUserId())) {
-			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_IN_ACTIVE);
-			logout(null);
-			return false;
+	private boolean userRemapCheck(boolean showAlert) {
+		boolean userNotFoundOrNotActive = false;
+		ResponseDTO responseDTO = loginService.validateUser(SessionContext.getInstance().getUserContext().getUserId());
+		SuccessResponseDTO successResponseDTO = responseDTO.getSuccessResponseDTO();
+		if (successResponseDTO != null) {
+			UserDTO userDTO = (UserDTO) responseDTO.getSuccessResponseDTO().getOtherAttributes()
+					.get(RegistrationConstants.USER_DTO);
+
+			userNotFoundOrNotActive = userDTO == null || userDTO.getId() == null || !userDTO.getIsActive();
+		} else if (responseDTO.getErrorResponseDTOs() != null) {
+			userNotFoundOrNotActive = true;
 		}
-		return true;
+
+		if (userNotFoundOrNotActive) {
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USER_IN_ACTIVE);
+
+			logout(null);
+
+		} else if (showAlert) {
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.USERMAP_NOT_APPLICABLE);
+
+		}
+
+		return userNotFoundOrNotActive;
 	}
 }

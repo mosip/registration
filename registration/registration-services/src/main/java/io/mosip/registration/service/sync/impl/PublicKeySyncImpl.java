@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -48,9 +47,6 @@ public class PublicKeySyncImpl extends BaseService implements PublicKeySync {
 	@Autowired
 	private KeymanagerService keymanagerService;
 
-	@Value("${mosip.sign.refid:SIGN}")
-	private String signRefId;
-
 	/** The Constant LOGGER. */
 	private static final Logger LOGGER = AppConfig.getLogger(PublicKeySyncImpl.class);
 
@@ -64,13 +60,10 @@ public class PublicKeySyncImpl extends BaseService implements PublicKeySync {
 		LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
 				"Entering into get public key method.....");
 
-		//Precondition check, proceed only if met, otherwise throws exception
-		proceedWithMasterAndKeySync(null);
-
 		ResponseDTO responseDTO = new ResponseDTO();
 		try {
 			KeyPairGenerateResponseDto certificateDto = keymanagerService
-					.getCertificate(RegistrationConstants.KERNEL_APP_ID, Optional.of(signRefId));
+					.getCertificate(RegistrationConstants.KERNEL_APP_ID, Optional.of(RegistrationConstants.KERNEL_REF_ID));
 			if (certificateDto == null || (certificateDto != null && certificateDto.getCertificate() == null)) {
 				LOGGER.info("REGISTRATION_KEY_POLICY_SYNC", APPLICATION_NAME, APPLICATION_ID,
 						"Syncing the key as the certificate is null");
@@ -146,7 +139,7 @@ public class PublicKeySyncImpl extends BaseService implements PublicKeySync {
 		ResponseDTO responseDTO = new ResponseDTO();
 		Map<String, String> requestParamMap = new LinkedHashMap<>();
 		requestParamMap.put(RegistrationConstants.GET_CERT_APP_ID, RegistrationConstants.KERNEL_APP_ID);
-		requestParamMap.put(RegistrationConstants.REF_ID, signRefId);
+		requestParamMap.put(RegistrationConstants.REF_ID, RegistrationConstants.KER);
 		try {
 			LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
 					"Calling getCertificate rest call with request params " + requestParamMap);

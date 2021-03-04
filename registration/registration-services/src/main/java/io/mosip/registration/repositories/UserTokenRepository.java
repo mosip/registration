@@ -5,11 +5,9 @@ import io.mosip.registration.entity.UserToken;
 
 public interface UserTokenRepository extends BaseRepository<UserToken, String> {
 
-    UserToken findByUsrIdAndUserDetailIsActiveTrue(String userId);
+    UserToken findByUsrId(String userId);
 
-    UserToken findTopByTokenExpiryGreaterThanAndUserDetailIsActiveTrueOrderByTokenExpiryDesc(long currentTimeInSeconds);
+    UserToken findTopByTokenExpiryGreaterThanOrderByTokenExpiryDesc(long currentTimeInSeconds);
 
-    UserToken findTopByRtokenExpiryGreaterThanAndUserDetailIsActiveTrueOrderByRtokenExpiryDesc(long currentTimeInSeconds);
-
-    void deleteByUsrId(String usrId);
+    UserToken findTopByRtokenExpiryGreaterThanOrderByRtokenExpiryDesc(long currentTimeInSeconds);
 }

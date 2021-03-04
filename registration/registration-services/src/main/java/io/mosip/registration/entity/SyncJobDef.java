@@ -38,8 +38,6 @@ public class SyncJobDef extends RegistrationCommonFields {
 	private Boolean isDeleted;
 	@Column(name = "del_dtimes")
 	private Timestamp deletedDateTime;
-	@Column(name = "job_type")
-	private String jobType;
 
 	public String getId() {
 		return id;
@@ -113,11 +111,4 @@ public class SyncJobDef extends RegistrationCommonFields {
 		this.deletedDateTime = Timestamp.valueOf(DateUtils.getUTCCurrentDateTime());
 	}
 
-	public String getJobType() {
-		return jobType;
-	}
-
-	public void setJobType(String jobType) {
-		this.jobType = jobType;
-	}
 }

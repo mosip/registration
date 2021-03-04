@@ -1,13 +1,9 @@
 package io.mosip.registration.service.packet;
 
-import java.util.List;
-
 import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.SuccessResponseDTO;
-import io.mosip.registration.entity.Registration;
-import io.mosip.registration.exception.RegBaseCheckedException;
 
 /**
  * The interface to handle the registration data to create packet out of it and
@@ -44,15 +40,4 @@ public interface PacketHandlerService {
 	 * @return the {@link ResponseDTO} object
 	 */
 	public ResponseDTO handle(RegistrationDTO registrationDTO);
-	
-	public List<Registration> getAllRegistrations();
-
-	/**
-	 *
-	 * @param id
-	 * @param category
-	 * @return
-	 * @throws RegBaseCheckedException
-	 */
-	public RegistrationDTO startRegistration(String id, String category) throws RegBaseCheckedException;
 }

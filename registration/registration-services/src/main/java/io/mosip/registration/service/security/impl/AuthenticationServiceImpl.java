@@ -5,11 +5,16 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.registration.constants.LoginMode;
-import io.mosip.registration.util.common.OTPManager;
+import io.mosip.registration.dto.LoginUserDTO;
+import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,12 +23,15 @@ import io.mosip.kernel.biometrics.constant.BiometricType;
 import io.mosip.kernel.biosdk.provider.factory.BioAPIFactory;
 import io.mosip.kernel.biosdk.provider.spi.iBioProviderApi;
 import io.mosip.kernel.core.bioapi.exception.BiometricException;
+import io.mosip.kernel.core.cbeffutil.entity.BDBInfo;
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.ProcessedLevelType;
+import io.mosip.kernel.core.cbeffutil.entity.BIR.BIRBuilder;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.PurposeType;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
+import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.CryptoUtil;
-import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dao.UserDetailDAO;
@@ -32,12 +40,10 @@ import io.mosip.registration.dto.AuthenticationValidatorDTO;
 import io.mosip.registration.dto.UserDTO;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.entity.UserBiometric;
-import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.login.LoginService;
 import io.mosip.registration.service.security.AuthenticationService;
-import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
-import io.mosip.registration.util.restclient.AuthTokenUtilService;
+import io.mosip.registration.validator.OTPValidatorImpl;
 
 /**
  * Service class for Authentication
@@ -56,7 +62,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	private LoginService loginService;
 
 	@Autowired
-	private OTPManager otpManager;
+	private OTPValidatorImpl otpValidatorImpl;
 
 	@Autowired
 	private BioAPIFactory bioAPIFactory;
@@ -91,7 +97,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 //				record.add(buildBir(userBiometric.getBioIsoImage(), biometricType));
 
 				record.add(bioService.buildBir(userBiometric.getUserBiometricId().getBioAttributeCode(),
-						userBiometric.getQualityScore(), userBiometric.getBioIsoImage(), ProcessedLevelType.PROCESSED));
+						userBiometric.getQualityScore(), userBiometric.getBioIsoImage()));
 			});
 
 			List<BIR> sample = new ArrayList<>(biometrics.size());
@@ -121,10 +127,23 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	 * authValidator(java.lang.String, java.lang.String, java.lang.String)
 	 */
 	public AuthTokenDTO authValidator(String validatorType, String userId, String otp, boolean haveToSaveAuthToken) {
-		return otpManager.validateOTP(userId, otp, haveToSaveAuthToken);
+		return otpValidatorImpl.validate(userId, otp, haveToSaveAuthToken);
 	}
 
-
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see io.mosip.registration.service.security.AuthenticationServiceImpl#
+	 * setAuthenticationBaseValidator(java.util.List)
+	 */
+	/*
+	 * @Override
+	 * 
+	 * @Autowired public void
+	 * setAuthenticationBaseValidator(List<AuthenticationBaseValidator>
+	 * authBaseValidators) { this.authenticationBaseValidators = authBaseValidators;
+	 * }
+	 */
 
 	/**
 	 * to validate the password and send appropriate message to display.
@@ -137,11 +156,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		LOGGER.debug("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
 				"Validating credentials using database >>>> " + authenticationValidatorDTO.getUserId());
 		try {
-			//Always mandate user to reach server to validate pwd when machine is online
-			//As in case of new user, any valid authtoken will be simply allowed
-			//to avoid any such scenario, mandate to fetch new token when login
 			if(RegistrationAppHealthCheckUtil.isNetworkAvailable()) {
-				authTokenUtilService.getAuthTokenAndRefreshToken(LoginMode.PASSWORD);
+				LoginUserDTO loginUserDTO = new LoginUserDTO();
+				loginUserDTO.setUserId(authenticationValidatorDTO.getUserId());
+				loginUserDTO.setPassword(authenticationValidatorDTO.getPassword());
+				authTokenUtilService.getAuthTokenAndRefreshToken(LoginMode.PASSWORD, loginUserDTO);
 			}
 
 			UserDTO userDTO = loginService.getUserDetail(authenticationValidatorDTO.getUserId());
@@ -156,10 +175,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 			}
 
 		} catch (RuntimeException | RegBaseCheckedException | NoSuchAlgorithmException runtimeException) {
-			LOGGER.error("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
+			LOGGER.info("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(runtimeException));
 			return RegistrationConstants.PWD_MISMATCH;
 		}
 	}
+
+	/*
+	 * @Override public Boolean validateBiometrics(String validatorType,
+	 * List<BiometricsDto> listOfBiometrics) { for (AuthenticationBaseValidator
+	 * validator : authenticationBaseValidators) { if
+	 * (validator.getClass().getName().toLowerCase().contains(validatorType.
+	 * toLowerCase())) { return validator.bioMerticsValidator(listOfBiometrics); } }
+	 * 
+	 * return false; }
+	 */
 
 }

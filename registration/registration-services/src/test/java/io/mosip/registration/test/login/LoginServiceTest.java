@@ -69,6 +69,7 @@ import io.mosip.registration.service.config.GlobalParamService;
 import io.mosip.registration.service.login.impl.LoginServiceImpl;
 import io.mosip.registration.service.operator.UserDetailService;
 import io.mosip.registration.service.operator.UserOnboardService;
+import io.mosip.registration.service.operator.UserSaltDetailsService;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.service.sync.PublicKeySync;
 import io.mosip.registration.service.sync.TPMPublicKeySyncService;
@@ -126,7 +127,8 @@ public class LoginServiceTest {
 	@Mock
 	private UserOnboardService userOnboardService;
 
-
+	@Mock
+	private UserSaltDetailsService userSaltDetailsService;
 	@Mock
 	private TPMPublicKeySyncService tpmPublicKeySyncService;
 	
@@ -171,8 +173,10 @@ public class LoginServiceTest {
 
 		UserDetail userDetail = new UserDetail();
 		userDetail.setId("mosip");
+		List<UserDetail> userDetailList = new ArrayList<UserDetail>();
+		userDetailList.add(userDetail);
 		Mockito.when(userDetailRepository.findByIdIgnoreCaseAndIsActiveTrue(Mockito.anyString()))
-				.thenReturn(userDetail);
+				.thenReturn(userDetailList);
 
 		Mockito.when(userDetailDAO.getUserDetail(Mockito.anyString())).thenReturn(userDetail);
 
@@ -281,10 +285,14 @@ public class LoginServiceTest {
 		Mockito.when(globalParamService.synchConfigData(false)).thenReturn(responseDTO);
 
 		Mockito.when(masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
-				RegistrationConstants.JOB_TRIGGER_POINT_USER)).thenReturn(responseDTO);
+				RegistrationConstants.JOB_TRIGGER_POINT_USER, "MyIndex")).thenReturn(responseDTO);
 
 		Mockito.when(userDetailService.save(RegistrationConstants.JOB_TRIGGER_POINT_USER)).thenReturn(responseDTO);
 		
+		Mockito.when(userSaltDetailsService
+				.getUserSaltDetails(RegistrationConstants.JOB_TRIGGER_POINT_USER)).thenReturn(responseDTO);
+
+
 		ApplicationContext.setApplicationMap(applicationMap);
 		Assert.assertTrue(loginServiceImpl.initialSync(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM).contains(RegistrationConstants.SUCCESS));
 	}
@@ -311,9 +319,14 @@ public class LoginServiceTest {
 		Mockito.when(globalParamService.synchConfigData(false)).thenReturn(responseDTO);
 
 		Mockito.when(masterSyncService.getMasterSync(RegistrationConstants.OPT_TO_REG_MDS_J00001,
-				RegistrationConstants.JOB_TRIGGER_POINT_USER)).thenReturn(responseDTO);
+				RegistrationConstants.JOB_TRIGGER_POINT_USER, "MyIndex")).thenReturn(responseDTO);
 
 		Mockito.when(userDetailService.save(RegistrationConstants.JOB_TRIGGER_POINT_USER)).thenReturn(responseDTO);
+		
+		Mockito.when(userSaltDetailsService
+				.getUserSaltDetails(RegistrationConstants.JOB_TRIGGER_POINT_USER)).thenReturn(responseDTO);
+
+
 
 		Assert.assertTrue(loginServiceImpl.initialSync(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM).contains(RegistrationConstants.FAILURE));
 	}
@@ -365,6 +378,11 @@ public class LoginServiceTest {
 				RegistrationConstants.JOB_TRIGGER_POINT_USER)).thenReturn(responseDTO);
 
 		Mockito.when(userDetailService.save(RegistrationConstants.JOB_TRIGGER_POINT_USER)).thenReturn(responseDTO);
+		
+		Mockito.when(userSaltDetailsService
+				.getUserSaltDetails(RegistrationConstants.JOB_TRIGGER_POINT_USER)).thenReturn(responseDTO);
+
+
 
 		Assert.assertTrue(loginServiceImpl.initialSync(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM).contains(RegistrationConstants.FAILURE));
 	}
@@ -405,6 +423,7 @@ public class LoginServiceTest {
 		Map<String, String> map = new HashMap<>();
 		map.put(RegistrationConstants.USER_CENTER_ID, "10011");
 		map.put(RegistrationConstants.USER_STATION_ID,"10011");
+		Mockito.when(userOnboardService.getMachineCenterId()).thenReturn(map);
 		
 		HashMap<String, Object> sessionMap = new HashMap<>();
 		sessionMap.put(RegistrationConstants.USER_CENTER_ID, "11011");
@@ -455,6 +474,7 @@ public class LoginServiceTest {
 		
 		Map<String, String> map = new HashMap<>();
 		map.put(RegistrationConstants.USER_CENTER_ID, "10011");
+		Mockito.when(userOnboardService.getMachineCenterId()).thenReturn(map);
 		
 		HashMap<String, Object> sessionMap = new HashMap<>();
 		sessionMap.put(RegistrationConstants.USER_CENTER_ID, "11011");
@@ -485,6 +505,7 @@ public class LoginServiceTest {
 		
 		Map<String, String> map = new HashMap<>();
 		map.put(RegistrationConstants.USER_CENTER_ID, "10011");
+		Mockito.when(userOnboardService.getMachineCenterId()).thenReturn(map);
 		
 		List<ErrorResponseDTO> errorResponseDTOs = new ArrayList<>();
 		ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO();
@@ -530,6 +551,7 @@ public class LoginServiceTest {
 		Map<String, String> map = new HashMap<>();
 		map.put(RegistrationConstants.USER_CENTER_ID, "10011");
 		map.put(RegistrationConstants.USER_STATION_ID,"10011");
+		Mockito.when(userOnboardService.getMachineCenterId()).thenReturn(map);
 		
 		HashMap<String, Object> sessionMap = new HashMap<>();
 		sessionMap.put(RegistrationConstants.USER_CENTER_ID, "11011");
@@ -581,6 +603,7 @@ public class LoginServiceTest {
 		Map<String, String> map = new HashMap<>();
 		map.put(RegistrationConstants.USER_CENTER_ID, "10011");
 		map.put(RegistrationConstants.USER_STATION_ID,"10011");
+		Mockito.when(userOnboardService.getMachineCenterId()).thenReturn(map);
 		
 		HashMap<String, Object> sessionMap = new HashMap<>();
 		sessionMap.put(RegistrationConstants.USER_CENTER_ID, "11011");

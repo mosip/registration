@@ -53,13 +53,8 @@ public class DynamicFieldDAOImpl implements DynamicFieldDAO {
 		try {
 			String valueJson = (dynamicField != null) ? dynamicField.getValueJson() : "[]" ;
 
-			List<DynamicFieldValueDto> fields = MapperUtils.convertJSONStringToDto(valueJson == null ? "[]" : valueJson,
-					new TypeReference<List<DynamicFieldValueDto>>() {});
-
-			if(fields != null)
-				fields.sort((DynamicFieldValueDto d1, DynamicFieldValueDto d2) -> d1.getCode().compareTo(d2.getCode()));
-
-			return fields;
+			return MapperUtils.convertJSONStringToDto(valueJson == null ? "[]" : valueJson,
+					new TypeReference<List<DynamicFieldValueDto>>() {});			
 			
 		} catch (IOException e) {
 			LOGGER.error("Unable to parse value json for dynamic field: " + fieldName, APPLICATION_NAME,

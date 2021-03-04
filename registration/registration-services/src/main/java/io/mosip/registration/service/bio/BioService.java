@@ -4,7 +4,6 @@ import java.io.InputStream;
 import java.util.List;
 
 import io.mosip.kernel.core.cbeffutil.entity.BIR;
-import io.mosip.kernel.core.cbeffutil.jaxbclasses.ProcessedLevelType;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.mdm.dto.MDMRequestDto;
@@ -60,5 +59,5 @@ public interface BioService {
 	 * @param iso          biometric value in iso format
 	 * @return bir builder for biometric
 	 */
-	public BIR buildBir(String bioAttribute, long qualityScore, byte[] iso, ProcessedLevelType processedLevelType);
+	public BIR buildBir(String bioAttribute, long qualityScore, byte[] iso);
 }

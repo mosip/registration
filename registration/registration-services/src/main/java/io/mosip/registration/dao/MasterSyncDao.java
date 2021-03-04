@@ -18,11 +18,11 @@ import io.mosip.registration.entity.SyncControl;
 import io.mosip.registration.entity.SyncJobDef;
 import io.mosip.registration.entity.ValidDocument;
 
+
 /**
- * This class is used to store the master data details like Location,
- * gender,Registration center, Document types,category etc., in the respective
- * Databases. This class is also used to fetch any of the master data details
- * from the DB.
+ * This class is used to store the master data details like Location, gender,Registration center, 
+ * Document types,category etc., in the respective Databases. This class is also used to fetch any 
+ * of the master data details from the DB.
  *
  * @author Sreekar Chukka
  * @since 1.0.0
@@ -32,7 +32,8 @@ public interface MasterSyncDao {
 	/**
 	 * This method is used to fetch a job detail of a paticular job id.
 	 *
-	 * @param synccontrol the {@link SyncControl} entity
+	 * @param synccontrol
+	 *            the {@link SyncControl} entity
 	 * @return the master sync status
 	 */
 	public SyncControl syncJobDetails(String synccontrol);
@@ -40,8 +41,10 @@ public interface MasterSyncDao {
 	/**
 	 * Find location by lang code.
 	 *
-	 * @param hierarchyCode the hierarchy code
-	 * @param langCode      the lang code
+	 * @param hierarchyCode
+	 *            the hierarchy code
+	 * @param langCode
+	 *            the lang code
 	 * @return the list
 	 */
 	List<Location> findLocationByLangCode(int hierarchyLevel, String langCode);
@@ -49,8 +52,10 @@ public interface MasterSyncDao {
 	/**
 	 * Find location by parent loc code.
 	 *
-	 * @param parentLocCode the parent loc code
-	 * @param langCode      the lang code
+	 * @param parentLocCode
+	 *            the parent loc code
+	 * @param langCode
+	 *            the lang code
 	 * @return the list
 	 */
 	List<Location> findLocationByParentLocCode(String parentLocCode, String langCode);
@@ -58,7 +63,8 @@ public interface MasterSyncDao {
 	/**
 	 * Gets the all reason catogery.
 	 *
-	 * @param langCode the lang code
+	 * @param langCode
+	 *            the lang code
 	 * @return the all reason catogery
 	 */
 	List<ReasonCategory> getAllReasonCatogery(String langCode);
@@ -66,8 +72,10 @@ public interface MasterSyncDao {
 	/**
 	 * Gets the reason list.
 	 *
-	 * @param langCode  the lang code
-	 * @param reasonCat the reason cat
+	 * @param langCode
+	 *            the lang code
+	 * @param reasonCat
+	 *            the reason cat
 	 * @return the reason list
 	 */
 	List<ReasonList> getReasonList(String langCode, List<String> reasonCat);
@@ -75,7 +83,8 @@ public interface MasterSyncDao {
 	/**
 	 * Gets the black listed words.
 	 *
-	 * @param langCode the lang code
+	 * @param langCode
+	 *            the lang code
 	 * @return the black listed words
 	 */
 	List<BlacklistedWords> getBlackListedWords(String langCode);
@@ -83,8 +92,10 @@ public interface MasterSyncDao {
 	/**
 	 * Gets the Document Categories.
 	 *
-	 * @param docCode  the doc code
-	 * @param langCode the lang code
+	 * @param docCode
+	 *            the doc code
+	 * @param langCode
+	 *            the lang code
 	 * @return the document categories
 	 */
 	List<DocumentType> getDocumentTypes(List<String> docCode, String langCode);
@@ -92,7 +103,8 @@ public interface MasterSyncDao {
 	/**
 	 * Gets the gender dtls.
 	 *
-	 * @param langCode the lang code
+	 * @param langCode
+	 *            the lang code
 	 * @return the gender dtls
 	 */
 	List<Gender> getGenderDtls(String langCode);
@@ -100,7 +112,8 @@ public interface MasterSyncDao {
 	/**
 	 * Gets the valid documets.
 	 *
-	 * @param docCategoryCode the doc category code
+	 * @param docCategoryCode
+	 *            the doc category code
 	 * @return the valid documets
 	 */
 	List<ValidDocument> getValidDocumets(String docCategoryCode);
@@ -108,14 +121,16 @@ public interface MasterSyncDao {
 	/**
 	 * Gets the individul type.
 	 *
-	 * @param code     the code
-	 * @param langCode the lang code
+	 * @param code
+	 *            the code
+	 * @param langCode
+	 *            the lang code
 	 * @return the individul type
 	 */
 	List<IndividualType> getIndividulType(String code, String langCode);
 
 	List<IndividualType> getIndividulType(String langCode);
-
+	
 	/**
 	 * Get All the Active Sync JOBS
 	 * 
@@ -126,64 +141,60 @@ public interface MasterSyncDao {
 	/**
 	 * Gets the biometric type.
 	 *
-	 * @param biometricType the biometricType
-	 * @param langCode      the lang code
+	 * @param biometricType
+	 *            the biometricType
+	 * @param langCode
+	 *            the lang code
 	 * @return the biometric type
 	 */
 	List<BiometricAttribute> getBiometricType(String langCode, List<String> biometricType);
 
 	/**
 	 * Get all the active languages
-	 * 
 	 * @return List of {@link Language}
 	 */
 	List<Language> getActiveLanguages();
 
 	/**
 	 * Get all the active genders
-	 * 
 	 * @return list of active {@link Gender}
 	 */
 	List<Gender> getGenders();
 
 	/**
 	 * Get all the active document category from the DB
-	 * 
 	 * @return List of active {@link DocumentCategory}
 	 */
 	List<DocumentCategory> getDocumentCategory();
 
-	/**
-	 * Get all the active locations from the DB
-	 * 
-	 * @return list of active {@link Location}
-	 */
-	List<Location> getLocationDetails();
 
 	/**
 	 * Get all the active locations from the DB
-	 * 
-	 * @param langCode the language code
+	 * @return list of active {@link Location}
+	 */
+	List<Location> getLocationDetails();
+	
+	
+	/**
+	 * Get all the active locations from the DB
+	 * 	 @param langCode
+	 *        the language code
 	 * @return list of active {@link Location}
 	 */
 	List<Location> getLocationDetails(String langCode);
 
+	
 	/**
-	 * Get all the hiraerchy active locations from the DB
-	 * 
-	 * @param hiraerchy name
-	 * @param langCode  the language code
-	 * @return list of active {@link Location}
-	 */
-	List<Location> getLocationDetails(String hirearchyName, String langCode);
-
-	/**
-	 * This new method is replacement to save method. enhanced to handle dynamic
-	 * entity data sync along with client settings from syncdata-service
+	 * This new method is replacement to save method.
+	 * enhanced to handle dynamic entity data sync along with client settings from syncdata-service
 	 * 
 	 * @param syncDataResponseDto
-	 * @return
+	 * @return 
 	 */
 	public String saveSyncData(SyncDataResponseDto syncDataResponseDto);
+
+
+
+	
 
 }

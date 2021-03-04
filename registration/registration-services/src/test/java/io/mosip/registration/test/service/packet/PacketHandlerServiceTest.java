@@ -11,6 +11,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -21,6 +22,7 @@ import io.mosip.registration.dto.SuccessResponseDTO;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
+import io.mosip.registration.service.packet.PacketEncryptionService;
 import io.mosip.registration.service.packet.impl.PacketHandlerServiceImpl;
 
 public class PacketHandlerServiceTest {
@@ -28,6 +30,9 @@ public class PacketHandlerServiceTest {
 	public MockitoRule mockitoRule = MockitoJUnit.rule();
 	@InjectMocks
 	private PacketHandlerServiceImpl packetHandlerServiceImpl;
+
+	@Mock
+	private PacketEncryptionService packetEncryptionService;
 	@Mock
 	private AuditManagerSerivceImpl auditFactory;
 	private ResponseDTO mockedSuccessResponse;

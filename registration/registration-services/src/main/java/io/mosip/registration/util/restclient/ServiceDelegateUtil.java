@@ -69,11 +69,11 @@ public class ServiceDelegateUtil {
 	// @Value("${mosip.registration.HTTP_API_WRITE_TIMEOUT}")
 	// private int connectTimeout;
 
-	/*@Value("${validate_auth_token.service.url:}")
+	@Value("${validate_auth_token.service.url:}")
 	private String urlPath;
 
 	@Value("${invalidate_auth_token.service.url:}")
-	private String invalidateUrlPath;*/
+	private String invalidateUrlPath;
 
 	private String mosipHostNamePlaceHolder = "${mosip.hostname}";
 	private static final Logger LOGGER = AppConfig.getLogger(ServiceDelegateUtil.class);
@@ -138,9 +138,10 @@ public class ServiceDelegateUtil {
 				requestHTTPDTO.setUri(UriComponentsBuilder.fromUriString(url).build(requestParams));
 				url = requestHTTPDTO.getUri().toString();
 			}
-
-			/** Set URI */
-			setURI(requestHTTPDTO, queryParams, url);
+			if (!queryParams.isEmpty()) {
+				/** Set URI */
+				setURI(requestHTTPDTO, queryParams, url);
+			}
 
 			LOGGER.debug(LoggerConstants.LOG_SERVICE_DELEGATE_UTIL_GET, APPLICATION_NAME, APPLICATION_ID,
 					"set uri method called");

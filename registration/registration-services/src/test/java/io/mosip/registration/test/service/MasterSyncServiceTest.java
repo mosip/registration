@@ -217,11 +217,16 @@ public class MasterSyncServiceTest {
 		masterSyncMap.put("lastSyncTime", "2019-03-27T11:07:34.408Z");
 		responseMap.put("response", masterSyncMap);
 		map.put(RegistrationConstants.USER_CENTER_ID, "10011");
+		Mockito.when(userOnboardService.getMachineCenterId()).thenReturn(map);
 		Mockito.when(globalParamService.getGlobalParams()).thenReturn(myMap);
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.any(), Mockito.anyBoolean(),Mockito.anyString()))
 		.thenReturn(responseMap);
 		Mockito.when(masterSyncDao.syncJobDetails(Mockito.anyString())).thenReturn(masterSyncDetails);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
+		
+		Mockito.when(userOnboardDao.getStationID(Mockito.anyString())).thenReturn("8C-16-45-5A-5D-0D");
+		
+		Mockito.when(userOnboardDao.getCenterID(Mockito.anyString())).thenReturn("10003");
 		
 		Mockito.when(syncManager.createSyncTransaction(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
 				Mockito.anyString())).thenReturn(syncTransaction);
@@ -1022,6 +1027,7 @@ public class MasterSyncServiceTest {
 		masterSyncMap.put("lastSyncTime", "2019-03-27T11:07:34.408Z");
 		responseMap.put("response", masterSyncMap);
 		map.put(RegistrationConstants.USER_CENTER_ID, "10011");
+		Mockito.when(userOnboardService.getMachineCenterId()).thenReturn(map);
 		Mockito.when(serviceDelegateUtil.get(Mockito.anyString(), Mockito.any(), Mockito.anyBoolean(),Mockito.anyString()))
 		.thenReturn(responseMap);
 		Mockito.when(masterSyncDao.syncJobDetails(Mockito.anyString())).thenReturn(masterSyncDetails);
@@ -1072,7 +1078,8 @@ public class MasterSyncServiceTest {
 
 		Mockito.when(masterSyncDao.syncJobDetails(Mockito.anyString())).thenReturn(masterSyncDetails);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
-
+		Mockito.when(userOnboardDao.getStationID(Mockito.anyString())).thenReturn("8C-16-45-5A-5D-0D");
+		Mockito.when(userOnboardDao.getCenterID(Mockito.anyString())).thenReturn("10003");
 		Mockito.when(globalParamService.getGlobalParams()).thenReturn(myMap);
 		doNothing().when(globalParamService).update(Mockito.anyString(), Mockito.anyString());
 		doNothing().when(centerMachineReMapService).startRemapProcess();
@@ -1254,7 +1261,7 @@ public class MasterSyncServiceTest {
 	public void getMasterSyncWithKeyIndexExceptionTest() throws Exception {
 		PowerMockito.mockStatic(ApplicationContext.class);
 
-		masterSyncServiceImpl.getMasterSync("MDS_J00001","System");
+		masterSyncServiceImpl.getMasterSync("MDS_J00001","System", "keyIndex");
 		
 	}
 
@@ -1347,7 +1354,7 @@ public class MasterSyncServiceTest {
 
 		responseDTO.setSuccessResponseDTO(sucessResponse);
 
-		masterSyncServiceImpl.getMasterSync("MDS_J00001", "System");
+		masterSyncServiceImpl.getMasterSync("MDS_J00001", "System", "Index");
 	}
 	
 	@Test(expected=RegBaseCheckedException.class)
@@ -1367,16 +1374,16 @@ public class MasterSyncServiceTest {
 	
 	@Test(expected=RegBaseCheckedException.class)
 	public void codeNotNullCode() throws RegBaseCheckedException {
-		masterSyncServiceImpl.getMasterSync("MDS_J00001", null);
+		masterSyncServiceImpl.getMasterSync("MDS_J00001", null,null);
 	}
 	@Test(expected=RegBaseCheckedException.class)
 	public void codeNotNullId() throws RegBaseCheckedException {
-		masterSyncServiceImpl.getMasterSync(null, "System");
+		masterSyncServiceImpl.getMasterSync(null, "System",null);
 	}
 	
 	@Test(expected=RegBaseCheckedException.class)
 	public void codeNotNullIndex() throws RegBaseCheckedException {
-		masterSyncServiceImpl.getMasterSync(null, null);
+		masterSyncServiceImpl.getMasterSync(null, null,"Index");
 	}
 	
 	@Test(expected=RegBaseCheckedException.class)
