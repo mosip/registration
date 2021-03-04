@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
@@ -38,14 +37,12 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.RowConstraints;
 
 /**
@@ -197,10 +194,10 @@ public class UpdateUINController extends BaseController implements Initializable
 					registrationController.init(uinId.getText(), checkBoxKeeper, selectedFields, selectedFieldGroups);
 					Parent createRoot = BaseController.load(
 							getClass().getResource(RegistrationConstants.CREATE_PACKET_PAGE),
-							applicationContext.getApplicationLanguageBundle());
+							applicationContext.getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS));
 
-					registrationController.getRegTypeText().setText(ApplicationContext.getInstance()
-							.getApplicationLanguageBundle().getString("uinUpdateNavLbl"));
+					registrationController.getRegTypeText().setText(applicationContext
+							.getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS).getString("uinUpdateNavLbl"));
 					getScene(createRoot).setRoot(createRoot);
 					genericController.populateScreens();
 				} else {

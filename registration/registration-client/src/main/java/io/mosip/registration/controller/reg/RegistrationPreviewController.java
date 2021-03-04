@@ -25,7 +25,6 @@ import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
-import io.mosip.registration.controller.device.BiometricsController;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.template.TemplateService;
@@ -63,9 +62,6 @@ public class RegistrationPreviewController extends BaseController implements Ini
 
 	@Autowired
 	private RegistrationController registrationController;
-
-	@Autowired
-	private BiometricsController guardianBiometricsController;
 
 	@FXML
 	private Button nextButton;
@@ -173,10 +169,6 @@ public class RegistrationPreviewController extends BaseController implements Ini
 			String ackTemplateText = templateService.getHtmlTemplate(RegistrationConstants.PREVIEW_TEMPLATE_CODE,
 					ApplicationContext.applicationLanguage());
 
-			if (ApplicationContext.applicationLanguage().equalsIgnoreCase(ApplicationContext.localLanguage())) {
-				ackTemplateText = ackTemplateText.replace("} / ${", "}  ${");
-			}
-
 			if (ackTemplateText != null && !ackTemplateText.isEmpty()) {
 				templateGenerator.setConsentText(consentText);
 				ResponseDTO templateResponse = templateGenerator.generateTemplate(ackTemplateText,
@@ -216,16 +208,6 @@ public class RegistrationPreviewController extends BaseController implements Ini
 		Element no = document.getElementById(RegistrationConstants.REG_CONSENT_NO);
 		((EventTarget) yes).addEventListener(RegistrationConstants.CLICK, event -> enableConsent(), false);
 		((EventTarget) no).addEventListener(RegistrationConstants.CLICK, event -> disableConsent(), false);
-
-//		List<String> modifyElements = new ArrayList<>();
-//		modifyElements.add(RegistrationConstants.MODIFY_DEMO_INFO);
-//		modifyElements.add(RegistrationConstants.MODIFY_DOCUMENTS);
-//		modifyElements.add(RegistrationConstants.MODIFY_BIOMETRICS);
-//		for (String element : modifyElements) {
-//			Element button = document.getElementById(element);
-//			((EventTarget) button).addEventListener(RegistrationConstants.CLICK, event -> modifyElement(element),
-//					false);
-//		}
 	}
 
 	private void enableConsent() {
