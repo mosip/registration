@@ -2,7 +2,9 @@ package io.mosip.registration.util.control.impl;
 
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.context.ApplicationContext;
 
@@ -48,14 +50,16 @@ public class CheckBoxFxControl extends FxControl {
 		HBox hBox = new HBox();
 		hBox.getChildren().add(primaryLangVBox);
 
+		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
+		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(),
+				primaryLangVBox);
+
+		setNodeMap(nodeMap);
 		if (demographicDetailController.isLocalLanguageAvailable()
 				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
 			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
 
-			Region region = new Region();
-			HBox.setHgrow(region, Priority.ALWAYS);
-
-			hBox.getChildren().addAll(region, secondaryLangVBox);
+			hBox.getChildren().addAll(secondaryLangVBox);
 		}
 
 		this.node = hBox;

@@ -64,6 +64,9 @@ public class PublicKeySyncImpl extends BaseService implements PublicKeySync {
 		LOGGER.info(REGISTRATION_PUBLIC_KEY_SYNC, APPLICATION_NAME, APPLICATION_ID,
 				"Entering into get public key method.....");
 
+		//Precondition check, proceed only if met, otherwise throws exception
+		proceedWithMasterAndKeySync(null);
+
 		ResponseDTO responseDTO = new ResponseDTO();
 		try {
 			KeyPairGenerateResponseDto certificateDto = keymanagerService

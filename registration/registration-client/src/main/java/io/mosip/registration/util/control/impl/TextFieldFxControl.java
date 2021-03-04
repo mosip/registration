@@ -5,9 +5,9 @@ package io.mosip.registration.util.control.impl;
 
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.springframework.context.ApplicationContext;
 
@@ -24,15 +24,13 @@ import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.util.common.DemographicChangeActionHandler;
 import io.mosip.registration.util.control.FxControl;
-import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 
 /**
@@ -64,6 +62,7 @@ public class TextFieldFxControl extends FxControl {
 
 	@Override
 	public FxControl build(UiSchemaDTO uiSchemaDTO) {
+
 		this.uiSchemaDTO = uiSchemaDTO;
 
 		this.control = this;
@@ -72,24 +71,28 @@ public class TextFieldFxControl extends FxControl {
 
 		HBox hBox = new HBox();
 		hBox.getChildren().add(primaryLangVBox);
-		HBox.setHgrow(primaryLangVBox, Priority.ALWAYS);
+//		HBox.setHgrow(primaryLangVBox, Priority.ALWAYS);
+		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
+		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(),
+				primaryLangVBox);
 
 		this.node = hBox;
 		if (demographicDetailController.isLocalLanguageAvailable()
 				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
 			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
 
-			Region region = new Region();
-			HBox.setHgrow(region, Priority.ALWAYS);
+//			HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
+			hBox.getChildren().addAll(secondaryLangVBox);
 
-			HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
-			hBox.getChildren().addAll(region, secondaryLangVBox);
-
+			nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage(),
+					secondaryLangVBox);
 			setListener((TextField) getField(uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE));
 		}
 
+		setNodeMap(nodeMap);
 		setListener((TextField) getField(uiSchemaDTO.getId()));
 
+//		controlMap.put(RegistrationConstants.FX_CONTROL, this.control);
 		return this.control;
 	}
 
@@ -134,7 +137,7 @@ public class TextFieldFxControl extends FxControl {
 
 	@Override
 	public void setListener(Node node) {
-		FXUtils.getInstance().onTypeFocusUnfocusListener(getNode(), (TextField) node);
+		FXUtils.getInstance().onTypeFocusUnfocusListener((Pane) getNode(), (TextField) node);
 
 		TextField textField = (TextField) node;
 
@@ -150,7 +153,9 @@ public class TextFieldFxControl extends FxControl {
 				if (uiSchemaDTO != null) {
 					LOGGER.info(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
 							"Invoking external action handler for .... " + uiSchemaDTO.getId());
-					demographicChangeActionHandler.actionHandle(getNode(), node.getId(), uiSchemaDTO.getChangeAction());
+					demographicChangeActionHandler
+							.actionHandle((Pane) getNode(), node.getId(),
+							uiSchemaDTO.getChangeAction());
 				}
 
 			} else {
@@ -211,6 +216,8 @@ public class TextFieldFxControl extends FxControl {
 					uiSchemaDTO.getLabel().get(RegistrationConstants.PRIMARY));
 		}
 
+		changeNodeOrientation(simpleTypeVBox, languageType);
+		
 		return simpleTypeVBox;
 	}
 
@@ -243,7 +250,7 @@ public class TextFieldFxControl extends FxControl {
 		textField.setId(id);
 		textField.setPromptText(titleText);
 		textField.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
-		textField.setPrefWidth(prefWidth);
+		//textField.setPrefWidth(prefWidth);
 		textField.setDisable(isDisable);
 
 		return textField;
@@ -253,7 +260,7 @@ public class TextFieldFxControl extends FxControl {
 		ImageView imageView = null;
 
 		imageView = new ImageView(new Image(getClass().getResourceAsStream("/images/keyboard.png")));
-		imageView.setId(uiSchemaDTO.getId());
+		imageView.setId(uiSchemaDTO.getId() + "KeyBoard");
 		imageView.setFitHeight(20.00);
 		imageView.setFitWidth(22.00);
 
@@ -277,13 +284,13 @@ public class TextFieldFxControl extends FxControl {
 		}
 
 		TextField field = (TextField) getField(uiSchemaDTO.getId());
-		if (validation.validateTextField(getNode(), field, field.getId(), true)) {
+		if (validation.validateTextField((Pane) getNode(), field, field.getId(), true)) {
 
-			FXUtils.getInstance().setTextValidLabel(getNode(), field);
+			FXUtils.getInstance().setTextValidLabel((Pane) getNode(), field);
 			isValid = true;
 		} else {
 
-			FXUtils.getInstance().showErrorLabel(field, getNode());
+			FXUtils.getInstance().showErrorLabel(field, (Pane) getNode());
 			return false;
 		}
 		LOGGER.debug(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
@@ -291,13 +298,16 @@ public class TextFieldFxControl extends FxControl {
 
 		TextField localField = (TextField) getField(uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE);
 		if (localField != null) {
-			if (validation.validateTextField(getNode(), localField, field.getId(), true)) {
+			if (uiSchemaDTO.getType().equalsIgnoreCase("string")) {
+				localField.setText(field.getText());
+			}
+			if (validation.validateTextField((Pane) getNode(), localField, field.getId(), true)) {
 
-				FXUtils.getInstance().setTextValidLabel(getNode(), localField);
+				FXUtils.getInstance().setTextValidLabel((Pane) getNode(), localField);
 				isValid = true;
 			} else {
 
-				FXUtils.getInstance().showErrorLabel(localField, getNode());
+				FXUtils.getInstance().showErrorLabel(localField, (Pane) getNode());
 				return false;
 			}
 		}
@@ -305,10 +315,10 @@ public class TextFieldFxControl extends FxControl {
 
 	}
 
-	@Override
-	public HBox getNode() {
-		return (HBox) this.node;
-	}
+//	@Override
+//	public HBox getNode() {
+//		return (HBox) this.node;
+//	}
 
 	@Override
 	public void fillData(Object data) {
