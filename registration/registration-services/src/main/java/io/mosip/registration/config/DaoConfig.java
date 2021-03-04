@@ -61,7 +61,7 @@ public class DaoConfig extends HibernateDaoConfig {
 	private static final String DRIVER_CLASS_NAME = "org.apache.derby.jdbc.EmbeddedDriver";
 	private static final String URL = "jdbc:derby:%s;bootPassword=%s";
 	private static final String SHUTDOWN_URL = "jdbc:derby:;shutdown=true;deregister=false;";
-	private static final String ENCRYPTION_URL_ATTRIBUTES = "dataEncryption=true;encryptionKeyLength=256;encryptionAlgorithm=AES/CBC/NoPadding;";
+	private static final String ENCRYPTION_URL_ATTRIBUTES = "dataEncryption=true;encryptionKeyLength=256;encryptionAlgorithm=AES/CFB/NoPadding;";
 	private static final String SCHEMA_NAME = "REG";
 	private static final String SEPARATOR = "-BREAK-";
 	private static final String BOOTPWD_KEY = "bootPassword";
@@ -117,7 +117,11 @@ public class DaoConfig extends HibernateDaoConfig {
 	@Override
 	@Bean(name = "dataSource")
 	public DataSource dataSource() {
-		return setupDataSource();
+		if (this.driverManagerDataSource == null) {
+			setupDataSource();
+			jdbcTemplate();
+		}
+		return this.driverManagerDataSource;
 	}
 
 	/**
@@ -128,7 +132,8 @@ public class DaoConfig extends HibernateDaoConfig {
 	@Bean
 	@DependsOn("dataSource")
 	public JdbcTemplate jdbcTemplate() {
-		jdbcTemplate = new JdbcTemplate(dataSource());
+		if (jdbcTemplate == null)
+			jdbcTemplate = new JdbcTemplate(this.driverManagerDataSource);
 		updateGlobalParamsInProperties(jdbcTemplate);
 		return jdbcTemplate;
 	}
@@ -369,7 +374,8 @@ public class DaoConfig extends HibernateDaoConfig {
 		ResultSet rs = statement.executeQuery("VALUES SYSCS_UTIL.SYSCS_GET_DATABASE_PROPERTY('"+key+"')");
 		if(rs.next() && value.equalsIgnoreCase(rs.getString(1)))
 			return;
-		throw new RegBaseCheckedException("", key + " : is not set to preferred value!");
+		throw new RegBaseCheckedException("", (key.startsWith("derby.user") ? "derby.user.*" : key) +
+				" : is not set to preferred value!");
 	}
 
 	private boolean createDb(String dbPath) throws RegBaseCheckedException {
