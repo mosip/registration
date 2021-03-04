@@ -54,11 +54,6 @@ public class ExecuteStagesApplication {
 									ExceptionUtils.getStackTrace(e));
 						}
 					}));
-					try {
-						executorService.awaitTermination(10000, TimeUnit.DAYS);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
 					executorService.shutdown();
 				}
 			}
