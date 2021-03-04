@@ -83,6 +83,8 @@ public class RegistrationDTO {
 	private String acknowledgeReceiptName;
 
 	public Map<String, byte[]> streamImages = new HashMap<>();
+	
+	private List<String> selectedLanguagesByApplicant = new ArrayList<>();
 
 	public void addDemographicField(String fieldId, String value) {
 		this.demographics.put(fieldId, (value != null && !value.isEmpty()) ? value : null);
@@ -123,8 +125,6 @@ public class RegistrationDTO {
 
 			int minAge = Integer
 					.parseInt((String) applicationContext.getApplicationMap().get(RegistrationConstants.MIN_AGE));
-			int maxAge = Integer
-					.parseInt((String) applicationContext.getApplicationMap().get(RegistrationConstants.MAX_AGE));
 			this.isChild = this.age < minAge;
 		}
 	}
@@ -332,4 +332,13 @@ public class RegistrationDTO {
 
 		return qualityScore;
 	}
+	
+	public List<String> getSelectedLanguagesByApplicant() {
+		return selectedLanguagesByApplicant;
+	}
+
+	public void setSelectedLanguagesByApplicant(List<String> selectedLanguagesByApplicant) {
+		this.selectedLanguagesByApplicant = selectedLanguagesByApplicant;
+	}
+	
 }

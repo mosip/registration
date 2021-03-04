@@ -59,15 +59,11 @@ public class Validations extends BaseController {
 	private static final Logger LOGGER = AppConfig.getLogger(Validations.class);
 	private boolean isChild;
 	private ResourceBundle applicationMessageBundle;
-	private ResourceBundle localMessageBundle;
-	private ResourceBundle applicationLabelBundle;
-	private ResourceBundle localLabelBundle;
+//	private ResourceBundle applicationLabelBundle;
 	private StringBuilder validationMessage;
 	private List<String> applicationLanguageblackListedWords;
-	private List<String> localLanguageblackListedWords;
 	private List<String> noAlert;
 	private boolean isLostUIN = false;
-	private int maxAge;
 
 	@Autowired
 	private RequiredFieldValidator requiredFieldValidator;
@@ -77,6 +73,8 @@ public class Validations extends BaseController {
 	private RidValidator<String> ridValidator;
 	@Autowired
 	private DateValidation dateValidation;
+	@Autowired
+	private MasterSyncService masterSync;
 	/**
 	 * Instantiates a new validations.
 	 */
@@ -102,10 +100,8 @@ public class Validations extends BaseController {
 	 */
 	public void setResourceBundle() {
 		// validationBundle = ApplicationContext.applicationLanguageValidationBundle();
-		applicationMessageBundle = ApplicationContext.applicationMessagesBundle();
-		localMessageBundle = ApplicationContext.localMessagesBundle();
-		applicationLabelBundle = ApplicationContext.applicationLanguageBundle();
-		localLabelBundle = ApplicationContext.localLanguageBundle();
+		applicationMessageBundle = applicationContext.getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.MESSAGES);
+		//applicationLabelBundle = applicationContext.getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS);
 	}
 
 	/**
@@ -172,18 +168,22 @@ public class Validations extends BaseController {
 	 * @return true, if successful
 	 */
 	public boolean validate(Pane pane, List<String> notTovalidate, boolean isValid, MasterSyncService masterSync) {
+		//TODO - get langcode from the control which calls this method and remove below line
+		String langCode = ApplicationContext.applicationLanguage();
+		this.applicationLanguageblackListedWords = getBlackListedWords(langCode);
+		return validateTheFields(pane, notTovalidate, isValid);
+	}
+
+	private List<String> getBlackListedWords(String langCode) {
 		try {
-			this.applicationLanguageblackListedWords = masterSync
-					.getAllBlackListedWords(ApplicationContext.applicationLanguage()).stream()
+			return masterSync.getAllBlackListedWords(ApplicationContext.applicationLanguage()).stream()
 					.map(BlacklistedWordsDto::getWord).collect(Collectors.toList());
-			this.localLanguageblackListedWords = masterSync.getAllBlackListedWords(ApplicationContext.localLanguage())
-					.stream().map(BlacklistedWordsDto::getWord).collect(Collectors.toList());
 		} catch (RegBaseCheckedException regBaseCheckedException) {
 			LOGGER.error(RegistrationConstants.VALIDATION_LOGGER, APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID,
 					regBaseCheckedException.getMessage() + ExceptionUtils.getStackTrace(regBaseCheckedException));
 		}
-		return validateTheFields(pane, notTovalidate, isValid);
+		return null;
 	}
 
 	/**
@@ -253,13 +253,21 @@ public class Validations extends BaseController {
 	 * @return true, if successful
 	 */
 	public boolean validateTextField(Pane parentPane, TextField node, String id, boolean isPreviousValid) {
-		if (node.getId().contains(RegistrationConstants.LOCAL_LANGUAGE)) {
-			return languageSpecificValidation(parentPane, node, id, localMessageBundle, localLanguageblackListedWords,
-					isPreviousValid, ApplicationContext.localLanguage());
-		} else {
-			return languageSpecificValidation(parentPane, node, id, applicationMessageBundle,
-					applicationLanguageblackListedWords, isPreviousValid, ApplicationContext.applicationLanguage());
-		}
+		//TODO - get langcode from the caller of this method and remove below line
+		String langCode = ApplicationContext.applicationLanguage();
+		return languageSpecificValidation(parentPane, node, id, getMessagesBundle(langCode),
+				getBlackListedWords(langCode), isPreviousValid, langCode);
+//		if (node.getId().contains(RegistrationConstants.LOCAL_LANGUAGE)) {
+//			return languageSpecificValidation(parentPane, node, id, localMessageBundle, localLanguageblackListedWords,
+//					isPreviousValid, ApplicationContext.localLanguage());
+//		} else {
+//			return languageSpecificValidation(parentPane, node, id, applicationMessageBundle,
+//					applicationLanguageblackListedWords, isPreviousValid, ApplicationContext.applicationLanguage());
+//		}
+	}
+
+	private ResourceBundle getMessagesBundle(String langCode) {
+		return applicationContext.getBundle(langCode, RegistrationConstants.MESSAGES);
 	}
 
 	/**

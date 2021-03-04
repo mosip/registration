@@ -5,7 +5,6 @@ import static org.mockito.Mockito.when;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.Writer;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -136,9 +135,7 @@ public class TemplateGeneratorTest {
 		SessionContext.map().put(RegistrationConstants.IS_Child, false);
 
 		when(ApplicationContext.applicationLanguage()).thenReturn("eng");
-		when(ApplicationContext.localLanguage()).thenReturn("ar");
-		when(ApplicationContext.localLanguageProperty()).thenReturn(dummyResourceBundle);
-		when(ApplicationContext.applicationLanguageBundle()).thenReturn(dummyResourceBundle);
+		when(applicationContext.getBundle(Mockito.anyString(), Mockito.anyString())).thenReturn(dummyResourceBundle);
 		when(ApplicationContext.map()).thenReturn(appMap);
 	
 		ResponseDTO response = templateGenerator.generateTemplate("sample text", registrationDTO, template, RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE);
@@ -152,9 +149,7 @@ public class TemplateGeneratorTest {
 		SessionContext.map().put(RegistrationConstants.IS_Child, false);
 		
 		when(ApplicationContext.applicationLanguage()).thenReturn("eng");
-		when(ApplicationContext.localLanguage()).thenReturn("ar");
-		when(ApplicationContext.localLanguageProperty()).thenReturn(dummyResourceBundle);
-		when(ApplicationContext.applicationLanguageBundle()).thenReturn(dummyResourceBundle);
+		when(applicationContext.getBundle(Mockito.anyString(), Mockito.anyString())).thenReturn(dummyResourceBundle);
 		when(ApplicationContext.map()).thenReturn(appMap);
 		
 		ResponseDTO response = templateGenerator.generateTemplate("sample text", registrationDTO, template, RegistrationConstants.TEMPLATE_PREVIEW);
@@ -168,9 +163,7 @@ public class TemplateGeneratorTest {
 		SessionContext.map().put(RegistrationConstants.IS_Child, true);
 
 		when(ApplicationContext.applicationLanguage()).thenReturn("eng");
-		when(ApplicationContext.localLanguage()).thenReturn("ar");
-		when(ApplicationContext.localLanguageProperty()).thenReturn(dummyResourceBundle);
-		when(ApplicationContext.applicationLanguageBundle()).thenReturn(dummyResourceBundle);
+		when(applicationContext.getBundle(Mockito.anyString(), Mockito.anyString())).thenReturn(dummyResourceBundle);
 		when(ApplicationContext.map()).thenReturn(appMap);
 		
 		ResponseDTO response = templateGenerator.generateTemplate("sample text", registrationDTO, template, RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE);
@@ -184,9 +177,7 @@ public class TemplateGeneratorTest {
 		SessionContext.map().put(RegistrationConstants.IS_Child, true);
 		
 		when(ApplicationContext.applicationLanguage()).thenReturn("eng");
-		when(ApplicationContext.localLanguage()).thenReturn("ar");
-		when(ApplicationContext.localLanguageProperty()).thenReturn(dummyResourceBundle);
-		when(ApplicationContext.applicationLanguageBundle()).thenReturn(dummyResourceBundle);
+		when(applicationContext.getBundle(Mockito.anyString(), Mockito.anyString())).thenReturn(dummyResourceBundle);
 		when(ApplicationContext.map()).thenReturn(appMap);
 		
 		ResponseDTO response = templateGenerator.generateTemplate("sample text", registrationDTO, template, RegistrationConstants.TEMPLATE_PREVIEW);

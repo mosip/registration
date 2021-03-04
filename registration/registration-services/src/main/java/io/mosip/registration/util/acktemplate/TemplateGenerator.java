@@ -147,7 +147,8 @@ public class TemplateGenerator extends BaseService {
 
 			Map<String, Object> templateValues = new WeakHashMap<>();
 			boolean isPrevTemplate = templateType.equals(RegistrationConstants.ACKNOWLEDGEMENT_TEMPLATE) ? false : true;
-			ResourceBundle applicationLanguageProperties = ApplicationContext.applicationLanguageBundle();
+			ResourceBundle applicationLanguageProperties = ApplicationContext.getInstance()
+					.getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS);
 			InputStream is = new ByteArrayInputStream(templateText.getBytes(StandardCharsets.UTF_8));
 			List<UiSchemaDTO> schemaFields = getSchemaFields(registration.getIdSchemaVersion());
 
@@ -361,7 +362,7 @@ public class TemplateGenerator extends BaseService {
 		try {
 			templateValues.put("isPreview", isPrevTemplate);
 			templateValues.put("IDSchemaVersion", registration.getIdSchemaVersion());
-			templateValues.put("secLangPresent", isLocalLanguageAvailable());
+			templateValues.put("secLangPresent", multipleLanguagesAvailable());
 			templateValues.put(RegistrationConstants.TEMPLATE_RID_USER_LANG_LABEL, applicationLanguageProperties.getString("registrationid"));
 			templateValues.put(RegistrationConstants.TEMPLATE_RID_LOCAL_LANG_LABEL,	getSecondaryLanguageLabel("registrationid"));
 			templateValues.put(RegistrationConstants.TEMPLATE_RID, registration.getRegistrationId());
@@ -473,11 +474,16 @@ public class TemplateGenerator extends BaseService {
 	}
 
 	private String getSecondaryLanguageLabel(String key) {
-		ResourceBundle localProperties = ApplicationContext.localLanguageProperty();
-		if (!isLocalLanguageAvailable()) {
+		if (!multipleLanguagesAvailable()) {
 			return RegistrationConstants.EMPTY;
 		} else {
-			return localProperties.containsKey(key) ? localProperties.getString(key) : RegistrationConstants.EMPTY;
+			String label = RegistrationConstants.EMPTY;
+			List<String> selectedLanguages = getRegistrationDTOFromSession().getSelectedLanguagesByApplicant();
+			for (String selectedLanguage : selectedLanguages) {
+				ResourceBundle resourceBundle = ApplicationContext.getInstance().getBundle(selectedLanguage, RegistrationConstants.LABELS);
+				label = !label.isBlank() ? (resourceBundle.containsKey(key) ? label.concat(RegistrationConstants.SLASH).concat(resourceBundle.getString(key)) : RegistrationConstants.EMPTY) : resourceBundle.getString(key);
+			}
+			return label;
 		}
 	}
 
@@ -546,11 +552,13 @@ public class TemplateGenerator extends BaseService {
 	}
 
 	private String getSecondaryLanguageValue(Object fieldValue) {
-		String lang = ApplicationContext.localLanguage();
 		String value = RegistrationConstants.EMPTY;
-		if (!ApplicationContext.applicationLanguage().equalsIgnoreCase(lang)) {
-			value = getValue(fieldValue, lang);
-		}
+		if (multipleLanguagesAvailable()) {
+			List<String> selectedLanguages = getRegistrationDTOFromSession().getSelectedLanguagesByApplicant();
+			for (String selectedLanguage : selectedLanguages) {
+				value = value.isBlank() ? value.concat(getValue(fieldValue, selectedLanguage)) : value.concat(RegistrationConstants.SLASH).concat(getValue(fieldValue, selectedLanguage));
+			}		
+		}		
 		return value;
 	}
 
@@ -581,14 +589,11 @@ public class TemplateGenerator extends BaseService {
 		return schemaFields;
 	}
 
-	private boolean isLocalLanguageAvailable() {
-		String platformLanguageCode = ApplicationContext.applicationLanguage();
-		String localLanguageCode = ApplicationContext.localLanguage();
+	private boolean multipleLanguagesAvailable() {
+		List<String> selectedLanguages = getRegistrationDTOFromSession().getSelectedLanguagesByApplicant();
 
-		if (localLanguageCode != null && !localLanguageCode.isEmpty()) {
-			if (!platformLanguageCode.equalsIgnoreCase(localLanguageCode)) {
-				return true;
-			}
+		if (selectedLanguages != null && !selectedLanguages.isEmpty() && selectedLanguages.size() > 1) {
+			return true;
 		}
 
 		return false;
@@ -625,7 +630,7 @@ public class TemplateGenerator extends BaseService {
 					"generateTemplate had been called for preparing Dashboard Template.");
 
 			Map<String, Object> templateValues = new WeakHashMap<>();
-			ResourceBundle applicationLanguageProperties = ApplicationContext.applicationLanguageBundle();
+			ResourceBundle applicationLanguageProperties = ApplicationContext.getInstance().getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS);
 			InputStream is = new ByteArrayInputStream(templateText.getBytes(StandardCharsets.UTF_8));
 
 			templateValues.put(RegistrationConstants.DASHBOARD_TITLE, applicationLanguageProperties.getString("dashBoard"));
