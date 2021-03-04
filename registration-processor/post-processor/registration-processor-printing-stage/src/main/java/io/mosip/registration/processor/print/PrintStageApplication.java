@@ -2,7 +2,7 @@ package io.mosip.registration.processor.print;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-import io.mosip.registration.processor.print.stage.PrintStage;
+import io.mosip.registration.processor.print.stage.PrintingStage;
 
 /**
  * @author M1048399
@@ -19,7 +19,7 @@ public class PrintStageApplication {
 				"io.mosip.registration.processor.packet.storage.config");
 		ctx.refresh();
 
-		PrintStage printStage = ctx.getBean(PrintStage.class);
+		PrintingStage printStage = ctx.getBean(PrintingStage.class);
 		printStage.deployVerticle();
 
 	}
