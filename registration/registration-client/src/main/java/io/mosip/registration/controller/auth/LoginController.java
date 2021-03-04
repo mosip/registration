@@ -282,7 +282,7 @@ public class LoginController extends BaseController implements Initializable {
 
 			showUserNameScreen(primaryStage);
 
-			org.apache.log4j.Logger.getLogger(Initialization.class).info("Mosip client Screen loaded");
+			AppConfig.getLogger(Initialization.class).info("Mosip client Screen loaded");
 
 			// Execute SQL file (Script files on update)
 			executeSQLFile();

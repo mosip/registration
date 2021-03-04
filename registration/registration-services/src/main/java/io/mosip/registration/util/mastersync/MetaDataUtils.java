@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.registration.config.AppConfig;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
@@ -30,7 +30,7 @@ import io.mosip.registration.entity.RegistrationCommonFields;
 @SuppressWarnings("unchecked")
 public class MetaDataUtils {
 
-	private static final Logger LOGGER = LogManager.getLogger(MetaDataUtils.class);
+	private static final Logger LOGGER = AppConfig.getLogger(MetaDataUtils.class);
 
 	private MetaDataUtils() {
 		super();
