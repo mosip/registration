@@ -16,7 +16,7 @@ import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
-import io.mosip.registration.processor.core.abstractverticle.WorkFlowEventDTO;
+import io.mosip.registration.processor.core.abstractverticle.WorkflowEventDTO;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
@@ -110,7 +110,7 @@ public class WorkflowEventUpdateVerticleTest {
 
 	@Test
 	public void testProcessSuccess() {
-		WorkFlowEventDTO workFlowEventDto = new WorkFlowEventDTO();
+		WorkflowEventDTO workFlowEventDto = new WorkflowEventDTO();
 		workFlowEventDto.setRid("10006100390000920200603070407");
 		workFlowEventDto.setStatusCode("PAUSED");
 		workFlowEventDto.setStatusComment("packet is paused");
@@ -128,7 +128,7 @@ public class WorkflowEventUpdateVerticleTest {
 
 	@Test
 	public void testTablenotAccessibleException() {
-		WorkFlowEventDTO workFlowEventDto = new WorkFlowEventDTO();
+		WorkflowEventDTO workFlowEventDto = new WorkflowEventDTO();
 		workFlowEventDto.setRid("10006100390000920200603070407");
 		workFlowEventDto.setStatusCode("PAUSED");
 		workFlowEventDto.setStatusComment("packet is paused");
@@ -148,7 +148,7 @@ public class WorkflowEventUpdateVerticleTest {
 
 	@Test
 	public void testDateTimeParseException() {
-		WorkFlowEventDTO workFlowEventDto = new WorkFlowEventDTO();
+		WorkflowEventDTO workFlowEventDto = new WorkflowEventDTO();
 		workFlowEventDto.setRid("10006100390000920200603070407");
 		workFlowEventDto.setStatusCode("PAUSED");
 		workFlowEventDto.setStatusComment("packet is paused");
@@ -166,7 +166,7 @@ public class WorkflowEventUpdateVerticleTest {
 
 	@Test
 	public void testException() {
-		WorkFlowEventDTO workFlowEventDto = new WorkFlowEventDTO();
+		WorkflowEventDTO workFlowEventDto = new WorkflowEventDTO();
 		workFlowEventDto.setRid("10006100390000920200603070407");
 		workFlowEventDto.setStatusCode("PAUSED");
 		workFlowEventDto.setStatusComment("packet is paused");

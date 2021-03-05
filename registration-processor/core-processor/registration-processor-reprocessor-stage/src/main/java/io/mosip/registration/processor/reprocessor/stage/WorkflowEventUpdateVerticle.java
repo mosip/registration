@@ -16,7 +16,7 @@ import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
-import io.mosip.registration.processor.core.abstractverticle.WorkFlowEventDTO;
+import io.mosip.registration.processor.core.abstractverticle.WorkflowEventDTO;
 import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
@@ -67,7 +67,7 @@ public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
 
 	private MosipEventBus mosipEventBus = null;
 	
-	public static String MODULE_NAME = ModuleName.WORKFLOW_EVENTUPDATE.toString();
+	public static String MODULE_NAME = ModuleName.WORKFLOW_EVENT_UPDATE.toString();
 
 	/**
 	 * Deploy verticle.
@@ -96,7 +96,7 @@ public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
 			vertx.executeBlocking(future -> {
 				MDC.setContextMap(mdc);
 				JsonObject jsonObject = (JsonObject) msg.getBody();
-				WorkFlowEventDTO workFlowEventDTO = jsonObject.mapTo(WorkFlowEventDTO.class);
+				WorkflowEventDTO workFlowEventDTO = jsonObject.mapTo(WorkflowEventDTO.class);
 				MessageDTO result = process(workFlowEventDTO);
 				future.complete(result);
 			}, false, handler);
@@ -110,7 +110,7 @@ public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
 				"ReprocessorStage::process()::entry");
 		LogDescription description = new LogDescription();
 		boolean isTransactionSuccessful = false;
-		WorkFlowEventDTO workFlowEventDto = (WorkFlowEventDTO) object;
+		WorkflowEventDTO workFlowEventDto = (WorkflowEventDTO) object;
 		String registrationId = workFlowEventDto.getRid();
 		try {
 
@@ -127,7 +127,7 @@ public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
 		registrationStatusDto.setUpdatedBy(USER);
 
 			String moduleId = PlatformSuccessMessages.RPR_WORKFLOW_EVENT_UPDATE_SUCCESS.getCode();
-			String moduleName = ModuleName.WORKFLOW_EVENTUPDATE.toString();
+			String moduleName = ModuleName.WORKFLOW_EVENT_UPDATE.toString();
 
 			registrationStatusService.updateRegistrationStatusForWorkflow(registrationStatusDto, moduleId, moduleName);
 

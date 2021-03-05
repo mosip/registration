@@ -30,7 +30,7 @@ public class ReprocessorConfigBeans {
 	}
 
 	@Bean
-	public WorkflowEventUpdateVerticle getWorkFlowEventUpdateVerticle() {
+	public WorkflowEventUpdateVerticle getWorkflowEventUpdateVerticle() {
 		return new WorkflowEventUpdateVerticle();
 	}
 }

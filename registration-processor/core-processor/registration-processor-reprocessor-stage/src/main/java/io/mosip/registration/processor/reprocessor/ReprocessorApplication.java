@@ -21,8 +21,8 @@ public class ReprocessorApplication {
 		ctx.refresh();
 		ReprocessorStage reprocessorStage = ctx.getBean(ReprocessorStage.class);
 		reprocessorStage.deployVerticle();
-		WorkflowEventUpdateVerticle workFlowEventUpdateVerticle = ctx.getBean(WorkflowEventUpdateVerticle.class);
-		workFlowEventUpdateVerticle.deployVerticle();
+		WorkflowEventUpdateVerticle workflowEventUpdateVerticle = ctx.getBean(WorkflowEventUpdateVerticle.class);
+		workflowEventUpdateVerticle.deployVerticle();
 	}
 
 }
