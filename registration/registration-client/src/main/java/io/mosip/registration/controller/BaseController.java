@@ -5,7 +5,6 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -20,14 +19,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Timer;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import io.mosip.registration.exception.PreConditionCheckException;
+import io.mosip.registration.exception.RemapException;
+import io.mosip.registration.service.BaseService;
+import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
+import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,12 +38,11 @@ import org.springframework.stereotype.Component;
 import io.mosip.commons.packet.constants.PacketManagerConstants;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.templatemanager.spi.TemplateManagerBuilder;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
-import io.mosip.registration.config.DaoConfig;
-import io.mosip.registration.constants.ApplicationLanguages;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
@@ -51,6 +52,7 @@ import io.mosip.registration.controller.device.BiometricsController;
 import io.mosip.registration.controller.device.ScanPopUpViewController;
 import io.mosip.registration.controller.eodapproval.RegistrationApprovalController;
 import io.mosip.registration.controller.reg.AlertController;
+import io.mosip.registration.controller.reg.DemographicDetailController;
 import io.mosip.registration.controller.reg.HeaderController;
 import io.mosip.registration.controller.reg.HomeController;
 import io.mosip.registration.controller.reg.PacketHandlerController;
@@ -65,20 +67,19 @@ import io.mosip.registration.dto.biometric.BiometricExceptionDTO;
 import io.mosip.registration.dto.biometric.BiometricInfoDTO;
 import io.mosip.registration.dto.biometric.FaceDetailsDTO;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
-import io.mosip.registration.dto.response.SchemaDto;
-import io.mosip.registration.exception.PreConditionCheckException;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.scheduler.SchedulerUtil;
 import io.mosip.registration.service.BaseService;
 import io.mosip.registration.service.IdentitySchemaService;
+import io.mosip.registration.service.bio.BioService;
 import io.mosip.registration.service.config.GlobalParamService;
 import io.mosip.registration.service.operator.UserOnboardService;
 import io.mosip.registration.service.remap.CenterMachineReMapService;
 import io.mosip.registration.service.security.AuthenticationService;
 import io.mosip.registration.service.sync.SyncStatusValidatorService;
+import io.mosip.registration.service.template.TemplateService;
+import io.mosip.registration.util.acktemplate.TemplateGenerator;
 import io.mosip.registration.util.common.PageFlow;
-import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
-import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
 import io.mosip.registration.validator.RequiredFieldValidator;
 import javafx.animation.PauseTransition;
@@ -97,6 +98,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -109,6 +111,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Screen;
@@ -146,13 +149,24 @@ public class BaseController {
 	protected FXComponents fXComponents;
 
 	@Autowired
+	private DemographicDetailController demographicDetailController;
+	@Autowired
 	public RegistrationPreviewController registrationPreviewController;
 
 	@Autowired
 	private BiometricsController guardianBiometricsController;
 
 	@Autowired
+	private TemplateService templateService;
+
+	@Autowired
 	private AuthenticationService authenticationService;
+
+	@Autowired
+	private TemplateManagerBuilder templateManagerBuilder;
+
+	@Autowired
+	private TemplateGenerator templateGenerator;
 
 	@Autowired
 	private UserOnboardService userOnboardService;
@@ -183,12 +197,15 @@ public class BaseController {
 
 	@Autowired
 	protected PageFlow pageFlow;
-
+	
 	@Autowired
 	private UserOnboardParentController userOnboardParentController;
 
 	@Value("${mosip.registration.css_file_path:}")
 	private String cssName;
+
+	@Autowired
+	private BioService bioService;
 
 	@Autowired
 	private RestartController restartController;
@@ -203,7 +220,7 @@ public class BaseController {
 	private Validations validation;
 
 	@Autowired
-	protected BaseService baseService;
+	private BaseService baseService;
 
 	@Autowired
 	private AuthTokenUtilService authTokenUtilService;
@@ -225,6 +242,8 @@ public class BaseController {
 	private Stage alertStage;
 
 	private static boolean isAckOpened = false;
+
+	private List<UiSchemaDTO> uiSchemaDTOs;
 
 	private static Map<String, UiSchemaDTO> validationMap;
 
@@ -298,12 +317,9 @@ public class BaseController {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	protected void loadScreen(String screen) throws IOException {
-		getScene(getRoot(screen));
-	}
-
-	protected Parent getRoot(String screen) throws IOException {
-		return BaseController.load(getClass().getResource(screen),
-				applicationContext.getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS));
+		Parent createRoot = BaseController.load(getClass().getResource(screen),
+				applicationContext.getApplicationLanguageBundle());
+		getScene(createRoot);
 	}
 
 	/**
@@ -333,8 +349,7 @@ public class BaseController {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public static <T> T load(URL url) throws IOException {
-		FXMLLoader loader = new FXMLLoader(url, ApplicationContext.getInstance()
-				.getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS));
+		FXMLLoader loader = new FXMLLoader(url, ApplicationContext.applicationLanguageBundle());
 		loader.setControllerFactory(Initialization.getApplicationContext()::getBean);
 		return loader.load();
 	}
@@ -360,7 +375,7 @@ public class BaseController {
 	 * @param title   alert title
 	 * @param context alert context
 	 */
-	public void generateAlert(String title, String context) {
+	protected void generateAlert(String title, String context) {
 		try {
 			closeAlreadyExistedAlert();
 			alertStage = new Stage();
@@ -515,7 +530,7 @@ public class BaseController {
 			Tooltip tool = new Tooltip(context.contains(type) ? context.split(type)[0] : context);
 			tool.getStyleClass().add(RegistrationConstants.TOOLTIP);
 			label.setTooltip(tool);
-			label.setVisible(true);
+			//label.setVisible(true);
 		}
 	}
 
@@ -712,8 +727,7 @@ public class BaseController {
 	 * @return the FXML loader
 	 */
 	public static FXMLLoader loadChild(URL url) {
-		FXMLLoader loader = new FXMLLoader(url, ApplicationContext.getInstance()
-				.getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS));
+		FXMLLoader loader = new FXMLLoader(url, ApplicationContext.applicationLanguageBundle());
 		loader.setControllerFactory(Initialization.getApplicationContext()::getBean);
 		return loader;
 	}
@@ -776,7 +790,7 @@ public class BaseController {
 	 * @param imageBytes the image bytes
 	 * @return the image
 	 */
-	public Image convertBytesToImage(byte[] imageBytes) {
+	protected Image convertBytesToImage(byte[] imageBytes) {
 		Image image = null;
 		if (imageBytes != null) {
 			image = new Image(new ByteArrayInputStream(imageBytes));
@@ -913,7 +927,7 @@ public class BaseController {
 	 *
 	 * @return the registration DTO from session
 	 */
-	public RegistrationDTO getRegistrationDTOFromSession() {
+	protected RegistrationDTO getRegistrationDTOFromSession() {
 		RegistrationDTO registrationDTO = null;
 		if (SessionContext.map() != null || !SessionContext.map().isEmpty()) {
 			registrationDTO = (RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA);
@@ -921,6 +935,7 @@ public class BaseController {
 		return registrationDTO;
 
 	}
+
 
 	/**
 	 * to return to the next page based on the current page and action for User
@@ -930,6 +945,8 @@ public class BaseController {
 	 * @param action      - action to be performed previous/next
 	 * @return id of next Anchorpane
 	 */
+
+	@SuppressWarnings("unchecked")
 	protected String getOnboardPageDetails(String currentPage, String action) {
 
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
@@ -962,6 +979,7 @@ public class BaseController {
 	 * @param action      - action to be performed previous/next
 	 * @return id of next Anchorpane
 	 */
+	@SuppressWarnings("unchecked")
 	protected String getPageByAction(String currentPage, String action) {
 
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
@@ -1027,6 +1045,7 @@ public class BaseController {
 			LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
 					"Invoking Save Detail before redirecting to Preview");
 
+			demographicDetailController.saveDetail();
 			registrationPreviewController.setUpPreviewContent();
 
 			LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
@@ -1073,7 +1092,7 @@ public class BaseController {
 				};
 			}
 		};
-
+		
 		userOnboardParentController.getProgressIndicator().progressProperty().bind(taskService.progressProperty());
 		taskService.start();
 		taskService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
@@ -1138,6 +1157,8 @@ public class BaseController {
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
 				"Navigated to next page >> " + show);
 	}
+
+
 
 	public void remapMachine() {
 
@@ -1204,6 +1225,7 @@ public class BaseController {
 			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.REMAP_PROCESS_STILL_PENDING);
 		}
 	}
+
 
 	private void disableHomePage(boolean isDisabled) {
 
@@ -1365,7 +1387,7 @@ public class BaseController {
 	 * @param key the key
 	 * @return the value from application context
 	 */
-	public String getValueFromApplicationContext(String key) {
+	protected String getValueFromApplicationContext(String key) {
 
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Fetching value from application Context");
@@ -1395,6 +1417,7 @@ public class BaseController {
 	 * @param pageId id of the page
 	 * @param val    value to be set
 	 */
+	@SuppressWarnings("unchecked")
 	protected void updatePageFlow(String pageId, boolean val) {
 
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, RegistrationConstants.APPLICATION_NAME,
@@ -1460,6 +1483,7 @@ public class BaseController {
 	 * @param table the instance of {@link TableView} for which re-ordering of
 	 *              columns had to be restricted
 	 */
+	@SuppressWarnings("restriction")
 	protected void disableColumnsReorder(TableView<?> table) {
 		if (table != null) {
 			table.widthProperty().addListener((source, oldWidth, newWidth) -> {
@@ -1498,7 +1522,7 @@ public class BaseController {
 		return false;
 	}
 
-	public String getThresholdKeyByBioType(String bioType) {
+	protected String getThresholdKeyByBioType(String bioType) {
 		return bioType.equals(RegistrationConstants.FINGERPRINT_SLAB_LEFT)
 				? RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD
 				: bioType.equals(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)
@@ -1529,7 +1553,7 @@ public class BaseController {
 	 * Set the operator was in acknowledgement page
 	 */
 	protected void setIsAckOpened(boolean isAckOpened) {
-		BaseController.isAckOpened = isAckOpened;
+		this.isAckOpened = isAckOpened;
 	}
 
 	public void loadUIElementsFromSchema() {
@@ -1559,16 +1583,6 @@ public class BaseController {
 			LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(e));
 		}
-	}
-
-	public SchemaDto getLatestSchema() {
-		try {
-			return identitySchemaService.getIdentitySchema(identitySchemaService.getLatestEffectiveSchemaVersion());
-		} catch (RegBaseCheckedException exception) {
-			LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
-					ExceptionUtils.getStackTrace(exception));
-		}
-		return null;
 	}
 
 	public SimpleEntry<String, List<String>> getValue(String bio, List<String> attributes) {
@@ -1774,41 +1788,41 @@ public class BaseController {
 		return new ArrayList<String>();
 	}
 
-//	protected void helperMethodForComboBox(ComboBox<?> field, String fieldName, UiSchemaDTO schema, Label label,
-//			Label validationMessage, VBox vbox, String languageType) {
-//
-//		String mandatoryAstrik = demographicDetailController.getMandatorySuffix(schema);
-//		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
-//			label.setText(schema.getLabel().get(RegistrationConstants.SECONDARY) + mandatoryAstrik);
-//			field.setPromptText(label.getText());
-//			field.setDisable(true);
-//			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.SECONDARY));
-//		} else {
-//			label.setText(schema.getLabel().get(RegistrationConstants.PRIMARY) + mandatoryAstrik);
-//			field.setPromptText(label.getText());
-//			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.PRIMARY));
+	protected void helperMethodForComboBox(ComboBox<?> field, String fieldName, UiSchemaDTO schema, Label label,
+			Label validationMessage, VBox vbox, String languageType) {
+
+		String mandatoryAstrik = demographicDetailController.getMandatorySuffix(schema);
+		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
+			label.setText(schema.getLabel().get(RegistrationConstants.SECONDARY) + mandatoryAstrik);
+			field.setPromptText(label.getText());
+			field.setDisable(true);
+			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.SECONDARY));
+		} else {
+			label.setText(schema.getLabel().get(RegistrationConstants.PRIMARY) + mandatoryAstrik);
+			field.setPromptText(label.getText());
+			putIntoLabelMap(fieldName + languageType, schema.getLabel().get(RegistrationConstants.PRIMARY));
+		}
+		// vbox.setStyle("-fx-background-color:BLUE");
+		vbox.setPrefWidth(500);
+		vbox.setId(fieldName + RegistrationConstants.Parent);
+		label.setId(fieldName + languageType + RegistrationConstants.LABEL);
+		label.setVisible(false);
+		label.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
+		field.getStyleClass().add("demographicCombobox");
+		validationMessage.setId(fieldName + languageType + RegistrationConstants.MESSAGE);
+		validationMessage.getStyleClass().add(RegistrationConstants.DemoGraphicFieldMessageLabel);
+		label.setPrefWidth(vbox.getPrefWidth());
+		validationMessage.setPrefWidth(vbox.getPrefWidth());
+		validationMessage.setVisible(false);
+		vbox.setSpacing(5);
+
+		vbox.getChildren().addAll(label, field, validationMessage);
+
+//		if (applicationContext.getApplicationLanguage().equals(applicationContext.getLocalLanguage())
+//				&& languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
+//			vbox.setDisable(true);
 //		}
-//		// vbox.setStyle("-fx-background-color:BLUE");
-//		vbox.setPrefWidth(500);
-//		vbox.setId(fieldName + RegistrationConstants.Parent);
-//		label.setId(fieldName + languageType + RegistrationConstants.LABEL);
-//		label.setVisible(false);
-//		label.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL);
-//		field.getStyleClass().add("demographicCombobox");
-//		validationMessage.setId(fieldName + languageType + RegistrationConstants.MESSAGE);
-//		validationMessage.getStyleClass().add(RegistrationConstants.DemoGraphicFieldMessageLabel);
-//		label.setPrefWidth(vbox.getPrefWidth());
-//		validationMessage.setPrefWidth(vbox.getPrefWidth());
-//		validationMessage.setVisible(false);
-//		vbox.setSpacing(5);
-//
-//		vbox.getChildren().addAll(label, field, validationMessage);
-//
-////		if (applicationContext.getApplicationLanguage().equals(applicationContext.getLocalLanguage())
-////				&& languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
-////			vbox.setDisable(true);
-////		}
-//	}
+	}
 
 	protected void updateByAttempt(double qualityScore, Image streamImage, double thresholdScore,
 			ImageView streamImagePane, Label qualityText, ProgressBar progressBar, Label progressQualityScore) {
@@ -1845,24 +1859,23 @@ public class BaseController {
 		labels.put("OPERATOR", RegistrationUIConstants.ONBOARD_USER_TITLE);
 
 		Object value = ApplicationContext.map().get(RegistrationConstants.OPERATOR_ONBOARDING_BIO_ATTRIBUTES);
-		List<String> attributes = (value != null) ? Arrays.asList(((String) value).split(","))
-				: new ArrayList<String>();
-		// subMap.put(slabType, Arrays.asList(configBiometrics, nonConfigBiometrics));
+		List<String> attributes = (value != null) ? Arrays.asList(((String)value).split(",")) :
+				new ArrayList<String>();
+		//subMap.put(slabType, Arrays.asList(configBiometrics, nonConfigBiometrics));
 		HashMap<String, List<List<String>>> subMap = new HashMap<String, List<List<String>>>();
 		subMap.put(RegistrationConstants.FINGERPRINT_SLAB_LEFT,
 				Arrays.asList(ListUtils.intersection(RegistrationConstants.leftHandUiAttributes, attributes),
-						ListUtils.subtract(RegistrationConstants.leftHandUiAttributes, attributes)));
+			ListUtils.subtract(RegistrationConstants.leftHandUiAttributes, attributes)));
 		subMap.put(RegistrationConstants.FINGERPRINT_SLAB_RIGHT,
 				Arrays.asList(ListUtils.intersection(RegistrationConstants.rightHandUiAttributes, attributes),
 						ListUtils.subtract(RegistrationConstants.rightHandUiAttributes, attributes)));
 		subMap.put(RegistrationConstants.FINGERPRINT_SLAB_THUMBS,
 				Arrays.asList(ListUtils.intersection(RegistrationConstants.twoThumbsUiAttributes, attributes),
-						ListUtils.subtract(RegistrationConstants.twoThumbsUiAttributes, attributes)));
+				ListUtils.subtract(RegistrationConstants.twoThumbsUiAttributes, attributes)));
 		subMap.put(RegistrationConstants.IRIS_DOUBLE,
 				Arrays.asList(ListUtils.intersection(RegistrationConstants.eyesUiAttributes, attributes),
-						ListUtils.subtract(RegistrationConstants.eyesUiAttributes, attributes)));
-		subMap.put(RegistrationConstants.FACE,
-				Arrays.asList(ListUtils.intersection(RegistrationConstants.faceUiAttributes, attributes),
+				ListUtils.subtract(RegistrationConstants.eyesUiAttributes, attributes)));
+		subMap.put(RegistrationConstants.FACE, Arrays.asList(ListUtils.intersection(RegistrationConstants.faceUiAttributes, attributes),
 						ListUtils.subtract(RegistrationConstants.faceUiAttributes, attributes)));
 
 		for (Entry<String, String> entry : labels.entrySet()) {
@@ -1896,6 +1909,17 @@ public class BaseController {
 
 	}
 
+
+	public boolean isAppLangAndLocalLangSame() {
+
+		return applicationContext.getApplicationLanguage().equals(applicationContext.getLocalLanguage());
+	}
+
+	public boolean isLocalLanguageAvailable() {
+
+		return applicationContext.getLocalLanguage() != null && !applicationContext.getLocalLanguage().isEmpty();
+	}
+
 	public boolean proceedOnAction(String job) {
 		if (isPrimaryOrSecondaryLanguageEmpty()) {
 			generateAlert(RegistrationConstants.ERROR,
@@ -1915,29 +1939,27 @@ public class BaseController {
 
 		try {
 			switch (job) {
-			case "MS":
-				baseService.proceedWithMasterAndKeySync(null);
-				break;
-			case "PS":
-				baseService.proceedWithPacketSync();
-				break;
-			case "RM":
-				baseService.proceedWithMachineCenterRemap();
-				break;
-			case "OU":
-				baseService.proceedWithOperatorOnboard();
-				break;
-			default:
-				baseService.proceedWithMasterAndKeySync(job);
-				break;
+				case "MS" :
+					baseService.proceedWithMasterAndKeySync(null);
+					break;
+				case "PS":
+					baseService.proceedWithPacketSync();
+					break;
+				case "RM":
+					baseService.proceedWithMachineCenterRemap();
+					break;
+				case "OU" :
+					baseService.proceedWithOperatorOnboard();
+					break;
+				default:
+					baseService.proceedWithMasterAndKeySync(job);
+					break;
 			}
-		} catch (PreConditionCheckException ex) {
-			ResourceBundle resourceBundle = applicationContext.getBundle(applicationContext.getApplicationLanguage(),
-					RegistrationConstants.MESSAGES);
-
+		} catch (PreConditionCheckException ex){
 			generateAlert(RegistrationConstants.ERROR,
-					resourceBundle.containsKey(ex.getErrorCode()) ? resourceBundle.getString(ex.getErrorCode())
-							: ex.getErrorCode());
+					ApplicationContext.applicationMessagesBundle().containsKey(ex.getErrorCode()) ?
+							ApplicationContext.applicationMessagesBundle().getString(ex.getErrorCode()) :
+							ex.getErrorCode());
 			return false;
 		}
 		return true;
@@ -1952,40 +1974,13 @@ public class BaseController {
 
 		try {
 			baseService.proceedWithRegistration();
-		} catch (PreConditionCheckException ex) {
-
-			ResourceBundle resourceBundle = applicationContext.getBundle(applicationContext.getApplicationLanguage(),
-					RegistrationConstants.MESSAGES);
-
+		} catch (PreConditionCheckException ex){
 			generateAlert(RegistrationConstants.ERROR,
-					resourceBundle.containsKey(ex.getErrorCode()) ? resourceBundle.getString(ex.getErrorCode())
-							: ex.getErrorCode());
+					ApplicationContext.applicationMessagesBundle().containsKey(ex.getErrorCode()) ?
+							ApplicationContext.applicationMessagesBundle().getString(ex.getErrorCode()) :
+							ex.getErrorCode());
 			return false;
 		}
 		return true;
-	}
-	
-	protected List<String> getConfiguredLanguages() {
-		List<String> languages = new ArrayList<>();
-		List<String> langCodes = Stream.concat(baseService.getMandatoryLanguages().stream(), baseService.getOptionalLanguages().stream())
-                .collect(Collectors.toList());
-		for (String langCode : langCodes) {
-			if (!langCode.isBlank()) {
-				languages.add(ApplicationLanguages.getLanguageByLangCode(langCode));
-			}
-		}
-		return languages;
-	}
-	
-	protected List<String> getConfiguredLangCodes() {
-		List<String> languages = new ArrayList<>();
-		List<String> langCodes = Stream.concat(baseService.getMandatoryLanguages().stream(), baseService.getOptionalLanguages().stream())
-                .collect(Collectors.toList());
-		for (String langCode : langCodes) {
-			if (!langCode.isBlank()) {
-				languages.add(langCode);
-			}
-		}
-		return languages;
 	}
 }
