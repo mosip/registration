@@ -61,6 +61,7 @@ public class WorkFlowActionApi extends MosipVerticleAPIManager {
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
 
+
 	}
 
 	@Override
@@ -93,6 +94,8 @@ public class WorkFlowActionApi extends MosipVerticleAPIManager {
 	public void processURL(RoutingContext ctx) {
 		JsonObject obj = ctx.getBodyAsJson();
 		System.out.println("jsonobject" + obj);
+		// this.setResponse(ctx,
+		// "Packet with registrationId '" + "" + "' has been forwarded to next stage");
 	}
 
 	private void failure(RoutingContext routingContext) {
