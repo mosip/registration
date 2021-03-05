@@ -343,15 +343,6 @@ public class DemographicDetailController extends BaseController {
 		preRegParentPane.setDisable(true);
 	}
 
-	private boolean isAppLangAndLocalLangSame() {
-
-		return secondaryLanguage != null && primaryLanguage.equals(secondaryLanguage);
-	}
-
-	private boolean isLocalLanguageAvailable() {
-
-		return secondaryLanguage != null && !secondaryLanguage.isEmpty();
-	}
 
 	public void addKeyboard(int position) {
 

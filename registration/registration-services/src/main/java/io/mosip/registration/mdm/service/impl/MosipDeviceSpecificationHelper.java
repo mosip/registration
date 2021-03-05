@@ -45,6 +45,9 @@ public class MosipDeviceSpecificationHelper {
 	@Autowired
 	private SignatureService signatureService;
 
+	@Value("${mosip.registration.mdm.validate.trust:true}")
+	private boolean validateTrust;
+
 	private final String CONTENT_LENGTH = "Content-Length:";
 
 	public String getPayLoad(String data) throws RegBaseCheckedException {
@@ -75,7 +78,7 @@ public class MosipDeviceSpecificationHelper {
 
 	public void validateJWTResponse(final String signedData) throws DeviceException {
 		JWTSignatureVerifyRequestDto jwtSignatureVerifyRequestDto = new JWTSignatureVerifyRequestDto();
-		jwtSignatureVerifyRequestDto.setValidateTrust(false);
+		jwtSignatureVerifyRequestDto.setValidateTrust(validateTrust);
 		jwtSignatureVerifyRequestDto.setJwtSignatureData(signedData);
 		JWTSignatureVerifyResponseDto jwtSignatureVerifyResponseDto = signatureService
 				.jwtVerify(jwtSignatureVerifyRequestDto);

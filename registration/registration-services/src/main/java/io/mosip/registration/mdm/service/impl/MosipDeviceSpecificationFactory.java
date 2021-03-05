@@ -6,11 +6,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -341,51 +337,29 @@ public class MosipDeviceSpecificationFactory {
 		String key = String.format("%s_%s", getDeviceType(modality).toLowerCase(),
 				getDeviceSubType(modality).toLowerCase());
 
-		if (deviceInfoMap.containsKey(key)) {
-			return getDevice(key);
-		} else {
-			try {
-				initByPort(null);
-				if (deviceInfoMap.containsKey(key)) {
-					return getDevice(key);
-				}
+		if (deviceInfoMap.containsKey(key))
+			return deviceInfoMap.get(key);
 
-				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Bio Device not found for modality : "
-						+ modality + "  " + System.currentTimeMillis() + modality);
-				throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
-						RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage());
+		initByPort(null);
+		if (deviceInfoMap.containsKey(key))
+			return deviceInfoMap.get(key);
 
-			} catch (RegBaseCheckedException exception) {
-
-				throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
-						RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage(), exception);
-
-			}
-
-		}
-
+		LOGGER.info("Bio Device not found for modality : {} at {}",modality ,System.currentTimeMillis());
+		throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
+					RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage());
 	}
 
-	private MdmBioDevice getDevice(String key) throws RegBaseCheckedException {
-
+	public boolean isDeviceAvailable(String modality) throws RegBaseCheckedException {
+		String key = String.format("%s_%s", getDeviceType(modality).toLowerCase(),
+				getDeviceSubType(modality).toLowerCase());
 		MdmBioDevice bioDevice = deviceInfoMap.get(key);
-
-		for (MosipDeviceSpecificationProvider provider : deviceSpecificationProviders) {
-
-			if (provider.getSpecVersion().equalsIgnoreCase(bioDevice.getSpecVersion())) {
-
-				if (provider.isDeviceAvailable(bioDevice)) {
-
-					return bioDevice;
-				}
-				break;
-			}
-
+		if(bioDevice != null) {
+			Optional<MosipDeviceSpecificationProvider>  result = deviceSpecificationProviders.stream().filter(provider ->
+					provider.getSpecVersion().equalsIgnoreCase(bioDevice.getSpecVersion()) && provider.isDeviceAvailable(bioDevice)).findFirst();
+			return result.isPresent();
 		}
-
 		throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
 				RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage());
-
 	}
 
 	private String getLatestVersion(String version1, String version2) {

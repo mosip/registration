@@ -1030,10 +1030,10 @@ public class BiometricsController extends BaseController /* implements Initializ
 						LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 								"Capture request started" + System.currentTimeMillis());
 
-						return deviceSpecificationFactory
-								.getDeviceInfoByModality(isFace(currentModality) || isExceptionPhoto(currentModality)
-										? RegistrationConstants.FACE_FULLFACE
-										: currentModality);
+						String modaltity = isFace(currentModality) || isExceptionPhoto(currentModality)
+								? RegistrationConstants.FACE_FULLFACE : currentModality;
+						return deviceSpecificationFactory.isDeviceAvailable(modaltity) ? deviceSpecificationFactory
+								.getDeviceInfoByModality(modaltity) : null;
 
 					}
 				};
