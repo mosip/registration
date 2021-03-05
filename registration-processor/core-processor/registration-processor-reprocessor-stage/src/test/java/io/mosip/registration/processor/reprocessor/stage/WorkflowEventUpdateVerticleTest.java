@@ -29,7 +29,7 @@ import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 
 @RunWith(SpringRunner.class)
-public class WorkFlowEventUpdateVerticleTest {
+public class WorkflowEventUpdateVerticleTest {
 	@Mock
 	private MosipRouter router;
 	@Mock
@@ -45,7 +45,7 @@ public class WorkFlowEventUpdateVerticleTest {
 
 
 	@InjectMocks
-	private WorkFlowEventUpdateVerticle workFlowEventUpdateVerticle = new WorkFlowEventUpdateVerticle() {
+	private WorkflowEventUpdateVerticle workFlowEventUpdateVerticle = new WorkflowEventUpdateVerticle() {
 		@Override
 		public MosipEventBus getEventBus(Object verticleName, String url, int instanceNumber) {
 			vertx = Vertx.vertx();

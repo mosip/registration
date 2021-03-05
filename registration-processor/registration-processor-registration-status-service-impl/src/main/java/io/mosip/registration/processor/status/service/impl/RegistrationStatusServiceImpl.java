@@ -582,7 +582,7 @@ public class RegistrationStatusServiceImpl
 	}
 
 	@Override
-	public void updateRegistrationStatusForWorkFlow(InternalRegistrationStatusDto registrationStatusDto,
+	public void updateRegistrationStatusForWorkflow(InternalRegistrationStatusDto registrationStatusDto,
 			String moduleId, String moduleName) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(),
 				registrationStatusDto.getRegistrationId(),

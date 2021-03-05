@@ -33,12 +33,12 @@ import io.mosip.registration.processor.status.exception.TablenotAccessibleExcept
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.vertx.core.json.JsonObject;
 
-public class WorkFlowEventUpdateVerticle extends MosipVerticleAPIManager {
+public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
 
 	/** The Constant USER. */
 	private static final String USER = "MOSIP_SYSTEM";
 	/** The reg proc logger. */
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(WorkFlowEventUpdateVerticle.class);
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(WorkflowEventUpdateVerticle.class);
 
 	/** The registration status service. */
 	@Autowired
@@ -67,18 +67,20 @@ public class WorkFlowEventUpdateVerticle extends MosipVerticleAPIManager {
 
 	private MosipEventBus mosipEventBus = null;
 	
+	public static String MODULE_NAME = ModuleName.WORKFLOW_EVENTUPDATE.toString();
+
 	/**
 	 * Deploy verticle.
 	 */
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consume(mosipEventBus, MessageBusAddress.WORKFLOW_EVENTUPDATE_BUS_IN);
+		this.consume(mosipEventBus, MessageBusAddress.WORKFLOW_EVENT_UPDATE_ADDRESS);
 	}
 
 	@Override
 	public void start() {
 		router.setRoute(
-				this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.WORKFLOW_EVENTUPDATE_BUS_IN, null));
+				this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.WORKFLOW_EVENT_UPDATE_ADDRESS, null));
 		this.createServer(router.getRouter(), Integer.parseInt(port));
 	}
 
@@ -124,64 +126,65 @@ public class WorkFlowEventUpdateVerticle extends MosipVerticleAPIManager {
 		registrationStatusDto.setUpdateDateTime(updateTimeStamp);
 		registrationStatusDto.setUpdatedBy(USER);
 
-			String moduleId = PlatformSuccessMessages.RPR_WORKFLOW_EVENTUPDATE_SUCCESS.getCode();
+			String moduleId = PlatformSuccessMessages.RPR_WORKFLOW_EVENT_UPDATE_SUCCESS.getCode();
 			String moduleName = ModuleName.WORKFLOW_EVENTUPDATE.toString();
 
-			registrationStatusService.updateRegistrationStatusForWorkFlow(registrationStatusDto, moduleId, moduleName);
+			registrationStatusService.updateRegistrationStatusForWorkflow(registrationStatusDto, moduleId, moduleName);
 
 			isTransactionSuccessful = true;
-			description.setMessage(PlatformSuccessMessages.RPR_WORKFLOW_EVENTUPDATE_SUCCESS.getMessage());
+			description.setMessage(PlatformSuccessMessages.RPR_WORKFLOW_EVENT_UPDATE_SUCCESS.getMessage());
 			description
-					.setCode(PlatformSuccessMessages.RPR_WORKFLOW_EVENTUPDATE_SUCCESS.getCode());
+					.setCode(PlatformSuccessMessages.RPR_WORKFLOW_EVENT_UPDATE_SUCCESS.getCode());
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					"", "ReprocessorStage::process()::exit");
 
 		} catch (DateTimeParseException e) {
-			isTransactionSuccessful = false;
-			object.setInternalError(Boolean.TRUE);
-			description.setMessage(PlatformErrorMessages.RPR_WFE_DATE_TIME_EXCEPTION.getMessage());
-			description.setCode(PlatformErrorMessages.RPR_WFE_DATE_TIME_EXCEPTION.getCode());
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-					description.getCode() + " -- " + registrationId,
-					PlatformErrorMessages.RPR_WFE_DATE_TIME_EXCEPTION.getMessage(), e.toString());
-		} catch (TablenotAccessibleException e) {
-			isTransactionSuccessful = false;
+			updateDTOsAndLogError(description, registrationId, PlatformErrorMessages.RPR_WFE_DATE_TIME_EXCEPTION, e);
 
-			description.setMessage(PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage());
-			description.setCode(PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getCode());
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-					description.getCode() + " -- " + registrationId,
-					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e.toString());
+		} catch (TablenotAccessibleException e) {
+
+			updateDTOsAndLogError(description, registrationId,
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE, e);
+
 		} catch (Exception e) {
-			isTransactionSuccessful = false;
-			description.setMessage(PlatformErrorMessages.RPR_WORKFLOW_EVENTUPDATE_FAILED.getMessage());
-			description.setCode(PlatformErrorMessages.RPR_WORKFLOW_EVENTUPDATE_FAILED.getCode());
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					description.getCode() + " -- " + registrationId,
-					PlatformErrorMessages.RPR_WORKFLOW_EVENTUPDATE_FAILED.getMessage() + e.getMessage()
-							+ ExceptionUtils.getStackTrace(e));
+
+			updateDTOsAndLogError(description, registrationId, PlatformErrorMessages.RPR_WORKFLOW_EVENT_UPDATE_FAILED,
+					e);
 
 		} finally {
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId, description.getMessage());
-			String moduleId = isTransactionSuccessful
-					? PlatformSuccessMessages.RPR_WORKFLOW_EVENTUPDATE_SUCCESS.getCode()
-					: description.getCode();
-			String moduleName = ModuleName.WORKFLOW_EVENTUPDATE.toString();
 
-
-			String eventId = isTransactionSuccessful ? EventId.RPR_402.toString()
-					: EventId.RPR_405.toString();
-			String eventName = isTransactionSuccessful ? EventName.UPDATE.toString()
-					: EventName.EXCEPTION.toString();
-			String eventType = isTransactionSuccessful ? EventType.BUSINESS.toString()
-					: EventType.SYSTEM.toString();
-
-			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
-					moduleId, moduleName, registrationId);
+			updateAudit(description, isTransactionSuccessful, registrationId);
 		}
 		return object;
 
+	}
+
+	private void updateAudit(LogDescription description, boolean isTransactionSuccessful, String registrationId) {
+		String moduleId = isTransactionSuccessful
+				? PlatformSuccessMessages.RPR_WORKFLOW_EVENT_UPDATE_SUCCESS.getCode()
+				: description.getCode();
+
+		String eventId = isTransactionSuccessful ? EventId.RPR_402.toString()
+				: EventId.RPR_405.toString();
+		String eventName = isTransactionSuccessful ? EventName.UPDATE.toString()
+				: EventName.EXCEPTION.toString();
+		String eventType = isTransactionSuccessful ? EventType.BUSINESS.toString()
+				: EventType.SYSTEM.toString();
+
+		auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
+				moduleId, MODULE_NAME, registrationId);
+	}
+
+	private void updateDTOsAndLogError(LogDescription description, String registrationId,
+			PlatformErrorMessages platformErrorMessages, Exception e) {
+		description.setMessage(platformErrorMessages.getMessage());
+		description.setCode(platformErrorMessages.getCode());
+		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				description.getCode() + " -- " + registrationId,
+				platformErrorMessages.getMessage() + e.getMessage()
+						+ ExceptionUtils.getStackTrace(e));
 	}
 
 }

@@ -3,7 +3,7 @@ package io.mosip.registration.processor.reprocessor;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import io.mosip.registration.processor.reprocessor.stage.ReprocessorStage;
-import io.mosip.registration.processor.reprocessor.stage.WorkFlowEventUpdateVerticle;
+import io.mosip.registration.processor.reprocessor.stage.WorkflowEventUpdateVerticle;
 
 /**
  * Main class for Reprocessor Application
@@ -21,7 +21,7 @@ public class ReprocessorApplication {
 		ctx.refresh();
 		ReprocessorStage reprocessorStage = ctx.getBean(ReprocessorStage.class);
 		reprocessorStage.deployVerticle();
-		WorkFlowEventUpdateVerticle workFlowEventUpdateVerticle = ctx.getBean(WorkFlowEventUpdateVerticle.class);
+		WorkflowEventUpdateVerticle workFlowEventUpdateVerticle = ctx.getBean(WorkflowEventUpdateVerticle.class);
 		workFlowEventUpdateVerticle.deployVerticle();
 	}
 
