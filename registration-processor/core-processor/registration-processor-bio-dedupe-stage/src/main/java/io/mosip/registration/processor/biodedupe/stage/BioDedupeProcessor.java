@@ -423,7 +423,7 @@ public class BioDedupeProcessor {
 			msgDto.setRid(registrationStatusDto.getRegistrationId());
 			msgDto.setIsValid(Boolean.FALSE);
 			msgDto.setReg_type(RegistrationType.valueOf(registrationType));
-			msgDto.setMessageBusAddress(MessageBusAddress.BIO_DEDUPE_BUS_OUT);
+			msgDto.setMessageBusAddress(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN);
 
 			biodedupestage.sendMessage(msgDto);
 			//
