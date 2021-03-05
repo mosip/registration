@@ -711,7 +711,10 @@ public class BaseService {
 	}
 
 	public void proceedWithRegistration() throws PreConditionCheckException {
-		commonPreConditionChecks("Registration");
+		if(SessionContext.isSessionContextAvailable() &&
+				!userDetailService.isValidUser(SessionContext.userId()) && !isInitialSync())
+			throw new PreConditionCheckException(PreConditionChecks.USER_INACTIVE.name(),
+					"Registration forbidden as User is inactive");
 
 		if(centerMachineReMapService.isMachineRemapped())
 			throw new PreConditionCheckException(PreConditionChecks.MARKED_FOR_REMAP.name(),
