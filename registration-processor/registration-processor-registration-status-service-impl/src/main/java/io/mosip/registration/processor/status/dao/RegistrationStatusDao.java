@@ -183,7 +183,7 @@ public class RegistrationStatusDao {
 		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
 				+ ".latestTransactionStatusCode IN :status" + EMPTY_STRING + AND + EMPTY_STRING + alias
 				+ ".regProcessRetryCount<=" + ":reprocessCount" + EMPTY_STRING + AND + EMPTY_STRING + alias
-				+ ".latestTransactionTimes<" + ":timeDifference";
+				+ ".latestTransactionTimes<" + ":timeDifference order by updateDateTime asc";
 
 		params.put("status", status);
 		params.put("reprocessCount", reprocessCount);
