@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import io.mosip.registration.exception.PreConditionCheckException;
+import io.mosip.registration.exception.RemapException;
 import io.mosip.registration.service.BaseService;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import io.mosip.registration.util.restclient.AuthTokenUtilService;
@@ -1176,7 +1177,7 @@ public class BaseController {
 				return new Task<String>() {
 
 					@Override
-					protected String call() {
+					protected String call() throws RemapException {
 
 						packetHandlerController.getProgressIndicator().setVisible(true);
 
@@ -1910,7 +1911,7 @@ public class BaseController {
 
 	public boolean isAppLangAndLocalLangSame() {
 
-		return applicationContext.getApplicationLanguage().equals(applicationContext.getLocalLanguage());
+		return applicationContext.getLocalLanguage() != null && applicationContext.getApplicationLanguage().equals(applicationContext.getLocalLanguage());
 	}
 
 	public boolean isLocalLanguageAvailable() {

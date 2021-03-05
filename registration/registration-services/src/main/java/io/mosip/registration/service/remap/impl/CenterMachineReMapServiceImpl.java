@@ -5,12 +5,12 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import io.mosip.registration.repositories.MachineMasterRepository;
+import io.mosip.registration.exception.RemapException;
+import io.mosip.registration.service.remap.RemapStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -31,7 +31,6 @@ import io.mosip.registration.constants.Components;
 import io.mosip.registration.constants.RegistrationClientStatusCode;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
-import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.dao.GlobalParamDAO;
 import io.mosip.registration.dao.PreRegistrationDataSyncDAO;
 import io.mosip.registration.dao.RegistrationDAO;
@@ -99,7 +98,7 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 	 * handleReMapProcess()
 	 */
 	@Override
-	public void handleReMapProcess(int step) {
+	public void handleReMapProcess(int step) throws RemapException {
 
 		if (isMachineRemapped()) {
 			LOGGER.info("REGISTRATION CENTER MACHINE REMAP : ", APPLICATION_NAME, APPLICATION_ID,
@@ -138,7 +137,7 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 	}
 
 	@Override
-	public void startRemapProcess() {
+	public void startRemapProcess() throws RemapException {
 		for (int i = 1; i <= 4; i++) {
 			/* starts the remap process */
 			handleReMapProcess(i);
@@ -208,28 +207,30 @@ public class CenterMachineReMapServiceImpl implements CenterMachineReMapService 
 	/**
 	 * clean up of all center specific data
 	 */
-	private void cleanUpCenterSpecificData() {
+	private void cleanUpCenterSpecificData() throws RemapException {
 		/*
 		 * final clean up if no packets are pending to be sent and processed by reg
 		 * processor
 		 */
 
-		if (!isPacketsPendingForProcessing() && !isPacketsPendingForReRegister()) {
-			/* clean up all the pre reg data and previous center data */
-			cleanUpRemappedMachineData();
-			LOGGER.info("REGISTRATION CENTER MACHINE REMAP : ", APPLICATION_NAME, APPLICATION_ID,
-					"Step 1  Remap table clean up Completed");
-			auditFactory.audit(AuditEvent.MACHINE_REMAPPED, Components.CLEAN_UP, "REGISTRATION",
-					AuditReferenceIdTypes.APPLICATION_ID.getReferenceTypeId());
+		if (isPacketsPendingForProcessing() || isPacketsPendingForReRegister())
+			throw new RemapException(RemapStatus.REMAP_PROCESS_STILL_PENDING.name(),
+					"Packet pending for processing / re-registration");
 
-			/* enable intial set up flag */
-			globalParamService.update(RegistrationConstants.INITIAL_SETUP, RegistrationConstants.ENABLE);
-			/* disable the remap flag after completing the remap process */
-			globalParamService.update(RegistrationConstants.MACHINE_CENTER_REMAP_FLAG, RegistrationConstants.FALSE);
+		/* clean up all the pre reg data and previous center data */
+		cleanUpRemappedMachineData();
+		LOGGER.info("REGISTRATION CENTER MACHINE REMAP : ", APPLICATION_NAME, APPLICATION_ID,
+				"Step 1  Remap table clean up Completed");
+		auditFactory.audit(AuditEvent.MACHINE_REMAPPED, Components.CLEAN_UP, "REGISTRATION",
+				AuditReferenceIdTypes.APPLICATION_ID.getReferenceTypeId());
 
-			LOGGER.info("REGISTRATION CENTER MACHINE REMAP : ", APPLICATION_NAME, APPLICATION_ID,
-					"cleanUpCenterSpecificData remap successfully completed");
-		}
+		/* enable intial set up flag */
+		globalParamService.update(RegistrationConstants.INITIAL_SETUP, RegistrationConstants.ENABLE);
+		/* disable the remap flag after completing the remap process */
+		globalParamService.update(RegistrationConstants.MACHINE_CENTER_REMAP_FLAG, RegistrationConstants.FALSE);
+
+		LOGGER.info("REGISTRATION CENTER MACHINE REMAP : ", APPLICATION_NAME, APPLICATION_ID,
+				"cleanUpCenterSpecificData remap successfully completed");
 	}
 
 	/*
