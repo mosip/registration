@@ -370,6 +370,10 @@ public class DaoConfig extends HibernateDaoConfig {
 		ResultSet rs = statement.executeQuery("VALUES SYSCS_UTIL.SYSCS_GET_DATABASE_PROPERTY('"+key+"')");
 		if(rs.next() && value.equalsIgnoreCase(rs.getString(1)))
 			return;
+
+		if(key.startsWith("derby.user") && rs.getString(1) != null)
+			return;
+
 		throw new RegBaseCheckedException("", (key.startsWith("derby.user") ? "derby.user.*" : key) +
 				" : is not set to preferred value!");
 	}
