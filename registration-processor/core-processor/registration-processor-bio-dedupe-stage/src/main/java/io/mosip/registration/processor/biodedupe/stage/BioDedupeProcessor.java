@@ -118,9 +118,6 @@ public class BioDedupeProcessor {
 	@Autowired
 	private Environment env;
 
-	@Autowired
-	private BioDedupeStage biodedupestage;
-
 	/** The config server file storage URL. */
 	@Value("${config.server.file.storage.uri}")
 	private String configServerFileStorageURL;
@@ -424,8 +421,6 @@ public class BioDedupeProcessor {
 			msgDto.setIsValid(Boolean.FALSE);
 			msgDto.setReg_type(RegistrationType.valueOf(registrationType));
 			msgDto.setMessageBusAddress(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN);
-
-			biodedupestage.sendMessage(msgDto);
 			//
 
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
