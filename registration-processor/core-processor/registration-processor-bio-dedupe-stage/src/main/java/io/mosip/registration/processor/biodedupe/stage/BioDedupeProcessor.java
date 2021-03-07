@@ -415,13 +415,11 @@ public class BioDedupeProcessor {
 			packetInfoManager.saveManualAdjudicationData(matchedRegIds, registrationStatusDto.getRegistrationId(),
 					DedupeSourceName.BIO, moduleId, moduleName,null,null);
 			//send message to manual adjudication
-			MessageDTO msgDto=new MessageDTO();
-			msgDto.setInternalError(Boolean.FALSE);
-			msgDto.setRid(registrationStatusDto.getRegistrationId());
-			msgDto.setIsValid(Boolean.FALSE);
-			msgDto.setReg_type(RegistrationType.valueOf(registrationType));
-			msgDto.setMessageBusAddress(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN);
-			//
+			object.setInternalError(Boolean.FALSE);
+			object.setRid(registrationStatusDto.getRegistrationId());
+			object.setIsValid(Boolean.FALSE);
+			object.setReg_type(RegistrationType.valueOf(registrationType));
+			object.setMessageBusAddress(MessageBusAddress.MANUAL_VERIFICATION_BUS_IN);
 
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationStatusDto.getRegistrationId(), BioDedupeConstants.ABIS_RESPONSE_NOT_NULL);
