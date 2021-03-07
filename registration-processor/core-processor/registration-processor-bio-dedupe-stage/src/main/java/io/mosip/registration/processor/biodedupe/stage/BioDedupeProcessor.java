@@ -280,7 +280,7 @@ public class BioDedupeProcessor {
 			String moduleId = isTransactionSuccessful ? PlatformSuccessMessages.RPR_BIO_DEDUPE_SUCCESS.getCode()
 					: description.getCode();
 			String moduleName = ModuleName.BIO_DEDUPE.name();
-			//registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
+			registrationStatusService.updateRegistrationStatus(registrationStatusDto, moduleId, moduleName);
 
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					registrationId, "BioDedupeProcessor::" + registrationStatusDto.getLatestTransactionStatusCode());
@@ -289,8 +289,8 @@ public class BioDedupeProcessor {
 			String eventName = isTransactionSuccessful ? EventName.UPDATE.toString() : EventName.EXCEPTION.toString();
 			String eventType = isTransactionSuccessful ? EventType.BUSINESS.toString() : EventType.SYSTEM.toString();
 
-			/*auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
-					moduleId, moduleName, registrationId);*/
+			auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
+					moduleId, moduleName, registrationId);
 		}
 		return object;
 	}
