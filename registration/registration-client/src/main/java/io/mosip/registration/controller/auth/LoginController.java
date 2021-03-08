@@ -665,7 +665,7 @@ public class LoginController extends BaseController implements Initializable {
 		auditFactory.audit(AuditEvent.LOGIN_SUBMIT_OTP, Components.LOGIN, userId.getText(),
 				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
-		if (validations.validateTextField(otpPane, otp, otp.getId(), true)) {
+		if (validations.validateTextField(otpPane, otp, otp.getId(), true, ApplicationContext.applicationLanguage())) {
 
 			UserDTO userDTO = loginService.getUserDetail(userId.getText());
 

@@ -75,6 +75,7 @@ public class Validations extends BaseController {
 	private DateValidation dateValidation;
 	@Autowired
 	private MasterSyncService masterSync;
+
 	/**
 	 * Instantiates a new validations.
 	 */
@@ -100,30 +101,11 @@ public class Validations extends BaseController {
 	 */
 	public void setResourceBundle() {
 		// validationBundle = ApplicationContext.applicationLanguageValidationBundle();
-		applicationMessageBundle = applicationContext.getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.MESSAGES);
-		//applicationLabelBundle = applicationContext.getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS);
-	}
-
-	/**
-	 * Iterate the fields to invoke the validate.
-	 *
-	 * @param pane           the {@link Pane} containing the fields
-	 * @param notTovalidate  the {@link List} of UI fields not be validated
-	 * @param isValid        the flag indicating whether validation is success or
-	 *                       fail
-	 * @return true, if successful
-	 */
-	public boolean validateTheFields(Pane pane, List<String> notTovalidate, boolean isValid) {
-		for (Node node : pane.getChildren()) {
-			if (node instanceof Pane) {
-				if (!validateTheFields((Pane) node, notTovalidate, isValid)) {
-					isValid = false;
-				}
-			} else if (nodeToValidate(notTovalidate, node) && !validateTheNode(pane, node, node.getId(), isValid)) {
-				isValid = false;
-			}
-		}
-		return isValid;
+		applicationMessageBundle = applicationContext.getBundle(ApplicationContext.applicationLanguage(),
+				RegistrationConstants.MESSAGES);
+		// applicationLabelBundle =
+		// applicationContext.getBundle(ApplicationContext.applicationLanguage(),
+		// RegistrationConstants.LABELS);
 	}
 
 	/**
@@ -139,41 +121,6 @@ public class Validations extends BaseController {
 		return this.isLostUIN;
 	}
 
-	/**
-	 * To decide whether this node should be validated or not.
-	 *
-	 * @param notTovalidate the {@link list} of fields not be validated
-	 * @param node          the {@link Node} to be checked
-	 * @return true, if successful
-	 */
-	private boolean nodeToValidate(List<String> notTovalidate, Node node) {
-		if (node.getId() != null && (node.getId().contains("gender") || node.getId().contains("residence"))) {
-			return !(node.getId() == null || notTovalidate.contains(node.getId()) || node instanceof ImageView
-					|| node instanceof Label || node instanceof Hyperlink );
-		}
-		return !(node.getId() == null || notTovalidate.contains(node.getId()) || node instanceof ImageView
-				|| node instanceof Button || node instanceof Label || node instanceof Hyperlink);
-	}
-
-	/**
-	 * Validate the UI fields. Fetch the {@link BlacklistedWords} for application
-	 * specific and secondary specific languages.
-	 *
-	 * @param pane          the {@link Pane} containing the UI Fields to be
-	 *                      validated
-	 * @param notTovalidate the {@link List} of fields not be validated
-	 * @param isValid       the flag to indicating the status of validation
-	 * @param masterSync    the instance of {@link MasterSyncService} for fetching
-	 *                      {@link BlacklistedWords}
-	 * @return true, if successful
-	 */
-	public boolean validate(Pane pane, List<String> notTovalidate, boolean isValid, MasterSyncService masterSync) {
-		//TODO - get langcode from the control which calls this method and remove below line
-		String langCode = ApplicationContext.applicationLanguage();
-		this.applicationLanguageblackListedWords = getBlackListedWords(langCode);
-		return validateTheFields(pane, notTovalidate, isValid);
-	}
-
 	private List<String> getBlackListedWords(String langCode) {
 		try {
 			return masterSync.getAllBlackListedWords(ApplicationContext.applicationLanguage()).stream()
@@ -184,28 +131,6 @@ public class Validations extends BaseController {
 					regBaseCheckedException.getMessage() + ExceptionUtils.getStackTrace(regBaseCheckedException));
 		}
 		return null;
-	}
-
-	/**
-	 * Pass the node to check for the validation, specific validation method will be
-	 * called for each field.
-	 *
-	 * @param parentPane     the {@link Pane} containing the UI Fields to be
-	 *                       validated
-	 * @param node           the {@link Node} to be validated
-	 * @param id             the id of the field to be validated
-	 * @param isPreviousValid
-	 * @return true, if successful
-	 */
-	public boolean validateTheNode(Pane parentPane, Node node, String id, boolean isPreviousValid) {
-		if (node instanceof ComboBox<?>) {
-			return validateComboBox(parentPane, (ComboBox<?>) node, id, isPreviousValid);
-		} else if (node instanceof Button) {
-			return validateButtons(parentPane, (Button) node, id);
-		} else if(node instanceof CheckBox) {
-			return true;
-		}
-		return validateTextField(parentPane, (TextField) node, id, isPreviousValid);
 	}
 
 	private boolean validateButtons(Pane parentPane, Button node, String id) {
@@ -246,24 +171,18 @@ public class Validations extends BaseController {
 	/**
 	 * Validate for the TextField.
 	 *
-	 * @param parentPane     the {@link Pane} containing the fields
-	 * @param node           the {@link Node} to be validated
-	 * @param id             the id of the UI field
+	 * @param parentPane      the {@link Pane} containing the fields
+	 * @param node            the {@link Node} to be validated
+	 * @param id              the id of the UI field
 	 * @param isPreviousValid
 	 * @return true, if successful
 	 */
-	public boolean validateTextField(Pane parentPane, TextField node, String id, boolean isPreviousValid) {
-		//TODO - get langcode from the caller of this method and remove below line
-		String langCode = ApplicationContext.applicationLanguage();
+	public boolean validateTextField(Pane parentPane, TextField node, String id, boolean isPreviousValid,
+			String langCode) {
+
 		return languageSpecificValidation(parentPane, node, id, getMessagesBundle(langCode),
 				getBlackListedWords(langCode), isPreviousValid, langCode);
-//		if (node.getId().contains(RegistrationConstants.LOCAL_LANGUAGE)) {
-//			return languageSpecificValidation(parentPane, node, id, localMessageBundle, localLanguageblackListedWords,
-//					isPreviousValid, ApplicationContext.localLanguage());
-//		} else {
-//			return languageSpecificValidation(parentPane, node, id, applicationMessageBundle,
-//					applicationLanguageblackListedWords, isPreviousValid, ApplicationContext.applicationLanguage());
-//		}
+
 	}
 
 	private ResourceBundle getMessagesBundle(String langCode) {
@@ -273,9 +192,9 @@ public class Validations extends BaseController {
 	/**
 	 * Language specific validation of text field
 	 *
-	 * @param parentPane     the {@link Pane} containing the fields
-	 * @param node           the {@link Node} to be validated
-	 * @param id             the id of the UI field
+	 * @param parentPane      the {@link Pane} containing the fields
+	 * @param node            the {@link Node} to be validated
+	 * @param id              the id of the UI field
 	 * @param isPreviousValid
 	 * @return true, if successful
 	 */
@@ -295,7 +214,7 @@ public class Validations extends BaseController {
 			// During lostUIN and during updateUIN & field is not part of the selection then
 			// donot do any validation
 			if (isLostUIN && !id.contains(RegistrationConstants.ON_TYPE)) {
-				if(node.isVisible() && (node.getText() != null && !node.getText().isEmpty())) {
+				if (node.isVisible() && (node.getText() != null && !node.getText().isEmpty())) {
 					isInputValid = checkForValidValue(parentPane, node, label, node.getText(), messageBundle, showAlert,
 							isPreviousValid, blackListedWords, uiSchemaDTO, langCode);
 				}
@@ -303,16 +222,15 @@ public class Validations extends BaseController {
 			}
 
 			if (uiSchemaDTO != null) {
-				if(requiredFieldValidator.isRequiredField(uiSchemaDTO, getRegistrationDTOFromSession()) &&
-						!isMandatoryFieldFilled(parentPane, uiSchemaDTO, node, node.getText()) ) {
+				if (requiredFieldValidator.isRequiredField(uiSchemaDTO, getRegistrationDTOFromSession())
+						&& !isMandatoryFieldFilled(parentPane, uiSchemaDTO, node, node.getText())) {
 					generateInvalidValueAlert(parentPane, id, getFromLabelMap(label).concat(RegistrationConstants.SPACE)
-									.concat(messageBundle.getString(RegistrationConstants.REG_LGN_001)), showAlert);
+							.concat(messageBundle.getString(RegistrationConstants.REG_LGN_001)), showAlert);
 					if (isPreviousValid && !id.contains(RegistrationConstants.ON_TYPE)) {
 						addInvalidInputStyleClass(parentPane, node, true);
 					}
 					isInputValid = false;
-				}
-				else { /** Remove Error message for fields */
+				} else { /** Remove Error message for fields */
 					Label messageLable = ((Label) (parentPane
 							.lookup(RegistrationConstants.HASH + node.getId() + RegistrationConstants.MESSAGE)));
 					if (messageLable != null) {
@@ -321,9 +239,9 @@ public class Validations extends BaseController {
 					isInputValid = true;
 				}
 
-				if(node.isVisible() && (node.getText() != null && !node.getText().isEmpty())) {
+				if (node.isVisible() && (node.getText() != null && !node.getText().isEmpty())) {
 					isInputValid = checkForValidValue(parentPane, node, label, node.getText(), messageBundle, showAlert,
-							isPreviousValid, blackListedWords, uiSchemaDTO,langCode);
+							isPreviousValid, blackListedWords, uiSchemaDTO, langCode);
 				}
 			}
 
@@ -340,22 +258,21 @@ public class Validations extends BaseController {
 
 		boolean isLocalLanguageField = node.getId().contains(RegistrationConstants.LOCAL_LANGUAGE);
 
-		if(RegistrationConstants.AGE_DATE.equals(uiSchemaDTO.getControlType())) {
+		if (RegistrationConstants.AGE_DATE.equals(uiSchemaDTO.getControlType())) {
 			boolean isValid = dateValidation.validateDate(parentPane, uiSchemaDTO.getId());
 			LOGGER.debug(RegistrationConstants.VALIDATION_LOGGER, APPLICATION_NAME, APPLICATION_ID,
 					"Date validation FAILED :: " + uiSchemaDTO.getId());
-			if(!isValid)
+			if (!isValid)
 				return false;
 		}
 
 		boolean isNonBlacklisted = validateBlackListedWords(parentPane, node, node.getId(), blackListedWords, showAlert,
-				String.format("%s %s %s",
-						messageBundle.getString(RegistrationConstants.BLACKLISTED_1),
+				String.format("%s %s %s", messageBundle.getString(RegistrationConstants.BLACKLISTED_1),
 						getFromLabelMap(fieldId), messageBundle.getString(RegistrationConstants.BLACKLISTED_2)),
 				messageBundle.getString(RegistrationConstants.BLACKLISTED_ARE),
 				messageBundle.getString(RegistrationConstants.BLACKLISTED_IS));
 
-		if(!isNonBlacklisted)
+		if (!isNonBlacklisted)
 			return false;
 
 		String regex = getRegex(fieldId, RegistrationUIConstants.REGEX_TYPE, langCode);
@@ -370,10 +287,13 @@ public class Validations extends BaseController {
 			return false;
 		}
 
-		if(!isLocalLanguageField && uiSchemaDTO != null && Arrays.asList("UIN", "RID").contains(uiSchemaDTO.getSubType()) &&
-				!validateUinOrRidField(value, getRegistrationDTOFromSession(), uiSchemaDTO)) {
-			generateInvalidValueAlert(parentPane, node.getId(), getFromLabelMap(fieldId).concat(RegistrationConstants.SPACE)
-					.concat(messageBundle.getString(RegistrationConstants.REG_DDC_004)), showAlert);
+		if (!isLocalLanguageField && uiSchemaDTO != null
+				&& Arrays.asList("UIN", "RID").contains(uiSchemaDTO.getSubType())
+				&& !validateUinOrRidField(value, getRegistrationDTOFromSession(), uiSchemaDTO)) {
+			generateInvalidValueAlert(parentPane, node.getId(),
+					getFromLabelMap(fieldId).concat(RegistrationConstants.SPACE)
+							.concat(messageBundle.getString(RegistrationConstants.REG_DDC_004)),
+					showAlert);
 			if (isPreviousValid && !node.getId().contains(RegistrationConstants.ON_TYPE)) {
 				addInvalidInputStyleClass(parentPane, node, false);
 			}
@@ -384,33 +304,36 @@ public class Validations extends BaseController {
 		return true;
 	}
 
-
 	private boolean isMandatoryFieldFilled(Pane parentPane, UiSchemaDTO uiSchemaDTO, TextField node, String value) {
 		boolean fieldFilled = false;
 
-		if(!node.isVisible()) {
-			generateAlert(parentPane, "Mandatory field is hidden : " + uiSchemaDTO.getId() ,RegistrationConstants.ERROR);
+		if (!node.isVisible()) {
+			generateAlert(parentPane, "Mandatory field is hidden : " + uiSchemaDTO.getId(),
+					RegistrationConstants.ERROR);
 			return fieldFilled;
 		}
 
 		RegistrationDTO registrationDTO = getRegistrationDTOFromSession();
 		switch (registrationDTO.getRegistrationCategory()) {
-			case RegistrationConstants.PACKET_TYPE_UPDATE:
-				if (node.isDisabled()) {  return true; 	}
-				fieldFilled = doMandatoryCheckOnUpdateUIN(parentPane, value, node.getId(), uiSchemaDTO, true, node, registrationDTO);
-				break;
-			case RegistrationConstants.PACKET_TYPE_NEW:
-				fieldFilled = doMandatoryCheckOnNewReg(value, uiSchemaDTO, true);
-				break;
+		case RegistrationConstants.PACKET_TYPE_UPDATE:
+			if (node.isDisabled()) {
+				return true;
+			}
+			fieldFilled = doMandatoryCheckOnUpdateUIN(parentPane, value, node.getId(), uiSchemaDTO, true, node,
+					registrationDTO);
+			break;
+		case RegistrationConstants.PACKET_TYPE_NEW:
+			fieldFilled = doMandatoryCheckOnNewReg(value, uiSchemaDTO, true);
+			break;
 		}
 		return fieldFilled;
 	}
 
-
 	private void addValidInputStyleClass(Pane parentPane, TextField node) {
 		Label nodeLabel = (Label) parentPane.lookup("#" + node.getId() + "Label");
 
-		if (nodeLabel == null && parentPane.getParent() != null && parentPane.getParent().getParent() != null && parentPane.getParent().getParent().getParent() != null) {
+		if (nodeLabel == null && parentPane.getParent() != null && parentPane.getParent().getParent() != null
+				&& parentPane.getParent().getParent().getParent() != null) {
 			nodeLabel = (Label) parentPane.getParent().getParent().getParent().lookup("#" + node.getId() + "Label");
 		}
 		// node.requestFocus();
@@ -471,7 +394,7 @@ public class Validations extends BaseController {
 
 	private String getAgeDateFieldId(String nodeId) {
 		String[] parts = nodeId.split("__");
-		if(parts.length > 1 && parts[1].matches(RegistrationConstants.DTAE_MONTH_YEAR_REGEX)) {
+		if (parts.length > 1 && parts[1].matches(RegistrationConstants.DTAE_MONTH_YEAR_REGEX)) {
 			return parts[0];
 		}
 		return null;

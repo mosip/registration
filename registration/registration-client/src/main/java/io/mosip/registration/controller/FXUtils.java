@@ -125,39 +125,9 @@ public class FXUtils {
 		this.transliteration = transliteration;
 	}
 
-	/**
-	 * Validates the value of field during on-type event. If validation fails,
-	 * retain the previous value and display error message.
-	 *
-	 * @param parentPane the {@link Pane} in which {@link TextField} is present
-	 * @param field      the {@link TextField} to be validated
-	 * @param validation the instance of {@link Validations}
-	 */
-	public void validateOnType(Pane parentPane, TextField field, Validations validation) {
-		field.textProperty().addListener((obsValue, oldValue, newValue) -> {
-			if (!isInputTextValid(parentPane, field, field.getId().concat(RegistrationConstants.ON_TYPE), validation)) {
-				field.setText(oldValue);
-			} else {
-				field.getStyleClass().removeIf((s) -> {
-					return s.equals("demoGraphicTextFieldError");
-				});
-				field.getStyleClass().add("demoGraphicTextField");
-			}
-		});
-	}
 
-	/**
-	 * Validates the value of the {@link TextField}
-	 * 
-	 * @param parentPane the {@link Pane} containing the {@link TextField}
-	 * @param field      the {@link TextField} value to be validated
-	 * @param fieldId    the id of the {@link TextField} to be validated
-	 * @param validation the instance of {@link Validations}
-	 * @return <code>true</code> if input is valid, else <code>false</code>
-	 */
-	private boolean isInputTextValid(Pane parentPane, TextField field, String fieldId, Validations validation) {
-		return validation.validateTextField(parentPane, field, fieldId, true);
-	}
+
+
 
 	/**
 	 * Populate local or secondary language combo box based on the application or
@@ -202,33 +172,7 @@ public class FXUtils {
 		}
 	}
 
-	/**
-	 * Validates the value of field during on-type event. If validation is
-	 * successful, populate the local or secondary language field (transliterate, if
-	 * required) if present. Else retain the previous value and display error
-	 * message.
-	 *
-	 * @param parentPane          the {@link Pane} in which {@link TextField} is
-	 *                            present
-	 * @param field               the {@link TextField} to be validated
-	 * @param validation          the instance of {@link Validations}
-	 * @param haveToTransliterate the flag to know whether the field value has to be
-	 *                            transliterated
-	 */
-	public void validateOnType(Pane parentPane, TextField field, Validations validation, boolean haveToTransliterate) {
 
-		focusAction(parentPane, field);
-		field.textProperty().addListener((obsValue, oldValue, newValue) -> {
-			showLabel(parentPane, field);
-			if (isInputTextValid(parentPane, field, field.getId().concat(RegistrationConstants.ON_TYPE), validation)) {
-				setTextValidLabel(parentPane, field);
-			} else {
-				if (!field.getText().equals(RegistrationConstants.EMPTY))
-					field.setText(oldValue);
-			}
-		});
-
-	}
 
 	public void setTextValidLabel(Pane parentPane, TextField field) {
 		field.getStyleClass().removeIf((s) -> {
@@ -248,72 +192,72 @@ public class FXUtils {
 		hideErrorMessageLabel(parentPane, field);
 	}
 
-	/**
-	 * Validates the value of field during focus-out event. If validation is
-	 * successful, populate the local or secondary language field (transliterate, if
-	 * required) if present. Else retain the previous value and display error
-	 * message.
-	 *
-	 * @param parentPane          the {@link Pane} in which {@link TextField} is
-	 *                            present
-	 * @param field               the {@link TextField} to be validated
-	 * @param validation          the instance of {@link Validations}
-	 * @param haveToTransliterate the flag to know whether the field value has to be
-	 *                            transliterated
-	 */
-	public void validateOnFocusOut(Pane parentPane, TextField field, Validations validation,
-			boolean haveToTransliterate) {
+//	/**
+//	 * Validates the value of field during focus-out event. If validation is
+//	 * successful, populate the local or secondary language field (transliterate, if
+//	 * required) if present. Else retain the previous value and display error
+//	 * message.
+//	 *
+//	 * @param parentPane          the {@link Pane} in which {@link TextField} is
+//	 *                            present
+//	 * @param field               the {@link TextField} to be validated
+//	 * @param validation          the instance of {@link Validations}
+//	 * @param haveToTransliterate the flag to know whether the field value has to be
+//	 *                            transliterated
+//	 */
+//	public void validateOnFocusOut(Pane parentPane, TextField field, Validations validation,
+//			boolean haveToTransliterate) {
+//
+//		field.focusedProperty().addListener((obsValue, oldValue, newValue) -> {
+//			validateOnFocusOut(parentPane, field, validation, haveToTransliterate, oldValue);
+//		});
+//
+//		if (parentPane != null && field != null) {
+//			focusedAction(parentPane, field);
+//		}
+//
+//		validateLabelFocusOut(parentPane, field);
+//
+//	}
 
-		field.focusedProperty().addListener((obsValue, oldValue, newValue) -> {
-			validateOnFocusOut(parentPane, field, validation, haveToTransliterate, oldValue);
-		});
-
-		if (parentPane != null && field != null) {
-			focusedAction(parentPane, field);
-		}
-
-		validateLabelFocusOut(parentPane, field);
-
-	}
-
-	public void populateLocalFieldWithFocus(Pane parentPane, TextField field, TextField localField,
-			boolean haveToTransliterate, Validations validation) {
-
-		//TODO - get tobe transliterated langcode
-		String toLanguage = "";
-		field.focusedProperty().addListener((obsValue, oldValue, newValue) -> {
-			if (!field.isFocused()) {
-
-				if (isInputTextValid(parentPane, field, field.getId() + "_ontype", validation)) {
-
-					if (localField != null) {
-						if (haveToTransliterate) {
-							try {
-								localField
-										.setText(transliteration.transliterate(ApplicationContext.applicationLanguage(),
-												toLanguage, field.getText()));
-							} catch (RuntimeException runtimeException) {
-								LOGGER.error("REGISTRATION - TRANSLITERATION ERROR ", APPLICATION_NAME,
-										RegistrationConstants.APPLICATION_ID, runtimeException.getMessage());
-								localField.setText(field.getText());
-							}
-						} else {
-							localField.setText(field.getText());
-						}
-					}
-				} else {
-					showErrorLabel(field, parentPane);
-				}
-
-				Label fieldLabel = (Label) parentPane.lookup("#" + field.getId() + "Label");
-				fieldLabel.getStyleClass().removeIf((s) -> {
-					return s.equals("demoGraphicFieldLabelOnType");
-				});
-				fieldLabel.getStyleClass().add("demoGraphicFieldLabel");
-			}
-		});
-
-	}
+//	public void populateLocalFieldWithFocus(Pane parentPane, TextField field, TextField localField,
+//			boolean haveToTransliterate, Validations validation) {
+//
+//		//TODO - get tobe transliterated langcode
+//		String toLanguage = "";
+//		field.focusedProperty().addListener((obsValue, oldValue, newValue) -> {
+//			if (!field.isFocused()) {
+//
+//				if (isInputTextValid(parentPane, field, field.getId() + "_ontype", validation)) {
+//
+//					if (localField != null) {
+//						if (haveToTransliterate) {
+//							try {
+//								localField
+//										.setText(transliteration.transliterate(ApplicationContext.applicationLanguage(),
+//												toLanguage, field.getText()));
+//							} catch (RuntimeException runtimeException) {
+//								LOGGER.error("REGISTRATION - TRANSLITERATION ERROR ", APPLICATION_NAME,
+//										RegistrationConstants.APPLICATION_ID, runtimeException.getMessage());
+//								localField.setText(field.getText());
+//							}
+//						} else {
+//							localField.setText(field.getText());
+//						}
+//					}
+//				} else {
+//					showErrorLabel(field, parentPane);
+//				}
+//
+//				Label fieldLabel = (Label) parentPane.lookup("#" + field.getId() + "Label");
+//				fieldLabel.getStyleClass().removeIf((s) -> {
+//					return s.equals("demoGraphicFieldLabelOnType");
+//				});
+//				fieldLabel.getStyleClass().add("demoGraphicFieldLabel");
+//			}
+//		});
+//
+//	}
 
 	public void showErrorLabel(TextField field, Pane parentPane) {
 		field.getStyleClass().removeIf((s) -> {
@@ -346,32 +290,32 @@ public class FXUtils {
 		}
 	}
 
-	public void validateOnFocusOut(Pane parentPane, TextField field, Validations validation,
-			boolean haveToTransliterate, Boolean oldValue) {
-		if (oldValue) {
-			if (isInputTextValid(parentPane, field, field.getId() + "_ontype", validation)) {
-				field.getStyleClass().removeIf((s) -> {
-					return s.equals("demoGraphicTextFieldFocused");
-				});
-				field.getStyleClass().add("demoGraphicTextField");
-				hideLabel(parentPane, field);
-				hideErrorMessageLabel(parentPane, field);
-			} else {
-				field.getStyleClass().removeIf((s) -> {
-					return s.equals("demoGraphicTextFieldOnType");
-				});
-				field.getStyleClass().add("demoGraphicTextFieldFocused");
-				toggleUIField(parentPane, field.getId() + RegistrationConstants.MESSAGE, true);
-			}
-			Label fieldLabel = (Label) parentPane.lookup("#" + field.getId() + "Label");
-			fieldLabel.getStyleClass().removeIf((s) -> {
-				return s.equals("demoGraphicFieldLabelOnType");
-			});
-			fieldLabel.getStyleClass().add("demoGraphicFieldLabel");
-		} else {
-			showLabel(parentPane, field);
-		}
-	}
+//	public void validateOnFocusOut(Pane parentPane, TextField field, Validations validation,
+//			boolean haveToTransliterate, Boolean oldValue) {
+//		if (oldValue) {
+//			if (isInputTextValid(parentPane, field, field.getId() + "_ontype", validation)) {
+//				field.getStyleClass().removeIf((s) -> {
+//					return s.equals("demoGraphicTextFieldFocused");
+//				});
+//				field.getStyleClass().add("demoGraphicTextField");
+//				hideLabel(parentPane, field);
+//				hideErrorMessageLabel(parentPane, field);
+//			} else {
+//				field.getStyleClass().removeIf((s) -> {
+//					return s.equals("demoGraphicTextFieldOnType");
+//				});
+//				field.getStyleClass().add("demoGraphicTextFieldFocused");
+//				toggleUIField(parentPane, field.getId() + RegistrationConstants.MESSAGE, true);
+//			}
+//			Label fieldLabel = (Label) parentPane.lookup("#" + field.getId() + "Label");
+//			fieldLabel.getStyleClass().removeIf((s) -> {
+//				return s.equals("demoGraphicFieldLabelOnType");
+//			});
+//			fieldLabel.getStyleClass().add("demoGraphicFieldLabel");
+//		} else {
+//			showLabel(parentPane, field);
+//		}
+//	}
 
 	/**
 	 * Display the secondary or local language's {@link Label}, {@link TextField}
