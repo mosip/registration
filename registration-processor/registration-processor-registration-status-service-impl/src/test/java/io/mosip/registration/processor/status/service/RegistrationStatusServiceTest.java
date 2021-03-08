@@ -269,7 +269,7 @@ public class RegistrationStatusServiceTest {
 
 	@Test
 	public void testUpdateRegistrationStatusForWorkFlowSuccess() {
-		registrationStatusService.updateRegistrationStatusForWorkFlow(registrationStatusDto, "", "");
+		registrationStatusService.updateRegistrationStatusForWorkflow(registrationStatusDto, "", "");
 
 		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus("1001");
 		assertEquals("PACKET_UPLOADED_TO_LANDING_ZONE", dto.getStatusCode());
@@ -281,6 +281,6 @@ public class RegistrationStatusServiceTest {
 				"errorMessage", new Exception());
 
 		Mockito.when(registrationStatusDao.save(any())).thenThrow(exp);
-		registrationStatusService.updateRegistrationStatusForWorkFlow(registrationStatusDto, "", "");
+		registrationStatusService.updateRegistrationStatusForWorkflow(registrationStatusDto, "", "");
 	}
 }

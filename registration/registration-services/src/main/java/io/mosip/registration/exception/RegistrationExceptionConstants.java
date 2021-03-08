@@ -220,6 +220,7 @@ public enum RegistrationExceptionConstants {
 	MDS_PROVIDER_NOT_FOUND("REG-MDS-004","MDS provider not found"),
 	MDS_JWT_INVALID("REG-MDS-005","Invalid JWT value (Header.Payload.Signature)"),
 	MDS_PAYLOAD_EMPTY("REG-MDS-006","Payload is Empty"),
+	MDS_STREAM_TIMEOUT("REG-MDS-007","Stream Timeout Reached"),
 
 	APP_INVALID_STATE("REG-INIT-001", "Application found in invalid state, tampering detected !");
 

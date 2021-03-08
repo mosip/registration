@@ -6,7 +6,7 @@ import java.io.Serializable;
 /**
  * The Class WorkFlowEventDTO.
  */
-public class WorkFlowEventDTO extends MessageDTO implements Serializable {
+public class WorkflowEventDTO extends MessageDTO implements Serializable {
 
 
 	/** The Constant serialVersionUID. */
@@ -15,7 +15,7 @@ public class WorkFlowEventDTO extends MessageDTO implements Serializable {
 	/**
 	 * Instantiates a new work flow event DTO.
 	 */
-	public WorkFlowEventDTO() {
+	public WorkflowEventDTO() {
 		super();
 	}
 

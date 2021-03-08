@@ -1173,10 +1173,10 @@ public enum PlatformErrorMessages {
 	/** Reprocessor Stage Failed. */
 	REPROCESSOR_STAGE_FAILED("", "Reprocessor Stage Failed"),
 
-	RPR_WFE_DATE_TIME_EXCEPTION(PlatformConstants.RPR_WORKFLOW_EVENTUPDATE + "000",
+	RPR_WFE_DATE_TIME_EXCEPTION(PlatformConstants.RPR_WORKFLOW_EVENT_UPDATE + "000",
 			"Error while parsing event or resume timestamp"),
 
-	RPR_WORKFLOW_EVENTUPDATE_FAILED(PlatformConstants.RPR_WORKFLOW_EVENTUPDATE + "001",
+	RPR_WORKFLOW_EVENT_UPDATE_FAILED(PlatformConstants.RPR_WORKFLOW_EVENT_UPDATE + "001",
 			"Work flow event update failed"),
 
 	RPR_WAA_MISSING_INPUT_PARAMETER(PlatformConstants.RPR_WORKFLOW_ACTION_API + "000",

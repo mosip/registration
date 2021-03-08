@@ -143,11 +143,12 @@ public class UserDetailDAOTest {
 		userDetails.add(user);
 		userDetails.add(user1);
 		userDetailsResponse.setUserDetails(userDetails);
-		Mockito.when(userDetailRepository.saveAll(Mockito.anyCollection())).thenReturn(new ArrayList<>());
-		Mockito.when(userPwdRepository.saveAll(Mockito.anyCollection())).thenReturn(new ArrayList<>());
+		Mockito.when(userDetailRepository.save(Mockito.any())).thenReturn(new ArrayList<>());
+		Mockito.when(userPwdRepository.save(Mockito.any())).thenReturn(new ArrayList<>());
 		Mockito.when(userRoleRepository.saveAll(Mockito.anyCollection())).thenReturn(new ArrayList<>());
 		doNothing().when(userRoleRepository).delete(Mockito.anyString());
-		userDetailDAOImpl.save(userDetails);
+		userDetailDAOImpl.save(user);
+		userDetailDAOImpl.save(user1);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -171,8 +172,9 @@ public class UserDetailDAOTest {
 		userDetails.add(user);
 		userDetails.add(user1);
 		userDetailsResponse.setUserDetails(userDetails);
-		Mockito.when(userDetailRepository.saveAll(Mockito.anyCollection())).thenThrow(RegBaseUncheckedException.class);
-		userDetailDAOImpl.save(userDetails);
+		Mockito.when(userDetailRepository.save(Mockito.any())).thenThrow(RegBaseUncheckedException.class);
+		userDetailDAOImpl.save(user);
+		userDetailDAOImpl.save(user1);
 	}
 	
 	@Test

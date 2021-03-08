@@ -40,27 +40,11 @@ public interface MasterSyncService {
 	 */
 	ResponseDTO getMasterSync(String masterSyncDetails, String triggerPoint) throws RegBaseCheckedException;
 
-	/**
-	 * It invokes the external 'Master Sync' service to download the required center
-	 * specific information from MOSIP server if the system is online. Once
-	 * download, the data would be updated into the DB for further process.
-	 *
-	 * @param masterSyncDetails the master sync details
-	 * @param triggerPoint      from where the call has been initiated [Either :
-	 *                          user or system]
-	 * @param keyIndex          This is the key index provided by the MOSIP server
-	 *                          post submission of local TPM public key. Based on
-	 *                          this key the MOSIP server would identify the client
-	 *                          and send the sync response accordingly.
-	 * @return the master sync Success or failure status is wrapped in ResponseDTO.
-	 */
-	ResponseDTO getMasterSync(String masterSyncDetails, String triggerPoint, String keyIndex)
-			throws RegBaseCheckedException;
 
 	/**
 	 * Find location or region by hierarchy code.
 	 *
-	 * @param hierarchyCode the hierarchy code
+	 * @param hierarchyLevel the hierarchy code
 	 * @param langCode      the lang code
 	 * @return the list holds the Location data to be displayed in the UI.
 	 * @throws RegBaseCheckedException

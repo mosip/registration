@@ -29,7 +29,7 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 	/** The Constant USER. */
 	private static final String USER = "MOSIP_SYSTEM";
 	/** The reg proc logger. */
-	private static Logger regProcLogger = RegProcessorLogger.getLogger(WorkFlowEventUpdateVerticle.class);
+	private static Logger regProcLogger = RegProcessorLogger.getLogger(WorkflowActionApi.class);
 
 	/** The registration status service. */
 	@Autowired

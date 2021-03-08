@@ -96,11 +96,11 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity {
 	private Integer regProcessRetryCount;
 
 	/** The resume time stamp. */
-	@Column(name = "resumetimestamp")
+	@Column(name = "resume_timestamp")
 	private LocalDateTime resumeTimeStamp;
 
 	/** The default resume action. */
-	@Column(name = "defaultresumeaction")
+	@Column(name = "default_resume_action")
 	private String defaultResumeAction;
 
 	/**

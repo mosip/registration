@@ -4,6 +4,7 @@ public class PolicyConstant {
 
     /** The constant POLICY_ID */
     public static final String POLICY_ID = "policyId";
+    public static final String PARTNER_ID = "partner";
 
     /** The constant POLICIES */
 
