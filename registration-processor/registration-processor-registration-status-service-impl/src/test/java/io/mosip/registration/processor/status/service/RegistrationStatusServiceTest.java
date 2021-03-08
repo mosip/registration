@@ -1,10 +1,10 @@
 package io.mosip.registration.processor.status.service;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyLong;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -16,6 +16,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.test.context.ContextConfiguration;
@@ -36,7 +37,6 @@ import io.mosip.registration.processor.status.entity.TransactionEntity;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.impl.RegistrationStatusServiceImpl;
 import io.mosip.registration.processor.status.utilities.RegistrationExternalStatusUtility;
-import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 @DataJpaTest
@@ -265,5 +265,22 @@ public class RegistrationStatusServiceTest {
 		ids.add("1001");
 		registrationStatusService.getByIdsAndTimestamp(ids);
 
+	}
+
+	@Test
+	public void testUpdateRegistrationStatusForWorkFlowSuccess() {
+		registrationStatusService.updateRegistrationStatusForWorkflow(registrationStatusDto, "", "");
+
+		InternalRegistrationStatusDto dto = registrationStatusService.getRegistrationStatus("1001");
+		assertEquals("PACKET_UPLOADED_TO_LANDING_ZONE", dto.getStatusCode());
+	}
+
+	@Test(expected = TablenotAccessibleException.class)
+	public void updateRegistrationStatusForWorkFlowFailureTest() {
+		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
+				"errorMessage", new Exception());
+
+		Mockito.when(registrationStatusDao.save(any())).thenThrow(exp);
+		registrationStatusService.updateRegistrationStatusForWorkflow(registrationStatusDto, "", "");
 	}
 }
