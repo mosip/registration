@@ -2,9 +2,12 @@ package io.mosip.registration.processor.stages.packetclassifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
@@ -31,6 +34,8 @@ import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIMan
 		"io.mosip.kernel.idobjectvalidator.config",
 		"io.mosip.registration.processor.core.kernel.beans",
 		"io.mosip.registration.processor.stages.packetclassifier.tagging.impl" })
+@ImportAutoConfiguration({RefreshAutoConfiguration.class})
+@PropertySource("classpath:bootstrap.properties")
 public class PacketClassifierStage extends MosipVerticleAPIManager {
 
 	/** Packet Classification Processor which holds the business logic of packet classification */
