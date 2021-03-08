@@ -1,6 +1,6 @@
 package io.mosip.registration.service;
 
-import static io.mosip.registration.constants.LoggerConstants.*;
+import static io.mosip.registration.constants.LoggerConstants.BIO_SERVICE;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
@@ -15,21 +15,19 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
-import io.mosip.kernel.core.util.HMACUtils2;
-import io.mosip.registration.constants.PreConditionChecks;
-import io.mosip.registration.dao.RegistrationCenterDAO;
-import io.mosip.registration.entity.CenterMachine;
-import io.mosip.registration.entity.MachineMaster;
-import io.mosip.registration.exception.PreConditionCheckException;
-import io.mosip.registration.repositories.CenterMachineRepository;
-import io.mosip.registration.repositories.MachineMasterRepository;
-import io.mosip.registration.service.operator.UserDetailService;
-import io.mosip.registration.service.remap.CenterMachineReMapService;
-import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
-import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import io.mosip.commons.packet.constants.Biometric;
@@ -48,16 +46,18 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.FileUtils;
+import io.mosip.kernel.core.util.HMACUtils2;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.kernel.core.util.exception.JsonMappingException;
 import io.mosip.kernel.core.util.exception.JsonParseException;
 import io.mosip.registration.config.AppConfig;
-import io.mosip.registration.constants.DeviceTypes;
+import io.mosip.registration.constants.PreConditionChecks;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.dao.MachineMappingDAO;
+import io.mosip.registration.dao.RegistrationCenterDAO;
 import io.mosip.registration.dao.UserOnboardDAO;
 import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.PacketStatusDTO;
@@ -66,13 +66,22 @@ import io.mosip.registration.dto.RegistrationDataDto;
 import io.mosip.registration.dto.ResponseDTO;
 import io.mosip.registration.dto.SuccessResponseDTO;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
+import io.mosip.registration.entity.CenterMachine;
+import io.mosip.registration.entity.MachineMaster;
 import io.mosip.registration.entity.Registration;
+import io.mosip.registration.exception.PreConditionCheckException;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.exception.RegistrationExceptionConstants;
+import io.mosip.registration.repositories.CenterMachineRepository;
+import io.mosip.registration.repositories.MachineMasterRepository;
 import io.mosip.registration.service.config.GlobalParamService;
+import io.mosip.registration.service.operator.UserDetailService;
+import io.mosip.registration.service.remap.CenterMachineReMapService;
 import io.mosip.registration.service.template.impl.NotificationServiceImpl;
+import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import io.mosip.registration.util.healthcheck.RegistrationSystemPropertiesChecker;
 import io.mosip.registration.util.restclient.ServiceDelegateUtil;
+import lombok.NonNull;
 
 /**
  * This is a base class for service package. The common functionality across the
@@ -121,6 +130,34 @@ public class BaseService {
 
 	@Autowired
 	private CenterMachineRepository centerMachineRepository;
+	
+	@Value("#{'${mosip.mandatory-languages}'.split('[,]')}")
+	private List<String> mandatoryLanguages;
+
+	@Value("#{'${mosip.optional-languages}'.split('[,]')}")
+	private List<String> optionalLanguages;
+	
+	@Value("${mosip.min-languages.count}")
+	private String minLanguagesCount;
+
+	@Value("${mosip.max-languages.count}")
+	private String maxLanguagesCount;
+
+	public List<String> getMandatoryLanguages() {
+		return mandatoryLanguages;
+	}
+
+	public List<String> getOptionalLanguages() {
+		return optionalLanguages;
+	}
+
+	public String getMinLanguagesCount() {
+		return minLanguagesCount;
+	}
+
+	public String getMaxLanguagesCount() {
+		return maxLanguagesCount;
+	}
 
 	/**
 	 * create success response.

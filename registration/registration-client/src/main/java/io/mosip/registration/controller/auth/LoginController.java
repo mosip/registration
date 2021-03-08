@@ -294,8 +294,10 @@ public class LoginController extends BaseController implements Initializable {
 		 * if the primary or secondary language is not set , the application should show
 		 * err msg
 		 */
-		applicationContext.setMandatoryLanguages(mandatoryLanguages);
-		applicationContext.setOptionalLanguages(optionalLanguages);
+		//TODO - remove these setters and initialize them from applicationMap
+		applicationContext.setMandatoryLanguages(baseService.getMandatoryLanguages());
+		applicationContext.setOptionalLanguages(baseService.getOptionalLanguages());
+		
 		ApplicationContext.loadResources();
 
 		try {

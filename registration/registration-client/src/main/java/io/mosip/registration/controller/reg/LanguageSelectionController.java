@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -96,10 +95,13 @@ public class LanguageSelectionController extends BaseController implements Initi
 
 		ResourceBundle resourceBundle = applicationContext.getBundle(ApplicationContext.applicationLanguage(),
 				RegistrationConstants.LABELS);
+		
+		String minLangCount = baseService.getMinLanguagesCount();
+		String maxLangCount = baseService.getMaxLanguagesCount();
 
-		String selectLangText = MessageFormat.format(resourceBundle.getString("selectLanguageText"), minLanguagesCount);
-		if (mandatoryLanguages != null && !mandatoryLanguages.isBlank()) {
-			mandatoryLangCodes = Arrays.asList(mandatoryLanguages.split(RegistrationConstants.COMMA));
+		String selectLangText = MessageFormat.format(resourceBundle.getString("selectLanguageText"), minLangCount);
+		if (baseService.getMandatoryLanguages() != null && !baseService.getMandatoryLanguages().isEmpty()) {
+			mandatoryLangCodes = baseService.getMandatoryLanguages();
 			String mandatoryLanguages = RegistrationConstants.EMPTY;
 			for (String langCode : mandatoryLangCodes) {
 				mandatoryLanguages = mandatoryLanguages.isBlank() ? ApplicationLanguages.getLanguageByLangCode(langCode)
@@ -135,8 +137,8 @@ public class LanguageSelectionController extends BaseController implements Initi
 						errorMessage.setVisible(true);
 					}
 				}
-				if (selectedLanguages.size() >= Integer.valueOf(minLanguagesCount)
-						&& selectedLanguages.size() <= Integer.valueOf(maxLanguagesCount)
+				if (selectedLanguages.size() >= Integer.valueOf(minLangCount)
+						&& selectedLanguages.size() <= Integer.valueOf(maxLangCount)
 						&& (!mandatoryLangCodes.isEmpty() && CollectionUtils.containsAny(selectedLanguages, mandatoryLangCodes))) {
 					submit.setDisable(false);
 				} else {

@@ -1,11 +1,12 @@
 package io.mosip.registration.context;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
@@ -36,14 +37,22 @@ public class ApplicationContext {
 	/** The application languge. */
 	private String applicationLanguge;
 
-	private String mandatoryLanguages;
-	private String optionalLanguages;
+	private List<String> mandatoryLanguages;
+	private List<String> optionalLanguages;
 
-	public void setMandatoryLanguages(String mandatoryLanguages) {
+	public List<String> getMandatoryLanguages() {
+		return mandatoryLanguages;
+	}
+
+	public void setMandatoryLanguages(List<String> mandatoryLanguages) {
 		this.mandatoryLanguages = mandatoryLanguages;
 	}
 
-	public void setOptionalLanguages(String optionalLanguages) {
+	public List<String> getOptionalLanguages() {
+		return optionalLanguages;
+	}
+
+	public void setOptionalLanguages(List<String> optionalLanguages) {
 		this.optionalLanguages = optionalLanguages;
 	}
 
@@ -97,11 +106,8 @@ public class ApplicationContext {
 	public void loadResourceBundle() {
 		try {
 			if (applicationLanguge == null) {
-				List<String> langList = Arrays
-						.asList(((mandatoryLanguages != null ? mandatoryLanguages : RegistrationConstants.EMPTY)
-								.concat(RegistrationConstants.COMMA)
-								.concat((optionalLanguages != null ? optionalLanguages : RegistrationConstants.EMPTY)))
-										.split(RegistrationConstants.COMMA));
+				List<String> langList = Stream.concat(mandatoryLanguages.stream(), optionalLanguages.stream())
+                        .collect(Collectors.toList());
 
 				if (null != langList && !langList.isEmpty()) {
 					setApplicationLanguage(langList.stream().filter(langCode -> !langCode.isBlank()).findFirst().get());

@@ -24,6 +24,7 @@ import java.util.Timer;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -199,22 +200,10 @@ public class BaseController {
 	private Validations validation;
 
 	@Autowired
-	private BaseService baseService;
+	protected BaseService baseService;
 
 	@Autowired
 	private AuthTokenUtilService authTokenUtilService;
-	
-	@Value("${mosip.mandatory-languages}")
-	protected String mandatoryLanguages;
-
-	@Value("${mosip.optional-languages}")
-	protected String optionalLanguages;
-	
-	@Value("${mosip.min-languages.count}")
-	protected String minLanguagesCount;
-
-	@Value("${mosip.max-languages.count}")
-	protected String maxLanguagesCount;
 
 	protected ApplicationContext applicationContext = ApplicationContext.getInstance();
 
@@ -1975,11 +1964,8 @@ public class BaseController {
 	
 	protected List<String> getConfiguredLanguages() {
 		List<String> languages = new ArrayList<>();
-		List<String> langCodes = Arrays
-				.asList(((mandatoryLanguages != null ? mandatoryLanguages : RegistrationConstants.EMPTY)
-						.concat(RegistrationConstants.COMMA)
-						.concat((optionalLanguages != null ? optionalLanguages : RegistrationConstants.EMPTY)))
-								.split(RegistrationConstants.COMMA));
+		List<String> langCodes = Stream.concat(baseService.getMandatoryLanguages().stream(), baseService.getOptionalLanguages().stream())
+                .collect(Collectors.toList());
 		for (String langCode : langCodes) {
 			if (!langCode.isBlank()) {
 				languages.add(ApplicationLanguages.getLanguageByLangCode(langCode));
@@ -1990,11 +1976,8 @@ public class BaseController {
 	
 	protected List<String> getConfiguredLangCodes() {
 		List<String> languages = new ArrayList<>();
-		List<String> langCodes = Arrays
-				.asList(((mandatoryLanguages != null ? mandatoryLanguages : RegistrationConstants.EMPTY)
-						.concat(RegistrationConstants.COMMA)
-						.concat((optionalLanguages != null ? optionalLanguages : RegistrationConstants.EMPTY)))
-								.split(RegistrationConstants.COMMA));
+		List<String> langCodes = Stream.concat(baseService.getMandatoryLanguages().stream(), baseService.getOptionalLanguages().stream())
+                .collect(Collectors.toList());
 		for (String langCode : langCodes) {
 			if (!langCode.isBlank()) {
 				languages.add(langCode);
