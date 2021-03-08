@@ -21,7 +21,6 @@ import io.mosip.registration.processor.core.code.EventId;
 import io.mosip.registration.processor.core.code.EventName;
 import io.mosip.registration.processor.core.code.EventType;
 import io.mosip.registration.processor.core.code.ModuleName;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
 import io.mosip.registration.processor.core.logger.LogDescription;
@@ -106,12 +105,12 @@ public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
 
 	@Override
 	public MessageDTO process(MessageDTO object) {
-		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
-				"ReprocessorStage::process()::entry");
+
 		LogDescription description = new LogDescription();
 		boolean isTransactionSuccessful = false;
 		WorkflowEventDTO workFlowEventDto = (WorkflowEventDTO) object;
 		String registrationId = workFlowEventDto.getRid();
+		regProcLogger.debug("WorkflowEventUpdateVerticle called for registration id {}", registrationId);
 		try {
 
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
@@ -135,8 +134,7 @@ public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
 			description.setMessage(PlatformSuccessMessages.RPR_WORKFLOW_EVENT_UPDATE_SUCCESS.getMessage());
 			description
 					.setCode(PlatformSuccessMessages.RPR_WORKFLOW_EVENT_UPDATE_SUCCESS.getCode());
-			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					"", "ReprocessorStage::process()::exit");
+			regProcLogger.debug("WorkflowEventUpdateVerticle call ended for registration id {}", registrationId);
 
 		} catch (DateTimeParseException e) {
 			updateDTOsAndLogError(description, registrationId, PlatformErrorMessages.RPR_WFE_DATE_TIME_EXCEPTION, e);
@@ -152,8 +150,8 @@ public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
 					e);
 
 		} finally {
-			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					registrationId, description.getMessage());
+			regProcLogger.info("WorkflowEventUpdateVerticle status for registration id {} {}", registrationId,
+					description.getMessage());
 
 			updateAudit(description, isTransactionSuccessful, registrationId);
 		}
@@ -181,10 +179,9 @@ public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
 			PlatformErrorMessages platformErrorMessages, Exception e) {
 		description.setMessage(platformErrorMessages.getMessage());
 		description.setCode(platformErrorMessages.getCode());
-		regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-				description.getCode() + " -- " + registrationId,
-				platformErrorMessages.getMessage() + e.getMessage()
-						+ ExceptionUtils.getStackTrace(e));
+		regProcLogger.error("Error in  WorkflowEventUpdateVerticle  for registration id {} {} {} {}", registrationId,
+				platformErrorMessages.getMessage(), e.getMessage(), ExceptionUtils.getStackTrace(e));
+
 	}
 
 }
