@@ -95,8 +95,8 @@ public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
 			vertx.executeBlocking(future -> {
 				MDC.setContextMap(mdc);
 				JsonObject jsonObject = (JsonObject) msg.getBody();
-				WorkflowEventDTO workFlowEventDTO = jsonObject.mapTo(WorkflowEventDTO.class);
-				MessageDTO result = process(workFlowEventDTO);
+				WorkflowEventDTO workflowEventDTO = jsonObject.mapTo(WorkflowEventDTO.class);
+				MessageDTO result = process(workflowEventDTO);
 				future.complete(result);
 			}, false, handler);
 			MDC.clear();
@@ -108,19 +108,19 @@ public class WorkflowEventUpdateVerticle extends MosipVerticleAPIManager {
 
 		LogDescription description = new LogDescription();
 		boolean isTransactionSuccessful = false;
-		WorkflowEventDTO workFlowEventDto = (WorkflowEventDTO) object;
-		String registrationId = workFlowEventDto.getRid();
+		WorkflowEventDTO workflowEventDto = (WorkflowEventDTO) object;
+		String registrationId = workflowEventDto.getRid();
 		regProcLogger.debug("WorkflowEventUpdateVerticle called for registration id {}", registrationId);
 		try {
 
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService
 					.getRegistrationStatus(registrationId);
 
-		registrationStatusDto.setStatusCode(workFlowEventDto.getStatusCode());
-		registrationStatusDto.setStatusComment(workFlowEventDto.getStatusComment());
-		registrationStatusDto.setDefaultResumeAction(workFlowEventDto.getDefaultResumeAction());
-		LocalDateTime resumeTimeStamp = DateUtils.parseToLocalDateTime(workFlowEventDto.getResumeTimestamp());
-		LocalDateTime updateTimeStamp = DateUtils.parseToLocalDateTime(workFlowEventDto.getEventTimestamp());
+		registrationStatusDto.setStatusCode(workflowEventDto.getStatusCode());
+		registrationStatusDto.setStatusComment(workflowEventDto.getStatusComment());
+		registrationStatusDto.setDefaultResumeAction(workflowEventDto.getDefaultResumeAction());
+		LocalDateTime resumeTimeStamp = DateUtils.parseToLocalDateTime(workflowEventDto.getResumeTimestamp());
+		LocalDateTime updateTimeStamp = DateUtils.parseToLocalDateTime(workflowEventDto.getEventTimestamp());
 		registrationStatusDto.setResumeTimeStamp(resumeTimeStamp);
 		registrationStatusDto.setUpdateDateTime(updateTimeStamp);
 		registrationStatusDto.setUpdatedBy(USER);

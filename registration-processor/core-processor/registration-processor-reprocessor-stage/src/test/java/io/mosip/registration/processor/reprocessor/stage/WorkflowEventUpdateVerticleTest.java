@@ -45,7 +45,7 @@ public class WorkflowEventUpdateVerticleTest {
 
 
 	@InjectMocks
-	private WorkflowEventUpdateVerticle workFlowEventUpdateVerticle = new WorkflowEventUpdateVerticle() {
+	private WorkflowEventUpdateVerticle workflowEventUpdateVerticle = new WorkflowEventUpdateVerticle() {
 		@Override
 		public MosipEventBus getEventBus(Object verticleName, String url, int instanceNumber) {
 			vertx = Vertx.vertx();
@@ -96,45 +96,45 @@ public class WorkflowEventUpdateVerticleTest {
 	@Test
 	public void testDeployVerticle() {
 
-		ReflectionTestUtils.setField(workFlowEventUpdateVerticle, "workerPoolSize", 10);
-		ReflectionTestUtils.setField(workFlowEventUpdateVerticle, "clusterManagerUrl", "/dummyPath");
-		workFlowEventUpdateVerticle.deployVerticle();
+		ReflectionTestUtils.setField(workflowEventUpdateVerticle, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(workflowEventUpdateVerticle, "clusterManagerUrl", "/dummyPath");
+		workflowEventUpdateVerticle.deployVerticle();
 	}
 
 	@Test
 	public void testStart() {
-		ReflectionTestUtils.setField(workFlowEventUpdateVerticle, "port", "2333");
+		ReflectionTestUtils.setField(workflowEventUpdateVerticle, "port", "2333");
 		Mockito.doNothing().when(router).setRoute(any());
-		workFlowEventUpdateVerticle.start();
+		workflowEventUpdateVerticle.start();
 	}
 
 	@Test
 	public void testProcessSuccess() {
-		WorkflowEventDTO workFlowEventDto = new WorkflowEventDTO();
-		workFlowEventDto.setRid("10006100390000920200603070407");
-		workFlowEventDto.setStatusCode("PAUSED");
-		workFlowEventDto.setStatusComment("packet is paused");
-		workFlowEventDto.setResumeTimestamp("2021-03-02T08:24:29.526Z");
-		workFlowEventDto.setEventTimestamp("2021-03-02T08:24:29.526Z");
-		workFlowEventDto.setDefaultResumeAction("ResumeProcessing");
+		WorkflowEventDTO workflowEventDto = new WorkflowEventDTO();
+		workflowEventDto.setRid("10006100390000920200603070407");
+		workflowEventDto.setStatusCode("PAUSED");
+		workflowEventDto.setStatusComment("packet is paused");
+		workflowEventDto.setResumeTimestamp("2021-03-02T08:24:29.526Z");
+		workflowEventDto.setEventTimestamp("2021-03-02T08:24:29.526Z");
+		workflowEventDto.setDefaultResumeAction("ResumeProcessing");
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
-		workFlowEventUpdateVerticle.process(workFlowEventDto);
+		workflowEventUpdateVerticle.process(workflowEventDto);
 	}
 
 	@Test
 	public void testTablenotAccessibleException() {
-		WorkflowEventDTO workFlowEventDto = new WorkflowEventDTO();
-		workFlowEventDto.setRid("10006100390000920200603070407");
-		workFlowEventDto.setStatusCode("PAUSED");
-		workFlowEventDto.setStatusComment("packet is paused");
-		workFlowEventDto.setResumeTimestamp("2021-03-02T08:24:29.526Z");
-		workFlowEventDto.setEventTimestamp("2021-03-02T08:24:29.526Z");
-		workFlowEventDto.setDefaultResumeAction("ResumeProcessing");
+		WorkflowEventDTO workflowEventDto = new WorkflowEventDTO();
+		workflowEventDto.setRid("10006100390000920200603070407");
+		workflowEventDto.setStatusCode("PAUSED");
+		workflowEventDto.setStatusComment("packet is paused");
+		workflowEventDto.setResumeTimestamp("2021-03-02T08:24:29.526Z");
+		workflowEventDto.setEventTimestamp("2021-03-02T08:24:29.526Z");
+		workflowEventDto.setDefaultResumeAction("ResumeProcessing");
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
@@ -143,42 +143,42 @@ public class WorkflowEventUpdateVerticleTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString()))
 				.thenThrow(TablenotAccessibleException.class);
 
-		workFlowEventUpdateVerticle.process(workFlowEventDto);
+		workflowEventUpdateVerticle.process(workflowEventDto);
 	}
 
 	@Test
 	public void testDateTimeParseException() {
-		WorkflowEventDTO workFlowEventDto = new WorkflowEventDTO();
-		workFlowEventDto.setRid("10006100390000920200603070407");
-		workFlowEventDto.setStatusCode("PAUSED");
-		workFlowEventDto.setStatusComment("packet is paused");
-		workFlowEventDto.setResumeTimestamp("2021-03-02T08:24:29.5Z");
-		workFlowEventDto.setEventTimestamp("2021-03-02T08:24:29.526Z");
-		workFlowEventDto.setDefaultResumeAction("ResumeProcessing");
+		WorkflowEventDTO workflowEventDto = new WorkflowEventDTO();
+		workflowEventDto.setRid("10006100390000920200603070407");
+		workflowEventDto.setStatusCode("PAUSED");
+		workflowEventDto.setStatusComment("packet is paused");
+		workflowEventDto.setResumeTimestamp("2021-03-02T08:24:29.5Z");
+		workflowEventDto.setEventTimestamp("2021-03-02T08:24:29.526Z");
+		workflowEventDto.setDefaultResumeAction("ResumeProcessing");
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(registrationStatusDto);
-		workFlowEventUpdateVerticle.process(workFlowEventDto);
+		workflowEventUpdateVerticle.process(workflowEventDto);
 	}
 
 	@Test
 	public void testException() {
-		WorkflowEventDTO workFlowEventDto = new WorkflowEventDTO();
-		workFlowEventDto.setRid("10006100390000920200603070407");
-		workFlowEventDto.setStatusCode("PAUSED");
-		workFlowEventDto.setStatusComment("packet is paused");
-		workFlowEventDto.setResumeTimestamp("2021-03-02T08:24:29.5Z");
-		workFlowEventDto.setEventTimestamp("2021-03-02T08:24:29.526Z");
-		workFlowEventDto.setDefaultResumeAction("ResumeProcessing");
+		WorkflowEventDTO workflowEventDto = new WorkflowEventDTO();
+		workflowEventDto.setRid("10006100390000920200603070407");
+		workflowEventDto.setStatusCode("PAUSED");
+		workflowEventDto.setStatusComment("packet is paused");
+		workflowEventDto.setResumeTimestamp("2021-03-02T08:24:29.5Z");
+		workflowEventDto.setEventTimestamp("2021-03-02T08:24:29.526Z");
+		workflowEventDto.setDefaultResumeAction("ResumeProcessing");
 		Mockito.doNothing().when(registrationStatusService).updateRegistrationStatus(any(), any(), any());
 		registrationStatusDto = new InternalRegistrationStatusDto();
 		registrationStatusDto.setRegistrationId("10006100390000920200603070407");
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
-		workFlowEventUpdateVerticle.process(workFlowEventDto);
+		workflowEventUpdateVerticle.process(workflowEventDto);
 	}
 }

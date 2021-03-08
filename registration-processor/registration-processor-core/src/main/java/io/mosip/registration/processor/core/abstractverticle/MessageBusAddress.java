@@ -212,7 +212,7 @@ public class MessageBusAddress implements Serializable {
 	
 	/** The Constant WORKFLOW_EVENTUPDATE_BUS_IN. */
 	public static final MessageBusAddress WORKFLOW_EVENT_UPDATE_ADDRESS = new MessageBusAddress(
-			"workflow-event-update-address");
+			"workflow-event-update");
 	
 	/*
 	 * (non-Javadoc)
