@@ -231,7 +231,7 @@ public class PreRegistrationDataSyncServiceTest {
 		.encryptAndSavePreRegPacket(Mockito.anyString(), Mockito.any())).thenReturn(preRegistrationDTO);
 		Mockito.when(preRegZipHandlingService.extractPreRegZipFile(Mockito.any())).thenReturn(new RegistrationDTO());
 
-		ResponseDTO responseDTO = preRegistrationDataSyncServiceImpl.getPreRegistration("70694681371453");
+		ResponseDTO responseDTO = preRegistrationDataSyncServiceImpl.getPreRegistration("70694681371453", false);
 		assertNotNull(responseDTO);
 
 	}
@@ -271,7 +271,7 @@ public class PreRegistrationDataSyncServiceTest {
 		// Mockito.when(preRegistrationDAO.get(Mockito.anyString())).thenReturn(new
 		// PreRegistrationList());
 
-		ResponseDTO responseDTO = preRegistrationDataSyncServiceImpl.getPreRegistration("70694681371453");
+		ResponseDTO responseDTO = preRegistrationDataSyncServiceImpl.getPreRegistration("70694681371453", false);
 		assertNotNull(responseDTO);
 
 	}
@@ -287,7 +287,7 @@ public class PreRegistrationDataSyncServiceTest {
 		PowerMockito.mockStatic(RegistrationAppHealthCheckUtil.class);
 		Mockito.when(RegistrationAppHealthCheckUtil.isNetworkAvailable()).thenReturn(true);
 
-		preRegistrationDataSyncServiceImpl.getPreRegistration("70694681371453");
+		preRegistrationDataSyncServiceImpl.getPreRegistration("70694681371453", false);
 
 	}
 
@@ -308,7 +308,7 @@ public class PreRegistrationDataSyncServiceTest {
 	
 		doThrow(new RegBaseCheckedException()).when(preRegZipHandlingService).extractPreRegZipFile(Mockito.any());
 
-		preRegistrationDataSyncServiceImpl.getPreRegistration("70694681371453");
+		preRegistrationDataSyncServiceImpl.getPreRegistration("70694681371453", false);
 
 	}
 
