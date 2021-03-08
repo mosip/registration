@@ -70,7 +70,7 @@
                <children>
                   <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="15.0" GridPane.columnIndex="2">
                      <children>
-                        <Button fx:id="cancel" mnemonicParsing="false" onAction="#cancelSelection" styleClass="genderButton" text="%cancelUpperCase" />
+                        <Button fx:id="cancel" mnemonicParsing="false" onAction="#exitWindow" styleClass="genderButton" text="%cancelUpperCase" />
                         <Button fx:id="submit" disable="true" mnemonicParsing="false" onAction="#submitLanguages" styleClass="genderSelectedButton" text="%submitUpperCase" />
                      </children>
                   </HBox>

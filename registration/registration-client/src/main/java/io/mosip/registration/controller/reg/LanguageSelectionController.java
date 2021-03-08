@@ -29,7 +29,6 @@ import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.GenericController;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -224,14 +223,14 @@ public class LanguageSelectionController extends BaseController implements Initi
 		}
 	}
 
-	public void cancelSelection() {
-		for (Node node : checkBoxesPane.getChildren()) {
-			if (node instanceof CheckBox) {
-				CheckBox checkBox = (CheckBox) node;
-				checkBox.setSelected(false);
-			}
-		}
-	}
+//	public void cancelSelection() {
+//		for (Node node : checkBoxesPane.getChildren()) {
+//			if (node instanceof CheckBox) {
+//				CheckBox checkBox = (CheckBox) node;
+//				checkBox.setSelected(false);
+//			}
+//		}
+//	}
 
 	public void exitWindow() {
 		LOGGER.info(LOG_REG_SCAN_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
