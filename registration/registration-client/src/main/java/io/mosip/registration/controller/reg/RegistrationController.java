@@ -215,40 +215,7 @@ public class RegistrationController extends BaseController {
 				RegistrationConstants.APPLICATION_ID, "Navigated to next page based on the current page");
 	}
 
-	/**
-	 * 
-	 * Validates the fields of demographic pane1
-	 * 
-	 */
-	public boolean validateDemographicPane(Pane paneToValidate) {
-		LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
-				RegistrationConstants.APPLICATION_ID, "Validating the fields in demographic pane");
 
-		boolean gotoNext = true;
-		List<String> excludedIds = RegistrationConstants.fieldsToExclude();
-		/*
-		 * if (getRegistrationDTOFromSession().getSelectionListDTO() != null) {
-		 * excludedIds.remove("cniOrPinNumber");
-		 * excludedIds.remove("cniOrPinNumberLocalLanguage"); }
-		 */
-
-		if (getRegistrationDTOFromSession().getUpdatableFields() != null
-				&& !getRegistrationDTOFromSession().getUpdatableFields().isEmpty()) {
-			if (getRegistrationDTOFromSession().isChild()
-					&& !getRegistrationDTOFromSession().getUpdatableFieldGroups().contains("GuardianDetails")) {
-				gotoNext = false;
-				generateAlert(RegistrationConstants.ERROR, "Parent or Guardian should have been selected");
-			}
-		}
-
-		validation.setValidationMessage();
-		gotoNext = validation.validate(paneToValidate, excludedIds, gotoNext, masterSync);
-		displayValidationMessage(validation.getValidationMessage().toString());
-		LOGGER.debug(RegistrationConstants.REGISTRATION_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
-				RegistrationConstants.APPLICATION_ID, "Validated the fields");
-
-		return gotoNext;
-	}
 
 	/**
 	 * Display the validation failure messages

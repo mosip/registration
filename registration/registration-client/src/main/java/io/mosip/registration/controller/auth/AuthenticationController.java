@@ -238,7 +238,7 @@ public class AuthenticationController extends BaseController implements Initiali
 		LOGGER.info("REGISTRATION - OPERATOR_AUTHENTICATION", APPLICATION_NAME, APPLICATION_ID,
 				"Validating OTP for OTP based Authentication");
 
-		if (validations.validateTextField(operatorAuthenticationPane, otp, otp.getId(), true)) {
+		if (validations.validateTextField(operatorAuthenticationPane, otp, otp.getId(), true,ApplicationContext.applicationLanguage())) {
 			if (isSupervisor) {
 				if (!otpUserId.getText().isEmpty()) {
 					if (fetchUserRole(otpUserId.getText())) {
