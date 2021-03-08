@@ -2212,7 +2212,7 @@ public class UinGeneratorStageTest {
 				.thenReturn(idResponseDTO1);
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		// assertTrue(result.getIsValid());
+		 assertFalse(result.getIsValid());
 
 	}
 	
@@ -2459,8 +2459,6 @@ public class UinGeneratorStageTest {
 		idResponseDTO.setResponsetime("2019-03-12T06:49:30.779Z");
 		idResponseDTO.setVersion("1.0");
 
-		// Mockito.when(packetReaderService.getFile("10031100110005020190313110030",
-		//// PacketFiles.ID.name(), "id"))//.thenReturn(idJsonStream1);
 		when(registrationProcessorRestClientService.getApi(any(), any(), anyString(), any(), any()))
 				.thenReturn(responsedto);
 		when(registrationProcessorRestClientService.patchApi(any(), any(), any(), any(), any(), any()))
@@ -2468,6 +2466,6 @@ public class UinGeneratorStageTest {
 
 
 		MessageDTO result = uinGeneratorStage.process(messageDTO);
-		// assertTrue(result.getIsValid());
+		 assertFalse(result.getIsValid());
 	}
 }
