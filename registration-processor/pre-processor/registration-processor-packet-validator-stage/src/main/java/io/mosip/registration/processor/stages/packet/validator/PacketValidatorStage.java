@@ -33,8 +33,7 @@ import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIMan
 		"io.mosip.registration.processor.packet.storage.config",
 		"io.mosip.registration.processor.packet.manager.config", 
 		"io.mosip.kernel.idobjectvalidator.config",
-		"io.mosip.registration.processor.core.kernel.beans",
-		"io.mosip.registration.processor.stages.packetclassifier.tagging.impl" })
+		"io.mosip.registration.processor.core.kernel.beans" })
 public class PacketValidatorStage extends MosipVerticleAPIManager {
 
 	/** Paacket validate Processor */
