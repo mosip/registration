@@ -188,7 +188,7 @@ public class TextFieldFxControl extends FxControl {
 			Label validationMessage = getLabel(fieldName + langCode + RegistrationConstants.MESSAGE, null,
 					RegistrationConstants.DemoGraphicFieldMessageLabel, false, simpleTypeVBox.getWidth());
 			simpleTypeVBox.getChildren().add(validationMessage);
-			addKeyBoard(simpleTypeVBox, validationMessage, textField);
+			addKeyBoard(simpleTypeVBox, validationMessage, textField, langCode);
 			changeNodeOrientation(simpleTypeVBox, langCode);
 
 			Validations.putIntoLabelMap(fieldName + langCode, uiSchemaDTO.getLabel().get(langCode));
@@ -201,7 +201,7 @@ public class TextFieldFxControl extends FxControl {
 		return simpleTypeVBox;
 	}
 
-	private void addKeyBoard(VBox simpleTypeVBox, Label validationMessage, TextField textField) {
+	private void addKeyBoard(VBox simpleTypeVBox, Label validationMessage, TextField textField, String langCode) {
 		ImageView keyBoardImgView = getKeyBoardImage();
 
 		if (keyBoardImgView != null) {
@@ -209,8 +209,7 @@ public class TextFieldFxControl extends FxControl {
 				setFocusonLocalField(event);
 			});
 
-			// TODO Check lang value
-			VirtualKeyboard keyBoard = new VirtualKeyboard(null);
+			VirtualKeyboard keyBoard = new VirtualKeyboard(langCode);
 			keyBoard.view();
 			keyBoard.changeControlOfKeyboard(textField);
 
