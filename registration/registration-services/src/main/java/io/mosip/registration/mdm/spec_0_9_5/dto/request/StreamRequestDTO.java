@@ -8,7 +8,6 @@ public class StreamRequestDTO {
 	private String deviceId;
 	private String deviceSubId;
 	private String timeout;
-
 	/**
 	 * @param deviceId
 	 * @param deviceSubId

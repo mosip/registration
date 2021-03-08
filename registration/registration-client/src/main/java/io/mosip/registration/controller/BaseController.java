@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import io.mosip.registration.exception.PreConditionCheckException;
+import io.mosip.registration.exception.RemapException;
 import io.mosip.registration.service.BaseService;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 import io.mosip.registration.util.restclient.AuthTokenUtilService;
@@ -66,7 +67,6 @@ import io.mosip.registration.dto.biometric.BiometricExceptionDTO;
 import io.mosip.registration.dto.biometric.BiometricInfoDTO;
 import io.mosip.registration.dto.biometric.FaceDetailsDTO;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
-import io.mosip.registration.dto.response.SchemaDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.scheduler.SchedulerUtil;
 import io.mosip.registration.service.IdentitySchemaService;
@@ -374,7 +374,7 @@ public class BaseController {
 	 * @param title   alert title
 	 * @param context alert context
 	 */
-	public void generateAlert(String title, String context) {
+	protected void generateAlert(String title, String context) {
 		try {
 			closeAlreadyExistedAlert();
 			alertStage = new Stage();
@@ -789,7 +789,7 @@ public class BaseController {
 	 * @param imageBytes the image bytes
 	 * @return the image
 	 */
-	public Image convertBytesToImage(byte[] imageBytes) {
+	protected Image convertBytesToImage(byte[] imageBytes) {
 		Image image = null;
 		if (imageBytes != null) {
 			image = new Image(new ByteArrayInputStream(imageBytes));
@@ -926,7 +926,7 @@ public class BaseController {
 	 *
 	 * @return the registration DTO from session
 	 */
-	public RegistrationDTO getRegistrationDTOFromSession() {
+	protected RegistrationDTO getRegistrationDTOFromSession() {
 		RegistrationDTO registrationDTO = null;
 		if (SessionContext.map() != null || !SessionContext.map().isEmpty()) {
 			registrationDTO = (RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA);
@@ -1177,7 +1177,7 @@ public class BaseController {
 				return new Task<String>() {
 
 					@Override
-					protected String call() {
+					protected String call() throws RemapException {
 
 						packetHandlerController.getProgressIndicator().setVisible(true);
 
@@ -1386,7 +1386,7 @@ public class BaseController {
 	 * @param key the key
 	 * @return the value from application context
 	 */
-	public String getValueFromApplicationContext(String key) {
+	protected String getValueFromApplicationContext(String key) {
 
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, RegistrationConstants.APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Fetching value from application Context");
@@ -1521,7 +1521,7 @@ public class BaseController {
 		return false;
 	}
 
-	public String getThresholdKeyByBioType(String bioType) {
+	protected String getThresholdKeyByBioType(String bioType) {
 		return bioType.equals(RegistrationConstants.FINGERPRINT_SLAB_LEFT)
 				? RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD
 				: bioType.equals(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)
@@ -1582,16 +1582,6 @@ public class BaseController {
 			LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(e));
 		}
-	}
-	
-	public SchemaDto getLatestSchema() {
-		try {
-			return identitySchemaService.getIdentitySchema(identitySchemaService.getLatestEffectiveSchemaVersion());
-		} catch (RegBaseCheckedException exception) {
-			LOGGER.error(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
-					ExceptionUtils.getStackTrace(exception));
-		}
-		return null;
 	}
 
 	public SimpleEntry<String, List<String>> getValue(String bio, List<String> attributes) {
@@ -1868,24 +1858,23 @@ public class BaseController {
 		labels.put("OPERATOR", RegistrationUIConstants.ONBOARD_USER_TITLE);
 
 		Object value = ApplicationContext.map().get(RegistrationConstants.OPERATOR_ONBOARDING_BIO_ATTRIBUTES);
-		List<String> attributes = (value != null) ? Arrays.asList(((String) value).split(","))
-				: new ArrayList<String>();
-		// subMap.put(slabType, Arrays.asList(configBiometrics, nonConfigBiometrics));
+		List<String> attributes = (value != null) ? Arrays.asList(((String)value).split(",")) :
+				new ArrayList<String>();
+		//subMap.put(slabType, Arrays.asList(configBiometrics, nonConfigBiometrics));
 		HashMap<String, List<List<String>>> subMap = new HashMap<String, List<List<String>>>();
 		subMap.put(RegistrationConstants.FINGERPRINT_SLAB_LEFT,
 				Arrays.asList(ListUtils.intersection(RegistrationConstants.leftHandUiAttributes, attributes),
-						ListUtils.subtract(RegistrationConstants.leftHandUiAttributes, attributes)));
+			ListUtils.subtract(RegistrationConstants.leftHandUiAttributes, attributes)));
 		subMap.put(RegistrationConstants.FINGERPRINT_SLAB_RIGHT,
 				Arrays.asList(ListUtils.intersection(RegistrationConstants.rightHandUiAttributes, attributes),
 						ListUtils.subtract(RegistrationConstants.rightHandUiAttributes, attributes)));
 		subMap.put(RegistrationConstants.FINGERPRINT_SLAB_THUMBS,
 				Arrays.asList(ListUtils.intersection(RegistrationConstants.twoThumbsUiAttributes, attributes),
-						ListUtils.subtract(RegistrationConstants.twoThumbsUiAttributes, attributes)));
+				ListUtils.subtract(RegistrationConstants.twoThumbsUiAttributes, attributes)));
 		subMap.put(RegistrationConstants.IRIS_DOUBLE,
 				Arrays.asList(ListUtils.intersection(RegistrationConstants.eyesUiAttributes, attributes),
-						ListUtils.subtract(RegistrationConstants.eyesUiAttributes, attributes)));
-		subMap.put(RegistrationConstants.FACE,
-				Arrays.asList(ListUtils.intersection(RegistrationConstants.faceUiAttributes, attributes),
+				ListUtils.subtract(RegistrationConstants.eyesUiAttributes, attributes)));
+		subMap.put(RegistrationConstants.FACE, Arrays.asList(ListUtils.intersection(RegistrationConstants.faceUiAttributes, attributes),
 						ListUtils.subtract(RegistrationConstants.faceUiAttributes, attributes)));
 
 		for (Entry<String, String> entry : labels.entrySet()) {
@@ -1919,9 +1908,10 @@ public class BaseController {
 
 	}
 
+
 	public boolean isAppLangAndLocalLangSame() {
 
-		return applicationContext.getApplicationLanguage().equals(applicationContext.getLocalLanguage());
+		return applicationContext.getLocalLanguage() != null && applicationContext.getApplicationLanguage().equals(applicationContext.getLocalLanguage());
 	}
 
 	public boolean isLocalLanguageAvailable() {

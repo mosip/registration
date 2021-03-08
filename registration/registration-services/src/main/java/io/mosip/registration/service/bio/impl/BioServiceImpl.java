@@ -115,8 +115,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 			for (BiometricsDto biometricsDto : biometricsDtos) {
 				if (biometricsDto != null
 						&& isQualityScoreMaxInclusive(String.valueOf(biometricsDto.getQualityScore()))) {
-					String checkSDKQualityScore = (String) ApplicationContext.map()
-							.getOrDefault(RegistrationConstants.QUALITY_CHECK_WITH_SDK, RegistrationConstants.DISABLE);
+					String checkSDKQualityScore = (String) ApplicationContext.map().getOrDefault(RegistrationConstants.QUALITY_CHECK_WITH_SDK, RegistrationConstants.DISABLE);
 					if (checkSDKQualityScore.equalsIgnoreCase(RegistrationConstants.ENABLE)) {
 						LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 								"Quality check with Biometric SDK flag is enabled..");
@@ -129,14 +128,13 @@ public class BioServiceImpl extends BaseService implements BioService {
 								.getBioProvider(biometricType, BiometricFunction.QUALITY_CHECK)
 								.getModalityQuality(birList, null);
 
-						String updateQualityScore = (String) ApplicationContext.map().getOrDefault(
-								RegistrationConstants.UPDATE_SDK_QUALITY_SCORE, RegistrationConstants.DISABLE);
+						String updateQualityScore = (String) ApplicationContext.map().getOrDefault(RegistrationConstants.UPDATE_SDK_QUALITY_SCORE, RegistrationConstants.DISABLE);
 						if (updateQualityScore.equalsIgnoreCase(RegistrationConstants.ENABLE)) {
 							LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 									"Flag to update quality score evaluated from Biometric SDK is enabled");
 
 							biometricsDto.setQualityScore(scoreMap.get(biometricType));
-
+							
 							LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 									"Quality score is evaluated and assigned to biometricsDto");
 						}
@@ -224,12 +222,8 @@ public class BioServiceImpl extends BaseService implements BioService {
 		if (isMdmEnabled()) {
 			// if (getStream(mdmRequestDto.getModality()) != null) {
 
-			if (deviceSpecificationFactory.isDeviceAvailable(mdmRequestDto.getModality())) {
-				biometrics = captureRealModality(mdmRequestDto);
-			} else {
-				throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
-						RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage());
-			}
+			biometrics = captureRealModality(mdmRequestDto);
+			// }
 		} else {
 			biometrics = captureMockModality(mdmRequestDto, true);
 		}

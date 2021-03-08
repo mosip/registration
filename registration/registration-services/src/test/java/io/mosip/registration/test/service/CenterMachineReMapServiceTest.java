@@ -11,6 +11,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import io.mosip.registration.exception.RemapException;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -191,8 +192,7 @@ public class CenterMachineReMapServiceTest {
 
 	}
 	@Test
-	public void startRemapProcessTest()
-	{
+	public void startRemapProcessTest() throws RemapException {
 		centerMachineReMapServiceImpl.startRemapProcess();
 	}
 
