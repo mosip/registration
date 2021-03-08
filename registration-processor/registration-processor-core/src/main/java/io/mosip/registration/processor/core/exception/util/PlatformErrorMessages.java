@@ -1179,6 +1179,12 @@ public enum PlatformErrorMessages {
 	RPR_WORKFLOW_EVENTUPDATE_FAILED(PlatformConstants.RPR_WORKFLOW_EVENTUPDATE + "001",
 			"Work flow event update failed"),
 
+	RPR_WAA_MISSING_INPUT_PARAMETER(PlatformConstants.RPR_WORKFLOW_ACTION_API + "000",
+			"Missing Request Value - %s"),
+
+	RPR_WAA_INVALID_INPUT_PARAMETER(PlatformConstants.RPR_WORKFLOW_ACTION_API + "001",
+			"Invalid Request Value - %s"),
+
 	/** The external stage failed. */
 	EXTERNAL_STAGE_FAILED("", "External Stage Failed"),
 

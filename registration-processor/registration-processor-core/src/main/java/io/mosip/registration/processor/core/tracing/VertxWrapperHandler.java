@@ -1,15 +1,13 @@
 package io.mosip.registration.processor.core.tracing;
 
+import java.util.Optional;
+
 import io.mosip.kernel.core.logger.spi.Logger;
-import io.mosip.registration.processor.core.constant.LoggerFileConstant;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
-
-import java.util.Objects;
-import java.util.Optional;
 
 /**
  * This is wrapper on handlers
@@ -28,7 +26,8 @@ public abstract class VertxWrapperHandler implements Handler<RoutingContext> {
     @Override
     public void handle(RoutingContext context) {
         JsonObject obj = context.getBodyAsJson();
-        ContextualData.put(TracingConstant.RID_KEY, obj != null ? obj.getString("rid") : getRIDFromContext(context));
+		/* commented for workaround for workflowaction api need to work need to fix */
+        //ContextualData.put(TracingConstant.RID_KEY, obj != null ? obj.getString("rid") : getRIDFromContext(context));
         MDCHelper.addHeadersToMDC();
         regProcLogger.debug("VertxWrapperHandler::entry");
         try {

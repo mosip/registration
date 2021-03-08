@@ -1,14 +1,23 @@
 package io.mosip.registration.processor.reprocessor.stage;
 
+import java.util.ArrayList;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
+import io.mosip.kernel.core.exception.IOException;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.JsonUtils;
+import io.mosip.kernel.core.util.exception.JsonMappingException;
+import io.mosip.kernel.core.util.exception.JsonParseException;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
+import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.workflow.dto.WorkflowActionDTO;
+import io.mosip.registration.processor.reprocessor.validator.WorkflowActionRequestValidator;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
@@ -46,6 +55,9 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 
 	@Autowired
 	MosipRouter router;
+
+	@Autowired
+	private WorkflowActionRequestValidator validator;
 
 	/**
 	 * The context path.
@@ -92,10 +104,28 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 	 * @param ctx the ctx
 	 */
 	public void processURL(RoutingContext ctx) {
+
 		JsonObject obj = ctx.getBodyAsJson();
-		System.out.println("jsonobject" + obj);
-		// this.setResponse(ctx,
-		// "Packet with registrationId '" + "" + "' has been forwarded to next stage");
+		try {
+			WorkflowActionDTO workflowActionDTO = (WorkflowActionDTO) JsonUtils
+					.jsonStringToJavaObject(WorkflowActionDTO.class, obj.toString());
+			boolean isValid = validator.validate(workflowActionDTO, new ArrayList<ErrorDTO>());
+			if (isValid) {
+
+			} else {
+
+			}
+		} catch (JsonParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 
 	private void failure(RoutingContext routingContext) {
