@@ -24,11 +24,7 @@ import java.util.Timer;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-
-import io.mosip.registration.exception.PreConditionCheckException;
-import io.mosip.registration.service.BaseService;
-import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
-import io.mosip.registration.util.restclient.AuthTokenUtilService;
+import java.util.stream.Stream;
 
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +38,7 @@ import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.constants.ApplicationLanguages;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
@@ -51,7 +48,6 @@ import io.mosip.registration.controller.device.BiometricsController;
 import io.mosip.registration.controller.device.ScanPopUpViewController;
 import io.mosip.registration.controller.eodapproval.RegistrationApprovalController;
 import io.mosip.registration.controller.reg.AlertController;
-import io.mosip.registration.controller.reg.DemographicDetailController;
 import io.mosip.registration.controller.reg.HeaderController;
 import io.mosip.registration.controller.reg.HomeController;
 import io.mosip.registration.controller.reg.PacketHandlerController;
@@ -67,6 +63,7 @@ import io.mosip.registration.dto.biometric.BiometricInfoDTO;
 import io.mosip.registration.dto.biometric.FaceDetailsDTO;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.dto.response.SchemaDto;
+import io.mosip.registration.exception.PreConditionCheckException;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.scheduler.SchedulerUtil;
 import io.mosip.registration.service.BaseService;
@@ -97,7 +94,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -110,7 +106,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Screen;
@@ -147,8 +142,6 @@ public class BaseController {
 	@Autowired
 	protected FXComponents fXComponents;
 
-	@Autowired
-	private DemographicDetailController demographicDetailController;
 	@Autowired
 	public RegistrationPreviewController registrationPreviewController;
 
@@ -207,7 +200,7 @@ public class BaseController {
 	private Validations validation;
 
 	@Autowired
-	private BaseService baseService;
+	protected BaseService baseService;
 
 	@Autowired
 	private AuthTokenUtilService authTokenUtilService;
@@ -1967,5 +1960,29 @@ public class BaseController {
 			return false;
 		}
 		return true;
+	}
+	
+	protected List<String> getConfiguredLanguages() {
+		List<String> languages = new ArrayList<>();
+		List<String> langCodes = Stream.concat(baseService.getMandatoryLanguages().stream(), baseService.getOptionalLanguages().stream())
+                .collect(Collectors.toList());
+		for (String langCode : langCodes) {
+			if (!langCode.isBlank()) {
+				languages.add(ApplicationLanguages.getLanguageByLangCode(langCode));
+			}
+		}
+		return languages;
+	}
+	
+	protected List<String> getConfiguredLangCodes() {
+		List<String> languages = new ArrayList<>();
+		List<String> langCodes = Stream.concat(baseService.getMandatoryLanguages().stream(), baseService.getOptionalLanguages().stream())
+                .collect(Collectors.toList());
+		for (String langCode : langCodes) {
+			if (!langCode.isBlank()) {
+				languages.add(langCode);
+			}
+		}
+		return languages;
 	}
 }

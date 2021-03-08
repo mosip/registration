@@ -284,7 +284,7 @@
                         <RowConstraints maxHeight="0.0" minHeight="0.0" percentHeight="1.0" prefHeight="0.0" vgrow="SOMETIMES" />
                     </rowConstraints>
                      <children>
-                        <GridPane fx:id="newRegGridPane" onMouseClicked="#createPacket" styleClass="operationalPaneDetailsSync">
+                        <GridPane fx:id="newRegGridPane" onMouseClicked="#selectLanguage" styleClass="operationalPaneDetailsSync">
                           <columnConstraints>
                             <ColumnConstraints hgrow="SOMETIMES" maxWidth="131.0" minWidth="10.0" prefWidth="90.0" />
                             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="178.0" />
@@ -326,7 +326,7 @@
                               <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                            </rowConstraints>
                         </GridPane>
-                        <GridPane fx:id="lostUINPane" onMouseClicked="#lostUIN" styleClass="operationalPaneDetailsBioUpdate" GridPane.rowIndex="2">
+                        <GridPane fx:id="lostUINPane" onMouseClicked="#selectLanguage" styleClass="operationalPaneDetailsBioUpdate" GridPane.rowIndex="2">
                            <children>
                               <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
                                  <children>

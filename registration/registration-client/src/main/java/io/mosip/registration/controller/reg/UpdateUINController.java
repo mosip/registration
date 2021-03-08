@@ -4,7 +4,6 @@ import static io.mosip.registration.constants.LoggerConstants.LOG_REG_UIN_UPDATE
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,17 +23,14 @@ import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
-import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.FXUtils;
-import io.mosip.registration.controller.GenericController;
 import io.mosip.registration.dto.UiSchemaDTO;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
@@ -71,13 +67,13 @@ public class UpdateUINController extends BaseController implements Initializable
 	private UinValidator<String> uinValidatorImpl;
 
 	@Autowired
-	private GenericController genericController;
-
-	@Autowired
 	Validations validation;
 
 	@FXML
 	FlowPane parentFlowPane;
+	
+	@Autowired
+	private LanguageSelectionController languageSelectionController;
 
 	private ObservableList<Node> parentFlow;
 
@@ -191,15 +187,9 @@ public class UpdateUINController extends BaseController implements Initializable
 						"selectedFields size : " + selectedFields.size());
 
 				if (uinValidatorImpl.validateId(uinId.getText()) && !selectedFields.isEmpty()) {
+					getStage().getScene().getRoot().setDisable(true);
+					languageSelectionController.init(RegistrationConstants.UIN_UPDATE_FLOW);
 					registrationController.init(uinId.getText(), checkBoxKeeper, selectedFields, selectedFieldGroups);
-					Parent createRoot = BaseController.load(
-							getClass().getResource(RegistrationConstants.CREATE_PACKET_PAGE),
-							applicationContext.getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS));
-
-					registrationController.getRegTypeText().setText(applicationContext
-							.getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS).getString("uinUpdateNavLbl"));
-					getScene(createRoot).setRoot(createRoot);
-					genericController.populateScreens();
 				} else {
 					generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UPDATE_UIN_SELECTION_ALERT);
 				}
@@ -209,11 +199,6 @@ public class UpdateUINController extends BaseController implements Initializable
 					invalidIdException.getMessage() + ExceptionUtils.getStackTrace(invalidIdException));
 
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UPDATE_UIN_VALIDATION_ALERT);
-		} catch (IOException ioException) {
-			LOGGER.error(LOG_REG_UIN_UPDATE, APPLICATION_NAME, APPLICATION_ID,
-					ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
-
-			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
 		}
 	}
 }

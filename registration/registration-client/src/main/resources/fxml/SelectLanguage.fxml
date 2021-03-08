@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.image.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<GridPane prefHeight="420.0" prefWidth="620.0" styleClass="scanPage" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.mosip.registration.controller.reg.LanguageSelectionController">
+   <columnConstraints>
+      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="100.0" />
+   </columnConstraints>
+   <rowConstraints>
+      <RowConstraints minHeight="10.0" percentHeight="100.0" vgrow="SOMETIMES" />
+   </rowConstraints>
+   <children>
+      <GridPane>
+        <columnConstraints>
+          <ColumnConstraints hgrow="SOMETIMES" percentWidth="100.0" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints percentHeight="10.0" vgrow="SOMETIMES" />
+          <RowConstraints percentHeight="25.0" vgrow="SOMETIMES" />
+            <RowConstraints percentHeight="47.0" vgrow="SOMETIMES" />
+            <RowConstraints percentHeight="10.0" vgrow="SOMETIMES" />
+          <RowConstraints percentHeight="8.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+         <children>
+            <GridPane GridPane.rowIndex="4">
+               <columnConstraints>
+                  <ColumnConstraints hgrow="SOMETIMES" percentWidth="5.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" percentWidth="90.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" percentWidth="5.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints percentHeight="5.0" vgrow="SOMETIMES" />
+                  <RowConstraints percentHeight="90.0" vgrow="SOMETIMES" />
+                  <RowConstraints percentHeight="5.0" vgrow="SOMETIMES" />
+               </rowConstraints>
+               <children>
+                  <Label styleClass="selectLanguageFooterText" text="%selectLanguageFooterText" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+               </children>
+            </GridPane>
+            <GridPane styleClass="selectLanguageHeader">
+              <columnConstraints>
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="2.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="93.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="5.0" prefWidth="100.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" percentHeight="100.0" prefHeight="30.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <Label text="%selectLanguage" textFill="WHITE" GridPane.columnIndex="1" />
+                  <Hyperlink fx:id="close" alignment="CENTER" contentDisplay="CENTER" onAction="#exitWindow" styleClass="exit" GridPane.columnIndex="2">
+                     <graphic>
+                        <Label text="X" textFill="WHITE" />
+                     </graphic>
+                  </Hyperlink>
+               </children>
+            </GridPane>
+            <GridPane GridPane.rowIndex="3">
+              <columnConstraints>
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="5.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="50.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="43.0" prefWidth="100.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" percentWidth="2.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" percentHeight="100.0" prefHeight="30.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="15.0" GridPane.columnIndex="2">
+                     <children>
+                        <Button fx:id="cancel" mnemonicParsing="false" onAction="#exitWindow" styleClass="genderButton" text="%cancelUpperCase" />
+                        <Button fx:id="submit" disable="true" mnemonicParsing="false" onAction="#submitLanguages" styleClass="genderSelectedButton" text="%submitUpperCase" />
+                     </children>
+                  </HBox>
+                  <Label fx:id="errorMessage" styleClass="selectLangErrorLabel" visible="false" wrapText="true" GridPane.columnIndex="1" />
+               </children>
+            </GridPane>
+            <GridPane GridPane.rowIndex="2">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" percentWidth="5.0" />
+                <ColumnConstraints hgrow="SOMETIMES" percentWidth="90.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" percentWidth="5.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints percentHeight="5.0" vgrow="SOMETIMES" />
+                <RowConstraints percentHeight="90.0" vgrow="SOMETIMES" />
+                <RowConstraints percentHeight="5.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <FlowPane fx:id="checkBoxesPane" hgap="25.0" prefHeight="200.0" prefWidth="200.0" vgap="25.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+               </children>
+            </GridPane>
+            <GridPane GridPane.rowIndex="1">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" percentWidth="5.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" percentWidth="90.0" />
+                <ColumnConstraints hgrow="SOMETIMES" percentWidth="5.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints percentHeight="5.0" vgrow="SOMETIMES" />
+                <RowConstraints percentHeight="90.0" vgrow="SOMETIMES" />
+                <RowConstraints percentHeight="5.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <Label fx:id="selectLanguageText" alignment="TOP_LEFT" styleClass="selectLanguageMainText" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+               </children>
+            </GridPane>
+         </children>
+      </GridPane>
+   </children>
+</GridPane>

@@ -48,6 +48,7 @@ public class LoggerConstants {
 
 	// Session IDs' for logging
 	public static final String LOG_PKT_HANLDER = PKT_CREATION + "PACKET_HANDLER";
+	public static final String LOG_SELECT_LANGUAGE = PKT_CREATION + "SELECT_LANGUAGE";
 	public static final String LOG_PKT_CREATION = PKT_CREATION + "CREATE";
 	public static final String LOG_ZIP_CREATION = PKT_CREATION + "ZIP_PACKET";
 	public static final String LOG_PKT_ENCRYPTION = PKT_CREATION + "PACKET_ENCRYPTION";
