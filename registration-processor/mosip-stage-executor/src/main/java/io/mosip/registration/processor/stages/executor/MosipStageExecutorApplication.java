@@ -1,17 +1,17 @@
 package io.mosip.registration.processor.stages.executor;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import io.mosip.kernel.core.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
 import io.mosip.registration.processor.stages.executor.config.StagesConfig;
 
@@ -19,9 +19,9 @@ import io.mosip.registration.processor.stages.executor.config.StagesConfig;
  * External Stage application
  *
  */
-public class ExecuteStagesApplication {
+public class MosipStageExecutorApplication {
 
-	private static final Logger regProcLogger = LoggerFactory.getLogger(ExecuteStagesApplication.class);
+	private static final Logger regProcLogger = LoggerFactory.getLogger(MosipStageExecutorApplication.class);
 
 	/**
 	 * main method to launch external stage application
@@ -35,8 +35,9 @@ public class ExecuteStagesApplication {
 			List<String> stageClasses = stagesConfig.getStageClasses();
 			try (AnnotationConfigApplicationContext mainApplicationContext = new AnnotationConfigApplicationContext();) {
 				List<String> basePackages = stageClasses.stream()
-												.map(classStr -> classStr.substring(0, classStr.lastIndexOf('.')))
-												.collect(Collectors.toList());
+												.map(classStr -> getPackageOfClass(classStr))
+												.collect(Collectors.toCollection(() -> new LinkedList<>()));
+				basePackages.add(0, getPackageOfClass(StagesConfig.class.getCanonicalName()));
 				mainApplicationContext.scan(basePackages.toArray(size -> new String[size]));
 
 				// Refresh the context
@@ -59,6 +60,10 @@ public class ExecuteStagesApplication {
 			}
 		}
 
+	}
+
+	private static String getPackageOfClass(String classStr) {
+		return classStr.substring(0, classStr.lastIndexOf('.'));
 	}
 
 	private static MosipVerticleAPIManager getStageBean(AnnotationConfigApplicationContext mainApplicationContext,
