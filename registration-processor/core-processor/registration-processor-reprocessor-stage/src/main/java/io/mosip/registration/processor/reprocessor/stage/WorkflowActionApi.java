@@ -16,7 +16,7 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
-public class WorkFlowActionApi extends MosipVerticleAPIManager {
+public class WorkflowActionApi extends MosipVerticleAPIManager {
 	/** The Constant USER. */
 	private static final String USER = "MOSIP_SYSTEM";
 	/** The reg proc logger. */

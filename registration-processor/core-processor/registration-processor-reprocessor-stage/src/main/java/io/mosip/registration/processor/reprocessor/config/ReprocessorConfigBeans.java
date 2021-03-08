@@ -6,7 +6,7 @@ import org.springframework.context.annotation.PropertySource;
 
 import io.mosip.registration.processor.core.spi.restclient.RegistrationProcessorRestClientService;
 import io.mosip.registration.processor.reprocessor.stage.ReprocessorStage;
-import io.mosip.registration.processor.reprocessor.stage.WorkFlowActionApi;
+import io.mosip.registration.processor.reprocessor.stage.WorkflowActionApi;
 import io.mosip.registration.processor.reprocessor.stage.WorkFlowEventUpdateVerticle;
 import io.mosip.registration.processor.rest.client.service.impl.RegistrationProcessorRestClientServiceImpl;
 
@@ -36,7 +36,7 @@ public class ReprocessorConfigBeans {
 	}
 
 	@Bean
-	public WorkFlowActionApi getWorkFlowActionApi() {
-		return new WorkFlowActionApi();
+	public WorkflowActionApi getWorkFlowActionApi() {
+		return new WorkflowActionApi();
 	}
 }
