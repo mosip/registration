@@ -165,6 +165,7 @@ public class RegistrationController extends BaseController {
 			// Put the RegistrationDTO object to SessionContext Map
 			SessionContext.map().put(RegistrationConstants.REGISTRATION_DATA,
 					packetHandlerService.startRegistration(null, registrationCategory));
+			getRegistrationDTOFromSession().setSelectedLanguagesByApplicant(selectedLangList);
 		} catch (RegBaseCheckedException ex) {
 			LOGGER.error(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID, ExceptionUtils.getStackTrace(ex));

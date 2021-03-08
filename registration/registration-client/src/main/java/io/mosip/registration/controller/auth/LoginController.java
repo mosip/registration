@@ -11,13 +11,11 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
@@ -208,12 +206,6 @@ public class LoginController extends BaseController implements Initializable {
 	@FXML
 	private ComboBox<String> appLanguage;
 
-	@Value("${mosip.mandatory-languages}")
-	private String mandatoryLanguages;
-
-	@Value("${mosip.optional-languages}")
-	private String optionalLanguages;
-
 	@Autowired
 	private MosipDeviceSpecificationFactory deviceSpecificationFactory;
 
@@ -243,16 +235,16 @@ public class LoginController extends BaseController implements Initializable {
 		}).start();
 
 		try {
-			appLanguage.getItems().addAll(getLanguagesList());
+			appLanguage.getItems().addAll(getConfiguredLanguages());
 			appLanguage.getSelectionModel()
 					.select(ApplicationLanguages.getLanguageByLangCode(ApplicationContext.applicationLanguage()));
 
-			RegistrationUIConstants.setBundle();
 			appLanguage.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
 				if (!oldValue.equalsIgnoreCase(newValue)) {
 					userName = userId.getText();
 					ApplicationContext.getInstance()
 							.setApplicationLanguage(ApplicationLanguages.getLangCodeByLanguage(newValue));
+					RegistrationUIConstants.setBundle();
 					loadInitialScreen(getStage());
 				}
 			});
@@ -288,21 +280,6 @@ public class LoginController extends BaseController implements Initializable {
 		}
 	}
 
-	private List<String> getLanguagesList() {
-		List<String> languages = new ArrayList<>();
-		List<String> langCodes = Arrays
-				.asList(((mandatoryLanguages != null ? mandatoryLanguages : RegistrationConstants.EMPTY)
-						.concat(RegistrationConstants.COMMA)
-						.concat((optionalLanguages != null ? optionalLanguages : RegistrationConstants.EMPTY)))
-								.split(RegistrationConstants.COMMA));
-		for (String langCode : langCodes) {
-			if (!langCode.isBlank()) {
-				languages.add(ApplicationLanguages.getLanguageByLangCode(langCode));
-			}
-		}
-		return languages;
-	}
-
 	/**
 	 * To get the Sequence of which Login screen to be displayed
 	 * 
@@ -317,12 +294,11 @@ public class LoginController extends BaseController implements Initializable {
 		 * if the primary or secondary language is not set , the application should show
 		 * err msg
 		 */
+		applicationContext.setMandatoryLanguages(mandatoryLanguages);
+		applicationContext.setOptionalLanguages(optionalLanguages);
 		ApplicationContext.loadResources();
 
-		RegistrationUIConstants.setBundle();
-
 		try {
-
 			LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, "Retrieve Login mode");
 
 			showUserNameScreen(primaryStage);

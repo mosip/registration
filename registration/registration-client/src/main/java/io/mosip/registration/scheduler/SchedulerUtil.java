@@ -25,6 +25,7 @@ import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.device.BiometricsController;
 import io.mosip.registration.controller.device.ScanPopUpViewController;
 import io.mosip.registration.controller.device.Streamer;
+import io.mosip.registration.controller.reg.LanguageSelectionController;
 import io.mosip.registration.controller.reg.PacketUploadController;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import javafx.animation.KeyFrame;
@@ -86,6 +87,9 @@ public class SchedulerUtil extends BaseController {
 
 	@Autowired
 	private PacketUploadController packetUploadController;
+	
+	@Autowired
+	private LanguageSelectionController languageSelectionController;
 
 	@Autowired
 	private Streamer streamer;
@@ -283,6 +287,9 @@ public class SchedulerUtil extends BaseController {
 		}
 		if (scanPopUpViewController.getPopupStage() != null && scanPopUpViewController.getPopupStage().isShowing()) {
 			scanPopUpViewController.getPopupStage().close();
+		}
+		if (languageSelectionController.getPopupStage() != null && languageSelectionController.getPopupStage().isShowing()) {
+			languageSelectionController.getPopupStage().close();
 		}
 		if (packetUploadController.getStage() != null && packetUploadController.getStage().isShowing()) {
 			packetUploadController.getStage().close();

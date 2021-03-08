@@ -7,13 +7,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
 
-import org.springframework.beans.factory.annotation.Value;
-
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dto.AuthTokenDTO;
-import io.mosip.registration.entity.id.RegCenterUserId;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 
 /**
@@ -39,11 +36,16 @@ public class ApplicationContext {
 	/** The application languge. */
 	private String applicationLanguge;
 
-	@Value("${mosip.mandatory-languages}")
 	private String mandatoryLanguages;
-
-	@Value("${mosip.optional-languages}")
 	private String optionalLanguages;
+
+	public void setMandatoryLanguages(String mandatoryLanguages) {
+		this.mandatoryLanguages = mandatoryLanguages;
+	}
+
+	public void setOptionalLanguages(String optionalLanguages) {
+		this.optionalLanguages = optionalLanguages;
+	}
 
 	private static Map<String, ResourceBundle> resourceBundleMap = new HashMap<>();
 
@@ -102,7 +104,6 @@ public class ApplicationContext {
 										.split(RegistrationConstants.COMMA));
 
 				if (null != langList && !langList.isEmpty()) {
-
 					setApplicationLanguage(langList.stream().filter(langCode -> !langCode.isBlank()).findFirst().get());
 					for (String langCode : langList) {
 						if (!langCode.isBlank()) {

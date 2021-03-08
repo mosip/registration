@@ -399,6 +399,44 @@
 	-fx-background-color: #175768;
 }
 
+.selectLanguageHeader {
+	-fx-background-color: #005baa;
+}
+
+.selectLanguageMainText {
+	-fx-background-color: #ffffff;
+	-fx-border-width: 0.0;
+	-fx-text-fill: #666666;
+	-fx-font-size: 14px;
+}
+
+.selectLanguageFooterText {
+	-fx-background-color: #ffffff;
+	-fx-border-width: 0.0;
+	-fx-text-fill: #666666;
+	-fx-font-size: 12px;
+}
+
+.selectLangErrorLabel {
+	-fx-background-color: #ffffff;
+	-fx-text-fill: red;
+	-fx-font-size: 11px;
+}
+
+.languageCheckBox {
+	-fx-font-size: 14px;
+}
+
+.languageCheckBox .box {
+	-fx-background-color: #ffffff;
+	-fx-border-color: #005baa;
+	-fx-border-radius: 5px;
+}
+
+.languageCheckBox:selected .mark {
+	-fx-background-color: #005baa;
+}
+
 .scanPopupHeaderTitle {
 	-fx-text-fill: white;
 	-fx-font-size: 16.0px;

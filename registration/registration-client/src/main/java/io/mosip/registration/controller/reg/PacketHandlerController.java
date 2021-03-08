@@ -59,8 +59,6 @@ import io.mosip.registration.service.sync.PreRegistrationDataSyncService;
 import io.mosip.registration.service.template.TemplateService;
 import io.mosip.registration.update.SoftwareUpdateHandler;
 import io.mosip.registration.util.acktemplate.TemplateGenerator;
-import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
-import io.mosip.registration.util.restclient.AuthTokenUtilService;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
@@ -70,6 +68,7 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -270,9 +269,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 	@Autowired
 	HeaderController headerController;
 
-	@Autowired
-	private AuthTokenUtilService authTokenUtilService;
-
 	@FXML
 	private ImageView uploadPacketImageView;
 
@@ -293,6 +289,9 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 	@Autowired
 	private Validations validation;
+	
+	@Autowired
+	private LanguageSelectionController languageSelectionController;
 
 	/**
 	 * @return the userOnboardMsg
@@ -473,14 +472,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 	 * acknowledgement form
 	 */
 	public void createPacket() {
-		if (!proceedOnRegistrationAction())
-			return;
-
-		ResponseDTO keyResponse = isKeyValid();
-		if (null == keyResponse.getSuccessResponseDTO()) {
-			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.INVALID_KEY);
-			return;
-		}
 		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Creation of Registration Starting.");
 		try {
 			auditFactory.audit(AuditEvent.NAV_NEW_REG, Components.NAVIGATION, SessionContext.userContext().getUserId(),
@@ -493,23 +484,10 @@ public class PacketHandlerController extends BaseController implements Initializ
 			if (!validateScreenAuthorization(createRoot.getId())) {
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.AUTHORIZATION_ERROR);
 			} else {
-				StringBuilder errorMessage = new StringBuilder();
-				ResponseDTO responseDTO;
-				responseDTO = validateSyncStatus();
-				List<ErrorResponseDTO> errorResponseDTOs = responseDTO.getErrorResponseDTOs();
-				if (errorResponseDTOs != null && !errorResponseDTOs.isEmpty()) {
-					for (ErrorResponseDTO errorResponseDTO : errorResponseDTOs) {
-						errorMessage.append(
-								RegistrationUIConstants.getMessageLanguageSpecific(errorResponseDTO.getMessage())
-										+ "\n\n");
-					}
-					generateAlert(RegistrationConstants.ERROR, errorMessage.toString().trim());
-				} else {
-					getScene(createRoot).setRoot(createRoot);
-					validation.updateAsLostUIN(false);
-					registrationController.createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_NEW);
-					genericController.populateScreens();
-				}
+				getScene(createRoot).setRoot(createRoot);
+				validation.updateAsLostUIN(false);
+				registrationController.createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_NEW);
+				genericController.populateScreens();				
 			}
 		} catch (IOException ioException) {
 			LOGGER.error("REGISTRATION - UI- Officer Packet Create ", APPLICATION_NAME, APPLICATION_ID,
@@ -522,14 +500,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 	 * Validating screen authorization and Creating Packet in case of Lost UIN
 	 */
 	public void lostUIN() {
-		if (!proceedOnRegistrationAction())
-			return;
-
-		ResponseDTO keyResponse = isKeyValid();
-		if (null == keyResponse.getSuccessResponseDTO()) {
-			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.INVALID_KEY);
-			return;
-		}
 		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID,
 				"Creating of Registration for lost UIN Starting.");
 		try {
@@ -546,25 +516,12 @@ public class PacketHandlerController extends BaseController implements Initializ
 			if (!validateScreenAuthorization(createRoot.getId())) {
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.AUTHORIZATION_ERROR);
 			} else {
-				StringBuilder errorMessage = new StringBuilder();
-				ResponseDTO responseDTO;
-				responseDTO = validateSyncStatus();
-				List<ErrorResponseDTO> errorResponseDTOs = responseDTO.getErrorResponseDTOs();
-				if (errorResponseDTOs != null && !errorResponseDTOs.isEmpty()) {
-					for (ErrorResponseDTO errorResponseDTO : errorResponseDTOs) {
-						errorMessage.append(
-								RegistrationUIConstants.getMessageLanguageSpecific(errorResponseDTO.getMessage())
-										+ "\n\n");
-					}
-					generateAlert(RegistrationConstants.ERROR, errorMessage.toString().trim());
-				} else {
-					getScene(createRoot).setRoot(createRoot);
+				getScene(createRoot).setRoot(createRoot);
 
-					registrationController.getRegTypeText().setText(applicationContext
-							.getBundle(applicationContext.getApplicationLanguage(), RegistrationConstants.LABELS)
-							.getString("/lostuin"));
-					genericController.populateScreens();
-				}
+				registrationController.getRegTypeText().setText(applicationContext
+						.getBundle(applicationContext.getApplicationLanguage(), RegistrationConstants.LABELS)
+						.getString("/lostuin"));
+				genericController.populateScreens();				
 			}
 		} catch (IOException ioException) {
 			LOGGER.error("REGISTRATION - UI- Officer Packet Create for Lost UIN", APPLICATION_NAME, APPLICATION_ID,
@@ -1049,5 +1006,39 @@ public class PacketHandlerController extends BaseController implements Initializ
 	@FXML
 	public void hasUpdate() {
 		headerController.hasUpdate(null);
+	}
+	
+	public void selectLanguage(MouseEvent event) {
+		if (!proceedOnRegistrationAction())
+			return;
+
+		ResponseDTO keyResponse = isKeyValid();
+		if (null == keyResponse.getSuccessResponseDTO()) {
+			generateAlert(RegistrationConstants.ALERT_INFORMATION, RegistrationUIConstants.INVALID_KEY);
+			return;
+		}
+		StringBuilder errorMessage = new StringBuilder();
+		ResponseDTO responseDTO;
+		responseDTO = validateSyncStatus();
+		List<ErrorResponseDTO> errorResponseDTOs = responseDTO.getErrorResponseDTOs();
+		if (errorResponseDTOs != null && !errorResponseDTOs.isEmpty()) {
+			for (ErrorResponseDTO errorResponseDTO : errorResponseDTOs) {
+				errorMessage.append(
+						RegistrationUIConstants.getMessageLanguageSpecific(errorResponseDTO.getMessage())
+								+ "\n\n");
+			}
+			generateAlert(RegistrationConstants.ERROR, errorMessage.toString().trim());
+		} else {
+			String action = RegistrationConstants.EMPTY;
+			if (((GridPane) event.getSource()).equals(newRegGridPane)) {
+				action = RegistrationConstants.NEW_REGISTRATION_FLOW;
+			} else if (((GridPane) event.getSource()).equals(uinUpdateGridPane)) {
+				action = RegistrationConstants.UIN_UPDATE_FLOW;
+			} else if (((GridPane) event.getSource()).equals(lostUINPane)) {
+				action = RegistrationConstants.LOST_UIN_FLOW;
+			}
+			getStage().getScene().getRoot().setDisable(true);
+			languageSelectionController.init(action);
+		}
 	}
 }

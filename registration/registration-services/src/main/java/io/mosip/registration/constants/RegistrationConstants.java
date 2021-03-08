@@ -52,6 +52,7 @@ public class RegistrationConstants {
 	public static final String PACKET_UPLOAD_STATUS_UI = "/fxml/PacketUploadStatus.fxml";
 	public static final String ALERT_GENERATION = "/fxml/Alert.fxml";
 	public static final String DASHBOARD_PAGE = "/fxml/Dashboard.fxml";
+	public static final String SELECT_LANGUAGE_PAGE = "/fxml/SelectLanguage.fxml";
 
 	// FXML Id
 	public static final String DEMOGRAPHIC_DETAIL = "demographicDetail";
@@ -1878,4 +1879,8 @@ public class RegistrationConstants {
 	public static final String previewHeader = "previewHeader";
 	public static final String authentication = "authentication";
 	public static final String SLASH = "/";
+	
+	public static final String NEW_REGISTRATION_FLOW = "New Registration";
+	public static final String UIN_UPDATE_FLOW = "UIN Update";
+	public static final String LOST_UIN_FLOW = "Lost UIN";
 }
