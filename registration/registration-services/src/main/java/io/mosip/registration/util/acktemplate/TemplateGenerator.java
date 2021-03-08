@@ -752,6 +752,9 @@ public class TemplateGenerator extends BaseService {
 	}
 
 	private Map<String, List<Map<String, Object>>> addToJobList(Map<String, List<Map<String, Object>>> activities, String activityName, Map<String, Object> job) {
+		if (activityName == null) {
+			activityName = ApplicationContext.applicationLanguageBundle().getString("syncactivities");
+		}
 		if (activities.containsKey(activityName)) {
 			activities.get(activityName).add(job);
 		} else {
@@ -774,6 +777,6 @@ public class TemplateGenerator extends BaseService {
 			LOGGER.error("REGISTRATION - ALERT - BASE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(exception));
 		}
-		return time + RegistrationConstants.UTC_APPENDER;
+		return time;
 	}
 }
