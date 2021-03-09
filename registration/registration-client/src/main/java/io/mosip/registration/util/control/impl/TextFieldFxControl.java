@@ -65,8 +65,7 @@ public class TextFieldFxControl extends FxControl {
 		this.uiSchemaDTO = uiSchemaDTO;
 
 		this.control = this;
-
-		this.node = create(uiSchemaDTO);
+		create(uiSchemaDTO);
 		return this.control;
 	}
 
@@ -153,6 +152,8 @@ public class TextFieldFxControl extends FxControl {
 
 		/** Container holds title, fields and validation message elements */
 		VBox simpleTypeVBox = new VBox();
+
+		this.node = simpleTypeVBox;
 		simpleTypeVBox.setId(fieldName + RegistrationConstants.VBOX);
 		simpleTypeVBox.setSpacing(5);
 
@@ -164,39 +165,47 @@ public class TextFieldFxControl extends FxControl {
 				RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, simpleTypeVBox.getWidth());
 		simpleTypeVBox.getChildren().add(fieldTitle);
 
-		List<String> langCodes = new LinkedList<>();
-
-		List<String> selectedLanguages = getRegistrationDTo().getSelectedLanguagesByApplicant();
-
-		if (this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE)) {
-			langCodes.addAll(selectedLanguages);
-		} else {
-			langCodes.add(selectedLanguages.get(0));
-		}
-		for (String langCode : langCodes) {
+		boolean isCreated = false;
+		for (String langCode : getRegistrationDTo().getSelectedLanguagesByApplicant()) {
 
 			String label = uiSchemaDTO.getLabel().get(langCode);
 			labelText = labelText.isEmpty() ? labelText : labelText + RegistrationConstants.SLASH;
 			labelText += label;
 
-			/** Text Field */
-			TextField textField = getTextField(fieldName + langCode, label + mandatorySuffix,
-					RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, simpleTypeVBox.getWidth(), false);
-			simpleTypeVBox.getChildren().add(textField);
+			boolean isFieldReqd = this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE) ? true
+					: !isCreated;
+			if (isFieldReqd) {
 
-			/** Validation message (Invalid/wrong,,etc,.) */
-			Label validationMessage = getLabel(fieldName + langCode + RegistrationConstants.MESSAGE, null,
-					RegistrationConstants.DemoGraphicFieldMessageLabel, false, simpleTypeVBox.getWidth());
-			simpleTypeVBox.getChildren().add(validationMessage);
-			addKeyBoard(simpleTypeVBox, validationMessage, textField, langCode);
-			changeNodeOrientation(simpleTypeVBox, langCode);
+				VBox vBox = new VBox();
+				/** Text Field */
+				TextField textField = getTextField(fieldName + langCode, label + mandatorySuffix,
+						RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, simpleTypeVBox.getWidth(), false);
+				vBox.getChildren().add(textField);
 
-			Validations.putIntoLabelMap(fieldName + langCode, uiSchemaDTO.getLabel().get(langCode));
+				/** Validation message (Invalid/wrong,,etc,.) */
+				Label validationMessage = getLabel(fieldName + langCode + RegistrationConstants.MESSAGE, null,
+						RegistrationConstants.DemoGraphicFieldMessageLabel, false, simpleTypeVBox.getWidth());
+				vBox.getChildren().add(validationMessage);
+				addKeyBoard(vBox, validationMessage, textField, langCode);
+				changeNodeOrientation(vBox, langCode);
 
-			setListener(textField);
+				simpleTypeVBox.getChildren().add(vBox);
+				Validations.putIntoLabelMap(fieldName + langCode, uiSchemaDTO.getLabel().get(langCode));
+
+				setListener(textField);
+
+				isCreated = true;
+			}
 		}
 
 		fieldTitle.setText(labelText + mandatorySuffix);
+
+		if (!this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE)) {
+
+			TextField textField = (TextField) getField(
+					uiSchemaDTO.getId() + getRegistrationDTo().getSelectedLanguagesByApplicant().get(0));
+			textField.setPromptText(fieldTitle.getText());
+		}
 
 		return simpleTypeVBox;
 	}
@@ -268,9 +277,9 @@ public class TextFieldFxControl extends FxControl {
 			TextField textField = (TextField) getField(uiSchemaDTO.getId() + langCode);
 			if (textField != null) {
 
-				if (validation.validateTextField((Pane) getNode(), textField, textField.getId(), true, langCode)) {
+				if (validation.validateTextField((Pane) getNode(), textField, uiSchemaDTO.getId(), true, langCode)) {
 
-					FXUtils.getInstance().setTextValidLabel((Pane) getNode(), textField);
+					FXUtils.getInstance().setTextValidLabel((Pane) getNode(), textField, uiSchemaDTO.getId());
 					isValid = !isValid ? isValid : true;
 				} else {
 

@@ -5,6 +5,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -19,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Timer;
 import java.util.TreeMap;
@@ -38,6 +40,7 @@ import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.config.DaoConfig;
 import io.mosip.registration.constants.ApplicationLanguages;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
@@ -575,7 +578,26 @@ public class BaseController {
 	 *
 	 */
 	protected void getGlobalParams() {
-		ApplicationContext.setApplicationMap(globalParamService.getGlobalParams());
+		
+		
+		Map<String, Object> map = new LinkedHashMap<>();
+		try (InputStream keyStream = DaoConfig.class.getClassLoader().getResourceAsStream("spring.properties")) {
+
+			Properties keys = new Properties();
+			keys.load(keyStream);
+
+			map = new HashMap(keys);
+			
+		} catch (IOException exception) {
+			LOGGER.error("REGISTRATION - REDIRECTLOGIN - BASE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+		} 
+		
+		map.putAll(globalParamService.getGlobalParams());
+	
+		
+		
+		ApplicationContext.setApplicationMap(map);
 	}
 
 	/**

@@ -39,7 +39,7 @@ public class ApplicationContext {
 
 	private List<String> mandatoryLanguages;
 	private List<String> optionalLanguages;
-
+	
 	public List<String> getMandatoryLanguages() {
 		return mandatoryLanguages;
 	}

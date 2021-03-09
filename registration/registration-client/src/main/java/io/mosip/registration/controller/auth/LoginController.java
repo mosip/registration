@@ -299,7 +299,7 @@ public class LoginController extends BaseController implements Initializable {
 		applicationContext.setOptionalLanguages(baseService.getOptionalLanguages());
 		
 		ApplicationContext.loadResources();
-
+		
 		try {
 			LOGGER.info(LoggerConstants.LOG_REG_LOGIN, APPLICATION_NAME, APPLICATION_ID, "Retrieve Login mode");
 
@@ -313,18 +313,18 @@ public class LoginController extends BaseController implements Initializable {
 
 			hasUpdate = RegistrationConstants.ENABLE.equalsIgnoreCase(
 					getValueFromApplicationContext(RegistrationConstants.IS_SOFTWARE_UPDATE_AVAILABLE));
-			if (hasUpdate) {
-
-				// Update Application
-				headerController.softwareUpdate(loginRoot, progressIndicator, RegistrationUIConstants.UPDATE_LATER,
-						isInitialSetUp);
-
-			} else if (!isInitialSetUp) {
-				executePreLaunchTask(loginRoot, progressIndicator);
-
-				jobConfigurationService.startScheduler();
-
-			}
+//			if (hasUpdate) {
+//
+//				// Update Application
+//				headerController.softwareUpdate(loginRoot, progressIndicator, RegistrationUIConstants.UPDATE_LATER,
+//						isInitialSetUp);
+//
+//			} else if (!isInitialSetUp) {
+//				executePreLaunchTask(loginRoot, progressIndicator);
+//
+//				jobConfigurationService.startScheduler();
+//
+//			}
 
 		} catch (IOException ioException) {
 
@@ -427,6 +427,8 @@ public class LoginController extends BaseController implements Initializable {
 	@SuppressWarnings("unchecked")
 	public void validateUserId(ActionEvent event) {
 
+		
+		loadUIElementsFromSchema();
 		auditFactory.audit(AuditEvent.LOGIN_AUTHENTICATE_USER_ID, Components.LOGIN,
 				userId.getText().isEmpty() ? "NA" : userId.getText(),
 				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
