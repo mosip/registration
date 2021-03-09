@@ -5,6 +5,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -19,16 +20,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Timer;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-
-import io.mosip.registration.exception.PreConditionCheckException;
-import io.mosip.registration.service.BaseService;
-import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
-import io.mosip.registration.util.restclient.AuthTokenUtilService;
 
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +39,7 @@ import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.StringUtils;
 import io.mosip.registration.audit.AuditManagerService;
 import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.config.DaoConfig;
 import io.mosip.registration.constants.LoggerConstants;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
@@ -67,6 +65,7 @@ import io.mosip.registration.dto.biometric.BiometricInfoDTO;
 import io.mosip.registration.dto.biometric.FaceDetailsDTO;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.dto.response.SchemaDto;
+import io.mosip.registration.exception.PreConditionCheckException;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.scheduler.SchedulerUtil;
 import io.mosip.registration.service.BaseService;
@@ -97,7 +96,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -110,7 +108,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Screen;
@@ -582,7 +579,26 @@ public class BaseController {
 	 *
 	 */
 	protected void getGlobalParams() {
-		ApplicationContext.setApplicationMap(globalParamService.getGlobalParams());
+		
+		
+		Map<String, Object> map = new LinkedHashMap<>();
+		try (InputStream keyStream = DaoConfig.class.getClassLoader().getResourceAsStream("spring.properties")) {
+
+			Properties keys = new Properties();
+			keys.load(keyStream);
+
+			map = new HashMap(keys);
+			
+		} catch (IOException exception) {
+			LOGGER.error("REGISTRATION - REDIRECTLOGIN - BASE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+		} 
+		
+		map.putAll(globalParamService.getGlobalParams());
+	
+		
+		
+		ApplicationContext.setApplicationMap(map);
 	}
 
 	/**

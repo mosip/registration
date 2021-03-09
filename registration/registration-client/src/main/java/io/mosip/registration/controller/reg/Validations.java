@@ -224,7 +224,7 @@ public class Validations extends BaseController {
 			if (uiSchemaDTO != null) {
 				if (requiredFieldValidator.isRequiredField(uiSchemaDTO, getRegistrationDTOFromSession())
 						&& !isMandatoryFieldFilled(parentPane, uiSchemaDTO, node, node.getText())) {
-					generateInvalidValueAlert(parentPane, id, getFromLabelMap(label).concat(RegistrationConstants.SPACE)
+					generateInvalidValueAlert(parentPane, id, getFromLabelMap(label+langCode).concat(RegistrationConstants.SPACE)
 							.concat(messageBundle.getString(RegistrationConstants.REG_LGN_001)), showAlert);
 					if (isPreviousValid && !id.contains(RegistrationConstants.ON_TYPE)) {
 						addInvalidInputStyleClass(parentPane, node, true);

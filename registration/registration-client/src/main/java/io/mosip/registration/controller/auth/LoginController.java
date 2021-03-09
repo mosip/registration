@@ -247,12 +247,13 @@ public class LoginController extends BaseController implements Initializable {
 			appLanguage.getSelectionModel()
 					.select(ApplicationLanguages.getLanguageByLangCode(ApplicationContext.applicationLanguage()));
 
-			RegistrationUIConstants.setBundle();
 			appLanguage.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
 				if (!oldValue.equalsIgnoreCase(newValue)) {
 					userName = userId.getText();
 					ApplicationContext.getInstance()
 							.setApplicationLanguage(ApplicationLanguages.getLangCodeByLanguage(newValue));
+					RegistrationUIConstants.setBundle();
+
 					loadInitialScreen(getStage());
 				}
 			});
@@ -319,7 +320,7 @@ public class LoginController extends BaseController implements Initializable {
 		 */
 		ApplicationContext.loadResources();
 
-		RegistrationUIConstants.setBundle();
+//		RegistrationUIConstants.setBundle();
 
 		try {
 
@@ -335,18 +336,18 @@ public class LoginController extends BaseController implements Initializable {
 
 			hasUpdate = RegistrationConstants.ENABLE.equalsIgnoreCase(
 					getValueFromApplicationContext(RegistrationConstants.IS_SOFTWARE_UPDATE_AVAILABLE));
-			if (hasUpdate) {
-
-				// Update Application
-				headerController.softwareUpdate(loginRoot, progressIndicator, RegistrationUIConstants.UPDATE_LATER,
-						isInitialSetUp);
-
-			} else if (!isInitialSetUp) {
-				executePreLaunchTask(loginRoot, progressIndicator);
-
-				jobConfigurationService.startScheduler();
-
-			}
+//			if (hasUpdate) {
+//
+//				// Update Application
+//				headerController.softwareUpdate(loginRoot, progressIndicator, RegistrationUIConstants.UPDATE_LATER,
+//						isInitialSetUp);
+//
+//			} else if (!isInitialSetUp) {
+//				executePreLaunchTask(loginRoot, progressIndicator);
+//
+//				jobConfigurationService.startScheduler();
+//
+//			}
 
 		} catch (IOException ioException) {
 
@@ -449,6 +450,8 @@ public class LoginController extends BaseController implements Initializable {
 	@SuppressWarnings("unchecked")
 	public void validateUserId(ActionEvent event) {
 
+		
+		loadUIElementsFromSchema();
 		auditFactory.audit(AuditEvent.LOGIN_AUTHENTICATE_USER_ID, Components.LOGIN,
 				userId.getText().isEmpty() ? "NA" : userId.getText(),
 				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());

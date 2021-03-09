@@ -39,10 +39,8 @@ public class ApplicationContext {
 	/** The application languge. */
 	private String applicationLanguge;
 
-	@Value("${mosip.mandatory-languages}")
 	private String mandatoryLanguages;
 
-	@Value("${mosip.optional-languages}")
 	private String optionalLanguages;
 
 	private static Map<String, ResourceBundle> resourceBundleMap = new HashMap<>();
@@ -93,6 +91,10 @@ public class ApplicationContext {
 	 * 
 	 */
 	public void loadResourceBundle() {
+		mandatoryLanguages = (String) applicationMap.get("mosip.mandatory-languages");
+
+		optionalLanguages = (String) applicationMap.get("mosip.optional-languages");
+
 		try {
 			if (applicationLanguge == null) {
 				List<String> langList = Arrays

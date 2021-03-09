@@ -19,7 +19,7 @@ public class RegistrationUIConstants {
 
 	// Key values to read value from messages.properties file
 
-	public static ResourceBundle bundle;
+	public static ResourceBundle bundle = ApplicationContext.getInstance().getApplicationLanguageMessagesBundle();
 
 	public static void setBundle() {
 
