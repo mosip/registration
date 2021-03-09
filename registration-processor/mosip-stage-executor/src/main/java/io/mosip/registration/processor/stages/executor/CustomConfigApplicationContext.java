@@ -10,7 +10,7 @@ import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.support.ResourcePropertySource;
 
-public final class CustomConfigApplicationContext extends AnnotationConfigApplicationContext {
+final class CustomConfigApplicationContext extends AnnotationConfigApplicationContext {
 	
 	private static final String UNABLE_TO_LOAD_CONFIG = "Unable to load config: ";
 	private static final String PROP_CONFIG_FOLDER = "config.folder";
