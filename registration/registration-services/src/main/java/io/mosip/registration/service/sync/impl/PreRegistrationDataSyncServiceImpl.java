@@ -110,58 +110,49 @@ public class PreRegistrationDataSyncServiceImpl extends BaseService implements P
 	public ResponseDTO getPreRegistrationIds(@NonNull String syncJobId) {
 		LOGGER.info("Fetching Pre-Registration Id's started, syncJobId : {}", syncJobId);
 		ResponseDTO responseDTO = new ResponseDTO();
+		boolean noRecordsError = false;
 
 		try {
 			//Precondition check, proceed only if met, otherwise throws exception
 			proceedWithMasterAndKeySync(syncJobId);
 
 			/* REST call to get Pre Registartion Id's */
-			String response = (String) serviceDelegateUtil.post(RegistrationConstants.GET_PRE_REGISTRATION_IDS,
+			LinkedHashMap<String, Object> response = (LinkedHashMap<String, Object>) serviceDelegateUtil.post(RegistrationConstants.GET_PRE_REGISTRATION_IDS,
 					prepareDataSyncRequestDTO(), syncJobId);
 
 			MainResponseDTO<PreRegistrationIdsDTO> mainResponseDTO = new ObjectMapper()
-					.readValue(response, new TypeReference<MainResponseDTO<PreRegistrationIdsDTO>>(){});
+					.convertValue(response, new TypeReference<MainResponseDTO<PreRegistrationIdsDTO>>(){});
 
 			//pre-rids received
-			if (mainResponseDTO.getResponse() != null) {
+			if (mainResponseDTO != null && mainResponseDTO.getResponse() != null) {
 				PreRegistrationIdsDTO preRegistrationIdsDTO = new ObjectMapper().readValue(
 						new JSONObject(mainResponseDTO.getResponse()).toString(), PreRegistrationIdsDTO.class);
 				Map<String, String> preRegIds = (Map<String, String>) preRegistrationIdsDTO.getPreRegistrationIds();
-				getPreRegistrationPackets(syncJobId, responseDTO, preRegIds);
+				getPreRegistrationPackets(preRegIds);
+				LOGGER.info("Fetching Pre-Registration data ended successfully");
 				return responseDTO;
 			}
 
-			if(mainResponseDTO != null && mainResponseDTO.getErrors() != null) {
-				//TODO - based on error code instead of error message
-				boolean noRecords = mainResponseDTO.getErrors()
-						.stream().anyMatch(e -> e.getMessage() != null &&
-						e.getMessage().equalsIgnoreCase("Record not found for date range and reg center id"));
-
-				return noRecords ? setSuccessResponse(responseDTO, RegistrationConstants.PRE_REG_SUCCESS_MESSAGE, null) :
-						setErrorResponse(responseDTO, RegistrationConstants.PRE_REG_TO_GET_ID_ERROR, null);
+			if(mainResponseDTO != null && mainResponseDTO.getErrors() != null &&
+					mainResponseDTO.getErrors().stream().anyMatch(e -> e.getErrorCode() != null && e.getErrorCode().equals("PRG_BOOK_RCI_032"))) {
+				return setSuccessResponse(responseDTO, RegistrationConstants.PRE_REG_SUCCESS_MESSAGE, null);
 			}
 
 		} catch (HttpClientErrorException | ResourceAccessException | HttpServerErrorException
 				| RegBaseCheckedException | java.io.IOException exception) {
 			LOGGER.error("PRE_REGISTRATION_DATA_SYNC", exception);
-			setErrorResponse(responseDTO, RegistrationConstants.PRE_REG_TO_GET_ID_ERROR, null);
 		}
 
-
-		LOGGER.info("REGISTRATION - PRE_REGISTRATION_DATA_SYNC - PRE_REGISTRATION_DATA_SYNC_SERVICE_IMPL",
-				RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"Fetching Pre-Registration Id's ended");
+		setErrorResponse(responseDTO, RegistrationConstants.PRE_REG_TO_GET_ID_ERROR, null);
 		return responseDTO;
 	}
 
 	/**
 	 * Gets the pre registration packets.
 	 *
-	 * @param syncJobId   the sync job id
-	 * @param responseDTO the response DTO
 	 * @param preRegIds   the pre-registration id's
 	 */
-	private void getPreRegistrationPackets(String syncJobId, ResponseDTO responseDTO, Map<String, String> preRegIds) {
+	private void getPreRegistrationPackets(Map<String, String> preRegIds) {
 		LOGGER.info("Fetching Pre-Registration ID's in parallel mode started");
 		/* Get Packets Using pre registration ID's */
 		for (Entry<String, String> preRegDetail : preRegIds.entrySet()) {
@@ -169,7 +160,8 @@ public class PreRegistrationDataSyncServiceImpl extends BaseService implements P
 				executorServiceForPreReg.execute(
 						new Runnable() {
 							public void run() {
-								preRegDetail.setValue(preRegDetail.getValue().contains("Z") ? preRegDetail.getValue() : preRegDetail.getValue() + "Z");
+								//TODO - Need to inform pre-reg team to correct date format
+								preRegDetail.setValue(preRegDetail.getValue().endsWith("Z") ? preRegDetail.getValue() : preRegDetail.getValue() + "Z");
 								getPreRegistration(preRegDetail.getKey(), Timestamp.from(Instant.parse(preRegDetail.getValue())));
 							}
 						}
@@ -221,8 +213,7 @@ public class PreRegistrationDataSyncServiceImpl extends BaseService implements P
 			}
 
 			if(lastUpdatedTimeStamp == null ||
-					preRegistration.getLastUpdatedPreRegTimeStamp().after(lastUpdatedTimeStamp) ||
-					!preRegistration.getLastUpdatedPreRegTimeStamp().before(lastUpdatedTimeStamp)) {
+					preRegistration.getLastUpdatedPreRegTimeStamp().before(lastUpdatedTimeStamp)) {
 				LOGGER.info("Pre-Registration ID is not up-to-date downloading {}", preRegistrationId);
 				return downloadAndSavePacket(preRegistration, preRegistrationId, lastUpdatedTimeStamp);
 			}
@@ -239,10 +230,10 @@ public class PreRegistrationDataSyncServiceImpl extends BaseService implements P
 		requestParamMap.put(RegistrationConstants.PRE_REGISTRATION_ID, preRegistrationId);
 		LOGGER.debug("Downloading pre-reg packet {}", requestParamMap);
 
-		String response = (String) serviceDelegateUtil.get(RegistrationConstants.GET_PRE_REGISTRATION,
+		LinkedHashMap<String, Object> response = (LinkedHashMap<String, Object>) serviceDelegateUtil.get(RegistrationConstants.GET_PRE_REGISTRATION,
 				requestParamMap, true,	RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
-		MainResponseDTO<PreRegArchiveDTO> mainResponseDTO = new ObjectMapper().readValue(new ObjectMapper().writeValueAsString(
-				response), new TypeReference<MainResponseDTO<PreRegArchiveDTO>>() {});
+		MainResponseDTO<PreRegArchiveDTO> mainResponseDTO = new ObjectMapper()
+				.convertValue(response, new TypeReference<MainResponseDTO<PreRegArchiveDTO>>() {});
 
 		//successfully downloaded pre-reg packet
 		if(mainResponseDTO.getResponse() != null && mainResponseDTO.getResponse().getZipBytes() != null) {
@@ -274,87 +265,6 @@ public class PreRegistrationDataSyncServiceImpl extends BaseService implements P
 		return preRegistration;
 	}
 
-	private boolean isUpdated(Timestamp lastUpdatedTimeStamp, PreRegistrationList preRegistration, boolean isUpdated) {
-		if (isPacketUpdatedInServer(preRegistration)) {
-
-			isUpdated = (preRegistration.getLastUpdatedPreRegTimeStamp().equals(lastUpdatedTimeStamp));
-		}
-		return isUpdated;
-	}
-
-	/**
-	 * Checks if is packet not available.
-	 *
-	 * @param preRegistration the pre registration
-	 * @param isOnline        the is online
-	 * @return true, if is packet not available
-	 */
-	private boolean isPacketNotAvailable(PreRegistrationList preRegistration, boolean isOnline) {
-		return !isOnline && preRegistration == null;
-	}
-
-	/**
-	 * Checks if is packet from local.
-	 *
-	 * @param preRegistration the pre registration
-	 * @param decryptedPacket the decrypted packet
-	 * @return true, if is packet from local
-	 */
-	private boolean isPacketFromLocal(PreRegistrationList preRegistration, byte[] decryptedPacket) {
-		return preRegistration != null && decryptedPacket == null;
-	}
-
-	/**
-	 * Checks if is packet updated in server.
-	 *
-	 * @param preRegistration the pre registration
-	 * @return true, if is packet updated in server
-	 */
-	private boolean isPacketUpdatedInServer(PreRegistrationList preRegistration) {
-		return preRegistration != null && preRegistration.getLastUpdatedPreRegTimeStamp() != null;
-	}
-
-	/**
-	 * Checks if is fetch to be triggered.
-	 *
-	 * @param isOnline  the is online
-	 * @param isUpdated the is updated
-	 * @param isJob     the is job
-	 * @return true, if is fetch to be triggered
-	 */
-	private boolean isFetchToBeTriggered(boolean isOnline, boolean isUpdated, boolean isJob) {
-		return isOnline && (!isUpdated || !isJob);
-	}
-
-	/**
-	 * Gets the trigger point.
-	 *
-	 * @param isJob the is job
-	 * @return the trigger point
-	 */
-	private String getTriggerPoint(boolean isJob) {
-		return isJob ? RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM : getUserIdFromSession();
-	}
-
-	/**
-	 * Checks if is response not empty.
-	 *
-	 * @param mainResponseDTO the main response DTO
-	 * @return true, if is response not empty
-	 */
-	private boolean isResponseNotEmpty(MainResponseDTO<LinkedHashMap<String, Object>> mainResponseDTO) {
-		return mainResponseDTO != null && mainResponseDTO.getResponse() != null;
-	}
-
-	/**
-	 * Checks if is packet not empty.
-	 *
-	 * @param mainResponseDTO the main response DTO
-	 * @return true, if is packet not empty
-	 */
-	private boolean isPacketNotEmpty(MainResponseDTO<LinkedHashMap<String, Object>> mainResponseDTO) {
-		return isResponseNotEmpty(mainResponseDTO) && mainResponseDTO.getResponse().get("zip-bytes") != null;
-	}
 
 	/**
 	 * Sets the packet to response.
