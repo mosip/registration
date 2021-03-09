@@ -45,16 +45,9 @@ public class PacketClassifierStage extends MosipVerticleAPIManager {
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
 
-	/** server port number on which REST APIs are exposed */
-	@Value("${mosip.regproc.packet.classifier.server.port}")
-	private String port;
-
 	/** worker pool size is the maximum number of worker threads that will be used by the Vert.x instance */
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
-
-	@Value("${mosip.regproc.packet.classifier.eventbus.port}")
-	private String eventBusPort;
 
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
@@ -72,14 +65,9 @@ public class PacketClassifierStage extends MosipVerticleAPIManager {
 	public void start(){
 		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), 
 			MessageBusAddress.PACKET_CLASSIFIER_BUS_IN, MessageBusAddress.PACKET_CLASSIFIER_BUS_OUT));
-		this.createServer(router.getRouter(), Integer.parseInt(port));
+		this.createServer(router.getRouter(), getPort());
 	}
 
-	@Override
-	public Integer getEventBusPort() {
-		return Integer.parseInt(eventBusPort);
-	}
-	
 	/*
 	 * (non-Javadoc)
 	 *

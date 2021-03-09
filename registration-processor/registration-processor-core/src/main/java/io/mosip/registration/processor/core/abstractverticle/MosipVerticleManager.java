@@ -73,8 +73,12 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 
 	@Value("${mosip.regproc.eventbus.type:vertx}")
 	private String eventBusType;
+	
+	/** server port number on which REST APIs are exposed */
+	@Value("${${server.port.property.name}}")
+	private String port;
 
-	@Value("${eventbus.port}")
+	@Value("${${eventbus.port.property.name}}")
 	private String eventBusPort;
 
 	@Value("${mosip.regproc.message.tag.loading.disable:false}")
@@ -209,6 +213,10 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 
 	public Integer getEventBusPort() {
 		return Integer.parseInt(eventBusPort);
+	}
+	
+	public Integer getPort() {
+		return Integer.parseInt(port);
 	}
 
 	public String getEventBusType() {
