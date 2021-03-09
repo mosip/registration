@@ -30,6 +30,7 @@ import io.mosip.registration.processor.stages.executor.config.StagesConfig;
  */
 public class MosipStageExecutorApplication {
 
+	private static final String PROPERTIES_FILE_EXTN = ".properties";
 	private static final Logger regProcLogger = LoggerFactory.getLogger(MosipStageExecutorApplication.class);
 
 	/**
@@ -87,19 +88,19 @@ public class MosipStageExecutorApplication {
 
 	}
 	
-	public static CustomEnvironment createCustomEnvironment(String configFolder) {
+	public static CustomEnvironment createCustomEnvironment(String configFolderPath) {
 		CustomEnvironment newEnv = new CustomEnvironment();
 		MutablePropertySources propSources = new MutablePropertySources();
 		
-		FileSystemResource[] fileSystemResource = new FileSystemResource[] {
-				new FileSystemResource(new File(configFolder + "/bootstrap.properties")), new FileSystemResource(
-						new File(configFolder + "/registration-processor-packet-classifier-stage.properties")) };
-		Stream.of(fileSystemResource)
+		Stream.of(new File(configFolderPath).listFiles())
+				.filter(File::isFile)
+				.filter(file -> file.getName().toLowerCase().endsWith(PROPERTIES_FILE_EXTN))
+				.map(file -> new FileSystemResource(new File(configFolderPath + "/" + file.getName())))
 				.forEach(res -> {
 					try {
 						propSources.addFirst(new ResourcePropertySource(res));
 					} catch (IOException e) {
-						throw new RuntimeException("Unable to load config");
+						throw new RuntimeException("Unable to load config: " + res.getPath());
 					}
 				});
 		
