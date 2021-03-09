@@ -22,15 +22,8 @@ public class StagesConfig {
 	@Value("${mosip.regproc.stageClasses}")
 	private String[] stageClasses;
 	
-	@Value("${config.folder}")
-	private String configFolder;
-	
 	public List<String> getStageClasses() {
 		return Arrays.asList(stageClasses);
 	}
-	
-	public String getConfigFolder() {
-		return configFolder;
-	}
-	
+		
 }
