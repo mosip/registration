@@ -19,6 +19,7 @@ import org.slf4j.MDC;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hazelcast.config.Config;
@@ -77,12 +78,8 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	@Value("${mosip.regproc.eventbus.type:vertx}")
 	private String eventBusType;
 
-	/** server port number on which REST APIs are exposed */
-	@Value("${${server.port.property.name}}")
-	private String port;
-
-	@Value("${${eventbus.port.property.name}}")
-	private String eventBusPort;
+	@Autowired
+	private Environment env;
 
 	@Value("${mosip.regproc.message.tag.loading.disable:false}")
 	private Boolean disableTagLoading;
@@ -228,11 +225,11 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	}
 
 	public Integer getEventBusPort() {
-		return Integer.parseInt(eventBusPort);
+		return Integer.parseInt(env.getProperty(getPropertyPrefix() + "eventbus.port"));
 	}
 
 	public Integer getPort() {
-		return Integer.parseInt(port);
+		return Integer.parseInt(env.getProperty(getPropertyPrefix() + "server.port"));
 	}
 
 	public String getEventBusType() {
@@ -297,6 +294,10 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 				ExceptionUtils.getStackTrace(e));
 			return true;
 		}
+	}
+
+	protected String getPropertyPrefix() {
+		return "";
 	}
 
 }
