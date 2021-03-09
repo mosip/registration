@@ -70,18 +70,13 @@ public class MosipStageExecutorApplication {
 	}
 
 	private static MosipVerticleAPIManager getStageBean(AnnotationConfigApplicationContext mainApplicationContext,
-			Class<?> stageBeanClass) throws Exception {
+			Class<MosipVerticleAPIManager> stageBeanClass) throws Exception {
 		try {
-			if (MosipVerticleAPIManager.class.isAssignableFrom(stageBeanClass)) {
 				Object bean = mainApplicationContext.getBean(stageBeanClass);
 				MosipVerticleAPIManager stageBean = (MosipVerticleAPIManager) bean;
 				regProcLogger.info("Successfully loaded Bean : " + stageBeanClass.getCanonicalName());
 				return stageBean;
-			} else {
-				regProcLogger.error("Unable to load Bean : " + stageBeanClass.getCanonicalName());
-				throw new Exception("Invalid config");
-			}
-		} catch (BeansException | ClassNotFoundException e) {
+		} catch (BeansException e) {
 			throw e;
 		}
 	}
