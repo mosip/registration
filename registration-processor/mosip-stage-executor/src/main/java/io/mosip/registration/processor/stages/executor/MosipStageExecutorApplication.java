@@ -21,7 +21,6 @@ import org.springframework.core.io.support.ResourcePropertySource;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
-import io.mosip.registration.processor.stages.executor.config.CustomEnvironment;
 import io.mosip.registration.processor.stages.executor.config.StagesConfig;
 
 /**
