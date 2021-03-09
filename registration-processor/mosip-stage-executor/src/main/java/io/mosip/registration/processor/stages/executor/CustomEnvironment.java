@@ -1,4 +1,4 @@
-package io.mosip.registration.processor.stages.executor.config;
+package io.mosip.registration.processor.stages.executor;
 
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.StandardEnvironment;
