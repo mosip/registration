@@ -3,7 +3,7 @@ package io.mosip.registration.processor.stages.executor;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.StandardEnvironment;
 
-public class CustomEnvironment extends StandardEnvironment{
+class CustomEnvironment extends StandardEnvironment{
 	
 	private MutablePropertySources propertySources = new MutablePropertySources();
 	

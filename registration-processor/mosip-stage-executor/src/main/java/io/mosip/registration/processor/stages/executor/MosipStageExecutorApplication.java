@@ -1,7 +1,5 @@
 package io.mosip.registration.processor.stages.executor;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -12,12 +10,7 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.MutablePropertySources;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.support.ResourcePropertySource;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
@@ -29,7 +22,6 @@ import io.mosip.registration.processor.stages.executor.config.StagesConfig;
  */
 public class MosipStageExecutorApplication {
 
-	private static final String PROPERTIES_FILE_EXTN = ".properties";
 	private static final Logger regProcLogger = LoggerFactory.getLogger(MosipStageExecutorApplication.class);
 
 	/**
@@ -39,7 +31,7 @@ public class MosipStageExecutorApplication {
 	 */
 	public static void main(String[] args) {
 		regProcLogger.info("Starting mosip-stage-executor>>>>>>>>>>>>>>");
-		try (AnnotationConfigApplicationContext stageInfoApplicationContext = new AnnotationConfigApplicationContext(
+		try (AnnotationConfigApplicationContext stageInfoApplicationContext = new CustomConfigApplicationContext(
 				StagesConfig.class);) {
 			StagesConfig stagesConfig = stageInfoApplicationContext.getBean(StagesConfig.class);
 			@SuppressWarnings("unchecked")
@@ -52,30 +44,12 @@ public class MosipStageExecutorApplication {
 							throw new RuntimeException("Invalid config");
 						}
 					}).filter(Objects::nonNull).collect(Collectors.toList());
-			
-			Class<?>[] entrypointConfigClasses = Stream
-					.concat(Stream.of(StagesConfig.class), stageClasses.stream())
-					.toArray(size -> new Class<?>[size]);
-			
-			final String configFolder = stagesConfig.getConfigFolder();
-			// This needs to be anonymous class only. Should not be converted to inner
-			// class, because, the configFolder variable needs to be consumed during
-			// the initialization of the superclass constructor itself where the
-			// createEnvironment() method is invoked.
-			try (AnnotationConfigApplicationContext mainApplicationContext = new AnnotationConfigApplicationContext(
-					entrypointConfigClasses) {
-				
-				protected ConfigurableEnvironment createEnvironment() {
-					ConfigurableEnvironment environment = super.createEnvironment();
-					environment.merge(createCustomEnvironment(configFolder));
-					return environment;
-				}
 
-				protected void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
-					System.out.println(beanFactory);
-				}
-				
-			};) {
+			Class<?>[] entrypointConfigClasses = Stream.concat(Stream.of(StagesConfig.class), stageClasses.stream())
+					.toArray(size -> new Class<?>[size]);
+
+			try (AnnotationConfigApplicationContext mainApplicationContext = new CustomConfigApplicationContext(
+					entrypointConfigClasses);) {
 				if (!stageClasses.isEmpty()) {
 					ExecutorService executorService = Executors.newFixedThreadPool(stageClasses.size());
 					stageClasses.forEach(stageClass -> executorService.execute(() -> {
@@ -93,26 +67,6 @@ public class MosipStageExecutorApplication {
 			}
 		}
 
-	}
-	
-	public static CustomEnvironment createCustomEnvironment(String configFolderPath) {
-		CustomEnvironment newEnv = new CustomEnvironment();
-		MutablePropertySources propSources = new MutablePropertySources();
-		
-		Stream.of(new File(configFolderPath).listFiles())
-				.filter(File::isFile)
-				.filter(file -> file.getName().toLowerCase().endsWith(PROPERTIES_FILE_EXTN))
-				.map(file -> new FileSystemResource(new File(configFolderPath + "/" + file.getName())))
-				.forEach(res -> {
-					try {
-						propSources.addFirst(new ResourcePropertySource(res));
-					} catch (IOException e) {
-						throw new RuntimeException("Unable to load config: " + res.getPath());
-					}
-				});
-		
-		newEnv.customizePropertySources(propSources);
-		return newEnv;
 	}
 
 	private static MosipVerticleAPIManager getStageBean(AnnotationConfigApplicationContext mainApplicationContext,
