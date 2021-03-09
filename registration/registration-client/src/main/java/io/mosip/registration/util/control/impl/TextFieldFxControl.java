@@ -65,8 +65,7 @@ public class TextFieldFxControl extends FxControl {
 		this.uiSchemaDTO = uiSchemaDTO;
 
 		this.control = this;
-
-		this.node = create(uiSchemaDTO);
+		create(uiSchemaDTO);
 		return this.control;
 	}
 
@@ -153,6 +152,8 @@ public class TextFieldFxControl extends FxControl {
 
 		/** Container holds title, fields and validation message elements */
 		VBox simpleTypeVBox = new VBox();
+
+		this.node = simpleTypeVBox;
 		simpleTypeVBox.setId(fieldName + RegistrationConstants.VBOX);
 		simpleTypeVBox.setSpacing(5);
 
@@ -174,18 +175,21 @@ public class TextFieldFxControl extends FxControl {
 			boolean isFieldReqd = this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE) ? true
 					: !isCreated;
 			if (isFieldReqd) {
+
+				VBox vBox = new VBox();
 				/** Text Field */
 				TextField textField = getTextField(fieldName + langCode, label + mandatorySuffix,
 						RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, simpleTypeVBox.getWidth(), false);
-				simpleTypeVBox.getChildren().add(textField);
+				vBox.getChildren().add(textField);
 
 				/** Validation message (Invalid/wrong,,etc,.) */
 				Label validationMessage = getLabel(fieldName + langCode + RegistrationConstants.MESSAGE, null,
 						RegistrationConstants.DemoGraphicFieldMessageLabel, false, simpleTypeVBox.getWidth());
-				simpleTypeVBox.getChildren().add(validationMessage);
-				addKeyBoard(simpleTypeVBox, validationMessage, textField, langCode);
-				changeNodeOrientation(simpleTypeVBox, langCode);
+				vBox.getChildren().add(validationMessage);
+				addKeyBoard(vBox, validationMessage, textField, langCode);
+				changeNodeOrientation(vBox, langCode);
 
+				simpleTypeVBox.getChildren().add(vBox);
 				Validations.putIntoLabelMap(fieldName + langCode, uiSchemaDTO.getLabel().get(langCode));
 
 				setListener(textField);
@@ -195,6 +199,13 @@ public class TextFieldFxControl extends FxControl {
 		}
 
 		fieldTitle.setText(labelText + mandatorySuffix);
+
+		if (!this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE)) {
+
+			TextField textField = (TextField) getField(
+					uiSchemaDTO.getId() + getRegistrationDTo().getSelectedLanguagesByApplicant().get(0));
+			textField.setPromptText(fieldTitle.getText());
+		}
 
 		return simpleTypeVBox;
 	}

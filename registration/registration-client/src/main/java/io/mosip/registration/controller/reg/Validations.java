@@ -204,18 +204,16 @@ public class Validations extends BaseController {
 				"started to validate :: " + id);
 		boolean isInputValid = true;
 		try {
-			String label = id.replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY)
-					.replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY);
 
 			boolean showAlert = (noAlert.contains(node.getId()) && id.contains(RegistrationConstants.ON_TYPE));
-			String ageDateFieldId = getAgeDateFieldId(label);
-			UiSchemaDTO uiSchemaDTO = getValidationMap().get(ageDateFieldId == null ? label : ageDateFieldId);
+
+			UiSchemaDTO uiSchemaDTO = getValidationMap().get(id);
 
 			// During lostUIN and during updateUIN & field is not part of the selection then
 			// donot do any validation
-			if (isLostUIN && !id.contains(RegistrationConstants.ON_TYPE)) {
+			if (isLostUIN) {
 				if (node.isVisible() && (node.getText() != null && !node.getText().isEmpty())) {
-					isInputValid = checkForValidValue(parentPane, node, label, node.getText(), messageBundle, showAlert,
+					isInputValid = checkForValidValue(parentPane, node, id, node.getText(), messageBundle, showAlert,
 							isPreviousValid, blackListedWords, uiSchemaDTO, langCode);
 				}
 				return isInputValid;
@@ -224,9 +222,11 @@ public class Validations extends BaseController {
 			if (uiSchemaDTO != null) {
 				if (requiredFieldValidator.isRequiredField(uiSchemaDTO, getRegistrationDTOFromSession())
 						&& !isMandatoryFieldFilled(parentPane, uiSchemaDTO, node, node.getText())) {
-					generateInvalidValueAlert(parentPane, id, getFromLabelMap(label+langCode).concat(RegistrationConstants.SPACE)
-							.concat(messageBundle.getString(RegistrationConstants.REG_LGN_001)), showAlert);
-					if (isPreviousValid && !id.contains(RegistrationConstants.ON_TYPE)) {
+					generateInvalidValueAlert(parentPane, id,
+							getFromLabelMap(id + langCode).concat(RegistrationConstants.SPACE)
+									.concat(messageBundle.getString(RegistrationConstants.REG_LGN_001)),
+							showAlert);
+					if (isPreviousValid) {
 						addInvalidInputStyleClass(parentPane, node, true);
 					}
 					isInputValid = false;
@@ -240,7 +240,7 @@ public class Validations extends BaseController {
 				}
 
 				if (node.isVisible() && (node.getText() != null && !node.getText().isEmpty())) {
-					isInputValid = checkForValidValue(parentPane, node, label, node.getText(), messageBundle, showAlert,
+					isInputValid = checkForValidValue(parentPane, node, id, node.getText(), messageBundle, showAlert,
 							isPreviousValid, blackListedWords, uiSchemaDTO, langCode);
 				}
 			}
@@ -432,6 +432,17 @@ public class Validations extends BaseController {
 	private void generateInvalidValueAlert(Pane parentPane, String id, String message, boolean showAlert) {
 		if (!showAlert)
 			generateAlert(parentPane, id, message);
+	}
+
+	public void setErrorMessage(Pane parentPane, String id, String label, String errorType, boolean showAlert,
+			ResourceBundle messageBundle) {
+		if (!showAlert) {
+
+			generateInvalidValueAlert(parentPane, id,
+					label.concat(RegistrationConstants.SPACE).concat(messageBundle.getString(errorType)), showAlert);
+
+		}
+
 	}
 
 	/**

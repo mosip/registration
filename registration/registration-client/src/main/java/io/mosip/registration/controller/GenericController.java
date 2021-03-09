@@ -398,7 +398,7 @@ public class GenericController extends BaseController {
 
 					Map<String, Object> data = new LinkedHashMap<>();
 
-					String lang = registrationController.getSelectedLangList().get(0);
+					String lang = getRegistrationDTOFromSession().getSelectedLanguagesByApplicant().get(0);
 
 					data.put(lang, masterSyncService.findLocationByHierarchyCode(val.getKey(), lang));
 
@@ -449,7 +449,7 @@ public class GenericController extends BaseController {
 
 			String previewText = "";
 			String authText = "";
-			for (String langCode : registrationController.getSelectedLangList()) {
+			for (String langCode : getRegistrationDTOFromSession().getSelectedLanguagesByApplicant()) {
 				previewText = previewText.isEmpty() ? previewText : previewText + RegistrationConstants.SLASH;
 				previewText += applicationContext.getBundle(langCode, RegistrationConstants.LABELS)
 						.getString(RegistrationConstants.previewHeader);
@@ -493,7 +493,7 @@ public class GenericController extends BaseController {
 
 		String labelText = "";
 
-		for (String langCode : registrationController.getSelectedLangList()) {
+		for (String langCode : getRegistrationDTOFromSession().getSelectedLanguagesByApplicant()) {
 
 			if (screenNames.containsKey(langCode)) {
 
@@ -594,35 +594,35 @@ public class GenericController extends BaseController {
 
 			case CONTROLTYPE_TEXTFIELD:
 				return new TextFieldFxControl().build(uiSchemaDTO);
-			case CONTROLTYPE_BIOMETRICS:
-
-				return new BiometricFxControl().build(uiSchemaDTO);
-			case CONTROLTYPE_BUTTON:
-				FxControl buttonFxControl = new ButtonFxControl().build(uiSchemaDTO);
-
-				try {
-
-					Map<String, Object> data = new LinkedHashMap<>();
-
-					String lang = registrationController.getSelectedLangList().get(0);
-
-					data.put(lang, masterSyncService.getFieldValues(uiSchemaDTO.getId(), lang));
-
-					buttonFxControl.fillData(data);
-				} catch (RegBaseCheckedException regBaseCheckedException) {
-					LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-							"Exception occured while fetching button values : " + uiSchemaDTO.getId() + " "
-									+ ExceptionUtils.getStackTrace(regBaseCheckedException));
-				}
-				return buttonFxControl;
-			case CONTROLTYPE_CHECKBOX:
-				return new CheckBoxFxControl().build(uiSchemaDTO);
-			case CONTROLTYPE_DOB:
-				return new DOBFxControl().build(uiSchemaDTO);
-			case CONTROLTYPE_DOB_AGE:
-				return new DOBAgeFxControl().build(uiSchemaDTO);
-			case CONTROLTYPE_DOCUMENTS:
-				return new DocumentFxControl().build(uiSchemaDTO);
+//			case CONTROLTYPE_BIOMETRICS:
+//
+//				return new BiometricFxControl().build(uiSchemaDTO);
+//			case CONTROLTYPE_BUTTON:
+//				FxControl buttonFxControl = new ButtonFxControl().build(uiSchemaDTO);
+//
+//				try {
+//
+//					Map<String, Object> data = new LinkedHashMap<>();
+//
+//					String lang = getRegistrationDTOFromSession().getSelectedLanguagesByApplicant().get(0);
+//
+//					data.put(lang, masterSyncService.getFieldValues(uiSchemaDTO.getId(), lang));
+//
+//					buttonFxControl.fillData(data);
+//				} catch (RegBaseCheckedException regBaseCheckedException) {
+//					LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
+//							"Exception occured while fetching button values : " + uiSchemaDTO.getId() + " "
+//									+ ExceptionUtils.getStackTrace(regBaseCheckedException));
+//				}
+//				return buttonFxControl;
+//			case CONTROLTYPE_CHECKBOX:
+//				return new CheckBoxFxControl().build(uiSchemaDTO);
+//			case CONTROLTYPE_DOB:
+//				return new DOBFxControl().build(uiSchemaDTO);
+//			case CONTROLTYPE_DOB_AGE:
+//				return new DOBAgeFxControl().build(uiSchemaDTO);
+//			case CONTROLTYPE_DOCUMENTS:
+//				return new DocumentFxControl().build(uiSchemaDTO);
 			case CONTROLTYPE_DROPDOWN:
 				FxControl fxControl = new DropDownFxControl().build(uiSchemaDTO);
 				if (uiSchemaDTO.getGroup().contains(RegistrationConstants.LOCATION)) {
@@ -641,7 +641,7 @@ public class GenericController extends BaseController {
 					Map<String, Object> data = new LinkedHashMap<>();
 					try {
 
-						String lang = registrationController.getSelectedLangList().get(0);
+						String lang = getRegistrationDTOFromSession().getSelectedLanguagesByApplicant().get(0);
 
 						data.put(lang, masterSyncService.getFieldValues(uiSchemaDTO.getId(), lang));
 
@@ -655,7 +655,7 @@ public class GenericController extends BaseController {
 				}
 
 				return fxControl;
-
+//
 			}
 		}
 
