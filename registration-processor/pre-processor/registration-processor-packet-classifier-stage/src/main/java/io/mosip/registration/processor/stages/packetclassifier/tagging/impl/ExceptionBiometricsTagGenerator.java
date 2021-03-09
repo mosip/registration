@@ -11,8 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
@@ -40,14 +40,21 @@ public class ExceptionBiometricsTagGenerator implements TagGenerator {
     public Map<String, String> generateTags(String registrationId, String process,
             Map<String, FieldDTO> idObjectFieldDTOMap, Map<String, String> metaInfoMap) throws BaseCheckedException {
         try {
-            String exceptionBiometricsString = metaInfoMap.get(JsonConstant.EXCEPTIONBIOMETRICS);
-            if(exceptionBiometricsString == null)
-                throw new BaseCheckedException(
-                    PlatformErrorMessages.RPR_PCM_EXCEPTION_BIOMETRICS_ENTRY_NOT_AVAILABLE.getCode(), 
-                    PlatformErrorMessages.RPR_PCM_EXCEPTION_BIOMETRICS_ENTRY_NOT_AVAILABLE.getMessage());
-            JSONArray metaDataJsonArray = new JSONArray(exceptionBiometricsString);
             Map<String, String> tags = new HashMap<String, String>(1);
-            if (metaDataJsonArray.length() > 0)
+            String exceptionBiometricsString = metaInfoMap.get(JsonConstant.EXCEPTIONBIOMETRICS);
+            if(exceptionBiometricsString == null) {
+                tags.put(tagName, "false");
+                return tags;
+            }
+            JSONObject exceptionBiometricsJsonObject = new JSONObject(exceptionBiometricsString);
+            if(!exceptionBiometricsJsonObject.has(JsonConstant.EXCEPTIONBIOMETRICSAPPLICANT)) {
+                tags.put(tagName, "false");
+                return tags;
+            }
+            JSONObject applicantJsonObject = exceptionBiometricsJsonObject.getJSONObject(
+                JsonConstant.EXCEPTIONBIOMETRICSAPPLICANT);
+                
+            if (applicantJsonObject != null && applicantJsonObject.length() > 0)
                 tags.put(tagName, "true");
             else
                 tags.put(tagName, "false");
