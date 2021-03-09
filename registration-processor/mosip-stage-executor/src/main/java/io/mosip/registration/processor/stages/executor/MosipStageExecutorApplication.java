@@ -43,6 +43,7 @@ public class MosipStageExecutorApplication {
 		try (AnnotationConfigApplicationContext stageInfoApplicationContext = new AnnotationConfigApplicationContext(
 				StagesConfig.class);) {
 			StagesConfig stagesConfig = stageInfoApplicationContext.getBean(StagesConfig.class);
+			@SuppressWarnings("unchecked")
 			List<Class<MosipVerticleAPIManager>> stageClasses = stagesConfig.getStageClasses().stream()
 					.map(classStr -> {
 						try {
@@ -52,14 +53,19 @@ public class MosipStageExecutorApplication {
 							throw new RuntimeException("Invalid config");
 						}
 					}).filter(Objects::nonNull).collect(Collectors.toList());
+			
 			Class<?>[] entrypointConfigClasses = Stream
 					.concat(Stream.of(StagesConfig.class), stageClasses.stream())
 					.toArray(size -> new Class<?>[size]);
+			
 			final String configFolder = stagesConfig.getConfigFolder();
+			// This needs to be anonymous class only. Should not be converted to inner
+			// class, because, the configFolder variable needs to be used consumed during
+			// the initialization of the superclass constructor itself by the createEnvironment() method.
 			try (AnnotationConfigApplicationContext mainApplicationContext = new AnnotationConfigApplicationContext(
 					entrypointConfigClasses) {
 				
-				protected org.springframework.core.env.ConfigurableEnvironment createEnvironment() {
+				protected ConfigurableEnvironment createEnvironment() {
 					ConfigurableEnvironment environment = super.createEnvironment();
 					environment.merge(createCustomEnvironment(configFolder));
 					return environment;
@@ -68,6 +74,7 @@ public class MosipStageExecutorApplication {
 				protected void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 					System.out.println(beanFactory);
 				}
+				
 			};) {
 				if (!stageClasses.isEmpty()) {
 					ExecutorService executorService = Executors.newFixedThreadPool(stageClasses.size());
@@ -106,10 +113,6 @@ public class MosipStageExecutorApplication {
 		
 		newEnv.customizePropertySources(propSources);
 		return newEnv;
-	}
-
-	private static String getPackageOfClass(String classStr) {
-		return classStr.substring(0, classStr.lastIndexOf('.'));
 	}
 
 	private static MosipVerticleAPIManager getStageBean(AnnotationConfigApplicationContext mainApplicationContext,
