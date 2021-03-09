@@ -33,6 +33,8 @@ import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIMan
 		"io.mosip.registration.processor.stages.packetclassifier.tagging.impl" })
 public class PacketClassifierStage extends MosipVerticleAPIManager {
 
+	private static final String MOSIP_REGPROC_PACKET_CLASSIFIER = "mosip.regproc.packet.classifier.";
+
 	/** Packet Classification Processor which holds the business logic of packet classification */
 	@Autowired
 	PacketClassificationProcessor packetClassificationProcessor;
@@ -79,6 +81,11 @@ public class PacketClassifierStage extends MosipVerticleAPIManager {
 	@Override
 	public MessageDTO process(MessageDTO object) {
 		return packetClassificationProcessor.process(object, this.getClass().getSimpleName());
+	}
+	
+	@Override
+	protected String getPropertyPrefix() {
+		return MOSIP_REGPROC_PACKET_CLASSIFIER;
 	}
 
 }
