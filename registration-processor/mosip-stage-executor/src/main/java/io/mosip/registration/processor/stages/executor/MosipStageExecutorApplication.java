@@ -72,10 +72,10 @@ public class MosipStageExecutorApplication {
 	private static MosipVerticleAPIManager getStageBean(AnnotationConfigApplicationContext mainApplicationContext,
 			Class<MosipVerticleAPIManager> stageBeanClass) throws Exception {
 		try {
-				Object bean = mainApplicationContext.getBean(stageBeanClass);
-				MosipVerticleAPIManager stageBean = (MosipVerticleAPIManager) bean;
-				regProcLogger.info("Successfully loaded Bean : " + stageBeanClass.getCanonicalName());
-				return stageBean;
+			Object bean = mainApplicationContext.getBean(stageBeanClass);
+			MosipVerticleAPIManager stageBean = (MosipVerticleAPIManager) bean;
+			regProcLogger.info("Successfully loaded Bean : " + stageBeanClass.getCanonicalName());
+			return stageBean;
 		} catch (BeansException e) {
 			throw e;
 		}
