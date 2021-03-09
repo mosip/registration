@@ -186,4 +186,11 @@ public interface MasterSyncDao {
 	 */
 	public String saveSyncData(SyncDataResponseDto syncDataResponseDto);
 
+	/**
+	 * @param code     location code
+	 * @param langCode language code
+	 * @return Location
+	 */
+	public Location getLocation(String code, String langCode);
+
 }
