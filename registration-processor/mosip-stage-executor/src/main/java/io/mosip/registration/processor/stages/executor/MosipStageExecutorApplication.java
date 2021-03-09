@@ -59,8 +59,9 @@ public class MosipStageExecutorApplication {
 			
 			final String configFolder = stagesConfig.getConfigFolder();
 			// This needs to be anonymous class only. Should not be converted to inner
-			// class, because, the configFolder variable needs to be used consumed during
-			// the initialization of the superclass constructor itself by the createEnvironment() method.
+			// class, because, the configFolder variable needs to be consumed during
+			// the initialization of the superclass constructor itself where the
+			// createEnvironment() method is invoked.
 			try (AnnotationConfigApplicationContext mainApplicationContext = new AnnotationConfigApplicationContext(
 					entrypointConfigClasses) {
 				
