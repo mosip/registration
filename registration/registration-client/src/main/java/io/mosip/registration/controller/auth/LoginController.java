@@ -313,18 +313,18 @@ public class LoginController extends BaseController implements Initializable {
 
 			hasUpdate = RegistrationConstants.ENABLE.equalsIgnoreCase(
 					getValueFromApplicationContext(RegistrationConstants.IS_SOFTWARE_UPDATE_AVAILABLE));
-//			if (hasUpdate) {
-//
-//				// Update Application
-//				headerController.softwareUpdate(loginRoot, progressIndicator, RegistrationUIConstants.UPDATE_LATER,
-//						isInitialSetUp);
-//
-//			} else if (!isInitialSetUp) {
-//				executePreLaunchTask(loginRoot, progressIndicator);
-//
-//				jobConfigurationService.startScheduler();
-//
-//			}
+			if (hasUpdate) {
+
+				// Update Application
+				headerController.softwareUpdate(loginRoot, progressIndicator, RegistrationUIConstants.UPDATE_LATER,
+						isInitialSetUp);
+
+			} else if (!isInitialSetUp) {
+				executePreLaunchTask(loginRoot, progressIndicator);
+
+				jobConfigurationService.startScheduler();
+
+			}
 
 		} catch (IOException ioException) {
 

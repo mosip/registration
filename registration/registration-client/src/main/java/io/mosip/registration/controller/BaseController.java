@@ -578,26 +578,7 @@ public class BaseController {
 	 *
 	 */
 	protected void getGlobalParams() {
-		
-		
-		Map<String, Object> map = new LinkedHashMap<>();
-		try (InputStream keyStream = DaoConfig.class.getClassLoader().getResourceAsStream("spring.properties")) {
-
-			Properties keys = new Properties();
-			keys.load(keyStream);
-
-			map = new HashMap(keys);
-			
-		} catch (IOException exception) {
-			LOGGER.error("REGISTRATION - REDIRECTLOGIN - BASE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
-					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
-		} 
-		
-		map.putAll(globalParamService.getGlobalParams());
-	
-		
-		
-		ApplicationContext.setApplicationMap(map);
+		ApplicationContext.setApplicationMap(globalParamService.getGlobalParams());
 	}
 
 	/**
