@@ -11,6 +11,7 @@ import io.mosip.registration.dto.mastersync.GenderDto;
 import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.mastersync.LocationDto;
 import io.mosip.registration.dto.mastersync.ReasonListDto;
+import io.mosip.registration.entity.Location;
 import io.mosip.registration.exception.RegBaseCheckedException;
 
 /**
@@ -40,12 +41,11 @@ public interface MasterSyncService {
 	 */
 	ResponseDTO getMasterSync(String masterSyncDetails, String triggerPoint) throws RegBaseCheckedException;
 
-
 	/**
 	 * Find location or region by hierarchy code.
 	 *
 	 * @param hierarchyLevel the hierarchy code
-	 * @param langCode      the lang code
+	 * @param langCode       the lang code
 	 * @return the list holds the Location data to be displayed in the UI.
 	 * @throws RegBaseCheckedException
 	 */
@@ -101,15 +101,15 @@ public interface MasterSyncService {
 	 */
 	List<GenericDto> getGenderDtls(String langCode) throws RegBaseCheckedException;
 
-
 	/**
 	 * Gets the individual type.
+	 * 
 	 * @param langCode the lang code
 	 * @return the individual type
 	 * @throws RegBaseCheckedException
 	 */
 	List<GenericDto> getIndividualType(String langCode) throws RegBaseCheckedException;
-	
+
 	/**
 	 * Gets the biometric type.
 	 *
@@ -136,4 +136,11 @@ public interface MasterSyncService {
 	 * @throws RegBaseCheckedException
 	 */
 	List<GenericDto> getFieldValues(String fieldName, String langCode) throws RegBaseCheckedException;
+
+	/**
+	 * @param code     location code
+	 * @param langCode language code
+	 * @return Location
+	 */
+	public Location getLocation(String code, String langCode);
 }

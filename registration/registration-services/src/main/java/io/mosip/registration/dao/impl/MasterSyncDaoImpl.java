@@ -326,4 +326,8 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 	public List<Location> getLocationDetails(String hierarchyName, String langCode) {
 		return locationRepository.findByIsActiveTrueAndHierarchyNameAndLangCode(hierarchyName, langCode);
 	}
+
+	public Location getLocation(String code, String langCode) {
+		return locationRepository.findByCodeAndLangCode(code, langCode);
+	}
 }

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Map.Entry;
 
 import org.springframework.context.ApplicationContext;
@@ -23,6 +24,8 @@ import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.GenericDto;
+import io.mosip.registration.dto.packetmanager.BiometricsDto;
+import io.mosip.registration.entity.Location;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.util.common.DemographicChangeActionHandler;
@@ -31,6 +34,7 @@ import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
@@ -108,11 +112,11 @@ public class DropDownFxControl extends FxControl {
 //				Label validationMessage = getLabel(fieldName + RegistrationConstants.MESSAGE, null,
 //						RegistrationConstants.DemoGraphicFieldMessageLabel, false, simpleTypeVBox.getPrefWidth());
 //				simpleTypeVBox.getChildren().add(validationMessage);
-
-				/** Validation message (Invalid/wrong,,etc,.) */
-				Label valueMessage = getLabel(fieldName + RegistrationConstants.VALUE, null,
-						RegistrationConstants.DemoGraphicFieldMessageLabel, false, simpleTypeVBox.getPrefWidth());
-				simpleTypeVBox.getChildren().add(valueMessage);
+//
+//				/** Validation message (Invalid/wrong,,etc,.) */
+//				Label valueMessage = getLabel(fieldName + RegistrationConstants.VALUE, null,
+//						RegistrationConstants.DemoGraphicFieldMessageLabel, false, simpleTypeVBox.getPrefWidth());
+//				simpleTypeVBox.getChildren().add(valueMessage);
 
 				changeNodeOrientation(simpleTypeVBox, langCode);
 				isCreated = true;
@@ -155,23 +159,42 @@ public class DropDownFxControl extends FxControl {
 		List<SimpleDto> values = new ArrayList<SimpleDto>();
 
 		String validationMessage = "";
+
+		String selectCode = appComboBox.getSelectionModel().getSelectedItem().getCode();
 		for (String langCode : registrationDTO.getSelectedLanguagesByApplicant()) {
 
-			// TODO Get value in langCode
-			GenericDto genericDto = new GenericDto();
+			String name = "";
+			if (uiSchemaDTO.getGroup().contains(RegistrationConstants.LOCATION)) {
+				Location location = masterSyncService.getLocation(selectCode, langCode);
+				name = location.getName();
+			} else {
 
-			validationMessage = validationMessage.isEmpty() ? genericDto.getName()
-					: genericDto.getName() + RegistrationConstants.SLASH;
-			SimpleDto simpleDto = new SimpleDto(langCode, genericDto.getName());
+				Optional<GenericDto> result;
+				try {
+					result = masterSyncService.getFieldValues(uiSchemaDTO.getId(), langCode).stream()
+							.filter(b -> b.getCode().equalsIgnoreCase(selectCode)).findFirst();
+					if (result.isPresent()) {
+
+						name = result.get().getName();
+					}
+				} catch (RegBaseCheckedException exception) {
+					LOGGER.info(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+							ExceptionUtils.getStackTrace(exception));
+				}
+
+			}
+
+			validationMessage = validationMessage.isEmpty() ? validationMessage
+					: validationMessage + RegistrationConstants.SLASH;
+
+			validationMessage += name;
+			SimpleDto simpleDto = new SimpleDto(langCode, name);
 			values.add(simpleDto);
 
 		}
 
-		Label valueLabel = (Label) getField(uiSchemaDTO.getId() + RegistrationConstants.VALUE);
-		valueLabel.setText(validationMessage);
-
-		valueLabel.setVisible(true);
-		valueLabel.setManaged(true);
+		appComboBox.setTooltip(new Tooltip(validationMessage));
+		appComboBox.show();
 		registrationDTO.addDemographicField(uiSchemaDTO.getId(), values);
 
 	}
@@ -196,6 +219,7 @@ public class DropDownFxControl extends FxControl {
 		fieldComboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
 			if (isValid(getField(uiSchemaDTO.getId()))) {
 
+				fieldComboBox.show();
 				FXUtils.getInstance().toggleUIField((Pane) getNode(), uiSchemaDTO.getId() + RegistrationConstants.LABEL,
 						true);
 				FXUtils.getInstance().toggleUIField((Pane) getNode(),
@@ -248,10 +272,8 @@ public class DropDownFxControl extends FxControl {
 				refreshFields();
 			} else {
 
+				fieldComboBox.setTooltip(null);
 				String langCode = getRegistrationDTo().getSelectedLanguagesByApplicant().get(0);
-				validation.setErrorMessage((Pane) node, uiSchemaDTO.getId(), uiSchemaDTO.getLabel().get(langCode),
-						RegistrationConstants.REG_LGN_001, false, io.mosip.registration.context.ApplicationContext
-								.getInstance().getBundle(langCode, RegistrationConstants.MESSAGES));
 				FXUtils.getInstance().toggleUIField((Pane) getNode(),
 						uiSchemaDTO.getId() + RegistrationConstants.MESSAGE, true);
 			}
@@ -326,6 +348,7 @@ public class DropDownFxControl extends FxControl {
 		if (comboBox != null && val != null && !val.isEmpty()) {
 			comboBox.getItems().clear();
 			comboBox.getItems().addAll(val);
+
 		}
 	}
 

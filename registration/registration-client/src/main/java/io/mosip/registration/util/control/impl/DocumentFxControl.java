@@ -4,9 +4,8 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.ResourceBundle;
 
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -61,12 +60,9 @@ public class DocumentFxControl extends FxControl {
 
 	private String CLEAR_ID = "clear";
 
-	private DemographicDetailController demographicDetailController;
-
 	public DocumentFxControl() {
 
 		org.springframework.context.ApplicationContext applicationContext = Initialization.getApplicationContext();
-		this.demographicDetailController = applicationContext.getBean(DemographicDetailController.class);
 
 		documentScanController = applicationContext.getBean(DocumentScanController.class);
 		masterSyncService = applicationContext.getBean(MasterSyncService.class);
@@ -104,8 +100,8 @@ public class DocumentFxControl extends FxControl {
 		// SCAN-BUTTON
 		hBox.getChildren().add(createScanButton(uiSchemaDTO));
 
-		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
-		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(), hBox);
+//		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
+//		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(), hBox);
 
 //		setNodeMap(nodeMap);
 
@@ -114,10 +110,10 @@ public class DocumentFxControl extends FxControl {
 
 		try {
 			fillData(masterSyncService.getDocumentCategories(uiSchemaDTO.getSubType(),
-					ApplicationContext.applicationLanguage()));
+					getRegistrationDTo().getSelectedLanguagesByApplicant().get(0)));
 		} catch (RegBaseCheckedException regBaseCheckedException) {
-			// TODO log it
-			regBaseCheckedException.printStackTrace();
+			LOGGER.error(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+					ExceptionUtils.getStackTrace(regBaseCheckedException));
 		}
 
 		return this.control;
@@ -149,7 +145,9 @@ public class DocumentFxControl extends FxControl {
 	private GridPane createScanButton(UiSchemaDTO uiSchemaDTO) {
 
 		Button scanButton = new Button();
-		scanButton.setText(RegistrationUIConstants.SCAN);
+		scanButton.setText(ApplicationContext.getInstance()
+				.getBundle(getRegistrationDTo().getSelectedLanguagesByApplicant().get(0), RegistrationConstants.LABELS)
+				.getString(RegistrationConstants.SCAN_BUTTON));
 		scanButton.setId(uiSchemaDTO.getId() + RegistrationConstants.BUTTON);
 		scanButton.getStyleClass().add(RegistrationConstants.DOCUMENT_CONTENT_BUTTON);
 		scanButton.setGraphic(new ImageView(
@@ -188,22 +186,40 @@ public class DocumentFxControl extends FxControl {
 
 		double prefWidth = simpleTypeVBox.getPrefWidth();
 
+		String labelText = "";
+		for (String lang : getRegistrationDTo().getSelectedLanguagesByApplicant()) {
+
+			ResourceBundle rb = ApplicationContext.getInstance().getBundle(lang, RegistrationConstants.LABELS);
+			String label = rb.getString(RegistrationConstants.REF_NUMBER);
+			labelText = labelText.isEmpty() ? labelText : labelText + RegistrationConstants.SLASH;
+			labelText += label;
+		}
+
 		/** Title label */
-		Label fieldTitle = getLabel(id + RegistrationConstants.DOC_TEXT_FIELD + RegistrationConstants.LABEL,
-				RegistrationUIConstants.REF_NUMBER, RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, prefWidth);
+		Label fieldTitle = getLabel(id + RegistrationConstants.DOC_TEXT_FIELD + RegistrationConstants.LABEL, labelText,
+				RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, false, prefWidth);
 
 		simpleTypeVBox.getChildren().add(fieldTitle);
 
 		/** Text Field */
-		TextField textField = getTextField(id + RegistrationConstants.DOC_TEXT_FIELD,
-				RegistrationUIConstants.REF_NUMBER, RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, prefWidth, false);
+		TextField textField = getTextField(id + RegistrationConstants.DOC_TEXT_FIELD, labelText,
+				RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, prefWidth, false);
+
+		textField.textProperty().addListener((observable, oldValue, newValue) -> {
+
+			Label label = (Label) getField(
+					uiSchemaDTO.getId() + RegistrationConstants.DOC_TEXT_FIELD + RegistrationConstants.LABEL);
+			if (textField.getText().isEmpty()) {
+				label.setVisible(false);
+			} else {
+
+				label.setVisible(true);
+			}
+		});
+
 		simpleTypeVBox.getChildren().add(textField);
 
-		if (ApplicationContext.getInstance().isPrimaryLanguageRightToLeft()) {
-
-			textField.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
-			fieldTitle.setAlignment(Pos.CENTER_RIGHT);
-		}
+		changeNodeOrientation(simpleTypeVBox, getRegistrationDTo().getSelectedLanguagesByApplicant().get(0));
 		return simpleTypeVBox;
 	}
 
@@ -218,9 +234,18 @@ public class DocumentFxControl extends FxControl {
 		VBox simpleTypeVBox = new VBox();
 		simpleTypeVBox.setId(fieldName + RegistrationConstants.VBOX);
 		simpleTypeVBox.setSpacing(5);
-		String titleText = uiSchemaDTO.getLabel().get(RegistrationConstants.PRIMARY) + mandatorySuffix;
 
-		double prefWidth = simpleTypeVBox.getPrefWidth();
+		double prefWidth = 300;
+
+		String labelText = "";
+		for (String lang : getRegistrationDTo().getSelectedLanguagesByApplicant()) {
+
+			String label = uiSchemaDTO.getLabel().get(lang);
+			labelText = labelText.isEmpty() ? labelText : labelText + RegistrationConstants.SLASH;
+			labelText += label;
+		}
+
+		String titleText = labelText + mandatorySuffix;
 
 		/** Title label */
 		Label fieldTitle = getLabel(fieldName + RegistrationConstants.LABEL, titleText,
@@ -237,10 +262,7 @@ public class DocumentFxControl extends FxControl {
 //				RegistrationConstants.DemoGraphicFieldMessageLabel, false, prefWidth);
 //		simpleTypeVBox.getChildren().add(validationMessage);
 
-		if (ApplicationContext.getInstance().isPrimaryLanguageRightToLeft()) {
-			comboBox.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
-			fieldTitle.setAlignment(Pos.CENTER_RIGHT);
-		}
+		changeNodeOrientation(simpleTypeVBox, getRegistrationDTo().getSelectedLanguagesByApplicant().get(0));
 
 		return simpleTypeVBox;
 	}
@@ -303,8 +325,8 @@ public class DocumentFxControl extends FxControl {
 							documentDto.setFormat(docType);
 							documentDto.setCategory(uiSchemaDTO.getFieldCategory());
 							documentDto.setOwner("Applicant");
-							documentDto.setValue(uiSchemaDTO.getSubType()
-									.concat(RegistrationConstants.UNDER_SCORE).concat(comboBox.getValue().getCode()));
+							documentDto.setValue(uiSchemaDTO.getSubType().concat(RegistrationConstants.UNDER_SCORE)
+									.concat(comboBox.getValue().getCode()));
 						} else {
 
 							documentDto.setDocument(byteArray);
@@ -420,10 +442,12 @@ public class DocumentFxControl extends FxControl {
 			getField(uiSchemaDTO.getId() + RegistrationConstants.LABEL).setVisible(true);
 		});
 
-		if (ApplicationContext.getInstance().isPrimaryLanguageRightToLeft()) {
-			field.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
+//		if (ApplicationContext.getInstance().isPrimaryLanguageRightToLeft()) {
+//			field.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
+//
+//		}
 
-		}
+		changeNodeOrientation(field, getRegistrationDTo().getSelectedLanguagesByApplicant().get(0));
 
 		return field;
 	}

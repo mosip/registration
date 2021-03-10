@@ -1,32 +1,33 @@
 package io.mosip.registration.util.control.impl;
 
-import java.util.LinkedHashMap;
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.context.ApplicationContext;
 
 import io.mosip.commons.packet.dto.packet.SimpleDto;
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.controller.FXUtils;
 import io.mosip.registration.controller.Initialization;
 import io.mosip.registration.controller.reg.DemographicDetailController;
-import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.GenericDto;
+import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.util.control.FxControl;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 public class ButtonFxControl extends FxControl {
@@ -48,50 +49,27 @@ public class ButtonFxControl extends FxControl {
 
 	private String buttonStyle = "button";
 
+	private MasterSyncService masterSyncService;
+
 	public ButtonFxControl() {
 		ApplicationContext applicationContext = Initialization.getApplicationContext();
 		fxUtils = FXUtils.getInstance();
 		regApplicationContext = io.mosip.registration.context.ApplicationContext.getInstance();
+		masterSyncService = applicationContext.getBean(MasterSyncService.class);
+
 	}
 
 	@Override
 	public FxControl build(UiSchemaDTO uiSchemaDTO) {
 		this.uiSchemaDTO = uiSchemaDTO;
+
 		this.control = this;
 
-		HBox hBox = new HBox();
-
-		VBox primaryLangVBox = create(uiSchemaDTO, "");
-
-		hBox.getChildren().add(primaryLangVBox);
-		HBox.setHgrow(primaryLangVBox, Priority.ALWAYS);
-
-		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
-		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(),
-				primaryLangVBox);
-
-//		if (demographicDetailController.isLocalLanguageAvailable()
-//				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
-//			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
-//
-//			Region region = new Region();
-//			HBox.setHgrow(region, Priority.ALWAYS);
-//
-//			HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
-//
-//			hBox.getChildren().addAll(region, secondaryLangVBox);
-//
-//			nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage(),
-//					secondaryLangVBox);
-//		}
-//
-//		setNodeMap(nodeMap);
-		this.node = hBox;
-
+		this.node = create(uiSchemaDTO);
 		return this.control;
 	}
 
-	private VBox create(UiSchemaDTO uiSchemaDTO, String languageType) {
+	private VBox create(UiSchemaDTO uiSchemaDTO) {
 		String fieldName = uiSchemaDTO.getId();
 
 		// Get Mandatory Astrix
@@ -99,41 +77,31 @@ public class ButtonFxControl extends FxControl {
 
 		/** Container holds title, fields and validation message elements */
 		VBox simpleTypeVBox = new VBox();
-		simpleTypeVBox.setId(fieldName + languageType + RegistrationConstants.VBOX);
-		simpleTypeVBox.setSpacing(5);
 
 		HBox hbox = new HBox();
-		hbox.setId(fieldName + languageType + RegistrationConstants.HBOX);
-
-		String titleText = (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)
-				? uiSchemaDTO.getLabel().get(RegistrationConstants.SECONDARY)
-				: uiSchemaDTO.getLabel().get(RegistrationConstants.PRIMARY)) + mandatorySuffix;
+		hbox.setId(fieldName + RegistrationConstants.HBOX);
 
 		double prefWidth = simpleTypeVBox.getPrefWidth();
 
 		/** Title label */
-		Label fieldTitle = getLabel(fieldName + languageType + RegistrationConstants.LABEL, titleText,
-				RegistrationConstants.BUTTONS_LABEL, true, prefWidth);
+		Label fieldTitle = getLabel(fieldName + RegistrationConstants.LABEL, null, RegistrationConstants.BUTTONS_LABEL,
+				true, prefWidth);
+
+		String labelText = "";
+		for (String langCode : getRegistrationDTo().getSelectedLanguagesByApplicant()) {
+
+			String label = uiSchemaDTO.getLabel().get(langCode);
+			labelText = labelText.isEmpty() ? labelText : labelText + RegistrationConstants.SLASH;
+			labelText += label;
+		}
+
+		fieldTitle.setText(labelText + mandatorySuffix);
 
 		hbox.getChildren().add(fieldTitle);
 
 		simpleTypeVBox.getChildren().add(hbox);
 
-		/** Validation message (Invalid/wrong,,etc,.) */
-		Label validationMessage = getLabel(fieldName + languageType + RegistrationConstants.MESSAGE, null,
-				RegistrationConstants.DemoGraphicFieldMessageLabel, false, prefWidth);
-		simpleTypeVBox.getChildren().add(validationMessage);
-
-		if (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
-			simpleTypeVBox.setDisable(true);
-			Validations.putIntoLabelMap(fieldName + languageType,
-					uiSchemaDTO.getLabel().get(RegistrationConstants.SECONDARY));
-		} else {
-			Validations.putIntoLabelMap(fieldName + languageType,
-					uiSchemaDTO.getLabel().get(RegistrationConstants.PRIMARY));
-		}
-
-		changeNodeOrientation(simpleTypeVBox, languageType);
+		changeNodeOrientation(simpleTypeVBox, getRegistrationDTo().getSelectedLanguagesByApplicant().get(0));
 
 		return simpleTypeVBox;
 	}
@@ -146,21 +114,39 @@ public class ButtonFxControl extends FxControl {
 
 	@Override
 	public void setData(Object data) {
-//		HBox primaryHbox = (HBox) getField(uiSchemaDTO.getId() + RegistrationConstants.HBOX);
-//		HBox secondaryHBox = (HBox) getField(
-//				uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE + RegistrationConstants.HBOX);
-//		getRegistrationDTo().addDemographicField(uiSchemaDTO.getId(), regApplicationContext.getApplicationLanguage(),
-//				getSelectedValue(primaryHbox), regApplicationContext.getLocalLanguage(),
-//				getSelectedValue(secondaryHBox));
+		HBox primaryHbox = (HBox) getField(uiSchemaDTO.getId() + RegistrationConstants.HBOX);
+
+		Button selectedButton = getSelectedButton(primaryHbox);
+
+		String code = selectedButton.getId().replaceAll(uiSchemaDTO.getId(), "");
+
+		List<SimpleDto> values = new ArrayList<SimpleDto>();
+		for (String langCode : getRegistrationDTo().getSelectedLanguagesByApplicant()) {
+
+			Optional<GenericDto> result;
+			try {
+				result = masterSyncService.getFieldValues(uiSchemaDTO.getId(), langCode).stream()
+						.filter(b -> b.getCode().equalsIgnoreCase(code)).findFirst();
+				if (result.isPresent()) {
+
+					values.add(new SimpleDto(langCode, result.get().getName()));
+				}
+			} catch (RegBaseCheckedException exception) {
+				LOGGER.info(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+						ExceptionUtils.getStackTrace(exception));
+			}
+		}
+
+		getRegistrationDTo().addDemographicField(uiSchemaDTO.getId(), values);
 	}
 
-	private String getSelectedValue(HBox hBox) {
+	private Button getSelectedButton(HBox hBox) {
 		if (hBox != null) {
 			for (Node node : hBox.getChildren()) {
 				if (node instanceof Button) {
 					Button button = (Button) node;
 					if (button.getStyleClass().contains(selectedResidence)) {
-						return button.getText();
+						return button;
 					}
 				}
 			}
@@ -173,27 +159,21 @@ public class ButtonFxControl extends FxControl {
 		if (data != null) {
 			Map<String, List<GenericDto>> val = (Map<String, List<GenericDto>>) data;
 			setItems((HBox) getField(uiSchemaDTO.getId() + RegistrationConstants.HBOX),
-					val.get(RegistrationConstants.PRIMARY), "");
-			setItems(
-					(HBox) getField(
-							uiSchemaDTO.getId() + RegistrationConstants.LOCAL_LANGUAGE + RegistrationConstants.HBOX),
-					val.get(RegistrationConstants.SECONDARY), RegistrationConstants.LOCAL_LANGUAGE);
+					val.get(getRegistrationDTo().getSelectedLanguagesByApplicant().get(0)));
 		}
 	}
 
-	private void setItems(HBox hBox, List<GenericDto> val, String languageType) {
+	private void setItems(HBox hBox, List<GenericDto> val) {
 		if (hBox != null && val != null && !val.isEmpty()) {
 			val.forEach(genericDto -> {
 				Button button = new Button(genericDto.getName());
-				button.setId(uiSchemaDTO.getId() + genericDto.getCode() + languageType);
+				button.setId(uiSchemaDTO.getId() + genericDto.getCode());
 				hBox.setSpacing(10);
 				hBox.setPadding(new Insets(10, 10, 10, 10));
 				button.getStyleClass().addAll(residence, buttonStyle);
 				hBox.getChildren().add(button);
 
-				if (!languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)) {
-					setListener(button);
-				}
+				setListener(button);
 			});
 
 		}
@@ -206,34 +186,20 @@ public class ButtonFxControl extends FxControl {
 
 	@Override
 	public boolean isValid(Node node) {
-		// TODO Auto-generated method stub
-		return false;
+		Button button = (Button) node;
+
+		return button.getStyleClass().contains(residence);
 	}
 
 	@Override
 	public void setListener(Node node) {
 		Button button = (Button) node;
 		button.addEventHandler(ActionEvent.ACTION, event -> {
-			if (button.getStyleClass().contains(residence)) {
+			if (isValid(node)) {
 				resetButtons(button);
-//				if (demographicDetailController.isLocalLanguageAvailable()
-//						&& !demographicDetailController.isAppLangAndLocalLangSame()) {
-//					Node localButton = getField(button.getId() + RegistrationConstants.LOCAL_LANGUAGE);
-//					if (localButton != null) {
-//						resetButtons((Button) localButton);
-//					}
-//				}
 				setData(null);
 			}
-			fxUtils.toggleUIField((Pane) this.node, button.getParent().getId() + RegistrationConstants.MESSAGE, false);
-//			if (demographicDetailController.isLocalLanguageAvailable()
-//					&& !demographicDetailController.isAppLangAndLocalLangSame()) {
-//				Node localButton = getField(button.getId() + RegistrationConstants.LOCAL_LANGUAGE);
-//				if (localButton != null) {
-//					fxUtils.toggleUIField((Pane) this.node,
-//							localButton.getParent().getId() + RegistrationConstants.MESSAGE, false);
-//				}
-//			}
+
 		});
 	}
 
@@ -260,8 +226,8 @@ public class ButtonFxControl extends FxControl {
 
 				for (SimpleDto simpleDto : list) {
 
-					if (simpleDto.getLanguage().equalsIgnoreCase(
-							io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage())) {
+					if (getRegistrationDTo().getSelectedLanguagesByApplicant().get(0)
+							.equalsIgnoreCase(simpleDto.getLanguage())) {
 
 						HBox appHBox = (HBox) getField(uiSchemaDTO.getId() + RegistrationConstants.HBOX);
 
@@ -274,21 +240,9 @@ public class ButtonFxControl extends FxControl {
 							}
 						}
 
-					} /*
-						 * else if (simpleDto.getLanguage().equalsIgnoreCase(
-						 * io.mosip.registration.context.ApplicationContext.getInstance().
-						 * getLocalLanguage())) {
-						 * 
-						 * HBox langHBox = (HBox) getField(uiSchemaDTO.getId() +
-						 * RegistrationConstants.LOCAL_LANGUAGE + RegistrationConstants.HBOX);
-						 * 
-						 * for (Node node : langHBox.getChildren()) {
-						 * 
-						 * if (node instanceof Button && ((Button)
-						 * node).getText().equalsIgnoreCase(simpleDto.getValue())) {
-						 * 
-						 * ((Button) node).fire(); } } }
-						 */
+						break;
+					}
+
 				}
 
 			}
