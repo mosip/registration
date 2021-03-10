@@ -17,22 +17,78 @@ import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIMan
 import io.mosip.registration.processor.stages.executor.config.StagesConfig;
 
 /**
- * External Stage application
- *
+ * The Class MosipStageExecutorApplication.
  */
 public class MosipStageExecutorApplication {
 
+	/**
+	 * The Class ExecutorConfigLoadingApplicationContext.
+	 */
+	private static final class StageExecutorConfigLoadingApplicationContext extends FolderConfigLoadingApplicationContext {
+		
+		/**
+		 * Instantiates a new executor config loading application context.
+		 *
+		 * @param annotatedClasses the annotated classes
+		 */
+		private StageExecutorConfigLoadingApplicationContext(Class<?>[] annotatedClasses) {
+			super(annotatedClasses);
+		}
+
+		/**
+		 * Gets the include file patterns.
+		 *
+		 * @return the include file patterns
+		 */
+		@Override
+		protected String[] getIncludeFilePatterns() {
+			return PATTERNS_MOSIP_STAGE_EXECUTOR_PROPERTIES;
+		}
+	}
+
+	/**
+	 * The Class StagesConfigLoadingApplicationContext.
+	 */
+	private static final class StagesConfigLoadingApplicationContext extends FolderConfigLoadingApplicationContext {
+		
+		/**
+		 * Instantiates a new stages config loading application context.
+		 *
+		 * @param annotatedClasses the annotated classes
+		 */
+		private StagesConfigLoadingApplicationContext(Class<?>[] annotatedClasses) {
+			super(annotatedClasses);
+		}
+
+		/**
+		 * Gets the exclude file patterns.
+		 *
+		 * @return the exclude file patterns
+		 */
+		protected String[] getExcludeFilePatterns() {
+			return PATTERNS_MOSIP_STAGE_EXECUTOR_PROPERTIES;
+		}
+	}
+
+	/** The Constant PATTERN_MOSIP_STAGE_EXECUTOR_PROPERTIES. */
+	private static final String PATTERN_MOSIP_STAGE_EXECUTOR_PROPERTIES = "mosip\\-stage\\-executor\\.properties";
+
+	/** The Constant PATTERNS_MOSIP_STAGE_EXECUTOR_PROPERTIES. */
+	private static final String[] PATTERNS_MOSIP_STAGE_EXECUTOR_PROPERTIES = {
+			PATTERN_MOSIP_STAGE_EXECUTOR_PROPERTIES };
+
+	/** The Constant regProcLogger. */
 	private static final Logger regProcLogger = LoggerFactory.getLogger(MosipStageExecutorApplication.class);
 
 	/**
-	 * main method to launch external stage application
-	 * 
-	 * @param args
+	 * main method to launch external stage application.
+	 *
+	 * @param args the arguments
 	 */
 	public static void main(String[] args) {
 		regProcLogger.info("Starting mosip-stage-executor>>>>>>>>>>>>>>");
-		try (AnnotationConfigApplicationContext stageInfoApplicationContext = new CustomConfigApplicationContext(
-				StagesConfig.class);) {
+		try (AnnotationConfigApplicationContext stageInfoApplicationContext = new StageExecutorConfigLoadingApplicationContext(
+				new Class<?>[] { StagesConfig.class });) {
 			StagesConfig stagesConfig = stageInfoApplicationContext.getBean(StagesConfig.class);
 			@SuppressWarnings("unchecked")
 			List<Class<MosipVerticleAPIManager>> stageClasses = stagesConfig.getStageClasses().stream()
@@ -48,7 +104,7 @@ public class MosipStageExecutorApplication {
 			Class<?>[] entrypointConfigClasses = Stream.concat(Stream.of(StagesConfig.class), stageClasses.stream())
 					.toArray(size -> new Class<?>[size]);
 
-			try (AnnotationConfigApplicationContext mainApplicationContext = new CustomConfigApplicationContext(
+			try (AnnotationConfigApplicationContext mainApplicationContext = new StagesConfigLoadingApplicationContext(
 					entrypointConfigClasses);) {
 				if (!stageClasses.isEmpty()) {
 					ExecutorService executorService = Executors.newFixedThreadPool(stageClasses.size());
@@ -69,6 +125,14 @@ public class MosipStageExecutorApplication {
 
 	}
 
+	/**
+	 * Gets the stage bean.
+	 *
+	 * @param mainApplicationContext the main application context
+	 * @param stageBeanClass         the stage bean class
+	 * @return the stage bean
+	 * @throws Exception the exception
+	 */
 	private static MosipVerticleAPIManager getStageBean(AnnotationConfigApplicationContext mainApplicationContext,
 			Class<MosipVerticleAPIManager> stageBeanClass) throws Exception {
 		try {
