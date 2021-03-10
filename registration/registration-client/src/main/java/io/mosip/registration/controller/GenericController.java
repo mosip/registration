@@ -621,8 +621,8 @@ public class GenericController extends BaseController {
 				return new DOBFxControl().build(uiSchemaDTO);
 			case CONTROLTYPE_DOB_AGE:
 				return new DOBAgeFxControl().build(uiSchemaDTO);
-//			case CONTROLTYPE_DOCUMENTS:
-//				return new DocumentFxControl().build(uiSchemaDTO);
+			case CONTROLTYPE_DOCUMENTS:
+				return new DocumentFxControl().build(uiSchemaDTO);
 			case CONTROLTYPE_DROPDOWN:
 				FxControl fxControl = new DropDownFxControl().build(uiSchemaDTO);
 				if (uiSchemaDTO.getGroup().contains(RegistrationConstants.LOCATION)) {

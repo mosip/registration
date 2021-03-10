@@ -7,6 +7,7 @@ import java.time.Period;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
+import java.util.ResourceBundle;
 import java.util.TimeZone;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -162,9 +163,12 @@ public class DateValidation extends BaseController {
 		setTextFieldStyle(parentPane, ageField, isError);
 
 		if (isError) {
-			dobMessage.setText(
-					RegistrationUIConstants.INVALID_DATE.concat(" / ").concat(RegistrationUIConstants.INVALID_AGE
-							+ getValueFromApplicationContext(RegistrationConstants.MAX_AGE)));
+
+			ResourceBundle rb = ApplicationContext.getInstance().getBundle(
+					getRegistrationDTOFromSession().getSelectedLanguagesByApplicant().get(0),
+					RegistrationConstants.MESSAGES);
+			dobMessage.setText(rb.getString(RegistrationConstants.INVALID_DATE).concat(" / ").concat(
+					rb.getString(RegistrationConstants.INVALID_AGE) + getValueFromApplicationContext(RegistrationConstants.MAX_AGE)));
 			dobMessage.setVisible(true);
 			generateAlert(parentPane, RegistrationConstants.DOB, dobMessage.getText());
 		} else {
@@ -224,7 +228,8 @@ public class DateValidation extends BaseController {
 
 				if (LocalDate.now().compareTo(date) >= 0) {
 					String dob = date.format(DateTimeFormatter.ofPattern(ApplicationContext.getDateFormat()));
-					return validation.validateSingleString(dob, fieldId, ApplicationContext.applicationLanguage());
+					return validation.validateSingleString(dob, fieldId,
+							getRegistrationDTOFromSession().getSelectedLanguagesByApplicant().get(0));
 				}
 			} catch (Exception ex) {
 				LOGGER.error(LoggerConstants.DATE_VALIDATION, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
