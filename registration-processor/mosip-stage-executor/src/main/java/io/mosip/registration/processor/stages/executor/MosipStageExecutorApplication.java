@@ -110,6 +110,7 @@ public class MosipStageExecutorApplication {
 					ExecutorService executorService = Executors.newFixedThreadPool(stageClasses.size());
 					stageClasses.forEach(stageClass -> executorService.execute(() -> {
 						try {
+							regProcLogger.info("Executing Stage: {}", stageClass.getCanonicalName());
 							MosipVerticleAPIManager stageBean = getStageBean(mainApplicationContext, stageClass);
 							stageBean.deployVerticle();
 						} catch (Exception e) {
