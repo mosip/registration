@@ -216,6 +216,7 @@ public abstract class FxControl extends Node {
 		label.setText(titleText);
 		label.getStyleClass().add(styleClass);
 		label.setVisible(isVisible);
+		label.setWrapText(true);
 		// label.setPrefWidth(prefWidth);
 		return label;
 	}

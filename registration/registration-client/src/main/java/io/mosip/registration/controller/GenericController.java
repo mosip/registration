@@ -617,10 +617,10 @@ public class GenericController extends BaseController {
 				return buttonFxControl;
 //			case CONTROLTYPE_CHECKBOX:
 //				return new CheckBoxFxControl().build(uiSchemaDTO);
-//			case CONTROLTYPE_DOB:
-//				return new DOBFxControl().build(uiSchemaDTO);
-//			case CONTROLTYPE_DOB_AGE:
-//				return new DOBAgeFxControl().build(uiSchemaDTO);
+			case CONTROLTYPE_DOB:
+				return new DOBFxControl().build(uiSchemaDTO);
+			case CONTROLTYPE_DOB_AGE:
+				return new DOBAgeFxControl().build(uiSchemaDTO);
 //			case CONTROLTYPE_DOCUMENTS:
 //				return new DocumentFxControl().build(uiSchemaDTO);
 			case CONTROLTYPE_DROPDOWN:

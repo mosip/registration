@@ -3,9 +3,7 @@
  */
 package io.mosip.registration.util.control.impl;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.ResourceBundle;
 
 import org.springframework.context.ApplicationContext;
@@ -16,10 +14,7 @@ import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.controller.FXUtils;
 import io.mosip.registration.controller.Initialization;
 import io.mosip.registration.controller.reg.DateValidation;
-import io.mosip.registration.controller.reg.DemographicDetailController;
-import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dto.UiSchemaDTO;
-import io.mosip.registration.util.common.DemographicChangeActionHandler;
 import io.mosip.registration.util.control.FxControl;
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
@@ -39,15 +34,6 @@ public class DOBAgeFxControl extends FxControl {
 	private static final Logger LOGGER = AppConfig.getLogger(DOBAgeFxControl.class);
 
 	private static String loggerClassName = "DOB Age Control Type Class";
-
-	private Validations validation;
-	private DemographicChangeActionHandler demographicChangeActionHandler;
-
-	private io.mosip.registration.context.ApplicationContext regApplicationContext;
-	private ResourceBundle localLabelBundle;
-
-	private ResourceBundle applicationLabelBundle;
-
 	private FXUtils fxUtils;
 
 	private DateValidation dateValidation;
@@ -55,14 +41,8 @@ public class DOBAgeFxControl extends FxControl {
 	public DOBAgeFxControl() {
 
 		fxUtils = FXUtils.getInstance();
-		regApplicationContext = io.mosip.registration.context.ApplicationContext.getInstance();
-//		localLabelBundle = regApplicationContext.localLanguageBundle();
-		applicationLabelBundle = regApplicationContext.getApplicationLanguageLabelBundle();
 		ApplicationContext applicationContext = Initialization.getApplicationContext();
 
-//		resourceLoader = applicationContext.getBean(ResourceLoader.class);
-		this.validation = applicationContext.getBean(Validations.class);
-		this.demographicChangeActionHandler = applicationContext.getBean(DemographicChangeActionHandler.class);
 		this.dateValidation = applicationContext.getBean(DateValidation.class);
 
 	}
@@ -74,30 +54,13 @@ public class DOBAgeFxControl extends FxControl {
 
 		this.control = this;
 
-		VBox appLangDateVBox = create(uiSchemaDTO, "");
+		VBox appLangDateVBox = create(uiSchemaDTO);
 
 		HBox hBox = new HBox();
 		hBox.setSpacing(30);
 		hBox.getChildren().add(appLangDateVBox);
 		HBox.setHgrow(appLangDateVBox, Priority.ALWAYS);
 
-		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
-		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(),
-				appLangDateVBox);
-
-//		if (demographicDetailController.isLocalLanguageAvailable()
-//				&& !demographicDetailController.isAppLangAndLocalLangSame()) {
-//			VBox secondaryLangVBox = create(uiSchemaDTO, RegistrationConstants.LOCAL_LANGUAGE);
-//
-//			HBox.setHgrow(secondaryLangVBox, Priority.ALWAYS);
-//			hBox.getChildren().add(secondaryLangVBox);
-//
-//			nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getLocalLanguage(),
-//					secondaryLangVBox);
-//
-//		}
-//
-//		setNodeMap(nodeMap);
 		this.node = hBox;
 
 		setListener(hBox);
@@ -105,7 +68,7 @@ public class DOBAgeFxControl extends FxControl {
 		return this.control;
 	}
 
-	private VBox create(UiSchemaDTO uiSchemaDTO, String languageType) {
+	private VBox create(UiSchemaDTO uiSchemaDTO) {
 
 		HBox dobHBox = new HBox();
 		dobHBox.setId(uiSchemaDTO.getId() + RegistrationConstants.HBOX);
@@ -113,21 +76,50 @@ public class DOBAgeFxControl extends FxControl {
 
 		String mandatorySuffix = getMandatorySuffix(uiSchemaDTO);
 
-		/** Add Date */
-		dobHBox.getChildren()
-				.add(addDateTextField(uiSchemaDTO, RegistrationConstants.DD, languageType, mandatorySuffix));
-		/** Add Month */
-		dobHBox.getChildren()
-				.add(addDateTextField(uiSchemaDTO, RegistrationConstants.MM, languageType, mandatorySuffix));
-		/** Add Year */
-		dobHBox.getChildren()
-				.add(addDateTextField(uiSchemaDTO, RegistrationConstants.YYYY, languageType, mandatorySuffix));
-		/** Add Age Field */
-		dobHBox.getChildren()
-				.add(addDateTextField(uiSchemaDTO, RegistrationConstants.AGE_FIELD, languageType, mandatorySuffix));
+		String langCode = getRegistrationDTo().getSelectedLanguagesByApplicant().get(0);
+		ResourceBundle resourceBundle = io.mosip.registration.context.ApplicationContext.getInstance()
+				.getBundle(langCode, RegistrationConstants.LABELS);
 
 		VBox ageVBox = new VBox();
 		ageVBox.setPrefWidth(390);
+
+		String labelText = "";
+		for (String lang : getRegistrationDTo().getSelectedLanguagesByApplicant()) {
+
+			String label = uiSchemaDTO.getLabel().get(lang);
+			labelText = labelText.isEmpty() ? labelText : labelText + RegistrationConstants.SLASH;
+			labelText += label;
+		}
+
+		/** DOB Label */
+		ageVBox.getChildren().add(getLabel(uiSchemaDTO.getId() + RegistrationConstants.LABEL,
+				labelText + mandatorySuffix, RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, ageVBox.getWidth()));
+
+		/** Add Date */
+		dobHBox.getChildren().add(addDateTextField(uiSchemaDTO, RegistrationConstants.DD,
+				resourceBundle.getString(RegistrationConstants.DD)));
+		/** Add Month */
+		dobHBox.getChildren().add(addDateTextField(uiSchemaDTO, RegistrationConstants.MM,
+				resourceBundle.getString(RegistrationConstants.MM)));
+		/** Add Year */
+		dobHBox.getChildren().add(addDateTextField(uiSchemaDTO, RegistrationConstants.YYYY,
+				resourceBundle.getString(RegistrationConstants.YYYY)));
+
+//		/** OR Label */
+//		dobHBox.getChildren()
+//				.add(getLabel(uiSchemaDTO.getId() + RegistrationConstants.LABEL,
+//						resourceBundle.getString("ageOrDOBField"), RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true,
+//						ageVBox.getWidth()));
+
+		/** Add Age Field */
+		dobHBox.getChildren().add(addDateTextField(uiSchemaDTO, RegistrationConstants.AGE_FIELD,
+				resourceBundle.getString(RegistrationConstants.AGE_FIELD)));
+
+//		/** YEARS Label */
+//		dobHBox.getChildren()
+//				.add(getLabel(uiSchemaDTO.getId() + RegistrationConstants.LABEL,
+//						"YEARS, RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true,
+//						ageVBox.getWidth()));
 		ageVBox.getChildren().add(dobHBox);
 
 		/** Validation message (Invalid/wrong,,etc,.) */
@@ -136,31 +128,24 @@ public class DOBAgeFxControl extends FxControl {
 
 		dobHBox.prefWidthProperty().bind(ageVBox.widthProperty());
 
-		changeNodeOrientation(ageVBox, languageType);
+		changeNodeOrientation(ageVBox, langCode);
 		return ageVBox;
 	}
 
-	private VBox addDateTextField(UiSchemaDTO uiSchemaDTO, String dd, String languageType, String mandatorySuffix) {
+	private VBox addDateTextField(UiSchemaDTO uiSchemaDTO, String dd, String text) {
 
 		VBox dateVBox = new VBox();
-		dateVBox.setId(uiSchemaDTO.getId() + dd + languageType + RegistrationConstants.VBOX);
+		dateVBox.setId(uiSchemaDTO.getId() + dd + RegistrationConstants.VBOX);
 
 		double prefWidth = dateVBox.getPrefWidth();
-		boolean localLanguage = languageType.equals(RegistrationConstants.LOCAL_LANGUAGE);
 
 		/** DOB Label */
-		dateVBox.getChildren()
-				.add(getLabel(uiSchemaDTO.getId() + dd + RegistrationConstants.LABEL,
-						localLanguage ? localLabelBundle.getString(dd)
-								: applicationLabelBundle.getString(dd) + mandatorySuffix,
-						RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, prefWidth));
+		dateVBox.getChildren().add(getLabel(uiSchemaDTO.getId() + dd + RegistrationConstants.LABEL, text,
+				RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, false, prefWidth));
 
 		/** DOB Text Field */
-		dateVBox.getChildren()
-				.add(getTextField(uiSchemaDTO.getId() + dd + RegistrationConstants.TEXT_FIELD + languageType,
-						(localLanguage ? localLabelBundle.getString(dd) : applicationLabelBundle.getString(dd))
-								+ mandatorySuffix,
-						RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, prefWidth, localLanguage));
+		dateVBox.getChildren().add(getTextField(uiSchemaDTO.getId() + dd + RegistrationConstants.TEXT_FIELD, text,
+				RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, prefWidth, false));
 
 		return dateVBox;
 	}
@@ -191,14 +176,14 @@ public class DOBAgeFxControl extends FxControl {
 
 	@Override
 	public boolean isValid(Node node) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public UiSchemaDTO getUiSchemaDTO() {
-		// TODO Auto-generated method stub
-		return null;
+		TextField dd = (TextField) getField(
+				uiSchemaDTO.getId() + RegistrationConstants.DD + RegistrationConstants.TEXT_FIELD);
+		TextField mm = (TextField) getField(
+				uiSchemaDTO.getId() + RegistrationConstants.MM + RegistrationConstants.TEXT_FIELD);
+		TextField yyyy = (TextField) getField(
+				uiSchemaDTO.getId() + RegistrationConstants.YYYY + RegistrationConstants.TEXT_FIELD);
+		return dd != null && !dd.getText().isEmpty() && mm != null && !mm.getText().isEmpty() && yyyy != null
+				&& !yyyy.getText().isEmpty();
 	}
 
 	@Override
@@ -223,7 +208,10 @@ public class DOBAgeFxControl extends FxControl {
 
 	private void addListener(TextField textField, String dateTyep) {
 		textField.textProperty().addListener((ob, ov, nv) -> {
-			fxUtils.showLabel((Pane) node, textField);
+
+			fxUtils.toggleUIField((Pane) node,
+					textField.getId().replaceAll(RegistrationConstants.TEXT_FIELD, "") + RegistrationConstants.LABEL,
+					!textField.getText().isEmpty());
 			if (!dateValidation.isNewValueValid(nv, dateTyep)) {
 				textField.setText(ov);
 			}

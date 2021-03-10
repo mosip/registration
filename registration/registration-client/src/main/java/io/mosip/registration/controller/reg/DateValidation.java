@@ -81,7 +81,6 @@ public class DateValidation extends BaseController {
 
 			isValid = isValidDate(parentPane, dd.getText(), mm.getText(), yyyy.getText(), fieldId);
 			if (isValid) {
-				setLocalDateFields(parentPane, dd, mm, yyyy);
 				populateAge(parentPane, fieldId);
 			}
 		}
@@ -106,19 +105,7 @@ public class DateValidation extends BaseController {
 			dd.setText(RegistrationConstants.EMPTY);
 			mm.setText(RegistrationConstants.EMPTY);
 			yyyy.setText(RegistrationConstants.EMPTY);
-			
-			TextField ddLocal = (TextField) getFxElement(parentPane,
-					fieldId + RegistrationConstants.DD + RegistrationConstants.TEXT_FIELD + RegistrationConstants.LOCAL_LANGUAGE);
-			TextField mmLocal = (TextField) getFxElement(parentPane,
-					fieldId + RegistrationConstants.MM + RegistrationConstants.TEXT_FIELD + RegistrationConstants.LOCAL_LANGUAGE);
-			TextField yyyyLocal = (TextField) getFxElement(parentPane,
-					fieldId + RegistrationConstants.YYYY + RegistrationConstants.TEXT_FIELD + RegistrationConstants.LOCAL_LANGUAGE);
-			TextField ageFieldLocal = ((TextField) getFxElement(parentPane,
-					fieldId + RegistrationConstants.AGE_FIELD + RegistrationConstants.TEXT_FIELD + RegistrationConstants.LOCAL_LANGUAGE));
-			ddLocal.setText(RegistrationConstants.EMPTY);
-			mmLocal.setText(RegistrationConstants.EMPTY);
-			yyyyLocal.setText(RegistrationConstants.EMPTY);
-			ageFieldLocal.setText(RegistrationConstants.EMPTY);
+
 		}
 		boolean isValid = ageField.getText().matches(RegistrationConstants.NUMBER_REGEX);
 
@@ -138,15 +125,11 @@ public class DateValidation extends BaseController {
 					LocalDate date = LocalDate.of(defaultDate.get(Calendar.YEAR), defaultDate.get(Calendar.MONTH + 1),
 							defaultDate.get(Calendar.DATE));
 					isValid = validation.validateSingleString(
-							date.format(DateTimeFormatter.ofPattern(ApplicationContext.getDateFormat())), fieldId, ApplicationContext.applicationLanguage());
+							date.format(DateTimeFormatter.ofPattern(ApplicationContext.getDateFormat())), fieldId,
+							getRegistrationDTOFromSession().getSelectedLanguagesByApplicant().get(0));
 
 					if (isValid) {
 
-						Node node = getFxElement(parentPane, fieldId + RegistrationConstants.AGE_FIELD
-								+ RegistrationConstants.TEXT_FIELD + RegistrationConstants.LOCAL_LANGUAGE);
-						if (node != null) {
-							((TextField) node).setText(String.valueOf(age));
-						}
 						populateDateFields(parentPane, fieldId, age);
 					}
 				}
@@ -200,13 +183,7 @@ public class DateValidation extends BaseController {
 			if (!age.equals(ageField.getText())) {
 				ageField.setText(age);
 			}
-			Node node = getFxElement(parentPane, ageField.getId() + RegistrationConstants.LOCAL_LANGUAGE);
-			if (node != null) {
-				TextField localTextField = (TextField) node;
-				if (!age.equals(localTextField.getText())) {
-					localTextField.setText(age);
-				}
-			}
+
 		}
 	}
 
@@ -222,7 +199,6 @@ public class DateValidation extends BaseController {
 			LocalDate date = LocalDate.of(Integer.valueOf(yyyy.getText()), Integer.valueOf(mm.getText()),
 					Integer.valueOf(dd.getText()));
 			if (Period.between(date, LocalDate.now(ZoneId.of("UTC"))).getYears() == age) {
-				setLocalDateFields(parentPane, dd, mm, yyyy);
 				return;
 			}
 		} catch (Throwable t) {
@@ -239,7 +215,6 @@ public class DateValidation extends BaseController {
 		mm.setText(String.valueOf(defaultDate.get(Calendar.MONTH + 1)));
 		yyyy.setText(String.valueOf(defaultDate.get(Calendar.YEAR)));
 
-		setLocalDateFields(parentPane, dd, mm, yyyy);
 	}
 
 	private boolean isValidDate(Pane parentPane, String dd, String mm, String yyyy, String fieldId) {
@@ -282,18 +257,6 @@ public class DateValidation extends BaseController {
 			}
 		}
 		return null;
-	}
-
-	private void setLocalDateFields(Pane parentPane, TextField dd, TextField mm, TextField yyyy) {
-		Node local_dd = getFxElement(parentPane, dd.getId() + RegistrationConstants.LOCAL_LANGUAGE);
-		Node local_mm = getFxElement(parentPane, mm.getId() + RegistrationConstants.LOCAL_LANGUAGE);
-		Node local_yyyy = getFxElement(parentPane, yyyy.getId() + RegistrationConstants.LOCAL_LANGUAGE);
-		if (local_dd != null)
-			((TextField) local_dd).setText(dd.getText());
-		if (local_mm != null)
-			((TextField) local_mm).setText(mm.getText());
-		if (local_yyyy != null)
-			((TextField) local_yyyy).setText(yyyy.getText());
 	}
 
 	private void setTextFieldStyle(Pane parentPane, TextField node, boolean isError) {
