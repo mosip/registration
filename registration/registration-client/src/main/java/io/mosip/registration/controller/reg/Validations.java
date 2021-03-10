@@ -278,7 +278,7 @@ public class Validations extends BaseController {
 		String regex = getRegex(fieldId, RegistrationUIConstants.REGEX_TYPE, langCode);
 		if (regex != null && !value.matches(regex)) {
 			generateInvalidValueAlert(parentPane, node.getId(),
-					getFromLabelMap(fieldId).concat(RegistrationConstants.SPACE)
+					getFromLabelMap(fieldId + langCode).concat(RegistrationConstants.SPACE)
 							.concat(messageBundle.getString(RegistrationConstants.REG_DDC_004)),
 					showAlert);
 			if (isPreviousValid && !node.getId().contains(RegistrationConstants.ON_TYPE)) {
@@ -356,7 +356,7 @@ public class Validations extends BaseController {
 			});
 			node.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
 		} else {
-			Label nodeLabel = (Label) parentPane.lookup("#" + node.getId() + "Label");
+			Label nodeLabel = (Label) parentPane.lookup("#" + node.getId().substring(0, node.getId().length() - 3) + "Label");
 			node.requestFocus();
 			node.getStyleClass().removeIf((s) -> {
 				return s.equals(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);

@@ -847,9 +847,15 @@ Working on new Css by taleev
 	-fx-border-color: #C9C9C9;
 	-fx-border-width: 0.0 0.0 1.0 0.0;
 	-fx-background-color: #FFFFFF;
-	-fx-prompt-text-fill: #000000;
+	-fx-prompt-text-fill: #a0a0a0;
 	-fx-font-size: 1.2em;
 	-fx-text-fill: #000000;
+}
+
+.iconsHBox {
+	-fx-border-style: solid inside;
+	-fx-border-width: 0.0 0.0 1.0 0.0;
+	-fx-border-color: #C9C9C9;
 }
 
 .documentTextField {
@@ -938,20 +944,10 @@ Working on new Css by taleev
 	-fx-font-size: 1.2em;
 }
 
-.demoGraphicTextField {
-	-fx-border-color: #C9C9C9;
-	-fx-border-width: 0.0 0.0 1.0 0.0;
-	-fx-background-color: #FFFFFF;
-	-fx-prompt-text-fill: #000000;
-	-fx-font-size: 1.2em;
-	-fx-text-fill: #000000;
-}
-
 .demoGraphicTextFieldOnType {
 	-fx-border-color: #C9C9C9;
 	-fx-border-width: 0.0 0.0 1.0 0.0;
 	-fx-background-color: #FFFFFF;
-	-fx-prompt-text-fill: black;
 	-fx-text-fill: #000000;
 	-fx-font-size: 1.2em;
 }

@@ -1887,5 +1887,7 @@ public class RegistrationConstants {
 	public static final String SCAN_BUTTON = "scan";
 	public static final String REF_NUMBER = "REF_NUMBER";
 	public static final String INVALID_AGE = "INVALID_AGE";
-	public static String INVALID_DATE="INVALID_DATE";
+	public static final String INVALID_DATE="INVALID_DATE";
+	
+	public static final String ICONS_HBOX = "iconsHBox";
 }

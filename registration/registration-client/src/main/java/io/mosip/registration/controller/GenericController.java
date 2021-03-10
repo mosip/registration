@@ -490,14 +490,11 @@ public class GenericController extends BaseController {
 	}
 
 	private String getScreenLabel(Map<String, String> screenNames) {
-
 		String labelText = "";
 
 		for (String langCode : getRegistrationDTOFromSession().getSelectedLanguagesByApplicant()) {
-
 			if (screenNames.containsKey(langCode)) {
-
-				labelText = labelText.isEmpty() ? labelText : screenNames.get(langCode) + RegistrationConstants.SLASH;
+				labelText = labelText.isEmpty() ? screenNames.get(langCode) : labelText.concat(RegistrationConstants.SLASH).concat(screenNames.get(langCode));
 			}
 		}
 		return labelText;

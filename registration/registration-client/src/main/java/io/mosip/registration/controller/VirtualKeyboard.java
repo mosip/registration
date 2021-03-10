@@ -12,7 +12,6 @@ import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.VirtualKeyboardKeys;
-import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.controller.reg.RegistrationController;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -52,7 +51,7 @@ public class VirtualKeyboard {
 	 */
 	private static final Logger LOGGER = AppConfig.getLogger(RegistrationController.class);
 
-	private static final Set<Integer> KEY_LENGTHS = new HashSet<>();
+	private static Set<Integer> KEY_LENGTHS = new HashSet<>();
 
 	private VBox root;
 
@@ -61,10 +60,11 @@ public class VirtualKeyboard {
 	private StringBuilder vkType = new StringBuilder();
 
 	private ResourceBundle keyboard = null;
+	
+	private KeyEvent keyEvent;
 
 	public VirtualKeyboard(String langCode) {
-
-		this.keyboard = ResourceBundle.getBundle("keyboards.keyboard", new Locale(langCode));
+		this(null, langCode);
 	}
 
 	private String getKey(String keyCode) {
@@ -78,12 +78,15 @@ public class VirtualKeyboard {
 	 * @param target The node that will receive KeyEvents from this keyboard. If
 	 *               target is null, KeyEvents will be dynamically forwarded to the
 	 *               focus owner in the Scene containing this keyboard.
+	 * @param langCode 
 	 */
 
-	private VirtualKeyboard(ReadOnlyObjectProperty<Node> target) {
+	private VirtualKeyboard(ReadOnlyObjectProperty<Node> target, String langCode) {
 		LOGGER.info(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
 				RegistrationConstants.APPLICATION_ID, "Opening virtual keyboard");
 
+		this.keyboard = ResourceBundle.getBundle("keyboards.keyboard", new Locale(langCode.substring(0, 2)));
+		
 		this.root = new VBox(5);
 		root.setPadding(new Insets(10));
 		root.setId("virtualKeyboard");
@@ -400,8 +403,24 @@ public class VirtualKeyboard {
 							capsLock = true;
 						}
 					}
+					if (e.getCode().getName().equals("Shift")) {
+						keyEvent = e;
+					}					
+					
+					textField.setOnKeyReleased(new EventHandler<KeyEvent>() {
+			            @Override
+			            public void handle(KeyEvent event) {
+			                switch (event.getCode()) {			                   
+			                    case SHIFT:
+			                    	keyEvent = null;
+							default:
+								break;
+			                }
+			            }
+			        });
+					
 					String key;
-					if (capsLock) {
+					if (capsLock || keyEvent != null ? keyEvent.getCode().getName().equals("Shift") : false) {
 						try {
 							key = keyboard.getString("shift_" + e.getCode().getName().replaceAll("\\s", ""));
 						} catch (MissingResourceException exception) {
