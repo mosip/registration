@@ -23,6 +23,7 @@ import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.code.ApiName;
+import io.mosip.registration.processor.core.constant.HealthConstant;
 import io.mosip.registration.processor.core.eventbus.MosipEventBusFactory;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.DeploymentFailureException;
@@ -59,6 +60,8 @@ import io.vertx.spi.cluster.hazelcast.HazelcastClusterManager;
 public abstract class MosipVerticleManager extends AbstractVerticle
 		implements EventBusManager<MosipEventBus, MessageBusAddress, MessageDTO> {
 
+	private static final String EMPTY_STRING = "";
+
 	/** The logger. */
 	private Logger logger = RegProcessorLogger.getLogger(MosipVerticleManager.class);
 
@@ -75,7 +78,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	private String eventBusType;
 	
 	@Autowired
-	private Environment env;
+	protected Environment environment;
 	
 
 	@Value("${mosip.regproc.message.tag.loading.disable:false}")
@@ -209,11 +212,15 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	}
 
 	public Integer getEventBusPort() {
-		return Integer.parseInt(env.getProperty(getPropertyPrefix() + "eventbus.port"));
+		return Integer.parseInt(environment.getProperty(getPropertyPrefix() + "eventbus.port"));
 	}
 	
 	public Integer getPort() {
-		return Integer.parseInt(env.getProperty(getPropertyPrefix() + "server.port"));
+		return Integer.parseInt(environment.getProperty(getPropertyPrefix() + "server.port"));
+	}
+	
+	protected String getServletPath() {
+		return environment.getProperty(getPropertyPrefix() + HealthConstant.SERVLET_PATH);
 	}
 
 	public String getEventBusType() {
@@ -251,7 +258,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
         request.setRequesttime(DateUtils.getUTCCurrentDateTime());
         request.setRequest(infoRequestDto);
         ResponseWrapper<InfoResponseDto> response = (ResponseWrapper) restApi.postApi(
-			ApiName.PACKETMANAGER_INFO, "", "", request, ResponseWrapper.class);
+			ApiName.PACKETMANAGER_INFO, EMPTY_STRING, EMPTY_STRING, request, ResponseWrapper.class);
 
         if (response.getErrors() != null && response.getErrors().size() > 0) {
 			throw new PacketManagerException(response.getErrors().get(0).getErrorCode(), 
@@ -264,7 +271,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
     }
 	
 	protected String getPropertyPrefix() {
-		return "";
+		return EMPTY_STRING;
 	}
 
 }
