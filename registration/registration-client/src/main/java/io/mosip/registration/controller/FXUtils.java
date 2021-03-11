@@ -174,13 +174,13 @@ public class FXUtils {
 
 
 
-	public void setTextValidLabel(Pane parentPane, TextField field) {
+	public void setTextValidLabel(Pane parentPane, TextField field, String fieldId) {
 		field.getStyleClass().removeIf((s) -> {
 			return s.equals("demoGraphicTextField");
 		});
 		field.getStyleClass().add("demoGraphicTextFieldOnType");
 		if (field.isFocused()) {
-			Label fieldLabel = (Label) parentPane.lookup("#" + field.getId() + "Label");
+			Label fieldLabel = (Label) parentPane.lookup("#" + fieldId + "Label");
 			fieldLabel.getStyleClass().add("demoGraphicFieldLabelOnType");
 			fieldLabel.getStyleClass().remove("demoGraphicFieldLabel");
 
@@ -335,7 +335,7 @@ public class FXUtils {
 				});
 				field.getStyleClass().add("demoGraphicTextFieldOnType");
 				if (field.isFocused()) {
-					Label fieldLabel = (Label) parentPane.lookup("#" + field.getId() + "Label");
+					Label fieldLabel = (Label) parentPane.lookup("#" + field.getId().substring(0, field.getId().length()-3) + "Label");
 					fieldLabel.getStyleClass().clear();
 					fieldLabel.getStyleClass().add("demoGraphicFieldLabelOnType");
 				}

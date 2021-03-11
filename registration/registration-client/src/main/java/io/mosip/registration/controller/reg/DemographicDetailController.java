@@ -24,6 +24,7 @@ import org.mvel2.integration.VariableResolverFactory;
 import org.mvel2.integration.impl.MapVariableResolverFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 
 import io.mosip.commons.packet.dto.packet.SimpleDto;
@@ -78,7 +79,7 @@ import javafx.util.StringConverter;
  *
  */
 
-//@Controller
+@Component
 public class DemographicDetailController extends BaseController {
 //
 //	/**

@@ -216,6 +216,7 @@ public abstract class FxControl extends Node {
 		label.setText(titleText);
 		label.getStyleClass().add(styleClass);
 		label.setVisible(isVisible);
+		label.setWrapText(true);
 		// label.setPrefWidth(prefWidth);
 		return label;
 	}
@@ -238,9 +239,9 @@ public abstract class FxControl extends Node {
 		}
 		try {
 			return requiredFieldValidator.isFieldVisible(schemaDTO, getRegistrationDTo());
-		} catch (RegBaseCheckedException regBaseCheckedException) {
+		} catch (Exception exception) {
 			LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-					ExceptionUtils.getStackTrace(regBaseCheckedException));
+					ExceptionUtils.getStackTrace(exception));
 		}
 
 		return true;

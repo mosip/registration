@@ -398,7 +398,7 @@ public class GenericController extends BaseController {
 
 					Map<String, Object> data = new LinkedHashMap<>();
 
-					String lang = registrationController.getSelectedLangList().get(0);
+					String lang = getRegistrationDTOFromSession().getSelectedLanguagesByApplicant().get(0);
 
 					data.put(lang, masterSyncService.findLocationByHierarchyCode(val.getKey(), lang));
 
@@ -449,7 +449,7 @@ public class GenericController extends BaseController {
 
 			String previewText = "";
 			String authText = "";
-			for (String langCode : registrationController.getSelectedLangList()) {
+			for (String langCode : getRegistrationDTOFromSession().getSelectedLanguagesByApplicant()) {
 				previewText = previewText.isEmpty() ? previewText : previewText + RegistrationConstants.SLASH;
 				previewText += applicationContext.getBundle(langCode, RegistrationConstants.LABELS)
 						.getString(RegistrationConstants.previewHeader);
@@ -490,14 +490,11 @@ public class GenericController extends BaseController {
 	}
 
 	private String getScreenLabel(Map<String, String> screenNames) {
-
 		String labelText = "";
 
-		for (String langCode : registrationController.getSelectedLangList()) {
-
+		for (String langCode : getRegistrationDTOFromSession().getSelectedLanguagesByApplicant()) {
 			if (screenNames.containsKey(langCode)) {
-
-				labelText = labelText.isEmpty() ? labelText : screenNames.get(langCode) + RegistrationConstants.SLASH;
+				labelText = labelText.isEmpty() ? screenNames.get(langCode) : labelText.concat(RegistrationConstants.SLASH).concat(screenNames.get(langCode));
 			}
 		}
 		return labelText;
@@ -594,9 +591,9 @@ public class GenericController extends BaseController {
 
 			case CONTROLTYPE_TEXTFIELD:
 				return new TextFieldFxControl().build(uiSchemaDTO);
-			case CONTROLTYPE_BIOMETRICS:
-
-				return new BiometricFxControl().build(uiSchemaDTO);
+//			case CONTROLTYPE_BIOMETRICS:
+//
+//				return new BiometricFxControl().build(uiSchemaDTO);
 			case CONTROLTYPE_BUTTON:
 				FxControl buttonFxControl = new ButtonFxControl().build(uiSchemaDTO);
 
@@ -604,7 +601,7 @@ public class GenericController extends BaseController {
 
 					Map<String, Object> data = new LinkedHashMap<>();
 
-					String lang = registrationController.getSelectedLangList().get(0);
+					String lang = getRegistrationDTOFromSession().getSelectedLanguagesByApplicant().get(0);
 
 					data.put(lang, masterSyncService.getFieldValues(uiSchemaDTO.getId(), lang));
 
@@ -615,8 +612,8 @@ public class GenericController extends BaseController {
 									+ ExceptionUtils.getStackTrace(regBaseCheckedException));
 				}
 				return buttonFxControl;
-			case CONTROLTYPE_CHECKBOX:
-				return new CheckBoxFxControl().build(uiSchemaDTO);
+//			case CONTROLTYPE_CHECKBOX:
+//				return new CheckBoxFxControl().build(uiSchemaDTO);
 			case CONTROLTYPE_DOB:
 				return new DOBFxControl().build(uiSchemaDTO);
 			case CONTROLTYPE_DOB_AGE:
@@ -641,7 +638,7 @@ public class GenericController extends BaseController {
 					Map<String, Object> data = new LinkedHashMap<>();
 					try {
 
-						String lang = registrationController.getSelectedLangList().get(0);
+						String lang = getRegistrationDTOFromSession().getSelectedLanguagesByApplicant().get(0);
 
 						data.put(lang, masterSyncService.getFieldValues(uiSchemaDTO.getId(), lang));
 
@@ -655,7 +652,7 @@ public class GenericController extends BaseController {
 				}
 
 				return fxControl;
-
+//
 			}
 		}
 

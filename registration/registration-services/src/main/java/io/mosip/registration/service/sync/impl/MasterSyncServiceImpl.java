@@ -75,8 +75,6 @@ import io.mosip.registration.util.mastersync.MapperUtils;
 @Service
 public class MasterSyncServiceImpl extends BaseService implements MasterSyncService {
 
-
-
 	/**
 	 * The SncTransactionManagerImpl, which Have the functionalities to get the job
 	 * and to create sync transaction
@@ -139,7 +137,6 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 		}
 
 	}
-
 
 	/**
 	 * Find location or region by hierarchy code.
@@ -562,15 +559,16 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	 */
 	private Map<String, String> getRequestParamsForClientSettingsSync(String masterSyncDtls) {
 		Map<String, String> requestParamMap = new HashMap<String, String>();
-		requestParamMap.put(RegistrationConstants.KEY_INDEX.toLowerCase(), CryptoUtil
-				.computeFingerPrint(clientCryptoFacade.getClientSecurity().getEncryptionPublicPart(), null));
+		requestParamMap.put(RegistrationConstants.KEY_INDEX.toLowerCase(),
+				CryptoUtil.computeFingerPrint(clientCryptoFacade.getClientSecurity().getEncryptionPublicPart(), null));
 
-		if(!isInitialSync()) {
+		if (!isInitialSync()) {
 			// getting Last Sync date from Data from sync table
 			SyncControl masterSyncDetails = masterSyncDao.syncJobDetails(masterSyncDtls);
 			if (masterSyncDetails != null) {
-				requestParamMap.put(RegistrationConstants.MASTER_DATA_LASTUPDTAE, DateUtils.formatToISOString(
-						LocalDateTime.ofInstant(masterSyncDetails.getLastSyncDtimes().toInstant(), ZoneOffset.ofHours(0))));
+				requestParamMap.put(RegistrationConstants.MASTER_DATA_LASTUPDTAE,
+						DateUtils.formatToISOString(LocalDateTime
+								.ofInstant(masterSyncDetails.getLastSyncDtimes().toInstant(), ZoneOffset.ofHours(0))));
 			}
 
 			String registrationCenterId = getCenterId();
@@ -597,7 +595,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 		LinkedHashMap<String, Object> masterSyncResponse = null;
 
 		try {
-			//Precondition check, proceed only if met, otherwise throws exception
+			// Precondition check, proceed only if met, otherwise throws exception
 			proceedWithMasterAndKeySync(masterSyncDtls);
 
 			LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID, new JSONObject(requestParam).toString());
@@ -606,8 +604,8 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 					.get(RegistrationConstants.MASTER_VALIDATOR_SERVICE_NAME, requestParam, true, triggerPoint);
 
 			String errorCode = getErrorCode(getErrorList(masterSyncResponse));
-			if(RegistrationConstants.MACHINE_REMAP_CODE.equalsIgnoreCase(errorCode)) {
-				//Machine is remapped, exit from sync and mark the remap process to start
+			if (RegistrationConstants.MACHINE_REMAP_CODE.equalsIgnoreCase(errorCode)) {
+				// Machine is remapped, exit from sync and mark the remap process to start
 				globalParamService.update(RegistrationConstants.MACHINE_CENTER_REMAP_FLAG, RegistrationConstants.TRUE);
 				return responseDTO;
 			}
@@ -717,8 +715,12 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 
 		return isMatch;
 	}
-	
+
 	public List<SyncJobDef> getSyncJobs() {
 		return masterSyncDao.getSyncJobs();
+	}
+
+	public Location getLocation(String code, String langCode) {
+		return masterSyncDao.getLocation(code, langCode);
 	}
 }

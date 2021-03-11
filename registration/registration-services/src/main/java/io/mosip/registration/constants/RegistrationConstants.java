@@ -1867,6 +1867,7 @@ public class RegistrationConstants {
 	public static String TEXT_FIELD = "TextField";
 	public static String VBOX = "VBOX";
 	public static String HBOX = "HBOX";
+	public static String VALUE = "VALUE";
 	public static final String GENERIC_DETAIL = "genericScreen";
 	public static final String GENERIC_LAYOUT = "/fxml/GenericRegistrationLayout.fxml";
 	public static final String BIOMETRIC_FXML = "/fxml/GenericBiometricFXML.fxml";
@@ -1883,4 +1884,10 @@ public class RegistrationConstants {
 	public static final String NEW_REGISTRATION_FLOW = "New Registration";
 	public static final String UIN_UPDATE_FLOW = "UIN Update";
 	public static final String LOST_UIN_FLOW = "Lost UIN";
+	public static final String SCAN_BUTTON = "scan";
+	public static final String REF_NUMBER = "REF_NUMBER";
+	public static final String INVALID_AGE = "INVALID_AGE";
+	public static final String INVALID_DATE="INVALID_DATE";
+	
+	public static final String ICONS_HBOX = "iconsHBox";
 }

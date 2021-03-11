@@ -44,14 +44,14 @@ public class CheckBoxFxControl extends FxControl {
 
 		this.control = this;
 
-		VBox primaryLangVBox = create(uiSchemaDTO, "");
+		VBox primaryLangVBox = create(uiSchemaDTO);
 
 		HBox hBox = new HBox();
 		hBox.getChildren().add(primaryLangVBox);
 
-		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
-		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(),
-				primaryLangVBox);
+//		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
+//		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(),
+//				primaryLangVBox);
 
 //		setNodeMap(nodeMap);
 //		if (demographicDetailController.isLocalLanguageAvailable()
@@ -66,25 +66,27 @@ public class CheckBoxFxControl extends FxControl {
 		return this.control;
 	}
 
-	private VBox create(UiSchemaDTO uiSchemaDTO, String languageType) {
+	private VBox create(UiSchemaDTO uiSchemaDTO) {
 		String fieldName = uiSchemaDTO.getId();
 
 		/** Container holds title, fields */
 		VBox simpleTypeVBox = new VBox();
-		simpleTypeVBox.setId(fieldName + languageType + RegistrationConstants.VBOX);
+		simpleTypeVBox.setId(fieldName + RegistrationConstants.VBOX);
 		simpleTypeVBox.setSpacing(5);
 
-		String titleText = (languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)
-				? uiSchemaDTO.getLabel().get(RegistrationConstants.SECONDARY)
-				: uiSchemaDTO.getLabel().get(RegistrationConstants.PRIMARY));
+		String labelText = "";
+		for (String langCode : getRegistrationDTo().getSelectedLanguagesByApplicant()) {
+
+			String label = uiSchemaDTO.getLabel().get(langCode);
+			labelText = labelText.isEmpty() ? labelText : labelText + RegistrationConstants.SLASH;
+			labelText += label;
+		}
 
 		double prefWidth = simpleTypeVBox.getPrefWidth();
 
 		/** Text Field */
-		CheckBox checkBox = getCheckBox(fieldName + languageType, titleText,
-				RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, prefWidth,
-				languageType.equals(RegistrationConstants.LOCAL_LANGUAGE)
-						&& !uiSchemaDTO.getType().equals(RegistrationConstants.SIMPLE_TYPE) ? true : false);
+		CheckBox checkBox = getCheckBox(fieldName, labelText, RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, prefWidth,
+				false);
 		setListener(checkBox);
 
 		simpleTypeVBox.getChildren().add(checkBox);

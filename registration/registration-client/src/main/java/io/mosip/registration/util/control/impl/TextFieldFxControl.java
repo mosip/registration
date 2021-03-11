@@ -6,16 +6,17 @@ package io.mosip.registration.util.control.impl;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.context.ApplicationContext;
 
 import io.mosip.commons.packet.dto.packet.SimpleDto;
+import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.constants.RegistrationUIConstants;
+import io.mosip.registration.controller.FXComponents;
 import io.mosip.registration.controller.FXUtils;
 import io.mosip.registration.controller.Initialization;
 import io.mosip.registration.controller.VirtualKeyboard;
@@ -24,15 +25,21 @@ import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.util.common.DemographicChangeActionHandler;
 import io.mosip.registration.util.control.FxControl;
+import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 /**
  * @author YASWANTH S
@@ -49,12 +56,27 @@ public class TextFieldFxControl extends FxControl {
 
 	private Validations validation;
 	private DemographicChangeActionHandler demographicChangeActionHandler;
+	
+	private Node keyboardNode;
+	
+	private int lastPosition;
+	
+	private boolean keyboardVisible = false;
+	
+	private Node previousNode;
+	
+	private String previousLangCode;
+	
+	private Stage keyBoardStage;
+	
+	private FXComponents fxComponents;
 
 	public TextFieldFxControl() {
 
 		ApplicationContext applicationContext = Initialization.getApplicationContext();
 
 		validation = applicationContext.getBean(Validations.class);
+		fxComponents = applicationContext.getBean(FXComponents.class);
 		demographicChangeActionHandler = applicationContext.getBean(DemographicChangeActionHandler.class);
 
 	}
@@ -65,8 +87,7 @@ public class TextFieldFxControl extends FxControl {
 		this.uiSchemaDTO = uiSchemaDTO;
 
 		this.control = this;
-
-		this.node = create(uiSchemaDTO);
+		create(uiSchemaDTO);
 		return this.control;
 	}
 
@@ -146,13 +167,14 @@ public class TextFieldFxControl extends FxControl {
 	}
 
 	private VBox create(UiSchemaDTO uiSchemaDTO) {
-
 		String labelText = "";
 
 		String fieldName = uiSchemaDTO.getId();
 
 		/** Container holds title, fields and validation message elements */
 		VBox simpleTypeVBox = new VBox();
+
+		this.node = simpleTypeVBox;
 		simpleTypeVBox.setId(fieldName + RegistrationConstants.VBOX);
 		simpleTypeVBox.setSpacing(5);
 
@@ -164,71 +186,105 @@ public class TextFieldFxControl extends FxControl {
 				RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, simpleTypeVBox.getWidth());
 		simpleTypeVBox.getChildren().add(fieldTitle);
 
-		List<String> langCodes = new LinkedList<>();
-
-		List<String> selectedLanguages = getRegistrationDTo().getSelectedLanguagesByApplicant();
-
-		if (this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE)) {
-			langCodes.addAll(selectedLanguages);
-		} else {
-			langCodes.add(selectedLanguages.get(0));
-		}
-		for (String langCode : langCodes) {
+		boolean isCreated = false;
+		for (String langCode : getRegistrationDTo().getSelectedLanguagesByApplicant()) {
 
 			String label = uiSchemaDTO.getLabel().get(langCode);
-			labelText = labelText.isEmpty() ? labelText : labelText + RegistrationConstants.SLASH;
-			labelText += label;
+			labelText = labelText.isEmpty() ? label : labelText.concat(RegistrationConstants.SLASH).concat(label);
 
-			/** Text Field */
-			TextField textField = getTextField(fieldName + langCode, label + mandatorySuffix,
-					RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, simpleTypeVBox.getWidth(), false);
-			simpleTypeVBox.getChildren().add(textField);
+			boolean isFieldReqd = this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE) ? true
+					: !isCreated;
+			if (isFieldReqd) {
 
-			/** Validation message (Invalid/wrong,,etc,.) */
-			Label validationMessage = getLabel(fieldName + langCode + RegistrationConstants.MESSAGE, null,
-					RegistrationConstants.DemoGraphicFieldMessageLabel, false, simpleTypeVBox.getWidth());
-			simpleTypeVBox.getChildren().add(validationMessage);
-			addKeyBoard(simpleTypeVBox, validationMessage, textField, langCode);
-			changeNodeOrientation(simpleTypeVBox, langCode);
+				VBox vBox = new VBox();
+				/** Text Field */
+				HBox textFieldHBox = new HBox();
+				TextField textField = getTextField(langCode, fieldName + langCode, label + mandatorySuffix,
+						RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, simpleTypeVBox.getWidth(), false);
+				textField.setPrefWidth(300);
+				
+				VirtualKeyboard keyBoard = new VirtualKeyboard(langCode);
+				keyBoard.changeControlOfKeyboard(textField);
+				
+				ImageView translateImageView = new ImageView(new Image(getClass().getResourceAsStream("/images/translate.png")));
+				translateImageView.setFitHeight(20);
+				translateImageView.setFitWidth(20);
+				
+				ImageView keyBoardImgView = getKeyBoardImage();
+				
+				keyBoardImgView.setId(langCode);
+				keyBoardImgView.visibleProperty().bind(textField.visibleProperty());
+				keyBoardImgView.managedProperty().bind(textField.visibleProperty());
 
-			Validations.putIntoLabelMap(fieldName + langCode, uiSchemaDTO.getLabel().get(langCode));
+				if (keyBoardImgView != null) {
+					keyBoardImgView.setOnMouseClicked((event) -> {
+						setFocusOnField(event, keyBoard, langCode);
+					});
+				}
+				
+				HBox imagesHBox = new HBox();
+				
+				imagesHBox.getStyleClass().add(RegistrationConstants.ICONS_HBOX);
+			
+				imagesHBox.setPrefWidth(20);
+				imagesHBox.setSpacing(5);
+				imagesHBox.getChildren().addAll(translateImageView, keyBoardImgView);
+				
+				if (io.mosip.registration.context.ApplicationContext.getInstance().isLanguageRightToLeft(langCode)) {
+					textFieldHBox.getChildren().addAll(imagesHBox, textField);
+				} else {
+					textFieldHBox.getChildren().addAll(textField, imagesHBox);
+				}
+							
+				vBox.getChildren().add(textFieldHBox);
 
-			setListener(textField);
+				/** Validation message (Invalid/wrong,,etc,.) */
+				Label validationMessage = getLabel(fieldName + langCode + RegistrationConstants.MESSAGE, null,
+						RegistrationConstants.DemoGraphicFieldMessageLabel, false, simpleTypeVBox.getWidth());
+				validationMessage.setWrapText(false);
+				vBox.getChildren().add(validationMessage);
+				addValidationMessage(vBox, validationMessage, textField, langCode);
+				
+				changeNodeOrientation(textField, langCode);
+				changeNodeOrientation(imagesHBox, langCode);
+
+				simpleTypeVBox.getChildren().add(vBox);
+				Validations.putIntoLabelMap(fieldName + langCode, uiSchemaDTO.getLabel().get(langCode));
+
+				setListener(textField);
+
+				isCreated = true;
+			}
 		}
 
 		fieldTitle.setText(labelText + mandatorySuffix);
 
+//		if (!this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE)) {
+//
+//			TextField textField = (TextField) getField(
+//					uiSchemaDTO.getId() + getRegistrationDTo().getSelectedLanguagesByApplicant().get(0));
+//			textField.setPromptText(fieldTitle.getText());
+//		}
+
 		return simpleTypeVBox;
 	}
 
-	private void addKeyBoard(VBox simpleTypeVBox, Label validationMessage, TextField textField, String langCode) {
-		ImageView keyBoardImgView = getKeyBoardImage();
-
-		if (keyBoardImgView != null) {
-			keyBoardImgView.setOnMouseClicked((event) -> {
-				setFocusonLocalField(event);
-			});
-
-			VirtualKeyboard keyBoard = new VirtualKeyboard(langCode);
-			keyBoard.view();
-			keyBoard.changeControlOfKeyboard(textField);
-
-			HBox keyBoardHBox = new HBox();
-			keyBoardHBox.setSpacing(20);
-			keyBoardHBox.getChildren().add(keyBoardImgView);
-			keyBoardHBox.getChildren().add(validationMessage);
-			keyBoardHBox.setStyle("-fx-background-color:WHITE");
-			simpleTypeVBox.getChildren().add(keyBoardHBox);
-		}
+	private void addValidationMessage(VBox vBox, Label validationMessage, TextField textField, String langCode) {
+		HBox validationHBox = new HBox();
+		validationHBox.setSpacing(20);
+		validationHBox.getChildren().add(validationMessage);
+		validationHBox.setStyle("-fx-background-color:WHITE");
+		vBox.getChildren().add(validationHBox);
 	}
 
-	private TextField getTextField(String id, String titleText, String demographicTextfield, double prefWidth,
+	private TextField getTextField(String langCode, String id, String titleText, String demographicTextfield, double prefWidth,
 			boolean isDisable) {
 
 		/** Text Field */
 		TextField textField = new TextField();
 		textField.setId(id);
-		textField.setPromptText(titleText);
+		textField.setPromptText(io.mosip.registration.context.ApplicationContext.getInstance()
+				.getBundle(langCode, RegistrationConstants.LABELS).getString("language"));
 		textField.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
 		// textField.setPrefWidth(prefWidth);
 		textField.setDisable(isDisable);
@@ -268,9 +324,9 @@ public class TextFieldFxControl extends FxControl {
 			TextField textField = (TextField) getField(uiSchemaDTO.getId() + langCode);
 			if (textField != null) {
 
-				if (validation.validateTextField((Pane) getNode(), textField, textField.getId(), true, langCode)) {
+				if (validation.validateTextField((Pane) getNode(), textField, uiSchemaDTO.getId(), true, langCode)) {
 
-					FXUtils.getInstance().setTextValidLabel((Pane) getNode(), textField);
+					FXUtils.getInstance().setTextValidLabel((Pane) getNode(), textField, uiSchemaDTO.getId());
 					isValid = !isValid ? isValid : true;
 				} else {
 
@@ -328,38 +384,87 @@ public class TextFieldFxControl extends FxControl {
 	/**
 	 *
 	 * Setting the focus to specific fields when keyboard loads
+	 * @param keyBoard2 
+	 * @param langCode
 	 *
 	 */
-	public void setFocusonLocalField(MouseEvent event) {
-
-		// Set foucus field
-//		try {
-//			Node node = (Node) event.getSource();
-//			if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {
-//				node.requestFocus();
+	public void setFocusOnField(MouseEvent event, VirtualKeyboard keyBoard, String langCode) {
+		try {
+			Node node = (Node) event.getSource();
+			node.requestFocus();
+			Node parentNode = node.getParent().getParent().getParent();
+			if (keyboardVisible) {
+				if(previousNode != null) {
+					((VBox) previousNode).getChildren().remove(lastPosition - 1);
+				}
+//				keyBoardStage.close();
+				keyboardVisible = false;
+				if (!langCode.equalsIgnoreCase(previousLangCode)) {
+					openKeyBoard(keyBoard, langCode, parentNode);
+				}
+			} else {
+//				keyboardNode = keyBoard.view();
 //				keyboardNode.setVisible(true);
 //				keyboardNode.setManaged(true);
-//				//addKeyboard(positionTracker.get((node.getId() + "ParentGridPane")) + 1);
-//				Node parentNode = node.getParent().getParent();
-//				if (keyboardVisible) {
-//					if(previousNode != null) {
-//						((VBox)previousNode).getChildren().remove(lastPosition - 1);
-//					}
-//					keyboardVisible = false;
-//				} else {
-//					listOfTextField.get(node.getId() + "LocalLanguage").requestFocus();
-//					GridPane gridPane = prepareMainGridPaneForKeyboard();
-//					gridPane.addColumn(1, keyboardNode);
-//					((VBox)parentNode).getChildren().add(gridPane);
-//					previousNode = parentNode;
-//					keyboardVisible = true;
-//					lastPosition = ((VBox)parentNode).getChildren().size();
-//				}
-//			}
-//		} catch (RuntimeException runtimeException) {
-//			LOGGER.error("REGISTRATION - SETTING FOCUS ON LOCAL FIELD FAILED", APPLICATION_NAME,
-//					RegistrationConstants.APPLICATION_ID,
-//					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
-//		}
+//				getField(node.getId()).requestFocus();
+//				openKeyBoardPopUp();
+//				keyboardVisible = true;
+				openKeyBoard(keyBoard, langCode, parentNode);
+			}
+		} catch (RuntimeException runtimeException) {
+			LOGGER.error("REGISTRATION - SETTING FOCUS ON LOCAL FIELD FAILED", APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID,
+					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
+		}
+	}
+	
+	private void openKeyBoard(VirtualKeyboard keyBoard, String langCode, Node parentNode) {
+		keyboardNode = keyBoard.view();
+		keyboardNode.setVisible(true);
+		keyboardNode.setManaged(true);
+		getField(node.getId()).requestFocus();
+		GridPane gridPane = prepareMainGridPaneForKeyboard();
+		gridPane.addColumn(1, keyboardNode);
+		((VBox) parentNode).getChildren().add(gridPane);
+		previousNode = parentNode;
+		previousLangCode = langCode;
+		keyboardVisible = true;
+		lastPosition = ((VBox)parentNode).getChildren().size();
+	}
+
+	private GridPane prepareMainGridPaneForKeyboard() {
+		GridPane gridPane = new GridPane();
+		gridPane.setPrefWidth(740);
+
+		ObservableList<ColumnConstraints> columnConstraints = gridPane.getColumnConstraints();
+		ColumnConstraints columnConstraint1 = new ColumnConstraints();
+		columnConstraint1.setPercentWidth(10);
+		ColumnConstraints columnConstraint2 = new ColumnConstraints();
+		columnConstraint2.setPercentWidth(80);
+		ColumnConstraints columnConstraint3 = new ColumnConstraints();
+		columnConstraint3.setPercentWidth(10);
+		columnConstraints.addAll(columnConstraint1, columnConstraint2, columnConstraint3);
+		return gridPane;
+	}
+	
+	private void openKeyBoardPopUp() {
+		try {
+			keyBoardStage = new Stage();
+			keyBoardStage.initModality(Modality.WINDOW_MODAL);
+			keyBoardStage.initOwner(fxComponents.getStage());
+//			stage.setX(400);
+//			stage.setY(200);
+			GridPane gridPane = prepareMainGridPaneForKeyboard();
+			gridPane.addColumn(1, keyboardNode);
+			Scene scene = new Scene(gridPane);
+			keyBoardStage.setScene(scene);
+			keyBoardStage.show();
+		} catch (Exception exception) {
+			LOGGER.error("REGISTRATION - OPENING - KEYBOARD - POPUP", APPLICATION_NAME,
+					RegistrationConstants.APPLICATION_ID,
+					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
+
+			validation.generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_SCAN_POPUP);
+		}
 	}
 }
