@@ -1028,20 +1028,12 @@ public class BiometricsController extends BaseController /* implements Initializ
 					@Override
 					protected MdmBioDevice call() throws RegBaseCheckedException {
 
-						LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
-								"device search request started" + System.currentTimeMillis());
+						LOGGER.info("device search request started {}" , System.currentTimeMillis());
 
-						if (deviceSpecificationFactory.isDeviceAvailable(currentModality)) {
-
-							return deviceSpecificationFactory.getDeviceInfoByModality(
-									isFace(currentModality) || isExceptionPhoto(currentModality)
-											? RegistrationConstants.FACE_FULLFACE
-											: currentModality);
-						} else {
-							throw new RegBaseCheckedException(
-									RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
-									RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage());
-						}
+						String modality = isFace(currentModality) || isExceptionPhoto(currentModality)
+								? RegistrationConstants.FACE_FULLFACE : currentModality;
+						return deviceSpecificationFactory.isDeviceAvailable(modality) ? deviceSpecificationFactory
+								.getDeviceInfoByModality(modality) : null;
 
 					}
 				};

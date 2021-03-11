@@ -178,6 +178,7 @@ public class GenericController extends BaseController {
 	private static final String CONTROLTYPE_BUTTON = "button";
 	private static final String CONTROLTYPE_DOB = "date";
 	private static final String CONTROLTYPE_DOB_AGE = "ageDate";
+	private static final String CONTROLTYPE_HTML = "html";
 
 	private static String CLICKABLE = "paginationLabelFilled";
 

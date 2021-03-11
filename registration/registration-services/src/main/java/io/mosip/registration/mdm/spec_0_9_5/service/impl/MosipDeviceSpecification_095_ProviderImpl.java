@@ -117,14 +117,19 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 
 	@Override
 	public InputStream stream(MdmBioDevice bioDevice, String modality) throws RegBaseCheckedException {
-		try {
 
+		if (!isDeviceAvailable(bioDevice)) {
+			throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
+					RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage());
+		}
+
+		try {
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Started Strema for modality : " + modality);
 
 			String url = bioDevice.getCallbackId() + MosipBioDeviceConstants.STREAM_ENDPOINT;
 
 			String timeout = (String) ApplicationContext.getInstance().getApplicationMap()
-					.get(RegistrationConstants.CAPTURE_TIME_OUT);
+					.getOrDefault(RegistrationConstants.CAPTURE_TIME_OUT, "60000");
 			StreamRequestDTO streamRequestDTO = new StreamRequestDTO(bioDevice.getDeviceId(), getDeviceSubId(modality),
 					timeout);
 
@@ -140,8 +145,6 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 					"Requesting Stream url...." + System.currentTimeMillis());
 			CloseableHttpResponse response = client.execute(httpUriRequest);
-			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-					"Request completed.... " + System.currentTimeMillis());
 
 			InputStream urlStream = null;
 			if (response.getEntity() != null) {
@@ -156,25 +159,23 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 					LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 							"Stream Request Completed" + System.currentTimeMillis());
 					return urlStream;
-				} else {
-
-					urlStream.close();
-					throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_STREAM_TIMEOUT.getErrorCode(),
-							RegistrationExceptionConstants.MDS_STREAM_TIMEOUT.getErrorMessage());
 				}
-			} catch (RegBaseCheckedException regBaseCheckedException) {
-
-				urlStream.close();
-				throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_STREAM_ERROR.getErrorCode(),
-						RegistrationExceptionConstants.MDS_STREAM_ERROR.getErrorMessage(), regBaseCheckedException);
-
+			} catch (RegBaseCheckedException exception) {
+				LOGGER.error("Stream Request failed", exception);
 			}
 
-		} catch (Exception exception) {
-			throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_STREAM_ERROR.getErrorCode(),
-					RegistrationExceptionConstants.MDS_STREAM_ERROR.getErrorMessage(), exception);
+			if(urlStream != null) {
+				urlStream.close();
+			}
 
+			throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_STREAM_TIMEOUT.getErrorCode(),
+					RegistrationExceptionConstants.MDS_STREAM_TIMEOUT.getErrorMessage());
+
+		} catch (Exception exception) {
+			LOGGER.error("Stream Request failed", exception);
 		}
+		throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_STREAM_ERROR.getErrorCode(),
+				RegistrationExceptionConstants.MDS_STREAM_ERROR.getErrorMessage());
 	}
 
 	@Override
@@ -436,9 +437,8 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 					"Entering into Device availbale check....." + System.currentTimeMillis());
 
-			String requestBody = null;
 			ObjectMapper mapper = new ObjectMapper();
-			requestBody = mapper.writeValueAsString(deviceDiscoveryRequest);
+			String requestBody = mapper.writeValueAsString(deviceDiscoveryRequest);
 
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Request for RCapture...." + requestBody);
 
@@ -453,40 +453,18 @@ public class MosipDeviceSpecification_095_ProviderImpl implements MosipDeviceSpe
 					.setEntity(requestEntity).build();
 
 			CloseableHttpResponse response = client.execute(request);
-			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-					"Request completed.... " + System.currentTimeMillis());
+			LOGGER.info("Request completed {}. parsing device discovery response to 095 dto", System.currentTimeMillis());
+			List<DeviceDiscoveryMDSResponse> deviceList = (mosipDeviceSpecificationHelper.getMapper().readValue(EntityUtils.toString(response.getEntity()),
+					new TypeReference<List<DeviceDiscoveryMDSResponse>>() {}));
 
-			String val = EntityUtils.toString(response.getEntity());
+			isDeviceAvailable = deviceList.stream().anyMatch(device ->
+					Arrays.asList(device.getSpecVersion()).contains(SPEC_VERSION)
+							&& RegistrationConstants.DEVICE_STATUS_READY.equalsIgnoreCase(device.getDeviceStatus())
+							&& device.getCertification().equals(mdmBioDevice.getCertification())
+							&& device.getDeviceCode().equals(mdmBioDevice.getDeviceCode())
+							&& device.getDeviceId().equals(mdmBioDevice.getDeviceId()));
 
-			if (val != null && !val.isEmpty()) {
-
-				List<DeviceDiscoveryMDSResponse> deviceList;
-
-				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-						"parsing device discovery response to 095 dto");
-				deviceList = (mosipDeviceSpecificationHelper.getMapper().readValue(val,
-						new TypeReference<List<DeviceDiscoveryMDSResponse>>() {
-						}));
-
-				if (deviceList != null && !deviceList.isEmpty()) {
-
-					for (DeviceDiscoveryMDSResponse device : deviceList) {
-
-						if (Arrays.asList(device.getSpecVersion()).contains(SPEC_VERSION)
-								&& RegistrationConstants.DEVICE_STATUS_READY.equalsIgnoreCase(device.getDeviceStatus())
-								&& device.getCertification().equals(mdmBioDevice.getCertification())
-								&& device.getDeviceCode().equals(mdmBioDevice.getDeviceCode())
-								&& device.getDeviceId().equals(mdmBioDevice.getDeviceId())) {
-
-							isDeviceAvailable = true;
-							break;
-
-						}
-					}
-				}
-			}
-
-		} catch (IOException exception) {
+		} catch (Throwable exception) {
 			LOGGER.error(MOSIP_BIO_DEVICE_INTEGERATOR, APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(exception));
 		}
