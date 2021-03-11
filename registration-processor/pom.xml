@@ -320,6 +320,7 @@
 		<module>registration-processor-registration-status-service-impl</module>
         <!-- <module>registration-processor-quality-checker</module> -->
 		<module>registration-processor-message-sender-impl</module>
+		<module>registration-processor-notification-service-impl</module>
 		<module>init</module>
 		<module>pre-processor</module>
 		<module>core-processor</module>
