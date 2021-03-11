@@ -735,7 +735,14 @@ public class BaseService {
 	}
 
 	public void proceedWithRegistration() throws PreConditionCheckException {
-		commonPreConditionChecks("Registration");
+		if(!SessionContext.isSessionContextAvailable() ||
+				!userDetailService.isValidUser(SessionContext.userId()))
+			throw new PreConditionCheckException(PreConditionChecks.USER_INACTIVE.name(),
+					"Registration forbidden as User is inactive");
+
+		if(isInitialSync())
+			throw new PreConditionCheckException(PreConditionChecks.MARKED_FOR_INITIAL_SETUP.name(),
+					"Registration forbidden as machine is marked for initial setup");
 
 		if(centerMachineReMapService.isMachineRemapped())
 			throw new PreConditionCheckException(PreConditionChecks.MARKED_FOR_REMAP.name(),

@@ -178,6 +178,7 @@ public class GenericController extends BaseController {
 	private static final String CONTROLTYPE_BUTTON = "button";
 	private static final String CONTROLTYPE_DOB = "date";
 	private static final String CONTROLTYPE_DOB_AGE = "ageDate";
+	private static final String CONTROLTYPE_HTML = "html";
 
 	private static String CLICKABLE = "paginationLabelFilled";
 
@@ -918,7 +919,7 @@ public class GenericController extends BaseController {
 		auditFactory.audit(AuditEvent.REG_DEMO_PRE_REG_DATA_FETCH, Components.REG_DEMO_DETAILS, SessionContext.userId(),
 				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
-		ResponseDTO responseDTO = preRegistrationDataSyncService.getPreRegistration(preRegId);
+		ResponseDTO responseDTO = preRegistrationDataSyncService.getPreRegistration(preRegId,false);
 
 		SuccessResponseDTO successResponseDTO = responseDTO.getSuccessResponseDTO();
 		List<ErrorResponseDTO> errorResponseDTOList = responseDTO.getErrorResponseDTOs();

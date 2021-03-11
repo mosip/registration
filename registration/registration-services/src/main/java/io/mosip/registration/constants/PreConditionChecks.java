@@ -6,5 +6,6 @@ public enum PreConditionChecks {
     USER_INACTIVE,
     MACHINE_INACTIVE,
     CENTER_INACTIVE,
-    MARKED_FOR_REMAP;
+    MARKED_FOR_REMAP,
+    MARKED_FOR_INITIAL_SETUP;
 }

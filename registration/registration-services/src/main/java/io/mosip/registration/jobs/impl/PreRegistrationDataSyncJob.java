@@ -73,7 +73,7 @@ public class PreRegistrationDataSyncJob extends BaseJob {
 			// Execute Current Job
 			if (responseDTO.getSuccessResponseDTO() != null) {
 				this.responseDTO = preRegistrationDataSyncService
-						.getPreRegistrationIds(RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
+						.getPreRegistrationIds(RegistrationConstants.OPT_TO_REG_PDS_J00003);
 			}
 
 			syncTransactionUpdate(responseDTO, triggerPoint, jobId);
@@ -107,7 +107,7 @@ public class PreRegistrationDataSyncJob extends BaseJob {
 
 		// Execute Current Job
 		if (responseDTO.getSuccessResponseDTO() != null) {
-			this.responseDTO = preRegistrationDataSyncService.getPreRegistrationIds(triggerPoint);
+			this.responseDTO = preRegistrationDataSyncService.getPreRegistrationIds(RegistrationConstants.OPT_TO_REG_PDS_J00003);
 		}
 		syncTransactionUpdate(responseDTO, triggerPoint, jobId);
 

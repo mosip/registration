@@ -181,9 +181,8 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 					"Entering into Capture method....." + System.currentTimeMillis());
 
-			String requestBody = null;
 			ObjectMapper mapper = new ObjectMapper();
-			requestBody = mapper.writeValueAsString(rCaptureRequestDTO);
+			String requestBody = mapper.writeValueAsString(rCaptureRequestDTO);
 
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Request for RCapture...." + requestBody);
 
@@ -373,39 +372,18 @@ public class MosipDeviceSpecification_092_ProviderImpl implements MosipDeviceSpe
 
 			CloseableHttpResponse response = client.execute(request);
 			LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-					"Request completed.... " + System.currentTimeMillis());
+					"parsing device discovery response to 092 dto");
+			List<DeviceDiscoveryMDSResponse> deviceList = (mosipDeviceSpecificationHelper.getMapper().readValue(
+					EntityUtils.toString(response.getEntity()), new TypeReference<List<DeviceDiscoveryMDSResponse>>() {	}));
 
-			String val = EntityUtils.toString(response.getEntity());
+			isDeviceAvailable = deviceList.stream().anyMatch(resp ->
+					Arrays.asList(resp.getSpecVersion()).contains(SPEC_VERSION)
+							&& RegistrationConstants.DEVICE_STATUS_READY.equalsIgnoreCase(resp.getDeviceStatus())
+							&& resp.getCertification().equals(mdmBioDevice.getCertification())
+							&& resp.getDeviceCode().equals(mdmBioDevice.getDeviceCode())
+							&& resp.getDeviceId().equals(mdmBioDevice.getDeviceId()));
 
-			if (val != null && !val.isEmpty()) {
-
-				List<DeviceDiscoveryMDSResponse> deviceList;
-
-				LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-						"parsing device discovery response to 095 dto");
-				deviceList = (mosipDeviceSpecificationHelper.getMapper().readValue(val,
-						new TypeReference<List<DeviceDiscoveryMDSResponse>>() {
-						}));
-
-				if (deviceList != null && !deviceList.isEmpty()) {
-
-					for (DeviceDiscoveryMDSResponse device : deviceList) {
-
-						if (Arrays.asList(device.getSpecVersion()).contains(SPEC_VERSION)
-								&& RegistrationConstants.DEVICE_STATUS_READY.equalsIgnoreCase(device.getDeviceStatus())
-								&& device.getCertification().equals(mdmBioDevice.getCertification())
-								&& device.getDeviceCode().equals(mdmBioDevice.getDeviceCode())
-								&& device.getDeviceId().equals(mdmBioDevice.getDeviceId())) {
-
-							isDeviceAvailable = true;
-							break;
-
-						}
-					}
-				}
-			}
-
-		} catch (IOException exception) {
+		} catch (Throwable exception) {
 			LOGGER.error(MOSIP_BIO_DEVICE_INTEGERATOR, APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(exception));
 		}

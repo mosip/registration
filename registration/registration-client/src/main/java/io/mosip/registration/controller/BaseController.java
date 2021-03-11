@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.mosip.registration.exception.RemapException;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -257,7 +258,7 @@ public class BaseController {
 
 	/**
 	 * Set Validations map
-	 * 
+	 *
 	 * @param validations is a map id's and regex validations
 	 */
 	public void setValidations(Map<String, UiSchemaDTO> validations) {
@@ -455,7 +456,7 @@ public class BaseController {
 
 	/**
 	 * Alert specific for page navigation confirmation
-	 * 
+	 *
 	 * @return
 	 */
 	protected boolean pageNavigantionAlert() {
@@ -896,7 +897,7 @@ public class BaseController {
 	 * generate the notification template writeNotificationTemplate =
 	 * templateGenerator.generateNotificationTemplate(notificationTemplate,
 	 * registrationDTO, templateManagerBuilder); }
-	 * 
+	 *
 	 * } catch (RegBaseUncheckedException regBaseUncheckedException) {
 	 * LOGGER.error("REGISTRATION - UI - GENERATE_NOTIFICATION", APPLICATION_NAME,
 	 * APPLICATION_ID, regBaseUncheckedException.getMessage() +
@@ -1057,7 +1058,7 @@ public class BaseController {
 				return new Task<ResponseDTO>() {
 					/*
 					 * (non-Javadoc)
-					 * 
+					 *
 					 * @see javafx.concurrent.Task#call()
 					 */
 					@Override
@@ -1120,7 +1121,7 @@ public class BaseController {
 	 * @param pageId     - Parent Anchorpane where other panes are included
 	 * @param notTosShow - Id of Anchorpane which has to be hidden
 	 * @param show       - Id of Anchorpane which has to be shown
-	 * 
+	 *
 	 */
 	protected void getCurrentPage(Pane pageId, String notTosShow, String show) {
 		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
@@ -1157,7 +1158,7 @@ public class BaseController {
 				return new Task<String>() {
 
 					@Override
-					protected String call() {
+					protected String call() throws RemapException {
 
 						packetHandlerController.getProgressIndicator().setVisible(true);
 
@@ -1263,7 +1264,7 @@ public class BaseController {
 	 * @return alert
 	 */
 	protected Alert createAlert(AlertType alertType, String title, String header, String context,
-			String confirmButtonText, String cancelButtonText) {
+								String confirmButtonText, String cancelButtonText) {
 
 		Alert alert = new Alert(alertType);
 		alert.setTitle(title);
@@ -1308,7 +1309,7 @@ public class BaseController {
 		 * guardianBiometricsLabel.setText("Biometrics"); // //
 		 * guardianBiometricsController.setGuardianBiometricsLabel(
 		 * guardianBiometricsLabel);
-		 * 
+		 *
 		 * } else if (updateUINNextPage(RegistrationConstants.FINGERPRINT_DISABLE_FLAG)
 		 * && !isChild()) {
 		 * SessionContext.map().put(RegistrationConstants.UIN_UPDATE_FINGERPRINTCAPTURE,
@@ -1417,10 +1418,10 @@ public class BaseController {
 	protected List<BiometricExceptionDTO> getIrisExceptions() {
 		if ((boolean) SessionContext.map().get(RegistrationConstants.ONBOARD_USER)) {
 			return null;// return
-						// getBiometricDTOFromSession().getOperatorBiometricDTO().getBiometricExceptionDTO();
+			// getBiometricDTOFromSession().getOperatorBiometricDTO().getBiometricExceptionDTO();
 		} else if (getRegistrationDTOFromSession().isUpdateUINNonBiometric()
 				|| (SessionContext.map().get(RegistrationConstants.IS_Child) != null
-						&& (boolean) SessionContext.map().get(RegistrationConstants.IS_Child))) {
+				&& (boolean) SessionContext.map().get(RegistrationConstants.IS_Child))) {
 			return getRegistrationDTOFromSession().getBiometricDTO().getIntroducerBiometricDTO()
 					.getBiometricExceptionDTO();
 		} else {
@@ -1446,7 +1447,7 @@ public class BaseController {
 
 	/**
 	 * To get the current timestamp
-	 * 
+	 *
 	 * @return Timestamp returns the current timestamp
 	 */
 	protected Timestamp getCurrentTimestamp() {
@@ -1456,7 +1457,7 @@ public class BaseController {
 	/**
 	 * Restricts the re-ordering of the columns in {@link TableView}. This is
 	 * generic method.
-	 * 
+	 *
 	 * @param table the instance of {@link TableView} for which re-ordering of
 	 *              columns had to be restricted
 	 */
@@ -1502,14 +1503,14 @@ public class BaseController {
 		return bioType.equals(RegistrationConstants.FINGERPRINT_SLAB_LEFT)
 				? RegistrationConstants.LEFTSLAP_FINGERPRINT_THRESHOLD
 				: bioType.equals(RegistrationConstants.FINGERPRINT_SLAB_RIGHT)
-						? RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD
-						: bioType.equals(RegistrationConstants.FINGERPRINT_SLAB_THUMBS)
-								? RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD
-								: bioType.toLowerCase().contains(RegistrationConstants.IRIS.toLowerCase())
-										? RegistrationConstants.IRIS_THRESHOLD
-										: bioType.toLowerCase().contains(RegistrationConstants.FACE.toLowerCase())
-												? RegistrationConstants.FACE_THRESHOLD
-												: RegistrationConstants.EMPTY;
+				? RegistrationConstants.RIGHTSLAP_FINGERPRINT_THRESHOLD
+				: bioType.equals(RegistrationConstants.FINGERPRINT_SLAB_THUMBS)
+				? RegistrationConstants.THUMBS_FINGERPRINT_THRESHOLD
+				: bioType.toLowerCase().contains(RegistrationConstants.IRIS.toLowerCase())
+				? RegistrationConstants.IRIS_THRESHOLD
+				: bioType.toLowerCase().contains(RegistrationConstants.FACE.toLowerCase())
+				? RegistrationConstants.FACE_THRESHOLD
+				: RegistrationConstants.EMPTY;
 	}
 
 	public interface ToRun<T> {
@@ -1622,34 +1623,34 @@ public class BaseController {
 	 * constantBioAttributes) { return;
 	 *//** Put pane disable by default */
 	/*
-	 * 
+	 *
 	 * pane.setDisable(true);
-	 * 
+	 *
 	 *//** Get UI schema individual Biometrics Bio Attributes */
 	/*
-	 * 
+	 *
 	 * List<String> uiSchemaBioAttributes =
 	 * getBioAttributesBySubType(RegistrationConstants.indBiometrics);
-	 * 
+	 *
 	 *//** If bio Attribute not mentioned for bio attribute then disable */
 	/*
-	 * 
+	 *
 	 * if (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
 	 * pane.setDisable(true); } else {
-	 * 
+	 *
 	 * for (String attribute : constantBioAttributes) {
-	 * 
+	 *
 	 *//** If bio attribute configured in UI Schema, then enable the pane */
 
 	/*
-	 * 
+	 *
 	 * if (uiSchemaBioAttributes.contains(attribute)) { pane.setDisable(false);
-	 * 
+	 *
 	 *//** Stop the iteration as we got the attribute *//*
-														 * break; } } }
-														 * 
-														 * }
-														 */
+	 * break; } } }
+	 *
+	 * }
+	 */
 
 	// protected void addExceptionDTOs() {
 	// List<String> bioAttributesFromSchema =
@@ -1700,16 +1701,16 @@ public class BaseController {
 	 * Attribute not mentioned for bio attribute then disable if
 	 * (uiSchemaBioAttributes == null || uiSchemaBioAttributes.isEmpty()) {
 	 * isAvailable = false; } else {
-	 * 
+	 *
 	 * for (String attribute : constantAttributes) {
-	 * 
+	 *
 	 * // If bio attribute configured in UI Schema, then enable the pane if
 	 * (uiSchemaBioAttributes.contains(attribute)) {
-	 * 
+	 *
 	 * isAvailable = true; } }
-	 * 
+	 *
 	 * }
-	 * 
+	 *
 	 * return isAvailable; }
 	 */
 
@@ -1734,12 +1735,12 @@ public class BaseController {
 	protected boolean isDemographicField(UiSchemaDTO schemaField) {
 		return (schemaField.isInputRequired()
 				&& !(PacketManagerConstants.BIOMETRICS_DATATYPE.equals(schemaField.getType())
-						|| PacketManagerConstants.DOCUMENTS_DATATYPE.equals(schemaField.getType())));
+				|| PacketManagerConstants.DOCUMENTS_DATATYPE.equals(schemaField.getType())));
 	}
 
 	/*
 	 * protected List<String> getConstantConfigBioAttributes(String bioType) {
-	 * 
+	 *
 	 * return bioType.equalsIgnoreCase(RegistrationUIConstants.RIGHT_SLAP) ?
 	 * RegistrationConstants.rightHandUiAttributes :
 	 * bioType.equalsIgnoreCase(RegistrationUIConstants.LEFT_SLAP) ?
@@ -1755,15 +1756,15 @@ public class BaseController {
 	/*
 	 * protected List<String> getConfigBioAttributes(List<String>
 	 * constantAttributes) {
-	 * 
+	 *
 	 * // Get Bio Attributes List<String> uiAttributes =
 	 * getSchemaFieldBioAttributes(RegistrationConstants.indBiometrics);
-	 * 
+	 *
 	 * return
 	 * constantAttributes.stream().filter(uiAttributes::contains).collect(Collectors
 	 * .toList());
-	 * 
-	 * 
+	 *
+	 *
 	 * }
 	 */
 
@@ -1811,7 +1812,7 @@ public class BaseController {
 //	}
 
 	protected void updateByAttempt(double qualityScore, Image streamImage, double thresholdScore,
-			ImageView streamImagePane, Label qualityText, ProgressBar progressBar, Label progressQualityScore) {
+								   ImageView streamImagePane, Label qualityText, ProgressBar progressBar, Label progressQualityScore) {
 
 		String qualityScoreLabelVal = getQualityScore(qualityScore);
 
@@ -1915,21 +1916,21 @@ public class BaseController {
 
 		try {
 			switch (job) {
-			case "MS":
-				baseService.proceedWithMasterAndKeySync(null);
-				break;
-			case "PS":
-				baseService.proceedWithPacketSync();
-				break;
-			case "RM":
-				baseService.proceedWithMachineCenterRemap();
-				break;
-			case "OU":
-				baseService.proceedWithOperatorOnboard();
-				break;
-			default:
-				baseService.proceedWithMasterAndKeySync(job);
-				break;
+				case "MS":
+					baseService.proceedWithMasterAndKeySync(null);
+					break;
+				case "PS":
+					baseService.proceedWithPacketSync();
+					break;
+				case "RM":
+					baseService.proceedWithMachineCenterRemap();
+					break;
+				case "OU":
+					baseService.proceedWithOperatorOnboard();
+					break;
+				default:
+					baseService.proceedWithMasterAndKeySync(job);
+					break;
 			}
 		} catch (PreConditionCheckException ex) {
 			ResourceBundle resourceBundle = applicationContext.getBundle(applicationContext.getApplicationLanguage(),
@@ -1964,11 +1965,11 @@ public class BaseController {
 		}
 		return true;
 	}
-	
+
 	protected List<String> getConfiguredLanguages() {
 		List<String> languages = new ArrayList<>();
 		List<String> langCodes = Stream.concat(baseService.getMandatoryLanguages().stream(), baseService.getOptionalLanguages().stream())
-                .collect(Collectors.toList());
+				.collect(Collectors.toList());
 		for (String langCode : langCodes) {
 			if (!langCode.isBlank()) {
 				languages.add(ApplicationLanguages.getLanguageByLangCode(langCode));
@@ -1976,11 +1977,11 @@ public class BaseController {
 		}
 		return languages;
 	}
-	
+
 	protected List<String> getConfiguredLangCodes() {
 		List<String> languages = new ArrayList<>();
 		List<String> langCodes = Stream.concat(baseService.getMandatoryLanguages().stream(), baseService.getOptionalLanguages().stream())
-                .collect(Collectors.toList());
+				.collect(Collectors.toList());
 		for (String langCode : langCodes) {
 			if (!langCode.isBlank()) {
 				languages.add(langCode);
