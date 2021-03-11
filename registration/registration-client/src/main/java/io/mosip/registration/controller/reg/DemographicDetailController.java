@@ -1201,7 +1201,7 @@ public class DemographicDetailController extends BaseController {
 		registrationController.createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_NEW);
 		documentScanController.clearDocSection();
 
-		ResponseDTO responseDTO = preRegistrationDataSyncService.getPreRegistration(preRegId);
+		ResponseDTO responseDTO = preRegistrationDataSyncService.getPreRegistration(preRegId, false);
 
 		SuccessResponseDTO successResponseDTO = responseDTO.getSuccessResponseDTO();
 		List<ErrorResponseDTO> errorResponseDTOList = responseDTO.getErrorResponseDTOs();

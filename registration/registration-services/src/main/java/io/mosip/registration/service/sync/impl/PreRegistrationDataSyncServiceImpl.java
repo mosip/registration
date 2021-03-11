@@ -1,6 +1,7 @@
 package io.mosip.registration.service.sync.impl;
 
 import java.io.File;
+import java.net.SocketTimeoutException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -8,8 +9,11 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.NonNull;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -48,6 +52,8 @@ import io.mosip.registration.service.external.PreRegZipHandlingService;
 import io.mosip.registration.service.sync.PreRegistrationDataSyncService;
 import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 
+import javax.annotation.PreDestroy;
+
 /**
  * Implementation for {@link PreRegistrationDataSyncService}
  * 
@@ -68,6 +74,11 @@ import io.mosip.registration.util.healthcheck.RegistrationAppHealthCheckUtil;
 @Service
 public class PreRegistrationDataSyncServiceImpl extends BaseService implements PreRegistrationDataSyncService {
 
+	/**
+	 * Instance of LOGGER
+	 */
+	private static final Logger LOGGER = AppConfig.getLogger(PreRegistrationDataSyncServiceImpl.class);
+
 	@Autowired
 	PreRegistrationDataSyncDAO preRegistrationDAO;
 
@@ -77,10 +88,17 @@ public class PreRegistrationDataSyncServiceImpl extends BaseService implements P
 	@Autowired
 	private PreRegZipHandlingService preRegZipHandlingService;
 
-	/**
-	 * Instance of LOGGER
-	 */
-	private static final Logger LOGGER = AppConfig.getLogger(PreRegistrationDataSyncServiceImpl.class);
+	ExecutorService executorServiceForPreReg = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
+	@PreDestroy
+	public void destroy() {
+		try {
+			executorServiceForPreReg.shutdown();
+			executorServiceForPreReg.awaitTermination(500, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			LOGGER.error("Failed to shutdown pre-reg executor service", e);
+		}
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -88,103 +106,71 @@ public class PreRegistrationDataSyncServiceImpl extends BaseService implements P
 	 * @see io.mosip.registration.service.sync.PreRegistrationDataSyncService#
 	 * getPreRegistrationIds(java.lang.String)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
-	synchronized public ResponseDTO getPreRegistrationIds(String syncJobId) {
-		LOGGER.info("REGISTRATION - PRE_REGISTRATION_DATA_SYNC - PRE_REGISTRATION_DATA_SYNC_SERVICE_IMPL",
-				RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"Fetching Pre-Registration Id's started");
+	public ResponseDTO getPreRegistrationIds(@NonNull String syncJobId) {
+		LOGGER.info("Fetching Pre-Registration Id's started, syncJobId : {}", syncJobId);
 		ResponseDTO responseDTO = new ResponseDTO();
-		if(StringUtils.isEmpty(syncJobId)) {
-			setErrorResponse(responseDTO, RegistrationConstants.PRE_REG_TO_GET_ID_ERROR, null);
-			return responseDTO;
-		}
-
-		/* prepare request DTO to pass on through REST call */
-		PreRegistrationDataSyncDTO preRegistrationDataSyncDTO = prepareDataSyncRequestDTO();
+		boolean noRecordsError = false;
 
 		try {
-
 			//Precondition check, proceed only if met, otherwise throws exception
 			proceedWithMasterAndKeySync(syncJobId);
 
 			/* REST call to get Pre Registartion Id's */
-			LinkedHashMap<String, Object> response = (LinkedHashMap<String, Object>) serviceDelegateUtil
-					.post(RegistrationConstants.GET_PRE_REGISTRATION_IDS, preRegistrationDataSyncDTO, syncJobId);
-			TypeReference<MainResponseDTO<LinkedHashMap<String, Object>>> ref = new TypeReference<MainResponseDTO<LinkedHashMap<String, Object>>>() {
-			};
-			MainResponseDTO<LinkedHashMap<String, Object>> mainResponseDTO = new ObjectMapper()
-					.readValue(new JSONObject(response).toString(), ref);
+			LinkedHashMap<String, Object> response = (LinkedHashMap<String, Object>) serviceDelegateUtil.post(RegistrationConstants.GET_PRE_REGISTRATION_IDS,
+					prepareDataSyncRequestDTO(), syncJobId);
 
-			if (isResponseNotEmpty(mainResponseDTO)) {
+			MainResponseDTO<PreRegistrationIdsDTO> mainResponseDTO = new ObjectMapper()
+					.convertValue(response, new TypeReference<MainResponseDTO<PreRegistrationIdsDTO>>(){});
+
+			//pre-rids received
+			if (mainResponseDTO != null && mainResponseDTO.getResponse() != null) {
 				PreRegistrationIdsDTO preRegistrationIdsDTO = new ObjectMapper().readValue(
 						new JSONObject(mainResponseDTO.getResponse()).toString(), PreRegistrationIdsDTO.class);
 				Map<String, String> preRegIds = (Map<String, String>) preRegistrationIdsDTO.getPreRegistrationIds();
-				getPreRegistrationPackets(syncJobId, responseDTO, preRegIds);
+				getPreRegistrationPackets(preRegIds);
+				LOGGER.info("Fetching Pre-Registration data ended successfully");
 				return responseDTO;
 			}
 
-			if(mainResponseDTO != null && mainResponseDTO.getErrors() != null) {
-				//TODO - based on error code instead of error message
-				boolean noRecords = mainResponseDTO.getErrors()
-						.stream().anyMatch(e -> e.getMessage() != null &&
-						e.getMessage().equalsIgnoreCase("Record not found for date range and reg center id"));
-
-				return noRecords ? setSuccessResponse(responseDTO, RegistrationConstants.PRE_REG_SUCCESS_MESSAGE, null) :
-						setErrorResponse(responseDTO, RegistrationConstants.PRE_REG_TO_GET_ID_ERROR, null);
+			if(mainResponseDTO != null && mainResponseDTO.getErrors() != null &&
+					mainResponseDTO.getErrors().stream().anyMatch(e -> e.getErrorCode() != null && e.getErrorCode().equals("PRG_BOOK_RCI_032"))) {
+				return setSuccessResponse(responseDTO, RegistrationConstants.PRE_REG_SUCCESS_MESSAGE, null);
 			}
 
 		} catch (HttpClientErrorException | ResourceAccessException | HttpServerErrorException
 				| RegBaseCheckedException | java.io.IOException exception) {
-			LOGGER.error(RegistrationConstants.APPLICATION_NAME,RegistrationConstants.APPLICATION_ID,
-					"PRE_REGISTRATION_DATA_SYNC", ExceptionUtils.getStackTrace(exception));
-			setErrorResponse(responseDTO, RegistrationConstants.PRE_REG_TO_GET_ID_ERROR, null);
+			LOGGER.error("PRE_REGISTRATION_DATA_SYNC", exception);
 		}
 
-
-		LOGGER.info("REGISTRATION - PRE_REGISTRATION_DATA_SYNC - PRE_REGISTRATION_DATA_SYNC_SERVICE_IMPL",
-				RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"Fetching Pre-Registration Id's ended");
+		setErrorResponse(responseDTO, RegistrationConstants.PRE_REG_TO_GET_ID_ERROR, null);
 		return responseDTO;
 	}
 
 	/**
 	 * Gets the pre registration packets.
 	 *
-	 * @param syncJobId   the sync job id
-	 * @param responseDTO the response DTO
 	 * @param preRegIds   the pre-registration id's
 	 */
-	private void getPreRegistrationPackets(String syncJobId, ResponseDTO responseDTO, Map<String, String> preRegIds) {
-		ExecutorService executorServiceForPreReg = Executors.newFixedThreadPool(5);
-		try {
-			LOGGER.info("REGISTRATION - PRE_REGISTRATION_DATA_SYNC - PRE_REGISTRATION_DATA_SYNC_SERVICE_IMPL",
-					RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-					"Fetching Pre-Registration ID's in parallel mode started");
-			/* Get Packets Using pre registration ID's */
-			for (Entry<String, String> preRegDetail : preRegIds.entrySet()) {
+	private void getPreRegistrationPackets(Map<String, String> preRegIds) {
+		LOGGER.info("Fetching Pre-Registration ID's in parallel mode started");
+		/* Get Packets Using pre registration ID's */
+		for (Entry<String, String> preRegDetail : preRegIds.entrySet()) {
+			try {
 				executorServiceForPreReg.execute(
 						new Runnable() {
-								public void run() {
-										preRegDetail.setValue(preRegDetail.getValue().contains("Z") ? preRegDetail.getValue() : preRegDetail.getValue() + "Z");
-					
-										getPreRegistration(responseDTO, preRegDetail.getKey(), syncJobId, Timestamp.from(Instant.parse(preRegDetail.getValue())));
-								}
+							public void run() {
+								//TODO - Need to inform pre-reg team to correct date format
+								preRegDetail.setValue(preRegDetail.getValue().endsWith("Z") ? preRegDetail.getValue() : preRegDetail.getValue() + "Z");
+								getPreRegistration(preRegDetail.getKey(), Timestamp.from(Instant.parse(preRegDetail.getValue())));
+							}
 						}
 				);
+			} catch (Exception ex) {
+				LOGGER.error("Failed to fetch pre-reg packet", ex);
 			}
-			
-			executorServiceForPreReg.shutdown();
-			executorServiceForPreReg.awaitTermination(500, TimeUnit.SECONDS);
-		} catch (Exception interruptedException) {
-			executorServiceForPreReg.shutdown();
-			LOGGER.error("REGISTRATION - PRE_REGISTRATION_DATA_SYNC - PRE_REGISTRATION_DATA_SYNC_SERVICE_IMPL",
-					RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-					"Error Fetching Pre-Registration ID's in parallel mode " + interruptedException);
 		}
-		LOGGER.info("REGISTRATION - PRE_REGISTRATION_DATA_SYNC - PRE_REGISTRATION_DATA_SYNC_SERVICE_IMPL",
-				RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"Fetching Pre-Registration ID's in parallel mode completed");
+		LOGGER.info("Added Pre-Registration packet fetch task in parallel mode completed");
 	}
 
 	/*
@@ -194,272 +180,91 @@ public class PreRegistrationDataSyncServiceImpl extends BaseService implements P
 	 * getPreRegistration(java.lang.String)
 	 */
 	@Override
-	public ResponseDTO getPreRegistration(String preRegistrationId) {
-
-		LOGGER.info("REGISTRATION - PRE_REGISTRATION_DATA_SYNC - PRE_REGISTRATION_DATA_SYNC_SERVICE_IMPL",
-				RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"Fetching Pre-Registration started");
-
+	public ResponseDTO getPreRegistration(@NonNull String preRegistrationId, boolean forceDownload) {
 		ResponseDTO responseDTO = new ResponseDTO();
+		try {
+			PreRegistrationList preRegistration = preRegistrationDAO.get(preRegistrationId);
+			preRegistration = getPreRegistration(preRegistrationId, preRegistration == null ? null :
+					forceDownload ? null : preRegistration.getLastUpdatedPreRegTimeStamp());
 
-		if (!StringUtils.isEmpty(preRegistrationId)) {
-			/** Get Pre Registration Packet */
-			getPreRegistration(responseDTO, preRegistrationId, null, null);
-		} else {
-			LOGGER.error("REGISTRATION - PRE_REGISTRATION_DATA_SYNC - PRE_REGISTRATION_DATA_SYNC_SERVICE_IMPL",
-					RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-					"The PreRegistrationId is empty");
-
-			/* set Error response */
-			setErrorResponse(responseDTO, RegistrationConstants.PRE_REG_TO_GET_PACKET_ERROR, null);
+			if (preRegistration != null) {
+				byte[] decryptedPacket = preRegZipHandlingService.decryptPreRegPacket(
+						preRegistration.getPacketSymmetricKey(),
+						FileUtils.readFileToByteArray(FileUtils.getFile(preRegistration.getPacketPath())));
+				setPacketToResponse(responseDTO, decryptedPacket, preRegistrationId);
+				return responseDTO;
+			}
+		} catch (Exception e) {
+			LOGGER.error("Failed to fetch pre-reg packet", e);
 		}
-
-		LOGGER.info("REGISTRATION - PRE_REGISTRATION_DATA_SYNC - PRE_REGISTRATION_DATA_SYNC_SERVICE_IMPL",
-				RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"Fetching Pre-Registration completed");
-
+		setErrorResponse(responseDTO, RegistrationConstants.PRE_REG_TO_GET_PACKET_ERROR, null);
 		return responseDTO;
 	}
 
-	/**
-	 * Gets the pre registration.
-	 *
-	 * @param responseDTO          the response DTO
-	 * @param preRegistrationId    the pre registration id
-	 * @param syncJobId            the sync job id
-	 * @param lastUpdatedTimeStamp the last updated time stamp
-	 * @return the pre registration
-	 */
-	@SuppressWarnings("unchecked")
-	private void getPreRegistration(ResponseDTO responseDTO, String preRegistrationId, String syncJobId,
-			Timestamp lastUpdatedTimeStamp) {
-
-		LOGGER.info("REGISTRATION - PRE_REGISTRATION_DATA_SYNC - PRE_REGISTRATION_DATA_SYNC_SERVICE_IMPL",
-				RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"Fetching Pre-Registration started");
-
-		/* Check in Database whether required record already exists or not */
-		PreRegistrationList preRegistration = preRegistrationDAO.get(preRegistrationId);
-
-		/* Check Network Connectivity */
-		boolean isOnline = RegistrationAppHealthCheckUtil.isNetworkAvailable();
-
-		/* check if the packet is not available in db and the machine is offline */
-		if (isPacketNotAvailable(preRegistration, isOnline)) {
-			setErrorResponse(responseDTO, RegistrationConstants.PRE_REG_PACKET_NETWORK_ERROR, null);
-			return;
-		}
-
-		boolean isUpdated = false;
-		byte[] decryptedPacket = null;
-		boolean isFetchFromUi = false;
-
-		isUpdated = isUpdated(lastUpdatedTimeStamp, preRegistration, isUpdated);
-
-
-		if (syncJobId == null) {
-			isFetchFromUi = true;
-			syncJobId = RegistrationConstants.JOB_TRIGGER_POINT_USER;
-
-		}
-
-		boolean isJob = (!RegistrationConstants.JOB_TRIGGER_POINT_USER.equals(syncJobId));
-
-		/*
-		 * Get Packet From REST call when the packet is updated in the server or always
-		 * if its a manual trigger
-		 */
-		if (isFetchToBeTriggered(isOnline, isUpdated, isJob)) {
-
-			/* prepare request params to pass through URI */
-			Map<String, String> requestParamMap = new HashMap<>();
-			requestParamMap.put(RegistrationConstants.PRE_REGISTRATION_ID, preRegistrationId);
-
-			String triggerPoint = getTriggerPoint(isJob);
-
-			try {
-				/* REST call to get packet */
-				LinkedHashMap<String, Object> mainResponseDTO = (LinkedHashMap<String, Object>) serviceDelegateUtil
-						.get(RegistrationConstants.GET_PRE_REGISTRATION, requestParamMap, true, syncJobId);
-
-				if (null != mainResponseDTO
-						&& null != mainResponseDTO.get(RegistrationConstants.RESPONSE)) {
-
-					PreRegArchiveDTO preRegArchiveDTO = new ObjectMapper().readValue(
-							new ObjectMapper().writeValueAsString(
-									mainResponseDTO.get(RegistrationConstants.RESPONSE)),
-							PreRegArchiveDTO.class);
-
-					decryptedPacket = preRegArchiveDTO.getZipBytes();
-
-					/* Get PreRegistrationDTO by taking packet Information */
-					PreRegistrationDTO preRegistrationDTO = preRegZipHandlingService
-							.encryptAndSavePreRegPacket(preRegistrationId, decryptedPacket);
-
-					// Transaction
-					SyncTransaction syncTransaction = syncManager.createSyncTransaction(
-							RegistrationConstants.RETRIEVED_PRE_REG_ID, RegistrationConstants.RETRIEVED_PRE_REG_ID,
-							triggerPoint, syncJobId);
-
-					// save in Pre-Reg List
-					PreRegistrationList preRegistrationList = preparePreRegistration(syncTransaction,
-							preRegistrationDTO, lastUpdatedTimeStamp);
-
-					preRegistrationList.setAppointmentDate(
-							DateUtils.parseUTCToDate(preRegArchiveDTO.getAppointmentDate(), "yyyy-MM-dd"));
-
-					if (preRegistration == null) {
-						preRegistrationDAO.save(preRegistrationList);
-					} else {
-						preRegistrationList.setId(preRegistration.getId());
-						preRegistrationList.setUpdBy(getUserIdFromSession());
-						preRegistrationList.setUpdDtimes(new Timestamp(System.currentTimeMillis()));
-						preRegistrationDAO.update(preRegistrationList);
-					}
-					/* set success response */
-					setSuccessResponse(responseDTO, RegistrationConstants.PRE_REG_SUCCESS_MESSAGE, null);
-
-				} else if (preRegistration == null) {
-					/*
-					 * set error message if the packet is not available both in db as well as the
-					 * REST service
-					 */
-					setErrorResponse(responseDTO, RegistrationConstants.PRE_REG_TO_GET_PACKET_ERROR, null);
-					return;
-				}
-
-			} catch (HttpClientErrorException | RegBaseCheckedException | java.io.IOException
-					| HttpServerErrorException exception) {
-
-				LOGGER.error("REGISTRATION - PRE_REGISTRATION_DATA_SYNC - PRE_REGISTRATION_DATA_SYNC_SERVICE_IMPL",
-						RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-						exception.getMessage() + ExceptionUtils.getStackTrace(exception));
-
-				/* set Error response */
-				setErrorResponse(responseDTO, RegistrationConstants.PRE_REG_TO_GET_PACKET_ERROR, null);
-				return;
-			}
-		}
-
-		/* Only for Manual Trigger */
-		if (isFetchFromUi) {
-			try {
-				if (isPacketFromLocal(preRegistration, decryptedPacket)) {
-					/*
-					 * if the packet is already available,read encrypted packet from disk and
-					 * decrypt
-					 */
-					decryptedPacket = preRegZipHandlingService.decryptPreRegPacket(
-							preRegistration.getPacketSymmetricKey(),
-							FileUtils.readFileToByteArray(FileUtils.getFile(preRegistration.getPacketPath())));
-				}
-
-				/* set decrypted packet into Response */
-				setPacketToResponse(responseDTO, decryptedPacket, preRegistrationId);
-
-			} catch (IOException exception) {
-				LOGGER.error("REGISTRATION - PRE_REGISTRATION_DATA_SYNC - Manual Trigger",
-						RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-						exception.getMessage() + ExceptionUtils.getStackTrace(exception));
-				setErrorResponse(responseDTO, RegistrationConstants.PRE_REG_TO_GET_PACKET_ERROR, null);
-				return;
-			} catch (RegBaseUncheckedException exception) {
-				LOGGER.error("REGISTRATION - PRE_REGISTRATION_DATA_SYNC - Manual Trigger",
-						RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-						exception.getMessage() + ExceptionUtils.getStackTrace(exception));
-				setErrorResponse(responseDTO, RegistrationConstants.PRE_REG_TO_GET_PACKET_ERROR, null);
-				return;
+	private PreRegistrationList getPreRegistration(String preRegistrationId, Timestamp lastUpdatedTimeStamp) {
+		LOGGER.info("Fetching Pre-Registration started for {}", preRegistrationId);
+		PreRegistrationList preRegistration = null;
+		try {
+			/* Check in Database whether required record already exists or not */
+			preRegistration = preRegistrationDAO.get(preRegistrationId);
+			if(preRegistration == null) {
+				LOGGER.info("Pre-Registration ID is not present downloading {}", preRegistrationId);
+				return downloadAndSavePacket(preRegistration, preRegistrationId, lastUpdatedTimeStamp);
 			}
 
+			if(lastUpdatedTimeStamp == null ||
+					preRegistration.getLastUpdatedPreRegTimeStamp().before(lastUpdatedTimeStamp)) {
+				LOGGER.info("Pre-Registration ID is not up-to-date downloading {}", preRegistrationId);
+				return downloadAndSavePacket(preRegistration, preRegistrationId, lastUpdatedTimeStamp);
+			}
+
+		} catch (Exception exception) {
+			LOGGER.error(preRegistrationId, exception);
 		}
-
-		LOGGER.info("REGISTRATION - PRE_REGISTRATION_DATA_SYNC - PRE_REGISTRATION_DATA_SYNC_SERVICE_IMPL",
-				RegistrationConstants.APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-				"Get Pre-Registration ended");
-
+		return preRegistration;
 	}
 
-	private boolean isUpdated(Timestamp lastUpdatedTimeStamp, PreRegistrationList preRegistration, boolean isUpdated) {
-		if (isPacketUpdatedInServer(preRegistration)) {
+	private PreRegistrationList downloadAndSavePacket(PreRegistrationList preRegistration, @NonNull String preRegistrationId,
+			 Timestamp lastUpdatedTimeStamp) throws Exception {
+		Map<String, String> requestParamMap = new HashMap<>();
+		requestParamMap.put(RegistrationConstants.PRE_REGISTRATION_ID, preRegistrationId);
+		LOGGER.debug("Downloading pre-reg packet {}", requestParamMap);
 
-			isUpdated = (preRegistration.getLastUpdatedPreRegTimeStamp().equals(lastUpdatedTimeStamp));
+		LinkedHashMap<String, Object> response = (LinkedHashMap<String, Object>) serviceDelegateUtil.get(RegistrationConstants.GET_PRE_REGISTRATION,
+				requestParamMap, true,	RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM);
+		MainResponseDTO<PreRegArchiveDTO> mainResponseDTO = new ObjectMapper()
+				.convertValue(response, new TypeReference<MainResponseDTO<PreRegArchiveDTO>>() {});
+
+		//successfully downloaded pre-reg packet
+		if(mainResponseDTO.getResponse() != null && mainResponseDTO.getResponse().getZipBytes() != null) {
+			PreRegistrationDTO preRegistrationDTO = preRegZipHandlingService
+					.encryptAndSavePreRegPacket(preRegistrationId, mainResponseDTO.getResponse().getZipBytes());
+
+			// Transaction
+			SyncTransaction syncTransaction = syncManager.createSyncTransaction(
+					RegistrationConstants.RETRIEVED_PRE_REG_ID, RegistrationConstants.RETRIEVED_PRE_REG_ID,
+					RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM, RegistrationConstants.OPT_TO_REG_PDS_J00003);
+
+			// save in Pre-Reg List
+			PreRegistrationList preRegistrationList = preparePreRegistration(syncTransaction, preRegistrationDTO);
+			preRegistrationList.setAppointmentDate(DateUtils.parseUTCToDate(mainResponseDTO.getResponse().getAppointmentDate(),
+					"yyyy-MM-dd"));
+
+			preRegistrationList.setLastUpdatedPreRegTimeStamp(lastUpdatedTimeStamp == null ?
+					Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()) : lastUpdatedTimeStamp);
+
+			if (preRegistration == null) {
+				preRegistration = preRegistrationDAO.save(preRegistrationList);
+			} else {
+				preRegistrationList.setId(preRegistration.getId());
+				preRegistrationList.setUpdBy(getUserIdFromSession());
+				preRegistrationList.setUpdDtimes(new Timestamp(System.currentTimeMillis()));
+				preRegistration = preRegistrationDAO.update(preRegistrationList);
+			}
 		}
-		return isUpdated;
+		return preRegistration;
 	}
 
-	/**
-	 * Checks if is packet not available.
-	 *
-	 * @param preRegistration the pre registration
-	 * @param isOnline        the is online
-	 * @return true, if is packet not available
-	 */
-	private boolean isPacketNotAvailable(PreRegistrationList preRegistration, boolean isOnline) {
-		return !isOnline && preRegistration == null;
-	}
-
-	/**
-	 * Checks if is packet from local.
-	 *
-	 * @param preRegistration the pre registration
-	 * @param decryptedPacket the decrypted packet
-	 * @return true, if is packet from local
-	 */
-	private boolean isPacketFromLocal(PreRegistrationList preRegistration, byte[] decryptedPacket) {
-		return preRegistration != null && decryptedPacket == null;
-	}
-
-	/**
-	 * Checks if is packet updated in server.
-	 *
-	 * @param preRegistration the pre registration
-	 * @return true, if is packet updated in server
-	 */
-	private boolean isPacketUpdatedInServer(PreRegistrationList preRegistration) {
-		return preRegistration != null && preRegistration.getLastUpdatedPreRegTimeStamp() != null;
-	}
-
-	/**
-	 * Checks if is fetch to be triggered.
-	 *
-	 * @param isOnline  the is online
-	 * @param isUpdated the is updated
-	 * @param isJob     the is job
-	 * @return true, if is fetch to be triggered
-	 */
-	private boolean isFetchToBeTriggered(boolean isOnline, boolean isUpdated, boolean isJob) {
-		return isOnline && (!isUpdated || !isJob);
-	}
-
-	/**
-	 * Gets the trigger point.
-	 *
-	 * @param isJob the is job
-	 * @return the trigger point
-	 */
-	private String getTriggerPoint(boolean isJob) {
-		return isJob ? RegistrationConstants.JOB_TRIGGER_POINT_SYSTEM : getUserIdFromSession();
-	}
-
-	/**
-	 * Checks if is response not empty.
-	 *
-	 * @param mainResponseDTO the main response DTO
-	 * @return true, if is response not empty
-	 */
-	private boolean isResponseNotEmpty(MainResponseDTO<LinkedHashMap<String, Object>> mainResponseDTO) {
-		return mainResponseDTO != null && mainResponseDTO.getResponse() != null;
-	}
-
-	/**
-	 * Checks if is packet not empty.
-	 *
-	 * @param mainResponseDTO the main response DTO
-	 * @return true, if is packet not empty
-	 */
-	private boolean isPacketNotEmpty(MainResponseDTO<LinkedHashMap<String, Object>> mainResponseDTO) {
-		return isResponseNotEmpty(mainResponseDTO) && mainResponseDTO.getResponse().get("zip-bytes") != null;
-	}
 
 	/**
 	 * Sets the packet to response.
@@ -506,13 +311,13 @@ public class PreRegistrationDataSyncServiceImpl extends BaseService implements P
 		preRegistrationDataSyncDTO.setVersion(RegistrationConstants.VER);
 
 		PreRegistrationDataSyncRequestDTO preRegistrationDataSyncRequestDTO = new PreRegistrationDataSyncRequestDTO();
-		preRegistrationDataSyncRequestDTO.setFromDate(getFromDate(reqTime));
 		if (SessionContext.isSessionContextAvailable()) {
 			preRegistrationDataSyncRequestDTO.setRegistrationCenterId(
 					SessionContext.userContext().getRegistrationCenterDetailDTO().getRegistrationCenterId());
 		} else {
 			preRegistrationDataSyncRequestDTO.setRegistrationCenterId(getCenterId());
 		}
+		preRegistrationDataSyncRequestDTO.setFromDate(getFromDate(reqTime));
 		preRegistrationDataSyncRequestDTO.setToDate(getToDate(reqTime));
 		//preRegistrationDataSyncRequestDTO.setUserId(getUserIdFromSession());
 
@@ -573,11 +378,10 @@ public class PreRegistrationDataSyncServiceImpl extends BaseService implements P
 	 *
 	 * @param syncTransaction      the sync transaction
 	 * @param preRegistrationDTO   the pre registration DTO
-	 * @param lastUpdatedTimeStamp the last updated time stamp
 	 * @return the pre registration list
 	 */
 	private PreRegistrationList preparePreRegistration(SyncTransaction syncTransaction,
-			PreRegistrationDTO preRegistrationDTO, Timestamp lastUpdatedTimeStamp) {
+			PreRegistrationDTO preRegistrationDTO) {
 
 		PreRegistrationList preRegistrationList = new PreRegistrationList();
 
@@ -594,8 +398,7 @@ public class PreRegistrationDataSyncServiceImpl extends BaseService implements P
 		preRegistrationList.setIsActive(true);
 		preRegistrationList.setIsDeleted(false);
 		preRegistrationList.setCrBy(syncTransaction.getCrBy());
-		preRegistrationList.setCrDtime(new Timestamp(System.currentTimeMillis()));				
-		preRegistrationList.setLastUpdatedPreRegTimeStamp(Timestamp.valueOf(DateUtils.getUTCCurrentDateTime()));		
+		preRegistrationList.setCrDtime(new Timestamp(System.currentTimeMillis()));
 		return preRegistrationList;
 	}
 
