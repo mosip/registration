@@ -55,5 +55,3 @@ for stage_dir in ../stage_groups/*; do
     fi
   done
 done
-
-/bin/bash
