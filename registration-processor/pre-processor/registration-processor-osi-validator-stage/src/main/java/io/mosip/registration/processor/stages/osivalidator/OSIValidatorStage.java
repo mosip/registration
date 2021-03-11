@@ -92,6 +92,10 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
+
+	/** After this time intervel, message should be considered as expired (In seconds). */
+	@Value("${mosip.regproc.osi.validator.message.expiry-time-limit}")
+	private Long messageExpiryTimeLimit;
 	
 	@Value("${mosip.registartion.processor.validateUMC}")
 	private boolean validateUMC;
@@ -105,7 +109,8 @@ public class OSIValidatorStage extends MosipVerticleAPIManager {
 	 */
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consumeAndSend(mosipEventBus, MessageBusAddress.OSI_BUS_IN, MessageBusAddress.OSI_BUS_OUT);
+		this.consumeAndSend(mosipEventBus, MessageBusAddress.OSI_BUS_IN, MessageBusAddress.OSI_BUS_OUT,
+			messageExpiryTimeLimit);
 	}
 
 	@Override

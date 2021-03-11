@@ -40,6 +40,11 @@ public class PacketValidatorStage extends MosipVerticleAPIManager {
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
 
+	/** After this time intervel, message should be considered as expired (In seconds). */
+	@Value("${mosip.regproc.packet.validator.message.expiry-time-limit}")
+	private Long messageExpiryTimeLimit;
+
+	
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
 
@@ -53,7 +58,7 @@ public class PacketValidatorStage extends MosipVerticleAPIManager {
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.PACKET_VALIDATOR_BUS_IN,
-				MessageBusAddress.PACKET_VALIDATOR_BUS_OUT);
+				MessageBusAddress.PACKET_VALIDATOR_BUS_OUT, messageExpiryTimeLimit);
 	}
 
 	@Override

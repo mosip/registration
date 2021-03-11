@@ -147,7 +147,7 @@ public class UinGeneratorStageTest {
 
 		@Override
 		public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
-				MessageBusAddress toAddress) {
+				MessageBusAddress toAddress, long messageExpiryTimeLimit) {
 		}
 	};
 
@@ -230,6 +230,7 @@ public class UinGeneratorStageTest {
 	@Before
 	public void setup() throws Exception {
 		ReflectionTestUtils.setField(uinGeneratorStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(uinGeneratorStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(uinGeneratorStage, "clusterManagerUrl", "/dummyPath");
 
 		ClassLoader classLoader1 = getClass().getClassLoader();

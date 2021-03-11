@@ -74,7 +74,7 @@ public class DemoDedupeStageTest {
 
 		@Override
 		public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
-				MessageBusAddress toAddress) {
+				MessageBusAddress toAddress, long messageExpiryTimeLimit) {
 		}
 	};
 
@@ -84,6 +84,7 @@ public class DemoDedupeStageTest {
 	@Test
 	public void testDeployVerticle() {
 		ReflectionTestUtils.setField(demoDedupeStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(demoDedupeStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(demoDedupeStage, "clusterManagerUrl", "/dummyPath");
 		demoDedupeStage.deployVerticle();
 	}
@@ -100,6 +101,7 @@ public class DemoDedupeStageTest {
 	@Test
 	public void testStart() {
 		ReflectionTestUtils.setField(demoDedupeStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(demoDedupeStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(demoDedupeStage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(demoDedupeStage, "port", "1080");
 		

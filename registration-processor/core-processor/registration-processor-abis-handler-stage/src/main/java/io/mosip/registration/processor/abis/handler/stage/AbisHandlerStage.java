@@ -112,6 +112,10 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
 
+	/** After this time intervel, message should be considered as expired (In seconds). */
+	@Value("${mosip.regproc.abis.handler.message.expiry-time-limit}")
+	private Long messageExpiryTimeLimit;
+
 	@Value("${registration.processor.policy.id}")
 	private String policyId;
 
@@ -164,7 +168,7 @@ public class AbisHandlerStage extends MosipVerticleAPIManager {
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.ABIS_HANDLER_BUS_IN,
-				MessageBusAddress.ABIS_HANDLER_BUS_OUT);
+				MessageBusAddress.ABIS_HANDLER_BUS_OUT, messageExpiryTimeLimit);
 	}
 
 	@Override

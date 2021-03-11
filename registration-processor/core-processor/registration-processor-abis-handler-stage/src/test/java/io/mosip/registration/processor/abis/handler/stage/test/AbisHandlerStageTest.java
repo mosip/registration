@@ -151,7 +151,7 @@ public class AbisHandlerStageTest {
 
 		@Override
 		public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
-				MessageBusAddress toAddress) {
+				MessageBusAddress toAddress, long messageExpiryTimeLimit) {
 		}
 	};
 
@@ -160,6 +160,7 @@ public class AbisHandlerStageTest {
 		ReflectionTestUtils.setField(abisHandlerStage, "maxResults", "30");
 		ReflectionTestUtils.setField(abisHandlerStage, "targetFPIR", "30");
 		ReflectionTestUtils.setField(abisHandlerStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(abisHandlerStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(abisHandlerStage, "clusterManagerUrl", "/dummyPath");
 		Mockito.when(env.getProperty("mosip.registration.processor.datetime.pattern"))
 				.thenReturn("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");

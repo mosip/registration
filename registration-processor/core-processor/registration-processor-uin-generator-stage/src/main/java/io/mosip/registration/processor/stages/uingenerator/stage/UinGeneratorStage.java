@@ -135,6 +135,10 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
 
+	/** After this time intervel, message should be considered as expired (In seconds). */
+	@Value("${mosip.regproc.uin.generator.message.expiry-time-limit}")
+	private Long messageExpiryTimeLimit;
+
 	/** The core audit request builder. */
 	@Autowired
 	private AuditLogRequestBuilder auditLogRequestBuilder;
@@ -995,7 +999,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.UIN_GENERATION_BUS_IN,
-				MessageBusAddress.UIN_GENERATION_BUS_OUT);
+				MessageBusAddress.UIN_GENERATION_BUS_OUT, messageExpiryTimeLimit);
 	}
 
 	@Override

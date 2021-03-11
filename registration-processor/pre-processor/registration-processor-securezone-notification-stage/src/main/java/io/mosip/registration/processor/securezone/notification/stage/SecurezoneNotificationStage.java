@@ -72,6 +72,10 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
     @Value("${server.servlet.path}")
     private String contextPath;
 
+    /** After this time intervel, message should be considered as expired (In seconds). */
+    @Value("${mosip.regproc.securezone.notification.message.expiry-time-limit}")
+    private Long messageExpiryTimeLimit;
+
     /** The Constant USER. */
     private static final String USER = "MOSIP_SYSTEM";
 
@@ -98,7 +102,7 @@ public class SecurezoneNotificationStage extends MosipVerticleAPIManager {
     public void deployVerticle() {
         this.mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
         this.consumeAndSend(mosipEventBus, MessageBusAddress.SECUREZONE_NOTIFICATION_IN,
-                MessageBusAddress.SECUREZONE_NOTIFICATION_OUT);
+                MessageBusAddress.SECUREZONE_NOTIFICATION_OUT, messageExpiryTimeLimit);
     }
 
     @Override
