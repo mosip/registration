@@ -929,6 +929,10 @@ public enum PlatformErrorMessages {
 	RPR_SYS_PACKET_TAGS_COPYING_FAILED(PlatformConstants.RPR_SYSTEM_EXCEPTION + "019",
 			"Packet tags copying to message event failed"),
 
+	/** The message expired. */
+	RPR_SYS_MESSAGE_EXPIRED(PlatformConstants.RPR_SYSTEM_EXCEPTION + "020",
+			"Message expired as per the last hop timestamp"),
+
 	// Cbeff Util Exceptions
 	/** The rpr utl biometric tag match. */
 	RPR_UTL_BIOMETRIC_TAG_MATCH(PlatformConstants.RPR_UTIL + "001", "Both Files have same biometrics"),
