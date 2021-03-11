@@ -148,9 +148,8 @@ public class NotificationService {
 		sb.subscribe(subscriptionRequest);
 	}
 
-	//Workflow_completed_event
 	@PostMapping(value = "/callback", consumes = "application/json")
-	@PreAuthenticateContentAndVerifyIntent(secret = "${registration.processor.notification_service_subscriber_secret}", callback = "/callback", topic = "${registration.processor.notification_service_subscriber_topic}")
+	@PreAuthenticateContentAndVerifyIntent(secret = "${registration.processor.notification_service_subscriber_secret}", callback = "/registrationprocessor/v1/notification/callback", topic = "${registration.processor.notification_service_subscriber_topic}")
 	public ResponseEntity<Void> process(@RequestBody WorkflowCompletedEventDTO object) {
 		TrimExceptionMessage trimExceptionMessage = new TrimExceptionMessage();
 		ResponseEntity<Void> responseEntity = null;
