@@ -918,7 +918,7 @@ public class GenericController extends BaseController {
 		auditFactory.audit(AuditEvent.REG_DEMO_PRE_REG_DATA_FETCH, Components.REG_DEMO_DETAILS, SessionContext.userId(),
 				AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
-		ResponseDTO responseDTO = preRegistrationDataSyncService.getPreRegistration(preRegId);
+		ResponseDTO responseDTO = preRegistrationDataSyncService.getPreRegistration(preRegId,false);
 
 		SuccessResponseDTO successResponseDTO = responseDTO.getSuccessResponseDTO();
 		List<ErrorResponseDTO> errorResponseDTOList = responseDTO.getErrorResponseDTOs();
