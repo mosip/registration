@@ -106,7 +106,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 	 */
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl);
-		// deployScheduler(mosipEventBus.getEventbus());
+		deployScheduler(mosipEventBus.getEventbus());
 
 	}
 

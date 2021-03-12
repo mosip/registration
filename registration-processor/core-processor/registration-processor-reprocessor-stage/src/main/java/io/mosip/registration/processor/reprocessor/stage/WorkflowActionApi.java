@@ -15,13 +15,13 @@ import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
+import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowActionDTO;
+import io.mosip.registration.processor.reprocessor.service.WorkflowActionService;
 import io.mosip.registration.processor.reprocessor.validator.WorkflowActionRequestValidator;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
-import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
-import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
-import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
@@ -31,9 +31,6 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(WorkflowActionApi.class);
 
-	/** The registration status service. */
-	@Autowired
-	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
 
 	/** The audit log request builder. */
 	@Autowired
@@ -59,6 +56,8 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 	@Autowired
 	private WorkflowActionRequestValidator validator;
 
+	@Autowired
+	private WorkflowActionService workflowActionService;
 	/**
 	 * The context path.
 	 */
@@ -104,14 +103,18 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 	 * @param ctx the ctx
 	 */
 	public void processURL(RoutingContext ctx) {
-
+		LogDescription description = new LogDescription();
+		boolean isTransactionSuccessful = false;
 		JsonObject obj = ctx.getBodyAsJson();
 		try {
 			WorkflowActionDTO workflowActionDTO = (WorkflowActionDTO) JsonUtils
 					.jsonStringToJavaObject(WorkflowActionDTO.class, obj.toString());
 			boolean isValid = validator.validate(workflowActionDTO, new ArrayList<ErrorDTO>());
-			if (isValid) {
 
+			if (isValid) {
+				workflowActionService.processWorkflowAction(workflowActionDTO.getRequest().getWorkflowId(),
+						workflowActionDTO.getRequest().getWorkflowAction(), this);
+				isTransactionSuccessful = true;
 			} else {
 
 			}
@@ -124,9 +127,13 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (TablenotAccessibleException e) {
+
 		}
 
 	}
+
+
 
 	private void failure(RoutingContext routingContext) {
 		this.setResponse(routingContext, routingContext.failure().getMessage());
