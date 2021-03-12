@@ -96,8 +96,8 @@ public class MosipStageExecutorApplication {
 						try {
 							return (Class<MosipVerticleAPIManager>) Class.forName(classStr);
 						} catch (ClassNotFoundException e1) {
-							regProcLogger.error("Unable to load Bean : " + classStr);
-							throw new RuntimeException("Invalid config");
+							regProcLogger.error("Unable to load stage class : \n{}", ExceptionUtils.getStackTrace(e1));
+							throw new RuntimeException("Invalid config", e1);
 						}
 					}).filter(Objects::nonNull).collect(Collectors.toList());
 
