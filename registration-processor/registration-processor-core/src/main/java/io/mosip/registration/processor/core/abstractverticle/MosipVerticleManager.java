@@ -3,6 +3,8 @@ package io.mosip.registration.processor.core.abstractverticle;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -28,6 +30,7 @@ import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.eventbus.MosipEventBusFactory;
 import io.mosip.registration.processor.core.exception.DeploymentFailureException;
+import io.mosip.registration.processor.core.exception.MessageExpiredException;
 import io.mosip.registration.processor.core.exception.UnsupportedEventBusTypeException;
 import io.mosip.registration.processor.core.exception.ApisResourceAccessException;
 import io.mosip.registration.processor.core.exception.PacketManagerException;
@@ -151,7 +154,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	 */
 	@Override
 	public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
-			MessageBusAddress toAddress) {
+			MessageBusAddress toAddress, long messageExpiryTimeLimit) {
 		mosipEventBus.consumeAndSend(fromAddress, toAddress, (msg, handler) -> {
 			logger.debug("consumeAndSend received from {} {}",fromAddress.toString(), msg.getBody());
 			Map<String, String> mdc = MDC.getCopyOfContextMap();
@@ -159,9 +162,15 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 				MDC.setContextMap(mdc);
 				JsonObject jsonObject = (JsonObject) msg.getBody();
 				MessageDTO messageDTO = jsonObject.mapTo(MessageDTO.class);
+				if(isMessageExpired(messageDTO, messageExpiryTimeLimit)) {
+					future.fail(new MessageExpiredException("rid: " + messageDTO.getRid() + 
+						" lastHopTimestamp " + messageDTO.getLastHopTimestamp()));
+					return;
+				}
 				MessageDTO result = process(messageDTO);
 				if(result.getTags() == null)
 					addTagsToMessageDTO(result);
+				result.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 				future.complete(result);
 			}, false, handler);
 			MDC.clear();
@@ -181,6 +190,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	public void send(MosipEventBus mosipEventBus, MessageBusAddress toAddress, MessageDTO message) {
 		if(message.getTags() == null)
 			addTagsToMessageDTO(message);
+		message.setLastHopTimestamp(DateUtils.formatToISOString(DateUtils.getUTCCurrentDateTime()));
 		mosipEventBus.send(toAddress, message);
 	}
 
@@ -191,8 +201,11 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	 *            The Eventbus instance for communication
 	 * @param fromAddress
 	 *            The address from which message needs to be consumed
+	 * @param messageExpiryTimeLimit
+	 * 			  The time limit in seconds, after which message should considered as expired
 	 */
-	public void consume(MosipEventBus mosipEventBus, MessageBusAddress fromAddress) {
+	public void consume(MosipEventBus mosipEventBus, MessageBusAddress fromAddress, 
+			long messageExpiryTimeLimit) {
 		mosipEventBus.consume(fromAddress, (msg, handler) -> {
 			logger.debug("Received from {} {}",fromAddress.toString(), msg.getBody());
 			Map<String, String> mdc = MDC.getCopyOfContextMap();
@@ -200,6 +213,11 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 				MDC.setContextMap(mdc);
 				JsonObject jsonObject = (JsonObject) msg.getBody();
 				MessageDTO messageDTO = jsonObject.mapTo(MessageDTO.class);
+				if(isMessageExpired(messageDTO, messageExpiryTimeLimit)) {
+					future.fail(new MessageExpiredException("rid: " + messageDTO.getRid() + 
+						" lastHopTimestamp " + messageDTO.getLastHopTimestamp()));
+					return;
+				}
 				MessageDTO result = process(messageDTO);
 				future.complete(result);
 			}, false, handler);
@@ -256,6 +274,23 @@ public abstract class MosipVerticleManager extends AbstractVerticle
         InfoResponseDto infoResponseDto = objectMapper.readValue(JsonUtils.javaObjectToJsonString(
 			response.getResponse()), InfoResponseDto.class);
 		return infoResponseDto.getTags();
-    }
+	}
+	
+	private boolean isMessageExpired(MessageDTO messageDTO, long messageExpiryTimeLimit) {
+		if(messageExpiryTimeLimit <= 0)
+			return false;
+		try {
+			LocalDateTime lastHopDateTime = DateUtils.parseUTCToLocalDateTime(messageDTO.getLastHopTimestamp());
+			LocalDateTime nowDateTime = LocalDateTime.now();
+			if(ChronoUnit.SECONDS.between(lastHopDateTime, nowDateTime) <= messageExpiryTimeLimit)
+				return false;
+			return true;
+		} catch(Exception e) {
+			logger.error("{} {} {} {}", PlatformErrorMessages.RPR_SYS_PARSING_DATE_EXCEPTION.getCode(), 
+				PlatformErrorMessages.RPR_SYS_PARSING_DATE_EXCEPTION.getMessage(), e.getMessage(), 
+				ExceptionUtils.getStackTrace(e));
+			return true;
+		}
+	}
 
 }

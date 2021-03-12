@@ -44,6 +44,10 @@ public class PacketClassifierStage extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.packet.classifier.eventbus.port}")
 	private String eventBusPort;
 
+	/** After this time intervel, message should be considered as expired (In seconds). */
+	@Value("${mosip.regproc.packet.classifier.message.expiry-time-limit}")
+	private Long messageExpiryTimeLimit;
+
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
 
@@ -53,7 +57,7 @@ public class PacketClassifierStage extends MosipVerticleAPIManager {
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.PACKET_CLASSIFIER_BUS_IN,
-				MessageBusAddress.PACKET_CLASSIFIER_BUS_OUT);
+				MessageBusAddress.PACKET_CLASSIFIER_BUS_OUT, messageExpiryTimeLimit);
 	}
 
 	@Override

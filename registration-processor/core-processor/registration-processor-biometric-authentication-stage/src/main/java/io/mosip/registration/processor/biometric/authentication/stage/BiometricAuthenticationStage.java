@@ -101,6 +101,10 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
 
+	/** After this time intervel, message should be considered as expired (In seconds). */
+	@Value("${mosip.regproc.biometric.authentication.message.expiry-time-limit}")
+	private Long messageExpiryTimeLimit;
+
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
 
@@ -114,7 +118,7 @@ public class BiometricAuthenticationStage extends MosipVerticleAPIManager {
 	public void deployVerticle() {
 		mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
 		this.consumeAndSend(mosipEventBus, MessageBusAddress.BIOMETRIC_AUTHENTICATION_BUS_IN,
-				MessageBusAddress.BIOMETRIC_AUTHENTICATION_BUS_OUT);
+				MessageBusAddress.BIOMETRIC_AUTHENTICATION_BUS_OUT, messageExpiryTimeLimit);
 	}
 
 	@Override

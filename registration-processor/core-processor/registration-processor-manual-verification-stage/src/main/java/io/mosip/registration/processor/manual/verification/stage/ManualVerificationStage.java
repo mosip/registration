@@ -143,6 +143,10 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	@Value("${worker.pool.size}")
 	private Integer workerPoolSize;
 
+	/** After this time intervel, message should be considered as expired (In seconds). */
+	@Value("${mosip.regproc.manual.verification.message.expiry-time-limit}")
+	private Long messageExpiryTimeLimit;
+
 	@Value("${server.servlet.path}")
 	private String contextPath;
 
@@ -153,7 +157,8 @@ public class ManualVerificationStage extends MosipVerticleAPIManager {
 	 */
 	public void deployStage() {
 		this.mosipEventBus = this.getEventBus(this, clusterManagerUrl, workerPoolSize);
-		this.consumeAndSend(mosipEventBus, MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, MessageBusAddress.MANUAL_VERIFICATION_BUS_OUT);
+		this.consumeAndSend(mosipEventBus, MessageBusAddress.MANUAL_VERIFICATION_BUS_IN, 
+			MessageBusAddress.MANUAL_VERIFICATION_BUS_OUT, messageExpiryTimeLimit);
 		queue = getQueueConnection();
 		if (queue != null) {
 

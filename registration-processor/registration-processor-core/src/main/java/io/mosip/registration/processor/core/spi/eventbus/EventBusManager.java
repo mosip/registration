@@ -35,8 +35,10 @@ public interface EventBusManager<T, U, V> {
 	 * @param eventBus            The Eventbus instance for communication
 	 * @param fromAddress            The address from which message is to be consumed
 	 * @param toAddress            The address to which message needs to be sent
+	 * @param messageExpiryTimeLimit	The time limit in seconds, after which message should 
+	 * 									considered as expired
 	 */
-	public void consumeAndSend(T eventBus, U fromAddress, U toAddress);
+	public void consumeAndSend(T eventBus, U fromAddress, U toAddress, long messageExpiryTimeLimit);
 
 	/**
 	 * This method processes on the supplied object and returns the modified object.
