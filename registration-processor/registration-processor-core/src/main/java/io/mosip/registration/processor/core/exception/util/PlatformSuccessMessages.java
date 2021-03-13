@@ -70,7 +70,13 @@ public enum PlatformSuccessMessages {
 	RPR_SENT_TO_REPROCESS_SUCCESS(PlatformConstants.RPR_REPROCESSOR_STAGE + "001", "sent to reprocess Success"),
 
 	RPR_WORKFLOW_EVENT_UPDATE_SUCCESS(PlatformConstants.RPR_WORKFLOW_EVENT_UPDATE + "000",
-			"Update Work Flow Status Success"),
+			"Update Work Flow action"),
+
+	RPR_WORKFLOW_ACTION_SERVICE_SUCCESS(PlatformConstants.RPR_WORKFLOW_ACTION_SERVICE + "000",
+			"Processed the workflow action - %s"),
+
+	RPR_WORKFLOW_ACTION_API_SUCCESS(PlatformConstants.RPR_WORKFLOW_ACTION_API + "000",
+			"Process the workflow action success"),
 
 	RPR_EXTERNAL_STAGE_SUCCESS(PlatformConstants.RPR_EXTERNAL_STAGE + "000", "External stage  Success"),
 

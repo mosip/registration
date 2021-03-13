@@ -96,6 +96,11 @@
 			<artifactId>registration-processor-info-storage-service</artifactId>
 			<version>${packet.info.storage.service.version}</version>
 		</dependency>
+		<dependency>
+     	<groupId>io.mosip.kernel</groupId>
+   	    <artifactId>kernel-websubclient-api</artifactId>
+   	     <version>${kernel.websubclient.version}</version>
+     </dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>

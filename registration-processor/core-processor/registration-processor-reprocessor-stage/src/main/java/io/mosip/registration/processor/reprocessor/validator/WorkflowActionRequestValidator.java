@@ -11,6 +11,7 @@ import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
+import io.mosip.registration.processor.core.exception.WorkflowActionRequestValidationException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowActionDTO;
@@ -49,8 +50,10 @@ public class WorkflowActionRequestValidator {
 	 * @param workflowActionDTO the workflow action DTO
 	 * @param errors            the errors
 	 * @return true, if successful
+	 * @throws WorkflowActionRequestValidationException
 	 */
-	public boolean validate(WorkflowActionDTO workflowActionDTO, List<ErrorDTO> errors) {
+	public boolean validate(WorkflowActionDTO workflowActionDTO, List<ErrorDTO> errors)
+			throws WorkflowActionRequestValidationException {
 		regProcLogger.debug("WorkflowActionRequestValidator  validate entry");
 		boolean isValid = false;
 		if(validateReqTime(workflowActionDTO.getRequesttime(),errors) && validateId(workflowActionDTO.getId(), errors)
@@ -67,23 +70,21 @@ public class WorkflowActionRequestValidator {
 	 * @param version the version
 	 * @param errors  the errors
 	 * @return true, if successful
+	 * @throws WorkflowActionRequestValidationException
 	 */
-	private boolean validateVersion(String version, List<ErrorDTO> errors) {
+	private boolean validateVersion(String version, List<ErrorDTO> errors)
+			throws WorkflowActionRequestValidationException {
 		if (Objects.isNull(version)) {
-			ErrorDTO error = new ErrorDTO();
-			error.setErrorCode(PlatformErrorMessages.RPR_WAA_MISSING_INPUT_PARAMETER.getCode());
-			error.setMessage(
+			throw new WorkflowActionRequestValidationException(
+					PlatformErrorMessages.RPR_WAA_MISSING_INPUT_PARAMETER.getCode(),
 					String.format(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER.getMessage(), VER));
-			errors.add(error);
-			return false;
+
 
 		} else if (!version.equalsIgnoreCase(env.getProperty(WORKFLOW_ACTION_VERSION))) {
-			ErrorDTO error = new ErrorDTO();
-			error.setErrorCode(PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getCode());
-			error.setMessage(
+			throw new WorkflowActionRequestValidationException(
+					PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getCode(),
 					String.format(PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getMessage(), VER));
-			errors.add(error);
-			return false;
+
 
 		} else {
 			return true;
@@ -96,23 +97,18 @@ public class WorkflowActionRequestValidator {
 	 * @param id     the id
 	 * @param errors the errors
 	 * @return true, if successful
+	 * @throws WorkflowActionRequestValidationException
 	 */
-	private boolean validateId(String id, List<ErrorDTO> errors) {
+	private boolean validateId(String id, List<ErrorDTO> errors) throws WorkflowActionRequestValidationException {
 		if (Objects.isNull(id)) {
-			ErrorDTO error = new ErrorDTO();
-			error.setErrorCode(PlatformErrorMessages.RPR_WAA_MISSING_INPUT_PARAMETER.getCode());
-			error.setMessage(
-					String.format(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER.getMessage(), ID_FIELD));
-			errors.add(error);
-			return false;
+			throw new WorkflowActionRequestValidationException(
+					PlatformErrorMessages.RPR_WAA_MISSING_INPUT_PARAMETER.getCode(),
+					String.format(PlatformErrorMessages.RPR_WAA_MISSING_INPUT_PARAMETER.getMessage(), ID_FIELD));
 
 		} else if (!id.equalsIgnoreCase(env.getProperty(WORKFLOW_ACTION_ID))) {
-			ErrorDTO error = new ErrorDTO();
-			error.setErrorCode(PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getCode());
-			error.setMessage(
+			throw new WorkflowActionRequestValidationException(
+					PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getCode(),
 					String.format(PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getMessage(), ID_FIELD));
-			errors.add(error);
-			return false;
 
 		} else {
 			return true;
@@ -125,16 +121,15 @@ public class WorkflowActionRequestValidator {
 	 * @param requesttime the requesttime
 	 * @param errors      the errors
 	 * @return true, if successful
+	 * @throws WorkflowActionRequestValidationException
 	 */
-	private boolean validateReqTime(String requesttime, List<ErrorDTO> errors) {
+	private boolean validateReqTime(String requesttime, List<ErrorDTO> errors)
+			throws WorkflowActionRequestValidationException {
 		boolean isValid = false;
 		if (Objects.isNull(requesttime)) {
-			ErrorDTO error = new ErrorDTO();
-			error.setErrorCode(PlatformErrorMessages.RPR_WAA_MISSING_INPUT_PARAMETER.getCode());
-			error.setMessage(
-					String.format(PlatformErrorMessages.RPR_RGS_MISSING_INPUT_PARAMETER.getMessage(), TIMESTAMP));
-			errors.add(error);
-			return isValid;
+			throw new WorkflowActionRequestValidationException(
+					PlatformErrorMessages.RPR_WAA_MISSING_INPUT_PARAMETER.getCode(),
+					String.format(PlatformErrorMessages.RPR_WAA_MISSING_INPUT_PARAMETER.getMessage(), TIMESTAMP));
 
 		} else {
 		try {
@@ -143,11 +138,10 @@ public class WorkflowActionRequestValidator {
 
 		} catch (Exception e) {
 				regProcLogger.error("Exception while parsing date {}", ExceptionUtils.getStackTrace(e));
-				ErrorDTO error = new ErrorDTO();
-				error.setErrorCode(PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getCode());
-				error.setMessage(
+				throw new WorkflowActionRequestValidationException(
+						PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getCode(),
 						String.format(PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getMessage(), TIMESTAMP));
-				errors.add(error);
+
 		}
 		}
 		return isValid;

@@ -133,6 +133,7 @@
 		<object.store.khazana.version>1.2.0-SNAPSHOT</object.store.khazana.version>
 		<kernel.biometrics.api.version>1.2.0-SNAPSHOT</kernel.biometrics.api.version>
 		<kernel-keymanager-service.version>1.2.0-SNAPSHOT</kernel-keymanager-service.version>
+		 <kernel.websubclient.version>1.2.0-SNAPSHOT</kernel.websubclient.version>
 			<sonar.coverage.exclusions>**/dto/**,
 			**/exception/*Exception.java,
 			**/config/*Config.java,
