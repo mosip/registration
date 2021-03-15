@@ -71,7 +71,7 @@ public class WorkflowActionService {
 	WebSubUtil webSubUtil;
 
 	/** The hot listed tag. */
-	@Value("${mosip.regproc.workflow.action.hotlisted.tag")
+	@Value("${mosip.regproc.workflow.action.hotlisted.tag}")
 	private String hotListedTag;
 
 	/** The Constant USER. */
@@ -79,7 +79,7 @@ public class WorkflowActionService {
 
 
 	/** The resume from beginning stage. */
-	@Value("${mosip.regproc.workflow.action.resumefrombeginning.stage")
+	@Value("${mosip.regproc.workflow.action.resumefrombeginning.stage}")
 	private String resumeFromBeginningStage;
 
 
@@ -104,20 +104,29 @@ public class WorkflowActionService {
 	public void processWorkflowAction(List<String> workflowIds, String workflowAction,
 			MosipEventBus mosipEventBus) throws WorkflowActionException {
 		WorkflowActionCode workflowActionCode = null;
-
+		try {
 			workflowActionCode = WorkflowActionCode.valueOf(workflowAction);
+		} catch (IllegalArgumentException e) {
+			throw new WorkflowActionException(PlatformErrorMessages.RPR_WAS_UNKNOWN_WORKFLOW_ACTION.getCode(),
+					PlatformErrorMessages.RPR_WAS_UNKNOWN_WORKFLOW_ACTION.getMessage());
+		}
 		switch (workflowActionCode) {
 		case RESUME_PROCESSING:
 				processResumeProcessing(workflowIds, mosipEventBus, workflowActionCode);
+			break;
 		case RESUME_PROCESSING_AND_REMOVE_HOTLISTED_TAG:
 				processResumeProcessingAndRemoveHotlistedTag(workflowIds, mosipEventBus, workflowActionCode);
+			break;
 		case RESUME_FROM_BEGINNING:
 				processResumeFromBeginning(workflowIds, mosipEventBus, workflowActionCode);
+			break;
 		case RESUME_FROM_BEGINNING_AND_REMOVE_HOTLISTED_TAG:
 				processResumeFromBeginningAndRemoveHotlistedTag(workflowIds, mosipEventBus,
 					workflowActionCode);
+			break;
 		case STOP_PROCESSING:
 				processStopProcessing(workflowIds, workflowActionCode);
+			break;
 		default:
 				throw new WorkflowActionException(PlatformErrorMessages.RPR_WAS_UNKNOWN_WORKFLOW_ACTION.getCode(),
 						PlatformErrorMessages.RPR_WAS_UNKNOWN_WORKFLOW_ACTION.getMessage());
@@ -154,9 +163,11 @@ public class WorkflowActionService {
 
 				} catch (WebSubClientException e) {
 					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
+				} catch(WorkflowActionException e) {
+					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
 				} catch (Exception e) {
-					logAndThrowError(e, PlatformErrorMessages.UNKNOWN_EXCEPTION.getCode(),
-							PlatformErrorMessages.UNKNOWN_EXCEPTION.getMessage(), rid, description);
+					logAndThrowError(e, PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getCode(),
+							PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getMessage(), rid, description);
 
 				} finally {
 					updateAudit(description, rid, isTransactionSuccessful);
@@ -202,7 +213,7 @@ public class WorkflowActionService {
 				try {
 				if (removeHotlistedTag(rid)) {
 
-					InternalRegistrationStatusDto registrationStatusDto = getAndUpdateRegistrationStatus(
+						InternalRegistrationStatusDto registrationStatusDto = getAndUpdateRegistrationStatus(
 							workflowActionCode, rid, RegistrationStatusCode.PROCESSING);
 					sentPacketEventforResumeBeginnning(mosipEventBus, registrationStatusDto);
 					description.setMessage(
@@ -236,9 +247,11 @@ public class WorkflowActionService {
 					logAndThrowError(e, PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
 							PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), rid, description);
 
+				} catch (WorkflowActionException e) {
+					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
 				} catch (Exception e) {
-					logAndThrowError(e, PlatformErrorMessages.UNKNOWN_EXCEPTION.getCode(),
-							PlatformErrorMessages.UNKNOWN_EXCEPTION.getMessage(), rid, description);
+					logAndThrowError(e, PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getCode(),
+							PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getMessage(), rid, description);
 
 				} finally {
 					regProcLogger.info("WorkflowActionService status for registration id {} {}", rid,
@@ -277,13 +290,15 @@ public class WorkflowActionService {
 				description.setMessage(
 						String.format(PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(),
 								workflowActionCode.name()));
-
+					isTransactionSuccessful = true;
 				} catch (TablenotAccessibleException e) {
 					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
 
+				} catch (WorkflowActionException e) {
+					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
 				} catch (Exception e) {
-					logAndThrowError(e, PlatformErrorMessages.UNKNOWN_EXCEPTION.getCode(),
-							PlatformErrorMessages.UNKNOWN_EXCEPTION.getMessage(), rid, description);
+					logAndThrowError(e, PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getCode(),
+							PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getMessage(), rid, description);
 
 				} finally {
 					regProcLogger.info("WorkflowActionService status for registration id {} {}", rid,
@@ -356,9 +371,11 @@ public class WorkflowActionService {
 				logAndThrowError(e, PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
 							PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), rid, description);
 
-			}catch (Exception e) {
-				logAndThrowError(e, PlatformErrorMessages.UNKNOWN_EXCEPTION.getCode(),
-							PlatformErrorMessages.UNKNOWN_EXCEPTION.getMessage(), rid, description);
+				} catch (WorkflowActionException e) {
+					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
+				} catch (Exception e) {
+					logAndThrowError(e, PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getCode(),
+							PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getMessage(), rid, description);
 
 			}finally {
 					regProcLogger.info("WorkflowActionService status for registration id {} {}", rid,
@@ -395,13 +412,15 @@ public class WorkflowActionService {
 				description.setMessage(
 						String.format(PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(),
 								workflowActionCode.name()));
-
+					isTransactionSuccessful = true;
 				} catch (TablenotAccessibleException e) {
 					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
 
+				} catch (WorkflowActionException e) {
+					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
 				} catch (Exception e) {
-					logAndThrowError(e, PlatformErrorMessages.UNKNOWN_EXCEPTION.getCode(),
-							PlatformErrorMessages.UNKNOWN_EXCEPTION.getMessage(), rid, description);
+					logAndThrowError(e, PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getCode(),
+							PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getMessage(), rid, description);
 
 				} finally {
 					regProcLogger.info("WorkflowActionService status for registration id {} {}", rid,
@@ -526,10 +545,16 @@ public class WorkflowActionService {
 	 * @param rid                the rid
 	 * @param statusCode         the status code
 	 * @return the and update registration status
+	 * @throws WorkflowActionException
 	 */
 	private InternalRegistrationStatusDto getAndUpdateRegistrationStatus(WorkflowActionCode workflowActionCode,
-			String rid, RegistrationStatusCode statusCode) {
+			String rid, RegistrationStatusCode statusCode) throws WorkflowActionException {
 		InternalRegistrationStatusDto registrationStatusDto = registrationStatusService.getRegistrationStatus(rid);
+		if(registrationStatusDto==null) {
+			throw new WorkflowActionException(
+					PlatformErrorMessages.RPR_WAS_WORKFLOW_ID_NOT_FOUND.getCode(),
+					String.format(PlatformErrorMessages.RPR_WAS_WORKFLOW_ID_NOT_FOUND.getMessage(), rid));
+		}
 		registrationStatusDto.setStatusCode(statusCode.name());
 		registrationStatusDto.setStatusComment(String.format(
 				PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(), workflowActionCode.name()));

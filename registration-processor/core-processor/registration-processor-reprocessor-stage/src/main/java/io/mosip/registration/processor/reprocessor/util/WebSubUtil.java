@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.websub.spi.PublisherClient;
 import io.mosip.kernel.websub.api.exception.WebSubClientException;
-import io.mosip.registration.processor.core.code.ApiName;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
 
@@ -34,7 +33,7 @@ public class WebSubUtil {
 		registerTopic(rid);
 		HttpHeaders httpHeaders = new HttpHeaders();
 		publisher.publishUpdate(workflowCompleteTopic, workflowCompletedEventDTO,
-				MediaType.APPLICATION_JSON_UTF8_VALUE, httpHeaders, env.getProperty(ApiName.WEBSUBPUBLISHURL.name()));
+				MediaType.APPLICATION_JSON_UTF8_VALUE, httpHeaders, env.getProperty("websub.publish.url"));
 		regProcLogger.info("Publish the update successfully  for registration id {}", rid);
 
 
@@ -43,7 +42,7 @@ public class WebSubUtil {
 	private void registerTopic(String rid) {
 		try {
 			publisher.registerTopic(workflowCompleteTopic,
-					env.getProperty(ApiName.WEBSUBPUBLISHURL.name()));
+					env.getProperty("websub.publish.url"));
 		} catch (WebSubClientException e) {
 			regProcLogger.error("Topic already registered for registration id {}", rid);
 

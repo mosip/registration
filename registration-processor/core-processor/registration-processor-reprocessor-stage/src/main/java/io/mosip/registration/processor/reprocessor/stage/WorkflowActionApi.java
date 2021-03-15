@@ -27,8 +27,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
 public class WorkflowActionApi extends MosipVerticleAPIManager {
-	/** The Constant USER. */
-	private static final String USER = "MOSIP_SYSTEM";
+
 
 
 	/** The audit log request builder. */
@@ -142,8 +141,8 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 			logError(workflowIds, workflowAction, e.getErrorCode(), e.getMessage(), e, ctx);
 		}catch (Exception e) {
 			logError(workflowIds, workflowAction,
-					PlatformErrorMessages.UNKNOWN_EXCEPTION.getCode(),
-					PlatformErrorMessages.UNKNOWN_EXCEPTION.getMessage(), e,ctx);
+					PlatformErrorMessages.RPR_WAA_UNKNOWN_EXCEPTION.getCode(),
+					PlatformErrorMessages.RPR_WAA_UNKNOWN_EXCEPTION.getMessage(), e, ctx);
 		}
 	}
 
