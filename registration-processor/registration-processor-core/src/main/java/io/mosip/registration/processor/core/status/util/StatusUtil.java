@@ -43,6 +43,7 @@ public enum StatusUtil {
 	PACKET_MANAGER_VALIDATION_FAILURE(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "012", "Packet validation failed in packet manager"),
 	BIOMETRICS_VALIDATION_FAILURE(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "013", "Biometric file validation failed"),
 	PACKET_MANAGER_EXCEPTION(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "014", "Exception occured in packet manager."),
+	XSD_VALIDATION_EXCEPTION(StatusConstants.PACKET_VALIDATOR_MODULE_FAILED + "015", "XSD validation failed."),
 
 	// packet classifier stage
 	PACKET_CLASSIFICATION_SUCCESS(StatusConstants.PACKET_CLASSIFIER_MODULE_SUCCESS + "001","Packet Classification is Successful"),
