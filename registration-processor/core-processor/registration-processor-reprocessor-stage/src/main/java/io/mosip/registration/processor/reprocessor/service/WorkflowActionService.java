@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import io.mosip.kernel.websub.api.exception.WebSubClientException;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
@@ -37,6 +38,7 @@ import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.util.MessageBusUtil;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowCompletedEventDTO;
+import io.mosip.registration.processor.packet.storage.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.reprocessor.util.WebSubUtil;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -80,11 +82,13 @@ public class WorkflowActionService {
 	@Value("${mosip.regproc.workflow.action.resumefrombeginning.stage")
 	private String resumeFromBeginningStage;
 
-	/** The module id. */
-	public static String MODULE_ID = PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getCode();
+
 
 	/** The module name. */
 	public static String MODULE_NAME = ModuleName.WORKFLOW_ACTION_SERVICE.toString();
+
+	/** The module id. */
+	public static String MODULE_ID = PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getCode();
 
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(WorkflowActionService.class);
@@ -100,7 +104,7 @@ public class WorkflowActionService {
 	public void processWorkflowAction(List<String> workflowIds, String workflowAction,
 			MosipEventBus mosipEventBus) throws WorkflowActionException {
 		WorkflowActionCode workflowActionCode = null;
-		try {
+
 			workflowActionCode = WorkflowActionCode.valueOf(workflowAction);
 		switch (workflowActionCode) {
 		case RESUME_PROCESSING:
@@ -119,63 +123,44 @@ public class WorkflowActionService {
 						PlatformErrorMessages.RPR_WAS_UNKNOWN_WORKFLOW_ACTION.getMessage());
 
 			}
-		} catch (ApisResourceAccessException e) {
-			logAndThrowError(e, e.getErrorCode(), e.getMessage(), workflowActionCode);
 
-
-		} catch (PacketManagerException e) {
-			logAndThrowError(e, e.getErrorCode(), e.getMessage(), workflowActionCode);
-
-
-		} catch (JsonProcessingException e) {
-			logAndThrowError(e, e.getErrorCode(), e.getMessage(), workflowActionCode);
-
-
-		} catch (IOException e) {
-			logAndThrowError(e, PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
-					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), workflowActionCode);
-
-		}
 	}
 
-	/**
-	 * Log and throw error.
-	 *
-	 * @param e                  the e
-	 * @param errorCode          the error code
-	 * @param errorMessage       the error message
-	 * @param workflowActionCode the workflow action code
-	 * @throws WorkflowActionException the workflow action exception
-	 */
-	private void logAndThrowError(Exception e, String errorCode, String errorMessage,
-			WorkflowActionCode workflowActionCode) throws WorkflowActionException {
-		regProcLogger.error("Error in  processWorkflowAction  for WorkflowAction  {} {} {} {}",
-				workflowActionCode.name(),
-				errorMessage, e.getMessage(), ExceptionUtils.getStackTrace(e));
-		throw new WorkflowActionException(errorCode, errorMessage);
-	}
 
 	/**
 	 * Process stop processing.
 	 *
 	 * @param workflowIds        the workflow ids
 	 * @param workflowActionCode the workflow action code
+	 * @throws WorkflowActionException
 	 */
 	private void processStopProcessing(List<String> workflowIds,
-			WorkflowActionCode workflowActionCode) {
+			WorkflowActionCode workflowActionCode) throws WorkflowActionException {
 		regProcLogger.debug("processStopProcessing called for workflowIds {}", workflowIds);
 		LogDescription description = new LogDescription();
+		boolean isTransactionSuccessful = true;
 		if (!CollectionUtils.isEmpty(workflowIds)) {
 			for (String rid : workflowIds) {
-
+               try {
 					InternalRegistrationStatusDto registrationStatusDto = getAndUpdateRegistrationStatus(
 						workflowActionCode, rid, RegistrationStatusCode.REJECTED);
 				sentWebSubEvent(registrationStatusDto);
 					description.setMessage(
 							String.format(PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(),
 									workflowActionCode.name()));
-					updateAudit(description, rid);
+					isTransactionSuccessful = true;
+				} catch (TablenotAccessibleException e) {
+					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
 
+				} catch (WebSubClientException e) {
+					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
+				} catch (Exception e) {
+					logAndThrowError(e, PlatformErrorMessages.UNKNOWN_EXCEPTION.getCode(),
+							PlatformErrorMessages.UNKNOWN_EXCEPTION.getMessage(), rid, description);
+
+				} finally {
+					updateAudit(description, rid, isTransactionSuccessful);
+				}
 			}
 			regProcLogger.debug("processStopProcessing call ended for workflowIds {}", workflowIds);
 		}
@@ -203,27 +188,18 @@ public class WorkflowActionService {
 	 * @param workflowIds        the workflow ids
 	 * @param mosipEventBus      the mosip event bus
 	 * @param workflowActionCode the workflow action code
-	 * @throws JsonParseException          the json parse exception
-	 * @throws JsonMappingException        the json mapping exception
-	 * @throws ApisResourceAccessException the apis resource access exception
-	 * @throws JsonProcessingException     the json processing exception
-	 * @throws JsonProcessingException     the json processing exception
-	 * @throws PacketManagerException      the packet manager exception
-	 * @throws IOException                 Signals that an I/O exception has
-	 *                                     occurred.
-	 * @throws WorkflowActionException     the workflow action exception
+	 * @throws WorkflowActionException the workflow action exception
 	 */
 	private void processResumeFromBeginningAndRemoveHotlistedTag(List<String> workflowIds,
 			MosipEventBus mosipEventBus, WorkflowActionCode workflowActionCode)
-			throws JsonParseException, JsonMappingException, ApisResourceAccessException, JsonProcessingException,
-			PacketManagerException, com.fasterxml.jackson.core.JsonProcessingException, IOException,
+			throws 
 			WorkflowActionException {
 		regProcLogger.debug("processResumeFromBeginningAndRemoveHotlistedTag called for workflowIds {}", workflowIds);
-
+		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
 		if (!CollectionUtils.isEmpty(workflowIds)) {
 			for (String rid : workflowIds) {
-
+				try {
 				if (removeHotlistedTag(rid)) {
 
 					InternalRegistrationStatusDto registrationStatusDto = getAndUpdateRegistrationStatus(
@@ -232,14 +208,43 @@ public class WorkflowActionService {
 					description.setMessage(
 							String.format(PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(),
 									workflowActionCode.name()));
-					updateAudit(description, rid);
+						isTransactionSuccessful = true;
 
 				} else {
-					throw new WorkflowActionException(
-							PlatformErrorMessages.RPR_WAS_REMOVE_HOTLISTED_TAG_FAILED.getCode(),
-							PlatformErrorMessages.RPR_WAS_REMOVE_HOTLISTED_TAG_FAILED.getMessage());
-				}
 
+						logAndThrowError(
+								new WorkflowActionException(
+										PlatformErrorMessages.RPR_WAS_REMOVE_HOTLISTED_TAG_FAILED.getCode(),
+										PlatformErrorMessages.RPR_WAS_REMOVE_HOTLISTED_TAG_FAILED.getMessage()),
+							PlatformErrorMessages.RPR_WAS_REMOVE_HOTLISTED_TAG_FAILED.getCode(),
+								PlatformErrorMessages.RPR_WAS_REMOVE_HOTLISTED_TAG_FAILED.getMessage(), rid,
+								description);
+				}
+				} catch (TablenotAccessibleException e) {
+					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
+
+				} catch (ApisResourceAccessException e) {
+					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
+
+				} catch (PacketManagerException e) {
+					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
+
+				} catch (JsonProcessingException e) {
+					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
+
+				} catch (IOException e) {
+					logAndThrowError(e, PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
+							PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), rid, description);
+
+				} catch (Exception e) {
+					logAndThrowError(e, PlatformErrorMessages.UNKNOWN_EXCEPTION.getCode(),
+							PlatformErrorMessages.UNKNOWN_EXCEPTION.getMessage(), rid, description);
+
+				} finally {
+					regProcLogger.info("WorkflowActionService status for registration id {} {}", rid,
+							description.getMessage());
+					updateAudit(description, rid, isTransactionSuccessful);
+				}
 			}
 			regProcLogger.debug("processResumeFromBeginningAndRemoveHotlistedTag call ended for workflowIds {}",
 					workflowIds);
@@ -255,14 +260,16 @@ public class WorkflowActionService {
 	 * @param workflowIds        the workflow ids
 	 * @param mosipEventBus      the mosip event bus
 	 * @param workflowActionCode the workflow action code
+	 * @throws WorkflowActionException
 	 */
 	private void processResumeFromBeginning(List<String> workflowIds,
-			MosipEventBus mosipEventBus, WorkflowActionCode workflowActionCode) {
+			MosipEventBus mosipEventBus, WorkflowActionCode workflowActionCode) throws WorkflowActionException {
 		regProcLogger.debug("processResumeFromBeginning called for workflowIds {}", workflowIds);
 		LogDescription description = new LogDescription();
+		boolean isTransactionSuccessful = true;
 		if (!CollectionUtils.isEmpty(workflowIds)) {
 			for (String rid : workflowIds) {
-
+				try {
 				InternalRegistrationStatusDto registrationStatusDto = getAndUpdateRegistrationStatus(workflowActionCode,
 						rid, RegistrationStatusCode.PROCESSING);
 
@@ -270,7 +277,19 @@ public class WorkflowActionService {
 				description.setMessage(
 						String.format(PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(),
 								workflowActionCode.name()));
-				updateAudit(description, rid);
+
+				} catch (TablenotAccessibleException e) {
+					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
+
+				} catch (Exception e) {
+					logAndThrowError(e, PlatformErrorMessages.UNKNOWN_EXCEPTION.getCode(),
+							PlatformErrorMessages.UNKNOWN_EXCEPTION.getMessage(), rid, description);
+
+				} finally {
+					regProcLogger.info("WorkflowActionService status for registration id {} {}", rid,
+							description.getMessage());
+					updateAudit(description, rid, isTransactionSuccessful);
+				}
 
 			}
 			regProcLogger.debug("processResumeFromBeginning call ended for workflowIds {}", workflowIds);
@@ -285,27 +304,19 @@ public class WorkflowActionService {
 	 * @param workflowIds        the workflow ids
 	 * @param mosipEventBus      the mosip event bus
 	 * @param workflowActionCode the workflow action code
-	 * @throws JsonParseException          the json parse exception
-	 * @throws JsonMappingException        the json mapping exception
-	 * @throws ApisResourceAccessException the apis resource access exception
-	 * @throws JsonProcessingException     the json processing exception
-	 * @throws JsonProcessingException     the json processing exception
-	 * @throws PacketManagerException      the packet manager exception
-	 * @throws IOException                 Signals that an I/O exception has
-	 *                                     occurred.
 	 * @throws WorkflowActionException     the workflow action exception
 	 */
 	private void processResumeProcessingAndRemoveHotlistedTag(List<String> workflowIds,
 			MosipEventBus mosipEventBus, WorkflowActionCode workflowActionCode)
-			throws JsonParseException, JsonMappingException, ApisResourceAccessException, JsonProcessingException,
-			PacketManagerException, com.fasterxml.jackson.core.JsonProcessingException, IOException,
+			throws 
 			WorkflowActionException {
 
 		regProcLogger.debug("processResumeProcessingAndRemoveHotlistedTag called for workflowIds {}", workflowIds);
-
+		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
 		if (!CollectionUtils.isEmpty(workflowIds)) {
 		for(String rid:workflowIds) {
+			try {
 				if (removeHotlistedTag(rid)) {
 
 					InternalRegistrationStatusDto registrationStatusDto = getAndUpdateRegistrationStatus(
@@ -315,17 +326,49 @@ public class WorkflowActionService {
 					description.setMessage(
 							String.format(PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(),
 									workflowActionCode.name()));
-					updateAudit(description, rid);
+						isTransactionSuccessful = true;
 					} else {
-					throw new WorkflowActionException(
+						
+						logAndThrowError(new WorkflowActionException(
 							PlatformErrorMessages.RPR_WAS_REMOVE_HOTLISTED_TAG_FAILED.getCode(),
-							PlatformErrorMessages.RPR_WAS_REMOVE_HOTLISTED_TAG_FAILED.getMessage());
+								PlatformErrorMessages.RPR_WAS_REMOVE_HOTLISTED_TAG_FAILED.getMessage()),
+								PlatformErrorMessages.RPR_WAS_REMOVE_HOTLISTED_TAG_FAILED.getCode(),
+								PlatformErrorMessages.RPR_WAS_REMOVE_HOTLISTED_TAG_FAILED.getMessage(), rid,
+								description);
+				
 					}
+			}catch (TablenotAccessibleException e) {
+					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
+				
+			} catch (ApisResourceAccessException e) {
+					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
+
+
+			} catch (PacketManagerException e) {
+					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
+
+
+			} catch (JsonProcessingException e) {
+					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
+
+
+			} catch (IOException e) {
+				logAndThrowError(e, PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
+							PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), rid, description);
+
+			}catch (Exception e) {
+				logAndThrowError(e, PlatformErrorMessages.UNKNOWN_EXCEPTION.getCode(),
+							PlatformErrorMessages.UNKNOWN_EXCEPTION.getMessage(), rid, description);
+
+			}finally {
+					regProcLogger.info("WorkflowActionService status for registration id {} {}", rid,
+							description.getMessage());
+					updateAudit(description, rid, isTransactionSuccessful);
 			}
 			regProcLogger.debug("processResumeProcessingAndRemoveHotlistedTag call ended for workflowIds {}",
 					workflowIds);
 		}
-
+		}
 	}
 
 	/**
@@ -334,14 +377,16 @@ public class WorkflowActionService {
 	 * @param workflowIds        the workflow ids
 	 * @param mosipEventBus      the mosip event bus
 	 * @param workflowActionCode the workflow action code
+	 * @throws WorkflowActionException
 	 */
 	private void processResumeProcessing(List<String> workflowIds, MosipEventBus mosipEventBus,
-			WorkflowActionCode workflowActionCode) {
+			WorkflowActionCode workflowActionCode) throws WorkflowActionException {
 		regProcLogger.debug("processResumeProcessing called for workflowIds {}", workflowIds);
+		boolean isTransactionSuccessful = false;
 		LogDescription description = new LogDescription();
 		if (!CollectionUtils.isEmpty(workflowIds)) {
 			for (String rid : workflowIds) {
-
+				try {
 
 				InternalRegistrationStatusDto registrationStatusDto = getAndUpdateRegistrationStatus(workflowActionCode,
 						rid, RegistrationStatusCode.PROCESSING);
@@ -350,7 +395,19 @@ public class WorkflowActionService {
 				description.setMessage(
 						String.format(PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(),
 								workflowActionCode.name()));
-				updateAudit(description, rid);
+
+				} catch (TablenotAccessibleException e) {
+					logAndThrowError(e, e.getErrorCode(), e.getMessage(), rid, description);
+
+				} catch (Exception e) {
+					logAndThrowError(e, PlatformErrorMessages.UNKNOWN_EXCEPTION.getCode(),
+							PlatformErrorMessages.UNKNOWN_EXCEPTION.getMessage(), rid, description);
+
+				} finally {
+					regProcLogger.info("WorkflowActionService status for registration id {} {}", rid,
+							description.getMessage());
+					updateAudit(description, rid, isTransactionSuccessful);
+				}
 
 			}
 			regProcLogger.debug("processResumeProcessing call ended for workflowIds {}",
@@ -448,14 +505,18 @@ public class WorkflowActionService {
 	 * @param description    the description
 	 * @param registrationId the registration id
 	 */
-	private void updateAudit(LogDescription description, String registrationId) {
+	private void updateAudit(LogDescription description, String registrationId, boolean isTransactionSuccessful) {
 
-		String eventId = EventId.RPR_402.toString();
-		String eventName = EventName.UPDATE.toString();
-		String eventType = EventType.BUSINESS.toString();
+		String moduleId = isTransactionSuccessful
+				? MODULE_ID
+				: description.getCode();
+
+		String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
+		String eventName = isTransactionSuccessful ? EventName.UPDATE.toString() : EventName.EXCEPTION.toString();
+		String eventType = isTransactionSuccessful ? EventType.BUSINESS.toString() : EventType.SYSTEM.toString();
 
 		auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
-				MODULE_ID, MODULE_NAME, registrationId);
+				moduleId, MODULE_NAME, registrationId);
 	}
 
 	/**
@@ -480,4 +541,23 @@ public class WorkflowActionService {
 		registrationStatusService.updateRegistrationStatusForWorkflow(registrationStatusDto, MODULE_ID, MODULE_NAME);
 		return registrationStatusDto;
 	}
+
+	/**
+	 * Log and throw error.
+	 *
+	 * @param e                  the e
+	 * @param errorCode          the error code
+	 * @param errorMessage       the error message
+	 * @param workflowActionCode the workflow action code
+	 * @throws WorkflowActionException the workflow action exception
+	 */
+	private void logAndThrowError(Exception e, String errorCode, String errorMessage, String registrationId,
+			LogDescription description) throws WorkflowActionException {
+		description.setCode(errorCode);
+		description.setMessage(errorMessage);
+		regProcLogger.error("Error in  processWorkflowAction  for registration id  {} {} {} {}", registrationId,
+				errorMessage, e.getMessage(), ExceptionUtils.getStackTrace(e));
+		throw new WorkflowActionException(errorCode, errorMessage);
+	}
+
 }

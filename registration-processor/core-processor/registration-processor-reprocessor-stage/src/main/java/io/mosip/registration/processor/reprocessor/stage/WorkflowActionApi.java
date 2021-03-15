@@ -10,22 +10,14 @@ import org.springframework.beans.factory.annotation.Value;
 import io.mosip.kernel.core.exception.IOException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.JsonUtils;
-import io.mosip.kernel.core.util.exception.JsonMappingException;
-import io.mosip.kernel.core.util.exception.JsonParseException;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
-import io.mosip.registration.processor.core.code.EventId;
-import io.mosip.registration.processor.core.code.EventName;
-import io.mosip.registration.processor.core.code.EventType;
-import io.mosip.registration.processor.core.code.ModuleName;
 import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.exception.WorkflowActionException;
 import io.mosip.registration.processor.core.exception.WorkflowActionRequestValidationException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.exception.util.PlatformSuccessMessages;
-import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowActionDTO;
 import io.mosip.registration.processor.reprocessor.service.WorkflowActionService;
@@ -113,8 +105,7 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 	 * @param ctx the ctx
 	 */
 	public void processURL(RoutingContext ctx) {
-		LogDescription description = new LogDescription();
-		boolean isTransactionSuccessful = false;
+
 		List<String> workflowIds = null;
 		String workflowAction = null;
 		try {
@@ -131,7 +122,7 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 			if (isValid) {
 				workflowActionService.processWorkflowAction(workflowIds,
 						workflowActionDTO.getRequest().getWorkflowAction(), mosipEventBus);
-				isTransactionSuccessful = true;
+
 				regProcLogger.info("Process the workflowAction successfully  for workflow ids and workflowaction {} {}",
 						workflowIds,
 						workflowAction);
@@ -141,43 +132,24 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 			}
 			regProcLogger.debug("WorkflowActionApi:processURL ended for registration ids {}",
 					workflowActionDTO.getRequest().getWorkflowId());
-		} catch (JsonParseException e) {
-			updateDTOsAndLogError(description, workflowIds, workflowAction, e.getErrorCode(), e.getMessage(), e,ctx);
-		} catch (JsonMappingException e) {
-			updateDTOsAndLogError(description, workflowIds, workflowAction, e.getErrorCode(), e.getMessage(), e,ctx);
 		} catch (IOException e) {
-			updateDTOsAndLogError(description, workflowIds, workflowAction,
+			logError(workflowIds, workflowAction,
 					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
 					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), e,ctx);
 		} catch (WorkflowActionException e) {
-			updateDTOsAndLogError(description, workflowIds, workflowAction, e.getErrorCode(), e.getMessage(), e,ctx);
+			logError(workflowIds, workflowAction, e.getErrorCode(), e.getMessage(), e, ctx);
 		} catch(WorkflowActionRequestValidationException e) {
-			updateDTOsAndLogError(description, workflowIds, workflowAction, e.getErrorCode(), e.getMessage(), e,ctx);
+			logError(workflowIds, workflowAction, e.getErrorCode(), e.getMessage(), e, ctx);
 		}catch (Exception e) {
-			updateDTOsAndLogError(description, workflowIds, workflowAction,
+			logError(workflowIds, workflowAction,
 					PlatformErrorMessages.UNKNOWN_EXCEPTION.getCode(),
 					PlatformErrorMessages.UNKNOWN_EXCEPTION.getMessage(), e,ctx);
 		}
 	}
 
-	private void updateAudit(LogDescription description, boolean isTransactionSuccessful, String registrationId) {
-		if (isTransactionSuccessful)
-			description.setMessage(PlatformSuccessMessages.RPR_WORKFLOW_ACTION_API_SUCCESS.getMessage());
-		String moduleId = isTransactionSuccessful ? PlatformSuccessMessages.RPR_WORKFLOW_ACTION_API_SUCCESS.getCode()
-				: description.getCode();
-
-		String eventId = isTransactionSuccessful ? EventId.RPR_402.toString() : EventId.RPR_405.toString();
-		String eventName = isTransactionSuccessful ? EventName.UPDATE.toString() : EventName.EXCEPTION.toString();
-		String eventType = isTransactionSuccessful ? EventType.BUSINESS.toString() : EventType.SYSTEM.toString();
-
-		auditLogRequestBuilder.createAuditRequestBuilder(description.getMessage(), eventId, eventName, eventType,
-				moduleId, ModuleName.WORKFLOW_ACTION_API.toString(), registrationId);
-	}
-
-	private void updateDTOsAndLogError(LogDescription description, List<String> workflowIds, String workflowAction,
+	private void logError(List<String> workflowIds, String workflowAction,
 			String errorCode, String errorMessage, Exception e, RoutingContext ctx) {
-		description.setMessage(errorMessage);
-		description.setCode(errorCode);
+
 		regProcLogger.error(
 				"Error in  WorkflowActionApi:processURL  for registration ids  and workflowAction {} {} {} {} {}",
 				workflowIds, workflowAction,
