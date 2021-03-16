@@ -1031,18 +1031,17 @@ public class BiometricsController extends BaseController /* implements Initializ
 						LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 								"device search request started" + System.currentTimeMillis());
 
-						if (deviceSpecificationFactory.isDeviceAvailable(currentModality)) {
-
-							return deviceSpecificationFactory.getDeviceInfoByModality(
-									isFace(currentModality) || isExceptionPhoto(currentModality)
-											? RegistrationConstants.FACE_FULLFACE
-											: currentModality);
-						} else {
-							throw new RegBaseCheckedException(
-									RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
-									RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage());
-						}
-
+						MdmBioDevice bioDevice = deviceSpecificationFactory.isDeviceAvailable(
+								isFace(currentModality) || isExceptionPhoto(currentModality)
+										? RegistrationConstants.FACE_FULLFACE
+										: currentModality);
+                        if (bioDevice != null) {
+                            return bioDevice;
+                        } else {
+                            throw new RegBaseCheckedException(
+                                    RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
+                                    RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage());
+                        }
 					}
 				};
 			}

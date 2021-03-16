@@ -222,12 +222,12 @@ public class BioServiceImpl extends BaseService implements BioService {
 		List<BiometricsDto> biometrics = null;
 
 		if (isMdmEnabled()) {
-			// if (getStream(mdmRequestDto.getModality()) != null) {
-
-			if (deviceSpecificationFactory.isDeviceAvailable(mdmRequestDto.getModality())) {
+			MdmBioDevice bioDevice = deviceSpecificationFactory.isDeviceAvailable(mdmRequestDto.getModality());
+			if (bioDevice != null) {
 				biometrics = captureRealModality(mdmRequestDto);
 			} else {
-				throw new RegBaseCheckedException(RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
+				throw new RegBaseCheckedException(
+						RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
 						RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage());
 			}
 		} else {
@@ -241,7 +241,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 				"Stream request : " + System.currentTimeMillis() + modality);
 
-		MdmBioDevice bioDevice = deviceSpecificationFactory.getDeviceInfoByModality(modality);
+		MdmBioDevice bioDevice =deviceSpecificationFactory.isDeviceAvailable(modality);
 
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID,
 				"Bio Device found for modality : " + modality + "  " + System.currentTimeMillis() + modality);
