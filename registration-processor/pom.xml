@@ -326,6 +326,7 @@
 		<module>core-processor</module>
 		<module>post-processor</module>
 		<module>mosip-stage-executor</module>
+		<module>stage-groups</module>
 	</modules>
 
 <!--	<profiles>

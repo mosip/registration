@@ -52,10 +52,10 @@ public class ValidatorConfig {
 	@Autowired
 	private Environment env;
 
-	@Bean
-	public PacketValidatorStage getPacketValidatorStage() {
-		return new PacketValidatorStage();
-	}
+//	@Bean
+//	public PacketValidatorStage getPacketValidatorStage() {
+//		return new PacketValidatorStage();
+//	}
 
 	@Bean
 	public MandatoryValidation mandatoryValidation() {
