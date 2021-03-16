@@ -202,7 +202,7 @@
             <Insets />
          </GridPane.margin>
       </GridPane>
-      <ImageView fitHeight="23.0" fitWidth="28.0" onMousePressed="#redirectHome" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1">
+      <ImageView fx:id="homeimg" fitHeight="23.0" fitWidth="28.0" onMousePressed="#redirectHome" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1">
       <image>
             <Image url="@../images/Home.png" />
          </image>

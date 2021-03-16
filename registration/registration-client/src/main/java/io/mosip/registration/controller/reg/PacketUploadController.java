@@ -658,14 +658,17 @@ public class PacketUploadController extends BaseController implements Initializa
 			stage.setHeight(500);
 
 			TableView<PacketStatusDTO> statusTable = new TableView<>();
+			statusTable.setId("resultTable");
 			TableColumn<PacketStatusDTO, String> fileNameCol = new TableColumn<>(
 					RegistrationUIConstants.UPLOAD_COLUMN_HEADER_FILE);
 			fileNameCol.setMinWidth(250);
+			fileNameCol.setId("PacketID");
 			fileNameCol.getStyleClass().add("tableId");
 			TableColumn<PacketStatusDTO, String> statusCol = new TableColumn<>(
 					RegistrationUIConstants.UPLOAD_COLUMN_HEADER_STATUS);
 			statusCol.setMinWidth(250);
-
+			statusCol.setId("PacketStatus");
+			
 			statusCol.getStyleClass().add("tableId");
 			ObservableList<PacketStatusDTO> displayList = FXCollections.observableArrayList(filesToDisplay);
 			statusTable.setItems(displayList);
