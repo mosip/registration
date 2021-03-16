@@ -44,6 +44,7 @@ import io.mosip.registration.dto.response.SchemaDto;
 import io.mosip.registration.dto.response.UiScreenDTO;
 import io.mosip.registration.entity.Location;
 import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.exception.RegistrationExceptionConstants;
 import io.mosip.registration.service.sync.MasterSyncService;
 import io.mosip.registration.service.sync.PreRegistrationDataSyncService;
 import io.mosip.registration.util.control.FxControl;
@@ -206,7 +207,15 @@ public class GenericController extends BaseController {
 			@Override
 			public void handle(MouseEvent event) {
 				ResponseDTO responseDTO = preRegistrationDataSyncService.getPreRegistration(textField.getText(), false);
-				//TODO reload all the fields
+				
+				getRegistrationDTOFromSession().setPreRegistrationId(textField.getText());
+
+				
+				try {
+					loadPreRegSync(responseDTO);
+				} catch (RegBaseCheckedException exception) {
+					generateAlertLanguageSpecific(RegistrationConstants.ERROR, responseDTO.getErrorResponseDTOs().get(0).getMessage());
+				}
 			}
 		});
 
@@ -214,7 +223,48 @@ public class GenericController extends BaseController {
 		return hBox;
 	}
 
+	private void loadPreRegSync(ResponseDTO responseDTO) throws RegBaseCheckedException{
+		SuccessResponseDTO successResponseDTO = responseDTO.getSuccessResponseDTO();
+		List<ErrorResponseDTO> errorResponseDTOList = responseDTO.getErrorResponseDTOs();
 
+		
+		if (errorResponseDTOList != null && !errorResponseDTOList.isEmpty() || 
+				successResponseDTO==null || 
+				successResponseDTO.getOtherAttributes() == null || 
+				!successResponseDTO.getOtherAttributes().containsKey(RegistrationConstants.REGISTRATION_DTO)) {
+			throw new RegBaseCheckedException(RegistrationExceptionConstants.PRE_REG_SYNC_FAIL.getErrorCode(),
+					RegistrationExceptionConstants.PRE_REG_SYNC_FAIL.getErrorMessage());
+		}
+			
+		RegistrationDTO preRegistrationDTO = (RegistrationDTO) successResponseDTO.getOtherAttributes()
+					.get(RegistrationConstants.REGISTRATION_DTO);
+
+			for (Entry<String, List<String>> entry : fieldMap.entrySet()) {
+
+				for (String field : entry.getValue()) {
+
+					FxControl fxControl = getFxControl(field);
+
+					if (fxControl != null) {
+
+						if (preRegistrationDTO.getDemographics().containsKey(field)) {
+
+							fxControl.selectAndSet(preRegistrationDTO.getDemographics().get(field));
+						}
+
+						else if (preRegistrationDTO.getDocuments().containsKey(field)) {
+							fxControl.selectAndSet(preRegistrationDTO.getDocuments().get(field));
+
+						}
+					}
+				}
+			}
+
+		 
+	
+
+		
+	}
 	private void getScreens(SchemaDto schema) {
 		List<UiScreenDTO> screenDTOS = schema.getScreens();
 
