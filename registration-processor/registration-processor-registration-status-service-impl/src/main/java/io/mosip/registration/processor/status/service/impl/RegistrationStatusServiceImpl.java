@@ -507,12 +507,12 @@ public class RegistrationStatusServiceImpl
 	@Override
 	public List<InternalRegistrationStatusDto> getPausedPackets(Integer fetchSize) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-				"RegistrationStatusServiceImpl::getPausedPacketsCount()::entry");
+				"RegistrationStatusServiceImpl::getPausedPackets()::entry");
 		try {
 			List<RegistrationStatusEntity> entityList = registrationStatusDao.getPausedPackets( fetchSize);
 
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
-					"RegistrationStatusServiceImpl::getPausedPacketsCount()::exit");
+					"RegistrationStatusServiceImpl::getPausedPackets()::exit");
 
 			return convertEntityListToDtoList(entityList);
 
