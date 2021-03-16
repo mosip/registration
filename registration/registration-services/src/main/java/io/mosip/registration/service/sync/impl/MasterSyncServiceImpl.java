@@ -379,12 +379,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 		try {
 			switch (fieldName) {
 			case "gender":
-					//return getGenderDtls(langCode);
-				List<GenericDto> genericDtos = new ArrayList<>();
-				genericDtos.add(new GenericDto("FLE", "Female", "eng"));
-				genericDtos.add(new GenericDto("MLE", "Male", "eng"));
-				return genericDtos;
-
+					return getGenderDtls(langCode);
 			case "residenceStatus":
 				return getIndividualType(langCode);
 			default:

@@ -483,18 +483,21 @@ public class PacketHandlerController extends BaseController implements Initializ
 
 			if (!validateScreenAuthorization(createRoot.getId())) {
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.AUTHORIZATION_ERROR);
-			} else {
-				getScene(createRoot).setRoot(createRoot);
-				getScene(createRoot).getStylesheets().add(ClassLoader.getSystemClassLoader().getResource("application.css").toExternalForm());
-				validation.updateAsLostUIN(false);
-				registrationController.createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_NEW);
+				return;
+			}
+
+			getScene(createRoot).setRoot(createRoot);
+			getScene(createRoot).getStylesheets().add(ClassLoader.getSystemClassLoader().getResource("application.css").toExternalForm());
+			validation.updateAsLostUIN(false);
+
+			if(registrationController.createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_NEW)) {
 				genericController.populateScreens();
+				return;
 			}
 		} catch (IOException ioException) {
-			LOGGER.error("REGISTRATION - UI- Officer Packet Create ", APPLICATION_NAME, APPLICATION_ID,
-					ExceptionUtils.getStackTrace(ioException));
-			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
+			LOGGER.error("Failed to start registration", ioException);
 		}
+		generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
 	}
 
 	/**
@@ -507,29 +510,25 @@ public class PacketHandlerController extends BaseController implements Initializ
 			auditFactory.audit(AuditEvent.NAV_LOST_UIN, Components.NAVIGATION, SessionContext.userContext().getUserId(),
 					AuditReferenceIdTypes.USER_ID.getReferenceTypeId());
 
-			/* Mark Registration Category as Lost UIN */
-			registrationController.initializeLostUIN();
-
 			Parent createRoot = getRoot(RegistrationConstants.CREATE_PACKET_PAGE);
 			LOGGER.info("REGISTRATION - CREATE_PACKET - REGISTRATION_OFFICER_PACKET_CONTROLLER", APPLICATION_NAME,
 					APPLICATION_ID, "Validating Create Packet screen for specific role");
 
 			if (!validateScreenAuthorization(createRoot.getId())) {
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.AUTHORIZATION_ERROR);
-			} else {
-				getScene(createRoot).setRoot(createRoot);
+				return;
+			}
 
-				registrationController.getRegTypeText().setText(applicationContext
-						.getBundle(applicationContext.getApplicationLanguage(), RegistrationConstants.LABELS)
-						.getString("/lostuin"));
-				genericController.populateScreens();				
+			getScene(createRoot).setRoot(createRoot);
+			validation.updateAsLostUIN(true);
+			if(registrationController.createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_LOST)) {
+				genericController.populateScreens();
+				return;
 			}
 		} catch (IOException ioException) {
-			LOGGER.error("REGISTRATION - UI- Officer Packet Create for Lost UIN", APPLICATION_NAME, APPLICATION_ID,
-					ExceptionUtils.getStackTrace(ioException));
-			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
+			LOGGER.error("Failed to start Lost UIN", ioException);
 		}
-		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID, "Creating of Registration for lost UIN ended.");
+		generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
 	}
 
 	public void showReciept() {

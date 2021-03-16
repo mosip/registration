@@ -94,6 +94,10 @@ public class CheckBoxFxControl extends FxControl {
 
 	@Override
 	public boolean isValid() {
+		if(requiredFieldValidator.isRequiredField(this.uiSchemaDTO, getRegistrationDTo())){
+			CheckBox checkBox = (CheckBox) getField(uiSchemaDTO.getId());
+			return checkBox == null ? false : checkBox.isSelected() ? true : false;
+		}
 		return true;
 	}
 

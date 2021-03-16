@@ -129,11 +129,11 @@ public class RegistrationController extends BaseController {
 				selectedFieldGroups.contains(RegistrationConstants.BIOMETRICS_GROUP) ? true : false);
 	}
 
-	protected void initializeLostUIN() {
+	/*protected void initializeLostUIN() {
 		validation.updateAsLostUIN(true);
 
 		createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_LOST);
-	}
+	}*/
 
 	/**
 	 * This method is to go to the operator authentication page
@@ -160,21 +160,17 @@ public class RegistrationController extends BaseController {
 	/**
 	 * This method will create registration DTO object
 	 */
-	public void createRegistrationDTOObject(String registrationCategory) {
+	public boolean createRegistrationDTOObject(String registrationCategory) {
 		try {
 			// Put the RegistrationDTO object to SessionContext Map
 			SessionContext.map().put(RegistrationConstants.REGISTRATION_DATA,
 					packetHandlerService.startRegistration(null, registrationCategory));
 			getRegistrationDTOFromSession().setSelectedLanguagesByApplicant(selectedLangList);
+			return true;
 		} catch (RegBaseCheckedException ex) {
-			LOGGER.error(RegistrationConstants.REGISTRATION_CONTROLLER, APPLICATION_NAME,
-					RegistrationConstants.APPLICATION_ID, ExceptionUtils.getStackTrace(ex));
-			ResourceBundle resourceBundle = applicationContext.getBundle(applicationContext.getApplicationLanguage(),
-					RegistrationConstants.MESSAGES);
-			generateAlert(RegistrationConstants.ERROR,
-					resourceBundle.containsKey(ex.getErrorCode()) ? resourceBundle.getString(ex.getErrorCode())
-							: ex.getErrorCode());
+			LOGGER.error("Error when creating RegistrationDTO", ex);
 		}
+		return false;
 	}
 
 	/**
