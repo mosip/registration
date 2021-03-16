@@ -125,7 +125,7 @@ public class DocumentFxControl extends FxControl {
 				(new Image(this.getClass().getResourceAsStream(imagePath), 25, 25, true, true)));
 
 		boolean isVisible = getData() != null ? true : false;
-
+		imageView.setPreserveRatio(true);
 		imageVBox.setVisible(isVisible);
 
 		imageVBox.getChildren().add(imageView);

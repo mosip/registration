@@ -74,7 +74,7 @@ public class RegistrationPreviewController extends BaseController implements Ini
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
-		Image backInWhite = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK_FOCUSED));
+		/*Image backInWhite = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK_FOCUSED));
 		Image backImage = new Image(getClass().getResourceAsStream(RegistrationConstants.BACK));
 
 		backBtn.hoverProperty().addListener((ov, oldValue, newValue) -> {
@@ -88,7 +88,7 @@ public class RegistrationPreviewController extends BaseController implements Ini
 		nextButton.setDisable(true);
 
 		String key = RegistrationConstants.REG_CONSENT + applicationContext.getApplicationLanguage();
-		consentText = getValueFromApplicationContext(key);
+		consentText = getValueFromApplicationContext(key);*/
 
 	}
 
@@ -196,9 +196,8 @@ public class RegistrationPreviewController extends BaseController implements Ini
 		}
 	}
 
-	public WebView getPreviewContent() {
-		LOGGER.info("REGISTRATION - UI - REGISTRATION_PREVIEW_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
-				"Setting up preview content has been started");
+	public String getPreviewContent() {
+		LOGGER.info("Setting up preview content has been started");
 		try {
 			String ackTemplateText = templateService.getHtmlTemplate(RegistrationConstants.PREVIEW_TEMPLATE_CODE,
 					ApplicationContext.applicationLanguage());
@@ -211,23 +210,11 @@ public class RegistrationPreviewController extends BaseController implements Ini
 				if (templateResponse != null && templateResponse.getSuccessResponseDTO() != null) {
 					Writer stringWriter = (Writer) templateResponse.getSuccessResponseDTO().getOtherAttributes()
 							.get(RegistrationConstants.TEMPLATE_NAME);
-					webView.getEngine().loadContent(stringWriter.toString());
-					webView.getEngine().documentProperty()
-							.addListener((observableValue, oldValue, document) -> listenToButton(document));
-					return webView;
-				} else {
-					generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_PREVIEW_PAGE);
-					clearRegistrationData();
-					goToHomePageFromRegistration();
+					return stringWriter.toString();
 				}
-			} else {
-				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_PREVIEW_PAGE);
-				clearRegistrationData();
-				goToHomePageFromRegistration();
 			}
 		} catch (RegBaseCheckedException regBaseCheckedException) {
-			LOGGER.error("REGISTRATION - UI- REGISTRATION_PREVIEW_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
-					regBaseCheckedException.getMessage() + ExceptionUtils.getStackTrace(regBaseCheckedException));
+			LOGGER.error(ExceptionUtils.getStackTrace(regBaseCheckedException));
 		}
 		return null;
 	}

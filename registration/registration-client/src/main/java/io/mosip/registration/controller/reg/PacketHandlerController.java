@@ -494,8 +494,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 				genericController.populateScreens();
 				return;
 			}
-		} catch (IOException ioException) {
-			LOGGER.error("Failed to start registration", ioException);
+		} catch (Exception exception) {
+			LOGGER.error("Failed to start registration", exception);
 		}
 		generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
 	}
@@ -525,8 +525,8 @@ public class PacketHandlerController extends BaseController implements Initializ
 				genericController.populateScreens();
 				return;
 			}
-		} catch (IOException ioException) {
-			LOGGER.error("Failed to start Lost UIN", ioException);
+		} catch (Exception exception) {
+			LOGGER.error("Failed to start Lost UIN", exception);
 		}
 		generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
 	}

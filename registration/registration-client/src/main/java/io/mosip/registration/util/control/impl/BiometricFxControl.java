@@ -46,7 +46,6 @@ import lombok.SneakyThrows;
 public class BiometricFxControl extends FxControl {
 
 	protected static final Logger LOGGER = AppConfig.getLogger(BiometricFxControl.class);
-	private static final String loggerClassName = "BiometricFxControl";
 	private static final String APPLICANT_SUBTYPE = "applicant";
 
 	private GenericBiometricsController biometricsController;

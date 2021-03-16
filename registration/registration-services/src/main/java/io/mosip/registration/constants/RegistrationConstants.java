@@ -53,6 +53,8 @@ public class RegistrationConstants {
 	public static final String ALERT_GENERATION = "/fxml/Alert.fxml";
 	public static final String DASHBOARD_PAGE = "/fxml/Dashboard.fxml";
 	public static final String SELECT_LANGUAGE_PAGE = "/fxml/SelectLanguage.fxml";
+	public static final String REG_PREVIEW_PAGE = "/fxml/RegistrationPreview.fxml";
+	public static final String REG_AUTH_PAGE = "/fxml/OperatorAuthentication.fxml";
 
 	// FXML Id
 	public static final String DEMOGRAPHIC_DETAIL = "demographicDetail";

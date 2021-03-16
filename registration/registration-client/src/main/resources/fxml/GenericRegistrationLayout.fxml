@@ -6,8 +6,8 @@
 
 <GridPane fx:id="genericScreen" styleClass="parentPane" hgap="5.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1530.0" prefWidth="800.0" vgap="5.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.mosip.registration.controller.GenericController">
    <rowConstraints>
-      <RowConstraints percentHeight="90.0" />
-      <RowConstraints percentHeight="10.0" />
+      <RowConstraints percentHeight="95.0" />
+      <RowConstraints percentHeight="5.0" />
    </rowConstraints>
    <columnConstraints>
       <ColumnConstraints percentWidth="10.0" />
@@ -23,7 +23,7 @@
          <children>
          </children>
       </AnchorPane>
-      <GridPane fx:id="footerGridPane1" alignment="TOP_CENTER" GridPane.columnIndex="2" GridPane.rowIndex="1">
+      <GridPane fx:id="footerGridPane" alignment="TOP_CENTER" GridPane.columnIndex="1" GridPane.rowIndex="1">
          <columnConstraints>
             <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" percentWidth="100.0" prefWidth="100.0" />
          </columnConstraints>
@@ -33,11 +33,12 @@
             <RowConstraints minHeight="10.0" percentHeight="25.0" prefHeight="30.0" vgrow="SOMETIMES" />
          </rowConstraints>
          <children>
-            <Button fx:id="next" alignment="BOTTOM_RIGHT" mnemonicParsing="false" styleClass="contiuneButton" text="CONTINUE" GridPane.rowIndex="1" />
+            <Button fx:id="next" alignment="BASELINE_CENTER" mnemonicParsing="false" styleClass="contiuneButton" text="CONTINUE" GridPane.rowIndex="1" />
+            <Button fx:id="authenticate" alignment="BASELINE_CENTER" mnemonicParsing="false" styleClass="contiuneButton" text="Authenticate" GridPane.rowIndex="1" />
          </children>
       </GridPane>
 
-      <GridPane fx:id="footerGridPane2" alignment="TOP_CENTER" GridPane.columnIndex="0" GridPane.rowIndex="1">
+     <!-- <GridPane fx:id="footerGridPane2" alignment="TOP_CENTER" GridPane.columnIndex="0" GridPane.rowIndex="1">
          <columnConstraints>
             <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" percentWidth="100.0" prefWidth="100.0" />
          </columnConstraints>
@@ -49,7 +50,7 @@
          <children>
             <Button fx:id="previous" alignment="BOTTOM_RIGHT" mnemonicParsing="false" styleClass="contiuneButton" text="BACK" visible="false" GridPane.halignment="LEFT" GridPane.rowIndex="1" />
          </children>
-      </GridPane>
+      </GridPane>-->
 
 
     <!--<GridPane fx:id="layOutGridPane">

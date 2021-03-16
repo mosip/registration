@@ -135,7 +135,7 @@ public abstract class FxControl  {
 			this.node.setManaged(true);
 		} else {
 			visible(this.node, false);
-			this.node.setManaged(true);
+			this.node.setManaged(false);
 		}
 	}
 
