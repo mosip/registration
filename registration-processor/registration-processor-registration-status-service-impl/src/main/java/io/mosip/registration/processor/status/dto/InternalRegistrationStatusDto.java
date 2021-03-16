@@ -3,6 +3,7 @@ package io.mosip.registration.processor.status.dto;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 	
+// TODO: Auto-generated Javadoc
 /**
  * The Class RegistrationStatusDto.
  */
@@ -74,17 +75,34 @@ public class InternalRegistrationStatusDto implements Serializable {
 	/** The reg process retry count. */
 	private Integer reProcessRetryCount;
 	
-	/** the subStatusCode */
+	/** the subStatusCode. */
 	private String subStatusCode;
 
+	/** The resume time stamp. */
+	private LocalDateTime resumeTimeStamp;
+
+	/** The default resume action. */
+	private String defaultResumeAction;
+
+	/**
+	 * Gets the ref id.
+	 *
+	 * @return the ref id
+	 */
 	public String getRefId() {
 		return refId;
 	}
 
+	/**
+	 * Sets the ref id.
+	 *
+	 * @param refId the new ref id
+	 */
 	public void setRefId(String refId) {
 		this.refId = refId;
 	}
 
+	/** The ref id. */
 	private String refId;
 
 	/**
@@ -428,7 +446,7 @@ public class InternalRegistrationStatusDto implements Serializable {
 	/**
 	 * Sets the latest transaction status code.
 	 *
-	 * @param string the new latest transaction status code
+	 * @param latestTransactionStatusCode the new latest transaction status code
 	 */
 	public void setLatestTransactionStatusCode(String latestTransactionStatusCode) {
 		this.latestTransactionStatusCode = latestTransactionStatusCode;
@@ -506,6 +524,47 @@ public class InternalRegistrationStatusDto implements Serializable {
 		this.subStatusCode = subStatusCode;
 	}
 
+	/**
+	 * Gets the resume time stamp.
+	 *
+	 * @return the resume time stamp
+	 */
+	public LocalDateTime getResumeTimeStamp() {
+		return resumeTimeStamp;
+	}
+
+	/**
+	 * Sets the resume time stamp.
+	 *
+	 * @param resumeTimeStamp the new resume time stamp
+	 */
+	public void setResumeTimeStamp(LocalDateTime resumeTimeStamp) {
+		this.resumeTimeStamp = resumeTimeStamp;
+	}
+
+	/**
+	 * Gets the default resume action.
+	 *
+	 * @return the default resume action
+	 */
+	public String getDefaultResumeAction() {
+		return defaultResumeAction;
+	}
+
+	/**
+	 * Sets the default resume action.
+	 *
+	 * @param defaultResumeAction the new default resume action
+	 */
+	public void setDefaultResumeAction(String defaultResumeAction) {
+		this.defaultResumeAction = defaultResumeAction;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return "InternalRegistrationStatusDto [registrationId=" + registrationId + ", registrationType="
@@ -518,7 +577,8 @@ public class InternalRegistrationStatusDto implements Serializable {
 				+ ", latestTransactionTypeCode=" + latestTransactionTypeCode + ", latestTransactionStatusCode="
 				+ latestTransactionStatusCode + ", latestTransactionTimes=" + latestTransactionTimes
 				+ ", registrationStageName=" + registrationStageName + ", reProcessRetryCount=" + reProcessRetryCount
-				+ ", subStatusCode=" + subStatusCode + "]";
+				+ ", subStatusCode=" + subStatusCode + ", resumeTimeStamp=" + resumeTimeStamp + ", defaultResumeAction="
+				+ defaultResumeAction + ", refId=" + refId + "]";
 	}
 
 	

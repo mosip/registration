@@ -7,6 +7,7 @@ import java.util.List;
 
 import io.mosip.registration.processor.core.constant.RegistrationType;
 
+// TODO: Auto-generated Javadoc
 /**
  * This class contains the address values to be used in Registration process.
  *
@@ -19,6 +20,7 @@ public class MessageBusAddress implements Serializable {
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
+	/** The Constant BUS_OUT. */
 	public static final String BUS_OUT = "bus-out";
 
 	/**
@@ -27,6 +29,12 @@ public class MessageBusAddress implements Serializable {
 	public MessageBusAddress() {
 	}
 
+	/**
+	 * Instantiates a new message bus address.
+	 *
+	 * @param messageBusAddress the message bus address
+	 * @param regType           the reg type
+	 */
 	public MessageBusAddress(MessageBusAddress messageBusAddress, RegistrationType regType) {
 
 		List<String> addressList = (List<String>)Arrays.asList(messageBusAddress.getAddress().split("-"));
@@ -202,6 +210,9 @@ public class MessageBusAddress implements Serializable {
 	/** The Constant STRUCTURE_BUS_OUT. */
 	public static final MessageBusAddress PACKET_CLASSIFIER_BUS_OUT = new MessageBusAddress("packet-classifier-bus-out");
 	
+	/** The Constant WORKFLOW_EVENTUPDATE_BUS_IN. */
+	public static final MessageBusAddress WORKFLOW_EVENT_UPDATE_ADDRESS = new MessageBusAddress(
+			"workflow-event-update");
 	
 	/*
 	 * (non-Javadoc)
