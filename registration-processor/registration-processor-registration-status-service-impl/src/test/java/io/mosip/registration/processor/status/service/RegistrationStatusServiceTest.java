@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.assertj.core.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -223,10 +224,11 @@ public class RegistrationStatusServiceTest {
 	
 	@Test
 	public void testGetPausedPackets() {
+		registrationStatusEntity.setStatusCode("PAUSED");
 		Mockito.when(registrationStatusDao.getPausedPackets( anyInt() ))
-				.thenReturn(entities);
+				.thenReturn(List.of(registrationStatusEntity));
 		List<InternalRegistrationStatusDto> dtolist = registrationStatusService.getPausedPackets(1);
-		assertEquals("REPROCESS", dtolist.get(0).getLatestTransactionStatusCode());
+		assertEquals("PAUSED", dtolist.get(0).getStatusCode());
 	}
 	
 	@Test(expected = TablenotAccessibleException.class)
@@ -235,8 +237,8 @@ public class RegistrationStatusServiceTest {
 				"errorMessage", new Exception());
 		Mockito.when(registrationStatusDao.getPausedPackets( anyInt() ))
 				.thenThrow(exp);
-		List<InternalRegistrationStatusDto> dtolist = registrationStatusService.getPausedPackets(1);
-		assertEquals("REPROCESS", dtolist.get(0).getLatestTransactionStatusCode());
+		 registrationStatusService.getPausedPackets(1);
+		
 	}
 
 	@Test(expected = TablenotAccessibleException.class)
