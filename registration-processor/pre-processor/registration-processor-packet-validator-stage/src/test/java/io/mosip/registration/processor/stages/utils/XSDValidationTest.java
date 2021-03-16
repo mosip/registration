@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.stages.utils;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -104,5 +105,11 @@ public class XSDValidationTest {
 	@Test
 	public void TestvalidateXSD() throws IOException, Exception {
 		assertTrue(xsdValidation.validateXSD(biometricRecord));
+	}
+	
+	@Test
+	public void TestvalidateXSDFailure() throws IOException, Exception {
+		 PowerMockito.when(CbeffValidator.createXMLBytes(Mockito.any(), Mockito.any())).thenReturn(null);			
+		assertFalse(xsdValidation.validateXSD(biometricRecord));
 	}
 }
