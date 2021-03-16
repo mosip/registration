@@ -505,11 +505,11 @@ public class RegistrationStatusServiceImpl
 
 	
 	@Override
-	public List<InternalRegistrationStatusDto> getPausedPackets(Integer fetchSize,List<String> statusList) {
+	public List<InternalRegistrationStatusDto> getPausedPackets(Integer fetchSize) {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 				"RegistrationStatusServiceImpl::getUnProcessedPacketsCount()::entry");
 		try {
-			List<RegistrationStatusEntity> entityList = registrationStatusDao.getPausedPackets( fetchSize, statusList);
+			List<RegistrationStatusEntity> entityList = registrationStatusDao.getPausedPackets( fetchSize);
 
 			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
 					"RegistrationStatusServiceImpl::getUnProcessedPacketsCount()::exit");
@@ -643,7 +643,5 @@ public class RegistrationStatusServiceImpl
 				registrationStatusDto.getRegistrationId(),
 				"RegistrationStatusServiceImpl::updateRegistrationStatusForWorkFlow()::exit");
 
-	}
-
-	
+	}	
 }

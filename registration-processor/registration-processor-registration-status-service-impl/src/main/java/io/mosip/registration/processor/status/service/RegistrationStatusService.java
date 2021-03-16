@@ -126,5 +126,5 @@ public interface RegistrationStatusService<T, U, D> {
 
 	public void updateRegistrationStatusForWorkflow(U registrationStatusDto, String moduleId, String moduleName);
 
-	public List<InternalRegistrationStatusDto> getPausedPackets(Integer fetchSize,  List<String> statusList);
+	public List<InternalRegistrationStatusDto> getPausedPackets(Integer fetchSize);
 }

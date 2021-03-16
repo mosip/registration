@@ -214,8 +214,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 	 */
 	@Override
 	public MessageDTO process(MessageDTO object) {
-		List<InternalRegistrationStatusDto> reprocessorDtolist = null;
-		List<InternalRegistrationStatusDto> pausedDtolist = null;
+		List<InternalRegistrationStatusDto> reprocessorDtoList = null;
 		LogDescription description = new LogDescription();
 		List<String> statusList = new ArrayList<>();
 		statusList.add(RegistrationTransactionStatusCode.SUCCESS.toString());
@@ -224,33 +223,13 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ReprocessorStage::process()::entry");
 		try {
-			pausedDtolist= registrationStatusService.getPausedPackets(fetchSize,
-					statusList);
-			List<String> deafaultActionIds=new ArrayList<>();
-			pausedDtolist.forEach(s -> deafaultActionIds.add(s.getRegistrationId()));
-			Map<String,List<String>> map=new HashMap<>();
-			for(InternalRegistrationStatusDto dto:pausedDtolist) {
-					if(map.containsKey(dto.getDefaultResumeAction())) {
-						List<String> ids=map.get(dto.getDefaultResumeAction());
-						ids.add(dto.getRegistrationId());
-						map.put(dto.getDefaultResumeAction(), ids);
-					}
-					else if(!map.containsKey(dto.getDefaultResumeAction())) {
-						map.put(dto.getDefaultResumeAction(), Arrays.asList(dto.getRegistrationId()));
-					}
-			}
-			for(Entry<String,List<String>> entry:map.entrySet()) {
-				
-					workflowActionService.processWorkflowAction(entry.getValue(), entry.getKey(), this.mosipEventBus);
-				
-			}
+			 processResumablePackets();
 			
-			reprocessorDtolist = registrationStatusService.getUnProcessedPackets(fetchSize, elapseTime, reprocessCount,
+			reprocessorDtoList = registrationStatusService.getUnProcessedPackets(fetchSize, elapseTime, reprocessCount,
 					statusList);
 
-			if (!CollectionUtils.isEmpty(reprocessorDtolist)) {
-				reprocessorDtolist.removeIf(x ->deafaultActionIds.contains(x.getRegistrationId()));
-				reprocessorDtolist.forEach(dto -> {
+			if (!CollectionUtils.isEmpty(reprocessorDtoList)) {
+				reprocessorDtoList.forEach(dto -> {
 					this.registrationId = dto.getRegistrationId();
 					if (reprocessCount.equals(dto.getReProcessRetryCount())) {
 						dto.setLatestTransactionStatusCode(
@@ -347,5 +326,28 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 		}
 
 		return object;
+	}
+	
+	public void processResumablePackets(){
+		List<InternalRegistrationStatusDto> pausedDtoList = registrationStatusService.getPausedPackets(fetchSize);
+		List<String> defaultActionIds=new ArrayList<>();
+		pausedDtoList.forEach(s -> defaultActionIds.add(s.getRegistrationId()));
+		Map<String,List<String>> map=new HashMap<>();
+		for(InternalRegistrationStatusDto dto:pausedDtoList) {
+				if(map.containsKey(dto.getDefaultResumeAction())) {
+					List<String> ids=map.get(dto.getDefaultResumeAction());
+					ids.add(dto.getRegistrationId());
+					map.put(dto.getDefaultResumeAction(), ids);
+				}
+				else  {
+					map.put(dto.getDefaultResumeAction(), Arrays.asList(dto.getRegistrationId()));
+				}
+		}
+		for(Entry<String,List<String>> entry:map.entrySet()) {
+			
+				workflowActionService.processWorkflowAction(entry.getValue(), entry.getKey(), this.mosipEventBus);
+			
+		}
+		
 	}
 }

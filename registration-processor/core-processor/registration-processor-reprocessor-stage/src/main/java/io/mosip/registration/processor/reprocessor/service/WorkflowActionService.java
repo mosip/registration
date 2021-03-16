@@ -14,8 +14,7 @@ import io.mosip.registration.processor.status.exception.TablenotAccessibleExcept
 public class WorkflowActionService {
 	
 	public void processWorkflowAction(List<String> workflowIds, String workflowAction,
-			MosipEventBus mosipEventBus)
-			throws TablenotAccessibleException, PacketManagerException, ApisResourceAccessException {
+			MosipEventBus mosipEventBus) {
 		WorkflowActionCode workflowActionCode = WorkflowActionCode.valueOf(workflowAction);
 		switch (workflowActionCode) {
 		case RESUME_PROCESSING:

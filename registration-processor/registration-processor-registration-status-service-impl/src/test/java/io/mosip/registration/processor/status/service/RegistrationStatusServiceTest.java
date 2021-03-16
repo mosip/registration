@@ -223,13 +223,19 @@ public class RegistrationStatusServiceTest {
 	
 	@Test
 	public void testGetPausedPackets() {
-
-		List<String> statusList = new ArrayList<>();
-		statusList.add("SUCCESS");
-		statusList.add("REPROCESS");
-		Mockito.when(registrationStatusDao.getPausedPackets( anyInt(), anyList()))
+		Mockito.when(registrationStatusDao.getPausedPackets( anyInt() ))
 				.thenReturn(entities);
-		List<InternalRegistrationStatusDto> dtolist = registrationStatusService.getPausedPackets(1, statusList);
+		List<InternalRegistrationStatusDto> dtolist = registrationStatusService.getPausedPackets(1);
+		assertEquals("REPROCESS", dtolist.get(0).getLatestTransactionStatusCode());
+	}
+	
+	@Test(expected = TablenotAccessibleException.class)
+	public void testGetPausedPacketsFailure() {
+		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
+				"errorMessage", new Exception());
+		Mockito.when(registrationStatusDao.getPausedPackets( anyInt() ))
+				.thenThrow(exp);
+		List<InternalRegistrationStatusDto> dtolist = registrationStatusService.getPausedPackets(1);
 		assertEquals("REPROCESS", dtolist.get(0).getLatestTransactionStatusCode());
 	}
 
