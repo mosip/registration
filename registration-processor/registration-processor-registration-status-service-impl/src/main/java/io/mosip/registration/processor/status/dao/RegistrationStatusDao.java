@@ -264,7 +264,7 @@ public class RegistrationStatusDao {
 
 		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
 				+ ".latestTransactionStatusCode IN :status" +  EMPTY_STRING + AND + EMPTY_STRING + alias
-				+ ".resumeTimeStamp <" + "now()";
+				+ ".resumeTimeStamp < now()"+  EMPTY_STRING + AND + EMPTY_STRING + alias+ ".defaultResumeAction is not null";
 
 		params.put("status", statusList);
 		
