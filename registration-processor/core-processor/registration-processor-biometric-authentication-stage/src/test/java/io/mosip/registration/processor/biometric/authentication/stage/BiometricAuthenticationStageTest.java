@@ -160,7 +160,7 @@ public class BiometricAuthenticationStageTest {
 
 		@Override
 		public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
-				MessageBusAddress toAddress) {
+				MessageBusAddress toAddress, long messageExpiryTimeLimit) {
 		}
 	};
 
@@ -213,6 +213,7 @@ public class BiometricAuthenticationStageTest {
 	@Before
 	public void setUp() throws Exception {
 		ReflectionTestUtils.setField(biometricAuthenticationStage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(biometricAuthenticationStage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(biometricAuthenticationStage, "clusterManagerUrl", "/dummyPath");
 		ReflectionTestUtils.setField(biometricAuthenticationStage, "ageLimit", "5");
 

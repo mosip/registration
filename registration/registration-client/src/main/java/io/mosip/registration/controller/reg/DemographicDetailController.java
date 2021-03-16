@@ -343,15 +343,6 @@ public class DemographicDetailController extends BaseController {
 		preRegParentPane.setDisable(true);
 	}
 
-	public boolean isAppLangAndLocalLangSame() {
-
-		return secondaryLanguage != null && primaryLanguage.equals(secondaryLanguage);
-	}
-
-	public boolean isLocalLanguageAvailable() {
-
-		return secondaryLanguage != null && !secondaryLanguage.isEmpty();
-	}
 
 	public void addKeyboard(int position) {
 
@@ -458,18 +449,18 @@ public class DemographicDetailController extends BaseController {
 				: applicationLabelBundle.getString(type) + mandatorySuffix);
 		textField.setPromptText(label.getText());
 
-//		textField.textProperty().addListener((ob, ov, nv) -> {
-//			fxUtils.showLabel(parentFlowPane, textField);
-//			if(!dateValidation.isNewValueValid(nv, type)) {
-//				textField.setText(ov);
-//			}
-//			boolean isValid = RegistrationConstants.AGE_FIELD.equalsIgnoreCase(type) ?
-//					dateValidation.validateAge(parentFlowPane, textField) :
-//					dateValidation.validateDate(parentFlowPane, schema.getId());
-//			if(isValid) {
-//				refreshDemographicGroups();
-//			}
-//		});
+		textField.textProperty().addListener((ob, ov, nv) -> {
+			fxUtils.showLabel(parentFlowPane, textField);
+			if(!dateValidation.isNewValueValid(nv, type)) {
+				textField.setText(ov);
+			}
+			boolean isValid = RegistrationConstants.AGE_FIELD.equalsIgnoreCase(type) ?
+					dateValidation.validateAge(parentFlowPane, textField) :
+					dateValidation.validateDate(parentFlowPane, schema.getId());
+			if(isValid) {
+				refreshDemographicGroups();
+			}
+		});
 
 		putIntoLabelMap(schema.getId() + "__" + type + languageType,
 				schema.getLabel().get(RegistrationConstants.LOCAL_LANGUAGE.equals(languageType) ?
@@ -1210,7 +1201,7 @@ public class DemographicDetailController extends BaseController {
 		registrationController.createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_NEW);
 		documentScanController.clearDocSection();
 
-		ResponseDTO responseDTO = preRegistrationDataSyncService.getPreRegistration(preRegId);
+		ResponseDTO responseDTO = preRegistrationDataSyncService.getPreRegistration(preRegId, false);
 
 		SuccessResponseDTO successResponseDTO = responseDTO.getSuccessResponseDTO();
 		List<ErrorResponseDTO> errorResponseDTOList = responseDTO.getErrorResponseDTOs();
@@ -1232,7 +1223,7 @@ public class DemographicDetailController extends BaseController {
 	 * Setting the focus to specific fields when keyboard loads
 	 *
 	 */
-	public void setFocusonLocalField(MouseEvent event) {
+	private void setFocusonLocalField(MouseEvent event) {
 		try {
 			Node node = (Node) event.getSource();
 			if (isLocalLanguageAvailable() && !isAppLangAndLocalLangSame()) {

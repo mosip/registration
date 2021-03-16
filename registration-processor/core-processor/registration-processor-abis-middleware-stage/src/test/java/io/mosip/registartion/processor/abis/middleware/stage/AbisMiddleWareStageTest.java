@@ -134,11 +134,12 @@ public class AbisMiddleWareStageTest {
 
 		@Override
 		public void consumeAndSend(MosipEventBus mosipEventBus, MessageBusAddress fromAddress,
-				MessageBusAddress toAddress) {
+				MessageBusAddress toAddress, long messageExpiryTimeLimit) {
 		}
 
 		@Override
-		public void consume(MosipEventBus mosipEventBus, MessageBusAddress fromAddress) {
+		public void consume(MosipEventBus mosipEventBus, MessageBusAddress fromAddress, 
+			long messageExpiryTimeLimit) {
 
 		}
 
@@ -149,6 +150,7 @@ public class AbisMiddleWareStageTest {
 		MockitoAnnotations.openMocks(this);
 		ReflectionTestUtils.setField(stage, "messageFormat", "byte");
 		ReflectionTestUtils.setField(stage, "workerPoolSize", 10);
+		ReflectionTestUtils.setField(stage, "messageExpiryTimeLimit", Long.valueOf(0));
 		ReflectionTestUtils.setField(stage, "clusterManagerUrl", "/dummyPath");
 		InternalRegistrationStatusDto internalRegStatusDto = new InternalRegistrationStatusDto();
 		internalRegStatusDto.setRegistrationId("");

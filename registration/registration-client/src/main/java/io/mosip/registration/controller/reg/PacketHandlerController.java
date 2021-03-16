@@ -35,7 +35,6 @@ import io.mosip.registration.constants.RegistrationUIConstants;
 import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.context.SessionContext;
 import io.mosip.registration.controller.BaseController;
-import io.mosip.registration.controller.GenericController;
 import io.mosip.registration.controller.Initialization;
 import io.mosip.registration.dto.ErrorResponseDTO;
 import io.mosip.registration.dto.PacketStatusDTO;
@@ -288,12 +287,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 	@Value("${packet.manager.account.name}")
 	private String packetsLocation;
 
-	@Autowired
-	private GenericController genericController;
-
-	@Autowired
-	private Validations validation;
-
 	/**
 	 * @return the userOnboardMsg
 	 */
@@ -508,9 +501,6 @@ public class PacketHandlerController extends BaseController implements Initializ
 					generateAlert(RegistrationConstants.ERROR, errorMessage.toString().trim());
 				} else {
 					getScene(createRoot).setRoot(createRoot);
-					validation.updateAsLostUIN(false);
-					registrationController.createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_NEW);
-					genericController.populateScreens();
 				}
 			}
 		} catch (IOException ioException) {
@@ -562,15 +552,13 @@ public class PacketHandlerController extends BaseController implements Initializ
 					generateAlert(RegistrationConstants.ERROR, errorMessage.toString().trim());
 				} else {
 					getScene(createRoot).setRoot(createRoot);
-
-					registrationController.getRegTypeText().setText(ApplicationContext.getInstance()
-							.getApplicationLanguageBundle().getString("/lostuin"));
-					genericController.populateScreens();
+					// demographicDetailController.lostUIN();
 				}
 			}
 		} catch (IOException ioException) {
 			LOGGER.error("REGISTRATION - UI- Officer Packet Create for Lost UIN", APPLICATION_NAME,
-					APPLICATION_ID,  ExceptionUtils.getStackTrace(ioException));
+					APPLICATION_ID, ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
+
 			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
 		}
 		LOGGER.info(PACKET_HANDLER, APPLICATION_NAME, APPLICATION_ID,"Creating of Registration for lost UIN ended.");

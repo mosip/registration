@@ -41,18 +41,27 @@ public class ExceptionBiometricsTagGeneratorTest {
 	public void testGenerateTagsForExceptionBiometricsAvailable() throws BaseCheckedException {
 		Map<String, String> metaInfoMap = new HashMap<>();
 		metaInfoMap.put(JsonConstant.EXCEPTIONBIOMETRICS, 
-			"[{\"type\" : \"iris\", \"missingBiometric\" : \"leftEye\",\"reason\" : \"Missing biometrics\",\"exceptionType\" : \"Permanent\",\"individualType\" : \"INDIVIDUAL\"}]");
+			"{\"applicant\" : {\"leftEye\" : {\"type\" : \"iris\", \"missingBiometric\" : \"leftEye\",\"reason\" : \"Missing biometrics\",\"exceptionType\" : \"Permanent\",\"individualType\" : \"INDIVIDUAL\"}}}");
 		Map<String, String> tags = 
-		exceptionBiometricsTagGenerator.generateTags("1234", "NEW", null, metaInfoMap);
+			exceptionBiometricsTagGenerator.generateTags("1234", "NEW", null, metaInfoMap);
 		assertEquals("true", tags.get(tagName));
 	}
 
 	@Test
 	public void testGenerateTagsForExceptionBiometricsNotAvailable() throws BaseCheckedException {
 		Map<String, String> metaInfoMap = new HashMap<>();
-		metaInfoMap.put(JsonConstant.EXCEPTIONBIOMETRICS, "[]");
+		metaInfoMap.put(JsonConstant.EXCEPTIONBIOMETRICS, "{\"applicant\" : {}}");
 		Map<String, String> tags = 
-		exceptionBiometricsTagGenerator.generateTags("1234", "NEW", null, metaInfoMap);
+			exceptionBiometricsTagGenerator.generateTags("1234", "NEW", null, metaInfoMap);
+		assertEquals("false", tags.get(tagName));
+	}
+
+	@Test
+	public void testGenerateTagsForExceptionBiometricsApplicantNotAvailable() throws BaseCheckedException {
+		Map<String, String> metaInfoMap = new HashMap<>();
+		metaInfoMap.put(JsonConstant.EXCEPTIONBIOMETRICS, "{}");
+		Map<String, String> tags = 
+			exceptionBiometricsTagGenerator.generateTags("1234", "NEW", null, metaInfoMap);
 		assertEquals("false", tags.get(tagName));
 	}
 
@@ -65,11 +74,13 @@ public class ExceptionBiometricsTagGeneratorTest {
 		exceptionBiometricsTagGenerator.generateTags("1234", "NEW", null, metaInfoMap);
 	}
 
-	@Test(expected = BaseCheckedException.class)
+	@Test
 	public void testGenerateTagsForMetaInfoMapDoesNotContainExceptionBiometrics() 
 		throws BaseCheckedException {
 		Map<String, String> metaInfoMap = new HashMap<>();
-		exceptionBiometricsTagGenerator.generateTags("1234", "NEW", null, metaInfoMap);
+		Map<String, String> tags = 
+			exceptionBiometricsTagGenerator.generateTags("1234", "NEW", null, metaInfoMap);
+		assertEquals("false", tags.get(tagName));
 	}
 	
 }

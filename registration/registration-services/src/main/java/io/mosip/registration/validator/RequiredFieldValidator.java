@@ -25,87 +25,65 @@ import io.mosip.registration.service.IdentitySchemaService;
 
 @Component
 public class RequiredFieldValidator {
-
+	
 	private static final String APPLICANT_SUBTYPE = "applicant";
-
+	
+	
 	@Autowired
 	private IdentitySchemaService identitySchemaService;
-
+	
 	public boolean isRequiredField(String fieldId, RegistrationDTO registrationDTO) throws RegBaseCheckedException {
 		SchemaDto schema = identitySchemaService.getIdentitySchema(registrationDTO.getIdSchemaVersion());
-		Optional<UiSchemaDTO> schemaField = schema.getSchema().stream().filter(field -> field.getId().equals(fieldId))
-				.findFirst();
-		if (!schemaField.isPresent())
+		Optional<UiSchemaDTO> schemaField = schema.getSchema().stream().filter(field -> field.getId().equals(fieldId)).findFirst();
+		if(!schemaField.isPresent())
 			return false;
-
+		
 		return isRequiredField(schemaField.get(), registrationDTO);
 	}
-
+	
 	@SuppressWarnings("unchecked")
-	public boolean isRequiredField(UiSchemaDTO schemaField, RegistrationDTO registrationDTO)
-			throws RegBaseCheckedException {
+	public boolean isRequiredField(UiSchemaDTO schemaField, RegistrationDTO registrationDTO) throws RegBaseCheckedException {
 		boolean required = false;
-		if (schemaField == null)
+		if(schemaField == null)
 			return required;
-		required = schemaField.isRequired();
-		if (schemaField.getRequiredOn() != null && !schemaField.getRequiredOn().isEmpty()) {
-			Optional<RequiredOnExpr> expression = schemaField.getRequiredOn().stream()
-					.filter(field -> "MVEL".equalsIgnoreCase(field.getEngine()) && field.getExpr() != null).findFirst();
-
-			if (expression.isPresent()) {
+		required = schemaField.isRequired();			
+		if(schemaField.getRequiredOn() != null && !schemaField.getRequiredOn().isEmpty()) {
+			Optional<RequiredOnExpr> expression = schemaField.getRequiredOn().stream().filter(field -> 
+			"MVEL".equalsIgnoreCase(field.getEngine()) && field.getExpr() != null).findFirst();
+			
+			if(expression.isPresent()) {
 				@SuppressWarnings("rawtypes")
 				Map context = new HashMap();
 				context.put("identity", registrationDTO.getMVELDataContext());
 				VariableResolverFactory resolverFactory = new MapVariableResolverFactory(context);
 				required = MVEL.evalToBoolean(expression.get().getExpr(), resolverFactory);
 			}
-		}
+		}		
 		return required;
 	}
-
-	@SuppressWarnings("unchecked")
-	public boolean isFieldVisible(UiSchemaDTO schemaField, RegistrationDTO registrationDTO)
-			throws RegBaseCheckedException {
-		boolean visible = true;
-		if (schemaField == null)
-			return visible;
-
-		if (schemaField.getVisible() != null && schemaField.getVisible().getEngine().equalsIgnoreCase("MVEL")
-				&& schemaField.getVisible().getExpr() != null) {
-
-			@SuppressWarnings("rawtypes")
-			Map context = new HashMap();
-			context.put("identity", registrationDTO.getMVELDataContext());
-			VariableResolverFactory resolverFactory = new MapVariableResolverFactory(context);
-			visible = MVEL.evalToBoolean(schemaField.getVisible().getExpr(), resolverFactory);
-		}
-		return visible;
-	}
-
-	public List<String> isRequiredBiometricField(String subType, RegistrationDTO registrationDTO)
-			throws RegBaseCheckedException {
+	
+	
+	public List<String> isRequiredBiometricField(String subType, RegistrationDTO registrationDTO) throws RegBaseCheckedException {
 		List<String> requiredAttributes = new ArrayList<String>();
 		SchemaDto schema = identitySchemaService.getIdentitySchema(registrationDTO.getIdSchemaVersion());
-		List<UiSchemaDTO> fields = schema.getSchema().stream()
-				.filter(field -> field.getType() != null
-						&& PacketManagerConstants.BIOMETRICS_DATATYPE.equals(field.getType())
-						&& field.getSubType() != null && field.getSubType().equals(subType))
-				.collect(Collectors.toList());
-
-		for (UiSchemaDTO schemaField : fields) {
-			if (isRequiredField(schemaField, registrationDTO) && schemaField.getBioAttributes() != null)
+		List<UiSchemaDTO> fields = schema.getSchema().stream().filter(field -> field.getType() != null 
+				&& PacketManagerConstants.BIOMETRICS_DATATYPE.equals(field.getType()) 
+				&& field.getSubType() != null && field.getSubType().equals(subType)).collect(Collectors.toList());
+		
+		for(UiSchemaDTO schemaField : fields) {
+			if(isRequiredField(schemaField, registrationDTO) && schemaField.getBioAttributes() != null)
 				requiredAttributes.addAll(schemaField.getBioAttributes());
 		}
-
-		// Reg-client will capture the face of Infant and send it in Packet as part of
-		// IndividualBiometrics CBEFF (If Face is captured for the country)
-		if ((registrationDTO.isChild() && APPLICANT_SUBTYPE.equals(subType) && requiredAttributes.contains("face"))
+		
+		//Reg-client will capture the face of Infant and send it in Packet as part of IndividualBiometrics CBEFF (If Face is captured for the country)
+		if ((registrationDTO.isChild()
+				&& APPLICANT_SUBTYPE.equals(subType) && requiredAttributes.contains("face"))
 				|| (registrationDTO.getRegistrationCategory().equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_UPDATE)
 						&& registrationDTO.getUpdatableFieldGroups().contains("GuardianDetails")
 						&& APPLICANT_SUBTYPE.equals(subType) && requiredAttributes.contains("face"))) {
 			return Arrays.asList("face"); // Only capture face
 		}
-
+		
 		return requiredAttributes;
 	}
 

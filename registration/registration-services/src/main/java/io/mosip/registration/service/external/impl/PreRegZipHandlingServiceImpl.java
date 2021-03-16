@@ -246,12 +246,8 @@ public class PreRegZipHandlingServiceImpl implements PreRegZipHandlingService {
 				LOGGER.debug("REGISTRATION - PRE_REG_ZIP_HANDLING_SERVICE_IMPL", RegistrationConstants.APPLICATION_NAME,
 						RegistrationConstants.APPLICATION_ID, jsonString.toString());
 				
-				if(!jsonObject.has("IDSchemaVersion"))
-					throw new RegBaseCheckedException("IDSchemaVersion not found", "IDSchemaVersion not found");
-				
-				List<UiSchemaDTO> fieldList = identitySchemaService.getUISchema(jsonObject.getDouble("IDSchemaVersion"));	
-				getRegistrationDtoContent().setIdSchemaVersion(jsonObject.getDouble("IDSchemaVersion"));
-							
+				List<UiSchemaDTO> fieldList = identitySchemaService.getUISchema(getRegistrationDtoContent().getIdSchemaVersion());
+
 				for(UiSchemaDTO field : fieldList) {
 					if(field.getId().equalsIgnoreCase("IDSchemaVersion"))
 						continue;

@@ -38,6 +38,7 @@ import io.mosip.registration.processor.core.abstractverticle.EventDTO;
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.constant.RegistrationType;
+import io.mosip.registration.processor.core.exception.MessageExpiredException;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Vertx;
@@ -107,7 +108,7 @@ public class KafkaMosipEventBusTest {
 	}
 
 	@Test
-	public void testComsumeAndSendWithAutoCommitType(TestContext testContext) {
+	public void testConsumeAndSendWithAutoCommitType(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", 
 			"auto", "100", 60000, eventTracingHandler);
@@ -149,10 +150,11 @@ public class KafkaMosipEventBusTest {
 		verify(kafkaConsumer, times(0)).resume(
 			any(io.vertx.kafka.client.common.TopicPartition.class), any());
 		verify(kafkaConsumer, times(0)).commit(anyMap(), any());
+		verify(kafkaProducer, times(testDataCount)).write(any(), any());
 	}
 
 	@Test
-	public void testComsumeAndSendWithSingleBatchType(TestContext testContext) {
+	public void testConsumeAndSendWithSingleBatchType(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(Vertx.vertx(), "localhost:9091", "group_1", 
 			"batch", "100", 60000, eventTracingHandler);
@@ -213,10 +215,11 @@ public class KafkaMosipEventBusTest {
 		inOrder.verify(kafkaConsumer, times(1)).commit(anyMap(), any());
 		inOrder.verify(kafkaConsumer, times(1)).resume(
 			any(io.vertx.kafka.client.common.TopicPartition.class), any());
+		verify(kafkaProducer, times(testDataCount)).write(any(), any());
 	}
 
 	@Test
-	public void testComsumeAndSendWithSingleCommitType(TestContext testContext) {
+	public void testConsumeAndSendWithSingleCommitType(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(Vertx.vertx(), "localhost:9091", "group_1", 
 			"single", "100", 60000, eventTracingHandler);
@@ -290,10 +293,11 @@ public class KafkaMosipEventBusTest {
 			assertTrue("Commit method should be called in same order of offset for each partition", 
 				values.get(i).entrySet().iterator().next().getValue().getOffset() == i+1);
 		}
+		verify(kafkaProducer, times(testDataCount)).write(any(), any());
 	}
 
 	@Test
-	public void testComsumeWithAutoCommitType(TestContext testContext) {
+	public void testConsumeWithAutoCommitType(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", 
 			"auto", "100", 60000, eventTracingHandler);
@@ -334,10 +338,11 @@ public class KafkaMosipEventBusTest {
 		verify(kafkaConsumer, times(0)).resume(
 			any(io.vertx.kafka.client.common.TopicPartition.class), any());
 		verify(kafkaConsumer, times(0)).commit(anyMap(), any());
+		verify(kafkaProducer, times(0)).write(any(), any());
 	}
 
 	@Test
-	public void testComsumeWithSingleBatchType(TestContext testContext) {
+	public void testConsumeWithSingleBatchType(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(Vertx.vertx(), "localhost:9091", "group_1", 
 			"batch", "100", 60000, eventTracingHandler);
@@ -397,10 +402,11 @@ public class KafkaMosipEventBusTest {
 		inOrder.verify(kafkaConsumer, times(1)).commit(anyMap(), any());
 		inOrder.verify(kafkaConsumer, times(1)).resume(
 			any(io.vertx.kafka.client.common.TopicPartition.class), any());
+		verify(kafkaProducer, times(0)).write(any(), any());
 	}
 
 	@Test
-	public void testComsumeWithSingleCommitType(TestContext testContext) {
+	public void testConsumeWithSingleCommitType(TestContext testContext) {
 		int testDataCount = 20;
 		kafkaMosipEventBus = new KafkaMosipEventBus(Vertx.vertx(), "localhost:9091", "group_1", 
 			"single", "100", 60000, eventTracingHandler);
@@ -473,6 +479,130 @@ public class KafkaMosipEventBusTest {
 			assertTrue("Commit method should be called in same order of offset for each partition", 
 				values.get(i).entrySet().iterator().next().getValue().getOffset() == i+1);
 		}
+		verify(kafkaProducer, times(0)).write(any(), any());
+	}
+
+	@Test
+	public void testConsumeAndSendWithMessageExpiredException(TestContext testContext) {
+		int testDataCount = 20;
+		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", 
+			"batch", "100", 60000, eventTracingHandler);
+		final Async async = testContext.async();
+		
+		AsyncResult<KafkaConsumerRecords<String, String>> asyncResult = 
+			Mockito.mock(AsyncResult.class);
+  		Mockito.when(asyncResult.succeeded()).thenReturn(true);
+  		Mockito.when(asyncResult.result()).thenReturn(prepareKafkaConsumerRecords(testDataCount));
+		doAnswer((Answer<AsyncResult<KafkaConsumerRecords<String, String>>>) arguments -> {
+			((Handler<AsyncResult<KafkaConsumerRecords<String, String>>>) arguments.getArgument(1))
+				.handle(asyncResult);
+            return null;
+		}).when(kafkaConsumer).poll(anyLong(), any());
+
+		AsyncResult<Void> voidAsyncResult = Mockito.mock(AsyncResult.class);
+		Mockito.when(voidAsyncResult.succeeded()).thenReturn(true);
+		  
+		doAnswer((Answer<AsyncResult<Void>>) arguments -> {
+            ((Handler<AsyncResult<Void>>) arguments.getArgument(1)).handle(voidAsyncResult);
+            return null;
+		}).when(kafkaConsumer).pause(any(io.vertx.kafka.client.common.TopicPartition.class), any());
+
+		doAnswer((Answer<AsyncResult<Void>>) arguments -> {
+            ((Handler<AsyncResult<Void>>) arguments.getArgument(1)).handle(voidAsyncResult);
+            return null;
+		}).when(kafkaConsumer).resume(any(io.vertx.kafka.client.common.TopicPartition.class), any());
+
+		doAnswer((Answer<AsyncResult<Void>>) arguments -> {
+            ((Handler<AsyncResult<Void>>) arguments.getArgument(1)).handle(voidAsyncResult);
+            return null;
+		}).when(kafkaConsumer).commit(anyMap(), any());
+
+		EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler = 
+			Mockito.mock(EventHandler.class);
+		doAnswer((Answer<AsyncResult<MessageDTO>>) arguments -> {
+			AsyncResult<MessageDTO> asyncResultForMessageDTO = Mockito.mock(AsyncResult.class);
+			Mockito.when(asyncResultForMessageDTO.succeeded()).thenReturn(false);
+			Mockito.when(asyncResultForMessageDTO.cause()).thenReturn(new MessageExpiredException());
+			((Handler<AsyncResult<MessageDTO>>) arguments.getArgument(1))
+				.handle(asyncResultForMessageDTO);
+			if (!async.isCompleted())
+				async.complete();
+            
+            return null;
+		}).when(eventHandler).handle(any(), any());
+
+		kafkaMosipEventBus.consumeAndSend(MessageBusAddress.PACKET_VALIDATOR_BUS_IN, 
+			MessageBusAddress.PACKET_UPLOADER_OUT, eventHandler);
+		async.await();
+
+		verify(eventHandler, times(testDataCount)).handle(any(), any());
+		verify(kafkaConsumer, times(1)).pause(
+			any(io.vertx.kafka.client.common.TopicPartition.class), any());
+		verify(kafkaConsumer, times(1)).resume(
+			any(io.vertx.kafka.client.common.TopicPartition.class), any());
+		verify(kafkaConsumer, times(1)).commit(anyMap(), any());
+		verify(kafkaProducer, times(0)).write(any(), any());
+	}
+
+	@Test
+	public void testConsumeWithMessageExpiredException(TestContext testContext) {
+		int testDataCount = 20;
+		kafkaMosipEventBus = new KafkaMosipEventBus(vertx, "localhost:9091", "group_1", 
+			"batch", "100", 60000, eventTracingHandler);
+		final Async async = testContext.async();
+		
+		AsyncResult<KafkaConsumerRecords<String, String>> asyncResult = 
+			Mockito.mock(AsyncResult.class);
+  		Mockito.when(asyncResult.succeeded()).thenReturn(true);
+  		Mockito.when(asyncResult.result()).thenReturn(prepareKafkaConsumerRecords(testDataCount));
+		doAnswer((Answer<AsyncResult<KafkaConsumerRecords<String, String>>>) arguments -> {
+			((Handler<AsyncResult<KafkaConsumerRecords<String, String>>>) arguments.getArgument(1))
+				.handle(asyncResult);
+            return null;
+		}).when(kafkaConsumer).poll(anyLong(), any());
+
+		AsyncResult<Void> voidAsyncResult = Mockito.mock(AsyncResult.class);
+		Mockito.when(voidAsyncResult.succeeded()).thenReturn(true);
+		  
+		doAnswer((Answer<AsyncResult<Void>>) arguments -> {
+            ((Handler<AsyncResult<Void>>) arguments.getArgument(1)).handle(voidAsyncResult);
+            return null;
+		}).when(kafkaConsumer).pause(any(io.vertx.kafka.client.common.TopicPartition.class), any());
+
+		doAnswer((Answer<AsyncResult<Void>>) arguments -> {
+            ((Handler<AsyncResult<Void>>) arguments.getArgument(1)).handle(voidAsyncResult);
+            return null;
+		}).when(kafkaConsumer).resume(any(io.vertx.kafka.client.common.TopicPartition.class), any());
+
+		doAnswer((Answer<AsyncResult<Void>>) arguments -> {
+            ((Handler<AsyncResult<Void>>) arguments.getArgument(1)).handle(voidAsyncResult);
+            return null;
+		}).when(kafkaConsumer).commit(anyMap(), any());
+
+		EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler = 
+			Mockito.mock(EventHandler.class);
+		doAnswer((Answer<AsyncResult<MessageDTO>>) arguments -> {
+			AsyncResult<MessageDTO> asyncResultForMessageDTO = Mockito.mock(AsyncResult.class);
+			Mockito.when(asyncResultForMessageDTO.succeeded()).thenReturn(false);
+			Mockito.when(asyncResultForMessageDTO.cause()).thenReturn(new MessageExpiredException());
+			((Handler<AsyncResult<MessageDTO>>) arguments.getArgument(1))
+				.handle(asyncResultForMessageDTO);
+			if (!async.isCompleted())
+				async.complete();
+            
+            return null;
+		}).when(eventHandler).handle(any(), any());
+
+		kafkaMosipEventBus.consume(MessageBusAddress.PACKET_VALIDATOR_BUS_IN, eventHandler);
+		async.await();
+
+		verify(eventHandler, times(testDataCount)).handle(any(), any());
+		verify(kafkaConsumer, times(1)).pause(
+			any(io.vertx.kafka.client.common.TopicPartition.class), any());
+		verify(kafkaConsumer, times(1)).resume(
+			any(io.vertx.kafka.client.common.TopicPartition.class), any());
+		verify(kafkaConsumer, times(1)).commit(anyMap(), any());
+		verify(kafkaProducer, times(0)).write(any(), any());
 	}
 
 	private KafkaConsumerRecords<String, String> prepareKafkaConsumerRecords(int recordCount) {

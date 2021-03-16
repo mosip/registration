@@ -49,8 +49,6 @@ import io.mosip.registration.dto.packetmanager.DocumentDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.doc.category.DocumentCategoryService;
 import io.mosip.registration.service.sync.MasterSyncService;
-import io.mosip.registration.util.control.FxControl;
-import io.mosip.registration.util.control.impl.DocumentFxControl;
 import io.mosip.registration.util.scan.DocumentScanFacade;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
@@ -178,7 +176,6 @@ public class DocumentScanController extends BaseController {
 	private String cropDocumentKey;
 
 	private Webcam webcam;
-	private FxControl fxControl;
 
 	public Webcam getWebcam() {
 		return webcam;
@@ -187,8 +184,6 @@ public class DocumentScanController extends BaseController {
 	public void setWebcam(Webcam webcam) {
 		this.webcam = webcam;
 	}
-
-	private DocumentFxControl documentFxControl;
 
 	/*
 	 * (non-Javadoc)
@@ -636,7 +631,7 @@ public class DocumentScanController extends BaseController {
 	/**
 	 * This method will display Scan window to scan and upload documents
 	 */
-	public void scanWindow() {
+	private void scanWindow() {
 
 		Webcam webcam = webcamSarxosServiceImpl.getWebCam(selectedScanDeviceName);
 		if ((selectedScanDeviceName == null || selectedScanDeviceName.isEmpty()) || webcam == null) {
@@ -951,7 +946,7 @@ public class DocumentScanController extends BaseController {
 		}
 	}
 
-	public byte[] getScannedPagesToBytes(List<BufferedImage> scannedPages) throws IOException {
+	private byte[] getScannedPagesToBytes(List<BufferedImage> scannedPages) throws IOException {
 
 		byte[] byteArray = null;
 		if ("pdf".equalsIgnoreCase(getValueFromApplicationContext(RegistrationConstants.DOC_TYPE))) {
@@ -1503,65 +1498,6 @@ public class DocumentScanController extends BaseController {
 	public BufferedImage getScannedImage(int docPageNumber) {
 
 		return scannedPages.get(docPageNumber);
-	}
-
-	public void scanDocument(DocumentFxControl documentFxControl, String fieldId, String docCode) {
-
-		this.documentFxControl = documentFxControl;
-		Webcam webcam = webcamSarxosServiceImpl.getWebCam(selectedScanDeviceName);
-		if ((selectedScanDeviceName == null || selectedScanDeviceName.isEmpty()) || webcam == null) {
-			documentScanFacade.setStubScannerFactory();
-		} else {
-			documentScanFacade.setScannerFactory();
-		}
-
-		if (getRegistrationDTOFromSession().getDocuments() != null) {
-			DocumentDto documentDto = getRegistrationDTOFromSession().getDocuments().get(fieldId);
-
-			try {
-
-				if (documentDto != null) {
-					setScannedPages(documentScanFacade.pdfToImages(documentDto.getDocument()));
-				}
-			} catch (IOException exception) {
-				LOGGER.error("REGISTRATION - DOCUMENT_SCAN_CONTROLLER", APPLICATION_NAME,
-						RegistrationConstants.APPLICATION_ID,
-						exception.getMessage() + ExceptionUtils.getStackTrace(exception));
-
-			}
-
-		}
-		String poeDocValue = getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE);
-		if (poeDocValue != null && docCode.matches(poeDocValue)) {
-
-			startStream(this);
-		} else {
-			scanPopUpViewController.setDocumentScan(true);
-
-			scanPopUpViewController.init(this, RegistrationUIConstants.SCAN_DOC_TITLE);
-
-			if (webcam != null) {
-				documentScanFacade.setStubScannerFactory();
-				startStream(webcam);
-			}
-
-		}
-
-		LOGGER.info(RegistrationConstants.DOCUMNET_SCAN_CONTROLLER, RegistrationConstants.APPLICATION_NAME,
-				RegistrationConstants.APPLICATION_ID, "Scan window displayed to scan and upload documents");
-
-	}
-
-	public DocumentScanFacade getDocumentScanFacade() {
-		return documentScanFacade;
-	}
-
-	public FxControl getFxControl() {
-		return fxControl;
-	}
-
-	public void setFxControl(FxControl fxControl) {
-		this.fxControl = fxControl;
 	}
 
 }

@@ -42,7 +42,7 @@ public interface PreRegistrationDataSyncService {
 	 * @return ResponseDTO response data
 	 * 				Pre-registration packet data. 
 	 */
-	public ResponseDTO getPreRegistration(String preRegistrationId);
+	public ResponseDTO getPreRegistration(String preRegistrationId, boolean forceDownload);
 
 	/**
 	 * Fetch all the Pre-Registration Records from db that needs to be deleted based on appointment date and no. of configured days.  If 

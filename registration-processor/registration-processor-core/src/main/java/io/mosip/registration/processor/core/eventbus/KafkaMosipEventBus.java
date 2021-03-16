@@ -11,7 +11,6 @@ import java.util.stream.IntStream;
 
 import brave.Span;
 import io.mosip.registration.processor.core.tracing.EventTracingHandler;
-import io.mosip.registration.processor.core.tracing.TracingConstant;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 
@@ -20,6 +19,7 @@ import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.exception.ConfigurationServerFailureException;
+import io.mosip.registration.processor.core.exception.MessageExpiredException;
 import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.CompositeFuture;
@@ -173,7 +173,7 @@ public class KafkaMosipEventBus implements MosipEventBus {
   		kafkaProducer.write(producerRecord, handler -> {
 			MDC.setContextMap(mdc);
   			if(handler.failed())
-				logger.error("Failed kafkaProducer.write {} ", handler.result(), handler.cause());
+				logger.error("Failed kafkaProducer.write {} {} ", handler.result(), handler.cause());
   			else
 				logger.info("Success kafkaProducer.write {} ", handler.result());
   			MDC.clear();
@@ -313,8 +313,15 @@ public class KafkaMosipEventBus implements MosipEventBus {
 		Promise<Void> promise = Promise.promise();
 		Map<String,String> mdc = MDC.getCopyOfContextMap();
 		eventHandler.handle(eventDTO, res -> {
-			if (!res.succeeded()) {
-				logger.error("Event handling failed ", res.cause());
+			if (!res.succeeded() && res.cause() instanceof MessageExpiredException) {
+				logger.warn("Event handling failed {}", res.cause().getMessage());
+				if(commitRecord)
+					commitOffset(record.topic(), record.partition(), 
+						record.offset(), promise);
+				else					
+					promise.complete();
+			} else if(!res.succeeded()) {
+				logger.error("Event handling failed {}", res.cause());
 				promise.fail(res.cause());
 			} else {
 				if(toAddress != null) {
