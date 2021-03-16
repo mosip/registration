@@ -1,13 +1,16 @@
 package io.mosip.registration.processor.status.dao;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.assertj.core.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
 import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
 
@@ -178,13 +181,16 @@ public class RegistrationStatusDao {
 		String className = RegistrationStatusEntity.class.getSimpleName();
 		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
 		LocalDateTime timeDifference = LocalDateTime.now().minusSeconds(elapseTime);
-
+		List<String> statusCodes=new ArrayList<>();
+		statusCodes.add(RegistrationStatusCode.PAUSED.toString());
 		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
 				+ ".latestTransactionStatusCode IN :status" + EMPTY_STRING + AND + EMPTY_STRING + alias
 				+ ".regProcessRetryCount<=" + ":reprocessCount" + EMPTY_STRING + AND + EMPTY_STRING + alias
-				+ ".latestTransactionTimes<" + ":timeDifference";
+				+ ".latestTransactionTimes<" + ":timeDifference"+ EMPTY_STRING + AND + EMPTY_STRING+ alias
+				+ ".statusCode  NOT IN :statusCode ";
 
 		params.put("status", status);
+		params.put("statusCode", statusCodes);
 		params.put("reprocessCount", reprocessCount);
 		params.put("timeDifference", timeDifference);
 
@@ -197,13 +203,16 @@ public class RegistrationStatusDao {
 		String className = RegistrationStatusEntity.class.getSimpleName();
 		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
 		LocalDateTime timeDifference = LocalDateTime.now().minusSeconds(elapseTime);
-
+		List<String> statusCodes=new ArrayList<>();
+		statusCodes.add(RegistrationStatusCode.PAUSED.toString());
 		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
 				+ ".latestTransactionStatusCode IN :status" + EMPTY_STRING + AND + EMPTY_STRING + alias
 				+ ".regProcessRetryCount<=" + ":reprocessCount" + EMPTY_STRING + AND + EMPTY_STRING + alias
-				+ ".latestTransactionTimes<" + ":timeDifference";
+				+ ".latestTransactionTimes<" + ":timeDifference"+ EMPTY_STRING + AND + EMPTY_STRING+ alias
+				+ ".statusCode  NOT IN :statusCode ";
 
 		params.put("status", status);
+		params.put("statusCode", statusCodes);
 		params.put("reprocessCount", reprocessCount);
 		params.put("timeDifference", timeDifference);
 		List<RegistrationStatusEntity> unprocessedPackets = registrationStatusRepositary.createQuerySelect(queryStr,
@@ -254,6 +263,22 @@ public class RegistrationStatusDao {
 		params.put(ISDELETED, Boolean.FALSE);
 
 		return registrationStatusRepositary.createQuerySelect(queryStr, params);
+	}
+
+	public List<RegistrationStatusEntity> getPausedPackets(Integer fetchSize) {
+		Map<String, Object> params = new HashMap<>();
+		String className = RegistrationStatusEntity.class.getSimpleName();
+		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
+		
+
+		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+				+ ".statusCode =:status" +  EMPTY_STRING + AND + EMPTY_STRING + alias
+				+ ".resumeTimeStamp < now()"+  EMPTY_STRING + AND + EMPTY_STRING + alias+ ".defaultResumeAction is not null";
+
+		params.put("status", RegistrationStatusCode.PAUSED.toString());
+		
+
+		return registrationStatusRepositary.createQuerySelect(queryStr, params, fetchSize);
 	}
 
 }

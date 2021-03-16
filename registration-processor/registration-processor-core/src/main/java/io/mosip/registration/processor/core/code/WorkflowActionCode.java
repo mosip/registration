@@ -1,0 +1,10 @@
+package io.mosip.registration.processor.core.code;
+
+public enum WorkflowActionCode {
+	RESUME_PROCESSING,
+	RESUME_PROCESSING_AND_REMOVE_HOTLISTED_TAG, 
+	RESUME_FROM_BEGINNING,
+	RESUME_FROM_BEGINNING_AND_REMOVE_HOTLISTED_TAG, 
+	STOP_PROCESSING
+
+}

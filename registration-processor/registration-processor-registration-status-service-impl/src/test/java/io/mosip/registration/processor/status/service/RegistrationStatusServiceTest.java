@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.assertj.core.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -219,6 +220,25 @@ public class RegistrationStatusServiceTest {
 		List<InternalRegistrationStatusDto> dtolist = registrationStatusService.getUnProcessedPackets(1, 21600, 3,
 				statusList);
 		assertEquals("REPROCESS", dtolist.get(0).getLatestTransactionStatusCode());
+	}
+	
+	@Test
+	public void testGetPausedPackets() {
+		registrationStatusEntity.setStatusCode("PAUSED");
+		Mockito.when(registrationStatusDao.getPausedPackets( anyInt() ))
+				.thenReturn(List.of(registrationStatusEntity));
+		List<InternalRegistrationStatusDto> dtolist = registrationStatusService.getPausedPackets(1);
+		assertEquals("PAUSED", dtolist.get(0).getStatusCode());
+	}
+	
+	@Test(expected = TablenotAccessibleException.class)
+	public void testGetPausedPacketsFailure() {
+		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
+				"errorMessage", new Exception());
+		Mockito.when(registrationStatusDao.getPausedPackets( anyInt() ))
+				.thenThrow(exp);
+		 registrationStatusService.getPausedPackets(1);
+		
 	}
 
 	@Test(expected = TablenotAccessibleException.class)

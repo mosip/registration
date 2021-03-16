@@ -98,6 +98,16 @@ public class RegistrationStatusDaoTest {
 		int count = registrationStatusDao.getUnProcessedPacketsCount(6000, 4, statusList);
 		assertEquals(count, entityCount);
 	}
+	
+	@Test
+	public void testgetPausedPackets() {
+		List<String> statusList = new ArrayList<>();
+		statusList.add("SUCCESS");
+		Mockito.when(registrationStatusRepositary.createQuerySelect(Matchers.anyString(), Matchers.anyMap(),
+				Matchers.anyInt())).thenReturn(list);
+		List<RegistrationStatusEntity> rEntityList = registrationStatusDao.getPausedPackets(2);
+		assertEquals(list, rEntityList);
+	}
 
 	@Test
 	public void getByIdsAndTimestamp() {
