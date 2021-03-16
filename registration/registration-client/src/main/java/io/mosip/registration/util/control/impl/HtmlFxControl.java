@@ -101,14 +101,15 @@ public class HtmlFxControl extends FxControl {
     }
 
     private String getContent() throws RegBaseCheckedException, IOException {
-        Map<String, Object> templateValues = new WeakHashMap<>();
-        templateValues.put("test", "va");
-        /*String templateText = templateService.getHtmlTemplate(this.uiSchemaDTO.getTemplateName(),
-                getRegistrationDTo().getSelectedLanguagesByApplicant().get(0));*/
-        String templateText = "<!DOCTYPE html><html><body><h1>My First Heading</h1><p>My first paragraph.</p></body></html>";
+        String templateText = this.uiSchemaDTO.getTemplateName() == null ?
+                "<!DOCTYPE html><html><body><h1>Template Name not set !!</h1></body></html>" :
+                templateService.getHtmlTemplate(this.uiSchemaDTO.getTemplateName(),  getRegistrationDTo().getSelectedLanguagesByApplicant().get(0));
         Writer writer = new StringWriter();
         TemplateManager templateManager = templateManagerBuilder.build();
-        InputStream inputStream = templateManager.merge(new ByteArrayInputStream(templateText.getBytes(StandardCharsets.UTF_8)), templateValues);
+        InputStream inputStream = templateManager.merge(new ByteArrayInputStream(templateText == null ?
+                                "<!DOCTYPE html><html><body><h1>Empty template Content</h1></body></html>".getBytes(StandardCharsets.UTF_8) :
+                                templateText.getBytes(StandardCharsets.UTF_8)),
+                getRegistrationDTo().getMVELDataContext());
         IOUtils.copy(inputStream, writer, StandardCharsets.UTF_8);
         return writer.toString();
     }
