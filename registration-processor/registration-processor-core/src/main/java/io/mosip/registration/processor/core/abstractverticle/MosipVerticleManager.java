@@ -160,8 +160,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 				JsonObject jsonObject = (JsonObject) msg.getBody();
 				MessageDTO messageDTO = jsonObject.mapTo(MessageDTO.class);
 				MessageDTO result = process(messageDTO);
-				if(result.getTags() == null)
-					addTagsToMessageDTO(result);
+				addTagsToMessageDTO(result);
 				future.complete(result);
 			}, false, handler);
 			MDC.clear();
@@ -179,8 +178,7 @@ public abstract class MosipVerticleManager extends AbstractVerticle
 	 *            The message that needs to be sent
 	 */
 	public void send(MosipEventBus mosipEventBus, MessageBusAddress toAddress, MessageDTO message) {
-		if(message.getTags() == null)
-			addTagsToMessageDTO(message);
+		addTagsToMessageDTO(message);
 		mosipEventBus.send(toAddress, message);
 	}
 
