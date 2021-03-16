@@ -225,9 +225,9 @@ public class RegistrationStatusServiceTest {
 	@Test
 	public void testGetPausedPackets() {
 		registrationStatusEntity.setStatusCode("PAUSED");
-		Mockito.when(registrationStatusDao.getPausedPackets( anyInt() ))
+		Mockito.when(registrationStatusDao.getResumablePackets( anyInt() ))
 				.thenReturn(List.of(registrationStatusEntity));
-		List<InternalRegistrationStatusDto> dtolist = registrationStatusService.getPausedPackets(1);
+		List<InternalRegistrationStatusDto> dtolist = registrationStatusService.getResumablePackets(1);
 		assertEquals("PAUSED", dtolist.get(0).getStatusCode());
 	}
 	
@@ -235,9 +235,9 @@ public class RegistrationStatusServiceTest {
 	public void testGetPausedPacketsFailure() {
 		DataAccessLayerException exp = new DataAccessLayerException(HibernateErrorCode.ERR_DATABASE.getErrorCode(),
 				"errorMessage", new Exception());
-		Mockito.when(registrationStatusDao.getPausedPackets( anyInt() ))
+		Mockito.when(registrationStatusDao.getResumablePackets( anyInt() ))
 				.thenThrow(exp);
-		 registrationStatusService.getPausedPackets(1);
+		 registrationStatusService.getResumablePackets(1);
 		
 	}
 

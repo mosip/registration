@@ -105,7 +105,7 @@ public class RegistrationStatusDaoTest {
 		statusList.add("SUCCESS");
 		Mockito.when(registrationStatusRepositary.createQuerySelect(Matchers.anyString(), Matchers.anyMap(),
 				Matchers.anyInt())).thenReturn(list);
-		List<RegistrationStatusEntity> rEntityList = registrationStatusDao.getPausedPackets(2);
+		List<RegistrationStatusEntity> rEntityList = registrationStatusDao.getResumablePackets(2);
 		assertEquals(list, rEntityList);
 	}
 

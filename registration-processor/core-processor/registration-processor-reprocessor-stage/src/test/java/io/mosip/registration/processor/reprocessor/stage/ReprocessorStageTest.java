@@ -130,7 +130,7 @@ public class ReprocessorStageTest {
 	public void testProcessValid() throws TablenotAccessibleException, PacketManagerException, ApisResourceAccessException {
 
 		List<InternalRegistrationStatusDto> dtolist = new ArrayList<>();
-		List<InternalRegistrationStatusDto> pausedPacketList  = new ArrayList<>();
+		List<InternalRegistrationStatusDto> resumableDtoList  = new ArrayList<>();
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 
 		registrationStatusDto.setRegistrationId("2018701130000410092018110735");
@@ -140,9 +140,9 @@ public class ReprocessorStageTest {
 		registrationStatusDto.setReProcessRetryCount(0);
 		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
 		dtolist.add(registrationStatusDto);
-		pausedPacketList.add(registrationStatusDto);
-		Mockito.when(registrationStatusService.getPausedPackets(anyInt()))
-		.thenReturn(pausedPacketList);
+		resumableDtoList.add(registrationStatusDto);
+		Mockito.when(registrationStatusService.getResumablePackets(anyInt()))
+		.thenReturn(resumableDtoList);
 		InternalRegistrationStatusDto registrationStatusDto1 = new InternalRegistrationStatusDto();
 
 		registrationStatusDto1.setRegistrationId("2018701130000410092018110734");
@@ -163,7 +163,7 @@ public class ReprocessorStageTest {
 	public void testProcessFailure() throws TablenotAccessibleException, PacketManagerException, ApisResourceAccessException {
 
 		List<InternalRegistrationStatusDto> dtolist = new ArrayList<>();
-		List<InternalRegistrationStatusDto> pausedPacketList  = new ArrayList<>();
+		List<InternalRegistrationStatusDto> resumableDtoList  = new ArrayList<>();
 		InternalRegistrationStatusDto registrationStatusDto = new InternalRegistrationStatusDto();
 
 		registrationStatusDto.setRegistrationId("2018701130000410092018110735");
@@ -173,9 +173,9 @@ public class ReprocessorStageTest {
 		registrationStatusDto.setRegistrationType("NEW");
 		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
 		dtolist.add(registrationStatusDto);
-		pausedPacketList.add(registrationStatusDto);
-		Mockito.when(registrationStatusService.getPausedPackets(anyInt()))
-		.thenReturn(pausedPacketList);
+		resumableDtoList.add(registrationStatusDto);
+		Mockito.when(registrationStatusService.getResumablePackets(anyInt()))
+		.thenReturn(resumableDtoList);
 		InternalRegistrationStatusDto registrationStatusDto1 = new InternalRegistrationStatusDto();
 
 		registrationStatusDto1.setRegistrationId("2018701130000410092018110734");
