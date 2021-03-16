@@ -1890,5 +1890,8 @@ public class RegistrationConstants {
 	public static final String INVALID_DATE="INVALID_DATE";
 	
 	public static final String ICONS_HBOX = "iconsHBox";
+	public static final String KEYBOARD_PANE = "keyboardPane";
+	public static final String QUALITY_BOX_LABEL = "qualityBoxLabel";
+	public static final String MODALITY_BUTTONS = "modalityButtons";
 	public static final int LANGCODE_LENGTH = 3;
 }

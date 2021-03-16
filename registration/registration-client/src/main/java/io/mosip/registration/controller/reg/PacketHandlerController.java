@@ -487,7 +487,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 			}
 
 			getScene(createRoot).setRoot(createRoot);
-			getScene(createRoot).getStylesheets().add(ClassLoader.getSystemClassLoader().getResource("application.css").toExternalForm());
+			getScene(createRoot).getStylesheets().add(ClassLoader.getSystemClassLoader().getResource(getCssName()).toExternalForm());
 			validation.updateAsLostUIN(false);
 
 			if(registrationController.createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_NEW)) {

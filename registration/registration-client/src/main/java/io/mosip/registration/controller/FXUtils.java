@@ -430,7 +430,7 @@ public class FXUtils {
 	 *                   removed and show its corresponding {@link Label}
 	 */
 	public void showLabel(Pane parentPane, TextField field) {
-		toggleUIField(parentPane, field.getId() + RegistrationConstants.LABEL, true);
+		toggleUIField(parentPane, field.getId().substring(0, field.getId().length()-RegistrationConstants.LANGCODE_LENGTH) + RegistrationConstants.LABEL, true);
 		((TextField) parentPane.lookup(RegistrationConstants.HASH + field.getId())).setPromptText(null);
 	}
 

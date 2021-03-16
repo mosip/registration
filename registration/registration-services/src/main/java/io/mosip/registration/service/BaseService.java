@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -144,11 +145,11 @@ public class BaseService {
 	private String maxLanguagesCount;
 
 	public List<String> getMandatoryLanguages() {
-		return mandatoryLanguages;
+		return mandatoryLanguages.stream().filter(item-> !item.isEmpty()).collect(Collectors.toList());
 	}
 
 	public List<String> getOptionalLanguages() {
-		return optionalLanguages;
+		return optionalLanguages.stream().filter(item-> !item.isEmpty()).collect(Collectors.toList());
 	}
 
 	public String getMinLanguagesCount() {

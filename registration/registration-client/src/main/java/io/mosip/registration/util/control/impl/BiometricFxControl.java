@@ -2,13 +2,19 @@ package io.mosip.registration.util.control.impl;
 
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.ListUtils;
 
 import io.mosip.commons.packet.constants.PacketManagerConstants;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
+import io.mosip.registration.context.ApplicationContext;
 import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.Initialization;
 import io.mosip.registration.controller.device.GenericBiometricsController;
@@ -20,19 +26,22 @@ import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.util.control.FxControl;
 import io.mosip.registration.validator.RequiredFieldValidator;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.event.EventHandler;
-import javafx.geometry.Pos;
+import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.RowConstraints;
+import javafx.scene.layout.VBox;
 import lombok.SneakyThrows;
-import org.apache.commons.collections4.ListUtils;
 
 public class BiometricFxControl extends FxControl {
 
@@ -106,30 +115,36 @@ public class BiometricFxControl extends FxControl {
 
 		Label label = new Label();
 		label.setText(String.join(RegistrationConstants.SLASH, labels));
+		label.getStyleClass().add(RegistrationConstants.QUALITY_BOX_LABEL);
 
 		GridPane gridPane = createGridPane();
 		gridPane.setId(fieldName);
 		gridPane.add(label,1,0);
+		GridPane.setHalignment(label, HPos.CENTER);
+		GridPane.setValignment(label, VPos.TOP);
 
 		Node modalityListingNode = null;
 		switch (getBiometricFieldLayout()) {
 			case "compact":
 				modalityListingNode = new HBox();
 				modalityListingNode.setId(uiSchemaDTO.getId()+"_listing");
-				((HBox)modalityListingNode).setSpacing(5);
+				//((HBox)modalityListingNode).setSpacing(5);
 				((HBox)modalityListingNode).getChildren().addAll(modalityList);
 				gridPane.add(modalityListingNode,1,1);
 				break;
 			default:
 				modalityListingNode = new VBox();
 				modalityListingNode.setId(uiSchemaDTO.getId()+"_listing");
-				((VBox)modalityListingNode).setSpacing(5);
+				//((VBox)modalityListingNode).setSpacing(5);
 				((VBox)modalityListingNode).getChildren().addAll(modalityList);
 				gridPane.add(modalityListingNode,0,1);
 				Parent captureDetails = null;
 				try {
 					captureDetails = BaseController.loadWithNewInstance(getClass().getResource("/fxml/BiometricsCapture.fxml"),
 							this.biometricsController);
+					scanForModality(this, Modality.valueOf(currentModality));
+					GridPane.setHalignment(captureDetails, HPos.CENTER);
+					GridPane.setValignment(captureDetails, VPos.TOP);
 					gridPane.add(captureDetails,1,1);
 				} catch (IOException e) {
 					LOGGER.error("Failed to load biometrics capture details page", e);
@@ -145,6 +160,7 @@ public class BiometricFxControl extends FxControl {
 
 	private GridPane createGridPane() {
 		GridPane gridPane = new GridPane();
+		
 		RowConstraints topRowConstraints = new RowConstraints();
 		topRowConstraints.setPercentHeight(5);
 		RowConstraints midRowConstraints = new RowConstraints();
@@ -154,8 +170,10 @@ public class BiometricFxControl extends FxControl {
 		ColumnConstraints columnConstraint1 = new ColumnConstraints();
 		columnConstraint1.setPercentWidth(15);
 		ColumnConstraints columnConstraint2 = new ColumnConstraints();
-		columnConstraint2.setPercentWidth(85);
-		gridPane.getColumnConstraints().addAll(columnConstraint1, columnConstraint2);
+		columnConstraint2.setPercentWidth(55);
+		ColumnConstraints columnConstraint3 = new ColumnConstraints();
+		columnConstraint3.setPercentWidth(30);
+		gridPane.getColumnConstraints().addAll(columnConstraint1, columnConstraint2,columnConstraint3);
 		return gridPane;
 	}
 
@@ -163,6 +181,7 @@ public class BiometricFxControl extends FxControl {
 		List<HBox> modalityList = new ArrayList<>();
 
 		List<String> requiredBioAttributes = getRequiredBioAttributes(this.uiSchemaDTO.getSubType());
+		currentModality = (Modality.values() != null && Modality.values().length > 0) ? Modality.values()[0].name() : null;
 		if(!requiredBioAttributes.isEmpty()) {
 			for(Modality modality : Modality.values()) {
 				List<String> modalityAttributes = ListUtils.intersection(requiredBioAttributes, modality.getAttributes());
@@ -216,6 +235,11 @@ public class BiometricFxControl extends FxControl {
 		button.setPrefSize(80, 80);
 		Image image = new Image(this.getClass().getResourceAsStream(getImageIconPath(modality.name())));
 		button.setGraphic(getImageView(image, 80));
+		button.getStyleClass().add(RegistrationConstants.MODALITY_BUTTONS);
+		Tooltip tooltip = new Tooltip(ApplicationContext.getInstance().getBundle(ApplicationContext.applicationLanguage(),
+				RegistrationConstants.LABELS).getString(modality.name()));
+		tooltip.getStyleClass().add(RegistrationConstants.TOOLTIP_STYLE);
+		button.setTooltip(tooltip);
 		button.setOnAction(getModalityActionHandler(this, modality));
 		return button;
 	}
@@ -226,23 +250,26 @@ public class BiometricFxControl extends FxControl {
 			@SneakyThrows
 			@Override
 			public void handle(ActionEvent event) {
-				LOGGER.info("Clicked on modality {}", modality);
-				List<String> requiredAttributes = getRequiredBioAttributes(uiSchemaDTO.getSubType());
-				List<String> configBioAttributes = ListUtils.intersection(requiredAttributes, Modality.getAllBioAttributes(modality));
-				List<String> nonConfigBioAttributes = ListUtils.subtract(Modality.getAllBioAttributes(modality), configBioAttributes);
-
-				switch (getBiometricFieldLayout()) {
-					case "compact" :
-						biometricsController.init(control, uiSchemaDTO.getSubType(), modality.name(),
-								configBioAttributes,nonConfigBioAttributes);
-						break;
-					default :
-						biometricsController.initializeWithoutStage(control, uiSchemaDTO.getSubType(), modality.name(),
-								configBioAttributes,nonConfigBioAttributes);
-				}
-
+				scanForModality(control, modality);
 			}
 		};
+	}
+	
+	private void scanForModality(BiometricFxControl control, Modality modality) throws IOException {
+		LOGGER.info("Clicked on modality {}", modality);
+		List<String> requiredAttributes = getRequiredBioAttributes(uiSchemaDTO.getSubType());
+		List<String> configBioAttributes = ListUtils.intersection(requiredAttributes, Modality.getAllBioAttributes(modality));
+		List<String> nonConfigBioAttributes = ListUtils.subtract(Modality.getAllBioAttributes(modality), configBioAttributes);
+
+		switch (getBiometricFieldLayout()) {
+			case "compact" :
+				biometricsController.init(control, uiSchemaDTO.getSubType(), modality.name(),
+						configBioAttributes,nonConfigBioAttributes);
+				break;
+			default :
+				biometricsController.initializeWithoutStage(control, uiSchemaDTO.getSubType(), modality.name(),
+						configBioAttributes,nonConfigBioAttributes);
+		}
 	}
 
 	public List<String> getRequiredBioAttributes(String subType) {
