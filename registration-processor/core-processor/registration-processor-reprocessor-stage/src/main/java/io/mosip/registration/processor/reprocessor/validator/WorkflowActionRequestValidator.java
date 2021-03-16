@@ -1,6 +1,5 @@
 package io.mosip.registration.processor.reprocessor.validator;
 
-import java.util.List;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +9,6 @@ import org.springframework.stereotype.Component;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.DateUtils;
-import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.exception.WorkflowActionRequestValidationException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
@@ -52,12 +50,12 @@ public class WorkflowActionRequestValidator {
 	 * @return true, if successful
 	 * @throws WorkflowActionRequestValidationException
 	 */
-	public boolean validate(WorkflowActionDTO workflowActionDTO, List<ErrorDTO> errors)
+	public boolean validate(WorkflowActionDTO workflowActionDTO)
 			throws WorkflowActionRequestValidationException {
 		regProcLogger.debug("WorkflowActionRequestValidator  validate entry");
 		boolean isValid = false;
-		if(validateReqTime(workflowActionDTO.getRequesttime(),errors) && validateId(workflowActionDTO.getId(), errors)
-				&& validateVersion(workflowActionDTO.getVersion(), errors)) {
+		if (validateReqTime(workflowActionDTO.getRequesttime()) && validateId(workflowActionDTO.getId())
+				&& validateVersion(workflowActionDTO.getVersion())) {
 			isValid = true;
 		}
 		regProcLogger.debug("WorkflowActionRequestValidator  validate exit");
@@ -72,7 +70,7 @@ public class WorkflowActionRequestValidator {
 	 * @return true, if successful
 	 * @throws WorkflowActionRequestValidationException
 	 */
-	private boolean validateVersion(String version, List<ErrorDTO> errors)
+	private boolean validateVersion(String version)
 			throws WorkflowActionRequestValidationException {
 		if (Objects.isNull(version)) {
 			throw new WorkflowActionRequestValidationException(
@@ -99,7 +97,7 @@ public class WorkflowActionRequestValidator {
 	 * @return true, if successful
 	 * @throws WorkflowActionRequestValidationException
 	 */
-	private boolean validateId(String id, List<ErrorDTO> errors) throws WorkflowActionRequestValidationException {
+	private boolean validateId(String id) throws WorkflowActionRequestValidationException {
 		if (Objects.isNull(id)) {
 			throw new WorkflowActionRequestValidationException(
 					PlatformErrorMessages.RPR_WAA_MISSING_INPUT_PARAMETER.getCode(),
@@ -123,7 +121,7 @@ public class WorkflowActionRequestValidator {
 	 * @return true, if successful
 	 * @throws WorkflowActionRequestValidationException
 	 */
-	private boolean validateReqTime(String requesttime, List<ErrorDTO> errors)
+	private boolean validateReqTime(String requesttime)
 			throws WorkflowActionRequestValidationException {
 		boolean isValid = false;
 		if (Objects.isNull(requesttime)) {

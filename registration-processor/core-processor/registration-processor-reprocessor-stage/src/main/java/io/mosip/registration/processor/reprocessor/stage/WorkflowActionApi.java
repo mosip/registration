@@ -1,6 +1,5 @@
 package io.mosip.registration.processor.reprocessor.stage;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -14,7 +13,6 @@ import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
-import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.exception.WorkflowActionException;
 import io.mosip.registration.processor.core.exception.WorkflowActionRequestValidationException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
@@ -115,8 +113,8 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 			workflowIds = workflowActionDTO.getRequest().getWorkflowId();
 			regProcLogger.debug("WorkflowActionApi:processURL called for registration ids {}",
 					workflowIds);
-			List<ErrorDTO> errorList = new ArrayList<ErrorDTO>();
-			boolean isValid = validator.validate(workflowActionDTO, errorList);
+
+			boolean isValid = validator.validate(workflowActionDTO);
 
 			if (isValid) {
 				workflowActionService.processWorkflowAction(workflowIds,
