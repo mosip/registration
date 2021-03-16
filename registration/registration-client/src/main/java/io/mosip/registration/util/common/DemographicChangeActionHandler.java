@@ -2,6 +2,7 @@ package io.mosip.registration.util.common;
 
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
+import io.mosip.registration.constants.RegistrationConstants;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
+
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 @Component
 public class DemographicChangeActionHandler {
@@ -24,6 +27,7 @@ public class DemographicChangeActionHandler {
      */
     public void actionHandle(Pane parentFlowPane, String sourceId, String handleStr) {
         if(handleStr != null) {
+            LOGGER.debug("Invoking external action handler for .... {} ", sourceId);
             String[] parts = handleStr.split(":");
             ChangeActionHandler changeActionHandler = getChangeActionHandler(parts[0]);
             if(changeActionHandler != null) {

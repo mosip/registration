@@ -4,19 +4,7 @@ import java.util.List;
 
 import io.mosip.registration.dto.mastersync.MasterDataResponseDto;
 import io.mosip.registration.dto.response.SyncDataResponseDto;
-import io.mosip.registration.entity.BiometricAttribute;
-import io.mosip.registration.entity.BlacklistedWords;
-import io.mosip.registration.entity.DocumentCategory;
-import io.mosip.registration.entity.DocumentType;
-import io.mosip.registration.entity.Gender;
-import io.mosip.registration.entity.IndividualType;
-import io.mosip.registration.entity.Language;
-import io.mosip.registration.entity.Location;
-import io.mosip.registration.entity.ReasonCategory;
-import io.mosip.registration.entity.ReasonList;
-import io.mosip.registration.entity.SyncControl;
-import io.mosip.registration.entity.SyncJobDef;
-import io.mosip.registration.entity.ValidDocument;
+import io.mosip.registration.entity.*;
 
 /**
  * This class is used to store the master data details like Location,
@@ -171,11 +159,11 @@ public interface MasterSyncDao {
 	/**
 	 * Get all the hiraerchy active locations from the DB
 	 * 
-	 * @param hiraerchy name
+	 * @param hierarchyName name
 	 * @param langCode  the language code
 	 * @return list of active {@link Location}
 	 */
-	List<Location> getLocationDetails(String hirearchyName, String langCode);
+	List<Location> getLocationDetails(String hierarchyName, String langCode);
 
 	/**
 	 * This new method is replacement to save method. enhanced to handle dynamic
@@ -192,5 +180,7 @@ public interface MasterSyncDao {
 	 * @return Location
 	 */
 	public Location getLocation(String code, String langCode);
+
+	public List<LocationHierarchy> getAllLocationHierarchy(String langCode);
 
 }

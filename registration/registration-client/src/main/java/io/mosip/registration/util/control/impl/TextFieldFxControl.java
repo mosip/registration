@@ -8,6 +8,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import java.util.ArrayList;
 import java.util.List;
 
+import io.mosip.registration.dto.mastersync.GenericDto;
 import org.springframework.context.ApplicationContext;
 
 import io.mosip.commons.packet.dto.packet.SimpleDto;
@@ -72,38 +73,18 @@ public class TextFieldFxControl extends FxControl {
 	private FXComponents fxComponents;
 
 	public TextFieldFxControl() {
-
 		ApplicationContext applicationContext = Initialization.getApplicationContext();
-
 		validation = applicationContext.getBean(Validations.class);
 		fxComponents = applicationContext.getBean(FXComponents.class);
 		demographicChangeActionHandler = applicationContext.getBean(DemographicChangeActionHandler.class);
-
 	}
 
 	@Override
 	public FxControl build(UiSchemaDTO uiSchemaDTO) {
-
 		this.uiSchemaDTO = uiSchemaDTO;
-
 		this.control = this;
 		create(uiSchemaDTO);
 		return this.control;
-	}
-
-	@Override
-	public void copyTo(Node srcNode, List<Node> targetNodes) {
-
-		// TODO Throw Reg Check based exception if src or target nodes were not present
-		if (srcNode != null && targetNodes != null && !targetNodes.isEmpty()) {
-			TextField srctextField = (TextField) srcNode;
-
-			for (Node targetNode : targetNodes) {
-
-				TextField targetTextField = (TextField) targetNode;
-				targetTextField.setText(srctextField.getText());
-			}
-		}
 	}
 
 	@Override
@@ -142,20 +123,13 @@ public class TextFieldFxControl extends FxControl {
 		TextField textField = (TextField) node;
 
 		textField.textProperty().addListener((observable, oldValue, newValue) -> {
-			if (isValid(textField)) {
+			if (isValid()) {
 
 				setData(null);
 
 				// handling other handlers
-				UiSchemaDTO uiSchemaDTO = validation.getValidationMap()
-						.get(node.getId().replaceAll(RegistrationConstants.ON_TYPE, RegistrationConstants.EMPTY)
-								.replaceAll(RegistrationConstants.LOCAL_LANGUAGE, RegistrationConstants.EMPTY));
-				if (uiSchemaDTO != null) {
-					LOGGER.info(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-							"Invoking external action handler for .... " + uiSchemaDTO.getId());
-					demographicChangeActionHandler.actionHandle((Pane) getNode(), node.getId(),
-							uiSchemaDTO.getChangeAction());
-				}
+				demographicChangeActionHandler.actionHandle((Pane) getNode(), node.getId(),
+						uiSchemaDTO.getChangeAction());
 
 			} else {
 				getRegistrationDTo().getDemographics().remove(this.uiSchemaDTO.getId());
@@ -167,8 +141,6 @@ public class TextFieldFxControl extends FxControl {
 	}
 
 	private VBox create(UiSchemaDTO uiSchemaDTO) {
-		String labelText = "";
-
 		String fieldName = uiSchemaDTO.getId();
 
 		/** Container holds title, fields and validation message elements */
@@ -178,107 +150,81 @@ public class TextFieldFxControl extends FxControl {
 		simpleTypeVBox.setId(fieldName + RegistrationConstants.VBOX);
 		simpleTypeVBox.setSpacing(5);
 
-		// Get Mandatory Astrix
-		String mandatorySuffix = getMandatorySuffix(uiSchemaDTO);
-
 		/** Title label */
 		Label fieldTitle = getLabel(uiSchemaDTO.getId() + RegistrationConstants.LABEL, "",
 				RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, simpleTypeVBox.getWidth());
+
 		simpleTypeVBox.getChildren().add(fieldTitle);
 
-		boolean isCreated = false;
-		for (String langCode : getRegistrationDTo().getSelectedLanguagesByApplicant()) {
-
-			String label = uiSchemaDTO.getLabel().get(langCode);
-			labelText = labelText.isEmpty() ? label : labelText.concat(RegistrationConstants.SLASH).concat(label);
-
-			boolean isFieldReqd = this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE) ? true
-					: !isCreated;
-			if (isFieldReqd) {
-
-				VBox vBox = new VBox();
-				/** Text Field */
-				HBox textFieldHBox = new HBox();
-				TextField textField = getTextField(langCode, fieldName + langCode, label + mandatorySuffix,
-						RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, simpleTypeVBox.getWidth(), false);
-				textField.setPrefWidth(300);
-				
-				VirtualKeyboard keyBoard = new VirtualKeyboard(langCode);
-				keyBoard.changeControlOfKeyboard(textField);
-				
-				ImageView translateImageView = new ImageView(new Image(getClass().getResourceAsStream("/images/translate.png")));
-				translateImageView.setFitHeight(20);
-				translateImageView.setFitWidth(20);
-				
-				ImageView keyBoardImgView = getKeyBoardImage();
-				
-				keyBoardImgView.setId(langCode);
-				keyBoardImgView.visibleProperty().bind(textField.visibleProperty());
-				keyBoardImgView.managedProperty().bind(textField.visibleProperty());
-
-				if (keyBoardImgView != null) {
-					keyBoardImgView.setOnMouseClicked((event) -> {
-						setFocusOnField(event, keyBoard, langCode);
-					});
-				}
-				
-				HBox imagesHBox = new HBox();
-				
-				imagesHBox.getStyleClass().add(RegistrationConstants.ICONS_HBOX);
-			
-				imagesHBox.setPrefWidth(20);
-				imagesHBox.setSpacing(5);
-				imagesHBox.getChildren().addAll(translateImageView, keyBoardImgView);
-				
-				if (io.mosip.registration.context.ApplicationContext.getInstance().isLanguageRightToLeft(langCode)) {
-					textFieldHBox.getChildren().addAll(imagesHBox, textField);
-				} else {
-					textFieldHBox.getChildren().addAll(textField, imagesHBox);
-				}
-							
-				vBox.getChildren().add(textFieldHBox);
-
-				/** Validation message (Invalid/wrong,,etc,.) */
-				Label validationMessage = getLabel(fieldName + langCode + RegistrationConstants.MESSAGE, null,
-						RegistrationConstants.DemoGraphicFieldMessageLabel, false, simpleTypeVBox.getWidth());
-				validationMessage.setWrapText(false);
-				vBox.getChildren().add(validationMessage);
-				addValidationMessage(vBox, validationMessage, textField, langCode);
-				
-				changeNodeOrientation(textField, langCode);
-				changeNodeOrientation(imagesHBox, langCode);
-
-				simpleTypeVBox.getChildren().add(vBox);
-				Validations.putIntoLabelMap(fieldName + langCode, uiSchemaDTO.getLabel().get(langCode));
-
-				setListener(textField);
-
-				isCreated = true;
-			}
+		VBox vBox = new VBox();
+		List<String> labels = new ArrayList<>();
+		switch (this.uiSchemaDTO.getType()) {
+			case RegistrationConstants.SIMPLE_TYPE :
+				getRegistrationDTo().getSelectedLanguagesByApplicant().forEach(langCode -> {
+					labels.add(this.uiSchemaDTO.getLabel().get(langCode));
+					vBox.getChildren().add(createTextBox(langCode,true));
+					vBox.getChildren().add(getLabel(uiSchemaDTO.getId() + langCode + RegistrationConstants.MESSAGE, null,
+							RegistrationConstants.DemoGraphicFieldMessageLabel, false, simpleTypeVBox.getPrefWidth()));
+				});
+				break;
+			default:
+				getRegistrationDTo().getSelectedLanguagesByApplicant().forEach(langCode -> {
+							labels.add(this.uiSchemaDTO.getLabel().get(langCode));});
+				vBox.getChildren().add(createTextBox(getRegistrationDTo().getSelectedLanguagesByApplicant().get(0),false));
+				vBox.getChildren().add(getLabel(uiSchemaDTO.getId() +
+								getRegistrationDTo().getSelectedLanguagesByApplicant().get(0) + RegistrationConstants.MESSAGE, null,
+						RegistrationConstants.DemoGraphicFieldMessageLabel, false, simpleTypeVBox.getPrefWidth()));
+				break;
 		}
 
-		fieldTitle.setText(labelText + mandatorySuffix);
-
-//		if (!this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE)) {
-//
-//			TextField textField = (TextField) getField(
-//					uiSchemaDTO.getId() + getRegistrationDTo().getSelectedLanguagesByApplicant().get(0));
-//			textField.setPromptText(fieldTitle.getText());
-//		}
-
+		fieldTitle.setText(String.join(RegistrationConstants.SLASH, labels)	+ getMandatorySuffix(uiSchemaDTO));
+		simpleTypeVBox.getChildren().add(vBox);
 		return simpleTypeVBox;
 	}
 
-	private void addValidationMessage(VBox vBox, Label validationMessage, TextField textField, String langCode) {
-		HBox validationHBox = new HBox();
-		validationHBox.setSpacing(20);
-		validationHBox.getChildren().add(validationMessage);
-		validationHBox.setStyle("-fx-background-color:WHITE");
-		vBox.getChildren().add(validationHBox);
+	private HBox createTextBox(String langCode, boolean isSimpleType) {
+		HBox textFieldHBox = new HBox();
+		TextField textField = getTextField(langCode, uiSchemaDTO.getId() + langCode, false);
+		textField.setMinWidth(400);
+		textFieldHBox.getChildren().add(textField);
+
+		if(isSimpleType) {
+			HBox imagesHBox = new HBox();
+			imagesHBox.getStyleClass().add(RegistrationConstants.ICONS_HBOX);
+			imagesHBox.setPrefWidth(20);
+			imagesHBox.setSpacing(5);
+
+			if(this.uiSchemaDTO.isTransliterate()) {
+				ImageView translateImageView = new ImageView(new Image(getClass().getResourceAsStream("/images/translate.png")));
+				translateImageView.setFitHeight(20);
+				translateImageView.setFitWidth(20);
+				imagesHBox.getChildren().add(translateImageView);
+			}
+
+			VirtualKeyboard keyBoard = new VirtualKeyboard(langCode);
+			keyBoard.changeControlOfKeyboard(textField);
+			ImageView keyBoardImgView = getKeyBoardImage();
+			keyBoardImgView.setId(langCode);
+			keyBoardImgView.visibleProperty().bind(textField.visibleProperty());
+			keyBoardImgView.managedProperty().bind(textField.visibleProperty());
+
+			if (keyBoardImgView != null) {
+				keyBoardImgView.setOnMouseClicked((event) -> {
+					setFocusOnField(event, keyBoard, langCode);
+				});
+			}
+			imagesHBox.getChildren().add(keyBoardImgView);
+			textFieldHBox.getChildren().add(imagesHBox);
+		}
+
+		setListener(textField);
+		changeNodeOrientation(textFieldHBox, langCode);
+		Validations.putIntoLabelMap(uiSchemaDTO.getId() + langCode, uiSchemaDTO.getLabel().get(langCode));
+		return textFieldHBox;
 	}
 
-	private TextField getTextField(String langCode, String id, String titleText, String demographicTextfield, double prefWidth,
-			boolean isDisable) {
+
+	private TextField getTextField(String langCode, String id, boolean isDisable) {
 
 		/** Text Field */
 		TextField textField = new TextField();
@@ -286,7 +232,6 @@ public class TextFieldFxControl extends FxControl {
 		textField.setPromptText(io.mosip.registration.context.ApplicationContext.getInstance()
 				.getBundle(langCode, RegistrationConstants.LABELS).getString("language"));
 		textField.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
-		// textField.setPrefWidth(prefWidth);
 		textField.setDisable(isDisable);
 
 		return textField;
@@ -309,48 +254,42 @@ public class TextFieldFxControl extends FxControl {
 		return getRegistrationDTo().getDemographics().get(uiSchemaDTO.getId());
 	}
 
-	@Override
-	public boolean isValid(Node node) {
 
+	@Override
+	public boolean isValid() {
 		boolean isValid = true;
-		if (node == null) {
-			LOGGER.warn(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-					"Field not found in demographic screen");
-			return false;
-		}
 
 		for (String langCode : getRegistrationDTo().getSelectedLanguagesByApplicant()) {
-
 			TextField textField = (TextField) getField(uiSchemaDTO.getId() + langCode);
-			if (textField != null) {
-
-				if (validation.validateTextField((Pane) getNode(), textField, uiSchemaDTO.getId(), true, langCode)) {
-
-					FXUtils.getInstance().setTextValidLabel((Pane) getNode(), textField, uiSchemaDTO.getId());
-					isValid = !isValid ? isValid : true;
-				} else {
-
-					FXUtils.getInstance().showErrorLabel(textField, (Pane) getNode());
-					isValid = false;
-				}
+			if (textField == null)  {
+				isValid = false;
+				break;
 			}
 
+			if (validation.validateTextField((Pane) getNode(), textField, uiSchemaDTO.getId(), true, langCode)) {
+				FXUtils.getInstance().setTextValidLabel((Pane) getNode(), textField, uiSchemaDTO.getId());
+			} else {
+				FXUtils.getInstance().showErrorLabel(textField, (Pane) getNode());
+				isValid = false;
+				break;
+			}
+
+			if(!this.uiSchemaDTO.getType().equalsIgnoreCase(RegistrationConstants.SIMPLE_TYPE)) {
+				break; //not required to iterate further
+			}
 		}
-
 		return isValid;
-
 	}
 
-//	@Override
-//	public HBox getNode() {
-//		return (HBox) this.node;
-//	}
+	@Override
+	public List<GenericDto> getPossibleValues(String langCode) {
+		return null;
+	}
+
 
 	@Override
 	public void fillData(Object data) {
-
 		selectAndSet(data);
-
 	}
 
 	@Override
@@ -381,12 +320,12 @@ public class TextFieldFxControl extends FxControl {
 
 	}
 
+
 	/**
-	 *
 	 * Setting the focus to specific fields when keyboard loads
-	 * @param keyBoard2 
+	 * @param event
+	 * @param keyBoard
 	 * @param langCode
-	 *
 	 */
 	public void setFocusOnField(MouseEvent event, VirtualKeyboard keyBoard, String langCode) {
 		try {

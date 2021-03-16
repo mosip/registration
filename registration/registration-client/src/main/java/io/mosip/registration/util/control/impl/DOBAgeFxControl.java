@@ -3,9 +3,11 @@
  */
 package io.mosip.registration.util.control.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import io.mosip.registration.dto.mastersync.GenericDto;
 import org.springframework.context.ApplicationContext;
 
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -39,32 +41,23 @@ public class DOBAgeFxControl extends FxControl {
 	private DateValidation dateValidation;
 
 	public DOBAgeFxControl() {
-
 		fxUtils = FXUtils.getInstance();
 		ApplicationContext applicationContext = Initialization.getApplicationContext();
-
 		this.dateValidation = applicationContext.getBean(DateValidation.class);
-
 	}
 
 	@Override
 	public FxControl build(UiSchemaDTO uiSchemaDTO) {
-
 		this.uiSchemaDTO = uiSchemaDTO;
-
 		this.control = this;
-
 		VBox appLangDateVBox = create(uiSchemaDTO);
-
 		HBox hBox = new HBox();
 		hBox.setSpacing(30);
 		hBox.getChildren().add(appLangDateVBox);
 		HBox.setHgrow(appLangDateVBox, Priority.ALWAYS);
 
 		this.node = hBox;
-
 		setListener(hBox);
-
 		return this.control;
 	}
 
@@ -83,17 +76,14 @@ public class DOBAgeFxControl extends FxControl {
 		VBox ageVBox = new VBox();
 		ageVBox.setPrefWidth(390);
 
-		String labelText = "";
-		for (String lang : getRegistrationDTo().getSelectedLanguagesByApplicant()) {
-
-			String label = uiSchemaDTO.getLabel().get(lang);
-			labelText = labelText.isEmpty() ? labelText : labelText + RegistrationConstants.SLASH;
-			labelText += label;
-		}
+		List<String> labels = new ArrayList<>();
+		getRegistrationDTo().getSelectedLanguagesByApplicant().forEach(lCode -> {
+			labels.add(this.uiSchemaDTO.getLabel().get(lCode));
+		});
 
 		/** DOB Label */
 		ageVBox.getChildren().add(getLabel(uiSchemaDTO.getId() + RegistrationConstants.LABEL,
-				labelText + mandatorySuffix, RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, ageVBox.getWidth()));
+				String.join(RegistrationConstants.SLASH, labels) + mandatorySuffix, RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, true, ageVBox.getWidth()));
 
 		/** Add Date */
 		dobHBox.getChildren().add(addDateTextField(uiSchemaDTO, RegistrationConstants.DD,
@@ -150,11 +140,6 @@ public class DOBAgeFxControl extends FxControl {
 		return dateVBox;
 	}
 
-	@Override
-	public void copyTo(Node srcNode, List<Node> targetNodes) {
-		// TODO Auto-generated method stub
-
-	}
 
 	@Override
 	public void setData(Object data) {
@@ -174,16 +159,25 @@ public class DOBAgeFxControl extends FxControl {
 		return getRegistrationDTo().getDemographics().get(uiSchemaDTO.getId());
 	}
 
+
 	@Override
-	public boolean isValid(Node node) {
+	public boolean isValid() {
 		TextField dd = (TextField) getField(
 				uiSchemaDTO.getId() + RegistrationConstants.DD + RegistrationConstants.TEXT_FIELD);
 		TextField mm = (TextField) getField(
 				uiSchemaDTO.getId() + RegistrationConstants.MM + RegistrationConstants.TEXT_FIELD);
 		TextField yyyy = (TextField) getField(
 				uiSchemaDTO.getId() + RegistrationConstants.YYYY + RegistrationConstants.TEXT_FIELD);
+
+		//TODO - check for valid value, max and min validation
+		//TODO - for lostUIN flow
 		return dd != null && !dd.getText().isEmpty() && mm != null && !mm.getText().isEmpty() && yyyy != null
 				&& !yyyy.getText().isEmpty();
+	}
+
+	@Override
+	public List<GenericDto> getPossibleValues(String langCode) {
+		return null;
 	}
 
 	@Override

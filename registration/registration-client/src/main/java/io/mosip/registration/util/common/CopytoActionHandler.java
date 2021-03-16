@@ -1,5 +1,6 @@
 package io.mosip.registration.util.common;
 
+import io.mosip.registration.constants.RegistrationConstants;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -30,6 +31,17 @@ public class CopytoActionHandler extends ChangeActionHandler {
         if(args.length > 1) {
             Node fromNode = parentPane.lookup(HASH.concat(args[0]));
             Node toNode = parentPane.lookup(HASH.concat(args[1]));
+
+            //Handle based on langCode, required in case of TextField control
+            if(fromNode == null) {
+                fromNode = parentPane.lookup(HASH.concat(args[0] +
+                        source.substring(source.length()-RegistrationConstants.LANGCODE_LENGTH)));
+            }
+
+            if(toNode == null) {
+                toNode = parentPane.lookup(HASH.concat(args[0] +
+                        source.substring(source.length()- RegistrationConstants.LANGCODE_LENGTH)));
+            }
 
             if(!isValidNode(fromNode) || !isValidNode(toNode))
                 return;

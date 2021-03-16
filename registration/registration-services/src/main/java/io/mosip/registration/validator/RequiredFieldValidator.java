@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.registration.config.AppConfig;
 import org.mvel2.MVEL;
 import org.mvel2.integration.VariableResolverFactory;
 import org.mvel2.integration.impl.MapVariableResolverFactory;
@@ -23,9 +25,13 @@ import io.mosip.registration.dto.response.SchemaDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.IdentitySchemaService;
 
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
+import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
+
 @Component
 public class RequiredFieldValidator {
 
+	private static final Logger LOGGER = AppConfig.getLogger(RequiredFieldValidator.class);
 	private static final String APPLICANT_SUBTYPE = "applicant";
 
 	@Autowired
@@ -41,43 +47,35 @@ public class RequiredFieldValidator {
 		return isRequiredField(schemaField.get(), registrationDTO);
 	}
 
-	@SuppressWarnings("unchecked")
-	public boolean isRequiredField(UiSchemaDTO schemaField, RegistrationDTO registrationDTO)
-			throws RegBaseCheckedException {
-		boolean required = false;
-		if (schemaField == null)
-			return required;
-		required = schemaField.isRequired();
-		if (schemaField.getRequiredOn() != null && !schemaField.getRequiredOn().isEmpty()) {
+	//TODO - add validations for updateUIN flow as well
+	public boolean isRequiredField(UiSchemaDTO schemaField, RegistrationDTO registrationDTO) {
+		boolean required = schemaField != null ? schemaField.isRequired() : false;
+		if (schemaField != null && schemaField.getRequiredOn() != null && !schemaField.getRequiredOn().isEmpty()) {
 			Optional<RequiredOnExpr> expression = schemaField.getRequiredOn().stream()
 					.filter(field -> "MVEL".equalsIgnoreCase(field.getEngine()) && field.getExpr() != null).findFirst();
 
 			if (expression.isPresent()) {
-				@SuppressWarnings("rawtypes")
 				Map context = new HashMap();
 				context.put("identity", registrationDTO.getMVELDataContext());
 				VariableResolverFactory resolverFactory = new MapVariableResolverFactory(context);
 				required = MVEL.evalToBoolean(expression.get().getExpr(), resolverFactory);
+				LOGGER.info("Refreshed {} field isRequired check, required ? {} ", schemaField.getId(), required);
 			}
 		}
 		return required;
 	}
 
-	@SuppressWarnings("unchecked")
-	public boolean isFieldVisible(UiSchemaDTO schemaField, RegistrationDTO registrationDTO)
-			throws RegBaseCheckedException {
+	public boolean isFieldVisible(UiSchemaDTO schemaField, RegistrationDTO registrationDTO) {
 		boolean visible = true;
-		if (schemaField == null)
-			return visible;
 
-		if (schemaField.getVisible() != null && schemaField.getVisible().getEngine().equalsIgnoreCase("MVEL")
+		if (schemaField != null && schemaField.getVisible() != null && schemaField.getVisible().getEngine().equalsIgnoreCase("MVEL")
 				&& schemaField.getVisible().getExpr() != null) {
 
-			@SuppressWarnings("rawtypes")
 			Map context = new HashMap();
 			context.put("identity", registrationDTO.getMVELDataContext());
 			VariableResolverFactory resolverFactory = new MapVariableResolverFactory(context);
 			visible = MVEL.evalToBoolean(schemaField.getVisible().getExpr(), resolverFactory);
+			LOGGER.info("Refreshed {} field visibility : {} ", schemaField.getId(), visible);
 		}
 		return visible;
 	}

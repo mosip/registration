@@ -340,6 +340,13 @@ public class BaseController {
 		return loader.load();
 	}
 
+	public static <T> T loadWithNewInstance(URL url, Object controller) throws IOException {
+		FXMLLoader loader = new FXMLLoader(url, ApplicationContext.getInstance()
+				.getBundle(ApplicationContext.applicationLanguage(), RegistrationConstants.LABELS));
+		loader.setController(controller);
+		return loader.load();
+	}
+
 	/**
 	 * Loading FXML files along with beans.
 	 *
@@ -1124,10 +1131,8 @@ public class BaseController {
 	 *
 	 */
 	protected void getCurrentPage(Pane pageId, String notTosShow, String show) {
-		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
-				pageId == null ? "null" : pageId.getId());
-		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
-				"Navigating from current page >> " + notTosShow + " to show : " + show);
+		LOGGER.info("Pane : {}, Navigating from current page {} to show : {}",
+				pageId == null ? "null" : pageId.getId(), notTosShow, show);
 
 		if (notTosShow != null) {
 			((Pane) pageId.lookup(RegistrationConstants.HASH + notTosShow)).setVisible(false);
@@ -1135,9 +1140,7 @@ public class BaseController {
 		if (show != null) {
 			((Pane) pageId.lookup(RegistrationConstants.HASH + show)).setVisible(true);
 		}
-
-		LOGGER.info(LoggerConstants.LOG_REG_BASE, APPLICATION_NAME, APPLICATION_ID,
-				"Navigated to next page >> " + show);
+		LOGGER.info("Navigated to next page >> {}", show);
 	}
 
 	public void remapMachine() {
@@ -1577,7 +1580,7 @@ public class BaseController {
 		return entry;
 	}
 
-	protected Map<Entry<String, String>, Map<String, List<List<String>>>> getconfigureAndNonConfiguredBioAttributes(
+	/*protected Map<Entry<String, String>, Map<String, List<List<String>>>> getconfigureAndNonConfiguredBioAttributes(
 			List<Entry<String, List<String>>> entryListConstantAttributes) {
 
 		Map<Entry<String, String>, Map<String, List<List<String>>>> mapToProcess = new HashMap<>();
@@ -1616,7 +1619,7 @@ public class BaseController {
 		}
 
 		return mapToProcess;
-	}
+	}*/
 
 	/*
 	 * protected void disablePaneOnBioAttributes(Node pane, List<String>

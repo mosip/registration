@@ -10,16 +10,11 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import io.mosip.registration.entity.*;
 import io.mosip.registration.entity.id.GlobalParamId;
+import org.apache.commons.collections4.ListUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -172,7 +167,7 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	 * @throws RegBaseCheckedException
 	 */
 	@Override
-	public List<GenericDto> findProvianceByHierarchyCode(String code, String langCode) throws RegBaseCheckedException {
+	public List<GenericDto> findLocationByParentHierarchyCode(String code, String langCode) throws RegBaseCheckedException {
 
 		List<GenericDto> locationDto = new ArrayList<>();
 		if (codeAndlangCodeNullCheck(code, langCode)) {
@@ -310,40 +305,29 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	 * @throws RegBaseCheckedException
 	 */
 	@Override
-	public List<DocumentCategoryDto> getDocumentCategories(String docCode, String langCode)
-			throws RegBaseCheckedException {
-		List<String> validDocuments = new ArrayList<>();
+	public List<DocumentCategoryDto> getDocumentCategories(String docCode, String langCode) {
 		List<DocumentCategoryDto> documentsDTO = new ArrayList<>();
-		if (codeAndlangCodeNullCheck(docCode, langCode)) {
+		DocumentCategory documentCategory = documentCategoryDAO.getDocumentCategoryByCodeAndByLangCode(docCode,
+				langCode);
+		if (documentCategory != null && documentCategory.getIsActive()) {
+			List<String> validDocuments = new ArrayList<>();
+			List<ValidDocument> masterValidDocuments = masterSyncDao.getValidDocumets(docCode);
+			masterValidDocuments.forEach(docs -> {
+				validDocuments.add(docs.getDocTypeCode());
+			});
 
-			DocumentCategory documentCategory = documentCategoryDAO.getDocumentCategoryByCodeAndByLangCode(docCode,
-					langCode);
-			if (documentCategory != null && documentCategory.getIsActive()) {
+			List<DocumentType> masterDocuments = masterSyncDao.getDocumentTypes(validDocuments, langCode);
 
-				List<ValidDocument> masterValidDocuments = masterSyncDao.getValidDocumets(docCode);
-				masterValidDocuments.forEach(docs -> {
-					validDocuments.add(docs.getDocTypeCode());
-				});
+			masterDocuments.forEach(document -> {
 
-				List<DocumentType> masterDocuments = masterSyncDao.getDocumentTypes(validDocuments, langCode);
+				DocumentCategoryDto documents = new DocumentCategoryDto();
+				documents.setCode(document.getCode());
+				documents.setDescription(document.getDescription());
+				documents.setLangCode(document.getLangCode());
+				documents.setName(document.getName());
+				documentsDTO.add(documents);
 
-				masterDocuments.forEach(document -> {
-
-					DocumentCategoryDto documents = new DocumentCategoryDto();
-					documents.setCode(document.getCode());
-					documents.setDescription(document.getDescription());
-					documents.setLangCode(document.getLangCode());
-					documents.setName(document.getName());
-					documentsDTO.add(documents);
-
-				});
-			}
-		} else {
-			LOGGER.info(LOG_REG_MASTER_SYNC, APPLICATION_NAME, APPLICATION_ID,
-					RegistrationConstants.CODE_AND_LANG_CODE_MANDATORY);
-			throw new RegBaseCheckedException(
-					RegistrationExceptionConstants.REG_MASTER_SYNC_SERVICE_IMPL_CODE_AND_LANGCODE.getErrorCode(),
-					RegistrationExceptionConstants.REG_MASTER_SYNC_SERVICE_IMPL_CODE_AND_LANGCODE.getErrorMessage());
+			});
 		}
 		return documentsDTO;
 	}
@@ -391,15 +375,28 @@ public class MasterSyncServiceImpl extends BaseService implements MasterSyncServ
 	}
 
 	@Override
-	public List<GenericDto> getFieldValues(String fieldName, String langCode) throws RegBaseCheckedException {
-		switch (fieldName) {
-		case "gender":
-			return getGenderDtls(langCode);
-		case "residenceStatus":
-			return getIndividualType(langCode);
-		default:
-			return getDynamicField(fieldName, langCode);
+	public List<GenericDto> getFieldValues(String fieldName, String langCode, boolean isHierarchical) {
+		try {
+			switch (fieldName) {
+			case "gender":
+					//return getGenderDtls(langCode);
+				List<GenericDto> genericDtos = new ArrayList<>();
+				genericDtos.add(new GenericDto("FLE", "Female", "eng"));
+				genericDtos.add(new GenericDto("MLE", "Male", "eng"));
+				return genericDtos;
+
+			case "residenceStatus":
+				return getIndividualType(langCode);
+			default:
+				if(isHierarchical) {
+					return findLocationByParentHierarchyCode(fieldName, langCode);
+				}
+				return getDynamicField(fieldName, langCode);
+			}
+		} catch (RegBaseCheckedException exception) {
+			LOGGER.error("Failed to fetch values for field : " + fieldName, exception);
 		}
+		return Collections.EMPTY_LIST;
 	}
 
 	/**

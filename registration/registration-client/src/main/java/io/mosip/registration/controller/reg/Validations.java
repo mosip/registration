@@ -161,7 +161,7 @@ public class Validations extends BaseController {
 				generateAlert(parent, label, getFromLabelMap(label).concat(RegistrationConstants.SPACE)
 						.concat(applicationMessageBundle.getString(RegistrationConstants.REG_LGN_001)));
 			}
-		} catch (RuntimeException | RegBaseCheckedException runtimeException) {
+		} catch (RuntimeException runtimeException) {
 			LOGGER.error(RegistrationConstants.VALIDATION_LOGGER, APPLICATION_NAME, APPLICATION_ID,
 					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 		}
@@ -200,8 +200,7 @@ public class Validations extends BaseController {
 	 */
 	private boolean languageSpecificValidation(Pane parentPane, TextField node, String id, ResourceBundle messageBundle,
 			List<String> blackListedWords, boolean isPreviousValid, String langCode) {
-		LOGGER.debug(RegistrationConstants.VALIDATION_LOGGER, APPLICATION_NAME, APPLICATION_ID,
-				"started to validate :: " + id);
+		LOGGER.debug("started to validate :: {} " , id);
 		boolean isInputValid = true;
 		try {
 
@@ -245,7 +244,7 @@ public class Validations extends BaseController {
 				}
 			}
 
-		} catch (RuntimeException | RegBaseCheckedException runtimeException) {
+		} catch (RuntimeException runtimeException) {
 			LOGGER.error(RegistrationConstants.VALIDATION_LOGGER, APPLICATION_NAME, APPLICATION_ID,
 					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 		}
@@ -330,11 +329,12 @@ public class Validations extends BaseController {
 	}
 
 	private void addValidInputStyleClass(Pane parentPane, TextField node) {
-		Label nodeLabel = (Label) parentPane.lookup("#" + node.getId() + "Label");
+		String id = node.getId().substring(0, node.getId().length()-3);
+		Label nodeLabel = (Label) parentPane.lookup("#" + id + "Label");
 
 		if (nodeLabel == null && parentPane.getParent() != null && parentPane.getParent().getParent() != null
 				&& parentPane.getParent().getParent().getParent() != null) {
-			nodeLabel = (Label) parentPane.getParent().getParent().getParent().lookup("#" + node.getId() + "Label");
+			nodeLabel = (Label) parentPane.getParent().getParent().getParent().lookup("#" + id + "Label");
 		}
 		// node.requestFocus();
 		node.getStyleClass().removeIf((s) -> {
@@ -356,7 +356,8 @@ public class Validations extends BaseController {
 			});
 			node.getStyleClass().add(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD_FOCUSED);
 		} else {
-			Label nodeLabel = (Label) parentPane.lookup("#" + node.getId().substring(0, node.getId().length() - 3) + "Label");
+			Label nodeLabel = (Label) parentPane.lookup("#" +
+					node.getId().substring(0, node.getId().length() - RegistrationConstants.LANGCODE_LENGTH) + "Label");
 			node.requestFocus();
 			node.getStyleClass().removeIf((s) -> {
 				return s.equals(RegistrationConstants.DEMOGRAPHIC_TEXTFIELD);
@@ -504,7 +505,7 @@ public class Validations extends BaseController {
 
 					isComboBoxValueValid = true;
 				}
-			} catch (RuntimeException | RegBaseCheckedException runtimeException) {
+			} catch (RuntimeException runtimeException) {
 				LOGGER.error(RegistrationConstants.VALIDATION_LOGGER, APPLICATION_NAME, APPLICATION_ID,
 						runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 			}
@@ -553,23 +554,6 @@ public class Validations extends BaseController {
 		return regex != null ? value.matches(regex) : true;
 	}
 
-	/**
-	 * Check for child.
-	 *
-	 * @return true, if is child
-	 */
-	public boolean isChild() {
-		return isChild;
-	}
-
-	/**
-	 * Set for child.
-	 *
-	 * @param isChild the new child
-	 */
-	public void setChild(boolean isChild) {
-		this.isChild = isChild;
-	}
 
 	/**
 	 * Gets the validation message.

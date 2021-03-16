@@ -8,6 +8,8 @@ import java.util.List;
 
 import javax.transaction.Transactional;
 
+import io.mosip.registration.entity.*;
+import io.mosip.registration.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -18,33 +20,7 @@ import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.dao.MasterSyncDao;
 import io.mosip.registration.dto.mastersync.MasterDataResponseDto;
 import io.mosip.registration.dto.response.SyncDataResponseDto;
-import io.mosip.registration.entity.BiometricAttribute;
-import io.mosip.registration.entity.BlacklistedWords;
-import io.mosip.registration.entity.DocumentCategory;
-import io.mosip.registration.entity.DocumentType;
-import io.mosip.registration.entity.Gender;
-import io.mosip.registration.entity.IndividualType;
-import io.mosip.registration.entity.Language;
-import io.mosip.registration.entity.Location;
-import io.mosip.registration.entity.ReasonCategory;
-import io.mosip.registration.entity.ReasonList;
-import io.mosip.registration.entity.SyncControl;
-import io.mosip.registration.entity.SyncJobDef;
-import io.mosip.registration.entity.ValidDocument;
 import io.mosip.registration.exception.RegBaseUncheckedException;
-import io.mosip.registration.repositories.BiometricAttributeRepository;
-import io.mosip.registration.repositories.BlacklistedWordsRepository;
-import io.mosip.registration.repositories.DocumentCategoryRepository;
-import io.mosip.registration.repositories.DocumentTypeRepository;
-import io.mosip.registration.repositories.GenderRepository;
-import io.mosip.registration.repositories.IndividualTypeRepository;
-import io.mosip.registration.repositories.LanguageRepository;
-import io.mosip.registration.repositories.LocationRepository;
-import io.mosip.registration.repositories.ReasonCategoryRepository;
-import io.mosip.registration.repositories.ReasonListRepository;
-import io.mosip.registration.repositories.SyncJobControlRepository;
-import io.mosip.registration.repositories.SyncJobDefRepository;
-import io.mosip.registration.repositories.ValidDocumentRepository;
 import io.mosip.registration.util.mastersync.ClientSettingSyncHelper;
 
 /**
@@ -112,6 +88,9 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 
 	@Autowired
 	private ClientSettingSyncHelper clientSettingSyncHelper;
+
+	@Autowired
+	private LocationHierarchyRepository locationHierarchyRepository;
 
 	/**
 	 * logger for logging
@@ -329,5 +308,10 @@ public class MasterSyncDaoImpl implements MasterSyncDao {
 
 	public Location getLocation(String code, String langCode) {
 		return locationRepository.findByCodeAndLangCode(code, langCode);
+	}
+
+	@Override
+	public List<LocationHierarchy> getAllLocationHierarchy(String langCode) {
+		return locationHierarchyRepository.findAllByIsActiveTrueAndLangCode(langCode);
 	}
 }
