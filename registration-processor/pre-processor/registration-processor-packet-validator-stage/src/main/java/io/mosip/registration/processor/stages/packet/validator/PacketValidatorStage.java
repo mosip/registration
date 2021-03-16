@@ -6,6 +6,8 @@ package io.mosip.registration.processor.stages.packet.validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
@@ -23,7 +25,19 @@ import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIMan
 
 @RefreshScope
 @Service
+@Configuration
+@ComponentScan(basePackages = { "io.mosip.registration.processor.core.config",
+		"io.mosip.registration.processor.stages.config", 
+		"io.mosip.registration.processor.status.config",
+		"io.mosip.registration.processor.rest.client.config", 
+		"io.mosip.registration.processor.packet.storage.config",
+		"io.mosip.registration.processor.packet.manager.config", 
+		"io.mosip.kernel.idobjectvalidator.config",
+		"io.mosip.registration.processor.core.kernel.beans" })
 public class PacketValidatorStage extends MosipVerticleAPIManager {
+	
+	private static final String MOSIP_REGPROC_PACKET_VALIDATOR = "mosip.regproc.packet.validator.";
+
 
 	/** Paacket validate Processor */
 	@Autowired
@@ -31,10 +45,6 @@ public class PacketValidatorStage extends MosipVerticleAPIManager {
 
 	@Value("${vertx.cluster.configuration}")
 	private String clusterManagerUrl;
-
-	/** server port number. */
-	@Value("${server.port}")
-	private String port;
 
 	/** worker pool size. */
 	@Value("${worker.pool.size}")
@@ -60,7 +70,7 @@ public class PacketValidatorStage extends MosipVerticleAPIManager {
 	public void start(){
 		router.setRoute(this.postUrl(mosipEventBus.getEventbus(), MessageBusAddress.PACKET_VALIDATOR_BUS_IN,
 				MessageBusAddress.PACKET_VALIDATOR_BUS_OUT));
-		this.createServer(router.getRouter(), Integer.parseInt(port));
+		this.createServer(router.getRouter(), getPort());
 	}
 	/*
 	 * (non-Javadoc)
@@ -73,6 +83,11 @@ public class PacketValidatorStage extends MosipVerticleAPIManager {
 	@Override
 	public MessageDTO process(MessageDTO object) {
 		return packetvalidateprocessor.process(object, this.getClass().getSimpleName());
+	}
+	
+	@Override
+	protected String getPropertyPrefix() {
+		return MOSIP_REGPROC_PACKET_VALIDATOR;
 	}
 
 }
