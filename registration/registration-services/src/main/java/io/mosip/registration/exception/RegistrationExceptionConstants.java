@@ -222,7 +222,10 @@ public enum RegistrationExceptionConstants {
 	MDS_PAYLOAD_EMPTY("REG-MDS-006","Payload is Empty"),
 	MDS_STREAM_TIMEOUT("REG-MDS-007","Stream Timeout Reached"),
 
-	APP_INVALID_STATE("REG-INIT-001", "Application found in invalid state, tampering detected !");
+	APP_INVALID_STATE("REG-INIT-001", "Application found in invalid state, tampering detected !"),
+	
+	//PRE-REG EXCEPTION CONSTANTS
+	PRE_REG_SYNC_FAIL("REG-PREREG-001", "Pre Registration sync Failed");
 
 	/**
 	 * The constructor

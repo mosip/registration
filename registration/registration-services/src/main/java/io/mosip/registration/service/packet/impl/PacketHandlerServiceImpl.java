@@ -405,6 +405,8 @@ public class PacketHandlerServiceImpl extends BaseService implements PacketHandl
 
 		metaInfoMap.put("checkSum", getJsonString(checkSumMap));
 
+		metaInfoMap.put("selectedLanguages", getJsonString(registrationDTO.getSelectedLanguagesByApplicant()));
+
 		metaInfoMap.put(PacketManagerConstants.REGISTRATIONID, registrationDTO.getRegistrationId());
 //		metaInfoMap.put(PacketManagerConstants.META_CREATION_DATE, DateUtils.formatToISOString(LocalDateTime.now()));
 
