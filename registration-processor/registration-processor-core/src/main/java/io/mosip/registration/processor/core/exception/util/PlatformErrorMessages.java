@@ -1074,6 +1074,8 @@ public enum PlatformErrorMessages {
 
 	/** The uin generation failed. */
 	UIN_GENERATION_FAILED(PlatformConstants.RPR_UIN_GENERATOR_STAGE + "013", "UIN Generation failed"),
+	
+	VID_CREATION_FAILED(PlatformConstants.RPR_UIN_GENERATOR_STAGE + "014", "VID creation failed"),
 
 	/** The rpr pgs file not present. */
 	RPR_PGS_FILE_NOT_PRESENT(PlatformConstants.RPR_PACKET_GENERATOR_MODULE + "001",
