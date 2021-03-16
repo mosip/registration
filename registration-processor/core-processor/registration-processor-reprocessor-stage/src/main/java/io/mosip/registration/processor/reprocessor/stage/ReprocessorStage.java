@@ -330,18 +330,18 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 	
 	public void processResumablePackets(){
 		List<InternalRegistrationStatusDto> pausedDtoList = registrationStatusService.getPausedPackets(fetchSize);
-		Map<String,List<String>> map=new HashMap<>();
+		Map<String,List<String>> defaultResumeActionPacketIdsMap=new HashMap<>();
 		for(InternalRegistrationStatusDto dto:pausedDtoList) {
-				if(map.containsKey(dto.getDefaultResumeAction())) {
-					List<String> ids=map.get(dto.getDefaultResumeAction());
+				if(defaultResumeActionPacketIdsMap.containsKey(dto.getDefaultResumeAction())) {
+					List<String> ids=defaultResumeActionPacketIdsMap.get(dto.getDefaultResumeAction());
 					ids.add(dto.getRegistrationId());
-					map.put(dto.getDefaultResumeAction(), ids);
+					defaultResumeActionPacketIdsMap.put(dto.getDefaultResumeAction(), ids);
 				}
 				else  {
-					map.put(dto.getDefaultResumeAction(), Arrays.asList(dto.getRegistrationId()));
+					defaultResumeActionPacketIdsMap.put(dto.getDefaultResumeAction(), Arrays.asList(dto.getRegistrationId()));
 				}
 		}
-		for(Entry<String,List<String>> entry:map.entrySet()) {
+		for(Entry<String,List<String>> entry:defaultResumeActionPacketIdsMap.entrySet()) {
 			
 				workflowActionService.processWorkflowAction(entry.getValue(), entry.getKey(), this.mosipEventBus);
 			
