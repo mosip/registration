@@ -21,11 +21,14 @@ import io.mosip.registration.controller.Initialization;
 import io.mosip.registration.controller.reg.DemographicDetailController;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
+import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.validator.RequiredFieldValidator;
 import javafx.geometry.NodeOrientation;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 /**
  * 
@@ -37,58 +40,31 @@ import javafx.scene.control.Label;
  * @author YASWANTH S
  *
  */
-public abstract class FxControl extends Node {
+public abstract class FxControl  {
 
 	protected static final Logger LOGGER = AppConfig.getLogger(DemographicDetailController.class);
 	private static final String loggerClassName = "FxControl";
 
 	protected UiSchemaDTO uiSchemaDTO;
-
 	protected FxControl control;
-
 	public Node node;
 
-	public void setNode(Node node) {
-		this.node = node;
-	}
-
 	protected AuditManagerService auditFactory;
-
 	protected RequiredFieldValidator requiredFieldValidator;
 
-//	protected Map<String, Object> nodeMap;
-//
-//	public Map<String, Object> getNodeMap() {
-//		return nodeMap;
-//	}
-//
-//	public void setNodeMap(Map<String, Object> nodeMap) {
-//		this.nodeMap = nodeMap;
-//	}
-
-	public void refreshFields() {
-
-		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refreshing fields from fx control");
-		GenericController genericController = Initialization.getApplicationContext().getBean(GenericController.class);
-		genericController.refreshFields();
-
-	}
 
 	/**
 	 * Build Error code, title and fx Element Set Listeners Set Actione events
 	 * 
 	 * @param uiSchemaDTO field information
-	 * @param parentPane  field to be placed
 	 */
 	public abstract FxControl build(UiSchemaDTO uiSchemaDTO);
 
 	/**
-	 * Copy the value from source node to target nodes
-	 * 
-	 * @param srcNode     copy from
-	 * @param targetNodes copy to
+	 *
+	 * @param node
 	 */
-	public abstract void copyTo(Node srcNode, List<Node> targetNodes);
+	public abstract void setListener(Node node);
 
 	/**
 	 * 
@@ -118,7 +94,28 @@ public abstract class FxControl extends Node {
 	 * 
 	 * @return boolean is valid or not
 	 */
-	public abstract boolean isValid(Node node);
+	//public abstract boolean isValid(Node node);
+
+	/**
+	 *
+	 * @param data
+	 */
+	public abstract void selectAndSet(Object data);
+
+	/**
+	 * Check value is valid or not
+	 *
+	 * @return boolean is valid or not
+	 */
+	public abstract boolean isValid();
+
+	/**
+	 *
+	 * @param langCode
+	 * @return
+	 */
+	public abstract List<GenericDto> getPossibleValues(String langCode);
+
 
 	/**
 	 * Disable the field
@@ -133,14 +130,12 @@ public abstract class FxControl extends Node {
 	 * Refresh the field
 	 */
 	public void refresh() {
-
-		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refreshing field : " + uiSchemaDTO.getId());
 		if (isFieldVisible(uiSchemaDTO)) {
 			visible(this.node, true);
 			this.node.setManaged(true);
 		} else {
 			visible(this.node, false);
-			this.node.setManaged(false);
+			this.node.setManaged(true);
 		}
 	}
 
@@ -153,44 +148,50 @@ public abstract class FxControl extends Node {
 
 	}
 
-	public UiSchemaDTO getUiSchemaDTO() {
-		return uiSchemaDTO;
+	/**
+	 *
+	 */
+	public void refreshFields() {
+		LOGGER.info(loggerClassName, APPLICATION_NAME, APPLICATION_ID, "Refreshing fields from fx control");
+		GenericController genericController = Initialization.getApplicationContext().getBean(GenericController.class);
+		genericController.refreshFields();
 	}
 
-	public abstract void setListener(Node node);
-
-	public Node getNode() {
-		return this.node;
-	}
-
+	/**
+	 *
+	 * @return
+	 */
 	public boolean canContinue() {
-
-		boolean canContinue;
-
-		if (getRegistrationDTo().getDemographics().get(this.uiSchemaDTO.getId()) != null || getRegistrationDTo()
-				.getRegistrationCategory().equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_LOST)) {
+		//field is not visible, ignoring valid value and isRequired check
+		if(!isFieldVisible(this.uiSchemaDTO)) {
+			//TODO need to make sure that data is cleared from registrationDTO
 			return true;
-		} else {
-
-			if (requiredFieldValidator == null) {
-				requiredFieldValidator = Initialization.getApplicationContext().getBean(RequiredFieldValidator.class);
-			}
-
-			try {
-				boolean isRequired = requiredFieldValidator.isRequiredField(this.uiSchemaDTO, getRegistrationDTo());
-				canContinue = !isRequired;
-			} catch (Exception exception) {
-				LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
-						"Error While checking on-Reuired  for field : " + uiSchemaDTO.getId() + " "
-								+ ExceptionUtils.getStackTrace(exception));
-
-				canContinue = false;
-			}
 		}
 
-		return canContinue;
+		if (requiredFieldValidator == null) {
+			requiredFieldValidator = Initialization.getApplicationContext().getBean(RequiredFieldValidator.class);
+		}
+
+		try {
+			boolean isValid = isValid();
+			if(isValid) //empty values should be ignored, its fxControl's responsibility
+				return true;
+
+			//required and with valid value
+			if(isValid && requiredFieldValidator.isRequiredField(this.uiSchemaDTO, getRegistrationDTo()))
+				return true;
+
+		} catch (Exception exception) {
+			LOGGER.error("Error checking RequiredOn for field : " + uiSchemaDTO.getId(), exception);
+		}
+		return false;
 	}
 
+	/**
+	 *
+	 * @param schema
+	 * @return
+	 */
 	protected String getMandatorySuffix(UiSchemaDTO schema) {
 		String mandatorySuffix = RegistrationConstants.EMPTY;
 		RegistrationDTO registrationDTO = getRegistrationDTo();
@@ -209,6 +210,15 @@ public abstract class FxControl extends Node {
 		return mandatorySuffix;
 	}
 
+	/**
+	 *
+	 * @param id
+	 * @param titleText
+	 * @param styleClass
+	 * @param isVisible
+	 * @param prefWidth
+	 * @return
+	 */
 	protected Label getLabel(String id, String titleText, String styleClass, boolean isVisible, double prefWidth) {
 		/** Field Title */
 		Label label = new Label();
@@ -219,10 +229,6 @@ public abstract class FxControl extends Node {
 		label.setWrapText(true);
 		// label.setPrefWidth(prefWidth);
 		return label;
-	}
-
-	protected Node getField(String id) {
-		return node.lookup(RegistrationConstants.HASH + id);
 	}
 
 	protected RegistrationDTO getRegistrationDTo() {
@@ -243,7 +249,6 @@ public abstract class FxControl extends Node {
 			LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(exception));
 		}
-
 		return true;
 	}
 
@@ -254,11 +259,37 @@ public abstract class FxControl extends Node {
 		}
 	}
 
-	protected FxControl getFxControl(String fieldId) {
+	protected void addValidationMessage(VBox vBox, String id, String langCode, String styleClass, boolean isVisible) {
+		Label validationMessage = getLabel(id + langCode + RegistrationConstants.MESSAGE, null,
+				styleClass, isVisible, 0);
+		validationMessage.setWrapText(false);
+		vBox.getChildren().add(validationMessage);
 
+		HBox validationHBox = new HBox();
+		validationHBox.setSpacing(20);
+		validationHBox.getChildren().add(validationMessage);
+		validationHBox.setStyle("-fx-background-color:WHITE");
+		vBox.getChildren().add(validationHBox);
+	}
+
+	protected Node getField(String id) {
+		return node.lookup(RegistrationConstants.HASH + id);
+	}
+
+	protected FxControl getFxControl(String fieldId) {
 		return GenericController.getFxControlMap().get(fieldId);
 	}
 
-	public abstract void selectAndSet(Object data);
+	public UiSchemaDTO getUiSchemaDTO() {
+		return uiSchemaDTO;
+	}
+
+	public Node getNode() {
+		return this.node;
+	}
+
+	public void setNode(Node node) {
+		this.node = node;
+	}
 
 }

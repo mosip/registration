@@ -29,6 +29,8 @@ import org.apache.commons.io.IOUtils;
 import org.mvel2.MVEL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import io.mosip.commons.packet.constants.PacketManagerConstants;
@@ -107,6 +109,7 @@ import javafx.stage.StageStyle;
  * @author Sravya Surampalli
  * @since 1.0
  */
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Controller
 public class GenericBiometricsController extends BaseController /* implements Initializable */ {
 
@@ -166,9 +169,6 @@ public class GenericBiometricsController extends BaseController /* implements In
 	@FXML
 	private Button continueBtn;
 
-	// @FXML
-	// private Label duplicateCheckLbl;
-
 	@FXML
 	private Label guardianBiometricsLabel;
 
@@ -206,14 +206,6 @@ public class GenericBiometricsController extends BaseController /* implements In
 	@Autowired
 	private RegistrationController registrationController;
 
-	/** The face capture controller. */
-	// @Autowired
-	// private FaceCaptureController faceCaptureController;
-
-	/** The finger print capture service impl. */
-	// @Autowired
-	// private AuthenticationService authenticationService;
-
 	/** The iris facade. */
 	@Autowired
 	private BioService bioService;
@@ -231,10 +223,6 @@ public class GenericBiometricsController extends BaseController /* implements In
 	private static Map<String, Image> STREAM_IMAGES = new HashMap<String, Image>();
 
 	private static Map<String, Double> BIO_SCORES = new HashMap<String, Double>();
-
-	/** The face capture controller. */
-	// @Autowired
-	// private IrisCaptureController irisCaptureController;
 
 	public ImageView getBiometricImage() {
 		return biometricImage;
@@ -270,10 +258,6 @@ public class GenericBiometricsController extends BaseController /* implements In
 	private int previousPosition = -1;
 
 	private int sizeOfLeftGridPaneImageList = -1;
-
-	// private HashMap<String, VBox> comboBoxMap;
-	//
-	// private HashMap<String, HashMap<String, VBox>> checkBoxMap;
 
 	private HashMap<String, HashMap<String, VBox>> exceptionMap;
 
@@ -428,7 +412,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 		applicationLabelBundle = applicationLabelBundle = applicationContext
 				.getBundle(applicationContext.getApplicationLanguage(), RegistrationConstants.LABELS);
-		;
+
 		retryBox.setVisible(true);
 		biometricBox.setVisible(true);
 		biometricType.setText(applicationLabelBundle.getString(modality));
@@ -500,6 +484,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 		exceptionImgVBox.setVisible(true);
 		exceptionImgVBox.setManaged(true);
 
+		checkBoxPane.getChildren().clear();
 		checkBoxPane.add(exceptionImgVBox, 0, 0);
 	}
 
@@ -658,7 +643,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 		getRegistrationDTOFromSession().addDocument("proofOfException", documentDto);
 
-		fxControl.refreshExceptionMarks();
+		//fxControl.refreshExceptionMarks();
 		displayExceptionBiometric(currentModality);
 
 //		refreshContinueButton();
@@ -986,7 +971,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 								generateAlert(RegistrationConstants.ALERT_INFORMATION,
 										RegistrationUIConstants.BIOMETRIC_CAPTURE_SUCCESS);
 
-								genericController.refreshFields();
+								//genericController.refreshFields();
 								scanPopUpViewController.getPopupStage().close();
 								return;
 							}
@@ -1038,7 +1023,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 										}
 									}
 
-									fxControl.refreshExceptionMarks();
+									//fxControl.refreshExceptionMarks();
 								} catch (IOException exception) {
 									LOGGER.error(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 											ExceptionUtils.getStackTrace(exception));
@@ -1304,7 +1289,8 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 		clearBioLabels();
 		if (!isFace(currentModality) && !isExceptionPhoto(currentModality)) {
-			setScanButtonVisibility(fxControl.isAllExceptions(currentModality), scanBtn);
+			//TODO - check during testing
+			//setScanButtonVisibility(fxControl.isAllExceptions(currentModality), scanBtn);
 		} else {
 			setScanButtonVisibility(false, scanBtn);
 		}
@@ -2048,11 +2034,11 @@ public class GenericBiometricsController extends BaseController /* implements In
 			}
 
 		}
-		genericController.refreshFields();
+		//genericController.refreshFields();
 
 		displayBiometric(currentModality);
 		setScanButtonVisibility(isAllMarked, scanBtn);
-		fxControl.refreshExceptionMarks();
+		//fxControl.refreshExceptionMarks();
 	}
 
 	private void setBiometricExceptionVBox(boolean visible) {
@@ -2098,7 +2084,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 						else {
 							getRegistrationDTOFromSession().addBiometricException(currentSubType, node.getId(),
 									node.getId(), "Temporary", "Temporary");
-							genericController.refreshFields();
+							//genericController.refreshFields();
 							;
 						}
 					}
@@ -2558,6 +2544,16 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 		displayBiometric(modality);
 
+	}
+
+	public void initializeWithoutStage(BiometricFxControl fxControl, String subType, String modality, List<String> configBioAttributes,
+					 List<String> nonConfigBioAttributes) {
+		this.fxControl = fxControl;
+		this.currentSubType = subType;
+		this.currentModality = modality;
+		this.configBioAttributes = configBioAttributes;
+		this.nonConfigBioAttributes = nonConfigBioAttributes;
+		displayBiometric(modality);
 	}
 
 	/**

@@ -1,84 +1,338 @@
 package io.mosip.registration.util.control.impl;
 
-import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
-import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.ResourceBundle;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import io.mosip.kernel.core.exception.ExceptionUtils;
+import io.mosip.commons.packet.constants.PacketManagerConstants;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
-import io.mosip.registration.context.ApplicationContext;
+import io.mosip.registration.controller.BaseController;
 import io.mosip.registration.controller.Initialization;
 import io.mosip.registration.controller.device.GenericBiometricsController;
-import io.mosip.registration.controller.reg.DemographicDetailController;
 import io.mosip.registration.dto.UiSchemaDTO;
-import io.mosip.registration.dto.packetmanager.BiometricsDto;
-import io.mosip.registration.dto.packetmanager.DocumentDto;
+import io.mosip.registration.dto.mastersync.GenericDto;
+import io.mosip.registration.dto.response.SchemaDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
+import io.mosip.registration.service.IdentitySchemaService;
 import io.mosip.registration.util.control.FxControl;
 import io.mosip.registration.validator.RequiredFieldValidator;
+import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
-import javafx.scene.control.Tooltip;
+import javafx.scene.Parent;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.*;
+import lombok.SneakyThrows;
+import org.apache.commons.collections4.ListUtils;
 
 public class BiometricFxControl extends FxControl {
 
 	protected static final Logger LOGGER = AppConfig.getLogger(BiometricFxControl.class);
 	private static final String loggerClassName = "BiometricFxControl";
+	private static final String APPLICANT_SUBTYPE = "applicant";
+
 	private GenericBiometricsController biometricsController;
+	private IdentitySchemaService identitySchemaService;
+	private String currentModality;
 
-	private String TICK_MARK = "tickMark";
-	private String modality = null;
-	private Map<String, List<List<String>>> modalityAttributeMap;
-
-	public Map<String, List<List<String>>> getModalityAttributeMap() {
-		return modalityAttributeMap;
-	}
-
-	public void setModalityAttributeMap(Map<String, List<List<String>>> modalityAttributeMap) {
-		this.modalityAttributeMap = modalityAttributeMap;
-	}
 
 	public BiometricFxControl() {
-
 		org.springframework.context.ApplicationContext applicationContext = Initialization.getApplicationContext();
-		biometricsController = applicationContext.getBean(GenericBiometricsController.class);
+		this.biometricsController = applicationContext.getBean(GenericBiometricsController.class);
+		this.identitySchemaService = applicationContext.getBean(IdentitySchemaService.class);
 		this.requiredFieldValidator = applicationContext.getBean(RequiredFieldValidator.class);
 	}
 
 	@Override
 	public FxControl build(UiSchemaDTO uiSchemaDTO) {
-
 		this.uiSchemaDTO = uiSchemaDTO;
 		this.control = this;
-
-		this.node = create(null, uiSchemaDTO);
-
-		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
-		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(), this.node);
-
-//		setNodeMap(nodeMap);
-
-		return this.control;
+		this.node = create();
+		return this.node == null ? null : this.control;
 	}
 
-	private VBox create(VBox biometricVBox, UiSchemaDTO uiSchemaDTO) {
+	@Override
+	public void setData(Object data) {
+
+	}
+
+	@Override
+	public void fillData(Object data) {
+
+	}
+
+	@Override
+	public Object getData() {
+		return null;
+	}
+
+	@Override
+	public void setListener(Node node) {
+
+	}
+
+	@Override
+	public void selectAndSet(Object data) {
+
+	}
+
+	@Override
+	public boolean isValid() {
+		return true;
+	}
+
+	@Override
+	public List<GenericDto> getPossibleValues(String langCode) {
+		return null;
+	}
+
+	private GridPane create() {
+		String fieldName = this.uiSchemaDTO.getId();
+		List<HBox> modalityList = getModalityButtons();
+
+		List<String> labels = new ArrayList<>();
+		getRegistrationDTo().getSelectedLanguagesByApplicant().forEach(langCode -> {
+					labels.add(this.uiSchemaDTO.getLabel().get(langCode));
+				});
+
+		Label label = new Label();
+		label.setText(String.join(RegistrationConstants.SLASH, labels));
+
+		GridPane gridPane = createGridPane();
+		gridPane.setId(fieldName);
+		gridPane.add(label,1,0);
+
+		Node modalityListingNode = null;
+		switch (getBiometricFieldLayout()) {
+			case "compact":
+				modalityListingNode = new HBox();
+				modalityListingNode.setId(uiSchemaDTO.getId()+"_listing");
+				((HBox)modalityListingNode).setSpacing(5);
+				((HBox)modalityListingNode).getChildren().addAll(modalityList);
+				gridPane.add(modalityListingNode,1,1);
+				break;
+			default:
+				modalityListingNode = new VBox();
+				modalityListingNode.setId(uiSchemaDTO.getId()+"_listing");
+				((VBox)modalityListingNode).setSpacing(5);
+				((VBox)modalityListingNode).getChildren().addAll(modalityList);
+				gridPane.add(modalityListingNode,0,1);
+				Parent captureDetails = null;
+				try {
+					captureDetails = BaseController.loadWithNewInstance(getClass().getResource("/fxml/BiometricsCapture.fxml"),
+							this.biometricsController);
+					gridPane.add(captureDetails,1,1);
+				} catch (IOException e) {
+					LOGGER.error("Failed to load biometrics capture details page", e);
+				}
+				break;
+		}
+		return gridPane;
+	}
+
+	private String getBiometricFieldLayout() {
+		return this.uiSchemaDTO.getFieldLayout() == null ? "default" : this.uiSchemaDTO.getFieldLayout();
+	}
+
+	private GridPane createGridPane() {
+		GridPane gridPane = new GridPane();
+		RowConstraints topRowConstraints = new RowConstraints();
+		topRowConstraints.setPercentHeight(5);
+		RowConstraints midRowConstraints = new RowConstraints();
+		midRowConstraints.setPercentHeight(95);
+		gridPane.getRowConstraints().addAll(topRowConstraints,midRowConstraints);
+
+		ColumnConstraints columnConstraint1 = new ColumnConstraints();
+		columnConstraint1.setPercentWidth(15);
+		ColumnConstraints columnConstraint2 = new ColumnConstraints();
+		columnConstraint2.setPercentWidth(85);
+		gridPane.getColumnConstraints().addAll(columnConstraint1, columnConstraint2);
+		return gridPane;
+	}
+
+	private List<HBox> getModalityButtons() {
+		List<HBox> modalityList = new ArrayList<>();
+
+		List<String> requiredBioAttributes = getRequiredBioAttributes(this.uiSchemaDTO.getSubType());
+		if(!requiredBioAttributes.isEmpty()) {
+			for(Modality modality : Modality.values()) {
+				List<String> modalityAttributes = ListUtils.intersection(requiredBioAttributes, modality.getAttributes());
+				if(!modalityAttributes.isEmpty()) {
+					HBox modalityView = new HBox();
+					modalityView.setSpacing(10);
+
+					modalityView.getChildren().add(addModalityButton(modality));
+					ImageView tickImage = getImageView(new Image(RegistrationConstants.TICK_CIRICLE_IMG_PATH), 30);
+					tickImage.setVisible(false);
+					tickImage.setManaged(true);
+					modalityView.getChildren().add(tickImage);
+					ImageView exceptionImage = getImageView(new Image(RegistrationConstants.EXCLAMATION_IMG_PATH), 30);
+					exceptionImage.setVisible(false);
+					exceptionImage.setManaged(true);
+					modalityView.getChildren().add(exceptionImage);
+					modalityList.add(modalityView);
+				}
+			}
+
+			//its applicant by default add exception photo button and hide it by default
+			if(APPLICANT_SUBTYPE.equalsIgnoreCase(this.uiSchemaDTO.getSubType())) {
+				HBox modalityView = new HBox();
+				modalityView.setSpacing(10);
+
+				Button button = addModalityButton(Modality.EXCEPTION_PHOTO);
+				button.setVisible(false);
+				button.setManaged(true);
+				ImageView tickImage = getImageView(new Image(RegistrationConstants.TICK_CIRICLE_IMG_PATH), 30);
+				tickImage.setVisible(false);
+				tickImage.setManaged(true);
+
+				modalityView.getChildren().add(button);
+				modalityView.getChildren().add(tickImage);
+				modalityList.add(modalityView);
+			}
+		}
+		return modalityList;
+	}
+
+	private ImageView getImageView(Image image, double height) {
+		ImageView imageView = new ImageView(image);
+		imageView.setFitHeight(height);
+		imageView.setFitWidth(height);
+		imageView.setPreserveRatio(true);
+		return imageView;
+	}
+
+	private Button addModalityButton(Modality modality) {
+		Button button = new Button();
+		button.setPrefSize(80, 80);
+		Image image = new Image(this.getClass().getResourceAsStream(getImageIconPath(modality.name())));
+		button.setGraphic(getImageView(image, 80));
+		button.setOnAction(getModalityActionHandler(this, modality));
+		return button;
+	}
+
+
+	private EventHandler getModalityActionHandler(BiometricFxControl control, Modality modality) {
+		return new EventHandler<ActionEvent>() {
+			@SneakyThrows
+			@Override
+			public void handle(ActionEvent event) {
+				LOGGER.info("Clicked on modality {}", modality);
+				List<String> requiredAttributes = getRequiredBioAttributes(uiSchemaDTO.getSubType());
+				List<String> configBioAttributes = ListUtils.intersection(requiredAttributes, Modality.getAllBioAttributes(modality));
+				List<String> nonConfigBioAttributes = ListUtils.subtract(Modality.getAllBioAttributes(modality), configBioAttributes);
+
+				switch (getBiometricFieldLayout()) {
+					case "compact" :
+						biometricsController.init(control, uiSchemaDTO.getSubType(), modality.name(),
+								configBioAttributes,nonConfigBioAttributes);
+						break;
+					default :
+						biometricsController.initializeWithoutStage(control, uiSchemaDTO.getSubType(), modality.name(),
+								configBioAttributes,nonConfigBioAttributes);
+				}
+
+			}
+		};
+	}
+
+	public List<String> getRequiredBioAttributes(String subType) {
+		List<String> requiredAttributes = new ArrayList<String>();
+		try {
+			SchemaDto schema = identitySchemaService.getIdentitySchema(getRegistrationDTo().getIdSchemaVersion());
+			List<UiSchemaDTO> fields = schema.getSchema().stream()
+					.filter(field -> field.getType() != null
+							&& PacketManagerConstants.BIOMETRICS_DATATYPE.equals(field.getType())
+							&& field.getSubType() != null && field.getSubType().equals(subType))
+					.collect(Collectors.toList());
+
+			for (UiSchemaDTO schemaField : fields) {
+				if (requiredFieldValidator.isRequiredField(schemaField, getRegistrationDTo()) && schemaField.getBioAttributes() != null)
+					requiredAttributes.addAll(schemaField.getBioAttributes());
+			}
+
+			// Reg-client will capture the face of Infant and send it in Packet as part of
+			// IndividualBiometrics CBEFF (If Face is captured for the country)
+			if ((getRegistrationDTo().isChild() && APPLICANT_SUBTYPE.equals(subType) && requiredAttributes.contains("face"))
+					|| (getRegistrationDTo().getRegistrationCategory().equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_UPDATE)
+					&& getRegistrationDTo().getUpdatableFieldGroups().contains("GuardianDetails")
+					&& APPLICANT_SUBTYPE.equals(subType) && requiredAttributes.contains("face"))) {
+				return Arrays.asList("face"); // Only capture face
+			}
+		}catch (RegBaseCheckedException exception) {
+			LOGGER.error("Failed to get required bioattributes", exception);
+		}
+		return requiredAttributes;
+	}
+
+	public String getImageIconPath(String modality) {
+		String imageIconPath = RegistrationConstants.DEFAULT_EXCEPTION_IMAGE_PATH;
+
+		if (modality != null) {
+			switch (modality) {
+				case RegistrationConstants.FACE:
+					imageIconPath = RegistrationConstants.FACE_IMG_PATH;
+					break;
+				case RegistrationConstants.IRIS_DOUBLE:
+					imageIconPath = RegistrationConstants.DOUBLE_IRIS_IMG_PATH;
+					break;
+				case RegistrationConstants.FINGERPRINT_SLAB_RIGHT:
+					imageIconPath = RegistrationConstants.RIGHTPALM_IMG_PATH;
+					break;
+				case RegistrationConstants.FINGERPRINT_SLAB_LEFT:
+					imageIconPath = RegistrationConstants.LEFTPALM_IMG_PATH;
+					break;
+				case RegistrationConstants.FINGERPRINT_SLAB_THUMBS:
+					imageIconPath = RegistrationConstants.THUMB_IMG_PATH;
+					break;
+			}
+		}
+		return imageIconPath;
+	}
+
+	@Override
+	public void refresh() {
+		LOGGER.error("Refreshing biometric field {} ", uiSchemaDTO.getId());
+
+		List<HBox> modalityButtons = getModalityButtons();
+		if(modalityButtons.isEmpty()) {
+			this.node.setVisible(false);
+			this.node.setManaged(true);
+		}
+		else {
+			Node listingNode = this.node.lookup(RegistrationConstants.HASH+uiSchemaDTO.getId()+"_listing");
+			if(listingNode instanceof HBox) {
+				((HBox)listingNode).getChildren().clear();
+				((HBox)listingNode).getChildren().addAll(modalityButtons);
+			}
+
+			if(listingNode instanceof VBox) {
+				((VBox)listingNode).getChildren().clear();
+				((VBox)listingNode).getChildren().addAll(modalityButtons);
+			}
+
+			this.node.setVisible(true);
+			this.node.setManaged(true);
+		}
+	}
+
+
+	@Override
+	public boolean canContinue() {
+		return biometricsController.canContinue(uiSchemaDTO.getSubType(), getRequiredBioAttributes(uiSchemaDTO.getSubType()));
+	}
+
+
+	/*private VBox create(VBox biometricVBox, UiSchemaDTO uiSchemaDTO) {
 		biometricVBox = biometricVBox == null ? new VBox() : biometricVBox;
 		biometricVBox.getChildren().clear();
 		biometricVBox.setSpacing(5);
@@ -148,7 +402,12 @@ public class BiometricFxControl extends FxControl {
 	@Override
 	public boolean isValid(Node node) {
 		// TODO Auto-generated method stub
-		return false;
+		return true;
+	}
+
+	@Override
+	public boolean isValid() {
+		return true;
 	}
 
 	@Override
@@ -170,58 +429,23 @@ public class BiometricFxControl extends FxControl {
 				biometricsController.getValue(RegistrationConstants.FACE, RegistrationConstants.faceUiAttributes));
 	}
 
-	private List<String> getBioAttributes(String modality) {
+	private List<String> getAllBioAttributes(String modality) {
 		switch (modality) {
 		case RegistrationConstants.FINGERPRINT_SLAB_LEFT:
 			return RegistrationConstants.leftHandUiAttributes;
-
 		case RegistrationConstants.FINGERPRINT_SLAB_RIGHT:
 			return RegistrationConstants.rightHandUiAttributes;
 		case RegistrationConstants.FINGERPRINT_SLAB_THUMBS:
 			return RegistrationConstants.twoThumbsUiAttributes;
 		case RegistrationConstants.IRIS_DOUBLE:
 			return RegistrationConstants.eyesUiAttributes;
-
 		case RegistrationConstants.FACE:
 			return RegistrationConstants.faceUiAttributes;
 		}
-
 		return null;
 	}
 
-	protected Map<String, List<List<String>>> getconfigureAndNonConfiguredBioAttributes(
-			List<Entry<String, List<String>>> entryListConstantAttributes, String subType) {
 
-		Map<String, List<List<String>>> modalityMap = new HashMap<>();
-
-		try {
-
-			/** Fetch Bio Attributes */
-			List<String> configuredBioAttributes = requiredFieldValidator.isRequiredBiometricField(subType,
-					getRegistrationDTo());
-
-			if (configuredBioAttributes != null && !configuredBioAttributes.isEmpty()) {
-				for (Entry<String, List<String>> constantAttributes : entryListConstantAttributes) {
-					List<String> nonConfigBiometrics = new LinkedList<>();
-					List<String> configBiometrics = new LinkedList<>();
-					String slabType = constantAttributes.getKey();
-					for (String attribute : constantAttributes.getValue()) {
-						if (!configuredBioAttributes.contains(attribute)) {
-							nonConfigBiometrics.add(attribute);
-						} else {
-							configBiometrics.add(attribute);
-						}
-					}
-					modalityMap.put(slabType, Arrays.asList(configBiometrics, nonConfigBiometrics));
-				}
-			}
-		} catch (RegBaseCheckedException exception) {
-			LOGGER.error("REGISTRATION - ALERT - BASE_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
-					ExceptionUtils.getStackTrace(exception));
-		}
-
-		return modalityMap;
-	}
 
 	private HBox loadModalitesToUi(Map<String, List<List<String>>> modalityMap, String subType) {
 
@@ -558,7 +782,51 @@ public class BiometricFxControl extends FxControl {
 
 	@Override
 	public void selectAndSet(Object data) {
+	}*/
+}
 
-		/** Nothing to set */
+enum Modality {
+	FINGERPRINT_SLAB_LEFT(RegistrationConstants.leftHandUiAttributes),
+	FINGERPRINT_SLAB_RIGHT(RegistrationConstants.rightHandUiAttributes),
+	FINGERPRINT_SLAB_THUMBS(RegistrationConstants.twoThumbsUiAttributes),
+	IRIS_DOUBLE(RegistrationConstants.eyesUiAttributes),
+	FACE(RegistrationConstants.faceUiAttributes),
+	EXCEPTION_PHOTO(Collections.EMPTY_LIST);
+
+	public List<String> getAttributes() {
+		return attributes;
 	}
+
+	private List<String> attributes;
+
+	Modality(List<String> attributes) {
+		this.attributes = attributes;
+	}
+
+	public static List<String> getAllBioAttributes() {
+		List<String> allAttributes = new ArrayList<>();
+		allAttributes.addAll(FINGERPRINT_SLAB_LEFT.attributes);
+		allAttributes.addAll(FINGERPRINT_SLAB_RIGHT.attributes);
+		allAttributes.addAll(FINGERPRINT_SLAB_THUMBS.attributes);
+		allAttributes.addAll(IRIS_DOUBLE.attributes);
+		allAttributes.addAll(FACE.attributes);
+		return allAttributes;
+	}
+
+	public static List<String> getAllBioAttributes(Modality modality) {
+		switch (modality) {
+			case FINGERPRINT_SLAB_THUMBS:
+				return FINGERPRINT_SLAB_THUMBS.attributes;
+			case FINGERPRINT_SLAB_RIGHT:
+				return FINGERPRINT_SLAB_RIGHT.attributes;
+			case FINGERPRINT_SLAB_LEFT:
+				return FINGERPRINT_SLAB_LEFT.attributes;
+			case IRIS_DOUBLE:
+				return IRIS_DOUBLE.attributes;
+			case FACE:
+				return FACE.attributes;
+		}
+		return Collections.EMPTY_LIST;
+	}
+
 }

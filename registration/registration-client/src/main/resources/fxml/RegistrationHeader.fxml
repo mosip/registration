@@ -15,10 +15,11 @@
                <children>
                   <Button layoutY="2.0" mnemonicParsing="false" onAction="#goToHomePageFromRegistration" text="Home" />
                   <Label layoutX="65.0" layoutY="7.0" text="/  Registration" />
-               </children></AnchorPane>
+               </children>
+            </AnchorPane>
          </children>
       </AnchorPane>
-      <AnchorPane layoutX="200.0" layoutY="9.0" styleClass="registrationHeaderBorder">
+      <!--<AnchorPane layoutX="200.0" layoutY="9.0" styleClass="registrationHeaderBorder">
          <children>
             <AnchorPane prefHeight="25.0" prefWidth="196.0">
                <children>
@@ -61,6 +62,6 @@
                </children>
             </AnchorPane>
          </children>
-      </AnchorPane>
+      </AnchorPane>-->
    </children>
 </AnchorPane>

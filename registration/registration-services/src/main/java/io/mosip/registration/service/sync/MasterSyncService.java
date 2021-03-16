@@ -59,7 +59,7 @@ public interface MasterSyncService {
 	 * @return the list holds the Province data to be displayed in the UI.
 	 * @throws RegBaseCheckedException
 	 */
-	List<GenericDto> findProvianceByHierarchyCode(String code, String langCode) throws RegBaseCheckedException;
+	List<GenericDto> findLocationByParentHierarchyCode(String code, String langCode) throws RegBaseCheckedException;
 
 	/**
 	 * Gets all the reasons for rejection that to be selected during EOD approval
@@ -90,7 +90,7 @@ public interface MasterSyncService {
 	 * @return all the document categories
 	 * @throws RegBaseCheckedException
 	 */
-	List<DocumentCategoryDto> getDocumentCategories(String docCode, String langCode) throws RegBaseCheckedException;
+	List<DocumentCategoryDto> getDocumentCategories(String docCode, String langCode);
 
 	/**
 	 * Gets the gender details.
@@ -135,7 +135,7 @@ public interface MasterSyncService {
 	 * @return
 	 * @throws RegBaseCheckedException
 	 */
-	List<GenericDto> getFieldValues(String fieldName, String langCode) throws RegBaseCheckedException;
+	List<GenericDto> getFieldValues(String fieldName, String langCode, boolean isHierarchical);
 
 	/**
 	 * @param code     location code

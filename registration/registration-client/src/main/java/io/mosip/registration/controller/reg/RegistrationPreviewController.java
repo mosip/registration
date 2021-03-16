@@ -196,6 +196,42 @@ public class RegistrationPreviewController extends BaseController implements Ini
 		}
 	}
 
+	public WebView getPreviewContent() {
+		LOGGER.info("REGISTRATION - UI - REGISTRATION_PREVIEW_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+				"Setting up preview content has been started");
+		try {
+			String ackTemplateText = templateService.getHtmlTemplate(RegistrationConstants.PREVIEW_TEMPLATE_CODE,
+					ApplicationContext.applicationLanguage());
+
+			if (ackTemplateText != null && !ackTemplateText.isEmpty()) {
+				templateGenerator.setConsentText(consentText);
+				ResponseDTO templateResponse = templateGenerator.generateTemplate(ackTemplateText,
+						getRegistrationDTOFromSession(), templateManagerBuilder,
+						RegistrationConstants.TEMPLATE_PREVIEW);
+				if (templateResponse != null && templateResponse.getSuccessResponseDTO() != null) {
+					Writer stringWriter = (Writer) templateResponse.getSuccessResponseDTO().getOtherAttributes()
+							.get(RegistrationConstants.TEMPLATE_NAME);
+					webView.getEngine().loadContent(stringWriter.toString());
+					webView.getEngine().documentProperty()
+							.addListener((observableValue, oldValue, document) -> listenToButton(document));
+					return webView;
+				} else {
+					generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_PREVIEW_PAGE);
+					clearRegistrationData();
+					goToHomePageFromRegistration();
+				}
+			} else {
+				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_PREVIEW_PAGE);
+				clearRegistrationData();
+				goToHomePageFromRegistration();
+			}
+		} catch (RegBaseCheckedException regBaseCheckedException) {
+			LOGGER.error("REGISTRATION - UI- REGISTRATION_PREVIEW_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
+					regBaseCheckedException.getMessage() + ExceptionUtils.getStackTrace(regBaseCheckedException));
+		}
+		return null;
+	}
+
 	private void listenToButton(Document document) {
 		LOGGER.info("REGISTRATION - UI - REGISTRATION_PREVIEW_CONTROLLER", APPLICATION_NAME, APPLICATION_ID,
 				"Button click action happened on preview content");

@@ -376,7 +376,7 @@ public class BiometricsController extends BaseController /* implements Initializ
 				"populateBiometricPage invoked, isUserOnboard : " + isUserOnboard);
 
 		isUserOnboardFlag = isUserOnboard;
-		Map<Entry<String, String>, Map<String, List<List<String>>>> mapToProcess = isUserOnboardFlag
+		/*Map<Entry<String, String>, Map<String, List<List<String>>>> mapToProcess = isUserOnboardFlag
 				? getOnboardUserMap()
 				: getconfigureAndNonConfiguredBioAttributes(Arrays.asList(
 						getValue(RegistrationConstants.FINGERPRINT_SLAB_LEFT,
@@ -386,7 +386,8 @@ public class BiometricsController extends BaseController /* implements Initializ
 						getValue(RegistrationConstants.FINGERPRINT_SLAB_THUMBS,
 								RegistrationConstants.twoThumbsUiAttributes),
 						getValue(RegistrationConstants.IRIS_DOUBLE, RegistrationConstants.eyesUiAttributes),
-						getValue(RegistrationConstants.FACE, RegistrationConstants.faceUiAttributes)));
+						getValue(RegistrationConstants.FACE, RegistrationConstants.faceUiAttributes)));*/
+		Map<Entry<String, String>, Map<String, List<List<String>>>> mapToProcess = getOnboardUserMap();
 
 		if (mapToProcess.isEmpty()) {
 			LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,

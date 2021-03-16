@@ -1,42 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.collections.*?>
-<?import javafx.geometry.*?>
-<?import javafx.scene.shape.*?>
-<?import javafx.scene.text.*?>
-<?import javafx.scene.image.*?>
 <?import javafx.scene.control.*?>
-<?import java.lang.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.text.Font?>
 
-<GridPane fx:id="genericScreen" hgap="5.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1530.0" prefWidth="873.0" vgap="5.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.mosip.registration.controller.GenericController">
+
+<GridPane fx:id="genericScreen" styleClass="parentPane" hgap="5.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1530.0" prefWidth="800.0" vgap="5.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.mosip.registration.controller.GenericController">
    <rowConstraints>
-      <RowConstraints percentHeight="100.0" />
+      <RowConstraints percentHeight="90.0" />
+      <RowConstraints percentHeight="10.0" />
    </rowConstraints>
    <columnConstraints>
-      <ColumnConstraints percentWidth="100.0" />
+      <ColumnConstraints percentWidth="10.0" />
+      <ColumnConstraints percentWidth="80.0" />
+      <ColumnConstraints percentWidth="10.0" />
    </columnConstraints>
    <children>
-      <GridPane fx:id="layOutGridPane">
-        <columnConstraints>
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="5.0" prefWidth="100.0" />
-          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="90.0" prefWidth="100.0" />
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="5.0" prefWidth="100.0" />
-        </columnConstraints>
-        <rowConstraints>
-            <RowConstraints minHeight="10.0" percentHeight="90.0" vgrow="SOMETIMES" />
-            <RowConstraints minHeight="10.0" percentHeight="10.0" vgrow="SOMETIMES" />
-        </rowConstraints>
+      <AnchorPane fx:id="navigationAnchorPane" GridPane.columnIndex="0" GridPane.rowIndex="0">
+         <children>
+         </children>
+      </AnchorPane>
+      <AnchorPane fx:id="anchorPane" prefHeight="500.0" prefWidth="500.0" styleClass="paneAtDisplayDemoGraphic" GridPane.columnIndex="1" GridPane.rowIndex="0">
+         <children>
+         </children>
+      </AnchorPane>
+      <GridPane fx:id="footerGridPane1" alignment="TOP_CENTER" GridPane.columnIndex="2" GridPane.rowIndex="1">
+         <columnConstraints>
+            <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" percentWidth="100.0" prefWidth="100.0" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints minHeight="10.0" percentHeight="25.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" percentHeight="50.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" percentHeight="25.0" prefHeight="30.0" vgrow="SOMETIMES" />
+         </rowConstraints>
+         <children>
+            <Button fx:id="next" alignment="BOTTOM_RIGHT" mnemonicParsing="false" styleClass="contiuneButton" text="CONTINUE" GridPane.rowIndex="1" />
+         </children>
+      </GridPane>
+
+      <GridPane fx:id="footerGridPane2" alignment="TOP_CENTER" GridPane.columnIndex="0" GridPane.rowIndex="1">
+         <columnConstraints>
+            <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" percentWidth="100.0" prefWidth="100.0" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints minHeight="10.0" percentHeight="25.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" percentHeight="50.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" percentHeight="25.0" prefHeight="30.0" vgrow="SOMETIMES" />
+         </rowConstraints>
+         <children>
+            <Button fx:id="previous" alignment="BOTTOM_RIGHT" mnemonicParsing="false" styleClass="contiuneButton" text="BACK" visible="false" GridPane.halignment="LEFT" GridPane.rowIndex="1" />
+         </children>
+      </GridPane>
+
+
+    <!--<GridPane fx:id="layOutGridPane">
+      <columnConstraints>
+          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="5.0" prefWidth="100.0" />
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="90.0" prefWidth="100.0" />
+          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="5.0" prefWidth="100.0" />
+      </columnConstraints>
+      <rowConstraints>
+          <RowConstraints minHeight="10.0" percentHeight="90.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" percentHeight="10.0" vgrow="SOMETIMES" />
+      </rowConstraints>
          <children>
             <ScrollPane fx:id="scrollPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefViewportHeight="1377.0" prefViewportWidth="786.0" GridPane.columnIndex="1">
-               <content>
-                  <AnchorPane fx:id="anchorPane" styleClass="paneAtDisplayDemoGraphic">
-                     <children>
-                        <FlowPane fx:id="flowPane" styleClass="paneAtDisplayDemoGraphic" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                           <children>
-                              <GridPane fx:id="preRegGridPane" prefHeight="90.0" prefWidth="780.0">
+               <content>-->
+                 <!-- <AnchorPane fx:id="anchorPane" styleClass="paneAtDisplayDemoGraphic">
+                     <children>-->
+                       <!-- <FlowPane fx:id="flowPane" styleClass="paneAtDisplayDemoGraphic" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                           <children>-->
+                              <!--<GridPane fx:id="preRegGridPane" prefHeight="90.0" prefWidth="780.0">
                                 <columnConstraints>
                                   <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="19.0" prefWidth="100.0" />
                                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="61.0" prefWidth="100.0" />
@@ -70,14 +103,14 @@
                                        </children>
                                     </GridPane>
                                  </children>
-                              </GridPane>
-                           </children>
-                        </FlowPane>
-                     </children>
-                  </AnchorPane>
-               </content>
-            </ScrollPane>
-            <GridPane fx:id="footerGridPane" alignment="TOP_CENTER" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                              </GridPane>-->
+                           <!--</children>
+                        </FlowPane>-->
+                   <!--  </children>
+                  </AnchorPane>-->
+               <!--</content>
+            </ScrollPane>-->
+            <!--<GridPane fx:id="footerGridPane" alignment="TOP_CENTER" GridPane.columnIndex="0" GridPane.rowIndex="1">
               <columnConstraints>
                 <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" percentWidth="100.0" prefWidth="100.0" />
               </columnConstraints>
@@ -90,8 +123,10 @@
                   <Button fx:id="next" alignment="BOTTOM_RIGHT" mnemonicParsing="false" onAction="#next" styleClass="contiuneButton" text="CONTINUE" GridPane.rowIndex="1" />
                   <Button fx:id="previous" alignment="BOTTOM_RIGHT" mnemonicParsing="false" onAction="#previous" styleClass="contiuneButton" text="BACK" visible="false" GridPane.halignment="LEFT" GridPane.rowIndex="1" />
                </children>
-            </GridPane>
-         </children>
-      </GridPane>
+            </GridPane>-->
+       <!--  </children>
+      </GridPane>-->
    </children>
 </GridPane>
+
+

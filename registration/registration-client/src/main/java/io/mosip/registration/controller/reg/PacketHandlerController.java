@@ -485,9 +485,10 @@ public class PacketHandlerController extends BaseController implements Initializ
 				generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.AUTHORIZATION_ERROR);
 			} else {
 				getScene(createRoot).setRoot(createRoot);
+				getScene(createRoot).getStylesheets().add(ClassLoader.getSystemClassLoader().getResource("application.css").toExternalForm());
 				validation.updateAsLostUIN(false);
 				registrationController.createRegistrationDTOObject(RegistrationConstants.PACKET_TYPE_NEW);
-				genericController.populateScreens();				
+				genericController.populateScreens();
 			}
 		} catch (IOException ioException) {
 			LOGGER.error("REGISTRATION - UI- Officer Packet Create ", APPLICATION_NAME, APPLICATION_ID,

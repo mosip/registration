@@ -61,4 +61,8 @@ public class UiSchemaDTO {
 
 	private String changeAction;
 
+	private boolean transliterate;
+	private String templateName;
+	private String fieldLayout;
+	private List<String> locationHierarchy;
 }

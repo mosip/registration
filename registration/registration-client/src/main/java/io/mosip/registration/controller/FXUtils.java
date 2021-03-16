@@ -167,8 +167,7 @@ public class FXUtils {
 		try {
 			((Label) parentPane.lookup(RegistrationConstants.HASH.concat(uiFieldId))).setVisible(visibility);
 		} catch (RuntimeException runtimeException) {
-			LOGGER.info("ID NOT FOUND", APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-					runtimeException.getMessage());
+			LOGGER.error(uiFieldId + " >>> ID NOT FOUND", runtimeException);
 		}
 	}
 
@@ -184,10 +183,10 @@ public class FXUtils {
 			fieldLabel.getStyleClass().add("demoGraphicFieldLabelOnType");
 			fieldLabel.getStyleClass().remove("demoGraphicFieldLabel");
 
-			if (field.getId().equals("ageField")) {
+			/*if (field.getId().equals("ageField")) {
 				((RegistrationDTO) SessionContext.map().get(RegistrationConstants.REGISTRATION_DATA))
 						.setAgeCalculatedByDOB(false);
-			}
+			}*/
 		}
 		hideErrorMessageLabel(parentPane, field);
 	}
@@ -335,7 +334,8 @@ public class FXUtils {
 				});
 				field.getStyleClass().add("demoGraphicTextFieldOnType");
 				if (field.isFocused()) {
-					Label fieldLabel = (Label) parentPane.lookup("#" + field.getId().substring(0, field.getId().length()-3) + "Label");
+					Label fieldLabel = (Label) parentPane.lookup("#" +
+							field.getId().substring(0, field.getId().length()-RegistrationConstants.LANGCODE_LENGTH) + "Label");
 					fieldLabel.getStyleClass().clear();
 					fieldLabel.getStyleClass().add("demoGraphicFieldLabelOnType");
 				}

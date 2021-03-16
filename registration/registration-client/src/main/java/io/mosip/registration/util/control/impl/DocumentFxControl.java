@@ -4,6 +4,7 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -20,6 +21,7 @@ import io.mosip.registration.controller.reg.DemographicDetailController;
 import io.mosip.registration.controller.reg.DocumentScanController;
 import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.DocumentCategoryDto;
+import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.dto.packetmanager.DocumentDto;
 import io.mosip.registration.exception.RegBaseCheckedException;
 import io.mosip.registration.service.sync.MasterSyncService;
@@ -48,7 +50,7 @@ public class DocumentFxControl extends FxControl {
 	/**
 	 * Instance of {@link Logger}
 	 */
-	private static final Logger LOGGER = AppConfig.getLogger(DemographicDetailController.class);
+	private static final Logger LOGGER = AppConfig.getLogger(DocumentFxControl.class);
 
 	private static String loggerClassName = " Text Field Control Type Class";
 
@@ -61,16 +63,13 @@ public class DocumentFxControl extends FxControl {
 	private String CLEAR_ID = "clear";
 
 	public DocumentFxControl() {
-
 		org.springframework.context.ApplicationContext applicationContext = Initialization.getApplicationContext();
-
 		documentScanController = applicationContext.getBean(DocumentScanController.class);
 		masterSyncService = applicationContext.getBean(MasterSyncService.class);
 	}
 
 	@Override
 	public FxControl build(UiSchemaDTO uiSchemaDTO) {
-
 		this.uiSchemaDTO = uiSchemaDTO;
 		this.control = this;
 
@@ -100,21 +99,14 @@ public class DocumentFxControl extends FxControl {
 		// SCAN-BUTTON
 		hBox.getChildren().add(createScanButton(uiSchemaDTO));
 
-//		Map<String, Object> nodeMap = new LinkedHashMap<String, Object>();
-//		nodeMap.put(io.mosip.registration.context.ApplicationContext.getInstance().getApplicationLanguage(), hBox);
-
-//		setNodeMap(nodeMap);
-
 		this.node = hBox;
+
 		setListener(getField(uiSchemaDTO.getId() + RegistrationConstants.BUTTON));
 
-		try {
-			fillData(masterSyncService.getDocumentCategories(uiSchemaDTO.getSubType(),
-					getRegistrationDTo().getSelectedLanguagesByApplicant().get(0)));
-		} catch (RegBaseCheckedException regBaseCheckedException) {
-			LOGGER.error(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
-					ExceptionUtils.getStackTrace(regBaseCheckedException));
-		}
+		changeNodeOrientation(hBox, getRegistrationDTo().getSelectedLanguagesByApplicant().get(0));
+
+		fillData(masterSyncService.getDocumentCategories(uiSchemaDTO.getSubType(),
+				getRegistrationDTo().getSelectedLanguagesByApplicant().get(0)));
 
 		return this.control;
 	}
@@ -167,7 +159,7 @@ public class DocumentFxControl extends FxControl {
 
 	private void scanDocument(ComboBox<DocumentCategoryDto> comboBox, String subType) {
 
-		if (isValid(comboBox)) {
+		if (isValid()) {
 			documentScanController.scanDocument(this, uiSchemaDTO.getId(), comboBox.getValue().getCode());
 
 		} else {
@@ -186,23 +178,18 @@ public class DocumentFxControl extends FxControl {
 
 		double prefWidth = simpleTypeVBox.getPrefWidth();
 
-		String labelText = "";
-		for (String lang : getRegistrationDTo().getSelectedLanguagesByApplicant()) {
-
-			ResourceBundle rb = ApplicationContext.getInstance().getBundle(lang, RegistrationConstants.LABELS);
-			String label = rb.getString(RegistrationConstants.REF_NUMBER);
-			labelText = labelText.isEmpty() ? labelText : labelText + RegistrationConstants.SLASH;
-			labelText += label;
-		}
+		ResourceBundle rb = ApplicationContext.getInstance().getBundle(
+				getRegistrationDTo().getSelectedLanguagesByApplicant().get(0), RegistrationConstants.LABELS);
 
 		/** Title label */
-		Label fieldTitle = getLabel(id + RegistrationConstants.DOC_TEXT_FIELD + RegistrationConstants.LABEL, labelText,
-				RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, false, prefWidth);
+		Label fieldTitle = getLabel(id + RegistrationConstants.DOC_TEXT_FIELD + RegistrationConstants.LABEL,
+				rb.getString(RegistrationConstants.REF_NUMBER), RegistrationConstants.DEMOGRAPHIC_FIELD_LABEL, false, prefWidth);
 
 		simpleTypeVBox.getChildren().add(fieldTitle);
 
 		/** Text Field */
-		TextField textField = getTextField(id + RegistrationConstants.DOC_TEXT_FIELD, labelText,
+		TextField textField = getTextField(id + RegistrationConstants.DOC_TEXT_FIELD,
+				rb.getString(RegistrationConstants.REF_NUMBER),
 				RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, prefWidth, false);
 
 		textField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -218,17 +205,12 @@ public class DocumentFxControl extends FxControl {
 		});
 
 		simpleTypeVBox.getChildren().add(textField);
-
-		changeNodeOrientation(simpleTypeVBox, getRegistrationDTo().getSelectedLanguagesByApplicant().get(0));
 		return simpleTypeVBox;
 	}
 
 	private VBox create(UiSchemaDTO uiSchemaDTO) {
 
 		String fieldName = uiSchemaDTO.getId();
-
-		// Get Mandatory Astrix
-		String mandatorySuffix = getMandatorySuffix(uiSchemaDTO);
 
 		/** Container holds title, fields and validation message elements */
 		VBox simpleTypeVBox = new VBox();
@@ -237,15 +219,11 @@ public class DocumentFxControl extends FxControl {
 
 		double prefWidth = 300;
 
-		String labelText = "";
-		for (String lang : getRegistrationDTo().getSelectedLanguagesByApplicant()) {
-
-			String label = uiSchemaDTO.getLabel().get(lang);
-			labelText = labelText.isEmpty() ? labelText : labelText + RegistrationConstants.SLASH;
-			labelText += label;
-		}
-
-		String titleText = labelText + mandatorySuffix;
+		List<String> labels = new ArrayList<>();
+		getRegistrationDTo().getSelectedLanguagesByApplicant().forEach(lCode -> {
+			labels.add(this.uiSchemaDTO.getLabel().get(lCode));
+		});
+		String titleText = String.join(RegistrationConstants.SLASH, labels)  + getMandatorySuffix(uiSchemaDTO);
 
 		/** Title label */
 		Label fieldTitle = getLabel(fieldName + RegistrationConstants.LABEL, titleText,
@@ -257,21 +235,9 @@ public class DocumentFxControl extends FxControl {
 				RegistrationConstants.DEMOGRAPHIC_TEXTFIELD, prefWidth, false);
 		simpleTypeVBox.getChildren().add(comboBox);
 
-//		/** Validation message (Invalid/wrong,,etc,.) */
-//		Label validationMessage = getLabel(fieldName + RegistrationConstants.MESSAGE, null,
-//				RegistrationConstants.DemoGraphicFieldMessageLabel, false, prefWidth);
-//		simpleTypeVBox.getChildren().add(validationMessage);
-
-		changeNodeOrientation(simpleTypeVBox, getRegistrationDTo().getSelectedLanguagesByApplicant().get(0));
-
 		return simpleTypeVBox;
 	}
 
-	@Override
-	public void copyTo(Node srcNode, List<Node> targetNodes) {
-		// TODO Auto-generated method stub
-
-	}
 
 	@Override
 	public void setData(Object data) {
@@ -366,13 +332,13 @@ public class DocumentFxControl extends FxControl {
 		return documentScanController.getRegistrationDTOFromSession().getDocuments().get(uiSchemaDTO.getId());
 	}
 
-	@Override
-	public boolean isValid(Node node) {
 
+	@Override
+	public boolean isValid() {
 		String poeDocValue = documentScanController
 				.getValueFromApplicationContext(RegistrationConstants.POE_DOCUMENT_VALUE);
 
-		ComboBox<DocumentCategoryDto> comboBox = (ComboBox<DocumentCategoryDto>) node;
+		ComboBox<DocumentCategoryDto> comboBox = (ComboBox<DocumentCategoryDto>) getField(uiSchemaDTO.getId());
 		if (comboBox.getValue() == null) {
 			comboBox.requestFocus();
 			return false;
@@ -381,6 +347,11 @@ public class DocumentFxControl extends FxControl {
 		} else {
 			return true;
 		}
+	}
+
+	@Override
+	public List<GenericDto> getPossibleValues(String langCode) {
+		return null;
 	}
 
 	@Override
@@ -442,11 +413,6 @@ public class DocumentFxControl extends FxControl {
 			getField(uiSchemaDTO.getId() + RegistrationConstants.LABEL).setVisible(true);
 		});
 
-//		if (ApplicationContext.getInstance().isPrimaryLanguageRightToLeft()) {
-//			field.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
-//
-//		}
-
 		changeNodeOrientation(field, getRegistrationDTo().getSelectedLanguagesByApplicant().get(0));
 
 		return field;
@@ -480,30 +446,19 @@ public class DocumentFxControl extends FxControl {
 	}
 
 	public boolean canContinue() {
-
-		boolean canContinue;
-
-		if (getRegistrationDTo().getDocuments().get(this.uiSchemaDTO.getId()) != null || getRegistrationDTo()
-				.getRegistrationCategory().equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_LOST)) {
+		if (getRegistrationDTo().getRegistrationCategory().equalsIgnoreCase(RegistrationConstants.PACKET_TYPE_LOST)) {
 			return true;
-		} else {
-
-			if (requiredFieldValidator == null) {
-				requiredFieldValidator = Initialization.getApplicationContext().getBean(RequiredFieldValidator.class);
-			}
-
-			try {
-				boolean isRequired = requiredFieldValidator.isRequiredField(this.uiSchemaDTO, getRegistrationDTo());
-				canContinue = !isRequired;
-			} catch (RegBaseCheckedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-
-				canContinue = false;
-			}
 		}
 
-		return canContinue;
+		if (requiredFieldValidator == null) {
+			requiredFieldValidator = Initialization.getApplicationContext().getBean(RequiredFieldValidator.class);
+		}
+
+		boolean isRequired = requiredFieldValidator.isRequiredField(this.uiSchemaDTO, getRegistrationDTo());
+		if(isRequired && getRegistrationDTo().getDocuments().get(this.uiSchemaDTO.getId()) == null)
+			return false;
+
+		return true;
 	}
 
 	@Override

@@ -1890,4 +1890,5 @@ public class RegistrationConstants {
 	public static final String INVALID_DATE="INVALID_DATE";
 	
 	public static final String ICONS_HBOX = "iconsHBox";
+	public static final int LANGCODE_LENGTH = 3;
 }

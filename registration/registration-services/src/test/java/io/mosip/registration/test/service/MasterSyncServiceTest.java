@@ -774,7 +774,7 @@ public class MasterSyncServiceTest {
 		Mockito.when(masterSyncDao.findLocationByParentLocCode(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(locations);
 
-		masterSyncServiceImpl.findProvianceByHierarchyCode("LOC01", "eng");
+		masterSyncServiceImpl.findLocationByParentHierarchyCode("LOC01", "eng");
 
 	}
 

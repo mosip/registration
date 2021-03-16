@@ -2437,3 +2437,20 @@ Working on new Css by taleev
 #alertImage {
 	-fx-background-size: 90.0px 90.0px;
 }
+
+/* tab pane related CSS */
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-opacity: 0;
+}
+
+.tab {
+    -fx-pref-width: 250
+}
+
+.tab-header-background {
+    -fx-background-color:transparent
+}
+
+.tab-pane{
+    -fx-padding: 0 -1 -1 -1
+}

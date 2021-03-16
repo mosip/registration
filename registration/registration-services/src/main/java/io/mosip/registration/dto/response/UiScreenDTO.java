@@ -11,12 +11,13 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UiScreenDTO {
 
-	private String order;
+	private int order;
 	private String name;
 	private HashMap<String, String> label;
 	private HashMap<String, String> caption;
 	private List<String> fields;
 	private String layoutTemplate;
 	private boolean isActive;
+	private boolean preRegFetchRequired;
 	
 }
