@@ -141,7 +141,7 @@ public class ReprocessorStageTest {
 		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
 		dtolist.add(registrationStatusDto);
 		pausedPacketList.add(registrationStatusDto);
-		Mockito.when(registrationStatusService.getPausedPackets(anyInt()))
+		Mockito.when(registrationStatusService.getResumablePackets(anyInt()))
 		.thenReturn(pausedPacketList);
 		InternalRegistrationStatusDto registrationStatusDto1 = new InternalRegistrationStatusDto();
 
@@ -174,7 +174,7 @@ public class ReprocessorStageTest {
 		registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
 		dtolist.add(registrationStatusDto);
 		pausedPacketList.add(registrationStatusDto);
-		Mockito.when(registrationStatusService.getPausedPackets(anyInt()))
+		Mockito.when(registrationStatusService.getResumablePackets(anyInt()))
 		.thenReturn(pausedPacketList);
 		InternalRegistrationStatusDto registrationStatusDto1 = new InternalRegistrationStatusDto();
 

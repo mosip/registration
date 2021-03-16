@@ -329,7 +329,7 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 	}
 	
 	public void processResumablePackets(){
-		List<InternalRegistrationStatusDto> resumableDtoList = registrationStatusService.getPausedPackets(fetchSize);
+		List<InternalRegistrationStatusDto> resumableDtoList = registrationStatusService.getResumablePackets(fetchSize);
 		Map<String,List<String>> defaultResumeActionPacketIdsMap=new HashMap<>();
 		for(InternalRegistrationStatusDto dto:resumableDtoList) {
 				if(defaultResumeActionPacketIdsMap.containsKey(dto.getDefaultResumeAction())) {

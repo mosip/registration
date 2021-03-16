@@ -265,7 +265,7 @@ public class RegistrationStatusDao {
 		return registrationStatusRepositary.createQuerySelect(queryStr, params);
 	}
 
-	public List<RegistrationStatusEntity> getPausedPackets(Integer fetchSize) {
+	public List<RegistrationStatusEntity> getResumablePackets(Integer fetchSize) {
 		Map<String, Object> params = new HashMap<>();
 		String className = RegistrationStatusEntity.class.getSimpleName();
 		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
