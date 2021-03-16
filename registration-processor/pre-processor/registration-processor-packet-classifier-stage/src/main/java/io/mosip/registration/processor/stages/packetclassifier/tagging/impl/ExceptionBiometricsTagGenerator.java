@@ -10,6 +10,7 @@ import io.mosip.registration.processor.stages.packetclassifier.tagging.TagGenera
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,6 +25,12 @@ public class ExceptionBiometricsTagGenerator implements TagGenerator {
     /** Tag name that will used be while tagging exception biometrics */
     @Value("${mosip.regproc.packet.classifier.tagging.exceptionbiometrics.tag-name:EXCEPTION_BIOMETRICS}")
     private String tagName;
+
+    /** This mapping will contain the short words for each missing biometrics, the values will used for concatenating in the tags */
+    @Value("#{${mosip.regproc.packet.classifier.tagging.exceptionbiometrics.bio-value-mapping:{'leftLittle':'LL','leftRing':'LR','leftMiddle':'LM','leftIndex':'LI','leftThumb':'LT','rightLittle':'RL','rightRing':'RR','rightMiddle':'RM','rightIndex':'RI','rightThumb':'RT','leftEye':'LE','rightEye':'RE'}}}")
+    private Map<String,String> bioValueMapping;
+
+    private static String BIOMETRICS_DELIMITER = ",";
 
     /**
      * {@inheritDoc}
@@ -43,21 +50,28 @@ public class ExceptionBiometricsTagGenerator implements TagGenerator {
             Map<String, String> tags = new HashMap<String, String>(1);
             String exceptionBiometricsString = metaInfoMap.get(JsonConstant.EXCEPTIONBIOMETRICS);
             if(exceptionBiometricsString == null) {
-                tags.put(tagName, "false");
+                tags.put(tagName, "");
                 return tags;
             }
             JSONObject exceptionBiometricsJsonObject = new JSONObject(exceptionBiometricsString);
             if(!exceptionBiometricsJsonObject.has(JsonConstant.EXCEPTIONBIOMETRICSAPPLICANT)) {
-                tags.put(tagName, "false");
+                tags.put(tagName, "");
                 return tags;
             }
             JSONObject applicantJsonObject = exceptionBiometricsJsonObject.getJSONObject(
                 JsonConstant.EXCEPTIONBIOMETRICSAPPLICANT);
                 
-            if (applicantJsonObject != null && applicantJsonObject.length() > 0)
-                tags.put(tagName, "true");
-            else
-                tags.put(tagName, "false");
+            if (applicantJsonObject == null || applicantJsonObject.length() == 0)
+                tags.put(tagName, "");
+            else {
+                StringJoiner exceptionBiometricStringJoiner = new StringJoiner(BIOMETRICS_DELIMITER);
+                for(Map.Entry<String,String> entry : bioValueMapping.entrySet()) {
+                    if(applicantJsonObject.has(entry.getKey()))
+                        exceptionBiometricStringJoiner.add(entry.getValue());
+                }
+                tags.put(tagName, exceptionBiometricStringJoiner.toString());
+            }
+
             return tags;
         } catch (JSONException e) {
             throw new ParsingException( 
