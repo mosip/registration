@@ -503,6 +503,27 @@ public class RegistrationStatusServiceImpl
 		}
 	}
 
+	
+	@Override
+	public List<InternalRegistrationStatusDto> getPausedPackets(Integer fetchSize,List<String> statusList) {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+				"RegistrationStatusServiceImpl::getUnProcessedPacketsCount()::entry");
+		try {
+			List<RegistrationStatusEntity> entityList = registrationStatusDao.getPausedPackets( fetchSize, statusList);
+
+			regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.USERID.toString(), "",
+					"RegistrationStatusServiceImpl::getUnProcessedPacketsCount()::exit");
+
+			return convertEntityListToDtoList(entityList);
+
+		} catch (DataAccessException | DataAccessLayerException e) {
+
+			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					"", e.getMessage() + ExceptionUtils.getStackTrace(e));
+			throw new TablenotAccessibleException(
+					PlatformErrorMessages.RPR_RGS_REGISTRATION_TABLE_NOT_ACCESSIBLE.getMessage(), e);
+		}
+	}
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -623,4 +644,6 @@ public class RegistrationStatusServiceImpl
 				"RegistrationStatusServiceImpl::updateRegistrationStatusForWorkFlow()::exit");
 
 	}
+
+	
 }

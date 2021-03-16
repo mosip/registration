@@ -256,4 +256,20 @@ public class RegistrationStatusDao {
 		return registrationStatusRepositary.createQuerySelect(queryStr, params);
 	}
 
+	public List<RegistrationStatusEntity> getPausedPackets(Integer fetchSize, List<String> statusList) {
+		Map<String, Object> params = new HashMap<>();
+		String className = RegistrationStatusEntity.class.getSimpleName();
+		String alias = RegistrationStatusEntity.class.getName().toLowerCase().substring(0, 1);
+		
+
+		String queryStr = SELECT_DISTINCT + alias + FROM + className + EMPTY_STRING + alias + WHERE + alias
+				+ ".latestTransactionStatusCode IN :status" +  EMPTY_STRING + AND + EMPTY_STRING + alias
+				+ ".resumeTimeStamp <" + "now()";
+
+		params.put("status", statusList);
+		
+
+		return registrationStatusRepositary.createQuerySelect(queryStr, params, fetchSize);
+	}
+
 }

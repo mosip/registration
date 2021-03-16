@@ -1,7 +1,11 @@
 package io.mosip.registration.processor.reprocessor.stage;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +32,7 @@ import io.mosip.registration.processor.core.logger.LogDescription;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
 import io.mosip.registration.processor.core.status.util.StatusUtil;
 import io.mosip.registration.processor.core.util.MessageBusUtil;
+import io.mosip.registration.processor.reprocessor.service.WorkflowActionService;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.retry.verticle.constants.ReprocessorConstants;
 import io.mosip.registration.processor.status.code.RegistrationStatusCode;
@@ -63,6 +68,9 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 	/** The environment. */
 	@Autowired
 	Environment environment;
+	
+	@Autowired
+	WorkflowActionService workflowActionService;
 
 	/** The mosip event bus. */
 	MosipEventBus mosipEventBus = null;
@@ -206,7 +214,8 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 	 */
 	@Override
 	public MessageDTO process(MessageDTO object) {
-		List<InternalRegistrationStatusDto> dtolist = null;
+		List<InternalRegistrationStatusDto> reprocessorDtolist = null;
+		List<InternalRegistrationStatusDto> pausedDtolist = null;
 		LogDescription description = new LogDescription();
 		List<String> statusList = new ArrayList<>();
 		statusList.add(RegistrationTransactionStatusCode.SUCCESS.toString());
@@ -215,11 +224,33 @@ public class ReprocessorStage extends MosipVerticleAPIManager {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), "",
 				"ReprocessorStage::process()::entry");
 		try {
-			dtolist = registrationStatusService.getUnProcessedPackets(fetchSize, elapseTime, reprocessCount,
+			pausedDtolist= registrationStatusService.getPausedPackets(fetchSize,
+					statusList);
+			List<String> deafaultActionIds=new ArrayList<>();
+			pausedDtolist.forEach(s -> deafaultActionIds.add(s.getRegistrationId()));
+			Map<String,List<String>> map=new HashMap<>();
+			for(InternalRegistrationStatusDto dto:pausedDtolist) {
+					if(map.containsKey(dto.getDefaultResumeAction())) {
+						List<String> ids=map.get(dto.getDefaultResumeAction());
+						ids.add(dto.getRegistrationId());
+						map.put(dto.getDefaultResumeAction(), ids);
+					}
+					else if(!map.containsKey(dto.getDefaultResumeAction())) {
+						map.put(dto.getDefaultResumeAction(), Arrays.asList(dto.getRegistrationId()));
+					}
+			}
+			for(Entry<String,List<String>> entry:map.entrySet()) {
+				
+					workflowActionService.processWorkflowAction(entry.getValue(), entry.getKey(), this.mosipEventBus);
+				
+			}
+			
+			reprocessorDtolist = registrationStatusService.getUnProcessedPackets(fetchSize, elapseTime, reprocessCount,
 					statusList);
 
-			if (!CollectionUtils.isEmpty(dtolist)) {
-				dtolist.forEach(dto -> {
+			if (!CollectionUtils.isEmpty(reprocessorDtolist)) {
+				reprocessorDtolist.removeIf(x ->deafaultActionIds.contains(x.getRegistrationId()));
+				reprocessorDtolist.forEach(dto -> {
 					this.registrationId = dto.getRegistrationId();
 					if (reprocessCount.equals(dto.getReProcessRetryCount())) {
 						dto.setLatestTransactionStatusCode(
