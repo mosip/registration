@@ -367,10 +367,10 @@ public class GenericController extends BaseController {
 				navigationLabel.setText(applicationContext.getApplicationLanguageLabelBundle().getString("/newregistration"));
 				break;
 			case PACKET_TYPE_UPDATE:
-				navigationLabel.setText(applicationContext.getApplicationLanguageLabelBundle().getString("/lostuin"));
+				navigationLabel.setText(applicationContext.getApplicationLanguageLabelBundle().getString("/uinupdate"));
 				break;
 			case PACKET_TYPE_LOST:
-				navigationLabel.setText(applicationContext.getApplicationLanguageLabelBundle().getString("/uinupdate"));
+				navigationLabel.setText(applicationContext.getApplicationLanguageLabelBundle().getString("/lostuin"));
 				break;
 		}
 		navigationAnchorPane.getChildren().add(navigationLabel);
@@ -412,7 +412,7 @@ public class GenericController extends BaseController {
 
 		boolean atLeastOneVisible = fieldMap.get(screenName)
 				.stream()
-				.anyMatch( fieldId -> getFxControl(fieldId).node.isVisible() );
+				.anyMatch( fieldId -> getFxControl(fieldId) != null && getFxControl(fieldId).node.isVisible() );
 
 		LOGGER.info("Screen refreshed, Screen: {} visible : {}", screenName, atLeastOneVisible);
 		return atLeastOneVisible;
@@ -465,7 +465,7 @@ public class GenericController extends BaseController {
 		for(UiScreenDTO screen : orderedScreens.values()) {
 			if(!fieldMap.get(screen.getName())
 					.stream()
-					.allMatch(fieldId -> getFxControl(fieldId).canContinue() == true)) {
+					.allMatch(fieldId -> getFxControl(fieldId) != null && getFxControl(fieldId).canContinue() == true)) {
 				errorScreen = screen.getName();
 				break;
 			}

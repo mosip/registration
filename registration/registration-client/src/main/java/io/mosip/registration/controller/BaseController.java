@@ -1881,7 +1881,7 @@ public class BaseController {
 				.collect(Collectors.toList());
 	}
 
-	protected String getCssName() {
+	public String getCssName() {
 		return cssName;
 	}
 

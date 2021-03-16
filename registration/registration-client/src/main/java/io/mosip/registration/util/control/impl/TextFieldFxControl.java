@@ -8,12 +8,13 @@ import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_
 import java.util.ArrayList;
 import java.util.List;
 
-import io.mosip.registration.dto.mastersync.GenericDto;
 import org.springframework.context.ApplicationContext;
 
 import io.mosip.commons.packet.dto.packet.SimpleDto;
 import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.transliteration.spi.Transliteration;
+import io.mosip.kernel.transliteration.icu4j.impl.TransliterationImpl;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.RegistrationConstants;
 import io.mosip.registration.constants.RegistrationUIConstants;
@@ -24,9 +25,11 @@ import io.mosip.registration.controller.VirtualKeyboard;
 import io.mosip.registration.controller.reg.Validations;
 import io.mosip.registration.dto.RegistrationDTO;
 import io.mosip.registration.dto.UiSchemaDTO;
+import io.mosip.registration.dto.mastersync.GenericDto;
 import io.mosip.registration.util.common.DemographicChangeActionHandler;
 import io.mosip.registration.util.control.FxControl;
 import javafx.collections.ObservableList;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -39,8 +42,8 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 /**
  * @author YASWANTH S
@@ -56,15 +59,17 @@ public class TextFieldFxControl extends FxControl {
 	private static String loggerClassName = " Text Field Control Type Class";
 
 	private Validations validation;
+	
 	private DemographicChangeActionHandler demographicChangeActionHandler;
+	
+	private Transliteration<String> transliteration;
 	
 	private Node keyboardNode;
 	
-	private int lastPosition;
-	
 	private boolean keyboardVisible = false;
 	
-	private Node previousNode;
+	private static double xPosition;
+	private static double yPosition;
 	
 	private String previousLangCode;
 	
@@ -77,6 +82,7 @@ public class TextFieldFxControl extends FxControl {
 		validation = applicationContext.getBean(Validations.class);
 		fxComponents = applicationContext.getBean(FXComponents.class);
 		demographicChangeActionHandler = applicationContext.getBean(DemographicChangeActionHandler.class);
+		transliteration = (Transliteration<String>) applicationContext.getBean(TransliterationImpl.class);
 	}
 
 	@Override
@@ -123,8 +129,11 @@ public class TextFieldFxControl extends FxControl {
 		TextField textField = (TextField) node;
 
 		textField.textProperty().addListener((observable, oldValue, newValue) -> {
+			if (uiSchemaDTO.isTransliterate()) {
+				transliterate(textField, textField.getId().substring(textField.getId().length() - RegistrationConstants.LANGCODE_LENGTH, textField.getId().length()));
+			}
 			if (isValid()) {
-
+				
 				setData(null);
 
 				// handling other handlers
@@ -191,18 +200,11 @@ public class TextFieldFxControl extends FxControl {
 		if(isSimpleType) {
 			HBox imagesHBox = new HBox();
 			imagesHBox.getStyleClass().add(RegistrationConstants.ICONS_HBOX);
-			imagesHBox.setPrefWidth(20);
-			imagesHBox.setSpacing(5);
-
-			if(this.uiSchemaDTO.isTransliterate()) {
-				ImageView translateImageView = new ImageView(new Image(getClass().getResourceAsStream("/images/translate.png")));
-				translateImageView.setFitHeight(20);
-				translateImageView.setFitWidth(20);
-				imagesHBox.getChildren().add(translateImageView);
-			}
+			imagesHBox.setPrefWidth(10);
 
 			VirtualKeyboard keyBoard = new VirtualKeyboard(langCode);
 			keyBoard.changeControlOfKeyboard(textField);
+			
 			ImageView keyBoardImgView = getKeyBoardImage();
 			keyBoardImgView.setId(langCode);
 			keyBoardImgView.visibleProperty().bind(textField.visibleProperty());
@@ -210,7 +212,7 @@ public class TextFieldFxControl extends FxControl {
 
 			if (keyBoardImgView != null) {
 				keyBoardImgView.setOnMouseClicked((event) -> {
-					setFocusOnField(event, keyBoard, langCode);
+					setFocusOnField(event, keyBoard, langCode, textField);
 				});
 			}
 			imagesHBox.getChildren().add(keyBoardImgView);
@@ -281,6 +283,24 @@ public class TextFieldFxControl extends FxControl {
 		return isValid;
 	}
 
+	private void transliterate(TextField textField, String langCode) {
+		for (String langCodeToBeTransliterated : getRegistrationDTo().getSelectedLanguagesByApplicant()) {
+			if (!langCodeToBeTransliterated.equalsIgnoreCase(langCode)) {
+				TextField textFieldToBeTransliterated = (TextField) getField(uiSchemaDTO.getId() + langCodeToBeTransliterated);
+				if (textFieldToBeTransliterated != null)  {
+					try {
+						textFieldToBeTransliterated.setText(transliteration.transliterate(langCode,
+								langCodeToBeTransliterated, textField.getText()));
+					} catch (RuntimeException runtimeException) {
+						LOGGER.error(loggerClassName, APPLICATION_NAME, RegistrationConstants.APPLICATION_ID,
+								"Exception occured while transliterating secondary language for field : "
+										+ textField.getId()  + " due to >>>> " + runtimeException.getMessage());
+					}
+				}
+			}
+		}
+	}
+
 	@Override
 	public List<GenericDto> getPossibleValues(String langCode) {
 		return null;
@@ -322,53 +342,47 @@ public class TextFieldFxControl extends FxControl {
 
 
 	/**
+	 *
 	 * Setting the focus to specific fields when keyboard loads
 	 * @param event
 	 * @param keyBoard
 	 * @param langCode
+	 * @param textField 
+	 *
 	 */
-	public void setFocusOnField(MouseEvent event, VirtualKeyboard keyBoard, String langCode) {
+	public void setFocusOnField(MouseEvent event, VirtualKeyboard keyBoard, String langCode, TextField textField) {
 		try {
 			Node node = (Node) event.getSource();
 			node.requestFocus();
 			Node parentNode = node.getParent().getParent().getParent();
 			if (keyboardVisible) {
-				if(previousNode != null) {
-					((VBox) previousNode).getChildren().remove(lastPosition - 1);
-				}
-//				keyBoardStage.close();
+				keyBoardStage.close();
 				keyboardVisible = false;
 				if (!langCode.equalsIgnoreCase(previousLangCode)) {
-					openKeyBoard(keyBoard, langCode, parentNode);
+					openKeyBoard(keyBoard, langCode, textField, parentNode);
 				}
 			} else {
-//				keyboardNode = keyBoard.view();
-//				keyboardNode.setVisible(true);
-//				keyboardNode.setManaged(true);
-//				getField(node.getId()).requestFocus();
-//				openKeyBoardPopUp();
-//				keyboardVisible = true;
-				openKeyBoard(keyBoard, langCode, parentNode);
+				openKeyBoard(keyBoard, langCode, textField, parentNode);
 			}
 		} catch (RuntimeException runtimeException) {
-			LOGGER.error("REGISTRATION - SETTING FOCUS ON LOCAL FIELD FAILED", APPLICATION_NAME,
+			LOGGER.error(loggerClassName, APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID,
 					runtimeException.getMessage() + ExceptionUtils.getStackTrace(runtimeException));
 		}
 	}
 	
-	private void openKeyBoard(VirtualKeyboard keyBoard, String langCode, Node parentNode) {
+	private void openKeyBoard(VirtualKeyboard keyBoard, String langCode, TextField textField, Node parentNode) {
+		if (keyBoardStage != null)  {
+			keyBoardStage.close();
+		}
 		keyboardNode = keyBoard.view();
+		keyBoard.setParentStage(fxComponents.getStage());
 		keyboardNode.setVisible(true);
 		keyboardNode.setManaged(true);
-		getField(node.getId()).requestFocus();
-		GridPane gridPane = prepareMainGridPaneForKeyboard();
-		gridPane.addColumn(1, keyboardNode);
-		((VBox) parentNode).getChildren().add(gridPane);
-		previousNode = parentNode;
+		getField(textField.getId()).requestFocus();
+		openKeyBoardPopUp();
 		previousLangCode = langCode;
 		keyboardVisible = true;
-		lastPosition = ((VBox)parentNode).getChildren().size();
 	}
 
 	private GridPane prepareMainGridPaneForKeyboard() {
@@ -383,27 +397,55 @@ public class TextFieldFxControl extends FxControl {
 		ColumnConstraints columnConstraint3 = new ColumnConstraints();
 		columnConstraint3.setPercentWidth(10);
 		columnConstraints.addAll(columnConstraint1, columnConstraint2, columnConstraint3);
+	
 		return gridPane;
 	}
 	
 	private void openKeyBoardPopUp() {
 		try {
 			keyBoardStage = new Stage();
-			keyBoardStage.initModality(Modality.WINDOW_MODAL);
-			keyBoardStage.initOwner(fxComponents.getStage());
-//			stage.setX(400);
-//			stage.setY(200);
+			keyBoardStage.setAlwaysOnTop(true);
+			keyBoardStage.initStyle(StageStyle.UNDECORATED);
+			keyBoardStage.setX(300);
+			keyBoardStage.setY(500);
 			GridPane gridPane = prepareMainGridPaneForKeyboard();
 			gridPane.addColumn(1, keyboardNode);
 			Scene scene = new Scene(gridPane);
+			scene.getStylesheets().add(ClassLoader.getSystemClassLoader().getResource(validation.getCssName()).toExternalForm());
+			gridPane.getStyleClass().add(RegistrationConstants.KEYBOARD_PANE);
 			keyBoardStage.setScene(scene);
+			makeDraggable(keyBoardStage, gridPane);
 			keyBoardStage.show();
 		} catch (Exception exception) {
-			LOGGER.error("REGISTRATION - OPENING - KEYBOARD - POPUP", APPLICATION_NAME,
+			LOGGER.error(loggerClassName, APPLICATION_NAME,
 					RegistrationConstants.APPLICATION_ID,
 					exception.getMessage() + ExceptionUtils.getStackTrace(exception));
 
 			validation.generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_SCAN_POPUP);
 		}
+	}
+	
+	private static void makeDraggable(final Stage stage, final Node node) {
+	    node.setOnMousePressed(mouseEvent -> {
+	    	// record a distance for the drag and drop operation.
+	    	xPosition = stage.getX() - mouseEvent.getScreenX();
+	    	yPosition = stage.getY() - mouseEvent.getScreenY();
+	    	node.setCursor(Cursor.MOVE);
+	    });
+	    node.setOnMouseReleased(mouseEvent -> node.setCursor(Cursor.HAND));
+	    node.setOnMouseDragged(mouseEvent -> {
+	    	stage.setX(mouseEvent.getScreenX() + xPosition);
+	    	stage.setY(mouseEvent.getScreenY() + yPosition);
+	    });
+	    node.setOnMouseEntered(mouseEvent -> {
+	    	if (!mouseEvent.isPrimaryButtonDown()) {
+	    		node.setCursor(Cursor.HAND);
+	    	}
+	    });
+	    node.setOnMouseExited(mouseEvent -> {
+	    	if (!mouseEvent.isPrimaryButtonDown()) {
+	    		node.setCursor(Cursor.DEFAULT);
+	    	}
+	    });
 	}
 }

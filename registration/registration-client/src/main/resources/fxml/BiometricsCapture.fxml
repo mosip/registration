@@ -10,7 +10,26 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<GridPane fx:id="biometric" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" styleClass="scanPage" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<!-- </children>
+         <columnConstraints>
+             <ColumnConstraints hgrow="SOMETIMES" maxWidth="60.0" minWidth="5.0" percentWidth="1.0" prefWidth="23.0" />
+             <ColumnConstraints hgrow="SOMETIMES" maxWidth="594.0" minWidth="10.0" percentWidth="98.0" prefWidth="566.0" />
+             <ColumnConstraints hgrow="SOMETIMES" maxWidth="55.0" minWidth="0.0" percentWidth="1.0" prefWidth="28.0" />
+         </columnConstraints>
+         <rowConstraints>
+             <RowConstraints minHeight="10.0" percentHeight="100.0" prefHeight="30.0" vgrow="SOMETIMES" />
+         </rowConstraints>
+     </GridPane>
+ </children>
+ <columnConstraints>
+     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="100.0" prefWidth="100.0" />
+ </columnConstraints>
+ <rowConstraints>
+     <RowConstraints minHeight="10.0" percentHeight="100.0" prefHeight="30.0" vgrow="SOMETIMES" />
+ </rowConstraints>
+</GridPane>-->
+
+<GridPane fx:id="biometric" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
        <!-- <children>
             <GridPane>
                 <children>
@@ -114,8 +133,8 @@
                                                             </GridPane>
                                                         </children>
                                                         <columnConstraints>
-                                                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="52.0" prefWidth="100.0" />
-                                                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="48.0" prefWidth="100.0" />
+                                                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="55.0" prefWidth="100.0" />
+                                                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="45.0" prefWidth="100.0" />
                                                         </columnConstraints>
                                                         <rowConstraints>
                                                             <RowConstraints minHeight="10.0" percentHeight="100.0" prefHeight="30.0" vgrow="SOMETIMES" />
@@ -184,8 +203,8 @@
                                             </GridPane>
                                         </children>
                                         <columnConstraints>
-                                            <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" percentWidth="30.0" prefWidth="100.0" />
-                                            <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" percentWidth="40.0" prefWidth="100.0" />
+                                            <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" percentWidth="20.0" prefWidth="100.0" />
+                                            <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" percentWidth="50.0" prefWidth="100.0" />
                                             <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" percentWidth="30.0" prefWidth="100.0" />
                                         </columnConstraints>
                                         <rowConstraints>
@@ -201,21 +220,3 @@
 
                         </children>
                     </GridPane>
-        <!-- </children>
-         <columnConstraints>
-             <ColumnConstraints hgrow="SOMETIMES" maxWidth="60.0" minWidth="5.0" percentWidth="1.0" prefWidth="23.0" />
-             <ColumnConstraints hgrow="SOMETIMES" maxWidth="594.0" minWidth="10.0" percentWidth="98.0" prefWidth="566.0" />
-             <ColumnConstraints hgrow="SOMETIMES" maxWidth="55.0" minWidth="0.0" percentWidth="1.0" prefWidth="28.0" />
-         </columnConstraints>
-         <rowConstraints>
-             <RowConstraints minHeight="10.0" percentHeight="100.0" prefHeight="30.0" vgrow="SOMETIMES" />
-         </rowConstraints>
-     </GridPane>
- </children>
- <columnConstraints>
-     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="100.0" prefWidth="100.0" />
- </columnConstraints>
- <rowConstraints>
-     <RowConstraints minHeight="10.0" percentHeight="100.0" prefHeight="30.0" vgrow="SOMETIMES" />
- </rowConstraints>
-</GridPane>-->

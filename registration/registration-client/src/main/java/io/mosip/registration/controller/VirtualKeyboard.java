@@ -43,6 +43,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Polygon;
+import javafx.stage.Stage;
 
 public class VirtualKeyboard {
 
@@ -63,13 +64,22 @@ public class VirtualKeyboard {
 	
 	private KeyEvent keyEvent;
 
+	private Stage parentStage;
+	
 	public VirtualKeyboard(String langCode) {
 		this(null, langCode);
 	}
 
 	private String getKey(String keyCode) {
-
 		return keyboard != null ? keyboard.getString(keyCode) : null;
+	}
+	
+	public Stage getParentStage() {
+		return parentStage;
+	}
+	
+	public void setParentStage(Stage parentStage) {
+		this.parentStage = parentStage;
 	}
 
 	/**
@@ -266,9 +276,7 @@ public class VirtualKeyboard {
 				if (target != null) {
 					targetNode = target.get();
 				} else {
-					targetNode = view().getScene().getFocusOwner();
-					if (target != null && !targetNode.getId().contains("Local"))
-						targetNode = null;
+					targetNode = getParentStage().getScene().getFocusOwner();
 				}
 
 				if (targetNode != null) {
@@ -296,7 +304,7 @@ public class VirtualKeyboard {
 		});
 		return button;
 	}
-
+	
 	private KeyEvent createKeyEvent(Object source, EventTarget target, EventType<KeyEvent> eventType, String character,
 			KeyCode code, Modifiers modifiers) {
 		return new KeyEvent(source, target, eventType, character, code.toString(), code, modifiers.shiftDown().get(),

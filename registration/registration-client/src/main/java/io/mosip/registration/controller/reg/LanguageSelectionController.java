@@ -139,7 +139,7 @@ public class LanguageSelectionController extends BaseController implements Initi
 				}
 				if (selectedLanguages.size() >= Integer.valueOf(minLangCount)
 						&& selectedLanguages.size() <= Integer.valueOf(maxLangCount)
-						&& (!mandatoryLangCodes.isEmpty() && CollectionUtils.containsAny(selectedLanguages, mandatoryLangCodes))) {
+						&& (mandatoryLangCodes.isEmpty() || (!mandatoryLangCodes.isEmpty() && CollectionUtils.containsAny(selectedLanguages, mandatoryLangCodes)))) {
 					submit.setDisable(false);
 				} else {
 					submit.setDisable(true);
