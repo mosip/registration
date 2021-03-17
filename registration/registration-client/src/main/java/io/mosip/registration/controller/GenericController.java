@@ -563,6 +563,9 @@ public class GenericController extends BaseController {
 				for(UiSchemaDTO fieldDTO : groupEntry.getValue()) {
 					try {
 						FxControl fxControl = buildFxElement(fieldDTO);
+						if(fxControl.getNode() instanceof GridPane) {
+							((GridPane)fxControl.getNode()).prefWidthProperty().bind(groupFlowPane.widthProperty());
+						}
 						groupFlowPane.getChildren().add(fxControl.getNode());
 					} catch (Exception exception){
 						LOGGER.error("Failed to build control " + fieldDTO.getId(), exception);
