@@ -1,10 +1,5 @@
 package io.mosip.registration.processor.stages.utils;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -17,7 +12,6 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -104,12 +98,23 @@ public class BiometricsXSDValidatorTest {
         PowerMockito.when(CbeffValidator.createXMLBytes(Mockito.any(), Mockito.any())).thenReturn("bdd".getBytes());
 	}
 	
+	@Test(expected=CbeffException.class)
+	public void testvalidateXSDCbeffEception() throws IOException, Exception {
+		PowerMockito.when(CbeffValidator.createXMLBytes(Mockito.any(), Mockito.any())).thenThrow(CbeffException.class);
+        biometricsXSDValidator.validateXSD(biometricRecord);
+	}
+	
 	@Test(expected=IOException.class)
-	public void testvalidateXSDEception() throws IOException, Exception {
+	public void testvalidateXSDIOEception() throws IOException, Exception {
 		URL u = PowerMockito.mock(URL.class);
         String url = "http://localhost:51000/config/registration-processor/mz/master/mosip-cbeff.xsd";
         PowerMockito.whenNew(URL.class).withArguments(url).thenReturn(u);
         PowerMockito.when(u.openStream()).thenThrow(IOException.class);
+        biometricsXSDValidator.validateXSD(biometricRecord);
+	}
+	
+	@Test
+	public void testvalidateXSDEception() throws IOException, Exception {
         biometricsXSDValidator.validateXSD(biometricRecord);
 	}
 }
