@@ -53,6 +53,8 @@ public class RegistrationConstants {
 	public static final String ALERT_GENERATION = "/fxml/Alert.fxml";
 	public static final String DASHBOARD_PAGE = "/fxml/Dashboard.fxml";
 	public static final String SELECT_LANGUAGE_PAGE = "/fxml/SelectLanguage.fxml";
+	public static final String REG_PREVIEW_PAGE = "/fxml/RegistrationPreview.fxml";
+	public static final String REG_AUTH_PAGE = "/fxml/OperatorAuthentication.fxml";
 
 	// FXML Id
 	public static final String DEMOGRAPHIC_DETAIL = "demographicDetail";
@@ -1072,6 +1074,7 @@ public class RegistrationConstants {
 	public static final String FINGERPRINT_RETRIES_COUNT = "mosip.registration.num_of_fingerprint_retries";
 	public static final String IRIS_RETRY_COUNT = "mosip.registration.num_of_iris_retries";
 	public static final String FACE_RETRY_COUNT = "mosip.registration.num_of_face_retries";
+	public static final String PHOTO_RETRY_COUNT = "mosip.registration.num_of_photo_retries";
 
 	public static final String[] LEFTHAND_SEGMNTD_FILE_PATHS = new String[] { "/fingerprints/lefthand/leftIndex/",
 			"/fingerprints/lefthand/leftLittle/", "/fingerprints/lefthand/leftMiddle/",

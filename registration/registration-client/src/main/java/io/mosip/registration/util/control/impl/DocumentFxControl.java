@@ -125,7 +125,7 @@ public class DocumentFxControl extends FxControl {
 				(new Image(this.getClass().getResourceAsStream(imagePath), 25, 25, true, true)));
 
 		boolean isVisible = getData() != null ? true : false;
-
+		imageView.setPreserveRatio(true);
 		imageVBox.setVisible(isVisible);
 
 		imageVBox.getChildren().add(imageView);
@@ -299,7 +299,7 @@ public class DocumentFxControl extends FxControl {
 									.getValueFromApplicationContext(RegistrationConstants.DOC_TYPE);
 
 							documentDto.setFormat(docType);
-							documentDto.setCategory(uiSchemaDTO.getFieldCategory());
+							documentDto.setCategory(uiSchemaDTO.getFieldCategory()); //TODO, its wrong value
 							documentDto.setOwner("Applicant");
 							documentDto.setValue(uiSchemaDTO.getSubType().concat(RegistrationConstants.UNDER_SCORE)
 									.concat(comboBox.getValue().getCode()));

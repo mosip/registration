@@ -12,7 +12,7 @@
 <?import javafx.scene.text.*?>
 <?import javafx.scene.image.*?>
 
-<GridPane fx:id="registrationPreview" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.mosip.registration.controller.reg.RegistrationPreviewController">
+<GridPane fx:id="registrationPreview" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.mosip.registration.controller.reg.RegistrationPreviewController">
   <columnConstraints>
     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
   </columnConstraints>
@@ -59,7 +59,7 @@
             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
          </rowConstraints>
       </GridPane>
-      <GridPane styleClass="headerFooter" GridPane.rowIndex="3">
+      <!--<GridPane styleClass="headerFooter" GridPane.rowIndex="3">
          <children>
             <GridPane GridPane.columnIndex="1">
                <children>
@@ -123,6 +123,6 @@
          <rowConstraints>
             <RowConstraints percentHeight="100" valignment="CENTER" vgrow="SOMETIMES" />
          </rowConstraints>
-      </GridPane>
+      </GridPane>-->
    </children>
 </GridPane>

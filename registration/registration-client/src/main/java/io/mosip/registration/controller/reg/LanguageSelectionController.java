@@ -213,16 +213,15 @@ public class LanguageSelectionController extends BaseController implements Initi
 					getClass().getResource(RegistrationConstants.CREATE_PACKET_PAGE),
 					applicationContext.getBundle(selectedLanguages.get(0), RegistrationConstants.LABELS));
 
-			registrationController.getRegTypeText().setText(applicationContext
-					.getBundle(selectedLanguages.get(0), RegistrationConstants.LABELS).getString("uinUpdateNavLbl"));
+			getRegistrationDTOFromSession().setSelectedLanguagesByApplicant(registrationController.getSelectedLangList());
 			getScene(createRoot).setRoot(createRoot);
 			genericController.populateScreens();
-		} catch (IOException ioException) {
-			LOGGER.error(LOG_REG_UIN_UPDATE, APPLICATION_NAME, APPLICATION_ID,
-					ioException.getMessage() + ExceptionUtils.getStackTrace(ioException));
-
-			generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
+			return;
+		} catch (Exception exception) {
+			LOGGER.error("Failed to load UIN update page",exception);
 		}
+		clearRegistrationData();
+		generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
 	}
 
 //	public void cancelSelection() {

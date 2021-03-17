@@ -193,6 +193,7 @@ public class ScanPopUpViewController extends BaseController {
 			LOGGER.info(LOG_REG_IRIS_CAPTURE_CONTROLLER, APPLICATION_NAME, APPLICATION_ID, "loading scan.fxml");
 			Parent scanPopup = BaseController.load(getClass().getResource(RegistrationConstants.SCAN_PAGE));
 
+			scanImage.setPreserveRatio(true);
 			scanImage.fitWidthProperty().bind(imageViewGridPane.widthProperty());
 			scanImage.fitHeightProperty().bind(imageViewGridPane.heightProperty());
 
