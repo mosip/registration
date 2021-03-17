@@ -65,11 +65,14 @@ jobs:
         name: release
         path: ./release.zip
 
-    - name: Build Mosip Stage Executor image
+    - name: Build Stage-Group-1 image
       run: |
           # The Mosip Stage Executor is not packaged as part of release.zip
-          cd "./registration-processor/mosip-stage-executor"
-          docker build . --file Dockerfile --tag mosip-stage-executor
+          cd "./$SERVICE_LOCATION"
+          docker build . --file Dockerfile --tag $SERVICE_NAME --build-arg stage_group_jar_name=$SERVICE_NAME --build-arg stage_group_name=$SERVICE_NAME
+      env:
+        SERVICE_NAME: stage-group-1
+        SERVICE_LOCATION: registration-processor/stage-groups/stage-group-1
     - name: Log into registry
       run: echo "${{ secrets.release_docker_hub }}" | docker login -u ${{ secrets.actor_docker_hub }} --password-stdin
         
@@ -86,8 +89,8 @@ jobs:
           docker push $IMAGE_ID:$VERSION
       env:
         NAMESPACE: ${{ secrets.dev_namespace_docker_hub }}
-        SERVICE_NAME: mosip-stage-executor
-        SERVICE_LOCATION: registration-processor/mosip-stage-executor
+        SERVICE_NAME: stage-group-1
+        SERVICE_LOCATION: registration-processor/stage-groups/stage-group-1
 
     - name: Build camel bridge image
       run: |
