@@ -18,10 +18,6 @@ ARG is_glowroot
 # can be passed during Docker build as build time environment for artifactory URL
 ARG artifactory_url
 
-ARG stage_group_jar_name
-
-ARG stage_group_name
-
 # environment variable to pass active profile such as DEV, QA etc at docker runtime
 ENV active_profile_env=${active_profile}
 
@@ -37,14 +33,10 @@ ENV is_glowroot_env=${is_glowroot}
 # environment variable to pass artifactory url, at docker runtime
 ENV artifactory_url_env=${artifactory_url}
 
-ENV stage_group_jar_name_env=${stage_group_jar_name}
-
-ENV stage_group_name_env=${stage_group_name}
-
 # change volume to whichever storage directory you want to use for this container.
 VOLUME /home/logs
 
-COPY ./target/${stage_group_jar_name_env}-*.jar ${stage_group_jar_name_env}.jar
+COPY ./target/stage-group-1-*.jar stage-group-1.jar
 
 CMD if [ "$is_glowroot_env" = "present" ]; then \
     wget "${artifactory_url_env}"/artifactory/libs-release-local/io/mosip/testing/glowroot.zip ; \
@@ -52,7 +44,7 @@ CMD if [ "$is_glowroot_env" = "present" ]; then \
     unzip glowroot.zip ; \
     rm -rf glowroot.zip ; \
     sed -i 's/<service_name>/registration-processor-external-stage/g' glowroot/glowroot.properties ; \
-    java -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dstage-group-name=${stage_group_name_env} -jar -javaagent:glowroot/glowroot.jar ${stage_group_jar_name_env}.jar ; \
+    java -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dstage-group-name=stage-group-1 -jar -javaagent:glowroot/glowroot.jar stage-group-1.jar ; \
     else \
-    java -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dstage-group-name=${stage_group_name_env} -jar ${stage_group_jar_name_env}.jar ; \
+    java -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dstage-group-name=stage-group-1 -jar stage-group-1.jar ; \
     fi
