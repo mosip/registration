@@ -311,7 +311,7 @@ public class PacketValidatorImplTest {
 	}
 	
 	@Test(expected=RegistrationProcessorCheckedException.class)
-	public void TestBiometricsXSDValidatonFailure() throws Exception {
+	public void testBiometricsXSDValidatonFailure() throws Exception {
 		when(biometricsXSDValidator.validateXSD(any())).thenThrow(new Exception("XSD validation failed ."));
 		PacketValidator.validate("123456789", "NEW", packetValidationDto);
 	}
