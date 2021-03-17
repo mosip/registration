@@ -166,10 +166,14 @@ public class ButtonFxControl extends FxControl {
 		if(selectedButton != null)
 			return true;
 
-		//TODO check if lostUin then return true
-		//TODO otherwise check if its visible field and updateUIN
-		//TODO otherwise check if its isRequired field
 		return false;
+	}
+
+	@Override
+	public boolean isEmpty() {
+		HBox primaryHbox = (HBox) getField(uiSchemaDTO.getId() + RegistrationConstants.HBOX);
+		Button selectedButton = getSelectedButton(primaryHbox);
+		return selectedButton == null ? true : false;
 	}
 
 	@Override

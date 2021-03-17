@@ -102,6 +102,12 @@ public class CheckBoxFxControl extends FxControl {
 	}
 
 	@Override
+	public boolean isEmpty() {
+		CheckBox checkBox = (CheckBox) getField(uiSchemaDTO.getId());
+		return checkBox == null ? true : checkBox.isSelected() ? false : true;
+	}
+
+	@Override
 	public List<GenericDto> getPossibleValues(String langCode) {
 		return null;
 	}
