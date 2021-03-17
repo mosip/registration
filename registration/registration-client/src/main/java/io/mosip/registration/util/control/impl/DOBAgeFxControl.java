@@ -177,7 +177,14 @@ public class DOBAgeFxControl extends FxControl {
 
 	@Override
 	public boolean isEmpty() {
-		return false;
+		TextField dd = (TextField) getField(
+				uiSchemaDTO.getId() + RegistrationConstants.DD + RegistrationConstants.TEXT_FIELD);
+		TextField mm = (TextField) getField(
+				uiSchemaDTO.getId() + RegistrationConstants.MM + RegistrationConstants.TEXT_FIELD);
+		TextField yyyy = (TextField) getField(
+				uiSchemaDTO.getId() + RegistrationConstants.YYYY + RegistrationConstants.TEXT_FIELD);
+		return dd != null && dd.getText().isEmpty() && mm != null && mm.getText().isEmpty() && yyyy != null
+				&& yyyy.getText().isEmpty();
 	}
 
 	@Override

@@ -104,7 +104,9 @@ public class DropDownFxControl extends FxControl {
 
 		comboBox.setOnMouseExited(event -> {
 			getField(uiSchemaDTO.getId() + RegistrationConstants.MESSAGE).setVisible(false);
+			if(comboBox.getTooltip()!=null) {
 			comboBox.getTooltip().hide();
+			}
 		});
 
 		comboBox.setOnMouseEntered((event -> {

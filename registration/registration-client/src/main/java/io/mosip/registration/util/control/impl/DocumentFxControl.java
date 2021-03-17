@@ -299,8 +299,8 @@ public class DocumentFxControl extends FxControl {
 									.getValueFromApplicationContext(RegistrationConstants.DOC_TYPE);
 
 							documentDto.setFormat(docType);
-							documentDto.setCategory(uiSchemaDTO.getFieldCategory()); //TODO, its wrong value
-							documentDto.setOwner("Applicant");
+							documentDto.setCategory(uiSchemaDTO.getSubType()); 
+							documentDto.setOwner(RegistrationConstants.APPLICANT);
 							documentDto.setValue(uiSchemaDTO.getSubType().concat(RegistrationConstants.UNDER_SCORE)
 									.concat(comboBox.getValue().getCode()));
 						} else {
