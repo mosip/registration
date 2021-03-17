@@ -412,7 +412,7 @@ public class WorkflowActionApiTest {
 	}
 
 	@Test
-	public void processURLTest() {
+	public void testProcessURL() {
 		workflowActionApi.processURL(ctx);
 		assertTrue(responseObject);
 	}
