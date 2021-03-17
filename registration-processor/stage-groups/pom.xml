@@ -18,4 +18,16 @@
 	<modules>
 		<module>stage-group-1</module>
     </modules>
+    <dependencies>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-core</artifactId>
+			<version>${io.micrometer.prometheus.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+			<version>${io.micrometer.prometheus.version}</version>
+		</dependency>
+    </dependencies>
 </project>

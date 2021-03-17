@@ -21,8 +21,8 @@ ARG artifactory_url
 # environment variable to pass active profile such as DEV, QA etc at docker runtime
 ENV active_profile_env=${active_profile}
 
-# environment variable to pass github branch to pickup configuration from, at docker runtime
-ENV spring_config_label_env=${spring_config_label}
+# environment variable to configuration server url to pickup configuration from, at docker runtime
+ENV spring_config_url_env=${spring_config_url}
 
 # environment variable to pass github branch to pickup configuration from, at docker runtime
 ENV spring_config_label_env=${spring_config_label}
@@ -36,20 +36,15 @@ ENV artifactory_url_env=${artifactory_url}
 # change volume to whichever storage directory you want to use for this container.
 VOLUME /home/logs
 
-COPY ./target/registration-processor-external-stage-*.jar registration-processor-external-stage.jar
+COPY ./target/stage-group-1-*.jar stage-group-1.jar
 
 CMD if [ "$is_glowroot_env" = "present" ]; then \
     wget "${artifactory_url_env}"/artifactory/libs-release-local/io/mosip/testing/glowroot.zip ; \
     apt-get update && apt-get install -y unzip ; \
     unzip glowroot.zip ; \
     rm -rf glowroot.zip ; \
-    
     sed -i 's/<service_name>/registration-processor-external-stage/g' glowroot/glowroot.properties ; \
-    java -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -jar -javaagent:glowroot/glowroot.jar registration-processor-external-stage.jar ; \
+    java -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dstage-group-name=stage-group-1 -jar -javaagent:glowroot/glowroot.jar stage-group-1.jar ; \
     else \
-    java -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -jar registration-processor-external-stage.jar ; \
+    java -Dspring.cloud.config.label="${spring_config_label_env}" -Dspring.profiles.active="${active_profile_env}" -Dspring.cloud.config.uri="${spring_config_url_env}" -Dstage-group-name=stage-group-1 -jar stage-group-1.jar ; \
     fi
-
-
-#CMD ["java","-Dspring.cloud.config.label=${spring_config_label_env}","-Dspring.profiles.active=${active_profile_env}","-Dspring.cloud.config.uri=${spring_config_url_env}","-jar","registration-processor-external-stage.jar"]
-
