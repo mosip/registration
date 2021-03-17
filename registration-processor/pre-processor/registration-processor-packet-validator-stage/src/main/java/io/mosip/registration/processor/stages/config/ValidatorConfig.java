@@ -36,6 +36,7 @@ import io.mosip.registration.processor.stages.utils.MandatoryValidation;
 import io.mosip.registration.processor.stages.utils.MasterDataValidation;
 import io.mosip.registration.processor.stages.utils.NotificationUtility;
 import io.mosip.registration.processor.stages.utils.RestTemplateInterceptor;
+import io.mosip.registration.processor.stages.utils.BiometricsXSDValidator;
 import io.mosip.registration.processor.stages.validator.impl.CompositePacketValidator;
 import io.mosip.registration.processor.stages.validator.impl.PacketValidatorImpl;
 
@@ -65,6 +66,11 @@ public class ValidatorConfig {
 	@Bean
 	public MasterDataValidation masterDataValidation() {
 		return new MasterDataValidation();
+	}
+	
+	@Bean
+	public BiometricsXSDValidator biometricsXSDValidator() {
+		return new BiometricsXSDValidator();
 	}
 
 	@Bean
