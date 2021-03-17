@@ -104,12 +104,12 @@ public class BiometricsXSDValidatorTest {
 	
 	
 	@Test
-	public void TestvalidateXSD() throws IOException, Exception {
+	public void testvalidateXSD() throws IOException, Exception {
 		assertTrue(biometricsXSDValidator.validateXSD(biometricRecord));
 	}
 	
 	@Test(expected=CbeffException.class)
-	public void TestvalidateXSDFailure() throws IOException, Exception {
+	public void testvalidateXSDFailure() throws IOException, Exception {
 		 PowerMockito.when(CbeffValidator.createXMLBytes(Mockito.any(), Mockito.any())).thenThrow(new CbeffException("XSD validation failed ."));			
 		assertFalse(biometricsXSDValidator.validateXSD(biometricRecord));
 	}
