@@ -54,8 +54,8 @@ public class WorkflowActionRequestValidator {
 			throws WorkflowActionRequestValidationException {
 		regProcLogger.debug("WorkflowActionRequestValidator  validate entry");
 		boolean isValid = false;
-		if (validateReqTime(workflowActionDTO.getRequesttime()) && validateId(workflowActionDTO.getId())
-				&& validateVersion(workflowActionDTO.getVersion())) {
+		if (validateId(workflowActionDTO.getId()) && validateVersion(workflowActionDTO.getVersion())
+				&& validateReqTime(workflowActionDTO.getRequesttime())) {
 			isValid = true;
 		}
 		regProcLogger.debug("WorkflowActionRequestValidator  validate exit");
