@@ -254,7 +254,7 @@ public class BioServiceImpl extends BaseService implements BioService {
 	public InputStream getStream(MdmBioDevice mdmBioDevice, String modality) throws RegBaseCheckedException {
 		LOGGER.info(BIO_SERVICE, APPLICATION_NAME, APPLICATION_ID, "Starting stream");
 
-		if (mdmBioDevice != null) {
+		if (deviceSpecificationFactory.isDeviceAvailable(mdmBioDevice)) {
 			MosipDeviceSpecificationProvider deviceSpecificationProvider = deviceSpecificationFactory
 					.getMdsProvider(mdmBioDevice.getSpecVersion());
 

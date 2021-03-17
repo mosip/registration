@@ -680,18 +680,18 @@ public class GenericBiometricsController extends BaseController /* implements In
 
 						LOGGER.info(LOG_REG_BIOMETRIC_CONTROLLER, APPLICATION_NAME, APPLICATION_ID,
 								"device search request started" + System.currentTimeMillis());
-
-						if (deviceSpecificationFactory.isDeviceAvailable(currentModality)) {
-
-							return deviceSpecificationFactory.getDeviceInfoByModality(
-									isFace(currentModality) || isExceptionPhoto(currentModality)
-											? RegistrationConstants.FACE_FULLFACE
-											: currentModality);
-						} else {
-							throw new RegBaseCheckedException(
-									RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
-									RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage());
-						}
+						
+						String modality = isFace(currentModality) || isExceptionPhoto(currentModality)
+								? RegistrationConstants.FACE_FULLFACE : currentModality;
+						 MdmBioDevice bioDevice =deviceSpecificationFactory.getDeviceInfoByModality(modality);
+						    
+						    if (deviceSpecificationFactory.isDeviceAvailable(bioDevice)) {
+	                            return bioDevice;
+	                        } else {
+	                            throw new RegBaseCheckedException(
+	                                    RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorCode(),
+	                                    RegistrationExceptionConstants.MDS_BIODEVICE_NOT_FOUND.getErrorMessage());
+	                        }
 
 					}
 				};
