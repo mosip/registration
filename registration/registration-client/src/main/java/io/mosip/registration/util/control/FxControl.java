@@ -110,6 +110,13 @@ public abstract class FxControl  {
 	public abstract boolean isValid();
 
 	/**
+	 * Check value is empty
+	 *
+	 * @return boolean is valid or not
+	 */
+	public abstract boolean isEmpty();
+
+	/**
 	 *
 	 * @param langCode
 	 * @return
@@ -176,6 +183,9 @@ public abstract class FxControl  {
 			LOGGER.debug("canContinue check on field  : {}, status {} : " ,uiSchemaDTO.getId(), isValid);
 
 			if(isValid) //empty values should be ignored, its fxControl's responsibility
+				return true;
+
+			if(isEmpty() && getRegistrationDTo().getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_LOST))
 				return true;
 
 			//required and with valid value

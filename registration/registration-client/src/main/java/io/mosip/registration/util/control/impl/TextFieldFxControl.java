@@ -283,6 +283,11 @@ public class TextFieldFxControl extends FxControl {
 		return isValid;
 	}
 
+	@Override
+	public boolean isEmpty() {
+		return false;
+	}
+
 	private void transliterate(TextField textField, String langCode) {
 		for (String langCodeToBeTransliterated : getRegistrationDTo().getSelectedLanguagesByApplicant()) {
 			if (!langCodeToBeTransliterated.equalsIgnoreCase(langCode)) {

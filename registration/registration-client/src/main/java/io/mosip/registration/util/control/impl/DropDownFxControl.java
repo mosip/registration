@@ -196,6 +196,12 @@ public class DropDownFxControl extends FxControl {
 	}
 
 	@Override
+	public boolean isEmpty() {
+		ComboBox<GenericDto> appComboBox = (ComboBox<GenericDto>) getField(uiSchemaDTO.getId());
+		return appComboBox == null || appComboBox.getSelectionModel().getSelectedItem() == null;
+	}
+
+	@Override
 	public void setListener(Node node) {
 		ComboBox<GenericDto> fieldComboBox = (ComboBox<GenericDto>) node;
 		fieldComboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {

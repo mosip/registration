@@ -364,6 +364,12 @@ public class DocumentFxControl extends FxControl {
 	}
 
 	@Override
+	public boolean isEmpty() {
+		ComboBox<DocumentCategoryDto> comboBox = (ComboBox<DocumentCategoryDto>) getField(uiSchemaDTO.getId());
+		return (comboBox.getValue() == null);
+	}
+
+	@Override
 	public List<GenericDto> getPossibleValues(String langCode) {
 		return null;
 	}

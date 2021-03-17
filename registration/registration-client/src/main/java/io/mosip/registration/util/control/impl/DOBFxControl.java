@@ -151,6 +151,11 @@ public class DOBFxControl extends FxControl {
 	}
 
 	@Override
+	public boolean isEmpty() {
+		return false;
+	}
+
+	@Override
 	public List<GenericDto> getPossibleValues(String langCode) {
 		return null;
 	}
