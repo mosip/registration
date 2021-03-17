@@ -164,7 +164,6 @@ public abstract class FxControl  {
 	public boolean canContinue() {
 		//field is not visible, ignoring valid value and isRequired check
 		if(!isFieldVisible(this.uiSchemaDTO)) {
-			//TODO need to make sure that data is cleared from registrationDTO
 			return true;
 		}
 
@@ -174,12 +173,20 @@ public abstract class FxControl  {
 
 		try {
 			boolean isValid = isValid();
+			LOGGER.debug("canContinue check on field  : {}, status {} : " ,uiSchemaDTO.getId(), isValid);
+
 			if(isValid) //empty values should be ignored, its fxControl's responsibility
 				return true;
 
 			//required and with valid value
 			if(isValid && requiredFieldValidator.isRequiredField(this.uiSchemaDTO, getRegistrationDTo()))
 				return true;
+
+			if(getRegistrationDTo().getRegistrationCategory().equals(RegistrationConstants.PACKET_TYPE_UPDATE)
+				&& !getRegistrationDTo().getUpdatableFields().contains(this.uiSchemaDTO.getId()) && !isValid) {
+				LOGGER.error("canContinue check on, {} is non-updatable ignoring", uiSchemaDTO.getId());
+				return true;
+			}
 
 		} catch (Exception exception) {
 			LOGGER.error("Error checking RequiredOn for field : " + uiSchemaDTO.getId(), exception);
@@ -244,7 +251,14 @@ public abstract class FxControl  {
 			requiredFieldValidator = Initialization.getApplicationContext().getBean(RequiredFieldValidator.class);
 		}
 		try {
-			return requiredFieldValidator.isFieldVisible(schemaDTO, getRegistrationDTo());
+			boolean isVisibleAccordingToSpec = requiredFieldValidator.isFieldVisible(schemaDTO, getRegistrationDTo());
+
+			switch (getRegistrationDTo().getRegistrationCategory()) {
+				case RegistrationConstants.PACKET_TYPE_UPDATE:
+					return (getRegistrationDTo().getUpdatableFields().contains(schemaDTO.getId())) ? isVisibleAccordingToSpec : false;
+				case RegistrationConstants.PACKET_TYPE_NEW: return isVisibleAccordingToSpec;
+				case RegistrationConstants.PACKET_TYPE_LOST: return isVisibleAccordingToSpec;
+			}
 		} catch (Exception exception) {
 			LOGGER.error(loggerClassName, APPLICATION_NAME, APPLICATION_ID,
 					ExceptionUtils.getStackTrace(exception));

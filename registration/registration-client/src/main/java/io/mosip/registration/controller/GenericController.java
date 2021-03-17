@@ -214,9 +214,9 @@ public class GenericController extends BaseController {
 		SuccessResponseDTO successResponseDTO = responseDTO.getSuccessResponseDTO();
 		List<ErrorResponseDTO> errorResponseDTOList = responseDTO.getErrorResponseDTOs();
 
-		if (errorResponseDTOList != null && !errorResponseDTOList.isEmpty() ||
-				successResponseDTO==null ||
-				successResponseDTO.getOtherAttributes() == null ||
+		if (errorResponseDTOList != null && !errorResponseDTOList.isEmpty() || 
+				successResponseDTO==null || 
+				successResponseDTO.getOtherAttributes() == null || 
 				!successResponseDTO.getOtherAttributes().containsKey(RegistrationConstants.REGISTRATION_DTO)) {
 			throw new RegBaseCheckedException(RegistrationExceptionConstants.PRE_REG_SYNC_FAIL.getErrorCode(),
 					RegistrationExceptionConstants.PRE_REG_SYNC_FAIL.getErrorMessage());
@@ -238,7 +238,6 @@ public class GenericController extends BaseController {
 
 					else if (preRegistrationDTO.getDocuments().containsKey(field)) {
 						fxControl.selectAndSet(preRegistrationDTO.getDocuments().get(field));
-
 					}
 				}
 			}

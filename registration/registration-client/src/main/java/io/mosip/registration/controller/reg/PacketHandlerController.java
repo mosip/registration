@@ -497,6 +497,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 		} catch (Exception exception) {
 			LOGGER.error("Failed to start registration", exception);
 		}
+		clearRegistrationData();
 		generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
 	}
 
@@ -528,6 +529,7 @@ public class PacketHandlerController extends BaseController implements Initializ
 		} catch (Exception exception) {
 			LOGGER.error("Failed to start Lost UIN", exception);
 		}
+		clearRegistrationData();
 		generateAlert(RegistrationConstants.ERROR, RegistrationUIConstants.UNABLE_LOAD_REG_PAGE);
 	}
 
