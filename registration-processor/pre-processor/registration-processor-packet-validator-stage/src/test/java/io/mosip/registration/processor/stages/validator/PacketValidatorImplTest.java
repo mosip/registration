@@ -4,6 +4,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -252,7 +254,7 @@ public class PacketValidatorImplTest {
         BIR bir = new BIR.BIRBuilder().build();
         biometricRecord.setSegments(Lists.newArrayList(bir,bir));
         when(packetManagerService.getField(any(), any(), any(), any())).thenReturn("biometricsField");
-        when(biometricsXSDValidator.validateXSD(any(),any())).thenReturn(true);
+        doNothing().when(biometricsXSDValidator).validateXSD(any());
         when(packetManagerService.getBiometricsByMappingJsonKey(anyString(),any(), any(), any())).thenReturn(biometricRecord);
         when(applicantDocumentValidation.validateDocument(any(), any())).thenReturn(true);
 	}
@@ -312,15 +314,16 @@ public class PacketValidatorImplTest {
 	
 	@Test(expected=RegistrationProcessorCheckedException.class)
 	public void testBiometricsXSDValidatonException() throws Exception {
-		when(biometricsXSDValidator.validateXSD(any(),any())).thenThrow(new Exception("IO Exception occurred"));
+		doThrow(new Exception("IO Exception occurred")).when(biometricsXSDValidator).validateXSD(any());
 		PacketValidator.validate("123456789", "NEW", packetValidationDto);
 	}
 	
 	@Test
 	public void testBiometricsXSDValidatonFailure() throws Exception {
-		when(biometricsXSDValidator.validateXSD(any(),any())).thenReturn(false);
+		doThrow(new CbeffException("CbeffException occurred")).when(biometricsXSDValidator).validateXSD(any());
 		assertFalse(PacketValidator.validate("123456789", "NEW", packetValidationDto));
 	}
+	
 	
 	@Test
 	public void testPacketManagerValidationFailure() throws IOException, IdentityNotFoundException, ApisResourceAccessException, JsonProcessingException, RegistrationProcessorCheckedException, PacketManagerException {

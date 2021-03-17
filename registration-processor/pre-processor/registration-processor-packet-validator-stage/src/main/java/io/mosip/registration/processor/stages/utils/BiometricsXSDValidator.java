@@ -37,20 +37,13 @@ public class BiometricsXSDValidator {
     @Value("${mosip.kernel.xsdfile}")
     private String schemaFileName;
     
-    public boolean validateXSD(BiometricRecord biometricRecord, PacketValidationDto packetValidationDto ) throws Exception  {
+    public void validateXSD(BiometricRecord biometricRecord ) throws Exception  {
     	try (InputStream xsd = new URL(configServerFileStorageURL + schemaFileName).openStream()) {
             CbeffContainerImpl cbeffContainer = new CbeffContainerImpl();
             List<BIR> birList = new ArrayList<>();
             biometricRecord.getSegments().forEach(s -> birList.add(convertToBIR(s)));
-            BIRType bir = cbeffContainer.createBIRType(birList);
-            try{
+            BIRType bir = cbeffContainer.createBIRType(birList);           
             CbeffValidator.createXMLBytes(bir, IOUtils.toByteArray(xsd));//validates XSD 
-            }catch(CbeffException e) {
-            	packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.XSD_VALIDATION_EXCEPTION.getMessage()+e.getMessage());
-                packetValidationDto.setPacketValidatonStatusCode(StatusUtil.XSD_VALIDATION_EXCEPTION.getCode());
-                return false;
-            }
-            return true; 
         }
     } 
 

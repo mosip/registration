@@ -12,6 +12,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
+import io.mosip.kernel.core.cbeffutil.exception.CbeffException;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.kernel.core.util.exception.JsonProcessingException;
 import io.mosip.registration.processor.core.constant.LoggerFileConstant;
@@ -182,12 +183,16 @@ public class PacketValidatorImpl implements PacketValidator {
     			try {
     	            BiometricRecord biometricRecord = packetManagerService.getBiometricsByMappingJsonKey(
     	                    id, field, process, ProviderStageName.PACKET_VALIDATOR);
-    	            if(!biometricsXSDValidator.validateXSD(biometricRecord,packetValidationDto)) {
-    	            	return false;
-    	            }
-    	             } catch (Exception e) {     	 
-    	            throw new RegistrationProcessorCheckedException(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
-    	                    PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), e);
+    	            biometricsXSDValidator.validateXSD(biometricRecord);
+    	             } catch (Exception e) {     
+    	            	 if(e instanceof CbeffException) {
+    	            		 packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.XSD_VALIDATION_EXCEPTION.getMessage()+e.getMessage());
+    	            		 packetValidationDto.setPacketValidatonStatusCode(StatusUtil.XSD_VALIDATION_EXCEPTION.getCode());
+    	                     return false;
+    	            	 }else {
+    	            		 throw new RegistrationProcessorCheckedException(PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
+    	            				 PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getMessage(), e);
+    	            	 }
     	        }
     		}
     	}	
