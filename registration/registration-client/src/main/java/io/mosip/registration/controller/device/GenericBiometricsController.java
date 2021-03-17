@@ -1,7 +1,6 @@
 package io.mosip.registration.controller.device;
 
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_BIOMETRIC_CONTROLLER;
-import static io.mosip.registration.constants.LoggerConstants.LOG_REG_FINGERPRINT_CAPTURE_CONTROLLER;
 import static io.mosip.registration.constants.LoggerConstants.LOG_REG_SCAN_CONTROLLER;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_ID;
 import static io.mosip.registration.constants.RegistrationConstants.APPLICATION_NAME;
@@ -11,15 +10,21 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.ResourceBundle;
 
 import javax.imageio.ImageIO;
 
-import io.mosip.registration.dto.UiSchemaDTO;
-import io.mosip.registration.service.operator.UserOnboardService;
-import io.mosip.registration.util.common.Modality;
-import org.apache.commons.io.IOUtils;
 import org.mvel2.MVEL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,7 +44,6 @@ import io.mosip.kernel.core.cbeffutil.entity.BIR.BIRBuilder;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.PurposeType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.RegistryIDType;
 import io.mosip.kernel.core.cbeffutil.jaxbclasses.SingleType;
-import io.mosip.kernel.core.exception.ExceptionUtils;
 import io.mosip.kernel.core.logger.spi.Logger;
 import io.mosip.registration.config.AppConfig;
 import io.mosip.registration.constants.AuditEvent;
@@ -55,6 +59,7 @@ import io.mosip.registration.controller.reg.DocumentScanController;
 import io.mosip.registration.controller.reg.RegistrationController;
 import io.mosip.registration.controller.reg.UserOnboardParentController;
 import io.mosip.registration.dao.UserDetailDAO;
+import io.mosip.registration.dto.UiSchemaDTO;
 import io.mosip.registration.dto.mastersync.BiometricAttributeDto;
 import io.mosip.registration.dto.packetmanager.BiometricsDto;
 import io.mosip.registration.dto.packetmanager.DocumentDto;
@@ -66,6 +71,8 @@ import io.mosip.registration.mdm.dto.MDMRequestDto;
 import io.mosip.registration.mdm.dto.MdmBioDevice;
 import io.mosip.registration.mdm.service.impl.MosipDeviceSpecificationFactory;
 import io.mosip.registration.service.bio.BioService;
+import io.mosip.registration.service.operator.UserOnboardService;
+import io.mosip.registration.util.common.Modality;
 import io.mosip.registration.util.control.impl.BiometricFxControl;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
@@ -313,6 +320,10 @@ public class GenericBiometricsController extends BaseController /* implements In
 			deviceSearchTask.cancel();
 		}
 	}
+	
+	public Modality getCurrentModality() {
+		return currentModality;
+	}
 
 	private Node exceptionVBox;
 
@@ -475,6 +486,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 		exceptionImgVBox.setSpacing(5);
 		Label checkBoxTitle = new Label();
 		checkBoxTitle.setText(applicationLabelBundle.getString("exceptionCheckBoxPaneLabel"));
+		exceptionImgVBox.setAlignment(Pos.CENTER);
 		exceptionImgVBox.getChildren().addAll(checkBoxTitle);
 		checkBoxTitle.getStyleClass().add("demoGraphicFieldLabel");
 
@@ -632,7 +644,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 			LOGGER.info("Saving Proof of exception document into field : {}", result.get().getId());
 		}
 
-		fxControl.refreshExceptionMarks();
+		fxControl.refreshExceptionMarks(currentModality);
 		displayExceptionBiometric(currentModality);
 		refreshContinueButton();
 	}
@@ -955,7 +967,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 							}
 						}
 
-						fxControl.refreshExceptionMarks();
+						fxControl.refreshExceptionMarks(currentModality);
 					} catch (IOException exception) {
 						LOGGER.error("EXception while extract & saving stream images", exception);
 					}
@@ -1553,7 +1565,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 		continueBtn.setDisable(result ? false : true);
 	}
 
-	private boolean hasApplicantBiometricException() {
+	public boolean hasApplicantBiometricException() {
 		LOGGER.debug("Checking whether applicant has biometric exceptions");
 
 		boolean hasApplicantBiometricException = false;
@@ -1764,43 +1776,43 @@ public class GenericBiometricsController extends BaseController /* implements In
 	}
 
 	private void addImageInUIPane(String subType, Modality modality, Image uiImage, boolean isCaptured) {
-		for (GridPane gridPane : leftHandImageBoxMap.values()) {
-			if (gridPane.getId().equals(subType)) {
-
-				for (Node node : gridPane.getChildren()) {
-
-					if (node.getId().equalsIgnoreCase(modality.name())) {
-						VBox vBox = (VBox) node;
-						HBox hBox = (HBox) vBox.getChildren().get(0);
-						// hBox.getChildren().clear();
-						((ImageView) (hBox.getChildren().get(0))).setImage(uiImage != null ? uiImage
-								: new Image(this.getClass().getResourceAsStream(getImageIconPath(modality))));
-
-						if (isCaptured) {
-							if (hBox.getChildren().size() == 1) {
-								ImageView imageView;
-								if (uiImage == null) {
-									imageView = new ImageView(new Image(this.getClass()
-											.getResourceAsStream(RegistrationConstants.EXCLAMATION_IMG_PATH)));
-								} else {
-									imageView = new ImageView(new Image(this.getClass()
-											.getResourceAsStream(RegistrationConstants.TICK_CIRICLE_IMG_PATH)));
-								}
-
-								imageView.setFitWidth(40);
-								imageView.setFitHeight(40);
-								hBox.getChildren().add(imageView);
-							}
-						} else {
-
-							if (hBox.getChildren().size() > 1) {
-								hBox.getChildren().remove(1);
-							}
-						}
-					}
-				}
-			}
-		}
+//		for (GridPane gridPane : leftHandImageBoxMap.values()) {
+//			if (gridPane.getId().equals(subType)) {
+//
+//				for (Node node : gridPane.getChildren()) {
+//
+//					if (node.getId().equalsIgnoreCase(modality.name())) {
+//						VBox vBox = (VBox) node;
+//						HBox hBox = (HBox) vBox.getChildren().get(0);
+//						// hBox.getChildren().clear();
+//						((ImageView) (hBox.getChildren().get(0))).setImage(uiImage != null ? uiImage
+//								: new Image(this.getClass().getResourceAsStream(getImageIconPath(modality))));
+//
+//						if (isCaptured) {
+//							if (hBox.getChildren().size() == 1) {
+//								ImageView imageView;
+//								if (uiImage == null) {
+//									imageView = new ImageView(new Image(this.getClass()
+//											.getResourceAsStream(RegistrationConstants.EXCLAMATION_IMG_PATH)));
+//								} else {
+//									imageView = new ImageView(new Image(this.getClass()
+//											.getResourceAsStream(RegistrationConstants.TICK_CIRICLE_IMG_PATH)));
+//								}
+//
+//								imageView.setFitWidth(40);
+//								imageView.setFitHeight(40);
+//								hBox.getChildren().add(imageView);
+//							}
+//						} else {
+//
+//							if (hBox.getChildren().size() > 1) {
+//								hBox.getChildren().remove(1);
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
 	}
 
 	private Pane getExceptionImagePane(Modality modality, List<String> configBioAttributes,
@@ -1878,7 +1890,7 @@ public class GenericBiometricsController extends BaseController /* implements In
 		genericController.refreshFields();
 		displayBiometric(currentModality);
 		setScanButtonVisibility(isAllMarked, scanBtn);
-		fxControl.refreshExceptionMarks();
+		fxControl.refreshExceptionMarks(currentModality);
 	}
 
 	private void setBiometricExceptionVBox(boolean visible) {
@@ -2208,12 +2220,12 @@ public class GenericBiometricsController extends BaseController /* implements In
 		pane.setPrefHeight(200);
 		pane.setPrefWidth(200);
 
-		ImageView topImageView = getImageView(null, RegistrationConstants.THUMB_IMG_PATH, 144, 171, 14, 7, true, true,
+		ImageView topImageView = getImageView(null, RegistrationConstants.THUMB_IMG_PATH, 144, 171, 18, 22, true, true,
 				false);
 
-		ImageView left = getImageView("leftThumb", RegistrationConstants.LEFTTHUMB_IMG_PATH, 92, 28, 55, 37, true, true,
+		ImageView left = getImageView("leftThumb", RegistrationConstants.LEFTTHUMB_IMG_PATH, 92, 30, 55, 37, true, true,
 				true);
-		ImageView right = getImageView("rightThumb", RegistrationConstants.LEFTTHUMB_IMG_PATH, 99, 28, 115, 38, true,
+		ImageView right = getImageView("rightThumb", RegistrationConstants.LEFTTHUMB_IMG_PATH, 99, 30, 123, 38, true,
 				true, true);
 
 		pane.getChildren().add(topImageView);
