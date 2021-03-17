@@ -54,7 +54,7 @@ import io.mosip.registration.processor.status.service.RegistrationStatusService;
  */
 @Component
 public class WorkflowActionService {
-	
+
 	/** The registration status service. */
 	@Autowired
 	RegistrationStatusService<String, InternalRegistrationStatusDto, RegistrationStatusDto> registrationStatusService;
@@ -209,7 +209,7 @@ public class WorkflowActionService {
 	 */
 	private void processResumeFromBeginningAndRemoveHotlistedTag(List<String> workflowIds,
 			WorkflowActionCode workflowActionCode)
-			throws 
+			throws
 			WorkflowActionException {
 		regProcLogger.debug("processResumeFromBeginningAndRemoveHotlistedTag called for workflowIds {}", workflowIds);
 		boolean isTransactionSuccessful = false;
@@ -312,7 +312,7 @@ public class WorkflowActionService {
 	 */
 	private void processResumeProcessingAndRemoveHotlistedTag(List<String> workflowIds,
 			WorkflowActionCode workflowActionCode)
-			throws 
+			throws
 			WorkflowActionException {
 
 		regProcLogger.debug("processResumeProcessingAndRemoveHotlistedTag called for workflowIds {}", workflowIds);
@@ -332,7 +332,7 @@ public class WorkflowActionService {
 							String.format(PlatformSuccessMessages.RPR_WORKFLOW_ACTION_SERVICE_SUCCESS.getMessage(),
 									workflowActionCode.name()));
 						isTransactionSuccessful = true;
-					
+
 			} catch (ApisResourceAccessException | PacketManagerException
 					| JsonProcessingException | WorkflowActionException e) {
 				logAndThrowError(e, ((BaseCheckedException) e).getErrorCode(), ((BaseCheckedException) e).getMessage(),

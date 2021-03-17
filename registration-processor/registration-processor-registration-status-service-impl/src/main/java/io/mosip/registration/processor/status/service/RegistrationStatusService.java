@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusSubRequestDto;
 
 // TODO: Auto-generated Javadoc
@@ -124,4 +125,6 @@ public interface RegistrationStatusService<T, U, D> {
 	public List<U> getByIdsAndTimestamp(List<String> ids);
 
 	public void updateRegistrationStatusForWorkflow(U registrationStatusDto, String moduleId, String moduleName);
+
+	public List<InternalRegistrationStatusDto> getResumablePackets(Integer fetchSize);
 }
