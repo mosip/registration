@@ -30,7 +30,7 @@ public class WebSubUtilTest {
 	public void testPublishEventSuccess() throws WebSubClientException {
 		WorkflowCompletedEventDTO workflowCompletedEventDTO = new WorkflowCompletedEventDTO();
 		when(env.getProperty("websub.publish.url")).thenReturn("/websubdummypublishurl");
-		webSubUtil.publishSuccess(workflowCompletedEventDTO);
+		webSubUtil.publishEvent(workflowCompletedEventDTO);
 	}
 
 }

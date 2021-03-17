@@ -24,16 +24,19 @@ public class WebSubUtil {
 	@Value("${mosip.regproc.workflow.complete.topic}")
 	private String workflowCompleteTopic;
 
+	@Value("${websub.publish.url}")
+	private String webSubPublishUrl;
+
 	/** The reg proc logger. */
 	private static Logger regProcLogger = RegProcessorLogger.getLogger(WebSubUtil.class);
 
-	public void publishSuccess(WorkflowCompletedEventDTO workflowCompletedEventDTO)
+	public void publishEvent(WorkflowCompletedEventDTO workflowCompletedEventDTO)
 			throws WebSubClientException {
 		String rid = workflowCompletedEventDTO.getInstanceId();
 		registerTopic(rid);
 		HttpHeaders httpHeaders = new HttpHeaders();
 		publisher.publishUpdate(workflowCompleteTopic, workflowCompletedEventDTO,
-				MediaType.APPLICATION_JSON_UTF8_VALUE, httpHeaders, env.getProperty("websub.publish.url"));
+				MediaType.APPLICATION_JSON_UTF8_VALUE, httpHeaders, webSubPublishUrl);
 		regProcLogger.info("Publish the update successfully  for registration id {}", rid);
 
 
@@ -42,7 +45,7 @@ public class WebSubUtil {
 	private void registerTopic(String rid) {
 		try {
 			publisher.registerTopic(workflowCompleteTopic,
-					env.getProperty("websub.publish.url"));
+					webSubPublishUrl);
 		} catch (WebSubClientException e) {
 			regProcLogger.error("Topic already registered for registration id {}", rid);
 

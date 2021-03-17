@@ -19,24 +19,17 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.context.WebApplicationContext;
 
-import io.mosip.registration.processor.core.abstractverticle.EventDTO;
-import io.mosip.registration.processor.core.abstractverticle.MessageBusAddress;
-import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
-import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.exception.WorkflowActionException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
-import io.mosip.registration.processor.core.spi.eventbus.EventHandler;
 import io.mosip.registration.processor.packet.storage.utils.PacketManagerService;
 import io.mosip.registration.processor.reprocessor.service.WorkflowActionService;
+import io.mosip.registration.processor.reprocessor.stage.ReprocessorStage;
 import io.mosip.registration.processor.reprocessor.util.WebSubUtil;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.exception.TablenotAccessibleException;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest
@@ -64,7 +57,10 @@ public class WorkflowActionServiceTest {
 
 	private InternalRegistrationStatusDto registrationStatusDto;
 	
-	MosipEventBus mosipEventBus;
+
+
+	@Mock
+	ReprocessorStage reprocessorStage;
 
 	@Before
 	public void setUp()
@@ -83,34 +79,7 @@ public class WorkflowActionServiceTest {
 		Mockito.when(packetManagerService.deleteTags(any(), any())).thenReturn(true);
 		Mockito.when(auditLogRequestBuilder.createAuditRequestBuilder(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(null);
-		mosipEventBus = new MosipEventBus() {
 
-			@Override
-			public void send(MessageBusAddress toAddress, MessageDTO message) {
-
-
-			}
-
-			@Override
-			public Vertx getEventbus() {
-
-				return null;
-			}
-
-			@Override
-			public void consumeAndSend(MessageBusAddress fromAddress, MessageBusAddress toAddress,
-					EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler) {
-
-
-			}
-
-			@Override
-			public void consume(MessageBusAddress fromAddress,
-					EventHandler<EventDTO, Handler<AsyncResult<MessageDTO>>> eventHandler) {
-
-
-			}
-		};
 	}
 
 	@Test
@@ -118,7 +87,7 @@ public class WorkflowActionServiceTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(registrationStatusDto);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING", mosipEventBus);
+		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING");
 
 	}
 
@@ -129,7 +98,7 @@ public class WorkflowActionServiceTest {
 
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING", mosipEventBus);
+		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING");
 
 	}
 
@@ -141,7 +110,7 @@ public class WorkflowActionServiceTest {
 				.thenThrow(tablenotAccessibleException);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING", mosipEventBus);
+		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING");
 
 	}
 
@@ -150,8 +119,7 @@ public class WorkflowActionServiceTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(registrationStatusDto);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING_AND_REMOVE_HOTLISTED_TAG",
-				mosipEventBus);
+		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING_AND_REMOVE_HOTLISTED_TAG");
 
 	}
 
@@ -161,8 +129,7 @@ public class WorkflowActionServiceTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(registrationStatusDto);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING_AND_REMOVE_HOTLISTED_TAG",
-				mosipEventBus);
+		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING_AND_REMOVE_HOTLISTED_TAG");
 
 	}
 
@@ -174,8 +141,7 @@ public class WorkflowActionServiceTest {
 				.thenThrow(tablenotAccessibleException);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING_AND_REMOVE_HOTLISTED_TAG",
-				mosipEventBus);
+		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING_AND_REMOVE_HOTLISTED_TAG");
 
 	}
 
@@ -184,8 +150,7 @@ public class WorkflowActionServiceTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING_AND_REMOVE_HOTLISTED_TAG",
-				mosipEventBus);
+		workflowActionService.processWorkflowAction(workflowIds, "RESUME_PROCESSING_AND_REMOVE_HOTLISTED_TAG");
 
 	}
 
@@ -194,8 +159,7 @@ public class WorkflowActionServiceTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(registrationStatusDto);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_FROM_BEGINNING",
-				mosipEventBus);
+		workflowActionService.processWorkflowAction(workflowIds, "RESUME_FROM_BEGINNING");
 
 	}
 
@@ -204,7 +168,7 @@ public class WorkflowActionServiceTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_FROM_BEGINNING", mosipEventBus);
+		workflowActionService.processWorkflowAction(workflowIds, "RESUME_FROM_BEGINNING");
 
 	}
 
@@ -216,7 +180,7 @@ public class WorkflowActionServiceTest {
 				.thenThrow(tablenotAccessibleException);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_FROM_BEGINNING", mosipEventBus);
+		workflowActionService.processWorkflowAction(workflowIds, "RESUME_FROM_BEGINNING");
 
 	}
 
@@ -226,8 +190,7 @@ public class WorkflowActionServiceTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(registrationStatusDto);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_FROM_BEGINNING_AND_REMOVE_HOTLISTED_TAG",
-				mosipEventBus);
+		workflowActionService.processWorkflowAction(workflowIds, "RESUME_FROM_BEGINNING_AND_REMOVE_HOTLISTED_TAG");
 
 	}
 
@@ -237,8 +200,7 @@ public class WorkflowActionServiceTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(registrationStatusDto);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_FROM_BEGINNING_AND_REMOVE_HOTLISTED_TAG",
-				mosipEventBus);
+		workflowActionService.processWorkflowAction(workflowIds, "RESUME_FROM_BEGINNING_AND_REMOVE_HOTLISTED_TAG");
 
 	}
 
@@ -247,8 +209,7 @@ public class WorkflowActionServiceTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_FROM_BEGINNING_AND_REMOVE_HOTLISTED_TAG",
-				mosipEventBus);
+		workflowActionService.processWorkflowAction(workflowIds, "RESUME_FROM_BEGINNING_AND_REMOVE_HOTLISTED_TAG");
 
 	}
 
@@ -261,8 +222,7 @@ public class WorkflowActionServiceTest {
 				.thenThrow(tablenotAccessibleException);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "RESUME_FROM_BEGINNING_AND_REMOVE_HOTLISTED_TAG",
-				mosipEventBus);
+		workflowActionService.processWorkflowAction(workflowIds, "RESUME_FROM_BEGINNING_AND_REMOVE_HOTLISTED_TAG");
 
 	}
 	@Test
@@ -270,8 +230,7 @@ public class WorkflowActionServiceTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(registrationStatusDto);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "STOP_PROCESSING",
-				mosipEventBus);
+		workflowActionService.processWorkflowAction(workflowIds, "STOP_PROCESSING");
 
 	}
 
@@ -280,7 +239,7 @@ public class WorkflowActionServiceTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(anyString())).thenReturn(null);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "STOP_PROCESSING", mosipEventBus);
+		workflowActionService.processWorkflowAction(workflowIds, "STOP_PROCESSING");
 
 	}
 
@@ -292,7 +251,7 @@ public class WorkflowActionServiceTest {
 				.thenThrow(tablenotAccessibleException);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "STOP_PROCESSING", mosipEventBus);
+		workflowActionService.processWorkflowAction(workflowIds, "STOP_PROCESSING");
 
 	}
 
@@ -301,7 +260,7 @@ public class WorkflowActionServiceTest {
 		Mockito.when(registrationStatusService.getRegistrationStatus(Mockito.any())).thenReturn(registrationStatusDto);
 		List<String> workflowIds = new ArrayList<String>();
 		workflowIds.add("10003100030001520190422074511");
-		workflowActionService.processWorkflowAction(workflowIds, "test", mosipEventBus);
+		workflowActionService.processWorkflowAction(workflowIds, "test");
 
 	}
 }

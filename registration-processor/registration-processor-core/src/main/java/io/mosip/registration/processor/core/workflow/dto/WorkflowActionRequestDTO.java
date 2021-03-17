@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class WorkflowActionRequestDTO {
 
-	private List<String> workflowId;
+	private List<String> workflowIds;
 
 	private String workflowAction;
 

@@ -26,8 +26,7 @@ public abstract class VertxWrapperHandler implements Handler<RoutingContext> {
     @Override
     public void handle(RoutingContext context) {
         JsonObject obj = context.getBodyAsJson();
-		/* commented for workaround for workflowaction api need to work need to fix */
-        //ContextualData.put(TracingConstant.RID_KEY, obj != null ? obj.getString("rid") : getRIDFromContext(context));
+		ContextualData.put(TracingConstant.RID_KEY, getRid(obj, context));
         MDCHelper.addHeadersToMDC();
         regProcLogger.debug("VertxWrapperHandler::entry");
         try {
@@ -38,7 +37,18 @@ public abstract class VertxWrapperHandler implements Handler<RoutingContext> {
     }
 
 
-    private String getRIDFromContext(RoutingContext context) {
+	private String getRid(JsonObject obj, RoutingContext context) {
+		String rid;
+		if (obj == null) {
+			rid = getRIDFromContext(context);
+		} else {
+			rid=obj.getString("rid");
+			rid = rid != null ? rid : "-";
+		}
+		return rid;
+	}
+
+	private String getRIDFromContext(RoutingContext context) {
         Optional<FileUpload> fileUpload = context.fileUploads() != null ?
                 context.fileUploads().stream().findFirst() : Optional.empty();
         regProcLogger.warn("Considering RID from filename as request bodyAsJson is null");

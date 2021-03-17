@@ -1,6 +1,5 @@
 package io.mosip.registration.processor.reprocessor.stage;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 
@@ -272,7 +271,7 @@ public class WorkflowActionApiTest {
 				requestObject.put("workflowAction", "RESUME_PROCESSING");
 				List<String> workflowIds = new ArrayList<String>();
 				workflowIds.add("2018701130000410092018110735");
-				requestObject.put("workflowId", workflowIds);
+				requestObject.put("workflowIds", workflowIds);
 				obj.put("request", requestObject);
 				return obj;
 			}
@@ -392,8 +391,9 @@ public class WorkflowActionApiTest {
 	public void setup() throws WorkflowActionRequestValidationException {
 		ReflectionTestUtils.setField(workflowActionApi, "workerPoolSize", 10);
 		ReflectionTestUtils.setField(workflowActionApi, "clusterManagerUrl", "/dummyPath");
+		ReflectionTestUtils.setField(workflowActionApi, "dateTimePattern", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 		ctx = setContext();
-		Mockito.when(validator.validate(any())).thenReturn(true);
+
 	}
 
 	@Test
@@ -419,30 +419,30 @@ public class WorkflowActionApiTest {
 
 	@Test
 	public void testWorkflowActionRequestValidationException() throws WorkflowActionRequestValidationException {
-		Mockito.when(validator.validate(any()))
-				.thenThrow(new WorkflowActionRequestValidationException(
-						PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getCode(),
-						PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getMessage()));
+		Mockito.doThrow(new WorkflowActionRequestValidationException(
+				PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getCode(),
+				PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getMessage())).when(validator).validate(any());
+			
 		workflowActionApi.processURL(ctx);
-		assertEquals(responseObject, null);
+		assertTrue(responseObject);
 	}
 
 	@Test
 	public void testWorkflowActionException() throws WorkflowActionRequestValidationException, WorkflowActionException {
-		Mockito.when(validator.validate(any())).thenReturn(true);
+
 		Mockito.doThrow(new WorkflowActionException(PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getCode(),
 				PlatformErrorMessages.RPR_WAS_UNKNOWN_EXCEPTION.getMessage())).when(workflowActionService)
-				.processWorkflowAction(any(), any(), any());
+				.processWorkflowAction(any(), any());
 
 		workflowActionApi.processURL(ctx);
-		assertEquals(responseObject, null);
+		assertTrue(responseObject);
 	}
 
 	@Test
 	public void testException() throws WorkflowActionRequestValidationException {
-		Mockito.when(validator.validate(any()))
-				.thenThrow(new NullPointerException("", ""));
+		Mockito.doThrow(new NullPointerException("", "")).when(validator).validate(any());
+
 		workflowActionApi.processURL(ctx);
-		assertEquals(responseObject, null);
+		assertTrue(responseObject);
 	}
 }

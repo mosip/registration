@@ -31,10 +31,10 @@ public class WorkflowActionRequestValidator {
 	private static final String ID_FIELD = "id";
 
 	/** The Constant WORKFLOW_ACTION_ID. */
-	private static final String WORKFLOW_ACTION_ID = "mosip.registration.processor.workflow.action.id";
+	private static final String WORKFLOW_ACTION_ID = "mosip.regproc.workflow.action.api-id";
 
 	/** The Constant WORKFLOW_ACTION_VERSION. */
-	private static final String WORKFLOW_ACTION_VERSION = "mosip.registration.processor.workflow.action.version";
+	private static final String WORKFLOW_ACTION_VERSION = "mosip.regproc.workflow.action.version";
 
 	Logger regProcLogger = RegProcessorLogger.getLogger(WorkflowActionRequestValidator.class);
 
@@ -50,16 +50,16 @@ public class WorkflowActionRequestValidator {
 	 * @return true, if successful
 	 * @throws WorkflowActionRequestValidationException
 	 */
-	public boolean validate(WorkflowActionDTO workflowActionDTO)
+	public void validate(WorkflowActionDTO workflowActionDTO)
 			throws WorkflowActionRequestValidationException {
 		regProcLogger.debug("WorkflowActionRequestValidator  validate entry");
-		boolean isValid = false;
-		if (validateId(workflowActionDTO.getId()) && validateVersion(workflowActionDTO.getVersion())
-				&& validateReqTime(workflowActionDTO.getRequesttime())) {
-			isValid = true;
-		}
+
+		validateId(workflowActionDTO.getId());
+		validateVersion(workflowActionDTO.getVersion());
+		validateReqTime(workflowActionDTO.getRequesttime());
+
 		regProcLogger.debug("WorkflowActionRequestValidator  validate exit");
-		return isValid;
+
 	}
 
 	/**
@@ -70,7 +70,7 @@ public class WorkflowActionRequestValidator {
 	 * @return true, if successful
 	 * @throws WorkflowActionRequestValidationException
 	 */
-	private boolean validateVersion(String version)
+	private void validateVersion(String version)
 			throws WorkflowActionRequestValidationException {
 		if (Objects.isNull(version)) {
 			throw new WorkflowActionRequestValidationException(
@@ -84,8 +84,6 @@ public class WorkflowActionRequestValidator {
 					String.format(PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getMessage(), VER));
 
 
-		} else {
-			return true;
 		}
 	}
 
@@ -97,7 +95,7 @@ public class WorkflowActionRequestValidator {
 	 * @return true, if successful
 	 * @throws WorkflowActionRequestValidationException
 	 */
-	private boolean validateId(String id) throws WorkflowActionRequestValidationException {
+	private void validateId(String id) throws WorkflowActionRequestValidationException {
 		if (Objects.isNull(id)) {
 			throw new WorkflowActionRequestValidationException(
 					PlatformErrorMessages.RPR_WAA_MISSING_INPUT_PARAMETER.getCode(),
@@ -108,8 +106,6 @@ public class WorkflowActionRequestValidator {
 					PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getCode(),
 					String.format(PlatformErrorMessages.RPR_WAA_INVALID_INPUT_PARAMETER.getMessage(), ID_FIELD));
 
-		} else {
-			return true;
 		}
 	}
 
@@ -121,9 +117,9 @@ public class WorkflowActionRequestValidator {
 	 * @return true, if successful
 	 * @throws WorkflowActionRequestValidationException
 	 */
-	private boolean validateReqTime(String requesttime)
+	private void validateReqTime(String requesttime)
 			throws WorkflowActionRequestValidationException {
-		boolean isValid = false;
+
 		if (Objects.isNull(requesttime)) {
 			throw new WorkflowActionRequestValidationException(
 					PlatformErrorMessages.RPR_WAA_MISSING_INPUT_PARAMETER.getCode(),
@@ -132,7 +128,7 @@ public class WorkflowActionRequestValidator {
 		} else {
 		try {
 				DateUtils.parseToLocalDateTime(requesttime);
-				isValid = true;
+
 
 		} catch (Exception e) {
 				regProcLogger.error("Exception while parsing date {}", ExceptionUtils.getStackTrace(e));
@@ -142,6 +138,6 @@ public class WorkflowActionRequestValidator {
 
 		}
 		}
-		return isValid;
+
 	}
 }

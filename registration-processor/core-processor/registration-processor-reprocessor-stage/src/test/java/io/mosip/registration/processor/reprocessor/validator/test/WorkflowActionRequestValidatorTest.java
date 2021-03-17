@@ -24,9 +24,9 @@ public class WorkflowActionRequestValidatorTest {
 
 	@Before
 	public void setup() {
-		when(env.getProperty("mosip.registration.processor.workflow.action.id"))
+		when(env.getProperty("mosip.regproc.workflow.action.api-id"))
 				.thenReturn("mosip.registration.processor.workflow.action");
-		when(env.getProperty("mosip.registration.processor.workflow.action.version")).thenReturn("1.0");
+		when(env.getProperty("mosip.regproc.workflow.action.version")).thenReturn("1.0");
 	}
 
 	@Test

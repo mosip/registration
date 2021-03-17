@@ -16,7 +16,7 @@ public class WorkflowCompletedEventDTO {
 
 	/** The registration id. */
 	private String instanceId;
-	private String resultType;
+	private String resultCode;
 	private String workflowType;
 	private String errorCode;
 }

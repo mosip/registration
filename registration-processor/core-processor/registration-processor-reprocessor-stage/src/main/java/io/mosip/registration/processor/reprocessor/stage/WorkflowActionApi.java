@@ -1,5 +1,6 @@
 package io.mosip.registration.processor.reprocessor.stage;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -8,16 +9,20 @@ import org.springframework.beans.factory.annotation.Value;
 
 import io.mosip.kernel.core.exception.IOException;
 import io.mosip.kernel.core.logger.spi.Logger;
+import io.mosip.kernel.core.util.DateUtils;
 import io.mosip.kernel.core.util.JsonUtils;
 import io.mosip.registration.processor.core.abstractverticle.MessageDTO;
 import io.mosip.registration.processor.core.abstractverticle.MosipEventBus;
 import io.mosip.registration.processor.core.abstractverticle.MosipRouter;
 import io.mosip.registration.processor.core.abstractverticle.MosipVerticleAPIManager;
+import io.mosip.registration.processor.core.common.rest.dto.ErrorDTO;
 import io.mosip.registration.processor.core.exception.WorkflowActionException;
 import io.mosip.registration.processor.core.exception.WorkflowActionRequestValidationException;
 import io.mosip.registration.processor.core.exception.util.PlatformErrorMessages;
 import io.mosip.registration.processor.core.logger.RegProcessorLogger;
+import io.mosip.registration.processor.core.workflow.dto.ResponseDTO;
 import io.mosip.registration.processor.core.workflow.dto.WorkflowActionDTO;
+import io.mosip.registration.processor.core.workflow.dto.WorkflowActionResponseDTO;
 import io.mosip.registration.processor.reprocessor.service.WorkflowActionService;
 import io.mosip.registration.processor.reprocessor.validator.WorkflowActionRequestValidator;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
@@ -46,6 +51,14 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 	@Value("${mosip.regproc.workflowaction.eventbus.port}")
 	private String eventBusPort;
 
+	@Value("${mosip.registration.processor.datetime.pattern}")
+	private String dateTimePattern;
+
+	@Value("${mosip.regproc.workflow.action.api-id}")
+	private String id;
+
+	@Value("${mosip.regproc.workflow.action.version}")
+	private String version;
 	@Autowired
 	MosipRouter router;
 
@@ -105,30 +118,26 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 
 		List<String> workflowIds = null;
 		String workflowAction = null;
+
 		try {
 		JsonObject obj = ctx.getBodyAsJson();
 
 			WorkflowActionDTO workflowActionDTO = (WorkflowActionDTO) JsonUtils
 					.jsonStringToJavaObject(WorkflowActionDTO.class, obj.toString());
-			workflowIds = workflowActionDTO.getRequest().getWorkflowId();
+			workflowIds = workflowActionDTO.getRequest().getWorkflowIds();
 			regProcLogger.debug("WorkflowActionApi:processURL called for registration ids {}",
 					workflowIds);
-
-			boolean isValid = validator.validate(workflowActionDTO);
-
-			if (isValid) {
+			validator.validate(workflowActionDTO);
 				workflowActionService.processWorkflowAction(workflowIds,
-						workflowActionDTO.getRequest().getWorkflowAction(), mosipEventBus);
+					workflowActionDTO.getRequest().getWorkflowAction());
 
 				regProcLogger.info("Process the workflowAction successfully  for workflow ids and workflowaction {} {}",
 						workflowIds,
 						workflowAction);
+			buildResponse(ctx, "Process the workflowIds '" + workflowIds + "' successfully", null);
 
-				this.setResponse(ctx,
-						"Process the workflowIds '" + workflowIds + "' successfully");
-			}
 			regProcLogger.debug("WorkflowActionApi:processURL ended for registration ids {}",
-					workflowActionDTO.getRequest().getWorkflowId());
+					workflowActionDTO.getRequest().getWorkflowIds());
 		} catch (IOException e) {
 			logError(workflowIds, workflowAction,
 					PlatformErrorMessages.RPR_SYS_IO_EXCEPTION.getCode(),
@@ -151,7 +160,12 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 				"Error in  WorkflowActionApi:processURL  for registration ids  and workflowAction {} {} {} {} {}",
 				workflowIds, workflowAction,
 				errorMessage, e.getMessage(), ExceptionUtils.getStackTrace(e));
-		ctx.fail(e);
+		List<ErrorDTO> errors = new ArrayList<ErrorDTO>();
+		ErrorDTO errorDTO = new ErrorDTO();
+		errorDTO.setErrorCode(errorCode);
+		errorDTO.setMessage(errorMessage);
+		errors.add(errorDTO);
+		buildResponse(ctx, null, errors);
 	}
 
 	private void failure(RoutingContext routingContext) {
@@ -162,4 +176,19 @@ public class WorkflowActionApi extends MosipVerticleAPIManager {
 		return null;
 	}
 
+	private void buildResponse(RoutingContext routingContext, String message, List<ErrorDTO> errors) {
+		WorkflowActionResponseDTO workflowActionResponseDTO = new WorkflowActionResponseDTO();
+		workflowActionResponseDTO.setId(id);
+		workflowActionResponseDTO.setVersion(version);
+		workflowActionResponseDTO.setResponsetime(DateUtils.getUTCCurrentDateTimeString(dateTimePattern));
+		if (message == null) {
+			workflowActionResponseDTO.setErrors(errors);
+		} else {
+			ResponseDTO responseDTO = new ResponseDTO();
+			responseDTO.setStatusMessage(message);
+			workflowActionResponseDTO.setResponse(responseDTO);
+		}
+		this.setResponse(routingContext, workflowActionResponseDTO);
+
+	}
 }
